@@ -1,2330 +1,739 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58062 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932113Ab3AIP0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jan 2013 10:26:51 -0500
-Message-ID: <50ED8C15.8010807@iki.fi>
-Date: Wed, 09 Jan 2013 17:26:13 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Fwd: update Finland DVB-T tuning files
-References: <500DBA9E.10105@iki.fi>
-In-Reply-To: <500DBA9E.10105@iki.fi>
-Content-Type: multipart/mixed;
- boundary="------------040704040306090903060205"
+Received: from mailout4.samsung.com ([203.254.224.34]:54845 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811Ab3ACLGY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 06:06:24 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MG100HUGQU6CKX0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Jan 2013 20:06:22 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MG100FOEQU7KHB0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Jan 2013 20:06:22 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 3/3 RESEND] s5p-mfc: Change internal buffer allocation from vb2
+ ops to dma_alloc_coherent
+Date: Thu, 03 Jan 2013 12:06:04 +0100
+Message-id: <1357211164-27443-3-git-send-email-k.debski@samsung.com>
+In-reply-to: <1357211164-27443-1-git-send-email-k.debski@samsung.com>
+References: <1357211164-27443-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040704040306090903060205
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Change internal buffer allocation from vb2 memory ops call to direct
+calls of dma_alloc_coherent. This change shortens the code and makes it
+much more readable.
 
-Oliver,
-could you apply that one?
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   20 +--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |   30 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    5 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  196 ++++++++---------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |  121 +++++---------
+ 5 files changed, 143 insertions(+), 229 deletions(-)
 
-Antti
-
-
--------- Original Message --------
-Subject: update Finland DVB-T tuning files
-Date: Mon, 23 Jul 2012 23:57:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-To: Christoph Pfister <christophpfister@gmail.com>,        linux-media 
-<linux-media@vger.kernel.org>
-
-Christoph, apply attached patch thanks!
-
-Antti
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 2298d27..4e1a28c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -495,15 +495,9 @@ struct s5p_mfc_codec_ops {
+  *			flushed
+  * @head_processed:	flag mentioning whether the header data is processed
+  *			completely or not
+- * @bank1_buf:		handle to memory allocated for temporary buffers from
++ * @bank1:		handle to memory allocated for temporary buffers from
+  *			memory bank 1
+- * @bank1_phys:		address of the temporary buffers from memory bank 1
+- * @bank1_size:		size of the memory allocated for temporary buffers from
+- *			memory bank 1
+- * @bank2_buf:		handle to memory allocated for temporary buffers from
+- *			memory bank 2
+- * @bank2_phys:		address of the temporary buffers from memory bank 2
+- * @bank2_size:		size of the memory allocated for temporary buffers from
++ * @bank2:		handle to memory allocated for temporary buffers from
+  *			memory bank 2
+  * @capture_state:	state of the capture buffers queue
+  * @output_state:	state of the output buffers queue
+@@ -583,14 +577,8 @@ struct s5p_mfc_ctx {
+ 	unsigned int dpb_flush_flag;
+ 	unsigned int head_processed;
+ 
+-	/* Buffers */
+-	void *bank1_buf;
+-	size_t bank1_phys;
+-	size_t bank1_size;
+-
+-	void *bank2_buf;
+-	size_t bank2_phys;
+-	size_t bank2_size;
++	struct s5p_mfc_priv_buf bank1;
++	struct s5p_mfc_priv_buf bank2;
+ 
+ 	enum s5p_mfc_queue_state capture_state;
+ 	enum s5p_mfc_queue_state output_state;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index 6932e90..b4c1943 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -12,6 +12,7 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include "s5p_mfc_debug.h"
+ #include "s5p_mfc_opr.h"
+ #include "s5p_mfc_opr_v5.h"
+ #include "s5p_mfc_opr_v6.h"
+@@ -29,3 +30,32 @@ void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
+ 	}
+ 	dev->mfc_ops = s5p_mfc_ops;
+ }
++
++int s5p_mfc_alloc_priv_buf(struct device *dev,
++					struct s5p_mfc_priv_buf *b)
++{
++
++	mfc_debug(3, "Allocating priv: %d\n", b->size);
++
++	b->virt = dma_alloc_coherent(dev, b->size, &b->dma, GFP_KERNEL);
++
++	if (!b->virt) {
++		mfc_err("Allocating private buffer failed\n");
++		return -ENOMEM;
++	}
++
++	mfc_debug(3, "Allocated addr %p %08x\n", b->virt, b->dma);
++	return 0;
++}
++
++void s5p_mfc_release_priv_buf(struct device *dev,
++						struct s5p_mfc_priv_buf *b)
++{
++	if (b->virt) {
++		dma_free_coherent(dev, b->size, b->virt, b->dma);
++		b->virt = 0;
++		b->dma = 0;
++		b->size = 0;
++	}
++}
++
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 420abec..754c540 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -80,5 +80,10 @@ struct s5p_mfc_hw_ops {
+ };
+ 
+ void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev);
++int s5p_mfc_alloc_priv_buf(struct device *dev,
++					struct s5p_mfc_priv_buf *b);
++void s5p_mfc_release_priv_buf(struct device *dev,
++					struct s5p_mfc_priv_buf *b);
++
+ 
+ #endif /* S5P_MFC_OPR_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index bf7d010..15f40e4 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -38,39 +38,26 @@ int s5p_mfc_alloc_dec_temp_buffers_v5(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
++	int ret;
+ 
+-	ctx->dsc.alloc = vb2_dma_contig_memops.alloc(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX],
+-			buf_size->dsc);
+-	if (IS_ERR_VALUE((int)ctx->dsc.alloc)) {
+-		ctx->dsc.alloc = NULL;
+-		mfc_err("Allocating DESC buffer failed\n");
+-		return -ENOMEM;
++	ctx->dsc.size = buf_size->dsc;
++	ret =  s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->dsc);
++	if (ret) {
++		mfc_err("Failed to allocate temporary buffer\n");
++		return ret;
+ 	}
+-	ctx->dsc.dma = s5p_mfc_mem_cookie(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->dsc.alloc);
++
+ 	BUG_ON(ctx->dsc.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+-	ctx->dsc.virt = vb2_dma_contig_memops.vaddr(ctx->dsc.alloc);
+-	if (ctx->dsc.virt == NULL) {
+-		vb2_dma_contig_memops.put(ctx->dsc.alloc);
+-		ctx->dsc.dma = 0;
+-		ctx->dsc.alloc = NULL;
+-		mfc_err("Remapping DESC buffer failed\n");
+-		return -ENOMEM;
+-	}
+-	memset(ctx->dsc.virt, 0, buf_size->dsc);
++	memset(ctx->dsc.virt, 0, ctx->dsc.size);
+ 	wmb();
+ 	return 0;
+ }
+ 
++
+ /* Release temporary buffers for decoding */
+ void s5p_mfc_release_dec_desc_buffer_v5(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->dsc.dma) {
+-		vb2_dma_contig_memops.put(ctx->dsc.alloc);
+-		ctx->dsc.alloc = NULL;
+-		ctx->dsc.dma = 0;
+-	}
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->dsc);
+ }
+ 
+ /* Allocate codec buffers */
+@@ -80,6 +67,7 @@ int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 	unsigned int enc_ref_y_size = 0;
+ 	unsigned int enc_ref_c_size = 0;
+ 	unsigned int guard_width, guard_height;
++	int ret;
+ 
+ 	if (ctx->type == MFCINST_DECODER) {
+ 		mfc_debug(2, "Luma size:%d Chroma size:%d MV size:%d\n",
+@@ -113,100 +101,93 @@ int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ 	/* Codecs have different memory requirements */
+ 	switch (ctx->codec_mode) {
+ 	case S5P_MFC_CODEC_H264_DEC:
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 		    ALIGN(S5P_FIMV_DEC_NB_IP_SIZE +
+ 					S5P_FIMV_DEC_VERT_NB_MV_SIZE,
+ 					S5P_FIMV_DEC_BUF_ALIGN);
+-		ctx->bank2_size = ctx->total_dpb_count * ctx->mv_size;
++		ctx->bank2.size = ctx->total_dpb_count * ctx->mv_size;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_DEC:
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 		    ALIGN(S5P_FIMV_DEC_NB_DCAC_SIZE +
+ 				     S5P_FIMV_DEC_UPNB_MV_SIZE +
+ 				     S5P_FIMV_DEC_SUB_ANCHOR_MV_SIZE +
+ 				     S5P_FIMV_DEC_STX_PARSER_SIZE +
+ 				     S5P_FIMV_DEC_OVERLAP_TRANSFORM_SIZE,
+ 				     S5P_FIMV_DEC_BUF_ALIGN);
+-		ctx->bank2_size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_VC1RCV_DEC:
+ 	case S5P_MFC_CODEC_VC1_DEC:
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 		    ALIGN(S5P_FIMV_DEC_OVERLAP_TRANSFORM_SIZE +
+ 			     S5P_FIMV_DEC_UPNB_MV_SIZE +
+ 			     S5P_FIMV_DEC_SUB_ANCHOR_MV_SIZE +
+ 			     S5P_FIMV_DEC_NB_DCAC_SIZE +
+ 			     3 * S5P_FIMV_DEC_VC1_BITPLANE_SIZE,
+ 			     S5P_FIMV_DEC_BUF_ALIGN);
+-		ctx->bank2_size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+-		ctx->bank1_size = 0;
+-		ctx->bank2_size = 0;
++		ctx->bank1.size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_H263_DEC:
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 		    ALIGN(S5P_FIMV_DEC_OVERLAP_TRANSFORM_SIZE +
+ 			     S5P_FIMV_DEC_UPNB_MV_SIZE +
+ 			     S5P_FIMV_DEC_SUB_ANCHOR_MV_SIZE +
+ 			     S5P_FIMV_DEC_NB_DCAC_SIZE,
+ 			     S5P_FIMV_DEC_BUF_ALIGN);
+-		ctx->bank2_size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+-		ctx->bank1_size = (enc_ref_y_size * 2) +
++		ctx->bank1.size = (enc_ref_y_size * 2) +
+ 				   S5P_FIMV_ENC_UPMV_SIZE +
+ 				   S5P_FIMV_ENC_COLFLG_SIZE +
+ 				   S5P_FIMV_ENC_INTRAMD_SIZE +
+ 				   S5P_FIMV_ENC_NBORINFO_SIZE;
+-		ctx->bank2_size = (enc_ref_y_size * 2) +
++		ctx->bank2.size = (enc_ref_y_size * 2) +
+ 				   (enc_ref_c_size * 4) +
+ 				   S5P_FIMV_ENC_INTRAPRED_SIZE;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_ENC:
+-		ctx->bank1_size = (enc_ref_y_size * 2) +
++		ctx->bank1.size = (enc_ref_y_size * 2) +
+ 				   S5P_FIMV_ENC_UPMV_SIZE +
+ 				   S5P_FIMV_ENC_COLFLG_SIZE +
+ 				   S5P_FIMV_ENC_ACDCCOEF_SIZE;
+-		ctx->bank2_size = (enc_ref_y_size * 2) +
++		ctx->bank2.size = (enc_ref_y_size * 2) +
+ 				   (enc_ref_c_size * 4);
+ 		break;
+ 	case S5P_MFC_CODEC_H263_ENC:
+-		ctx->bank1_size = (enc_ref_y_size * 2) +
++		ctx->bank1.size = (enc_ref_y_size * 2) +
+ 				   S5P_FIMV_ENC_UPMV_SIZE +
+ 				   S5P_FIMV_ENC_ACDCCOEF_SIZE;
+-		ctx->bank2_size = (enc_ref_y_size * 2) +
++		ctx->bank2.size = (enc_ref_y_size * 2) +
+ 				   (enc_ref_c_size * 4);
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ 	/* Allocate only if memory from bank 1 is necessary */
+-	if (ctx->bank1_size > 0) {
+-		ctx->bank1_buf = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
+-		if (IS_ERR(ctx->bank1_buf)) {
+-			ctx->bank1_buf = NULL;
+-			printk(KERN_ERR
+-			       "Buf alloc for decoding failed (port A)\n");
+-			return -ENOMEM;
++	if (ctx->bank1.size > 0) {
++
++		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->bank1);
++		if (ret) {
++			mfc_err("Failed to allocate Bank1 temporary buffer\n");
++			return ret;
+ 		}
+-		ctx->bank1_phys = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_buf);
+-		BUG_ON(ctx->bank1_phys & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++		BUG_ON(ctx->bank1.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 	}
+ 	/* Allocate only if memory from bank 2 is necessary */
+-	if (ctx->bank2_size > 0) {
+-		ctx->bank2_buf = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], ctx->bank2_size);
+-		if (IS_ERR(ctx->bank2_buf)) {
+-			ctx->bank2_buf = NULL;
+-			mfc_err("Buf alloc for decoding failed (port B)\n");
+-			return -ENOMEM;
++	if (ctx->bank2.size > 0) {
++		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_r, &ctx->bank2);
++		if (ret) {
++			mfc_err("Failed to allocate Bank2 temporary buffer\n");
++		s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->bank1);
++			return ret;
+ 		}
+-		ctx->bank2_phys = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], ctx->bank2_buf);
+-		BUG_ON(ctx->bank2_phys & ((1 << MFC_BANK2_ALIGN_ORDER) - 1));
++		BUG_ON(ctx->bank2.dma & ((1 << MFC_BANK2_ALIGN_ORDER) - 1));
+ 	}
+ 	return 0;
+ }
+@@ -214,18 +195,8 @@ int s5p_mfc_alloc_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ /* Release buffers allocated for codec */
+ void s5p_mfc_release_codec_buffers_v5(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->bank1_buf) {
+-		vb2_dma_contig_memops.put(ctx->bank1_buf);
+-		ctx->bank1_buf = NULL;
+-		ctx->bank1_phys = 0;
+-		ctx->bank1_size = 0;
+-	}
+-	if (ctx->bank2_buf) {
+-		vb2_dma_contig_memops.put(ctx->bank2_buf);
+-		ctx->bank2_buf = NULL;
+-		ctx->bank2_phys = 0;
+-		ctx->bank2_size = 0;
+-	}
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->bank1);
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_r, &ctx->bank2);
+ }
+ 
+ /* Allocate memory for instance data buffer */
+@@ -233,58 +204,38 @@ int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf_size_v5 *buf_size = dev->variant->buf_size->priv;
++	int ret;
+ 
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+ 		ctx->codec_mode == S5P_MFC_CODEC_H264_ENC)
+ 		ctx->ctx.size = buf_size->h264_ctx;
+ 	else
+ 		ctx->ctx.size = buf_size->non_h264_ctx;
+-	ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.size);
+-	if (IS_ERR(ctx->ctx.alloc)) {
+-		mfc_err("Allocating context buffer failed\n");
+-		ctx->ctx.alloc = NULL;
+-		return -ENOMEM;
++
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->ctx);
++	if (ret) {
++		mfc_err("Failed to allocate instance buffer\n");
++		return ret;
+ 	}
+-	ctx->ctx.dma = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
+-	BUG_ON(ctx->ctx.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 	ctx->ctx.ofs = OFFSETA(ctx->ctx.dma);
+-	ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
+-	if (!ctx->ctx.virt) {
+-		mfc_err("Remapping instance buffer failed\n");
+-		vb2_dma_contig_memops.put(ctx->ctx.alloc);
+-		ctx->ctx.alloc = NULL;
+-		ctx->ctx.ofs = 0;
+-		ctx->ctx.dma = 0;
+-		return -ENOMEM;
+-	}
++
+ 	/* Zero content of the allocated memory */
+ 	memset(ctx->ctx.virt, 0, ctx->ctx.size);
+ 	wmb();
+ 
+ 	/* Initialize shared memory */
+-	ctx->shm.alloc = vb2_dma_contig_memops.alloc(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], buf_size->shm);
+-	if (IS_ERR(ctx->shm.alloc)) {
+-		mfc_err("failed to allocate shared memory\n");
+-		return PTR_ERR(ctx->shm.alloc);
++	ctx->shm.size = buf_size->shm;
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->shm);
++	if (ret) {
++		mfc_err("Failed to allocate shared memory buffer\n");
++		return ret;
+ 	}
++
+ 	/* shared memory offset only keeps the offset from base (port a) */
+-	ctx->shm.ofs = s5p_mfc_mem_cookie(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->shm.alloc)
+-								- dev->bank1;
++	ctx->shm.ofs = ctx->shm.dma - dev->bank1;
+ 	BUG_ON(ctx->shm.ofs & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 
+-	ctx->shm.virt = vb2_dma_contig_memops.vaddr(ctx->shm.alloc);
+-	if (!ctx->shm.virt) {
+-		vb2_dma_contig_memops.put(ctx->shm.alloc);
+-		ctx->shm.alloc = NULL;
+-		ctx->shm.ofs = 0;
+-		mfc_err("failed to virt addr of shared memory\n");
+-		return -ENOMEM;
+-	}
+-	memset((void *)ctx->shm.virt, 0, buf_size->shm);
++	memset(ctx->shm.virt, 0, buf_size->shm);
+ 	wmb();
+ 	return 0;
+ }
+@@ -292,19 +243,8 @@ int s5p_mfc_alloc_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ /* Release instance buffer */
+ void s5p_mfc_release_instance_buffer_v5(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->ctx.alloc) {
+-		vb2_dma_contig_memops.put(ctx->ctx.alloc);
+-		ctx->ctx.alloc = NULL;
+-		ctx->ctx.ofs = 0;
+-		ctx->ctx.virt = NULL;
+-		ctx->ctx.dma = 0;
+-	}
+-	if (ctx->shm.alloc) {
+-		vb2_dma_contig_memops.put(ctx->shm.alloc);
+-		ctx->shm.alloc = NULL;
+-		ctx->shm.ofs = 0;
+-		ctx->shm.virt = NULL;
+-	}
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->ctx);
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->shm);
+ }
+ 
+ int s5p_mfc_alloc_dev_context_buffer_v5(struct s5p_mfc_dev *dev)
+@@ -443,10 +383,10 @@ int s5p_mfc_set_dec_frame_buffer_v5(struct s5p_mfc_ctx *ctx)
+ 	size_t buf_addr1, buf_addr2;
+ 	int buf_size1, buf_size2;
+ 
+-	buf_addr1 = ctx->bank1_phys;
+-	buf_size1 = ctx->bank1_size;
+-	buf_addr2 = ctx->bank2_phys;
+-	buf_size2 = ctx->bank2_size;
++	buf_addr1 = ctx->bank1.dma;
++	buf_size1 = ctx->bank1.size;
++	buf_addr2 = ctx->bank2.dma;
++	buf_size2 = ctx->bank2.size;
+ 	dpb = mfc_read(dev, S5P_FIMV_SI_CH0_DPB_CONF_CTRL) &
+ 						~S5P_FIMV_DPB_COUNT_MASK;
+ 	mfc_write(dev, ctx->total_dpb_count | dpb,
+@@ -607,10 +547,10 @@ int s5p_mfc_set_enc_ref_buffer_v5(struct s5p_mfc_ctx *ctx)
+ 	unsigned int guard_width, guard_height;
+ 	int i;
+ 
+-	buf_addr1 = ctx->bank1_phys;
+-	buf_size1 = ctx->bank1_size;
+-	buf_addr2 = ctx->bank2_phys;
+-	buf_size2 = ctx->bank2_size;
++	buf_addr1 = ctx->bank1.dma;
++	buf_size1 = ctx->bank1.size;
++	buf_addr2 = ctx->bank2.dma;
++	buf_size2 = ctx->bank2.size;
+ 	enc_ref_y_size = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN)
+ 		* ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN);
+ 	enc_ref_y_size = ALIGN(enc_ref_y_size, S5P_FIMV_NV12MT_SALIGN);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 3a8cfd9..30d91c6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -73,6 +73,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	unsigned int mb_width, mb_height;
++	int ret;
+ 
+ 	mb_width = MB_WIDTH(ctx->img_width);
+ 	mb_height = MB_HEIGHT(ctx->img_height);
+@@ -112,7 +113,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
+@@ -123,7 +124,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size = ctx->scratch_buf_size;
++		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_VC1RCV_DEC:
+ 	case S5P_MFC_CODEC_VC1_DEC:
+@@ -133,11 +134,11 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size = ctx->scratch_buf_size;
++		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+-		ctx->bank1_size = 0;
+-		ctx->bank2_size = 0;
++		ctx->bank1.size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_H263_DEC:
+ 		ctx->scratch_buf_size =
+@@ -146,7 +147,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size = ctx->scratch_buf_size;
++		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_VP8_DEC:
+ 		ctx->scratch_buf_size =
+@@ -155,7 +156,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size = ctx->scratch_buf_size;
++		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		ctx->scratch_buf_size =
+@@ -164,11 +165,11 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 			ctx->scratch_buf_size + ctx->tmv_buffer_size +
+ 			(ctx->dpb_count * (ctx->luma_dpb_size +
+ 			ctx->chroma_dpb_size + ctx->me_buffer_size));
+-		ctx->bank2_size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_ENC:
+ 	case S5P_MFC_CODEC_H263_ENC:
+@@ -178,28 +179,24 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 					mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1_size =
++		ctx->bank1.size =
+ 			ctx->scratch_buf_size + ctx->tmv_buffer_size +
+ 			(ctx->dpb_count * (ctx->luma_dpb_size +
+ 			ctx->chroma_dpb_size + ctx->me_buffer_size));
+-		ctx->bank2_size = 0;
++		ctx->bank2.size = 0;
+ 		break;
+ 	default:
+ 		break;
+ 	}
+ 
+ 	/* Allocate only if memory from bank 1 is necessary */
+-	if (ctx->bank1_size > 0) {
+-		ctx->bank1_buf = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
+-		if (IS_ERR(ctx->bank1_buf)) {
+-			ctx->bank1_buf = 0;
+-			pr_err("Buf alloc for decoding failed (port A)\n");
+-			return -ENOMEM;
++	if (ctx->bank1.size > 0) {
++		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->bank1);
++		if (ret) {
++			mfc_err("Failed to allocate Bank1 memory\n");
++			return ret;
+ 		}
+-		ctx->bank1_phys = s5p_mfc_mem_cookie(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_buf);
+-		BUG_ON(ctx->bank1_phys & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++		BUG_ON(ctx->bank1.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 	}
+ 
+ 	return 0;
+@@ -208,12 +205,7 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ /* Release buffers allocated for codec */
+ void s5p_mfc_release_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+-	if (ctx->bank1_buf) {
+-		vb2_dma_contig_memops.put(ctx->bank1_buf);
+-		ctx->bank1_buf = 0;
+-		ctx->bank1_phys = 0;
+-		ctx->bank1_size = 0;
+-	}
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->bank1);
+ }
+ 
+ /* Allocate memory for instance data buffer */
+@@ -221,6 +213,7 @@ int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
++	int ret;
+ 
+ 	mfc_debug_enter();
+ 
+@@ -250,25 +243,10 @@ int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	}
+ 
+-	ctx->ctx.alloc = vb2_dma_contig_memops.alloc(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.size);
+-	if (IS_ERR(ctx->ctx.alloc)) {
+-		mfc_err("Allocating context buffer failed.\n");
+-		return PTR_ERR(ctx->ctx.alloc);
+-	}
+-
+-	ctx->ctx.dma = s5p_mfc_mem_cookie(
+-		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->ctx.alloc);
+-
+-	ctx->ctx.virt = vb2_dma_contig_memops.vaddr(ctx->ctx.alloc);
+-	if (!ctx->ctx.virt) {
+-		vb2_dma_contig_memops.put(ctx->ctx.alloc);
+-		ctx->ctx.alloc = NULL;
+-		ctx->ctx.dma = 0;
+-		ctx->ctx.virt = NULL;
+-
+-		mfc_err("Remapping context buffer failed.\n");
+-		return -ENOMEM;
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->ctx);
++	if (ret) {
++		mfc_err("Failed to allocate instance buffer\n");
++		return ret;
+ 	}
+ 
+ 	memset(ctx->ctx.virt, 0, ctx->ctx.size);
+@@ -282,44 +260,22 @@ int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ /* Release instance buffer */
+ void s5p_mfc_release_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ {
+-	mfc_debug_enter();
+-
+-	if (ctx->ctx.alloc) {
+-		vb2_dma_contig_memops.put(ctx->ctx.alloc);
+-		ctx->ctx.alloc = NULL;
+-		ctx->ctx.dma = 0;
+-		ctx->ctx.virt = NULL;
+-	}
+-
+-	mfc_debug_leave();
++	s5p_mfc_release_priv_buf(ctx->dev->mem_dev_l, &ctx->ctx);
+ }
+ 
+ /* Allocate context buffers for SYS_INIT */
+ int s5p_mfc_alloc_dev_context_buffer_v6(struct s5p_mfc_dev *dev)
+ {
+ 	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
++	int ret;
+ 
+ 	mfc_debug_enter();
+ 
+-	dev->ctx_buf.alloc = vb2_dma_contig_memops.alloc(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], buf_size->dev_ctx);
+-	if (IS_ERR(dev->ctx_buf.alloc)) {
+-		mfc_err("Allocating DESC buffer failed.\n");
+-		return PTR_ERR(dev->ctx_buf.alloc);
+-	}
+-
+-	dev->ctx_buf.dma = s5p_mfc_mem_cookie(
+-			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX],
+-			dev->ctx_buf.alloc);
+-
+-	dev->ctx_buf.virt = vb2_dma_contig_memops.vaddr(dev->ctx_buf.alloc);
+-	if (!dev->ctx_buf.virt) {
+-		vb2_dma_contig_memops.put(dev->ctx_buf.alloc);
+-		dev->ctx_buf.alloc = NULL;
+-		dev->ctx_buf.dma = 0;
+-
+-		mfc_err("Remapping DESC buffer failed.\n");
+-		return -ENOMEM;
++	dev->ctx_buf.size = buf_size->dev_ctx;
++	ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &dev->ctx_buf);
++	if (ret) {
++		mfc_err("Failed to allocate device context buffer\n");
++		return ret;
+ 	}
+ 
+ 	memset(dev->ctx_buf.virt, 0, buf_size->dev_ctx);
+@@ -333,12 +289,7 @@ int s5p_mfc_alloc_dev_context_buffer_v6(struct s5p_mfc_dev *dev)
+ /* Release context buffers for SYS_INIT */
+ void s5p_mfc_release_dev_context_buffer_v6(struct s5p_mfc_dev *dev)
+ {
+-	if (dev->ctx_buf.alloc) {
+-		vb2_dma_contig_memops.put(dev->ctx_buf.alloc);
+-		dev->ctx_buf.alloc = NULL;
+-		dev->ctx_buf.dma = 0;
+-		dev->ctx_buf.virt = NULL;
+-	}
++	s5p_mfc_release_priv_buf(dev->mem_dev_l, &dev->ctx_buf);
+ }
+ 
+ static int calc_plane(int width, int height)
+@@ -417,8 +368,8 @@ int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	int buf_size1;
+ 	int align_gap;
+ 
+-	buf_addr1 = ctx->bank1_phys;
+-	buf_size1 = ctx->bank1_size;
++	buf_addr1 = ctx->bank1.dma;
++	buf_size1 = ctx->bank1.size;
+ 
+ 	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
+ 	mfc_debug(2, "Total DPB COUNT: %d\n", ctx->total_dpb_count);
+@@ -540,8 +491,8 @@ int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	mfc_debug_enter();
+ 
+-	buf_addr1 = ctx->bank1_phys;
+-	buf_size1 = ctx->bank1_size;
++	buf_addr1 = ctx->bank1.dma;
++	buf_size1 = ctx->bank1.size;
+ 
+ 	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
+ 
 -- 
-http://palosaari.fi/
+1.7.9.5
 
-
-
-
---------------040704040306090903060205
-Content-Type: text/x-patch;
- name="fi-update-2012-07-23.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="fi-update-2012-07-23.patch"
-
-# HG changeset patch
-# User Antti Palosaari <crope@iki.fi>
-# Date 1343076451 -10800
-# Node ID 595b4077aa6c5dda3374c95596800a2505116e99
-# Parent  96025655e6e844af2bc69bd368f8d04a4e5bc58b
-update Finland DVB-T initial tuning files
-
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Aanekoski
---- a/util/scan/dvb-t/fi-Aanekoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Aanekoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Aanekoski_Konginkangas
---- a/util/scan/dvb-t/fi-Aanekoski_Konginkangas	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Aanekoski_Konginkangas	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ahtari
---- a/util/scan/dvb-t/fi-Ahtari	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ahtari	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ala-Vuokki
---- a/util/scan/dvb-t/fi-Ala-Vuokki	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Alajarvi
---- a/util/scan/dvb-t/fi-Alajarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Alajarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ammansaari
---- a/util/scan/dvb-t/fi-Ammansaari	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Anjalankoski
---- a/util/scan/dvb-t/fi-Anjalankoski	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Anjalankoski_Ruotila
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Anjalankoski_Ruotila	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,7 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Enontekio_Ahovaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Enontekio_Ahovaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Enontekio_Hetta
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Enontekio_Hetta	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Enontekio_Kuttanen
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Enontekio_Kuttanen	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Enontekio_Raattama
---- a/util/scan/dvb-t/fi-Enontekio_Raattama	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Espoo
---- a/util/scan/dvb-t/fi-Espoo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Espoo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Eurajoki
---- a/util/scan/dvb-t/fi-Eurajoki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Eurajoki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Fiskars
---- a/util/scan/dvb-t/fi-Fiskars	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Fiskars	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Haapavesi
---- a/util/scan/dvb-t/fi-Haapavesi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Haapavesi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hameenkyro_Kyroskoski
---- a/util/scan/dvb-t/fi-Hameenkyro_Kyroskoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hameenkyro_Kyroskoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hameenlinna_Painokangas
---- a/util/scan/dvb-t/fi-Hameenlinna_Painokangas	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hameenlinna_Painokangas	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hanko
---- a/util/scan/dvb-t/fi-Hanko	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hanko	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hartola
---- a/util/scan/dvb-t/fi-Hartola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hartola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Haukela
---- a/util/scan/dvb-t/fi-Haukela	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Heinavesi
---- a/util/scan/dvb-t/fi-Heinavesi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Heinavesi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Heinola
---- a/util/scan/dvb-t/fi-Heinola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Heinola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hetta
---- a/util/scan/dvb-t/fi-Hetta	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hossa
---- a/util/scan/dvb-t/fi-Hossa	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Houtskari
---- a/util/scan/dvb-t/fi-Houtskari	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hyrynsalmi
---- a/util/scan/dvb-t/fi-Hyrynsalmi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hyrynsalmi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hyrynsalmi_Kyparavaara
---- a/util/scan/dvb-t/fi-Hyrynsalmi_Kyparavaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hyrynsalmi_Kyparavaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hyrynsalmi_Paljakka
---- a/util/scan/dvb-t/fi-Hyrynsalmi_Paljakka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Hyrynsalmi_Paljakka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hyvinkaa
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Hyvinkaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,6 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 350000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Hyvinkaa_Musta-Mannisto
---- a/util/scan/dvb-t/fi-Hyvinkaa_Musta-Mannisto	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 350000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ii_Raiskio
---- a/util/scan/dvb-t/fi-Ii_Raiskio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ii_Raiskio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Iisalmi
---- a/util/scan/dvb-t/fi-Iisalmi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Iisalmi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ikaalinen
---- a/util/scan/dvb-t/fi-Ikaalinen	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ikaalinen	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ikaalinen_Riitiala
---- a/util/scan/dvb-t/fi-Ikaalinen_Riitiala	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ikaalinen_Riitiala	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Inari
---- a/util/scan/dvb-t/fi-Inari	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Inari	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Inari_Janispaa
---- a/util/scan/dvb-t/fi-Inari_Janispaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Inari_Janispaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Inari_Naatamo
---- a/util/scan/dvb-t/fi-Inari_Naatamo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Inari_Naatamo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ivalo_Saarineitamovaara
---- a/util/scan/dvb-t/fi-Ivalo_Saarineitamovaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ivalo_Saarineitamovaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jalasjarvi
---- a/util/scan/dvb-t/fi-Jalasjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jalasjarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsa_Halli
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Jamsa_Halli	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,6 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsa_Kaipola
---- a/util/scan/dvb-t/fi-Jamsa_Kaipola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jamsa_Kaipola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsa_Kuorevesi_Halli
---- a/util/scan/dvb-t/fi-Jamsa_Kuorevesi_Halli	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsa_Matkosvuori
---- a/util/scan/dvb-t/fi-Jamsa_Matkosvuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jamsa_Matkosvuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsa_Ouninpohja
---- a/util/scan/dvb-t/fi-Jamsa_Ouninpohja	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jamsa_Ouninpohja	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jamsankoski
---- a/util/scan/dvb-t/fi-Jamsankoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jamsankoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Joensuu_Vestinkallio
---- a/util/scan/dvb-t/fi-Joensuu_Vestinkallio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Joensuu_Vestinkallio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Joroinen_Puukkola
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Joroinen_Puukkola	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Joroinen_Puukkola-Huutokoski
---- a/util/scan/dvb-t/fi-Joroinen_Puukkola-Huutokoski	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Joutsa_Lankia
---- a/util/scan/dvb-t/fi-Joutsa_Lankia	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Joutsa_Lankia	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Joutseno
---- a/util/scan/dvb-t/fi-Joutseno	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Joutseno	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Juntusranta
---- a/util/scan/dvb-t/fi-Juntusranta	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Juupajoki_Kopsamo
---- a/util/scan/dvb-t/fi-Juupajoki_Kopsamo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Juupajoki_Kopsamo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Juva
---- a/util/scan/dvb-t/fi-Juva	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Juva	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jyvaskyla
---- a/util/scan/dvb-t/fi-Jyvaskyla	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Jyvaskyla	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Jyvaskyla_Vaajakoski
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Jyvaskyla_Vaajakoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kaavi_Luikonlahti
---- a/util/scan/dvb-t/fi-Kaavi_Luikonlahti	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kaavi_Sivakkavaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Kaavi_Sivakkavaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kajaani_Pollyvaara
---- a/util/scan/dvb-t/fi-Kajaani_Pollyvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kajaani_Pollyvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kalajoki
---- a/util/scan/dvb-t/fi-Kalajoki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kalajoki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kangaslampi
---- a/util/scan/dvb-t/fi-Kangaslampi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kangaslampi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kangasniemi_Turkinmaki
---- a/util/scan/dvb-t/fi-Kangasniemi_Turkinmaki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kangasniemi_Turkinmaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kankaanpaa
---- a/util/scan/dvb-t/fi-Kankaanpaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kankaanpaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Karigasniemi
---- a/util/scan/dvb-t/fi-Karigasniemi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Karigasniemi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Karkkila
---- a/util/scan/dvb-t/fi-Karkkila	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Karkkila	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Karstula
---- a/util/scan/dvb-t/fi-Karstula	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Karstula	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Karvia
---- a/util/scan/dvb-t/fi-Karvia	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Karvia	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kaunispaa
---- a/util/scan/dvb-t/fi-Kaunispaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kaunispaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kemijarvi_Suomutunturi
---- a/util/scan/dvb-t/fi-Kemijarvi_Suomutunturi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kemijarvi_Suomutunturi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kerimaki
---- a/util/scan/dvb-t/fi-Kerimaki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kerimaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Keuruu
---- a/util/scan/dvb-t/fi-Keuruu	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Keuruu	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Keuruu_Haapamaki
---- a/util/scan/dvb-t/fi-Keuruu_Haapamaki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Keuruu_Haapamaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kihnio
---- a/util/scan/dvb-t/fi-Kihnio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kihnio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kiihtelysvaara
---- a/util/scan/dvb-t/fi-Kiihtelysvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kiihtelysvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kilpisjarvi
---- a/util/scan/dvb-t/fi-Kilpisjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kilpisjarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kittila_Levitunturi
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Kittila_Levitunturi	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kittila_Sirkka_Levitunturi
---- a/util/scan/dvb-t/fi-Kittila_Sirkka_Levitunturi	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kolari_Vuolittaja
---- a/util/scan/dvb-t/fi-Kolari_Vuolittaja	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kolari_Vuolittaja	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Koli
---- a/util/scan/dvb-t/fi-Koli	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Koli	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Korpilahti_Vaarunvuori
---- a/util/scan/dvb-t/fi-Korpilahti_Vaarunvuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Korpilahti_Vaarunvuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Korppoo
---- a/util/scan/dvb-t/fi-Korppoo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Korppoo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kruunupyy
---- a/util/scan/dvb-t/fi-Kruunupyy	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kruunupyy	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmo_Haukela
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Kuhmo_Haukela	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmo_Iivantiira
---- a/util/scan/dvb-t/fi-Kuhmo_Iivantiira	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmo_Lentiira
---- a/util/scan/dvb-t/fi-Kuhmo_Lentiira	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kuhmo_Lentiira	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmo_Niva
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Kuhmo_Niva	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmoinen
---- a/util/scan/dvb-t/fi-Kuhmoinen	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kuhmoinen	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmoinen_Harjunsalmi
---- a/util/scan/dvb-t/fi-Kuhmoinen_Harjunsalmi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kuhmoinen_Harjunsalmi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuhmoinen_Puukkoinen
---- a/util/scan/dvb-t/fi-Kuhmoinen_Puukkoinen	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kuhmoinen_Puukkoinen	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuopio
---- a/util/scan/dvb-t/fi-Kuopio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kuopio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kustavi_Viherlahti
---- a/util/scan/dvb-t/fi-Kustavi_Viherlahti	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kustavi_Viherlahti	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuttanen
---- a/util/scan/dvb-t/fi-Kuttanen	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kuusamo_Hamppulampi
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Kuusamo_Hamppulampi	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Kyyjarvi_Noposenaho
---- a/util/scan/dvb-t/fi-Kyyjarvi_Noposenaho	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Kyyjarvi_Noposenaho	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lahti
---- a/util/scan/dvb-t/fi-Lahti	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Lahti	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lapua
---- a/util/scan/dvb-t/fi-Lapua	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Lapua	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Laukaa
---- a/util/scan/dvb-t/fi-Laukaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Laukaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Laukaa_Vihtavuori
---- a/util/scan/dvb-t/fi-Laukaa_Vihtavuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Laukaa_Vihtavuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lavia
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Lavia	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lavia_Lavianjarvi
---- a/util/scan/dvb-t/fi-Lavia_Lavianjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lieksa_Konnanvaara
---- a/util/scan/dvb-t/fi-Lieksa_Konnanvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Lohja
---- a/util/scan/dvb-t/fi-Lohja	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Lohja	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Loimaa
---- a/util/scan/dvb-t/fi-Loimaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Loimaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Luhanka
---- a/util/scan/dvb-t/fi-Luhanka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Luhanka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Luopioinen
---- a/util/scan/dvb-t/fi-Luopioinen	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Luopioinen	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Mantta
---- a/util/scan/dvb-t/fi-Mantta	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Mantta	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Mantyharju
---- a/util/scan/dvb-t/fi-Mantyharju	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Mantyharju	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Mikkeli
---- a/util/scan/dvb-t/fi-Mikkeli	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Mikkeli	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Muonio_Olostunturi
---- a/util/scan/dvb-t/fi-Muonio_Olostunturi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Muonio_Olostunturi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Mustasaari
---- a/util/scan/dvb-t/fi-Mustasaari	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,3 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Myllylahti
---- a/util/scan/dvb-t/fi-Myllylahti	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nilsia
---- a/util/scan/dvb-t/fi-Nilsia	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nilsia	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nilsia_Keski-Siikajarvi
---- a/util/scan/dvb-t/fi-Nilsia_Keski-Siikajarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nilsia_Keski-Siikajarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nilsia_Pisa
---- a/util/scan/dvb-t/fi-Nilsia_Pisa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nilsia_Pisa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nokia
---- a/util/scan/dvb-t/fi-Nokia	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nokia	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nokia_Siuro
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Nokia_Siuro	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,6 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nokia_Siuro_Linnavuori
---- a/util/scan/dvb-t/fi-Nokia_Siuro_Linnavuori	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,6 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nummi-Pusula_Hyonola
---- a/util/scan/dvb-t/fi-Nummi-Pusula_Hyonola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nummi-Pusula_Hyonola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nuorgam_Njallavaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Nuorgam_Njallavaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nuorgam_raja
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Nuorgam_raja	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nurmes_Konnanvaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Nurmes_Konnanvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,6 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Nurmes_Kortevaara
---- a/util/scan/dvb-t/fi-Nurmes_Kortevaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Nurmes_Kortevaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Orivesi_Langelmaki_Talviainen
---- a/util/scan/dvb-t/fi-Orivesi_Langelmaki_Talviainen	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Orivesi_Talviainen
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Orivesi_Talviainen	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,5 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Oulu
---- a/util/scan/dvb-t/fi-Oulu	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Oulu	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Padasjoki
---- a/util/scan/dvb-t/fi-Padasjoki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Padasjoki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Padasjoki_Arrakoski
---- a/util/scan/dvb-t/fi-Padasjoki_Arrakoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Padasjoki_Arrakoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Paltamo_Kivesvaara
---- a/util/scan/dvb-t/fi-Paltamo_Kivesvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Paltamo_Kivesvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Parainen_Houtskari
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Parainen_Houtskari	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,6 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Parikkala
---- a/util/scan/dvb-t/fi-Parikkala	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Parikkala	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Parkano_Sopukallio
---- a/util/scan/dvb-t/fi-Parkano_Sopukallio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Parkano_Sopukallio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pello
---- a/util/scan/dvb-t/fi-Pello	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pello	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pello_Ratasvaara
---- a/util/scan/dvb-t/fi-Pello_Ratasvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pello_Ratasvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Perho
---- a/util/scan/dvb-t/fi-Perho	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Perho	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pernaja
---- a/util/scan/dvb-t/fi-Pernaja	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pernaja	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pieksamaki_Halkokumpu
---- a/util/scan/dvb-t/fi-Pieksamaki_Halkokumpu	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pieksamaki_Halkokumpu	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pihtipudas
---- a/util/scan/dvb-t/fi-Pihtipudas	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pihtipudas	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Porvoo_Suomenkyla
---- a/util/scan/dvb-t/fi-Porvoo_Suomenkyla	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Porvoo_Suomenkyla	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Posio
---- a/util/scan/dvb-t/fi-Posio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Posio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pudasjarvi
---- a/util/scan/dvb-t/fi-Pudasjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pudasjarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pudasjarvi_Hirvaskoski
---- a/util/scan/dvb-t/fi-Pudasjarvi_Hirvaskoski	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pudasjarvi_Iso-Syote
---- a/util/scan/dvb-t/fi-Pudasjarvi_Iso-Syote	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pudasjarvi_Iso-Syote	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pudasjarvi_Kangasvaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Pudasjarvi_Kangasvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Puolanka
---- a/util/scan/dvb-t/fi-Puolanka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Puolanka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pyhatunturi
---- a/util/scan/dvb-t/fi-Pyhatunturi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pyhatunturi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pyhavuori
---- a/util/scan/dvb-t/fi-Pyhavuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pyhavuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Pylkonmaki_Karankajarvi
---- a/util/scan/dvb-t/fi-Pylkonmaki_Karankajarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Pylkonmaki_Karankajarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Raahe_Mestauskallio
---- a/util/scan/dvb-t/fi-Raahe_Mestauskallio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Raahe_Mestauskallio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Raahe_Piehinki
---- a/util/scan/dvb-t/fi-Raahe_Piehinki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Raahe_Piehinki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ranua_Haasionmaa
---- a/util/scan/dvb-t/fi-Ranua_Haasionmaa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ranua_Haasionmaa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ranua_Leppiaho
---- a/util/scan/dvb-t/fi-Ranua_Leppiaho	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ranua_Leppiaho	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rautavaara_Angervikko
---- a/util/scan/dvb-t/fi-Rautavaara_Angervikko	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rautavaara_Angervikko	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rautjarvi_Simpele
---- a/util/scan/dvb-t/fi-Rautjarvi_Simpele	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rautjarvi_Simpele	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ristijarvi
---- a/util/scan/dvb-t/fi-Ristijarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ristijarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi
---- a/util/scan/dvb-t/fi-Rovaniemi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rovaniemi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Ala-Nampa_Yli-Nampa_Rantalaki
---- a/util/scan/dvb-t/fi-Rovaniemi_Ala-Nampa_Yli-Nampa_Rantalaki	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Kaihuanvaara
---- a/util/scan/dvb-t/fi-Rovaniemi_Kaihuanvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Kaihuanvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Karhuvaara
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Karhuvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Marasenkallio
---- a/util/scan/dvb-t/fi-Rovaniemi_Marasenkallio	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Marasenkallio	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Marrasjarvi
---- a/util/scan/dvb-t/fi-Rovaniemi_Marrasjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Meltaus_Sorviselka
---- a/util/scan/dvb-t/fi-Rovaniemi_Meltaus_Sorviselka	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Rantalaki
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Rantalaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Sonka
---- a/util/scan/dvb-t/fi-Rovaniemi_Sonka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Sonka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Rovaniemi_Sorviselka
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Rovaniemi_Sorviselka	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ruka
---- a/util/scan/dvb-t/fi-Ruka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ruka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ruovesi_Storminiemi
---- a/util/scan/dvb-t/fi-Ruovesi_Storminiemi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ruovesi_Storminiemi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Saarijarvi
---- a/util/scan/dvb-t/fi-Saarijarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Saarijarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Saarijarvi_Kalmari
---- a/util/scan/dvb-t/fi-Saarijarvi_Kalmari	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Saarijarvi_Kalmari	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Saarijarvi_Mahlu
---- a/util/scan/dvb-t/fi-Saarijarvi_Mahlu	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Saarijarvi_Mahlu	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salla_Hirvasvaara
---- a/util/scan/dvb-t/fi-Salla_Hirvasvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Hirvasvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salla_Ihistysjanka
---- a/util/scan/dvb-t/fi-Salla_Ihistysjanka	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Ihistysjanka	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salla_Naruska
---- a/util/scan/dvb-t/fi-Salla_Naruska	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Naruska	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salla_Sallatunturi
---- a/util/scan/dvb-t/fi-Salla_Sallatunturi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Sallatunturi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salla_Sarivaara
---- a/util/scan/dvb-t/fi-Salla_Sarivaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salla_Sarivaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Salo_Isokyla
---- a/util/scan/dvb-t/fi-Salo_Isokyla	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Salo_Isokyla	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Savukoski_Martti
---- a/util/scan/dvb-t/fi-Savukoski_Martti	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Savukoski_Martti	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Savukoski_Tanhua
---- a/util/scan/dvb-t/fi-Savukoski_Tanhua	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Savukoski_Tanhua	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Siilinjarvi
---- a/util/scan/dvb-t/fi-Siilinjarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Siilinjarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Sipoo_Norrkulla
---- a/util/scan/dvb-t/fi-Sipoo_Norrkulla	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Sipoo_Norrkulla	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Sodankyla_Pittiovaara
---- a/util/scan/dvb-t/fi-Sodankyla_Pittiovaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Sodankyla_Pittiovaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Sodankyla_Vuotso
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Sodankyla_Vuotso	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Sulkava_Vaatalanmaki
---- a/util/scan/dvb-t/fi-Sulkava_Vaatalanmaki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Sulkava_Vaatalanmaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Suomussalmi_Ala-Vuokki
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Suomussalmi_Ala-Vuokki	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Suomussalmi_Ammansaari
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Suomussalmi_Ammansaari	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Suomussalmi_Juntusranta
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Suomussalmi_Juntusranta	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 666000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Suomussalmi_Myllylahti
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Suomussalmi_Myllylahti	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Sysma_Liikola
---- a/util/scan/dvb-t/fi-Sysma_Liikola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Sysma_Liikola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Taivalkoski
---- a/util/scan/dvb-t/fi-Taivalkoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Taivalkoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Taivalkoski_Taivalvaara
---- a/util/scan/dvb-t/fi-Taivalkoski_Taivalvaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Taivalkoski_Taivalvaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Tammela
---- a/util/scan/dvb-t/fi-Tammela	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Tammela	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Tammisaari
---- a/util/scan/dvb-t/fi-Tammisaari	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Tammisaari	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Tampere
---- a/util/scan/dvb-t/fi-Tampere	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Tampere	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 778000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 730000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Tampere_Pyynikki
---- a/util/scan/dvb-t/fi-Tampere_Pyynikki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Tampere_Pyynikki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,6 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Tervola
---- a/util/scan/dvb-t/fi-Tervola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Tervola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 642000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Turku
---- a/util/scan/dvb-t/fi-Turku	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Turku	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,7 +1,7 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 738000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 538000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki
---- a/util/scan/dvb-t/fi-Utsjoki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Nuorgam_Njallavaara
---- a/util/scan/dvb-t/fi-Utsjoki_Nuorgam_Njallavaara	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Nuorgam_raja
---- a/util/scan/dvb-t/fi-Utsjoki_Nuorgam_raja	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Nuvvus
---- a/util/scan/dvb-t/fi-Utsjoki_Nuvvus	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki_Nuvvus	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Outakoski
---- a/util/scan/dvb-t/fi-Utsjoki_Outakoski	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki_Outakoski	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Polvarniemi
---- a/util/scan/dvb-t/fi-Utsjoki_Polvarniemi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki_Polvarniemi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Rovisuvanto
---- a/util/scan/dvb-t/fi-Utsjoki_Rovisuvanto	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki_Rovisuvanto	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 578000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Utsjoki_Tenola
---- a/util/scan/dvb-t/fi-Utsjoki_Tenola	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Utsjoki_Tenola	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Uusikaupunki_Orivo
---- a/util/scan/dvb-t/fi-Uusikaupunki_Orivo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Uusikaupunki_Orivo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vaajakoski
---- a/util/scan/dvb-t/fi-Vaajakoski	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,5 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 746000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vaala
---- a/util/scan/dvb-t/fi-Vaala	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vaala	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 770000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 690000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vaasa
---- a/util/scan/dvb-t/fi-Vaasa	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vaasa	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Valtimo
---- a/util/scan/dvb-t/fi-Valtimo	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Valtimo	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 586000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 610000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vammala_Jyranvuori
---- a/util/scan/dvb-t/fi-Vammala_Jyranvuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vammala_Jyranvuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 506000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vammala_Roismala
---- a/util/scan/dvb-t/fi-Vammala_Roismala	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vammala_Roismala	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vammala_Savi
---- a/util/scan/dvb-t/fi-Vammala_Savi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vammala_Savi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 698000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 626000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vantaa_Hakunila
---- a/util/scan/dvb-t/fi-Vantaa_Hakunila	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vantaa_Hakunila	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 562000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 658000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Varpaisjarvi_Honkamaki
---- a/util/scan/dvb-t/fi-Varpaisjarvi_Honkamaki	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Varpaisjarvi_Honkamaki	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 634000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 786000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Virrat_Lappavuori
---- a/util/scan/dvb-t/fi-Virrat_Lappavuori	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Virrat_Lappavuori	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 522000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vuokatti
---- a/util/scan/dvb-t/fi-Vuokatti	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Vuokatti	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 722000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 754000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Vuotso
---- a/util/scan/dvb-t/fi-Vuotso	Tue Jun 26 22:28:54 2012 +0200
-+++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
-@@ -1,4 +0,0 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 554000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
--T 706000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ylitornio_Ainiovaara
---- a/util/scan/dvb-t/fi-Ylitornio_Ainiovaara	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ylitornio_Ainiovaara	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,5 +1,5 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 602000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 762000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Ylitornio_Raanujarvi
---- a/util/scan/dvb-t/fi-Ylitornio_Raanujarvi	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Ylitornio_Raanujarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 570000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 618000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Yllas
---- a/util/scan/dvb-t/fi-Yllas	Tue Jun 26 22:28:54 2012 +0200
-+++ b/util/scan/dvb-t/fi-Yllas	Mon Jul 23 23:47:31 2012 +0300
-@@ -1,4 +1,4 @@
--# automatically generated from http://www.digitv.fi/sivu.asp?path=1;8224;9519
--# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
- T 546000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
- T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-diff -r 96025655e6e8 -r 595b4077aa6c util/scan/dvb-t/fi-Yllasjarvi
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-t/fi-Yllasjarvi	Mon Jul 23 23:47:31 2012 +0300
-@@ -0,0 +1,4 @@
-+# 2012-07-23 Antti Palosaari <crope@iki.fi>
-+# generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
-+T 482000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-+T 530000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
-
-
---------------040704040306090903060205--
