@@ -1,54 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56805 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753695Ab3AHWfZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 17:35:25 -0500
-Date: Tue, 8 Jan 2013 23:35:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Simon Horman <horms@verge.net.au>
-cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 6/6] ARM: shmobile: convert ap4evb to asynchronously
- register camera subdevices
-In-Reply-To: <20130108042720.GA25895@verge.net.au>
-Message-ID: <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
- <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
- <20130108042720.GA25895@verge.net.au>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:61210 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730Ab3ACTJ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 14:09:26 -0500
+Received: by mail-ob0-f181.google.com with SMTP id oi10so13787793obb.40
+        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 11:09:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <50E5A515.4050500@iki.fi>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+	<50E5A515.4050500@iki.fi>
+Date: Fri, 4 Jan 2013 00:39:25 +0530
+Message-ID: <CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
+Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Simon
+Hi Antti,
 
-On Tue, 8 Jan 2013, Simon Horman wrote:
+On Thu, Jan 3, 2013 at 9:04 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 01/01/2013 06:48 PM, Manu Abraham wrote:
+>>
+>> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>
+>>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
+>>>
+>>> The DVBv3 quality parameters are limited on several ways:
+>>>          - Doesn't provide any way to indicate the used measure;
+>>>          - Userspace need to guess how to calculate the measure;
+>>>          - Only a limited set of stats are supported;
+>>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
+>>>            carriers, used to detect the network parameters for
+>>>            DVB-T/ISDB-T;
+>>>          - Can't be called in a way to require them to be filled
+>>>            all at once (atomic reads from the hardware), with may
+>>>            cause troubles on interpreting them on userspace;
+>>>          - On some OFDM delivery systems, the carriers can be
+>>>            independently modulated, having different properties.
+>>>            Currently, there's no way to report per-layer stats;
+>>
+>>
+>> per layer stats is a mythical bird, nothing of that sort does exist. If
+>> some
+>> driver states that it is simply due to lack of knowledge at the coding
+>> side.
+>>
+>> ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
+>
+>
+> Manu, you confused now two concept (which are aimed to resolve same real
+> life problem) - hierarchical coding and multiple transport stream. Both are
+> quite similar on lower level of radio channel, but differs on upper levels.
+>
+> Hierarchical is a little bit weird baby as it remuxes those lower lever
+> radio channels (called layers in case of ISDB-T) to one single mux!
 
-> On Wed, Dec 26, 2012 at 06:49:11PM +0100, Guennadi Liakhovetski wrote:
-> > Register the imx074 camera I2C and the CSI-2 platform devices directly
-> > in board platform data instead of letting the sh_mobile_ceu_camera driver
-> > and the soc-camera framework register them at their run-time. This uses
-> > the V4L2 asynchronous subdevice probing capability.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Hi Guennadi,
-> 
-> could you let me know what if any dependencies this patch has.
-> And the status of any dependencies.
+That is not really correct. There is one single OFDM channel, the layers
+are processed via hierarchial separation. Stuffing exists, to maintain
+constant rate.
 
-This patch depends on the other 5 patches in this series. Since the other 
-patches are still in work, this patch cannot be applied either yet. Sorry, 
-I should have marked it as RFC.
+http://farm9.staticflickr.com/8077/8343296328_e1e375b519_b_d.jpg
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+When rate is constant within the same channel..
+(The only case what I can think parameters could be different with a
+constant rate,
+is that stuffing frames are unaccounted for. Most likely a bug ?)
+
+Manu
