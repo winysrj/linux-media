@@ -1,278 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58956 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756430Ab3AQS7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:13 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIxDoP027502
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:13 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 13/16] [media] mb86a20s: improve bit error count for BER
-Date: Thu, 17 Jan 2013 16:58:27 -0200
-Message-Id: <1358449110-11203-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.171]:50011 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463Ab3ACRQk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 12:16:40 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 30D1040B98
+	for <linux-media@vger.kernel.org>; Thu,  3 Jan 2013 18:16:38 +0100 (CET)
+Date: Thu, 3 Jan 2013 18:16:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera take 1 for 3.9
+Message-ID: <Pine.LNX.4.64.1301031731090.17494@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do a better job on setting the bit error counters, in order to
-have all layer measures to happen in a little less than one
-second.
+Hi Mauro
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+We're moving ever closer to asynchronous probing and DT:-) This pull 
+request includes several fixes for our 3.9 stack (3.8 is ok), the removal 
+of i.MX25 support (at last!), some more preparation for asynchronous 
+probing. I'm not including v4l2-clk and v4l2-async (and soc-camera porting 
+on top of them) in this pull request yet, let's wait a bit more for any 
+comments.
+
+What concerns patchwork IDs, you requested lines in this form:
+
+pwclient -u 'accepted' 15727
+pwclient -u 'accepted' 15988
+pwclient -u 'accepted' 15989
+pwclient -u 'accepted' 15990
+pwclient -u 'accepted' 15991
+pwclient -u 'accepted' 15992
+pwclient -u 'accepted' 15297
+pwclient -u 'accepted' 15299
+pwclient -u 'accepted' 15300
+pwclient -u 'accepted' 15760
+
+whereas my version of pwclient seems to suggest, that that should be 
+"pwclient update -s Accepted <ID>," but I'll use your requested form in 
+case you've got a different version;-)
+
+My branch is based on current next, because I needed patches, that went 
+via other trees... And the patches:
+
+The following changes since commit 3696068e4e1231311b07e5c312876deec182f18b:
+
+  Add linux-next specific files for 20130103 (2013-01-03 14:24:37 +1100)
+
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.9
+
+Fabio Estevam (1):
+      mx2_camera: Convert it to platform driver
+
+Guennadi Liakhovetski (5):
+      soc-camera: properly fix camera probing races
+      soc-camera: fix repeated regulator requesting
+      soc-camera: remove struct soc_camera_device::video_lock
+      soc-camera: split struct soc_camera_link into host and subdevice parts
+      soc-camera: use devm_kzalloc in subdevice drivers
+
+Javier Martin (3):
+      mx2_camera: Remove i.mx25 support.
+      mx2_camera: Remove 'buf_cleanup' callback.
+      mx2_camera: Remove buffer states.
+
+Wei Yongjun (1):
+      mt9v022: fix potential NULL pointer dereference in mt9v022_probe()
+
+ drivers/media/i2c/soc_camera/imx074.c              |   27 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |   52 +--
+ drivers/media/i2c/soc_camera/mt9m111.c             |   36 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |   36 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |   27 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |   45 +-
+ drivers/media/i2c/soc_camera/ov2640.c              |   29 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   31 +-
+ drivers/media/i2c/soc_camera/ov6650.c              |   30 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |   36 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |   27 +-
+ drivers/media/i2c/soc_camera/ov9740.c              |   29 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   39 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |   30 +-
+ drivers/media/platform/soc_camera/Kconfig          |    7 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |    4 +-
+ drivers/media/platform/soc_camera/mx1_camera.c     |    3 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |  531 ++++----------------
+ drivers/media/platform/soc_camera/mx3_camera.c     |    4 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |    4 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |    6 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    4 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |  167 ++++---
+ .../platform/soc_camera/soc_camera_platform.c      |    6 +-
+ include/media/soc_camera.h                         |  107 +++-
+ include/media/soc_camera_platform.h                |   10 +-
+ 26 files changed, 498 insertions(+), 829 deletions(-)
+
+Thanks
+Guennadi
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 186 ++++++++++++++++++++++++++++-----
- 1 file changed, 162 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 6265003..b612985 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -30,6 +30,8 @@ struct mb86a20s_state {
- 
- 	struct dvb_frontend frontend;
- 
-+	u32 estimated_rate[3];
-+
- 	bool need_init;
- 
- 	/*
-@@ -89,31 +91,20 @@ static struct regdata mb86a20s_init[] = {
- 
- 	/*
- 	 * On this demod, when the bit count reaches the count below,
--	 * it collects the bit error count.
--	 *
--	 * As FE thread runs on every 3 seconds, adjust the counters to
--	 * provide one collect before 3 seconds, at the worse case (DQPSK,
--	 * 1/4 guard interval, 1/2 FEC, 1-seg rate is 280 Mbps, and
--	 * 3 seconds takes 0xcdb9f bits. Rounds it down to 0xccfff
--	 *
--	 * It should be noticed, however, that, with QAM-64 1/32 guard interval,
--	 * 1 segment bit rate is 1.78 Mbps, and 12-seg is about 21.5 Mbps.
--	 * At such rate, the time to measure BER is about 40 ms.
--	 *
--	 * It makes sense to change the logic there to use TMCC parameters and
--	 * adjust the counters in order to have all of them to take a little
--	 * less than 3 seconds, in order to have a more realistic BER rate,
--	 * instead of having short samples for 12-segs.
-+	 * it collects the bit error count. The bit counters are initialized
-+	 * to 65535 here. This warrants that all of them will be quickly
-+	 * calculated when device gets locked. As TMCC is parsed, the values
-+	 * will be adjusted later in the driver's code.
- 	 */
- 	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
--	{ 0x50, 0xa7 }, { 0x51, 0x0c },
--	{ 0x50, 0xa8 }, { 0x51, 0xcf },
-+	{ 0x50, 0xa7 }, { 0x51, 0x00 },
-+	{ 0x50, 0xa8 }, { 0x51, 0xff },
- 	{ 0x50, 0xa9 }, { 0x51, 0xff },
--	{ 0x50, 0xaa }, { 0x51, 0x0c },
--	{ 0x50, 0xab }, { 0x51, 0xcf },
-+	{ 0x50, 0xaa }, { 0x51, 0x00 },
-+	{ 0x50, 0xab }, { 0x51, 0xff },
- 	{ 0x50, 0xac }, { 0x51, 0xff },
--	{ 0x50, 0xad }, { 0x51, 0x0c },
--	{ 0x50, 0xae }, { 0x51, 0xcf },
-+	{ 0x50, 0xad }, { 0x51, 0x00 },
-+	{ 0x50, 0xae }, { 0x51, 0xff },
- 	{ 0x50, 0xaf }, { 0x51, 0xff },
- 
- 	{ 0x5e, 0x07 },
-@@ -208,7 +199,7 @@ static struct regdata mb86a20s_clear_stats[] = {
-  */
- 
- static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
--			     u8 i2c_addr, int reg, int data)
-+			     u8 i2c_addr, u8 reg, u8 data)
- {
- 	u8 buf[] = { reg, data };
- 	struct i2c_msg msg = {
-@@ -504,6 +495,112 @@ static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
- 	c->isdbt_sb_segment_count = 0;
- }
- 
-+/*
-+ * Estimates the bit rate using the per-segment bit rate given by
-+ * ABNT/NBR 15601 spec (table 4).
-+ */
-+static u32 isdbt_rate[3][5][4] = {
-+	{	/* DQPSK/QPSK */
-+		{  280850,  312060,  330420,  340430 },	/* 1/2 */
-+		{  374470,  416080,  440560,  453910 },	/* 2/3 */
-+		{  421280,  468090,  495630,  510650 },	/* 3/4 */
-+		{  468090,  520100,  550700,  567390 },	/* 5/6 */
-+		{  491500,  546110,  578230,  595760 },	/* 7/8 */
-+	}, {	/* QAM16 */
-+		{  561710,  624130,  660840,  680870 },	/* 1/2 */
-+		{  748950,  832170,  881120,  907820 },	/* 2/3 */
-+		{  842570,  936190,  991260, 1021300 },	/* 3/4 */
-+		{  936190, 1040210, 1101400, 1134780 },	/* 5/6 */
-+		{  983000, 1092220, 1156470, 1191520 },	/* 7/8 */
-+	}, {	/* QAM64 */
-+		{  842570,  936190,  991260, 1021300 },	/* 1/2 */
-+		{ 1123430, 1248260, 1321680, 1361740 },	/* 2/3 */
-+		{ 1263860, 1404290, 1486900, 1531950 },	/* 3/4 */
-+		{ 1404290, 1560320, 1652110, 1702170 },	/* 5/6 */
-+		{ 1474500, 1638340, 1734710, 1787280 },	/* 7/8 */
-+	}
-+};
-+
-+static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
-+				   u32 modulation, u32 fec, u32 interleaving,
-+				   u32 segment)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	u32 rate;
-+	int m, f, i;
-+
-+	/*
-+	 * default is always the lowest bit rate, to be sure that it will
-+	 * take less than 1 second to count the bits
-+	 */
-+	switch (modulation) {
-+	case DQPSK:
-+	case QPSK:
-+	default:
-+		m = 0;
-+		break;
-+	case QAM_16:
-+		m = 1;
-+		break;
-+	case QAM_64:
-+		m = 2;
-+		break;
-+	}
-+
-+	switch (fec) {
-+	default:
-+	case FEC_1_2:
-+	case FEC_AUTO:
-+		f = 0;
-+		break;
-+	case FEC_2_3:
-+		f = 1;
-+		break;
-+	case FEC_3_4:
-+		f = 2;
-+		break;
-+	case FEC_5_6:
-+		f = 3;
-+		break;
-+	case FEC_7_8:
-+		f = 4;
-+		break;
-+	}
-+
-+	switch (interleaving) {
-+	default:
-+	case GUARD_INTERVAL_1_4:
-+		i = 0;
-+		break;
-+	case GUARD_INTERVAL_1_8:
-+		i = 1;
-+		break;
-+	case GUARD_INTERVAL_1_16:
-+		i = 2;
-+		break;
-+	case GUARD_INTERVAL_1_32:
-+		i = 3;
-+		break;
-+	}
-+
-+	/*
-+	 * Estimates a rate below the real one, to have more hope that the
-+	 * BER calculus will finish before 1 second.
-+	 */
-+	rate = (isdbt_rate[m][f][i] >> 16) << 15;
-+
-+	/* Multiplies the rate by the number of segments */
-+	rate *= segment;
-+
-+	dev_dbg(&state->i2c->dev,
-+		"%s: layer %c bitrate: %d kbps; counter = %d (0x%06x)\n",
-+	       __func__, 'A' + layer, segment * isdbt_rate[m][f][i]/1000,
-+		rate, rate);
-+
-+	state->estimated_rate[i] = rate;
-+}
-+
-+
- static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
-@@ -533,10 +630,11 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 		rc = mb86a20s_get_segment_count(state, i);
- 		if (rc < 0)
- 			goto noperlayer_error;
--		if (rc >= 0 && rc < 14)
-+		if (rc >= 0 && rc < 14) {
- 			c->layer[i].segment_count = rc;
--		else {
-+		} else {
- 			c->layer[i].segment_count = 0;
-+			state->estimated_rate[i] = 0;
- 			continue;
- 		}
- 		c->isdbt_layer_enabled |= 1 << i;
-@@ -558,6 +656,10 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 		dev_dbg(&state->i2c->dev, "%s: interleaving %d.\n",
- 			__func__, rc);
- 		c->layer[i].interleaving = rc;
-+		mb86a20s_layer_bitrate(fe, i, c->layer[i].modulation,
-+				       c->layer[i].fec,
-+				       c->layer[i].interleaving,
-+				       c->layer[i].segment_count);
- 	}
- 
- 	rc = mb86a20s_writereg(state, 0x6d, 0x84);
-@@ -754,6 +856,42 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 		"%s: bit count before Viterbi for layer %c: %d.\n",
- 		__func__, 'A' + layer, *count);
- 
-+	/*
-+	 * As we get TMCC data from the frontend, we can better estimate the
-+	 * BER bit counters, in order to do the BER measure during a longer
-+	 * time. Use those data, if available, to update the bit count
-+	 * measure.
-+	 */
-+
-+	if (state->estimated_rate[layer]
-+	    && state->estimated_rate[layer] != *count) {
-+		dev_dbg(&state->i2c->dev,
-+			"%s: updating layer %c counter to %d.\n",
-+			__func__, 'A' + layer, state->estimated_rate[layer]);
-+		rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer] >> 16);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer] >> 8);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer]);
-+		if (rc < 0)
-+			return rc;
-+	}
-+
-+
- 	/* Reset counter to collect new data */
- 	rc = mb86a20s_writereg(state, 0x53, 0x07 & ~(1 << layer));
- 	if (rc < 0)
--- 
-1.7.11.7
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
