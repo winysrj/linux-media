@@ -1,36 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:39511 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754513Ab3AJUlV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:41:21 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so116668eek.25
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:41:19 -0800 (PST)
-Message-ID: <50EF276C.1080101@gmail.com>
-Date: Thu, 10 Jan 2013 21:41:16 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
-In-Reply-To: <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:31192 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811Ab3ACLGU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 06:06:20 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MG100IIAQU8WUX0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Jan 2013 20:06:19 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MG100FOEQU7KHB0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 03 Jan 2013 20:06:19 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 2/3 RESEND] s5p-mfc: Correct check of vb2_dma_contig_init_ctx
+ return value
+Date: Thu, 03 Jan 2013 12:06:03 +0100
+Message-id: <1357211164-27443-2-git-send-email-k.debski@samsung.com>
+In-reply-to: <1357211164-27443-1-git-send-email-k.debski@samsung.com>
+References: <1357211164-27443-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2013 09:38 PM, Manu Abraham wrote:
-> The format can be definitely changed. There's no issue to it.
+vb2_dma_contig_init_ctx returns an error if failed, NULL check is not necessary.
 
-No you cannot. Applications depend on that, it's part of the dvb ABI. If
-you changed that, you would do the same mistake as Mauro let it flowing
-through his tree and it was pointed out by Linus in the link you sent...
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 3c35be7..927bdc3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1096,12 +1096,12 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	dev->alloc_ctx[0] = vb2_dma_contig_init_ctx(dev->mem_dev_l);
+-	if (IS_ERR_OR_NULL(dev->alloc_ctx[0])) {
++	if (IS_ERR(dev->alloc_ctx[0])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[0]);
+ 		goto err_res;
+ 	}
+ 	dev->alloc_ctx[1] = vb2_dma_contig_init_ctx(dev->mem_dev_r);
+-	if (IS_ERR_OR_NULL(dev->alloc_ctx[1])) {
++	if (IS_ERR(dev->alloc_ctx[1])) {
+ 		ret = PTR_ERR(dev->alloc_ctx[1]);
+ 		goto err_mem_init_ctx_1;
+ 	}
 -- 
-js
+1.7.9.5
+
