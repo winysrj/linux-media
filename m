@@ -1,83 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:37404 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756470Ab3AOWiP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 17:38:15 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] saa7134: Add AverMedia Satelllite Hybrid+FM A706 (and FM radio problems)
-Date: Tue, 15 Jan 2013 23:37:58 +0100
-References: <201301122124.51767.linux@rainbow-software.org> <201301142229.58923.linux@rainbow-software.org> <201301152257.06658.linux@rainbow-software.org>
-In-Reply-To: <201301152257.06658.linux@rainbow-software.org>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:49846 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753731Ab3ACUy7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 15:54:59 -0500
+Received: by mail-oa0-f43.google.com with SMTP id k1so14474667oag.30
+        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 12:54:58 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201301152337.58701.linux@rainbow-software.org>
+In-Reply-To: <50E5EC7E.4020508@iki.fi>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+	<50E5A515.4050500@iki.fi>
+	<CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
+	<20130103172735.0aa1db6d@redhat.com>
+	<CAHFNz9J1ziYfSb8zZbxsNoFfCC5SyW9iJKEA3y7HA__zU9oqpA@mail.gmail.com>
+	<20130103175359.5fc157eb@redhat.com>
+	<50E5EC7E.4020508@iki.fi>
+Date: Fri, 4 Jan 2013 02:24:58 +0530
+Message-ID: <CAHFNz9+j0Rii5bqH2epwJsZ-KOcebwZOYxLyR6tkG3odGMvCTw@mail.gmail.com>
+Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 January 2013 22:57:06 Ondrej Zary wrote:
-> On Monday 14 January 2013 22:29:58 Ondrej Zary wrote:
-> > On Saturday 12 January 2013 21:24:50 Ondrej Zary wrote:
-> > > Partially working: FM radio
-> > > Radio seems to be a long-standing problem with saa7134 cards using
-> > > silicon tuners (according to various mailing lists).
-> > >
-> > > On this card, GPIO11 controls 74HC4052 MUX. It switches two things:
-> > > something at TDA18271 V_IFAGC pin and something that goes to SAA7131E.
-> > > GPIO11 is enabled for radio and disabled for TV in Windows. I did the
-> > > same thing in this patch.
-> > >
-> > > Windows INF file says:
-> > > ; Setting FM radio of the Silicon tuner via SIF (GPIO 21 in use/
-> > > 5.5MHz) HKR, "Audio", "FM Radio IF", 0x00010001, 0xDEEAAB
-> > >
-> > > But that seems not to be true. GPIO21 does nothing and RegSpy (from
-> > > DScaler, modified to include 0x42c register) says that the register is
-> > > 0x80729555. That matches the value present in saa7134-tvaudio.c (except
-> > > the first 0x80).
-> > >
-> > > With this value, the radio stations are off by about 4.2-4.3 MHz, e.g.:
-> > > station at 97.90 MHz is tuned as 102.20 MHz
-> > > station at 101.80 MHz is tuned as 106.0 MHz
-> > >
-> > > I also tried 0xDEEAAB. With this, the offset is different, about 0.4
-> > > MHz: station at 101.80 MHz is tuned as 102.2 MHz
-> >
-> > The offset seems bogus, maybe affected by my TV antenna (cable).
-> >
-> > For debugging, tried another card with similar chips: Pinnacle PCTV
-> > 40i/50i/110i. It has SAA7131E chip too, but different tuner - TDA8275A.
-> > And the radio problem is the same as found first on the A706 - the tuned
-> > station sound starts but then turns into noise. So it seems that the
-> > problem is not in tda18271 but in tda8290 or saa7134.
-> >
-> > With tda8290.debug=1, I see this:
-> > tda829x 2-004b: tda8290 not locked, no signal?
-> > tda829x 2-004b: tda8290 not locked, no signal?
-> > tda829x 2-004b: tda8290 not locked, no signal?
-> > tda829x 2-004b: adjust gain, step 1. Agc: 193, ADC stat: 255, lock: 0
-> > tda829x 2-004b: adjust gain, step 2. Agc: 255, lock: 0
-> > tda829x 2-004b: adjust gain, step 3. Agc: 173
-> >
-> > During that, the sound is good. Then it turns into noise.
-> > When I increased the number of lock detections in tda8290_set_params()
-> > from 3 to (e.g.) 10, it works longer. And when I'm quick enough to stop
-> > the console output using scroll lock, the radio remains working.
->
-> Pinnacle radio problems turned out to be a different bug - the driver turns
-> off tuners when the radio device is closed - and I was testing using
-> v4l2-ctl. Fixing that allows Pinnacle to work fine.
->
-> But it's not enough for A706 to work. When I disable gain adjust in tda8290
-> (by putting a return before), strong stations work somehow (with noise).
+On Fri, Jan 4, 2013 at 2:09 AM, Antti Palosaari <crope@iki.fi> wrote:
 
-Changing IF frequency from 1.25MHz (1250) to 5.5MHz (5500) in tda18271-maps.c 
-allows the radio to work without disabling gain adjust. Seems that IF 
-mismatch between tda18271 and saa7134 is causing problems. However, only 
-strong stations work.
+>
+> Manu, here is manual of the professional ISDB-T signal analyzer. Look
+> especially BER measurement picture from "Slide 10".
 
--- 
-Ondrej Zary
+Sure, it looks so. Just wondering what the TDM stuffing would do after
+the hierarchial combiner.
+
+Manu
