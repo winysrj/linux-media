@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56218 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753668Ab3ACT2V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jan 2013 14:28:21 -0500
-Date: Thu, 3 Jan 2013 17:27:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
-Message-ID: <20130103172735.0aa1db6d@redhat.com>
-In-Reply-To: <CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-	<50E5A515.4050500@iki.fi>
-	<CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
-Mime-Version: 1.0
+Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:53631 "EHLO
+	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753444Ab3ACRhr convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jan 2013 12:37:47 -0500
+From: Nicolas THERY <nicolas.thery@st.com>
+To: Albert Wang <twang13@marvell.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Thu, 3 Jan 2013 18:37:38 +0100
+Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
+ for marvell-ccic driver
+Message-ID: <50E5C1E2.9090204@st.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-4-git-send-email-twang13@marvell.com>
+ <20121216090305.13e6bca1@hpe.lwn.net>
+ <477F20668A386D41ADCC57781B1F70430D13C8CCDE@SC-VEXCH1.marvell.com>
+In-Reply-To: <477F20668A386D41ADCC57781B1F70430D13C8CCDE@SC-VEXCH1.marvell.com>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 4 Jan 2013 00:39:25 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
 
-> Hi Antti,
+
+On 2012-12-16 22:51, Albert Wang wrote:
+[...]
+>>>
+>>> +static void mcam_clk_set(struct mcam_camera *mcam, int on)
+>>> +{
+>>> +	unsigned int i;
+>>> +
+>>> +	if (on) {
+>>> +		for (i = 0; i < mcam->clk_num; i++) {
+>>> +			if (mcam->clk[i])
+>>> +				clk_enable(mcam->clk[i]);
+>>> +		}
+>>> +	} else {
+>>> +		for (i = mcam->clk_num; i > 0; i--) {
+>>> +			if (mcam->clk[i - 1])
+>>> +				clk_disable(mcam->clk[i - 1]);
+>>> +		}
+>>> +	}
+>>> +}
+>>
+>> A couple of minor comments:
+>>
+>> - This function is always called with a constant value for "on".  It would
+>>   be easier to read (and less prone to unfortunate brace errors) if it
+>>   were just two functions: mcam_clk_enable() and mcam_clk_disable().
+>>
+> [Albert Wang] OK, that's fine to split it to 2 functions. :)
 > 
-> On Thu, Jan 3, 2013 at 9:04 PM, Antti Palosaari <crope@iki.fi> wrote:
-> > On 01/01/2013 06:48 PM, Manu Abraham wrote:
-> >>
-> >> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
-> >> <mchehab@redhat.com> wrote:
-> >>
-> >>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
-> >>>
-> >>> The DVBv3 quality parameters are limited on several ways:
-> >>>          - Doesn't provide any way to indicate the used measure;
-> >>>          - Userspace need to guess how to calculate the measure;
-> >>>          - Only a limited set of stats are supported;
-> >>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
-> >>>            carriers, used to detect the network parameters for
-> >>>            DVB-T/ISDB-T;
-> >>>          - Can't be called in a way to require them to be filled
-> >>>            all at once (atomic reads from the hardware), with may
-> >>>            cause troubles on interpreting them on userspace;
-> >>>          - On some OFDM delivery systems, the carriers can be
-> >>>            independently modulated, having different properties.
-> >>>            Currently, there's no way to report per-layer stats;
-> >>
-> >>
-> >> per layer stats is a mythical bird, nothing of that sort does exist. If
-> >> some
-> >> driver states that it is simply due to lack of knowledge at the coding
-> >> side.
-> >>
-> >> ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
-> >
-> >
-> > Manu, you confused now two concept (which are aimed to resolve same real
-> > life problem) - hierarchical coding and multiple transport stream. Both are
-> > quite similar on lower level of radio channel, but differs on upper levels.
-> >
-> > Hierarchical is a little bit weird baby as it remuxes those lower lever
-> > radio channels (called layers in case of ISDB-T) to one single mux!
-> 
-> That is not really correct. There is one single OFDM channel, the layers
-> are processed via hierarchial separation. Stuffing exists, to maintain
-> constant rate.
-> 
-> http://farm9.staticflickr.com/8077/8343296328_e1e375b519_b_d.jpg
-> 
-> When rate is constant within the same channel..
-> (The only case what I can think parameters could be different with a
-> constant rate,
-> is that stuffing frames are unaccounted for. Most likely a bug ?)
+>> - I'd write the second for loop as:
+>>
+>> 	for (i = mcal->clk_num - 1; i >= 0; i==) {
+>>
+>>   just to match the values used in the other direction and avoid the
+>>   subscript arithmetic.
+>>
+> [Albert Wang] Yes, we can improve it. :)
 
-What did you smoke? That picture has nothing to do with ISDB!
+Bewar: i is unsigned so testing i >= 0 will loop forever.
 
-ISDB not only does hierarchical split. It also splits the OFDM carriers
-into 3 layers, each layer with its own modulation, guard interval, inner
-FEC, etc. Each of those layers behave as an independent channel,
-providing different bit rates.
-
-
-Cheers,
-Mauro
+[...]
