@@ -1,597 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm5.telefonica.net ([213.4.138.21]:39706 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752227Ab3AAP6Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 10:58:25 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [PATCH] v3 Add support to Avermedia Twinstar double tuner in af9035
-Date: Tue, 01 Jan 2013 16:51:06 +0100
-Message-ID: <3914863.xEFuvScsCE@jar7.dominio>
-In-Reply-To: <50E2F7E9.7000402@iki.fi>
-References: <7663201.PVTXFeZIJ8@jar7.dominio> <CAKdnbx4FYhF+m1PF1qqahFvu8dp=3KD0Kt_L+xr9j++D=2o3AQ@mail.gmail.com> <50E2F7E9.7000402@iki.fi>
+Received: from mail-we0-f180.google.com ([74.125.82.180]:53569 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750699Ab3ACFBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 00:01:12 -0500
+Received: by mail-we0-f180.google.com with SMTP id t57so6929922wey.11
+        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 21:01:11 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
+ <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 3 Jan 2013 10:30:50 +0530
+Message-ID: <CA+V-a8uz-5GW6OidDdQ9CNBgJy51pCZAdGjRNDJ6P9wPxrC5zg@mail.gmail.com>
+Subject: Re: DT bindings for subdevices
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Martes, 1 de enero de 2013 16:51:21 Antti Palosaari escribió:
-> Hello
-> The origin of these errors is AF9035 I2C adapter (seems to be firmware
-> based) could not perform all I2C operations mxl5007t driver does.
-> mxl5007t_soft_reset() just writes single byte 0xff to the device => I
-> assume AF9035 I2C adapter wants two bytes.
-> 
-> Unfortunately mxl5007t driver does not report error code coming from the
-> I2C adapter. I suspect it is EIO. You can see these errors reported by
-> adapter just enabling AF9035 debugs.
-> 
-> Without the hardware I cannot do much. It is up to someone with the hw
-> to find out proper solution.
-> 
-> Latest AF9035 tree, which contains dual tuner support is here
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035
-> I will pull request it very soon.
-> 
-> regards
-> Antti
-> 
+Hi Guennadi,
 
-The I2C errors begin after a I2C read in the mxl5007t probe. It is the only 
-one I2C read of the mxl5007t driver. Without the read the drive works well. I 
-will send again the patch with the no_probe option when the dual tuner code is 
-accepted.
+Thanks for your response!
 
-Jose Alberto
-  
-> On 12/18/2012 11:32 PM, Eddi De Pieri wrote:
-> > Hi Antti and Jose
-> > 
-> > I'd like to advise you that I tested this path since it solve issue on
-> > other af9035 devices like avermedia a835 and avermedia a867.
-> > 
-> > I mean:
-> > mxl5007t_soft_reset: 522: failed!
-> > mxl5007t_tuner_init: error -140 on line 535
-> > mxl5007t_set_params: error -140 on line 666
-> > mxl5007t_soft_reset: 522: failed!
-> > mxl5007t_tuner_init: error -140 on line 535
-> > mxl5007t_set_params: error -140 on line 666
-> > mxl5007t_soft_reset: 522: failed!
-> > mxl5007t_tuner_init: error -140 on line 535
-> > mxl5007t_set_params: error -140 on line 666
-> > mxl5007t_soft_reset: 522: failed!
-> > mxl5007t_tuner_init: error -140 on line 535
-> > mxl5007t_set_params: error -140 on line 666
-> > 
-> > It seems that no_reset and no_probe configuration parameter added by
-> > jose is needed for mxl5007t initialization.
-> > 
-> > I suppose that the initialization is already done by the af9035 firmware.
-> > 
-> > Regards
-> > 
-> > Eddi De Pieri
-> > 
-> > On Sun, Sep 23, 2012 at 6:29 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >> Hello Jose,
-> >> Could you try to split and resent?
-> >> 
-> >> I will get af9035 + fc0012 dual tuner next week and add support for it. I
-> >> wish to use your patch for dual mode, but I as there is that unresolved
-> >> MXL5007t dependency I cannot user it currently.
-> >> 
-> >> regards
-> >> Antti
-> >> 
-> >> On 09/15/2012 08:45 PM, Antti Palosaari wrote:
-> >>> Hello
-> >>> Could you split that patch to 2?
-> >>> 1) mxl5007t changes
-> >>> 2) af9035/af9033 dual mode
-> >>> 3) af9035/af9033 changes needed for mxl5007t
-> >>> 
-> >>> I cannot say much about tuner changes, but I still wonder are those
-> >>> really needed as this device is already supported. Is it broken
-> >>> currently?
-> >>> What happens when no_probe = 0 ?
-> >>> What happens when no_reset = 0 ?
-> >>> 
-> >>> Soft reset means usually resetting chip state machine. It is something
-> >>> like "start operating" command. First program registers then issue soft
-> >>> reset in order to restart state machine.
-> >>> 
-> >>> regards
-> >>> Antti
-> >>> 
-> >>> On 08/30/2012 02:02 AM, Jose Alberto Reguero wrote:
-> >>>> This patch add support to the Avermedia Twinstar double tuner in the
-> >>>> af9035
-> >>>> driver. Version 3 of the patch.
-> >>>> 
-> >>>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> >>>> 
-> >>>> Jose Alberto
-> >>>> 
-> >>>> diff -upr linux/drivers/media/dvb-frontends/af9033.c
-> >>>> linux.new/drivers/media/dvb-frontends/af9033.c
-> >>>> --- linux/drivers/media/dvb-frontends/af9033.c    2012-08-14
-> >>>> 05:45:22.000000000 +0200
-> >>>> +++ linux.new/drivers/media/dvb-frontends/af9033.c    2012-08-29
-> >>>> 16:00:52.020523899 +0200
-> >>>> @@ -326,6 +326,18 @@ static int af9033_init(struct dvb_fronte
-> >>>> 
-> >>>>                goto err;
-> >>>>        
-> >>>>        }
-> >>>> 
-> >>>> +    if (state->cfg.ts_mode == AF9033_TS_MODE_SERIAL) {
-> >>>> +        ret = af9033_wr_reg_mask(state, 0x00d91c, 0x01, 0x01);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +        ret = af9033_wr_reg_mask(state, 0x00d917, 0x00, 0x01);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +        ret = af9033_wr_reg_mask(state, 0x00d916, 0x00, 0x01);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +    }
-> >>>> +
-> >>>> 
-> >>>>        state->bandwidth_hz = 0; /* force to program all parameters */
-> >>>>        
-> >>>>        return 0;
-> >>>> 
-> >>>> diff -upr linux/drivers/media/tuners/mxl5007t.c
-> >>>> linux.new/drivers/media/tuners/mxl5007t.c
-> >>>> --- linux/drivers/media/tuners/mxl5007t.c    2012-08-14
-> >>>> 05:45:22.000000000 +0200
-> >>>> +++ linux.new/drivers/media/tuners/mxl5007t.c    2012-08-29
-> >>>> 13:07:57.299884405 +0200
-> >>>> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
-> >>>> 
-> >>>>        mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz,
-> >>>>        cfg->invert_if);
-> >>>>        mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
-> >>>> 
-> >>>> -    set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
-> >>>> 
-> >>>>        set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable <<
-> >>>> 
-> >>>> 3);
-> >>>> 
-> >>>>        set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
-> >>>> 
-> >>>> @@ -531,9 +530,11 @@ static int mxl5007t_tuner_init(struct mx
-> >>>> 
-> >>>>        struct reg_pair_t *init_regs;
-> >>>>        int ret;
-> >>>> 
-> >>>> -    ret = mxl5007t_soft_reset(state);
-> >>>> -    if (mxl_fail(ret))
-> >>>> -        goto fail;
-> >>>> +    if (!state->config->no_reset) {
-> >>>> +        ret = mxl5007t_soft_reset(state);
-> >>>> +        if (mxl_fail(ret))
-> >>>> +            goto fail;
-> >>>> +    }
-> >>>> 
-> >>>>        /* calculate initialization reg array */
-> >>>>        init_regs = mxl5007t_calc_init_regs(state, mode);
-> >>>> 
-> >>>> @@ -887,7 +888,11 @@ struct dvb_frontend *mxl5007t_attach(str
-> >>>> 
-> >>>>            if (fe->ops.i2c_gate_ctrl)
-> >>>>            
-> >>>>                fe->ops.i2c_gate_ctrl(fe, 1);
-> >>>> 
-> >>>> -        ret = mxl5007t_get_chip_id(state);
-> >>>> +        if (!state->config->no_probe)
-> >>>> +            ret = mxl5007t_get_chip_id(state);
-> >>>> +
-> >>>> +        ret = mxl5007t_write_reg(state, 0x04,
-> >>>> +            state->config->loop_thru_enable);
-> >>>> 
-> >>>>            if (fe->ops.i2c_gate_ctrl)
-> >>>>            
-> >>>>                fe->ops.i2c_gate_ctrl(fe, 0);
-> >>>> 
-> >>>> diff -upr linux/drivers/media/tuners/mxl5007t.h
-> >>>> linux.new/drivers/media/tuners/mxl5007t.h
-> >>>> --- linux/drivers/media/tuners/mxl5007t.h    2012-08-14
-> >>>> 05:45:22.000000000 +0200
-> >>>> +++ linux.new/drivers/media/tuners/mxl5007t.h    2012-08-25
-> >>>> 19:38:19.990920623 +0200
-> >>>> @@ -73,8 +73,10 @@ struct mxl5007t_config {
-> >>>> 
-> >>>>        enum mxl5007t_xtal_freq xtal_freq_hz;
-> >>>>        enum mxl5007t_if_freq if_freq_hz;
-> >>>>        unsigned int invert_if:1;
-> >>>> 
-> >>>> -    unsigned int loop_thru_enable:1;
-> >>>> +    unsigned int loop_thru_enable:2;
-> >>>> 
-> >>>>        unsigned int clk_out_enable:1;
-> >>>> 
-> >>>> +    unsigned int no_probe:1;
-> >>>> +    unsigned int no_reset:1;
-> >>>> 
-> >>>>    };
-> >>>>    
-> >>>>    #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
-> >>>> 
-> >>>> (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
-> >>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> >>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> >>>> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c    2012-08-16
-> >>>> 05:45:24.000000000 +0200
-> >>>> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c    2012-08-29
-> >>>> 19:20:00.862523903 +0200
-> >>>> @@ -209,10 +209,14 @@ static int af9035_i2c_master_xfer(struct
-> >>>> 
-> >>>>            if (msg[0].len > 40 || msg[1].len > 40) {
-> >>>>            
-> >>>>                /* TODO: correct limits > 40 */
-> >>>>                ret = -EOPNOTSUPP;
-> >>>> 
-> >>>> -        } else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-> >>>> +        } else if ((msg[0].addr == state->af9033_config[0].i2c_addr)
-> >>>> ||
-> >>>> +               (msg[0].addr == state->af9033_config[1].i2c_addr)) {
-> >>>> 
-> >>>>                /* integrated demod */
-> >>>>                u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
-> >>>>                
-> >>>>                        msg[0].buf[2];
-> >>>> 
-> >>>> +            if (state->af9033_config[1].i2c_addr &&
-> >>>> +               (msg[0].addr == state->af9033_config[1].i2c_addr))
-> >>>> +                reg |= 0x100000;
-> >>>> 
-> >>>>                ret = af9035_rd_regs(d, reg, &msg[1].buf[0],
-> >>>>                
-> >>>>                        msg[1].len);
-> >>>>            
-> >>>>            } else {
-> >>>> 
-> >>>> @@ -220,8 +224,9 @@ static int af9035_i2c_master_xfer(struct
-> >>>> 
-> >>>>                u8 buf[5 + msg[0].len];
-> >>>>                struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
-> >>>>                
-> >>>>                        buf, msg[1].len, msg[1].buf };
-> >>>> 
-> >>>> +            req.mbox |= ((msg[0].addr & 0x80)  >>  3);
-> >>>> 
-> >>>>                buf[0] = msg[1].len;
-> >>>> 
-> >>>> -            buf[1] = msg[0].addr << 1;
-> >>>> +            buf[1] = (u8)(msg[0].addr << 1);
-> >>>> 
-> >>>>                buf[2] = 0x00; /* reg addr len */
-> >>>>                buf[3] = 0x00; /* reg addr MSB */
-> >>>>                buf[4] = 0x00; /* reg addr LSB */
-> >>>> 
-> >>>> @@ -232,10 +237,14 @@ static int af9035_i2c_master_xfer(struct
-> >>>> 
-> >>>>            if (msg[0].len > 40) {
-> >>>>            
-> >>>>                /* TODO: correct limits > 40 */
-> >>>>                ret = -EOPNOTSUPP;
-> >>>> 
-> >>>> -        } else if (msg[0].addr == state->af9033_config[0].i2c_addr) {
-> >>>> +        } else if ((msg[0].addr == state->af9033_config[0].i2c_addr)
-> >>>> ||
-> >>>> +               (msg[0].addr == state->af9033_config[1].i2c_addr)) {
-> >>>> 
-> >>>>                /* integrated demod */
-> >>>>                u32 reg = msg[0].buf[0] << 16 | msg[0].buf[1] << 8 |
-> >>>>                
-> >>>>                        msg[0].buf[2];
-> >>>> 
-> >>>> +            if (state->af9033_config[1].i2c_addr &&
-> >>>> +               (msg[0].addr == state->af9033_config[1].i2c_addr))
-> >>>> +                reg |= 0x100000;
-> >>>> 
-> >>>>                ret = af9035_wr_regs(d, reg, &msg[0].buf[3],
-> >>>>                
-> >>>>                        msg[0].len - 3);
-> >>>>            
-> >>>>            } else {
-> >>>> 
-> >>>> @@ -243,8 +252,9 @@ static int af9035_i2c_master_xfer(struct
-> >>>> 
-> >>>>                u8 buf[5 + msg[0].len];
-> >>>>                struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf,
-> >>>>                
-> >>>>                        0, NULL };
-> >>>> 
-> >>>> +            req.mbox |= ((msg[0].addr & 0x80)  >>  3);
-> >>>> 
-> >>>>                buf[0] = msg[0].len;
-> >>>> 
-> >>>> -            buf[1] = msg[0].addr << 1;
-> >>>> +            buf[1] = (u8)(msg[0].addr << 1);
-> >>>> 
-> >>>>                buf[2] = 0x00; /* reg addr len */
-> >>>>                buf[3] = 0x00; /* reg addr MSB */
-> >>>>                buf[4] = 0x00; /* reg addr LSB */
-> >>>> 
-> >>>> @@ -283,9 +293,30 @@ static int af9035_identify_state(struct
-> >>>> 
-> >>>>        int ret;
-> >>>>        u8 wbuf[1] = { 1 };
-> >>>>        u8 rbuf[4];
-> >>>> 
-> >>>> +    u8 tmp;
-> >>>> 
-> >>>>        struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
-> >>>>        
-> >>>>                sizeof(rbuf), rbuf };
-> >>>> 
-> >>>> +    /* check if there is dual tuners */
-> >>>> +    ret = af9035_rd_reg(d, EEPROM_DUAL_MODE, &tmp);
-> >>>> +    if (ret < 0)
-> >>>> +        goto err;
-> >>>> +
-> >>>> +    if (tmp) {
-> >>>> +        /* read 2nd demodulator I2C address */
-> >>>> +        ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +
-> >>>> +        ret = af9035_wr_reg(d, 0x00417f, tmp);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +
-> >>>> +        ret = af9035_wr_reg(d, 0x00d81a, 1);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +    }
-> >>>> +
-> >>>> 
-> >>>>        ret = af9035_ctrl_msg(d, &req);
-> >>>>        if (ret < 0)
-> >>>>        
-> >>>>            goto err;
-> >>>> 
-> >>>> @@ -492,7 +523,14 @@ static int af9035_read_config(struct dvb
-> >>>> 
-> >>>>        state->dual_mode = tmp;
-> >>>>        pr_debug("%s: dual mode=%d\n", __func__, state->dual_mode);
-> >>>> 
-> >>>> -
-> >>>> +    if (state->dual_mode) {
-> >>>> +        /* read 2nd demodulator I2C address */
-> >>>> +        ret = af9035_rd_reg(d, EEPROM_2WIREADDR, &tmp);
-> >>>> +        if (ret < 0)
-> >>>> +            goto err;
-> >>>> +        state->af9033_config[1].i2c_addr = tmp;
-> >>>> +        pr_debug("%s: 2nd demod I2C addr:%02x\n", __func__, tmp);
-> >>>> +    }
-> >>>> 
-> >>>>        for (i = 0; i < state->dual_mode + 1; i++) {
-> >>>>        
-> >>>>            /* tuner */
-> >>>>            ret = af9035_rd_reg(d, EEPROM_1_TUNER_ID + eeprom_shift,
-> >>>>            &tmp);
-> >>>> 
-> >>>> @@ -671,6 +709,12 @@ static int af9035_frontend_callback(void
-> >>>> 
-> >>>>        return -EINVAL;
-> >>>>    
-> >>>>    }
-> >>>> 
-> >>>> +static int af9035_get_adapter_count(struct dvb_usb_device *d)
-> >>>> +{
-> >>>> +    struct state *state = d_to_priv(d);
-> >>>> +    return state->dual_mode + 1;
-> >>>> +}
-> >>>> +
-> >>>> 
-> >>>>    static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
-> >>>>    {
-> >>>>    
-> >>>>        struct state *state = adap_to_priv(adap);
-> >>>> 
-> >>>> @@ -726,13 +770,26 @@ static const struct fc0011_config af9035
-> >>>> 
-> >>>>        .i2c_address = 0x60,
-> >>>>    
-> >>>>    };
-> >>>> 
-> >>>> -static struct mxl5007t_config af9035_mxl5007t_config = {
-> >>>> -    .xtal_freq_hz = MxL_XTAL_24_MHZ,
-> >>>> -    .if_freq_hz = MxL_IF_4_57_MHZ,
-> >>>> -    .invert_if = 0,
-> >>>> -    .loop_thru_enable = 0,
-> >>>> -    .clk_out_enable = 0,
-> >>>> -    .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> >>>> +static struct mxl5007t_config af9035_mxl5007t_config[] = {
-> >>>> +    {
-> >>>> +        .xtal_freq_hz = MxL_XTAL_24_MHZ,
-> >>>> +        .if_freq_hz = MxL_IF_4_57_MHZ,
-> >>>> +        .invert_if = 0,
-> >>>> +        .loop_thru_enable = 0,
-> >>>> +        .clk_out_enable = 0,
-> >>>> +        .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> >>>> +        .no_probe = 1,
-> >>>> +        .no_reset = 1,
-> >>>> +    }, {
-> >>>> +        .xtal_freq_hz = MxL_XTAL_24_MHZ,
-> >>>> +        .if_freq_hz = MxL_IF_4_57_MHZ,
-> >>>> +        .invert_if = 0,
-> >>>> +        .loop_thru_enable = 3,
-> >>>> +        .clk_out_enable = 1,
-> >>>> +        .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> >>>> +        .no_probe = 1,
-> >>>> +        .no_reset = 1,
-> >>>> +    }
-> >>>> 
-> >>>>    };
-> >>>>    
-> >>>>    static struct tda18218_config af9035_tda18218_config = {
-> >>>> 
-> >>>> @@ -795,46 +852,52 @@ static int af9035_tuner_attach(struct dv
-> >>>> 
-> >>>>                    &d->i2c_adap, &af9035_fc0011_config);
-> >>>>            
-> >>>>            break;
-> >>>>        
-> >>>>        case AF9033_TUNER_MXL5007T:
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8e0, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8e1, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8df, 0);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> +        state->tuner_address[adap->id] = 0x60;
-> >>>> +        /* hack, use b[7] to carry used I2C-bus */
-> >>>> +        state->tuner_address[adap->id] |= (adap->id << 7);
-> >>>> +        if (adap->id == 0) {
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8e0, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8e1, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8df, 0);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> 
-> >>>> -        msleep(30);
-> >>>> +            msleep(30);
-> >>>> 
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8df, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8df, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> 
-> >>>> -        msleep(300);
-> >>>> +            msleep(300);
-> >>>> 
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8c0, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8c1, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8bf, 0);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8b4, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8b5, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> -        ret = af9035_wr_reg(d, 0x00d8b3, 1);
-> >>>> -        if (ret < 0)
-> >>>> -            goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8c0, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8c1, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8bf, 0);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8b4, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8b5, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +            ret = af9035_wr_reg(d, 0x00d8b3, 1);
-> >>>> +            if (ret < 0)
-> >>>> +                goto err;
-> >>>> +        }
-> >>>> 
-> >>>>            /* attach tuner */
-> >>>>            fe = dvb_attach(mxl5007t_attach, adap->fe[0],
-> >>>> 
-> >>>> -                &d->i2c_adap, 0x60, &af9035_mxl5007t_config);
-> >>>> +                &d->i2c_adap, state->tuner_address[adap->id],
-> >>>> +                &af9035_mxl5007t_config[adap->id]);
-> >>>> 
-> >>>>            break;
-> >>>>        
-> >>>>        case AF9033_TUNER_TDA18218:
-> >>>>            /* attach tuner */
-> >>>> 
-> >>>> @@ -879,8 +942,8 @@ static int af9035_init(struct dvb_usb_de
-> >>>> 
-> >>>>            { 0x00dd8a, (frame_size >> 0) & 0xff, 0xff},
-> >>>>            { 0x00dd8b, (frame_size >> 8) & 0xff, 0xff},
-> >>>>            { 0x00dd0d, packet_size, 0xff },
-> >>>> 
-> >>>> -        { 0x80f9a3, 0x00, 0x01 },
-> >>>> -        { 0x80f9cd, 0x00, 0x01 },
-> >>>> +        { 0x80f9a3, state->dual_mode, 0x01 },
-> >>>> +        { 0x80f9cd, state->dual_mode, 0x01 },
-> >>>> 
-> >>>>            { 0x80f99d, 0x00, 0x01 },
-> >>>>            { 0x80f9a4, 0x00, 0x01 },
-> >>>>        
-> >>>>        };
-> >>>> 
-> >>>> @@ -1001,7 +1064,7 @@ static const struct dvb_usb_device_prope
-> >>>> 
-> >>>>        .init = af9035_init,
-> >>>>        .get_rc_config = af9035_get_rc_config,
-> >>>> 
-> >>>> -    .num_adapters = 1,
-> >>>> +    .get_adapter_count = af9035_get_adapter_count,
-> >>>> 
-> >>>>        .adapter = {
-> >>>>        
-> >>>>            {
-> >>>>            
-> >>>>                .stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
-> >>>> 
-> >>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
-> >>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
-> >>>> --- linux/drivers/media/usb/dvb-usb-v2/af9035.h    2012-08-14
-> >>>> 05:45:22.000000000 +0200
-> >>>> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h    2012-08-29
-> >>>> 12:31:28.630973960 +0200
-> >>>> @@ -54,6 +54,8 @@ struct state {
-> >>>> 
-> >>>>        bool dual_mode;
-> >>>>        
-> >>>>        struct af9033_config af9033_config[2];
-> >>>> 
-> >>>> +
-> >>>> +    u8 tuner_address[2];
-> >>>> 
-> >>>>    };
-> >>>>    
-> >>>>    u32 clock_lut[] = {
-> >>>> 
-> >>>> @@ -87,6 +89,7 @@ u32 clock_lut_it9135[] = {
-> >>>> 
-> >>>>    /* EEPROM locations */
-> >>>>    #define EEPROM_IR_MODE            0x430d
-> >>>>    #define EEPROM_DUAL_MODE          0x4326
-> >>>> 
-> >>>> +#define EEPROM_2WIREADDR          0x4327
-> >>>> 
-> >>>>    #define EEPROM_IR_TYPE            0x4329
-> >>>>    #define EEPROM_1_IFFREQ_L         0x432d
-> >>>>    #define EEPROM_1_IFFREQ_H         0x432e
-> >> 
-> >> --
-> >> http://palosaari.fi/
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Wed, Jan 2, 2013 at 3:49 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Prabhakar
+>
+> On Wed, 2 Jan 2013, Prabhakar Lad wrote:
+>
+>> Hi,
+>>
+>> This is my first step towards DT support for media, Question might be
+>> bit amateur :)
+>
+> No worries, we're all doing our first steps in this direction right at the
+> moment. These two recent threads should give you an idea as to where we
+> stand atm:
+>
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
+>
+> and (optionally, to a lesser extent)
+>
+> http://www.spinics.net/lists/linux-media/index.html#57836
+>
+Thanks for the links.
+
+>> In the video pipeline there will be external devices (decoders/camera)
+>> connected via
+>> i2c, spi, csi. This sub-devices take platform data. So question is
+>> moving ahead and
+>> adding DT support for this subdevices how should this platform data be
+>> passed through.
+>> Should it be different properties for different devices.
+>
+> Mostly, yes.
+>
+Ok
+
+>> For example the mt9t001 sensor takes following platform data:
+>> struct mt9t001_platform_data {
+>>       unsigned int clk_pol:1;
+>
+> This would presumably be the standard "pclk-sample" property from the
+> first of the above two quoted threads
+>
+>>       unsigned int ext_clk;
+>
+> Is this the frequency? This should be replaced by a phandle, linking to a
+Yes its the external clock frequency.
+
+> clock device-tree node, assuming, your platform is implementing the
+> generic clock API. If it isn't yet, not a problem either:-) In either case
+> your sensor driver shall be using the v4l2_clk API to retrieve the clock
+> rate and your camera host driver should be providing a matching v4l2_clk
+> instance and implementing its methods, including retrieving the frequency.
+>
+Ok.
+
+>> };
+>> similarly mt9p031 takes following platform data:
+>>
+>> struct mt9p031_platform_data {
+>>       int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+>
+> Not sure what the xclk is, but, presumable, this should be ported to
+> v4l2_clk too.
+>
+>>       int reset;
+>
+> This is a GPIO number, used to reset the chip. You should use a property,
+> probably, calling it "reset-gpios", specifying the desired GPIO.
+>
+>>       int ext_freq;
+>>       int target_freq;
+>
+> Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and
+> target_freq could be a proprietary property of your device.
+>
+Ok.
+
+Regards,
+--Prabhakar
+
+> Thanks
+> Guennadi
+>
+>> };
+>>
+>> should this all be individual properties ?
+>>
+>> Regards,
+>> --Prabhakar
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
