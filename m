@@ -1,44 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:36376 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762Ab3APOdR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 09:33:17 -0500
-Date: Wed, 16 Jan 2013 17:33:21 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Volokh Konstantin <volokh84@gmail.com>
-Cc: devel@driverdev.osuosl.org, mchehab@redhat.com,
-	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-	dhowells@redhat.com, rdunlap@xenotime.net, hans.verkuil@cisco.com,
-	justinmattock@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] staging: media: go7007: i2c GPIO initialization
- Reset i2c stuff for GO7007_BOARDID_ADLINK_MPG24 need reset GPIO always when
- encoder initialize
-Message-ID: <20130116143321.GI4584@mwanda>
-References: <1358341251-10087-1-git-send-email-volokh84@gmail.com>
- <1358341251-10087-3-git-send-email-volokh84@gmail.com>
- <20130116133608.GH4584@mwanda>
- <20130116140013.GB20944@VPir>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130116140013.GB20944@VPir>
+Received: from mx1.redhat.com ([209.132.183.28]:8978 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755289Ab3ADVQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jan 2013 16:16:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/4] [media] em28xx: tell ir-kbd-i2c that WinTV uses an RC5 protocol
+Date: Fri,  4 Jan 2013 19:15:52 -0200
+Message-Id: <1357334152-3811-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
+References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 16, 2013 at 06:00:13PM +0400, Volokh Konstantin wrote:
-> On Wed, Jan 16, 2013 at 04:36:08PM +0300, Dan Carpenter wrote:
-> > You've added the writes for GO7007_BOARDID_ADLINK_MPG24 but removed
-> > them for GO7007_BOARDID_XMEN and GO7007_BOARDID_XMEN_III.  Won't
-> > that break those boards?
-> >
-> I don`t remove code for GO7007_BOARDID_XMEN and GO7007_BOARDID_XMEN_III.
-> case there are auto reusing for XMen and XMen-III:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/em28xx/em28xx-input.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Ah.  Grand.
-
-Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-regards,
-dan carpenter
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index ebbb0aa..5b3292c 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -483,6 +483,7 @@ static void em28xx_register_i2c_ir(struct em28xx *dev)
+ 		dev->init_data.ir_codes = RC_MAP_HAUPPAUGE;
+ 		dev->init_data.get_key = em28xx_get_key_em_haup;
+ 		dev->init_data.name = "WinTV USB2";
++		dev->init_data.type = RC_BIT_RC5;
+ 		break;
+ 	case EM2820_BOARD_LEADTEK_WINFAST_USBII_DELUXE:
+ 		dev->init_data.ir_codes = RC_MAP_WINFAST_USBII_DELUXE;
+-- 
+1.7.11.7
 
