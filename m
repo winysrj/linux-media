@@ -1,38 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:33675 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756500Ab3ANSM2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 13:12:28 -0500
-Received: by mail-qa0-f46.google.com with SMTP id r4so1672810qaq.19
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 10:12:27 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:40256 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754370Ab3ADTTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jan 2013 14:19:37 -0500
+Received: from dyn3-82-128-184-254.psoas.suomi.net ([82.128.184.254] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1TrCno-0008W1-8N
+	for linux-media@vger.kernel.org; Fri, 04 Jan 2013 21:19:36 +0200
+Message-ID: <50E72B24.3080500@iki.fi>
+Date: Fri, 04 Jan 2013 21:19:00 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <50F447E0.4060009@gmail.com>
-References: <50F447E0.4060009@gmail.com>
-Date: Mon, 14 Jan 2013 13:12:27 -0500
-Message-ID: <CAGoCfix5RmX04moG4WF4DDibBSkXmE4_-O6S=zdJ+bVoFv9USw@mail.gmail.com>
-Subject: Re: Problem between DMB-TH USB dongle drivers and Frontend broken
- (DVBv3 migrate to DVBv5)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "nise.design" <nise.design@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] dvb_usb_v2: make remote controller optional
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 14, 2013 at 1:01 PM, nise.design <nise.design@gmail.com> wrote:
-> After google search I think the problem may be come from connection between
-> DMB-TH drivers and dvb_frontend.c broken. I wanted to know any example code
-> or instruction about DVBv3 driver connect to dvb_frontend.c.  Thank you for
-> any advice.
+The following changes since commit 16427faf28674451a7a0485ab0a929402f355ffd:
 
-Before suggesting that this is the cause, you should do a kenrel
-bisect and identify whether it worked before the patch series in
-question, but fails after it is applied.  That will tell you whether
-the patch[es] are really the problem, or whether you're just
-speculating.
+   [media] tm6000: Add parameter to keep urb bufs allocated (2012-12-04 
+14:54:21 -0200)
 
-Devin
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git dvb_usb_v2_rc-pull
+
+for you to fetch changes up to cc9aa8a2eb10cc0d5df07b8242a4ab1f500e7e23:
+
+   dvb_usb_v2: use IS_ENABLED() macro (2013-01-04 20:25:27 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (12):
+       dvb_usb_v2: make remote controller optional
+       rtl28xxu: make remote controller optional
+       anysee: make remote controller optional
+       af9015: make remote controller optional
+       af9035: make remote controller optional
+       az6007: make remote controller optional
+       it913x: make remote controller optional
+       it913x: remove unused define and increase module version
+       dvb_usb_v2: remove rc-core stub implementations
+       dvb_usb_v2: use dummy function defines instead stub functions
+       dvb_usb_v2: change rc polling active/deactive logic
+       dvb_usb_v2: use IS_ENABLED() macro
+
+  drivers/media/usb/dvb-usb-v2/Kconfig        |  3 ++-
+  drivers/media/usb/dvb-usb-v2/af9015.c       |  4 ++++
+  drivers/media/usb/dvb-usb-v2/af9035.c       |  4 ++++
+  drivers/media/usb/dvb-usb-v2/anysee.c       |  4 ++++
+  drivers/media/usb/dvb-usb-v2/az6007.c       | 26 
++++++++++++++++-----------
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  3 ++-
+  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 15 ++++++++++++---
+  drivers/media/usb/dvb-usb-v2/it913x.c       | 39 
++++++++++++++++++++++------------------
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c     |  9 ++++++++-
+  9 files changed, 72 insertions(+), 35 deletions(-)
+
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
