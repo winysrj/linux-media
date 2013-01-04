@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:64739 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752398Ab3ASXnF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:43:05 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, sakari.ailus@iki.fi, dhowells@redhat.com,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 24/24] v4l2-core/v4l2-common.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:31 -0200
-Message-Id: <1358638891-4775-25-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:43889 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754883Ab3ADTlk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 14:41:40 -0500
+Received: by mail-qa0-f53.google.com with SMTP id a19so161758qad.5
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 11:41:39 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 4 Jan 2013 14:41:39 -0500
+Message-ID: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com>
+Subject: [GIT PULL FOR 3.9] em28xx videobuf2 support and v4l2-compliance fixes
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_MEDIA_TUNER_TEA5761) || \
-     defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
-with:
- #if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
+Hello Mauro,
 
-This change was made for: CONFIG_MEDIA_TUNER_TEA5761
+Please pull the following series for 3.9, which ports em28xx to VB2 as
+well as applying Hans Verkuil's v4l2-compliance fixes for em28xx.
 
-Also replaced:
- #if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
-with:
- #if IS_ENABLED(CONFIG_I2C)
+Thanks,
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
-   Fixed commit message
+Devin
 
- drivers/media/v4l2-core/v4l2-common.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 614316f..aa044f4 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -238,7 +238,7 @@ int v4l2_chip_match_host(const struct v4l2_dbg_match *match)
- }
- EXPORT_SYMBOL(v4l2_chip_match_host);
- 
--#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_I2C)
- int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
- {
- 	int len;
-@@ -384,7 +384,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_addr);
- const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
- {
- 	static const unsigned short radio_addrs[] = {
--#if defined(CONFIG_MEDIA_TUNER_TEA5761) || defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
- 		0x10,
- #endif
- 		0x60,
+  [media] get_dvb_firmware: Fix the location of firmware for Terratec
+HTC (2013-01-01 11:18:26 -0200)
+
+are available in the git repository at:
+
+  git://git.kernellabs.com/dheitmueller/linuxtv.git v39staging
+
+for you to fetch changes up to 381abfc158c2dad81a558a3d3ff924fc7f80d277:
+
+  em28xx: convert to videobuf2 (2013-01-04 14:16:24 -0500)
+
+----------------------------------------------------------------
+Devin Heitmueller (1):
+      em28xx: convert to videobuf2
+
+Hans Verkuil (14):
+      em28xx: fix querycap.
+      em28xx: remove bogus input/audio ioctls for the radio device.
+      em28xx: fix VIDIOC_DBG_G_CHIP_IDENT compliance errors.
+      em28xx: fix tuner/frequency handling
+      v4l2-ctrls: add a notify callback.
+      em28xx: convert to the control framework.
+      em28xx: convert to v4l2_fh, fix priority handling.
+      em28xx: add support for control events.
+      em28xx: fill in readbuffers and fix incorrect return code.
+      em28xx: fix broken TRY_FMT.
+      tvp5150: remove compat control ops.
+      em28xx: std fixes: don't implement in webcam mode, and fix std changes.
+      em28xx: remove sliced VBI support.
+      em28xx: zero vbi_format reserved array and add try_vbi_fmt.
+
+ Documentation/video4linux/v4l2-controls.txt |   22 +-
+ drivers/media/i2c/tvp5150.c                 |    7 -
+ drivers/media/usb/em28xx/Kconfig            |    3 +-
+ drivers/media/usb/em28xx/em28xx-cards.c     |   31 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c       |    4 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c       |  123 ++-
+ drivers/media/usb/em28xx/em28xx-video.c     | 1159 ++++++++-------------------
+ drivers/media/usb/em28xx/em28xx.h           |   38 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   18 +
+ include/media/v4l2-ctrls.h                  |   25 +
+ 10 files changed, 504 insertions(+), 926 deletions(-)
+
+
 -- 
-1.7.11.7
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
