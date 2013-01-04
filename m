@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:52284 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754733Ab3ADU7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 15:59:52 -0500
-Received: by mail-vc0-f175.google.com with SMTP id fy7so16801234vcb.20
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 12:59:52 -0800 (PST)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 00/15] em28xx VBI2 port and v4l2-compliance fixes
-Date: Fri,  4 Jan 2013 15:59:30 -0500
-Message-Id: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-ie0-f179.google.com ([209.85.223.179]:54214 "EHLO
+	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab3ADFDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 00:03:13 -0500
+Received: by mail-ie0-f179.google.com with SMTP id k14so19379514iea.10
+        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 21:03:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50E5F93D.1000302@iki.fi>
+References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
+	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
+	<20130101130041.52dee65f@redhat.com>
+	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
+	<20130101152932.3873d4cc@redhat.com>
+	<CAHFNz9LzBX0G9G0G_6C+WHooaQ1ridG1pkCcOPyzPG+FgOZKxw@mail.gmail.com>
+	<20130103112044.4267b274@redhat.com>
+	<50E5A142.2090807@tvdr.de>
+	<20130103141429.03766540@redhat.com>
+	<20130103142959.3d838015@redhat.com>
+	<50E5F93D.1000302@iki.fi>
+Date: Thu, 3 Jan 2013 21:03:12 -0800
+Message-ID: <CAA7C2qiGFc2CaVGaVFwe3kQ697ME2uCpjEF8e5yJhbrt5sKOAA@mail.gmail.com>
+Subject: Re: [linux-media] Re: [PATCH RFCv3] dvb: Add DVBv5 properties for
+ quality parameters
+From: VDR User <user.vdr@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series converts the em28xx driver to videobuf2 and fixes
-a number of issues found with v4l2-compliance on em28xx.
+On Thu, Jan 3, 2013 at 1:33 PM, Antti Palosaari <crope@iki.fi> wrote:
+> I would not like to define exact units for BER and USB as those are quite
+> hard to implement and also non-sense. User would like just to see if there
+> is some (random) numbers and if those numbers are rising or reducing when he
+> changes antenna or adjusts gain. We are not making a professional signal
+> analyzers - numbers does not need to be 100% correctly.
 
-Devin Heitmueller (1):
-  em28xx: convert to videobuf2
-
-Hans Verkuil (14):
-  em28xx: fix querycap.
-  em28xx: remove bogus input/audio ioctls for the radio device.
-  em28xx: fix VIDIOC_DBG_G_CHIP_IDENT compliance errors.
-  em28xx: fix tuner/frequency handling
-  v4l2-ctrls: add a notify callback.
-  em28xx: convert to the control framework.
-  em28xx: convert to v4l2_fh, fix priority handling.
-  em28xx: add support for control events.
-  em28xx: fill in readbuffers and fix incorrect return code.
-  em28xx: fix broken TRY_FMT.
-  tvp5150: remove compat control ops.
-  em28xx: std fixes: don't implement in webcam mode, and fix std
-    changes.
-  em28xx: remove sliced VBI support.
-  em28xx: zero vbi_format reserved array and add try_vbi_fmt.
-
- Documentation/video4linux/v4l2-controls.txt |   22 +-
- drivers/media/i2c/tvp5150.c                 |    7 -
- drivers/media/usb/em28xx/Kconfig            |    3 +-
- drivers/media/usb/em28xx/em28xx-cards.c     |   31 +-
- drivers/media/usb/em28xx/em28xx-dvb.c       |    4 +-
- drivers/media/usb/em28xx/em28xx-vbi.c       |  123 ++-
- drivers/media/usb/em28xx/em28xx-video.c     | 1159 ++++++++-------------------
- drivers/media/usb/em28xx/em28xx.h           |   38 +-
- drivers/media/v4l2-core/v4l2-ctrls.c        |   18 +
- include/media/v4l2-ctrls.h                  |   25 +
- 10 files changed, 504 insertions(+), 926 deletions(-)
-
--- 
-1.7.9.5
-
+Just a small comment here. Since this may finally be done, why not do
+it the best way? In the end I think that's better and I don't see any
+harm in having the capability to make a pro-grade signal analyzer.
+After years of waiting, I don't think half-assing is a good idea.
