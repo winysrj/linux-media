@@ -1,97 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:12709 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764Ab3AWTbv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 14:31:51 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, myungjoo.ham@samsung.com,
-	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v3 00/14] V4L2 device tree bindings and OF helpers
-Date: Wed, 23 Jan 2013 20:31:15 +0100
-Message-id: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:54339 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754764Ab3ADNVx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 08:21:53 -0500
+Date: Fri, 4 Jan 2013 14:21:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: DT bindings for subdevices
+In-Reply-To: <CA+V-a8sai0qEsBJNtn0nPKQrP3HvMZzX_yawSAGKBqxxHOMoUQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1301041417480.28515@axis700.grange>
+References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
+ <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+ <CA+V-a8sai0qEsBJNtn0nPKQrP3HvMZzX_yawSAGKBqxxHOMoUQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series includes the updated device tree bindings documentation and
-the V4L2 OF parser (v4). There were just couple minor changes since v3:
-     - improved clock-lanes property description,
-     - grammar corrections of the example dts snippet description,
-     - minor comments corrections.
+On Fri, 4 Jan 2013, Prabhakar Lad wrote:
 
-This series also includes patches adding device tree support for Exynos4
-SoC camera subsystem. Changes in this part include:
- - dropped patch adding OF_DEV_AUXDATA entries as this series has
-   been tested with the new Exynos4 clocks driver;
- - max-data-lanes property of the CSIS device node replaced with bus-width;
- - added clock-frequency property to FIMC device nodes;
- - corrected FIMC-LITE devices registration (the code didn't consider
-   they are child nodes of the fimc-is node);
- - removed the "inactive" camera port pinctrl state, it is now optional
-   and handling of it wasn't implemeted at the driver yet anyway;
+> Hi Guennadi,
+> 
+> On Wed, Jan 2, 2013 at 3:49 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi Prabhakar
+> >
+> > On Wed, 2 Jan 2013, Prabhakar Lad wrote:
+> >
+> >> Hi,
+> >>
+> >> This is my first step towards DT support for media, Question might be
+> >> bit amateur :)
+> >
+> > No worries, we're all doing our first steps in this direction right at the
+> > moment. These two recent threads should give you an idea as to where we
+> > stand atm:
+> >
+> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
+> >
+> > and (optionally, to a lesser extent)
+> >
+> > http://www.spinics.net/lists/linux-media/index.html#57836
+> >
+> >> In the video pipeline there will be external devices (decoders/camera)
+> >> connected via
+> >> i2c, spi, csi. This sub-devices take platform data. So question is
+> >> moving ahead and
+> >> adding DT support for this subdevices how should this platform data be
+> >> passed through.
+> >> Should it be different properties for different devices.
+> >
+> > Mostly, yes.
+> >
+> >> For example the mt9t001 sensor takes following platform data:
+> >> struct mt9t001_platform_data {
+> >>       unsigned int clk_pol:1;
+> >
+> > This would presumably be the standard "pclk-sample" property from the
+> > first of the above two quoted threads
+> >
+> >>       unsigned int ext_clk;
+> >
+> > Is this the frequency? This should be replaced by a phandle, linking to a
+> > clock device-tree node, assuming, your platform is implementing the
+> > generic clock API. If it isn't yet, not a problem either:-) In either case
+> > your sensor driver shall be using the v4l2_clk API to retrieve the clock
+> > rate and your camera host driver should be providing a matching v4l2_clk
+> > instance and implementing its methods, including retrieving the frequency.
+> >
+> Few more doubts:
+> 1: The vl42-async/deferred probing would be required for all the devices
+>     implementing FDT if I am not wrong ?
 
-I have also tested this patch set with the FIMC-IS (the camera ISP
-subsystem with a dedicated ARM MCU) driver.
+There is, of course, more than one way to do it, but that's how we want to 
+have it, yes. We want your I2C camera sensors be specified in the DT in a 
+standard way - as children of the respective I2C adapter DT node, which 
+means they can be probed at any time. And we do want their probing 
+functions to have the ability to really access the hardware, if all the 
+conditions are satisfied, e.g. if all resources are available. Which is 
+exactly why we need asynchronous probing.
 
-For the media patches 01..09/14 I intend to send a pull request within
-a few days. Patches 10..13/14 I'd like to be applied by the Samsung
-platforms maintainer.
+Thanks
+Guennadi
 
-Patch 14/14 is an example only.
+> Regards,
+> --Prabhakar
+> 
+> >> };
+> >> similarly mt9p031 takes following platform data:
+> >>
+> >> struct mt9p031_platform_data {
+> >>       int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+> >
+> > Not sure what the xclk is, but, presumable, this should be ported to
+> > v4l2_clk too.
+> >
+> >>       int reset;
+> >
+> > This is a GPIO number, used to reset the chip. You should use a property,
+> > probably, calling it "reset-gpios", specifying the desired GPIO.
+> >
+> >>       int ext_freq;
+> >>       int target_freq;
+> >
+> > Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and
+> > target_freq could be a proprietary property of your device.
+> >
+> > Thanks
+> > Guennadi
+> >
+> >> };
+> >>
+> >> should this all be individual properties ?
+> >>
+> >> Regards,
+> >> --Prabhakar
+> >
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
 
-Thank you for all reviews!
-
-Guennadi Liakhovetski (2):
-  [media] Add common video interfaces OF bindings documentation
-  [media] Add a V4L2 OF parser
-
-Sylwester Nawrocki (12):
-  s5p-csis: Add device tree support
-  s5p-fimc: Add device tree support for FIMC devices
-  s5p-fimc: Add device tree support for FIMC-LITE devices
-  s5p-fimc: Change platform subdevs registration method
-  s5p-fimc: Add device tree support for the main media device driver
-  s5p-fimc: Add device tree based sensors registration
-  s5p-fimc: Use pinctrl API for camera ports configuration
-  ARM: dts: Add camera to node exynos4.dtsi
-  ARM: dts: Add ISP power domain node for Exynos4x12
-  ARM: dts: Add FIMC and MIPI CSIS device nodes for Exynos4x12
-  ARM: dts: Add camera pinctrl nodes for Exynos4x12 SoCs
-  ARM: dts: Add camera device nodes nodes for PQ board
-
- .../devicetree/bindings/media/soc/samsung-fimc.txt |  184 +++++++
- .../bindings/media/soc/samsung-mipi-csis.txt       |   82 +++
- .../devicetree/bindings/media/video-interfaces.txt |  204 ++++++++
- arch/arm/boot/dts/exynos4.dtsi                     |   64 +++
- arch/arm/boot/dts/exynos4412-slp_pq.dts            |  169 +++++++
- arch/arm/boot/dts/exynos4x12-pinctrl.dtsi          |   33 +-
- arch/arm/boot/dts/exynos4x12.dtsi                  |   52 ++
- drivers/media/platform/s5p-fimc/fimc-capture.c     |    2 +-
- drivers/media/platform/s5p-fimc/fimc-core.c        |   94 ++--
- drivers/media/platform/s5p-fimc/fimc-lite.c        |   65 ++-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c     |  526 +++++++++++++++-----
- drivers/media/platform/s5p-fimc/fimc-mdevice.h     |    6 +
- drivers/media/platform/s5p-fimc/mipi-csis.c        |  158 ++++--
- drivers/media/platform/s5p-fimc/mipi-csis.h        |    1 +
- drivers/media/v4l2-core/Makefile                   |    3 +
- drivers/media/v4l2-core/v4l2-of.c                  |  253 ++++++++++
- include/media/s5p_fimc.h                           |   17 +
- include/media/v4l2-of.h                            |   79 +++
- 18 files changed, 1771 insertions(+), 221 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
- create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
- create mode 100644 Documentation/devicetree/bindings/media/video-interfaces.txt
- create mode 100644 drivers/media/v4l2-core/v4l2-of.c
- create mode 100644 include/media/v4l2-of.h
-
---
-1.7.9.5
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
