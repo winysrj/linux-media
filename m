@@ -1,45 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:49031 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753777Ab3A3HDm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 02:03:42 -0500
-Date: Wed, 30 Jan 2013 10:03:43 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] tm6000: check an allocation for failure
-Message-ID: <20130130070343.GA12396@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:44684 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab3ADFLf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 00:11:35 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH v2] adv7343: use devm_kzalloc() instead of kzalloc()
+Date: Fri,  4 Jan 2013 10:41:15 +0530
+Message-Id: <1357276277-21812-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allocation had no error checking.  It didn't need to be under
-the mutex so I moved it out form there. That makes the error handling
-easier and is a potential speed up.
+I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
+simplifies their clean up paths.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+---
+ Changes for v2:
+ 1: Fixed comments pointed out by Laurent.
 
-diff --git a/drivers/media/usb/tm6000/tm6000-core.c b/drivers/media/usb/tm6000/tm6000-core.c
-index 22cc011..7c32353 100644
---- a/drivers/media/usb/tm6000/tm6000-core.c
-+++ b/drivers/media/usb/tm6000/tm6000-core.c
-@@ -40,10 +40,13 @@ int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
- 	u8	     *data = NULL;
- 	int delay = 5000;
+ drivers/media/i2c/adv7343.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 2b5aa67..432eb5f 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -397,7 +397,8 @@ static int adv7343_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
  
--	mutex_lock(&dev->usb_lock);
--
--	if (len)
-+	if (len) {
- 		data = kzalloc(len, GFP_KERNEL);
-+		if (!data)
-+			return -ENOMEM;
-+	}
-+
-+	mutex_lock(&dev->usb_lock);
+-	state = kzalloc(sizeof(struct adv7343_state), GFP_KERNEL);
++	state = devm_kzalloc(&client->dev, sizeof(struct adv7343_state),
++			     GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
  
- 	if (req_type & USB_DIR_IN)
- 		pipe = usb_rcvctrlpipe(dev->udev, 0);
+@@ -431,16 +432,13 @@ static int adv7343_probe(struct i2c_client *client,
+ 		int err = state->hdl.error;
+ 
+ 		v4l2_ctrl_handler_free(&state->hdl);
+-		kfree(state);
+ 		return err;
+ 	}
+ 	v4l2_ctrl_handler_setup(&state->hdl);
+ 
+ 	err = adv7343_initialize(&state->sd);
+-	if (err) {
++	if (err)
+ 		v4l2_ctrl_handler_free(&state->hdl);
+-		kfree(state);
+-	}
+ 	return err;
+ }
+ 
+@@ -451,7 +449,6 @@ static int adv7343_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&state->hdl);
+-	kfree(state);
+ 
+ 	return 0;
+ }
+-- 
+1.7.4.1
+
