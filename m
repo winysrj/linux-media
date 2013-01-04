@@ -1,164 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout2.freenet.de ([195.4.92.92]:45047 "EHLO mout2.freenet.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751367Ab3ABWXd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 17:23:33 -0500
-Date: Wed, 2 Jan 2013 23:21:24 +0100
-From: Sascha Sommer <saschasommer@freenet.de>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
- i2c transfers
-Message-ID: <20130102232124.41551da3@madeira.sommer.dynalias.net>
-In-Reply-To: <50E4A5B6.1090005@googlemail.com>
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com>
-	<20121222220746.64611c08@redhat.com>
-	<20130102214512.5e73075c@madeira.sommer.dynalias.net>
-	<50E4A5B6.1090005@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.187]:52866 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753389Ab3ADKZg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 05:25:36 -0500
+Date: Fri, 4 Jan 2013 11:25:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Libin Yang <lbyang@marvell.com>
+cc: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
+ for marvell-ccic driver
+In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230AFE224B@SC-VEXCH4.marvell.com>
+Message-ID: <Pine.LNX.4.64.1301041042560.28515@axis700.grange>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-4-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230AFE224B@SC-VEXCH4.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Frank,
+Hi Libin
 
-Am Wed, 02 Jan 2013 22:25:10 +0100
-schrieb Frank Schäfer <fschaefer.oss@googlemail.com>:
+On Thu, 3 Jan 2013, Libin Yang wrote:
 
-> Hi Sascha,
+> Hi Guennadi,
 > 
-> Am 02.01.2013 21:45, schrieb Sascha Sommer:
-> > Hello,
+> Thanks for your review. Please see my comments below.
+> 
+> >-----Original Message-----
+> >From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> >Sent: Wednesday, January 02, 2013 12:06 AM
+> >To: Albert Wang
+> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+> >Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for
+> >marvell-ccic driver
 > >
-> > Am Sat, 22 Dec 2012 22:07:46 -0200
-> > schrieb Mauro Carvalho Chehab <mchehab@redhat.com>:
+> >On Sat, 15 Dec 2012, Albert Wang wrote:
 > >
-> >> Em Sun, 16 Dec 2012 19:23:28 +0100
-> >> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >> From: Libin Yang <lbyang@marvell.com>
 > >>
-> >>> The em2800 can transfer up to 4 bytes per i2c message.
-> >>> All other em25xx/em27xx/28xx chips can transfer at least 64 bytes
-> >>> per message.
-> >>>
-> >>> I2C adapters should never split messages transferred via the I2C
-> >>> subsystem into multiple message transfers, because the result will
-> >>> almost always NOT be the same as when the whole data is
-> >>> transferred to the I2C client in a single message.
-> >>> If the message size exceeds the capabilities of the I2C adapter,
-> >>> -EOPNOTSUPP should be returned.
-> >>>
-> >>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >>> ---
-> >>>  drivers/media/usb/em28xx/em28xx-i2c.c |   44
-> >>> ++++++++++++++------------------- 1 Datei geändert, 18 Zeilen
-> >>> hinzugefügt(+), 26 Zeilen entfernt(-)
-> >>>
-> >>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
-> >>> b/drivers/media/usb/em28xx/em28xx-i2c.c index 44533e4..c508c12
-> >>> 100644 --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> >>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> >>> @@ -50,14 +50,18 @@ do
-> >>> {							\ } while
-> >>> (0) 
-> >>>  /*
-> >>> - * em2800_i2c_send_max4()
-> >>> - * send up to 4 bytes to the i2c device
-> >>> + * em2800_i2c_send_bytes()
-> >>> + * send up to 4 bytes to the em2800 i2c device
-> >>>   */
-> >>> -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8
-> >>> *buf, u16 len) +static int em2800_i2c_send_bytes(struct em28xx
-> >>> *dev, u8 addr, u8 *buf, u16 len) {
-> >>>  	int ret;
-> >>>  	int write_timeout;
-> >>>  	u8 b2[6];
-> >>> +
-> >>> +	if (len < 1 || len > 4)
-> >>> +		return -EOPNOTSUPP;
-> >>> +
-> >> Except if you actually tested it with all em2800 devices, I think
-> >> that this change just broke it for em2800.
+> >> This patch adds the clock tree support for marvell-ccic.
 > >>
-> >> Maybe Sascha could review this patch series on his em2800 devices.
+> >> Each board may require different clk enabling sequence.
+> >> Developer need add the clk_name in correct sequence in board driver
+> >> to use this feature.
 > >>
-> >> Those devices are limited, and just like other devices (cx231xx for
-> >> example), the I2C bus need to split long messages, otherwise the
-> >> I2C devices will fail.
+> >> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> >> Signed-off-by: Albert Wang <twang13@marvell.com>
+> >> ---
+> >>  drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
+> >>  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 +++++++++++++++++++++-
+> >>  include/media/mmp-camera.h                       |    5 ++
+> >>  3 files changed, 65 insertions(+), 1 deletion(-)
 > >>
-> > The only device that I own is the Terratec Cinergy 200 USB.
-> > Unfortunately I left it in my parents house so I won't be able to
-> > test the patch within the next two weeks. I don't know if any of the
-> > other devices ever transfered more than 4 bytes but as far as I
-> > remember the windows driver of the cinergy 200 usb did not do this.
-> > The traces obtained from it were the only information I had during
-> > development. On first sight, the splitting code looks wrong.
+> [snip]
 > 
-> Thanks for your reply !
-> I have a Terratec Cinergy 200 USB, too, and I used this device for
-> testing the code.
-> You are right, the Windows driver never transfers more than 4 bytes
-> (verified with USB-logs).
-> Do you know if there is something like a control flag for non-stopping
-> i2c transfers ?
-
-I never encountered such a flag.
-
+> >> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> >b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> >> index 603fa0a..2c4dce3 100755
+> >> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+> >> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+> [snip]
 > 
-> Maybe you also noticed the following tread:
-> http://www.spinics.net/lists/linux-media/msg57442.html
+> >> +
+> >> +	mcam_clk_set(mcam, 0);
+> >>  }
+> >>
+> >>  /*
+> >> @@ -202,7 +223,7 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
+> >>  	 * pll1 will never be changed, it is a fixed value
+> >>  	 */
+> >>
+> >> -	if (IS_ERR(mcam->pll1))
+> >> +	if (IS_ERR_OR_NULL(mcam->pll1))
+> >
+> >Why are you changing this? If this really were needed, you should do this
+> >already in the previous patch, where you add these lines. But I don't
+> >think this is a good idea, don't think Russell would like this :-) NULL is
+> >a valid clock. Only a negative error is a failure. In fact, if you like,
+> >you could initialise .pll1 to ERR_PTR(-EINVAL) in your previous patch in
+> >mmpcam_probe().
 > 
-> Do you remember any details about your device ?
+> In the below code, we will use platform related clk_get_rate() to get the rate. 
+> In the function we do not judge the clk is NULL or not. If we do not judge here, 
+> we need judge for NULL in the later, otherwise, error may happen. Or do you
+> think it is better that we should judge the pointer in the function clk_get_rate()?
 
-The description in this thread also matches my device.
-Maybe an additional hint is that it can't capture at full
-resolution because the USB packet size is to small. Therefore
-the em28xx driver somewhere limits it to 360x576 for PAL (Some commits
-broke this code in the past)
+I think, there is a problem here. Firstly, if you really want to check for 
+"clock API not supported" or a similar type of condition by checking 
+get_clk() return value for NULL, you should do this immediately in the 
+patch, where you add this code: in "[PATCH V3 02/15] [media] marvell-ccic: 
+add MIPI support for marvell-ccic driver." Secondly, it's probably ok to 
+check this to say - no clock, co reason to try to use it, in which case 
+you skip calculating your ->dphy[2] value, and it remains == 0, 
+presumably, is this what you want to have? But, I think, there's a bigger 
+problem in your patch #02/15: you don't check for mcam->dphy != NULL. So, 
+I think, this has to be fixed in that patch, not here.
 
-> One thing not mentioned in this tread is, that there seem to be
-> multiple chip IDs for the EM2800.
-> The em28xx only knows about ID=7 and I assume that's what you device
-> uses. But the chip in my device uses ID=4...
+[snip]
 
-I checked some of my old mails. The original driver used the
-chip id for device detection because some users had different devices
-with different ids but this might have been a coincidence. 
+> >> +{
+> >> +	unsigned int i;
+> >> +
+> >> +	if (NR_MCAM_CLK < pdata->clk_num) {
+> >> +		dev_err(mcam->dev, "Too many mcam clocks defined\n");
+> >> +		mcam->clk_num = 0;
+> >> +		return;
+> >> +	}
+> >> +
+> >> +	if (init) {
+> >> +		for (i = 0; i < pdata->clk_num; i++) {
+> >> +			if (pdata->clk_name[i] != NULL) {
+> >> +				mcam->clk[i] = devm_clk_get(mcam->dev,
+> >> +						pdata->clk_name[i]);
+> >
+> >Sorry, no. Passing clock names in platform data doesn't look right to me.
+> >Clock names are a property of the consumer device, not of clock supplier.
+> >Also, your platform tells you to get clk_num clocks, you fail to get one
+> >of them, you don't continue trying the rest and just return with no error.
+> >This seems strange, usually a failure to get clocks, that the platform
+> >tells you to get, is fatal.
+> 
+> I agree that after failing to get the clk, we should return error
+> instead of just returning. 
+> 
+> For the clock names, the clock names are different on different platforms.
+> So we need platform data passing the clock names. Do you have any suggestions?
 
-Judging from the patch below my card uses chip id 4, too.
+I think you should use the same names on all platforms. As I said, those 
+are names of _consumer_ clocks, not of supplier. And the consumer on all 
+platforms is the same - your camera unit. If you cannot remove existing 
+clock entries for compatibility reasons you, probably, can just add clock 
+lookup entries for them. In the _very_ worst case, maybe make a table of 
+clock names and, depending on the SoC type use one of them, but that's 
+really also not very apropriate, not sure, whether that would be accepted.
 
+Thanks
+Guennadi
 ---
-25/drivers/media/video/em28xx/em28xx-cards.c~v4l-786-chip-id-removed-since-it-isn-t-required
-Fri Nov  4 16:20:36 2005 +++
-25-akpm/drivers/media/video/em28xx/em28xx-cards.c	Fri Nov  4
-16:20:37 2005 @@ -160,7 +160,6 @@ struct em2820_board em2820_boards[] =
-{ }, [EM2800_BOARD_TERRATEC_CINERGY_200] = { .name         = "Terratec
-Cinergy 200 USB",
--		.chip_id      = 0x4,
- 		.is_em2800    = 1,
- 		.vchannels    = 3,
- 		.norm         = VIDEO_MODE_PAL,
-@@ -184,7 +183,6 @@ struct em2820_board em2820_boards[] = {
- 	},
- 	[EM2800_BOARD_LEADTEK_WINFAST_USBII] = {
- 		.name         = "Leadtek Winfast USB II",
--		.chip_id      = 0x2,
- 		.is_em2800    = 1,
- 		.vchannels    = 3,
- 		.norm         = VIDEO_MODE_PAL,
-@@ -208,7 +206,6 @@ struct em2820_board em2820_boards[] = {
- 	},
- 	[EM2800_BOARD_KWORLD_USB2800] = {
- 		.name         = "Kworld USB2800",
--		.chip_id      = 0x7,
- 		.is_em2800    = 1,
- 		.vchannels    = 3,
- 		.norm         = VIDEO_MODE_PAL,
-
-
-Regards
-
-Sascha
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
