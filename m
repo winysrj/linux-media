@@ -1,105 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:62953 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab3A3Lk6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 06:40:58 -0500
-Date: Wed, 30 Jan 2013 12:40:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Magnus Damm <magnus.damm@gmail.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-	Simon Horman <horms@verge.net.au>
-Subject: [PATCH] mt9t112: mt9t111 format set up differs from mt9t112
-Message-ID: <Pine.LNX.4.64.1301301239560.3113@axis700.grange>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:46027 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755254Ab3ADWjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 17:39:16 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b47so8180018eek.17
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 14:39:15 -0800 (PST)
+Message-ID: <50E75A10.8090906@gmail.com>
+Date: Fri, 04 Jan 2013 23:39:12 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
+References: <50E726F4.7060704@samsung.com>
+In-Reply-To: <50E726F4.7060704@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The original commit, adding the mt9t112 driver said, that mt9t111 and
-mt9t112 had identical register layouts. This however doesn't seem to be
-the case. At least pixel format selection in the mt9t111 datasheet is
-different from the driver implementation. So far only the default YUYV
-format has been verified to work with mt9t111. Limit the driver to only
-report one supported format with mt9t111 until more formats are
-implemented.
+On 01/04/2013 08:01 PM, Sylwester Nawrocki wrote:
+> Hi Mauro,
+>
+> Please pull the following for 3.9, it includes Exynos SoC drivers cleanups and
+> fixes. DMABUF exporting support for Exynos5 GScaler driver, device tree support
+> for Exynos MFC driver (platform bits for it got merged already for v3.8).
+>
+> There is also included a patch removing deprecated image centering controls.
+>
+> The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
+>
+>    [media] get_dvb_firmware: Fix the location of firmware for Terratec HTC
+> (2013-01-01 11:18:26 -0200)
+>
+> are available in the git repository at:
+>
+>    git://git.infradead.org/users/kmpark/linux-samsung media_for_v3.9
+>
+> for you to fetch changes up to 36073ee2f7b3b5ae91900cb992b292404614243b:
+>
+>    V4L: Remove deprecated image centering controls (2013-01-04 11:35:43 +0100)
+>
+> ----------------------------------------------------------------
+> Arun Kumar K (2):
+>        s5p-mfc: Add device tree support
+>        s5p-mfc: Flush DPB buffers during stream off
+>
+> Kamil Debski (4):
+>        s5p-mfc: Move firmware allocation point to avoid allocation problems
+>        s5p-mfc: Correct check of vb2_dma_contig_init_ctx return value
+>        s5p-mfc: Change internal buffer allocation from vb2 ops to dma_alloc_coherent
+>        s5p-mfc: Context handling in open() bugfix
+>
+> Sachin Kamat (9):
+>        s5p-tv: Add missing braces around sizeof in sdo_drv.c
+>        s5p-tv: Add missing braces around sizeof in mixer_video.c
+>        s5p-tv: Add missing braces around sizeof in mixer_reg.c
+>        s5p-tv: Add missing braces around sizeof in mixer_drv.c
+>        s5p-tv: Add missing braces around sizeof in hdmiphy_drv.c
+>        s5p-tv: Add missing braces around sizeof in hdmi_drv.c
+>        s5p-mfc: Remove redundant 'break'
+>        s5p-mfc: Fix a typo in error message in s5p_mfc_pm.c
+>        s5p-mfc: Fix an error check
+>
+> Shaik Ameer Basha (1):
+>        exynos-gsc: Support dmabuf export buffer
+>
+> Sylwester Nawrocki (5):
+>        s5p-fimc: Avoid possible NULL pointer dereference in set_fmt op
+>        s5p-fimc: Prevent potential buffer overflow
+>        s5p-fimc: Prevent AB-BA deadlock during links reconfiguration
+>        s5p-tv: Fix return value in sdo_probe() on error paths
+>        V4L: Remove deprecated image centering controls
+>
+> Tomasz Stanislawski (1):
+>        s5p-tv: mixer: fix handling of VIDIOC_S_FMT
+>
+> Tony Prisk (3):
+>        s5p-fimc: Fix incorrect usage of IS_ERR_OR_NULL
+>        s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL
+>        s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
+>
+> Wei Yongjun (1):
+>        s5p-mfc: remove unused variable
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/mt9t112.c |   18 +++++++++++++-----
- 1 files changed, 13 insertions(+), 5 deletions(-)
+Related patchwork commands:
 
-diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
-index de7cd83..58f3509 100644
---- a/drivers/media/i2c/soc_camera/mt9t112.c
-+++ b/drivers/media/i2c/soc_camera/mt9t112.c
-@@ -92,6 +92,7 @@ struct mt9t112_priv {
- 	struct v4l2_rect		 frame;
- 	const struct mt9t112_format	*format;
- 	int				 model;
-+	int				 num_formats;
- 	u32				 flags;
- /* for flags */
- #define INIT_DONE	(1 << 0)
-@@ -859,11 +860,11 @@ static int mt9t112_set_params(struct mt9t112_priv *priv,
- 	/*
- 	 * get color format
- 	 */
--	for (i = 0; i < ARRAY_SIZE(mt9t112_cfmts); i++)
-+	for (i = 0; i < priv->num_formats; i++)
- 		if (mt9t112_cfmts[i].code == code)
- 			break;
- 
--	if (i == ARRAY_SIZE(mt9t112_cfmts))
-+	if (i == priv->num_formats)
- 		return -EINVAL;
- 
- 	priv->frame  = *rect;
-@@ -955,14 +956,16 @@ static int mt9t112_s_fmt(struct v4l2_subdev *sd,
- static int mt9t112_try_fmt(struct v4l2_subdev *sd,
- 			   struct v4l2_mbus_framefmt *mf)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
- 	unsigned int top, left;
- 	int i;
- 
--	for (i = 0; i < ARRAY_SIZE(mt9t112_cfmts); i++)
-+	for (i = 0; i < priv->num_formats; i++)
- 		if (mt9t112_cfmts[i].code == mf->code)
- 			break;
- 
--	if (i == ARRAY_SIZE(mt9t112_cfmts)) {
-+	if (i == priv->num_formats) {
- 		mf->code = V4L2_MBUS_FMT_UYVY8_2X8;
- 		mf->colorspace = V4L2_COLORSPACE_JPEG;
- 	} else {
-@@ -979,7 +982,10 @@ static int mt9t112_try_fmt(struct v4l2_subdev *sd,
- static int mt9t112_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
--	if (index >= ARRAY_SIZE(mt9t112_cfmts))
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct mt9t112_priv *priv = to_mt9t112(client);
-+
-+	if (index >= priv->num_formats)
- 		return -EINVAL;
- 
- 	*code = mt9t112_cfmts[index].code;
-@@ -1056,10 +1062,12 @@ static int mt9t112_camera_probe(struct i2c_client *client)
- 	case 0x2680:
- 		devname = "mt9t111";
- 		priv->model = V4L2_IDENT_MT9T111;
-+		priv->num_formats = 1;
- 		break;
- 	case 0x2682:
- 		devname = "mt9t112";
- 		priv->model = V4L2_IDENT_MT9T112;
-+		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
- 		break;
- 	default:
- 		dev_err(&client->dev, "Product ID error %04x\n", chipid);
--- 
-1.7.2.5
+pwclient update -s 'accepted' 15333
+pwclient update -s 'accepted' 15565
+pwclient update -s 'accepted' 16071
+pwclient update -s 'accepted' 16072
+pwclient update -s 'accepted' 16073
+pwclient update -s 'accepted' 15657
+pwclient update -s 'accepted' 15656
+pwclient update -s 'accepted' 15658
+pwclient update -s 'accepted' 15659
+pwclient update -s 'accepted' 15660
+pwclient update -s 'accepted' 15661
+pwclient update -s 'accepted' 16013
+pwclient update -s 'superseded' 16059
+pwclient update -s 'accepted' 16060
+pwclient update -s 'accepted' 16080
+pwclient update -s 'accepted' 16081
+pwclient update -s 'accepted' 16084
+pwclient update -s 'accepted' 15647
+pwclient update -s 'superseded' 16083
+pwclient update -s 'accepted' 15765
 
