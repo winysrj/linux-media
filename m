@@ -1,40 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:63492 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756079Ab3AJUm7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:42:59 -0500
-Received: by mail-ee0-f54.google.com with SMTP id c13so524508eek.13
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:42:57 -0800 (PST)
-Message-ID: <50EF27CE.1030206@gmail.com>
-Date: Thu, 10 Jan 2013 21:42:54 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com> <50EF276C.1080101@gmail.com>
-In-Reply-To: <50EF276C.1080101@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-vb0-f44.google.com ([209.85.212.44]:33660 "EHLO
+	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755028Ab3ADVAF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 16:00:05 -0500
+Received: by mail-vb0-f44.google.com with SMTP id fc26so16901779vbb.17
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 13:00:04 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/15] em28xx: std fixes: don't implement in webcam mode, and fix std changes.
+Date: Fri,  4 Jan 2013 15:59:42 -0500
+Message-Id: <1357333186-8466-13-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2013 09:41 PM, Jiri Slaby wrote:
-> On 01/10/2013 09:38 PM, Manu Abraham wrote:
->> The format can be definitely changed. There's no issue to it.
-> 
-> No you cannot. Applications depend on that, it's part of the dvb ABI. If
-> you changed that, you would do the same mistake as Mauro let it flowing
-> through his tree and it was pointed out by Linus in the link you sent...
+When in webcam mode the STD API shouldn't be implemented.
 
-Id you provide an abstraction library, convert all applications to use
-that instead of the files, you can change them then. Not any time before.
+When changing the standard the resolution wasn't updated, and there was no
+check against streaming-in-progress.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 7c09b55..ae713a0 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -909,6 +909,8 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct em28xx      *dev = fh->dev;
+ 	int                rc;
+ 
++	if (dev->board.is_webcam)
++		return -ENOTTY;
+ 	rc = check_dev(dev);
+ 	if (rc < 0)
+ 		return rc;
+@@ -924,6 +926,8 @@ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct em28xx      *dev = fh->dev;
+ 	int                rc;
+ 
++	if (dev->board.is_webcam)
++		return -ENOTTY;
+ 	rc = check_dev(dev);
+ 	if (rc < 0)
+ 		return rc;
+@@ -940,15 +944,24 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct v4l2_format f;
+ 	int                rc;
+ 
++	if (dev->board.is_webcam)
++		return -ENOTTY;
++	if (*norm == dev->norm)
++		return 0;
+ 	rc = check_dev(dev);
+ 	if (rc < 0)
+ 		return rc;
+ 
++	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
++		em28xx_errdev("%s queue busy\n", __func__);
++		return -EBUSY;
++	}
++
+ 	dev->norm = *norm;
+ 
+ 	/* Adjusts width/height, if needed */
+-	f.fmt.pix.width = dev->width;
+-	f.fmt.pix.height = dev->height;
++	f.fmt.pix.width = 720;
++	f.fmt.pix.height = (*norm & V4L2_STD_525_60) ? 480 : 576;
+ 	vidioc_try_fmt_vid_cap(file, priv, &f);
+ 
+ 	/* set new image size */
+@@ -1034,6 +1047,9 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 		i->type = V4L2_INPUT_TYPE_TUNER;
+ 
+ 	i->std = dev->vdev->tvnorms;
++	/* webcams do not have the STD API */
++	if (dev->board.is_webcam)
++		i->capabilities = 0;
+ 
+ 	return 0;
+ }
+@@ -2059,7 +2075,6 @@ static const struct video_device em28xx_video_template = {
+ 	.ioctl_ops 		    = &video_ioctl_ops,
+ 
+ 	.tvnorms                    = V4L2_STD_ALL,
+-	.current_norm               = V4L2_STD_PAL,
+ };
+ 
+ static const struct v4l2_file_operations radio_fops = {
+@@ -2109,6 +2124,8 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
+ 	vfd->debug	= video_debug;
+ 	vfd->lock	= &dev->lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++	if (dev->board.is_webcam)
++		vfd->tvnorms = 0;
+ 
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s",
+ 		 dev->name, type_name);
+@@ -2127,7 +2144,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 		dev->name, EM28XX_VERSION);
+ 
+ 	/* set default norm */
+-	dev->norm = em28xx_video_template.current_norm;
++	dev->norm = V4L2_STD_PAL;
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+ 	dev->interlaced = EM28XX_INTERLACED_DEFAULT;
+ 
 -- 
-js
+1.7.9.5
+
