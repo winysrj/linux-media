@@ -1,76 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:60027 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3ASQeu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:50 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 20/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:22 -0200
-Message-Id: <1358613206-4274-19-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48597 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab3ADGRq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 01:17:46 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH v2] adv7343: use devm_kzalloc() instead of kzalloc()
+Date: Fri, 04 Jan 2013 07:19:19 +0100
+Message-ID: <1742549.yh29KufX9Q@avalon>
+In-Reply-To: <1357276277-21812-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357276277-21812-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+Hi Prabhakar,
 
-This change was made for: CONFIG_INPUT
+Thank you for the patches.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/usb/gspca/xirlink_cit.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+For the whole set,
 
-diff --git a/drivers/media/usb/gspca/xirlink_cit.c b/drivers/media/usb/gspca/xirlink_cit.c
-index d4b23c9..7eaf64e 100644
---- a/drivers/media/usb/gspca/xirlink_cit.c
-+++ b/drivers/media/usb/gspca/xirlink_cit.c
-@@ -2759,7 +2759,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 		break;
- 	}
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->button_state) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-@@ -2914,7 +2914,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static void cit_check_button(struct gspca_dev *gspca_dev)
- {
- 	int new_button_state;
-@@ -3062,7 +3062,7 @@ static const struct sd_desc sd_desc = {
- 	.stopN = sd_stopN,
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.dq_callback = cit_check_button,
- 	.other_input = 1,
- #endif
-@@ -3079,7 +3079,7 @@ static const struct sd_desc sd_desc_isoc_nego = {
- 	.stopN = sd_stopN,
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.dq_callback = cit_check_button,
- 	.other_input = 1,
- #endif
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+On Friday 04 January 2013 10:41:15 Lad, Prabhakar wrote:
+> I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
+> simplifies their clean up paths.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> ---
+>  Changes for v2:
+>  1: Fixed comments pointed out by Laurent.
+> 
+>  drivers/media/i2c/adv7343.c |    9 +++------
+>  1 files changed, 3 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+> index 2b5aa67..432eb5f 100644
+> --- a/drivers/media/i2c/adv7343.c
+> +++ b/drivers/media/i2c/adv7343.c
+> @@ -397,7 +397,8 @@ static int adv7343_probe(struct i2c_client *client,
+>  	v4l_info(client, "chip found @ 0x%x (%s)\n",
+>  			client->addr << 1, client->adapter->name);
+> 
+> -	state = kzalloc(sizeof(struct adv7343_state), GFP_KERNEL);
+> +	state = devm_kzalloc(&client->dev, sizeof(struct adv7343_state),
+> +			     GFP_KERNEL);
+>  	if (state == NULL)
+>  		return -ENOMEM;
+> 
+> @@ -431,16 +432,13 @@ static int adv7343_probe(struct i2c_client *client,
+>  		int err = state->hdl.error;
+> 
+>  		v4l2_ctrl_handler_free(&state->hdl);
+> -		kfree(state);
+>  		return err;
+>  	}
+>  	v4l2_ctrl_handler_setup(&state->hdl);
+> 
+>  	err = adv7343_initialize(&state->sd);
+> -	if (err) {
+> +	if (err)
+>  		v4l2_ctrl_handler_free(&state->hdl);
+> -		kfree(state);
+> -	}
+>  	return err;
+>  }
+> 
+> @@ -451,7 +449,6 @@ static int adv7343_remove(struct i2c_client *client)
+> 
+>  	v4l2_device_unregister_subdev(sd);
+>  	v4l2_ctrl_handler_free(&state->hdl);
+> -	kfree(state);
+> 
+>  	return 0;
+>  }
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
