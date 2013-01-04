@@ -1,57 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f45.google.com ([209.85.213.45]:55101 "EHLO
-	mail-yh0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757844Ab3AIMju (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 07:39:50 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: remi.schwartz@gmail.com, sean@mess.org, kyle@kyle.strickland.name,
-	simon.farnsworth@onelan.co.uk, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 3/3] pci/saa7134: use IS_ENABLED() macro
-Date: Wed,  9 Jan 2013 10:32:14 -0200
-Message-Id: <1357734734-2856-3-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1357734734-2856-1-git-send-email-peter.senna@gmail.com>
-References: <1357734734-2856-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:41491 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243Ab3ADXQY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 18:16:24 -0500
+Received: by mail-ee0-f52.google.com with SMTP id d17so7778705eek.25
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 15:16:23 -0800 (PST)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH RFC v1 0/2] Omnivision OV9650/52 sensor driver
+Date: Sat,  5 Jan 2013 00:10:21 +0100
+Message-Id: <1357341023-3202-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-with:
- #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+These patches add driver for OV9650/52 image sensor. The first one
+introduces a header file containing definitions of standard image
+resolutions. I have also prepared a few patches reworking existing
+drivers to use this global definitions, but I thought I'll submit
+those only after the header is accepted and merged to the media
+staging tree.
 
-This change was made for: CONFIG_VIDEO_SAA7134_DVB
+Sylwester Nawrocki (2):
+  [media] Add header file defining standard image sizes
+  V4L: Add driver for OV9650/52 image sensors
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/pci/saa7134/saa7134.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/i2c/Kconfig   |    7 +
+ drivers/media/i2c/Makefile  |    1 +
+ drivers/media/i2c/ov9650.c  | 1684 +++++++++++++++++++++++++++++++++++++++++++
+ include/media/image-sizes.h |   34 +
+ include/media/ov9650.h      |   20 +
+ 5 files changed, 1746 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/i2c/ov9650.c
+ create mode 100644 include/media/image-sizes.h
+ create mode 100644 include/media/ov9650.h
 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 0a3feaa..ace44fd 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -42,7 +42,7 @@
- #include <media/videobuf-dma-sg.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
--#if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
- #include <media/videobuf-dvb.h>
- #endif
- 
-@@ -644,7 +644,7 @@ struct saa7134_dev {
- 	struct work_struct         empress_workqueue;
- 	int                        empress_started;
- 
--#if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
- 	/* SAA7134_MPEG_DVB only */
- 	struct videobuf_dvb_frontends frontends;
- 	int (*original_demod_sleep)(struct dvb_frontend *fe);
--- 
-1.7.11.7
+--
+1.7.4.1
 
