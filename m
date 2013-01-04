@@ -1,86 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:41375 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756433Ab3AHO1P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 09:27:15 -0500
-Message-ID: <50EC2CBD.3080102@gmail.com>
-Date: Tue, 08 Jan 2013 15:27:09 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <18858693.KSUhrxG65A@avalon> <50EC0500.4030708@gmail.com> <1446871.ydXdxJD4sK@avalon>
-In-Reply-To: <1446871.ydXdxJD4sK@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:49215 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab3ADU7y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 15:59:54 -0500
+Received: by mail-vc0-f174.google.com with SMTP id d16so16673752vcd.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 12:59:53 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/15] em28xx: fix querycap.
+Date: Fri,  4 Jan 2013 15:59:31 -0500
+Message-Id: <1357333186-8466-2-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   42 ++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 23 deletions(-)
 
-On 01/08/2013 01:41 PM, Laurent Pinchart wrote:
->> Subdev names are exposed to user space by the media controller API.
->> So they are really part of an ABI, aren't they ?
->
-> They're used to construct the name exposed to userspace, but the media
-> controller core could probably handle that internally by concatenating the
-> driver name and the subdev name.
->
->> Also having I2C bus number or I2C slave address as part of the subdev
->> name makes it more difficult to write portable applications. Hence
->> in sensor drivers I used to overwrite subdev name to remove I2C bus
->> and slave address, as the format used v4l2_i2c_subdev_init() seemed
->> highly unsuitable..
->
-> This clearly shows that we need to discuss the matter and agree on a common
-> mode of operation.
->
-> Aren't applications that use the subdev name directly inherently non-portable
-> anyway ? If you want your application to support different boards/sensors/SoCs
-> you should discover the pipeline and find the sensor by iterating over
-> entities, instead of using the sensor entity name.
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 4c1726d..fb9ee46 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1577,6 +1577,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct em28xx_fh      *fh  = priv;
+ 	struct em28xx         *dev = fh->dev;
+ 
+@@ -1584,20 +1585,28 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	strlcpy(cap->card, em28xx_boards[dev->model].name, sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 
+-	cap->capabilities =
+-			V4L2_CAP_SLICED_VBI_CAPTURE |
+-			V4L2_CAP_VIDEO_CAPTURE |
+-			V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+-
+-	if (dev->vbi_dev)
+-		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps = V4L2_CAP_READWRITE |
++			V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	else if (vdev->vfl_type == VFL_TYPE_RADIO)
++		cap->device_caps = V4L2_CAP_RADIO;
++	else
++		cap->device_caps = V4L2_CAP_READWRITE |
++			V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE;
+ 
+ 	if (dev->audio_mode.has_audio)
+-		cap->capabilities |= V4L2_CAP_AUDIO;
++		cap->device_caps |= V4L2_CAP_AUDIO;
+ 
+ 	if (dev->tuner_type != TUNER_ABSENT)
+-		cap->capabilities |= V4L2_CAP_TUNER;
++		cap->device_caps |= V4L2_CAP_TUNER;
+ 
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
++		V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	if (dev->vbi_dev)
++		cap->capabilities |=
++			V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE;
++	if (dev->radio_dev)
++		cap->capabilities |= V4L2_CAP_RADIO;
+ 	return 0;
+ }
+ 
+@@ -1831,19 +1840,6 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ /* RADIO ESPECIFIC IOCTLS                                      */
+ /* ----------------------------------------------------------- */
+ 
+-static int radio_querycap(struct file *file, void  *priv,
+-			  struct v4l2_capability *cap)
+-{
+-	struct em28xx *dev = ((struct em28xx_fh *)priv)->dev;
+-
+-	strlcpy(cap->driver, "em28xx", sizeof(cap->driver));
+-	strlcpy(cap->card, em28xx_boards[dev->model].name, sizeof(cap->card));
+-	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-
+-	cap->capabilities = V4L2_CAP_TUNER;
+-	return 0;
+-}
+-
+ static int radio_g_tuner(struct file *file, void *priv,
+ 			 struct v4l2_tuner *t)
+ {
+@@ -2281,7 +2277,7 @@ static const struct v4l2_file_operations radio_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap      = radio_querycap,
++	.vidioc_querycap      = vidioc_querycap,
+ 	.vidioc_g_tuner       = radio_g_tuner,
+ 	.vidioc_enum_input    = radio_enum_input,
+ 	.vidioc_g_audio       = radio_g_audio,
+-- 
+1.7.9.5
 
-It depends on how we define the entity names :) It the names change from 
-board
-to board and are completely unreliable then user space applications 
-using them
-have no any chance to be generic. Nevertheless, struct 
-media_entity_desc::name
-[1] has currently no specific semantics defined, e.g. for V4L2.
-
-It's likely way better for the kernel space to be no constrained by the 
-subdev
-user space name requirement. But having no clear definition of the 
-entity names
-brings more trouble to user space. E.g. when a sensor exposes multiple 
-subdevs.
-User space library/application could then reference them by entity name. It
-seems difficult to me to handle such multiple subdev devices without 
-somehow
-reliable subdev names.
-
-I imagine a system with multiple sensors of same type sitting on 
-different I2C
-busses, then appending I2C bus number/slave address to the name would be 
-useful.
-
-And is it always possible to discover the pipeline, as opposite to e.g. 
-using
-configuration file to activate all required links ? Configurations could be
-of course per board file, but then at least we should keep subdev names
-constant through the kernel releases.
-
-
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/media-ioc-enum-entities.html
-
---
-
-Regards,
-Sylwester
