@@ -1,84 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:38108 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754221Ab3AQRjZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 12:39:25 -0500
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r0HHdOvc009596
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:39:24 +0100
-Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r0HHdIo8013488
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:39:18 +0100
-Message-ID: <50F83746.8020409@tvdr.de>
-Date: Thu, 17 Jan 2013 18:39:18 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-MIME-Version: 1.0
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:52284 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754733Ab3ADU7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 15:59:52 -0500
+Received: by mail-vc0-f175.google.com with SMTP id fy7so16801234vcb.20
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 12:59:52 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] Re: [linux-media] Re: [PATCH RFCv10 00/15] DVB
- QoS statistics API
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com> <50F8333E.2020904@iki.fi> <50F836CE.2020502@tvdr.de>
-In-Reply-To: <50F836CE.2020502@tvdr.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCH 00/15] em28xx VBI2 port and v4l2-compliance fixes
+Date: Fri,  4 Jan 2013 15:59:30 -0500
+Message-Id: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.01.2013 18:37, Klaus Schmidinger wrote:
-> On 17.01.2013 18:22, Antti Palosaari wrote:
->> On 01/17/2013 07:16 PM, Manu Abraham wrote:
->>> On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>> On 01/17/2013 05:40 AM, Manu Abraham wrote:
->>>>> MB86A20 is not the only demodulator driver with the Linux DVB.
->>>>> And not all devices can output in dB scale proposed by you, But any device
->>>>> output can be scaled in a relative way. So I don't see any reason why
->>>>> userspace has to deal with cumbersome controls to deal with redundant
->>>>> statistics, which is nonsense.
->>>>
->>>>
->>>> What goes to these units in general, dB conversion is done by the driver
->>>> about always. It is quite hard or even impossible to find out that formula
->>>> unless you has adjustable test signal generator.
->>>>
->>>> Also we could not offer always dBm as signal strength. This comes to fact
->>>> that only recent silicon RF-tuners are able to provide RF strength. More
->>>> traditionally that estimation is done by demod from IF/RF AGC, which leads
->>>> very, very, rough estimation.
->>>
->>> What I am saying is that, rather than sticking to a dB scale, it would be
->>> better to fit it into a relative scale, ie loose dB altogether and use only the
->>> relative scale. With that approach any device can be fit into that convention.
->>> Even with an unknown device, it makes it pretty easy for anyone to fit
->>> into that
->>> scale. All you need is a few trial runs to get maxima/minima. When there
->>> exists only a single convention that is simple, it makes it more easier for
->>> people to stick to that convention, rather than for people to not support it.
->>
->> That is true. I don't have really clear opinion whether to force all to one scale, or return dBm those which could and that dummy scale for the others. Maybe I will still vote for both relative and dBm.
->>
->> Shortly there is two possibilities:
->> 1) support only relative scale
->> 2) support both dBm and relative scale (with dBm priority)
->>
->> [3) support only dBm is not possible]
->
-> 4) support relative scale (mandatory!) and dBm (if applicable).
->
-> I concur with Antti.
+This patch series converts the em28xx driver to videobuf2 and fixes
+a number of issues found with v4l2-compliance on em28xx.
 
-Sorry, that should have been "Manu" - got the wrong quote level...
+Devin Heitmueller (1):
+  em28xx: convert to videobuf2
 
->  Any device's values can be made to fit into
-> a 0..100 (or whatever) range, so *that* should be the primary (and
-> mandatory) value. If the device can do so, it can also provide a dB*
-> value (replace * with anything you like, 'm', 'uV', 'uW', whatever)
-> and maybe all other sorts of bells and whistles.
-> So real world applications could simply and savely use the relative
-> value (which is all they need), and special applications could fiddle
-> around with dB values (provided the device in use can deliver them).
->
-> @Mauro: here's some further reading for you, just in case ;-)
->
->    http://en.wikipedia.org/wiki/KISS_principle
->    http://www.inspireux.com/2008/07/14/a-designer-achieves-perfection-when-there-is-nothing-left-to-take-away
->
-> Klaus
+Hans Verkuil (14):
+  em28xx: fix querycap.
+  em28xx: remove bogus input/audio ioctls for the radio device.
+  em28xx: fix VIDIOC_DBG_G_CHIP_IDENT compliance errors.
+  em28xx: fix tuner/frequency handling
+  v4l2-ctrls: add a notify callback.
+  em28xx: convert to the control framework.
+  em28xx: convert to v4l2_fh, fix priority handling.
+  em28xx: add support for control events.
+  em28xx: fill in readbuffers and fix incorrect return code.
+  em28xx: fix broken TRY_FMT.
+  tvp5150: remove compat control ops.
+  em28xx: std fixes: don't implement in webcam mode, and fix std
+    changes.
+  em28xx: remove sliced VBI support.
+  em28xx: zero vbi_format reserved array and add try_vbi_fmt.
+
+ Documentation/video4linux/v4l2-controls.txt |   22 +-
+ drivers/media/i2c/tvp5150.c                 |    7 -
+ drivers/media/usb/em28xx/Kconfig            |    3 +-
+ drivers/media/usb/em28xx/em28xx-cards.c     |   31 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c       |    4 +-
+ drivers/media/usb/em28xx/em28xx-vbi.c       |  123 ++-
+ drivers/media/usb/em28xx/em28xx-video.c     | 1159 ++++++++-------------------
+ drivers/media/usb/em28xx/em28xx.h           |   38 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   18 +
+ include/media/v4l2-ctrls.h                  |   25 +
+ 10 files changed, 504 insertions(+), 926 deletions(-)
+
+-- 
+1.7.9.5
+
