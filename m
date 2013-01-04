@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2878 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753496Ab3AaKZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 05:25:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-vb0-f42.google.com ([209.85.212.42]:64660 "EHLO
+	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754939Ab3ADU75 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 15:59:57 -0500
+Received: by mail-vb0-f42.google.com with SMTP id fa15so17261950vbb.29
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 12:59:56 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
 To: linux-media@vger.kernel.org
-Cc: Huang Shijie <shijie8@gmail.com>,
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 13/18] tlg2300: fix missing audioset.
-Date: Thu, 31 Jan 2013 11:25:31 +0100
-Message-Id: <be96cdafc8e99572c58eeb92c14081705335aa0a.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
-References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+Subject: [PATCH 04/15] em28xx: fix tuner/frequency handling
+Date: Fri,  4 Jan 2013 15:59:34 -0500
+Message-Id: <1357333186-8466-5-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+v4l2-compliance found problems with frequency clamping that wasn't
+reported correctly and missing tuner index checks.
+
+Also removed unnecessary tuner type checks (these are now done by the
+v4l2 core).
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 ---
- drivers/media/usb/tlg2300/pd-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/usb/em28xx/em28xx-video.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-index da7cbd4..122f299 100644
---- a/drivers/media/usb/tlg2300/pd-video.c
-+++ b/drivers/media/usb/tlg2300/pd-video.c
-@@ -903,7 +903,7 @@ static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
- 	 * the audio input index mixed with this video input,
- 	 * Poseidon only have one audio/video, set to "0"
- 	 */
--	in->audioset	= 0;
-+	in->audioset	= 1;
- 	in->tuner	= 0;
- 	in->std		= V4L2_STD_ALL;
- 	in->status	= 0;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index b71df42..89cbfaf 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1322,7 +1322,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 		return -EINVAL;
+ 
+ 	strcpy(t->name, "Tuner");
+-	t->type = V4L2_TUNER_ANALOG_TV;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+ 	return 0;
+@@ -1352,7 +1351,9 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	struct em28xx_fh      *fh  = priv;
+ 	struct em28xx         *dev = fh->dev;
+ 
+-	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	if (0 != f->tuner)
++		return -EINVAL;
++
+ 	f->frequency = dev->ctl_freq;
+ 	return 0;
+ }
+@@ -1371,13 +1372,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	if (0 != f->tuner)
+ 		return -EINVAL;
+ 
+-	if (unlikely(0 == fh->radio && f->type != V4L2_TUNER_ANALOG_TV))
+-		return -EINVAL;
+-	if (unlikely(1 == fh->radio && f->type != V4L2_TUNER_RADIO))
+-		return -EINVAL;
+-
+-	dev->ctl_freq = f->frequency;
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, f);
++	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, f);
++	dev->ctl_freq = f->frequency;
+ 
+ 	return 0;
+ }
 -- 
-1.7.10.4
+1.7.9.5
 
