@@ -1,113 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59670 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:42058 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab3AFNht (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 08:37:49 -0500
-Message-ID: <50E97E05.1090607@iki.fi>
-Date: Sun, 06 Jan 2013 15:37:09 +0200
+	id S1754963Ab3ADVh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jan 2013 16:37:56 -0500
+Message-ID: <50E74B8E.6050106@iki.fi>
+Date: Fri, 04 Jan 2013 23:37:18 +0200
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Subject: Re: [PATCH] ts2020: call get_rf_strength from frontend
-References: <1357476042.16016.8.camel@canaries64>
-In-Reply-To: <1357476042.16016.8.camel@canaries64>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Alexander Inyukhin <shurick@sectorb.msk.ru>
+CC: linux-media@vger.kernel.org
+Subject: Re: [media] rtl28xxu: add Gigabyte U7300 DVB-T Dongle
+References: <20130103141636.GA5893@shurick.grid.su>
+In-Reply-To: <20130103141636.GA5893@shurick.grid.su>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/06/2013 02:40 PM, Malcolm Priestley wrote:
-> Restore ds3000.c read_signal_strength.
+On 01/03/2013 04:16 PM, Alexander Inyukhin wrote:
+> Device with ID 1b80:d393 is the Gigabyte U7300 DVB-T dongle.
+> It contains decoder Realtek RTL2832U and tuner Fitipower FC0012.
 >
-> Call tuner get_rf_strength from frontend read_signal_strength.
 >
-> We are able to do a NULL check and doesn't limit the tuner
-> attach to the frontend attach area.
+> Signed-off-by: Alexander Inyukhin <shurick@sectorb.msk.ru>
 >
-> At the moment the lmedm04 tuner attach is stuck in frontend
-> attach area.
 
-I would like to nack that, as I see some problems:
-1) it changes deviation against normal procedures
-2) interface driver (usb/pci) should have full control to make decision
-3) you shoot to our own leg easily in power management
+Applied thanks!
 
-* actually bug 3) already happened some drivers, like rtl28xxu. Tuner is 
-behind demod and demod is put sleep => no access to tuner. FE callback 
-is overridden (just like you are trying to do as default) which means 
-user-space could still make queries => I/O errors.
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/rtl28xxu-usb-ids
 
 Antti
-
-
->
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-> ---
->   drivers/media/dvb-frontends/ds3000.c    | 10 ++++++++++
->   drivers/media/dvb-frontends/m88rs2000.c |  4 +++-
->   drivers/media/dvb-frontends/ts2020.c    |  1 -
->   3 files changed, 13 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
-> index d128f85..1e344b0 100644
-> --- a/drivers/media/dvb-frontends/ds3000.c
-> +++ b/drivers/media/dvb-frontends/ds3000.c
-> @@ -533,6 +533,15 @@ static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
->   	return 0;
->   }
->
-> +static int ds3000_read_signal_strength(struct dvb_frontend *fe,
-> +						u16 *signal_strength)
-> +{
-> +	if (fe->ops.tuner_ops.get_rf_strength)
-> +		fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
-> +
-> +	return 0;
-> +}
-> +
->   /* calculate DS3000 snr value in dB */
->   static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
->   {
-> @@ -1102,6 +1111,7 @@ static struct dvb_frontend_ops ds3000_ops = {
->   	.i2c_gate_ctrl = ds3000_i2c_gate_ctrl,
->   	.read_status = ds3000_read_status,
->   	.read_ber = ds3000_read_ber,
-> +	.read_signal_strength = ds3000_read_signal_strength,
->   	.read_snr = ds3000_read_snr,
->   	.read_ucblocks = ds3000_read_ucblocks,
->   	.set_voltage = ds3000_set_voltage,
-> diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-> index 283c90f..4da5272 100644
-> --- a/drivers/media/dvb-frontends/m88rs2000.c
-> +++ b/drivers/media/dvb-frontends/m88rs2000.c
-> @@ -446,7 +446,9 @@ static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
->   static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
->   	u16 *strength)
->   {
-> -	*strength = 0;
-> +	if (fe->ops.tuner_ops.get_rf_strength)
-> +		fe->ops.tuner_ops.get_rf_strength(fe, strength);
-> +
->   	return 0;
->   }
->
-> diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
-> index f50e237..ad7ad85 100644
-> --- a/drivers/media/dvb-frontends/ts2020.c
-> +++ b/drivers/media/dvb-frontends/ts2020.c
-> @@ -363,7 +363,6 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
->
->   	memcpy(&fe->ops.tuner_ops, &ts2020_tuner_ops,
->   				sizeof(struct dvb_tuner_ops));
-> -	fe->ops.read_signal_strength = fe->ops.tuner_ops.get_rf_strength;
->
->   	return fe;
->   }
->
-
-
 -- 
 http://palosaari.fi/
