@@ -1,169 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53481 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753788Ab3AGLeG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 06:34:06 -0500
-Date: Mon, 7 Jan 2013 12:33:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Julia Lawall <julia.lawall@lip6.fr>
-cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c:
- reposition free_irq to avoid access to invalid data
-In-Reply-To: <alpine.DEB.2.02.1301071214150.1908@hadrien>
-Message-ID: <Pine.LNX.4.64.1301071229070.23972@axis700.grange>
-References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr>
- <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr>
- <Pine.LNX.4.64.1301071111420.23972@axis700.grange> <alpine.DEB.2.02.1301071214150.1908@hadrien>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:62240 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755066Ab3ADVAF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 16:00:05 -0500
+Received: by mail-vb0-f52.google.com with SMTP id ez10so16623467vbb.25
+        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 13:00:04 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 13/15] em28xx: remove sliced VBI support.
+Date: Fri,  4 Jan 2013 15:59:43 -0500
+Message-Id: <1357333186-8466-14-git-send-email-dheitmueller@kernellabs.com>
+In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Jan 2013, Julia Lawall wrote:
+The sliced VBI support in the tvp5150 is completely broken. And there is no
+support for the saa7115 sliced VBI implementation in the em28xx driver. So
+we remove the sliced VBI support completely.
 
-> On Mon, 7 Jan 2013, Guennadi Liakhovetski wrote:
-> 
-> > (adding Robert to CC)
-> >
-> > Hi Julia
-> >
-> > Thanks for the patch.
-> >
-> > On Mon, 7 Jan 2013, Julia Lawall wrote:
-> >
-> > > From: Julia Lawall <Julia.Lawall@lip6.fr>
-> > >
-> > > The data referenced by an interrupt handler should not be freed before the
-> > > interrupt is ended.  The handler is pxa_camera_irq.  This handler may call
-> > > pxa_dma_start_channels, which references the channels that are freed on the
-> > > lines before the call to free_irq.
-> >
-> > I don't think any data is freed by pxa_free_dma(), it only disables DMA on
-> > a certain channel.
-> 
-> OK, I seem to have been thrown off by the clearing fo the name field, but
-> that doesn't seem to be very important.
+It should be possible to get it to work with the tvp5150, but that will
+require someone to really dig into that driver.
 
-Exactly.
-
-> > Theoretically there could be a different problem:
-> > pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates
-> > it. But I think we're also protected against that: by the time
-> > pxa_camera_remove() is called, and operation on the interface has been
-> > stopped, client devices have been detached, pxa_camera_remove_device() has
-> > been called, which has also stopped the interface clock. And with clock
-> > stopped no interrupts can be generated. And the case of interrupt having
-> > been generated before clk_disabled() and only delivered to the driver so
-> > much later, that we're already unloading the module, seems really
-> > impossible to me. Robert, you agree?
-> 
-> OK, thanks for the explanation.
-> 
-> > OTOH, it would be nice to convert also this driver to managed allocations,
-> > which also would include devm_request(_threaded)_irq(), but that would
-> > mean, that free_irq() would be called even later than now, also after
-> > pxa_free_dma().
-> 
-> OK, if it is safe to call free_irq much later, then I can propose a patch
-> for that.
-
-I think it should be safe. In any case we cannot rely on the fact, that 
-free_irq() in the current code happens "soon" after pxa_free_dma(), so, 
-putting it even later will either emphasise our certainty, that we're safe 
-there, or help up catch the bug, since statistically the window will 
-become larger;-) Of course, all of clk_get(), request_mem_region() + 
-ioremap(), kzalloc(), request_irq() would have to be replaced.
-
-Thanks
-Guennadi
-
-> > Speaking about managed allocations, those can be dangerous too: if you
-> > request an IRQ before, say, remapping memory, or if you only use managed
-> > IRQ requesting and ioremap() memory in your driver manually, that would be
-> > wrong. But from a quick grep looks like most (all?) drivers get ir right -
-> > first ioremap(), then request IRQ, but to be certain maybe coccinelle
-> > could run a test for that too;-)
-> 
-> Sure.  Thanks for the suggestion!
-> 
-> julia
-> 
-> > Thanks
-> > Guennadi
-> >
-> > > The semantic match that finds this problem is as follows:
-> > > (http://coccinelle.lip6.fr/)
-> > >
-> > > // <smpl>
-> > > @fn exists@
-> > > expression list es;
-> > > expression a,b;
-> > > identifier f;
-> > > @@
-> > >
-> > > if (...) {
-> > >   ... when any
-> > >   free_irq(a,b);
-> > >   ... when any
-> > >   f(es);
-> > >   ... when any
-> > >   return ...;
-> > > }
-> > >
-> > > @@
-> > > expression list fn.es;
-> > > expression fn.a,fn.b;
-> > > identifier fn.f;
-> > > @@
-> > >
-> > > *f(es);
-> > > ... when any
-> > > *free_irq(a,b);
-> > > // </smpl>
-> > >
-> > > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-> > >
-> > > ---
-> > > Not compiled.  I have not observed the problem in practice; the code just
-> > > looks suspicious.
-> > >
-> > >  drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-> > > index f91f7bf..2a19aba 100644
-> > > --- a/drivers/media/platform/soc_camera/pxa_camera.c
-> > > +++ b/drivers/media/platform/soc_camera/pxa_camera.c
-> > > @@ -1810,10 +1810,10 @@ static int pxa_camera_remove(struct platform_device *pdev)
-> > >
-> > >  	clk_put(pcdev->clk);
-> > >
-> > > +	free_irq(pcdev->irq, pcdev);
-> > >  	pxa_free_dma(pcdev->dma_chans[0]);
-> > >  	pxa_free_dma(pcdev->dma_chans[1]);
-> > >  	pxa_free_dma(pcdev->dma_chans[2]);
-> > > -	free_irq(pcdev->irq, pcdev);
-> > >
-> > >  	soc_camera_host_unregister(soc_host);
-> > >
-> > >
-> >
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/em28xx/em28xx-video.c |   49 ++-----------------------------
+ 1 file changed, 2 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index ae713a0..1514b27 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1438,8 +1438,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	else if (vdev->vfl_type == VFL_TYPE_RADIO)
+ 		cap->device_caps = V4L2_CAP_RADIO;
+ 	else
+-		cap->device_caps = V4L2_CAP_READWRITE |
+-			V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE;
++		cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_VBI_CAPTURE;
+ 
+ 	if (dev->audio_mode.has_audio)
+ 		cap->device_caps |= V4L2_CAP_AUDIO;
+@@ -1450,8 +1449,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
+ 		V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+ 	if (dev->vbi_dev)
+-		cap->capabilities |=
+-			V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE;
++		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
+ 	if (dev->radio_dev)
+ 		cap->capabilities |= V4L2_CAP_RADIO;
+ 	return 0;
+@@ -1508,46 +1506,6 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-/* Sliced VBI ioctls */
+-static int vidioc_g_fmt_sliced_vbi_cap(struct file *file, void *priv,
+-					struct v4l2_format *f)
+-{
+-	struct em28xx_fh      *fh  = priv;
+-	struct em28xx         *dev = fh->dev;
+-	int                   rc;
+-
+-	rc = check_dev(dev);
+-	if (rc < 0)
+-		return rc;
+-
+-	f->fmt.sliced.service_set = 0;
+-	v4l2_device_call_all(&dev->v4l2_dev, 0, vbi, g_sliced_fmt, &f->fmt.sliced);
+-
+-	if (f->fmt.sliced.service_set == 0)
+-		rc = -EINVAL;
+-
+-	return rc;
+-}
+-
+-static int vidioc_try_set_sliced_vbi_cap(struct file *file, void *priv,
+-			struct v4l2_format *f)
+-{
+-	struct em28xx_fh      *fh  = priv;
+-	struct em28xx         *dev = fh->dev;
+-	int                   rc;
+-
+-	rc = check_dev(dev);
+-	if (rc < 0)
+-		return rc;
+-
+-	v4l2_device_call_all(&dev->v4l2_dev, 0, vbi, g_sliced_fmt, &f->fmt.sliced);
+-
+-	if (f->fmt.sliced.service_set == 0)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+ /* RAW VBI ioctls */
+ 
+ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
+@@ -2038,9 +1996,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
+ 	.vidioc_cropcap             = vidioc_cropcap,
+-	.vidioc_g_fmt_sliced_vbi_cap   = vidioc_g_fmt_sliced_vbi_cap,
+-	.vidioc_try_fmt_sliced_vbi_cap = vidioc_try_set_sliced_vbi_cap,
+-	.vidioc_s_fmt_sliced_vbi_cap   = vidioc_try_set_sliced_vbi_cap,
+ 
+ 	.vidioc_reqbufs             = vidioc_reqbufs,
+ 	.vidioc_querybuf            = vidioc_querybuf,
+-- 
+1.7.9.5
+
