@@ -1,75 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:35909 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752904Ab3ACNXB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 08:23:01 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH] adv7343: use devm_kzalloc() instead of kzalloc()
-Date: Thu,  3 Jan 2013 18:52:39 +0530
-Message-Id: <1357219362-9080-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:9167 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755023Ab3ADVQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jan 2013 16:16:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/4] [media] em28xx: initialize button/I2C IR earlier
+Date: Fri,  4 Jan 2013 19:15:49 -0200
+Message-Id: <1357334152-3811-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
+References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
-simplifies their clean up paths.
+The em28xx-input is used by 3 different types of input devices:
+	- devices with buttons (like cameras and grabber devices);
+	- devices with I2C remotes;
+	- em2860 or latter chips with RC support embedded.
+When the device has an I2C remote, all it needs to do is to call
+the proper I2C driver (ir-i2c-kbd), passing the proper data to
+it, and just leave the code.
+Also, button devices have its own init code that doesn't depend on
+having an IR or not (as a general rule, they don't have).
+So, move its init code to fix bugs introduced by earlier patches
+that prevent them to work.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/i2c/adv7343.c |   13 ++++---------
- 1 files changed, 4 insertions(+), 9 deletions(-)
+ drivers/media/usb/em28xx/em28xx-input.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index 2b5aa67..ceaf548 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -397,7 +397,8 @@ static int adv7343_probe(struct i2c_client *client,
- 	v4l_info(client, "chip found @ 0x%x (%s)\n",
- 			client->addr << 1, client->adapter->name);
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 3598221..2a1b3d2 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -590,6 +590,17 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	int err = -ENOMEM;
+ 	u64 rc_type;
  
--	state = kzalloc(sizeof(struct adv7343_state), GFP_KERNEL);
-+	state = devm_kzalloc(&client->dev, sizeof(struct adv7343_state),
-+			     GFP_KERNEL);
- 	if (state == NULL)
- 		return -ENOMEM;
++	if (dev->board.has_snapshot_button)
++		em28xx_register_snapshot_button(dev);
++
++	if (dev->board.has_ir_i2c) {
++		em28xx_register_i2c_ir(dev);
++#if defined(CONFIG_MODULES) && defined(MODULE)
++		request_module("ir-kbd-i2c");
++#endif
++		return 0;
++	}
++
+ 	if (dev->board.ir_codes == NULL) {
+ 		/* No remote control support */
+ 		em28xx_warn("Remote control support is not available for "
+@@ -663,15 +674,6 @@ static int em28xx_ir_init(struct em28xx *dev)
+ 	if (err)
+ 		goto error;
  
-@@ -428,19 +429,14 @@ static int adv7343_probe(struct i2c_client *client,
- 				       ADV7343_GAIN_DEF);
- 	state->sd.ctrl_handler = &state->hdl;
- 	if (state->hdl.error) {
--		int err = state->hdl.error;
+-	em28xx_register_i2c_ir(dev);
 -
- 		v4l2_ctrl_handler_free(&state->hdl);
--		kfree(state);
--		return err;
-+		return state->hdl.error;
- 	}
- 	v4l2_ctrl_handler_setup(&state->hdl);
- 
- 	err = adv7343_initialize(&state->sd);
--	if (err) {
-+	if (err)
- 		v4l2_ctrl_handler_free(&state->hdl);
--		kfree(state);
--	}
- 	return err;
- }
- 
-@@ -451,7 +447,6 @@ static int adv7343_remove(struct i2c_client *client)
- 
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&state->hdl);
--	kfree(state);
- 
+-#if defined(CONFIG_MODULES) && defined(MODULE)
+-	if (dev->board.has_ir_i2c)
+-		request_module("ir-kbd-i2c");
+-#endif
+-	if (dev->board.has_snapshot_button)
+-		em28xx_register_snapshot_button(dev);
+-
  	return 0;
- }
+ 
+ error:
 -- 
-1.7.4.1
+1.7.11.7
 
