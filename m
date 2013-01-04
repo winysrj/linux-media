@@ -1,40 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f180.google.com ([209.85.216.180]:45495 "EHLO
-	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756231Ab3AHR7x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:59:53 -0500
-Received: by mail-qc0-f180.google.com with SMTP id v28so917723qcm.25
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:59:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50EC5D43.6040403@googlemail.com>
-References: <20130101200225.GC26607@vicerveza.homeunix.net>
-	<50EC5D43.6040403@googlemail.com>
-Date: Tue, 8 Jan 2013 12:59:49 -0500
-Message-ID: <CAGoCfiwY9U1jmq4DgmuLBaX_dBOD0G5nrHsVAQKz0JXDhFmRug@mail.gmail.com>
-Subject: Re: em28xx, sound problems, STV40, linux 3.7.1
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40005 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750989Ab3ADFr3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jan 2013 00:47:29 -0500
+From: Libin Yang <lbyang@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Albert Wang <twang13@marvell.com>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 3 Jan 2013 21:42:42 -0800
+Subject: RE: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
+ for marvell-ccic driver
+Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230AFE224B@SC-VEXCH4.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+ <1355565484-15791-4-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 8, 2013 at 12:54 PM, Frank Schäfer
-<fschaefer.oss@googlemail.com> wrote:
-> Thank you for reporting this issue.
-> Is there any known kernel version where this has been working ?
+Hi Guennadi,
+
+Thanks for your review. Please see my comments below.
+
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, January 02, 2013 12:06 AM
+>To: Albert Wang
+>Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
+>Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for
+>marvell-ccic driver
 >
-> Regards,
-> Frank
+>On Sat, 15 Dec 2012, Albert Wang wrote:
+>
+>> From: Libin Yang <lbyang@marvell.com>
+>>
+>> This patch adds the clock tree support for marvell-ccic.
+>>
+>> Each board may require different clk enabling sequence.
+>> Developer need add the clk_name in correct sequence in board driver
+>> to use this feature.
+>>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 +++++++++++++++++++++-
+>>  include/media/mmp-camera.h                       |    5 ++
+>>  3 files changed, 65 insertions(+), 1 deletion(-)
+>>
+[snip]
 
-Frank,
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index 603fa0a..2c4dce3 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+[snip]
 
-Just an FYI:  I'm already actively looking into this.
+>> +
+>> +	mcam_clk_set(mcam, 0);
+>>  }
+>>
+>>  /*
+>> @@ -202,7 +223,7 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
+>>  	 * pll1 will never be changed, it is a fixed value
+>>  	 */
+>>
+>> -	if (IS_ERR(mcam->pll1))
+>> +	if (IS_ERR_OR_NULL(mcam->pll1))
+>
+>Why are you changing this? If this really were needed, you should do this
+>already in the previous patch, where you add these lines. But I don't
+>think this is a good idea, don't think Russell would like this :-) NULL is
+>a valid clock. Only a negative error is a failure. In fact, if you like,
+>you could initialise .pll1 to ERR_PTR(-EINVAL) in your previous patch in
+>mmpcam_probe().
 
-Devin
+In the below code, we will use platform related clk_get_rate() to get the rate. 
+In the function we do not judge the clk is NULL or not. If we do not judge here, 
+we need judge for NULL in the later, otherwise, error may happen. Or do you
+think it is better that we should judge the pointer in the function clk_get_rate()?
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+>
+>>  		return;
+>>
+>>  	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
+>> @@ -229,6 +250,35 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
+>>  	return IRQ_RETVAL(handled);
+>>  }
+>>
+>> +static void mcam_init_clk(struct mcam_camera *mcam,
+>> +			struct mmp_camera_platform_data *pdata, int init)
+>
+>I don't think this "int init" makes sense. Please, remove the parameter
+>and you actually don't need the de-initialisation, no reason to set
+>num_clk = 0 before freeing memory.
+
+Yes, the init parameter is not good here, which make confusion.
+The driver de-initiatives the clks because
+I want to make sure the driver will never enable the clks after de-initialization.
+After second consideration based on your suggestion, I will remove
+de-initialization, because this scenario will never happen.
+
+>
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	if (NR_MCAM_CLK < pdata->clk_num) {
+>> +		dev_err(mcam->dev, "Too many mcam clocks defined\n");
+>> +		mcam->clk_num = 0;
+>> +		return;
+>> +	}
+>> +
+>> +	if (init) {
+>> +		for (i = 0; i < pdata->clk_num; i++) {
+>> +			if (pdata->clk_name[i] != NULL) {
+>> +				mcam->clk[i] = devm_clk_get(mcam->dev,
+>> +						pdata->clk_name[i]);
+>
+>Sorry, no. Passing clock names in platform data doesn't look right to me.
+>Clock names are a property of the consumer device, not of clock supplier.
+>Also, your platform tells you to get clk_num clocks, you fail to get one
+>of them, you don't continue trying the rest and just return with no error.
+>This seems strange, usually a failure to get clocks, that the platform
+>tells you to get, is fatal.
+
+I agree that after failing to get the clk, we should return error
+instead of just returning. 
+
+For the clock names, the clock names are different on different platforms.
+So we need platform data passing the clock names. Do you have any suggestions?
+
+>
+>> +				if (IS_ERR(mcam->clk[i])) {
+>> +					dev_err(mcam->dev,
+>> +						"Could not get clk: %s\n",
+>> +						pdata->clk_name[i]);
+>> +					mcam->clk_num = 0;
+>> +					return;
+>> +				}
+>> +			}
+>> +		}
+>> +		mcam->clk_num = pdata->clk_num;
+>> +	} else
+>> +		mcam->clk_num = 0;
+>> +}
+>>
+>>  static int mmpcam_probe(struct platform_device *pdev)
+>>  {
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+
+Regards,
+Libin
