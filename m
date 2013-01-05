@@ -1,53 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:55998 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779Ab3ACS1D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:27:03 -0500
-Received: by mail-wi0-f180.google.com with SMTP id hj13so8760868wib.7
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 10:27:01 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, saschasommer@freenet.de,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 3/5] em28xx: fix the i2c adapter functionality flags
-Date: Thu,  3 Jan 2013 19:27:04 +0100
-Message-Id: <1357237626-3358-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from imr-ma01.mx.aol.com ([64.12.206.39]:52663 "EHLO
+	imr-ma01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755833Ab3AETv5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 14:51:57 -0500
+Received: from mtaout-mb03.r1000.mx.aol.com (mtaout-mb03.r1000.mx.aol.com [172.29.41.67])
+	by imr-ma01.mx.aol.com (Outbound Mail Relay) with ESMTP id E73453800007D
+	for <linux-media@vger.kernel.org>; Sat,  5 Jan 2013 14:51:56 -0500 (EST)
+Received: from [192.168.1.34] (unknown [190.50.7.128])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mtaout-mb03.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id 3E5F9E0000AA
+	for <linux-media@vger.kernel.org>; Sat,  5 Jan 2013 14:51:56 -0500 (EST)
+Message-ID: <50E883A0.8070302@netscape.net>
+Date: Sat, 05 Jan 2013 16:48:48 -0300
+From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.9] [media] rc/keymaps: add RC keytable for
+ MyGica X8507
+References: <E1TnpyY-00067Z-0b@www.linuxtv.org>
+In-Reply-To: <E1TnpyY-00067Z-0b@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C_FUNC_SMBUS_EMUL includes flag I2C_FUNC_SMBUS_WRITE_BLOCK_DATA which signals
-that up to 31 data bytes can be written to the ic2 client.
-But the EM2800 supports only i2c messages with max. 4 data bytes.
-I2C_FUNC_IC2 should be set if a master_xfer function pointer is provided in
-struct i2c_algorithm.
+Hi all
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |    6 +++++-
- 1 Datei geändert, 5 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+El 23/12/12 18:42, Mauro Carvalho Chehab escribi�:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] rc/keymaps: add RC keytable for MyGica X8507
+> Author:  Alfredo Jesús Delaiti <alfredodelaiti@netscape.net>
+> Date:    Thu Nov 8 16:14:50 2012 -0300
+>
+> Add RC-5 remote keytable definition for MyGica X8507.
+>
+> [mchehab@redhat.com: fixed whitespacing - it seems that Alfredo's emailer mangled
+>   it]
+> Signed-off-by: Alfredo J. Delaiti <alfredodelaiti@netscape.net>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>
+Thank you very much for the help and corrections.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 55308bb..1994083 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -445,7 +445,11 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-  */
- static u32 functionality(struct i2c_adapter *adap)
- {
--	return I2C_FUNC_SMBUS_EMUL;
-+	struct em28xx *dev = adap->algo_data;
-+	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-+	if (dev->board.is_em2800)
-+		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
-+	return func_flags;
- }
- 
- static struct i2c_algorithm em28xx_algo = {
--- 
-1.7.10.4
 
+Alfredo
