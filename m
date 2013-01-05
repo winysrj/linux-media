@@ -1,94 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:52735 "EHLO 7of9.schinagl.nl"
+Received: from mail.kapsi.fi ([217.30.184.167]:40853 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753050Ab3AJUuy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:50:54 -0500
-Message-ID: <50EF29D1.2080102@schinagl.nl>
-Date: Thu, 10 Jan 2013 21:51:29 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+	id S1755506Ab3AEO2n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jan 2013 09:28:43 -0500
+Message-ID: <50E83874.5060700@iki.fi>
+Date: Sat, 05 Jan 2013 16:28:04 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <50EF1034.7060100@gmail.com> <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com> <20130110180434.0681a7e1@redhat.com> <CAHFNz9+Jon-YSjkX5gFOTXwX+Vsmi0Rq+X_N61-m2+AEX+8tGg@mail.gmail.com>
-In-Reply-To: <CAHFNz9+Jon-YSjkX5gFOTXwX+Vsmi0Rq+X_N61-m2+AEX+8tGg@mail.gmail.com>
+To: Jacek Konieczny <jajcus@jajcus.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [BUG] Problem with LV5TDLX DVB-T USB and the 3.7.1 kernel
+References: <20130105150539.32186362@lolek.nigdzie>
+In-Reply-To: <20130105150539.32186362@lolek.nigdzie>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/13 21:32, Manu Abraham wrote:
-> On 1/11/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> Em Fri, 11 Jan 2013 00:38:18 +0530
->> Manu Abraham <abraham.manu@gmail.com> escreveu:
->>
->>> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
->>>> On 01/10/2013 07:46 PM, Manu Abraham wrote:
->>>>> The scan files and config files are very specific to dvb-apps, some
->>>>> applications
->>>>> do rely on these config files. It doesn't really make sense to have
->>>>> split out config
->>>>> files for these  small applications.
->>>>
->>>> I don't care where they are, really. However I'm strongly against
->>>> duplicating them. Feel free to remove the newly created repository,
->>>> I'll
->>>> be fine with that.
->>>
->>> I haven't duplicated anything at all. It is Mauro who has duplicated
->>> stuff,
->>> by creating a new tree altogether.
->>
->> I only did it by request, and after having some consensus at the ML, and
->> after people explicitly asking me to do that.
->>
->> I even tried to not express my opinion to anybody. But it seems I'm
->> forced by you to give it. So, let it be.
->>
->> The last patches from you there were 11 months ago, and didn't bring any
->> new functionality there... they are just indentation fixes:
->> 	http://www.linuxtv.org/hg/dvb-apps/
+On 01/05/2013 04:05 PM, Jacek Konieczny wrote:
+> Hi,
 >
+> I have a 'NOT Only TV DVB-T USB Deluxe' tuner device:
 >
-> The way you do things, it all ends up like this.
+> Model name: LV5TDLX DVB-T USB
+> P/N: STLV5TDLXT702
+> S/N: LV5TDLX120700116
+> USB ID: 1f4d:c803
 >
-> https://lkml.org/lkml/2012/12/23/75
-That's just mean and below the belt.
-
-Anyway, I've brought this issue up on the 18th of oktober 2012 on this 
-mailing list. I had zero replies until early december. Jonathan 
-commented a little and said it was a good idea.
-
-Also a few comments about how their patches to scanfiles (data files, 
-facts) where ignored for weeks to an end.
-
-Mauro didn't get involved to have everybody that is a maintainer etc get 
-a good chance to respond.
-
-The only thing that came from this, is that someone actually stopped 
-maintaining it.
-
-Then after everything actually was done (for the better imo), you come 
-in and say it's a bad thing, but dont' really tell us why. Other than it 
-makes development hard for you, which nobody really agree's to with.
-
-
-Anyway, fighting about it won't help anyone, but a good argument as to 
-which procedure is better is good for everyone :)
-
-Oliver
-
+> This is based on the RTL2838UHIDIR chip with e4000 tuner (at least, that
+> is detected by various drivers).
 >
+> I had some minor success with it with some old 3.x kernel and the
+> drivers from:
 >
-> Manu
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+>
+> This stopped working with kernel 3.5 and would not even build with newer
+> kernels.
+>
+> Then I tried drivers from linuxtv.org, with little success. The RTL2838u
+> driver has been recently included in the upstream kernel (3.7), so I
+> have tried that (3.7.1). The hardware is detected, but I am not able to
+> tune in.
+>
+> The signal is good - tested with my TV set. The USB tuner device is also
+> OK, I have tried it with Windows and the software provided with the
+> device and the same channels are available as on the TV.
+>
+> So the driver must be broken. Any ideas how can I debug or fix that?
+>
+> dmesg:
+>> [ 3336.916384] usb 2-4: new high-speed USB device number 7 using ehci_hcd
+>> [ 3337.051822] usb 2-4: New USB device found, idVendor=1f4d, idProduct=c803
+>> [ 3337.051829] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+>> [ 3337.051835] usb 2-4: Product: RTL2838UHIDIR
+>> [ 3337.051839] usb 2-4: Manufacturer: Realtek
+>> [ 3337.051843] usb 2-4: SerialNumber: 00000001
+>> [ 3337.072145] usb 2-4: dvb_usb_v2: found a 'Trekstor DVB-T Stick Terres 2.0' in warm state
+>> [ 3337.072194] usbcore: registered new interface driver dvb_usb_rtl28xxu
+>> [ 3337.136867] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
+>> [ 3337.136886] DVB: registering new adapter (Trekstor DVB-T Stick Terres 2.0)
+>> [ 3337.147449] usb 2-4: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
+>> [ 3337.163939] i2c i2c-7: e4000: Elonics E4000 successfully identified
+>> [ 3337.174823] Registered IR keymap rc-empty
+>> [ 3337.174928] input: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input15
+>> [ 3337.174989] rc0: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
+>> [ 3337.174994] usb 2-4: dvb_usb_v2: schedule remote query interval to 400 msecs
+>> [ 3337.187693] usb 2-4: dvb_usb_v2: 'Trekstor DVB-T Stick Terres 2.0' successfully initialized and connected
+>
+> Scanning on one of the available channels:
+>> # tzap -r "TVP2"
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> reading channels from file '/root/.tzap/channels.conf'
+>> tuning to 746000000 Hz
+>> video pid 0x00ca, audio pid 0x00cb
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 008c | ber 00004ca0 | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 008d | ber 00004ca0 | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0072 | ber 00004ca0 | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 008b | ber 00004ca0 | unc bfe14648 |
+>> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
+>
+> And on the other one:
+>> # tzap -r "Polsat"
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> reading channels from file '/root/.tzap/channels.conf'
+>> tuning to 698000000 Hz
+>> video pid 0x0066, audio pid 0x0067
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
+>
+> Greets,
+> 	Jacek
 >
 
+It is likely e4000 driver bug. It is not optimized nor tested very well 
+- just few live multiplexes I have here. You are the first one reporting 
+(performance?) issues like that, I am quite sure it works somehow well 
+for the most.
+
+Take USB sniffs, make scripts to generate e4000 register write code from 
+the sniffs, copy & paste that code from the sniffs until it starts 
+working. After it starts working it is quite easy to comment out / tweak 
+with driver in order to find problem. With the experience and luck it is 
+only few hours to fix, but without a experience you will likely need to 
+learn a lot of stuff first.
+
+Of course those sniffs needed to take from working case, which just 
+makes successful tuning to 746000000 or 698000000.
+
+Also you could use to attenuate or amplifier signal to see if it helps.
+
+I don't have much time / money, no interest, no equipment (DVB-T 
+modulator) to start optimizing it currently.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
