@@ -1,84 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:49413 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756198Ab3AORG1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 12:06:27 -0500
-Received: by mail-bk0-f52.google.com with SMTP id w5so210625bku.39
-        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 09:06:25 -0800 (PST)
-Message-ID: <50F58CB1.8010305@googlemail.com>
-Date: Tue, 15 Jan 2013 18:06:57 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org,
-	hans.verkuil@cisco.com
-Subject: Re: [PATCH] em28xx: return -ENOTTY for tuner + frequency ioctls if
- the device has no tuner
-References: <1358081450-5705-1-git-send-email-fschaefer.oss@googlemail.com> <201301141020.24697.hverkuil@xs4all.nl>
-In-Reply-To: <201301141020.24697.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:14005 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755782Ab3AEP6H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 10:58:07 -0500
+Date: Sat, 5 Jan 2013 13:57:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model
+ 37284, rev B421
+Message-ID: <20130105135734.237068c5@redhat.com>
+In-Reply-To: <50E831F2.70400@googlemail.com>
+References: <50E831F2.70400@googlemail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 14.01.2013 10:20, schrieb Hans Verkuil:
-> On Sun January 13 2013 13:50:50 Frank Schäfer wrote:
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++++++
->>  1 Datei geändert, 8 Zeilen hinzugefügt(+)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
->> index 2eabf2a..4a7f73c 100644
->> --- a/drivers/media/usb/em28xx/em28xx-video.c
->> +++ b/drivers/media/usb/em28xx/em28xx-video.c
->> @@ -1204,6 +1204,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
->>  	struct em28xx         *dev = fh->dev;
->>  	int                   rc;
->>  
->> +	if (dev->tuner_type == TUNER_ABSENT)
->> +		return -ENOTTY;
->>  	rc = check_dev(dev);
->>  	if (rc < 0)
->>  		return rc;
->> @@ -1224,6 +1226,8 @@ static int vidioc_s_tuner(struct file *file, void *priv,
->>  	struct em28xx         *dev = fh->dev;
->>  	int                   rc;
->>  
->> +	if (dev->tuner_type == TUNER_ABSENT)
->> +		return -ENOTTY;
->>  	rc = check_dev(dev);
->>  	if (rc < 0)
->>  		return rc;
->> @@ -1241,6 +1245,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
->>  	struct em28xx_fh      *fh  = priv;
->>  	struct em28xx         *dev = fh->dev;
->>  
->> +	if (dev->tuner_type == TUNER_ABSENT)
->> +		return -ENOTTY;
->>  	if (0 != f->tuner)
->>  		return -EINVAL;
->>  
->> @@ -1255,6 +1261,8 @@ static int vidioc_s_frequency(struct file *file, void *priv,
->>  	struct em28xx         *dev = fh->dev;
->>  	int                   rc;
->>  
->> +	if (dev->tuner_type == TUNER_ABSENT)
->> +		return -ENOTTY;
->>  	rc = check_dev(dev);
->>  	if (rc < 0)
->>  		return rc;
->>
-> Rather than doing this in each ioctl, I recommend using v4l2_disable_ioctl
-> instead. See for example drivers/media/pci/ivtv/ivtv-streams.c.
+Em Sat, 05 Jan 2013 15:00:18 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Hmm, thanks.
-I just did the same we currently do for the VIDIOC_G/S/QUERY_STD and
-VIDIOC_G/S_AUDIO ioctls, but yeah, disabling seems to be better.
-Btw, what about VIDIOC_G/S_PARAM ? Do they make sense for cameras ?
+> While we are at it ;) :
+> 
+> [   15.280772] bttv: Bt8xx card found (0)
+> [   15.281349] bttv: 0: Bt878 (rev 17) at 0000:01:08.0, irq: 18,
+> latency: 32, mmio: 0xfdfff000
+> [   15.281386] bttv: 0: detected: Hauppauge WinTV [card=10], PCI
+> subsystem ID is 0070:13eb
+> [   15.281391] bttv: 0: using: Hauppauge (bt878) [card=10,insmod option]
+> [   15.283964] bttv: 0: Hauppauge/Voodoo msp34xx: reset line init [5]
+> [   15.316043] tveeprom 4-0050: Hauppauge model 37284, rev B421, serial#
+> 5111944
+> [   15.316049] tveeprom 4-0050: tuner model is Philips FM1216 (idx 21,
+> type 5)
+> [   15.316054] tveeprom 4-0050: TV standards PAL(B/G) (eeprom 0x04)
+> [   15.316059] tveeprom 4-0050: audio processor is MSP3410D (idx 5)
+> [   15.316063] tveeprom 4-0050: has radio
+> [   15.316066] bttv: 0: Hauppauge eeprom indicates model#37284
+> [   15.316071] bttv: 0: tuner type=5
+> [   16.178816] bttv: 0: registered device video0
+> [   16.179071] bttv: 0: registered device vbi0
+> [   16.180587] bttv: 0: registered device radio0
+> 
+> When I load module ir-kbd-i2c manually:
+> 
+> Registered IR keymap rc-hauppauge
+> input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input6
+> rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+> ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-4/4-0018/ir0 [bt878 #0 [sw]]
+> 
+> Remote control works fine then.
 
-Regards,
-Frank
+Yeah, this is a known misfeature of bttv, and very likely documented on
+several wiki pages like those:
+	http://linuxtv.org/wiki/index.php/Remote_controllers-V4L
+(btw, this wiki page is very likely outdated)
+	http://www.mythtv.org/wiki/Ir-kbd-i2c
+	http://www.linuxtv.org/wiki/index.php/Prolink_Pixelview_PlayTV_Pro
 
+I can't remember if this were always this way, or if this was
+caused by the I2C core redesign (2006?). I think it was always like that,
+and, as I2C comes with a cost (polling can affect video processing with
+old machines), so, we decided to not do the auto-load on the older
+drivers that weren't doing it already.
 
+Btw, the fact that there's no clear indication about what bttv boards
+require I2C made hard to remove the get_key codes from ir-kbd-i2c.
+
+It probably makes sense to add a "has_ir_i2c" field at bttv, add a flag
+there at modprobe to prevent the autoload, and start tagging the boards
+with I2C IR with such tag.
+
+If you care enough, feel free to send us such patch.
+
+Cheers,
+Mauro
