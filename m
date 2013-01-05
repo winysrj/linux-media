@@ -1,53 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:55686 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162Ab3AWTc4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53857 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755900Ab3AEWxH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 14:32:56 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Sat, 5 Jan 2013 17:53:07 -0500
+Received: from localhost.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id DEABB60099
+	for <linux-media@vger.kernel.org>; Sun,  6 Jan 2013 00:53:00 +0200 (EET)
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, myungjoo.ham@samsung.com,
-	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC v3 11/14] ARM: dts: Add ISP power domain node for Exynos4x12
-Date: Wed, 23 Jan 2013 20:31:26 +0100
-Message-id: <1358969489-20420-12-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
-References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH 1/1] v4l: Don't compile v4l2-int-device unless really needed
+Date: Sun,  6 Jan 2013 00:56:10 +0200
+Message-Id: <1357426570-9879-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISP power domain is a common power domain for fimc-lite
-and fimc-is (ISP) devices.
+Add a configuration option for v4l2-int-device so it is only compiled when
+necessary, which is only by omap24xxcam and tcm825x drivers.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- arch/arm/boot/dts/exynos4x12.dtsi |    5 +++++
- 1 file changed, 5 insertions(+)
+The side effect of this patch is that there's a new config option in the
+main media menu to select V4L2 int device. The drivers using it are hidden
+unless the option is selected.
 
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 06134c6..0293b6f 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -28,6 +28,11 @@
- 		pinctrl3 = &pinctrl_3;
- 	};
+ drivers/media/i2c/Kconfig        |    2 +-
+ drivers/media/platform/Kconfig   |    2 +-
+ drivers/media/v4l2-core/Kconfig  |   11 +++++++++++
+ drivers/media/v4l2-core/Makefile |    3 ++-
+ 4 files changed, 15 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index 24d78e2..1e4b2d0 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -477,7 +477,7 @@ config VIDEO_MT9V032
  
-+	pd_isp: isp-power-domain@10023CA0 {
-+		compatible = "samsung,exynos4210-pd";
-+		reg = <0x10023CA0 0x20>;
-+	};
+ config VIDEO_TCM825X
+ 	tristate "TCM825x camera sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_INT_DEVICE
+ 	depends on MEDIA_CAMERA_SUPPORT
+ 	---help---
+ 	  This is a driver for the Toshiba TCM825x VGA camera sensor.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 3dcfea6..0641ade 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -92,7 +92,7 @@ config VIDEO_M32R_AR_M64278
+ 
+ config VIDEO_OMAP2
+ 	tristate "OMAP2 Camera Capture Interface driver"
+-	depends on VIDEO_DEV && ARCH_OMAP2
++	depends on VIDEO_DEV && ARCH_OMAP2 && VIDEO_V4L2_INT_DEVICE
+ 	select VIDEOBUF_DMA_SG
+ 	---help---
+ 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 65875c3..1f16110 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -82,3 +82,14 @@ config VIDEOBUF2_DMA_SG
+ 	#depends on HAS_DMA
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
 +
- 	combiner:interrupt-controller@10440000 {
- 		interrupts = <0 0 0>, <0 1 0>, <0 2 0>, <0 3 0>,
- 			     <0 4 0>, <0 5 0>, <0 6 0>, <0 7 0>,
++config VIDEO_V4L2_INT_DEVICE
++	tristate "V4L2 int device (DEPRECATED)"
++	depends on VIDEO_V4L2
++	---help---
++	  An early framework for a hardware-independent interface for
++	  image sensors and bridges etc. Currently used by omap24xxcam and
++	  tcm825x drivers that should be converted to V4L2 subdev.
++
++	  Do not use for new developments.
++
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index c2d61d4..a9d3552 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -10,7 +10,8 @@ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+ 
+-obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
++obj-$(CONFIG_VIDEO_DEV) += videodev.o
++obj-$(CONFIG_VIDEO_V4L2_INT_DEVICE) += v4l2-int-device.o
+ obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+ 
+ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
 -- 
-1.7.9.5
+1.7.10.4
 
