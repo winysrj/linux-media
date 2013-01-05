@@ -1,61 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:56083 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752211Ab3ASXm0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:26 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 10/24] usb/gspca/pac207.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:17 -0200
-Message-Id: <1358638891-4775-11-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:3534 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755691Ab3AEDSB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 22:18:01 -0500
+Date: Sat, 5 Jan 2013 00:39:50 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/6] ir-kbd-i2c: fix get_key_knc1()
+Message-ID: <20130105003950.5463ee70@redhat.com>
+In-Reply-To: <1356649368-5426-7-git-send-email-fschaefer.oss@googlemail.com>
+References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1356649368-5426-7-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+Em Fri, 28 Dec 2012 00:02:48 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-This change was made for: CONFIG_INPUT
+> - return valid key code when button is hold
+> - debug: print key code only when a button is pressed
+> 
+> Tested with device "Terratec Cinergy 200 USB" (em28xx).
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/i2c/ir-kbd-i2c.c |   15 +++++----------
+>  1 Datei geändert, 5 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+> index 08ae067..2984b7d 100644
+> --- a/drivers/media/i2c/ir-kbd-i2c.c
+> +++ b/drivers/media/i2c/ir-kbd-i2c.c
+> @@ -184,18 +184,13 @@ static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  		return -EIO;
+>  	}
+>  
+> -	/* it seems that 0xFE indicates that a button is still hold
+> -	   down, while 0xff indicates that no button is hold
+> -	   down. 0xfe sequences are sometimes interrupted by 0xFF */
+> -
+> -	dprintk(2,"key %02x\n", b);
+> -
+> -	if (b == 0xff)
+> +	if (b == 0xff) /* no button */
+>  		return 0;
+>  
+> -	if (b == 0xfe)
+> -		/* keep old data */
+> -		return 1;
+> +	if (b == 0xfe) /* button is still hold */
+> +		b = ir->rc->last_scancode; /* keep old data */
+> +
+> +	dprintk(2,"key %02x\n", b);
+>  
+>  	*ir_key = b;
+>  	*ir_raw = b;
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
+Don't do that. This piece of code is old, and it was added there 
+before the em28xx driver. Originally, the ir-i2c-kbd were used by
+bttv and saa7134 drivers and the code there were auto-detecting the
+I2C IR hardware decoding chips that used to be very common on media
+devices. I'm almost sure that the original device that started using
+this code is this model:
 
- drivers/media/usb/gspca/pac207.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+drivers/media/pci/bt8xx/bttv-cards.c:             .name           = "Typhoon TView RDS + FM Stereo / KNC1 TV Station RDS",
 
-diff --git a/drivers/media/usb/gspca/pac207.c b/drivers/media/usb/gspca/pac207.c
-index 1f253df..3b75097 100644
---- a/drivers/media/usb/gspca/pac207.c
-+++ b/drivers/media/usb/gspca/pac207.c
-@@ -413,7 +413,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
- 			u8 *data,		/* interrupt packet data */
- 			int len)		/* interrput packet length */
-@@ -442,7 +442,7 @@ static const struct sd_desc sd_desc = {
- 	.stopN = sd_stopN,
- 	.dq_callback = pac207_do_auto_gain,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.int_pkt_scan = sd_int_pkt_scan,
- #endif
- };
+That's why it is called as KNC1, but there are other cards that use
+it as well. I think I have one bttv using it. Not sure.
+
+The routine on em28xx is a fork of the original one, that was changed
+to work with the devices there.
+
+FYI, most of those I2C IR codes are provided by some generic 8-bits
+micro-processor, generally labeled with weird names, like KS007.
+The code inside those can be different, depending on the firmware
+inside, and also its I2C address.
+
+That's one of the reasons why we moved the code that used to be
+inside ir-i2c-kbd into the drivers that actually use it, like
+em28xx: this way, we can track its usage and fix, as the remaining
+get_key code inside-i2c-kbd are old, auto-detected, nobody knows
+precisely what devices use them, and the current developers don't own
+the hardware where they're used.
+
+In other words, please, don't touch at the get_key routines inside
+ir-kbd-i2c. If you find a bug, please fix at em28xx-input instead, if
+you find a bug.
+
 -- 
-1.7.11.7
 
+Cheers,
+Mauro
