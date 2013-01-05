@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:57344 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279Ab3ASXmm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:42 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 16/24] usb/gspca/sonixj.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:23 -0200
-Message-Id: <1358638891-4775-17-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from pequod.mess.org ([46.65.169.142]:38635 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755748Ab3AEQyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jan 2013 11:54:20 -0500
+Date: Sat, 5 Jan 2013 16:47:33 +0000
+From: Sean Young <sean@mess.org>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] [media] winbond-cir: increase IR receiver
+ resolution
+Message-ID: <20130105164733.GA8312@pequod.mess.org>
+References: <1351113762-5530-1-git-send-email-sean@mess.org>
+ <1351113762-5530-2-git-send-email-sean@mess.org>
+ <20130103001657.GB13132@hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130103001657.GB13132@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+On Thu, Jan 03, 2013 at 01:16:57AM +0100, David Härdeman wrote:
+> On Wed, Oct 24, 2012 at 10:22:41PM +0100, Sean Young wrote:
+> >This is needed for carrier reporting.
+> >
+> >Signed-off-by: Sean Young <sean@mess.org>
+> >---
+> > drivers/media/rc/winbond-cir.c | 14 +++++++++-----
+> > 1 file changed, 9 insertions(+), 5 deletions(-)
+> 
+> Using a resolution of 2us rather than 10us means that the resolution
+> (and amount of work necessary for decoding a given signal) is about 25x
+> higher than in the windows driver (which uses a 50us resolution IIRC)...
+> 
+> Most of it is mitigated by using RLE (which I don't think the windows
+> driver uses....again...IIRC), but it still seems unnecessary for the
+> general case.
 
-This change was made for: CONFIG_INPUT
+You're right, the hardware will generate more data for 2us rather than 
+10us. For one key press on a nec remote, I get 69 interrupts before 
+this patch and 302 after. That's almost 5 times as much, but not a 
+ridiculous amount of work.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
+> Wouldn't it be possible to only use the high-res mode when carrier
+> reports are actually enabled?
 
- drivers/media/usb/gspca/sonixj.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+That is possible, although is it really worth the effort? I'll have a
+look at implementing it and see what the code will look like.
 
-diff --git a/drivers/media/usb/gspca/sonixj.c b/drivers/media/usb/gspca/sonixj.c
-index 36307a9..671d0c6 100644
---- a/drivers/media/usb/gspca/sonixj.c
-+++ b/drivers/media/usb/gspca/sonixj.c
-@@ -3077,7 +3077,7 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
- 			u8 *data,		/* interrupt packet data */
- 			int len)		/* interrupt packet length */
-@@ -3109,7 +3109,7 @@ static const struct sd_desc sd_desc = {
- 	.pkt_scan = sd_pkt_scan,
- 	.dq_callback = do_autogain,
- 	.querymenu = sd_querymenu,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.int_pkt_scan = sd_int_pkt_scan,
- #endif
- };
--- 
-1.7.11.7
 
+Sean
