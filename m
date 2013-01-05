@@ -1,90 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27018 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755568Ab3AEClj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 21:41:39 -0500
-Date: Sat, 5 Jan 2013 00:41:07 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/6] em28xx: IR RC: get rid of function
- em28xx_get_key_terratec()
-Message-ID: <20130105004107.49aa5158@redhat.com>
-In-Reply-To: <1356649368-5426-5-git-send-email-fschaefer.oss@googlemail.com>
-References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1356649368-5426-5-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:40540 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755664Ab3AEN7x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 08:59:53 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b47so8406049eek.17
+        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 05:59:52 -0800 (PST)
+Message-ID: <50E831F2.70400@googlemail.com>
+Date: Sat, 05 Jan 2013 15:00:18 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model 37284,
+ rev B421
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 28 Dec 2012 00:02:46 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+While we are at it ;) :
 
-> Module "ir-kbd-i2c" already provides this function as IR_KBD_GET_KEY_KNC1.
+[   15.280772] bttv: Bt8xx card found (0)
+[   15.281349] bttv: 0: Bt878 (rev 17) at 0000:01:08.0, irq: 18,
+latency: 32, mmio: 0xfdfff000
+[   15.281386] bttv: 0: detected: Hauppauge WinTV [card=10], PCI
+subsystem ID is 0070:13eb
+[   15.281391] bttv: 0: using: Hauppauge (bt878) [card=10,insmod option]
+[   15.283964] bttv: 0: Hauppauge/Voodoo msp34xx: reset line init [5]
+[   15.316043] tveeprom 4-0050: Hauppauge model 37284, rev B421, serial#
+5111944
+[   15.316049] tveeprom 4-0050: tuner model is Philips FM1216 (idx 21,
+type 5)
+[   15.316054] tveeprom 4-0050: TV standards PAL(B/G) (eeprom 0x04)
+[   15.316059] tveeprom 4-0050: audio processor is MSP3410D (idx 5)
+[   15.316063] tveeprom 4-0050: has radio
+[   15.316066] bttv: 0: Hauppauge eeprom indicates model#37284
+[   15.316071] bttv: 0: tuner type=5
+[   16.178816] bttv: 0: registered device video0
+[   16.179071] bttv: 0: registered device vbi0
+[   16.180587] bttv: 0: registered device radio0
 
-See my comment for patch 6/6.
+When I load module ir-kbd-i2c manually:
+
+Registered IR keymap rc-hauppauge
+input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input6
+rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-4/4-0018/ir0 [bt878 #0 [sw]]
+
+Remote control works fine then.
 
 Regards,
-Mauro
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-input.c |   30 +-----------------------------
->  1 Datei geändert, 1 Zeile hinzugefügt(+), 29 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-> index 631e252..62b6cb7 100644
-> --- a/drivers/media/usb/em28xx/em28xx-input.c
-> +++ b/drivers/media/usb/em28xx/em28xx-input.c
-> @@ -85,34 +85,6 @@ struct em28xx_IR {
->   I2C IR based get keycodes - should be used with ir-kbd-i2c
->   **********************************************************/
->  
-> -static int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-> -{
-> -	unsigned char b;
-> -
-> -	/* poll IR chip */
-> -	if (1 != i2c_master_recv(ir->c, &b, 1)) {
-> -		i2cdprintk("read error\n");
-> -		return -EIO;
-> -	}
-> -
-> -	/* it seems that 0xFE indicates that a button is still hold
-> -	   down, while 0xff indicates that no button is hold
-> -	   down. 0xfe sequences are sometimes interrupted by 0xFF */
-> -
-> -	i2cdprintk("key %02x\n", b);
-> -
-> -	if (b == 0xff)
-> -		return 0;
-> -
-> -	if (b == 0xfe)
-> -		/* keep old data */
-> -		return 1;
-> -
-> -	*ir_key = b;
-> -	*ir_raw = b;
-> -	return 1;
-> -}
-> -
->  static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  {
->  	unsigned char buf[2];
-> @@ -476,7 +448,7 @@ static int em28xx_register_i2c_ir(struct em28xx *dev, struct rc_dev *rc_dev)
->  	case EM2820_BOARD_TERRATEC_CINERGY_250:
->  		dev->init_data.name = "i2c IR (EM28XX Terratec)";
->  		dev->init_data.type = RC_BIT_OTHER;
-> -		dev->init_data.get_key = em28xx_get_key_terratec;
-> +		dev->init_data.internal_get_key_func = IR_KBD_GET_KEY_KNC1;
->  		break;
->  	case EM2820_BOARD_PINNACLE_USB_2:
->  		dev->init_data.name = "i2c IR (EM28XX Pinnacle PCTV)";
+rank
 
 
--- 
-
-Cheers,
-Mauro
