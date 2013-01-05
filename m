@@ -1,52 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59980 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752409Ab3AKN3a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:29:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] uvcvideo: Return -EACCES when trying to access a read/write-only control
-Date: Fri, 11 Jan 2013 14:31:12 +0100
-Message-ID: <1912507.Y1ty4L8jHZ@avalon>
-In-Reply-To: <201301111426.28433.hverkuil@xs4all.nl>
-References: <1357910040-27463-1-git-send-email-laurent.pinchart@ideasonboard.com> <201301111421.40294.hverkuil@xs4all.nl> <201301111426.28433.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:1125 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755686Ab3AEPHT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 10:07:19 -0500
+Date: Sat, 5 Jan 2013 13:06:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/4] Some IR fixes for I2C devices on em28xx
+Message-ID: <20130105130647.75c96994@redhat.com>
+In-Reply-To: <50E82900.9060701@googlemail.com>
+References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
+	<50E82900.9060701@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sat, 05 Jan 2013 14:22:08 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-On Friday 11 January 2013 14:26:28 Hans Verkuil wrote:
-> On Fri January 11 2013 14:21:40 Hans Verkuil wrote:
-> > On Fri January 11 2013 14:13:58 Laurent Pinchart wrote:
-> > > Commit ba68c8530a263dc4de440fa10bb20a1c5b9d4ff5 (Partly revert "[media]
-> > > uvcvideo: Set error_idx properly for extended controls API failures")
-> > > also reverted commit 30ecb936cbcd83e3735625ac63e1b4466546f5fe
-> > > ("uvcvideo: Return -EACCES when trying to access a read/write-only
-> > > control") by mistake. Fix it.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Am 04.01.2013 22:15, schrieb Mauro Carvalho Chehab:
+> > Frank pointed that IR was not working with I2C devices. So, I took some
+> > time to fix them.
+> >
+> > Tested with Hauppauge WinTV USB2.
+> >
+> > Mauro Carvalho Chehab (4):
+> >   [media] em28xx: initialize button/I2C IR earlier
+> >   [media] em28xx: autoload em28xx-rc if the device has an I2C IR
+> >   [media] em28xx: simplify IR names on I2C devices
+> >   [media] em28xx: tell ir-kbd-i2c that WinTV uses an RC5 protocol
+> >
+> >  drivers/media/usb/em28xx/em28xx-cards.c |  2 +-
+> >  drivers/media/usb/em28xx/em28xx-input.c | 29 ++++++++++++++++-------------
+> >  2 files changed, 17 insertions(+), 14 deletions(-)
+> >
 > 
-> Actually, I need a clarification first: the code only checks for access to
-> a read-only control, but the patch title says: "Return -EACCES when trying
-> to access a read/write-only control", so either there is something missing
-> in the patch, or the patch title is wrong.
-> 
-> I suspect it is just the title that is wrong.
+> While these patches make I2C IR remote controls working again, they
+> leave several issues unaddressed which should really be fixed:
+> 1) the i2c client isn't unregistered on module unload. This was the
+> reason for patch 2 in my series. There is also a FIXME comment about
+> this in em28xx_release_resources() (although this is the wrong place to
+> do it).
 
-Yes, the title is wrong. The original commit handled both, and 
-ba68c8530a263dc4de440fa10bb20a1c5b9d4ff5 reverted only half of it.
+AFAIKT, this is not really needed, as the I2C clients are unregistered
+when the I2C bus is unregistered.
 
-I'll send a v2 with a fixed title.
+So, a device disconnect will release it. Also, an em28xx driver unload.
 
--- 
+The only difference might be if just ir-kbd-i2c and em28xx-rc are
+unloaded, but em28xx is still loaded, but I think that, even on this
+case, calling the .release code for an I2C bus will release it.
+
+So, I don't see any need for such patch. I might be wrong, of course, but,
+in order to proof that a release code is needed, you'll need to check if
+some memory are lost after module load/unload.
+
+> 2) there is no error checking in em28xx_register_i2c_ir().
+> em28xx_ir_init should really bail out if no i2c device is found.
+
+A failure to initialize IR should not be fatal for the driver, as the
+rest of the hardware still works.
+
+Also, there's no way to warrant that the I2C code is actually running,
+as ir-i2c-kbd may not even be compiled.
+
+So, returning 0 there doesn't mean that IR is working.
+
+> 3) All RC maps should be assigned at the same place, no matter if the
+> receiver/demodulator is built in or external. Spreading them over the
+> code is inconsistent and makes the code bug prone.
+
+I don't agree. It is better to keep RC maps for those devices together
+with the RC protocol setting, get_key config, etc. At boards config,
+it is very easy to identify I2C IR's, as there's an special field there
+to mark those devices (has_ir_i2c). So, if the board has_ir_i2c, the
+IR config is inside em28xx-input. That's the same logic that it is
+there for has_dvb: if this field is true, the DVB specifics is inside
+em28xx-dvb.
+
+> 4) the list of known i2c devices in em28xx-i2c.c misses client address
+> 0x3e >> 1 = 0x1f. See client list in em28xx_register_i2c_ir().
+
+Ok. Separate patch, please.
+
+> 5) there should be a warning message for the case that we call
+> ir-kbd-i2c with an unknown rc device.
+
+Why? All boards with has_ir_i2c have entries there. I double-checked.
+Adding will just bloat the code with no reason. We just need to take
+care if we get a patch adding I2C IR support for an old card, to be
+sure that data is filled on both places.
+
+Considering that we don't receive any IR I2C code for several years,
+and that newer devices won't use that part of the code, it seems highly
+unlikely that such code would be ever used.
+
+> 6) because we use our own key polling functions with ir-kbd-i2c, we
+> should also select the polling interval value manually. That makes
+> things consistent and avoids confusion.
+
+I disagree. The polling interval is mainly dictated by the RC protocol
+used (e. g. the minimal time for a repeat code) and by the speed that 
+users can type things. It is typically ~100 ms everywhere, except when
+there are some exceptional cases, like GPIO polling.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
