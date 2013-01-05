@@ -1,77 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2195 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756051Ab3AWQOB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 11:14:01 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [PATCH] tuner-core: return tuner name with ioctl VIDIOC_G_TUNER
-Date: Wed, 23 Jan 2013 17:13:55 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1358883981-2645-1-git-send-email-fschaefer.oss@googlemail.com> <201301230835.29623.hverkuil@xs4all.nl> <51000874.7080607@googlemail.com>
-In-Reply-To: <51000874.7080607@googlemail.com>
+Received: from mail-we0-f175.google.com ([74.125.82.175]:60890 "EHLO
+	mail-we0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755422Ab3AEMvX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 07:51:23 -0500
+Received: by mail-we0-f175.google.com with SMTP id z53so8435448wey.20
+        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 04:51:21 -0800 (PST)
+Message-ID: <50E821E3.5020508@googlemail.com>
+Date: Sat, 05 Jan 2013 13:51:47 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201301231713.55685.hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR 3.9] em28xx videobuf2 support and v4l2-compliance
+ fixes
+References: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com>
+In-Reply-To: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed January 23 2013 16:57:40 Frank Schäfer wrote:
-> Am 23.01.2013 08:35, schrieb Hans Verkuil:
-> > On Tue January 22 2013 20:46:21 Frank Schäfer wrote:
-> >> tuner_g_tuner() is supposed to fill struct v4l2_tuner passed by ioctl
-> >> VIDIOC_G_TUNER, but misses setting the name field.
-> >>
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> Cc: stable@kernel.org
-> >> ---
-> >>  drivers/media/v4l2-core/tuner-core.c |    1 +
-> >>  1 Datei geändert, 1 Zeile hinzugefügt(+)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-> >> index b5a819a..95a47cf 100644
-> >> --- a/drivers/media/v4l2-core/tuner-core.c
-> >> +++ b/drivers/media/v4l2-core/tuner-core.c
-> >> @@ -1187,6 +1187,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
-> >>  
-> >>  	if (check_mode(t, vt->type) == -EINVAL)
-> >>  		return 0;
-> >> +	strcpy(vt->name, t->name);
-> >>  	if (vt->type == t->mode && analog_ops->get_afc)
-> >>  		vt->afc = analog_ops->get_afc(&t->fe);
-> >>  	if (analog_ops->has_signal)
-> >>
-> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >
-> > And the reason is that the tuner field should be filled in by the bridge
-> > driver. That's because you may have multiple tuners and it's only the
-> > bridge driver that will know which tuner is which and what name to give
-> > it.
-> 
-> Hmmm... I don't understand.
-> Isn't his a per-tuner (subdev) operation ? If a device has multiple
-> tuners (subdevs) it is called for each of them.
-> So how can the returned tuner name be wrong and why should the bridge
-> driver know better than the subdevice itself which name is correct ?
+Am 04.01.2013 20:41, schrieb Devin Heitmueller:
+> Hello Mauro,
+>
+> Please pull the following series for 3.9, which ports em28xx to VB2 as
+> well as applying Hans Verkuil's v4l2-compliance fixes for em28xx.
+>
+> Thanks,
+>
+> Devin
+>
+> The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
+>
+>   [media] get_dvb_firmware: Fix the location of firmware for Terratec
+> HTC (2013-01-01 11:18:26 -0200)
+>
+> are available in the git repository at:
+>
+>   git://git.kernellabs.com/dheitmueller/linuxtv.git v39staging
+>
+> for you to fetch changes up to 381abfc158c2dad81a558a3d3ff924fc7f80d277:
+>
+>   em28xx: convert to videobuf2 (2013-01-04 14:16:24 -0500)
+>
+> ----------------------------------------------------------------
+> Devin Heitmueller (1):
+>       em28xx: convert to videobuf2
+>
+> Hans Verkuil (14):
+>       em28xx: fix querycap.
+>       em28xx: remove bogus input/audio ioctls for the radio device.
+>       em28xx: fix VIDIOC_DBG_G_CHIP_IDENT compliance errors.
+>       em28xx: fix tuner/frequency handling
+>       v4l2-ctrls: add a notify callback.
+>       em28xx: convert to the control framework.
+>       em28xx: convert to v4l2_fh, fix priority handling.
+>       em28xx: add support for control events.
+>       em28xx: fill in readbuffers and fix incorrect return code.
+>       em28xx: fix broken TRY_FMT.
+>       tvp5150: remove compat control ops.
+>       em28xx: std fixes: don't implement in webcam mode, and fix std changes.
+>       em28xx: remove sliced VBI support.
+>       em28xx: zero vbi_format reserved array and add try_vbi_fmt.
+>
+>  Documentation/video4linux/v4l2-controls.txt |   22 +-
+>  drivers/media/i2c/tvp5150.c                 |    7 -
+>  drivers/media/usb/em28xx/Kconfig            |    3 +-
+>  drivers/media/usb/em28xx/em28xx-cards.c     |   31 +-
+>  drivers/media/usb/em28xx/em28xx-dvb.c       |    4 +-
+>  drivers/media/usb/em28xx/em28xx-vbi.c       |  123 ++-
+>  drivers/media/usb/em28xx/em28xx-video.c     | 1159 ++++++++-------------------
+>  drivers/media/usb/em28xx/em28xx.h           |   38 +-
+>  drivers/media/v4l2-core/v4l2-ctrls.c        |   18 +
+>  include/media/v4l2-ctrls.h                  |   25 +
+>  10 files changed, 504 insertions(+), 926 deletions(-)
+>
 
-The name that's filled in is exposed to userspace, so it should be something
-meaningful and not some internal name. In the case of multiple tuners that
-means that the name should be something like 'TV 1' or 'TV 2', where the name
-matches a name (label) of a tuner input of the product. There is no way a
-subdev driver can know that, only the bridge driver knows what product it is
-and thus what the labels on the inputs are.
+The server is down ?
 
-It is somewhat theoretical since we don't have any multi-tuner devices (yet),
-so for now names like 'Radio' and 'TV' are sufficient, but we made the same
-mistake (letting subdevs set the name) in the past for regular video/audio
-inputs and outputs and it took a lot of work to fix that.
 
-The golden rule is that sub-devices should not assume anything about how they
-are hooked up in the actual product.
-
-Regards,
-
-	Hans
