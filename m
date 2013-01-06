@@ -1,55 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:40595 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827Ab3AKLGj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 06:06:39 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGG00CQKK71L3Y0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Jan 2013 20:06:37 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MGG0051IK6URY90@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 Jan 2013 20:06:37 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-fimc: Fix fimc-lite entities deregistration
-Date: Fri, 11 Jan 2013 12:06:28 +0100
-Message-id: <1357902388-24500-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:10951 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752207Ab3AFNTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jan 2013 08:19:30 -0500
+Date: Sun, 6 Jan 2013 11:18:55 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Tushar Behera <tushar.behera@linaro.org>
+Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
+Message-ID: <20130106111855.6ae61650@redhat.com>
+In-Reply-To: <50E97900.4060100@gmail.com>
+References: <50E726F4.7060704@samsung.com>
+	<50E96F6D.9080206@gmail.com>
+	<20130106104157.5ffb5f6c@redhat.com>
+	<201301061353.52306.hverkuil@xs4all.nl>
+	<50E97900.4060100@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clear the proper array when deregistering FIMC-LITE devices. Now
-fimc[] array is erroneously accessed instead of fimc_lite[] and
-fimc_md_unregister_entities() function call can result in an oops
-from NULL pointer dereference, since fmd->fimc[] is cleared earlier.
-This might happen in normal conditions when the driver's probing
-is deferred and then retried.
+Em Sun, 06 Jan 2013 14:15:44 +0100
+Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On 01/06/2013 01:53 PM, Hans Verkuil wrote:
+> >>>>>> Tomasz Stanislawski (1):
+> >>>>>>          s5p-tv: mixer: fix handling of VIDIOC_S_FMT
+> >>>>
+> >>>> I'll drop this one for now. Devin raised a point: such changes would break
+> >>>> existing applications.
+> >>>>
+> >>>> So, we'll need to revisit this topic before changing the drivers.
+> >>>>
+> >>>> Btw, I failed to find the corresponding patch at patchwork:
+> >>>> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
+> >>>>
+> >>>> So, its status update may be wrong after flushing your pwclient commands.
+> >>>
+> >>> Hmm, I got this patch from Tomasz by e-mail and added it to the pull
+> >>> request.
+> >>> I think it wasn't sent to the mailing list, but I noticed it only after
+> >>> sending you the pull requests, when was preparing the pwclient commands.
+> >>> I've just posted it now, sorry. The link is here:
+> >>> http://patchwork.linuxtv.org/patch/16143
+> >>>
+> >>> Tomasz created this patch specifically for the purpose of format negotiation
+> >>> in video pipeline in the application we used to test various scenarios with
+> >>> DMABUF. I agree this patch has a potential of breaking buggy user space
+> >>> applications. I can't see other solution for it right now, there seems even
+> >>> to be no possibility to return some flag in VIDIOC_S_FMT indicating that
+> >>> format has been modified and is valid, when -EINVAL was returned. This
+> >>> sounds
+> >>> ugly anyway, but could ensure backward compatibility for applications that
+> >>> exppect EINVAL when format has been changed. BTW, I wonder if it is only
+> >>> fourcc,
+> >>> or other format parameters as well - like width, height, some applications
+> >>> expect to get EINVAL when those have changed.
+> >>
+> >> The patch makes the driver compliant to v4l-compilance, as its behavior asks
+> >> for such change, after some discussions we had this year in San Diego. At that
+> >> time, we all believed that such change were safe.
+> >>
+> >> However, we can't do it like proposed there (and on other patches from Hans).
+> >>
+> >> The fact is that tvtime and mythtv applications (maybe more) will fail
+> >> if the returned format is different than the requested ones, as they
+> >> don't check for the returned value.
+> >>
+> >> As no regressions on userspace are allowed, we need to re-discuss this issue.
+> >>
+> >> While this doesn't happen, I'll postpone such patches.
+> >
+> > This is a video output device. So this patch will never affect tvtime/mythtv/etc.
+> > I have no problem with this change being merged.
+> 
+> TBH, I very much doubt anyone would complain in case of this driver. I'm not
+> certain if there is complete support for even one board in the mainline 
+> kernel,
+> likely only Origen A. AFAIK most applications use either Exynos DRM driver,
+> that has support for all features available in s5p-tv driver, or 
+> framebuffer
+> emulation on top of v4l2 output interface (there were in the past RFC 
+> patches
+> posted for vb2 adding FB emulation) is used. Although I agree with Mauro in
+> principle, I think chances of above patch causing any trouble to anyone are
+> close to zero.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 1288c88..4f21d80 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -768,7 +768,7 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
- 		if (fmd->fimc_lite[i] == NULL)
- 			continue;
- 		v4l2_device_unregister_subdev(&fmd->fimc_lite[i]->subdev);
--		fmd->fimc[i]->pipeline_ops = NULL;
-+		fmd->fimc_lite[i]->pipeline_ops = NULL;
- 		fmd->fimc_lite[i] = NULL;
- 	}
- 	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
---
-1.7.9.5
+Yes, I see your point. Yet, it doesn't hurt to keep it on hold for a couple
+weeks while we discuss it at the ML.
 
+Regards,
+Mauro
