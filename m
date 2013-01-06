@@ -1,91 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp06.uk.clara.net ([195.8.89.39]:38938 "EHLO
-	claranet-outbound-smtp06.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752359Ab3AILCz convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jan 2013 06:02:55 -0500
-From: Simon Farnsworth <simon.farnsworth@onelan.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
-Date: Wed, 09 Jan 2013 11:02:23 +0000
-Message-ID: <9912400.S8YXz1JbUM@f17simon>
-In-Reply-To: <CAGoCfiwwLwJkjZhEZP6-ek6cs6j51kNEDTC2LSmDnbimgX0KLQ@mail.gmail.com>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <1718385.5pOCXcV7mc@f17simon> <CAGoCfiwwLwJkjZhEZP6-ek6cs6j51kNEDTC2LSmDnbimgX0KLQ@mail.gmail.com>
+Received: from smtp24.services.sfr.fr ([93.17.128.83]:59569 "EHLO
+	smtp24.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950Ab3AFVM6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 16:12:58 -0500
+Message-ID: <50E9E8D3.6080504@sfr.fr>
+Date: Sun, 06 Jan 2013 22:12:51 +0100
+From: Patrice Chotard <patrice.chotard@sfr.fr>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+To: Emil Goode <emilgoode@gmail.com>
+CC: patricechotard@free.fr, martin.blumenstingl@googlemail.com,
+	gregkh@linuxfoundation.org, crope@iki.fi,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] [media] ngene: Use newly created function
+References: <1357505952-14439-1-git-send-email-emilgoode@gmail.com>
+In-Reply-To: <1357505952-14439-1-git-send-email-emilgoode@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 8 January 2013 18:28:53 Devin Heitmueller wrote:
-> On Tue, Jan 8, 2013 at 6:18 PM, Simon Farnsworth
-> <simon.farnsworth@onelan.com> wrote:
-> > The wireless folk use dBm (reference point 1 milliwatt), as that's the
-> > reference point used in the 802.11 standard.
-> >
-> > Perhaps we need an extra FE_SCALE constant; FE_SCALE_DECIBEL has no reference
-> > point (so suitable for carrier to noise etc, or for when the reference point
-> > is unknown), and FE_SCALE_DECIBEL_MILLIWATT for when the reference point is
-> > 1mW, so that frontends report in dBm?
-> >
-> > Note that if the frontend internally uses a different reference point, the
-> > conversion is always going to be adding or subtracting a constant.
+Hi Emil,
+
+You are right, there was a missing piece of code.
+
+During merge, part of the orignal patch was missing. I have signaled it
+to Mauro who have fixed it in media_tree.
+
+Regards.
+
+Le 06/01/2013 21:59, Emil Goode a écrit :
+> The function demod_attach_drxd was split into two by commit 36a495a3.
+> This resulted in a new function tuner_attach_dtt7520x that is not used.
+> We should register tuner_attach_dtt7520x as a callback in the ngene_info
+> struct in the same way as done with the other part of the split function.
 > 
-> Hi Simon,
+> Sparse warning:
 > 
-> Probably the biggest issue you're going to have is that very few of
-> the consumer-grade demodulators actually report data in that format.
-> And only a small subset of those actually provide the documentation in
-> their datasheet.
+> drivers/media/pci/ngene/ngene-cards.c:333:12: warning:
+>         ‘tuner_attach_dtt7520x’ defined but not used [-Wunused-function]
 > 
-<snip>
-My specific concern is that we already see people complaining that their cable
-system or aerial installer's meter comes up with one number, and our
-documentation has completely different numbers. When we dig, this usually
-turns out to be because our documentation is in dBm, while their installer is
-using dBmV or dBµW, and no-one at the customer site knows the differences.
-
-If consumer demods don't report in a dB scale at all, we should drop dB as a
-unit; if they do report in a true dB scale, but the reference point is
-normally not documented, we need some way to distinguish demods where the
-reference point is unknown, and demods where someone has taken the time to
-find the reference point (which can be done with a signal generator).
-
-This is sounding more and more like an argument for adding
-FE_SCALE_DECIBEL_MILLIWATT - it gives those applications that care a way to
-tell the user that the signal strength reading from the application should
-match up to the signal strength reading on your installer's kit. Said
-applications could even choose to do the conversions for you, giving you all
-four commonly seen units (dBm, dBmV at 50Ω, dBmV at 75Ω, dBµW).
-
-> For that matter, even the SNR field being reported in dB isn't going
-> to allow you to reliably compare across different demodulator chips.
-> If demod X says 28.3 dB and demod Y says 29.2 dB, that doesn't
-> really mean demod Y performs better - just that it's reporting a
-> better number.  However it does allow you to compare the demod
-> against itself either across multiple frequencies or under different
-> signal conditions - which is what typical users really care about.
-
-I'm not expecting people to compare across demods - I only care about the
-case where a user has got in a professional installer to help with their
-setup. The problem I want to avoid is a Linux application saying "-48 dB
-signal strength, 15 dB CNR", and the installer's kit saying "60 dBuV signal
-strength, 20 dB CNR", when we have enough information for the Linux
-application to say "-48 dBm (60 dBuV at 75Ω), 15 dB CNR", cueing the
-professional to remember that not all dB use the same reference point, and
-from there into accepting that Linux is reporting a similar signal strength
-and CNR to his kit.
-
-This also has implications for things like VDR - if the scale is
-FE_SCALE_DECIBEL but the measurement is absolute, the application probably
-doesn't want to report the measurement as a dB measure, but as an arbitrary
-scale; again, you don't want the application saying "50 dB", when the
-professional installer tells you that you have "0 dBuV".
--- 
-Simon Farnsworth
-Software Engineer
-ONELAN Ltd
-http://www.onelan.com
+> Signed-off-by: Emil Goode <emilgoode@gmail.com>
+> ---
+> This patch is a guess at what was intended. I'm not familiar with this code
+> and I don't have the hardware to test it.
+> 
+>  drivers/media/pci/ngene/ngene-cards.c |    1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+> index c99f779..60605c8 100644
+> --- a/drivers/media/pci/ngene/ngene-cards.c
+> +++ b/drivers/media/pci/ngene/ngene-cards.c
+> @@ -732,6 +732,7 @@ static struct ngene_info ngene_info_terratec = {
+>  	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
+>  	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
+>  	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
+> +	.tuner_attach   = {tuner_attach_dtt7520x, tuner_attach_dtt7520x},
+>  	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
+>  	.i2c_access     = 1,
+>  };
+> 
