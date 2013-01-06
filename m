@@ -1,66 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33125 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752546Ab3ABLNi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:13:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 2/2] mt9m032: Define MT9M032_READ_MODE1 bits
-Date: Wed,  2 Jan 2013 12:15:04 +0100
-Message-Id: <1357125304-6128-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1357125304-6128-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1357125304-6128-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:32790 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755774Ab3AFRZ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 12:25:29 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
+Date: Sun,  6 Jan 2013 18:29:01 +0100
+Message-Id: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace hardcoded values with #define's.
+This is useful when you need to specify specific GFP flags during memory
+allocation (e.g. GFP_DMA).
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
 ---
- drivers/media/i2c/mt9m032.c |   22 +++++++++++++++++++++-
- 1 files changed, 21 insertions(+), 1 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 ++-----
+ include/media/videobuf2-dma-contig.h           | 5 +++++
+ 2 file modificati, 7 inserzioni(+), 5 rimozioni(-)
 
-diff --git a/drivers/media/i2c/mt9m032.c b/drivers/media/i2c/mt9m032.c
-index 30d755a..de150d3 100644
---- a/drivers/media/i2c/mt9m032.c
-+++ b/drivers/media/i2c/mt9m032.c
-@@ -90,6 +90,24 @@
- #define		MT9M032_PLL_CONFIG1_PREDIV_MASK		0x3f
- #define		MT9M032_PLL_CONFIG1_MUL_SHIFT		8
- #define MT9M032_READ_MODE1				0x1e
-+#define		MT9M032_READ_MODE1_OUTPUT_BAD_FRAMES	(1 << 13)
-+#define		MT9M032_READ_MODE1_MAINTAIN_FRAME_RATE	(1 << 12)
-+#define		MT9M032_READ_MODE1_XOR_LINE_VALID	(1 << 11)
-+#define		MT9M032_READ_MODE1_CONT_LINE_VALID	(1 << 10)
-+#define		MT9M032_READ_MODE1_INVERT_TRIGGER	(1 << 9)
-+#define		MT9M032_READ_MODE1_SNAPSHOT		(1 << 8)
-+#define		MT9M032_READ_MODE1_GLOBAL_RESET		(1 << 7)
-+#define		MT9M032_READ_MODE1_BULB_EXPOSURE	(1 << 6)
-+#define		MT9M032_READ_MODE1_INVERT_STROBE	(1 << 5)
-+#define		MT9M032_READ_MODE1_STROBE_ENABLE	(1 << 4)
-+#define		MT9M032_READ_MODE1_STROBE_START_TRIG1	(0 << 2)
-+#define		MT9M032_READ_MODE1_STROBE_START_EXP	(1 << 2)
-+#define		MT9M032_READ_MODE1_STROBE_START_SHUTTER	(2 << 2)
-+#define		MT9M032_READ_MODE1_STROBE_START_TRIG2	(3 << 2)
-+#define		MT9M032_READ_MODE1_STROBE_END_TRIG1	(0 << 0)
-+#define		MT9M032_READ_MODE1_STROBE_END_EXP	(1 << 0)
-+#define		MT9M032_READ_MODE1_STROBE_END_SHUTTER	(2 << 0)
-+#define		MT9M032_READ_MODE1_STROBE_END_TRIG2	(3 << 0)
- #define MT9M032_READ_MODE2				0x20
- #define		MT9M032_READ_MODE2_VFLIP_SHIFT		15
- #define		MT9M032_READ_MODE2_HFLIP_SHIFT		14
-@@ -282,7 +300,9 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
- 				    MT9P031_PLL_CONTROL_PWRON |
- 				    MT9P031_PLL_CONTROL_USEPLL);
- 	if (!ret)		/* more reserved, Continuous, Master Mode */
--		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8006);
-+		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8000 |
-+				    MT9M032_READ_MODE1_STROBE_START_EXP |
-+				    MT9M032_READ_MODE1_STROBE_END_SHUTTER);
- 	if (!ret) {
- 		reg_val = (pll.p1 == 6 ? MT9M032_FORMATTER1_PLL_P1_6 : 0)
- 			| MT9M032_FORMATTER1_PARALLEL | 0x001e; /* 14-bit */
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 10beaee..bb411c0 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -21,10 +21,6 @@
+ #include <media/videobuf2-dma-contig.h>
+ #include <media/videobuf2-memops.h>
+ 
+-struct vb2_dc_conf {
+-	struct device		*dev;
+-};
+-
+ struct vb2_dc_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+@@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	/* align image size to PAGE_SIZE */
+ 	size = PAGE_ALIGN(size);
+ 
+-	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
++	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
++									GFP_KERNEL | conf->mem_flags);
+ 	if (!buf->vaddr) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
+index 8197f87..22733f4 100644
+--- a/include/media/videobuf2-dma-contig.h
++++ b/include/media/videobuf2-dma-contig.h
+@@ -16,6 +16,11 @@
+ #include <media/videobuf2-core.h>
+ #include <linux/dma-mapping.h>
+ 
++struct vb2_dc_conf {
++	struct device		*dev;
++	gfp_t				mem_flags;
++};
++
+ static inline dma_addr_t
+ vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
 -- 
-1.7.8.6
+1.7.11.7
 
