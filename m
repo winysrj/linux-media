@@ -1,54 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:38635 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755748Ab3AEQyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 11:54:20 -0500
-Date: Sat, 5 Jan 2013 16:47:33 +0000
-From: Sean Young <sean@mess.org>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] [media] winbond-cir: increase IR receiver
- resolution
-Message-ID: <20130105164733.GA8312@pequod.mess.org>
-References: <1351113762-5530-1-git-send-email-sean@mess.org>
- <1351113762-5530-2-git-send-email-sean@mess.org>
- <20130103001657.GB13132@hardeman.nu>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:61553 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab3AFNPs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 08:15:48 -0500
+Received: by mail-ee0-f44.google.com with SMTP id b47so9082029eek.3
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 05:15:47 -0800 (PST)
+Message-ID: <50E97900.4060100@gmail.com>
+Date: Sun, 06 Jan 2013 14:15:44 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130103001657.GB13132@hardeman.nu>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Tushar Behera <tushar.behera@linaro.org>
+Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
+References: <50E726F4.7060704@samsung.com> <50E96F6D.9080206@gmail.com> <20130106104157.5ffb5f6c@redhat.com> <201301061353.52306.hverkuil@xs4all.nl>
+In-Reply-To: <201301061353.52306.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 03, 2013 at 01:16:57AM +0100, David Härdeman wrote:
-> On Wed, Oct 24, 2012 at 10:22:41PM +0100, Sean Young wrote:
-> >This is needed for carrier reporting.
-> >
-> >Signed-off-by: Sean Young <sean@mess.org>
-> >---
-> > drivers/media/rc/winbond-cir.c | 14 +++++++++-----
-> > 1 file changed, 9 insertions(+), 5 deletions(-)
-> 
-> Using a resolution of 2us rather than 10us means that the resolution
-> (and amount of work necessary for decoding a given signal) is about 25x
-> higher than in the windows driver (which uses a 50us resolution IIRC)...
-> 
-> Most of it is mitigated by using RLE (which I don't think the windows
-> driver uses....again...IIRC), but it still seems unnecessary for the
-> general case.
+On 01/06/2013 01:53 PM, Hans Verkuil wrote:
+>>>>>> Tomasz Stanislawski (1):
+>>>>>>          s5p-tv: mixer: fix handling of VIDIOC_S_FMT
+>>>>
+>>>> I'll drop this one for now. Devin raised a point: such changes would break
+>>>> existing applications.
+>>>>
+>>>> So, we'll need to revisit this topic before changing the drivers.
+>>>>
+>>>> Btw, I failed to find the corresponding patch at patchwork:
+>>>> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
+>>>>
+>>>> So, its status update may be wrong after flushing your pwclient commands.
+>>>
+>>> Hmm, I got this patch from Tomasz by e-mail and added it to the pull
+>>> request.
+>>> I think it wasn't sent to the mailing list, but I noticed it only after
+>>> sending you the pull requests, when was preparing the pwclient commands.
+>>> I've just posted it now, sorry. The link is here:
+>>> http://patchwork.linuxtv.org/patch/16143
+>>>
+>>> Tomasz created this patch specifically for the purpose of format negotiation
+>>> in video pipeline in the application we used to test various scenarios with
+>>> DMABUF. I agree this patch has a potential of breaking buggy user space
+>>> applications. I can't see other solution for it right now, there seems even
+>>> to be no possibility to return some flag in VIDIOC_S_FMT indicating that
+>>> format has been modified and is valid, when -EINVAL was returned. This
+>>> sounds
+>>> ugly anyway, but could ensure backward compatibility for applications that
+>>> exppect EINVAL when format has been changed. BTW, I wonder if it is only
+>>> fourcc,
+>>> or other format parameters as well - like width, height, some applications
+>>> expect to get EINVAL when those have changed.
+>>
+>> The patch makes the driver compliant to v4l-compilance, as its behavior asks
+>> for such change, after some discussions we had this year in San Diego. At that
+>> time, we all believed that such change were safe.
+>>
+>> However, we can't do it like proposed there (and on other patches from Hans).
+>>
+>> The fact is that tvtime and mythtv applications (maybe more) will fail
+>> if the returned format is different than the requested ones, as they
+>> don't check for the returned value.
+>>
+>> As no regressions on userspace are allowed, we need to re-discuss this issue.
+>>
+>> While this doesn't happen, I'll postpone such patches.
+>
+> This is a video output device. So this patch will never affect tvtime/mythtv/etc.
+> I have no problem with this change being merged.
 
-You're right, the hardware will generate more data for 2us rather than 
-10us. For one key press on a nec remote, I get 69 interrupts before 
-this patch and 302 after. That's almost 5 times as much, but not a 
-ridiculous amount of work.
+TBH, I very much doubt anyone would complain in case of this driver. I'm not
+certain if there is complete support for even one board in the mainline 
+kernel,
+likely only Origen A. AFAIK most applications use either Exynos DRM driver,
+that has support for all features available in s5p-tv driver, or 
+framebuffer
+emulation on top of v4l2 output interface (there were in the past RFC 
+patches
+posted for vb2 adding FB emulation) is used. Although I agree with Mauro in
+principle, I think chances of above patch causing any trouble to anyone are
+close to zero.
 
-> Wouldn't it be possible to only use the high-res mode when carrier
-> reports are actually enabled?
+--
 
-That is possible, although is it really worth the effort? I'll have a
-look at implementing it and see what the code will look like.
-
-
-Sean
+Regards,
+Sylwester
