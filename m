@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:36756 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753701Ab3AaNEG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 08:04:06 -0500
-Received: by mail-lb0-f177.google.com with SMTP id go11so3277775lbb.8
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 05:04:04 -0800 (PST)
+Received: from mail-la0-f43.google.com ([209.85.215.43]:46234 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142Ab3AFU62 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 15:58:28 -0500
+From: Emil Goode <emilgoode@gmail.com>
+To: patricechotard@free.fr, martin.blumenstingl@googlemail.com,
+	gregkh@linuxfoundation.org, crope@iki.fi
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] [media] ngene: Use newly created function
+Date: Sun,  6 Jan 2013 21:59:12 +0100
+Message-Id: <1357505952-14439-1-git-send-email-emilgoode@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <50F05C09.3010104@iki.fi>
-References: <50F05C09.3010104@iki.fi>
-Date: Thu, 31 Jan 2013 14:04:03 +0100
-Message-ID: <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
-Subject: Re: af9035 test needed!
-From: Andre Heider <a.heider@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The function demod_attach_drxd was split into two by commit 36a495a3.
+This resulted in a new function tuner_attach_dtt7520x that is not used.
+We should register tuner_attach_dtt7520x as a callback in the ngene_info
+struct in the same way as done with the other part of the split function.
 
-On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Could you test that (tda18218 & mxl5007t):
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+Sparse warning:
 
-I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
-this series.
-Any chance to get this into 3.9 (I guess its too late for the USB
-VID/PID 'fix' for 3.8)?
+drivers/media/pci/ngene/ngene-cards.c:333:12: warning:
+        ‘tuner_attach_dtt7520x’ defined but not used [-Wunused-function]
 
-Regards,
-Andre
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+This patch is a guess at what was intended. I'm not familiar with this code
+and I don't have the hardware to test it.
+
+ drivers/media/pci/ngene/ngene-cards.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
+index c99f779..60605c8 100644
+--- a/drivers/media/pci/ngene/ngene-cards.c
++++ b/drivers/media/pci/ngene/ngene-cards.c
+@@ -732,6 +732,7 @@ static struct ngene_info ngene_info_terratec = {
+ 	.name           = "Terratec Integra/Cinergy2400i Dual DVB-T",
+ 	.io_type        = {NGENE_IO_TSIN, NGENE_IO_TSIN},
+ 	.demod_attach   = {demod_attach_drxd, demod_attach_drxd},
++	.tuner_attach   = {tuner_attach_dtt7520x, tuner_attach_dtt7520x},
+ 	.fe_config      = {&fe_terratec_dvbt_0, &fe_terratec_dvbt_1},
+ 	.i2c_access     = 1,
+ };
+-- 
+1.7.10.4
+
