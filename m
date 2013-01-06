@@ -1,216 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm2.telefonica.net ([213.4.138.18]:43821 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752415Ab3AXAQG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 19:16:06 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:65191 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756047Ab3AFSOq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 13:14:46 -0500
+Received: by mail-bk0-f49.google.com with SMTP id jm19so8132458bkc.36
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 10:14:44 -0800 (PST)
+Message-ID: <1357496042.4129.26.camel@canaries64>
+Subject: Re: [PATCH] ts2020: call get_rf_strength from frontend
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: Antti Palosaari <crope@iki.fi>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add lock to af9035 driver for dual mode
-Date: Thu, 24 Jan 2013 01:15:57 +0100
-Message-ID: <1411603.1yOyLSGzvX@jar7.dominio>
-In-Reply-To: <510065E9.7070702@iki.fi>
-References: <45300900.lplt0zG7i2@jar7.dominio> <510065E9.7070702@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Cc: linux-media <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+In-Reply-To: <50E97E05.1090607@iki.fi>
+References: <1357476042.16016.8.camel@canaries64> <50E97E05.1090607@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 06 Jan 2013 18:14:02 +0000
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Jueves, 24 de enero de 2013 00:36:25 Antti Palosaari escribió:
-> On 01/24/2013 12:34 AM, Jose Alberto Reguero wrote:
-> > Add lock to af9035 driver for dual mode.
+On Sun, 2013-01-06 at 15:37 +0200, Antti Palosaari wrote:
+> On 01/06/2013 02:40 PM, Malcolm Priestley wrote:
+> > Restore ds3000.c read_signal_strength.
+> >
+> > Call tuner get_rf_strength from frontend read_signal_strength.
+> >
+> > We are able to do a NULL check and doesn't limit the tuner
+> > attach to the frontend attach area.
+> >
+> > At the moment the lmedm04 tuner attach is stuck in frontend
+> > attach area.
 > 
-> May I ask why you do that?
+> I would like to nack that, as I see some problems:
+> 1) it changes deviation against normal procedures
+> 2) interface driver (usb/pci) should have full control to make decision
+> 3) you shoot to our own leg easily in power management
 > 
-> regards
+This patch does not do any operational changes, and is a proper way to
+call to another module with a run time NULL check. The same way as
+another tuner function from demodulator is called.
+
+> * actually bug 3) already happened some drivers, like rtl28xxu. Tuner is 
+> behind demod and demod is put sleep => no access to tuner. FE callback 
+> is overridden (just like you are trying to do as default) which means 
+> user-space could still make queries => I/O errors.
+
+In such cases, the tuner init/sleep should also be called.
+
+
+Regards
+
+
+Malcolm
+
+
 > Antti
->
-
-Just to avoid interference between the two demods.
-
-Jose Alberto
-
-> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> > 
-> > 
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> > linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> > --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
-> > 05:45:57.000000000 +0100
-> > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-23
-> > 23:18:18.544788327 +0100
-> > @@ -824,6 +824,104 @@ static int af9035_get_adapter_count(stru
-> > 
-> >   	return state->dual_mode + 1;
-> >   
-> >   }
-> > 
-> > +static int af9035_lock_set_frontend(struct dvb_frontend* fe)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].set_frontend(fe);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_get_frontend(struct dvb_frontend* fe)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].get_frontend(fe);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_read_status(struct dvb_frontend* fe, fe_status_t*
-> > status)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].read_status(fe, status);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_read_ber(struct dvb_frontend* fe, u32* ber)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].read_ber(fe, ber);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_read_signal_strength(struct dvb_frontend* fe, u16*
-> > strength)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].read_signal_strength(fe,
-> > strength); +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_read_snr(struct dvb_frontend* fe, u16* snr)
-> > +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].read_snr(fe, snr);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > +static int af9035_lock_read_ucblocks(struct dvb_frontend* fe, u32*
-> > ucblocks) +{
-> > +       int result;
-> > +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
-> > +       struct state *state = adap_to_priv(adap);
-> > +
-> > +       if (mutex_lock_interruptible(&state->fe_mutex))
-> > +               return -EAGAIN;
-> > +
-> > +       result = state->fe_ops[adap->id].read_ucblocks(fe, ucblocks);
-> > +       mutex_unlock(&state->fe_mutex);
-> > +       return result;
-> > +}
-> > +
-> > 
-> >   static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
-> >   {
-> >   
-> >   	struct state *state = adap_to_priv(adap);
-> > 
-> > @@ -862,6 +960,22 @@ static int af9035_frontend_attach(struct
-> > 
-> >   	adap->fe[0]->ops.i2c_gate_ctrl = NULL;
-> >   	adap->fe[0]->callback = af9035_frontend_callback;
-> > 
-> > +       memcpy(&state->fe_ops[adap->id], &adap->fe[0]->ops, sizeof(struct
-> > dvb_frontend_ops));
-> > +       if (adap->fe[0]->ops.set_frontend)
-> > +               adap->fe[0]->ops.set_frontend = af9035_lock_set_frontend;
-> > +       if (adap->fe[0]->ops.get_frontend)
-> > +               adap->fe[0]->ops.get_frontend = af9035_lock_get_frontend;
-> > +       if (adap->fe[0]->ops.read_status)
-> > +               adap->fe[0]->ops.read_status = af9035_lock_read_status;
-> > +       if (adap->fe[0]->ops.read_ber)
-> > +               adap->fe[0]->ops.read_ber = af9035_lock_read_ber;
-> > +       if (adap->fe[0]->ops.read_signal_strength)
-> > +               adap->fe[0]->ops.read_signal_strength =
-> > af9035_lock_read_signal_strength;
-> > +       if (adap->fe[0]->ops.read_snr)
-> > +               adap->fe[0]->ops.read_snr = af9035_lock_read_snr;
-> > +       if (adap->fe[0]->ops.read_ucblocks)
-> > +               adap->fe[0]->ops.read_ucblocks =
-> > af9035_lock_read_ucblocks;
-> > +
-> > 
+> 
+> 
+> >
+> > Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+> > ---
+> >   drivers/media/dvb-frontends/ds3000.c    | 10 ++++++++++
+> >   drivers/media/dvb-frontends/m88rs2000.c |  4 +++-
+> >   drivers/media/dvb-frontends/ts2020.c    |  1 -
+> >   3 files changed, 13 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+> > index d128f85..1e344b0 100644
+> > --- a/drivers/media/dvb-frontends/ds3000.c
+> > +++ b/drivers/media/dvb-frontends/ds3000.c
+> > @@ -533,6 +533,15 @@ static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
 > >   	return 0;
-> >   
-> >   err:
-> > @@ -1130,6 +1244,8 @@ static int af9035_init(struct dvb_usb_de
-> > 
-> >   			"packet_size=%02x\n", __func__,
-> >   			d->udev->speed, frame_size, packet_size);
-> > 
-> > +	mutex_init(&state->fe_mutex);
+> >   }
+> >
+> > +static int ds3000_read_signal_strength(struct dvb_frontend *fe,
+> > +						u16 *signal_strength)
+> > +{
+> > +	if (fe->ops.tuner_ops.get_rf_strength)
+> > +		fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
 > > +
-> > 
-> >   	/* init endpoints */
-> >   	for (i = 0; i < ARRAY_SIZE(tab); i++) {
-> >   	
-> >   		ret = af9035_wr_reg_mask(d, tab[i].reg, tab[i].val,
-> > 
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
-> > linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
-> > --- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07
-> > 05:45:57.000000000 +0100
-> > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-23
-> > 23:12:59.389532516 +0100
-> > @@ -55,6 +55,10 @@ struct state {
-> > 
-> >   	u8 seq; /* packet sequence number */
-> >   	bool dual_mode;
-> >   	struct af9033_config af9033_config[2];
-> > 
+> > +	return 0;
+> > +}
 > > +
-> > +	struct dvb_frontend_ops fe_ops[2];
+> >   /* calculate DS3000 snr value in dB */
+> >   static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
+> >   {
+> > @@ -1102,6 +1111,7 @@ static struct dvb_frontend_ops ds3000_ops = {
+> >   	.i2c_gate_ctrl = ds3000_i2c_gate_ctrl,
+> >   	.read_status = ds3000_read_status,
+> >   	.read_ber = ds3000_read_ber,
+> > +	.read_signal_strength = ds3000_read_signal_strength,
+> >   	.read_snr = ds3000_read_snr,
+> >   	.read_ucblocks = ds3000_read_ucblocks,
+> >   	.set_voltage = ds3000_set_voltage,
+> > diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
+> > index 283c90f..4da5272 100644
+> > --- a/drivers/media/dvb-frontends/m88rs2000.c
+> > +++ b/drivers/media/dvb-frontends/m88rs2000.c
+> > @@ -446,7 +446,9 @@ static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
+> >   static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
+> >   	u16 *strength)
+> >   {
+> > -	*strength = 0;
+> > +	if (fe->ops.tuner_ops.get_rf_strength)
+> > +		fe->ops.tuner_ops.get_rf_strength(fe, strength);
 > > +
-> > +	struct mutex fe_mutex;
-> > 
-> >   };
-> >   
-> >   u32 clock_lut[] = {
+> >   	return 0;
+> >   }
+> >
+> > diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+> > index f50e237..ad7ad85 100644
+> > --- a/drivers/media/dvb-frontends/ts2020.c
+> > +++ b/drivers/media/dvb-frontends/ts2020.c
+> > @@ -363,7 +363,6 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
+> >
+> >   	memcpy(&fe->ops.tuner_ops, &ts2020_tuner_ops,
+> >   				sizeof(struct dvb_tuner_ops));
+> > -	fe->ops.read_signal_strength = fe->ops.tuner_ops.get_rf_strength;
+> >
+> >   	return fe;
+> >   }
+> >
+> 
+> 
+
+
