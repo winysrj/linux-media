@@ -1,73 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe05.c2i.net ([212.247.154.130]:33581 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756300Ab3ANPE5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 10:04:57 -0500
-Received: from [176.74.213.204] (account mc467741@c2i.net HELO laptop015.hselasky.homeunix.org)
-  by mailfe05.swip.net (CommuniGate Pro SMTP 5.4.4)
-  with ESMTPA id 363335668 for linux-media@vger.kernel.org; Mon, 14 Jan 2013 16:04:54 +0100
-From: Hans Petter Selasky <hselasky@c2i.net>
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:50126 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754937Ab3AFMdM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 07:33:12 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c13so9052335eek.41
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 04:33:11 -0800 (PST)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Correctly set data for USB request in case of a previous failure.
-Date: Mon, 14 Jan 2013 16:06:20 +0100
-References: <201301141355.52394.hselasky@c2i.net>
-In-Reply-To: <201301141355.52394.hselasky@c2i.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201301141606.20156.hselasky@c2i.net>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-tv: mixer: fix handling of VIDIOC_S_FMT
+Date: Sun,  6 Jan 2013 13:33:00 +0100
+Message-Id: <1357475581-680-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Improved patch follows:
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
---HPS
+The VIDIOC_S_FMT ioctl must not fail if 4cc is invalid.
+It should adjust proposed 4cc to the available one.
+The s5p-mixer fails on s_fmt if unsupported 4cc is used.
+This patch fixes this issue by using the default format
+for a given layer.
 
->From a88d72d2108f92f004a3f050a708d9b7f661f924 Mon Sep 17 00:00:00 2001
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Mon, 14 Jan 2013 13:53:21 +0100
-Subject: [PATCH] Correctly initialize data for USB request.
-
-Found-by: Jan Beich
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/input/tablet/wacom.h     | 1 +
- drivers/input/tablet/wacom_sys.c | 8 +++++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/platform/s5p-tv/mixer_video.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/input/tablet/wacom.h b/drivers/input/tablet/wacom.h
-index b79d451..d6fad87 100644
---- a/drivers/input/tablet/wacom.h
-+++ b/drivers/input/tablet/wacom.h
-@@ -89,6 +89,7 @@
- #include <linux/init.h>
- #include <linux/usb/input.h>
- #include <linux/power_supply.h>
-+#include <linux/string.h>
- #include <asm/unaligned.h>
- 
- /*
-diff --git a/drivers/input/tablet/wacom_sys.c b/drivers/input/tablet/wacom_sys.c
-index f92d34f..23bc71e 100644
---- a/drivers/input/tablet/wacom_sys.c
-+++ b/drivers/input/tablet/wacom_sys.c
-@@ -553,10 +553,12 @@ static int wacom_set_device_mode(struct usb_interface *intf, int report_id, int
- 	if (!rep_data)
- 		return error;
- 
--	rep_data[0] = report_id;
--	rep_data[1] = mode;
--
- 	do {
-+		memset(rep_data, 0, length);
-+
-+		rep_data[0] = report_id;
-+		rep_data[1] = mode;
-+
- 		error = wacom_set_report(intf, WAC_HID_FEATURE_REPORT,
- 		                         report_id, rep_data, length, 1);
- 		if (error >= 0)
--- 
-1.7.11.4
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 7379e77..405414f 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -324,10 +324,9 @@ static int mxr_s_fmt(struct file *file, void *priv,
+ 	pix = &f->fmt.pix_mp;
+ 	fmt = find_format_by_fourcc(layer, pix->pixelformat);
+ 	if (fmt == NULL) {
+-		mxr_warn(mdev, "not recognized fourcc: %08x\n",
++		mxr_dbg(mdev, "not recognized fourcc: %08x\n",
+ 			pix->pixelformat);
+-		return -EINVAL;
++		fmt = layer->fmt_array[0];
+ 	}
+ 	layer->fmt = fmt;
+ 	/* set source size to highest accepted value */
+--
+1.7.4.1
 
