@@ -1,99 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8436 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753439Ab3AGPsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 10:48:47 -0500
-Date: Mon, 7 Jan 2013 13:48:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media@vger.kernel.org, kernel@pengutronix.de,
-	linux-kernel@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
-Message-ID: <20130107134801.51fbd7d7@redhat.com>
-In-Reply-To: <20130107134605.2825d1b0@infradead.org>
-References: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
-	<CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
-	<20130107134605.2825d1b0@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53865 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754108Ab3AFBD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jan 2013 20:03:27 -0500
+Date: Sun, 6 Jan 2013 03:03:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andreas Nagel <andreasnagel@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: How to configure resizer in ISP pipeline?
+Message-ID: <20130106010321.GE13641@valkosipuli.retiisi.org.uk>
+References: <50C747B7.20107@gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50C747B7.20107@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 7 Jan 2013 13:46:05 -0200
-Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+Hi Andreas,
 
-> Em Mon, 7 Jan 2013 08:16:02 -0200
-> Fabio Estevam <festevam@gmail.com> escreveu:
+On Tue, Dec 11, 2012 at 03:48:23PM +0100, Andreas Nagel wrote:
+> Hello,
 > 
-> > Hi Sascha,
-...
-> > It would be better to use git mv /git format-patch -M, so that git can
-> > detect the file rename.
+> using Media Controller API, I can successfully configure a simple
+> ISP pipeline on an OMAP3530 and capture video data. Now I want to
+> include the resizer. So the pipeline would look like this (where MEM
+> would be the devnode corresponding to "resizer output"):
 > 
-> Agreed. Anyway, I applied here and did a git show -M:
+> Sensor --> CCDC --> Resizer --> MEM
 > 
-> From: Sascha Hauer <s.hauer@pengutronix.de>
-> Date: Mon, 7 Jan 2013 11:03:45 +0100
-> Subject: [PATCH] coda: Fix build due to iram.h rename
-> 
-> commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
-> location of iram.h, which causes the following build error when building the coda
-> driver:
-> 
-> drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
-> drivers/media/platform/coda.c: In function 'coda_probe':
-> drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
-> drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
-> drivers/media/platform/coda.c: In function 'coda_remove':
-> drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
-> 
-> Since the content of iram.h is not imx specific, move it to
-> include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
-> until the i.MX iram allocator is converted to the generic SRAM allocator.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> My "sensor" (TVP5146) already provides YUV data, so I can skip the
+> previewer. I tried setting the input and output pad of the resizer
+> subdevice to incoming resolution (input pad) and desired resolution
+> (output pad). For example: 720x576 --> 352x288. But it didn't work
+> out quite well.
 
-Patch looks OK on my eyes.
+How did it not work quite well? :)
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Can someone explain how one properly configures the resizer in an
+> ISP pipeline (with Media Controller API) ? I spend some hours
+> researching, but this topic seems to be a well guarded secret...
 
-> 
-> diff --git a/arch/arm/mach-imx/iram_alloc.c b/arch/arm/mach-imx/iram_alloc.c
-> index 6c80424..e05cf40 100644
-> --- a/arch/arm/mach-imx/iram_alloc.c
-> +++ b/arch/arm/mach-imx/iram_alloc.c
-> @@ -22,8 +22,7 @@
->  #include <linux/module.h>
->  #include <linux/spinlock.h>
->  #include <linux/genalloc.h>
-> -
-> -#include "iram.h"
-> +#include "linux/platform_data/imx-iram.h"
->  
->  static unsigned long iram_phys_base;
->  static void __iomem *iram_virt_base;
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index 2721f83..16a243d 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -23,8 +23,8 @@
->  #include <linux/slab.h>
->  #include <linux/videodev2.h>
->  #include <linux/of.h>
-> +#include <linux/platform_data/imx-iram.h>
->  
-> -#include <mach/iram.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> diff --git a/arch/arm/mach-imx/iram.h b/include/linux/platform_data/imx-iram.h
-> similarity index 100%
-> rename from arch/arm/mach-imx/iram.h
-> rename to include/linux/platform_data/imx-iram.h
+There's nothing special about it. Really.
 
-Cheers,
-Mauro
+The resizing factor is chosen by setting the media bus format on the source
+pad to the desired size.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
