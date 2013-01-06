@@ -1,180 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35746 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754363Ab3AVREE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 12:04:04 -0500
-Message-ID: <50FEC680.7030602@canonical.com>
-Date: Tue, 22 Jan 2013 18:04:00 +0100
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Francesco Lavra <francescolavra.fl@gmail.com>
-CC: Maarten Lankhorst <m.b.lankhorst@gmail.com>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device reservation
- support
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com> <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com> <50FEC28F.3090100@gmail.com>
-In-Reply-To: <50FEC28F.3090100@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from pequod.mess.org ([46.65.169.142]:59683 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752204Ab3AFRTr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jan 2013 12:19:47 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] winbond-cir: only enable higher sample resolution if needed
+Date: Sun,  6 Jan 2013 17:19:43 +0000
+Message-Id: <1357492785-30966-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 22-01-13 17:47, Francesco Lavra schreef:
-> On 01/15/2013 01:34 PM, Maarten Lankhorst wrote:
->> This adds support for a generic reservations framework that can be
->> hooked up to ttm and dma-buf and allows easy sharing of reservations
->> across devices.
->>
->> The idea is that a dma-buf and ttm object both will get a pointer
->> to a struct reservation_object, which has to be reserved before
->> anything is done with the contents of the dma-buf.
->>
->> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
->> ---
->>  Documentation/DocBook/device-drivers.tmpl |   2 +
->>  drivers/base/Makefile                     |   2 +-
->>  drivers/base/reservation.c                | 251 ++++++++++++++++++++++++++++++
->>  include/linux/reservation.h               | 182 ++++++++++++++++++++++
->>  4 files changed, 436 insertions(+), 1 deletion(-)
->>  create mode 100644 drivers/base/reservation.c
->>  create mode 100644 include/linux/reservation.h
-> [...]
->> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
->> new file mode 100644
->> index 0000000..fc2349d
->> --- /dev/null
->> +++ b/include/linux/reservation.h
->> @@ -0,0 +1,182 @@
->> +/*
->> + * Header file for reservations for dma-buf and ttm
->> + *
->> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
->> + * Copyright (C) 2012 Canonical Ltd
->> + * Copyright (C) 2012 Texas Instruments
->> + *
->> + * Authors:
->> + * Rob Clark <rob.clark@linaro.org>
->> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
->> + * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
->> + *
->> + * Based on bo.c which bears the following copyright notice,
->> + * but is dual licensed:
->> + *
->> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
->> + * All Rights Reserved.
->> + *
->> + * Permission is hereby granted, free of charge, to any person obtaining a
->> + * copy of this software and associated documentation files (the
->> + * "Software"), to deal in the Software without restriction, including
->> + * without limitation the rights to use, copy, modify, merge, publish,
->> + * distribute, sub license, and/or sell copies of the Software, and to
->> + * permit persons to whom the Software is furnished to do so, subject to
->> + * the following conditions:
->> + *
->> + * The above copyright notice and this permission notice (including the
->> + * next paragraph) shall be included in all copies or substantial portions
->> + * of the Software.
->> + *
->> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
->> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
->> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
->> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
->> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
->> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
->> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
->> + */
->> +#ifndef _LINUX_RESERVATION_H
->> +#define _LINUX_RESERVATION_H
->> +
->> +#include <linux/spinlock.h>
->> +#include <linux/mutex.h>
->> +#include <linux/fence.h>
->> +
->> +#define BUF_MAX_SHARED_FENCE 8
->> +
->> +struct fence;
->> +
->> +extern atomic_long_t reservation_counter;
->> +extern const char reservation_object_name[];
->> +extern struct lock_class_key reservation_object_class;
->> +extern const char reservation_ticket_name[];
->> +extern struct lock_class_key reservation_ticket_class;
->> +
->> +struct reservation_object {
->> +	struct ticket_mutex lock;
->> +
->> +	u32 fence_shared_count;
->> +	struct fence *fence_excl;
->> +	struct fence *fence_shared[BUF_MAX_SHARED_FENCE];
->> +};
->> +
->> +struct reservation_ticket {
->> +	unsigned long seqno;
->> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
->> +	struct lockdep_map dep_map;
->> +#endif
->> +};
->> +
->> +/**
->> + * struct reservation_entry - reservation structure for a
->> + * reservation_object
->> + * @head:	list entry
->> + * @obj_shared:	pointer to a reservation_object to reserve
->> + *
->> + * Bit 0 of obj_shared is set to bool shared, as such pointer has to be
->> + * converted back, which can be done with reservation_entry_get.
->> + */
->> +struct reservation_entry {
->> +	struct list_head head;
->> +	unsigned long obj_shared;
->> +};
->> +
->> +
->> +static inline void
->> +reservation_object_init(struct reservation_object *obj)
->> +{
->> +	obj->fence_shared_count = 0;
->> +	obj->fence_excl = NULL;
->> +
->> +	__ticket_mutex_init(&obj->lock, reservation_object_name,
->> +			    &reservation_object_class);
->> +}
->> +
->> +static inline void
->> +reservation_object_fini(struct reservation_object *obj)
->> +{
->> +	int i;
->> +
->> +	if (obj->fence_excl)
->> +		fence_put(obj->fence_excl);
->> +	for (i = 0; i < obj->fence_shared_count; ++i)
->> +		fence_put(obj->fence_shared[i]);
->> +
->> +	mutex_destroy(&obj->lock.base);
->> +}
->> +
->> +static inline void
->> +reservation_ticket_init(struct reservation_ticket *t)
->> +{
->> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
->> +	/*
->> +	 * Make sure we are not reinitializing a held ticket:
->> +	 */
->> +
->> +	debug_check_no_locks_freed((void *)t, sizeof(*t));
->> +	lockdep_init_map(&t->dep_map, reservation_ticket_name,
->> +			 &reservation_ticket_class, 0);
->> +#endif
->> +	mutex_acquire(&t->dep_map, 0, 0, _THIS_IP_);
-> If CONFIG_DEBUG_LOCK_ALLOC is not defined, t->dep_map is not there.
-And mutex_acquire will not expand either, so it's harmless. :-)
->> +	do {
->> +		t->seqno = atomic_long_inc_return(&reservation_counter);
->> +	} while (unlikely(!t->seqno));
->> +}
-> --
-> Francesco
->
+A sample resolution of 2us generates more than 300 interrupts per key
+and this resolution is not needed unless carrier reports are enabled.
+
+Revert to a resolution of 10us unless carrier reports are needed. This
+generates up to a fifth of the interrupts.
+
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/winbond-cir.c | 27 +++++++++++++++++++--------
+ 1 file changed, 19 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 553d1cd..66f543c 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -154,6 +154,8 @@
+ #define WBCIR_CNTR_R		0x02
+ /* Invert TX */
+ #define WBCIR_IRTX_INV		0x04
++/* Receiver oversampling */
++#define WBCIR_RX_T_OV		0x40
+ 
+ /* Valid banks for the SP3 UART */
+ enum wbcir_bank {
+@@ -394,7 +396,8 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
+ 		if (data->rxstate == WBCIR_RXSTATE_ERROR)
+ 			continue;
+ 
+-		duration = ((irdata & 0x7F) + 1) * 2;
++		duration = ((irdata & 0x7F) + 1) *
++			(data->carrier_report_enabled ? 2 : 10);
+ 		rawir.pulse = irdata & 0x80 ? false : true;
+ 		rawir.duration = US_TO_NS(duration);
+ 
+@@ -550,6 +553,17 @@ wbcir_set_carrier_report(struct rc_dev *dev, int enable)
+ 		wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL,
+ 				WBCIR_CNTR_EN, WBCIR_CNTR_EN | WBCIR_CNTR_R);
+ 
++	/* Set a higher sampling resolution if carrier reports are enabled */
++	wbcir_select_bank(data, WBCIR_BANK_2);
++	data->dev->rx_resolution = US_TO_NS(enable ? 2 : 10);
++	outb(enable ? 0x03 : 0x0f, data->sbase + WBCIR_REG_SP3_BGDL);
++	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
++
++	/* Enable oversampling if carrier reports are enabled */
++	wbcir_select_bank(data, WBCIR_BANK_7);
++	wbcir_set_bits(data->sbase + WBCIR_REG_SP3_RCCFG,
++				enable ? WBCIR_RX_T_OV : 0, WBCIR_RX_T_OV);
++
+ 	data->carrier_report_enabled = enable;
+ 	spin_unlock_irqrestore(&data->spinlock, flags);
+ 
+@@ -931,8 +945,8 @@ wbcir_init_hw(struct wbcir_data *data)
+ 	/* prescaler 1.0, tx/rx fifo lvl 16 */
+ 	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
+ 
+-	/* Set baud divisor to sample every 2 ns */
+-	outb(0x03, data->sbase + WBCIR_REG_SP3_BGDL);
++	/* Set baud divisor to sample every 10 us */
++	outb(0x0f, data->sbase + WBCIR_REG_SP3_BGDL);
+ 	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+ 
+ 	/* Set CEIR mode */
+@@ -941,12 +955,9 @@ wbcir_init_hw(struct wbcir_data *data)
+ 	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
+ 	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
+ 
+-	/*
+-	 * Disable RX demod, enable run-length enc/dec, set freq span and
+-	 * enable over-sampling
+-	 */
++	/* Disable RX demod, enable run-length enc/dec, set freq span */
+ 	wbcir_select_bank(data, WBCIR_BANK_7);
+-	outb(0xd0, data->sbase + WBCIR_REG_SP3_RCCFG);
++	outb(0x90, data->sbase + WBCIR_REG_SP3_RCCFG);
+ 
+ 	/* Disable timer */
+ 	wbcir_select_bank(data, WBCIR_BANK_4);
+-- 
+1.7.11.7
 
