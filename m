@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:53855 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757793Ab3APKNe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 05:13:34 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGP007YLR21M520@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 10:13:32 +0000 (GMT)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MGP009DZR2JEC80@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 10:13:32 +0000 (GMT)
-Message-id: <50F67D4A.9010909@samsung.com>
-Date: Wed, 16 Jan 2013 11:13:30 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, ajaykumar.rs@samsung.com,
-	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH] s5p-g2d: Add support for G2D H/W Rev.4.1
-References: <1357541069-7898-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1357541069-7898-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:48316 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755264Ab3AFMe6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 07:34:58 -0500
+Received: by mail-ea0-f170.google.com with SMTP id d11so7281063eaa.1
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 04:34:56 -0800 (PST)
+Message-ID: <50E96F6D.9080206@gmail.com>
+Date: Sun, 06 Jan 2013 13:34:53 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
+References: <50E726F4.7060704@samsung.com> <50E75A10.8090906@gmail.com> <20130106093246.36f959da@redhat.com>
+In-Reply-To: <20130106093246.36f959da@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On 01/06/2013 12:32 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 04 Jan 2013 23:39:12 +0100
+> Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  escreveu:
+>
+>
+>>> Tomasz Stanislawski (1):
+>>>         s5p-tv: mixer: fix handling of VIDIOC_S_FMT
+>
+> I'll drop this one for now. Devin raised a point: such changes would break
+> existing applications.
+>
+> So, we'll need to revisit this topic before changing the drivers.
+>
+> Btw, I failed to find the corresponding patch at patchwork:
+> 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
+>
+> So, its status update may be wrong after flushing your pwclient commands.
 
-I have just one small comment...
+Hmm, I got this patch from Tomasz by e-mail and added it to the pull 
+request.
+I think it wasn't sent to the mailing list, but I noticed it only after
+sending you the pull requests, when was preparing the pwclient commands.
+I've just posted it now, sorry. The link is here:
+http://patchwork.linuxtv.org/patch/16143
 
-On 01/07/2013 07:44 AM, Sachin Kamat wrote:
-> +static void *g2d_get_drv_data(struct platform_device *pdev)
-> +{
-> +	struct g2d_variant *driver_data = NULL;
-> +
-> +	driver_data = (struct g2d_variant *)
-> +		platform_get_device_id(pdev)->driver_data;
-> +
-> +	return driver_data;
-> +}
+Tomasz created this patch specifically for the purpose of format negotiation
+in video pipeline in the application we used to test various scenarios with
+DMABUF. I agree this patch has a potential of breaking buggy user space
+applications. I can't see other solution for it right now, there seems even
+to be no possibility to return some flag in VIDIOC_S_FMT indicating that
+format has been modified and is valid, when -EINVAL was returned. This 
+sounds
+ugly anyway, but could ensure backward compatibility for applications that
+exppect EINVAL when format has been changed. BTW, I wonder if it is only 
+fourcc,
+or other format parameters as well - like width, height, some applications
+expect to get EINVAL when those have changed.
 
-How about adding this to g2d.h as:
 
-static inline struct g2d_variant *g2d_get_drv_data(struct platform_device *pdev)
-{
-	return (struct g2d_variant *)platform_get_device_id(pdev)->driver_data;
-}
-
-?
-
-Otherwise the patch looks OK to me.
-
---
-
-Thanks,
+Regards,
 Sylwester
