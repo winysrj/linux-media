@@ -1,130 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep33.mx.upcmail.net ([62.179.121.51]:53060 "EHLO
-	fep33.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932168Ab3AJCVZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:21:25 -0500
-From: Jonathan McCrohan <jmccrohan@gmail.com>
-To: Oliver Schinagl <oliver@schinagl.nl>
-Cc: linux-media@vger.kernel.org,
-	Jonathan McCrohan <jmccrohan@gmail.com>
-Subject: [PATCH 2/2] update scan files for Ireland (ie-*)
-Date: Thu, 10 Jan 2013 01:54:24 +0000
-Message-Id: <1357782864-9255-3-git-send-email-jmccrohan@gmail.com>
-In-Reply-To: <1357782864-9255-1-git-send-email-jmccrohan@gmail.com>
-References: <1357782864-9255-1-git-send-email-jmccrohan@gmail.com>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:45861 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756044Ab3AFRZu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 12:25:50 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH V4 3/3] adv7180: remove {query/g_/s_}ctrl
+Date: Sun,  6 Jan 2013 18:29:03 +0100
+Message-Id: <1357493343-13090-3-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
+References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix erroneous transmission parameters
+All drivers which use this subdevice use also the control framework.
+The v4l2_subdev_core_ops operations {query/g_/s_}ctrl are useless because
+device drivers will inherit controls from this subdevice.
 
-Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
 ---
- dvb-t/ie-CairnHill    |    4 ++--
- dvb-t/ie-Dungarvan    |    4 ++--
- dvb-t/ie-Kippure      |    4 ++--
- dvb-t/ie-Maghera      |    4 ++--
- dvb-t/ie-Mullaghanish |    4 ++--
- dvb-t/ie-SpurHill     |    4 ++--
- dvb-t/ie-Truskmore    |    4 ++--
- dvb-t/ie-WoodcockHill |    4 ++--
- 8 files changed, 16 insertions(+), 16 deletions(-)
+ drivers/media/i2c/adv7180.c | 3 ---
+ 1 file modificato, 3 rimozioni(-)
 
-diff --git a/dvb-t/ie-CairnHill b/dvb-t/ie-CairnHill
-index 5063ce9..b36272f 100644
---- a/dvb-t/ie-CairnHill
-+++ b/dvb-t/ie-CairnHill
-@@ -1,5 +1,5 @@
- # Ireland, Cairn Hill
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview MUX1
--T 658000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH44: Saorview MUX2
-+T 682000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH47: Saorview MUX1
-+T 658000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH44: Saorview MUX2
-diff --git a/dvb-t/ie-Dungarvan b/dvb-t/ie-Dungarvan
-index 5bdf714..f415097 100644
---- a/dvb-t/ie-Dungarvan
-+++ b/dvb-t/ie-Dungarvan
-@@ -1,5 +1,5 @@
- # Ireland, Dungarvan
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview MUX1
--T 778000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH59: Saorview MUX2
-+T 746000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH55: Saorview MUX1
-+T 778000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH59: Saorview MUX2
-diff --git a/dvb-t/ie-Kippure b/dvb-t/ie-Kippure
-index aeb5d8d..56ad12a 100644
---- a/dvb-t/ie-Kippure
-+++ b/dvb-t/ie-Kippure
-@@ -1,5 +1,5 @@
- # Ireland, Kippure
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview MUX1
--T 770000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH58: Saorview MUX2
-+T 738000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH54: Saorview MUX1
-+T 770000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH58: Saorview MUX2
-diff --git a/dvb-t/ie-Maghera b/dvb-t/ie-Maghera
-index a1da82a..11c08b7 100644
---- a/dvb-t/ie-Maghera
-+++ b/dvb-t/ie-Maghera
-@@ -1,5 +1,5 @@
- # Ireland, Maghera
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH48: Saorview MUX1
--T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview MUX2
-+T 690000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH48: Saorview MUX1
-+T 746000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH55: Saorview MUX2
-diff --git a/dvb-t/ie-Mullaghanish b/dvb-t/ie-Mullaghanish
-index 73e6ffe..35dc5dd 100644
---- a/dvb-t/ie-Mullaghanish
-+++ b/dvb-t/ie-Mullaghanish
-@@ -1,5 +1,5 @@
- # Ireland, Mullaghanish
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 474000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH21: Saorview MUX1
--T 498000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH24: Saorview MUX2
-+T 474000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH21: Saorview MUX1
-+T 498000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH24: Saorview MUX2
-diff --git a/dvb-t/ie-SpurHill b/dvb-t/ie-SpurHill
-index a211e93..7566d82 100644
---- a/dvb-t/ie-SpurHill
-+++ b/dvb-t/ie-SpurHill
-@@ -1,5 +1,5 @@
- # Ireland, Spur Hill
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview MUX1
--T 698000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH49: Saorview MUX2
-+T 666000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH45: Saorview MUX1
-+T 698000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH49: Saorview MUX2
-diff --git a/dvb-t/ie-Truskmore b/dvb-t/ie-Truskmore
-index db71c31..178bfe3 100644
---- a/dvb-t/ie-Truskmore
-+++ b/dvb-t/ie-Truskmore
-@@ -1,5 +1,5 @@
- # Ireland, Truskmore
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview MUX1
--T 762000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH57: Saorview MUX2
-+T 730000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH53: Saorview MUX1
-+T 762000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH57: Saorview MUX2
-diff --git a/dvb-t/ie-WoodcockHill b/dvb-t/ie-WoodcockHill
-index 513dda5..08c1d5b 100644
---- a/dvb-t/ie-WoodcockHill
-+++ b/dvb-t/ie-WoodcockHill
-@@ -1,5 +1,5 @@
- # Ireland, Woodcock Hill
- # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
- # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
--T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview MUX1
--T 658000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH44: Saorview MUX2
-+T 682000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH47: Saorview MUX1
-+T 658000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH44: Saorview MUX2
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 45ecf8d..43bc2b9 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -402,9 +402,6 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.g_chip_ident = adv7180_g_chip_ident,
+ 	.s_std = adv7180_s_std,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7180_ops = {
 -- 
-1.7.10.4
+1.7.11.7
 
