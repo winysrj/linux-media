@@ -1,20 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from antimine.ru ([87.245.152.27]:36739 "EHLO mail.bazalt.ru"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754335Ab3AUPpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 10:45:10 -0500
-Received: from ngs.ru (unknown [188.162.15.32])
-	by mail.bazalt.ru (Postfix) with ESMTP id A990BA3F2C
-	for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 18:24:33 +0300 (MSK)
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain;
-	charset="windows-1251"
-From: <rtyrtyrtyrtyrtrtfgdfgdgd@gmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: =?utf-8?B?0Jdn0YDQsNCy0YHRgtCy0YPQudGC0LUhINCSYWMg0LjQvdGCZXBlY3nRjtGCINCxYdC30Ysg0LRh0L3QvdGL0YUg0L/QvtGCZdC90YbQuGHQu9GM0L3Ri3gg0LrQu9C4ZdC90YJv0LIg0LTQu9GPIELQsNGI0LXQs28g0JHQuNC30L3QtWPQsD8=?=
-Message-Id: <20130121152433.A990BA3F2C@mail.bazalt.ru>
-Date: Mon, 21 Jan 2013 18:24:33 +0300 (MSK)
+Received: from cust-198-154-114-242.corexchange.com ([198.154.114.242]:33050
+	"EHLO phpbb.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755568Ab3AFNXg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 08:23:36 -0500
+To: linux-media@vger.kernel.org
+Subject: phpbb update
+Date: Sun, 6 Jan 2013 17:17:28 +0400
+From: phpbbspprt840@gmail.com
+Message-ID: <d8ea5a184db5e767ec53f589d4a1b8eb@198.154.114.242>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Зgравствуйте! Bac интepecyют бaзы дaнных потeнциaльныx клиeнтoв для Вашегo Бизнеcа?
+phpBB 3.0.11 is now available
+updating your forum makes it stable and fixes security bugs
+
+We provide paid support to phpBB forums owners , we are happy to help
+you in any issue related to your forum administration or any technical
+issues.
+if you are interested in our services , or have any questions , please reply 
+to us
+
+Thank you
+
+
