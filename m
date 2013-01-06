@@ -1,95 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3361 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab3AJVmi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 16:42:38 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0ALgYGs031049
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 22:42:36 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 582921700014
-	for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 22:42:33 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130110214233.582921700014@alastor.dyndns.org>
-Date: Thu, 10 Jan 2013 22:42:33 +0100 (CET)
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:49356 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab3AFM7C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 07:59:02 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c13so9082051eek.13
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 04:59:01 -0800 (PST)
+Message-ID: <50E97513.4000901@gmail.com>
+Date: Sun, 06 Jan 2013 13:58:59 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
+References: <50E726F4.7060704@samsung.com> <50E75A10.8090906@gmail.com> <20130106100513.484dab11@redhat.com>
+In-Reply-To: <20130106100513.484dab11@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 01/06/2013 01:05 PM, Mauro Carvalho Chehab wrote:
+>> Related patchwork commands:
+>>
+>> pwclient update -s 'accepted' 15333
+>> pwclient update -s 'accepted' 15565
+>> pwclient update -s 'accepted' 16071
+>> pwclient update -s 'accepted' 16072
+>> pwclient update -s 'accepted' 16073
+>> pwclient update -s 'accepted' 15657
+>> pwclient update -s 'accepted' 15656
+>> pwclient update -s 'accepted' 15658
+>> pwclient update -s 'accepted' 15659
+>> pwclient update -s 'accepted' 15660
+>> pwclient update -s 'accepted' 15661
+>> pwclient update -s 'accepted' 16013
+>> pwclient update -s 'superseded' 16059
+>> pwclient update -s 'accepted' 16060
+>> pwclient update -s 'accepted' 16080
+>> pwclient update -s 'accepted' 16081
+>> pwclient update -s 'accepted' 16084
+>> pwclient update -s 'accepted' 15647
+>> pwclient update -s 'superseded' 16083
+>> pwclient update -s 'accepted' 15765
+>
+> Those status updates were missing:
+>
+> pwclient update -s 'superseded' 14608
+> pwclient update -s 'superseded' 15188
+> pwclient update -s 'accepted' 16058
 
-Results of the daily build of media_tree:
+OK, sorry. Just learning to use the tools, will try to do better
+next time. :)
 
-date:        Thu Jan 10 19:00:17 CET 2013
-git hash:    73ec66c000e9816806c7380ca3420f4e0638c40e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+> pwclient update -s 'accepted' 16108
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+And that's the pull request itself, I've obviously missed it.
 
-Detailed results are available here:
+--
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+Sylwester
