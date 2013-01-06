@@ -1,99 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27000 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753176Ab3AQShd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:37:33 -0500
-Date: Thu, 17 Jan 2013 16:36:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:55198 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753013Ab3AFUfi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 15:35:38 -0500
+Received: by mail-ee0-f50.google.com with SMTP id b45so9186416eek.37
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 12:35:37 -0800 (PST)
+Message-ID: <1357504527.7859.12.camel@canaries64>
+Subject: Re: [PATCH] ts2020: call get_rf_strength from frontend
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: Antti Palosaari <crope@iki.fi>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130117163649.519589f3@redhat.com>
-In-Reply-To: <50F8333E.2020904@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com>
-	<50F8333E.2020904@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Date: Sun, 06 Jan 2013 20:35:27 +0000
+In-Reply-To: <50E9C647.4090301@iki.fi>
+References: <1357476042.16016.8.camel@canaries64> <50E97E05.1090607@iki.fi>
+	 <1357496042.4129.26.camel@canaries64> <50E9C647.4090301@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Jan 2013 19:22:06 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
-
-> On 01/17/2013 07:16 PM, Manu Abraham wrote:
-> > On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >> On 01/17/2013 05:40 AM, Manu Abraham wrote:
-> >>> MB86A20 is not the only demodulator driver with the Linux DVB.
-> >>> And not all devices can output in dB scale proposed by you, But any device
-> >>> output can be scaled in a relative way. So I don't see any reason why
-> >>> userspace has to deal with cumbersome controls to deal with redundant
-> >>> statistics, which is nonsense.
+On Sun, 2013-01-06 at 20:45 +0200, Antti Palosaari wrote:
+> On 01/06/2013 08:14 PM, Malcolm Priestley wrote:
+> > On Sun, 2013-01-06 at 15:37 +0200, Antti Palosaari wrote:
+> >> On 01/06/2013 02:40 PM, Malcolm Priestley wrote:
+> >>> Restore ds3000.c read_signal_strength.
+> >>>
+> >>> Call tuner get_rf_strength from frontend read_signal_strength.
+> >>>
+> >>> We are able to do a NULL check and doesn't limit the tuner
+> >>> attach to the frontend attach area.
+> >>>
+> >>> At the moment the lmedm04 tuner attach is stuck in frontend
+> >>> attach area.
 > >>
+> >> I would like to nack that, as I see some problems:
+> >> 1) it changes deviation against normal procedures
+> >> 2) interface driver (usb/pci) should have full control to make decision
+> >> 3) you shoot to our own leg easily in power management
 > >>
-> >> What goes to these units in general, dB conversion is done by the driver
-> >> about always. It is quite hard or even impossible to find out that formula
-> >> unless you has adjustable test signal generator.
-> >>
-> >> Also we could not offer always dBm as signal strength. This comes to fact
-> >> that only recent silicon RF-tuners are able to provide RF strength. More
-> >> traditionally that estimation is done by demod from IF/RF AGC, which leads
-> >> very, very, rough estimation.
+> > This patch does not do any operational changes, and is a proper way to
+> > call to another module with a run time NULL check. The same way as
+> > another tuner function from demodulator is called.
+> 
+> uh, certainly I understand it does not change functionality in that 
+> case! I tried to point out it is logically insane and error proof. Ee 
+> should make this kind of direct calls between drivers as less as 
+> possible - just to make life easier in future. It could work for you, 
+> but for some other it could cause problems as hardware is designed 
+> differently.
+> 
+> >> * actually bug 3) already happened some drivers, like rtl28xxu. Tuner is
+> >> behind demod and demod is put sleep => no access to tuner. FE callback
+> >> is overridden (just like you are trying to do as default) which means
+> >> user-space could still make queries => I/O errors.
 > >
-> > What I am saying is that, rather than sticking to a dB scale, it would be
-> > better to fit it into a relative scale, ie loose dB altogether and use only the
-> > relative scale. With that approach any device can be fit into that convention.
-> > Even with an unknown device, it makes it pretty easy for anyone to fit
-> > into that
-> > scale. All you need is a few trial runs to get maxima/minima. When there
-> > exists only a single convention that is simple, it makes it more easier for
-> > people to stick to that convention, rather than for people to not support it.
+> > In such cases, the tuner init/sleep should also be called.
+> 
+> ???????
+> I think you don't understand functionality at all!
+> 
+Please, I have been working with the I2C bus in the electronics field
+for the last 20 years.
 
-As dB scale is never used for BER and UCB, I'm assuming that we're
-talking about signal strength and S/N measures.
+If you are really worried about the the tuner being a sleep. You add
+fe variable check this in it's own init/sleep and define the function
+something like this.
 
-Get the maxima/minima for signal strength and S/N measures can be hard,
-as it would require a signal generator and a noise generator that can
-adjust the power levels for the signal and noise.
+static int fe_foo_read_signal_strength(struct dvb_frontend *fe,
+	u16 *strength)
+{
+	struct fe_foo_state *state = fe->demodulator_priv;
 
-Also, if one has both, he/she can calibrate the scale to dB/dBm.
+	if (state->fe_inactive) {
+... any extra commands to restore tuner power
+		if (fe->ops.tuner_ops.init)
+			fe->ops.tuner_ops.init(fe);
+			
+	}		
 
-> That is true. I don't have really clear opinion whether to force all to 
-> one scale, or return dBm those which could and that dummy scale for the 
-> others. Maybe I will still vote for both relative and dBm.
+	if (fe->ops.tuner_ops.get_rf_strength)
+		fe->ops.tuner_ops.get_rf_strength(fe, strength);
 
->From the statistics you collected, most developers implemented dB scale,
-especially with the new drivers. I also remember that most people mentioned
-their preference to dB in the past.
+	if (state->fe_inactive) {
+		if (fe->ops.tuner_ops.sleep)
+			fe->ops.tuner_ops.sleep(fe);
+... any extra commands to remove tuner power
+	}
 
-> Shortly there is two possibilities:
-> 1) support only relative scale
+	return 0;
+}
 
-That doesn't solve, as a relative scale could still be logarithm or
-linear. 
+However, I think this is unnecessary in the rs2000 and ds3000.
 
-IMHO, a linear scale that doesn't much sense, as the effect 
-of the signal power (or noise power) affects the quality
-in a logarithm scale, but I'm pretty sure that some drivers 
-report relative scales in a log scale, while others report
-it with a linear scale.
+Regards
 
-> 2) support both dBm and relative scale (with dBm priority)
 
-That seems to be the only choice if we want to improve from the current
-status, e. g. explicitly saying what is the scale, when the developer
-is able to discover it somehow (datasheets, empirical measurement,
-reference drivers, etc).
+Malcolm
 
-Regards,
-Mauro
+
+
+
+
+
+
+
