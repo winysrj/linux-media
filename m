@@ -1,74 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s26.blu0.hotmail.com ([65.55.111.101]:25368 "EHLO
-	blu0-omc2-s26.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756118Ab3A0U4b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 15:56:31 -0500
-Message-ID: <BLU401-EAS209B0EBA3C5274457229407E4190@phx.gbl>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Subject: KNC One, TV-Station DVB-S2 Twin
-References: <A05F1CAF-326B-462E-B3D4-EE1C2D78360D@siemens.com>
-From: Olav Aasgaard <olav.aasgaard@outlook.com>
-Date: Sun, 27 Jan 2013 21:50:21 +0100
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0 (1.0)
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:33005 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752204Ab3AFRFz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 12:05:55 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	'Giancarlo Asnaghi' <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Alessandro Rubini <rubini@gnudd.com>
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory allocator
+Date: Sun, 06 Jan 2013 18:04:39 +0100
+Message-ID: <3892735.vLSnhhCRFi@harkonnen>
+In-Reply-To: <12929800.xFTBAueAE0@harkonnen>
+References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com> <1399400.izKZgEHXnP@harkonnen> <12929800.xFTBAueAE0@harkonnen>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQo+IEhpLA0KPiANCj4gSSBoYXZlIHRyaWVkIGZvciB3ZWVrcyB0byBtYWtlIHRoaXMgY2FyZCB3
-b3JrIHdpdGggVHZoZWFkZW5kIGFuZCBub3cgcmVjZW50bHkgd2l0aCBNeXRoIFRWIG9uIHRoZSBm
-b2xsb3dpbmcgY29uZmlndXJhdGlvbjoNCj4g4oCiIEludGVsKFIpIENvcmUoVE0pMiBEdW8gQ1BV
-ICAgICBFNDYwMCAgQCAyLjQwR0h6DQo+IOKAoiBVYnVudHUgZGVza3RvcCAxMi4wNA0KPiDigKIg
-S2VybmVsIHZlcnNpb24gMy4yLjAtMzYtZ2VuZXJpYy1wYWUNCj4g4oCiIEtOQzEgVFYtU3RhdGlv
-biBEVkItUzIgVHdpbiBjYXJkDQo+IGh0dHA6Ly9rbmMxLmRlL2QvcHJvZHVrdGUvZGlnaXRhbF9k
-dmJfczJfdHdpbi5odG0NCj4gDQo+IEtOQzEgYXJlIHByb3ZpZGluZyBhIExpbnV4IGRyaXZlciBv
-biB0aGVpciBob21lcGFnZSBodHRwOi8va25jMS5kZS9kL2Rvd25sb2FkL2RpZ2l0YWwuaHRtI2xp
-bnV4DQo+IA0KPiBUaGUgZHJpdmVyIGJ1aWxkcyBhbmQgbG9hZHMgZmluZS4gSeKAmW0gYWJsZSB0
-byBzY2FuIGZvciBjaGFubmVscy4gSXTigJlzIGV2ZW4gcG9zc2libGUgdG8gcmVjb3JkIFRWICh3
-aXRoIGJvdGggVHZoZWFkZW5kIGFuZCBNeXRoIFRWIGJhY2tlbmQpLg0KPiBCdXQgaGVyZSB0aGUg
-ZnVuIHBhcnQgZW5kcy4gV2hlbiBJIHBsYXkgYmFjayB0aGUgcmVjb3JkZWQgZmlsZXMgdGhleSBk
-byBub3QgaGF2ZSBwcm9wZXIgcXVhbGl0eS4gSERUViBpcyB1c2VsZXNzIOKAkyBldmVuIHN0YW5k
-YXJkIFRWIHJlc29sdXRpb24gaXMgbm90IGFjY2VwdGFibGUuDQo+IA0KPiAkc3VkbyBsc3BjaSAt
-dnYNCj4gMDQ6MDAuMCBNdWx0aW1lZGlhIGNvbnRyb2xsZXI6IFBoaWxpcHMgU2VtaWNvbmR1Y3Rv
-cnMgU0FBNzE2MCAocmV2IDAyKQ0KPiAgICAgICAgU3Vic3lzdGVtOiBLTkMgT25lIERldmljZSAw
-MjEwDQo+ICAgICAgICBDb250cm9sOiBJL08rIE1lbSsgQnVzTWFzdGVyKyBTcGVjQ3ljbGUtIE1l
-bVdJTlYtIFZHQVNub29wLSBQYXJFcnItIFN0ZXBwaW5nLSBTRVJSLSBGYXN0QjJCLSBEaXNJTlR4
-LQ0KPiAgICAgICAgU3RhdHVzOiBDYXArIDY2TUh6LSBVREYtIEZhc3RCMkItIFBhckVyci0gREVW
-U0VMPWZhc3QgPlRBYm9ydC0gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLSBJTlR4LQ0K
-PiAgICAgICAgTGF0ZW5jeTogMCwgQ2FjaGUgTGluZSBTaXplOiAzMiBieXRlcw0KPiAgICAgICAg
-SW50ZXJydXB0OiBwaW4gQSByb3V0ZWQgdG8gSVJRIDE2DQo+ICAgICAgICBSZWdpb24gMDogTWVt
-b3J5IGF0IGY2YTAwMDAwICg2NC1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTFNXQ0KPiAg
-ICAgICAgQ2FwYWJpbGl0aWVzOiBbNDBdIE1TSTogRW5hYmxlLSBDb3VudD0xLzMyIE1hc2thYmxl
-LSA2NGJpdCsNCj4gICAgICAgICAgICAgICAgQWRkcmVzczogMDAwMDAwMDAwMDAwMDAwMCAgRGF0
-YTogMDAwMA0KPiAgICAgICAgQ2FwYWJpbGl0aWVzOiBbNTBdIEV4cHJlc3MgKHYxKSBFbmRwb2lu
-dCwgTVNJIDAwDQo+ICAgICAgICAgICAgICAgIERldkNhcDogTWF4UGF5bG9hZCAxMjggYnl0ZXMs
-IFBoYW50RnVuYyAwLCBMYXRlbmN5IEwwcyA8MjU2bnMsIEwxIDwxdXMNCj4gICAgICAgICAgICAg
-ICAgICAgICAgICBFeHRUYWctIEF0dG5CdG4tIEF0dG5JbmQtIFB3ckluZC0gUkJFLSBGTFJlc2V0
-LQ0KPiAgICAgICAgICAgICAgICBEZXZDdGw6IFJlcG9ydCBlcnJvcnM6IENvcnJlY3RhYmxlLSBO
-b24tRmF0YWwtIEZhdGFsLSBVbnN1cHBvcnRlZC0NCj4gICAgICAgICAgICAgICAgICAgICAgICBS
-bHhkT3JkKyBFeHRUYWctIFBoYW50RnVuYy0gQXV4UHdyLSBOb1Nub29wLQ0KPiAgICAgICAgICAg
-ICAgICAgICAgICAgIE1heFBheWxvYWQgMTI4IGJ5dGVzLCBNYXhSZWFkUmVxIDEyOCBieXRlcw0K
-PiAgICAgICAgICAgICAgICBEZXZTdGE6IENvcnJFcnItIFVuY29yckVyci0gRmF0YWxFcnItIFVu
-c3VwcFJlcS0gQXV4UHdyLSBUcmFuc1BlbmQtDQo+ICAgICAgICAgICAgICAgIExua0NhcDogUG9y
-dCAjMSwgU3BlZWQgMi41R1QvcywgV2lkdGggeDEsIEFTUE0gTDBzIEwxLCBMYXRlbmN5IEwwIDw0
-dXMsIEwxIDw2NHVzDQo+ICAgICAgICAgICAgICAgICAgICAgICAgQ2xvY2tQTS0gU3VycHJpc2Ut
-IExMQWN0UmVwLSBCd05vdC0NCj4gICAgICAgICAgICAgICAgTG5rQ3RsOiBBU1BNIERpc2FibGVk
-OyBSQ0IgMTI4IGJ5dGVzIERpc2FibGVkLSBSZXRyYWluLSBDb21tQ2xrLQ0KPiAgICAgICAgICAg
-ICAgICAgICAgICAgIEV4dFN5bmNoLSBDbG9ja1BNLSBBdXRXaWREaXMtIEJXSW50LSBBdXRCV0lu
-dC0NCj4gICAgICAgICAgICAgICAgTG5rU3RhOiBTcGVlZCAyLjVHVC9zLCBXaWR0aCB4MSwgVHJF
-cnItIFRyYWluLSBTbG90Q2xrLSBETEFjdGl2ZS0gQldNZ210LSBBQldNZ210LQ0KPiAgICAgICAg
-Q2FwYWJpbGl0aWVzOiBbNzRdIFBvd2VyIE1hbmFnZW1lbnQgdmVyc2lvbiAyDQo+ICAgICAgICAg
-ICAgICAgIEZsYWdzOiBQTUVDbGstIERTSS0gRDErIEQyKyBBdXhDdXJyZW50PTBtQSBQTUUoRDAr
-LEQxKyxEMissRDNob3QtLEQzY29sZC0pDQo+ICAgICAgICAgICAgICAgIFN0YXR1czogRDAgTm9T
-b2Z0UnN0LSBQTUUtRW5hYmxlLSBEU2VsPTAgRFNjYWxlPTAgUE1FLQ0KPiAgICAgICAgQ2FwYWJp
-bGl0aWVzOiBbODBdIFZlbmRvciBTcGVjaWZpYyBJbmZvcm1hdGlvbjogTGVuPTUwIDw/Pg0KPiAg
-ICAgICAgQ2FwYWJpbGl0aWVzOiBbMTAwIHYxXSBWZW5kb3IgU3BlY2lmaWMgSW5mb3JtYXRpb246
-IElEPTAwMDAgUmV2PTAgTGVuPTA4OCA8Pz4NCj4gICAgICAgIEtlcm5lbCBkcml2ZXIgaW4gdXNl
-OiBTQUE3MTZ4IEJ1ZGdldA0KPiAgICAgICAgS2VybmVsIG1vZHVsZXM6IHNhYTcxNnhfYnVkZ2V0
-DQo+IA0KPiBJIGhhdmUgYmVlbiBzZWFyY2hpbmcgdGhlIGludGVybmV0IGZvciBhIGxvbmcgdGlt
-ZSAtIHdpdGhvdXQgYmVlaW5nIGFibGUgdG8gY29tZSB0byBhIHNvbHV0aW9uLiBJIGRvIG5vdCBr
-bm93IGhvdyB0byBwcm9jZWVkIGZyb20gaGVyZS4gQW55IGFkdmljZT8NCj4gDQo+IElmIEknbSBh
-YmxlIHRvIGZpbmQgYSBzb2x1dGlvbiwgSSB3aWxsIGJlIGhhcHB5IHRvIHVwZGF0ZSBodHRwOi8v
-d3d3LmxpbnV4dHYub3JnL3dpa2kvaW5kZXgucGhwL0RWQi1TMl9QQ0llX0NhcmRzIHdpdGggbXkg
-ZXhwZXJpZW5jZS4uLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBPbGF2IMOFc2fDpXJkDQo+IA0K
+> I have more information about DMA on the board that I'm using; probably, I
+> can make dma-contig work with my device.
+
+Ok, the driver STA2X11 now works with a patched dma-contig allocator. So, my 
+streaming allocator it is not mandatory. 
+
+I based my work on the previous work made by Windriver, but now I understand 
+the DMA problem and the solution easy.
+I investigated (asked to Alessandro Rubini who worked on this board) about 
+this DMA issue. The problem is that on the sta2x11 architecture only the first 
+512MB are available through the PCI bus, but the allocator can allocate memory 
+for DMA above this limit. By using GFP_DMA flags the allocation take place 
+under the 16MB so it works.
+
+If you think that the streaming allocator can be useful for someone else (who 
+has performance problem with uncached DMA like Jonathan when he did dma-nc 
+allocator), I can resend the patch.
+I cannot do performance test at the moment because I don't have the time, so I 
+cannot personally justify the presence of a new allocator. I think that I will 
+do some performance test with this driver; if I will find that dma-streaming 
+works better I will propose it again.
+
+I will propose V4 patches soon.
+
+-- 
+Federico Vaga
