@@ -1,166 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40467 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753116Ab3AULJL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 06:09:11 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org,
-	David Airlie <airlied@linux.ie>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"Rob Clark" <robdclark@gmail.com>,
-	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
-	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
-Subject: [PATCH v16 RESEND 1/7] viafb: rename display_timing to via_display_timing
-Date: Mon, 21 Jan 2013 12:07:56 +0100
-Message-Id: <1358766482-6275-2-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57361 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755264Ab3AFMku (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 07:40:50 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e53so8717926eek.5
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 04:40:49 -0800 (PST)
+Message-ID: <1357476042.16016.8.camel@canaries64>
+Subject: [PATCH] ts2020: call get_rf_strength from frontend
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: "Igor M. Liplianin" <liplianin@me.by>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Date: Sun, 06 Jan 2013 12:40:42 +0000
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct display_timing is specific to the via subsystem. The naming leads to
-collisions with the new struct display_timing, which is supposed to be a shared
-struct between different subsystems.
-To clean this up, prepend the existing struct with the subsystem it is specific
-to.
+Restore ds3000.c read_signal_strength.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Call tuner get_rf_strength from frontend read_signal_strength.
+
+We are able to do a NULL check and doesn't limit the tuner
+attach to the frontend attach area.
+
+At the moment the lmedm04 tuner attach is stuck in frontend
+attach area.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/video/via/hw.c              |    6 +++---
- drivers/video/via/hw.h              |    2 +-
- drivers/video/via/lcd.c             |    2 +-
- drivers/video/via/share.h           |    2 +-
- drivers/video/via/via_modesetting.c |    8 ++++----
- drivers/video/via/via_modesetting.h |    6 +++---
- 6 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/media/dvb-frontends/ds3000.c    | 10 ++++++++++
+ drivers/media/dvb-frontends/m88rs2000.c |  4 +++-
+ drivers/media/dvb-frontends/ts2020.c    |  1 -
+ 3 files changed, 13 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/video/via/hw.c b/drivers/video/via/hw.c
-index 898590d..5563c67 100644
---- a/drivers/video/via/hw.c
-+++ b/drivers/video/via/hw.c
-@@ -1467,10 +1467,10 @@ void viafb_set_vclock(u32 clk, int set_iga)
- 	via_write_misc_reg_mask(0x0C, 0x0C); /* select external clock */
+diff --git a/drivers/media/dvb-frontends/ds3000.c b/drivers/media/dvb-frontends/ds3000.c
+index d128f85..1e344b0 100644
+--- a/drivers/media/dvb-frontends/ds3000.c
++++ b/drivers/media/dvb-frontends/ds3000.c
+@@ -533,6 +533,15 @@ static int ds3000_read_ber(struct dvb_frontend *fe, u32* ber)
+ 	return 0;
  }
  
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres)
++static int ds3000_read_signal_strength(struct dvb_frontend *fe,
++						u16 *signal_strength)
++{
++	if (fe->ops.tuner_ops.get_rf_strength)
++		fe->ops.tuner_ops.get_rf_strength(fe, signal_strength);
++
++	return 0;
++}
++
+ /* calculate DS3000 snr value in dB */
+ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
  {
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	u16 dx = (var->xres - cxres) / 2, dy = (var->yres - cyres) / 2;
- 
- 	timing.hor_addr = cxres;
-@@ -1491,7 +1491,7 @@ struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga)
+@@ -1102,6 +1111,7 @@ static struct dvb_frontend_ops ds3000_ops = {
+ 	.i2c_gate_ctrl = ds3000_i2c_gate_ctrl,
+ 	.read_status = ds3000_read_status,
+ 	.read_ber = ds3000_read_ber,
++	.read_signal_strength = ds3000_read_signal_strength,
+ 	.read_snr = ds3000_read_snr,
+ 	.read_ucblocks = ds3000_read_ucblocks,
+ 	.set_voltage = ds3000_set_voltage,
+diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
+index 283c90f..4da5272 100644
+--- a/drivers/media/dvb-frontends/m88rs2000.c
++++ b/drivers/media/dvb-frontends/m88rs2000.c
+@@ -446,7 +446,9 @@ static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
+ static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
+ 	u16 *strength)
  {
--	struct display_timing crt_reg = var_to_timing(var,
-+	struct via_display_timing crt_reg = var_to_timing(var,
- 		cxres ? cxres : var->xres, cyres ? cyres : var->yres);
- 
- 	if (iga == IGA1)
-diff --git a/drivers/video/via/hw.h b/drivers/video/via/hw.h
-index 6be243c..c3f2572 100644
---- a/drivers/video/via/hw.h
-+++ b/drivers/video/via/hw.h
-@@ -637,7 +637,7 @@ extern int viafb_LCD_ON;
- extern int viafb_DVI_ON;
- extern int viafb_hotplug;
- 
--struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
-+struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres);
- void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
- 	u16 cxres, u16 cyres, int iga);
-diff --git a/drivers/video/via/lcd.c b/drivers/video/via/lcd.c
-index 1650379..022b0df 100644
---- a/drivers/video/via/lcd.c
-+++ b/drivers/video/via/lcd.c
-@@ -549,7 +549,7 @@ void viafb_lcd_set_mode(const struct fb_var_screeninfo *var, u16 cxres,
- 	int panel_hres = plvds_setting_info->lcd_panel_hres;
- 	int panel_vres = plvds_setting_info->lcd_panel_vres;
- 	u32 clock;
--	struct display_timing timing;
-+	struct via_display_timing timing;
- 	struct fb_var_screeninfo panel_var;
- 	const struct fb_videomode *mode_crt_table, *panel_crt_table;
- 
-diff --git a/drivers/video/via/share.h b/drivers/video/via/share.h
-index 3158dfc..65c65c6 100644
---- a/drivers/video/via/share.h
-+++ b/drivers/video/via/share.h
-@@ -319,7 +319,7 @@ struct crt_mode_table {
- 	int refresh_rate;
- 	int h_sync_polarity;
- 	int v_sync_polarity;
--	struct display_timing crtc;
-+	struct via_display_timing crtc;
- };
- 
- struct io_reg {
-diff --git a/drivers/video/via/via_modesetting.c b/drivers/video/via/via_modesetting.c
-index 0e431ae..0b414b0 100644
---- a/drivers/video/via/via_modesetting.c
-+++ b/drivers/video/via/via_modesetting.c
-@@ -30,9 +30,9 @@
- #include "debug.h"
- 
- 
--void via_set_primary_timing(const struct display_timing *timing)
-+void via_set_primary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
- 
- 	raw.hor_total = timing->hor_total / 8 - 5;
- 	raw.hor_addr = timing->hor_addr / 8 - 1;
-@@ -88,9 +88,9 @@ void via_set_primary_timing(const struct display_timing *timing)
- 	via_write_reg_mask(VIACR, 0x17, 0x80, 0x80);
+-	*strength = 0;
++	if (fe->ops.tuner_ops.get_rf_strength)
++		fe->ops.tuner_ops.get_rf_strength(fe, strength);
++
+ 	return 0;
  }
  
--void via_set_secondary_timing(const struct display_timing *timing)
-+void via_set_secondary_timing(const struct via_display_timing *timing)
- {
--	struct display_timing raw;
-+	struct via_display_timing raw;
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index f50e237..ad7ad85 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -363,7 +363,6 @@ struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
  
- 	raw.hor_total = timing->hor_total - 1;
- 	raw.hor_addr = timing->hor_addr - 1;
-diff --git a/drivers/video/via/via_modesetting.h b/drivers/video/via/via_modesetting.h
-index 06e09fe..f6a6503 100644
---- a/drivers/video/via/via_modesetting.h
-+++ b/drivers/video/via/via_modesetting.h
-@@ -33,7 +33,7 @@
- #define VIA_PITCH_MAX	0x3FF8
+ 	memcpy(&fe->ops.tuner_ops, &ts2020_tuner_ops,
+ 				sizeof(struct dvb_tuner_ops));
+-	fe->ops.read_signal_strength = fe->ops.tuner_ops.get_rf_strength;
  
- 
--struct display_timing {
-+struct via_display_timing {
- 	u16 hor_total;
- 	u16 hor_addr;
- 	u16 hor_blank_start;
-@@ -49,8 +49,8 @@ struct display_timing {
- };
- 
- 
--void via_set_primary_timing(const struct display_timing *timing);
--void via_set_secondary_timing(const struct display_timing *timing);
-+void via_set_primary_timing(const struct via_display_timing *timing);
-+void via_set_secondary_timing(const struct via_display_timing *timing);
- void via_set_primary_address(u32 addr);
- void via_set_secondary_address(u32 addr);
- void via_set_primary_pitch(u32 pitch);
+ 	return fe;
+ }
 -- 
-1.7.10.4
+1.8.0
+
 
