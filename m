@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f41.google.com ([74.125.82.41]:40908 "EHLO
-	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625Ab3AVTqH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 14:46:07 -0500
-Received: by mail-wg0-f41.google.com with SMTP id ds1so2020018wgb.2
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 11:46:05 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, fschaefer.oss@googlemail.com
-Subject: [PATCH] tuner-core: return tuner name with ioctl VIDIOC_G_TUNER
-Date: Tue, 22 Jan 2013 20:46:21 +0100
-Message-Id: <1358883981-2645-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from casper.infradead.org ([85.118.1.10]:36315 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753293Ab3AFNDD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 08:03:03 -0500
+Date: Sun, 6 Jan 2013 11:02:25 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	Archit Taneja <archit@ti.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] omap_vout: find_vma() needs ->mmap_sem held
+Message-ID: <20130106110225.49b03d4e@infradead.org>
+In-Reply-To: <20121215203828.GX4939@ZenIV.linux.org.uk>
+References: <20121215201237.GW4939@ZenIV.linux.org.uk>
+	<20121215203828.GX4939@ZenIV.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tuner_g_tuner() is supposed to fill struct v4l2_tuner passed by ioctl
-VIDIOC_G_TUNER, but misses setting the name field.
+Hi Viro,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Cc: stable@kernel.org
----
- drivers/media/v4l2-core/tuner-core.c |    1 +
- 1 Datei geändert, 1 Zeile hinzugefügt(+)
+Em Sat, 15 Dec 2012 20:38:29 +0000
+Al Viro <viro@ZenIV.linux.org.uk> escreveu:
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index b5a819a..95a47cf 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -1187,6 +1187,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 
- 	if (check_mode(t, vt->type) == -EINVAL)
- 		return 0;
-+	strcpy(vt->name, t->name);
- 	if (vt->type == t->mode && analog_ops->get_afc)
- 		vt->afc = analog_ops->get_afc(&t->fe);
- 	if (analog_ops->has_signal)
--- 
-1.7.10.4
+> On Sat, Dec 15, 2012 at 08:12:37PM +0000, Al Viro wrote:
+> > 	Walking rbtree while it's modified is a Bad Idea(tm); besides,
+> > the result of find_vma() can be freed just as it's getting returned
+> > to caller.  Fortunately, it's easy to fix - just take ->mmap_sem a bit
+> > earlier (and don't bother with find_vma() at all if virtp >= PAGE_OFFSET -
+> > in that case we don't even look at its result).
+> 
+> 	While we are at it, what prevents VIDIOC_PREPARE_BUF calling
+> v4l_prepare_buf() -> (e.g) vb2_ioctl_prepare_buf() -> vb2_prepare_buf() ->
+> __buf_prepare() -> __qbuf_userptr() -> vb2_vmalloc_get_userptr() -> find_vma(),
+> AFAICS without having taken ->mmap_sem anywhere in process?  The code flow
+> is bloody convoluted and depends on a bunch of things done by initialization,
+> so I certainly might've missed something...
 
+This driver is currently missing an active maintainer, as it is for an old
+hardware (AFAIK, omap is now at version 4, and this is for the first one),
+but I'm c/c a few developers that might help to test and analyze it.
+
+In any case, /me is assuming that your patch is right (as nobody complained),
+and I'm applying it right now on my tree. This will hopefully allow some
+people to test.
+
+Cheers,
+Mauro
