@@ -1,112 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fuel7.com ([74.222.0.51]:57362 "EHLO mail.fuel7.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754934Ab3AEAKP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 19:10:15 -0500
-From: William Swanson <william.swanson@fuel7.com>
-To: linux-media@vger.kernel.org
-Cc: William Swanson <william.swanson@fuel7.com>
-Subject: [PATCH] omap3isp: Add support for interlaced input data
-Date: Fri,  4 Jan 2013 16:09:31 -0800
-Message-Id: <1357344572-10378-1-git-send-email-william.swanson@fuel7.com>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:39024 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752992Ab3AFUgS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 15:36:18 -0500
+Received: by mail-bk0-f52.google.com with SMTP id w5so8006216bku.39
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 12:36:17 -0800 (PST)
+Message-ID: <50E9E05D.9090403@googlemail.com>
+Date: Sun, 06 Jan 2013 21:36:45 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model
+ 37284, rev B421
+References: <50E831F2.70400@googlemail.com> <20130105135734.237068c5@redhat.com>
+In-Reply-To: <20130105135734.237068c5@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the remote video sensor reports an interlaced video mode, the CCDC block
-should configure itself appropriately.
+Am 05.01.2013 16:57, schrieb Mauro Carvalho Chehab:
+> Em Sat, 05 Jan 2013 15:00:18 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> While we are at it ;) :
+>>
+>> [   15.280772] bttv: Bt8xx card found (0)
+>> [   15.281349] bttv: 0: Bt878 (rev 17) at 0000:01:08.0, irq: 18,
+>> latency: 32, mmio: 0xfdfff000
+>> [   15.281386] bttv: 0: detected: Hauppauge WinTV [card=10], PCI
+>> subsystem ID is 0070:13eb
+>> [   15.281391] bttv: 0: using: Hauppauge (bt878) [card=10,insmod option]
+>> [   15.283964] bttv: 0: Hauppauge/Voodoo msp34xx: reset line init [5]
+>> [   15.316043] tveeprom 4-0050: Hauppauge model 37284, rev B421, serial#
+>> 5111944
+>> [   15.316049] tveeprom 4-0050: tuner model is Philips FM1216 (idx 21,
+>> type 5)
+>> [   15.316054] tveeprom 4-0050: TV standards PAL(B/G) (eeprom 0x04)
+>> [   15.316059] tveeprom 4-0050: audio processor is MSP3410D (idx 5)
+>> [   15.316063] tveeprom 4-0050: has radio
+>> [   15.316066] bttv: 0: Hauppauge eeprom indicates model#37284
+>> [   15.316071] bttv: 0: tuner type=5
+>> [   16.178816] bttv: 0: registered device video0
+>> [   16.179071] bttv: 0: registered device vbi0
+>> [   16.180587] bttv: 0: registered device radio0
+>>
+>> When I load module ir-kbd-i2c manually:
+>>
+>> Registered IR keymap rc-hauppauge
+>> input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input6
+>> rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
+>> ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-4/4-0018/ir0 [bt878 #0 [sw]]
+>>
+>> Remote control works fine then.
+> Yeah, this is a known misfeature of bttv, and very likely documented on
+> several wiki pages like those:
+> 	http://linuxtv.org/wiki/index.php/Remote_controllers-V4L
+> (btw, this wiki page is very likely outdated)
+> 	http://www.mythtv.org/wiki/Ir-kbd-i2c
+> 	http://www.linuxtv.org/wiki/index.php/Prolink_Pixelview_PlayTV_Pro
+>
+> I can't remember if this were always this way, or if this was
+> caused by the I2C core redesign (2006?). I think it was always like that,
+> and, as I2C comes with a cost (polling can affect video processing with
+> old machines), so, we decided to not do the auto-load on the older
+> drivers that weren't doing it already.
 
-This patch reintroduces code with was removed in commit
-cf7a3d91ade6c56bfd860b377f84bd58132f7a81, but in a way that is compatible
-with the new media pipeline work.
+I'm not sure I understand you. Is it a misfeature or intentional ?
+Does polling 3 bytes every 100ms really affect the performance of video
+processing in a perceptable manner ?
 
-Signed-off-by: William Swanson <william.swanson@fuel7.com>
----
- drivers/media/platform/omap3isp/ispccdc.c |   16 ++++++++++++++--
- include/media/omap3isp.h                  |    3 +++
- 2 files changed, 17 insertions(+), 2 deletions(-)
+> Btw, the fact that there's no clear indication about what bttv boards
+> require I2C made hard to remove the get_key codes from ir-kbd-i2c.
 
-diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
-index 60e60aa..5443ef4 100644
---- a/drivers/media/platform/omap3isp/ispccdc.c
-+++ b/drivers/media/platform/omap3isp/ispccdc.c
-@@ -970,10 +970,11 @@ void omap3isp_ccdc_max_rate(struct isp_ccdc_device *ccdc,
-  * @ccdc: Pointer to ISP CCDC device.
-  * @pdata: Parallel interface platform data (may be NULL)
-  * @data_size: Data size
-+ * @interlaced: Use interlaced mode instead of progressive mode
-  */
- static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 				struct isp_parallel_platform_data *pdata,
--				unsigned int data_size)
-+				unsigned int data_size, bool interlaced)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
- 	const struct v4l2_mbus_framefmt *format;
-@@ -1004,9 +1005,15 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		break;
- 	}
- 
-+	if (interlaced)
-+		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
-+
- 	if (pdata && pdata->data_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
- 
-+	if (pdata && pdata->fld_pol)
-+		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
-+
- 	if (pdata && pdata->hs_pol)
- 		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
- 
-@@ -1111,6 +1118,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	const struct v4l2_rect *crop;
- 	const struct isp_format_info *fmt_info;
- 	struct v4l2_subdev_format fmt_src;
-+	bool src_interlaced = false;
- 	unsigned int depth_out;
- 	unsigned int depth_in = 0;
- 	struct media_pad *pad;
-@@ -1132,6 +1140,10 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	fmt_src.pad = pad->index;
- 	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	if (!v4l2_subdev_call(sensor, pad, get_fmt, NULL, &fmt_src)) {
-+		if (fmt_src.format.field == V4L2_FIELD_INTERLACED ||
-+		    fmt_src.format.field == V4L2_FIELD_INTERLACED_TB ||
-+		    fmt_src.format.field == V4L2_FIELD_INTERLACED_BT)
-+			src_interlaced = true;
- 		fmt_info = omap3isp_video_format_info(fmt_src.format.code);
- 		depth_in = fmt_info->width;
- 	}
-@@ -1150,7 +1162,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 
- 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift, bridge);
- 
--	ccdc_config_sync_if(ccdc, pdata, depth_out);
-+	ccdc_config_sync_if(ccdc, pdata, depth_out, src_interlaced);
- 
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 9584269..32d85c2 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -57,6 +57,8 @@ enum {
-  *		ISP_LANE_SHIFT_6 - CAMEXT[13:6] -> CAM[7:0]
-  * @clk_pol: Pixel clock polarity
-  *		0 - Sample on rising edge, 1 - Sample on falling edge
-+ * @fld_pol: Field identification signal polarity
-+ *		0 - Active high, 1 - Active low
-  * @hs_pol: Horizontal synchronization polarity
-  *		0 - Active high, 1 - Active low
-  * @vs_pol: Vertical synchronization polarity
-@@ -67,6 +69,7 @@ enum {
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
- 	unsigned int clk_pol:1;
-+	unsigned int fld_pol:1;
- 	unsigned int hs_pol:1;
- 	unsigned int vs_pol:1;
- 	unsigned int data_pol:1;
--- 
-1.7.9.5
+See my previous post, I thought the intention is to do the opposite.
+
+> It probably makes sense to add a "has_ir_i2c" field at bttv, add a flag
+> there at modprobe to prevent the autoload, and start tagging the boards
+> with I2C IR with such tag.
+
+Without having looked into the code, it seems that the driver detects
+the i2c rc already without a board flag.
+Otherwise it wouldn't register the i2c device. Unfortunately, it doesn't
+display a message.
+
+> If you care enough, feel free to send us such patch.
+
+I care enough, but it has a low priority for me at the moment.
+
+Regards,
+Frank
+
+> Cheers,
+> Mauro
 
