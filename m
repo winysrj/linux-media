@@ -1,298 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46084 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:35919 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757199Ab3AOCbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 21:31:36 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2VZIK021850
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:36 -0500
+	id S1755804Ab3AFNgC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jan 2013 08:36:02 -0500
+Date: Sun, 6 Jan 2013 11:34:55 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv10 05/15] mb86a20s: functions reorder
-Date: Tue, 15 Jan 2013 00:30:51 -0200
-Message-Id: <1358217061-14982-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: LMML <linux-media@vger.kernel.org>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Status of the patches under review at LMML (35 patches)
+Message-ID: <20130106113455.329ad868@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No functional changes here. Just re-organizes the functions
-inside the file.
+This is the summary of the patches that are currently under review at
+Linux Media Mailing List <linux-media@vger.kernel.org>.
+Each patch is represented by its submission date, the subject (up to 70
+chars) and the patchwork link (if submitted via email).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+P.S.: This email is c/c to the developers where some action is expected.
+      If you were copied, please review the patches, acking/nacking or
+      submitting an update.
+
+
+		== New patches == 
+
+Those patches require some review from the community:
+
+This one could break again DVB-S->DVB-S2 support, so, it needs to be
+carefully reviewed and tested:
+
+Jun,21 2012: [media] dvb frontend core: tuning in ISDB-T using DVB API v3           http://patchwork.linuxtv.org/patch/12988  Olivier Grenie <olivier.grenie@parrot.com>
+
+This one fix a code that, IMHO, should, instead be replaced by
+something better:
+Sep,17 2012: [3/3] cx25821: Cleanup filename assignment code                        http://patchwork.linuxtv.org/patch/14445  Peter Senna Tschudin <peter.senna@gmail.com>
+
+This one doesn't seem right for me. Anybody can test/work with it?
+Sep, 2 2012: fix: iMon Knob event interpretation issues                             http://patchwork.linuxtv.org/patch/16030  Alexandre Lissy <alexandrelissy@free.fr>
+
+I'm not sure if we should apply this one or not, as it will increase
+the probability of miss-interpreting a nec IR protocol. Comments?
+Jul,26 2012: media: rc: Add support to decode Remotes using NECx IR protocol        http://patchwork.linuxtv.org/patch/13480  Ravi Kumar V <kumarrav@codeaurora.org>
+
+
+		== Manu Abraham <abraham.manu@gmail.com> == 
+
+Those patches are there for a long time. I think I'll simply apply all of
+them, if they're not reviewed on the next couple weeks:
+
+Mar,11 2012: [2/3] stv090x: use error counter 1 for BER estimation                  http://patchwork.linuxtv.org/patch/10301  Andreas Regel <andreas.regel@gmx.de>
+Mar,11 2012: [3/3] stv090x: On STV0903 do not set registers of the second path.     http://patchwork.linuxtv.org/patch/10302  Andreas Regel <andreas.regel@gmx.de>
+Nov,29 2011: stv090x: implement function for reading uncorrected blocks count       http://patchwork.linuxtv.org/patch/8656   Mariusz Bia?o?czyk <manio@skyboo.net>
+Jun, 8 2011: Add remote control support for mantis                                  http://patchwork.linuxtv.org/patch/7217   Christoph Pinkl <christoph.pinkl@gmail.com>
+Apr, 1 2012: [05/11] Slightly more friendly debugging output.                       http://patchwork.linuxtv.org/patch/10520  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [06/11] Replace ca_lock by a slightly more general int_stat_lock.      http://patchwork.linuxtv.org/patch/10521  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [07/11] Fix a ton of SMP-unsafe accesses.                              http://patchwork.linuxtv.org/patch/10523  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [08/11] Remove some unused structure members.                          http://patchwork.linuxtv.org/patch/10525  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [09/11] Correct wait_event_timeout error return check.                 http://patchwork.linuxtv.org/patch/10526  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [10/11] Ignore timeouts waiting for the IRQ0 flag.                     http://patchwork.linuxtv.org/patch/10527  "Steinar H. Gunderson" <sesse@samfundet.no>
+Apr, 1 2012: [11/11] Enable Mantis CA support.                                      http://patchwork.linuxtv.org/patch/10524  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+		== Prabhakar Lad <prabhakar.lad@ti.com> == 
+
+Aug,24 2012: Corrected Oops on omap_vout when no manager is connected               http://patchwork.linuxtv.org/patch/14033  Federico Fuga <fuga@studiofuga.com>
+Oct,22 2012: [media] davinci: vpbe: fix missing unlock on error in vpbe_initialize( http://patchwork.linuxtv.org/patch/15106  Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Oct,24 2012: [media] vpif_display: fix return value check in vpif_reqbufs()         http://patchwork.linuxtv.org/patch/15167  Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+		== Maxim Levitsky <maximlevitsky@gmail.com> == 
+
+Oct,15 2012: [1/4,media] ene-ir: Fix cleanup on probe failure                       http://patchwork.linuxtv.org/patch/15024  Matthijs Kooijman <matthijs@stdin.nl>
+
+		== Guennadi Liakhovetski <g.liakhovetski@gmx.de> == 
+
+Oct,30 2012: [v2,2/4] media: mx2_camera: Add image size HW limits.                  http://patchwork.linuxtv.org/patch/15298  Javier Martin <javier.martin@vista-silicon.com>
+Nov,13 2012: sh_vou: Move from videobuf to videobuf2                                http://patchwork.linuxtv.org/patch/15433  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Nov,16 2012: [05/14,media] atmel-isi: Update error check for unsigned variables     http://patchwork.linuxtv.org/patch/15475  Tushar Behera <tushar.behera@linaro.org>
+Jan, 3 2013: [1/3] sh_vou: Don't modify const variable in sh_vou_s_crop()           http://patchwork.linuxtv.org/patch/16095  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Jan, 3 2013: [2/3] sh_vou: Use video_drvdata()                                      http://patchwork.linuxtv.org/patch/16097  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Jan, 3 2013: [3/3] sh_vou: Use vou_dev instead of vou_file wherever possible        http://patchwork.linuxtv.org/patch/16096  Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+
+		== Laurent Pinchart <laurent.pinchart@ideasonboard.com> == 
+
+Dec,12 2012: [v2] ad5820: Voice coil motor controller driver                        http://patchwork.linuxtv.org/patch/15881  Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Jan, 4 2013: omap3isp: Add support for interlaced input data                        http://patchwork.linuxtv.org/patch/16133  William Swanson <william.swanson@fuel7.com>
+Sep, 4 2012: [5/5] drivers/media/platform/omap3isp/isp.c: fix error return code     http://patchwork.linuxtv.org/patch/14169  Peter Senna Tschudin <peter.senna@gmail.com>
+
+		== Sylwester Nawrocki <s.nawrocki@samsung.com> == 
+
+Dec,28 2012: [1/3,media] s5p-mfc: use mfc_err instead of printk                     http://patchwork.linuxtv.org/patch/16012  Sachin Kamat <sachin.kamat@linaro.org>
+Jan, 6 2013: s5p-tv: mixer: fix handling of VIDIOC_S_FMT                            http://patchwork.linuxtv.org/patch/16143  Tomasz Stanislawski <t.stanislaws@samsung.com>
+
+		== Marek Szyprowski <m.szyprowski@samsung.com> == 
+
+Nov,12 2012: [media] videobuf2-core: print current state of buffer in vb2_buffer_do http://patchwork.linuxtv.org/patch/15420  Tushar Behera <tushar.behera@linaro.org>
+
+		== Sascha Hauer <s.hauer@pengutronix.de> == 
+
+Sacha is returing next week. He should be addressing this issue
+by them:
+Nov,14 2012: [media] coda: Fix build due to iram.h rename                           http://patchwork.linuxtv.org/patch/15447  Fabio Estevam <fabio.estevam@freescale.com>
+
+		== Mauro Carvalho Chehab <mchehab@redhat.com> == 
+
+Those are my own RFC patches. I should rework the QoS patches next
+week/weekend:
+
+Dec,28 2012: [RFCv3] dvb: Add DVBv5 properties for quality parameters               http://patchwork.linuxtv.org/patch/16026  Mauro Carvalho Chehab <mchehab@redhat.com>
+Dec,28 2012: [RFC, media] dvb: frontend API: Add a flag to indicate that get_fronte http://patchwork.linuxtv.org/patch/16024  Mauro Carvalho Chehab <mchehab@redhat.com>
+Jan, 1 2013: [RFCv3] dvb: Add DVBv5 properties for quality parameters               http://patchwork.linuxtv.org/patch/16053  Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
+Number of pending patches per reviewer:
+  Manu Abraham <abraham.manu@gmail.com>                                 : 11
+  Guennadi Liakhovetski <g.liakhovetski@gmx.de>                         : 6
+  LinuxTV community                                                     : 4
+  Laurent Pinchart <laurent.pinchart@ideasonboard.com>                  : 3
+  Mauro Carvalho Chehab <mchehab@redhat.com>                            : 3
+  Prabhakar Lad <prabhakar.lad@ti.com>                                  : 3
+  Sylwester Nawrocki <s.nawrocki@samsung.com>                           : 2
+  Sascha Hauer <s.hauer@pengutronix.de>                                 : 1
+  Maxim Levitsky <maximlevitsky@gmail.com>                              : 1
+  Marek Szyprowski <m.szyprowski@samsung.com>                           : 1
+
+Cheers,
+Mauro
+
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 217 +++++++++++++++++----------------
- 1 file changed, 115 insertions(+), 102 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 0f8d9bc..c91e9b9 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -194,6 +194,10 @@ static struct regdata mb86a20s_clear_stats[] = {
- 	{ 0x51, 0x01 },
- };
- 
-+/*
-+ * I2C read/write functions and macros
-+ */
-+
- static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
- 			     u8 i2c_addr, int reg, int data)
- {
-@@ -255,45 +259,42 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
- 	mb86a20s_i2c_writeregdata(state, state->config->demod_address, \
- 	regdata, ARRAY_SIZE(regdata))
- 
--static int mb86a20s_initfe(struct dvb_frontend *fe)
-+/*
-+ * Ancillary internal routines (likely compiled inlined)
-+ *
-+ * The functions below assume that gateway lock has already obtained
-+ */
-+
-+static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
--	u8  regD5 = 1;
-+	int val;
- 
- 	dprintk("\n");
-+	*status = 0;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	val = mb86a20s_readreg(state, 0x0a) & 0xf;
-+	if (val < 0)
-+		return val;
- 
--	/* Initialize the frontend */
--	rc = mb86a20s_writeregdata(state, mb86a20s_init);
--	if (rc < 0)
--		goto err;
-+	if (val >= 2)
-+		*status |= FE_HAS_SIGNAL;
- 
--	if (!state->config->is_serial) {
--		regD5 &= ~1;
-+	if (val >= 4)
-+		*status |= FE_HAS_CARRIER;
- 
--		rc = mb86a20s_writereg(state, 0x50, 0xd5);
--		if (rc < 0)
--			goto err;
--		rc = mb86a20s_writereg(state, 0x51, regD5);
--		if (rc < 0)
--			goto err;
--	}
-+	if (val >= 5)
-+		*status |= FE_HAS_VITERBI;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
-+	if (val >= 7)
-+		*status |= FE_HAS_SYNC;
- 
--err:
--	if (rc < 0) {
--		state->need_init = true;
--		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
--	} else {
--		state->need_init = false;
--		dprintk("Initialization succeeded.\n");
--	}
--	return rc;
-+	if (val >= 8)				/* Maybe 9? */
-+		*status |= FE_HAS_LOCK;
-+
-+	dprintk("val = %d, status = 0x%02x\n", val, *status);
-+
-+	return 0;
- }
- 
- static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
-@@ -340,78 +341,6 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- 	return 0;
- }
- 
--static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
--{
--	struct mb86a20s_state *state = fe->demodulator_priv;
--	int val;
--
--	dprintk("\n");
--	*status = 0;
--
--	val = mb86a20s_readreg(state, 0x0a) & 0xf;
--	if (val < 0)
--		return val;
--
--	if (val >= 2)
--		*status |= FE_HAS_SIGNAL;
--
--	if (val >= 4)
--		*status |= FE_HAS_CARRIER;
--
--	if (val >= 5)
--		*status |= FE_HAS_VITERBI;
--
--	if (val >= 7)
--		*status |= FE_HAS_SYNC;
--
--	if (val >= 8)				/* Maybe 9? */
--		*status |= FE_HAS_LOCK;
--
--	dprintk("val = %d, status = 0x%02x\n", val, *status);
--
--	return 0;
--}
--
--static int mb86a20s_set_frontend(struct dvb_frontend *fe)
--{
--	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
--#if 0
--	/*
--	 * FIXME: Properly implement the set frontend properties
--	 */
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--#endif
--
--	dprintk("\n");
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--	dprintk("Calling tuner set parameters\n");
--	fe->ops.tuner_ops.set_params(fe);
--
--	/*
--	 * Make it more reliable: if, for some reason, the initial
--	 * device initialization doesn't happen, initialize it when
--	 * a SBTVD parameters are adjusted.
--	 *
--	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
--	 * the agc callback logic is not called during DVB attach time,
--	 * causing mb86a20s to not be initialized with Kworld SBTVD.
--	 * So, this hack is needed, in order to make Kworld SBTVD to work.
--	 */
--	if (state->need_init)
--		mb86a20s_initfe(fe);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
--	return rc;
--}
--
- static int mb86a20s_get_modulation(struct mb86a20s_state *state,
- 				   unsigned layer)
- {
-@@ -854,6 +783,91 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 	return rc;
- }
- 
-+/*
-+ * The functions below are called via DVB callbacks, so they need to
-+ * properly use the I2C gate control
-+ */
-+static int mb86a20s_initfe(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
-+	u8  regD5 = 1;
-+
-+	dprintk("\n");
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Initialize the frontend */
-+	rc = mb86a20s_writeregdata(state, mb86a20s_init);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (!state->config->is_serial) {
-+		regD5 &= ~1;
-+
-+		rc = mb86a20s_writereg(state, 0x50, 0xd5);
-+		if (rc < 0)
-+			goto err;
-+		rc = mb86a20s_writereg(state, 0x51, regD5);
-+		if (rc < 0)
-+			goto err;
-+	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+err:
-+	if (rc < 0) {
-+		state->need_init = true;
-+		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
-+	} else {
-+		state->need_init = false;
-+		dprintk("Initialization succeeded.\n");
-+	}
-+	return rc;
-+}
-+
-+static int mb86a20s_set_frontend(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
-+#if 0
-+	/*
-+	 * FIXME: Properly implement the set frontend properties
-+	 */
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+#endif
-+
-+	dprintk("\n");
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	dprintk("Calling tuner set parameters\n");
-+	fe->ops.tuner_ops.set_params(fe);
-+
-+	/*
-+	 * Make it more reliable: if, for some reason, the initial
-+	 * device initialization doesn't happen, initialize it when
-+	 * a SBTVD parameters are adjusted.
-+	 *
-+	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
-+	 * the agc callback logic is not called during DVB attach time,
-+	 * causing mb86a20s to not be initialized with Kworld SBTVD.
-+	 * So, this hack is needed, in order to make Kworld SBTVD to work.
-+	 */
-+	if (state->need_init)
-+		mb86a20s_initfe(fe);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	return rc;
-+}
-+
- static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 					  fe_status_t *status)
- {
-@@ -916,7 +930,6 @@ static int mb86a20s_read_signal_strength_from_cache(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--
- static int mb86a20s_tune(struct dvb_frontend *fe,
- 			bool re_tune,
- 			unsigned int mode_flags,
--- 
-1.7.11.7
-
+If you discover any patch submitted via email that weren't caught by
+kernel.patchwork.org, this means that the patch got mangled by your emailer.
+The more likely cause is that the emailer converted tabs into spaces or broke
+long lines. Please fix your emailer and re-send.
