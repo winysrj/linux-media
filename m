@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:62089 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753251Ab3ACPmN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 10:42:13 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG2001L13MAAMA0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:42:12 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MG2002IS3M47G90@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:42:12 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] m5mols: Fix typo in get_fmt callback
-Date: Thu, 03 Jan 2013 16:42:02 +0100
-Message-id: <1357227722-28763-1-git-send-email-s.nawrocki@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:47649 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751451Ab3AGIrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 03:47:08 -0500
+From: "Mohammed, Afzal" <afzal@ti.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: "devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	David Airlie <airlied@linux.ie>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Rob Clark <robdclark@gmail.com>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCHv16 5/7] fbmon: add of_videomode helpers
+Date: Mon, 7 Jan 2013 08:46:41 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA7FBF7@DBDE01.ent.ti.com>
+References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA7FB02@DBDE01.ent.ti.com>
+ <20130107080648.GB23478@pengutronix.de>
+In-Reply-To: <20130107080648.GB23478@pengutronix.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The check of return value from __find_format() was inverted
-by mistake. This patch fixes regression introduced in commit
-5565a2ad47 [media] m5mols: Protect driver data with a mutex
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/i2c/m5mols/m5mols_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
-index 8131d65..b9b4485 100644
---- a/drivers/media/i2c/m5mols/m5mols_core.c
-+++ b/drivers/media/i2c/m5mols/m5mols_core.c
-@@ -556,1 +556,1 @@ static int m5mols_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	mutex_lock(&info->lock);
-
- 	format = __find_format(info, fh, fmt->which, info->res_type);
--	if (!format)
-+	if (format)
- 		fmt->format = *format;
- 	else
- 		ret = -EINVAL;
---
-1.7.9.5
-
+SGkgU3RlZmZlbiwNCg0KT24gTW9uLCBKYW4gMDcsIDIwMTMgYXQgMTM6MzY6NDgsIFN0ZWZmZW4g
+VHJ1bXRyYXIgd3JvdGU6DQo+IE9uIE1vbiwgSmFuIDA3LCAyMDEzIGF0IDA2OjEwOjEzQU0gKzAw
+MDAsIE1vaGFtbWVkLCBBZnphbCB3cm90ZToNCg0KPiA+IFRoaXMgYnJlYWtzIERhVmluY2kgKGRh
+OHh4X29tYXBsX2RlZmNvbmZpZyksIGZvbGxvd2luZyBjaGFuZ2Ugd2FzDQo+ID4gcmVxdWlyZWQg
+dG8gZ2V0IGl0IGJ1aWxkIGlmIE9GX1ZJREVPTU9ERSBvci9hbmQgRkJfTU9ERV9IRUxQRVJTDQo+
+ID4gaXMgbm90IGRlZmluZWQuIFRoZXJlIG1heSBiZSBiZXR0ZXIgc29sdXRpb25zLCBmb2xsb3dp
+bmcgd2FzIHRoZQ0KPiA+IG9uZSB0aGF0IHdhcyB1c2VkIGJ5IG1lIHRvIHRlc3QgdGhpcyBzZXJp
+ZXMuDQoNCj4gSSBqdXN0IGRpZCBhIHF1aWNrICJtYWtlIGRhOHh4X29tYXBsX2RlZmNvbmZpZyAm
+JiBtYWtlIiBhbmQgaXQgYnVpbGRzIGp1c3QgZmluZS4NCj4gT24gd2hhdCB2ZXJzaW9uIGRpZCB5
+b3UgYXBwbHkgdGhlIHNlcmllcz8NCj4gQXQgdGhlIG1vbWVudCBJIGhhdmUgdGhlIHNlcmllcyBz
+aXR0aW5nIG9uIDMuNy4gRGlkbid0IHRyeSBhbnkgMy44LXJjeCB5ZXQuDQo+IEJ1dCBmaXhpbmcg
+dGhpcyBzaG91bGRuJ3QgYmUgYSBwcm9ibGVtLg0KDQpZb3UgYXJlIHJpZ2h0LCBtZSBpZGlvdCwg
+ZXJyb3Igd2lsbCBoYXBwZW4gb25seSB1cG9uIHRyeSB0byBtYWtlIHVzZSBvZg0Kb2ZfZ2V0X2Zi
+X3ZpZGVvbW9kZSgpIChkZWZpbmVkIGluIHRoaXMgcGF0Y2gpIGluIHRoZSBkYTh4eC1mYiBkcml2
+ZXINCih3aXRoIGRhOHh4X29tYXBsX2RlZmNvbmZpZyksIHRvIGJlIGV4YWN0IHVwb24gYWRkaW5n
+LA0KDQoidmlkZW86IGRhOHh4LWZiOiBvYnRhaW4gZmJfdmlkZW9tb2RlIGluZm8gZnJvbSBkdCIg
+b2YgbXkgcGF0Y2ggc2VyaWVzLg0KDQpUaGUgY2hhbmdlIGFzIEkgbWVudGlvbmVkIG9yIHNvbWV0
+aGluZyBzaW1pbGFyIHdvdWxkIGJlIHJlcXVpcmVkIGFzDQphbnkgZHJpdmVyIHRoYXQgaXMgZ29p
+bmcgdG8gbWFrZSB1c2Ugb2Ygb2ZfZ2V0X2ZiX3ZpZGVvbW9kZSgpIHdvdWxkDQpicmVhayBpZiBD
+T05GSUdfT0ZfVklERU9NT0RFIG9yIENPTkZJR19GQl9NT0RFX0hFTFBFUlMgaXMgbm90IGRlZmlu
+ZWQuDQoNCkFuZCB0ZXN0aW5nIHdhcyBkb25lIG92ZXIgdjMuOC1yYzIuDQoNCj4gPiA+ICsjaWYg
+SVNfRU5BQkxFRChDT05GSUdfT0ZfVklERU9NT0RFKQ0KPiA+IA0KPiA+IEFzIF9PRl9WSURFT01P
+REUgaXMgYSBib29sIHR5cGUgQ09ORklHLCBpc24ndCwNCj4gPiANCj4gPiAjaWZkZWYgQ09ORklH
+X09GX1ZJREVPTU9ERQ0KPiA+IA0KPiA+IHN1ZmZpY2llbnQgPw0KPiA+IA0KPiANCj4gWWVzLCB0
+aGF0IGlzIHJpZ2h0LiBCdXQgSSB0aGluayBJU19FTkFCTEVEIGlzIHRoZSBwcmVmZXJyZWQgd2F5
+IHRvIGRvIGl0LCBpc24ndCBpdD8NCg0KTm93IEkgcmVhbGl6ZSBpdCBpcy4NCg0KUmVnYXJkcw0K
+QWZ6YWwNCg==
