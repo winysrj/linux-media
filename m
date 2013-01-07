@@ -1,126 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3154 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208Ab3AKMWW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 07:22:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [REVIEWv2 PATCH 2/2] DocBook: improve the error_idx field documentation.
-Date: Fri, 11 Jan 2013 13:22:08 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl> <9035cddc289cc58a41d6122a10a17e5d27c6fc0f.1357903446.git.hans.verkuil@cisco.com> <3074833.VDmUTZxrWA@avalon>
-In-Reply-To: <3074833.VDmUTZxrWA@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:38676 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753583Ab3AGTiX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 14:38:23 -0500
+Message-ID: <50EB2405.80309@iki.fi>
+Date: Mon, 07 Jan 2013 21:37:41 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301111322.08472.hverkuil@xs4all.nl>
+To: Damien Bally <biribi@free.fr>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Malcolm Priestley <tvboxspy@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev.
+ 2
+References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi> <5065D1AC.5030800@free.fr> <5065E487.80502@iki.fi> <1348860617.2782.26.camel@Route3278> <20120929143305.4859603e@redhat.com> <50688332.7020406@free.fr> <20121001081540.69bdae23@redhat.com> <50697CBE.8060001@iki.fi> <20121006124020.2cc2f534@redhat.com>
+In-Reply-To: <20121006124020.2cc2f534@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri January 11 2013 13:13:47 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch. This is much better in my opinion, please see below for 
-> two small comments.
-> 
-> On Friday 11 January 2013 12:26:03 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The documentation of the error_idx field was incomplete and confusing.
-> > This patch improves it.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   44 +++++++++++++----
-> >  1 file changed, 37 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> > b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml index
-> > 0a4b90f..e9f9735 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> > @@ -199,13 +199,43 @@ also be zero.</entry>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> >  	    <entry><structfield>error_idx</structfield></entry>
-> > -	    <entry>Set by the driver in case of an error. If it is equal
-> > -to <structfield>count</structfield>, then no actual changes were made to
-> > -controls. In other words, the error was not associated with setting a
-> > -particular control. If it is another value, then only the controls up to
-> > -<structfield>error_idx-1</structfield> were modified and control
-> > -<structfield>error_idx</structfield> is the one that caused the error. The
-> > -<structfield>error_idx</structfield> value is undefined if the ioctl
-> > -returned 0 (success).</entry>
-> > +	    <entry><para>Set by the driver in case of an error. If the error is
-> > +associated with a particular control, then
-> > +<structfield>error_idx</structfield> is set to the index of that control.
-> > +If the error is not related to a specific control, or the pre-validation
-> > +step failed (see below), then <structfield>error_idx</structfield> is set
-> > +to <structfield>count</structfield>. The value is undefined if the ioctl
-> > +returned 0 (success).</para>
-> > +
-> > +<para>Before controls are read from/written to hardware a pre-validation
-> 
-> Maybe s/pre-validation/validation/ through the text ? We have a single 
-> validation step, it feels a bit weird to talk about pre-validation when 
-> there's no further validation :-)
+On 10/06/2012 06:40 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 01 Oct 2012 14:21:34 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 10/01/2012 02:15 PM, Mauro Carvalho Chehab wrote:
+>>> Em Sun, 30 Sep 2012 19:36:50 +0200
+>>> Damien Bally <biribi@free.fr> escreveu:
+>>>
+>>>>
+>>>>
+>>>> Le 29/09/2012 19:33, Mauro Carvalho Chehab a écrit :
+>>>>     It seems that the it931x variant has bcdDevice equal to 2.00,
+>>>>> from Damien's email:
+>>>>>
+>>>>>       idVendor           0x0ccd TerraTec Electronic GmbH
+>>>>>       idProduct          0x0099
+>>>>>       bcdDevice            2.00
+>>>>>       iManufacturer           1 ITE Technologies, Inc.
+>>>>>       iProduct                2 DVB-T TV Stick
+>>>>>       iSerial                 0
+>>>>>
+>>>>> If the af9015 variant uses another bcdDevice, the fix should be simple.
+>>>>
+>>>> Alas, according to
+>>>> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_USB_Dual_RC the
+>>>> af9015 variant appears to have the same bcdDevice. I join both lsusb
+>>>> outputs for comparison.
+>>>
+>>> Well, then the alternative is to let both drivers to handle this USB ID,
+>>> and add a code there on each of them that will check if the device is the
+>>> right one, perhaps by looking at iProduct string. If the driver doesn't
+>>> recognize it, it should return -ENODEV at .probe() time. The USB core will
+>>> call the second driver.
+>>
+>> It is the easiest solution, but there should be very careful. Those
+>> strings could change from device to device. I used earlier af9015 eeprom
+>> hash (those string as coming from the eeprom) to map TerraTec dual
+>> remote controller and git bug report quite soon as it didn't worked.
+>> After I looked the reason I found out they was changed some not
+>> meaningful value.
+>
+> Yeah, those strings can change, especially when vendors don't care enough
+> to use a different USB ID/bcdDevice for different models. Yet, seems to
+> be the cleaner approach, among the alternatives.
 
-OK.
+Damien, care to test?
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
 
-> > +step takes place: this checks if all controls in the list are all valid
-> 
-> s/all valid/valid/ ?
+I split tuner out from IT9135 driver and due to that AF9035 driver 
+supports IT9135 too (difference between AF9035 and IT9135 is integrated 
+RF-tuner). I added iManufacturer based checks for both AF9015 and AF9035 
+drivers
 
-Indeed.
+regards
+Antti
 
-> 
-> > +controls, if no attempt is made to write to a read-only control or read
-> > +from a write-only control, and any other up-front checks that can be done
-> > +without accessing the hardware.</para>
-
-How about adding this sentence to the end of the paragraph:
-
-"The exact validations done during this step are driver dependent since some
-checks might require hardware access for some devices, thus making it impossible
-to do those checks up-front. However, drivers should make a best-effort to do
-as many up-front checks as possible."
-
-Regards,
-
-	Hans
-
-> > +
-> > +<para>This check is done to avoid leaving the hardware in an inconsistent
-> > +state due to easy-to-avoid problems. But it leads to another problem: the
-> > +application needs to know whether an error came from the pre-validation
-> > +step (meaning that the hardware was not touched) or from an error during
-> > +the actual reading from/writing to hardware.</para>
-> > +
-> > +<para>The, in hindsight quite poor, solution for that is to set
-> > +<structfield>error_idx</structfield> to <structfield>count</structfield>
-> > +if the pre-validation failed. This has the unfortunate side-effect that it
-> > +is not possible to see which control failed the pre-validation. If the
-> > +pre-validation was successful and the error happened while accessing the
-> > +hardware, then <structfield>error_idx</structfield> is less than
-> > +<structfield>count</structfield> and only the controls up to
-> > +<structfield>error_idx-1</structfield> were read or written correctly, and
-> > +the state of the remaining controls is undefined.</para>
-> > +
-> > +<para>Since <constant>VIDIOC_TRY_EXT_CTRLS</constant> does not access
-> > +hardware there is also no need to handle the pre-validation step in this
-> > +special way, so <structfield>error_idx</structfield> will just be set to
-> > +the control that failed the pre-validation step instead of to
-> > +<structfield>count</structfield>. This means that if
-> > +<constant>VIDIOC_S_EXT_CTRLS</constant> fails with
-> > +<structfield>error_idx</structfield> set to
-> > +<structfield>count</structfield>, then you can call
-> > +<constant>VIDIOC_TRY_EXT_CTRLS</constant> to try to discover the actual
-> > +control that failed the pre-validation step. Unfortunately, there is no
-> > +<constant>TRY</constant> equivalent for
-> > +<constant>VIDIOC_G_EXT_CTRLS</constant>. </para></entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> 
+-- 
+http://palosaari.fi/
