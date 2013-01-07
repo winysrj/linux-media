@@ -1,69 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58180 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754921Ab3AMQiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 11:38:21 -0500
-Message-ID: <50F2E2D7.7000208@iki.fi>
-Date: Sun, 13 Jan 2013 18:37:43 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:36527 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab3AGFzo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 00:55:44 -0500
+Received: by mail-wg0-f48.google.com with SMTP id dt10so9323519wgb.27
+        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 21:55:43 -0800 (PST)
 MIME-Version: 1.0
-To: Jacek Konieczny <jajcus@jajcus.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [BUG] Problem with LV5TDLX DVB-T USB and the 3.7.1 kernel
-References: <20130105150539.32186362@lolek.nigdzie> <50E83874.5060700@iki.fi> <20130107121034.7da1a00a@jajo.eggsoft>
-In-Reply-To: <20130107121034.7da1a00a@jajo.eggsoft>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAPgLHd-f6x_m-yi-Ki0hNV=7NsOG1rarmRcwDe8Kp+yEFJw4TQ@mail.gmail.com>
+References: <CAPgLHd-f6x_m-yi-Ki0hNV=7NsOG1rarmRcwDe8Kp+yEFJw4TQ@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 7 Jan 2013 11:19:46 +0530
+Message-ID: <CA+V-a8tii=RCFbaWWGYP3jdz9X=4mfedPGKo8A3nwP_os53wng@mail.gmail.com>
+Subject: Re: [PATCH] [media] davinci: vpbe: fix missing unlock on error in vpbe_initialize()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@infradead.org, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/07/2013 01:10 PM, Jacek Konieczny wrote:
-> On Sat, 05 Jan 2013 16:28:04 +0200
-> Antti Palosaari <crope@iki.fi> wrote:
->
->> Take USB sniffs, make scripts to generate e4000 register write code
->> from the sniffs, copy & paste that code from the sniffs until it
->> starts working. After it starts working it is quite easy to comment
->> out / tweak with driver in order to find problem. With the experience
->> and luck it is only few hours to fix, but without a experience you
->> will likely need to learn a lot of stuff first.
->
-> I have not experience with the linux media drivers coding, so it probably
-> would take me much more than a few hours or require lots of luck.
->
->> Of course those sniffs needed to take from working case, which just
->> makes successful tuning to 746000000 or 698000000.
->>
->> Also you could use to attenuate or amplifier signal to see if it
->> helps.
->
-> Already tried that, with various levels of attenuation and amplification,
-> the results vary from snr always 0000 to, at best, approximately every
-> second line of tzap output shows non-zero snr.
->
->> I don't have much time / money, no interest, no equipment (DVB-T
->> modulator) to start optimizing it currently.
->
-> I see. Can sending the device to you help in any way? In case I cannot make
-> it work, I can, as well, send it to someone who could do good use of it.
-> But first, I will try to fix it myself somehow.
->
-> I'll try my luck with code. Maybe comparing the drivers with those from
-> Realtek, which used to work for me, will help. Thanks for all the hints.
+Hi Wei,
 
-I haven't tested whole device as someone else has added that USB ID. 
-That makes me thinking if there has been test mistake or testing at all. 
-As it is still e4000 reference design it should work just like all the 
-others, but you never know... Small hw difference with a driver bug 
-(like some wrong GPIO) and it could lead situation like that. GPIO based 
-antenna switch?
+Thanks for the patch.
 
-Feel free to send it for me if you don't find problem yourself. Address 
-could be found from my LinuxTV project page:
-http://palosaari.fi/linux/
+On Mon, Oct 22, 2012 at 11:06 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> Add the missing unlock on the error handling path in function
+> vpbe_initialize().
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-regard
-Antti
+Acked-by: Prabhakar Lad <prabhakar.lad@ti.com>
 
--- 
-http://palosaari.fi/
+> ---
+> no test
+> ---
+>  drivers/media/platform/davinci/vpbe.c | 6 ++++--
+>  1 file changed, 4 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+> index 69d7a58..875e63d 100644
+> --- a/drivers/media/platform/davinci/vpbe.c
+> +++ b/drivers/media/platform/davinci/vpbe.c
+> @@ -632,8 +632,10 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>
+>         err = bus_for_each_dev(&platform_bus_type, NULL, vpbe_dev,
+>                                platform_device_get);
+> -       if (err < 0)
+> -               return err;
+> +       if (err < 0) {
+> +               ret = err;
+> +               goto fail_dev_unregister;
+> +       }
+>
+>         vpbe_dev->venc = venc_sub_dev_init(&vpbe_dev->v4l2_dev,
+>                                            vpbe_dev->cfg->venc.module_name);
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
