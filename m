@@ -1,59 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f45.google.com ([209.85.216.45]:59098 "EHLO
-	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3ASQdq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:33:46 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: remi.schwartz@gmail.com, sean@mess.org, kyle@kyle.strickland.name,
-	simon.farnsworth@onelan.co.uk, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 02/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:05 -0200
-Message-Id: <1358613206-4274-2-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60525 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811Ab3AGBMn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 20:12:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Tony Lindgren <tony@atomide.com>, linux-media@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-omap@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: Don't include <plat/cpu.h>
+Date: Mon, 07 Jan 2013 02:14:20 +0100
+Message-ID: <30855273.UsAOH7UnCd@avalon>
+In-Reply-To: <20130106111039.627d5dab@redhat.com>
+References: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130103225541.GK25633@atomide.com> <20130106111039.627d5dab@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_VIDEO_SAA7134_DVB) || \
-     defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
-with:
- #if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
+Hi Mauro,
 
-This change was made for: CONFIG_VIDEO_SAA7134_DVB
+On Sunday 06 January 2013 11:10:39 Mauro Carvalho Chehab wrote:
+> Em Thu, 3 Jan 2013 14:55:41 -0800 Tony Lindgren escreveu:
+> > * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130103 13:24]:
+> > > The plat/*.h headers are not available to drivers in multiplatform
+> > > kernels. As the header isn't needed, just remove it.
+> > 
+> > Please consider merging this for the -rc cycle, so I can make
+> > plat/cpu.h produce an error for omap2+ to prevent new drivers
+> > including it.
+> 
+> Ok, I'll add it to the list of patches for 3.8.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/pci/saa7134/saa7134.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Thank you.
 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 0a3feaa..ace44fd 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -42,7 +42,7 @@
- #include <media/videobuf-dma-sg.h>
- #include <sound/core.h>
- #include <sound/pcm.h>
--#if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
- #include <media/videobuf-dvb.h>
- #endif
- 
-@@ -644,7 +644,7 @@ struct saa7134_dev {
- 	struct work_struct         empress_workqueue;
- 	int                        empress_started;
- 
--#if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_SAA7134_DVB)
- 	/* SAA7134_MPEG_DVB only */
- 	struct videobuf_dvb_frontends frontends;
- 	int (*original_demod_sleep)(struct dvb_frontend *fe);
+Could you please also add "omap3isp: Don't include deleted OMAP plat/ header 
+files" to that list ? And Sakari, could you please ack it ?
+
+> > Acked-by: Tony Lindgren <tony@atomide.com>
+> > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/platform/omap3isp/isp.c |    2 --
+> > >  1 files changed, 0 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > > b/drivers/media/platform/omap3isp/isp.c index 50cea08..07eea5b 100644
+> > > --- a/drivers/media/platform/omap3isp/isp.c
+> > > +++ b/drivers/media/platform/omap3isp/isp.c
+> > > @@ -71,8 +71,6 @@
+> > > 
+> > >  #include <media/v4l2-common.h>
+> > >  #include <media/v4l2-device.h>
+> > > 
+> > > -#include <plat/cpu.h>
+> > > -
+> > > 
+> > >  #include "isp.h"
+> > >  #include "ispreg.h"
+> > >  #include "ispccdc.h"
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
