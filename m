@@ -1,56 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:49530 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753114Ab3AHVyV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 16:54:21 -0500
-Received: by mail-ee0-f48.google.com with SMTP id b57so495598eek.35
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 13:54:20 -0800 (PST)
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3831 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752814Ab3AGJrO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 04:47:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [PATCH V4 2/3] sta2x11_vip: convert to videobuf2 and control framework
+Date: Mon, 7 Jan 2013 10:46:43 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com> <1357493343-13090-2-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1357493343-13090-2-git-send-email-federico.vaga@gmail.com>
 MIME-Version: 1.0
-Reply-To: erangaj@gmail.com
-Date: Wed, 9 Jan 2013 07:54:20 +1000
-Message-ID: <CAEmrET+1-G4vtyjD=0cFei8orfujir1EBhRsb+A9CsssrOidJg@mail.gmail.com>
-Subject: 15a4:1001 fails. (Afatech AF9035)
-From: Eranga Jayasundera <erangaj@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301071046.43331.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+Hi Frederico!
 
-I wasn't able to install the driver for Afatech AF9035 (15a4:1001) on
-my mythbuntu (kernel v3.2.0) box.
+Just one comment, see below:
 
-I used the bellow commands to install the driver. It was compiled and
-installed without errors.
+On Sun January 6 2013 18:29:02 Federico Vaga wrote:
+> This patch re-write the driver and use the videobuf2
+> interface instead of the old videobuf. Moreover, it uses also
+> the control framework which allows the driver to inherit
+> controls from its subdevice (ADV7180)
+> 
+> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+> ---
+>  drivers/media/pci/sta2x11/Kconfig       |    2 +-
+>  drivers/media/pci/sta2x11/sta2x11_vip.c | 1244 ++++++++++---------------------
+>  2 file modificati, 414 inserzioni(+), 832 rimozioni(-)
+> 
+> diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
+> index 6749f67..a94ccad 100644
+> --- a/drivers/media/pci/sta2x11/Kconfig
+> +++ b/drivers/media/pci/sta2x11/Kconfig
+> @@ -2,7 +2,7 @@ config STA2X11_VIP
+>  	tristate "STA2X11 VIP Video For Linux"
+>  	depends on STA2X11
+>  	select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
+> -	select VIDEOBUF_DMA_CONTIG
+> +	select VIDEOBUF2_DMA_CONTIG
+>  	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
+>  	help
+>  	  Say Y for support for STA2X11 VIP (Video Input Port) capture
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> index ed1337a..e379e03 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
 
-git clone git://linuxtv.org/media_build.git
-cd media_build
-./build
-sudo make install
+<snip>
 
+> -/**
+> - * vidioc_try_fmt_vid_cap - set video capture format
+> - * @file: descriptor of device ( not used)
+> - * @priv: points to current videodevice
+> - * @f: new format
+> - *
+> - * new video format is set which includes width and
+> - * field type. width is fixed to 720, no scaling.
+> - * Only UYVY is supported by this hardware.
+> - * the minimum height is 200, the maximum is 576 (PAL)
+> - *
+> - * return value: 0, no error
+> - *
+> - * -EINVAL, pixel or field format not supported
+> - *
+> - */
+>  static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  				  struct v4l2_format *f)
+>  {
+> -	struct video_device *dev = priv;
+> -	struct sta2x11_vip *vip = video_get_drvdata(dev);
+> +	struct sta2x11_vip *vip = video_drvdata(file);
+>  	int interlace_lim;
+>  
+> -	if (V4L2_PIX_FMT_UYVY != f->fmt.pix.pixelformat)
+> -		return -EINVAL;
+> -
 
-dmesg output:
+You should keep this check for now. See this discussion:
 
-[  138.998628] input: Afa Technologies Inc. AF9035A USB Device as
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6.2/2-1.6.2:1.1/input/input13
-[  138.998826] generic-usb 0003:15A4:1001.0004: input,hidraw3: USB HID
-v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
-usb-0000:00:1d.0-1.6.2/input1
-[  139.015499] usb 2-1.6.2: dvb_usb_v2: found a 'Afatech AF9035
-reference design' in cold state
-[  139.016174] usbcore: registered new interface driver dvb_usb_af9035
-[  139.018104] usb 2-1.6.2: dvb_usb_v2: Did not find the firmware file
-'dvb-usb-af9035-02.fw'. Please see linux/Documentation/dvb/ for more
-details on firmware-problems. Status -2
-[  139.018109] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
-design' error while loading driver (-2)
-[  139.018116] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
-design' successfully deinitialized and disconnected
-[  180.666110] usb 2-1.6.2: USB disconnect, device number 8
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
 
+I'm going to change v4l2-compliance to make this a warning instead of an
+error for now.
 
-Any thoughts?
+>  	if (V4L2_STD_525_60 & vip->std)
+>  		interlace_lim = 240;
+>  	else
+>  		interlace_lim = 288;
+>  
+>  	switch (f->fmt.pix.field) {
+> +	default:
+>  	case V4L2_FIELD_ANY:
+>  		if (interlace_lim < f->fmt.pix.height)
+>  			f->fmt.pix.field = V4L2_FIELD_INTERLACED;
 
-Best regards,
-Eranga
+After updating v4l2-compliance (I've just made the change to v4l2-compliance)
+can you also post the output of v4l2-compliance for this driver?
+
+Thanks,
+
+	Hans
