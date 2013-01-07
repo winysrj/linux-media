@@ -1,101 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60895 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752413Ab3ABKTO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 05:19:14 -0500
-Date: Wed, 2 Jan 2013 11:19:04 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51122 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754437Ab3AGMMP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 07:12:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>,
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, tomi.valkeinen@ti.com,
+	LMML <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: DT bindings for subdevices
-In-Reply-To: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
-References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: Status of the patches under review at LMML (35 patches)
+Date: Mon, 07 Jan 2013 13:13:48 +0100
+Message-ID: <1875055.ndRnj5NEuO@avalon>
+In-Reply-To: <CA+V-a8tD5AEV4EseDky=sdWXKqsCyASk96wwxF=-ZmNQOUcJaA@mail.gmail.com>
+References: <20130106113455.329ad868@redhat.com> <CA+V-a8tD5AEV4EseDky=sdWXKqsCyASk96wwxF=-ZmNQOUcJaA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar
+Hi Prabhakar,
 
-On Wed, 2 Jan 2013, Prabhakar Lad wrote:
-
-> Hi,
+On Monday 07 January 2013 11:26:01 Prabhakar Lad wrote:
+> On Sun, Jan 6, 2013 at 7:04 PM, Mauro Carvalho Chehab wrote:
+> > This is the summary of the patches that are currently under review at
+> > Linux Media Mailing List <linux-media@vger.kernel.org>.
+> > Each patch is represented by its submission date, the subject (up to 70
+> > chars) and the patchwork link (if submitted via email).
 > 
-> This is my first step towards DT support for media, Question might be
-> bit amateur :)
-
-No worries, we're all doing our first steps in this direction right at the 
-moment. These two recent threads should give you an idea as to where we 
-stand atm:
-
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
-
-and (optionally, to a lesser extent)
-
-http://www.spinics.net/lists/linux-media/index.html#57836
-
-> In the video pipeline there will be external devices (decoders/camera)
-> connected via
-> i2c, spi, csi. This sub-devices take platform data. So question is
-> moving ahead and
-> adding DT support for this subdevices how should this platform data be
-> passed through.
-> Should it be different properties for different devices.
-
-Mostly, yes.
-
-> For example the mt9t001 sensor takes following platform data:
-> struct mt9t001_platform_data {
-> 	unsigned int clk_pol:1;
-
-This would presumably be the standard "pclk-sample" property from the 
-first of the above two quoted threads
-
-> 	unsigned int ext_clk;
-
-Is this the frequency? This should be replaced by a phandle, linking to a 
-clock device-tree node, assuming, your platform is implementing the 
-generic clock API. If it isn't yet, not a problem either:-) In either case 
-your sensor driver shall be using the v4l2_clk API to retrieve the clock 
-rate and your camera host driver should be providing a matching v4l2_clk 
-instance and implementing its methods, including retrieving the frequency.
-
-> };
-> similarly mt9p031 takes following platform data:
+> <Snip>
 > 
-> struct mt9p031_platform_data {
-> 	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
+> >                 == Prabhakar Lad <prabhakar.lad@ti.com> ==
+> > 
+> > Aug,24 2012: Corrected Oops on omap_vout when no manager is connected     
+> >          http://patchwork.linuxtv.org/patch/14033  Federico Fuga
+> > <fuga@studiofuga.com>
+> Tomi can you take care of this patch ?
 
-Not sure what the xclk is, but, presumable, this should be ported to 
-v4l2_clk too.
+Tomi is on parental leave until beginning of February. Beside, he doesn't have 
+much experience with the omap_vout driver. We need an Acked-by on this patch 
+before he can take it in his tree.
 
-> 	int reset;
+-- 
+Regards,
 
-This is a GPIO number, used to reset the chip. You should use a property, 
-probably, calling it "reset-gpios", specifying the desired GPIO.
+Laurent Pinchart
 
-> 	int ext_freq;
-> 	int target_freq;
-
-Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and 
-target_freq could be a proprietary property of your device.
-
-Thanks
-Guennadi
-
-> };
-> 
-> should this all be individual properties ?
-> 
-> Regards,
-> --Prabhakar
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
