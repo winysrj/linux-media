@@ -1,156 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40467 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163Ab3AULPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 06:15:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: RFC: add parameters to V4L controls
-Date: Mon, 21 Jan 2013 12:17:24 +0100
-Message-ID: <2786927.FHuFfsRd7W@avalon>
-In-Reply-To: <50F56907.2030301@samsung.com>
-References: <50EAA78E.4090904@samsung.com> <50F1DE2B.6060508@iki.fi> <50F56907.2030301@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:8436 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753439Ab3AGPsr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 10:48:47 -0500
+Date: Mon, 7 Jan 2013 13:48:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Fabio Estevam <festevam@gmail.com>,
+	linux-media@vger.kernel.org, kernel@pengutronix.de,
+	linux-kernel@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
+Message-ID: <20130107134801.51fbd7d7@redhat.com>
+In-Reply-To: <20130107134605.2825d1b0@infradead.org>
+References: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
+	<CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
+	<20130107134605.2825d1b0@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Em Mon, 7 Jan 2013 13:46:05 -0200
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-On Tuesday 15 January 2013 15:34:47 Andrzej Hajda wrote:
-> On 12.01.2013 23:05, Sakari Ailus wrote:
-> > Andrzej Hajda wrote:
-> >> Hi,
-> >> 
-> >> I have included this proposition already in the post "[PATCH RFC 0/2]
-> >> V4L: Add auto focus area control and selection" but it left unanswered.
-> >> I repost it again in a separate e-mail, I hope this way it will be
-> >> easier to attract attention.
-> >> 
-> >> Problem description
-> >> 
-> >> Currently V4L2 controls can have only single value (of type int, int64,
-> >> string). Some hardware controls require more than single int parameter,
-> >> for example to set auto-focus (AF) rectangle four coordinates should be
-> >> passed, to set auto-focus spot two coordinates should be passed.
-> >> 
-> >> Current solution
-> >> 
-> >> In case of AF rectangle we can reuse selection API as in "[PATCH RFC
-> >> 0/2] V4L: Add auto focus area control and selection" post.
-> >> Pros:
-> >> - reuse existing API,
-> >> Cons:
-> >> - two IOCTL's to perform one action,
-> > 
-> > I think changing AF mode and AF window of interest are still two
-> > operations: you may well change just either one, and be happy with it.
+> Em Mon, 7 Jan 2013 08:16:02 -0200
+> Fabio Estevam <festevam@gmail.com> escreveu:
 > 
-> I see no point in changing AF window of interest without applying area AF.
-> So we will have here always two operations in that case.
+> > Hi Sascha,
+...
+> > It would be better to use git mv /git format-patch -M, so that git can
+> > detect the file rename.
 > 
-> > You might want to disable AF during the configuration from the
-> > application. Would this work for you?
-> > 
-> >> - non-atomic operation,
-> > 
-> > True, but this is the way V4L2 works.
-> > 
-> > There are many cases where implementing multiple more or less unrelated
-> > operations atomically would be beneficial, but so far there always have
-> > been workarounds to perform those actions non-atomicly. Format
-> > configuration, for example.
-> > 
-> > Atomic operations are hard to get right and typically the required
-> > effort refutes the gain of doing so in drivers, and everything that may
-> > be done atomically always must be implemented beforehand in drivers.
-> > 
-> > Your use case would be from the more simple end, though.
-> > 
-> >> - fits well only for rectangles and spots (but with unused fields width,
-> >> height), in case of other parameters we should find a different way.
-> >> 
-> >> Proposed solution
-> >> 
-> >> The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
-> >> ioctls can be called with multiple controls per call.
-> >> 
-> >> I will present it using AF area control example.
-> >> 
-> >> There could be added four pseudo-controls, lets call them for short:
-> >> LEFT, TOP, WIDTH, HEIGHT.
-> >> Those controls could be passed together with
-> >> V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> >> control in one ioctl as a kind of parameters.
-> >> 
-> >> For example setting auto-focus spot would require calling
-> >> VIDIOC_S_EXT_CTRLS
-> >> with the following controls:
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> >> - LEFT = ...
-> >> - RIGHT = ...
-> >> 
-> >> Setting AF rectangle:
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> >> - LEFT = ...
-> >> - TOP = ...
-> >> - WIDTH = ...
-> >> - HEIGHT = ...
-> >> 
-> >> Setting  AF object detection (no parameters required):
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
-> >> 
-> >> I have presented all three cases to show the advantages of this solution:
-> >> - atomicity - control and its parameters are passed in one call,
-> >> - flexibility - we are not limited by a fixed number of parameters,
-> >> - no-redundancy - we can pass only required parameters
-> >> 
-> >>      (no need to pass null width and height in case of spot selection),
-> >> 
-> >> - extensibility - it is possible to extend parameters in the future,
-> >> for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
-> >> without breaking API,
-> >> - backward compatibility,
-> >> - re-usability - this schema could be used in other controls,
-> >> 
-> >>      pseudo-controls could be re-used in other controls as well.
-> >> 
-> >> - API backward compatibility.
-> > 
-> > What I'm not terribly fond of in the above proposal is that it uses
-> > several controls to describe rectangles which are an obvious domain of
-> > the selection API: selections are roughly like controls but rather use a
-> > rectangle type instead of a single integer value (or a string).
+> Agreed. Anyway, I applied here and did a git show -M:
 > 
-> The problem wit AF is that it can require different set of parameters
-> depending on the hardware:
-> - spots (ex. Galaxy S3),
-> - rectangles (ex. Samsung NX210),
-> - multiple rectangles with weight or priority (ex. Samsung DV300F),
-
-If it gets that complex, I wonder whether a custom ioctl wouldn't be better. 
-I'm not sure we could really standardize multiple rectangles with weights in a 
-useful way.
-
-> - ...
-> (To be honest I am sure only for GalaxyS3, other examples is just my
-> prediction based on the analysis of user manuals of those cameras)
+> From: Sascha Hauer <s.hauer@pengutronix.de>
+> Date: Mon, 7 Jan 2013 11:03:45 +0100
+> Subject: [PATCH] coda: Fix build due to iram.h rename
 > 
-> Implementation of all those cases would be quite straightforward (for
-> me) using proposed pseudo-controls, without it every time it would
-> require serious brainstorming and API extending. And this is the main
-> reason of my proposition.
+> commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+> location of iram.h, which causes the following build error when building the coda
+> driver:
 > 
-> > Also, I can't see any other reason to use controls for this than making
-> > the operation atomic.
+> drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+> drivers/media/platform/coda.c: In function 'coda_probe':
+> drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+> drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+> drivers/media/platform/coda.c: In function 'coda_remove':
+> drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
+> 
+> Since the content of iram.h is not imx specific, move it to
+> include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
+> until the i.MX iram allocator is converted to the generic SRAM allocator.
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
--- 
-Regards,
+Patch looks OK on my eyes.
 
-Laurent Pinchart
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+> 
+> diff --git a/arch/arm/mach-imx/iram_alloc.c b/arch/arm/mach-imx/iram_alloc.c
+> index 6c80424..e05cf40 100644
+> --- a/arch/arm/mach-imx/iram_alloc.c
+> +++ b/arch/arm/mach-imx/iram_alloc.c
+> @@ -22,8 +22,7 @@
+>  #include <linux/module.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/genalloc.h>
+> -
+> -#include "iram.h"
+> +#include "linux/platform_data/imx-iram.h"
+>  
+>  static unsigned long iram_phys_base;
+>  static void __iomem *iram_virt_base;
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 2721f83..16a243d 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -23,8 +23,8 @@
+>  #include <linux/slab.h>
+>  #include <linux/videodev2.h>
+>  #include <linux/of.h>
+> +#include <linux/platform_data/imx-iram.h>
+>  
+> -#include <mach/iram.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ioctl.h>
+> diff --git a/arch/arm/mach-imx/iram.h b/include/linux/platform_data/imx-iram.h
+> similarity index 100%
+> rename from arch/arm/mach-imx/iram.h
+> rename to include/linux/platform_data/imx-iram.h
+
+Cheers,
+Mauro
