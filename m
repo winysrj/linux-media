@@ -1,92 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:45288 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755388Ab3AOV5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 16:57:24 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:49046 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753892Ab3AGKDv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:03:51 -0500
+From: Sascha Hauer <s.hauer@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] saa7134: Add AverMedia Satelllite Hybrid+FM A706 (and FM radio problems)
-Date: Tue, 15 Jan 2013 22:57:06 +0100
-References: <201301122124.51767.linux@rainbow-software.org> <201301142229.58923.linux@rainbow-software.org>
-In-Reply-To: <201301142229.58923.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201301152257.06658.linux@rainbow-software.org>
+Cc: mchehab@infradead.org, kernel@pengutronix.de,
+	linux-kernel@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH] [media] coda: Fix build due to iram.h rename
+Date: Mon,  7 Jan 2013 11:03:45 +0100
+Message-Id: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 14 January 2013 22:29:58 Ondrej Zary wrote:
-> On Saturday 12 January 2013 21:24:50 Ondrej Zary wrote:
-> > Partially working: FM radio
-> > Radio seems to be a long-standing problem with saa7134 cards using
-> > silicon tuners (according to various mailing lists).
-> >
-> > On this card, GPIO11 controls 74HC4052 MUX. It switches two things:
-> > something at TDA18271 V_IFAGC pin and something that goes to SAA7131E.
-> > GPIO11 is enabled for radio and disabled for TV in Windows. I did the
-> > same thing in this patch.
-> >
-> > Windows INF file says:
-> > ; Setting FM radio of the Silicon tuner via SIF (GPIO 21 in use/ 5.5MHz)
-> > HKR, "Audio", "FM Radio IF", 0x00010001, 0xDEEAAB
-> >
-> > But that seems not to be true. GPIO21 does nothing and RegSpy (from
-> > DScaler, modified to include 0x42c register) says that the register is
-> > 0x80729555. That matches the value present in saa7134-tvaudio.c (except
-> > the first 0x80).
-> >
-> > With this value, the radio stations are off by about 4.2-4.3 MHz, e.g.:
-> > station at 97.90 MHz is tuned as 102.20 MHz
-> > station at 101.80 MHz is tuned as 106.0 MHz
-> >
-> > I also tried 0xDEEAAB. With this, the offset is different, about 0.4 MHz:
-> > station at 101.80 MHz is tuned as 102.2 MHz
->
-> The offset seems bogus, maybe affected by my TV antenna (cable).
->
-> For debugging, tried another card with similar chips: Pinnacle PCTV
-> 40i/50i/110i. It has SAA7131E chip too, but different tuner - TDA8275A. And
-> the radio problem is the same as found first on the A706 - the tuned
-> station sound starts but then turns into noise. So it seems that the
-> problem is not in tda18271 but in tda8290 or saa7134.
->
-> With tda8290.debug=1, I see this:
-> tda829x 2-004b: tda8290 not locked, no signal?
-> tda829x 2-004b: tda8290 not locked, no signal?
-> tda829x 2-004b: tda8290 not locked, no signal?
-> tda829x 2-004b: adjust gain, step 1. Agc: 193, ADC stat: 255, lock: 0
-> tda829x 2-004b: adjust gain, step 2. Agc: 255, lock: 0
-> tda829x 2-004b: adjust gain, step 3. Agc: 173
->
-> During that, the sound is good. Then it turns into noise.
-> When I increased the number of lock detections in tda8290_set_params() from
-> 3 to (e.g.) 10, it works longer. And when I'm quick enough to stop the
-> console output using scroll lock, the radio remains working.
+commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+location of iram.h, which causes the following build error when building the coda
+driver:
 
-Pinnacle radio problems turned out to be a different bug - the driver turns 
-off tuners when the radio device is closed - and I was testing using 
-v4l2-ctl. Fixing that allows Pinnacle to work fine.
+drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+drivers/media/platform/coda.c: In function 'coda_probe':
+drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+drivers/media/platform/coda.c: In function 'coda_remove':
+drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
 
-But it's not enough for A706 to work. When I disable gain adjust in tda8290 
-(by putting a return before), strong stations work somehow (with noise).
+Since the content of iram.h is not imx specific, move it to
+include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
+until the i.MX iram allocator is converted to the generic SRAM allocator.
 
-> > And what's worst, connecting analog TV antenna (cable TV) affects the
-> > radio tuner! E.g. the radio is tuned to 106.0 MHz (real 101.80 MHz) with
-> > nice clean sound. Connecting TV antenna adds strong noise to the sound,
-> > tuning does not help. This problem is not present in Windows.
->
-> I've found a tiny chip marked S79 near the analog tuner. It's Skyworks
-> AS179-92LF antenna switch that switches either the TV or FM antenna to the
-> TDA18271 FM_IN pin! That's why TV antenna affected the radio. The switch is
-> probably controlled by some other GPIO pin (haven't tested this yet).
-> What's the best way to expose this switch to userspace?
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
 
-This switch is controlled by GPIO12 (use TV antenna for radio) and GPIO13 (use 
-FM antenna for radio). However, both these pins are tri-stated in Windows - 
-voltage is about 2.2V then, enabling both antennas.
+Based on an earlier version from Fabio Estevam, but this one moves iram.h
+to include/linux/platform_data/imx-iram.h instead of include/linux/iram.h
+which is a less generic name.
 
+ arch/arm/mach-imx/iram.h               |   41 --------------------------------
+ arch/arm/mach-imx/iram_alloc.c         |    3 +--
+ drivers/media/platform/coda.c          |    2 +-
+ include/linux/platform_data/imx-iram.h |   41 ++++++++++++++++++++++++++++++++
+ 4 files changed, 43 insertions(+), 44 deletions(-)
+ delete mode 100644 arch/arm/mach-imx/iram.h
+ create mode 100644 include/linux/platform_data/imx-iram.h
+
+diff --git a/arch/arm/mach-imx/iram.h b/arch/arm/mach-imx/iram.h
+deleted file mode 100644
+index 022690c..0000000
+--- a/arch/arm/mach-imx/iram.h
++++ /dev/null
+@@ -1,41 +0,0 @@
+-/*
+- * Copyright (C) 2010 Freescale Semiconductor, Inc. All Rights Reserved.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version 2
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+- * MA 02110-1301, USA.
+- */
+-#include <linux/errno.h>
+-
+-#ifdef CONFIG_IRAM_ALLOC
+-
+-int __init iram_init(unsigned long base, unsigned long size);
+-void __iomem *iram_alloc(unsigned int size, unsigned long *dma_addr);
+-void iram_free(unsigned long dma_addr, unsigned int size);
+-
+-#else
+-
+-static inline int __init iram_init(unsigned long base, unsigned long size)
+-{
+-	return -ENOMEM;
+-}
+-
+-static inline void __iomem *iram_alloc(unsigned int size, unsigned long *dma_addr)
+-{
+-	return NULL;
+-}
+-
+-static inline void iram_free(unsigned long base, unsigned long size) {}
+-
+-#endif
+diff --git a/arch/arm/mach-imx/iram_alloc.c b/arch/arm/mach-imx/iram_alloc.c
+index 6c80424..e05cf40 100644
+--- a/arch/arm/mach-imx/iram_alloc.c
++++ b/arch/arm/mach-imx/iram_alloc.c
+@@ -22,8 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/spinlock.h>
+ #include <linux/genalloc.h>
+-
+-#include "iram.h"
++#include "linux/platform_data/imx-iram.h"
+ 
+ static unsigned long iram_phys_base;
+ static void __iomem *iram_virt_base;
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 7b8b547..afadd3a 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -23,8 +23,8 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/of.h>
++#include <linux/platform_data/imx-iram.h>
+ 
+-#include <mach/iram.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+diff --git a/include/linux/platform_data/imx-iram.h b/include/linux/platform_data/imx-iram.h
+new file mode 100644
+index 0000000..022690c
+--- /dev/null
++++ b/include/linux/platform_data/imx-iram.h
+@@ -0,0 +1,41 @@
++/*
++ * Copyright (C) 2010 Freescale Semiconductor, Inc. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
++ * MA 02110-1301, USA.
++ */
++#include <linux/errno.h>
++
++#ifdef CONFIG_IRAM_ALLOC
++
++int __init iram_init(unsigned long base, unsigned long size);
++void __iomem *iram_alloc(unsigned int size, unsigned long *dma_addr);
++void iram_free(unsigned long dma_addr, unsigned int size);
++
++#else
++
++static inline int __init iram_init(unsigned long base, unsigned long size)
++{
++	return -ENOMEM;
++}
++
++static inline void __iomem *iram_alloc(unsigned int size, unsigned long *dma_addr)
++{
++	return NULL;
++}
++
++static inline void iram_free(unsigned long base, unsigned long size) {}
++
++#endif
 -- 
-Ondrej Zary
+1.7.10.4
+
