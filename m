@@ -1,319 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:56731 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094Ab3AYQz1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 11:55:27 -0500
-Received: by mail-bk0-f51.google.com with SMTP id ik5so388286bkc.10
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 08:55:25 -0800 (PST)
-Message-ID: <5102B924.7030800@googlemail.com>
-Date: Fri, 25 Jan 2013 17:56:04 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:59210 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753237Ab3AGLJt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 06:09:49 -0500
+Date: Mon, 7 Jan 2013 12:09:36 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+cc: kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c:
+ reposition free_irq to avoid access to invalid data
+In-Reply-To: <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr>
+Message-ID: <Pine.LNX.4.64.1301071111420.23972@axis700.grange>
+References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/3] mt9v011: convert to the control framework.
-References: <1359013876-12443-1-git-send-email-hverkuil@xs4all.nl> <8956523f0ef5757e85f7d7061575e7b227290c7b.1359013702.git.hans.verkuil@cisco.com>
-In-Reply-To: <8956523f0ef5757e85f7d7061575e7b227290c7b.1359013702.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 24.01.2013 08:51, schrieb Hans Verkuil:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+(adding Robert to CC)
+
+Hi Julia
+
+Thanks for the patch.
+
+On Mon, 7 Jan 2013, Julia Lawall wrote:
+
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> The data referenced by an interrupt handler should not be freed before the
+> interrupt is ended.  The handler is pxa_camera_irq.  This handler may call
+> pxa_dma_start_channels, which references the channels that are freed on the
+> lines before the call to free_irq.
+
+I don't think any data is freed by pxa_free_dma(), it only disables DMA on 
+a certain channel. Theoretically there could be a different problem: 
+pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates 
+it. But I think we're also protected against that: by the time 
+pxa_camera_remove() is called, and operation on the interface has been 
+stopped, client devices have been detached, pxa_camera_remove_device() has 
+been called, which has also stopped the interface clock. And with clock 
+stopped no interrupts can be generated. And the case of interrupt having 
+been generated before clk_disabled() and only delivered to the driver so 
+much later, that we're already unloading the module, seems really 
+impossible to me. Robert, you agree?
+
+OTOH, it would be nice to convert also this driver to managed allocations, 
+which also would include devm_request(_threaded)_irq(), but that would 
+mean, that free_irq() would be called even later than now, also after 
+pxa_free_dma().
+
+Speaking about managed allocations, those can be dangerous too: if you 
+request an IRQ before, say, remapping memory, or if you only use managed 
+IRQ requesting and ioremap() memory in your driver manually, that would be 
+wrong. But from a quick grep looks like most (all?) drivers get ir right - 
+first ioremap(), then request IRQ, but to be certain maybe coccinelle 
+could run a test for that too;-)
+
+Thanks
+Guennadi
+
+> The semantic match that finds this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @fn exists@
+> expression list es;
+> expression a,b;
+> identifier f;
+> @@
+> 
+> if (...) {
+>   ... when any
+>   free_irq(a,b);
+>   ... when any
+>   f(es);
+>   ... when any
+>   return ...;
+> }
+> 
+> @@
+> expression list fn.es;
+> expression fn.a,fn.b;
+> identifier fn.f;
+> @@
+> 
+> *f(es);
+> ... when any
+> *free_irq(a,b);
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
 > ---
->  drivers/media/i2c/mt9v011.c |  223 +++++++++++++------------------------------
->  1 file changed, 67 insertions(+), 156 deletions(-)
->
-> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
-> index 6bf01ad..73b7688 100644
-> --- a/drivers/media/i2c/mt9v011.c
-> +++ b/drivers/media/i2c/mt9v011.c
-> @@ -13,6 +13,7 @@
->  #include <asm/div64.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-chip-ident.h>
-> +#include <media/v4l2-ctrls.h>
->  #include <media/mt9v011.h>
+> Not compiled.  I have not observed the problem in practice; the code just
+> looks suspicious.
+> 
+>  drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> index f91f7bf..2a19aba 100644
+> --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> @@ -1810,10 +1810,10 @@ static int pxa_camera_remove(struct platform_device *pdev)
 >  
->  MODULE_DESCRIPTION("Micron mt9v011 sensor driver");
-> @@ -48,68 +49,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
->  #define MT9V011_VERSION			0x8232
->  #define MT9V011_REV_B_VERSION		0x8243
+>  	clk_put(pcdev->clk);
 >  
-> -/* supported controls */
-> -static struct v4l2_queryctrl mt9v011_qctrl[] = {
-> -	{
-> -		.id = V4L2_CID_GAIN,
-> -		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name = "Gain",
-> -		.minimum = 0,
-> -		.maximum = (1 << 12) - 1 - 0x0020,
-> -		.step = 1,
-> -		.default_value = 0x0020,
-> -		.flags = 0,
-> -	}, {
-> -		.id = V4L2_CID_EXPOSURE,
-> -		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name = "Exposure",
-> -		.minimum = 0,
-> -		.maximum = 2047,
-> -		.step = 1,
-> -		.default_value = 0x01fc,
-> -		.flags = 0,
-> -	}, {
-> -		.id = V4L2_CID_RED_BALANCE,
-> -		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name = "Red Balance",
-> -		.minimum = -1 << 9,
-> -		.maximum = (1 << 9) - 1,
-> -		.step = 1,
-> -		.default_value = 0,
-> -		.flags = 0,
-> -	}, {
-> -		.id = V4L2_CID_BLUE_BALANCE,
-> -		.type = V4L2_CTRL_TYPE_INTEGER,
-> -		.name = "Blue Balance",
-> -		.minimum = -1 << 9,
-> -		.maximum = (1 << 9) - 1,
-> -		.step = 1,
-> -		.default_value = 0,
-> -		.flags = 0,
-> -	}, {
-> -		.id      = V4L2_CID_HFLIP,
-> -		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name    = "Mirror",
-> -		.minimum = 0,
-> -		.maximum = 1,
-> -		.step    = 1,
-> -		.default_value = 0,
-> -		.flags = 0,
-> -	}, {
-> -		.id      = V4L2_CID_VFLIP,
-> -		.type    = V4L2_CTRL_TYPE_BOOLEAN,
-> -		.name    = "Vflip",
-> -		.minimum = 0,
-> -		.maximum = 1,
-> -		.step    = 1,
-> -		.default_value = 0,
-> -		.flags = 0,
-> -	}, {
-> -	}
-> -};
-> -
->  struct mt9v011 {
->  	struct v4l2_subdev sd;
-> +	struct v4l2_ctrl_handler ctrls;
->  	unsigned width, height;
->  	unsigned xtal;
->  	unsigned hflip:1;
-> @@ -381,99 +323,6 @@ static int mt9v011_reset(struct v4l2_subdev *sd, u32 val)
->  	set_read_mode(sd);
+> +	free_irq(pcdev->irq, pcdev);
+>  	pxa_free_dma(pcdev->dma_chans[0]);
+>  	pxa_free_dma(pcdev->dma_chans[1]);
+>  	pxa_free_dma(pcdev->dma_chans[2]);
+> -	free_irq(pcdev->irq, pcdev);
 >  
->  	return 0;
-> -};
-> -
-> -static int mt9v011_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> -{
-> -	struct mt9v011 *core = to_mt9v011(sd);
-> -
-> -	v4l2_dbg(1, debug, sd, "g_ctrl called\n");
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_GAIN:
-> -		ctrl->value = core->global_gain;
-> -		return 0;
-> -	case V4L2_CID_EXPOSURE:
-> -		ctrl->value = core->exposure;
-> -		return 0;
-> -	case V4L2_CID_RED_BALANCE:
-> -		ctrl->value = core->red_bal;
-> -		return 0;
-> -	case V4L2_CID_BLUE_BALANCE:
-> -		ctrl->value = core->blue_bal;
-> -		return 0;
-> -	case V4L2_CID_HFLIP:
-> -		ctrl->value = core->hflip ? 1 : 0;
-> -		return 0;
-> -	case V4L2_CID_VFLIP:
-> -		ctrl->value = core->vflip ? 1 : 0;
-> -		return 0;
-> -	}
-> -	return -EINVAL;
-> -}
-> -
-> -static int mt9v011_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
-> -{
-> -	int i;
-> -
-> -	v4l2_dbg(1, debug, sd, "queryctrl called\n");
-> -
-> -	for (i = 0; i < ARRAY_SIZE(mt9v011_qctrl); i++)
-> -		if (qc->id && qc->id == mt9v011_qctrl[i].id) {
-> -			memcpy(qc, &(mt9v011_qctrl[i]),
-> -			       sizeof(*qc));
-> -			return 0;
-> -		}
-> -
-> -	return -EINVAL;
-> -}
-> -
-> -
-> -static int mt9v011_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-> -{
-> -	struct mt9v011 *core = to_mt9v011(sd);
-> -	u8 i, n;
-> -	n = ARRAY_SIZE(mt9v011_qctrl);
-> -
-> -	for (i = 0; i < n; i++) {
-> -		if (ctrl->id != mt9v011_qctrl[i].id)
-> -			continue;
-> -		if (ctrl->value < mt9v011_qctrl[i].minimum ||
-> -		    ctrl->value > mt9v011_qctrl[i].maximum)
-> -			return -ERANGE;
-> -		v4l2_dbg(1, debug, sd, "s_ctrl: id=%d, value=%d\n",
-> -					ctrl->id, ctrl->value);
-> -		break;
-> -	}
-> -
-> -	switch (ctrl->id) {
-> -	case V4L2_CID_GAIN:
-> -		core->global_gain = ctrl->value;
-> -		break;
-> -	case V4L2_CID_EXPOSURE:
-> -		core->exposure = ctrl->value;
-> -		break;
-> -	case V4L2_CID_RED_BALANCE:
-> -		core->red_bal = ctrl->value;
-> -		break;
-> -	case V4L2_CID_BLUE_BALANCE:
-> -		core->blue_bal = ctrl->value;
-> -		break;
-> -	case V4L2_CID_HFLIP:
-> -		core->hflip = ctrl->value;
-> -		set_read_mode(sd);
-> -		return 0;
-> -	case V4L2_CID_VFLIP:
-> -		core->vflip = ctrl->value;
-> -		set_read_mode(sd);
-> -		return 0;
-> -	default:
-> -		return -EINVAL;
-> -	}
-> -
-> -	set_balance(sd);
-> -
-> -	return 0;
->  }
+>  	soc_camera_host_unregister(soc_host);
 >  
->  static int mt9v011_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
-> @@ -599,10 +448,46 @@ static int mt9v011_g_chip_ident(struct v4l2_subdev *sd,
->  					  version);
->  }
->  
-> -static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
-> -	.queryctrl = mt9v011_queryctrl,
-> -	.g_ctrl = mt9v011_g_ctrl,
-> +static int mt9v011_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct mt9v011 *core =
-> +		container_of(ctrl->handler, struct mt9v011, ctrls);
-> +	struct v4l2_subdev *sd = &core->sd;
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_GAIN:
-> +		core->global_gain = ctrl->val;
-> +		break;
-> +	case V4L2_CID_EXPOSURE:
-> +		core->exposure = ctrl->val;
-> +		break;
-> +	case V4L2_CID_RED_BALANCE:
-> +		core->red_bal = ctrl->val;
-> +		break;
-> +	case V4L2_CID_BLUE_BALANCE:
-> +		core->blue_bal = ctrl->val;
-> +		break;
-> +	case V4L2_CID_HFLIP:
-> +		core->hflip = ctrl->val;
-> +		set_read_mode(sd);
-> +		return 0;
-> +	case V4L2_CID_VFLIP:
-> +		core->vflip = ctrl->val;
-> +		set_read_mode(sd);
-> +		return 0;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	set_balance(sd);
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_ctrl_ops mt9v011_ctrl_ops = {
->  	.s_ctrl = mt9v011_s_ctrl,
-> +};
-> +
-> +static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
->  	.reset = mt9v011_reset,
->  	.g_chip_ident = mt9v011_g_chip_ident,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> @@ -658,6 +543,30 @@ static int mt9v011_probe(struct i2c_client *c,
->  		return -EINVAL;
->  	}
->  
-> +	v4l2_ctrl_handler_init(&core->ctrls, 5);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_GAIN, 0, (1 << 12) - 1 - 0x20, 1, 0x20);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_EXPOSURE, 0, 2047, 1, 0x01fc);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_RED_BALANCE, -(1 << 9), (1 << 9) - 1, 1, 0);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_BLUE_BALANCE, -(1 << 9), (1 << 9) - 1, 1, 0);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
-> +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +
-> +	if (core->ctrls.error) {
-> +		int ret = core->ctrls.error;
-> +
-> +		v4l2_err(sd, "control initialization error %d\n", ret);
-> +		v4l2_ctrl_handler_free(&core->ctrls);
-> +		kfree(core);
-> +		return ret;
-> +	}
-> +	core->sd.ctrl_handler = &core->ctrls;
-> +
->  	core->global_gain = 0x0024;
->  	core->exposure = 0x01fc;
->  	core->width  = 640;
-> @@ -681,12 +590,14 @@ static int mt9v011_probe(struct i2c_client *c,
->  static int mt9v011_remove(struct i2c_client *c)
->  {
->  	struct v4l2_subdev *sd = i2c_get_clientdata(c);
-> +	struct mt9v011 *core = to_mt9v011(sd);
->  
->  	v4l2_dbg(1, debug, sd,
->  		"mt9v011.c: removing mt9v011 adapter on address 0x%x\n",
->  		c->addr << 1);
->  
->  	v4l2_device_unregister_subdev(sd);
-> +	v4l2_ctrl_handler_free(&core->ctrls);
->  	kfree(to_mt9v011(sd));
->  	return 0;
->  }
+> 
 
-Tested-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-
-Fixes the em28xx regression (no image control with "Silvercrest 1.3MPix
-webcam") in the media-tree.
-
-Regards,
-Frank
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
