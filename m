@@ -1,257 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:39346 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab3AaXC2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 18:02:28 -0500
-Received: by mail-we0-f170.google.com with SMTP id z53so2504234wey.15
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 15:02:27 -0800 (PST)
-Message-ID: <510AF800.2090607@googlemail.com>
-Date: Thu, 31 Jan 2013 23:02:24 +0000
-From: Chris Clayton <chris2553@googlemail.com>
-MIME-Version: 1.0
-To: Chris Clayton <chris2553@googlemail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
-References: <510A9A1E.9090801@googlemail.com> <CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com> <510ADB2F.4080901@googlemail.com>
-In-Reply-To: <510ADB2F.4080901@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:45248 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754962Ab3AGSou (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 13:44:50 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r07Iin7x030715
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 13:44:49 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv8 1/2] dvb: Add DVBv5 stats properties for Quality of Service
+Date: Mon,  7 Jan 2013 16:44:14 -0200
+Message-Id: <1357584255-6500-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The DVBv3 quality parameters are limited on several ways:
 
+        - Doesn't provide any way to indicate the used measure,
+	  so userspace need to guess how to calculate the measure;
 
-On 01/31/13 20:59, Chris Clayton wrote:
-> Hi Devin
->
-> On 01/31/13 16:31, Devin Heitmueller wrote:
->> On Thu, Jan 31, 2013 at 11:21 AM, Chris Clayton
->> <chris2553@googlemail.com> wrote:
->>> Hi.
->>>
->>> On linuxtv.org, the Hauppauge WinTV-HVR-1400 is listed as being
->>> supported.
->>> I've bought one, but I find that when I run the scan for dvb-t channels,
->>> none are found. I have tried kernels 2.6.11, 2.7.5 and 3.8.0-rc5+
->>> (pulled
->>> from Linus' tree today)
->>>
->>> I know the aerial and cable are OK because, using the same cable,
->>> scanning
->>> with an internal PCI dvb-t card in a desktop computer finds 117 TV
->>> and radio
->>> channels. I know the HVR-1400 expresscard is OK because, again using the
->>> same cable, on Windows 7 the Hauppauge TV viewing application also
->>> finds all
->>> those channels.
->>
->> Try the patch described in this email sent last week:
->>
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg57577.html
->>
->> There's a very good chance you have the same problem.
->>
->
-> Thanks for the suggestion. Unfortunately, it doesn't fix my problem.
->
-> I've been doing some more investigating and I find that w_scan can't
-> "get any working frequency/transponder". The output is:
->
-> [chris:~]$ w_scan -c GB -x -C ASCII
-> w_scan version 20121111 (compiled for DVB API 5.5)
-> using settings for UNITED KINGDOM
-> DVB aerial
-> DVB-T GB
-> scan type TERRESTRIAL, channellist 6
-> output format initial tuning data
-> output charset 'ASCII'
-> Info: using DVB adapter auto detection.
->          /dev/dvb/adapter0/frontend0 -> TERRESTRIAL "DiBcom 7000PC":
-> good :-)
-> Using TERRESTRIAL frontend (adapter /dev/dvb/adapter0/frontend0)
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> Using DVB API 5.9
-> frontend 'DiBcom 7000PC' supports
-> INVERSION_AUTO
-> QAM_AUTO
-> TRANSMISSION_MODE_AUTO
-> GUARD_INTERVAL_AUTO
-> HIERARCHY_AUTO
-> FEC_AUTO
-> FREQ (44.25MHz ... 864.00MHz)
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> Scanning 7MHz frequencies...
-> 177500: (time: 00:00)
-> 184500: (time: 00:17)
-> 191500: (time: 00:34)
-> 198500: (time: 00:52)
-> 205500: (time: 01:09)
-> 212500: (time: 01:26)
-> 219500: (time: 01:43)
-> 226500: (time: 02:00)
-> Scanning 8MHz frequencies...
-> 474000: (time: 02:18)
-> 474167: (time: 02:35)
-> 473833: (time: 02:52)
-> 482000: (time: 03:09)
-> 482167: (time: 03:27)
-> 481833: (time: 03:44)
-> 490000: (time: 04:01)
-> 490167: (time: 04:18)
-> 489833: (time: 04:36)
-> 498000: (time: 04:53)
-> 498167: (time: 05:10)
-> 497833: (time: 05:27)
-> 506000: (time: 05:44)
-> 506167: (time: 06:02)
-> 505833: (time: 06:19)
-> 514000: (time: 06:36)
-> 514167: (time: 06:53)
-> 513833: (time: 07:11)
-> 522000: (time: 07:28)
-> 522167: (time: 07:45)
-> 521833: (time: 08:02)
-> 530000: (time: 08:19)
-> 530167: (time: 08:37)
-> 529833: (time: 08:54)
-> 538000: (time: 09:11)
-> 538167: (time: 09:28)
-> 537833: (time: 09:46)
-> 546000: (time: 10:03)
-> 546167: (time: 10:20)
-> 545833: (time: 10:37)
-> 554000: (time: 10:55)
-> 554167: (time: 11:12)
-> 553833: (time: 11:29)
-> 562000: (time: 11:46)
-> 562167: (time: 12:03)
-> 561833: (time: 12:21)
-> 570000: (time: 12:38)
-> 570167: (time: 12:55)
-> 569833: (time: 13:12)
-> 578000: (time: 13:30)
-> 578167: (time: 13:47)
-> 577833: (time: 14:04)
-> 586000: (time: 14:21)
-> 586167: (time: 14:38)
-> 585833: (time: 14:56)
-> 594000: (time: 15:13)
-> 594167: (time: 15:30)
-> 593833: (time: 15:47)
-> 602000: (time: 16:05)
-> 602167: (time: 16:22)
-> 601833: (time: 16:39)
-> 610000: (time: 16:56)
-> 610167: (time: 17:14)
-> 609833: (time: 17:31)
-> 618000: (time: 17:48)
-> 618167: (time: 18:05)
-> 617833: (time: 18:22)
-> 626000: (time: 18:40)
-> 626167: (time: 18:57)
-> 625833: (time: 19:14)
-> 634000: (time: 19:31)
-> 634167: (time: 19:49)
-> 633833: (time: 20:06)
-> 642000: (time: 20:23)
-> 642167: (time: 20:40)
-> 641833: (time: 20:58)
-> 650000: (time: 21:15)
-> 650167: (time: 21:32)
-> 649833: (time: 21:49)
-> 658000: (time: 22:06)
-> 658167: (time: 22:24)
-> 657833: (time: 22:41)
-> 666000: (time: 22:58)
-> 666167: (time: 23:15)
-> 665833: (time: 23:33)
-> 674000: (time: 23:50)
-> 674167: (time: 24:07)
-> 673833: (time: 24:24)
-> 682000: (time: 24:41)
-> 682167: (time: 24:59)
-> 681833: (time: 25:16)
-> 690000: (time: 25:33)
-> 690167: (time: 25:50)
-> 689833: (time: 26:08)
-> 698000: (time: 26:25)
-> 698167: (time: 26:42)
-> 697833: (time: 26:59)
-> 706000: (time: 27:17)
-> 706167: (time: 27:34)
-> 705833: (time: 27:51)
-> 714000: (time: 28:08)
-> 714167: (time: 28:25)
-> 713833: (time: 28:43)
-> 722000: (time: 29:00)
-> 722167: (time: 29:17)
-> 721833: (time: 29:34)
-> 730000: (time: 29:52)
-> 730167: (time: 30:09)
-> 729833: (time: 30:26)
-> 738000: (time: 30:43)
-> 738167: (time: 31:00)
-> 737833: (time: 31:18)
-> 746000: (time: 31:35)
-> 746167: (time: 31:52)
-> 745833: (time: 32:09)
-> 754000: (time: 32:27)
-> 754167: (time: 32:44)
-> 753833: (time: 33:01)
-> 762000: (time: 33:18)
-> 762167: (time: 33:36)
-> 761833: (time: 33:53)
-> 770000: (time: 34:10)
-> 770167: (time: 34:27)
-> 769833: (time: 34:44)
-> 778000: (time: 35:02)
-> 778167: (time: 35:19)
-> 777833: (time: 35:36)
-> 786000: (time: 35:53)
-> 786167: (time: 36:11)
-> 785833: (time: 36:28)
-> 794000: (time: 36:45)
-> 794167: (time: 37:02)
-> 793833: (time: 37:20)
-> 802000: (time: 37:37)
-> 802167: (time: 37:54)
-> 801833: (time: 38:11)
-> 810000: (time: 38:28)
-> 810167: (time: 38:46)
-> 809833: (time: 39:03)
-> 818000: (time: 39:20)
-> 818167: (time: 39:37)
-> 817833: (time: 39:55)
-> 826000: (time: 40:12)
-> 826167: (time: 40:29)
-> 825833: (time: 40:46)
-> 834000: (time: 41:03)
-> 834167: (time: 41:21)
-> 833833: (time: 41:38)
-> 842000: (time: 41:55)
-> 842167: (time: 42:12)
-> 841833: (time: 42:30)
-> 850000: (time: 42:47)
-> 850167: (time: 43:04)
-> 849833: (time: 43:21)
-> 858000: (time: 43:39)
-> 858167: (time: 43:56)
-> 857833: (time: 44:13)
->
-> ERROR: Sorry - i couldn't get any working frequency/transponder
->   Nothing to scan!!
->
-> That test was with the described patch applied to a 3.7.5 kernel. The
-> xc2028 code for 3.8.0-rc5+ is identical to that in 3.7.5. I'll try it
-> again without the patch.
->
-No luck. I get the same result without the patch. Oh well, "don't trust 
-what it says on linuxtv.org" seems to be the lesson learned here. :-(
+        - Only a limited set of stats are supported;
 
-Chris
->> Devin
->>
->
->
+        - Can't be called in a way to require them to be filled
+          all at once (atomic reads from the hardware), with may
+          cause troubles on interpreting them on userspace;
+
+        - On some OFDM delivery systems, the carriers can be
+          independently modulated, having different properties.
+          Currently, there's no way to report per-layer stats.
+
+To address the above issues, adding a new DVBv5-based stats
+API.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+---
+
+v6: Add DocBook documentation.
+v7: Some fixes as suggested by Antti
+V8: Documentation fix, compilation fix and name the stats struct,
+    for its reusage inside the core
+
+TODO:
+	- Add a driver implementation.
+---
+ Documentation/DocBook/media/dvb/dvbproperty.xml | 97 ++++++++++++++++++++++++-
+ include/uapi/linux/dvb/frontend.h               | 83 ++++++++++++++++++++-
+ 2 files changed, 177 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 957e3ac..9168808 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -7,16 +7,29 @@ the capability ioctls weren't implemented yet via the new way.</para>
+ <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
+ API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+ struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
++<section id="dtv-stats">
++<title>DTV stats type</title>
++<programlisting>
++struct dtv_stats {
++        __u16 value;
++        __u8 scale;
++} __attribute__ ((packed));
++</programlisting>
++</section>
+ <section id="dtv-property">
+ <title>DTV property type</title>
+ <programlisting>
+ /* Reserved fields should be set to 0 */
++
+ struct dtv_property {
+ 	__u32 cmd;
+ 	union {
+ 		__u32 data;
+ 		struct {
+-			__u8 data[32];
++			union {
++				__u8 data[32];
++				__u16 data[16];
++			}
+ 			__u32 len;
+ 			__u32 reserved1[3];
+ 			void *reserved2;
+@@ -850,6 +863,78 @@ enum fe_interleaving {
+ 	<para>use the special macro LNA_AUTO to set LNA auto</para>
+ 	</section>
+ </section>
++
++	<section id="frontend-qos-properties">
++	<title>Frontend Quality of Service/Statistics indicators</title>
++	<para>Except for <link linkend="DTV-QOS-ENUM"><constant>DTV_QOS_ENUM</constant></link>,
++	the values are returned via <constant>dtv_property.stat</constant>.</para>
++	<para>For most delivery systems, this will return a single value for each parameter.</para>
++	<para>It should be noticed, however, that new OFDM delivery systems
++	like ISDB can use different modulation types for each group of carriers.
++	On such standards, up to 3 groups of statistics can be provided, one
++	for each carrier group (called "layer" on ISDB).
++	In order to be consistent with other delivery systems, the first
++	value at <link linkend="dtv-stats"><constant>dtv_property.stat.dtv_stats</constant></link> array refers to
++	a global indicator, if any. The other elements of the array represent
++	each layer, starting from layer A(index 1), layer B (index 2) and so on</para>
++	<para>The number of filled elements are stored at <constant>dtv_property.stat.len</constant>.</para>
++	<para>Each element of the <constant>dtv_property.stat.dtv_stats</constant> array consists on two elements:</para>
++	<itemizedlist mark='opencircle'>
++		<listitem><para><constant>value</constant> - Value of the measure</para></listitem>
++		<listitem><para><constant>scale</constant> - Scale for the value. It can be:</para>
++			<section id = "fecap-scale-params">
++			<itemizedlist mark='bullet'>
++				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
++				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
++				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
++				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
++			</itemizedlist>
++			</section>
++		</listitem>
++	</itemizedlist>
++	<section id="DTV-QOS-ENUM">
++		<title><constant>DTV_QOS_ENUM</constant></title>
++		<para>A frontend needs to advertise the statistics it provides. This property allows to enumerate all
++			<link linkend="frontend-qos-properties">DTV QoS statistics</link> that are
++			supported by a given frontend.</para>
++
++		<para><constant>dtv_property.len</constant> indicates the number of supported
++		<link linkend="frontend-qos-properties">DTV QoS statistics</link>.</para>
++		<para><constant>dtv_property.data16</constant> is an 16 bits array of the supported properties.</para>
++	</section>
++	<section id="DTV-QOS-SIGNAL-STRENGTH">
++		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
++		<para>Indicates the signal strength level at the analog part of the tuner.</para>
++	</section>
++	<section id="DTV-QOS-CNR">
++		<title><constant>DTV_QOS_CNR</constant></title>
++		<para>Indicates the signal to noise relation for the main carrier.</para>
++
++	</section>
++	<section id="DTV-QOS-BIT-ERROR-COUNT">
++		<title><constant>DTV_QOS_BIT_ERROR_COUNT</constant></title>
++		<para>Measures the number of bit errors since the last counter reset.</para>
++		<para>In order to get the BER (Bit Error Rate) measurement, it should be divided by
++		<link linkend="DTV-QOS-TOTAL-BITS-COUNT"><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></link>.</para>
++	</section>
++	<section id="DTV-QOS-TOTAL-BITS-COUNT">
++		<title><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></title>
++		<para>Measures the amount of bits received since the last <link linkend="DTV-QOS-BIT-ERROR-COUNT"><constant>DTV_QOS_BIT_ERROR_COUNT</constant></link> reset.</para>
++	</section>
++	<section id="DTV-QOS-ERROR-BLOCK-COUNT">
++		<title><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></title>
++		<para>Measures the number of block errors since the last counter reset.</para>
++	</section>
++	<section id="DTV-QOS-TOTAL-BLOCKS-COUNT">
++		<title><constant>DTV-QOS_TOTAL_BLOCKS_COUNT</constant></title>
++		<para>Measures the total number of blocks since the last
++		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link> reset.</para>
++		<para>It can be used to calculate the PER indicator, by dividing
++		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link>
++		by <link linkend="DTV-QOS-TOTAL-BLOCKS-COUNT"><constant>DTV-QOS-TOTAL-BLOCKS-COUNT</constant></link>.</para>
++	</section>
++	</section>
++
+ 	<section id="frontend-property-terrestrial-systems">
+ 	<title>Properties used on terrestrial delivery systems</title>
+ 		<section id="dvbt-params">
+@@ -871,6 +956,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="dvbt2-params">
+ 			<title>DVB-T2 delivery system</title>
+@@ -895,6 +981,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="isdbt">
+ 		<title>ISDB-T delivery system</title>
+@@ -948,6 +1035,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT"><constant>DTV_ISDBT_LAYERC_SEGMENT_COUNT</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING"><constant>DTV_ISDBT_LAYERC_TIME_INTERLEAVING</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="atsc-params">
+ 			<title>ATSC delivery system</title>
+@@ -961,6 +1049,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="atscmh-params">
+ 			<title>ATSC-MH delivery system</title>
+@@ -988,6 +1077,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-C"><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-D"><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="dtmb-params">
+ 			<title>DTMB delivery system</title>
+@@ -1007,6 +1097,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 	</section>
+ 	<section id="frontend-property-cable-systems">
+@@ -1028,6 +1119,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	<section id="dvbc-annex-b-params">
+ 		<title>DVB-C Annex B delivery system</title>
+@@ -1043,6 +1135,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	</section>
+ 	<section id="frontend-property-satellital-systems">
+@@ -1062,6 +1155,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-VOLTAGE"><constant>DTV_VOLTAGE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TONE"><constant>DTV_TONE</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		<para>Future implementations might add those two missing parameters:</para>
+ 		<itemizedlist mark='opencircle'>
+ 			<listitem><para><link linkend="DTV-DISEQC-MASTER"><constant>DTV_DISEQC_MASTER</constant></link></para></listitem>
+@@ -1077,6 +1171,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	<section id="turbo-params">
+ 		<title>Turbo code delivery system</title>
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index c12d452..437c440 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -365,7 +365,16 @@ struct dvb_frontend_event {
+ #define DTV_INTERLEAVING			60
+ #define DTV_LNA					61
+ 
+-#define DTV_MAX_COMMAND				DTV_LNA
++/* Quality parameters */
++#define DTV_QOS_ENUM			62
++#define DTV_QOS_SIGNAL_STRENGTH		63
++#define DTV_QOS_CNR			64
++#define DTV_QOS_BIT_ERROR_COUNT		65
++#define DTV_QOS_TOTAL_BITS_COUNT	66
++#define DTV_QOS_ERROR_BLOCK_COUNT	67
++#define DTV_QOS_TOTAL_BLOCKS_COUNT	68
++
++#define DTV_MAX_COMMAND		DTV_QOS_TOTAL_BLOCKS_COUNT
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -452,13 +461,83 @@ struct dtv_cmds_h {
+ 	__u32	reserved:30;	/* Align */
+ };
+ 
++/**
++ * Scale types for the quality parameters.
++ * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
++ *			    could indicate a temporary or a permanent
++ *			    condition.
++ * @FE_SCALE_DECIBEL: The scale is measured in 0.1 dB steps, typically
++ *		  used on signal measures.
++ * @FE_SCALE_RELATIVE: The scale is a relative percentual measure,
++ *			ranging from 0 (0%) to 0xffff (100%).
++ * @FE_SCALE_COUNTER: The scale counts the occurrence of an event, like
++ *			bit error, block error, lapsed time.
++ */
++enum fecap_scale_params {
++	FE_SCALE_NOT_AVAILABLE,
++	FE_SCALE_DECIBEL,
++	FE_SCALE_RELATIVE,
++	FE_SCALE_COUNTER
++};
++
++/**
++ * struct dtv_stats - Used for reading a DTV status property
++ *
++ * @value:	value of the measure. Should range from 0 to 0xffff;
++ * @scale:	Filled with enum fecap_scale_params - the scale
++ *		in usage for that parameter
++ *
++ * For most delivery systems, this will return a single value for each
++ * parameter.
++ * It should be noticed, however, that new OFDM delivery systems like
++ * ISDB can use different modulation types for each group of carriers.
++ * On such standards, up to 8 groups of statistics can be provided, one
++ * for each carrier group (called "layer" on ISDB).
++ * In order to be consistent with other delivery systems, the first
++ * value refers to the entire set of carriers ("global").
++ * dtv_status:scale should use the value FE_SCALE_NOT_AVAILABLE when
++ * the value for the entire group of carriers or from one specific layer
++ * is not provided by the hardware.
++ * st.len should be filled with the latest filled status + 1.
++ *
++ * In other words, for ISDB, those values should be filled like:
++ *	u.st.stat.svalue[0] = global statistics;
++ *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
++ *	u.st.stat.value[1] = layer A statistics;
++ *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
++ *	u.st.stat.svalue[2] = layer B statistics;
++ *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
++ *	u.st.stat.svalue[3] = layer C statistics;
++ *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
++ *	u.st.len = 4;
++ */
++struct dtv_stats {
++	__u8 scale;	/* enum fecap_scale_params type */\
++	union {
++		__u16 uvalue;	/* for counters and relative scales */
++		__s16 svalue;	/* for 0.1 dB measures */
++	};
++} __attribute__ ((packed));
++
++
++#define MAX_QOS_STATS   4
++
++struct dtv_fe_stats {
++	__u8 len;
++	struct dtv_stats stat[MAX_QOS_STATS];
++} __attribute__ ((packed));
++
+ struct dtv_property {
+ 	__u32 cmd;
+ 	__u32 reserved[3];
+ 	union {
+ 		__u32 data;
++		struct dtv_fe_stats st;
+ 		struct {
+-			__u8 data[32];
++			union {
++				__u8 data[32];
++				__u16 data16[16];
++			};
+ 			__u32 len;
+ 			__u32 reserved1[3];
+ 			void *reserved2;
+-- 
+1.7.11.7
+
