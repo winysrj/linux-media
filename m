@@ -1,61 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42135 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817Ab3AVIWL (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52785 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752294Ab3AGAFa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 03:22:11 -0500
-Date: Tue, 22 Jan 2013 09:21:58 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	arm@kernel.org, Javier Martin <javier.martin@vista-silicon.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 09/15] media: coda: don't build on multiplatform
-Message-ID: <20130122082158.GC9414@pengutronix.de>
-References: <1358788568-11137-1-git-send-email-arnd@arndb.de>
- <1358788568-11137-10-git-send-email-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1358788568-11137-10-git-send-email-arnd@arndb.de>
+	Sun, 6 Jan 2013 19:05:30 -0500
+Message-ID: <1357517060.1851.16.camel@palomino.walls.org>
+Subject: Re: [PATCH] [media] ivtv: ivtv-driver: Replace 'flush_work_sync()'
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media ML <linux-media@vger.kernel.org>
+Date: Sun, 06 Jan 2013 19:04:20 -0500
+In-Reply-To: <20121220151845.4e92f056@redhat.com>
+References: <20121121152809.51c780a6@redhat.com>
+	 <20121220151845.4e92f056@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 21, 2013 at 05:16:02PM +0000, Arnd Bergmann wrote:
-> The coda video codec driver depends on a mach-imx or mach-mxs specific
-> header file "mach/iram.h". This is not available when building for
-> multiplatform, so let us disable this driver for v3.8 when building
-> multiplatform, and hopefully find a proper fix for v3.9.
+On Thu, 2012-12-20 at 15:18 -0200, Mauro Carvalho Chehab wrote:
+> Em Wed, 21 Nov 2012 15:28:09 -0200
+> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 > 
-> drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
-
-I just sent a pull request for this with a proper fix.
-
+> > Hi Andy,
+> > 
+> > I'm understanding that you'll be reviewing this patch. So, I'm marking it as
+> > under_review at patchwork.
 > 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index 3dcfea6..049d2b2 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -142,7 +142,7 @@ if V4L_MEM2MEM_DRIVERS
->  
->  config VIDEO_CODA
->  	tristate "Chips&Media Coda multi-standard codec IP"
-> -	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
-> +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC && !ARCH_MULTIPLATFORM
+> -ENOANSWER. Let me apply it, in order to fix the warning.
 
-This breakage is not multiplatform related at all, it won't compile
-without multiplatform support either. So depends on BROKEN would be
-more appropriate if you want to go this way.
+Ooops.  Sorry about that.
 
-Sascha
+Strictly speaking, I think the patch introduces a race condition that is
+extremely unlikely to be encountered, and it likely wouldn't have
+terrible consequences anyway.
+
+For the normal end-user, it will never be a problem.
+
+FWIW:
+Acked-by: Andy Walls <awalls@md.metrocast.net>
+
+Regards,
+Andy
+> > 
+> > Thanks,
+> > Mauro
+> > 
+> > Forwarded message:
+> > 
+> > Date: Wed, 24 Oct 2012 10:14:16 -0200
+> > From: Fabio Estevam <festevam@gmail.com>
+> > To: awalls@md.metrocast.net
+> > Cc: mchehab@infradead.org, linux-media@vger.kernel.org, tj@kernel.org, Fabio Estevam <fabio.estevam@freescale.com>
+> > Subject: [PATCH] [media] ivtv: ivtv-driver: Replace 'flush_work_sync()'
+> > 
+> > 
+> > From: Fabio Estevam <fabio.estevam@freescale.com>
+> > 
+> > Since commit 43829731d (workqueue: deprecate flush[_delayed]_work_sync()),
+> > flush_work() should be used instead of flush_work_sync().
+> > 
+> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> > ---
+> >  drivers/media/pci/ivtv/ivtv-driver.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
+> > index 74e9a50..5d0a5df 100644
+> > --- a/drivers/media/pci/ivtv/ivtv-driver.c
+> > +++ b/drivers/media/pci/ivtv/ivtv-driver.c
+> > @@ -304,7 +304,7 @@ static void request_modules(struct ivtv *dev)
+> >  
+> >  static void flush_request_modules(struct ivtv *dev)
+> >  {
+> > -	flush_work_sync(&dev->request_module_wk);
+> > +	flush_work(&dev->request_module_wk);
+> >  }
+> >  #else
+> >  #define request_modules(dev)
+> 
+> 
 
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
