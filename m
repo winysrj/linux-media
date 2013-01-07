@@ -1,61 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:42237 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758024Ab3AJCHH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:07:07 -0500
-Received: by mail-ee0-f44.google.com with SMTP id l10so16790eei.17
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 18:07:06 -0800 (PST)
-Message-ID: <50EE223B.80204@gmail.com>
-Date: Thu, 10 Jan 2013 03:06:51 +0100
-From: thomas schorpp <thomas.schorpp@gmail.com>
-Reply-To: thomas.schorpp@gmail.com
-MIME-Version: 1.0
-To: Soby Mathew <soby.linuxtv@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: global mutex in dvb_usercopy (dvbdev.c)
-References: <CAGzWAsgZGu8_JTrE1GvnpbR+W92fvRycfFhAX2NbZ9VZqorJ6w@mail.gmail.com> <20130109213043.GB7500@zorro.zusammrottung.local>
-In-Reply-To: <20130109213043.GB7500@zorro.zusammrottung.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:37959 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab3AGKCH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:02:07 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MG900LLS2H0WJ90@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Jan 2013 10:02:04 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MG9008VC2JF0M90@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 07 Jan 2013 10:02:04 +0000 (GMT)
+Message-id: <50EA9D19.6090107@samsung.com>
+Date: Mon, 07 Jan 2013 11:02:01 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] [media] s5p-mfc: use mfc_err instead of printk
+References: <1356689908-6866-1-git-send-email-sachin.kamat@linaro.org>
+ <007401cde917$38c58200$aa508600$%debski@samsung.com>
+ <CAK9yfHzbMKvo-WYED9hPdzCccjvKcXgtq=SqOLPEGuaGhMwqCw@mail.gmail.com>
+In-reply-to: <CAK9yfHzbMKvo-WYED9hPdzCccjvKcXgtq=SqOLPEGuaGhMwqCw@mail.gmail.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.01.2013 22:30, Nikolaus Schulz wrote:
-> On Tue, Jan 08, 2013 at 12:05:47PM +0530, Soby Mathew wrote:
->> Hi Everyone,
->>      I have a doubt regarding about the global mutex lock in
->> dvb_usercopy(drivers/media/dvb-core/dvbdev.c, line 382) .
+Hi Sachin,
+
+On 01/07/2013 05:09 AM, Sachin Kamat wrote:
+> Hi Sylwester,
+> 
+> On 3 January 2013 00:00, Kamil Debski <k.debski@samsung.com> wrote:
+>> Hi Sachin,
 >>
+>> Thank you for your patch.
 >>
->> /* call driver */
->> mutex_lock(&dvbdev_mutex);
->> if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
->> err = -EINVAL;
->> mutex_unlock(&dvbdev_mutex);
+>> Best wishes,
+>> --
+>> Kamil Debski
+>> Linux Platform Group
+>> Samsung Poland R&D Center
 >>
+>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+>>> Sent: Friday, December 28, 2012 11:18 AM
+>>> To: linux-media@vger.kernel.org
+>>> Cc: k.debski@samsung.com; s.nawrocki@samsung.com;
+>>> sylvester.nawrocki@gmail.com; sachin.kamat@linaro.org;
+>>> patches@linaro.org
+>>> Subject: [PATCH 1/3] [media] s5p-mfc: use mfc_err instead of printk
+>>>
+>>> Use mfc_err for consistency. Also silences checkpatch warning.
+>>>
 >>
->> Why is this mutex needed? When I check similar functions like
->> video_usercopy, this kind of global locking is not present when func()
->> is called.
->
-> I cannot say anything about video_usercopy(), but as it happens, there's
-> a patch[1] queued for Linux 3.9 that will hopefully replace the mutex in
-> dvb_usercopy() with more fine-grained locking.
->
-> Nikolaus
->
-> [1] http://git.linuxtv.org/media_tree.git/commit/30ad64b8ac539459f8975aa186421ef3db0bb5cb
+>> Acked-by: Kamil Debski <k.debski@samsung.com>
+>>
+>>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>>> ---
+> 
+> Probably you missed to apply this patch to your tree.
 
-"Unfortunately, frontend ioctls can be blocked by the frontend thread for several seconds; this leads to unacceptable lock contention."
-Especially the stv0297 signal locking, as it turned out in situations of bad signal input or my cable providers outtage today it has slowed down dvb_ttpci (notable as OSD- output latency and possibly driver buffer overflows of budget source devices) that much that I had to disable tuning with parm --outputonly in vdr-plugin-dvbsddevice.
+Hmm, not really, I intended it for a second v3.9 pull request.
+However I checked it yesterday and it doesn't apply any more.
+Since one of Kamil's patches includes same change.
 
-Can anyone confirm that and have a look at the other frontend drivers for tuners needing as much driver control?
-
-I will try to apply the patch manually to Linux 3.2 and check with Latencytop tomorrow.
-
-y
-tom
-
-
-
-
-
+Thanks,
+Sylwester
