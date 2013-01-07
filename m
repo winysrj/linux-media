@@ -1,41 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35425 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752702Ab3ABVAA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jan 2013 16:00:00 -0500
-Message-ID: <50E49FA6.8010402@iki.fi>
-Date: Wed, 02 Jan 2013 22:59:18 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Matthew Gyurgyik <matthew@pyther.net>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?Frank_Sc?= =?ISO-8859-1?Q?h=E4fer?=
-	<fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:8553 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751626Ab3AGLSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 06:18:08 -0500
+Date: Mon, 7 Jan 2013 12:18:05 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+cc: Julia Lawall <Julia.Lawall@lip6.fr>,
+	kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jwilson@redhat.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50C4D011.6010700@pyther.net> <50C60220.8050908@googlemail.com> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net> <50CE74C7.90809@iki.fi> <50CE7763.3030900@pyther.net> <50CEE6FA.4030901@iki.fi> <50CEFD29.8060009@iki.fi> <50CEFF43.1030704@pyther.net> <50CF44CD.5060707@redhat.com> <50CFDE2B.6040100@pyther.net>
-In-Reply-To: <50CFDE2B.6040100@pyther.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	linux-kernel@vger.kernel.org,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c:
+ reposition free_irq to avoid access to invalid data
+In-Reply-To: <Pine.LNX.4.64.1301071111420.23972@axis700.grange>
+Message-ID: <alpine.DEB.2.02.1301071214150.1908@hadrien>
+References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr> <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr> <Pine.LNX.4.64.1301071111420.23972@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/18/2012 05:08 AM, Matthew Gyurgyik wrote:
-> I can test patches Tue and Wed this week. Afterwards, I probably won't
-> be able to test anything until Dec 28th/29th as I will be away from my
-> workstation.
+On Mon, 7 Jan 2013, Guennadi Liakhovetski wrote:
+
+> (adding Robert to CC)
 >
-> In regards to my issue compiling my kernel, it helps if I include
-> devtmpfs. :)
+> Hi Julia
+>
+> Thanks for the patch.
+>
+> On Mon, 7 Jan 2013, Julia Lawall wrote:
+>
+> > From: Julia Lawall <Julia.Lawall@lip6.fr>
+> >
+> > The data referenced by an interrupt handler should not be freed before the
+> > interrupt is ended.  The handler is pxa_camera_irq.  This handler may call
+> > pxa_dma_start_channels, which references the channels that are freed on the
+> > lines before the call to free_irq.
+>
+> I don't think any data is freed by pxa_free_dma(), it only disables DMA on
+> a certain channel.
 
-Matthew, test? Both remote and television.
+OK, I seem to have been thrown off by the clearing fo the name field, but
+that doesn't seem to be very important.
 
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/HU345-Q
+> Theoretically there could be a different problem:
+> pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates
+> it. But I think we're also protected against that: by the time
+> pxa_camera_remove() is called, and operation on the interface has been
+> stopped, client devices have been detached, pxa_camera_remove_device() has
+> been called, which has also stopped the interface clock. And with clock
+> stopped no interrupts can be generated. And the case of interrupt having
+> been generated before clk_disabled() and only delivered to the driver so
+> much later, that we're already unloading the module, seems really
+> impossible to me. Robert, you agree?
 
-regards
-Antti
--- 
-http://palosaari.fi/
+OK, thanks for the explanation.
+
+> OTOH, it would be nice to convert also this driver to managed allocations,
+> which also would include devm_request(_threaded)_irq(), but that would
+> mean, that free_irq() would be called even later than now, also after
+> pxa_free_dma().
+
+OK, if it is safe to call free_irq much later, then I can propose a patch
+for that.
+
+> Speaking about managed allocations, those can be dangerous too: if you
+> request an IRQ before, say, remapping memory, or if you only use managed
+> IRQ requesting and ioremap() memory in your driver manually, that would be
+> wrong. But from a quick grep looks like most (all?) drivers get ir right -
+> first ioremap(), then request IRQ, but to be certain maybe coccinelle
+> could run a test for that too;-)
+
+Sure.  Thanks for the suggestion!
+
+julia
+
+> Thanks
+> Guennadi
+>
+> > The semantic match that finds this problem is as follows:
+> > (http://coccinelle.lip6.fr/)
+> >
+> > // <smpl>
+> > @fn exists@
+> > expression list es;
+> > expression a,b;
+> > identifier f;
+> > @@
+> >
+> > if (...) {
+> >   ... when any
+> >   free_irq(a,b);
+> >   ... when any
+> >   f(es);
+> >   ... when any
+> >   return ...;
+> > }
+> >
+> > @@
+> > expression list fn.es;
+> > expression fn.a,fn.b;
+> > identifier fn.f;
+> > @@
+> >
+> > *f(es);
+> > ... when any
+> > *free_irq(a,b);
+> > // </smpl>
+> >
+> > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> >
+> > ---
+> > Not compiled.  I have not observed the problem in practice; the code just
+> > looks suspicious.
+> >
+> >  drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+> > index f91f7bf..2a19aba 100644
+> > --- a/drivers/media/platform/soc_camera/pxa_camera.c
+> > +++ b/drivers/media/platform/soc_camera/pxa_camera.c
+> > @@ -1810,10 +1810,10 @@ static int pxa_camera_remove(struct platform_device *pdev)
+> >
+> >  	clk_put(pcdev->clk);
+> >
+> > +	free_irq(pcdev->irq, pcdev);
+> >  	pxa_free_dma(pcdev->dma_chans[0]);
+> >  	pxa_free_dma(pcdev->dma_chans[1]);
+> >  	pxa_free_dma(pcdev->dma_chans[2]);
+> > -	free_irq(pcdev->irq, pcdev);
+> >
+> >  	soc_camera_host_unregister(soc_host);
+> >
+> >
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
