@@ -1,113 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:62464 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab3A3P64 (ORCPT
+Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:4608 "EHLO
+	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1749667Ab3AGVJa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 10:58:56 -0500
-Received: by mail-lb0-f169.google.com with SMTP id m4so2309853lbo.28
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 07:58:54 -0800 (PST)
-Received: by mail-la0-f49.google.com with SMTP id fs13so1206497lab.22
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 07:58:51 -0800 (PST)
+	Mon, 7 Jan 2013 16:09:30 -0500
+Date: Mon, 7 Jan 2013 22:09:27 +0100 (CET)
+From: Julia Lawall <julia.lawall@lip6.fr>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c:
+ reposition free_irq to avoid access to invalid data
+In-Reply-To: <874nisbvsh.fsf@free.fr>
+Message-ID: <alpine.DEB.2.02.1301072209090.1989@localhost6.localdomain6>
+References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr> <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr> <Pine.LNX.4.64.1301071111420.23972@axis700.grange> <874nisbvsh.fsf@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <1359527449-5174-2-git-send-email-vikas.sajjan@linaro.org>
-References: <1359527449-5174-1-git-send-email-vikas.sajjan@linaro.org> <1359527449-5174-2-git-send-email-vikas.sajjan@linaro.org>
-From: Sean Paul <seanpaul@chromium.org>
-Date: Wed, 30 Jan 2013 10:58:31 -0500
-Message-ID: <CAOw6vbKSeQ05o7VSQek0w4rhumN1B+ighrxC3wqUKZ_Sxfo3xw@mail.gmail.com>
-Subject: Re: [PATCH v2 1/1] video: drm: exynos: Adds display-timing node
- parsing using video helper function
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org,
-	Leelakrishna A <l.krishna@samsung.com>,
-	"kgene.kim" <kgene.kim@samsung.com>, s.trumtrar@pengutronix.de,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 30, 2013 at 1:30 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> This patch adds display-timing node parsing using video helper function
->
-> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   38 +++++++++++++++++++++++++++---
->  1 file changed, 35 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index bf0d9ba..94729ed 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
->
->  #include <video/samsung_fimd.h>
->  #include <drm/exynos_drm.h>
-> @@ -905,15 +906,46 @@ static int __devinit fimd_probe(struct platform_device *pdev)
->         struct exynos_drm_subdrv *subdrv;
->         struct exynos_drm_fimd_pdata *pdata;
->         struct exynos_drm_panel_info *panel;
-> +       struct fb_videomode *fbmode;
-> +       struct device *disp_dev = &pdev->dev;
+On Mon, 7 Jan 2013, Robert Jarzmik wrote:
 
-Isn't this the same as dev (maybe I'm missing some dependent patch)?
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > (adding Robert to CC)
+> > I don't think any data is freed by pxa_free_dma(), it only disables DMA on 
+> > a certain channel. Theoretically there could be a different problem: 
+> > pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates 
+> > it. But I think we're also protected against that: by the time 
+> > pxa_camera_remove() is called, and operation on the interface has been 
+> > stopped, client devices have been detached, pxa_camera_remove_device() has 
+> > been called, which has also stopped the interface clock. And with clock 
+> > stopped no interrupts can be generated. And the case of interrupt having 
+> > been generated before clk_disabled() and only delivered to the driver so 
+> > much later, that we're already unloading the module, seems really 
+> > impossible to me. Robert, you agree?
+> 
+> Agreed that pxa_free_dma() doesn't free anything, that one is easy :)
+> 
+> And agreed too for the second part, with a slighly different explanation :
+>  - pxa_camera_remove_device() has been called as you said
+>  - inside this function, check comment
+>    "/* disable capture, disable interrupts */"
+>    => this ensures no interrupt can be generated anymore
+> 
+> So after pxa_camera_remove_device() has been called, no interrupts can be
+> generated.
+> 
+> Yet as you said, it leaves the "almost impossible" scenario :
+>  - a user begins a capture
+>  - the user closes the capture device and unloads pxa-camera.ko:
+>      soc_camera_close()
+>        pxa_camera_remove_device()
+>          the IRQ line is asserted but doesn't trigger yet the interrupt handler
+>          (yes I know, improbable)
+>          meanwhile, IRQs are disabled, DMA channels are stopped
+>      switch_to(rmmod)
+>        => yes I know, impossible, the interrupt handler must be run before, but
+>        let's continue for love of discussion ...
+>      rmmod pxa-camera
+>        pxa_camera_remove()
+>          pxa_free_dma() * 3
+>          ----> here the IRQ handler kicks in !!!
+>                => pxa_camera_irq()
+>                     pxa_dma_start_channels()
+>          ----> it hurts !
+> 
+> My call is that this is impossible because the switch_to() should run the IRQ
+> handler before pxa_camera_remove() is called.
+> 
+> So all this to say that I think we're safe, unless a heavy ion or a cosmic ray
+> strikes the PXA :)
 
-> +       struct pinctrl *pctrl;
->         struct resource *res;
->         int win;
->         int ret = -EINVAL;
->
->         DRM_DEBUG_KMS("%s\n", __FILE__);
->
-> -       pdata = pdev->dev.platform_data;
-> -       if (!pdata) {
-> -               dev_err(dev, "no platform data specified\n");
-> +       if (pdev->dev.of_node) {
-> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +               if (!pdata) {
-> +                       DRM_ERROR("memory allocation for pdata failed\n");
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-> +               if (!fbmode) {
-> +                       DRM_ERROR("memory allocation for fbmode failed\n");
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               ret = of_get_fb_videomode(disp_dev->of_node, fbmode, -1);
-> +               if (ret) {
-> +                       DRM_ERROR("failed to get fb_videomode\n");
-> +                       return -EINVAL;
-> +               }
-> +               pdata->panel.timing = (struct fb_videomode) *fbmode;
-> +
-> +       } else {
-> +               pdata = pdev->dev.platform_data;
-> +               if (!pdata) {
-> +                       DRM_ERROR("no platform data specified\n");
-> +                       return -EINVAL;
-> +               }
-> +       }
-> +
-> +       pctrl = devm_pinctrl_get_select_default(dev);
-> +       if (IS_ERR(pctrl)) {
+Thanks for the explanation.
 
-Will this work for exynos5? AFAICT, there's no pinctrl setup for it.
-
-Sean
-
-> +               DRM_ERROR("no pinctrl data provided.\n");
->                 return -EINVAL;
->         }
->
-> --
-> 1.7.9.5
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+julia
