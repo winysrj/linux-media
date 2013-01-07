@@ -1,53 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43671 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52141 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756006Ab3AXUpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 15:45:17 -0500
-Date: Thu, 24 Jan 2013 18:45:09 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Nieder <jrnieder@gmail.com>, emilgoode@gmail.com,
-	linux-media <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
-Message-ID: <20130124184509.3a2c954f@redhat.com>
-In-Reply-To: <50FE6148.1010200@redhat.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-	<50FD38D1.5020104@redhat.com>
-	<CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
-	<50FE6148.1010200@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1749667Ab3AGVHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 16:07:07 -0500
+Message-ID: <50EB38D4.5080304@iki.fi>
+Date: Mon, 07 Jan 2013 23:06:28 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: Damien Bally <biribi@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] usb id addition for Terratec Cinergy T Stick Dual rev.
+ 2
+References: <5064A3AD.70009@free.fr> <5064ABD2.2060106@iki.fi>  <5065D1AC.5030800@free.fr> <5065E487.80502@iki.fi>  <1348860617.2782.26.camel@Route3278> <20120929143305.4859603e@redhat.com>  <50688332.7020406@free.fr> <20121001081540.69bdae23@redhat.com>  <50697CBE.8060001@iki.fi> <20121006124020.2cc2f534@redhat.com>  <50EB2405.80309@iki.fi> <1357589638.4360.14.camel@canaries64>
+In-Reply-To: <1357589638.4360.14.camel@canaries64>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Jan 2013 10:52:08 +0100
-Hans de Goede <hdegoede@redhat.com> escreveu:
+On 01/07/2013 10:13 PM, Malcolm Priestley wrote:
+> On Mon, 2013-01-07 at 21:37 +0200, Antti Palosaari wrote:
+>> On 10/06/2012 06:40 PM, Mauro Carvalho Chehab wrote:
+>>> Em Mon, 01 Oct 2012 14:21:34 +0300
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>
+>>>> On 10/01/2012 02:15 PM, Mauro Carvalho Chehab wrote:
+>>>>> Em Sun, 30 Sep 2012 19:36:50 +0200
+>>>>> Damien Bally <biribi@free.fr> escreveu:
+>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Le 29/09/2012 19:33, Mauro Carvalho Chehab a écrit :
+>>>>>>      It seems that the it931x variant has bcdDevice equal to 2.00,
+>>>>>>> from Damien's email:
+>>>>>>>
+>>>>>>>        idVendor           0x0ccd TerraTec Electronic GmbH
+>>>>>>>        idProduct          0x0099
+>>>>>>>        bcdDevice            2.00
+>>>>>>>        iManufacturer           1 ITE Technologies, Inc.
+>>>>>>>        iProduct                2 DVB-T TV Stick
+>>>>>>>        iSerial                 0
+>>>>>>>
+>>>>>>> If the af9015 variant uses another bcdDevice, the fix should be simple.
+>>>>>>
+>>>>>> Alas, according to
+>>>>>> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_T_USB_Dual_RC the
+>>>>>> af9015 variant appears to have the same bcdDevice. I join both lsusb
+>>>>>> outputs for comparison.
+>>>>>
+>>>>> Well, then the alternative is to let both drivers to handle this USB ID,
+>>>>> and add a code there on each of them that will check if the device is the
+>>>>> right one, perhaps by looking at iProduct string. If the driver doesn't
+>>>>> recognize it, it should return -ENODEV at .probe() time. The USB core will
+>>>>> call the second driver.
+>>>>
+>>>> It is the easiest solution, but there should be very careful. Those
+>>>> strings could change from device to device. I used earlier af9015 eeprom
+>>>> hash (those string as coming from the eeprom) to map TerraTec dual
+>>>> remote controller and git bug report quite soon as it didn't worked.
+>>>> After I looked the reason I found out they was changed some not
+>>>> meaningful value.
+>>>
+>>> Yeah, those strings can change, especially when vendors don't care enough
+>>> to use a different USB ID/bcdDevice for different models. Yet, seems to
+>>> be the cleaner approach, among the alternatives.
+>>
+>> Damien, care to test?
+>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+>>
+>> I split tuner out from IT9135 driver and due to that AF9035 driver
+>> supports IT9135 too (difference between AF9035 and IT9135 is integrated
+>> RF-tuner). I added iManufacturer based checks for both AF9015 and AF9035
+>> drivers
+>
+> I can't see the point of adding this to the af9035/af9033 driver. It is
+> going to turn into one enormous blob.
 
-> Hi,
-> 
-> On 01/21/2013 01:51 PM, Peter Senna Tschudin wrote:
-> > On Mon, Jan 21, 2013 at 10:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> >> Hi,
-> >>
-> >> Thanks for the patches I'll pick up 5 - 21 and add them to
-> >> my tree for Mauro.
-> > I have sent V2 of this patches with another subject and with fixed
-> > commit message for two patches.
-> 
-> Oh, those did not show up in my mailbox though, so I guess you
-> did not send V2 to the linux-media list? Can you please re-send
-> them to the linux-media list, then I'll pick up the gspca patches
-> among them.
+Stop speaking bullshit! It increases AF9035/AF9033 driver size 
+marginally. I could guess total binary size of AF9035+AF9033+IT913X 
+(IT913X == that new tuner driver) is smaller than size of your IT9135 blob.
 
-Hans,
+> The it913x is a stable driver and has it own entity moving forward.
+>
+> The only thing that needs to happen is the id is added to it913x driver
+> and if it doesn't apply drop it.
+>
+> Nack.
 
-Peter sent the version 2 of them on Jan, 19. Did you get them?
+If you remember about year back when IT9135 was mainlined I reviewed 
+that stuff and criticized it wasn't split correctly. I also pointed out 
+all what is needed is new RF-tuner driver as AF9035/AF9033 is just same 
+silicon, but without a integrated tuner. You said on one mail something 
+like it is too much different than AF9035 family, I didn't cared to 
+start stupid yes/no discussion on that time.
 
-Anyway, I'll tag patches 5-21 for you as under_review status.
+You don't have any technical reason to NACK it. Last time I was 
+"discussing" with DS3000+TS2020 split with you and you were against. 
+Same happens now. I ask you to look driver guidelines [1] and stop 
+speaking BS, instead start fixing your own stuff and you will never end 
+up situation like that.
 
-Regards,
-Mauro
+[1] http://lwn.net/Articles/529490/
+
+Antti
+
+-- 
+http://palosaari.fi/
