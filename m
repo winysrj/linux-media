@@ -1,61 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39075 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753944Ab3AYJtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 04:49:13 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0P9nCWr010631
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 04:49:12 -0500
-Message-ID: <510255BD.8060605@redhat.com>
-Date: Fri, 25 Jan 2013 10:51:57 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:60971 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753961Ab3AGNV1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 08:21:27 -0500
+Date: Mon, 7 Jan 2013 14:21:22 +0100
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-media@vger.kernel.org,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	linux-kernel@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
+Message-ID: <20130107132122.GV14860@pengutronix.de>
+References: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
+ <CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: partial revert of "uvcvideo: set error_idx properly"
-References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com> <CA+55aFxhXE8KbnjL7Nn3y0jd_wUFsdH6ZvsQ5EL+4cV3k3S4cg@mail.gmail.com> <20121224213948.36514eca@redhat.com> <20121225025648.5208189a@redhat.com>
-In-Reply-To: <20121225025648.5208189a@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<modified the CC list to be more appropriate>
+Hello Fabio,
 
-Hi,
+On Mon, Jan 07, 2013 at 08:16:02AM -0200, Fabio Estevam wrote:
+> Hi Sascha,
+> 
+> On Mon, Jan 7, 2013 at 8:03 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> > commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+> > location of iram.h, which causes the following build error when building the coda
+> > driver:
+> >
+> > drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+> > drivers/media/platform/coda.c: In function 'coda_probe':
+> > drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+> > drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+> > drivers/media/platform/coda.c: In function 'coda_remove':
+> > drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
+> >
+> > Since the content of iram.h is not imx specific, move it to
+> > include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
+> > until the i.MX iram allocator is converted to the generic SRAM allocator.
+> >
+> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> > ---
+> >
+> > Based on an earlier version from Fabio Estevam, but this one moves iram.h
+> > to include/linux/platform_data/imx-iram.h instead of include/linux/iram.h
+> > which is a less generic name.
+> >
+> >  arch/arm/mach-imx/iram.h               |   41 --------------------------------
+> >  arch/arm/mach-imx/iram_alloc.c         |    3 +--
+> >  drivers/media/platform/coda.c          |    2 +-
+> >  include/linux/platform_data/imx-iram.h |   41 ++++++++++++++++++++++++++++++++
+> >  4 files changed, 43 insertions(+), 44 deletions(-)
+> >  delete mode 100644 arch/arm/mach-imx/iram.h
+> >  create mode 100644 include/linux/platform_data/imx-iram.h
+> 
+> It would be better to use git mv /git format-patch -M, so that git can
+> detect the file rename.
+Note that git-mv is not needed here. Using it doesn't change anything
+and you can use git-format-patch -M independant of it.
 
-On 12/25/2012 05:56 AM, Mauro Carvalho Chehab wrote:
-
-> The pwc driver can currently return -ENOENT at VIDIOC_S_FMT ioctl. This
-> doesn't seem right. Instead, it should be getting the closest format to
-> the requested one and return 0, passing the selected format back to
-> userspace, just like the other drivers do. I'm c/c Hans de Goede for him
-> to take a look on it.
-
-I've been looking into this today, and the ENOENT gets returned by
-pwc_set_video_mode and through that by:
-1) Device init
-2) VIDIOC_STREAMON
-3) VIDIOC_S_PARM
-4) VIDIOC_S_FMT
-
-But only when the requested width + height + pixelformat is an
-unsupported combination, and it being a supported combination
-already gets enforced by a call to pwc_get_size in
-pwc_vidioc_try_fmt, which also gets called from pwc_s_fmt_vid_cap
-before it does anything else.
-
-So the ENOENT can only happen on some internal driver error,
-I'm open for suggestions for a better error code to return in
-this case.
-
-What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
-an unsupported pixelformat is requested. IIRC we agreed that the
-correct behavior in this case is to instead just change the
-pixelformat to a default format, so I'll write a patch fixing
-this.
-
-Regards,
-
-Hans
+Best regards
+Uwe
