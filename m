@@ -1,25 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from email.hudson.k12.ma.us ([71.184.227.2]:55960 "EHLO
-	email1.hudson.k12.ma.us" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754277Ab3A3RTW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 12:19:22 -0500
-From: Katie Rivela <krivela@hudson.k12.ma.us>
-Subject: 
-Date: Wed, 30 Jan 2013 17:13:59 +0000
-Message-ID: <7A76D02E3FA5E544B94DFC363362160960F5A4D9@JFK-EMAIL.hps.local>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mout.gmx.net ([212.227.15.19]:60611 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753788Ab3AGLi5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 06:38:57 -0500
+Received: from mailout-de.gmx.net ([10.1.76.27]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0LxrcA-1SxxpM1OuC-015EyR for
+ <linux-media@vger.kernel.org>; Mon, 07 Jan 2013 12:38:56 +0100
+Date: Mon, 7 Jan 2013 12:38:55 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: cx88 WRITERM instruction
+Message-ID: <20130107113855.GA15241@minime.bse>
 MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+I'm trying to add precise timestamps to the cx88 driver but I
+somehow fail to use the WRITERM instruction correctly. Has anyone
+ever successfully used that RISC instruction? Is there a bit that
+needs to be flipped to actually make it perform writes to the PCI
+bus?
 
+I know it is executed because I get a RISC_RD_BERR_INT if I
+replace the third word with junk but no matter what I do the target
+memory stays untouched (yes, it is coherent memory and I use the DMA
+address).
 
-Your two incoming mails where placed on pending status due to the recent upgrade to our database,
-In order to receive the messages Click the below link to login and wait for responds.
+Thanks,
 
-https://docs.google.com/spreadsheet/viewform?formkey=dHhFQ1NqV1d3TFJoZzhvOGtZdk9DSVE6MQ
+  Daniel
