@@ -1,117 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63787 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59393 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754567Ab3AXQ2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 11:28:55 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0OGStYt003121
+	id S1754961Ab3AGSot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 13:44:49 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r07IinSE011219
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 11:28:55 -0500
+	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 13:44:49 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/5] [media] mb86a20s: fix the PER reset logic
-Date: Thu, 24 Jan 2013 14:28:49 -0200
-Message-Id: <1359044931-13058-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1359044931-13058-1-git-send-email-mchehab@redhat.com>
-References: <1359044931-13058-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFCv8 2/2] dvb: the core logic to handle the DVBv5 QoS properties
+Date: Mon,  7 Jan 2013 16:44:15 -0200
+Message-Id: <1357584255-6500-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1357584255-6500-1-git-send-email-mchehab@redhat.com>
+References: <1357584255-6500-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic that resets the device is wrong. It should be resetting
-just the layer that got read. Also, stop is needed before updating
-the counters.
+Add the logic to poll, reset counters and report the QoS stats
+to the end user.
+
+The idea is that the core will periodically poll the frontend for
+the stats. The frontend may return -EBUSY, if the previous collect
+didn't finish, or it may fill the cached data.
+
+The value returned to the end user is always the cached data.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 40 +++++++++++++++++++++++++++++-----
- 1 file changed, 35 insertions(+), 5 deletions(-)
+ drivers/media/dvb-core/dvb_frontend.c | 36 +++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvb_frontend.h | 12 ++++++++++++
+ 2 files changed, 48 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 305ebc0..7d4e911 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -934,7 +934,7 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 			    u32 *error, u32 *count)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
-+	int rc, val;
- 	u32 collect_rate;
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
-@@ -1007,7 +1007,6 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 		goto reset_measurement;
- 
- 	collect_rate = state->estimated_rate[layer] / 204 / 8;
--
- 	if (collect_rate < 32)
- 		collect_rate = 32;
- 	if (collect_rate > 65535)
-@@ -1017,6 +1016,16 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 		dev_dbg(&state->i2c->dev,
- 			"%s: updating PER counter on layer %c to %d.\n",
- 			__func__, 'A' + layer, collect_rate);
-+
-+		/* Stop PER measurement */
-+		rc = mb86a20s_writereg(state, 0x50, 0xb0);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51, 0x00);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* Update this layer's counter */
- 		rc = mb86a20s_writereg(state, 0x50, 0xb2 + layer * 2);
- 		if (rc < 0)
- 			return rc;
-@@ -1029,6 +1038,25 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 		rc = mb86a20s_writereg(state, 0x51, collect_rate & 0xff);
- 		if (rc < 0)
- 			return rc;
-+
-+		/* start PER measurement */
-+		rc = mb86a20s_writereg(state, 0x50, 0xb0);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51, 0x07);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* Reset all counters to collect new data */
-+		rc = mb86a20s_writereg(state, 0x50, 0xb1);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51, 0x07);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51, 0x00);
-+
-+		return rc;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index dd35fa9..f8be7be 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -260,6 +260,9 @@ static int dvb_frontend_get_event(struct dvb_frontend *fe,
+ 			return ret;
  	}
  
- reset_measurement:
-@@ -1036,14 +1064,16 @@ reset_measurement:
- 	rc = mb86a20s_writereg(state, 0x50, 0xb1);
- 	if (rc < 0)
- 		return rc;
--	rc = mb86a20s_writereg(state, 0x51, (1 << layer));
-+	rc = mb86a20s_readreg(state, 0x51);
- 	if (rc < 0)
- 		return rc;
--	rc = mb86a20s_writereg(state, 0x51, 0x00);
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x51, val | (1 << layer));
- 	if (rc < 0)
- 		return rc;
-+	rc = mb86a20s_writereg(state, 0x51, val & ~(1 << layer));
++	if (fe->ops.get_qos_stats)
++		fe->ops.get_qos_stats(fe);
++
+ 	mutex_lock(&events->mtx);
+ 	*event = events->events[events->eventr];
+ 	events->eventr = (events->eventr + 1) % MAX_EVENT;
+@@ -1053,6 +1056,15 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++
++	/* Statistics API */
++	_DTV_CMD(DTV_QOS_ENUM, 0, 0),
++	_DTV_CMD(DTV_QOS_SIGNAL_STRENGTH, 0, 0),
++	_DTV_CMD(DTV_QOS_CNR, 0, 0),
++	_DTV_CMD(DTV_QOS_BIT_ERROR_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_TOTAL_BITS_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_ERROR_BLOCK_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_TOTAL_BLOCKS_COUNT, 0, 0),
+ };
  
--	return 0;
-+	return rc;
- }
+ static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
+@@ -1443,6 +1455,25 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 		tvp->u.data = c->lna;
+ 		break;
  
- struct linear_segments {
++	/* Fill quality measures */
++	case DTV_QOS_SIGNAL_STRENGTH:
++		tvp->u.st = c->strength;
++		break;
++	case DTV_QOS_CNR:
++		tvp->u.st = c->cnr;
++		break;
++	case DTV_QOS_BIT_ERROR_COUNT:
++		tvp->u.st = c->bit_error;
++		break;
++	case DTV_QOS_TOTAL_BITS_COUNT:
++		tvp->u.st = c->bit_count;
++		break;
++	case DTV_QOS_ERROR_BLOCK_COUNT:
++		tvp->u.st = c->block_error;
++		break;
++	case DTV_QOS_TOTAL_BLOCKS_COUNT:
++		tvp->u.st = c->block_count;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1705,6 +1736,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		break;
+ 	case DTV_DELIVERY_SYSTEM:
+ 		r = set_delivery_system(fe, tvp->u.data);
++		if (r >= 0 && fe->ops.reset_qos_counters)
++			fe->ops.reset_qos_counters(fe);
+ 		break;
+ 	case DTV_VOLTAGE:
+ 		c->voltage = tvp->u.data;
+@@ -2305,6 +2338,9 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		if (err)
+ 			break;
+ 		err = dtv_set_frontend(fe);
++		if (err >= 0 && fe->ops.reset_qos_counters)
++			fe->ops.reset_qos_counters(fe);
++
+ 		break;
+ 	case FE_GET_EVENT:
+ 		err = dvb_frontend_get_event (fe, parg, file->f_flags);
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 97112cd..7bb49f1 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -315,6 +315,10 @@ struct dvb_frontend_ops {
+ 
+ 	int (*set_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
+ 	int (*get_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
++
++	/* QoS statistics callbacks */
++	int (*get_qos_stats)(struct dvb_frontend *fe);
++	int (*reset_qos_counters)(struct dvb_frontend *fe);
+ };
+ 
+ #ifdef __DVB_CORE__
+@@ -393,6 +397,14 @@ struct dtv_frontend_properties {
+ 	u8			atscmh_sccc_code_mode_d;
+ 
+ 	u32			lna;
++
++	/* QoS statistics data */
++	struct dtv_fe_stats 	strength;
++	struct dtv_fe_stats	cnr;
++	struct dtv_fe_stats	bit_error;
++	struct dtv_fe_stats	bit_count;
++	struct dtv_fe_stats	block_error;
++	struct dtv_fe_stats	block_count;
+ };
+ 
+ struct dvb_frontend {
 -- 
-1.8.1
+1.7.11.7
 
