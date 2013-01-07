@@ -1,28 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cust-198-154-114-242.corexchange.com ([198.154.114.242]:33050
-	"EHLO phpbb.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755568Ab3AFNXg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 08:23:36 -0500
-To: linux-media@vger.kernel.org
-Subject: phpbb update
-Date: Sun, 6 Jan 2013 17:17:28 +0400
-From: phpbbspprt840@gmail.com
-Message-ID: <d8ea5a184db5e767ec53f589d4a1b8eb@198.154.114.242>
+Received: from mail-vb0-f42.google.com ([209.85.212.42]:49792 "EHLO
+	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751634Ab3AGKYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:24:20 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
+References: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
+Date: Mon, 7 Jan 2013 08:16:02 -0200
+Message-ID: <CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
+Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
+From: Fabio Estevam <festevam@gmail.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kernel@pengutronix.de, linux-kernel@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-phpBB 3.0.11 is now available
-updating your forum makes it stable and fixes security bugs
+Hi Sascha,
 
-We provide paid support to phpBB forums owners , we are happy to help
-you in any issue related to your forum administration or any technical
-issues.
-if you are interested in our services , or have any questions , please reply 
-to us
+On Mon, Jan 7, 2013 at 8:03 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
+> location of iram.h, which causes the following build error when building the coda
+> driver:
+>
+> drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
+> drivers/media/platform/coda.c: In function 'coda_probe':
+> drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
+> drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
+> drivers/media/platform/coda.c: In function 'coda_remove':
+> drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
+>
+> Since the content of iram.h is not imx specific, move it to
+> include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
+> until the i.MX iram allocator is converted to the generic SRAM allocator.
+>
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> ---
+>
+> Based on an earlier version from Fabio Estevam, but this one moves iram.h
+> to include/linux/platform_data/imx-iram.h instead of include/linux/iram.h
+> which is a less generic name.
+>
+>  arch/arm/mach-imx/iram.h               |   41 --------------------------------
+>  arch/arm/mach-imx/iram_alloc.c         |    3 +--
+>  drivers/media/platform/coda.c          |    2 +-
+>  include/linux/platform_data/imx-iram.h |   41 ++++++++++++++++++++++++++++++++
+>  4 files changed, 43 insertions(+), 44 deletions(-)
+>  delete mode 100644 arch/arm/mach-imx/iram.h
+>  create mode 100644 include/linux/platform_data/imx-iram.h
 
-Thank you
+It would be better to use git mv /git format-patch -M, so that git can
+detect the file rename.
 
+Regards,
 
+Fabio Estevam
