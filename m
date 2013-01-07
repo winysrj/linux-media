@@ -1,117 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:28722 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756078Ab3A3RXp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 12:23:45 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHG00KEG8B49400@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:44 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MHG00A7W8B4SV70@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:44 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 4/5] s5p-fimc: Add clk_prepare/unprepare for sclk_cam clocks
-Date: Wed, 30 Jan 2013 18:23:24 +0100
-Message-id: <1359566606-31394-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
-References: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41754 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750776Ab3AGGLH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 01:11:07 -0500
+From: "Mohammed, Afzal" <afzal@ti.com>
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>
+CC: Rob Herring <robherring2@gmail.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>,
+	Rob Clark <robdclark@gmail.com>,
+	Leela Krishna Amudala <leelakrishna.a@gmail.com>
+Subject: RE: [PATCHv16 5/7] fbmon: add of_videomode helpers
+Date: Mon, 7 Jan 2013 06:10:13 +0000
+Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA7FB02@DBDE01.ent.ti.com>
+References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add clk_prepare(), clk_unprepare() calls for the sclk_cam clocks
-to ensure the driver works on platforms with the common clocks
-API enabled.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   53 ++++++++++++++++--------
- 1 file changed, 36 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 2b05872..d940454 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -708,35 +708,54 @@ static int fimc_md_create_links(struct fimc_md *fmd)
- /*
-  * The peripheral sensor clock management.
-  */
-+static void fimc_md_put_clocks(struct fimc_md *fmd)
-+{
-+	int i = FIMC_MAX_CAMCLKS;
-+
-+	while (--i >= 0) {
-+		if (IS_ERR(fmd->camclk[i].clock))
-+			continue;
-+		clk_unprepare(fmd->camclk[i].clock);
-+		clk_put(fmd->camclk[i].clock);
-+		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
-+	}
-+}
-+
- static int fimc_md_get_clocks(struct fimc_md *fmd)
- {
-+	struct device *dev = NULL;
- 	char clk_name[32];
- 	struct clk *clock;
--	int i;
-+	int ret, i;
-+
-+	for (i = 0; i < FIMC_MAX_CAMCLKS; i++)
-+		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
-+
-+	if (fmd->pdev->dev.of_node)
-+		dev = &fmd->pdev->dev;
- 
- 	for (i = 0; i < FIMC_MAX_CAMCLKS; i++) {
- 		snprintf(clk_name, sizeof(clk_name), "sclk_cam%u", i);
--		clock = clk_get(NULL, clk_name);
-+		clock = clk_get(dev, clk_name);
-+
- 		if (IS_ERR(clock)) {
--			v4l2_err(&fmd->v4l2_dev, "Failed to get clock: %s",
--				  clk_name);
--			return -ENXIO;
-+			dev_err(&fmd->pdev->dev, "Failed to get clock: %s\n",
-+								clk_name);
-+			ret = PTR_ERR(clock);
-+			break;
-+		}
-+		ret = clk_prepare(clock);
-+		if (ret < 0) {
-+			clk_put(clock);
-+			fmd->camclk[i].clock = ERR_PTR(-EINVAL);
-+			break;
- 		}
- 		fmd->camclk[i].clock = clock;
- 	}
--	return 0;
--}
--
--static void fimc_md_put_clocks(struct fimc_md *fmd)
--{
--	int i = FIMC_MAX_CAMCLKS;
-+	if (ret)
-+		fimc_md_put_clocks(fmd);
- 
--	while (--i >= 0) {
--		if (IS_ERR_OR_NULL(fmd->camclk[i].clock))
--			continue;
--		clk_put(fmd->camclk[i].clock);
--		fmd->camclk[i].clock = NULL;
--	}
-+	return ret;
- }
- 
- static int __fimc_md_set_camclk(struct fimc_md *fmd,
--- 
-1.7.9.5
-
+SGkgU3RlZmZlbiwNCg0KT24gVHVlLCBEZWMgMTgsIDIwMTIgYXQgMjI6MzQ6MTQsIFN0ZWZmZW4g
+VHJ1bXRyYXIgd3JvdGU6DQo+IEFkZCBoZWxwZXIgdG8gZ2V0IGZiX3ZpZGVvbW9kZSBmcm9tIGRl
+dmljZXRyZWUuDQoNCj4gIGRyaXZlcnMvdmlkZW8vZmJtb24uYyB8ICAgNDIgKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICBpbmNsdWRlL2xpbnV4L2ZiLmggICAg
+fCAgICA0ICsrKysNCg0KVGhpcyBicmVha3MgRGFWaW5jaSAoZGE4eHhfb21hcGxfZGVmY29uZmln
+KSwgZm9sbG93aW5nIGNoYW5nZSB3YXMNCnJlcXVpcmVkIHRvIGdldCBpdCBidWlsZCBpZiBPRl9W
+SURFT01PREUgb3IvYW5kIEZCX01PREVfSEVMUEVSUw0KaXMgbm90IGRlZmluZWQuIFRoZXJlIG1h
+eSBiZSBiZXR0ZXIgc29sdXRpb25zLCBmb2xsb3dpbmcgd2FzIHRoZQ0Kb25lIHRoYXQgd2FzIHVz
+ZWQgYnkgbWUgdG8gdGVzdCB0aGlzIHNlcmllcy4NCg0KLS0tODwtLS0tLS0tLS0tDQoNCmRpZmYg
+LS1naXQgYS9pbmNsdWRlL2xpbnV4L2ZiLmggYi9pbmNsdWRlL2xpbnV4L2ZiLmgNCmluZGV4IDU4
+Yjk4NjAuLjBjZTMwZDEgMTAwNjQ0DQotLS0gYS9pbmNsdWRlL2xpbnV4L2ZiLmgNCisrKyBiL2lu
+Y2x1ZGUvbGludXgvZmIuaA0KQEAgLTcxNiw5ICs3MTYsMTkgQEAgZXh0ZXJuIHZvaWQgZmJfZGVz
+dHJveV9tb2RlZGIoc3RydWN0IGZiX3ZpZGVvbW9kZSAqbW9kZWRiKTsNCiBleHRlcm4gaW50IGZi
+X2ZpbmRfbW9kZV9jdnQoc3RydWN0IGZiX3ZpZGVvbW9kZSAqbW9kZSwgaW50IG1hcmdpbnMsIGlu
+dCByYik7DQogZXh0ZXJuIHVuc2lnbmVkIGNoYXIgKmZiX2RkY19yZWFkKHN0cnVjdCBpMmNfYWRh
+cHRlciAqYWRhcHRlcik7DQoNCisjaWYgZGVmaW5lZChDT05GSUdfT0ZfVklERU9NT0RFKSAmJiBk
+ZWZpbmVkKENPTkZJR19GQl9NT0RFX0hFTFBFUlMpDQogZXh0ZXJuIGludCBvZl9nZXRfZmJfdmlk
+ZW9tb2RlKHN0cnVjdCBkZXZpY2Vfbm9kZSAqbnAsDQogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgc3RydWN0IGZiX3ZpZGVvbW9kZSAqZmIsDQogICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgaW50IGluZGV4KTsNCisjZWxzZQ0KK3N0YXRpYyBpbmxpbmUgaW50IG9mX2dldF9mYl92
+aWRlb21vZGUoc3RydWN0IGRldmljZV9ub2RlICpucCwNCisgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgc3RydWN0IGZiX3ZpZGVvbW9kZSAqZmIsDQorICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgIGludCBpbmRleCkNCit7DQorICAgICAgIHJldHVybiAtRUlO
+VkFMOw0KK30NCisjZW5kaWYNCisNCiBleHRlcm4gaW50IGZiX3ZpZGVvbW9kZV9mcm9tX3ZpZGVv
+bW9kZShjb25zdCBzdHJ1Y3QgdmlkZW9tb2RlICp2bSwNCiAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgIHN0cnVjdCBmYl92aWRlb21vZGUgKmZibW9kZSk7DQoNCi0tLTg8LS0t
+LS0tLS0tLQ0KDQoNCj4gKyNpZiBJU19FTkFCTEVEKENPTkZJR19PRl9WSURFT01PREUpDQoNCkFz
+IF9PRl9WSURFT01PREUgaXMgYSBib29sIHR5cGUgQ09ORklHLCBpc24ndCwNCg0KI2lmZGVmIENP
+TkZJR19PRl9WSURFT01PREUNCg0Kc3VmZmljaWVudCA/DQoNClJlZ2FyZHMNCkFmemFsDQo=
