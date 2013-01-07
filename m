@@ -1,88 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:53136 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754746Ab3A1Wl1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 17:41:27 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 0/7] saa7134: improve v4l2-compliance
-Date: Mon, 28 Jan 2013 23:40:59 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <201301281156.59112.hverkuil@xs4all.nl>
-In-Reply-To: <201301281156.59112.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201301282340.59707.linux@rainbow-software.org>
+Received: from amsterdam.lcs.mit.edu ([18.26.4.9]:54475 "EHLO
+	amsterdam.lcs.mit.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311Ab3AGCOK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 21:14:10 -0500
+From: Nickolai Zeldovich <nickolai@csail.mit.edu>
+To: Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Nickolai Zeldovich <nickolai@csail.mit.edu>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH v2] media: cx18, ivtv: eliminate unnecessary array index checks
+Date: Sun,  6 Jan 2013 20:52:03 -0500
+Message-Id: <1357523523-39707-1-git-send-email-nickolai@csail.mit.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 28 January 2013 11:56:59 Hans Verkuil wrote:
-> On Sun January 27 2013 20:45:05 Ondrej Zary wrote:
-> > Hello,
-> > this patch series improves v4l2-compliance of saa7134 driver. There are
-> > still some problems. Controls require conversion to control framework
-> > which I was unable to finish (because the driver accesses other controls
-> > and also the file handle from within s_ctrl).
->
-> To convert to the control framework this driver needs quite a bit of work:
-> the saa6752hs driver should be done first (and moved to media/i2c as well
-> as it really doesn't belong here).
->
-> The filehandle shouldn't be a problem, I think after the prio conversion
-> that's no longer needed at all.
->
-> > Radio is now OK except for controls.
-> > Video has problems with controls, debugging, formats and buffers:
-> > Debug ioctls:
-> >         test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-> >                 fail: v4l2-test-debug.cpp(84): doioctl(node,
-> > VIDIOC_DBG_G_CHIP_IDENT, &chip) Format ioctls:
-> >         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> >                 fail: v4l2-test-formats.cpp(836): !cap->readbuffers
->
-> That should be easy to fix. It's a pretty bogus field and I usually set it
-> to the minimum number of buffers (which is 2 for this driver).
->
-> >         test VIDIOC_G/S_PARM: FAIL
-> >                 fail: v4l2-test-formats.cpp(335): !fmt.width ||
-> > !fmt.height test VIDIOC_G_FBUF: FAIL
-> >                 fail: v4l2-test-formats.cpp(382): !pix.colorspace
->
-> That's easy enough to solve. Typically this should be set to
-> V4L2_COLORSPACE_SMPTE170M.
->
-> But after solving this you'll probably get a bunch of other issues due to
-> a problem this driver shared with quite a few other related drivers: the
-> format state is stored in struct saa7134_fh instead of in the top-level
-> struct. These format states are all global and should never have been
-> placed in this struct.
+The idx values passed to cx18_i2c_register() and ivtv_i2c_register()
+by cx18_init_subdevs() and ivtv_load_and_init_modules() respectively
+are always in-range, based on how the hw_all bitmask is populated.
+Previously, the checks were already ineffective because arrays were
+being dereferenced using the index before the check.
 
-Got this after setting colorspace:
-               fail: v4l2-test-formats.cpp(460): win.field == V4L2_FIELD_ANY
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+---
+Thanks to Andy Walls for suggesting that instead of moving the checks
+before array dereference, a better fix is to remove the checks altogether,
+since they are superfluous.
 
-I don't know what win.field is supposed to be and where the value should came 
-from. It's now taken from fh->win which is probably all zeros because no 
-overlay is running?
-The same problem is with g_fbuf - what should fmt.width and fmt.height be?
+ drivers/media/pci/cx18/cx18-i2c.c |    3 ---
+ drivers/media/pci/ivtv/ivtv-i2c.c |    2 --
+ 2 files changed, 5 deletions(-)
 
-> In fact if I look at the fields in saa7134_fh then:
->
-> - radio and type can be removed (this info can be obtained from existing
-> fields elsewhere)
-> - the fields win until pt_vbi should all be global fields
-> - I suspect resources and qos_request should also be global, but you would
-> have to analyze that.
-
-There are two "resources" variables - one in saa7134_fh and one in 
-saa7134_dev. They're used for some kind of double-locking (global and per 
-file handle).
-
-> In fact, it is likely that the whole structure can be removed and only
-> v4l2_fh be used instead.
-
+diff --git a/drivers/media/pci/cx18/cx18-i2c.c b/drivers/media/pci/cx18/cx18-i2c.c
+index 4908eb7..ccb1d15 100644
+--- a/drivers/media/pci/cx18/cx18-i2c.c
++++ b/drivers/media/pci/cx18/cx18-i2c.c
+@@ -116,9 +116,6 @@ int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+ 	const char *type = hw_devicenames[idx];
+ 	u32 hw = 1 << idx;
+ 
+-	if (idx >= ARRAY_SIZE(hw_addrs))
+-		return -1;
+-
+ 	if (hw == CX18_HW_TUNER) {
+ 		/* special tuner group handling */
+ 		sd = v4l2_i2c_new_subdev(&cx->v4l2_dev,
+diff --git a/drivers/media/pci/ivtv/ivtv-i2c.c b/drivers/media/pci/ivtv/ivtv-i2c.c
+index 46e262b..bc984af 100644
+--- a/drivers/media/pci/ivtv/ivtv-i2c.c
++++ b/drivers/media/pci/ivtv/ivtv-i2c.c
+@@ -267,8 +267,6 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+ 	const char *type = hw_devicenames[idx];
+ 	u32 hw = 1 << idx;
+ 
+-	if (idx >= ARRAY_SIZE(hw_addrs))
+-		return -1;
+ 	if (hw == IVTV_HW_TUNER) {
+ 		/* special tuner handling */
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev, adap, type, 0,
 -- 
-Ondrej Zary
+1.7.10.4
+
