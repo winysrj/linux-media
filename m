@@ -1,98 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:42487 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436Ab3A1Fps (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 00:45:48 -0500
-Received: by mail-pa0-f42.google.com with SMTP id rl6so1310247pac.15
-        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:45:48 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
-	l.krishna@samsung.com
-Subject: [PATCH] video: drm: exynos: Adds display-timing node parsing using video helper function
-Date: Mon, 28 Jan 2013 11:15:36 +0530
-Message-Id: <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:43800 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756485Ab3AHRpl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:45:41 -0500
+Received: by mail-la0-f45.google.com with SMTP id ep20so786615lab.18
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:45:40 -0800 (PST)
+Message-ID: <50EC5B60.7000207@googlemail.com>
+Date: Tue, 08 Jan 2013 18:46:08 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model
+ 37284, rev B421
+References: <50E831F2.70400@googlemail.com> <20130105135734.237068c5@redhat.com> <50E9E05D.9090403@googlemail.com> <20130107142938.6e8f2c73@redhat.com>
+In-Reply-To: <20130107142938.6e8f2c73@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing using video helper function
+<snip>
+>
+>>> It probably makes sense to add a "has_ir_i2c" field at bttv, add a flag
+>>> there at modprobe to prevent the autoload, and start tagging the boards
+>>> with I2C IR with such tag.
+>> Without having looked into the code, it seems that the driver detects
+>> the i2c rc already without a board flag.
+>> Otherwise it wouldn't register the i2c device. Unfortunately, it doesn't
+>> display a message.
+> No. In the past (kernel 2.4 and upper), I2C bus used to work with 0-len
+> reads to scan the used I2C addresses. The I2C drivers like tuners, demods,
+> IR's etc used to register to the I2C core saying that they were to be used
+> on TV boards. The I2C logic binds them to the I2C bus driver when they were
+> detected, during the scanning process.
+>
+> That's why it is so hard to know what boards are using I2C remotes, on
+> those older drivers.
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35 ++++++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+Hmmm... so the I2C subystem probes a list of addresses and just
+registers all devices it finds, but the driver itself doesn't know if
+one of them is a RC device ?
+Sounds odd. Will have to check the code to understand what's going on...
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index bf0d9ba..975e7f7 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
-@@ -903,21 +904,51 @@ static int __devinit fimd_probe(struct platform_device *pdev)
- 	struct device *dev = &pdev->dev;
- 	struct fimd_context *ctx;
- 	struct exynos_drm_subdrv *subdrv;
--	struct exynos_drm_fimd_pdata *pdata;
-+	struct exynos_drm_fimd_pdata *pdata = pdev->dev.platform_data;
- 	struct exynos_drm_panel_info *panel;
-+	struct fb_videomode *fbmode;
-+	struct device *disp_dev = &pdev->dev;
-+	struct pinctrl *pctrl;
- 	struct resource *res;
- 	int win;
- 	int ret = -EINVAL;
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			dev_err(dev, "memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-+		if (!fbmode) {
-+			dev_err(dev, "memory allocation for fbmode failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(disp_dev->of_node, fbmode, -1);
-+		if (ret) {
-+			dev_err(dev, "failed to get fb_videomode\n");
-+			return -EINVAL;
-+		}
-+		pdata->panel.timing = (struct fb_videomode) *fbmode;
-+	}
-+
- 	if (!pdata) {
- 		dev_err(dev, "no platform data specified\n");
- 		return -EINVAL;
- 	}
- 
-+	pctrl = devm_pinctrl_get_select_default(dev);
-+	if (IS_ERR(pctrl)) {
-+		dev_err(dev, "no pinctrl data provided.\n");
-+		return -EINVAL;
-+	}
-+
- 	panel = &pdata->panel;
-+
- 	if (!panel) {
- 		dev_err(dev, "panel is null.\n");
- 		return -EINVAL;
--- 
-1.7.9.5
+Regards,
+Frank
 
