@@ -1,271 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58631 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756163Ab3AHA0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 19:26:23 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080QNiZ020600
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:26:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from mail-la0-f44.google.com ([209.85.215.44]:33238 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756231Ab3AHR7o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:59:44 -0500
+Received: by mail-la0-f44.google.com with SMTP id fr10so805695lab.31
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:59:43 -0800 (PST)
+Message-ID: <50EC5EAB.9050705@googlemail.com>
+Date: Tue, 08 Jan 2013 19:00:11 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Simon Farnsworth <simon.farnsworth@onelan.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv9 3/4] mb86a20s: provide signal strength via DVBv5 stats API
-Date: Mon,  7 Jan 2013 22:25:49 -0200
-Message-Id: <1357604750-772-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality
+ of Service
+References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <1357604750-772-2-git-send-email-mchehab@redhat.com> <10526351.JB9QcZTfut@f17simon>
+In-Reply-To: <10526351.JB9QcZTfut@f17simon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement DVBv5 API status handler functions.
+Am 08.01.2013 12:45, schrieb Simon Farnsworth:
+> On Monday 7 January 2013 22:25:47 Mauro Carvalho Chehab wrote:
+> <snip>
+>> +			<itemizedlist mark='bullet'>
+>> +				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
+>> +				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
+>> +				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
+>> +				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
+>> +			</itemizedlist>
+> <snip>
+>> +	<section id="DTV-QOS-SIGNAL-STRENGTH">
+>> +		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
+>> +		<para>Indicates the signal strength level at the analog part of the tuner.</para>
+>> +	</section>
+> Signal strength is traditionally an absolute field strength; there's no way in
+> this API for me to provide my reference point, so two different front ends
+> could represent the same signal strength as "0 dB" (where the reference point
+> is one microwatt), "-30 dB" (where the reference point is one milliwatt), or
+> "17 dB" (using a reference point of 1 millivolt on a 50 ohm impedance).
+>
+> Could you choose a reference point for signal strength, and specify that if
+> you're using FE_SCALE_DECIBEL, you're referenced against that point?
+>
+> My preference would be to reference against 1 microwatt, as (on the DVB-T and
+> ATSC cards I use) that leads to the signal measure being 0 dBµW if you've got
+> perfect signal, negative number if your signal is weak, and positive numbers
+> if your signal is strong. However, referenced against 1 milliwatt also works
+> well for me, as the conversion is trivial.
 
-The counter reset code there is complete for all stats provided
-by this frontend.
+Yeah, that's one of the most popular mistakes in the technical world.
+Decibel is a relative unit. X dB says nothing about the absolute value
+without a reference value.
+Hence these reference values must be specified in the document.
+Otherwise the reported signal strengths are meaningless / not comparable.
 
-The get_stats callback currently handles only the existing stat
-(signal strength), although the code is already prepared for the
-per-layer stats.
+It might be worth to take a look at what the wireles network people have
+done.
+IIRC, they had the same discussion about signal strength reporting a
+(longer) while ago.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 166 +++++++++++++++++++++++++++++----
- 1 file changed, 148 insertions(+), 18 deletions(-)
+Just my two cents.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index fade566..c2cc207 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -119,8 +119,8 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x50, 0xb6 }, { 0x51, 0xff },
- 	{ 0x50, 0xb7 }, { 0x51, 0xff },
- 	{ 0x50, 0x50 }, { 0x51, 0x02 },
--	{ 0x50, 0x51 }, { 0x51, 0x04 },
--	{ 0x45, 0x04 },
-+	{ 0x50, 0x51 }, { 0x51, 0x04 },		/* MER symbol 4 */
-+	{ 0x45, 0x04 },				/* CN symbol 4 */
- 	{ 0x48, 0x04 },
- 	{ 0x50, 0xd5 }, { 0x51, 0x01 },		/* Serial */
- 	{ 0x50, 0xd6 }, { 0x51, 0x1f },
-@@ -176,6 +176,18 @@ static struct regdata mb86a20s_reset_reception[] = {
- 	{ 0x08, 0x00 },
- };
- 
-+static struct regdata mb86a20s_clear_stats[] = {
-+	{ 0x53, 0x00 },	/* VBER Counter reset */
-+	{ 0x53, 0x07 },
-+
-+	{ 0x5f, 0x00 },	/* SBER Counter reset */
-+	{ 0x5f, 0x07 },
-+
-+	{ 0x50, 0xb1 },	/* PBER Counter reset */
-+	{ 0x51, 0x07 },
-+	{ 0x51, 0x01 },
-+};
-+
- static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
- 			     u8 i2c_addr, int reg, int data)
- {
-@@ -223,7 +235,7 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
- 
- 	if (rc != 2) {
- 		rc("%s: reg=0x%x (error=%d)\n", __func__, reg, rc);
--		return rc;
-+		return (rc < 0) ? rc : -EIO;
- 	}
- 
- 	return val;
-@@ -278,29 +290,34 @@ err:
- 	return rc;
- }
- 
--static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
-+static int __mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
- 	unsigned rf_max, rf_min, rf;
--	u8	 val;
--
--	dprintk("\n");
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
- 
- 	/* Does a binary search to get RF strength */
- 	rf_max = 0xfff;
- 	rf_min = 0;
- 	do {
- 		rf = (rf_max + rf_min) / 2;
--		mb86a20s_writereg(state, 0x04, 0x1f);
--		mb86a20s_writereg(state, 0x05, rf >> 8);
--		mb86a20s_writereg(state, 0x04, 0x20);
--		mb86a20s_writereg(state, 0x04, rf);
-+		rc = mb86a20s_writereg(state, 0x04, 0x1f);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x05, rf >> 8);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x04, 0x20);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x04, rf);
-+		if (rc < 0)
-+			return rc;
- 
--		val = mb86a20s_readreg(state, 0x02);
--		if (val & 0x08)
-+		rc = mb86a20s_readreg(state, 0x02);
-+		if (rc < 0)
-+			return rc;
-+		if (rc & 0x08)
- 			rf_min = (rf_max + rf_min) / 2;
- 		else
- 			rf_max = (rf_max + rf_min) / 2;
-@@ -310,12 +327,22 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 		}
- 	} while (1);
- 
--	dprintk("signal strength = %d\n", *strength);
-+	return 0;
-+}
-+
-+static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
-+{
-+	int rc;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	rc = __mb86a20s_read_signal_strength(fe, strength);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
--	return 0;
-+	return rc;
- }
- 
- static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
-@@ -615,6 +642,106 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
- 	return rc;
- }
- 
-+static int mb86a20s_reset_counters(struct dvb_frontend *fe)
-+{
-+
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+
-+	int rc, val;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Set the QoS clear status for most stats */
-+	rc = mb86a20s_writeregdata(state, mb86a20s_clear_stats);
-+	if (rc < 0)
-+		goto err;
-+
-+	/* CNR counter reset */
-+	rc = mb86a20s_readreg(state, 0x45);
-+	if (rc < 0)
-+		goto err;
-+
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x45, val | 0x10);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_writereg(state, 0x45, val & 0x6f);
-+	if (rc < 0)
-+		goto err;
-+
-+	/* MER counter reset */
-+	rc = mb86a20s_writereg(state, 0x50, 0x50);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		goto err;
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x51, val | 0x01);
-+	if (rc < 0)
-+		goto err;
-+	rc = mb86a20s_writereg(state, 0x51, val & 0x06);
-+	if (rc < 0)
-+		goto err;
-+
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	/* Update the length of each status counter */
-+
-+	/* Only global stats */
-+	c->strength.len = 1;
-+
-+	/* Per-layer stats */
-+	c->cnr.len = 4;
-+	c->bit_error.len = 4;
-+	c->bit_count.len = 4;
-+	c->block_error.len = 4;
-+	c->block_count.len = 4;
-+
-+	return rc;
-+}
-+
-+static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+{
-+	int rc, i;
-+	__u16 strength;
-+
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Update signal relative level */
-+	rc = __mb86a20s_read_signal_strength(fe, &strength);
-+	c->strength.len = 1;
-+	if (rc < 0) {
-+		c->strength.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+	} else {
-+		c->strength.stat[0].scale = FE_SCALE_RELATIVE;
-+		c->strength.stat[0].uvalue = strength;
-+	}
-+
-+	/* Get per-layer stats */
-+	for (i = 0; i < 3; i++) {
-+		rc = mb86a20s_get_segment_count(state, i);
-+		if (rc > 0 && rc < 14) {
-+			/* Layer is active and has rc segments */
-+
-+			/* FIXME: add a per-layer stats logic */
-+		}
-+	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	return rc;
-+}
-+
- static void mb86a20s_release(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
-@@ -694,6 +821,9 @@ static struct dvb_frontend_ops mb86a20s_ops = {
- 	.read_status = mb86a20s_read_status,
- 	.read_signal_strength = mb86a20s_read_signal_strength,
- 	.tune = mb86a20s_tune,
-+
-+	.reset_qos_counters = mb86a20s_reset_counters,
-+	.get_qos_stats = mb86a20s_get_stats,
- };
- 
- MODULE_DESCRIPTION("DVB Frontend module for Fujitsu mb86A20s hardware");
--- 
-1.7.11.7
-
+Regards,
+Frank
