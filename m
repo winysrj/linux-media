@@ -1,106 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50431 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab3AaJxZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 04:53:25 -0500
-Message-ID: <510A3F11.2040000@canonical.com>
-Date: Thu, 31 Jan 2013 10:53:21 +0100
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from claranet-outbound-smtp05.uk.clara.net ([195.8.89.38]:34407 "EHLO
+	claranet-outbound-smtp05.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755855Ab3AHMQR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 07:16:17 -0500
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
+Date: Tue, 08 Jan 2013 11:45:57 +0000
+Message-ID: <10526351.JB9QcZTfut@f17simon>
+In-Reply-To: <1357604750-772-2-git-send-email-mchehab@redhat.com>
+References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <1357604750-772-2-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-CC: Maarten Lankhorst <m.b.lankhorst@gmail.com>,
-	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH 4/7] fence: dma-buf cross-device synchronization
- (v11)
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com> <1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com> <CAAQKjZMpFin6s+-z8ei+JcxcdFrWUpFZrsCuxv7AH+8wVfTUqw@mail.gmail.com>
-In-Reply-To: <CAAQKjZMpFin6s+-z8ei+JcxcdFrWUpFZrsCuxv7AH+8wVfTUqw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 31-01-13 10:32, Inki Dae schreef:
-> Hi,
->
-> below is my opinion.
->
->> +struct fence;
->> +struct fence_ops;
->> +struct fence_cb;
->> +
->> +/**
->> + * struct fence - software synchronization primitive
->> + * @refcount: refcount for this fence
->> + * @ops: fence_ops associated with this fence
->> + * @cb_list: list of all callbacks to call
->> + * @lock: spin_lock_irqsave used for locking
->> + * @priv: fence specific private data
->> + * @flags: A mask of FENCE_FLAG_* defined below
->> + *
->> + * the flags member must be manipulated and read using the appropriate
->> + * atomic ops (bit_*), so taking the spinlock will not be needed most
->> + * of the time.
->> + *
->> + * FENCE_FLAG_SIGNALED_BIT - fence is already signaled
->> + * FENCE_FLAG_ENABLE_SIGNAL_BIT - enable_signaling might have been called*
->> + * FENCE_FLAG_USER_BITS - start of the unused bits, can be used by the
->> + * implementer of the fence for its own purposes. Can be used in different
->> + * ways by different fence implementers, so do not rely on this.
->> + *
->> + * *) Since atomic bitops are used, this is not guaranteed to be the case.
->> + * Particularly, if the bit was set, but fence_signal was called right
->> + * before this bit was set, it would have been able to set the
->> + * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
->> + * Adding a check for FENCE_FLAG_SIGNALED_BIT after setting
->> + * FENCE_FLAG_ENABLE_SIGNAL_BIT closes this race, and makes sure that
->> + * after fence_signal was called, any enable_signaling call will have either
->> + * been completed, or never called at all.
->> + */
->> +struct fence {
->> +       struct kref refcount;
->> +       const struct fence_ops *ops;
->> +       struct list_head cb_list;
->> +       spinlock_t *lock;
->> +       unsigned context, seqno;
->> +       unsigned long flags;
->> +};
->> +
->> +enum fence_flag_bits {
->> +       FENCE_FLAG_SIGNALED_BIT,
->> +       FENCE_FLAG_ENABLE_SIGNAL_BIT,
->> +       FENCE_FLAG_USER_BITS, /* must always be last member */
->> +};
->> +
-> It seems like that this fence framework need to add read/write flags.
-> In case of two read operations, one might wait for another one. But
-> the another is just read operation so we doesn't need to wait for it.
-> Shouldn't fence-wait-request be ignored? In this case, I think it's
-> enough to consider just only write operation.
->
-> For this, you could add the following,
->
-> enum fence_flag_bits {
->         ...
->         FENCE_FLAG_ACCESS_READ_BIT,
->         FENCE_FLAG_ACCESS_WRITE_BIT,
->         ...
-> };
->
-> And the producer could call fence_init() like below,
-> __fence_init(..., FENCE_FLAG_ACCESS_WRITE_BIT,...);
->
-> With this, fence->flags has FENCE_FLAG_ACCESS_WRITE_BIT as write
-> operation and then other sides(read or write operation) would wait for
-> the write operation completion.
-> And also consumer calls that function with FENCE_FLAG_ACCESS_READ_BIT
-> so that other consumers could ignore the fence-wait to any read
-> operations.
->
-You can't put that information in the fence. If you use a fence to fence off a hardware memcpy operation,
-there would be one buffer for which you would attach the fence in read mode and another buffer where you need
-write access.
+On Monday 7 January 2013 22:25:47 Mauro Carvalho Chehab wrote:
+<snip>
+> +			<itemizedlist mark='bullet'>
+> +				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
+> +				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
+> +				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
+> +				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
+> +			</itemizedlist>
+<snip>
+> +	<section id="DTV-QOS-SIGNAL-STRENGTH">
+> +		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
+> +		<para>Indicates the signal strength level at the analog part of the tuner.</para>
+> +	</section>
 
-~Maarten
+Signal strength is traditionally an absolute field strength; there's no way in
+this API for me to provide my reference point, so two different front ends
+could represent the same signal strength as "0 dB" (where the reference point
+is one microwatt), "-30 dB" (where the reference point is one milliwatt), or
+"17 dB" (using a reference point of 1 millivolt on a 50 ohm impedance).
 
+Could you choose a reference point for signal strength, and specify that if
+you're using FE_SCALE_DECIBEL, you're referenced against that point?
+
+My preference would be to reference against 1 microwatt, as (on the DVB-T and
+ATSC cards I use) that leads to the signal measure being 0 dBµW if you've got
+perfect signal, negative number if your signal is weak, and positive numbers
+if your signal is strong. However, referenced against 1 milliwatt also works
+well for me, as the conversion is trivial.
+-- 
+Simon Farnsworth
+Software Engineer
+ONELAN Ltd
+http://www.onelan.com
