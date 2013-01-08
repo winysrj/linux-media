@@ -1,303 +1,359 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:54661 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755827Ab3AHNVm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 08:21:42 -0500
-Received: by mail-ea0-f171.google.com with SMTP id n10so178720eaa.2
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 05:21:41 -0800 (PST)
-Message-ID: <50EC1D61.6030507@gmail.com>
-Date: Tue, 08 Jan 2013 14:21:37 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: cron job: media_tree daily build: ERRORS
-References: <20130107213823.ED56311E00F1@alastor.dyndns.org> <201301081058.11297.hverkuil@xs4all.nl> <50EBFC9F.2060103@gmail.com> <201301081343.43562.hverkuil@xs4all.nl>
-In-Reply-To: <201301081343.43562.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:5707 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756166Ab3AHA0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 19:26:23 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080QNwn020602
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:26:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
+Date: Mon,  7 Jan 2013 22:25:47 -0200
+Message-Id: <1357604750-772-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1357604750-772-1-git-send-email-mchehab@redhat.com>
+References: <1357604750-772-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 08/01/2013 13:43, Hans Verkuil ha scritto:
-> On Tue 8 January 2013 12:01:51 Gianluca Gennari wrote:
->> Il 08/01/2013 10:58, Hans Verkuil ha scritto:
->>> On Mon 7 January 2013 22:38:23 Hans Verkuil wrote:
->>>> This message is generated daily by a cron job that builds media_tree for
->>>> the kernels and architectures in the list below.
->>>>
->>>> Results of the daily build of media_tree:
->>>>
->>>> date:        Mon Jan  7 19:00:18 CET 2013
->>>> git hash:    73ec66c000e9816806c7380ca3420f4e0638c40e
->>>> gcc version:      i686-linux-gcc (GCC) 4.7.1
->>>> host hardware:    x86_64
->>>> host os:          3.4.07-marune
->>>>
->>>> linux-git-arm-eabi-davinci: WARNINGS
->>>> linux-git-arm-eabi-exynos: WARNINGS
->>>> linux-git-arm-eabi-omap: ERRORS
->>>> linux-git-i686: OK
->>>> linux-git-m32r: OK
->>>> linux-git-mips: WARNINGS
->>>> linux-git-powerpc64: OK
->>>> linux-git-sh: OK
->>>> linux-git-x86_64: OK
->>>> linux-2.6.31.12-i686: WARNINGS
->>>> linux-2.6.32.6-i686: WARNINGS
->>>> linux-2.6.33-i686: WARNINGS
->>>> linux-2.6.34-i686: WARNINGS
->>>> linux-2.6.35.3-i686: WARNINGS
->>>> linux-2.6.36-i686: WARNINGS
->>>> linux-2.6.37-i686: WARNINGS
->>>> linux-2.6.38.2-i686: WARNINGS
->>>> linux-2.6.39.1-i686: WARNINGS
->>>> linux-3.0-i686: WARNINGS
->>>> linux-3.1-i686: WARNINGS
->>>> linux-3.2.1-i686: WARNINGS
->>>> linux-3.3-i686: WARNINGS
->>>> linux-3.4-i686: WARNINGS
->>>> linux-3.5-i686: WARNINGS
->>>> linux-3.6-i686: WARNINGS
->>>> linux-3.7-i686: WARNINGS
->>>> linux-3.8-rc1-i686: WARNINGS
->>>> linux-2.6.31.12-x86_64: WARNINGS
->>>> linux-2.6.32.6-x86_64: WARNINGS
->>>> linux-2.6.33-x86_64: WARNINGS
->>>> linux-2.6.34-x86_64: WARNINGS
->>>> linux-2.6.35.3-x86_64: WARNINGS
->>>> linux-2.6.36-x86_64: WARNINGS
->>>> linux-2.6.37-x86_64: WARNINGS
->>>> linux-2.6.38.2-x86_64: WARNINGS
->>>> linux-2.6.39.1-x86_64: WARNINGS
->>>> linux-3.0-x86_64: WARNINGS
->>>> linux-3.1-x86_64: WARNINGS
->>>> linux-3.2.1-x86_64: WARNINGS
->>>> linux-3.3-x86_64: WARNINGS
->>>> linux-3.4-x86_64: WARNINGS
->>>> linux-3.5-x86_64: WARNINGS
->>>> linux-3.6-x86_64: WARNINGS
->>>> linux-3.7-x86_64: WARNINGS
->>>> linux-3.8-rc1-x86_64: WARNINGS
->>>> apps: WARNINGS
->>>> spec-git: OK
->>>> sparse: ERRORS
->>>>
->>>> Detailed results are available here:
->>>>
->>>> http://www.xs4all.nl/~hverkuil/logs/Monday.log
->>>
->>> There were a lot of new 'redefined' warnings that I have fixed.
->>>
->>> In addition, it turned out that any driver using vb2 wasn't compiled for
->>> kernels <3.2 due to the fact that DMA_SHARED_BUFFER wasn't set. That's fixed
->>> as well, so drivers like em28xx and vivi will now compile on those older
->>> kernels. This also was the reason I never saw that the usb_translate_error
->>> function needed to be added to compat.h: it's used in em28xx but that driver
->>> was never compiled on kernels without usb_translate_error.
->>>
->>> Hopefully everything works now.
->>>
->>> Regards,
->>>
->>> 	Hans
->>
->> Hi Hans,
->> on kernel 2.6.32 (Ubuntu 10.04) the media_build tree compiles fine, with
->> just a few remaining warnings.
->>
->> In particular, there are several new warnings related to DMA_SHARED_BUFFER:
->>
->> WARNING: "dma_buf_vunmap" [media_build/v4l/videobuf2-vmalloc.ko] undefined!
->> WARNING: "dma_buf_vmap" [media_build/v4l/videobuf2-vmalloc.ko] undefined!
->> WARNING: "dma_buf_fd" [media_build/v4l/videobuf2-core.ko] undefined!
->> WARNING: "dma_buf_put" [media_build/v4l/videobuf2-core.ko] undefined!
->> WARNING: "dma_buf_get" [media_build/v4l/videobuf2-core.ko] undefined!
-> 
-> Gianluca,
-> 
-> Can you patch media_build with the patch below and try again? If it doesn't
-> work, then replace '#ifdef CONFIG_DMA_SHARED_BUFFER' by '#if 0' in the patch
-> below and try that instead.
-> 
-> Let me know what works.
-> 
-> Thanks,
-> 
-> 	Hans
-> 
+The DVBv3 quality parameters are limited on several ways:
 
-Hi Hans,
-your patch works perfectly fine in both ways.
+        - Doesn't provide any way to indicate the used measure,
+	  so userspace need to guess how to calculate the measure;
 
-BTW, those are the few extra warnings remaining:
+        - Only a limited set of stats are supported;
 
-2 random warnings:
+        - Can't be called in a way to require them to be filled
+          all at once (atomic reads from the hardware), with may
+          cause troubles on interpreting them on userspace;
 
-media_build/v4l/anysee.c: In function 'anysee_frontend_attach':
-media_build/v4l/anysee.c:641: warning: 'ret' may be used uninitialized
-in this function
+        - On some OFDM delivery systems, the carriers can be
+          independently modulated, having different properties.
+          Currently, there's no way to report per-layer stats.
 
-media_build/v4l/ngene-cards.c:813: warning: initialization discards
-qualifiers from pointer target type
+To address the above issues, adding a new DVBv5-based stats
+API.
 
-and a redefinition of the "err" macro:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-media_build/v4l/mxl111sf.c:58:1: warning: "err" redefined
-In file included from include/linux/usb/input.h:12,
-                 from media_build/v4l/dvb_usb.h:25,
-                 from media_build/v4l/mxl111sf.h:18,
-                 from media_build/v4l/mxl111sf.c:14:
-include/linux/usb.h:1593:1: warning: this is the location of the
-previous definition
+---
 
-media_build/v4l/mxl111sf-tuner.c:34:1: warning: "err" redefined
-In file included from include/linux/usb/input.h:12,
-                 from media_build/v4l/dvb_usb.h:25,
-                 from media_build/v4l/mxl111sf.h:18,
-                 from media_build/v4l/mxl111sf-tuner.h:26,
-                 from media_build/v4l/mxl111sf-tuner.c:21:
-include/linux/usb.h:1593:1: warning: this is the location of the
-previous definition
+v6: Add DocBook documentation.
+v7: Some fixes as suggested by Antti
+v8: Documentation fix, compilation fix and name the stats struct,
+    for its reusage inside the core
+v9: counters need 32 bits. So, change the return data types to
+    s32/u32 types
+---
+ Documentation/DocBook/media/dvb/dvbproperty.xml | 97 ++++++++++++++++++++++++-
+ include/uapi/linux/dvb/frontend.h               | 84 ++++++++++++++++++++-
+ 2 files changed, 178 insertions(+), 3 deletions(-)
 
-Thanks and regards,
-Gianluca
-
-> 
-> diff --git a/backports/backports.txt b/backports/backports.txt
-> index f2d08b9..73ecbf6 100644
-> --- a/backports/backports.txt
-> +++ b/backports/backports.txt
-> @@ -26,6 +26,7 @@ add pr_fmt.patch
->  
->  [3.1.255]
->  add v3.1_no_export_h.patch
-> +add v3.1_no_dma_buf_h.patch
->  add v3.1_no_pm_qos.patch
->  
->  [3.0.255]
-> diff --git a/backports/v3.1_no_dma_buf_h.patch b/backports/v3.1_no_dma_buf_h.patch
-> new file mode 100644
-> index 0000000..5a7a7fb
-> --- /dev/null
-> +++ b/backports/v3.1_no_dma_buf_h.patch
-> @@ -0,0 +1,116 @@
-> +diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> +index bd2e52c..eb48f38 100644
-> +--- a/include/linux/dma-buf.h
-> ++++ b/include/linux/dma-buf.h
-> +@@ -156,6 +156,7 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
-> + 	get_file(dmabuf->file);
-> + }
-> + 
-> ++#ifdef CONFIG_DMA_SHARED_BUFFER
-> + struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> + 							struct device *dev);
-> + void dma_buf_detach(struct dma_buf *dmabuf,
-> +@@ -183,5 +184,103 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-> + 		 unsigned long);
-> + void *dma_buf_vmap(struct dma_buf *);
-> + void dma_buf_vunmap(struct dma_buf *, void *vaddr);
-> ++#else
-> ++
-> ++static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> ++							struct device *dev)
-> ++{
-> ++	return ERR_PTR(-ENODEV);
-> ++}
-> ++
-> ++static inline void dma_buf_detach(struct dma_buf *dmabuf,
-> ++				  struct dma_buf_attachment *dmabuf_attach)
-> ++{
-> ++	return;
-> ++}
-> ++
-> ++static inline struct dma_buf *dma_buf_export(void *priv,
-> ++					     const struct dma_buf_ops *ops,
-> ++					     size_t size, int flags)
-> ++{
-> ++	return ERR_PTR(-ENODEV);
-> ++}
-> ++
-> ++static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
-> ++{
-> ++	return -ENODEV;
-> ++}
-> ++
-> ++static inline struct dma_buf *dma_buf_get(int fd)
-> ++{
-> ++	return ERR_PTR(-ENODEV);
-> ++}
-> ++
-> ++static inline void dma_buf_put(struct dma_buf *dmabuf)
-> ++{
-> ++	return;
-> ++}
-> ++
-> ++static inline struct sg_table *dma_buf_map_attachment(
-> ++	struct dma_buf_attachment *attach, enum dma_data_direction write)
-> ++{
-> ++	return ERR_PTR(-ENODEV);
-> ++}
-> ++
-> ++static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-> ++			struct sg_table *sg, enum dma_data_direction dir)
-> ++{
-> ++	return;
-> ++}
-> ++
-> ++static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-> ++					   size_t start, size_t len,
-> ++					   enum dma_data_direction dir)
-> ++{
-> ++	return -ENODEV;
-> ++}
-> ++
-> ++static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> ++					  size_t start, size_t len,
-> ++					  enum dma_data_direction dir)
-> ++{
-> ++}
-> ++
-> ++static inline void *dma_buf_kmap_atomic(struct dma_buf *dmabuf,
-> ++					unsigned long pnum)
-> ++{
-> ++	return NULL;
-> ++}
-> ++
-> ++static inline void dma_buf_kunmap_atomic(struct dma_buf *dmabuf,
-> ++					 unsigned long pnum, void *vaddr)
-> ++{
-> ++}
-> ++
-> ++static inline void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long pnum)
-> ++{
-> ++	return NULL;
-> ++}
-> ++
-> ++static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
-> ++				  unsigned long pnum, void *vaddr)
-> ++{
-> ++}
-> ++
-> ++static inline int dma_buf_mmap(struct dma_buf *dmabuf,
-> ++			       struct vm_area_struct *vma,
-> ++			       unsigned long pgoff)
-> ++{
-> ++	return -ENODEV;
-> ++}
-> ++
-> ++static inline void *dma_buf_vmap(struct dma_buf *dmabuf)
-> ++{
-> ++	return NULL;
-> ++}
-> ++
-> ++static inline void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
-> ++{
-> ++}
-> ++#endif /* CONFIG_DMA_SHARED_BUFFER */
-> + 
-> + #endif /* __DMA_BUF_H__ */
-> 
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index 957e3ac..9168808 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -7,16 +7,29 @@ the capability ioctls weren't implemented yet via the new way.</para>
+ <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
+ API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
+ struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
++<section id="dtv-stats">
++<title>DTV stats type</title>
++<programlisting>
++struct dtv_stats {
++        __u16 value;
++        __u8 scale;
++} __attribute__ ((packed));
++</programlisting>
++</section>
+ <section id="dtv-property">
+ <title>DTV property type</title>
+ <programlisting>
+ /* Reserved fields should be set to 0 */
++
+ struct dtv_property {
+ 	__u32 cmd;
+ 	union {
+ 		__u32 data;
+ 		struct {
+-			__u8 data[32];
++			union {
++				__u8 data[32];
++				__u16 data[16];
++			}
+ 			__u32 len;
+ 			__u32 reserved1[3];
+ 			void *reserved2;
+@@ -850,6 +863,78 @@ enum fe_interleaving {
+ 	<para>use the special macro LNA_AUTO to set LNA auto</para>
+ 	</section>
+ </section>
++
++	<section id="frontend-qos-properties">
++	<title>Frontend Quality of Service/Statistics indicators</title>
++	<para>Except for <link linkend="DTV-QOS-ENUM"><constant>DTV_QOS_ENUM</constant></link>,
++	the values are returned via <constant>dtv_property.stat</constant>.</para>
++	<para>For most delivery systems, this will return a single value for each parameter.</para>
++	<para>It should be noticed, however, that new OFDM delivery systems
++	like ISDB can use different modulation types for each group of carriers.
++	On such standards, up to 3 groups of statistics can be provided, one
++	for each carrier group (called "layer" on ISDB).
++	In order to be consistent with other delivery systems, the first
++	value at <link linkend="dtv-stats"><constant>dtv_property.stat.dtv_stats</constant></link> array refers to
++	a global indicator, if any. The other elements of the array represent
++	each layer, starting from layer A(index 1), layer B (index 2) and so on</para>
++	<para>The number of filled elements are stored at <constant>dtv_property.stat.len</constant>.</para>
++	<para>Each element of the <constant>dtv_property.stat.dtv_stats</constant> array consists on two elements:</para>
++	<itemizedlist mark='opencircle'>
++		<listitem><para><constant>value</constant> - Value of the measure</para></listitem>
++		<listitem><para><constant>scale</constant> - Scale for the value. It can be:</para>
++			<section id = "fecap-scale-params">
++			<itemizedlist mark='bullet'>
++				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
++				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
++				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
++				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
++			</itemizedlist>
++			</section>
++		</listitem>
++	</itemizedlist>
++	<section id="DTV-QOS-ENUM">
++		<title><constant>DTV_QOS_ENUM</constant></title>
++		<para>A frontend needs to advertise the statistics it provides. This property allows to enumerate all
++			<link linkend="frontend-qos-properties">DTV QoS statistics</link> that are
++			supported by a given frontend.</para>
++
++		<para><constant>dtv_property.len</constant> indicates the number of supported
++		<link linkend="frontend-qos-properties">DTV QoS statistics</link>.</para>
++		<para><constant>dtv_property.data16</constant> is an 16 bits array of the supported properties.</para>
++	</section>
++	<section id="DTV-QOS-SIGNAL-STRENGTH">
++		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
++		<para>Indicates the signal strength level at the analog part of the tuner.</para>
++	</section>
++	<section id="DTV-QOS-CNR">
++		<title><constant>DTV_QOS_CNR</constant></title>
++		<para>Indicates the signal to noise relation for the main carrier.</para>
++
++	</section>
++	<section id="DTV-QOS-BIT-ERROR-COUNT">
++		<title><constant>DTV_QOS_BIT_ERROR_COUNT</constant></title>
++		<para>Measures the number of bit errors since the last counter reset.</para>
++		<para>In order to get the BER (Bit Error Rate) measurement, it should be divided by
++		<link linkend="DTV-QOS-TOTAL-BITS-COUNT"><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></link>.</para>
++	</section>
++	<section id="DTV-QOS-TOTAL-BITS-COUNT">
++		<title><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></title>
++		<para>Measures the amount of bits received since the last <link linkend="DTV-QOS-BIT-ERROR-COUNT"><constant>DTV_QOS_BIT_ERROR_COUNT</constant></link> reset.</para>
++	</section>
++	<section id="DTV-QOS-ERROR-BLOCK-COUNT">
++		<title><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></title>
++		<para>Measures the number of block errors since the last counter reset.</para>
++	</section>
++	<section id="DTV-QOS-TOTAL-BLOCKS-COUNT">
++		<title><constant>DTV-QOS_TOTAL_BLOCKS_COUNT</constant></title>
++		<para>Measures the total number of blocks since the last
++		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link> reset.</para>
++		<para>It can be used to calculate the PER indicator, by dividing
++		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link>
++		by <link linkend="DTV-QOS-TOTAL-BLOCKS-COUNT"><constant>DTV-QOS-TOTAL-BLOCKS-COUNT</constant></link>.</para>
++	</section>
++	</section>
++
+ 	<section id="frontend-property-terrestrial-systems">
+ 	<title>Properties used on terrestrial delivery systems</title>
+ 		<section id="dvbt-params">
+@@ -871,6 +956,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="dvbt2-params">
+ 			<title>DVB-T2 delivery system</title>
+@@ -895,6 +981,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="isdbt">
+ 		<title>ISDB-T delivery system</title>
+@@ -948,6 +1035,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT"><constant>DTV_ISDBT_LAYERC_SEGMENT_COUNT</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING"><constant>DTV_ISDBT_LAYERC_TIME_INTERLEAVING</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="atsc-params">
+ 			<title>ATSC delivery system</title>
+@@ -961,6 +1049,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="atscmh-params">
+ 			<title>ATSC-MH delivery system</title>
+@@ -988,6 +1077,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-C"><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-D"><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 		<section id="dtmb-params">
+ 			<title>DTMB delivery system</title>
+@@ -1007,6 +1097,7 @@ enum fe_interleaving {
+ 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
+ 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 			</itemizedlist>
++			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		</section>
+ 	</section>
+ 	<section id="frontend-property-cable-systems">
+@@ -1028,6 +1119,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	<section id="dvbc-annex-b-params">
+ 		<title>DVB-C Annex B delivery system</title>
+@@ -1043,6 +1135,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	</section>
+ 	<section id="frontend-property-satellital-systems">
+@@ -1062,6 +1155,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-VOLTAGE"><constant>DTV_VOLTAGE</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-TONE"><constant>DTV_TONE</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 		<para>Future implementations might add those two missing parameters:</para>
+ 		<itemizedlist mark='opencircle'>
+ 			<listitem><para><link linkend="DTV-DISEQC-MASTER"><constant>DTV_DISEQC_MASTER</constant></link></para></listitem>
+@@ -1077,6 +1171,7 @@ enum fe_interleaving {
+ 			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
+ 		</itemizedlist>
++		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
+ 	</section>
+ 	<section id="turbo-params">
+ 		<title>Turbo code delivery system</title>
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index c12d452..39e3321 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -365,7 +365,16 @@ struct dvb_frontend_event {
+ #define DTV_INTERLEAVING			60
+ #define DTV_LNA					61
+ 
+-#define DTV_MAX_COMMAND				DTV_LNA
++/* Quality parameters */
++#define DTV_QOS_ENUM			62
++#define DTV_QOS_SIGNAL_STRENGTH		63
++#define DTV_QOS_CNR			64
++#define DTV_QOS_BIT_ERROR_COUNT		65
++#define DTV_QOS_TOTAL_BITS_COUNT	66
++#define DTV_QOS_ERROR_BLOCK_COUNT	67
++#define DTV_QOS_TOTAL_BLOCKS_COUNT	68
++
++#define DTV_MAX_COMMAND		DTV_QOS_TOTAL_BLOCKS_COUNT
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -452,13 +461,84 @@ struct dtv_cmds_h {
+ 	__u32	reserved:30;	/* Align */
+ };
+ 
++/**
++ * Scale types for the quality parameters.
++ * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
++ *			    could indicate a temporary or a permanent
++ *			    condition.
++ * @FE_SCALE_DECIBEL: The scale is measured in 0.1 dB steps, typically
++ *		  used on signal measures.
++ * @FE_SCALE_RELATIVE: The scale is a relative percentual measure,
++ *			ranging from 0 (0%) to 0xffff (100%).
++ * @FE_SCALE_COUNTER: The scale counts the occurrence of an event, like
++ *			bit error, block error, lapsed time.
++ */
++enum fecap_scale_params {
++	FE_SCALE_NOT_AVAILABLE,
++	FE_SCALE_DECIBEL,
++	FE_SCALE_RELATIVE,
++	FE_SCALE_COUNTER
++};
++
++/**
++ * struct dtv_stats - Used for reading a DTV status property
++ *
++ * @value:	value of the measure. Should range from 0 to 0xffff;
++ * @scale:	Filled with enum fecap_scale_params - the scale
++ *		in usage for that parameter
++ *
++ * For most delivery systems, this will return a single value for each
++ * parameter.
++ * It should be noticed, however, that new OFDM delivery systems like
++ * ISDB can use different modulation types for each group of carriers.
++ * On such standards, up to 8 groups of statistics can be provided, one
++ * for each carrier group (called "layer" on ISDB).
++ * In order to be consistent with other delivery systems, the first
++ * value refers to the entire set of carriers ("global").
++ * dtv_status:scale should use the value FE_SCALE_NOT_AVAILABLE when
++ * the value for the entire group of carriers or from one specific layer
++ * is not provided by the hardware.
++ * st.len should be filled with the latest filled status + 1.
++ *
++ * In other words, for ISDB, those values should be filled like:
++ *	u.st.stat.svalue[0] = global statistics;
++ *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
++ *	u.st.stat.value[1] = layer A statistics;
++ *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
++ *	u.st.stat.svalue[2] = layer B statistics;
++ *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
++ *	u.st.stat.svalue[3] = layer C statistics;
++ *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
++ *	u.st.len = 4;
++ */
++struct dtv_stats {
++	__u8 scale;	/* enum fecap_scale_params type */
++	union {
++		__u32 uvalue;	/* for counters and relative scales */
++		__s32 svalue;	/* for 0.1 dB measures */
++	};
++} __attribute__ ((packed));
++
++
++#define MAX_QOS_STATS   4
++
++struct dtv_fe_stats {
++	__u8 len;
++	__u8 scale;
++	struct dtv_stats stat[MAX_QOS_STATS];
++} __attribute__ ((packed));
++
+ struct dtv_property {
+ 	__u32 cmd;
+ 	__u32 reserved[3];
+ 	union {
+ 		__u32 data;
++		struct dtv_fe_stats st;
+ 		struct {
+-			__u8 data[32];
++			union {
++				__u8 data[32];
++				__u16 data16[16];
++			};
+ 			__u32 len;
+ 			__u32 reserved1[3];
+ 			void *reserved2;
+-- 
+1.7.11.7
 
