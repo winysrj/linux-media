@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:50659 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779Ab3ACS1L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:27:11 -0500
-Received: by mail-we0-f172.google.com with SMTP id r3so7488383wey.17
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 10:27:10 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, saschasommer@freenet.de,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 5/5] em28xx: consider the message length limitation of the i2c adapter when reading the eeprom
-Date: Thu,  3 Jan 2013 19:27:06 +0100
-Message-Id: <1357237626-3358-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-la0-f49.google.com ([209.85.215.49]:46161 "EHLO
+	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab3AHLhm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 06:37:42 -0500
+Message-ID: <50EC0500.4030708@gmail.com>
+Date: Tue, 08 Jan 2013 12:37:36 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <13183539.ohZBrHhPax@avalon> <Pine.LNX.4.64.1301081123590.1794@axis700.grange> <18858693.KSUhrxG65A@avalon>
+In-Reply-To: <18858693.KSUhrxG65A@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-EEPROMs are currently read in blocks of 16 bytes, but the em2800 is limited
-to 4 bytes per read. All other chip variants support reading of max. 64 bytes
-at once (according to the em258x datasheet; also verified with em2710, em2882,
-and em28174).
+Hi,
 
-Since em2800_i2c_recv_bytes() has been fixed to return with -EOPNOTSUPP when
-more than 4 bytes are requested, EEPROM reading with this chip is broken.
-It was actually broken before that change, too, it just didn't throw an error
-because the i2c adapter silently returned trash data (for all reads >1 byte !).
+On 01/08/2013 11:35 AM, Laurent Pinchart wrote:
+>>>>> If we need a workaround, I'd rather pass the device name in addition
+>>>>> to the I2C adapter number and address, instead of embedding the
+>>>>> workaround in this new API.
+>>>>
+>>>> ...or we can change the I2C subdevice name format. The actual need to do
+>>>>
+>>>> 	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
+>>>> 	
+>>>> 		 asdl->dev->driver->name,
+>>>> 		 i2c_adapter_id(client->adapter), client->addr);
+>>>>
+>>>> in soc-camera now to exactly match the subdevice name, as created by
+>>>> v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What
+>>>> if the latter changes at some point? Or what if one driver wishes to
+>>>> create several subdevices for one I2C device?
+>>>
+>>> The common clock framework uses %d-%04x, maybe we could use that as well
+>>> for clock names ?
+>>
+>> And preserve the subdevice names? Then matching would be more difficult
+>> and less precise. Or change subdevice names too? I think, we can do the
+>> latter, since anyway at any time only one driver can be attached to an I2C
+>> device.
+>
+> That's right. Where else is the subdev name used ?
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |   12 +++++++++---
- 1 Datei geändert, 9 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+Subdev names are exposed to user space by the media controller API.
+So they are really part of an ABI, aren't they ?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 3ff682e..8dc9267 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -379,7 +379,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- {
- 	unsigned char buf, *p = eedata;
- 	struct em28xx_eeprom *em_eeprom = (void *)eedata;
--	int i, err, size = len, block;
-+	int i, err, size = len, block, block_max;
- 
- 	if (dev->chip_id == CHIP_ID_EM2874 ||
- 	    dev->chip_id == CHIP_ID_EM28174 ||
-@@ -412,9 +412,15 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 		       dev->name, err);
- 		return err;
- 	}
-+
-+	if (dev->board.is_em2800)
-+		block_max = 4;
-+	else
-+		block_max = 64;
-+
- 	while (size > 0) {
--		if (size > 16)
--			block = 16;
-+		if (size > block_max)
-+			block = block_max;
- 		else
- 			block = size;
- 
--- 
-1.7.10.4
+Also having I2C bus number or I2C slave address as part of the subdev
+name makes it more difficult to write portable applications. Hence
+in sensor drivers I used to overwrite subdev name to remove I2C bus
+and slave address, as the format used v4l2_i2c_subdev_init() seemed
+highly unsuitable..
 
+--
+
+Regards,
+Sylwester
