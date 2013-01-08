@@ -1,122 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1112 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754020Ab3AGMLW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 07:11:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: RFC: add parameters to V4L controls
-Date: Mon, 7 Jan 2013 13:10:54 +0100
-Cc: linux-media@vger.kernel.org,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56834 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754920Ab3AHKUD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:20:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <50EAA78E.4090904@samsung.com>
-In-Reply-To: <50EAA78E.4090904@samsung.com>
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
+Date: Tue, 08 Jan 2013 11:21:40 +0100
+Message-ID: <13183539.ohZBrHhPax@avalon>
+In-Reply-To: <Pine.LNX.4.64.1301081052100.1794@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <1917427.TMDygJ49eg@avalon> <Pine.LNX.4.64.1301081052100.1794@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301071310.54428.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon January 7 2013 11:46:38 Andrzej Hajda wrote:
-> Hi,
-> 
-> I have included this proposition already in the post "[PATCH RFC 0/2] 
-> V4L: Add auto focus area control and selection" but it left unanswered.
-> I repost it again in a separate e-mail, I hope this way it will be 
-> easier to attract attention.
-> 
-> Problem description
-> 
-> Currently V4L2 controls can have only single value (of type int, int64, 
-> string). Some hardware controls require more than single int parameter, 
-> for example to set auto-focus (AF) rectangle four coordinates should be 
-> passed, to set auto-focus spot two coordinates should be passed.
-> 
-> Current solution
-> 
-> In case of AF rectangle we can reuse selection API as in "[PATCH RFC 
-> 0/2] V4L: Add auto focus area control and selection" post.
-> Pros:
-> - reuse existing API,
-> Cons:
-> - two IOCTL's to perform one action,
-> - non-atomic operation,
-> - fits well only for rectangles and spots (but with unused fields width, 
-> height), in case of other parameters we should find a different way.
-> 
-> Proposed solution
-> 
-> The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
-> ioctls can be called with multiple controls per call.
-> 
-> I will present it using AF area control example.
-> 
-> There could be added four pseudo-controls, lets call them for short:
-> LEFT, TOP, WIDTH, HEIGHT.
-> Those controls could be passed together with V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> control in one ioctl as a kind of parameters.
-> 
-> For example setting auto-focus spot would require calling VIDIOC_S_EXT_CTRLS
-> with the following controls:
-> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> - LEFT = ...
-> - RIGHT = ...
-> 
-> Setting AF rectangle:
-> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> - LEFT = ...
-> - TOP = ...
-> - WIDTH = ...
-> - HEIGHT = ...
-> 
-> Setting  AF object detection (no parameters required):
-> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
+Hi Guennadi,
 
-If you want to do this, then you have to make LEFT/TOP/WIDTH/HEIGHT real
-controls. There is no such thing as a pseudo control. So you need five
-new controls in total:
+On Tuesday 08 January 2013 10:56:43 Guennadi Liakhovetski wrote:
+> On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+> > On Tuesday 08 January 2013 10:25:15 Guennadi Liakhovetski wrote:
+> > > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+> > > > On Monday 07 January 2013 11:23:55 Guennadi Liakhovetski wrote:
+> > > > > >From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00
+> > > > > >2001
+> 
+> [snip]
+> 
+> > > > > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > > > > +				 struct v4l2_async_notifier *notifier);
+> > > > > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> > > > > *notifier);
+> > > > > +/*
+> > > > > + * If subdevice probing fails any time after
+> > > > > v4l2_async_subdev_bind(),
+> > > > > no
+> > > > > + * clean up must be called. This function is only a message of
+> > > > > intention.
+> > > > > + */
+> > > > > +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+> > > > > +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
+> > > > 
+> > > > Could you please explain why you need both a bind notifier and a bound
+> > > > notifier ? I was expecting a single v4l2_async_subdev_register() call
+> > > > in subdev drivers (and, thinking about it, I would probably name it
+> > > > v4l2_subdev_register()).
+> > > 
+> > > I think I can, yes. Because between .bind() and .bound() the subdevice
+> > > driver does the actual hardware probing. So, .bind() is used to make
+> > > sure the hardware can be accessed, most importantly to provide a clock
+> > > to the subdevice. You can look at soc_camera_async_bind(). There I'm
+> > > registering the clock for the subdevice, about to bind. Why I cannot do
+> > > it before, is because I need subdevice name for clock matching. With I2C
+> > > subdevices the subdevice name contains the name of the driver, adapter
+> > > number and i2c address. The latter 2 I've got from host subdevice list.
+> > > But not the driver name. I thought about also passing the driver name
+> > > there, but that seemed too limiting to me. I also request regulators
+> > > there, because before ->bound() the sensor driver, but that could be
+> > > done on the first call to soc_camera_power_on(), although doing this
+> > > "first call" thingie is kind of hackish too. I could add one more soc-
+> > > camera-power helper like soc_camera_prepare() or similar too.
+> > 
+> > I think a soc_camera_power_init() function (or similar) would be a good
+> > idea, yes.
+> > 
+> > > So, the main problem is the clock
+> > > 
+> > > subdevice name. Also see the comment in soc_camera.c:
+> > > 	/*
+> > > 	 * It is ok to keep the clock for the whole soc_camera_device
+> > > 	 life-time,
+> > > 	 * in principle it would be more logical to register the clock on icd
+> > > 	 * creation, the only problem is, that at that time we don't know the
+> > > 	 * driver name yet.
+> > > 	 */
+> > 
+> > I think we should fix that problem instead of shaping the async API around
+> > a workaround :-)
+> > 
+> > From the subdevice point of view, the probe function should request
+> > resources, perform whatever initialization is needed (including verifying
+> > that the hardware is functional when possible), and the register the
+> > subdev with the code if everything succeeded. Splitting registration into
+> > bind() and bound() appears a bit as a workaround to me.
+> > 
+> > If we need a workaround, I'd rather pass the device name in addition to
+> > the I2C adapter number and address, instead of embedding the workaround in
+> > this new API.
+> 
+> ...or we can change the I2C subdevice name format. The actual need to do
+> 
+> 	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
+> 		 asdl->dev->driver->name,
+> 		 i2c_adapter_id(client->adapter), client->addr);
+> 
+> in soc-camera now to exactly match the subdevice name, as created by
+> v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What if
+> the latter changes at some point? Or what if one driver wishes to create
+> several subdevices for one I2C device?
 
-V4L2_CID_AUTO_FOCUS_AREA
-V4L2_CID_AUTO_FOCUS_LEFT
-V4L2_CID_AUTO_FOCUS_RIGHT
-V4L2_CID_AUTO_FOCUS_WIDTH
-V4L2_CID_AUTO_FOCUS_HEIGHT
+The common clock framework uses %d-%04x, maybe we could use that as well for 
+clock names ?
 
-I have no problem with this from the point of view of the control API, but
-whether this is the best solution for implementing auto-focus is a different
-issue and input from sensor specialists is needed as well (added Laurent and
-Sakari to the CC list).
+> > > > > +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+> > > > > +#endif
 
-The primary concern I have is that this does not scale to multiple focus
-rectangles. This might not be relevant to auto focus, though.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> I have presented all three cases to show the advantages of this solution:
-> - atomicity - control and its parameters are passed in one call,
-> - flexibility - we are not limited by a fixed number of parameters,
-> - no-redundancy - we can pass only required parameters
-> 	(no need to pass null width and height in case of spot selection),
-> - extensibility - it is possible to extend parameters in the future,
-> for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
-> without breaking API,
-> - backward compatibility,
-> - re-usability - this schema could be used in other controls,
-> 	pseudo-controls could be re-used in other controls as well.
-> - API backward compatibility.
-> 
-> 
-> Regards
-> Andrzej Hajda
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
