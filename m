@@ -1,68 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:48310 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750945Ab3AYTyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 14:54:33 -0500
-Message-ID: <5102E2F4.80604@gmail.com>
-Date: Fri, 25 Jan 2013 20:54:28 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57790 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755058Ab3AHIji (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 03:39:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Rob Clark <rob.clark@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	marcus.lorentzon@linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Luc Verhaegen <libv@skynet.be>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Tue, 08 Jan 2013 09:41:15 +0100
+Message-ID: <17866175.ucJ7h2oVAD@avalon>
+In-Reply-To: <20130106174647.GO5737@phenom.ffwll.local>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAF6AEGsirt1iVfmpfT1pUCaj0KXO+Hycer5znUoCfH+81du1vA@mail.gmail.com> <20130106174647.GO5737@phenom.ffwll.local>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: Re: [PATCH 1/2] media: add support for decoder subdevs along with
- sensor and others
-References: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com> <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prahakar,
+Hi Daniel,
 
-On 01/25/2013 08:01 AM, Prabhakar Lad wrote:
-> From: Manjunath Hadli<manjunath.hadli@ti.com>
->
-> A lot of SOCs including Texas Instruments Davinci family mainly use
-> video decoders as input devices. Here the initial subdevice node
-> from where the input really comes is this decoder, for which support
-> is needed as part of the Media Controller infrastructure. This patch
-> adds an additional flag to include the decoders along with others,
-> such as the sensor and lens.
->
-> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
-> ---
->   include/uapi/linux/media.h |    1 +
->   1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 0ef8833..fa44ed9 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -56,6 +56,7 @@ struct media_device_info {
->   #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
->   #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
->   #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
+On Sunday 06 January 2013 18:46:47 Daniel Vetter wrote:
+> On Thu, Dec 27, 2012 at 09:57:25AM -0600, Rob Clark wrote:
+> > On Mon, Dec 24, 2012 at 11:09 AM, Laurent Pinchart wrote:
+> > > On the topic of discussions, would anyone be interested in a
+> > > BoF/brainstorming/whatever session during the FOSDEM ?
+> > 
+> > I will be at FOSDEM.. and from http://wiki.x.org/wiki/fosdem2013 it
+> > looks like at least Daniel will be there.  If enough others are, it
+> > could be a good idea.
+> 
+> Seconded. Jesse should be there, too, and from the Helsinki guys Ville and
+> Andy should show up. Doesn't look like Jani will be able to make it. I think
+> something on Sunday (to not clash with the X devroom) would be good.
+> 
+> Should we apply for an offical BOF/Is there a process for tahat? Adding
+> Luc in case he knows ...
 
-Such a new entity type needs to be documented in the media DocBook [1].
-It probably also deserves a comment here, as DECODER isn't that obvious
-like the other already existing entity types. I heard people referring
-to a device that encodes analog (composite) video signal into its digital
-representation as an ENCODER. :)
+>From the event website it looks like there are free rooms on Sunday, it would 
+be good if we could secure one of them.
 
+Are there other X/display related topics that need to be discussed on Sunday ? 
+How much time should we set aside ?
 
-[1] http://hverkuil.home.xs4all.nl/spec/media.html#media-ioc-enum-entities
-
---
-
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
