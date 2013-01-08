@@ -1,77 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:55979 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529Ab3ATVXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 16:23:09 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] tda8290: Allow custom std_map for tda18271
-Date: Sun, 20 Jan 2013 22:22:17 +0100
-Message-Id: <1358716939-2133-3-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
-References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
+Received: from mail-la0-f51.google.com ([209.85.215.51]:46569 "EHLO
+	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756451Ab3AHO6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 09:58:05 -0500
+Message-ID: <50EC32A5.6010306@gmail.com>
+Date: Tue, 08 Jan 2013 15:52:21 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <1356544151-6313-2-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1301071121280.23972@axis700.grange> <2418280.Sa45Lqe0AC@avalon>
+In-Reply-To: <2418280.Sa45Lqe0AC@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow specifying a custom std_map for tda18271 by external configuration.
-This is required by cards that require custom std_map for analog TV or radio,
-like AverMedia A706.
+Hi,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/tuners/tda8290.c |    3 +++
- drivers/media/tuners/tda8290.h |    2 ++
- 2 files changed, 5 insertions(+), 0 deletions(-)
+On 01/08/2013 09:10 AM, Laurent Pinchart wrote:
+>> +/*
+>> + * If subdevice probing fails any time after v4l2_async_subdev_bind(), no
+>> + * clean up must be called. This function is only a message of intention.
+>> + */
+>> +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+>> +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
+>
+> Could you please explain why you need both a bind notifier and a bound
+> notifier ? I was expecting a single v4l2_async_subdev_register() call in
+> subdev drivers (and, thinking about it, I would probably name it
+> v4l2_subdev_register()).
 
-diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-index 16dfbf2..45fdb46 100644
---- a/drivers/media/tuners/tda8290.c
-+++ b/drivers/media/tuners/tda8290.c
-@@ -55,6 +55,7 @@ struct tda8290_priv {
- 
- 	struct tda827x_config cfg;
- 	bool no_i2c_gate;
-+	struct tda18271_std_map *tda18271_std_map;
- };
- 
- /*---------------------------------------------------------------------*/
-@@ -637,6 +638,7 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
- 	if ((data == 0x83) || (data == 0x84)) {
- 		priv->ver |= TDA18271;
- 		tda829x_tda18271_config.config = priv->cfg.config;
-+		tda829x_tda18271_config.std_map = priv->tda18271_std_map;
- 		dvb_attach(tda18271_attach, fe, priv->tda827x_addr,
- 			   priv->i2c_props.adap, &tda829x_tda18271_config);
- 	} else {
-@@ -750,6 +752,7 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
- 	if (cfg) {
- 		priv->cfg.config = cfg->lna_cfg;
- 		priv->no_i2c_gate = cfg->no_i2c_gate;
-+		priv->tda18271_std_map = cfg->tda18271_std_map;
- 	}
- 
- 	if (tda8290_probe(&priv->i2c_props) == 0) {
-diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
-index 9959cc8..280b70d 100644
---- a/drivers/media/tuners/tda8290.h
-+++ b/drivers/media/tuners/tda8290.h
-@@ -19,6 +19,7 @@
- 
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
-+#include "tda18271.h"
- 
- struct tda829x_config {
- 	unsigned int lna_cfg;
-@@ -27,6 +28,7 @@ struct tda829x_config {
- #define TDA829X_PROBE_TUNER 0
- #define TDA829X_DONT_PROBE  1
- 	unsigned int no_i2c_gate:1;
-+	struct tda18271_std_map *tda18271_std_map;
- };
- 
- #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
--- 
-Ondrej Zary
+I expected it to be done this way too, and I also used 
+v4l2_subdev_register()
+name in my early version of the subdev registration code where subdevs
+were registering themselves to the v4l2 core.
 
+BTW, this might not be most important thing here, but do we need separate
+file, i.e. v4l2-async.c, instead of for example putting it in 
+v4l2-device.c ?
+
+>> +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+>> +#endif
+
+--
+
+Regards,
+Sylwester
