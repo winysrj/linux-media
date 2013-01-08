@@ -1,67 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:34100 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040Ab3ASQe4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:56 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: jarod@redhat.com, tralph@mythtv.org, peter.senna@gmail.com,
-	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 22/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:24 -0200
-Message-Id: <1358613206-4274-21-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:56805 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753695Ab3AHWfZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 17:35:25 -0500
+Date: Tue, 8 Jan 2013 23:35:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Simon Horman <horms@verge.net.au>
+cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 6/6] ARM: shmobile: convert ap4evb to asynchronously
+ register camera subdevices
+In-Reply-To: <20130108042720.GA25895@verge.net.au>
+Message-ID: <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+ <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
+ <20130108042720.GA25895@verge.net.au>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_I2C) || \
-     defined(CONFIG_I2C_MODULE)
-with:
- #if IS_ENABLED(CONFIG_I2C)
+Hi Simon
 
-This change was made for: CONFIG_I2C
+On Tue, 8 Jan 2013, Simon Horman wrote:
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> On Wed, Dec 26, 2012 at 06:49:11PM +0100, Guennadi Liakhovetski wrote:
+> > Register the imx074 camera I2C and the CSI-2 platform devices directly
+> > in board platform data instead of letting the sh_mobile_ceu_camera driver
+> > and the soc-camera framework register them at their run-time. This uses
+> > the V4L2 asynchronous subdevice probing capability.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> Hi Guennadi,
+> 
+> could you let me know what if any dependencies this patch has.
+> And the status of any dependencies.
+
+This patch depends on the other 5 patches in this series. Since the other 
+patches are still in work, this patch cannot be applied either yet. Sorry, 
+I should have marked it as RFC.
+
+Thanks
+Guennadi
 ---
- drivers/media/usb/hdpvr/hdpvr-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index 84dc26f..5c61935 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -391,7 +391,7 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		goto error;
- 	}
- 
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_I2C)
- 	retval = hdpvr_register_i2c_adapter(dev);
- 	if (retval < 0) {
- 		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
-@@ -419,7 +419,7 @@ static int hdpvr_probe(struct usb_interface *interface,
- 	return 0;
- 
- reg_fail:
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_I2C)
- 	i2c_del_adapter(&dev->i2c_adapter);
- #endif
- error:
-@@ -451,7 +451,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
- 	mutex_lock(&dev->io_mutex);
- 	hdpvr_cancel_queue(dev);
- 	mutex_unlock(&dev->io_mutex);
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_I2C)
- 	i2c_del_adapter(&dev->i2c_adapter);
- #endif
- 	video_unregister_device(dev->video_dev);
--- 
-1.7.11.7
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
