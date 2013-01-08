@@ -1,348 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44342 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755763Ab3AQS7K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:10 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIxAlw027335
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 02/16] [media] dvb: Add DVBv5 statistics properties
-Date: Thu, 17 Jan 2013 16:58:16 -0200
-Message-Id: <1358449110-11203-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46583 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751038Ab3AHIJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 03:09:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
+Date: Tue, 08 Jan 2013 09:10:44 +0100
+Message-ID: <2418280.Sa45Lqe0AC@avalon>
+In-Reply-To: <Pine.LNX.4.64.1301071121280.23972@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <1356544151-6313-2-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1301071121280.23972@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVBv3 statistics parameters are limited on several ways:
+Hi Guennadi,
 
-        - Doesn't provide any way to indicate the used measure,
-	  so userspace need to guess how to calculate the measure;
+Thanks for the patch.
 
-        - Only a limited set of stats are supported;
+On Monday 07 January 2013 11:23:55 Guennadi Liakhovetski wrote:
+> >From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00 2001
+> 
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Date: Fri, 19 Oct 2012 23:40:44 +0200
+> Subject: [PATCH] media: V4L2: support asynchronous subdevice registration
+> 
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must request deferred probing as long as their
+> bridge driver hasn't probed. The bridge driver during its probing submits a
+> an arbitrary number of subdevice descriptor groups to the framework to
+> manage. After that it can add callbacks to each of those groups to be
+> called at various stages during subdevice probing, e.g. after completion.
+> Then the bridge driver can request single groups to be probed, finish its
+> own probing and continue its video subsystem configuration from its
+> callbacks.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> v4: Fixed v4l2_async_notifier_register() for the case, when subdevices
+> probe successfully before the bridge, thanks to Prabhakar for reporting
+> 
+>  drivers/media/v4l2-core/Makefile     |    3 +-
+>  drivers/media/v4l2-core/v4l2-async.c |  284 +++++++++++++++++++++++++++++++
+>  include/media/v4l2-async.h           |  113 ++++++++++++++
+>  3 files changed, 399 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+>  create mode 100644 include/media/v4l2-async.h
 
-        - Can't be called in a way to require them to be filled
-          all at once (atomic reads from the hardware), with may
-          cause troubles on interpreting them on userspace;
+[snip]
 
-        - On some OFDM delivery systems, the carriers can be
-          independently modulated, having different properties.
-          Currently, there's no way to report per-layer stats.
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> new file mode 100644
+> index 0000000..91d436d
+> --- /dev/null
+> +++ b/include/media/v4l2-async.h
+> @@ -0,0 +1,113 @@
+> +/*
+> + * V4L2 asynchronous subdevice registration API
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef V4L2_ASYNC_H
+> +#define V4L2_ASYNC_H
+> +
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/notifier.h>
+> +
+> +#include <media/v4l2-subdev.h>
+> +
+> +struct device;
+> +struct v4l2_device;
+> +struct v4l2_async_notifier;
+> +
+> +enum v4l2_async_bus_type {
+> +	V4L2_ASYNC_BUS_SPECIAL,
+> +	V4L2_ASYNC_BUS_PLATFORM,
+> +	V4L2_ASYNC_BUS_I2C,
+> +};
+> +
+> +struct v4l2_async_hw_device {
+> +	enum v4l2_async_bus_type bus_type;
+> +	union {
+> +		struct {
+> +			const char *name;
+> +		} platform;
+> +		struct {
+> +			int adapter_id;
+> +			unsigned short address;
+> +		} i2c;
+> +		struct {
+> +			bool (*match)(struct device *,
+> +				      struct v4l2_async_hw_device *);
+> +			void *priv;
+> +		} special;
+> +	} match;
+> +};
+> +
+> +/**
+> + * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+> + * @hw:		this device descriptor
+> + * @list:	member in a list of subdevices
+> + */
+> +struct v4l2_async_subdev {
+> +	struct v4l2_async_hw_device hw;
+> +	struct list_head list;
+> +};
+> +
+> +/**
+> + * v4l2_async_subdev_list - provided by subdevices
+> + * @list:	member in a list of subdevices
+> + * @dev:	hardware device
+> + * @subdev:	V4L2 subdevice
+> + * @asd:	pointer to respective struct v4l2_async_subdev
+> + * @notifier:	pointer to managing notifier
+> + */
+> +struct v4l2_async_subdev_list {
+> +	struct list_head list;
+> +	struct device *dev;
+> +	struct v4l2_subdev *subdev;
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_async_notifier *notifier;
+> +};
+> +
+> +/**
+> + * v4l2_async_notifier - provided by bridges
+> + * @subdev_num:	number of subdevices
+> + * @subdev:	array of pointers to subdevices
+> + * @v4l2_dev:	pointer to sruct v4l2_device
+> + * @waiting:	list of subdevices, waiting for their drivers
+> + * @done:	list of subdevices, already probed
+> + * @list:	member in a global list of notifiers
+> + * @bind:	a subdevice driver is about to probe one of your subdevices
+> + * @bound:	a subdevice driver has successfully probed one of your
+> subdevices + * @complete:	all your subdevices have been probed successfully
+> + * @unbind:	a subdevice is leaving
+> + */
+> +struct v4l2_async_notifier {
+> +	int subdev_num;
+> +	struct v4l2_async_subdev **subdev;
+> +	struct v4l2_device *v4l2_dev;
+> +	struct list_head waiting;
+> +	struct list_head done;
+> +	struct list_head list;
+> +	int (*bind)(struct v4l2_async_notifier *notifier,
+> +		    struct v4l2_async_subdev_list *asdl);
+> +	int (*bound)(struct v4l2_async_notifier *notifier,
+> +		     struct v4l2_async_subdev_list *asdl);
+> +	int (*complete)(struct v4l2_async_notifier *notifier);
+> +	void (*unbind)(struct v4l2_async_notifier *notifier,
+> +		       struct v4l2_async_subdev_list *asdl);
+> +};
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier);
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+> +/*
+> + * If subdevice probing fails any time after v4l2_async_subdev_bind(), no
+> + * clean up must be called. This function is only a message of intention.
+> + */
+> +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+> +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
 
-To address the above issues, adding a new DVBv5-based stats API.
+Could you please explain why you need both a bind notifier and a bound 
+notifier ? I was expecting a single v4l2_async_subdev_register() call in 
+subdev drivers (and, thinking about it, I would probably name it 
+v4l2_subdev_register()).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml | 99 +++++++++++++++++++++++++
- include/uapi/linux/dvb/frontend.h               | 77 ++++++++++++++++++-
- 2 files changed, 175 insertions(+), 1 deletion(-)
-
-v11:
-	- Renamed from QoS to Statistics
-	- Removed ENUM Stats property. This is not needed, as unsupported
-	  measures will return u.len = 0;
-	- Statistics cache reset is now a driver's decision.
-
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 957e3ac..1131bd3 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -7,14 +7,41 @@ the capability ioctls weren't implemented yet via the new way.</para>
- <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
- API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
- struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
-+<section id="dtv-stats">
-+<title>DTV stats type</title>
-+<programlisting>
-+struct dtv_stats {
-+	__u8 scale;	/* enum fecap_scale_params type */
-+	union {
-+		__u64 uvalue;	/* for counters and relative scales */
-+		__s64 svalue;	/* for 1/1000 dB measures */
-+	};
-+} __packed;
-+</programlisting>
-+</section>
-+<section id="dtv-fe-stats">
-+<title>DTV stats type</title>
-+<programlisting>
-+#define MAX_DTV_STATS   4
-+
-+struct dtv_fe_stats {
-+	__u8 len;
-+	struct dtv_stats stat[MAX_DTV_STATS];
-+} __packed;
-+</programlisting>
-+</section>
-+
- <section id="dtv-property">
- <title>DTV property type</title>
- <programlisting>
- /* Reserved fields should be set to 0 */
-+
- struct dtv_property {
- 	__u32 cmd;
-+	__u32 reserved[3];
- 	union {
- 		__u32 data;
-+		struct dtv_fe_stats st;
- 		struct {
- 			__u8 data[32];
- 			__u32 len;
-@@ -850,6 +877,68 @@ enum fe_interleaving {
- 	<para>use the special macro LNA_AUTO to set LNA auto</para>
- 	</section>
- </section>
-+
-+	<section id="frontend-stat-properties">
-+	<title>Frontend statistics indicators</title>
-+	<para>The values are returned via <constant>dtv_property.stat</constant>.</para>
-+	<para>For most delivery systems, this will return a single value for each parameter.</para>
-+	<para>It should be noticed, however, that new OFDM delivery systems
-+	like ISDB can use different modulation types for each group of carriers.
-+	On such standards, up to 3 groups of statistics can be provided, one
-+	for each carrier group (called "layer" on ISDB).
-+	In order to be consistent with other delivery systems, the first
-+	value at <link linkend="dtv-stats"><constant>dtv_property.stat.dtv_stats</constant></link> array refers to
-+	a global indicator, if any. The other elements of the array represent
-+	each layer, starting from layer A(index 1), layer B (index 2) and so on</para>
-+	<para>The number of filled elements are stored at <constant>dtv_property.stat.len</constant>.</para>
-+	<para>Each element of the <constant>dtv_property.stat.dtv_stats</constant> array consists on two elements:</para>
-+	<itemizedlist mark='opencircle'>
-+		<listitem><para><constant>value</constant> - Value of the measure</para></listitem>
-+		<listitem><para><constant>scale</constant> - Scale for the value. It can be:</para>
-+			<section id = "fecap-scale-params">
-+			<itemizedlist mark='bullet'>
-+				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
-+				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 1/1000 dB</para></listitem>
-+				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
-+				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
-+			</itemizedlist>
-+			</section>
-+		</listitem>
-+	</itemizedlist>
-+	<section id="DTV-STAT-SIGNAL-STRENGTH">
-+		<title><constant>DTV_STAT_SIGNAL_STRENGTH</constant></title>
-+		<para>Indicates the signal strength level at the analog part of the tuner.</para>
-+		<para>When measured in 1/1000 dB scale(<link linkend="fecap-scale-params"><constant>FE_SCALE_DECIBEL</constant></link>), is measured in mili Watts, e. g.,  a value of 1 means 0.0001 dBm.</para>
-+	</section>
-+	<section id="DTV-STAT-CNR">
-+		<title><constant>DTV_STAT_CNR</constant></title>
-+		<para>Indicates the signal to noise relation for the main carrier.</para>
-+
-+	</section>
-+	<section id="DTV-STAT-BIT-ERROR-COUNT">
-+		<title><constant>DTV_STAT_BIT_ERROR_COUNT</constant></title>
-+		<para>Measures the number of bit errors since the last counter reset.</para>
-+		<para>In order to get the BER (Bit Error Rate) measurement, it should be divided by
-+		<link linkend="DTV-STAT-TOTAL-BITS-COUNT"><constant>DTV_STAT_TOTAL_BITS_COUNT</constant></link>.</para>
-+	</section>
-+	<section id="DTV-STAT-TOTAL-BITS-COUNT">
-+		<title><constant>DTV_STAT_TOTAL_BITS_COUNT</constant></title>
-+		<para>Measures the amount of bits received since the last <link linkend="DTV-STAT-BIT-ERROR-COUNT"><constant>DTV_STAT_BIT_ERROR_COUNT</constant></link> reset.</para>
-+	</section>
-+	<section id="DTV-STAT-ERROR-BLOCK-COUNT">
-+		<title><constant>DTV_STAT_ERROR_BLOCK_COUNT</constant></title>
-+		<para>Measures the number of block errors since the last counter reset.</para>
-+	</section>
-+	<section id="DTV-STAT-TOTAL-BLOCKS-COUNT">
-+		<title><constant>DTV-STAT_TOTAL_BLOCKS_COUNT</constant></title>
-+		<para>Measures the total number of blocks since the last
-+		<link linkend="DTV-STAT-ERROR-BLOCK-COUNT"><constant>DTV_STAT_ERROR_BLOCK_COUNT</constant></link> reset.</para>
-+		<para>It can be used to calculate the PER indicator, by dividing
-+		<link linkend="DTV-STAT-ERROR-BLOCK-COUNT"><constant>DTV_STAT_ERROR_BLOCK_COUNT</constant></link>
-+		by <link linkend="DTV-STAT-TOTAL-BLOCKS-COUNT"><constant>DTV-STAT-TOTAL-BLOCKS-COUNT</constant></link>.</para>
-+	</section>
-+	</section>
-+
- 	<section id="frontend-property-terrestrial-systems">
- 	<title>Properties used on terrestrial delivery systems</title>
- 		<section id="dvbt-params">
-@@ -871,6 +960,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="dvbt2-params">
- 			<title>DVB-T2 delivery system</title>
-@@ -895,6 +985,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="isdbt">
- 		<title>ISDB-T delivery system</title>
-@@ -948,6 +1039,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT"><constant>DTV_ISDBT_LAYERC_SEGMENT_COUNT</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING"><constant>DTV_ISDBT_LAYERC_TIME_INTERLEAVING</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="atsc-params">
- 			<title>ATSC delivery system</title>
-@@ -961,6 +1053,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="atscmh-params">
- 			<title>ATSC-MH delivery system</title>
-@@ -988,6 +1081,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-C"><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-D"><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="dtmb-params">
- 			<title>DTMB delivery system</title>
-@@ -1007,6 +1101,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 	</section>
- 	<section id="frontend-property-cable-systems">
-@@ -1028,6 +1123,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	<section id="dvbc-annex-b-params">
- 		<title>DVB-C Annex B delivery system</title>
-@@ -1043,6 +1139,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	</section>
- 	<section id="frontend-property-satellital-systems">
-@@ -1062,6 +1159,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-VOLTAGE"><constant>DTV_VOLTAGE</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-TONE"><constant>DTV_TONE</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 		<para>Future implementations might add those two missing parameters:</para>
- 		<itemizedlist mark='opencircle'>
- 			<listitem><para><link linkend="DTV-DISEQC-MASTER"><constant>DTV_DISEQC_MASTER</constant></link></para></listitem>
-@@ -1077,6 +1175,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-stat-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	<section id="turbo-params">
- 		<title>Turbo code delivery system</title>
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index c12d452..a1561e4 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -365,7 +365,15 @@ struct dvb_frontend_event {
- #define DTV_INTERLEAVING			60
- #define DTV_LNA					61
- 
--#define DTV_MAX_COMMAND				DTV_LNA
-+/* Quality parameters */
-+#define DTV_STAT_SIGNAL_STRENGTH	62
-+#define DTV_STAT_CNR			63
-+#define DTV_STAT_BIT_ERROR_COUNT	64
-+#define DTV_STAT_TOTAL_BITS_COUNT	65
-+#define DTV_STAT_ERROR_BLOCK_COUNT	66
-+#define DTV_STAT_TOTAL_BLOCKS_COUNT	67
-+
-+#define DTV_MAX_COMMAND		DTV_STAT_TOTAL_BLOCKS_COUNT
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -452,11 +460,78 @@ struct dtv_cmds_h {
- 	__u32	reserved:30;	/* Align */
- };
- 
-+/**
-+ * Scale types for the quality parameters.
-+ * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
-+ *			    could indicate a temporary or a permanent
-+ *			    condition.
-+ * @FE_SCALE_DECIBEL: The scale is measured in 0.0001 dB steps, typically
-+ *		  used on signal measures.
-+ * @FE_SCALE_RELATIVE: The scale is a relative percentual measure,
-+ *			ranging from 0 (0%) to 0xffff (100%).
-+ * @FE_SCALE_COUNTER: The scale counts the occurrence of an event, like
-+ *			bit error, block error, lapsed time.
-+ */
-+enum fecap_scale_params {
-+	FE_SCALE_NOT_AVAILABLE = 0,
-+	FE_SCALE_DECIBEL,
-+	FE_SCALE_RELATIVE,
-+	FE_SCALE_COUNTER
-+};
-+
-+/**
-+ * struct dtv_stats - Used for reading a DTV status property
-+ *
-+ * @value:	value of the measure. Should range from 0 to 0xffff;
-+ * @scale:	Filled with enum fecap_scale_params - the scale
-+ *		in usage for that parameter
-+ *
-+ * For most delivery systems, this will return a single value for each
-+ * parameter.
-+ * It should be noticed, however, that new OFDM delivery systems like
-+ * ISDB can use different modulation types for each group of carriers.
-+ * On such standards, up to 8 groups of statistics can be provided, one
-+ * for each carrier group (called "layer" on ISDB).
-+ * In order to be consistent with other delivery systems, the first
-+ * value refers to the entire set of carriers ("global").
-+ * dtv_status:scale should use the value FE_SCALE_NOT_AVAILABLE when
-+ * the value for the entire group of carriers or from one specific layer
-+ * is not provided by the hardware.
-+ * st.len should be filled with the latest filled status + 1.
-+ *
-+ * In other words, for ISDB, those values should be filled like:
-+ *	u.st.stat.svalue[0] = global statistics;
-+ *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.value[1] = layer A statistics;
-+ *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
-+ *	u.st.stat.svalue[2] = layer B statistics;
-+ *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.svalue[3] = layer C statistics;
-+ *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
-+ *	u.st.len = 4;
-+ */
-+struct dtv_stats {
-+	__u8 scale;	/* enum fecap_scale_params type */
-+	union {
-+		__u64 uvalue;	/* for counters and relative scales */
-+		__s64 svalue;	/* for 0.0001 dB measures */
-+	};
-+} __packed;
-+
-+
-+#define MAX_DTV_STATS   4
-+
-+struct dtv_fe_stats {
-+	__u8 len;
-+	struct dtv_stats stat[MAX_DTV_STATS];
-+} __packed;
-+
- struct dtv_property {
- 	__u32 cmd;
- 	__u32 reserved[3];
- 	union {
- 		__u32 data;
-+		struct dtv_fe_stats st;
- 		struct {
- 			__u8 data[32];
- 			__u32 len;
+> +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+> +#endif
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
