@@ -1,120 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:41653 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab3ARL4o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jan 2013 06:56:44 -0500
-Received: by mail-qc0-f177.google.com with SMTP id u28so2311112qcs.22
-        for <linux-media@vger.kernel.org>; Fri, 18 Jan 2013 03:56:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50F923C9.8000205@samsung.com>
-References: <1358503278-13414-1-git-send-email-shaik.ameer@samsung.com>
-	<50F923C9.8000205@samsung.com>
-Date: Fri, 18 Jan 2013 17:26:43 +0530
-Message-ID: <CAOD6ATpE2gM2BaHnWGR9dHOx4-zEV11n1E-zk_G0pQfu3qiKVA@mail.gmail.com>
-Subject: Re: [PATCH] s5p-fimc: set m2m context to null at the end of fimc_m2m_resume
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>,
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:48098 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab3AHLcr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 06:32:47 -0500
+Date: Tue, 8 Jan 2013 12:32:41 +0100
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH 1/3] [media] winbond-cir: only enable higher sample
+ resolution if needed
+Message-ID: <20130108113241.GB22596@hardeman.nu>
+References: <1357492785-30966-1-git-send-email-sean@mess.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1357492785-30966-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Sun, Jan 06, 2013 at 05:19:43PM +0000, Sean Young wrote:
+>A sample resolution of 2us generates more than 300 interrupts per key
+>and this resolution is not needed unless carrier reports are enabled.
+>
+>Revert to a resolution of 10us unless carrier reports are needed. This
+>generates up to a fifth of the interrupts.
+>
+>Signed-off-by: Sean Young <sean@mess.org>
 
-On Fri, Jan 18, 2013 at 3:58 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hi Shaik,
->
-> On 01/18/2013 11:01 AM, Shaik Ameer Basha wrote:
->> fimc_m2m_job_finish() has to be called with the m2m context for the necessary
->> cleanup while resume. But currently fimc_m2m_job_finish() always passes
->> fimc->m2m.ctx as NULL.
->>
->> This patch changes the order of the calls for proper cleanup while resume.
->>
->> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
->> ---
->>  drivers/media/platform/s5p-fimc/fimc-core.c | 7 ++++---
->>  1 file changed, 4 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
->> index 2a1558a..5b11544 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-core.c
->> +++ b/drivers/media/platform/s5p-fimc/fimc-core.c
->> @@ -868,14 +868,15 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
->>  {
->>       unsigned long flags;
->>
->> +     if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
->> +             fimc_m2m_job_finish(fimc->m2m.ctx,
->> +                                 VB2_BUF_STATE_ERROR);
->> +
->>       spin_lock_irqsave(&fimc->slock, flags);
->>       /* Clear for full H/W setup in first run after resume */
->>       fimc->m2m.ctx = NULL;
->>       spin_unlock_irqrestore(&fimc->slock, flags);
->>
->> -     if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
->> -             fimc_m2m_job_finish(fimc->m2m.ctx,
->> -                                 VB2_BUF_STATE_ERROR);
->
-> Thanks for the patch. Not sure how I managed to miss that...
-> I'm not convince this is the right fix though. fimc->m2m.ctx should
-> be reset so the device is properly configured in fimc_dma_run()
-> callback. Since after suspend/resume cycle all previous registers'
-> state is lost.
+Thanks Sean!
 
-Yes, you are right. In case, more buffers are queued for the same
-context, there can be issues.
-I think you can apply this patch with your modified changes.
+Acked-by: David Härdeman <david@hardeman.nu>
 
-> So I think something more like below is needed. Can you check if it
-> helps ? And what problem exactly are you observing ? Streaming is not
-> resumed after system resume ?
+>---
+> drivers/media/rc/winbond-cir.c | 27 +++++++++++++++++++--------
+> 1 file changed, 19 insertions(+), 8 deletions(-)
+>
+>diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+>index 553d1cd..66f543c 100644
+>--- a/drivers/media/rc/winbond-cir.c
+>+++ b/drivers/media/rc/winbond-cir.c
+>@@ -154,6 +154,8 @@
+> #define WBCIR_CNTR_R		0x02
+> /* Invert TX */
+> #define WBCIR_IRTX_INV		0x04
+>+/* Receiver oversampling */
+>+#define WBCIR_RX_T_OV		0x40
+> 
+> /* Valid banks for the SP3 UART */
+> enum wbcir_bank {
+>@@ -394,7 +396,8 @@ wbcir_irq_rx(struct wbcir_data *data, struct pnp_dev *device)
+> 		if (data->rxstate == WBCIR_RXSTATE_ERROR)
+> 			continue;
+> 
+>-		duration = ((irdata & 0x7F) + 1) * 2;
+>+		duration = ((irdata & 0x7F) + 1) *
+>+			(data->carrier_report_enabled ? 2 : 10);
+> 		rawir.pulse = irdata & 0x80 ? false : true;
+> 		rawir.duration = US_TO_NS(duration);
+> 
+>@@ -550,6 +553,17 @@ wbcir_set_carrier_report(struct rc_dev *dev, int enable)
+> 		wbcir_set_bits(data->ebase + WBCIR_REG_ECEIR_CCTL,
+> 				WBCIR_CNTR_EN, WBCIR_CNTR_EN | WBCIR_CNTR_R);
+> 
+>+	/* Set a higher sampling resolution if carrier reports are enabled */
+>+	wbcir_select_bank(data, WBCIR_BANK_2);
+>+	data->dev->rx_resolution = US_TO_NS(enable ? 2 : 10);
+>+	outb(enable ? 0x03 : 0x0f, data->sbase + WBCIR_REG_SP3_BGDL);
+>+	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+>+
+>+	/* Enable oversampling if carrier reports are enabled */
+>+	wbcir_select_bank(data, WBCIR_BANK_7);
+>+	wbcir_set_bits(data->sbase + WBCIR_REG_SP3_RCCFG,
+>+				enable ? WBCIR_RX_T_OV : 0, WBCIR_RX_T_OV);
+>+
+> 	data->carrier_report_enabled = enable;
+> 	spin_unlock_irqrestore(&data->spinlock, flags);
+> 
+>@@ -931,8 +945,8 @@ wbcir_init_hw(struct wbcir_data *data)
+> 	/* prescaler 1.0, tx/rx fifo lvl 16 */
+> 	outb(0x30, data->sbase + WBCIR_REG_SP3_EXCR2);
+> 
+>-	/* Set baud divisor to sample every 2 ns */
+>-	outb(0x03, data->sbase + WBCIR_REG_SP3_BGDL);
+>+	/* Set baud divisor to sample every 10 us */
+>+	outb(0x0f, data->sbase + WBCIR_REG_SP3_BGDL);
+> 	outb(0x00, data->sbase + WBCIR_REG_SP3_BGDH);
+> 
+> 	/* Set CEIR mode */
+>@@ -941,12 +955,9 @@ wbcir_init_hw(struct wbcir_data *data)
+> 	inb(data->sbase + WBCIR_REG_SP3_LSR); /* Clear LSR */
+> 	inb(data->sbase + WBCIR_REG_SP3_MSR); /* Clear MSR */
+> 
+>-	/*
+>-	 * Disable RX demod, enable run-length enc/dec, set freq span and
+>-	 * enable over-sampling
+>-	 */
+>+	/* Disable RX demod, enable run-length enc/dec, set freq span */
+> 	wbcir_select_bank(data, WBCIR_BANK_7);
+>-	outb(0xd0, data->sbase + WBCIR_REG_SP3_RCCFG);
+>+	outb(0x90, data->sbase + WBCIR_REG_SP3_RCCFG);
+> 
+> 	/* Disable timer */
+> 	wbcir_select_bank(data, WBCIR_BANK_4);
+>-- 
+>1.7.11.7
 >
 
-I was reviewing my gsc-m2m code and found out this issue.
-As you know gsc-m2m mostly follows fimc-m2m ;)
-
-Regards,
-Shaik Ameer Basha
-
->
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c
-> b/drivers/media/platform/s5p-fimc/fimc-core.c
-> index bdb544f..feb8620 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-core.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-> @@ -869,16 +869,18 @@ static int fimc_m2m_suspend(struct fimc_dev *fimc)
->
->  static int fimc_m2m_resume(struct fimc_dev *fimc)
->  {
-> +       struct fimc_ctx *ctx;
->         unsigned long flags;
->
->         spin_lock_irqsave(&fimc->slock, flags);
->         /* Clear for full H/W setup in first run after resume */
-> +       ctx = fimc->m2m.ctx;
->         fimc->m2m.ctx = NULL;
->         spin_unlock_irqrestore(&fimc->slock, flags);
->
->         if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
-> -               fimc_m2m_job_finish(fimc->m2m.ctx,
-> -                                   VB2_BUF_STATE_ERROR);
-> +               fimc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
-> +
->         return 0;
->  }
->
-> Regards,
-> Sylwester
->
-> --
-> Sylwester Nawrocki
-> Samsung Poland R&D Center
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+David Härdeman
