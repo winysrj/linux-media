@@ -1,134 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56998 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753631Ab3ADS3d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 13:29:33 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Fabio Estevam <festevam@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFC] dvb_usb_v2: use IS_ENABLED() macro
-Date: Fri,  4 Jan 2013 20:28:30 +0200
-Message-Id: <1357324110-19607-1-git-send-email-crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40169 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099Ab3AHIbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 03:31:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Rob Clark <rob.clark@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Tue, 08 Jan 2013 09:33:13 +0100
+Message-ID: <8761492.9kNDi4CAnk@avalon>
+In-Reply-To: <20121228000404.GY26326@pengutronix.de>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAF6AEGtWOoNjKuUgu=AaZn3Jj8g_D807Ycyjtu5bro8ZLL1NNg@mail.gmail.com> <20121228000404.GY26326@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-with:
- #if IS_ENABLED(CONFIG_RC_CORE)
+On Friday 28 December 2012 01:04:04 Sascha Hauer wrote:
+> On Thu, Dec 27, 2012 at 01:57:56PM -0600, Rob Clark wrote:
+> > On Thu, Dec 27, 2012 at 1:18 PM, Sascha Hauer wrote:
+> > > On Thu, Dec 27, 2012 at 09:54:55AM -0600, Rob Clark wrote:
+> > >> On Mon, Dec 24, 2012 at 7:37 AM, Laurent Pinchart
+> > > 
+> > > This implies that the master driver knows all potential subdevices,
+> > > something which is not true for SoCs which have external i2c encoders
+> > > attached to unrelated i2c controllers.
+> > 
+> > well, it can be brute-forced..  ie. drm driver calls common
+> > register_all_panels() fxn, which, well, registers all the
+> > panel/display subdev's based on their corresponding CONFIG_FOO_PANEL
+> > defines.  If you anyways aren't building the panels as separate
+> > modules, that would work.  Maybe not the most *elegant* approach, but
+> > simple and functional.
+> > 
+> > I guess it partly depends on the structure in devicetree.  If you are
+> > 
+> > assuming that the i2c encoder belongs inside the i2c bus, like:
+> >   &i2cN {
+> >   
+> >     foo-i2c-encoder {
+> >     
+> >       ....
+> >     
+> >     };
+> >   
+> >   };
+> > 
+> > and you are letting devicetree create the devices, then it doesn't
+> > quite work.  I'm not entirely convinced you should do it that way.
+> > Really any device like that is going to be hooked up to at least a
+> > couple busses..  i2c, some sort of bus carrying pixel data, maybe some
+> > gpio's, etc.  So maybe makes more sense for a virtual drm/kms bus, and
+> > then use phandle stuff to link it to the various other busses it
+> > 
+> > needs:
+> >   mydrmdev {
+> >     foo-i2c-encoder {
+> >        i2c = <&i2cN>;
+> >        gpio = <&gpioM 2 3>
+> >        ...
+> >     };
+> >   };
+> 
+> This seems to shift initialization order problem to another place. Here we
+> have to make sure the controller is initialized before the drm driver. Same
+> with suspend/resume.
+> 
+> It's not only i2c devices, also platform devices. On i.MX for example we
+> have a hdmi transmitter which is somewhere on the physical address space.
+> 
+> I think grouping the different units together in a devicetree blob because
+> we think they might form a logical virtual device is not going to work. It
+> might make it easier from a drm perspective, but I think doing this will
+> make for a lot of special cases. What will happen for example if you have
+> two encoder devices in a row to configure? The foo-i2c-encoder would then
+> get another child node.
+> 
+> Right now the devicetree is strictly ordered by (control-, not data-) bus
+> topology. Linux has great helper code to support this model. Giving up this
+> help to brute force a different topology and then trying to fit the result
+> back into the Linux Bus hierarchy doesn't sound like a good idea to me.
 
-Reported-by: Fabio Estevam <festevam@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c       | 2 +-
- drivers/media/usb/dvb-usb-v2/af9035.c       | 2 +-
- drivers/media/usb/dvb-usb-v2/anysee.c       | 2 +-
- drivers/media/usb/dvb-usb-v2/az6007.c       | 2 +-
- drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 2 +-
- drivers/media/usb/dvb-usb-v2/it913x.c       | 2 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c     | 4 ++--
- 7 files changed, 8 insertions(+), 8 deletions(-)
+I agree. The Linux device model is architectured around a control bus based 
+tree, I don't want to change that. With devices hooked up on several busses we 
+will have dependency issues anyway, regardless of how we describe them in DT. 
+If we hook up the nodes from a data bus perspective we will run into control 
+bus dependency issues. It's thus better in my opinion to keep the classic 
+control bus based model and solve the data bus dependency issues.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index 51505d1..b86d0f2 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -1156,7 +1156,7 @@ error:
- 	return ret;
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- struct af9015_rc_setup {
- 	unsigned int id;
- 	char *rc_codes;
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index ae5708b..19e4621 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -971,7 +971,7 @@ err:
- 	return ret;
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static int af9035_rc_query(struct dvb_usb_device *d)
- {
- 	unsigned int key;
-diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
-index 5f45037..a20d691 100644
---- a/drivers/media/usb/dvb-usb-v2/anysee.c
-+++ b/drivers/media/usb/dvb-usb-v2/anysee.c
-@@ -1019,7 +1019,7 @@ static int anysee_tuner_attach(struct dvb_usb_adapter *adap)
- 	return ret;
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static int anysee_rc_query(struct dvb_usb_device *d)
- {
- 	u8 buf[] = {CMD_GET_IR_CODE};
-diff --git a/drivers/media/usb/dvb-usb-v2/az6007.c b/drivers/media/usb/dvb-usb-v2/az6007.c
-index 3b33f1e..70ec80d 100644
---- a/drivers/media/usb/dvb-usb-v2/az6007.c
-+++ b/drivers/media/usb/dvb-usb-v2/az6007.c
-@@ -189,7 +189,7 @@ static int az6007_streaming_ctrl(struct dvb_frontend *fe, int onoff)
- 	return az6007_write(d, 0xbc, onoff, 0, NULL, 0);
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- /* remote control stuff (does not work with my box) */
- static int az6007_rc_query(struct dvb_usb_device *d)
- {
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-index 95968d3..0867920 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
-@@ -102,7 +102,7 @@ static int dvb_usbv2_i2c_exit(struct dvb_usb_device *d)
- 	return 0;
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static void dvb_usb_read_remote_control(struct work_struct *work)
- {
- 	struct dvb_usb_device *d = container_of(work,
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-index 3d20e38..cddbca4 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -308,7 +308,7 @@ static struct i2c_algorithm it913x_i2c_algo = {
- };
- 
- /* Callbacks for DVB USB */
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static int it913x_rc_query(struct dvb_usb_device *d)
- {
- 	u8 ibuf[4];
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 923beef..cb9a4e4 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1120,7 +1120,7 @@ err:
- 	return ret;
- }
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static int rtl2831u_rc_query(struct dvb_usb_device *d)
- {
- 	int ret, i;
-@@ -1207,7 +1207,7 @@ static int rtl2831u_get_rc_config(struct dvb_usb_device *d,
- 	#define rtl2831u_get_rc_config NULL
- #endif
- 
--#if defined(CONFIG_RC_CORE) || defined(CONFIG_RC_CORE_MODULE)
-+#if IS_ENABLED(CONFIG_RC_CORE)
- static int rtl2832u_rc_query(struct dvb_usb_device *d)
- {
- 	int ret, i;
+> > ok, admittedly that is a bit different from other proposals about how
+> > this all fits in devicetree.. but otoh, I'm not a huge believer in
+> > letting something that is supposed to make life easier (DT), actually
+> > make things harder or more complicated.  Plus this CDF stuff all needs
+> > to also work on platforms not using OF/DT.
+> 
+> Right, but every other platform I know of is also described by its bus
+> topology, be it platform device based or PCI or maybe even USB based.
+> 
+> CDF has to solve the same problem as ASoC and soc-camera: subdevices for
+> a virtual device can come from many different corners of the system. BTW
+> one example for a i2c encoder would be the SiI9022 which could not only
+> be part of a drm device, but also of an ASoC device.
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
