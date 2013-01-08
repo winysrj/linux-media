@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f179.google.com ([209.85.223.179]:54214 "EHLO
-	mail-ie0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711Ab3ADFDN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 00:03:13 -0500
-Received: by mail-ie0-f179.google.com with SMTP id k14so19379514iea.10
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 21:03:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50E5F93D.1000302@iki.fi>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-	<20130101152932.3873d4cc@redhat.com>
-	<CAHFNz9LzBX0G9G0G_6C+WHooaQ1ridG1pkCcOPyzPG+FgOZKxw@mail.gmail.com>
-	<20130103112044.4267b274@redhat.com>
-	<50E5A142.2090807@tvdr.de>
-	<20130103141429.03766540@redhat.com>
-	<20130103142959.3d838015@redhat.com>
-	<50E5F93D.1000302@iki.fi>
-Date: Thu, 3 Jan 2013 21:03:12 -0800
-Message-ID: <CAA7C2qiGFc2CaVGaVFwe3kQ697ME2uCpjEF8e5yJhbrt5sKOAA@mail.gmail.com>
-Subject: Re: [linux-media] Re: [PATCH RFCv3] dvb: Add DVBv5 properties for
- quality parameters
-From: VDR User <user.vdr@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
+Received: from tex.lwn.net ([70.33.254.29]:40583 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756424Ab3AHObc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 09:31:32 -0500
+Date: Tue, 8 Jan 2013 07:31:30 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Alessandro Rubini <rubini@gnudd.com>, federico.vaga@gmail.com,
+	mchehab@infradead.org, pawel@osciak.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
+ allocator
+Message-ID: <20130108073130.38a8cc3d@lwn.net>
+In-Reply-To: <50EBC1C1.3060208@samsung.com>
+References: <3892735.vLSnhhCRFi@harkonnen>
+	<1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+	<1399400.izKZgEHXnP@harkonnen>
+	<12929800.xFTBAueAE0@harkonnen>
+	<20130106230947.GA17979@mail.gnudd.com>
+	<20130107124050.3fc5031b@lwn.net>
+	<20130107181500.24c56803@redhat.com>
+	<50EBC1C1.3060208@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 3, 2013 at 1:33 PM, Antti Palosaari <crope@iki.fi> wrote:
-> I would not like to define exact units for BER and USB as those are quite
-> hard to implement and also non-sense. User would like just to see if there
-> is some (random) numbers and if those numbers are rising or reducing when he
-> changes antenna or adjusts gain. We are not making a professional signal
-> analyzers - numbers does not need to be 100% correctly.
+On Tue, 08 Jan 2013 07:50:41 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-Just a small comment here. Since this may finally be done, why not do
-it the best way? In the end I think that's better and I don't see any
-harm in having the capability to make a pro-grade signal analyzer.
-After years of waiting, I don't think half-assing is a good idea.
+> > Couldn't this performance difference be due to the usage of GFP_DMA inside
+> > the VB2 code, like Federico's new patch series is proposing?
+> >
+> > If not, why are there a so large performance penalty?  
+> 
+> Nope, this was caused rather by a very poor CPU access to non-cached (aka
+> 'coherent') memory and the way the video data has been accessed/read 
+> with CPU.
+
+Exactly.  Uncached memory *hurts*, especially if you're having to touch it
+all with the CPU.
+
+jon
