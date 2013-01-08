@@ -1,64 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-1.ms.rz.rwth-aachen.de ([134.130.7.72]:46650 "EHLO
-	mta-1.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753533Ab3AKPan (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 10:30:43 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from mx-out-2.rwth-aachen.de ([134.130.5.187])
- by mta-1.ms.rz.RWTH-Aachen.de
- (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008))
- with ESMTP id <0MGG00DH3V157H50@mta-1.ms.rz.RWTH-Aachen.de> for
- linux-media@vger.kernel.org; Fri, 11 Jan 2013 16:00:41 +0100 (CET)
-Received: from behemoth.local ([unknown] [137.226.57.124])
- by relay-auth-2.ms.rz.rwth-aachen.de
- (Sun Java(tm) System Messaging Server 7.0-3.01 64bit (built Dec  9 2008))
- with ESMTPA id <0MGG003PVV15AG70@relay-auth-2.ms.rz.rwth-aachen.de> for
- linux-media@vger.kernel.org; Fri, 11 Jan 2013 16:00:41 +0100 (CET)
-Message-id: <0MGG003PWV15AG70@relay-auth-2.ms.rz.rwth-aachen.de>
-Date: Fri, 11 Jan 2013 16:00:19 +0100
+Received: from mail.fuel7.com ([74.222.0.51]:59555 "EHLO mail.fuel7.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754467Ab3AHWtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 17:49:45 -0500
+Message-ID: <50ECA285.2000909@fuel7.com>
+Date: Tue, 08 Jan 2013 14:49:41 -0800
+From: William Swanson <william.swanson@fuel7.com>
+MIME-Version: 1.0
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-From: Johannes Schellen <Johannes.Schellen@rwth-aachen.de>
-Subject: [PATCH] omap3isp: Fix histogram regions
-Cc: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Ken Petit <ken@fuel7.com>
+Subject: Re: [PATCH] omap3isp: Add support for interlaced input data
+References: <1355796739-2580-1-git-send-email-william.swanson@fuel7.com> <20121227182709.5e89a61a@redhat.com> <50E732FC.10203@fuel7.com> <1489481.HbZGQ48duQ@avalon>
+In-Reply-To: <1489481.HbZGQ48duQ@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Johannes Schellen <Johannes.Schellen@rwth-aachen.de>
+On 01/07/2013 04:20 AM, Laurent Pinchart wrote:
+> What do you get in the memory buffers ? Are fields captured in separate
+> buffers or combined in a single buffer ? If they're combined, are they
+> interleaved or sequential in memory ?
 
-This patch fixes a bug which causes all histogram regions to start in the
-top left corner of the image. The histogram region coordinates are 16 bit
-values which share a 32 bit register. The bug is due to the region end
-value assignments overwriting the region start values with zero.
-Signed-off-by: Johannes Schellen <Johannes.Schellen@rwth-aachen.de>
----
-The patch is against v3.8-rc3
+I believe the data is combined in a single buffer, with alternate fields 
+interleaved.
 
---- linux-3.8-rc3/drivers/media/platform/omap3isp/isphist.c.orig
-+++ linux-3.8-rc3/drivers/media/platform/omap3isp/isphist.c
-@@ -114,14 +114,14 @@ static void hist_setup_regs(struct ispst
- 	/* Regions size and position */
- 	for (c = 0; c < OMAP3ISP_HIST_MAX_REGIONS; c++) {
- 		if (c < conf->num_regions) {
--			reg_hor[c] = conf->region[c].h_start <<
--				     ISPHIST_REG_START_SHIFT;
--			reg_hor[c] = conf->region[c].h_end <<
--				     ISPHIST_REG_END_SHIFT;
--			reg_ver[c] = conf->region[c].v_start <<
--				     ISPHIST_REG_START_SHIFT;
--			reg_ver[c] = conf->region[c].v_end <<
--				     ISPHIST_REG_END_SHIFT;
-+			reg_hor[c] = (conf->region[c].h_start <<
-+				     ISPHIST_REG_START_SHIFT)
-+			           | (conf->region[c].h_end <<
-+				     ISPHIST_REG_END_SHIFT);
-+			reg_ver[c] = (conf->region[c].v_start <<
-+				     ISPHIST_REG_START_SHIFT)
-+			           | (conf->region[c].v_end <<
-+				     ISPHIST_REG_END_SHIFT);
- 		} else {
- 			reg_hor[c] = 0;
- 			reg_ver[c] = 0;
-
+-William
