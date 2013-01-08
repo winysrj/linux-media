@@ -1,247 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:54709 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529Ab3ATVXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 16:23:19 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
-Date: Sun, 20 Jan 2013 22:22:19 +0100
-Message-Id: <1358716939-2133-5-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
-References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:62660 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753648Ab3AHK1N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:27:13 -0500
+Date: Tue, 8 Jan 2013 11:26:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice
+ registration
+In-Reply-To: <13183539.ohZBrHhPax@avalon>
+Message-ID: <Pine.LNX.4.64.1301081123590.1794@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+ <1917427.TMDygJ49eg@avalon> <Pine.LNX.4.64.1301081052100.1794@axis700.grange>
+ <13183539.ohZBrHhPax@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add AverMedia AverTV Satellite Hybrid+FM (A706) card to saa7134 driver.
-Working: analog inputs, TV, FM radio and IR remote control.
-Untested: DVB-S.
+On Tue, 8 Jan 2013, Laurent Pinchart wrote:
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> Hi Guennadi,
+> 
+> On Tuesday 08 January 2013 10:56:43 Guennadi Liakhovetski wrote:
+> > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+> > > On Tuesday 08 January 2013 10:25:15 Guennadi Liakhovetski wrote:
+> > > > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+> > > > > On Monday 07 January 2013 11:23:55 Guennadi Liakhovetski wrote:
+> > > > > > >From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00
+> > > > > > >2001
+> > 
+> > [snip]
+> > 
+> > > > > > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > > > > > +				 struct v4l2_async_notifier *notifier);
+> > > > > > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> > > > > > *notifier);
+> > > > > > +/*
+> > > > > > + * If subdevice probing fails any time after
+> > > > > > v4l2_async_subdev_bind(),
+> > > > > > no
+> > > > > > + * clean up must be called. This function is only a message of
+> > > > > > intention.
+> > > > > > + */
+> > > > > > +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+> > > > > > +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
+> > > > > 
+> > > > > Could you please explain why you need both a bind notifier and a bound
+> > > > > notifier ? I was expecting a single v4l2_async_subdev_register() call
+> > > > > in subdev drivers (and, thinking about it, I would probably name it
+> > > > > v4l2_subdev_register()).
+> > > > 
+> > > > I think I can, yes. Because between .bind() and .bound() the subdevice
+> > > > driver does the actual hardware probing. So, .bind() is used to make
+> > > > sure the hardware can be accessed, most importantly to provide a clock
+> > > > to the subdevice. You can look at soc_camera_async_bind(). There I'm
+> > > > registering the clock for the subdevice, about to bind. Why I cannot do
+> > > > it before, is because I need subdevice name for clock matching. With I2C
+> > > > subdevices the subdevice name contains the name of the driver, adapter
+> > > > number and i2c address. The latter 2 I've got from host subdevice list.
+> > > > But not the driver name. I thought about also passing the driver name
+> > > > there, but that seemed too limiting to me. I also request regulators
+> > > > there, because before ->bound() the sensor driver, but that could be
+> > > > done on the first call to soc_camera_power_on(), although doing this
+> > > > "first call" thingie is kind of hackish too. I could add one more soc-
+> > > > camera-power helper like soc_camera_prepare() or similar too.
+> > > 
+> > > I think a soc_camera_power_init() function (or similar) would be a good
+> > > idea, yes.
+> > > 
+> > > > So, the main problem is the clock
+> > > > 
+> > > > subdevice name. Also see the comment in soc_camera.c:
+> > > > 	/*
+> > > > 	 * It is ok to keep the clock for the whole soc_camera_device
+> > > > 	 life-time,
+> > > > 	 * in principle it would be more logical to register the clock on icd
+> > > > 	 * creation, the only problem is, that at that time we don't know the
+> > > > 	 * driver name yet.
+> > > > 	 */
+> > > 
+> > > I think we should fix that problem instead of shaping the async API around
+> > > a workaround :-)
+> > > 
+> > > From the subdevice point of view, the probe function should request
+> > > resources, perform whatever initialization is needed (including verifying
+> > > that the hardware is functional when possible), and the register the
+> > > subdev with the code if everything succeeded. Splitting registration into
+> > > bind() and bound() appears a bit as a workaround to me.
+> > > 
+> > > If we need a workaround, I'd rather pass the device name in addition to
+> > > the I2C adapter number and address, instead of embedding the workaround in
+> > > this new API.
+> > 
+> > ...or we can change the I2C subdevice name format. The actual need to do
+> > 
+> > 	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
+> > 		 asdl->dev->driver->name,
+> > 		 i2c_adapter_id(client->adapter), client->addr);
+> > 
+> > in soc-camera now to exactly match the subdevice name, as created by
+> > v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What if
+> > the latter changes at some point? Or what if one driver wishes to create
+> > several subdevices for one I2C device?
+> 
+> The common clock framework uses %d-%04x, maybe we could use that as well for 
+> clock names ?
+
+And preserve the subdevice names? Then matching would be more difficult 
+and less precise. Or change subdevice names too? I think, we can do the 
+latter, since anyway at any time only one driver can be attached to an I2C 
+device.
+
+> > > > > > +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+> > > > > > +#endif
+
+Thanks
+Guennadi
 ---
- drivers/media/i2c/ir-kbd-i2c.c              |   13 ++++++-
- drivers/media/pci/saa7134/saa7134-cards.c   |   53 +++++++++++++++++++++++++++
- drivers/media/pci/saa7134/saa7134-dvb.c     |   22 +++++++++++
- drivers/media/pci/saa7134/saa7134-i2c.c     |    1 +
- drivers/media/pci/saa7134/saa7134-input.c   |    3 ++
- drivers/media/pci/saa7134/saa7134-tvaudio.c |    1 +
- drivers/media/pci/saa7134/saa7134.h         |    1 +
- 7 files changed, 93 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index 08ae067..c1f6e7c 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -230,7 +230,7 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
- 		return 0;
- 
- 	dprintk(1, "read key 0x%02x/0x%02x\n", key, keygroup);
--	if (keygroup < 2 || keygroup > 3) {
-+	if (keygroup < 2 || keygroup > 4) {
- 		/* Only a warning */
- 		dprintk(1, "warning: invalid key group 0x%02x for key 0x%02x\n",
- 								keygroup, key);
-@@ -239,6 +239,10 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
- 
- 	*ir_key = key;
- 	*ir_raw = key;
-+	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
-+		*ir_key |= keygroup << 8;
-+		*ir_raw |= keygroup << 8;
-+	}
- 	return 1;
- }
- 
-@@ -332,6 +336,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		rc_type     = RC_BIT_OTHER;
- 		ir_codes    = RC_MAP_AVERMEDIA_CARDBUS;
- 		break;
-+	case 0x41:
-+		name        = "AVerMedia EM78P153";
-+		ir->get_key = get_key_avermedia_cardbus;
-+		rc_type     = RC_BIT_OTHER;
-+		/* RM-KV remote, seems to be same as RM-K6 */
-+		ir_codes    = RC_MAP_AVERMEDIA_M733A_RM_K6;
-+		break;
- 	case 0x71:
- 		name        = "Hauppauge/Zilog Z8";
- 		ir->get_key = get_key_haup_xvr;
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index fe54f88..c603064 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -50,6 +50,11 @@ static char name_svideo[]  = "S-Video";
- /* ------------------------------------------------------------------ */
- /* board config info                                                  */
- 
-+static struct tda18271_std_map aver_a706_std_map = {
-+	.fm_radio = { .if_freq = 5500, .fm_rfn = 0, .agc_mode = 3, .std = 0,
-+		      .if_lvl = 0, .rfagc_top = 0x2c, },
-+};
-+
- /* If radio_type !=UNSET, radio_addr should be specified
-  */
- 
-@@ -5773,6 +5778,37 @@ struct saa7134_board saa7134_boards[] = {
- 			.gpio	= 0x0000000,
- 		},
- 	},
-+	[SAA7134_BOARD_AVERMEDIA_A706] = {
-+		.name           = "AverMedia AverTV Satellite Hybrid+FM A706",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.tda829x_conf   = { .lna_cfg = 0, .no_i2c_gate = 1,
-+				    .tda18271_std_map = &aver_a706_std_map },
-+		.gpiomask       = 1 << 11,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp,
-+			.vmux = 4,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE1,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+			.gpio = 0x0000800,
-+		},
-+	},
- 
- };
- 
-@@ -7020,6 +7056,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.subdevice    = 0x0911,
- 		.driver_data  = SAA7134_BOARD_SENSORAY811_911,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0x2055, /* AverTV Satellite Hybrid+FM A706 */
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_A706,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7568,6 +7610,17 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		/* radio antenna select: tristate both as in Windows driver */
-+		saa7134_set_gpio(dev, 12, 3);	/* TV antenna */
-+		saa7134_set_gpio(dev, 13, 3);	/* FM antenna */
-+		dev->has_remote = SAA7134_REMOTE_I2C;
-+		/*
-+		 * Disable CE5039 DVB-S tuner now (SLEEP pin high) to prevent
-+		 * it from interfering with analog tuner detection
-+		 */
-+		saa7134_set_gpio(dev, 23, 1);
-+		break;
- 	case SAA7134_BOARD_VIDEOMATE_S350:
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index b209de4..eae7348 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -1070,6 +1070,10 @@ static struct mt312_config zl10313_compro_s350_config = {
- 	.demod_address = 0x0e,
- };
- 
-+static struct mt312_config zl10313_avermedia_a706_config = {
-+	.demod_address = 0x0e,
-+};
-+
- static struct lgdt3305_config hcw_lgdt3305_config = {
- 	.i2c_addr           = 0x0e,
- 	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
-@@ -1817,6 +1821,24 @@ static int dvb_init(struct saa7134_dev *dev)
- 				   &prohdtv_pro2_tda18271_config);
- 		}
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		/* Enable all DVB-S devices now */
-+		/* CE5039 DVB-S tuner SLEEP pin low */
-+		saa7134_set_gpio(dev, 23, 0);
-+		/* CE6313 DVB-S demod SLEEP pin low */
-+		saa7134_set_gpio(dev, 9, 0);
-+		/* CE6313 DVB-S demod RESET# pin high */
-+		saa7134_set_gpio(dev, 25, 1);
-+		fe0->dvb.frontend = dvb_attach(mt312_attach,
-+				&zl10313_avermedia_a706_config, &dev->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
-+			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
-+					0x60, &dev->i2c_adap) == NULL)
-+				wprintk("%s: No zl10039 found!\n",
-+					__func__);
-+		}
-+		break;
- 	default:
- 		wprintk("Huh? unknown DVB card?\n");
- 		break;
-diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
-index a176ec3..c68169d 100644
---- a/drivers/media/pci/saa7134/saa7134-i2c.c
-+++ b/drivers/media/pci/saa7134/saa7134-i2c.c
-@@ -256,6 +256,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				addr |= 1;
- 			if (i > 0 && msgs[i].flags &
- 			    I2C_M_RD && msgs[i].addr != 0x40 &&
-+			    msgs[i].addr != 0x41 &&
- 			    msgs[i].addr != 0x19) {
- 				/* workaround for a saa7134 i2c bug
- 				 * needed to talk to the mt352 demux
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index e761262..6f43126 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -997,6 +997,9 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 		info.addr = 0x40;
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		info.addr = 0x41;
-+		break;
- 	case SAA7134_BOARD_FLYDVB_TRIO:
- 		dev->init_data.name = "FlyDVB Trio";
- 		dev->init_data.get_key = get_key_flydvb_trio;
-diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-index b7a99be..0f34e09 100644
---- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
-+++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-@@ -796,6 +796,7 @@ static int tvaudio_thread_ddep(void *data)
- 			dprintk("FM Radio\n");
- 			if (dev->tuner_type == TUNER_PHILIPS_TDA8290) {
- 				norms = (0x11 << 2) | 0x01;
-+				/* set IF frequency to 5.5 MHz */
- 				saa_dsp_writel(dev, 0x42c >> 2, 0x729555);
- 			} else {
- 				norms = (0x0f << 2) | 0x01;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index ce1b4b5..9059d08 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -333,6 +333,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_SENSORAY811_911       188
- #define SAA7134_BOARD_KWORLD_PC150U         189
- #define SAA7134_BOARD_ASUSTeK_PS3_100      190
-+#define SAA7134_BOARD_AVERMEDIA_A706		191
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
--- 
-Ondrej Zary
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
