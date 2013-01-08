@@ -1,93 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51953 "EHLO
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16532 "EHLO
 	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755826Ab3AYKWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 05:22:12 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH60054DFCODN30@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Jan 2013 10:22:09 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MH600459FGOYM10@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 Jan 2013 10:22:09 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>
-Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, jtp.park@samsung.com,
-	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	hverkuil@xs4all.nl, verkuil@xs4all.nl,
-	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
-	'Kyungmin Park' <kyungmin.park@samsung.com>
-References: <1359030907-9883-1-git-send-email-k.debski@samsung.com>
- <1359030907-9883-4-git-send-email-k.debski@samsung.com>
- <1751468.SnZ1UQG0Bu@avalon>
- <04b801cdfa47$e0414b90$a0c3e2b0$%debski@samsung.com>
- <20130124191202.GE18639@valkosipuli.retiisi.org.uk>
-In-reply-to: <20130124191202.GE18639@valkosipuli.retiisi.org.uk>
-Subject: RE: [PATCH 3/3 v2] v4l: Set proper timestamp type in selected drivers
- which use videobuf2
-Date: Fri, 25 Jan 2013 11:21:58 +0100
-Message-id: <04fd01cdfae5$d0afa840$720ef8c0$%debski@samsung.com>
+	with ESMTP id S1755705Ab3AHKkp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:40:45 -0500
+Message-id: <50EBF7A9.6070802@samsung.com>
+Date: Tue, 08 Jan 2013 11:40:41 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+To: Federico Vaga <federico.vaga@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
+References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
+ <50EBC26E.5090803@samsung.com> <1609748.zs7bdcvuG8@harkonnen>
+In-reply-to: <1609748.zs7bdcvuG8@harkonnen>
+Content-type: text/plain; charset=UTF-8; format=flowed
 Content-transfer-encoding: 7bit
-Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello,
 
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: Thursday, January 24, 2013 8:12 PM
-> 
-
-[snip]
-
+On 1/8/2013 11:15 AM, Federico Vaga wrote:
+> > > @@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> > > long size)>
+> > >   	/* align image size to PAGE_SIZE */
+> > >   	size = PAGE_ALIGN(size);
 > > >
-> > > Do you have a list of those other drivers using vb2 that will
-> report
-> > > an unknown timestamp type ?
+> > > -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+> GFP_KERNEL);
+> > > +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+> > > +									
+> GFP_KERNEL | conf->mem_flags);
 > >
-> > Here are the drivers:
-> >
-> > drivers/media/platform/coda.c
-> > drivers/media/platform/exynos-gsc/gsc-m2m.c
-> > drivers/media/platform/m2m-deinterlace.c
-> > drivers/media/platform/marvell-ccic/mcam-core.c
-> > drivers/media/platform/mem2mem_testdev.c
-> > drivers/media/platform/mx2_emmaprp.c
-> > drivers/media/platform/s5p-fimc/fimc-m2m.c
-> > drivers/media/platform/s5p-g2d/g2d.c
-> > drivers/media/platform/s5p-jpeg/jpeg-core.c
-> > drivers/media/platform/s5p-tv/mixer_video.c
-> >
-> > These drivers do not fill the timestamp field at all.
-> 
-> I wonder what should we do to those. Based on a quick look, only mcam-
-> core.c and s5p-tv/mixer_video.c seem not to be mem-to-mem devices. So
-> the rest should be COPY, I presume. At least the one I checked seem to
-> have 1:1 ratio between output and capture buffers.
-> 
-> I know you didn't break them; they were already broken... But I don't
-> think it'd be that big task to fix them either. Now that your patchset
-> introduces the COPY timestamp it'd be nice to see it being properly
-> used, rather than letting applications see lots of UNKNOWN timestamps
-> again. Do you think you could have time for that?
+> > I think we can add GFP_DMA flag unconditionally to the vb2_dc_contig
+> > allocator.
+> > It won't hurt existing clients as most of nowadays platforms doesn't
+> > have DMA
+> > zone (GFP_DMA is ignored in such case), but it should fix the issues
+> > with some
+> > older and non-standard systems.
+>
+> I did not set GFP_DMA fixed in the allocator because I do not want to brake
+> something in the future. On x86 platform GFP_DMA allocates under 16MB and this
+> limit can be too strict. When many other drivers use GFP_DMA we can saturate
+> this tiny zone.
+> As you said, this fix the issue with _older_ and _non-standard_ (like sta2x11)
+> systems. But this fix has effect on every other standard and new systems.
+> That's why I preferred to set the flag optionally.
 
-I agree that they should fixed by adding proper timestamp handling (copy).
-Currently I have other tasks to do, I might find some time next week to
-write the patch. I think that the fix for these drivers can be separate to
-this patch set.
+Ok, then I would simply pass the flags from the driver without any 
+alternation
+in the allocator itself, so drivers can pass 'GFP_KERNEL' or
+'GFP_KERNEL | GFP_DMA' depending on their preference. Please also update 
+all
+the existing clients of vb2_dma_dc allocator.
 
-Best wishes,
+Best regards
 -- 
-Kamil Debski
-Linux Platform Group
+Marek Szyprowski
 Samsung Poland R&D Center
-
 
 
