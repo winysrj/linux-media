@@ -1,51 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:33028 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372Ab3ASXnC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:43:02 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: peter.senna@gmail.com, david@hardeman.nu, elezegarcia@gmail.com,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH V2 23/24] usb/hdpvr/hdpvr-i2c.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:30 -0200
-Message-Id: <1358638891-4775-24-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:45495 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756231Ab3AHR7x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:59:53 -0500
+Received: by mail-qc0-f180.google.com with SMTP id v28so917723qcm.25
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:59:52 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50EC5D43.6040403@googlemail.com>
+References: <20130101200225.GC26607@vicerveza.homeunix.net>
+	<50EC5D43.6040403@googlemail.com>
+Date: Tue, 8 Jan 2013 12:59:49 -0500
+Message-ID: <CAGoCfiwY9U1jmq4DgmuLBaX_dBOD0G5nrHsVAQKz0JXDhFmRug@mail.gmail.com>
+Subject: Re: em28xx, sound problems, STV40, linux 3.7.1
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_I2C) || \
-     defined(CONFIG_I2C_MODULE)
-with:
- #if IS_ENABLED(CONFIG_I2C)
+On Tue, Jan 8, 2013 at 12:54 PM, Frank Schäfer
+<fschaefer.oss@googlemail.com> wrote:
+> Thank you for reporting this issue.
+> Is there any known kernel version where this has been working ?
+>
+> Regards,
+> Frank
 
-This change was made for: CONFIG_I2C
+Frank,
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
+Just an FYI:  I'm already actively looking into this.
 
- drivers/media/usb/hdpvr/hdpvr-i2c.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Devin
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-i2c.c b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-index 6c5054f..a38f58c 100644
---- a/drivers/media/usb/hdpvr/hdpvr-i2c.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-i2c.c
-@@ -13,7 +13,7 @@
-  *
-  */
- 
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if IS_ENABLED(CONFIG_I2C)
- 
- #include <linux/i2c.h>
- #include <linux/slab.h>
 -- 
-1.7.11.7
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
