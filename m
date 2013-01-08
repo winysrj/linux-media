@@ -1,41 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hornet.asctec.de ([176.9.40.213]:40021 "EHLO hornet.asctec.de"
+Received: from mail.kapsi.fi ([217.30.184.167]:54062 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755444Ab3AQHio convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 02:38:44 -0500
-From: Jan Stumpf <Jan.Stumpf@asctec.de>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [cx231xx] Support for Arm / Omap working at all?
-Date: Thu, 17 Jan 2013 07:31:50 +0000
-Message-ID: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
-Content-Language: de-DE
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1752551Ab3AHVrC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 16:47:02 -0500
+Message-ID: <50EC93B0.8030404@iki.fi>
+Date: Tue, 08 Jan 2013 23:46:24 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: =?UTF-8?B?Q8OpZHJpYyBHaXJhcmQ=?= <girard.cedric@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: No Signal with TerraTec Cinergy T PCIe dual
+References: <CA+rnASviBDZVk9KJPYD1jLoHUbeyWwL+D5oSyvYVHKZFOSUAkw@mail.gmail.com>
+In-Reply-To: <CA+rnASviBDZVk9KJPYD1jLoHUbeyWwL+D5oSyvYVHKZFOSUAkw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On 01/08/2013 11:02 PM, Cédric Girard wrote:
+> Hi,
+>
+> Since a few weeks, I am unable to use my TerraTec Cinergy T PCIe dual
+> card anymore. On the kernel and drivers side, everything seems to be
+> working as expected but I get no signal from any channel.
+>
+> It used to work and I have done too many updates recently to be able
+> to pinpoint to from which point it stopped to work.
+> Plugging the same cable to my TV tuner I get perfect reception so no
+> change in signal quality.
+>
+> I am running Arch Linux with linux 3.7.1 on an x86_64 architecture.
+>
+> Following are some logs.
+>
+> Kernel logs when loading cx23885 module:
+> ###
+> [93752.708088] cx23885 driver version 0.0.3 loaded
+> [93752.708954] CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec
+> Cinergy T PCIe Dual [card=34,autodetected]
+> [93752.847421] cx25840 12-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+> [93753.502291] cx25840 12-0044: loaded v4l-cx23885-avcore-01.fw
+> firmware (16382 bytes)
+> [93753.518236] cx23885_dvb_register() allocating 1 frontend(s)
+> [93753.518242] cx23885[0]: cx23885 based dvb card
+> [93753.533378] drxk: status = 0x639160d9
+> [93753.533383] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
+> [93753.606391] DRXK driver version 0.9.4300
+> [93753.630635] drxk: frontend initialized.
+> [93753.667152] mt2063_attach: Attaching MT2063
+> [93753.667156] DVB: registering new adapter (cx23885[0])
+> [93753.667161] cx23885 0000:03:00.0: DVB: registering adapter 0
+> frontend 0 (DRXK DVB-T)...
+> [93753.670728] cx23885_dvb_register() allocating 1 frontend(s)
+> [93753.670732] cx23885[0]: cx23885 based dvb card
+> [93753.686602] drxk: status = 0x639130d9
+> [93753.686605] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
+> [93753.759577] DRXK driver version 0.9.4300
+> [93753.783845] drxk: frontend initialized.
+> [93753.783852] mt2063_attach: Attaching MT2063
+> [93753.783854] DVB: registering new adapter (cx23885[0])
+> [93753.783858] cx23885 0000:03:00.0: DVB: registering adapter 1
+> frontend 0 (DRXK DVB-C DVB-T)...
+> [93753.784284] cx23885_dev_checkrevision() Hardware revision = 0xa5
+> [93753.784290] cx23885[0]/0: found at 0000:03:00.0, rev: 4, irq: 18,
+> latency: 0, mmio: 0xfb800000
+> ###
+>
+> Kernel logs when scanning
+> ###
+> [93853.705675] mt2063: detected a mt2063 B3
+> ###
+>
+> "femon -H -a0" output:
+> ###
+> FE: DRXK DVB-T (DVBT)
+> Problem retrieving frontend information: Resource temporarily unavailable
+> status SCV   | signal  49% | snr   0% | ber 2014507767 | unc 1 |
+> ###
+>
+> Meaningful bits of an strace of the same command
+> ###
+> ioctl(3, FE_READ_STATUS, 0x7fff69172ef0) = 0
+> ioctl(3, FE_READ_BER, 0x7fff69173018)   = -1 EAGAIN (Resource
+> temporarily unavailable)
+> ioctl(3, FE_READ_SIGNAL_STRENGTH, 0x7fff6917301c) = -1 EAGAIN
+> (Resource temporarily unavailable)
+> ioctl(3, FE_READ_SNR, 0x7fff6917301e)   = -1 EAGAIN (Resource
+> temporarily unavailable)
+> ioctl(3, FE_READ_UNCORRECTED_BLOCKS, 0x7fff69173020) = -1 EAGAIN
+> (Resource temporarily unavailable)
+> ###
 
-I'm trying to get an Hauppauge Live Usb 2 video grabber to run on on Omap4 (Gumstix Duovero). I'm using Sakomans omap-3.6 head kernel sources from http://git.sakoman.com/git/gitweb.cgi?p=linux.git;a=summary . The hardware is successfully detected on the USB host port, the driver loads perfectly including the firmware. With v4l2-ctl --all I can see if thee video signal on the composite port is ok or if the sync is lost, but as soon as I use any v4l2 software (e.g. yavta) to grab some images the driver uses 100% of the cpu, returns the first image and after some seconds I see EPROTO (-71) errors in dmesg. First I get " cx231xx #0: can't change interface 3 alt. no to 0 (err=-71)" and then "UsbInterface::sendCommand, failed with status --71"
+I could guess these errors are coming because you query statistics but 
+device is sleeping and statistics cannot be offered. -EAGAIN == device 
+is sleeping, -ENOTTY device does not support given statistic at all.
 
-I did the following tests:
+Could you ensure that? Use some app, like w_scan, tzap, czap, etc. to 
+tune and recheck if it shows these or not. femon could not tune, it 
+queries only statistics. You will need to leave tuning on and then use 
+other terminal for femon.
 
-- checked that all patches I found (e.g from http://git.linuxtv.org/mchehab/cx231xx.git) are included in my kernel, including the URB DMA related patches and the timing patches
-- tried the same on an Gumstix Overo (Overo Fire and Overo WarerStorm) on several different header boards.
-- tried older kernels (3.2 and 2.6.32) with rougly the same results or known errors due to missing patches
+> w_scan give "no signal" result.
+> dvbscan give "Unable to query frontend status"
 
-Unfortunately I can't use other capture devices because the final hardware is custom made with the cx23102 chip :-( I could use an omap3 instead of an omap4, but omap4 is preferred.
+hmm, that dvbscan results sounds crazy. I am not sure about these 
+scanning apps as there is scan, dvbscan, scandvb. Maybe some of those, 
+or even all, are just same app but renamed as "scan" is too general. My 
+Fedora 17 has scandvb. I just tested against one DRX-K device and it 
+worked fine.
 
-My questions are: 
+> Any hint to where I should look would be welcome!
 
-- Did anybody ever used the cx231xx driver with an omap3 or omap4 successfully? 
-- If yes, could you let me know the kernel version and maybe the config? 
-- Any hints what I could try? I'm an expirienced embedded C programmer but I dont have much expirience in USB kernel drivers. 
+Try to downgrade Kernels until you find working one.
 
-Any help is greatly appriciated!
+regards
+Antti
 
-Thanks in Advance!
-
-Jan
+-- 
+http://palosaari.fi/
