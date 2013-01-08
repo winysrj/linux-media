@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:38409 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752323Ab3ASXmr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:47 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, hans.verkuil@cisco.com, peter.senna@gmail.com,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH V2 18/24] usb/gspca/stv06xx/stv06xx.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:25 -0200
-Message-Id: <1358638891-4775-19-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:33417 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756380Ab3AHQNt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 11:13:49 -0500
+Received: by mail-ie0-f181.google.com with SMTP id 16so696989iea.40
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 08:13:49 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1563062.kh1jqNm1kH@avalon>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<9690842.n93imGlCHA@avalon>
+	<CAF6AEGt+gwUq-xGze5bTgrKUMRijSBo_ORreq=Ot1RMD-WrbYQ@mail.gmail.com>
+	<1563062.kh1jqNm1kH@avalon>
+Date: Tue, 8 Jan 2013 10:13:48 -0600
+Message-ID: <CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+From: Rob Clark <rob.clark@linaro.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Dave Airlie <airlied@gmail.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+On Tue, Jan 8, 2013 at 2:25 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Rob,
+>
+> On Thursday 27 December 2012 09:54:55 Rob Clark wrote:
+>> What I've done to avoid that so far is that the master device registers the
+>> drivers for it's output sub-devices before registering it's own device.
+>
+> I'm not sure to follow you here. The master device doesn't register anything,
+> do you mean the master device driver ? If so, how does the master device
+> driver register its own device ? Devices are not registered by their driver.
 
-This change was made for: CONFIG_INPUT
+sorry, that should have read "master driver registers drivers for it's
+sub-devices.."
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
-
- drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-index 999ec77..657160b 100644
---- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
-+++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
-@@ -492,7 +492,7 @@ frame_data:
- 	}
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
- 			u8 *data,		/* interrupt packet data */
- 			int len)		/* interrupt packet length */
-@@ -529,7 +529,7 @@ static const struct sd_desc sd_desc = {
- 	.pkt_scan = stv06xx_pkt_scan,
- 	.isoc_init = stv06xx_isoc_init,
- 	.isoc_nego = stv06xx_isoc_nego,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.int_pkt_scan = sd_int_pkt_scan,
- #endif
- };
--- 
-1.7.11.7
-
+BR,
+-R
