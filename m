@@ -1,92 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fold.natur.cuni.cz ([195.113.57.32]:60032 "HELO
-	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755404Ab3A0O0e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 09:26:34 -0500
-Message-ID: <51053917.6060400@fold.natur.cuni.cz>
-Date: Sun, 27 Jan 2013 15:26:31 +0100
-From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:43417 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757171Ab3AHS7y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 13:59:54 -0500
+Message-ID: <50EC6CA5.4000808@gmail.com>
+Date: Tue, 08 Jan 2013 19:59:49 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Chris Clayton <chris2553@googlemail.com>
-CC: Yijing Wang <wangyijing0307@gmail.com>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-pci@vger.kernel.org
-Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
-References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <510494D6.1010000@gmail.com> <51050D43.2050703@googlemail.com> <51051B1B.3080105@gmail.com> <51052DB2.4090702@googlemail.com>
-In-Reply-To: <51052DB2.4090702@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3] media: V4L2: add temporary clock helpers
+References: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Chris Clayton wrote:
-> 
-> 
-> On 01/27/13 12:18, Yijing Wang wrote:
->> 于 2013-01-27 19:19, Chris Clayton 写道:
->>> Hi Yijing
->>>
->>> On 01/27/13 02:45, Yijing Wang wrote:
->>>> 于 2013-01-27 4:54, Chris Clayton 写道:
->>>>> Hi Martin,
->>>>>
->>>>> On 01/24/13 19:21, Martin Mokrejs wrote:
->>>>>> Hi Chris,
->>>>>>      try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
->>>>>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
->>>>>>
->>>>>
->>>>> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
->>>>
->>>> Not loaded pciehp driver? Remove the device from this slot without poweroff ?
->>>>
->>>
->>> That's correct. When I first encountered the oops, I did not have the pciehp driver loaded and removing the device from the slot whilst the laptop was powered on resulted in the oops.
->>
->> Hmm, that's unsafe and dangerous, because device now may be running.
->> There are two ways to trigger pci hot-add or hot-remove in linux, after loaded pciehp or acpiphp module
->> (the two modules only one can loaded into system at the same time). You can trigger hot-add/hot-remove by
->> sysfs interface under /sys/bus/pci/slots/[slot-name]/power or attention button on hardware (if your laptop supports that).
->>
-> 
-> OK, thanks for the advice.
-> 
->>>>>
->>>>>>      The best would if you subscribe to linux-pci, and read my recent threads
->>>>>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
->>>>>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
->>>>>> archives of linux-pci and see the pacthes and the discussion.
->>>>>
->>>>> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
->>>>>
->>>>> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
->>>>
->>>> Hi Chris,
->>>>      What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
->>>>
->>>> Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
->>>>
->>>
->>> I wasn't sure whether or not the pciehp driver should be loaded on its own or with the acpiphp driver also loaded. So I built them both as modules and planned to try both, pciehp only and acpiphp only. However, I've found that acpiphp will not load (regardless of whether or not pciehp is already loaded). What I get is:
->>>
->>> [chris:~]$ sudo modprobe acpiphp debug=1
->>> modprobe: ERROR: could not insert 'acpiphp': No such device
+Hi Guennadi,
 
-Are you sure you had pciehp already loaded?
+Just few minor remarks below...
 
->>>
->>
->> Currently, If your hardware support pciehp native hotplug, acpiphp driver will be rejected when loading it in system
->> (you can force loading it by add boot parameter pcie_aspm=off as Martin said).
->>
-> 
-> OK, thanks again for the advice. I've disabled the acpiphp driver.
+On 12/04/2012 11:42 AM, Guennadi Liakhovetski wrote:
+> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
+> +				   const char *dev_id,
+> +				   const char *id, void *priv)
+> +{
+> +	struct v4l2_clk *clk;
+> +	int ret;
+> +
+> +	if (!ops || !dev_id)
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
+> +	if (!clk)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	clk->id = kstrdup(id, GFP_KERNEL);
+> +	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
+> +	if ((id&&  !clk->id) || !clk->dev_id) {
+> +		ret = -ENOMEM;
+> +		goto ealloc;
+> +	}
+> +	clk->ops = ops;
+> +	clk->priv = priv;
+> +	atomic_set(&clk->use_count, 0);
+> +	mutex_init(&clk->lock);
+> +
+> +	mutex_lock(&clk_lock);
+> +	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
+> +		mutex_unlock(&clk_lock);
+> +		ret = -EEXIST;
+> +		goto eexist;
+> +	}
+> +	list_add_tail(&clk->list,&clk_list);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	return clk;
+> +
+> +eexist:
+> +ealloc:
 
-Pitty. For me only with acpiphp works detection of express card in the slot. With pciehp
-the PresDet is not updated properly upon removal/insertion and sometimes, probably as a result
-of the previous, PresDet on the SltSta: line of lspci is not correct. So I moved away from pciehp.
-I have a SandyBridge based laptop so I was hoping with your i5-based laptop you have also great
-chance to get rid of pciehp issues.
+These multiple labels could be avoided by naming labels after what
+happens on next lines, rather than after the location we start from.
 
-Martin
+> +	kfree(clk->id);
+> +	kfree(clk->dev_id);
+> +	kfree(clk);
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_register);
+> +
+> +void v4l2_clk_unregister(struct v4l2_clk *clk)
+> +{
+> +	if (unlikely(atomic_read(&clk->use_count))) {
+
+I don't think unlikely() is significant here, it doesn't seem to be really
+a fast path.
+
+> +		pr_err("%s(): Unregistering ref-counted %s:%s clock!\n",
+> +		       __func__, clk->dev_id, clk->id);
+> +		BUG();
+
+Hmm, I wouldn't certainly like, e.g. my phone to crash completely only
+because camera drivers are buggy. Camera clocks likely aren't essential
+resources for system operation... I would just use WARN() here and return
+without actually freeing the clock. Not sure if changing signature of
+this function and returning an error would be any useful.
+
+Is it indeed such an unrecoverable error we need to resort to BUG() ?
+
+And here is Linus' opinion on how many BUG_ON()s we have in the kernel:
+https://lkml.org/lkml/2012/9/27/461
+http://permalink.gmane.org/gmane.linux.kernel/1347333
+
+:)
+
+> +	}
+> +
+> +	mutex_lock(&clk_lock);
+> +	list_del(&clk->list);
+> +	mutex_unlock(&clk_lock);
+> +
+> +	kfree(clk->id);
+> +	kfree(clk->dev_id);
+> +	kfree(clk);
+> +}
+> +EXPORT_SYMBOL(v4l2_clk_unregister);
+
+--
+
+Thanks,
+Sylwester
