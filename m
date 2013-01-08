@@ -1,36 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:63864 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab3A2Qla (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 11:41:30 -0500
-Received: by mail-qa0-f47.google.com with SMTP id j8so1722302qah.13
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 08:41:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-Date: Tue, 29 Jan 2013 11:41:29 -0500
-Message-ID: <CAGoCfizYMTrfExhT4oeevmhUuysG6MY_CUNkzL7mY51Xjz51LQ@mail.gmail.com>
-Subject: Re: [RFCv1 PATCH 00/20] cx231xx: v4l2-compliance fixes
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:31817 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754628Ab3AHAhk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jan 2013 19:37:40 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080bdip021336
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:37:40 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv9] mb86a20s: add BER measure
+Date: Mon,  7 Jan 2013 22:37:06 -0200
+Message-Id: <1357605426-20616-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1357604750-772-5-git-send-email-mchehab@redhat.com>
+References: <1357604750-772-5-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 29, 2013 at 11:32 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> I will take a closer look at the vbi support, though.. It would be nice to get
-> that working.
+Add per-layer BER measure. In order to provide some data for
+applications not prepared for layers support, calculate BER for
+the worse-case scenario, e. g. sums the BER values for all layers
+and provide it as a "global BER" value.
 
-FYI:  I had the VBI support working when I submitted the driver
-upstream (at least for NTSC CC).  If it doesn't work, then somebody
-broke it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
 
-Devin
+v2: by mistake, I sent the wrong version that weren't properly incrementing
+    the per-layer registers
 
+ drivers/media/dvb-frontends/mb86a20s.c | 104 +++++++++++++++++++++++++++++++--
+ 1 file changed, 99 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index c2cc207..8a10111 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -94,7 +94,7 @@ static struct regdata mb86a20s_init[] = {
+ 	{ 0x04, 0x13 }, { 0x05, 0xff },
+ 	{ 0x04, 0x15 }, { 0x05, 0x4e },
+ 	{ 0x04, 0x16 }, { 0x05, 0x20 },
+-	{ 0x52, 0x01 },
++	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
+ 	{ 0x50, 0xa7 }, { 0x51, 0xff },
+ 	{ 0x50, 0xa8 }, { 0x51, 0xff },
+ 	{ 0x50, 0xa9 }, { 0x51, 0xff },
+@@ -705,13 +705,76 @@ err:
+ 	return rc;
+ }
+ 
+-static int mb86a20s_get_stats(struct dvb_frontend *fe)
++static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
++					  unsigned layer,
++					  u32 *error, u32 *count)
+ {
+-	int rc, i;
+-	__u16 strength;
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	u8 byte[3];
++	int rc;
++
++	if (layer >= 3)
++		return -EINVAL;
++
++	/* Check if it is available */
++	rc = mb86a20s_readreg(state, 0x54);
++	if (rc < 0)
++		return rc;
++	/* Check if data is available for that layer */
++	if (!(rc & (1 << layer)))
++		return -EBUSY;
++
++	/* Read Bit Error Count */
++	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[0] = rc;
++	rc = mb86a20s_readreg(state, 0x56 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[1] = rc;
++	rc = mb86a20s_readreg(state, 0x57 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[2] = rc;
++	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
++
++	/* Read Bit Count */
++	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[0] = rc;
++	rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[1] = rc;
++	rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[2] = rc;
++	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
++
++	return rc;
++}
+ 
++static int mb86a20s_get_stats(struct dvb_frontend *fe)
++{
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int rc, i;
++	u16 strength;
++	u32 bit_error = 0, bit_count = 0;
++	u32 t_bit_error = 0, t_bit_count = 0;
++	bool has_total_ber = true;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+@@ -732,10 +795,41 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 		if (rc > 0 && rc < 14) {
+ 			/* Layer is active and has rc segments */
+ 
+-			/* FIXME: add a per-layer stats logic */
++			/* Handle BER before vterbi */
++			rc = mb86a20s_get_ber_before_vterbi(fe, i, &bit_error,
++							    &bit_count);
++			if (rc >= 0) {
++				c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
++				c->bit_error.stat[1 + i].uvalue = bit_error;
++				c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
++				c->bit_count.stat[1 + i].uvalue = bit_count;
++			}
++			if (c->bit_error.stat[1 + i].scale != FE_SCALE_COUNTER)
++				has_total_ber = false;
++			else {
++				t_bit_error += c->bit_error.stat[1 + i].uvalue;
++				t_bit_count += c->bit_count.stat[1 + i].uvalue;
++			}
++
+ 		}
+ 	}
+ 
++	/*
++	 * FIXME: Some logic is likely need to ask the frontend to measure
++	 *	  BER again
++	 */
++
++	if (has_total_ber) {
++		/*
++		 * Total Bit Error/Count is calculated as the sum of the
++		 * bit errors on all active layers.
++		 */
++		c->bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->bit_error.stat[0].uvalue = t_bit_error;
++		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->bit_count.stat[0].uvalue = t_bit_count;
++	}
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.11.7
+
