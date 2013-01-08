@@ -1,133 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54339 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764Ab3ADNVx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 08:21:53 -0500
-Date: Fri, 4 Jan 2013 14:21:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: DT bindings for subdevices
-In-Reply-To: <CA+V-a8sai0qEsBJNtn0nPKQrP3HvMZzX_yawSAGKBqxxHOMoUQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1301041417480.28515@axis700.grange>
-References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com>
- <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
- <CA+V-a8sai0qEsBJNtn0nPKQrP3HvMZzX_yawSAGKBqxxHOMoUQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:43620 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756329Ab3AHPRA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 10:17:00 -0500
+Date: Tue, 8 Jan 2013 13:16:26 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: gennarone@gmail.com, linux-media@vger.kernel.org
+Subject: Re: cron job: media_tree daily build: ERRORS
+Message-ID: <20130108131626.05abd86e@redhat.com>
+In-Reply-To: <201301081449.54206.hverkuil@xs4all.nl>
+References: <20130107213823.ED56311E00F1@alastor.dyndns.org>
+	<201301081343.43562.hverkuil@xs4all.nl>
+	<20130108110510.549fe616@redhat.com>
+	<201301081449.54206.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 4 Jan 2013, Prabhakar Lad wrote:
+Em Tue, 8 Jan 2013 14:49:54 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> Hi Guennadi,
+> On Tue 8 January 2013 14:05:10 Mauro Carvalho Chehab wrote:
+> > Em Tue, 8 Jan 2013 13:43:43 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > On Tue 8 January 2013 12:01:51 Gianluca Gennari wrote:
+> > > > Il 08/01/2013 10:58, Hans Verkuil ha scritto:
+> > > > > On Mon 7 January 2013 22:38:23 Hans Verkuil wrote:
+> > > > >> This message is generated daily by a cron job that builds media_tree for
+> > > > >> the kernels and architectures in the list below.
+> > > > >>
+> > > > >> Results of the daily build of media_tree:
+> > > > >>
+> > > > >> date:        Mon Jan  7 19:00:18 CET 2013
+> > > > >> git hash:    73ec66c000e9816806c7380ca3420f4e0638c40e
+> > > > >> gcc version:      i686-linux-gcc (GCC) 4.7.1
+> > > > >> host hardware:    x86_64
+> > > > >> host os:          3.4.07-marune
+> > > > >>
+> > > > >> linux-git-arm-eabi-davinci: WARNINGS
+> > > > >> linux-git-arm-eabi-exynos: WARNINGS
+> > > > >> linux-git-arm-eabi-omap: ERRORS
+> > > > >> linux-git-i686: OK
+> > > > >> linux-git-m32r: OK
+> > > > >> linux-git-mips: WARNINGS
+> > > > >> linux-git-powerpc64: OK
+> > > > >> linux-git-sh: OK
+> > > > >> linux-git-x86_64: OK
+> > > > >> linux-2.6.31.12-i686: WARNINGS
+> > > > >> linux-2.6.32.6-i686: WARNINGS
+> > > > >> linux-2.6.33-i686: WARNINGS
+> > > > >> linux-2.6.34-i686: WARNINGS
+> > > > >> linux-2.6.35.3-i686: WARNINGS
+> > > > >> linux-2.6.36-i686: WARNINGS
+> > > > >> linux-2.6.37-i686: WARNINGS
+> > > > >> linux-2.6.38.2-i686: WARNINGS
+> > > > >> linux-2.6.39.1-i686: WARNINGS
+> > > > >> linux-3.0-i686: WARNINGS
+> > > > >> linux-3.1-i686: WARNINGS
+> > > > >> linux-3.2.1-i686: WARNINGS
+> > > > >> linux-3.3-i686: WARNINGS
+> > > > >> linux-3.4-i686: WARNINGS
+> > > > >> linux-3.5-i686: WARNINGS
+> > > > >> linux-3.6-i686: WARNINGS
+> > > > >> linux-3.7-i686: WARNINGS
+> > > > >> linux-3.8-rc1-i686: WARNINGS
+> > > > >> linux-2.6.31.12-x86_64: WARNINGS
+> > > > >> linux-2.6.32.6-x86_64: WARNINGS
+> > > > >> linux-2.6.33-x86_64: WARNINGS
+> > > > >> linux-2.6.34-x86_64: WARNINGS
+> > > > >> linux-2.6.35.3-x86_64: WARNINGS
+> > > > >> linux-2.6.36-x86_64: WARNINGS
+> > > > >> linux-2.6.37-x86_64: WARNINGS
+> > > > >> linux-2.6.38.2-x86_64: WARNINGS
+> > > > >> linux-2.6.39.1-x86_64: WARNINGS
+> > > > >> linux-3.0-x86_64: WARNINGS
+> > > > >> linux-3.1-x86_64: WARNINGS
+> > > > >> linux-3.2.1-x86_64: WARNINGS
+> > > > >> linux-3.3-x86_64: WARNINGS
+> > > > >> linux-3.4-x86_64: WARNINGS
+> > > > >> linux-3.5-x86_64: WARNINGS
+> > > > >> linux-3.6-x86_64: WARNINGS
+> > > > >> linux-3.7-x86_64: WARNINGS
+> > > > >> linux-3.8-rc1-x86_64: WARNINGS
+> > > > >> apps: WARNINGS
+> > > > >> spec-git: OK
+> > > > >> sparse: ERRORS
+> > > > >>
+> > > > >> Detailed results are available here:
+> > > > >>
+> > > > >> http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> > > > > 
+> > > > > There were a lot of new 'redefined' warnings that I have fixed.
+> > > > > 
+> > > > > In addition, it turned out that any driver using vb2 wasn't compiled for
+> > > > > kernels <3.2 due to the fact that DMA_SHARED_BUFFER wasn't set. That's fixed
+> > > > > as well, so drivers like em28xx and vivi will now compile on those older
+> > > > > kernels. This also was the reason I never saw that the usb_translate_error
+> > > > > function needed to be added to compat.h: it's used in em28xx but that driver
+> > > > > was never compiled on kernels without usb_translate_error.
+> > > > > 
+> > > > > Hopefully everything works now.
+> > > > > 
+> > > > > Regards,
+> > > > > 
+> > > > > 	Hans
+> > > > 
+> > > > Hi Hans,
+> > > > on kernel 2.6.32 (Ubuntu 10.04) the media_build tree compiles fine, with
+> > > > just a few remaining warnings.
+> > > > 
+> > > > In particular, there are several new warnings related to DMA_SHARED_BUFFER:
+> > > > 
+> > > > WARNING: "dma_buf_vunmap" [media_build/v4l/videobuf2-vmalloc.ko] undefined!
+> > > > WARNING: "dma_buf_vmap" [media_build/v4l/videobuf2-vmalloc.ko] undefined!
+> > > > WARNING: "dma_buf_fd" [media_build/v4l/videobuf2-core.ko] undefined!
+> > > > WARNING: "dma_buf_put" [media_build/v4l/videobuf2-core.ko] undefined!
+> > > > WARNING: "dma_buf_get" [media_build/v4l/videobuf2-core.ko] undefined!
+> > > 
+> > > Gianluca,
+> > > 
+> > > Can you patch media_build with the patch below and try again? If it doesn't
+> > > work, then replace '#ifdef CONFIG_DMA_SHARED_BUFFER' by '#if 0' in the patch
+> > > below and try that instead.
+> > > 
+> > > Let me know what works.
+> > 
+> > You don't need to write a patch that replaces CONFIG_DMA_SHARED_BUFFER by 0.
+> > you can patch, instead, v4l/scripts/make_kconfig.pl, like those:
+> > 
+> > 
+> > # Kernel < 2.6.22 is missing the HAS_IOMEM option
+> > if (!defined $kernopts{HAS_IOMEM} && cmp_ver($kernver, '2.6.22') < 0) {
+> >     $kernopts{HAS_IOMEM} = 2;
+> > }
+> > 
+> > # Kernel < 2.6.22 is missing the HAS_DMA option
+> > if (!defined $kernopts{HAS_DMA} && cmp_ver($kernver, '2.6.22') < 0) {
+> >     $kernopts{HAS_DMA} = 2;
+> > }
+> > 
+> > # Kernel < 2.6.23 is missing the VIRT_TO_BUS option
+> > if (!defined $kernopts{VIRT_TO_BUS} && cmp_ver($kernver, '2.6.23') < 0) {
+> > 	# VIRT_TO_BUS -> !PPC64
+> > 	$kernopts{VIRT_TO_BUS} = 2 - $kernopts{PPC64};
+> > }
+> > 
+> > # Kernel < 2.6.37 is missing the BKL option
+> > if (!defined $kernopts{BKL} && cmp_ver($kernver, '2.6.37') < 0) {
+> >     $kernopts{BKL} = 2;
+> > }
+> > 
+> > 
 > 
-> On Wed, Jan 2, 2013 at 3:49 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi Prabhakar
-> >
-> > On Wed, 2 Jan 2013, Prabhakar Lad wrote:
-> >
-> >> Hi,
-> >>
-> >> This is my first step towards DT support for media, Question might be
-> >> bit amateur :)
-> >
-> > No worries, we're all doing our first steps in this direction right at the
-> > moment. These two recent threads should give you an idea as to where we
-> > stand atm:
-> >
-> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
-> >
-> > and (optionally, to a lesser extent)
-> >
-> > http://www.spinics.net/lists/linux-media/index.html#57836
-> >
-> >> In the video pipeline there will be external devices (decoders/camera)
-> >> connected via
-> >> i2c, spi, csi. This sub-devices take platform data. So question is
-> >> moving ahead and
-> >> adding DT support for this subdevices how should this platform data be
-> >> passed through.
-> >> Should it be different properties for different devices.
-> >
-> > Mostly, yes.
-> >
-> >> For example the mt9t001 sensor takes following platform data:
-> >> struct mt9t001_platform_data {
-> >>       unsigned int clk_pol:1;
-> >
-> > This would presumably be the standard "pclk-sample" property from the
-> > first of the above two quoted threads
-> >
-> >>       unsigned int ext_clk;
-> >
-> > Is this the frequency? This should be replaced by a phandle, linking to a
-> > clock device-tree node, assuming, your platform is implementing the
-> > generic clock API. If it isn't yet, not a problem either:-) In either case
-> > your sensor driver shall be using the v4l2_clk API to retrieve the clock
-> > rate and your camera host driver should be providing a matching v4l2_clk
-> > instance and implementing its methods, including retrieving the frequency.
-> >
-> Few more doubts:
-> 1: The vl42-async/deferred probing would be required for all the devices
->     implementing FDT if I am not wrong ?
+> I did that already, but I wasn't certain if adding it explicitly here would
+> also add it to v4l/.config. Anyway, I've committed this change.
 
-There is, of course, more than one way to do it, but that's how we want to 
-have it, yes. We want your I2C camera sensors be specified in the DT in a 
-standard way - as children of the respective I2C adapter DT node, which 
-means they can be probed at any time. And we do want their probing 
-functions to have the ability to really access the hardware, if all the 
-conditions are satisfied, e.g. if all resources are available. Which is 
-exactly why we need asynchronous probing.
+Yes, but, as far as I know, a "make allmodconfig" is needed to rewrite the
+existing .config, as I don't think that are there any dependency makefile
+rules to rewrite it when the script is changed.
 
-Thanks
-Guennadi
-
-> Regards,
-> --Prabhakar
-> 
-> >> };
-> >> similarly mt9p031 takes following platform data:
-> >>
-> >> struct mt9p031_platform_data {
-> >>       int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
-> >
-> > Not sure what the xclk is, but, presumable, this should be ported to
-> > v4l2_clk too.
-> >
-> >>       int reset;
-> >
-> > This is a GPIO number, used to reset the chip. You should use a property,
-> > probably, calling it "reset-gpios", specifying the desired GPIO.
-> >
-> >>       int ext_freq;
-> >>       int target_freq;
-> >
-> > Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and
-> > target_freq could be a proprietary property of your device.
-> >
-> > Thanks
-> > Guennadi
-> >
-> >> };
-> >>
-> >> should this all be individual properties ?
-> >>
-> >> Regards,
-> >> --Prabhakar
-> >
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+Mauro
