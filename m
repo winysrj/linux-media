@@ -1,76 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:13305 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752800Ab3AWOuW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 09:50:22 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH300KCV2HS4B70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Jan 2013 14:50:20 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MH30064C2JIAQ90@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Jan 2013 14:50:20 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, arun.kk@samsung.com,
-	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, kyungmin.park@samsung.com
-References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
- <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
- <040701cdf946$3a18c060$ae4a4120$%debski@samsung.com>
- <201301231003.47396.hverkuil@xs4all.nl>
- <20130123135514.GD18639@valkosipuli.retiisi.org.uk>
-In-reply-to: <20130123135514.GD18639@valkosipuli.retiisi.org.uk>
-Subject: RE: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
- which use videobuf2
-Date: Wed, 23 Jan 2013 15:50:04 +0100
-Message-id: <041f01cdf978$efa126c0$cee37440$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-ia0-f172.google.com ([209.85.210.172]:48128 "EHLO
+	mail-ia0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754387Ab3AHWKh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 17:10:37 -0500
+Received: by mail-ia0-f172.google.com with SMTP id u8so217890iag.17
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 14:10:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50EC93B0.8030404@iki.fi>
+References: <CA+rnASviBDZVk9KJPYD1jLoHUbeyWwL+D5oSyvYVHKZFOSUAkw@mail.gmail.com>
+ <50EC93B0.8030404@iki.fi>
+From: =?UTF-8?Q?C=C3=A9dric_Girard?= <girard.cedric@gmail.com>
+Date: Tue, 8 Jan 2013 23:10:16 +0100
+Message-ID: <CA+rnASsrDc57FkMi=nWzDThFNc9ktj2J60XcA7WCWisLyrxxgw@mail.gmail.com>
+Subject: Re: No Signal with TerraTec Cinergy T PCIe dual
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, Jan 8, 2013 at 10:46 PM, Antti Palosaari wrote:
+> On 01/08/2013 11:02 PM, Cédric Girard wrote:
+>> Meaningful bits of an strace of the same command
+>> ###
+>> ioctl(3, FE_READ_STATUS, 0x7fff69172ef0) = 0
+>> ioctl(3, FE_READ_BER, 0x7fff69173018)   = -1 EAGAIN (Resource
+>> temporarily unavailable)
+>> ioctl(3, FE_READ_SIGNAL_STRENGTH, 0x7fff6917301c) = -1 EAGAIN
+>> (Resource temporarily unavailable)
+>> ioctl(3, FE_READ_SNR, 0x7fff6917301e)   = -1 EAGAIN (Resource
+>> temporarily unavailable)
+>> ioctl(3, FE_READ_UNCORRECTED_BLOCKS, 0x7fff69173020) = -1 EAGAIN
+>> (Resource temporarily unavailable)
+>> ###
+>
+>
+> I could guess these errors are coming because you query statistics but
+> device is sleeping and statistics cannot be offered. -EAGAIN == device is
+> sleeping, -ENOTTY device does not support given statistic at all.
+>
+> Could you ensure that? Use some app, like w_scan, tzap, czap, etc. to tune
+> and recheck if it shows these or not. femon could not tune, it queries only
+> statistics. You will need to leave tuning on and then use other terminal for
+> femon.
 
-> From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
-> Sent: Wednesday, January 23, 2013 2:55 PM
-> 
-> On Wed, Jan 23, 2013 at 10:03:47AM +0100, Hans Verkuil wrote:
-> ...
-> > Right. And in my view there should be no default timestamp. Drivers
-> > should always select MONOTONIC or COPY, and never UNKNOWN. The vb2
-> > code should check for that and issue a WARN_ON if no proper timestamp
-> type was provided.
-> >
-> > v4l2-compliance already checks for that as well.
-> 
-> I agree with that.
+You were right. Now I get this while running w_scan in another terminal:
+###
+status SCV   | signal   5% | snr   0% | ber 0 | unc 0 |
+status SCV   | signal   5% | snr   0% | ber 0 | unc 0 |
+status SCV   | signal   5% | snr   0% | ber 0 | unc 0 |
+[...]
+###
 
-I also agree. I will post patches that issue a WARN_ON.
+This is coherent with the "no signal" result.
 
-> Speaking of non-vb2 drivers --- I guess there's no reason for a driver
-> not to use vb2 these days. There are actually already multple reasons
-> to use it instead.
-> 
-> So, vb2 drivers should choose the timestamps, and non-vb2 drivers...
-> well, we shouldn't have more, but in case we do, they _must_ set the
-> timestamp type, as there's no "default" since the relevant IOCTLs are
-> handled by the driver itself rather than the V4L2 framework.
-> 
+>
+>
+>> w_scan give "no signal" result.
+>> dvbscan give "Unable to query frontend status"
+>
+>
+> hmm, that dvbscan results sounds crazy. I am not sure about these scanning
+> apps as there is scan, dvbscan, scandvb. Maybe some of those, or even all,
+> are just same app but renamed as "scan" is too general. My Fedora 17 has
+> scandvb. I just tested against one DRX-K device and it worked fine.
+
+According to the wiki [1] scandvb is a distro-side renaming of dvbscan.
 
 
-Best wishes,
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+>
+>
+>> Any hint to where I should look would be welcome!
+>
+>
+> Try to downgrade Kernels until you find working one.
 
+Guess it is probably the only way. I will try.
 
+[1] http://linuxtv.org/wiki/index.php/Dvbscan
+
+--
+Cédric Girard
