@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2135 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab3A1OVT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 09:21:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH 9/7] saa7134: v4l2-compliance: initialize VBI structure
-Date: Mon, 28 Jan 2013 15:21:09 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <201301281511.53915.linux@rainbow-software.org>
-In-Reply-To: <201301281511.53915.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301281521.09728.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39976 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054Ab3AHGuv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 01:50:51 -0500
+Message-id: <50EBC1C1.3060208@samsung.com>
+Date: Tue, 08 Jan 2013 07:50:41 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Alessandro Rubini <rubini@gnudd.com>, federico.vaga@gmail.com,
+	mchehab@infradead.org, pawel@osciak.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
+ allocator
+References: <3892735.vLSnhhCRFi@harkonnen>
+ <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+ <1399400.izKZgEHXnP@harkonnen> <12929800.xFTBAueAE0@harkonnen>
+ <20130106230947.GA17979@mail.gnudd.com> <20130107124050.3fc5031b@lwn.net>
+ <20130107181500.24c56803@redhat.com>
+In-reply-to: <20130107181500.24c56803@redhat.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon January 28 2013 15:11:53 Ondrej Zary wrote:
-> Make saa7134 driver more V4L2 compliant: clear VBI structure completely
-> before assigning values to make sure any reserved space is cleared
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> ---
->  drivers/media/pci/saa7134/saa7134-video.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/pci/saa7134/saa7134-video.c 
-> b/drivers/media/pci/saa7134/saa7134-video.c
-> index 3e88041..adb83b5 100644
-> --- a/drivers/media/pci/saa7134/saa7134-video.c
-> +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> @@ -1552,6 +1552,7 @@ static int saa7134_try_get_set_fmt_vbi_cap(struct file 
-> *file, void *priv,
->  	struct saa7134_dev *dev = fh->dev;
->  	struct saa7134_tvnorm *norm = dev->tvnorm;
->  
-> +	memset(&f->fmt.vbi, 0, sizeof(f->fmt.vbi));
 
-I prefer:
+On 1/7/2013 9:15 PM, Mauro Carvalho Chehab wrote:
+> Em Mon, 7 Jan 2013 12:40:50 -0700
+> Jonathan Corbet <corbet@lwn.net> escreveu:
+>
+> > On Mon, 7 Jan 2013 00:09:47 +0100
+> > Alessandro Rubini <rubini@gnudd.com> wrote:
+> >
+> > > I don't expect you'll see serious performance differences on the PC. I
+> > > think ARM users will have better benefits, due to the different cache
+> > > architecture.  You told me Jon measured meaningful figures on a Marvel
+> > > CPU.
+> >
+> > It made the difference between 10 frames per second with the CPU running
+> > flat out and 30fps mostly idle.  I think that probably counts as
+> > meaningful, yeah...:)
+>
+> Couldn't this performance difference be due to the usage of GFP_DMA inside
+> the VB2 code, like Federico's new patch series is proposing?
+>
+> If not, why are there a so large performance penalty?
 
-	memset(&f->fmt.vbi.reserved, 0, sizeof(f->fmt.vbi.reserved));
+Nope, this was caused rather by a very poor CPU access to non-cached (aka
+'coherent') memory and the way the video data has been accessed/read 
+with CPU.
 
-After all, that's the only thing that needs clearing.
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Regards,
 
-	Hans
-
->  	f->fmt.vbi.sampling_rate = 6750000 * 4;
->  	f->fmt.vbi.samples_per_line = 2048 /* VBI_LINE_LENGTH */;
->  	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
-> 
