@@ -1,264 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm3.telefonica.net ([213.4.138.19]:63447 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755392Ab3AMUTx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 15:19:53 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: af9035 test needed!
-Date: Sun, 13 Jan 2013 21:19:42 +0100
-Message-ID: <2975217.iWIPt6bt0t@jar7.dominio>
-In-Reply-To: <1399201.n4JJjs39sT@jar7.dominio>
-References: <50F05C09.3010104@iki.fi> <50F0A501.5000103@iki.fi> <1399201.n4JJjs39sT@jar7.dominio>
+Received: from moutng.kundenserver.de ([212.227.126.186]:49304 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754754Ab3AHJ4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 04:56:46 -0500
+Date: Tue, 8 Jan 2013 10:56:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice
+ registration
+In-Reply-To: <1917427.TMDygJ49eg@avalon>
+Message-ID: <Pine.LNX.4.64.1301081052100.1794@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+ <2418280.Sa45Lqe0AC@avalon> <Pine.LNX.4.64.1301081003350.1794@axis700.grange>
+ <1917427.TMDygJ49eg@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sábado, 12 de enero de 2013 22:14:07 Jose Alberto Reguero escribió:
-> On Sábado, 12 de enero de 2013 01:49:21 Antti Palosaari escribió:
-> > On 01/12/2013 01:45 AM, Jose Alberto Reguero wrote:
-> > > On Viernes, 11 de enero de 2013 20:38:01 Antti Palosaari escribió:
-> > >> Hello Jose and Gianluca
-> > >> 
-> > >> Could you test that (tda18218 & mxl5007t):
-> > >> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_t
-> > >> une r
-> > >> 
-> > >> I wonder if ADC config logic still works for superheterodyne tuners
-> > >> (tuner having IF). I changed it to adc / 2 always due to IT9135 tuner.
-> > >> That makes me wonder it possible breaks tuners having IF, as ADC was
-> > >> clocked just over 20MHz and if it is half then it is 10MHz. For BB that
-> > >> is enough, but I think that having IF, which is 4MHz at least for 8MHz
-> > >> BW it is too less.
-> > >> 
-> > >> F*ck I hate to maintain driver without a hardware! Any idea where I can
-> > >> get AF9035 device having tda18218 or mxl5007t?
-> > >> 
-> > >> regards
-> > >> Antti
-> > > 
-> > > Still pending the changes for  mxl5007t. Attached is a patch for that.
-> > > 
-> > > Changes to make work Avermedia Twinstar with the af9035 driver.
-> > > 
-> > > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> > 
-> > I cannot do much about this as it changes mxl5007t driver which is not
-> > maintained by me. :)
-> > 
-> > regards
-> > Antti
-> >
+On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+
+> Hi Guennadi,
 > 
-> Adding CC to Michael Krufky because it is the maintainer of mxl5007t driver. 
-> Michael, any chance to get this patch merged?
+> On Tuesday 08 January 2013 10:25:15 Guennadi Liakhovetski wrote:
+> > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+> > > On Monday 07 January 2013 11:23:55 Guennadi Liakhovetski wrote:
+> > > > >From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00 2001
+
+[snip]
+
+> > > > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > > > +				 struct v4l2_async_notifier *notifier);
+> > > > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> > > > *notifier);
+> > > > +/*
+> > > > + * If subdevice probing fails any time after v4l2_async_subdev_bind(),
+> > > > no
+> > > > + * clean up must be called. This function is only a message of
+> > > > intention.
+> > > > + */
+> > > > +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+> > > > +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
+> > > 
+> > > Could you please explain why you need both a bind notifier and a bound
+> > > notifier ? I was expecting a single v4l2_async_subdev_register() call in
+> > > subdev drivers (and, thinking about it, I would probably name it
+> > > v4l2_subdev_register()).
+> > 
+> > I think I can, yes. Because between .bind() and .bound() the subdevice
+> > driver does the actual hardware probing. So, .bind() is used to make sure
+> > the hardware can be accessed, most importantly to provide a clock to the
+> > subdevice. You can look at soc_camera_async_bind(). There I'm registering
+> > the clock for the subdevice, about to bind. Why I cannot do it before, is
+> > because I need subdevice name for clock matching. With I2C subdevices the
+> > subdevice name contains the name of the driver, adapter number and i2c
+> > address. The latter 2 I've got from host subdevice list. But not the
+> > driver name. I thought about also passing the driver name there, but that
+> > seemed too limiting to me. I also request regulators there, because before
+> > ->bound() the sensor driver, but that could be done on the first call to
+> > soc_camera_power_on(), although doing this "first call" thingie is kind of
+> > hackish too. I could add one more soc-camera-power helper like
+> > soc_camera_prepare() or similar too.
 > 
-> Jose Alberto
->   
-> > > Jose Alberto
-> > > 
-> > > diff -upr linux/drivers/media/tuners/mxl5007t.c
-> > > linux.new/drivers/media/tuners/mxl5007t.c
-> > > --- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000
-> > > +0200 +++ linux.new/drivers/media/tuners/mxl5007t.c	2013-01-10
-> > > 19:23:09.247556275 +0100
-> > > @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
-> > > 
-> > >   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
-> > >   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
-> > > 
-> > > -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
-> > > 
-> > >   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
-> > >   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
-> > > 
-> > > @@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
-> > > 
-> > >   	struct reg_pair_t *init_regs;
-> > >   	int ret;
-> > > 
-> > > -	ret = mxl5007t_soft_reset(state);
-> > > -	if (mxl_fail(ret))
-> > > +	if (!state->config->no_reset) {
-> > > +		ret = mxl5007t_soft_reset(state);
-> > > +		if (mxl_fail(ret))
-> > > 
-> > >   		goto fail;
-> > > 
-> > > +	}
-> > > +
-> > > 
-> > >   	/* calculate initialization reg array */
-> > >   	init_regs = mxl5007t_calc_init_regs(state, mode);
-> > > 
-> > > @@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
-> > > 
-> > >   		if (fe->ops.i2c_gate_ctrl)
-> > >   		
-> > >   			fe->ops.i2c_gate_ctrl(fe, 1);
-> > > 
-> > > -		ret = mxl5007t_get_chip_id(state);
-> > > +		if (!state->config->no_probe)
-> > > +			ret = mxl5007t_get_chip_id(state);
-> > > +
-> > > +		ret = mxl5007t_write_reg(state, 0x04,
-> > > +			state->config->loop_thru_enable);
-> > > +
-> > > 
-> > >   		if (fe->ops.i2c_gate_ctrl)
-> > >   		
-> > >   			fe->ops.i2c_gate_ctrl(fe, 0);
-> > > 
-> > > diff -upr linux/drivers/media/tuners/mxl5007t.h
-> > > linux.new/drivers/media/tuners/mxl5007t.h
-> > > --- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000
-> > > +0200 +++ linux.new/drivers/media/tuners/mxl5007t.h	2013-01-10
-> > > 19:19:11.204379581 +0100
-> > > @@ -73,8 +73,10 @@ struct mxl5007t_config {
-> > > 
-> > >   	enum mxl5007t_xtal_freq xtal_freq_hz;
-> > >   	enum mxl5007t_if_freq if_freq_hz;
-> > >   	unsigned int invert_if:1;
-> > > 
-> > > -	unsigned int loop_thru_enable:1;
-> > > +	unsigned int loop_thru_enable:3;
-> > > 
-> > >   	unsigned int clk_out_enable:1;
-> > > 
-> > > +	unsigned int no_probe:1;
-> > > +	unsigned int no_reset:1;
-> > > 
-> > >   };
-> > >   
-> > >   #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
-> > > 
-> > > (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
-> > > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> > > linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> > > --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
-> > > 05:45:57.000000000 +0100
-> > > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-12
-> > > 00:30:57.557310465 +0100
-> > > @@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
-> > > 
-> > >   		.loop_thru_enable = 0,
-> > >   		.clk_out_enable = 0,
-> > >   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> > > 
-> > > +		.no_probe = 1,
-> > > +		.no_reset = 1,
-> > > 
-> > >   	}, {
-> > >   	
-> > >   		.xtal_freq_hz = MxL_XTAL_24_MHZ,
-> > >   		.if_freq_hz = MxL_IF_4_57_MHZ,
-> > >   		.invert_if = 0,
-> > > 
-> > > -		.loop_thru_enable = 1,
-> > > +		.loop_thru_enable = 3,
-> > > 
-> > >   		.clk_out_enable = 1,
-> > >   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> > > 
-> > > +		.no_probe = 1,
-> > > +		.no_reset = 1,
-> > > 
-> > >   	}
-> > >   
-> > >   };
-> --
+> I think a soc_camera_power_init() function (or similar) would be a good idea, 
+> yes.
+> 
+> > So, the main problem is the clock
+> > subdevice name. Also see the comment in soc_camera.c:
+> > 
+> > 	/*
+> > 	 * It is ok to keep the clock for the whole soc_camera_device life-time,
+> > 	 * in principle it would be more logical to register the clock on icd
+> > 	 * creation, the only problem is, that at that time we don't know the
+> > 	 * driver name yet.
+> > 	 */
+> 
+> I think we should fix that problem instead of shaping the async API around a 
+> workaround :-)
+> 
+> >From the subdevice point of view, the probe function should request resources, 
+> perform whatever initialization is needed (including verifying that the 
+> hardware is functional when possible), and the register the subdev with the 
+> code if everything succeeded. Splitting registration into bind() and bound() 
+> appears a bit as a workaround to me.
+> 
+> If we need a workaround, I'd rather pass the device name in addition to the 
+> I2C adapter number and address, instead of embedding the workaround in this 
+> new API.
 
-Sending again because some lines are mangled.
+...or we can change the I2C subdevice name format. The actual need to do
 
-Changes  to make work Avermedia Twinstar with the af9035 driver.
+	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
+		 asdl->dev->driver->name,
+		 i2c_adapter_id(client->adapter), client->addr);
 
-Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+in soc-camera now to exactly match the subdevice name, as created by 
+v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What if 
+the latter changes at some point? Or what if one driver wishes to create 
+several subdevices for one I2C device?
 
-diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
---- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
-+++ linux.new/drivers/media/tuners/mxl5007t.c	2013-01-10 19:23:09.247556275 +0100
-@@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
- 	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
- 	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
- 
--	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
- 	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
- 	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
- 
-@@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
- 	struct reg_pair_t *init_regs;
- 	int ret;
- 
--	ret = mxl5007t_soft_reset(state);
--	if (mxl_fail(ret))
-+	if (!state->config->no_reset) {
-+		ret = mxl5007t_soft_reset(state);
-+		if (mxl_fail(ret))
- 		goto fail;
-+	}
-+
- 
- 	/* calculate initialization reg array */
- 	init_regs = mxl5007t_calc_init_regs(state, mode);
-@@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
- 		if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 1);
- 
--		ret = mxl5007t_get_chip_id(state);
-+		if (!state->config->no_probe)
-+			ret = mxl5007t_get_chip_id(state);
-+
-+		ret = mxl5007t_write_reg(state, 0x04,
-+			state->config->loop_thru_enable);
-+
- 
- 		if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
-diff -upr linux/drivers/media/tuners/mxl5007t.h linux.new/drivers/media/tuners/mxl5007t.h
---- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000 +0200
-+++ linux.new/drivers/media/tuners/mxl5007t.h	2013-01-10 19:19:11.204379581 +0100
-@@ -73,8 +73,10 @@ struct mxl5007t_config {
- 	enum mxl5007t_xtal_freq xtal_freq_hz;
- 	enum mxl5007t_if_freq if_freq_hz;
- 	unsigned int invert_if:1;
--	unsigned int loop_thru_enable:1;
-+	unsigned int loop_thru_enable:3;
- 	unsigned int clk_out_enable:1;
-+	unsigned int no_probe:1;
-+	unsigned int no_reset:1;
- };
- 
- #if defined(CONFIG_MEDIA_TUNER_MXL5007T) || (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
-diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
---- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000 +0100
-+++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-12 00:30:57.557310465 +0100
-@@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
- 		.loop_thru_enable = 0,
- 		.clk_out_enable = 0,
- 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-+		.no_probe = 1,
-+		.no_reset = 1,
- 	}, {
- 		.xtal_freq_hz = MxL_XTAL_24_MHZ,
- 		.if_freq_hz = MxL_IF_4_57_MHZ,
- 		.invert_if = 0,
--		.loop_thru_enable = 1,
-+		.loop_thru_enable = 3,
- 		.clk_out_enable = 1,
- 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-+		.no_probe = 1,
-+		.no_reset = 1,
- 	}
- };
- 
+Thanks
+Guennadi
 
+> > > > +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+> > > > +#endif
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
-
-
- 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
