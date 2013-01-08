@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65319 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754959Ab3AFCgW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 21:36:22 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r062aMGO004325
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 5 Jan 2013 21:36:22 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:35498 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755138Ab3AHKKo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:10:44 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] em28xx: enable DMABUF
-Date: Sun,  6 Jan 2013 00:35:50 -0200
-Message-Id: <1357439750-7759-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Pawel Osciak <pawel@osciak.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
+Date: Tue, 08 Jan 2013 11:15:28 +0100
+Message-ID: <1609748.zs7bdcvuG8@harkonnen>
+In-Reply-To: <50EBC26E.5090803@samsung.com>
+References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com> <50EBC26E.5090803@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that it uses videobuf2, em28xx can support DMABUF.
+> > @@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> > long size)> 
+> >   	/* align image size to PAGE_SIZE */
+> >   	size = PAGE_ALIGN(size);
+> > 
+> > -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, 
+GFP_KERNEL);
+> > +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+> > +									
+GFP_KERNEL | conf->mem_flags);
+> 
+> I think we can add GFP_DMA flag unconditionally to the vb2_dc_contig
+> allocator.
+> It won't hurt existing clients as most of nowadays platforms doesn't
+> have DMA
+> zone (GFP_DMA is ignored in such case), but it should fix the issues
+> with some
+> older and non-standard systems.
 
-Tested with an HVR-950 on analog mode and a 2gen i5core machine
-with an i915 graphics adapter.
+I did not set GFP_DMA fixed in the allocator because I do not want to brake 
+something in the future. On x86 platform GFP_DMA allocates under 16MB and this 
+limit can be too strict. When many other drivers use GFP_DMA we can saturate 
+this tiny zone.
+As you said, this fix the issue with _older_ and _non-standard_ (like sta2x11) 
+systems. But this fix has effect on every other standard and new systems. 
+That's why I preferred to set the flag optionally.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/em28xx/em28xx-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 75027e3..2eabf2a 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -699,7 +699,7 @@ int em28xx_vb2_setup(struct em28xx *dev)
- 	/* Setup Videobuf2 for Video capture */
- 	q = &dev->vb_vidq;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
-+	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	q->drv_priv = dev;
- 	q->buf_struct_size = sizeof(struct em28xx_buffer);
- 	q->ops = &em28xx_video_qops;
 -- 
-1.7.11.7
-
+Federico Vaga
