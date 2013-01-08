@@ -1,84 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36771 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755884Ab3AICls (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jan 2013 21:41:48 -0500
-Date: Wed, 9 Jan 2013 10:42:26 +0800
-From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-	Stefani Seibold <stefani@seibold.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	platform-driver-x86@vger.kernel.org, linux-input@vger.kernel.org,
-	linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
-	linux-mtd@lists.infradead.org, libertas-dev@lists.infradead.org,
-	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
-	linux-pci@vger.kernel.org, open-iscsi@googlegroups.com,
-	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
-	linux-mm@kvack.org, dccp@vger.kernel.org,
-	linux-sctp@vger.kernel.org
-Subject: Re: [PATCH 5/5] kfifo: log based kfifo API
-Message-ID: <20130109024226.GD304@yliu-dev.sh.intel.com>
-References: <1357657073-27352-1-git-send-email-yuanhan.liu@linux.intel.com>
- <1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com>
- <20130108181645.GA7972@core.coreip.homeip.net>
+Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:47496 "EHLO
+	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756485Ab3AHRI5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 12:08:57 -0500
+Message-ID: <50EC5283.80006@stericsson.com>
+Date: Tue, 8 Jan 2013 18:08:19 +0100
+From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130108181645.GA7972@core.coreip.homeip.net>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	sunil joshi <joshi@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <3584709.mPLC5exzRY@avalon> <50EBF10A.7080906@stericsson.com> <1987992.4TmVjQaiLj@amdc1227>
+In-Reply-To: <1987992.4TmVjQaiLj@amdc1227>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 08, 2013 at 10:16:46AM -0800, Dmitry Torokhov wrote:
-> Hi Yuanhan,
-> 
-> On Tue, Jan 08, 2013 at 10:57:53PM +0800, Yuanhan Liu wrote:
-> > The current kfifo API take the kfifo size as input, while it rounds
-> >  _down_ the size to power of 2 at __kfifo_alloc. This may introduce
-> > potential issue.
-> > 
-> > Take the code at drivers/hid/hid-logitech-dj.c as example:
-> > 
-> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo,
-> >                        DJ_MAX_NUMBER_NOTIFICATIONS * sizeof(struct dj_report),
-> >                        GFP_KERNEL)) {
-> > 
-> > Where, DJ_MAX_NUMBER_NOTIFICATIONS is 8, and sizeo of(struct dj_report)
-> > is 15.
-> > 
-> > Which means it wants to allocate a kfifo buffer which can store 8
-> > dj_report entries at once. The expected kfifo buffer size would be
-> > 8 * 15 = 120 then. While, in the end, __kfifo_alloc will turn the
-> > size to rounddown_power_of_2(120) =  64, and then allocate a buf
-> > with 64 bytes, which I don't think this is the original author want.
-> > 
-> > With the new log API, we can do like following:
-> > 
-> > 	int kfifo_size_order = order_base_2(DJ_MAX_NUMBER_NOTIFICATIONS *
-> > 					    sizeof(struct dj_report));
-> > 
-> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo, kfifo_size_order, GFP_KERNEL)) {
-> > 
-> > This make sure we will allocate enough kfifo buffer for holding
-> > DJ_MAX_NUMBER_NOTIFICATIONS dj_report entries.
-> 
-> Why don't you simply change __kfifo_alloc to round the allocation up
-> instead of down?
+On 01/08/2013 05:36 PM, Tomasz Figa wrote:
+> On Tuesday 08 of January 2013 11:12:26 Marcus Lorentzon wrote:
+>> On 01/08/2013 09:18 AM, Laurent Pinchart wrote:
+>>> On Thursday 27 December 2012 15:43:34 Tomasz Figa wrote:
+>>>>>   On Monday 24 of December 2012 15:12:28 Laurent Pinchart wrote:
+>>>>>>   >   On Friday 21 December 2012 11:00:52 Tomasz Figa wrote:
+>>>>>>>   >   >   On Tuesday 18 of December 2012 08:31:30 Vikas Sajjan
+> wrote:
+>>>>>>>>   >   >   >   On 17 December 2012 20:55, Laurent Pinchart wrote:
+>>>>>>>>>   >   >   >   >   Hi Vikas,
+>>>>>>>>>   >   >   >   >
+>>>>>>>>>   >   >   >   >   Sorry for the late reply. I now have more time to
+>>>>>>>>>   >   >   >   >   work on CDF, so
+>>>>>>>>>   >   >   >   >   delays should be much shorter.
+>>>>>>>>>   >   >   >   >
+>>>>>>>>>   >   >   >   >   On Thursday 06 December 2012 10:51:15 Vikas Sajjan
+> wrote:
+>>>>>>>>>>   >   >   >   >   >   Hi Laurent,
+>>>>>>>>>>   >   >   >   >   >
+>>>>>>>>>>   >   >   >   >   >   I was thinking of porting CDF to samsung
+>>>>>>>>>>   >   >   >   >   >   EXYNOS 5250 platform,
+>>>>>>>>>>   >   >   >   >   >   what I found is that, the exynos display
+>>>>>>>>>>   >   >   >   >   >   controller is MIPI DSI
+>>>>>>>>>>   >   >   >   >   >   based controller.
+>>>>>>>>>>   >   >   >   >   >
+>>>>>>>>>>   >   >   >   >   >   But if I look at CDF patches, it has only
+>>>>>>>>>>   >   >   >   >   >   support for MIPI DBI
+>>>>>>>>>>   >   >   >   >   >   based Display controller.
+>>>>>>>>>>   >   >   >   >   >
+>>>>>>>>>>   >   >   >   >   >   So my question is, do we have any generic
+>>>>>>>>>>   >   >   >   >   >   framework for MIPI DSI
+>>>>>>>>>>   >   >   >   >   >   based display controller? basically I wanted
+>>>>>>>>>>   >   >   >   >   >   to know, how to go
+>>>>>>>>>>   >   >   >   >   >   about porting CDF for such kind of display
+>>>>>>>>>>   >   >   >   >   >   controller.
+>>>>>>>>>   >   >   >   >
+>>>>>>>>>   >   >   >   >   MIPI DSI support is not available yet. The only
+>>>>>>>>>   >   >   >   >   reason for that is
+>>>>>>>>>   >   >   >   >   that I don't have any MIPI DSI hardware to write
+>>>>>>>>>   >   >   >   >   and test the code
+>>>>>>>>>   >   >   >   >   with:-)
+>>>>>>>>>   >   >   >   >
+>>>>>>>>>   >   >   >   >   The common display framework should definitely
+>>>>>>>>>   >   >   >   >   support MIPI DSI. I
+>>>>>>>>>   >   >   >   >   think the existing MIPI DBI code could be used as
+>>>>>>>>>   >   >   >   >   a base, so the
+>>>>>>>>>   >   >   >   >   implementation shouldn't be too high.
+>>>>>>>>>   >   >   >   >
+>>>>>>>>>   >   >   >   >   Yeah, i was also thinking in similar lines, below
+>>>>>>>>>   >   >   >   >   is my though for
+>>>>>>>>>   >   >   >   >   MIPI DSI support in CDF.
+>>>>>>>>   >   >   >
+>>>>>>>>   >   >   >   o   MIPI DSI support as part of CDF framework will
+>>>>>>>>   >   >   >   expose
+>>>>>>>>   >   >   >   §  mipi_dsi_register_device(mpi_device) (will be
+>>>>>>>>   >   >   >   called mach-xxx-dt.c
+>>>>>>>>   >   >   >   file )
+>>>>>>>>   >   >   >   §  mipi_dsi_register_driver(mipi_driver, bus ops)
+>>>>>>>>   >   >   >   (will be called
+>>>>>>>>   >   >   >   from platform specific init driver call )
+>>>>>>>>   >   >   >   ·    bus ops will be
+>>>>>>>>   >   >   >   o   read data
+>>>>>>>>   >   >   >   o   write data
+>>>>>>>>   >   >   >   o   write command
+>>>>>>>>   >   >   >   §  MIPI DSI will be registered as bus_register()
+>>>>>>>>   >   >   >
+>>>>>>>>   >   >   >   When MIPI DSI probe is called, it (e.g., Exynos or
+>>>>>>>>   >   >   >   OMAP MIPI DSI)
+>>>>>>>>   >   >   >   will initialize the MIPI DSI HW IP.
+>>>>>>>>   >   >   >
+>>>>>>>>   >   >   >   This probe will also parse the DT file for MIPI DSI
+>>>>>>>>   >   >   >   based panel, add
+>>>>>>>>   >   >   >   the panel device (device_add() ) to kernel and
+>>>>>>>>   >   >   >   register the display
+>>>>>>>>   >   >   >   entity with its control and  video ops with CDF.
+>>>>>>>>   >   >   >
+>>>>>>>>   >   >   >   I can give this a try.
+>>>>>>>   >   >
+>>>>>>>   >   >   I am currently in progress of reworking Exynos MIPI DSIM
+>>>>>>>   >   >   code and
+>>>>>>>   >   >   s6e8ax0 LCD driver to use the v2 RFC of Common Display
+>>>>>>>   >   >   Framework. I
+>>>>>>>   >   >   have most of the work done, I have just to solve several
+>>>>>>>   >   >   remaining
+>>>>>>>   >   >   problems.
+>>>>>>   >
+>>>>>>   >   Do you already have code that you can publish ? I'm
+>>>>>>   >   particularly
+>>>>>>   >   interested (and I think Tomi Valkeinen would be as well) in
+>>>>>>   >   looking at
+>>>>>>   >   the DSI operations you expose to DSI sinks (panels,
+>>>>>>   >   transceivers, ...).
+>>>>>
+>>>>>   Well, I'm afraid this might be little below your expectations, but
+>>>>>   here's an initial RFC of the part defining just the DSI bus. I
+>>>>>   need a bit more time for patches for Exynos MIPI DSI master and
+>>>>>   s6e8ax0 LCD.
+>>> No worries. I was particularly interested in the DSI operations you
+>>> needed to export, they seem pretty simple. Thank you for sharing the
+>>> code.
+>> FYI,
+>> here is STE "DSI API":
+>> http://www.igloocommunity.org/gitweb/?p=kernel/igloo-kernel.git;a=blob;f
+>> =include/video/mcde.h;h=499ce5cfecc9ad77593e761cdcc1624502f28432;hb=HEAD
+>> #l361
+>>
+>> But it is not perfect. After a couple of products we realized that most
+>> panel drivers want an easy way to send a bunch of init commands in one
+>> go. So I think it should be an op for sending an array of commands at
+>> once. Something like
+>>
+>> struct dsi_cmd {
+>>       enum mipi_pkt_type type; /* MIPI DSI, DCS, SetPacketLen, ... */
+>>       u8 cmd;
+>>       int dataLen;
+>>       u8 *data;
+>> }
+>> struct dsi_ops {
+>>       int dsi_write(source, int num_cmds, struct dsi_cmd *cmds);
+>>       ...
+>> }
+> Yes, this should be flexible enough to cover most of (or even whole) DSI
+> specification.
+>
+> However I'm not sure whether the dsi_write name would be appropriate,
+> since DSI packet types include also read and special transactions. So,
+> according to DSI terminology, maybe dsi_transaction would be better?
 
-Hi Dmitry,
+I think read should still be separate. At least on my HW read and write 
+are quite different. But all "transactions" are very much the same in HW 
+setup. The ... was dsi_write etc ;) Like set_max_packet_size should 
+maybe be an ops. Since only the implementer of the "video source" will 
+know what the max read return packet size for that DSI IP is. The panels 
+don't know that. Maybe another ops to retrieve some info about the caps 
+of the video source would help that. Then a helper could call that and 
+then the dsi_write one.
+>> And I think I still prefer the dsi_bus in favor of the abstract video
+>> source. It just looks like a home made bus with bus-ops ... can't you do
+>> something similar using the normal driver framework? enable/disable
+>> looks like suspend/resume, register/unregister_vid_src is like
+>> bus_(un)register_device, ... the video source anyway seems unattached
+>> to the panel stuff with the find_video_source call.
+> DSI needs specific power management. It's necessary to power up the panel
+> first to make it wait for Tinit event and then enable DSI master to
+> trigger such event. Only then rest of panel initialization can be
+> completed.
 
-Yes, it would be neat and that was my first reaction as well. I then
-sent out a patch, but it was NACKed by Stefani(the original kfifo
-author). Here is the link:
+I know, we have a very complex sequence for our HDMI encoder which uses 
+sort of continuous DSI cmmand mode. And power/clock on sequences are 
+tricky to get right in our current "CDF" API (mcde_display). But I fail 
+to see how the current video source API is different from just using the 
+bus/device APIs.
+>
+> Also, as discussed in previous posts, some panels might use DSI only for
+> video data and another interface (I2C, SPI) for control data. In such case
+> it would be impossible to represent such device in a reasonable way using
+> current driver model.
+>
+I understand that you need to get hold of both the control and data bus 
+device in the driver. (Toshiba DSI-LVDS bridge is a good example and 
+commonly used "encoder" that can use both DSI and I2C control 
+interface.) But the control bus you get from device probe, and I guess 
+you could call bus_find_device_by_name(dsi_bus, "mydev") and return the 
+"datadev" which will have access to dsi bus ops just as you call 
+find_video_source("mysource") to access the "databus" ops directly with 
+a logical device (display entity).
+I'm not saying I would refuse to use video sources. I just think the two 
+models are so similar so it would be worth exploring how a device model 
+style API would look like and to compare against.
 
-    https://lkml.org/lkml/2012/10/26/144
+/BR
+/Marcus
 
-Then Stefani proposed to change the API to take log of size as input to
-root fix this kind of issues. And here it is.
-
-Thanks.
-
-	--yliu
