@@ -1,87 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51696 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:46619 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750899Ab3AWVPu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 16:15:50 -0500
-Date: Wed, 23 Jan 2013 19:00:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130123190011.502517d7@redhat.com>
-In-Reply-To: <51004014.8020809@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-	<20130117165037.6ed80366@redhat.com>
-	<50F84CCC.5040103@iki.fi>
-	<20130122101626.006d2d87@redhat.com>
-	<50FFFD0B.30701@iki.fi>
-	<20130123161801.764495e5@redhat.com>
-	<20130123165732.0e8e74bb@redhat.com>
-	<51004014.8020809@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1755142Ab3AHW2h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 17:28:37 -0500
+Message-ID: <50EC9D71.6060406@iki.fi>
+Date: Wed, 09 Jan 2013 00:28:01 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: erangaj@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: 15a4:1001 fails. (Afatech AF9035)
+References: <CAEmrET+1-G4vtyjD=0cFei8orfujir1EBhRsb+A9CsssrOidJg@mail.gmail.com>
+In-Reply-To: <CAEmrET+1-G4vtyjD=0cFei8orfujir1EBhRsb+A9CsssrOidJg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Jan 2013 21:55:00 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+On 01/08/2013 11:54 PM, Eranga Jayasundera wrote:
+> Dear All,
+>
+> I wasn't able to install the driver for Afatech AF9035 (15a4:1001) on
+> my mythbuntu (kernel v3.2.0) box.
+>
+> I used the bellow commands to install the driver. It was compiled and
+> installed without errors.
+>
+> git clone git://linuxtv.org/media_build.git
+> cd media_build
+> ./build
+> sudo make install
+>
+>
+> dmesg output:
+>
+> [  138.998628] input: Afa Technologies Inc. AF9035A USB Device as
+> /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6.2/2-1.6.2:1.1/input/input13
+> [  138.998826] generic-usb 0003:15A4:1001.0004: input,hidraw3: USB HID
+> v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
+> usb-0000:00:1d.0-1.6.2/input1
+> [  139.015499] usb 2-1.6.2: dvb_usb_v2: found a 'Afatech AF9035
+> reference design' in cold state
+> [  139.016174] usbcore: registered new interface driver dvb_usb_af9035
+> [  139.018104] usb 2-1.6.2: dvb_usb_v2: Did not find the firmware file
+> 'dvb-usb-af9035-02.fw'. Please see linux/Documentation/dvb/ for more
+> details on firmware-problems. Status -2
+> [  139.018109] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
+> design' error while loading driver (-2)
+> [  139.018116] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
+> design' successfully deinitialized and disconnected
+> [  180.666110] usb 2-1.6.2: USB disconnect, device number 8
+>
+>
+> Any thoughts?
 
-> On 01/23/2013 08:57 PM, Mauro Carvalho Chehab wrote:
-> > Em Wed, 23 Jan 2013 16:18:01 -0200
-> > Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-> >
-> >> I'll soon post patches 1 and 2 after those changes. The remaining 4 patches
-> >> don't likely need any change.
-> >
-> > Actually, it sounds better to just do a diff between the two versions.
-> > Each individual patch on v13 is at:
-> > 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/stats_v13
-> >
-> > Cheers,
-> > Mauro
-> >
-> > v13:
-> > - Add post-Viterbi BER on the API
-> > - Some documentation adjustments as suggested by Antti
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> For all the DVB-core related statistics API changes in that patch serie:
-> 
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
+Firmware is missing. Take one from there:
+http://palosaari.fi/linux/
+and test. You should rename it to the dvb-usb-af9035-02.fw and install 
+location /lib/firmware/
 
-Thanks!
-> 
-> 
-> I have still one comment about naming:
-> DTV_STAT_PRE_BIT_ERROR_COUNT   => DTV_STAT_PRE_ERROR_BIT_COUNT
-> DTV_STAT_PRE_TOTAL_BIT_COUNT
-> DTV_STAT_POST_BIT_ERROR_COUNT  => DTV_STAT_POST_ERROR_BIT_COUNT
-> DTV_STAT_POST_TOTAL_BIT_COUNT
-> DTV_STAT_ERROR_BLOCK_COUNT
-> DTV_STAT_TOTAL_BLOCK_COUNT
-> 
-> I like to change those two. Anyway, if you think current naming is 
-> better then leave as it is.
-
-Works for me.
+regards
+Antti
 
 -- 
-
-Cheers,
-Mauro
+http://palosaari.fi/
