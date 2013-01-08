@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:57937 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751304Ab3ASXmX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:23 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 09/24] usb/gspca/ov519.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:16 -0200
-Message-Id: <1358638891-4775-10-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from mail-qa0-f50.google.com ([209.85.216.50]:58295 "EHLO
+	mail-qa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756935Ab3AHS7M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 13:59:12 -0500
+Received: by mail-qa0-f50.google.com with SMTP id cr7so28537qab.16
+        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 10:59:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50EC6828.1070300@googlemail.com>
+References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+	<1357333186-8466-16-git-send-email-dheitmueller@kernellabs.com>
+	<50EC6828.1070300@googlemail.com>
+Date: Tue, 8 Jan 2013 13:59:11 -0500
+Message-ID: <CAGoCfiySM5xz=OFOQ6nvsram8MjFMWqx45YTXgwdjz20s=yewg@mail.gmail.com>
+Subject: Re: [PATCH 15/15] em28xx: convert to videobuf2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+On Tue, Jan 8, 2013 at 1:40 PM, Frank Schäfer
+<fschaefer.oss@googlemail.com> wrote:
+> Bad news. :(
+> The patch seems to break USB bulk transfer mode. The framerate is zero.
+> I've tested with the Silvercrest webcam and the Cinergy 200. Both
+> devices work fine when selecting isoc transfers.
 
-This change was made for: CONFIG_INPUT
+I'll take a look.  I cannot actively debug it since I don't have any
+devices which do bulk, but I'll at least see if anything jumps out at
+me.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
+If I had to guess, probably something related to the setting up of the
+USB alternate.
 
- drivers/media/usb/gspca/ov519.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Devin
 
-diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index 9aa09f8..9ad19a7 100644
---- a/drivers/media/usb/gspca/ov519.c
-+++ b/drivers/media/usb/gspca/ov519.c
-@@ -4238,7 +4238,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 	if (sd->bridge == BRIDGE_W9968CF)
- 		w9968cf_stop0(sd);
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->snapshot_pressed) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-@@ -4255,7 +4255,7 @@ static void ov51x_handle_button(struct gspca_dev *gspca_dev, u8 state)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	if (sd->snapshot_pressed != state) {
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, state);
- 		input_sync(gspca_dev->input_dev);
- #endif
-@@ -4924,7 +4924,7 @@ static const struct sd_desc sd_desc = {
- 	.dq_callback = sd_reset_snapshot,
- 	.get_jcomp = sd_get_jcomp,
- 	.set_jcomp = sd_set_jcomp,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
- #endif
- };
 -- 
-1.7.11.7
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
