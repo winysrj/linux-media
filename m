@@ -1,94 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:34830 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317Ab3A3GbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 01:31:01 -0500
-Received: by mail-pa0-f46.google.com with SMTP id kp14so890018pab.19
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:31:00 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
-	l.krishna@samsung.com
-Subject: [PATCH v2 1/1] video: drm: exynos: Adds display-timing node parsing using video helper function
-Date: Wed, 30 Jan 2013 12:00:49 +0530
-Message-Id: <1359527449-5174-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1359527449-5174-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1359527449-5174-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41290 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758018Ab3AIXdm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 18:33:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: Tomasz Figa <t.figa@samsung.com>, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, inki.dae@samsung.com,
+	tomi.valkeinen@ti.com, aditya.ps@samsung.com,
+	sunil joshi <joshi@samsung.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>
+Subject: Re: [PATCH 2/2] [RFC] video: display: Adding frame related ops to MIPI DSI video source struct
+Date: Thu, 10 Jan 2013 00:35:22 +0100
+Message-ID: <3145597.3X0nZfdYRE@avalon>
+In-Reply-To: <CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com>
+References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org> <67872310.6yRVsVsClR@amdc1227> <CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing using video helper function
+Hi Vikas,
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   38 +++++++++++++++++++++++++++---
- 1 file changed, 35 insertions(+), 3 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index bf0d9ba..94729ed 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
-@@ -905,15 +906,46 @@ static int __devinit fimd_probe(struct platform_device *pdev)
- 	struct exynos_drm_subdrv *subdrv;
- 	struct exynos_drm_fimd_pdata *pdata;
- 	struct exynos_drm_panel_info *panel;
-+	struct fb_videomode *fbmode;
-+	struct device *disp_dev = &pdev->dev;
-+	struct pinctrl *pctrl;
- 	struct resource *res;
- 	int win;
- 	int ret = -EINVAL;
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-+		if (!fbmode) {
-+			DRM_ERROR("memory allocation for fbmode failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(disp_dev->of_node, fbmode, -1);
-+		if (ret) {
-+			DRM_ERROR("failed to get fb_videomode\n");
-+			return -EINVAL;
-+		}
-+		pdata->panel.timing = (struct fb_videomode) *fbmode;
-+
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
-+	}
-+
-+	pctrl = devm_pinctrl_get_select_default(dev);
-+	if (IS_ERR(pctrl)) {
-+		DRM_ERROR("no pinctrl data provided.\n");
- 		return -EINVAL;
- 	}
- 
+On Friday 04 January 2013 10:24:04 Vikas Sajjan wrote:
+> On 3 January 2013 16:29, Tomasz Figa <t.figa@samsung.com> wrote:
+> > On Wednesday 02 of January 2013 18:47:22 Vikas C Sajjan wrote:
+> >> From: Vikas Sajjan <vikas.sajjan@linaro.org>
+> >> 
+> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> >> ---
+> >> 
+> >>  include/video/display.h |    6 ++++++
+> >>  1 file changed, 6 insertions(+)
+> >> 
+> >> diff --git a/include/video/display.h b/include/video/display.h
+> >> index b639fd0..fb2f437 100644
+> >> --- a/include/video/display.h
+> >> +++ b/include/video/display.h
+> >> @@ -117,6 +117,12 @@ struct dsi_video_source_ops {
+> >> 
+> >>       void (*enable_hs)(struct video_source *src, bool enable);
+> >> 
+> >> +     /* frame related */
+> >> +     int (*get_frame_done)(struct video_source *src);
+> >> +     int (*clear_frame_done)(struct video_source *src);
+> >> +     int (*set_early_blank_mode)(struct video_source *src, int power);
+> >> +     int (*set_blank_mode)(struct video_source *src, int power);
+> >> +
+> > 
+> > I'm not sure if all those extra ops are needed in any way.
+> > 
+> > Looking and Exynos MIPI DSIM driver, set_blank_mode is handling only
+> > FB_BLANK_UNBLANK status, which basically equals to the already existing
+> > enable operation, while set_early_blank mode handles only
+> > FB_BLANK_POWERDOWN, being equal to disable callback.
+> 
+> Right, exynos_mipi_dsi_blank_mode() only supports FB_BLANK_UNBLANK as
+> of now, but FB_BLANK_NORMAL will be supported in future.
+> If not for Exynos, i think it will be need for other SoCs which
+> support FB_BLANK_UNBLANK and FB_BLANK_NORMAL.
+
+Could you please explain in a bit more details what the set_early_blank_mode 
+and set_blank_mode operations do ?
+
+> > Both get_frame_done and clear_frame_done do not look at anything used at
+> > the moment and if frame done status monitoring will be ever needed, I
+> > think a better way should be implemented.
+> 
+> You are right, as of now Exynos MIPI DSI Panels are NOT using these
+> callbacks, but as you mentioned we will need frame done status monitoring
+> anyways, so i included these callbacks here. Will check, if we can implement
+> any better method.
+
+Do you expect the entity drivers (and in particular the panel drivers) to 
+require frame done notification ? If so, could you explain your use case(s) ?
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
