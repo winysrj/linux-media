@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1060 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443Ab3A2Qdi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 11:33:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 11/20] cx231xx: remove current_norm usage.
-Date: Tue, 29 Jan 2013 17:33:04 +0100
-Message-Id: <7e86d66066527a2d74f0ae3b8fddf89144b6b371.1359476777.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
-References: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
+Received: from bar.sig21.net ([80.81.252.164]:59730 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359Ab3AILHq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jan 2013 06:07:46 -0500
+Date: Wed, 9 Jan 2013 12:07:38 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Jiri Slaby <jirislaby@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+Message-ID: <20130109110738.GA29981@linuxtv.org>
+References: <507FE752.6010409@schinagl.nl>
+ <50D0E7A7.90002@schinagl.nl>
+ <50EAA778.6000307@gmail.com>
+ <50EAC41D.4040403@schinagl.nl>
+ <20130108200149.GB408@linuxtv.org>
+ <50ED3BBB.4040405@schinagl.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <50ED3BBB.4040405@schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Jan 09, 2013 at 10:43:23AM +0100, Oliver Schinagl wrote:
+> On 08-01-13 21:01, Johannes Stezenbach wrote:
+> >On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
+> >>On 07-01-13 11:46, Jiri Slaby wrote:
+> >>>On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
+> >>>>Unfortunatly, I have had zero replies.
+> >>>Hmm, it's sad there is a silence in this thread from linux-media guys :/.
+> >>In their defense, they are very very busy people ;) chatter on this
+> >>thread does bring it up however.
+> >This is such a nice thing to say :-)
+> >But it might be that Mauro thinks the dvb-apps maintainer should
+> >respond, but apparently there is no dvb-apps maintainer...
+> >Maybe you should ask Mauro directly to create an account for you
+> >to implement what you proposed.
+> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
+> decides what I suggested is a good idea? I personally obviously
+> think it is ;) and even more so if dvb-apps are unmaintained.
 
-The use of this field is deprecated since it will not work when multiple
-device nodes reference the same video input (the video and vbi nodes in
-this case). The norm field should be a device-global value.
+Well, if you become the dvb-apps maintainer, then _you_ decide
+if it's a good idea.  That's part of the defintion of "maintainer" :-)
+It doesn't hurt to listen to users, but if no one comments
+you can do whatever you want with it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-417.c   |    1 -
- drivers/media/usb/cx231xx/cx231xx-video.c |    3 +--
- 2 files changed, 1 insertion(+), 3 deletions(-)
+But I'm only acting as kind of a webmaster, Mauro creates the accounts.
+So we have to wait for him to respond.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 28688db..a4091dd 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -2115,7 +2115,6 @@ static struct video_device cx231xx_mpeg_template = {
- 	.ioctl_ops     = &mpeg_ioctl_ops,
- 	.minor         = -1,
- 	.tvnorms       = CX231xx_NORMS,
--	.current_norm  = V4L2_STD_NTSC_M,
- };
- 
- void cx231xx_417_unregister(struct cx231xx *dev)
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index e9adeb6..da54b9b 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -2228,7 +2228,6 @@ static const struct video_device cx231xx_video_template = {
- 	.release      = video_device_release,
- 	.ioctl_ops    = &video_ioctl_ops,
- 	.tvnorms      = V4L2_STD_ALL,
--	.current_norm = V4L2_STD_PAL,
- };
- 
- static const struct v4l2_file_operations radio_fops = {
-@@ -2299,7 +2298,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		     dev->name, CX231XX_VERSION);
- 
- 	/* set default norm */
--	/*dev->norm = cx231xx_video_template.current_norm; */
-+	dev->norm = V4L2_STD_PAL;
- 	dev->width = norm_maxw(dev);
- 	dev->height = norm_maxh(dev);
- 	dev->interlaced = 0;
--- 
-1.7.10.4
+> I guess the question now becomes 'who okay's this change? Who says
+> 'okay, lets do it this way. Once that is answered we can go from
+> there ;)
 
+I guess you could ask the maintainer of the dvb-apps package
+of your favourite distribution for opinions, and also check
+which other packages depend on dvb-apps.
+
+
+Johannes
