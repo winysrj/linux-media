@@ -1,81 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:35783 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754219Ab3AMKkO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 05:40:14 -0500
+Received: from kirsty.vergenet.net ([202.4.237.240]:46122 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754821Ab3AIAEJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 19:04:09 -0500
+Date: Wed, 9 Jan 2013 09:04:05 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 6/6] ARM: shmobile: convert ap4evb to asynchronously
+ register camera subdevices
+Message-ID: <20130109000405.GC29821@verge.net.au>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+ <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
+ <20130108042720.GA25895@verge.net.au>
+ <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <50E442A7.3010002@samsung.com>
-References: <CAMuHMdVPBUzN8fsNHFzrEqev9BsvVCVR2fWySCOecjVA-J1qjg@mail.gmail.com>
-	<1356722614-18224-5-git-send-email-geert@linux-m68k.org>
-	<50E442A7.3010002@samsung.com>
-Date: Sun, 13 Jan 2013 11:40:12 +0100
-Message-ID: <CAMuHMdVequkKT96i+7mhZnvogZrMPQDkd3d4EQxwZcvj5gSbWw@mail.gmail.com>
-Subject: Re: [PATCH/RFC 4/4] common: dma-mapping: Move dma_common_*() to <linux/dma-mapping.h>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-m68k@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+On Tue, Jan 08, 2013 at 11:35:21PM +0100, Guennadi Liakhovetski wrote:
+> Hi Simon
+> 
+> On Tue, 8 Jan 2013, Simon Horman wrote:
+> 
+> > On Wed, Dec 26, 2012 at 06:49:11PM +0100, Guennadi Liakhovetski wrote:
+> > > Register the imx074 camera I2C and the CSI-2 platform devices directly
+> > > in board platform data instead of letting the sh_mobile_ceu_camera driver
+> > > and the soc-camera framework register them at their run-time. This uses
+> > > the V4L2 asynchronous subdevice probing capability.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > 
+> > Hi Guennadi,
+> > 
+> > could you let me know what if any dependencies this patch has.
+> > And the status of any dependencies.
+> 
+> This patch depends on the other 5 patches in this series. Since the other 
+> patches are still in work, this patch cannot be applied either yet. Sorry, 
+> I should have marked it as RFC.
 
-On Wed, Jan 2, 2013 at 3:22 PM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> On 12/28/2012 8:23 PM, Geert Uytterhoeven wrote:
->> dma_common_mmap() and dma_common_get_sgtable() are defined in
->> drivers/base/dma-mapping.c, and always compiled if CONFIG_HAS_DMA=y.
->>
->> However, their forward declarations and the inline functions defined on
->> top
->> of them (dma_mmap_attrs(), dma_mmap_coherent(), dma_mmap_writecombine(),
->> dma_get_sgtable_attrs()), dma_get_sgtable()) are in
->> <asm-generic/dma-mapping-common.h>, which is not included by all
->> architectures supporting CONFIG_HAS_DMA=y.  There exist no alternative
->> implementations.
->>
->> Hence for e.g. m68k allmodconfig, I get:
->>
->> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
->> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit
->> declaration of function ‘dma_mmap_coherent’
->> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function
->> ‘vb2_dc_get_base_sgt’:
->> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit
->> declaration of function ‘dma_get_sgtable’
->>
->> To fix this
->>    - Move the forward declarations and inline definitions to
->>      <linux/dma-mapping.h>, so all CONFIG_HAS_DMA=y architectures can use
->>      them,
->>    - Replace the hard "BUG_ON(!ops)" checks for dma_map_ops by soft
->> checks,
->>      so architectures can fall back to the common code by returning NULL
->>      from their get_dma_ops(). Note that there are no "BUG_ON(!ops)"
->> checks
->>      in other functions in <asm-generic/dma-mapping-common.h>,
->>    - Make "struct dma_map_ops *ops" const while we're at it.
->
->
-> I think that more appropriate way of handling it is to avoid dma_map_ops
-> based
-> calls (those archs probably have some reasons why they don't use it at all)
-> and
-> provide static inline stubs which call dma_common_mmap and
-> dma_common_get_sgtable.
-
-OK, I'll do that.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks, got it.
