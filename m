@@ -1,95 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2319 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab3ATVmd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 16:42:33 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0KLgTx3075576
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 22:42:31 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 437F23060009
-	for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 22:42:28 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130120214228.437F23060009@alastor.dyndns.org>
-Date: Sun, 20 Jan 2013 22:42:28 +0100 (CET)
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:52794 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757709Ab3AINmF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:42:05 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC 2/3] tvp514x: support asynchronous probing
+Date: Wed,  9 Jan 2013 19:11:26 +0530
+Message-Id: <1357738887-8701-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Both synchronous and asynchronous tvp514x subdevice probing is supported by
+this patch.
 
-Results of the daily build of media_tree:
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/i2c/tvp514x.c |   20 ++++++++++++++------
+ 1 files changed, 14 insertions(+), 6 deletions(-)
 
-date:        Sun Jan 20 19:00:14 CET 2013
-git hash:    3151d14aa6e983aa36d51a80d0477859f9ba12af
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index aa94ebc..a4f0a70 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -34,6 +34,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-mediabus.h>
+@@ -102,6 +103,7 @@ struct tvp514x_decoder {
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct tvp514x_reg tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
+ 	const struct tvp514x_platform_data *pdata;
++	struct v4l2_async_subdev_list	asdl;
+ 
+ 	int ver;
+ 	int streaming;
+@@ -941,22 +943,22 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
+ 	struct tvp514x_decoder *decoder;
+ 	struct v4l2_subdev *sd;
++	int ret;
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
+ 
+-	if (!client->dev.platform_data) {
+-		v4l2_err(client, "No platform data!!\n");
+-		return -ENODEV;
+-	}
+-
+ 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+ 	if (!decoder)
+ 		return -ENOMEM;
+ 
+ 	/* Initialize the tvp514x_decoder with default configuration */
+ 	*decoder = tvp514x_dev;
++	if (!client->dev.platform_data) {
++		v4l2_err(client, "No platform data!!\n");
++		return -EPROBE_DEFER;
++	}
+ 	/* Copy default register configuration */
+ 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+ 			sizeof(tvp514x_reg_list_default));
+@@ -980,6 +982,11 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 	/* Register with V4L2 layer as slave device */
+ 	sd = &decoder->sd;
++	decoder->asdl.subdev = &decoder->sd;
++	decoder->asdl.dev = &client->dev;
++	ret = v4l2_async_subdev_bind(&decoder->asdl);
++	if (ret < 0)
++		return ret;
+ 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+ 
+ 	v4l2_ctrl_handler_init(&decoder->hdl, 5);
+@@ -1004,7 +1011,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 
+ 	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
+ 
+-	return 0;
++	return v4l2_async_subdev_bound(&decoder->asdl);
+ 
+ }
+ 
+@@ -1020,6 +1027,7 @@ static int tvp514x_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct tvp514x_decoder *decoder = to_decoder(sd);
+ 
++	v4l2_async_subdev_unbind(&decoder->asdl);
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&decoder->hdl);
+ 	return 0;
+-- 
+1.7.4.1
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
