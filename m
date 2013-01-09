@@ -1,51 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:65532 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab3ABXOn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 18:14:43 -0500
-Message-ID: <50E4BF5E.9060108@gmail.com>
-Date: Thu, 03 Jan 2013 00:14:38 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mga01.intel.com ([192.55.52.88]:36771 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755884Ab3AICls (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jan 2013 21:41:48 -0500
+Date: Wed, 9 Jan 2013 10:42:26 +0800
+From: Yuanhan Liu <yuanhan.liu@linux.intel.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Stefani Seibold <stefani@seibold.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-omap@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
+	platform-driver-x86@vger.kernel.org, linux-input@vger.kernel.org,
+	linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-mmc@vger.kernel.org,
+	linux-mtd@lists.infradead.org, libertas-dev@lists.infradead.org,
+	linux-wireless@vger.kernel.org, netdev@vger.kernel.org,
+	linux-pci@vger.kernel.org, open-iscsi@googlegroups.com,
+	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-serial@vger.kernel.org, linux-usb@vger.kernel.org,
+	linux-mm@kvack.org, dccp@vger.kernel.org,
+	linux-sctp@vger.kernel.org
+Subject: Re: [PATCH 5/5] kfifo: log based kfifo API
+Message-ID: <20130109024226.GD304@yliu-dev.sh.intel.com>
+References: <1357657073-27352-1-git-send-email-yuanhan.liu@linux.intel.com>
+ <1357657073-27352-6-git-send-email-yuanhan.liu@linux.intel.com>
+ <20130108181645.GA7972@core.coreip.homeip.net>
 MIME-Version: 1.0
-To: Dan Carpenter <error27@gmail.com>,
-	Tony Prisk <linux@prisktech.co.nz>
-CC: Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of IS_ERR_OR_NULL
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
-In-Reply-To: <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130108181645.GA7972@core.coreip.homeip.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/02/2013 06:10 AM, Dan Carpenter wrote:
-> clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
+On Tue, Jan 08, 2013 at 10:16:46AM -0800, Dmitry Torokhov wrote:
+> Hi Yuanhan,
+> 
+> On Tue, Jan 08, 2013 at 10:57:53PM +0800, Yuanhan Liu wrote:
+> > The current kfifo API take the kfifo size as input, while it rounds
+> >  _down_ the size to power of 2 at __kfifo_alloc. This may introduce
+> > potential issue.
+> > 
+> > Take the code at drivers/hid/hid-logitech-dj.c as example:
+> > 
+> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo,
+> >                        DJ_MAX_NUMBER_NOTIFICATIONS * sizeof(struct dj_report),
+> >                        GFP_KERNEL)) {
+> > 
+> > Where, DJ_MAX_NUMBER_NOTIFICATIONS is 8, and sizeo of(struct dj_report)
+> > is 15.
+> > 
+> > Which means it wants to allocate a kfifo buffer which can store 8
+> > dj_report entries at once. The expected kfifo buffer size would be
+> > 8 * 15 = 120 then. While, in the end, __kfifo_alloc will turn the
+> > size to rounddown_power_of_2(120) =  64, and then allocate a buf
+> > with 64 bytes, which I don't think this is the original author want.
+> > 
+> > With the new log API, we can do like following:
+> > 
+> > 	int kfifo_size_order = order_base_2(DJ_MAX_NUMBER_NOTIFICATIONS *
+> > 					    sizeof(struct dj_report));
+> > 
+> > 	if (kfifo_alloc(&djrcv_dev->notif_fifo, kfifo_size_order, GFP_KERNEL)) {
+> > 
+> > This make sure we will allocate enough kfifo buffer for holding
+> > DJ_MAX_NUMBER_NOTIFICATIONS dj_report entries.
+> 
+> Why don't you simply change __kfifo_alloc to round the allocation up
+> instead of down?
 
-It's not a problem for this driver, as it never dereferences what's
-returned from clk_get(). It would have to include <plat/clock.h>, which
-it doesn't and which would have clearly indicated abuse of the clock API.
+Hi Dmitry,
 
-Moreover, this driver now depends on architectures that select HAVE_CLK,
-so it couldn't be build when CONFIG_HAVE_CLK is disabled.
+Yes, it would be neat and that was my first reaction as well. I then
+sent out a patch, but it was NACKed by Stefani(the original kfifo
+author). Here is the link:
 
-> I told Tony about this but everyone has been gone with end of year
-> holidays so it hasn't been addressed.
->
-> Tony, please fix it so people don't apply these patches until
-> clk_get() is updated to not return NULL.  It sucks to have to revert
-> patches.
+    https://lkml.org/lkml/2012/10/26/144
 
-As explained by Russell many times, the clock API users should not care
-whether the value returned from clk_get() is NULL or not. It should only
-be tested with IS_ERR(). The patches look fine to me, no need to do
-anything.
+Then Stefani proposed to change the API to take log of size as input to
+root fix this kind of issues. And here it is.
 
----
+Thanks.
 
-Regards,
-Sylwester
+	--yliu
