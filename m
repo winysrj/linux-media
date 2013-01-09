@@ -1,235 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15790 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752314Ab3AVMRN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 07:17:13 -0500
-Date: Tue, 22 Jan 2013 10:16:26 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130122101626.006d2d87@redhat.com>
-In-Reply-To: <50F84CCC.5040103@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-	<20130117165037.6ed80366@redhat.com>
-	<50F84CCC.5040103@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:43184 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757862Ab3AINl6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:41:58 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC 1/3] davinci: vpif: capture: add V4L2-async support
+Date: Wed,  9 Jan 2013 19:11:25 +0530
+Message-Id: <1357738887-8701-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Jan 2013 21:11:08 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+Add support for asynchronous subdevice probing, using the v4l2-async API.
+The legacy synchronous mode is still supported too, which allows to
+gradually update drivers and platforms. The selected approach adds a
+notifier for each struct soc_camera_device instance, i.e. for each video
+device node, even when there are multiple such instances registered with a
+single soc-camera host simultaneously.
 
-> On 01/17/2013 08:50 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 18 Jan 2013 00:07:17 +0530
-> > Manu Abraham <abraham.manu@gmail.com> escreveu:
-> >
-> >> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >>
-> >>>
-> >>>
-> >>> Resetting counters when user tunes channel sounds the only correct option.
-> >>>
-> >>
-> >> This might not be correct, especially when we have true Multiple Input Streams.
-> >> The tune might be single, but the filter setup would be different. In
-> >> which case it
-> >> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
-> >> should be the responsibility of the driver.
-> >
-> > I moved the counters reset to the driver's logic on v11. I'm posting the
-> > patches in a few.
-> >
-> >> As I said in an earlier
-> >> post, anything
-> >> other than the driver handling any statistical event monitoring, such an API is
-> >> broken for sure, without even reading single line of code for that API for which
-> >>   it is written for.
-> >
-> > Yes, driver should have full control on it.
-> >
-> >>> OK, maybe we will see in near future if that works well or not. I think that
-> >>> for calculating of PER it is required to start continuous polling to keep up
-> >>> total block counters. Maybe updating UCB counter continously needs that too,
-> >>> so it should work.
-> >>
-> >>
-> >> With multi-standard demodulators, some of them PER compute is a by-product
-> >> of some internal demodulator algorithmic operation. In some cases, it might
-> >> require a loop in the driver. As I said, again; It is very hard/wrong
-> >> to do basic
-> >> generalizations.
-> >
-> > Agreed.
-> >
-> 
-> I think we will have soon kinda consensus everyone could approve! 
-> Anyhow, I didn't liked that kind of PATCH RFC process. That change was 
-> too big for PATCH style RFC and it was hard to keep track what going on 
-> looking those patches. Maybe requirement specification RFCs first and 
-> when requirements are clear => PATCH RFC for implementation.
-> 
-> What I know understand, requirements are:
-> 
-> signal strength:
-> ==============
-> Offer both discussed methods.
-> Simple [0...n] scale and dB...
-> Driver must support simple scale over dB.
-> 
-> CNR (SNR)
-> ==============
-> Offer both discussed methods.
-> Simple [0...n] scale and dB...
-> Driver must support simple scale over dB.
-> 
-> BER
-> ==============
-> Offer global BER and per layer BER.
-> Measure is returned as two numbers, one for error bit count and one for 
-> total bit count.
-> 
-> uncorrected packets/blocks
-> ==============
-> Offer global UCB and per layer UCB.
-> Measure is returned as two numbers, one for uncorrected packet count and 
-> one for total packet count.
-> 
-> counter reset
-> ==============
-> counters are reset when channel is tuned
-> 
-> 
-> 
-> And if we end up returning "simple" values over dB values, then I think 
-> driver could be simple and implement only dB and dvb-core is responsible 
-> to convert dB => simple. That should quite be possible as we know which 
-> dB value is good signal and which is bad signal.
-> 
-> 
-> Are these requirements now in line what is spoken?
-
-Ok, I updated the DocBook to match what I understood from the above and from
-our discussions. Please check.
-
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
+ drivers/media/platform/davinci/vpif_capture.c |  171 ++++++++++++++++++-------
+ drivers/media/platform/davinci/vpif_capture.h |    2 +
+ include/media/davinci/vpif_types.h            |    2 +
+ 3 files changed, 128 insertions(+), 47 deletions(-)
 
-Frontend statistics indicators
-==============================
-
-The values are returned via dtv_property.stat. If the property is supported, dtv_property.stat.len is bigger than zero.
-
-For most delivery systems, dtv_property.stat.len will be 1 if the stats is supported, and the properties will return a single value for each parameter.
-
-It should be noticed, however, that new OFDM delivery systems like ISDB can use different modulation types for each group of carriers. On such standards, up to 3 groups of statistics can be provided, and dtv_property.stat.len is updated to reflect the "global" metrics, plus one metric per each carrier group (called "layer" on ISDB).
-
-So, in order to be consistent with other delivery systems, the first value at dtv_property.stat.dtv_stats array refers to the global metric. The other elements of the array represent each layer, starting from layer A(index 1), layer B (index 2) and so on.
-
-The number of filled elements are stored at dtv_property.stat.len.
-
-Each element of the dtv_property.stat.dtv_stats array consists on two elements:
-
-    svalue or uvalue: svalue is for signed values of the measure (dB measures) and uvalue is for unsigned values (counters, relative scale)
-
-    scale - Scale for the value. It can be:
-
-        FE_SCALE_NOT_AVAILABLE - The parameter is supported by the frontend, but it was not possible to collect it (could be a transitory or permanent condition)
-
-        FE_SCALE_DECIBEL - parameter is a signed value, measured in 1/1000 dB
-
-        FE_SCALE_RELATIVE - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.
-
-        FE_SCALE_COUNTER - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.
-
-DTV_STAT_SIGNAL_STRENGTH
-========================
-
-Indicates the signal strength level at the analog part of the tuner or of the demod.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_DECIBEL - signal strength is in 0.0001 dBm units, power measured in miliwatts. This value is generally negative.
-    FE_SCALE_RELATIVE - The frontend provides a 0% to 100% measurement for power (actually, 0-65535).
-
-DTV_STAT_CNR
-============
-
-Indicates the Signal to Noise ratio for the main carrier.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_DECIBEL - Signal/Noise ratio is in 0.0001 dB units.
-    FE_SCALE_RELATIVE - The frontend provides a 0% to 100% measurement for Signal/Noise (actually, 0-65535).
-
-DTV_STAT_BIT_ERROR_COUNT
-========================
-
-Measures the number of bit errors before Viterbi.
-
-This measure is taken during the same interval as DTV_STAT_TOTAL_BITS_COUNT.
-
-In order to get the BER (Bit Error Rate) measurement, it should be divided by DTV_STAT_TOTAL_BITS_COUNT.
-
-This measurement is monotonically increased, as the frontend gets more bit count measurements. The frontend may reset it when a channel/transponder is tuned.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_COUNTER - Number of error bits counted before Viterbi.
-
-DTV_STAT_TOTAL_BITS_COUNT
-=========================
-
-Measures the amount of bits received before the Viterbi block, during the same period as DTV_STAT_BIT_ERROR_COUNT measurement was taken.
-
-It should be noticed that this measurement can be smaller than the total amount of bits on the transport stream, as the frontend may need to manually restart the measurement, loosing some data between each measurement interval.
-
-This measurement is monotonically increased, as the frontend gets more bit count measurements. The frontend may reset it when a channel/transponder is tuned.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_COUNTER - Number of bits counted while measuring DTV_STAT_BIT_ERROR_COUNT.
-
-DTV_STAT_ERROR_BLOCK_COUNT
-==========================
-
-Measures the number of block errors.
-
-This measurement is monotonically increased, as the frontend gets more bit count measurements. The frontend may reset it when a channel/transponder is tuned.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_COUNTER - Number of error blocks counted after Red Salomon.
-
-DTV-STAT_TOTAL_BLOCKS_COUNT
-===========================
-
-Measures the total number of blocks received during the same period as DTV_STAT_ERROR_BLOCK_COUNT measurement was taken.
-
-It can be used to calculate the PER indicator, by dividing DTV_STAT_ERROR_BLOCK_COUNT by DTV-STAT-TOTAL-BLOCKS-COUNT.
-
-Possible scales for this metric are:
-
-    FE_SCALE_NOT_AVAILABLE - it failed to measure it, or the measurement was not complete yet.
-    FE_SCALE_COUNTER - Number of blocks counted while measuring DTV_STAT_ERROR_BLOCK_COUNT.
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 5892d2b..a8b6588 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -34,6 +34,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
++
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -2054,6 +2056,96 @@ vpif_init_free_channel_objects:
+ 	return err;
+ }
+ 
++int vpif_async_bound(struct v4l2_async_notifier *notifier,
++		    struct v4l2_async_subdev_list *asdl)
++{
++	int i = 0;
++
++	if (!asdl->subdev) {
++		v4l2_err(vpif_dev->driver,
++			 "%s(): Subdevice driver hasn't set subdev pointer!\n",
++			__func__);
++		return -EINVAL;
++	}
++	v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
++			 asdl->subdev->name);
++
++	for (i = 0; i < vpif_obj.config->subdev_count; i++)
++		if (!strcmp(vpif_obj.config->subdev_info[i].name,
++			asdl->subdev->name)) {
++			vpif_obj.sd[i] = asdl->subdev;
++			break;
++		}
++
++	if (i >= vpif_obj.config->subdev_count)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int vpif_probe_complete(void)
++{
++	struct common_obj *common;
++	struct channel_obj *ch;
++	int i, j, err, k;
++
++	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		ch = vpif_obj.dev[j];
++		ch->channel_id = j;
++		common = &(ch->common[VPIF_VIDEO_INDEX]);
++		spin_lock_init(&common->irqlock);
++		mutex_init(&common->lock);
++		ch->video_dev->lock = &common->lock;
++		/* Initialize prio member of channel object */
++		v4l2_prio_init(&ch->prio);
++		video_set_drvdata(ch->video_dev, ch);
++
++		/* select input 0 */
++		err = vpif_set_input(vpif_obj.config, ch, 0);
++		if (err)
++			goto probe_out;
++
++		err = video_register_device(ch->video_dev,
++					    VFL_TYPE_GRABBER, (j ? 1 : 0));
++		if (err)
++			goto probe_out;
++	}
++
++	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
++	return 0;
++
++probe_out:
++	for (k = 0; k < j; k++) {
++		/* Get the pointer to the channel object */
++		ch = vpif_obj.dev[k];
++		/* Unregister video device */
++		video_unregister_device(ch->video_dev);
++	}
++	kfree(vpif_obj.sd);
++	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
++		ch = vpif_obj.dev[i];
++		/* Note: does nothing if ch->video_dev == NULL */
++		video_device_release(ch->video_dev);
++	}
++	v4l2_device_unregister(&vpif_obj.v4l2_dev);
++
++	return err;
++}
++
++int vpif_async_complete(struct v4l2_async_notifier *notifier)
++{
++	return vpif_probe_complete();
++}
++
++void vpif_async_unbind(struct v4l2_async_notifier *notifier,
++		    struct v4l2_async_subdev_list *asdl)
++{
++	/*FIXME: Do we need this callback ? */
++	v4l2_info(&vpif_obj.v4l2_dev, "unregistered sub device %s\n",
++			 asdl->subdev->name);
++	return;
++}
++
+ /**
+  * vpif_probe : This function probes the vpif capture driver
+  * @pdev: platform device pointer
+@@ -2064,12 +2156,10 @@ vpif_init_free_channel_objects:
+ static __init int vpif_probe(struct platform_device *pdev)
+ {
+ 	struct vpif_subdev_info *subdevdata;
+-	struct vpif_capture_config *config;
+-	int i, j, k, err;
++	int i, j, err;
+ 	int res_idx = 0;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct channel_obj *ch;
+-	struct common_obj *common;
+ 	struct video_device *vfd;
+ 	struct resource *res;
+ 	int subdev_count;
+@@ -2146,10 +2236,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	i2c_adap = i2c_get_adapter(1);
+-	config = pdev->dev.platform_data;
++	vpif_obj.config = pdev->dev.platform_data;
+ 
+-	subdev_count = config->subdev_count;
++	subdev_count = vpif_obj.config->subdev_count;
+ 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
+ 				GFP_KERNEL);
+ 	if (vpif_obj.sd == NULL) {
+@@ -2158,53 +2247,41 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		goto vpif_sd_error;
+ 	}
+ 
+-	for (i = 0; i < subdev_count; i++) {
+-		subdevdata = &config->subdev_info[i];
+-		vpif_obj.sd[i] =
+-			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+-						  i2c_adap,
+-						  &subdevdata->board_info,
+-						  NULL);
++	if (!vpif_obj.config->asd_sizes) {
++		i2c_adap = i2c_get_adapter(1);
++		for (i = 0; i < subdev_count; i++) {
++			subdevdata = &vpif_obj.config->subdev_info[i];
++			vpif_obj.sd[i] =
++				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
++							i2c_adap,
++							&subdevdata->board_info,
++							NULL);
+ 
+-		if (!vpif_obj.sd[i]) {
+-			vpif_err("Error registering v4l2 subdevice\n");
+-			goto probe_subdev_out;
++			if (!vpif_obj.sd[i]) {
++				vpif_err("Error registering v4l2 subdevice\n");
++				goto probe_subdev_out;
++			}
++			v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
++				subdevdata->name);
++		}
++		vpif_probe_complete();
++	} else {
++		vpif_obj.notifier.subdev = vpif_obj.config->asd;
++		vpif_obj.notifier.subdev_num = vpif_obj.config->asd_sizes[0];
++		vpif_obj.notifier.bound = vpif_async_bound;
++		vpif_obj.notifier.complete = vpif_async_complete;
++		vpif_obj.notifier.unbind = vpif_async_unbind;
++		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
++						   &vpif_obj.notifier);
++		if (err) {
++			vpif_err("Error registering async notifier\n");
++			err = -EINVAL;
++			goto vpif_sd_error;
+ 		}
+-		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+-			  subdevdata->name);
+ 	}
+ 
+-	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
+-		ch->channel_id = j;
+-		common = &(ch->common[VPIF_VIDEO_INDEX]);
+-		spin_lock_init(&common->irqlock);
+-		mutex_init(&common->lock);
+-		ch->video_dev->lock = &common->lock;
+-		/* Initialize prio member of channel object */
+-		v4l2_prio_init(&ch->prio);
+-		video_set_drvdata(ch->video_dev, ch);
+-
+-		/* select input 0 */
+-		err = vpif_set_input(config, ch, 0);
+-		if (err)
+-			goto probe_out;
+-
+-		err = video_register_device(ch->video_dev,
+-					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+-		if (err)
+-			goto probe_out;
+-	}
+-	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+ 	return 0;
+ 
+-probe_out:
+-	for (k = 0; k < j; k++) {
+-		/* Get the pointer to the channel object */
+-		ch = vpif_obj.dev[k];
+-		/* Unregister video device */
+-		video_unregister_device(ch->video_dev);
+-	}
+ probe_subdev_out:
+ 	/* free sub devices memory */
+ 	kfree(vpif_obj.sd);
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 3d3c1e5..1be47ab 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -145,6 +145,8 @@ struct vpif_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
+ 	struct v4l2_subdev **sd;
++	struct v4l2_async_notifier notifier;
++	struct vpif_capture_config *config;
+ };
+ 
+ struct vpif_config_params {
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 3882e06..e08bcde 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -81,5 +81,7 @@ struct vpif_capture_config {
+ 	struct vpif_subdev_info *subdev_info;
+ 	int subdev_count;
+ 	const char *card_name;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+ };
+ #endif /* _VPIF_TYPES_H */
+-- 
+1.7.4.1
 
