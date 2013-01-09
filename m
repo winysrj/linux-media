@@ -1,89 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:43464 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751570Ab3AaRi2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 12:38:28 -0500
-Received: by mail-ob0-f176.google.com with SMTP id v19so3144223obq.21
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 09:38:27 -0800 (PST)
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:46336 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757314Ab3AII3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 03:29:47 -0500
 MIME-Version: 1.0
-In-Reply-To: <510A78D8.7030602@iki.fi>
-References: <50F05C09.3010104@iki.fi>
-	<CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
-	<510A78D8.7030602@iki.fi>
-Date: Thu, 31 Jan 2013 18:38:27 +0100
-Message-ID: <CAHsu+b9Nc85JwKCnV91WnBpdUi3W6udeF1xWe8u1HhHWaBM-qw@mail.gmail.com>
-Subject: Re: af9035 test needed!
-From: Andre Heider <a.heider@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
+In-Reply-To: <CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<9690842.n93imGlCHA@avalon>
+	<CAF6AEGt+gwUq-xGze5bTgrKUMRijSBo_ORreq=Ot1RMD-WrbYQ@mail.gmail.com>
+	<1563062.kh1jqNm1kH@avalon>
+	<CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
+Date: Wed, 9 Jan 2013 13:53:30 +0530
+Message-ID: <CAPdUM4P6riQVJ4m4Sdkh1O8xmpKF4YnhGq69p7DkxAdr165KYA@mail.gmail.com>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+From: Rahul Sharma <r.sh.open@gmail.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-On Thu, Jan 31, 2013 at 2:59 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Thank you for the report! There was someone else who reported it working
-> too. Do you want to your name as tester for the changelog?
+CDF will also be helpful in supporting Panels with integrated
+audio (HDMI/DP) if we can add audio related control operations to
+display_entity_control_ops. Video controls will be called by crtc
+in DRM/V4L and audio controls from Alsa.
 
-if I didn't mess up my way of testing feel free to add
+Secondly, if I need to support get_modes operation in hdmi/dp
+panel, I need to implement edid parser inside the panel driver. It
+will be meaningful to add get_edid control operation for hdmi/dp.
 
-Tested-by: Andre Heider <a.heider@gmail.com>
+regards,
+Rahul Sharma.
 
-to these patches:
-af9035: merge af9035 and it9135 eeprom read routines
-af9035: USB1.1 support (== PID filters)
-af9035: constify clock tables
-af9035: [0ccd:0099] TerraTec Cinergy T Stick Dual RC (rev. 2)
-af9015: reject device TerraTec Cinergy T Stick Dual RC (rev. 2)
-af9035: fix af9033 demod sampling frequency
-af9035: add auto configuration heuristic for it9135
-af9035: add support for 1st gen it9135
-af9033: support for it913x tuners
-ITE IT913X silicon tuner driver
-
-I didn't use any media trees before, and the whole media_build.git
-shebang seems a little, well, unusual...
-So I rebased media_tree.git/staging/for_v3.9 on Linus' master and then
-cherry-picked the patches mentioned above.
-
-That gives me:
-usb 2-1.5: new high-speed USB device number 3 using ehci-pci
-usb 2-1.5: New USB device found, idVendor=0ccd, idProduct=0099
-usb 2-1.5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 2-1.5: Product: DVB-T TV Stick
-usb 2-1.5: Manufacturer: ITE Technologies, Inc.
-input: ITE Technologies, Inc. DVB-T TV Stick as
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.5/2-1.5:1.1/input/input20
-usb 2-1.5: af9035_identify_state: prechip_version=83 chip_version=01
-chip_type=9135
-hid-generic 0003:0CCD:0099.0007: input,hidraw4: USB HID v1.01 Keyboard
-[ITE Technologies, Inc. DVB-T TV Stick] on usb-0000:00:1d.0-1.5/input1
-usb 2-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T Stick Dual RC (rev.
-2)' in cold state
-usb 2-1.5: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-01.fw'
-usb 2-1.5: dvb_usb_af9035: firmware version=12.54.14.0
-usb 2-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T Stick Dual RC (rev.
-2)' in warm state
-usb 2-1.5: dvb_usb_af9035: driver does not support 2nd tuner and will disable it
-usb 2-1.5: dvb_usb_v2: will pass the complete MPEG2 transport stream
-to the software demuxer
-DVB: registering new adapter (TerraTec Cinergy T Stick Dual RC (rev. 2))
-i2c i2c-18: af9033: firmware version: LINK=255.255.255.255 OFDM=2.47.14.0
-usb 2-1.5: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-Tuner LNA type :38
-it913x: ITE Tech IT913X attached
-usb 2-1.5: dvb_usb_v2: 'TerraTec Cinergy T Stick Dual RC (rev. 2)'
-successfully initialized and connected
-
-> I just yesterday got that TerraTec device too and I am going to add dual
-> tuner support. Also, for some reason IT9135 v2 devices are not working -
-> only v1. That is one thing I should fix before merge that stuff.
-
-Nice, feel free to CC me if you need any testing.
-
-Regards,
-Andre
+On Tue, Jan 8, 2013 at 9:43 PM, Rob Clark <rob.clark@linaro.org> wrote:
+> On Tue, Jan 8, 2013 at 2:25 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Rob,
+>>
+>> On Thursday 27 December 2012 09:54:55 Rob Clark wrote:
+>>> What I've done to avoid that so far is that the master device registers the
+>>> drivers for it's output sub-devices before registering it's own device.
+>>
+>> I'm not sure to follow you here. The master device doesn't register anything,
+>> do you mean the master device driver ? If so, how does the master device
+>> driver register its own device ? Devices are not registered by their driver.
+>
+> sorry, that should have read "master driver registers drivers for it's
+> sub-devices.."
+>
+> BR,
+> -R
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
