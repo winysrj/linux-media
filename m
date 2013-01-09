@@ -1,103 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3485 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751143Ab3A2SV6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 13:21:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH] em28xx: fix bytesperline calculation in TRY_FMT
-Date: Tue, 29 Jan 2013 19:21:50 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <201301291049.58085.hverkuil@xs4all.nl> <51080C32.40601@googlemail.com>
-In-Reply-To: <51080C32.40601@googlemail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201301291921.50844.hverkuil@xs4all.nl>
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:64162 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757669Ab3AINmM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:42:12 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH RFC 3/3] ARM: da850/omap-l138: vpif capture convert to asynchronously register of subdev
+Date: Wed,  9 Jan 2013 19:11:27 +0530
+Message-Id: <1357738887-8701-4-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue January 29 2013 18:51:46 Frank Schäfer wrote:
-> Am 29.01.2013 10:49, schrieb Hans Verkuil:
-> > This was part of my original em28xx patch series. That particular patch
-> > combined two things: this fix and the change where TRY_FMT would no
-> > longer return -EINVAL for unsupported pixelformats. The latter change was
-> > rejected (correctly), but we all forgot about the second part of the patch
-> > which fixed a real bug. I'm reposting just that fix.
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> > The bytesperline calculation was incorrect: it used the old width instead
-> > of the provided width, and it miscalculated the bytesperline value for the
-> > depth == 12 case.
-> >
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/usb/em28xx/em28xx-video.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > index 2eabf2a..070506d 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > @@ -906,7 +906,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> >  	f->fmt.pix.width = width;
-> >  	f->fmt.pix.height = height;
-> >  	f->fmt.pix.pixelformat = fmt->fourcc;
-> > -	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
-> > +	f->fmt.pix.bytesperline = width * ((fmt->depth + 7) >> 3);
-> >  	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
-> >  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> >  	if (dev->progressive)
-> 
-> Hmm... how are 12 bit pixels stored ? Are padding bits used so that 2
-> bytes per pixel are needed ?
+Register the tvp514x decoder devices directly in board platform
+data instead of letting the vpif capture driver register them at
+their run-time. This uses the V4L2 asynchronous subdevice probing capability.
 
-It's a planar format where the luma plane is twice as big as the two chroma
-planes combined. So that gives an effective 'depth' of 12 bits per pixel.
-The bytesperline value should be that of the largest plane.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+---
+ arch/arm/mach-davinci/board-da850-evm.c |   57 +++++++++++++++++++++++++++----
+ 1 files changed, 50 insertions(+), 7 deletions(-)
 
-I now realize that that is still wrong in the calculation above. It should
-be this instead:
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index 0299915..089c127 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -49,6 +49,7 @@
+ 
+ #include <media/tvp514x.h>
+ #include <media/adv7343.h>
++#include <media/v4l2-async.h>
+ 
+ #define DA850_EVM_PHY_ID		"davinci_mdio-0:00"
+ #define DA850_LCD_PWR_PIN		GPIO_TO_PIN(2, 8)
+@@ -732,6 +733,12 @@ static struct pca953x_platform_data da850_evm_bb_expander_info = {
+ 	.names		= da850_evm_bb_exp,
+ };
+ 
++static struct tvp514x_platform_data tvp5146_pdata = {
++		.clk_polarity = 0,
++		.hs_polarity  = 1,
++		.vs_polarity  = 1,
++};
++
+ static struct i2c_board_info __initdata da850_evm_i2c_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
+@@ -744,6 +751,14 @@ static struct i2c_board_info __initdata da850_evm_i2c_devices[] = {
+ 		I2C_BOARD_INFO("tca6416", 0x21),
+ 		.platform_data = &da850_evm_bb_expander_info,
+ 	},
++	{
++		I2C_BOARD_INFO("tvp5146", 0x5c),
++		.platform_data = &tvp5146_pdata,
++	},	{
++		I2C_BOARD_INFO("tvp5146", 0x5d),
++		.platform_data = &tvp5146_pdata,
++	},
++
+ };
+ 
+ static struct davinci_i2c_platform_data da850_evm_i2c_0_pdata = {
+@@ -1170,15 +1185,10 @@ static __init int da850_evm_init_cpufreq(void) { return 0; }
+ 
+ #if defined(CONFIG_DA850_UI_SD_VIDEO_PORT)
+ 
+-#define TVP5147_CH0		"tvp514x-0"
+-#define TVP5147_CH1		"tvp514x-1"
++#define TVP5147_CH0		"tvp514x 1-005d"
++#define TVP5147_CH1		"tvp514x 1-005c"
+ 
+ /* VPIF capture configuration */
+-static struct tvp514x_platform_data tvp5146_pdata = {
+-		.clk_polarity = 0,
+-		.hs_polarity  = 1,
+-		.vs_polarity  = 1,
+-};
+ 
+ #define TVP514X_STD_ALL (V4L2_STD_NTSC | V4L2_STD_PAL)
+ 
+@@ -1229,6 +1239,37 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
+ 	},
+ };
+ 
++static struct v4l2_async_subdev tvp1_sd = {
++	.hw = {
++		.bus_type = V4L2_ASYNC_BUS_I2C,
++		.match.i2c = {
++			.adapter_id = 1,
++			.address = 0x5c,
++		},
++	},
++};
++
++static struct v4l2_async_subdev tvp2_sd = {
++	.hw = {
++		.bus_type = V4L2_ASYNC_BUS_I2C,
++		.match.i2c = {
++			.adapter_id = 1,
++			.address = 0x5d,
++		},
++	},
++};
++
++static struct v4l2_async_subdev *vpif_capture_async_subdevs[] = {
++	/* Single 2-element group */
++	&tvp1_sd,
++	&tvp2_sd,
++};
++
++static int vpif_capture_async_subdev_sizes[] = {
++	ARRAY_SIZE(vpif_capture_async_subdevs),
++	0,
++};
++
+ static struct vpif_capture_config da850_vpif_capture_config = {
+ 	.subdev_info = da850_vpif_capture_sdev_info,
+ 	.subdev_count = ARRAY_SIZE(da850_vpif_capture_sdev_info),
+@@ -1253,6 +1294,8 @@ static struct vpif_capture_config da850_vpif_capture_config = {
+ 		},
+ 	},
+ 	.card_name = "DA850/OMAP-L138 Video Capture",
++	.asd = vpif_capture_async_subdevs,
++	.asd_sizes = vpif_capture_async_subdev_sizes,
+ };
+ 
+ /* VPIF display configuration */
+-- 
+1.7.4.1
 
-	f->fmt.pix.bytesperline = width * (fmt->depth >> 3);
-  	f->fmt.pix.sizeimage = (width * height * fmt->depth) >> 3;
-
-> I wonder if V4L2_PIX_FMT_YUV411P has ever been tested (libv4lconvert
-> doesn't support it)...
-> 
-> While we are at it, we should check and fix the other size calculations,
-> too.
-> For example, in em28xx-video.c we have in
-> 
-> vidioc_g_fmt_vid_cap():
-> f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
-> 
-> queue_setup():
-> size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
-> 
-> buffer_prepare():
-> size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
-> 
-> em28xx_copy_video():
-> int bytesperline = dev->width << 1;
-
-Hmm, I'll have to prepare a RFCv2.
-
-Regards,
-
-	Hans
-
-> 
-> and there are probably more places...
-> 
-> 
-> Regards,
-> Frank
-> 
-> 
