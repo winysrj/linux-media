@@ -1,64 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:42547 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742Ab3AJQCA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 11:02:00 -0500
-Received: from morden (ip-5-146-176-139.unitymediagroup.de [5.146.176.139])
-	by smtp.strato.de (josoe mo42) (RZmta 31.12 DYNA|AUTH)
-	with (DHE-RSA-AES128-SHA encrypted) ESMTPA id J07d8bp0AFZhtI
-	for <linux-media@vger.kernel.org>;
-	Thu, 10 Jan 2013 17:01:57 +0100 (CET)
-Received: from rjkm by morden with local (Exim 4.80)
-	(envelope-from <rjkm@morden.metzler>)
-	id 1TtKZp-00032I-Ia
-	for linux-media@vger.kernel.org; Thu, 10 Jan 2013 17:01:57 +0100
-From: Ralph Metzler <rjkm@metzlerbros.de>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55173 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755884Ab3AIHs6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 02:48:58 -0500
+Date: Wed, 9 Jan 2013 08:48:38 +0100
+From: Michael Olbrich <m.olbrich@pengutronix.de>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Alessandro Rubini <rubini@gnudd.com>, federico.vaga@gmail.com,
+	mchehab@infradead.org, pawel@osciak.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, s.nawrocki@samsung.com
+Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
+ allocator
+Message-ID: <20130109074838.GH13335@pengutronix.de>
+References: <3892735.vLSnhhCRFi@harkonnen>
+ <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
+ <1399400.izKZgEHXnP@harkonnen>
+ <12929800.xFTBAueAE0@harkonnen>
+ <20130106230947.GA17979@mail.gnudd.com>
+ <20130107124050.3fc5031b@lwn.net>
+ <20130107181500.24c56803@redhat.com>
+ <50EBC1C1.3060208@samsung.com>
+ <20130108073130.38a8cc3d@lwn.net>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <20718.58869.396398.764373@morden.metzler>
-Date: Thu, 10 Jan 2013 17:01:57 +0100
-To: <linux-media@vger.kernel.org>
-Subject: Re: [dvb] Question on dvb-core re-structure
-In-Reply-To: <20130110121304.1a24d5d3@redhat.com>
-References: <000801cdef1f$70667580$51336080$@codeaurora.org>
-	<50EEA240.4060803@iki.fi>
-	<000901cdef28$9ba87050$d2f950f0$@codeaurora.org>
-	<20130110121304.1a24d5d3@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <20130108073130.38a8cc3d@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab writes:
- > Em Thu, 10 Jan 2013 13:49:52 +0200
- > "Hamad Kadmany" <hkadmany@codeaurora.org> escreveu:
- > 
- > > On 01/10/2013 1:13 PM, Antti Palosaari wrote:
- > > > I could guess that even for the SoCs there is some bus used internally. 
- > > > If it is not one of those already existing, then create new directly just
- > > like one of those existing and put it there.
- > > 
- > > Thanks for the answer. I just wanted to clarify - it's integrated into the
- > > chip and accessed via memory mapped registers, so I'm not sure which
- > > category to give the new directory (parallel to pci/mms/usb). Should I just
- > > put the adapter's sources directory directly under media directory?
- > 
- > That's the case of all other drivers under drivers/media/platform: they're
- > IP blocks inside the SoC chip. I think that all arch-dependent drivers are
- > there.
- > 
- > The menu needs to be renamed to "Media platform drivers" when the first DVB
- > driver arrives there (it currently says V4L, as there's no DVB driver there
- > yet). Feel free to add such patch on your patch series at the time you
- > submit your driver, if nobody else submit any DVB platform driver earlier
- > than yours.
+On Tue, Jan 08, 2013 at 07:31:30AM -0700, Jonathan Corbet wrote:
+> On Tue, 08 Jan 2013 07:50:41 +0100
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+> > > Couldn't this performance difference be due to the usage of GFP_DMA inside
+> > > the VB2 code, like Federico's new patch series is proposing?
+> > >
+> > > If not, why are there a so large performance penalty?  
+> > 
+> > Nope, this was caused rather by a very poor CPU access to non-cached (aka
+> > 'coherent') memory and the way the video data has been accessed/read 
+> > with CPU.
+> 
+> Exactly.  Uncached memory *hurts*, especially if you're having to touch it
+> all with the CPU.
 
+Even worse, on ARMv7 (at least) the cache implements or is necessary for
+(I'm not an expert here) unaligned access. I've seen applications crash
+on non-cached memory with a bus error because gcc assumes unaligned access
+works. And there isn't even a exception handler in the kernel, probably for
+the same reason.
 
-What about DVB cores which can be used via different busses?
-E.g. ddbridge initially only used PCIe. Now we also use the same function blocks
-(I2C, DVB input, etc.) connected to a SoC via an EBI (extension bus interface) 
-and register it as a platform device. Because a lot of code can be
-shared I do not want to split it over several directories. 
+Michael
 
-Regards,
-Ralph
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
