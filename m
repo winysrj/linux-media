@@ -1,72 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f181.google.com ([209.85.161.181]:47780 "EHLO
-	mail-gg0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757773Ab3AIMl1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 07:41:27 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:58210 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934032Ab3AIUyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 15:54:52 -0500
+Received: by mail-bk0-f49.google.com with SMTP id jm19so1188059bkc.22
+        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 12:54:51 -0800 (PST)
+Message-ID: <50EDD939.9070202@googlemail.com>
+Date: Wed, 09 Jan 2013 21:55:21 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
 To: mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, jrnieder@gmail.com, peter.senna@gmail.com,
-	emilgoode@gmail.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 1/3] pci/cx88: use IS_ENABLED() macro
-Date: Wed,  9 Jan 2013 10:32:12 -0200
-Message-Id: <1357734734-2856-1-git-send-email-peter.senna@gmail.com>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
+Subject: Re: [RFC PATCH] em28xx: fix analog streaming with USB bulk transfers
+References: <1357764731-4999-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1357764731-4999-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-with:
- #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+Am 09.01.2013 21:52, schrieb Frank Schäfer:
+> With the conversion to videobuf2, some unnecessary calls of
+> em28xx_set_alternate() have been removed. It is now called at analog streaming
+> start only.
+> This has unveiled a bug that causes USB bulk transfers to fail with all urbs
+> having status -EVOERFLOW.
+> The reason is, that for bulk transfers usb_set_interface() needs to be called
+> even if the previous alt setting was the same (side note: bulk transfers seem
+> to work only with alt=0).
+> While it seems to be NOT necessary for isoc transfers, it's reasonable to just
+> call usb_set_interface() unconditionally in em28xx_set_alternate().
+> Also add a comment that explains the issue to prevent regressions in the future.
 
-This change was made for: CONFIG_VIDEO_CX88_DVB,
-CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
+The problem is, that I would really like to understand why the old code
+was working...
+Maybe the reason is hidden somewhere in videobuf2 or it's a firmware
+issue or i'm just too tired at the moment.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/pci/cx88/cx88.h | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+Regards,
+Frank
 
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index ba0dba4..feff53c 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -363,7 +363,7 @@ struct cx88_core {
- 	unsigned int               tuner_formats;
- 
- 	/* config info -- dvb */
--#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
- 	int 			   (*prev_set_voltage)(struct dvb_frontend *fe, fe_sec_voltage_t voltage);
- #endif
- 	void			   (*gate_ctrl)(struct cx88_core  *core, int open);
-@@ -562,8 +562,7 @@ struct cx8802_dev {
- 
- 	/* for blackbird only */
- 	struct list_head           devlist;
--#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
--    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_BLACKBIRD)
- 	struct video_device        *mpeg_dev;
- 	u32                        mailbox;
- 	int                        width;
-@@ -574,13 +573,12 @@ struct cx8802_dev {
- 	struct cx2341x_handler     cxhdl;
- #endif
- 
--#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
- 	/* for dvb only */
- 	struct videobuf_dvb_frontends frontends;
- #endif
- 
--#if defined(CONFIG_VIDEO_CX88_VP3054) || \
--    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
- 	/* For VP3045 secondary I2C bus support */
- 	struct vp3054_i2c_state	   *vp3054;
- #endif
--- 
-1.7.11.7
+
+
+>
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-core.c |   43 ++++++++++++++++----------------
+>  1 Datei geändert, 22 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+> index 80f87bb..ce4f252 100644
+> --- a/drivers/media/usb/em28xx/em28xx-core.c
+> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+> @@ -811,12 +811,12 @@ int em28xx_resolution_set(struct em28xx *dev)
+>  /* Set USB alternate setting for analog video */
+>  int em28xx_set_alternate(struct em28xx *dev)
+>  {
+> -	int errCode, prev_alt = dev->alt;
+> +	int errCode;
+>  	int i;
+>  	unsigned int min_pkt_size = dev->width * 2 + 4;
+>  
+>  	/* NOTE: for isoc transfers, only alt settings > 0 are allowed
+> -		 for bulk transfers, use alt=0 as default value */
+> +		 bulk transfers seem to work only with alt=0 ! */
+>  	dev->alt = 0;
+>  	if ((alt > 0) && (alt < dev->num_alt)) {
+>  		em28xx_coredbg("alternate forced to %d\n", dev->alt);
+> @@ -847,25 +847,26 @@ int em28xx_set_alternate(struct em28xx *dev)
+>  	}
+>  
+>  set_alt:
+> -	if (dev->alt != prev_alt) {
+> -		if (dev->analog_xfer_bulk) {
+> -			dev->max_pkt_size = 512; /* USB 2.0 spec */
+> -			dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
+> -		} else { /* isoc */
+> -			em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
+> -				       min_pkt_size, dev->alt);
+> -			dev->max_pkt_size =
+> -					  dev->alt_max_pkt_size_isoc[dev->alt];
+> -			dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
+> -		}
+> -		em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+> -			       dev->alt, dev->max_pkt_size);
+> -		errCode = usb_set_interface(dev->udev, 0, dev->alt);
+> -		if (errCode < 0) {
+> -			em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+> -					dev->alt, errCode);
+> -			return errCode;
+> -		}
+> +	/* NOTE: for bulk transfers, we need to call usb_set_interface()
+> +	 * even if the previous settings were the same. Otherwise streaming
+> +	 * fails with all urbs having status = -EOVERFLOW ! */
+> +	if (dev->analog_xfer_bulk) {
+> +		dev->max_pkt_size = 512; /* USB 2.0 spec */
+> +		dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
+> +	} else { /* isoc */
+> +		em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
+> +			       min_pkt_size, dev->alt);
+> +		dev->max_pkt_size =
+> +				  dev->alt_max_pkt_size_isoc[dev->alt];
+> +		dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
+> +	}
+> +	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+> +		       dev->alt, dev->max_pkt_size);
+> +	errCode = usb_set_interface(dev->udev, 0, dev->alt);
+> +	if (errCode < 0) {
+> +		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+> +				dev->alt, errCode);
+> +		return errCode;
+>  	}
+>  	return 0;
+>  }
 
