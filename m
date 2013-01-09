@@ -1,69 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47218 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab3AFNSM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 08:18:12 -0500
-Date: Sun, 6 Jan 2013 11:17:40 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-Message-ID: <20130106111740.65673a0e@redhat.com>
-In-Reply-To: <50E97513.4000901@gmail.com>
-References: <50E726F4.7060704@samsung.com>
-	<50E75A10.8090906@gmail.com>
-	<20130106100513.484dab11@redhat.com>
-	<50E97513.4000901@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52076 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932301Ab3AITkC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 14:40:02 -0500
+Date: Wed, 9 Jan 2013 20:39:53 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Marek Vasut <marex@denx.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>,
+	Rob Clark <robdclark@gmail.com>,
+	Leela Krishna Amudala <leelakrishna.a@gmail.com>
+Subject: Re: [PATCHv16 0/7] of: add display helper
+Message-ID: <20130109193953.GA4780@pengutronix.de>
+References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
+ <201301092012.01985.marex@denx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201301092012.01985.marex@denx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Jan 2013 13:58:59 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+Hi!
 
-> On 01/06/2013 01:05 PM, Mauro Carvalho Chehab wrote:
-> >> Related patchwork commands:
-> >>
-> >> pwclient update -s 'accepted' 15333
-> >> pwclient update -s 'accepted' 15565
-> >> pwclient update -s 'accepted' 16071
-> >> pwclient update -s 'accepted' 16072
-> >> pwclient update -s 'accepted' 16073
-> >> pwclient update -s 'accepted' 15657
-> >> pwclient update -s 'accepted' 15656
-> >> pwclient update -s 'accepted' 15658
-> >> pwclient update -s 'accepted' 15659
-> >> pwclient update -s 'accepted' 15660
-> >> pwclient update -s 'accepted' 15661
-> >> pwclient update -s 'accepted' 16013
-> >> pwclient update -s 'superseded' 16059
-> >> pwclient update -s 'accepted' 16060
-> >> pwclient update -s 'accepted' 16080
-> >> pwclient update -s 'accepted' 16081
-> >> pwclient update -s 'accepted' 16084
-> >> pwclient update -s 'accepted' 15647
-> >> pwclient update -s 'superseded' 16083
-> >> pwclient update -s 'accepted' 15765
-> >
-> > Those status updates were missing:
-> >
-> > pwclient update -s 'superseded' 14608
-> > pwclient update -s 'superseded' 15188
-> > pwclient update -s 'accepted' 16058
+On Wed, Jan 09, 2013 at 08:12:01PM +0100, Marek Vasut wrote:
+> Dear Steffen Trumtrar,
 > 
-> OK, sorry. Just learning to use the tools, will try to do better
-> next time. :)
-
-No problem.
-
-> > pwclient update -s 'accepted' 16108
+> I tested this on 3.8-rc1 (next 20130103) with the imx drm driver. After adding 
+> the following piece of code (quick hack), this works just fine. Thanks!
 > 
-> And that's the pull request itself, I've obviously missed it.
+> diff --git a/drivers/staging/imx-drm/parallel-display.c b/drivers/staging/imx-
+> drm/parallel-display.c
+> index a8064fc..e45002a 100644
+> --- a/drivers/staging/imx-drm/parallel-display.c
+> +++ b/drivers/staging/imx-drm/parallel-display.c
+> @@ -57,6 +57,7 @@ static void imx_pd_connector_destroy(struct drm_connector 
+> *connector)
+>  static int imx_pd_connector_get_modes(struct drm_connector *connector)
+>  {
+>         struct imx_parallel_display *imxpd = con_to_imxpd(connector);
+> +       struct device_node *np = imxpd->dev->of_node;
+>         int num_modes = 0;
+>  
+>         if (imxpd->edid) {
+> @@ -72,6 +73,15 @@ static int imx_pd_connector_get_modes(struct drm_connector 
+> *connector)
+>                 num_modes++;
+>         }
+>  
+> +       if (np) {
+> +               struct drm_display_mode *mode = drm_mode_create(connector->dev);
+> +               of_get_drm_display_mode(np, &imxpd->mode, 0);
+> +               drm_mode_copy(mode, &imxpd->mode);
+> +               mode->type |= DRM_MODE_TYPE_DRIVER | DRM_MODE_TYPE_PREFERRED,
+> +               drm_mode_probed_add(connector, mode);
+> +               num_modes++;
+> +       }
+> +
+>         return num_modes;
+>  }
+> 
 
-Yeah ;) Well, you shouldn't include it. Sorry to add it at the
-list.
+Nice! I haven't tried the parallel display, but I think Philipp Zabel might
+already have a patch for it. If not, I will definitly keep your patch in my
+topic branch.
 
 Regards,
-Mauro
+Steffen
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
