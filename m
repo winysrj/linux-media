@@ -1,97 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7847 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754924Ab3A3THh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 14:07:37 -0500
-Date: Wed, 30 Jan 2013 17:07:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Frank =?UTF-8?B?U2Now6Rm?= =?UTF-8?B?ZXI=?=
-	<fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
-Message-ID: <20130130170729.59d9e04d@redhat.com>
-In-Reply-To: <201301301049.25541.hverkuil@xs4all.nl>
-References: <201301300901.22486.hverkuil@xs4all.nl>
-	<20130130074030.455a1185@redhat.com>
-	<201301301049.25541.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:42237 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758024Ab3AJCHH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:07:07 -0500
+Received: by mail-ee0-f44.google.com with SMTP id l10so16790eei.17
+        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 18:07:06 -0800 (PST)
+Message-ID: <50EE223B.80204@gmail.com>
+Date: Thu, 10 Jan 2013 03:06:51 +0100
+From: thomas schorpp <thomas.schorpp@gmail.com>
+Reply-To: thomas.schorpp@gmail.com
+MIME-Version: 1.0
+To: Soby Mathew <soby.linuxtv@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: global mutex in dvb_usercopy (dvbdev.c)
+References: <CAGzWAsgZGu8_JTrE1GvnpbR+W92fvRycfFhAX2NbZ9VZqorJ6w@mail.gmail.com> <20130109213043.GB7500@zorro.zusammrottung.local>
+In-Reply-To: <20130109213043.GB7500@zorro.zusammrottung.local>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 30 Jan 2013 10:49:25 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 09.01.2013 22:30, Nikolaus Schulz wrote:
+> On Tue, Jan 08, 2013 at 12:05:47PM +0530, Soby Mathew wrote:
+>> Hi Everyone,
+>>      I have a doubt regarding about the global mutex lock in
+>> dvb_usercopy(drivers/media/dvb-core/dvbdev.c, line 382) .
+>>
+>>
+>> /* call driver */
+>> mutex_lock(&dvbdev_mutex);
+>> if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
+>> err = -EINVAL;
+>> mutex_unlock(&dvbdev_mutex);
+>>
+>>
+>> Why is this mutex needed? When I check similar functions like
+>> video_usercopy, this kind of global locking is not present when func()
+>> is called.
+>
+> I cannot say anything about video_usercopy(), but as it happens, there's
+> a patch[1] queued for Linux 3.9 that will hopefully replace the mutex in
+> dvb_usercopy() with more fine-grained locking.
+>
+> Nikolaus
+>
+> [1] http://git.linuxtv.org/media_tree.git/commit/30ad64b8ac539459f8975aa186421ef3db0bb5cb
 
-> On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
-> > Em Wed, 30 Jan 2013 09:01:22 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > This was part of my original em28xx patch series. That particular patch
-> > > combined two things: this fix and the change where TRY_FMT would no
-> > > longer return -EINVAL for unsupported pixelformats. The latter change was
-> > > rejected (correctly), but we all forgot about the second part of the patch
-> > > which fixed a real bug. I'm reposting just that fix.
-> > > 
-> > > Changes since v1:
-> > > 
-> > > - v1 still miscalculated the bytesperline and imagesize values (they were
-> > >   too large).
-> > > - G_FMT had the same calculation bug.
-> > > 
-> > > Tested with my em28xx.
-> > > 
-> > > Regards,
-> > > 
-> > >         Hans
-> > > 
-> > > The bytesperline calculation was incorrect: it used the old width instead of
-> > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
-> > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
-> > > bytesperline value should be the bytesperline of the widest plane, which is
-> > > the Y plane which has 8 bits per pixel, not 12.
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
-> > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > > index 2eabf2a..6ced426 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> > >  	f->fmt.pix.width = dev->width;
-> > >  	f->fmt.pix.height = dev->height;
-> > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
-> > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
-> > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
-> > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
-> > 
-> > Why did you remove the round up here?
-> 
-> Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
-> planar format is the one with depth 12. But for the purposes of the bytesperline
-> calculation only the depth of the largest plane counts, which is the luma plane
-> with a depth of 8. So for a width of 720 the value of bytesperline should be:
-> 
-> depth=8 -> bytesperline = 720
-> depth=12 -> bytesperline = 720
+"Unfortunately, frontend ioctls can be blocked by the frontend thread for several seconds; this leads to unacceptable lock contention."
+Especially the stv0297 signal locking, as it turned out in situations of bad signal input or my cable providers outtage today it has slowed down dvb_ttpci (notable as OSD- output latency and possibly driver buffer overflows of budget source devices) that much that I had to disable tuning with parm --outputonly in vdr-plugin-dvbsddevice.
 
-With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+Can anyone confirm that and have a look at the other frontend drivers for tuners needing as much driver control?
 
-> depth=16 -> bytesperline = 1440
+I will try to apply the patch manually to Linux 3.2 and check with Latencytop tomorrow.
 
-Well,
+y
+tom
 
-depth=8 -> bytesperline =  (720 * 8) + 7) / 8 = 720
-depth=12 -> bytesperline = (720 * 12) + 7) / 8 = 1080
-depth=16 -> bytesperline = (720 * 16) + 7) / 8 = 1440
 
-So, this sounds perfectly OK on my eyes:
-	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
 
-Regards,
-Mauro
+
+
