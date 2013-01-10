@@ -1,46 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43981 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750776Ab3AGGYN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 01:24:13 -0500
-From: "Mohammed, Afzal" <afzal@ti.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>
-CC: Rob Herring <robherring2@gmail.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>,
-	Rob Clark <robdclark@gmail.com>,
-	Leela Krishna Amudala <leelakrishna.a@gmail.com>
-Subject: RE: [PATCHv16 0/7] of: add display helper
-Date: Mon, 7 Jan 2013 06:23:54 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA7FB16@DBDE01.ent.ti.com>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:59554 "EHLO
+	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753327Ab3AJKTp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 05:19:45 -0500
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
+Date: Thu, 10 Jan 2013 10:19:34 +0000
+Message-ID: <19692716.qk9lES9tlU@f17simon>
+In-Reply-To: <20130109132425.659243af@redhat.com>
+References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <9912400.S8YXz1JbUM@f17simon> <20130109132425.659243af@redhat.com>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU3RlZmZlbiwNCg0KT24gVHVlLCBEZWMgMTgsIDIwMTIgYXQgMjI6MzQ6MDksIFN0ZWZmZW4g
-VHJ1bXRyYXIgd3JvdGU6DQoNCj4gRmluYWxseSwgcmlnaHQgaW4gdGltZSBiZWZvcmUgdGhlIGVu
-ZCBvZiB0aGUgd29ybGQgb24gZnJpZGF5LCB2MTYgb2YgdGhlDQo+IGRpc3BsYXkgaGVscGVycy4N
-Cg0KQWZ0ZXIgYW5vdGhlciBiaWcgYmFuZywgeW91ciBzZXJpZXMgaW4gdGhlIHByZXZpb3VzIHdv
-cmxkIHdhcyB0cmllZCA7KQ0KDQpUaGlzIHNlcmllcyBoYXMgYmVlbiB0ZXN0ZWQgb24gREE4NTAg
-RVZNLCBBTTMzNXggRVZNLCBFVk0tU0sgYWxvbmcNCndpdGggdGhlIGZpeCBtZW50aW9uZWQgaW4g
-NS83LCB0aGVyZSB3YXMgYSBidWlsZCBicmVha2FnZSBvbiBkZWZhdWx0DQpjb25maWcgb24gRGFW
-aW5jaSBib2FyZHMgd2l0aCB0aGlzIHNlcmllcywgZml4IGFzIHdlbGwgYXMgbW9yZQ0KZGV0YWls
-cyBhcmUgbWVudGlvbmVkIGFzIHJlcGx5IHRvIDUvNy4NCg0KV2l0aCB0aG9zZSBjaGFuZ2VzIG9y
-IGVxdWl2YWxlbnQgdG8gYWNoaWV2ZSB0aGUgc2FtZSwNCg0KVGVzdGVkLWJ5OiBBZnphbCBNb2hh
-bW1lZCA8QWZ6YWxAdGkuY29tPg0KDQpSZWdhcmRzDQpBZnphbA0K
+On Wednesday 9 January 2013 13:24:25 Mauro Carvalho Chehab wrote:
+<snip>
+> Yes, it makes sense to document that the signal strength should be reported
+> on either dBm or dBµW, if the scale is FE_SCALE_DECIBEL. I prefer to specify
+> it in terms of Watt (or a submultiple) than in terms of voltage/impedance, as
+> different Countries use different impedances on DTV cabling (typically,
+> 50Ω or 75Ω).
+> 
+> So, either dBm or dBµW works for me. As you said, applications can convert
+> between those mesures as they wish, by simply adding some constant when
+> displaying the power measure.
+> 
+> As the wifi subsytem use dBm, I vote for using dBm for the signal measure
+> at the subsystem (actually, 0.1 dBm).
+> 
+0.1 dBm suits me. I just want something that I can present to the end user in
+a format that will match their aerial installer's kit.
+-- 
+Simon Farnsworth
+Software Engineer
+ONELAN Ltd
+http://www.onelan.com
