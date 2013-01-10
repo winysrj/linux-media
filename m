@@ -1,109 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36821 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54151 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755418Ab3AHKeG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:34:06 -0500
+	with ESMTP id S932206Ab3AJARj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 19:17:39 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
-Date: Tue, 08 Jan 2013 11:35:42 +0100
-Message-ID: <18858693.KSUhrxG65A@avalon>
-In-Reply-To: <Pine.LNX.4.64.1301081123590.1794@axis700.grange>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de> <13183539.ohZBrHhPax@avalon> <Pine.LNX.4.64.1301081123590.1794@axis700.grange>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: [PATCH 01/23] uvc: Replace memcpy with struct assignment
+Date: Thu, 10 Jan 2013 01:19:18 +0100
+Message-ID: <1615162.CJ0Ejj80il@avalon>
+In-Reply-To: <20121227214937.6276e2a3@redhat.com>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com> <CALF0-+VQKxu7_-=aJeW-FxmM4fdVX1nBE7AA5-0d9SRgRqqM1g@mail.gmail.com> <20121227214937.6276e2a3@redhat.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 08 January 2013 11:26:57 Guennadi Liakhovetski wrote:
-> On Tue, 8 Jan 2013, Laurent Pinchart wrote:
-> > On Tuesday 08 January 2013 10:56:43 Guennadi Liakhovetski wrote:
-> > > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
-> > > > On Tuesday 08 January 2013 10:25:15 Guennadi Liakhovetski wrote:
-> > > > > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+Hi Ezequiel,
 
-[snip]
-
-> > > > > > Could you please explain why you need both a bind notifier and a
-> > > > > > bound notifier ? I was expecting a single
-> > > > > > v4l2_async_subdev_register() call in subdev drivers (and, thinking
-> > > > > > about it, I would probably name it v4l2_subdev_register()).
-> > > > > 
-> > > > > I think I can, yes. Because between .bind() and .bound() the
-> > > > > subdevice driver does the actual hardware probing. So, .bind() is
-> > > > > used to make sure the hardware can be accessed, most importantly to
-> > > > > provide a clock to the subdevice. You can look at
-> > > > > soc_camera_async_bind(). There I'm registering the clock for the
-> > > > > subdevice, about to bind. Why I cannot do it before, is because I
-> > > > > need subdevice name for clock matching. With I2C subdevices the
-> > > > > subdevice name contains the name of the driver, adapter number and
-> > > > > i2c address. The latter 2 I've got from host subdevice list. But not
-> > > > > the driver name. I thought about also passing the driver name there,
-> > > > > but that seemed too limiting to me. I also request regulators there,
-> > > > > because before ->bound() the sensor driver, but that could be done
-> > > > > on the first call to soc_camera_power_on(), although doing this
-> > > > > "first call" thingie is kind of hackish too. I could add one more
-> > > > > soc-camera-power helper like soc_camera_prepare() or similar too.
-> > > > 
-> > > > I think a soc_camera_power_init() function (or similar) would be a
-> > > > good idea, yes.
-> > > > 
-> > > > > So, the main problem is the clock
-> > > > > 
-> > > > > subdevice name. Also see the comment in soc_camera.c:
-> > > > > 	/*
-> > > > > 	 * It is ok to keep the clock for the whole soc_camera_device
-> > > > > 	 * life-time, in principle it would be more logical to register
-> > > > > 	 * the clock on icd creation, the only problem is, that at that
-> > > > > 	 * time we don't know the driver name yet.
-> > > > > 	 */
-> > > > 
-> > > > I think we should fix that problem instead of shaping the async API
-> > > > around a workaround :-)
-> > > > 
-> > > > From the subdevice point of view, the probe function should request
-> > > > resources, perform whatever initialization is needed (including
-> > > > verifying that the hardware is functional when possible), and the
-> > > > register the subdev with the code if everything succeeded. Splitting
-> > > > registration into bind() and bound() appears a bit as a workaround to
-> > > > me.
-> > > > 
-> > > > If we need a workaround, I'd rather pass the device name in addition
-> > > > to the I2C adapter number and address, instead of embedding the
-> > > > workaround in this new API.
+On Thursday 27 December 2012 21:49:37 Mauro Carvalho Chehab wrote:
+> Em Thu, 27 Dec 2012 18:12:46 -0300 Ezequiel Garcia escreveu:
+> > On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia wrote:
+> > > This kind of memcpy() is error-prone. Its replacement with a struct
+> > > assignment is prefered because it's type-safe and much easier to read.
 > > > 
-> > > ...or we can change the I2C subdevice name format. The actual need to do
+> > > Found by coccinelle. Hand patched and reviewed.
+> > > Tested by compilation only.
 > > > 
-> > > 	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
-> > > 	
-> > > 		 asdl->dev->driver->name,
-> > > 		 i2c_adapter_id(client->adapter), client->addr);
+> > > A simplified version of the semantic match that finds this problem is as
+> > > follows: (http://coccinelle.lip6.fr/)
 > > > 
-> > > in soc-camera now to exactly match the subdevice name, as created by
-> > > v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What
-> > > if the latter changes at some point? Or what if one driver wishes to
-> > > create several subdevices for one I2C device?
+> > > // <smpl>
+> > > @@
+> > > identifier struct_name;
+> > > struct struct_name to;
+> > > struct struct_name from;
+> > > expression E;
+> > > @@
+> > > -memcpy(&(to), &(from), E);
+> > > +to = from;
+> > > // </smpl>
+> > > 
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> > > Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> > > ---
+> > > 
+> > >  drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
+> > >  1 files changed, 3 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..4fc8737 100644
+> > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> > > @@ -314,7 +314,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
+> > > *stream,
+> > >                 goto done;
+> > >         }
+> > > 
+> > > -       memcpy(&stream->ctrl, &probe, sizeof probe);
+> > > +       stream->ctrl = probe;
+> > > 
+> > >         stream->cur_format = format;
+> > >         stream->cur_frame = frame;
+> > > @@ -386,7 +386,7 @@ static int uvc_v4l2_set_streamparm(struct
+> > > uvc_streaming *stream,
+> > >                 return -EBUSY;
+> > >         }
+> > > 
+> > > -       memcpy(&probe, &stream->ctrl, sizeof probe);
+> > > +       probe = stream->ctrl;
+> > >         probe.dwFrameInterval =
+> > >                 uvc_try_frame_interval(stream->cur_frame, interval);
+> > > 
+> > > @@ -397,7 +397,7 @@ static int uvc_v4l2_set_streamparm(struct
+> > > uvc_streaming *stream,
+> > >                 return ret;
+> > >         }
+> > > 
+> > > -       memcpy(&stream->ctrl, &probe, sizeof probe);
+> > > +       stream->ctrl = probe;
+> > >         mutex_unlock(&stream->mutex);
+> > >         
+> > >         /* Return the actual frame period. */
 > > 
-> > The common clock framework uses %d-%04x, maybe we could use that as well
-> > for clock names ?
+> > It seems you've marked this one as "Changes requested" [1].
+> > However, Laurent didn't request any change,
+> > but just pointed out we missed one memcpy replacement candidate.
+> > 
+> > I believe it's safe to apply the patch (together with the other 20
+> > patches) and we can fix the missing spot in another patch.
 > 
-> And preserve the subdevice names? Then matching would be more difficult
-> and less precise. Or change subdevice names too? I think, we can do the
-> latter, since anyway at any time only one driver can be attached to an I2C
-> device.
+> The other patches got applied already. Well just do whatever Laurent asked
+> you and re-submit this one ;)
 
-That's right. Where else is the subdev name used ?
-
-> > > > > > > +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list
-> > > > > > > *asdl);
-> > > > > > > +#endif
+Could you please resubmit this patch with the missed memcpy replaced by a 
+struct assignment ? I'll then add it to my tree.
 
 -- 
 Regards,
