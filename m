@@ -1,148 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60534 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754183Ab3AKXt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 18:49:59 -0500
-Message-ID: <50F0A501.5000103@iki.fi>
-Date: Sat, 12 Jan 2013 01:49:21 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: af9035 test needed!
-References: <50F05C09.3010104@iki.fi> <2909559.M1IsAHpWSv@jar7.dominio>
-In-Reply-To: <2909559.M1IsAHpWSv@jar7.dominio>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from fep33.mx.upcmail.net ([62.179.121.51]:53060 "EHLO
+	fep33.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932168Ab3AJCVZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:21:25 -0500
+From: Jonathan McCrohan <jmccrohan@gmail.com>
+To: Oliver Schinagl <oliver@schinagl.nl>
+Cc: linux-media@vger.kernel.org,
+	Jonathan McCrohan <jmccrohan@gmail.com>
+Subject: [PATCH 2/2] update scan files for Ireland (ie-*)
+Date: Thu, 10 Jan 2013 01:54:24 +0000
+Message-Id: <1357782864-9255-3-git-send-email-jmccrohan@gmail.com>
+In-Reply-To: <1357782864-9255-1-git-send-email-jmccrohan@gmail.com>
+References: <1357782864-9255-1-git-send-email-jmccrohan@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2013 01:45 AM, Jose Alberto Reguero wrote:
-> On Viernes, 11 de enero de 2013 20:38:01 Antti Palosaari escribió:
->> Hello Jose and Gianluca
->>
->> Could you test that (tda18218 & mxl5007t):
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tune
->> r
->>
->> I wonder if ADC config logic still works for superheterodyne tuners
->> (tuner having IF). I changed it to adc / 2 always due to IT9135 tuner.
->> That makes me wonder it possible breaks tuners having IF, as ADC was
->> clocked just over 20MHz and if it is half then it is 10MHz. For BB that
->> is enough, but I think that having IF, which is 4MHz at least for 8MHz
->> BW it is too less.
->>
->> F*ck I hate to maintain driver without a hardware! Any idea where I can
->> get AF9035 device having tda18218 or mxl5007t?
->>
->> regards
->> Antti
->
-> Still pending the changes for  mxl5007t. Attached is a patch for that.
->
-> Changes to make work Avermedia Twinstar with the af9035 driver.
->
-> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+Fix erroneous transmission parameters
 
-I cannot do much about this as it changes mxl5007t driver which is not 
-maintained by me. :)
+Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
+---
+ dvb-t/ie-CairnHill    |    4 ++--
+ dvb-t/ie-Dungarvan    |    4 ++--
+ dvb-t/ie-Kippure      |    4 ++--
+ dvb-t/ie-Maghera      |    4 ++--
+ dvb-t/ie-Mullaghanish |    4 ++--
+ dvb-t/ie-SpurHill     |    4 ++--
+ dvb-t/ie-Truskmore    |    4 ++--
+ dvb-t/ie-WoodcockHill |    4 ++--
+ 8 files changed, 16 insertions(+), 16 deletions(-)
 
-regards
-Antti
-
->
-> Jose Alberto
->
-> diff -upr linux/drivers/media/tuners/mxl5007t.c
-> linux.new/drivers/media/tuners/mxl5007t.c
-> --- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
-> +++ linux.new/drivers/media/tuners/mxl5007t.c	2013-01-10 19:23:09.247556275
-> +0100
-> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
->   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
->   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
->
-> -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
->   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
->   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
->
-> @@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
->   	struct reg_pair_t *init_regs;
->   	int ret;
->
-> -	ret = mxl5007t_soft_reset(state);
-> -	if (mxl_fail(ret))
-> +	if (!state->config->no_reset) {
-> +		ret = mxl5007t_soft_reset(state);
-> +		if (mxl_fail(ret))
->   		goto fail;
-> +	}
-> +
->
->   	/* calculate initialization reg array */
->   	init_regs = mxl5007t_calc_init_regs(state, mode);
-> @@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
->   		if (fe->ops.i2c_gate_ctrl)
->   			fe->ops.i2c_gate_ctrl(fe, 1);
->
-> -		ret = mxl5007t_get_chip_id(state);
-> +		if (!state->config->no_probe)
-> +			ret = mxl5007t_get_chip_id(state);
-> +
-> +		ret = mxl5007t_write_reg(state, 0x04,
-> +			state->config->loop_thru_enable);
-> +
->
->   		if (fe->ops.i2c_gate_ctrl)
->   			fe->ops.i2c_gate_ctrl(fe, 0);
-> diff -upr linux/drivers/media/tuners/mxl5007t.h
-> linux.new/drivers/media/tuners/mxl5007t.h
-> --- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000 +0200
-> +++ linux.new/drivers/media/tuners/mxl5007t.h	2013-01-10 19:19:11.204379581
-> +0100
-> @@ -73,8 +73,10 @@ struct mxl5007t_config {
->   	enum mxl5007t_xtal_freq xtal_freq_hz;
->   	enum mxl5007t_if_freq if_freq_hz;
->   	unsigned int invert_if:1;
-> -	unsigned int loop_thru_enable:1;
-> +	unsigned int loop_thru_enable:3;
->   	unsigned int clk_out_enable:1;
-> +	unsigned int no_probe:1;
-> +	unsigned int no_reset:1;
->   };
->
->   #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
-> (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
-> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000
-> +0100
-> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-12
-> 00:30:57.557310465 +0100
-> @@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
->   		.loop_thru_enable = 0,
->   		.clk_out_enable = 0,
->   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> +		.no_probe = 1,
-> +		.no_reset = 1,
->   	}, {
->   		.xtal_freq_hz = MxL_XTAL_24_MHZ,
->   		.if_freq_hz = MxL_IF_4_57_MHZ,
->   		.invert_if = 0,
-> -		.loop_thru_enable = 1,
-> +		.loop_thru_enable = 3,
->   		.clk_out_enable = 1,
->   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> +		.no_probe = 1,
-> +		.no_reset = 1,
->   	}
->   };
->
->
->
->
-
-
+diff --git a/dvb-t/ie-CairnHill b/dvb-t/ie-CairnHill
+index 5063ce9..b36272f 100644
+--- a/dvb-t/ie-CairnHill
++++ b/dvb-t/ie-CairnHill
+@@ -1,5 +1,5 @@
+ # Ireland, Cairn Hill
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview MUX1
+-T 658000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH44: Saorview MUX2
++T 682000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH47: Saorview MUX1
++T 658000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH44: Saorview MUX2
+diff --git a/dvb-t/ie-Dungarvan b/dvb-t/ie-Dungarvan
+index 5bdf714..f415097 100644
+--- a/dvb-t/ie-Dungarvan
++++ b/dvb-t/ie-Dungarvan
+@@ -1,5 +1,5 @@
+ # Ireland, Dungarvan
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview MUX1
+-T 778000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH59: Saorview MUX2
++T 746000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH55: Saorview MUX1
++T 778000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH59: Saorview MUX2
+diff --git a/dvb-t/ie-Kippure b/dvb-t/ie-Kippure
+index aeb5d8d..56ad12a 100644
+--- a/dvb-t/ie-Kippure
++++ b/dvb-t/ie-Kippure
+@@ -1,5 +1,5 @@
+ # Ireland, Kippure
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview MUX1
+-T 770000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH58: Saorview MUX2
++T 738000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH54: Saorview MUX1
++T 770000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH58: Saorview MUX2
+diff --git a/dvb-t/ie-Maghera b/dvb-t/ie-Maghera
+index a1da82a..11c08b7 100644
+--- a/dvb-t/ie-Maghera
++++ b/dvb-t/ie-Maghera
+@@ -1,5 +1,5 @@
+ # Ireland, Maghera
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH48: Saorview MUX1
+-T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview MUX2
++T 690000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH48: Saorview MUX1
++T 746000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH55: Saorview MUX2
+diff --git a/dvb-t/ie-Mullaghanish b/dvb-t/ie-Mullaghanish
+index 73e6ffe..35dc5dd 100644
+--- a/dvb-t/ie-Mullaghanish
++++ b/dvb-t/ie-Mullaghanish
+@@ -1,5 +1,5 @@
+ # Ireland, Mullaghanish
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 474000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH21: Saorview MUX1
+-T 498000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH24: Saorview MUX2
++T 474000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH21: Saorview MUX1
++T 498000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH24: Saorview MUX2
+diff --git a/dvb-t/ie-SpurHill b/dvb-t/ie-SpurHill
+index a211e93..7566d82 100644
+--- a/dvb-t/ie-SpurHill
++++ b/dvb-t/ie-SpurHill
+@@ -1,5 +1,5 @@
+ # Ireland, Spur Hill
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview MUX1
+-T 698000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH49: Saorview MUX2
++T 666000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH45: Saorview MUX1
++T 698000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH49: Saorview MUX2
+diff --git a/dvb-t/ie-Truskmore b/dvb-t/ie-Truskmore
+index db71c31..178bfe3 100644
+--- a/dvb-t/ie-Truskmore
++++ b/dvb-t/ie-Truskmore
+@@ -1,5 +1,5 @@
+ # Ireland, Truskmore
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview MUX1
+-T 762000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH57: Saorview MUX2
++T 730000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH53: Saorview MUX1
++T 762000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH57: Saorview MUX2
+diff --git a/dvb-t/ie-WoodcockHill b/dvb-t/ie-WoodcockHill
+index 513dda5..08c1d5b 100644
+--- a/dvb-t/ie-WoodcockHill
++++ b/dvb-t/ie-WoodcockHill
+@@ -1,5 +1,5 @@
+ # Ireland, Woodcock Hill
+ # Generated from http://www.comreg.ie/_fileupload/Broadcast_Technical_Parameters.xlsx 
+ # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview MUX1
+-T 658000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH44: Saorview MUX2
++T 682000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH47: Saorview MUX1
++T 658000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # CH44: Saorview MUX2
 -- 
-http://palosaari.fi/
+1.7.10.4
+
