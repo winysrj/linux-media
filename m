@@ -1,51 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:3135 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752422Ab3ABJog (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jan 2013 04:44:36 -0500
-Date: Wed, 2 Jan 2013 10:44:32 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-cc: Dan Carpenter <error27@gmail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
- IS_ERR_OR_NULL
-In-Reply-To: <20130102092638.GB2631@n2100.arm.linux.org.uk>
-Message-ID: <alpine.DEB.2.02.1301021031490.1994@hadrien>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
- <20130102092638.GB2631@n2100.arm.linux.org.uk>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:32939 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932106Ab3AJCv5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:51:57 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20130109201541.GB4780@pengutronix.de>
+References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de> <20130109201541.GB4780@pengutronix.de>
+From: Leela Krishna Amudala <leelakrishna.a@gmail.com>
+Date: Thu, 10 Jan 2013 08:21:36 +0530
+Message-ID: <CAL1wa8eQfr4ZV7zjCKp-kpBTMBzEjY_fj+UtDAy-auJXTCJghQ@mail.gmail.com>
+Subject: Re: [PATCHv16 0/7] of: add display helper
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>, kernel@pengutronix.de,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	David Airlie <airlied@linux.ie>,
+	Rob Clark <robdclark@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2 Jan 2013, Russell King - ARM Linux wrote:
+Hi Steffen,
 
-> On Wed, Jan 02, 2013 at 08:10:36AM +0300, Dan Carpenter wrote:
-> > clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
-> >
-> > I told Tony about this but everyone has been gone with end of year
-> > holidays so it hasn't been addressed.
-> >
-> > Tony, please fix it so people don't apply these patches until
-> > clk_get() is updated to not return NULL.  It sucks to have to revert
-> > patches.
+On Thu, Jan 10, 2013 at 1:45 AM, Steffen Trumtrar
+<s.trumtrar@pengutronix.de> wrote:
 >
-> How about people stop using IS_ERR_OR_NULL for stuff which it shouldn't
-> be used for?
+> On Tue, Dec 18, 2012 at 06:04:09PM +0100, Steffen Trumtrar wrote:
+> > Hi!
+> >
+> > Finally, right in time before the end of the world on friday, v16 of the
+> > display helpers.
+> >
+>
+> So, any more criticism on the series? Any takers for the series as is?
+> I guess it could be merged via the fbdev-tree if David Airlie can agree
+> to the DRM patches ?! Does that sound about right?
+>
+> I think the series was tested at least with
+>         - imx6q: sabrelite, sabresd
+>         - imx53: tqma53/mba53
+>         - omap: DA850 EVM, AM335x EVM, EVM-SK
+>
+> I don't know what Laurent Pinchart, Marek Vasut and Leela Krishna Amudala
+> are using.
 
-Perhaps the cases where clk_get returns NULL could have a comment
-indicating that NULL does not represent a failure?
+I tested V16 patches with Exynos: smdk5250 board and it works fine for me.
 
-In 3.7.1, it looks like it might have been possible for NULL to be
-returned by clk_get in arch/mips/loongson1/common/clock.c, but that
-definition seems to be gone in a recent linux-next.  The remaining
-definitions look OK.
-
-julia
+> Those are the people I know from the top of my head, that use
+> or at least did use the patches in one of its iterations. If I forgot
+> anyone, please speak up and possibly add your new HW to the list of tested
+> devices.
+>
+> Thanks,
+> Steffen
+>
+> --
+> Pengutronix e.K.                           |                             |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
