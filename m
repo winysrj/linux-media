@@ -1,359 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5707 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:52430 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756166Ab3AHA0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 19:26:23 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080QNwn020602
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:26:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
-Date: Mon,  7 Jan 2013 22:25:47 -0200
-Message-Id: <1357604750-772-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1753639Ab3AJUOn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 15:14:43 -0500
+Message-ID: <50EF2155.5060905@schinagl.nl>
+Date: Thu, 10 Jan 2013 21:15:17 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
+	Jiri Slaby <jirislaby@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
+In-Reply-To: <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVBv3 quality parameters are limited on several ways:
+On 01/10/13 20:04, Manu Abraham wrote:
+> On 1/11/13, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>> On Thu, Jan 10, 2013 at 1:46 PM, Manu Abraham <abraham.manu@gmail.com>
+>> wrote:
+>>> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+>>>> On 01/10/2013 06:40 PM, Manu Abraham wrote:
+>>>>> On 1/9/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>>>>> Em Wed, 9 Jan 2013 06:08:44 -0500
+>>>>>> Michael Krufky <mkrufky@linuxtv.org> escreveu:
+>>>>>>
+>>>>>>> On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
+>>>>>>> <mchehab@redhat.com> wrote:
+>>>>>>>> Em Wed, 09 Jan 2013 10:43:23 +0100
+>>>>>>>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>>>>>>>>
+>>>>>>>>> On 08-01-13 21:01, Johannes Stezenbach wrote:
+>>>>>>>>>> On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
+>>>>>>>>>>> On 07-01-13 11:46, Jiri Slaby wrote:
+>>>>>>>>>>>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
+>>>>>>>>>>>>> Unfortunatly, I have had zero replies.
+>>>>>>>>>>>> Hmm, it's sad there is a silence in this thread from linux-media
+>>>>>>>>>>>> guys :/.
+>>>>>>>>>>> In their defense, they are very very busy people ;) chatter on
+>>>>>>>>>>> this
+>>>>>>>>>>> thread does bring it up however.
+>>>>>>>>>> This is such a nice thing to say :-)
+>>>>>>>>>> But it might be that Mauro thinks the dvb-apps maintainer should
+>>>>>>>>>> respond, but apparently there is no dvb-apps maintainer...
+>>>>>>>>>> Maybe you should ask Mauro directly to create an account for you
+>>>>>>>>>> to implement what you proposed.
+>>>>>>>>> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
+>>>>>>>>> decides what I suggested is a good idea? I personally obviously
+>>>>>>>>> think
+>>>>>>>>> it
+>>>>>>>>> is ;) and even more so if dvb-apps are unmaintained.
+>>>>>>>>>
+>>>>>>>>> I guess the question now becomes 'who okay's this change? Who says
+>>>>>>>>> 'okay, lets do it this way. Once that is answered we can go from
+>>>>>>>>> there
+>>>>>>>>> ;)
+>>>>>>>>
+>>>>>>>> If I understood it right, you want to split the scan files into a
+>>>>>>>> separate
+>>>>>>>> git tree and maintain it, right?
+>>>>>>>>
+>>>>>>>> I'm ok with that.
+>>>>>>>>
+>>>>>>>> Regards,
+>>>>>>>> Mauro
+>>>>>>>
+>>>>>>> As a DVB maintainer, I am OK with this as well - It does indeed make
+>>>>>>> sense to separate the c code sources from the regional frequency
+>>>>>>> tables, and I'm sure we'll see much benefit from this change.
+>>>>>>
+>>>>>> Done. I created a tree for Oliver to maintain it and an account for
+>>>>>> him.
+>>>>>> I also created a new tree with just the DVB table commits to:
+>>>>>>      http://git.linuxtv.org/dtv-scan-tables.git
+>>>>>>
+>>>>>> I kept there both szap and scan files, although maybe it makes sense
+>>>>>> to
+>>>>>> drop the szap table (channels-conf dir). It also makes sense to drop
+>>>>>> the
+>>>>>> tables from the dvb-apps tree, to avoid duplicated stuff, and to avoid
+>>>>>
+>>>>> Being one of the maintainers:
+>>>>>
+>>>>> I will keep the tables in the dvb-apps tree for the time being.
+>>>>
+>>>> That does not make sense at all -- why? Duplicated stuff always hurts.
+>>>
+>>>
+>>> The scan files and config files are very specific to dvb-apps, some
+>>> applications
+>>> do rely on these config files. It doesn't really make sense to have
+>>> split out config
+>>> files for these  small applications.
+>>>
+>>>
+>>>>
+>>>>> Will decide to
+>>>>> drop the config files as needed from dvb-apps. It is necessary to keep
+>>>>> a
+>>>>> copy of the config files for development purposes, rather than pulling
+>>>>> from
+>>>>> different trees.
+>>>>
+>>>> What development purposes, could you be more specific? You can still use
+>>>> git submodules if really needed. But as it stands I do not see a reason
+>>>> for that at all...
+>>>
+>>>
+>>> Did you think that the dvb-apps just came out of thin air ?
+>>>
+>>> development of dvb-applications, implies eventually config files also
+>>> will be updated as necessary. Having them in separate repositories
+>>> makes such work harder for working.
+>>> while working with dvb-apps, it would make things saner if it is the
+>>> same SCM, rather
+>>> than having different SCM's. So according to you, you want to make it
+>>> still harder for someone to work with dvb-apps.
+>>>
+>>>
+>>> Manu
+>>
+>> Manu,
+>>
+>> I see great value in separating the history of the data files from the
+>> code files.  If you really think this is such a terrible task for a
+>> developer to have to pull from a second repository to fetch these data
+>> files, then I find no reason why we couldn't script it such that
+>> building the dvb-apps package would trigger the pull from the
+>> additional repository.
+>>
+>> I think that's a fair compromise.
+>
+>
+>   As someone who has long been working with dvb-apps, I see no value
+> in this, but just pain altogether. For people who have never worked with it,
+> they can say anything what they want, which makes no sense at all.
+Well there are a few apps that do use the initial scanfile tree, but do 
+not use any of the dvb-apps.
 
-        - Doesn't provide any way to indicate the used measure,
-	  so userspace need to guess how to calculate the measure;
+(tvheadend, kaffeine appearantly, i'm guessing VDR and MythTV aswell?)
+>
+>
+>> Meanwhile, your argument is for developers.  Developers can handle
+>> pulling from a separated tree for data files who shouldn't be clouding
+>> the history of source code development, anyway.  Developers are indeed
+>> used to dealing with multiple repositories, and if any developer
+>> isn't, then now is the time to get with the program!
+>
+>
+> It isn't that way. Users have to deal with 2 repositories as well. Anyway,
+> the repository is not having that many developers to state that developers
+> can handle all the burden. It is just but the reverse.
+Well one of the biggest issues was, that the scanfiles where ill 
+maintained and projects where working around those shortcommings.
 
-        - Only a limited set of stats are supported;
+The scanfiles are technically unrelated. They are data files, facts and 
+can very logically live seperated :) Having commit messages pure for 
+data files in a source tree just looks off.
 
-        - Can't be called in a way to require them to be filled
-          all at once (atomic reads from the hardware), with may
-          cause troubles on interpreting them on userspace;
+They simply have become a seperate entity as people (not developers) 
+depend on them. (Yes there is wscan of course).
 
-        - On some OFDM delivery systems, the carriers can be
-          independently modulated, having different properties.
-          Currently, there's no way to report per-layer stats.
+Also, purely out of curiousity, how are the scanfiles used during 
+development?
 
-To address the above issues, adding a new DVBv5-based stats
-API.
+oliver
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
----
-
-v6: Add DocBook documentation.
-v7: Some fixes as suggested by Antti
-v8: Documentation fix, compilation fix and name the stats struct,
-    for its reusage inside the core
-v9: counters need 32 bits. So, change the return data types to
-    s32/u32 types
----
- Documentation/DocBook/media/dvb/dvbproperty.xml | 97 ++++++++++++++++++++++++-
- include/uapi/linux/dvb/frontend.h               | 84 ++++++++++++++++++++-
- 2 files changed, 178 insertions(+), 3 deletions(-)
-
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 957e3ac..9168808 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -7,16 +7,29 @@ the capability ioctls weren't implemented yet via the new way.</para>
- <para>The typical usage for the <constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant>
- API is to replace the ioctl's were the <link linkend="dvb-frontend-parameters">
- struct <constant>dvb_frontend_parameters</constant></link> were used.</para>
-+<section id="dtv-stats">
-+<title>DTV stats type</title>
-+<programlisting>
-+struct dtv_stats {
-+        __u16 value;
-+        __u8 scale;
-+} __attribute__ ((packed));
-+</programlisting>
-+</section>
- <section id="dtv-property">
- <title>DTV property type</title>
- <programlisting>
- /* Reserved fields should be set to 0 */
-+
- struct dtv_property {
- 	__u32 cmd;
- 	union {
- 		__u32 data;
- 		struct {
--			__u8 data[32];
-+			union {
-+				__u8 data[32];
-+				__u16 data[16];
-+			}
- 			__u32 len;
- 			__u32 reserved1[3];
- 			void *reserved2;
-@@ -850,6 +863,78 @@ enum fe_interleaving {
- 	<para>use the special macro LNA_AUTO to set LNA auto</para>
- 	</section>
- </section>
-+
-+	<section id="frontend-qos-properties">
-+	<title>Frontend Quality of Service/Statistics indicators</title>
-+	<para>Except for <link linkend="DTV-QOS-ENUM"><constant>DTV_QOS_ENUM</constant></link>,
-+	the values are returned via <constant>dtv_property.stat</constant>.</para>
-+	<para>For most delivery systems, this will return a single value for each parameter.</para>
-+	<para>It should be noticed, however, that new OFDM delivery systems
-+	like ISDB can use different modulation types for each group of carriers.
-+	On such standards, up to 3 groups of statistics can be provided, one
-+	for each carrier group (called "layer" on ISDB).
-+	In order to be consistent with other delivery systems, the first
-+	value at <link linkend="dtv-stats"><constant>dtv_property.stat.dtv_stats</constant></link> array refers to
-+	a global indicator, if any. The other elements of the array represent
-+	each layer, starting from layer A(index 1), layer B (index 2) and so on</para>
-+	<para>The number of filled elements are stored at <constant>dtv_property.stat.len</constant>.</para>
-+	<para>Each element of the <constant>dtv_property.stat.dtv_stats</constant> array consists on two elements:</para>
-+	<itemizedlist mark='opencircle'>
-+		<listitem><para><constant>value</constant> - Value of the measure</para></listitem>
-+		<listitem><para><constant>scale</constant> - Scale for the value. It can be:</para>
-+			<section id = "fecap-scale-params">
-+			<itemizedlist mark='bullet'>
-+				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
-+				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
-+				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
-+				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
-+			</itemizedlist>
-+			</section>
-+		</listitem>
-+	</itemizedlist>
-+	<section id="DTV-QOS-ENUM">
-+		<title><constant>DTV_QOS_ENUM</constant></title>
-+		<para>A frontend needs to advertise the statistics it provides. This property allows to enumerate all
-+			<link linkend="frontend-qos-properties">DTV QoS statistics</link> that are
-+			supported by a given frontend.</para>
-+
-+		<para><constant>dtv_property.len</constant> indicates the number of supported
-+		<link linkend="frontend-qos-properties">DTV QoS statistics</link>.</para>
-+		<para><constant>dtv_property.data16</constant> is an 16 bits array of the supported properties.</para>
-+	</section>
-+	<section id="DTV-QOS-SIGNAL-STRENGTH">
-+		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
-+		<para>Indicates the signal strength level at the analog part of the tuner.</para>
-+	</section>
-+	<section id="DTV-QOS-CNR">
-+		<title><constant>DTV_QOS_CNR</constant></title>
-+		<para>Indicates the signal to noise relation for the main carrier.</para>
-+
-+	</section>
-+	<section id="DTV-QOS-BIT-ERROR-COUNT">
-+		<title><constant>DTV_QOS_BIT_ERROR_COUNT</constant></title>
-+		<para>Measures the number of bit errors since the last counter reset.</para>
-+		<para>In order to get the BER (Bit Error Rate) measurement, it should be divided by
-+		<link linkend="DTV-QOS-TOTAL-BITS-COUNT"><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></link>.</para>
-+	</section>
-+	<section id="DTV-QOS-TOTAL-BITS-COUNT">
-+		<title><constant>DTV_QOS_TOTAL_BITS_COUNT</constant></title>
-+		<para>Measures the amount of bits received since the last <link linkend="DTV-QOS-BIT-ERROR-COUNT"><constant>DTV_QOS_BIT_ERROR_COUNT</constant></link> reset.</para>
-+	</section>
-+	<section id="DTV-QOS-ERROR-BLOCK-COUNT">
-+		<title><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></title>
-+		<para>Measures the number of block errors since the last counter reset.</para>
-+	</section>
-+	<section id="DTV-QOS-TOTAL-BLOCKS-COUNT">
-+		<title><constant>DTV-QOS_TOTAL_BLOCKS_COUNT</constant></title>
-+		<para>Measures the total number of blocks since the last
-+		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link> reset.</para>
-+		<para>It can be used to calculate the PER indicator, by dividing
-+		<link linkend="DTV-QOS-ERROR-BLOCK-COUNT"><constant>DTV_QOS_ERROR_BLOCK_COUNT</constant></link>
-+		by <link linkend="DTV-QOS-TOTAL-BLOCKS-COUNT"><constant>DTV-QOS-TOTAL-BLOCKS-COUNT</constant></link>.</para>
-+	</section>
-+	</section>
-+
- 	<section id="frontend-property-terrestrial-systems">
- 	<title>Properties used on terrestrial delivery systems</title>
- 		<section id="dvbt-params">
-@@ -871,6 +956,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="dvbt2-params">
- 			<title>DVB-T2 delivery system</title>
-@@ -895,6 +981,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="isdbt">
- 		<title>ISDB-T delivery system</title>
-@@ -948,6 +1035,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-ISDBT-LAYER-SEGMENT-COUNT"><constant>DTV_ISDBT_LAYERC_SEGMENT_COUNT</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-ISDBT-LAYER-TIME-INTERLEAVING"><constant>DTV_ISDBT_LAYERC_TIME_INTERLEAVING</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="atsc-params">
- 			<title>ATSC delivery system</title>
-@@ -961,6 +1049,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="atscmh-params">
- 			<title>ATSC-MH delivery system</title>
-@@ -988,6 +1077,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-C"><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-ATSCMH-SCCC-CODE-MODE-D"><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 		<section id="dtmb-params">
- 			<title>DTMB delivery system</title>
-@@ -1007,6 +1097,7 @@ enum fe_interleaving {
- 				<listitem><para><link linkend="DTV-INTERLEAVING"><constant>DTV_INTERLEAVING</constant></link></para></listitem>
- 				<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 			</itemizedlist>
-+			<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		</section>
- 	</section>
- 	<section id="frontend-property-cable-systems">
-@@ -1028,6 +1119,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	<section id="dvbc-annex-b-params">
- 		<title>DVB-C Annex B delivery system</title>
-@@ -1043,6 +1135,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-LNA"><constant>DTV_LNA</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	</section>
- 	<section id="frontend-property-satellital-systems">
-@@ -1062,6 +1155,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-VOLTAGE"><constant>DTV_VOLTAGE</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-TONE"><constant>DTV_TONE</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 		<para>Future implementations might add those two missing parameters:</para>
- 		<itemizedlist mark='opencircle'>
- 			<listitem><para><link linkend="DTV-DISEQC-MASTER"><constant>DTV_DISEQC_MASTER</constant></link></para></listitem>
-@@ -1077,6 +1171,7 @@ enum fe_interleaving {
- 			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-STREAM-ID"><constant>DTV_STREAM_ID</constant></link></para></listitem>
- 		</itemizedlist>
-+		<para>In addition, the <link linkend="frontend-qos-properties">DTV QoS statistics</link> are also valid.</para>
- 	</section>
- 	<section id="turbo-params">
- 		<title>Turbo code delivery system</title>
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index c12d452..39e3321 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -365,7 +365,16 @@ struct dvb_frontend_event {
- #define DTV_INTERLEAVING			60
- #define DTV_LNA					61
- 
--#define DTV_MAX_COMMAND				DTV_LNA
-+/* Quality parameters */
-+#define DTV_QOS_ENUM			62
-+#define DTV_QOS_SIGNAL_STRENGTH		63
-+#define DTV_QOS_CNR			64
-+#define DTV_QOS_BIT_ERROR_COUNT		65
-+#define DTV_QOS_TOTAL_BITS_COUNT	66
-+#define DTV_QOS_ERROR_BLOCK_COUNT	67
-+#define DTV_QOS_TOTAL_BLOCKS_COUNT	68
-+
-+#define DTV_MAX_COMMAND		DTV_QOS_TOTAL_BLOCKS_COUNT
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -452,13 +461,84 @@ struct dtv_cmds_h {
- 	__u32	reserved:30;	/* Align */
- };
- 
-+/**
-+ * Scale types for the quality parameters.
-+ * @FE_SCALE_NOT_AVAILABLE: That QoS measure is not available. That
-+ *			    could indicate a temporary or a permanent
-+ *			    condition.
-+ * @FE_SCALE_DECIBEL: The scale is measured in 0.1 dB steps, typically
-+ *		  used on signal measures.
-+ * @FE_SCALE_RELATIVE: The scale is a relative percentual measure,
-+ *			ranging from 0 (0%) to 0xffff (100%).
-+ * @FE_SCALE_COUNTER: The scale counts the occurrence of an event, like
-+ *			bit error, block error, lapsed time.
-+ */
-+enum fecap_scale_params {
-+	FE_SCALE_NOT_AVAILABLE,
-+	FE_SCALE_DECIBEL,
-+	FE_SCALE_RELATIVE,
-+	FE_SCALE_COUNTER
-+};
-+
-+/**
-+ * struct dtv_stats - Used for reading a DTV status property
-+ *
-+ * @value:	value of the measure. Should range from 0 to 0xffff;
-+ * @scale:	Filled with enum fecap_scale_params - the scale
-+ *		in usage for that parameter
-+ *
-+ * For most delivery systems, this will return a single value for each
-+ * parameter.
-+ * It should be noticed, however, that new OFDM delivery systems like
-+ * ISDB can use different modulation types for each group of carriers.
-+ * On such standards, up to 8 groups of statistics can be provided, one
-+ * for each carrier group (called "layer" on ISDB).
-+ * In order to be consistent with other delivery systems, the first
-+ * value refers to the entire set of carriers ("global").
-+ * dtv_status:scale should use the value FE_SCALE_NOT_AVAILABLE when
-+ * the value for the entire group of carriers or from one specific layer
-+ * is not provided by the hardware.
-+ * st.len should be filled with the latest filled status + 1.
-+ *
-+ * In other words, for ISDB, those values should be filled like:
-+ *	u.st.stat.svalue[0] = global statistics;
-+ *	u.st.stat.scale[0] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.value[1] = layer A statistics;
-+ *	u.st.stat.scale[1] = FE_SCALE_NOT_AVAILABLE (if not available);
-+ *	u.st.stat.svalue[2] = layer B statistics;
-+ *	u.st.stat.scale[2] = FE_SCALE_DECIBELS;
-+ *	u.st.stat.svalue[3] = layer C statistics;
-+ *	u.st.stat.scale[3] = FE_SCALE_DECIBELS;
-+ *	u.st.len = 4;
-+ */
-+struct dtv_stats {
-+	__u8 scale;	/* enum fecap_scale_params type */
-+	union {
-+		__u32 uvalue;	/* for counters and relative scales */
-+		__s32 svalue;	/* for 0.1 dB measures */
-+	};
-+} __attribute__ ((packed));
-+
-+
-+#define MAX_QOS_STATS   4
-+
-+struct dtv_fe_stats {
-+	__u8 len;
-+	__u8 scale;
-+	struct dtv_stats stat[MAX_QOS_STATS];
-+} __attribute__ ((packed));
-+
- struct dtv_property {
- 	__u32 cmd;
- 	__u32 reserved[3];
- 	union {
- 		__u32 data;
-+		struct dtv_fe_stats st;
- 		struct {
--			__u8 data[32];
-+			union {
-+				__u8 data[32];
-+				__u16 data16[16];
-+			};
- 			__u32 len;
- 			__u32 reserved1[3];
- 			void *reserved2;
--- 
-1.7.11.7
+>
+> Manu
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
