@@ -1,79 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:49709 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752342Ab3ASXmx (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:46426 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755665Ab3AJTQ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:53 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 20/24] usb/gspca/xirlink_cit.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:27 -0200
-Message-Id: <1358638891-4775-21-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+	Thu, 10 Jan 2013 14:16:27 -0500
+Received: by mail-ob0-f171.google.com with SMTP id dn14so952845obc.30
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 11:16:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50EF1277.4060507@gmail.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<50EF1034.7060100@gmail.com>
+	<CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+	<50EF1277.4060507@gmail.com>
+Date: Fri, 11 Jan 2013 00:46:26 +0530
+Message-ID: <CAHFNz9KWxzH3QY09M14wihhe=i_SuFJYzeG_2Yvv8R1k5TRARw@mail.gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 01/10/2013 08:08 PM, Manu Abraham wrote:
+>> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+>>> On 01/10/2013 07:46 PM, Manu Abraham wrote:
+>>>> The scan files and config files are very specific to dvb-apps, some
+>>>> applications
+>>>> do rely on these config files. It doesn't really make sense to have
+>>>> split out config
+>>>> files for these  small applications.
+>>>
+>>> I don't care where they are, really. However I'm strongly against
+>>> duplicating them. Feel free to remove the newly created repository, I'll
+>>> be fine with that.
+>>
+>> I haven't duplicated anything at all. It is Mauro who has duplicated
+>> stuff,
+>> by creating a new tree altogether.
+>
+> I didn't accuse you. This was a general comment to everybody. Whatever
+> the consensus is at the end, do not duplicate the data.
 
-This change was made for: CONFIG_INPUT
+Eventually what will happen is that, as applications do get developed,
+the config files which are alongwith the applications will have proper
+compatibility with the applications while, the split out config files will
+be in a different state, providing nothing but pain for everyone.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
-
- drivers/media/usb/gspca/xirlink_cit.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/xirlink_cit.c b/drivers/media/usb/gspca/xirlink_cit.c
-index d4b23c9..7eaf64e 100644
---- a/drivers/media/usb/gspca/xirlink_cit.c
-+++ b/drivers/media/usb/gspca/xirlink_cit.c
-@@ -2759,7 +2759,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 		break;
- 	}
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->button_state) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-@@ -2914,7 +2914,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static void cit_check_button(struct gspca_dev *gspca_dev)
- {
- 	int new_button_state;
-@@ -3062,7 +3062,7 @@ static const struct sd_desc sd_desc = {
- 	.stopN = sd_stopN,
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.dq_callback = cit_check_button,
- 	.other_input = 1,
- #endif
-@@ -3079,7 +3079,7 @@ static const struct sd_desc sd_desc_isoc_nego = {
- 	.stopN = sd_stopN,
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.dq_callback = cit_check_button,
- 	.other_input = 1,
- #endif
--- 
-1.7.11.7
-
+Manu
