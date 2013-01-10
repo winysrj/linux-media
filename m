@@ -1,217 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6527 "EHLO mx1.redhat.com"
+Received: from mail-1.atlantis.sk ([80.94.52.57]:54502 "EHLO mail.atlantis.sk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753430Ab3ACRQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jan 2013 12:16:09 -0500
-Date: Thu, 3 Jan 2013 14:29:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-media] Re: [PATCH RFCv3] dvb: Add DVBv5 properties for
- quality parameters
-Message-ID: <20130103142959.3d838015@redhat.com>
-In-Reply-To: <20130103141429.03766540@redhat.com>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-	<20130101152932.3873d4cc@redhat.com>
-	<CAHFNz9LzBX0G9G0G_6C+WHooaQ1ridG1pkCcOPyzPG+FgOZKxw@mail.gmail.com>
-	<20130103112044.4267b274@redhat.com>
-	<50E5A142.2090807@tvdr.de>
-	<20130103141429.03766540@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1753416Ab3AJWwY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 17:52:24 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: [BAD PATCH] saa7134: Add AverMedia Satelllite Hybrid+FM A706
+Date: Thu, 10 Jan 2013 23:52:04 +0100
+Cc: Celal =?iso-8859-1?q?Erg=FCn?= <celal@formulsoft.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201301102352.05187.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 3 Jan 2013 14:14:29 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hello,
+this is a bad test patch that adds support for AverMedia Satelllite Hybrid+FM
+A706 cards to saa7134.
 
-> Em Thu, 03 Jan 2013 16:18:26 +0100
-> Klaus Schmidinger <Klaus.Schmidinger@tvdr.de> escreveu:
-> 
-> > On 03.01.2013 14:20, Mauro Carvalho Chehab wrote:
-> > > Em Wed, 2 Jan 2013 00:38:50 +0530
-> > > Manu Abraham <abraham.manu@gmail.com> escreveu:
-> > >
-> > >> On Tue, Jan 1, 2013 at 10:59 PM, Mauro Carvalho Chehab
-> > >> <mchehab@redhat.com> wrote:
-> > >>> Em Tue, 1 Jan 2013 22:18:49 +0530
-> > >>> Manu Abraham <abraham.manu@gmail.com> escreveu:
-> > >>>
-> > >>>> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
-> > >>>> <mchehab@redhat.com> wrote:
-> > >>>>
-> > >>>>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
-> > >>>>>
-> > >>>>> The DVBv3 quality parameters are limited on several ways:
-> > >>>>>          - Doesn't provide any way to indicate the used measure;
-> > >>>>>          - Userspace need to guess how to calculate the measure;
-> > >>>>>          - Only a limited set of stats are supported;
-> > >>>>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
-> > >>>>>            carriers, used to detect the network parameters for
-> > >>>>>            DVB-T/ISDB-T;
-> > >>>>>          - Can't be called in a way to require them to be filled
-> > >>>>>            all at once (atomic reads from the hardware), with may
-> > >>>>>            cause troubles on interpreting them on userspace;
-> > >>>>>          - On some OFDM delivery systems, the carriers can be
-> > >>>>>            independently modulated, having different properties.
-> > >>>>>            Currently, there's no way to report per-layer stats;
-> > >>>>
-> > >>>> per layer stats is a mythical bird, nothing of that sort does exist.
-> > >>>
-> > >>> Had you ever read or tried to get stats from an ISDB-T demod? If you
-> > >>> had, you would see that it only provides per-layer stats. Btw, this is
-> > >>> a requirement to follow the ARIB and ABNT ISDB specs.
-> > >>
-> > >> I understand you keep writing junk for ages, but nevertheless:
-> > >>
-> > >> Do you have any idea what's a BBHEADER (DVB-S2) or
-> > >> PLHEADER (DVB-T2) ? The headers do indicate what MODCOD
-> > >> (aka Modulation/Coding Standard follows, whatever mode ACM,
-> > >> VCM or CCM) follows. These MODCOD foolows a TDM approach
-> > >> with a hierarchial modulation principle. This is exactly what ISDB
-> > >> does too.
-> > >
-> > > No, I didn't check DVB-S2/T2 specs deeply enough to understand
-> > > if they're doing the same thing as ISDB.
-> > >
-> > > Yet, ISDB-T doesn't use a TDM approach for hierarchical modulation.
-> > > It uses a FDM (OFDM is a type of Frequency Division Multiplexing).
-> > >
-> > > So, if you're saying that DVB-S2 uses TDM, it is very different than
-> > > ISDB-T. As DVB-T2 uses an FDM type of modulation (OFDM), it would
-> > > be possible to segment the carriers there, just like ISDB, or to
-> > > use TDM hierarchical modulation techniques.
-> > >
-> > >>
-> > >> And for your info:
-> > >>
-> > >> " The TMCC control information is
-> > >> common to all TMCC carriers and
-> > >> error correction is performed by using
-> > >> difference-set cyclic code."
-> > >
-> > > Yes, TMCC carriers are equal and they are always modulated using DBPSK.
-> > > That is done to make it possible to receive the TMCC carriers even under
-> > > worse SNR conditions, where it may not be possible to decode the segment
-> > > groups.
-> > >
-> > > It seems that you completely missed the point though. On ISDB-T, the
-> > > carriers that belong to each group of segments (except for the control
-> > > carriers - carriers 1 to 107) uses a completely independent modulation.
-> > > Also, as they're spaced in frequency, the interference of each segment
-> > > is different. So, error indications are different on each segment.
-> > >
-> > > Btw, in any case, the datasheets of ISDB-T demods clearly shows that
-> > > the BER measures are per segment group (layer).
-> > >
-> > > For example, for the BER measures before Viterbi, those are the register
-> > > names for a certain demod:
-> > >
-> > > 	VBERSNUMA Bit count of BER measurement before Viterbi in A layer
-> > > 	VBERSNUMB Bit count of BER measurement before Viterbi in B layer
-> > > 	VBERSNUMC Bit count of BER measurement before Viterbi in C layer
-> > >
-> > > It has another set of registers for BER after Viterbi, and for PER after
-> > > Viterbi and RS, for bit count errors, etc.
-> > >
-> > > There's no way to get any type of "global" BER measure, simply because
-> > > ISDB-T demods don't provide.
-> > 
-> > Maybe we should put all this theoretical discussion aside for the moment and
-> > think about what is *really* needed by real world applications. As with any
-> > receiver, VDR simply wants to have some measure of the signal's "strength"
-> > and "quality". These are just two values that should be delivered by each
-> > frontend/demux, using the *same* defined and mandatory range. I don't care
-> > what exactly that is, but it needs to be the same for all devices.
-> > What values a particular driver uses internally to come up with these
-> > is of no interest to VDR. The "signal strength" might just be what is
-> > currently returned through FE_READ_SIGNAL_STRENGTH (however, normalized to
-> > the same range in all drivers, which currently is not the case). The "signal
-> > quality" might use flags like FE_HAS_SIGNAL, FE_HAS_CARRIER, FE_HAS_VITERBI,
-> > FE_HAS_SYNC, as well as SNR, BER and UNC (if available) to form some
-> > value where 0 means no quality at all, and 0xFFFF means excellent quality.
-> > If a particular frontend/demux uses totally different concepts, it can
-> > just use whatever it deems reasonable to form the "strength" and "quality"
-> > values. The important thing here is just that all this needs to be hidden
-> > inside the driver, and the only interface to an application are ioctl()
-> > calls that return these two values.
-> > 
-> > So I suggest that you define this minimal interface and allow applications
-> > to retrieve what they really need. Once this is done, feel free to implement
-> > whatever theoretical bells and whistles you fell like doing - that's all
-> > fine with me, as long as the really important stuff keeps working ;-)
-> 
-> Klaus,
-> 
-> On ISDB-T, it splits the TS into (up to) three independent physical channels
-> (called layers).
-> 
-> Each channel has its own statistics, as they're completely independent:
-> they use different inner FEC's, use different modulations, etc.
-> 
-> The ISDB demods don't provide a single value for the 3 layers. They
-> can't, as they're independent. So, signal-strengh and SNR measures are
-> also independent for each of those 3 layers.
-> 
-> A typical ISDB transmission uses 13 segments of carriers, each segment
-> using a 4.28 kHz bandwidth, grouped into 3 layers. While it is up to 
-> the broadcaster to decide how to group the segments, it is typically 
-> arranged like that:
-> 
-> 	layer A - 1 segment for LD programs - modulated using QPSK;
-> 	layer B - 3 segments for SD programs - modulated using 16QAM;
-> 	layer C - 9 segments for HD programs - modulated using 64QAM.
-> 
-> The TDM TS packets from the Transport Stream are broken into those 3
-> layers, each being an independent transmission channel.
-> 
-> So, all channel level QoS measure are per-layer (SNR, signal strength,
-> BER, MER, ...).
-> 
-> While the demods I have datasheets here don't provide it, it would be
-> possible to provide error counts for a given program ID, by summing
-> the error count that applies to each PID.
-> 
-> So, let's assume, for example, that the UCB count is:
-> 	layer A = 0
-> 	layer B = 12
-> 	layer C = 30
-> 
-> an 1-seg LD program will have 0 uncorrected blocks;
-> an SD program will have 12 uncorrected error blocks;
-> a HD program will have 42 uncorrected error blocks.
-> 
-> It shouldn't be that hard to take it into account on userspace, but
-> doing it at kernel level would be very painful, if possible, as
-> kernelspace would be required to know what PID's are being shown, in
-> order to estimate the error count measures for them. Also, it would
-> require a much more complex kernelspace-userspace interface.
+Working: analog video inputs (composite, s-vhs, analog TV), analog sound
+inputs (cinch, TV), analog TV tuner, remote control
 
-Two additional notes:
+Partially working: FM radio - it tunes but detunes to noise after a moment
+(might be a bug in tda18271 driver?)
+GPIO11 controls 74HC4052 MUX - it's enabled for radio and disabled for TV
+in Windows - I did the same and it did not change anything
 
-1) If you want to get further information, it is available on ARIB
-	STD-B31 spec:
+Untested: DVB-S
 
-	http://www.arib.or.jp/english/html/overview/doc/6-STD-B31v1_6-E2.pdf
+There is a hack (added "return 0" lines) to disable tda8290 i2c gate.
+Is there a way to do this properly?
 
-There, table 3-2 shows the main characteristics of the modulation;
-how the 3 independent channels are handled and fig. 3.4
-shows a simplified diagram to give an idea on how the hierarchical TS
-packets are broken into the 3 layers
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 08ae067..c1f6e7c 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -230,7 +230,7 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 		return 0;
+ 
+ 	dprintk(1, "read key 0x%02x/0x%02x\n", key, keygroup);
+-	if (keygroup < 2 || keygroup > 3) {
++	if (keygroup < 2 || keygroup > 4) {
+ 		/* Only a warning */
+ 		dprintk(1, "warning: invalid key group 0x%02x for key 0x%02x\n",
+ 								keygroup, key);
+@@ -239,6 +239,10 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 
+ 	*ir_key = key;
+ 	*ir_raw = key;
++	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
++		*ir_key |= keygroup << 8;
++		*ir_raw |= keygroup << 8;
++	}
+ 	return 1;
+ }
+ 
+@@ -332,6 +336,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		rc_type     = RC_BIT_OTHER;
+ 		ir_codes    = RC_MAP_AVERMEDIA_CARDBUS;
+ 		break;
++	case 0x41:
++		name        = "AVerMedia EM78P153";
++		ir->get_key = get_key_avermedia_cardbus;
++		rc_type     = RC_BIT_OTHER;
++		/* RM-KV remote, seems to be same as RM-K6 */
++		ir_codes    = RC_MAP_AVERMEDIA_M733A_RM_K6;
++		break;
+ 	case 0x71:
+ 		name        = "Hauppauge/Zilog Z8";
+ 		ir->get_key = get_key_haup_xvr;
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index bc08f1d..8b5025d 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -5773,6 +5773,36 @@ struct saa7134_board saa7134_boards[] = {
+ 			.gpio	= 0x0000000,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_A706] = {
++		.name           = "AverMedia AverTV Satellite Hybrid+FM A706",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tuner_config   = 0,
++		.gpiomask       = 1 << 11,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp,
++			.vmux = 4,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++			.gpio = 0x0000800,
++		},
++	},
+ 
+ };
+ 
+@@ -7020,6 +7050,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 		.subdevice    = 0x0911,
+ 		.driver_data  = SAA7134_BOARD_SENSORAY811_911,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0x2055, /* AverTV Satellite Hybrid+FM A706 */
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_A706,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -7266,6 +7302,7 @@ static int saa7134_tda8290_callback(struct saa7134_dev *dev,
+ 	case SAA7134_BOARD_KWORLD_PCI_SBTVD_FULLSEG:
+ 	case SAA7134_BOARD_KWORLD_PC150U:
+ 	case SAA7134_BOARD_MAGICPRO_PROHDTV_PRO2:
++	case SAA7134_BOARD_AVERMEDIA_A706:
+ 		/* tda8290 + tda18271 */
+ 		ret = saa7134_tda8290_18271_callback(dev, command, arg);
+ 		break;
+@@ -7568,6 +7605,41 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		dev->has_remote = SAA7134_REMOTE_I2C;
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0fffffff, 0x02a00e00);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0fffffff, 0x02203980);
++/*		saa7134_set_gpio(dev, 0, 1);
++		saa7134_set_gpio(dev, 1, 1);
++		saa7134_set_gpio(dev, 2, 1);
++		saa7134_set_gpio(dev, 3, 1);
++		saa7134_set_gpio(dev, 4, 1);
++		saa7134_set_gpio(dev, 5, 1);*/
++/*		saa7134_set_gpio(dev, 6, 1);
++		saa7134_set_gpio(dev, 7, 1);
++		saa7134_set_gpio(dev, 8, 1);*/
++//		saa7134_set_gpio(dev, 10, 1);
++//		saa7134_set_gpio(dev, 11, 1);	/////////////////// HC4052
++//		saa7134_set_gpio(dev, 12, 1);
++/*		saa7134_set_gpio(dev, 13, 1);
++		saa7134_set_gpio(dev, 14, 1);
++		saa7134_set_gpio(dev, 15, 1);
++		saa7134_set_gpio(dev, 16, 1);
++		saa7134_set_gpio(dev, 17, 1);
++		saa7134_set_gpio(dev, 18, 1);
++		saa7134_set_gpio(dev, 19, 1);
++		saa7134_set_gpio(dev, 20, 1);
++		saa7134_set_gpio(dev, 21, 1);
++		saa7134_set_gpio(dev, 22, 1);
++		saa7134_set_gpio(dev, 24, 1);
++		saa7134_set_gpio(dev, 26, 1);*/
++
++		/* 
++		 * Disable CE5039 DVB-S tuner now (SLEEP pin high) to prevent
++		 * it from interfering with analog tuner detection
++		 */
++		saa7134_set_gpio(dev, 23, 1);
++		break;
+ 	case SAA7134_BOARD_VIDEOMATE_S350:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
+diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
+index b209de4..eae7348 100644
+--- a/drivers/media/pci/saa7134/saa7134-dvb.c
++++ b/drivers/media/pci/saa7134/saa7134-dvb.c
+@@ -1070,6 +1070,10 @@ static struct mt312_config zl10313_compro_s350_config = {
+ 	.demod_address = 0x0e,
+ };
+ 
++static struct mt312_config zl10313_avermedia_a706_config = {
++	.demod_address = 0x0e,
++};
++
+ static struct lgdt3305_config hcw_lgdt3305_config = {
+ 	.i2c_addr           = 0x0e,
+ 	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
+@@ -1817,6 +1821,24 @@ static int dvb_init(struct saa7134_dev *dev)
+ 				   &prohdtv_pro2_tda18271_config);
+ 		}
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		/* Enable all DVB-S devices now */
++		/* CE5039 DVB-S tuner SLEEP pin low */
++		saa7134_set_gpio(dev, 23, 0);
++		/* CE6313 DVB-S demod SLEEP pin low */
++		saa7134_set_gpio(dev, 9, 0);
++		/* CE6313 DVB-S demod RESET# pin high */
++		saa7134_set_gpio(dev, 25, 1);
++		fe0->dvb.frontend = dvb_attach(mt312_attach,
++				&zl10313_avermedia_a706_config, &dev->i2c_adap);
++		if (fe0->dvb.frontend) {
++			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
++			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
++					0x60, &dev->i2c_adap) == NULL)
++				wprintk("%s: No zl10039 found!\n",
++					__func__);
++		}
++		break;
+ 	default:
+ 		wprintk("Huh? unknown DVB card?\n");
+ 		break;
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index a176ec3..d2f2924 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -255,7 +255,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			if (msgs[i].flags & I2C_M_RD)
+ 				addr |= 1;
+ 			if (i > 0 && msgs[i].flags &
+-			    I2C_M_RD && msgs[i].addr != 0x40 &&
++			    I2C_M_RD && msgs[i].addr != 0x40 && msgs[i].addr != 0x41 &&
+ 			    msgs[i].addr != 0x19) {
+ 				/* workaround for a saa7134 i2c bug
+ 				 * needed to talk to the mt352 demux
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index e761262..6f43126 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -997,6 +997,9 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+ 		info.addr = 0x40;
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		info.addr = 0x41;
++		break;
+ 	case SAA7134_BOARD_FLYDVB_TRIO:
+ 		dev->init_data.name = "FlyDVB Trio";
+ 		dev->init_data.get_key = get_key_flydvb_trio;
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index c24b651..6cef84d 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -332,6 +332,7 @@ struct saa7134_card_ir {
+ #define SAA7134_BOARD_SENSORAY811_911       188
+ #define SAA7134_BOARD_KWORLD_PC150U         189
+ #define SAA7134_BOARD_ASUSTeK_PS3_100      190
++#define SAA7134_BOARD_AVERMEDIA_A706		191
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+index 8c48521..7234428 100644
+--- a/drivers/media/tuners/tda8290.c
++++ b/drivers/media/tuners/tda8290.c
+@@ -65,7 +65,7 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe, int close)
+ 	unsigned char  enable[2] = { 0x21, 0xC0 };
+ 	unsigned char disable[2] = { 0x21, 0x00 };
+ 	unsigned char *msg;
+-
++return 0;
+ 	if (close) {
+ 		msg = enable;
+ 		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
+@@ -87,7 +87,7 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
+ 	unsigned char disable[2] = { 0x46, 0x00 };
+ 	unsigned char buf[3] = { 0x45, 0x01, 0x00 };
+ 	unsigned char *msg;
+-
++return 0;
+ 	if (close) {
+ 		msg = enable;
+ 		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
+@@ -731,7 +731,7 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
+ {
+ 	struct tda8290_priv *priv = NULL;
+ 	char *name;
+-
++	printk("%s, fe=%p, i2c_adap=%p, i2c_addr=0x%02x, cfg=%p\n", __FUNCTION__, fe, i2c_adap, i2c_addr, cfg);
+ 	priv = kzalloc(sizeof(struct tda8290_priv), GFP_KERNEL);
+ 	if (priv == NULL)
+ 		return NULL;
 
-2) There are in the market some narrow-band decoders. Those tunes only
-1 segment (440kHz), and are meant to be used on mobile devices that can
-receive only LD programs. Only for those devices, it is possible to
-offer a single set of statistics (SNR, strength, BER, UCB, etc), 
-because it can decode just one layer. I have a few of them here,
-and we have 2 drivers for those 1-seg devices (s921 and siano).
-The full-seg drivers currently provide crappy information or don't
-provide any QoS stats at all due to the lack of a proper API.
 
-Regards,
-Mauro
+-- 
+Ondrej Zary
