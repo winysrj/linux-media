@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:51012 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339Ab3AaNqm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 08:46:42 -0500
-Received: by mail-lb0-f175.google.com with SMTP id n3so3321463lbo.6
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 05:46:41 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
-References: <50F05C09.3010104@iki.fi>
-	<CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
-Date: Thu, 31 Jan 2013 08:46:41 -0500
-Message-ID: <CAOcJUbwPVJNOKa6+-o9nUs2MMMECQWszOdB71zyUif25EQ_iXg@mail.gmail.com>
-Subject: Re: af9035 test needed!
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Andre Heider <a.heider@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from fep33.mx.upcmail.net ([62.179.121.51]:53060 "EHLO
+	fep33.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932168Ab3AJCV0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 21:21:26 -0500
+From: Jonathan McCrohan <jmccrohan@gmail.com>
+To: Oliver Schinagl <oliver@schinagl.nl>
+Cc: linux-media@vger.kernel.org,
+	Jonathan McCrohan <jmccrohan@gmail.com>
+Subject: [PATCH 0/2] update scan files for Ireland (ie-*)
+Date: Thu, 10 Jan 2013 01:54:22 +0000
+Message-Id: <1357782864-9255-1-git-send-email-jmccrohan@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey guys... somehow this email slipped through my filters :-(  I see
-it now, and I'll give a look over the patch this weekend.
+Hi Oliver,
 
--Mike
+Attached are two patches I've been trying to get applied to the tree for some
+time.
 
-On Thu, Jan 31, 2013 at 8:04 AM, Andre Heider <a.heider@gmail.com> wrote:
-> Hi,
->
-> On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
->> Could you test that (tda18218 & mxl5007t):
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
->
-> I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
-> this series.
-> Any chance to get this into 3.9 (I guess its too late for the USB
-> VID/PID 'fix' for 3.8)?
->
-> Regards,
-> Andre
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Jon
+
+
+Jonathan McCrohan (2):
+  update scan files for Ireland (ie-*)
+  update scan files for Ireland (ie-*)
+
+ dvb-t/ie-CairnHill     |    6 +++---
+ dvb-t/ie-ClermontCarn  |    6 +++---
+ dvb-t/ie-Dungarvan     |    6 +++---
+ dvb-t/ie-HolywellHill  |    4 ++--
+ dvb-t/ie-Kippure       |    6 +++---
+ dvb-t/ie-Maghera       |    6 +++---
+ dvb-t/ie-MountLeinster |    6 +++---
+ dvb-t/ie-Mullaghanish  |    6 +++---
+ dvb-t/ie-SpurHill      |    6 +++---
+ dvb-t/ie-ThreeRock     |    6 +++---
+ dvb-t/ie-Truskmore     |    6 +++---
+ dvb-t/ie-WoodcockHill  |    6 +++---
+ 12 files changed, 35 insertions(+), 35 deletions(-)
+
+-- 
+1.7.10.4
+
