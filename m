@@ -1,210 +1,509 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:47496 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756485Ab3AHRI5 (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:43250 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728Ab3AJFaz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jan 2013 12:08:57 -0500
-Message-ID: <50EC5283.80006@stericsson.com>
-Date: Tue, 8 Jan 2013 18:08:19 +0100
-From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
+	Thu, 10 Jan 2013 00:30:55 -0500
 MIME-Version: 1.0
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	sunil joshi <joshi@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <3584709.mPLC5exzRY@avalon> <50EBF10A.7080906@stericsson.com> <1987992.4TmVjQaiLj@amdc1227>
-In-Reply-To: <1987992.4TmVjQaiLj@amdc1227>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <Pine.LNX.4.64.1301081104330.1794@axis700.grange>
+References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
+ <1356544151-6313-2-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1301071121280.23972@axis700.grange>
+ <Pine.LNX.4.64.1301081104330.1794@axis700.grange>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 10 Jan 2013 11:00:33 +0530
+Message-ID: <CA+V-a8tSdqcym7d7R=vzL-P6rXTS69x5m8Snst5=Tu4Ly-Zfkw@mail.gmail.com>
+Subject: Re: [PATCH 1/6 v5] media: V4L2: support asynchronous subdevice registration
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/08/2013 05:36 PM, Tomasz Figa wrote:
-> On Tuesday 08 of January 2013 11:12:26 Marcus Lorentzon wrote:
->> On 01/08/2013 09:18 AM, Laurent Pinchart wrote:
->>> On Thursday 27 December 2012 15:43:34 Tomasz Figa wrote:
->>>>>   On Monday 24 of December 2012 15:12:28 Laurent Pinchart wrote:
->>>>>>   >   On Friday 21 December 2012 11:00:52 Tomasz Figa wrote:
->>>>>>>   >   >   On Tuesday 18 of December 2012 08:31:30 Vikas Sajjan
-> wrote:
->>>>>>>>   >   >   >   On 17 December 2012 20:55, Laurent Pinchart wrote:
->>>>>>>>>   >   >   >   >   Hi Vikas,
->>>>>>>>>   >   >   >   >
->>>>>>>>>   >   >   >   >   Sorry for the late reply. I now have more time to
->>>>>>>>>   >   >   >   >   work on CDF, so
->>>>>>>>>   >   >   >   >   delays should be much shorter.
->>>>>>>>>   >   >   >   >
->>>>>>>>>   >   >   >   >   On Thursday 06 December 2012 10:51:15 Vikas Sajjan
-> wrote:
->>>>>>>>>>   >   >   >   >   >   Hi Laurent,
->>>>>>>>>>   >   >   >   >   >
->>>>>>>>>>   >   >   >   >   >   I was thinking of porting CDF to samsung
->>>>>>>>>>   >   >   >   >   >   EXYNOS 5250 platform,
->>>>>>>>>>   >   >   >   >   >   what I found is that, the exynos display
->>>>>>>>>>   >   >   >   >   >   controller is MIPI DSI
->>>>>>>>>>   >   >   >   >   >   based controller.
->>>>>>>>>>   >   >   >   >   >
->>>>>>>>>>   >   >   >   >   >   But if I look at CDF patches, it has only
->>>>>>>>>>   >   >   >   >   >   support for MIPI DBI
->>>>>>>>>>   >   >   >   >   >   based Display controller.
->>>>>>>>>>   >   >   >   >   >
->>>>>>>>>>   >   >   >   >   >   So my question is, do we have any generic
->>>>>>>>>>   >   >   >   >   >   framework for MIPI DSI
->>>>>>>>>>   >   >   >   >   >   based display controller? basically I wanted
->>>>>>>>>>   >   >   >   >   >   to know, how to go
->>>>>>>>>>   >   >   >   >   >   about porting CDF for such kind of display
->>>>>>>>>>   >   >   >   >   >   controller.
->>>>>>>>>   >   >   >   >
->>>>>>>>>   >   >   >   >   MIPI DSI support is not available yet. The only
->>>>>>>>>   >   >   >   >   reason for that is
->>>>>>>>>   >   >   >   >   that I don't have any MIPI DSI hardware to write
->>>>>>>>>   >   >   >   >   and test the code
->>>>>>>>>   >   >   >   >   with:-)
->>>>>>>>>   >   >   >   >
->>>>>>>>>   >   >   >   >   The common display framework should definitely
->>>>>>>>>   >   >   >   >   support MIPI DSI. I
->>>>>>>>>   >   >   >   >   think the existing MIPI DBI code could be used as
->>>>>>>>>   >   >   >   >   a base, so the
->>>>>>>>>   >   >   >   >   implementation shouldn't be too high.
->>>>>>>>>   >   >   >   >
->>>>>>>>>   >   >   >   >   Yeah, i was also thinking in similar lines, below
->>>>>>>>>   >   >   >   >   is my though for
->>>>>>>>>   >   >   >   >   MIPI DSI support in CDF.
->>>>>>>>   >   >   >
->>>>>>>>   >   >   >   o   MIPI DSI support as part of CDF framework will
->>>>>>>>   >   >   >   expose
->>>>>>>>   >   >   >   §  mipi_dsi_register_device(mpi_device) (will be
->>>>>>>>   >   >   >   called mach-xxx-dt.c
->>>>>>>>   >   >   >   file )
->>>>>>>>   >   >   >   §  mipi_dsi_register_driver(mipi_driver, bus ops)
->>>>>>>>   >   >   >   (will be called
->>>>>>>>   >   >   >   from platform specific init driver call )
->>>>>>>>   >   >   >   ·    bus ops will be
->>>>>>>>   >   >   >   o   read data
->>>>>>>>   >   >   >   o   write data
->>>>>>>>   >   >   >   o   write command
->>>>>>>>   >   >   >   §  MIPI DSI will be registered as bus_register()
->>>>>>>>   >   >   >
->>>>>>>>   >   >   >   When MIPI DSI probe is called, it (e.g., Exynos or
->>>>>>>>   >   >   >   OMAP MIPI DSI)
->>>>>>>>   >   >   >   will initialize the MIPI DSI HW IP.
->>>>>>>>   >   >   >
->>>>>>>>   >   >   >   This probe will also parse the DT file for MIPI DSI
->>>>>>>>   >   >   >   based panel, add
->>>>>>>>   >   >   >   the panel device (device_add() ) to kernel and
->>>>>>>>   >   >   >   register the display
->>>>>>>>   >   >   >   entity with its control and  video ops with CDF.
->>>>>>>>   >   >   >
->>>>>>>>   >   >   >   I can give this a try.
->>>>>>>   >   >
->>>>>>>   >   >   I am currently in progress of reworking Exynos MIPI DSIM
->>>>>>>   >   >   code and
->>>>>>>   >   >   s6e8ax0 LCD driver to use the v2 RFC of Common Display
->>>>>>>   >   >   Framework. I
->>>>>>>   >   >   have most of the work done, I have just to solve several
->>>>>>>   >   >   remaining
->>>>>>>   >   >   problems.
->>>>>>   >
->>>>>>   >   Do you already have code that you can publish ? I'm
->>>>>>   >   particularly
->>>>>>   >   interested (and I think Tomi Valkeinen would be as well) in
->>>>>>   >   looking at
->>>>>>   >   the DSI operations you expose to DSI sinks (panels,
->>>>>>   >   transceivers, ...).
->>>>>
->>>>>   Well, I'm afraid this might be little below your expectations, but
->>>>>   here's an initial RFC of the part defining just the DSI bus. I
->>>>>   need a bit more time for patches for Exynos MIPI DSI master and
->>>>>   s6e8ax0 LCD.
->>> No worries. I was particularly interested in the DSI operations you
->>> needed to export, they seem pretty simple. Thank you for sharing the
->>> code.
->> FYI,
->> here is STE "DSI API":
->> http://www.igloocommunity.org/gitweb/?p=kernel/igloo-kernel.git;a=blob;f
->> =include/video/mcde.h;h=499ce5cfecc9ad77593e761cdcc1624502f28432;hb=HEAD
->> #l361
->>
->> But it is not perfect. After a couple of products we realized that most
->> panel drivers want an easy way to send a bunch of init commands in one
->> go. So I think it should be an op for sending an array of commands at
->> once. Something like
->>
->> struct dsi_cmd {
->>       enum mipi_pkt_type type; /* MIPI DSI, DCS, SetPacketLen, ... */
->>       u8 cmd;
->>       int dataLen;
->>       u8 *data;
->> }
->> struct dsi_ops {
->>       int dsi_write(source, int num_cmds, struct dsi_cmd *cmds);
->>       ...
->> }
-> Yes, this should be flexible enough to cover most of (or even whole) DSI
-> specification.
+Hi Guennadi,
+
+Nice Work, Thanks for the patch.
+
+On Tue, Jan 8, 2013 at 3:36 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must request deferred probing as long as their
+> bridge driver hasn't probed. The bridge driver during its probing submits a
+> an arbitrary number of subdevice descriptor groups to the framework to
+> manage. After that it can add callbacks to each of those groups to be
+> called at various stages during subdevice probing, e.g. after completion.
+> Then the bridge driver can request single groups to be probed, finish its
+> own probing and continue its video subsystem configuration from its
+> callbacks.
 >
-> However I'm not sure whether the dsi_write name would be appropriate,
-> since DSI packet types include also read and special transactions. So,
-> according to DSI terminology, maybe dsi_transaction would be better?
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-I think read should still be separate. At least on my HW read and write 
-are quite different. But all "transactions" are very much the same in HW 
-setup. The ... was dsi_write etc ;) Like set_max_packet_size should 
-maybe be an ops. Since only the implementer of the "video source" will 
-know what the max read return packet size for that DSI IP is. The panels 
-don't know that. Maybe another ops to retrieve some info about the caps 
-of the video source would help that. Then a helper could call that and 
-then the dsi_write one.
->> And I think I still prefer the dsi_bus in favor of the abstract video
->> source. It just looks like a home made bus with bus-ops ... can't you do
->> something similar using the normal driver framework? enable/disable
->> looks like suspend/resume, register/unregister_vid_src is like
->> bus_(un)register_device, ... the video source anyway seems unattached
->> to the panel stuff with the find_video_source call.
-> DSI needs specific power management. It's necessary to power up the panel
-> first to make it wait for Tinit event and then enable DSI master to
-> trigger such event. Only then rest of panel initialization can be
-> completed.
+Tested-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-I know, we have a very complex sequence for our HDMI encoder which uses 
-sort of continuous DSI cmmand mode. And power/clock on sequences are 
-tricky to get right in our current "CDF" API (mcde_display). But I fail 
-to see how the current video source API is different from just using the 
-bus/device APIs.
+Regards,
+--Prabhakar Lad
+
+> ---
+> v5: Now really fix the case, when subdevices probe successfully before the
+> bridge, thanks to Prabhakar for testing and reporting
 >
-> Also, as discussed in previous posts, some panels might use DSI only for
-> video data and another interface (I2C, SPI) for control data. In such case
-> it would be impossible to represent such device in a reasonable way using
-> current driver model.
+>  drivers/media/v4l2-core/Makefile     |    3 +-
+>  drivers/media/v4l2-core/v4l2-async.c |  294 ++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-async.h           |  113 +++++++++++++
+>  3 files changed, 409 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+>  create mode 100644 include/media/v4l2-async.h
 >
-I understand that you need to get hold of both the control and data bus 
-device in the driver. (Toshiba DSI-LVDS bridge is a good example and 
-commonly used "encoder" that can use both DSI and I2C control 
-interface.) But the control bus you get from device probe, and I guess 
-you could call bus_find_device_by_name(dsi_bus, "mydev") and return the 
-"datadev" which will have access to dsi bus ops just as you call 
-find_video_source("mysource") to access the "databus" ops directly with 
-a logical device (display entity).
-I'm not saying I would refuse to use video sources. I just think the two 
-models are so similar so it would be worth exploring how a device model 
-style API would look like and to compare against.
-
-/BR
-/Marcus
-
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index d065c01..b667ced 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -5,7 +5,8 @@
+>  tuner-objs     :=      tuner-core.o
+>
+>  videodev-objs  :=      v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> -                       v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+> +                       v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+> +                       v4l2-async.o
+>  ifeq ($(CONFIG_COMPAT),y)
+>    videodev-objs += v4l2-compat-ioctl32.o
+>  endif
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> new file mode 100644
+> index 0000000..434c53d
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -0,0 +1,294 @@
+> +/*
+> + * V4L2 asynchronous subdevice registration API
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/i2c.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/notifier.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/types.h>
+> +
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
+> +{
+> +       struct i2c_client *client = to_i2c_client(dev);
+> +       return hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
+> +               hw_dev->match.i2c.adapter_id == client->adapter->nr &&
+> +               hw_dev->match.i2c.address == client->addr;
+> +}
+> +
+> +static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
+> +{
+> +       return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
+> +               !strcmp(hw_dev->match.platform.name, dev_name(dev));
+> +}
+> +
+> +static LIST_HEAD(subdev_list);
+> +static LIST_HEAD(notifier_list);
+> +static DEFINE_MUTEX(list_lock);
+> +
+> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> +                                                   struct v4l2_async_subdev_list *asdl)
+> +{
+> +       struct v4l2_async_subdev *asd = NULL;
+> +       bool (*match)(struct device *,
+> +                     struct v4l2_async_hw_device *);
+> +
+> +       list_for_each_entry (asd, &notifier->waiting, list) {
+> +               struct v4l2_async_hw_device *hw = &asd->hw;
+> +               switch (hw->bus_type) {
+> +               case V4L2_ASYNC_BUS_SPECIAL:
+> +                       match = hw->match.special.match;
+> +                       if (!match)
+> +                               /* Match always */
+> +                               return asd;
+> +                       break;
+> +               case V4L2_ASYNC_BUS_PLATFORM:
+> +                       match = match_platform;
+> +                       break;
+> +               case V4L2_ASYNC_BUS_I2C:
+> +                       match = match_i2c;
+> +                       break;
+> +               default:
+> +                       /* Oops */
+> +                       match = NULL;
+> +                       dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> +                               "Invalid bus-type %u on %p\n", hw->bus_type, asd);
+> +               }
+> +
+> +               if (match && match(asdl->dev, hw))
+> +                       break;
+> +       }
+> +
+> +       return asd;
+> +}
+> +
+> +static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> +                                 struct v4l2_async_subdev_list *asdl,
+> +                                 struct v4l2_async_subdev *asd)
+> +{
+> +       int ret;
+> +
+> +       /* Remove from the waiting list */
+> +       list_del(&asd->list);
+> +       asdl->asd = asd;
+> +       asdl->notifier = notifier;
+> +
+> +       if (notifier->bound) {
+> +               ret = notifier->bound(notifier, asdl);
+> +               if (ret < 0)
+> +                       return ret;
+> +       }
+> +       /* Move from the global subdevice list to notifier's done */
+> +       list_move(&asdl->list, &notifier->done);
+> +
+> +       ret = v4l2_device_register_subdev(notifier->v4l2_dev,
+> +                                         asdl->subdev);
+> +       if (ret < 0) {
+> +               if (notifier->unbind)
+> +                       notifier->unbind(notifier, asdl);
+> +               return ret;
+> +       }
+> +
+> +       if (list_empty(&notifier->waiting) && notifier->complete)
+> +               return notifier->complete(notifier);
+> +
+> +       return 0;
+> +}
+> +
+> +static struct device *v4l2_async_unbind(struct v4l2_async_subdev_list *asdl)
+> +{
+> +       struct device *dev = asdl->dev;
+> +       v4l2_device_unregister_subdev(asdl->subdev);
+> +       /* Subdevice driver will reprobe and put asdl back onto the list */
+> +       list_del(&asdl->list);
+> +       asdl->asd = NULL;
+> +       /* If we handled USB devices, we'd have to lock the parent too */
+> +       device_release_driver(dev);
+> +       return dev;
+> +}
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +                                struct v4l2_async_notifier *notifier)
+> +{
+> +       struct v4l2_async_subdev_list *asdl, *tmp;
+> +       int i;
+> +
+> +       notifier->v4l2_dev = v4l2_dev;
+> +       INIT_LIST_HEAD(&notifier->waiting);
+> +       INIT_LIST_HEAD(&notifier->done);
+> +
+> +       for (i = 0; i < notifier->subdev_num; i++)
+> +               list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
+> +
+> +       mutex_lock(&list_lock);
+> +
+> +       /* Keep also completed notifiers on the list */
+> +       list_add(&notifier->list, &notifier_list);
+> +
+> +       list_for_each_entry_safe(asdl, tmp, &subdev_list, list) {
+> +               struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
+> +               int ret;
+> +
+> +               if (!asd)
+> +                       continue;
+> +
+> +               if (notifier->bind) {
+> +                       ret = notifier->bind(notifier, asdl);
+> +                       if (ret < 0)
+> +                               continue;
+> +               }
+> +
+> +               ret = v4l2_async_test_notify(notifier, asdl, asd);
+> +               if (ret < 0) {
+> +                       mutex_unlock(&list_lock);
+> +                       return ret;
+> +               }
+> +       }
+> +
+> +       mutex_unlock(&list_lock);
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_notifier_register);
+> +
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +{
+> +       struct v4l2_async_subdev_list *asdl, *tmp;
+> +       int i = 0;
+> +       struct device **dev = kcalloc(notifier->subdev_num,
+> +                                     sizeof(*dev), GFP_KERNEL);
+> +       if (!dev)
+> +               dev_err(notifier->v4l2_dev->dev,
+> +                       "Failed to allocate device cache!\n");
+> +
+> +       mutex_lock(&list_lock);
+> +
+> +       list_del(&notifier->list);
+> +
+> +       list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
+> +               if (dev)
+> +                       dev[i++] = get_device(asdl->dev);
+> +               v4l2_async_unbind(asdl);
+> +
+> +               if (notifier->unbind)
+> +                       notifier->unbind(notifier, asdl);
+> +       }
+> +
+> +       mutex_unlock(&list_lock);
+> +
+> +       if (dev) {
+> +               while (i--) {
+> +                       if (dev[i] && device_attach(dev[i]) < 0)
+> +                               dev_err(dev[i], "Failed to re-probe to %s\n",
+> +                                       dev[i]->driver ? dev[i]->driver->name : "(none)");
+> +                       put_device(dev[i]);
+> +               }
+> +               kfree(dev);
+> +       }
+> +       /*
+> +        * Don't care about the waiting list, it is initialised and populated
+> +        * upon notifier registration.
+> +        */
+> +}
+> +EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> +
+> +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl)
+> +{
+> +       struct v4l2_async_notifier *notifier;
+> +       int ret = 0;
+> +
+> +       mutex_lock(&list_lock);
+> +
+> +       list_for_each_entry(notifier, &notifier_list, list) {
+> +               struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier,
+> +                                                                  asdl);
+> +               /*
+> +                * Whether or not probing succeeds - this is the right hardware
+> +                * subdevice descriptor and we can provide it to the notifier
+> +                */
+> +               if (asd) {
+> +                       asdl->asd = asd;
+> +                       if (notifier->bind)
+> +                               ret = notifier->bind(notifier, asdl);
+> +                       break;
+> +               }
+> +       }
+> +
+> +       mutex_unlock(&list_lock);
+> +
+> +       return ret;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_bind);
+> +
+> +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl)
+> +{
+> +       struct v4l2_async_notifier *notifier;
+> +
+> +       mutex_lock(&list_lock);
+> +
+> +       INIT_LIST_HEAD(&asdl->list);
+> +
+> +       list_for_each_entry(notifier, &notifier_list, list) {
+> +               struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
+> +               if (asd) {
+> +                       int ret = v4l2_async_test_notify(notifier, asdl, asd);
+> +                       mutex_unlock(&list_lock);
+> +                       return ret;
+> +               }
+> +       }
+> +
+> +       /* None matched, wait for hot-plugging */
+> +       list_add(&asdl->list, &subdev_list);
+> +
+> +       mutex_unlock(&list_lock);
+> +
+> +       return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_bound);
+> +
+> +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl)
+> +{
+> +       struct v4l2_async_notifier *notifier = asdl->notifier;
+> +       struct device *dev;
+> +
+> +       if (!asdl->asd)
+> +               return;
+> +
+> +       mutex_lock(&list_lock);
+> +
+> +       dev = asdl->dev;
+> +
+> +       list_add(&asdl->asd->list, &notifier->waiting);
+> +
+> +       dev = get_device(asdl->dev);
+> +
+> +       v4l2_async_unbind(asdl);
+> +
+> +       if (notifier->unbind)
+> +               notifier->unbind(notifier, asdl);
+> +
+> +       mutex_unlock(&list_lock);
+> +
+> +       /* Re-probe with lock released - avoid a deadlock */
+> +       if (dev && device_attach(dev) < 0)
+> +               dev_err(dev, "Failed to re-probe to %s\n",
+> +                       dev->driver ? dev->driver->name : "(none)");
+> +
+> +       put_device(dev);
+> +}
+> +EXPORT_SYMBOL(v4l2_async_subdev_unbind);
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> new file mode 100644
+> index 0000000..91d436d
+> --- /dev/null
+> +++ b/include/media/v4l2-async.h
+> @@ -0,0 +1,113 @@
+> +/*
+> + * V4L2 asynchronous subdevice registration API
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef V4L2_ASYNC_H
+> +#define V4L2_ASYNC_H
+> +
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/notifier.h>
+> +
+> +#include <media/v4l2-subdev.h>
+> +
+> +struct device;
+> +struct v4l2_device;
+> +struct v4l2_async_notifier;
+> +
+> +enum v4l2_async_bus_type {
+> +       V4L2_ASYNC_BUS_SPECIAL,
+> +       V4L2_ASYNC_BUS_PLATFORM,
+> +       V4L2_ASYNC_BUS_I2C,
+> +};
+> +
+> +struct v4l2_async_hw_device {
+> +       enum v4l2_async_bus_type bus_type;
+> +       union {
+> +               struct {
+> +                       const char *name;
+> +               } platform;
+> +               struct {
+> +                       int adapter_id;
+> +                       unsigned short address;
+> +               } i2c;
+> +               struct {
+> +                       bool (*match)(struct device *,
+> +                                     struct v4l2_async_hw_device *);
+> +                       void *priv;
+> +               } special;
+> +       } match;
+> +};
+> +
+> +/**
+> + * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+> + * @hw:                this device descriptor
+> + * @list:      member in a list of subdevices
+> + */
+> +struct v4l2_async_subdev {
+> +       struct v4l2_async_hw_device hw;
+> +       struct list_head list;
+> +};
+> +
+> +/**
+> + * v4l2_async_subdev_list - provided by subdevices
+> + * @list:      member in a list of subdevices
+> + * @dev:       hardware device
+> + * @subdev:    V4L2 subdevice
+> + * @asd:       pointer to respective struct v4l2_async_subdev
+> + * @notifier:  pointer to managing notifier
+> + */
+> +struct v4l2_async_subdev_list {
+> +       struct list_head list;
+> +       struct device *dev;
+> +       struct v4l2_subdev *subdev;
+> +       struct v4l2_async_subdev *asd;
+> +       struct v4l2_async_notifier *notifier;
+> +};
+> +
+> +/**
+> + * v4l2_async_notifier - provided by bridges
+> + * @subdev_num:        number of subdevices
+> + * @subdev:    array of pointers to subdevices
+> + * @v4l2_dev:  pointer to sruct v4l2_device
+> + * @waiting:   list of subdevices, waiting for their drivers
+> + * @done:      list of subdevices, already probed
+> + * @list:      member in a global list of notifiers
+> + * @bind:      a subdevice driver is about to probe one of your subdevices
+> + * @bound:     a subdevice driver has successfully probed one of your subdevices
+> + * @complete:  all your subdevices have been probed successfully
+> + * @unbind:    a subdevice is leaving
+> + */
+> +struct v4l2_async_notifier {
+> +       int subdev_num;
+> +       struct v4l2_async_subdev **subdev;
+> +       struct v4l2_device *v4l2_dev;
+> +       struct list_head waiting;
+> +       struct list_head done;
+> +       struct list_head list;
+> +       int (*bind)(struct v4l2_async_notifier *notifier,
+> +                   struct v4l2_async_subdev_list *asdl);
+> +       int (*bound)(struct v4l2_async_notifier *notifier,
+> +                    struct v4l2_async_subdev_list *asdl);
+> +       int (*complete)(struct v4l2_async_notifier *notifier);
+> +       void (*unbind)(struct v4l2_async_notifier *notifier,
+> +                      struct v4l2_async_subdev_list *asdl);
+> +};
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +                                struct v4l2_async_notifier *notifier);
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+> +/*
+> + * If subdevice probing fails any time after v4l2_async_subdev_bind(), no clean
+> + * up must be called. This function is only a message of intention.
+> + */
+> +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
+> +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
+> +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
+> +#endif
+> --
+> 1.7.2.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
