@@ -1,118 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:36128 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764Ab3AWTil (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 14:38:41 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH300EB3FWGIBD0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:38:40 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MH3005Z9FW81A60@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:38:40 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-csis: Check return value of clk_enable/clk_set_rate
-Date: Wed, 23 Jan 2013 20:38:29 +0100
-Message-id: <1358969909-20566-1-git-send-email-s.nawrocki@samsung.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:52770 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755172Ab3AJUyy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 15:54:54 -0500
+Message-ID: <50EF2AC0.20206@schinagl.nl>
+Date: Thu, 10 Jan 2013 21:55:28 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Jiri Slaby <jirislaby@gmail.com>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com> <50EF276C.1080101@gmail.com>
+In-Reply-To: <50EF276C.1080101@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clk_set_rate(), clk_enable() functions can fail, so check the return
-values to avoid surprises. While at it fix the error path and use
-ERR_PTR() value to indicate invalid clock.
+On 01/10/13 21:41, Jiri Slaby wrote:
+> On 01/10/2013 09:38 PM, Manu Abraham wrote:
+>> The format can be definitely changed. There's no issue to it.
+>
+> No you cannot. Applications depend on that, it's part of the dvb ABI. If
+> you changed that, you would do the same mistake as Mauro let it flowing
+> through his tree and it was pointed out by Linus in the link you sent...
+>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/mipi-csis.c |   29 ++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index c25dbc4..b9eea8e 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -365,11 +365,11 @@ static void s5pcsis_clk_put(struct csis_state *state)
- 	int i;
-
- 	for (i = 0; i < NUM_CSIS_CLOCKS; i++) {
--		if (IS_ERR_OR_NULL(state->clock[i]))
-+		if (IS_ERR(state->clock[i]))
- 			continue;
- 		clk_unprepare(state->clock[i]);
- 		clk_put(state->clock[i]);
--		state->clock[i] = NULL;
-+		state->clock[i] = ERR_PTR(-EINVAL);
- 	}
- }
-
-@@ -378,14 +378,19 @@ static int s5pcsis_clk_get(struct csis_state *state)
- 	struct device *dev = &state->pdev->dev;
- 	int i, ret;
-
-+	for (i = 0; i < NUM_CSIS_CLOCKS; i++)
-+		state->clock[i] = ERR_PTR(-EINVAL);
-+
- 	for (i = 0; i < NUM_CSIS_CLOCKS; i++) {
- 		state->clock[i] = clk_get(dev, csi_clock_name[i]);
--		if (IS_ERR(state->clock[i]))
-+		if (IS_ERR(state->clock[i])) {
-+			ret = PTR_ERR(state->clock[i]);
- 			goto err;
-+		}
- 		ret = clk_prepare(state->clock[i]);
- 		if (ret < 0) {
- 			clk_put(state->clock[i]);
--			state->clock[i] = NULL;
-+			state->clock[i] = ERR_PTR(-EINVAL);
- 			goto err;
- 		}
- 	}
-@@ -393,7 +398,7 @@ static int s5pcsis_clk_get(struct csis_state *state)
- err:
- 	s5pcsis_clk_put(state);
- 	dev_err(dev, "failed to get clock: %s\n", csi_clock_name[i]);
--	return -ENXIO;
-+	return ret;
- }
-
- static void dump_regs(struct csis_state *state, const char *label)
-@@ -825,19 +830,25 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
-
- 	ret = s5pcsis_clk_get(state);
- 	if (ret)
--		goto e_clkput;
-+		goto e_regput;
-
--	clk_enable(state->clock[CSIS_CLK_MUX]);
- 	if (state->clk_frequency)
--		clk_set_rate(state->clock[CSIS_CLK_MUX], state->clk_frequency);
-+		ret = clk_set_rate(state->clock[CSIS_CLK_MUX],
-+				   state->clk_frequency);
- 	else
- 		dev_WARN(dev, "No clock frequency specified!\n");
-+	if (ret < 0)
-+		goto e_clkput;
-+
-+	ret = clk_enable(state->clock[CSIS_CLK_MUX]);
-+	if (ret < 0)
-+		goto e_clkput;
-
- 	ret = devm_request_irq(dev, state->irq, s5pcsis_irq_handler,
- 			       0, dev_name(dev), state);
- 	if (ret) {
- 		dev_err(dev, "Interrupt request failed\n");
--		goto e_regput;
-+		goto e_clkput;
- 	}
-
- 	v4l2_subdev_init(&state->sd, &s5pcsis_subdev_ops);
---
-1.7.9.5
-
+Actually, there's plenty of apps etc that depend on it. I know some 
+distro's install it into /usr/share/dvb for all to use. I think actually 
+only a very small handfull use their own scanfiles. Very small handfull 
+I belive ;)
