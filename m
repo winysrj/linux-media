@@ -1,97 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:64764 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753698Ab3ACThZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 14:37:25 -0500
-Received: by mail-ob0-f177.google.com with SMTP id uo13so13872768obb.8
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 11:37:24 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20130103172735.0aa1db6d@redhat.com>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-	<50E5A515.4050500@iki.fi>
-	<CAHFNz9+-ixyYpAE1egC_s=MSk+t+si-tLTR=T8GK9QoK=vdf5A@mail.gmail.com>
-	<20130103172735.0aa1db6d@redhat.com>
-Date: Fri, 4 Jan 2013 01:02:02 +0530
-Message-ID: <CAHFNz9J1ziYfSb8zZbxsNoFfCC5SyW9iJKEA3y7HA__zU9oqpA@mail.gmail.com>
-Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:35224 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751987Ab3AJWMN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 17:12:13 -0500
+Date: Thu, 10 Jan 2013 20:11:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Jiri Slaby <jirislaby@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+Message-ID: <20130110201134.364d5bc6@redhat.com>
+In-Reply-To: <50EF29D1.2080102@schinagl.nl>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<50EF1034.7060100@gmail.com>
+	<CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+	<20130110180434.0681a7e1@redhat.com>
+	<CAHFNz9+Jon-YSjkX5gFOTXwX+Vsmi0Rq+X_N61-m2+AEX+8tGg@mail.gmail.com>
+	<50EF29D1.2080102@schinagl.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 4, 2013 at 12:57 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Fri, 4 Jan 2013 00:39:25 +0530
-> Manu Abraham <abraham.manu@gmail.com> escreveu:
->
->> Hi Antti,
->>
->> On Thu, Jan 3, 2013 at 9:04 PM, Antti Palosaari <crope@iki.fi> wrote:
->> > On 01/01/2013 06:48 PM, Manu Abraham wrote:
->> >>
->> >> On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
->> >> <mchehab@redhat.com> wrote:
->> >>
->> >>> [RFCv4] dvb: Add DVBv5 properties for quality parameters
->> >>>
->> >>> The DVBv3 quality parameters are limited on several ways:
->> >>>          - Doesn't provide any way to indicate the used measure;
->> >>>          - Userspace need to guess how to calculate the measure;
->> >>>          - Only a limited set of stats are supported;
->> >>>          - Doesn't provide QoS measure for the OFDM TPS/TMCC
->> >>>            carriers, used to detect the network parameters for
->> >>>            DVB-T/ISDB-T;
->> >>>          - Can't be called in a way to require them to be filled
->> >>>            all at once (atomic reads from the hardware), with may
->> >>>            cause troubles on interpreting them on userspace;
->> >>>          - On some OFDM delivery systems, the carriers can be
->> >>>            independently modulated, having different properties.
->> >>>            Currently, there's no way to report per-layer stats;
->> >>
->> >>
->> >> per layer stats is a mythical bird, nothing of that sort does exist. If
->> >> some
->> >> driver states that it is simply due to lack of knowledge at the coding
->> >> side.
->> >>
->> >> ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
->> >
->> >
->> > Manu, you confused now two concept (which are aimed to resolve same real
->> > life problem) - hierarchical coding and multiple transport stream. Both are
->> > quite similar on lower level of radio channel, but differs on upper levels.
->> >
->> > Hierarchical is a little bit weird baby as it remuxes those lower lever
->> > radio channels (called layers in case of ISDB-T) to one single mux!
->>
->> That is not really correct. There is one single OFDM channel, the layers
->> are processed via hierarchial separation. Stuffing exists, to maintain
->> constant rate.
->>
->> http://farm9.staticflickr.com/8077/8343296328_e1e375b519_b_d.jpg
->>
->> When rate is constant within the same channel..
->> (The only case what I can think parameters could be different with a
->> constant rate,
->> is that stuffing frames are unaccounted for. Most likely a bug ?)
->
-> What did you smoke? That picture has nothing to do with ISDB!
->
+Em Thu, 10 Jan 2013 21:51:29 +0100
+Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
 
-ARIB STD – B31
-Version 1.6-E2
-－17－
-Fig. 3-2 shows the basic configuration of the channel coding.
+> Anyway, fighting about it won't help anyone
 
-It just shows, you understand crap.
+Agreed. From my side, don't expect further comments. That's hopefully
+my last email on this thread.
 
-Manu
+Oliver,
+
+You owns your time. So, it is really your call.
+
+>From my side, I appreciate your efforts on keep maintaining it. 
+
+I don't really care if this is done as a separate tree and/or together 
+with dvb-apps, although, except for the scan files, the dvb-apps seem 
+pretty much orphaned for a long time. So, among other reasons, IMHO
+it is better to keep it forked.
+
+In any case, reimporting the files from an external tree is easy. It is
+equally easy to add a script at dvb-apps and on other applications that
+would take a tarball of it and copy the files there. We do that approach
+on v4l-utils, in order to sync it with kernel headers and kernel IR scancode
+tables, as we do need new headers there during development, and users do
+need the very latest IR scancode tables.
+
+If you decide to keep it in separate, I recommend you to add there some
+version schema to make easier for distributions that may want to add
+a package there, for them to track when this gets updated.
+
+Also, just like what we do with media-build's "todaytar" target, it may 
+also make some sense to have an script running at linuxtv.org that would
+create daily tarballs when a new commit is merged there, or when a new tag
+is added. That would help to have scripts at applications to sync with
+the latest files.
+
+If you decide to either drop the tree or to add such tarball script
+at the server, please ping me.
+
+-- 
+
+Cheers,
+Mauro
