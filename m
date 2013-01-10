@@ -1,97 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:22952 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222Ab3APONb (ORCPT
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:51819 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754651Ab3AJUgV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 09:13:31 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGQ005XD245SK40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 14:13:29 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MGQ00L2R25SBG10@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 14:13:29 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, ajaykumar.rs@samsung.com,
-	patches@linaro.org
-References: <1357541069-7898-1-git-send-email-sachin.kamat@linaro.org>
- <50F67D4A.9010909@samsung.com>
- <CAK9yfHzaGgKrwbwbHjiciMWdD3dEqMctWj89pCSvUuotHBVG7Q@mail.gmail.com>
-In-reply-to: <CAK9yfHzaGgKrwbwbHjiciMWdD3dEqMctWj89pCSvUuotHBVG7Q@mail.gmail.com>
-Subject: RE: [PATCH] s5p-g2d: Add support for G2D H/W Rev.4.1
-Date: Wed, 16 Jan 2013 15:13:03 +0100
-Message-id: <000701cdf3f3$9a10b0c0$ce321240$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Thu, 10 Jan 2013 15:36:21 -0500
+Received: by mail-oa0-f49.google.com with SMTP id l10so1059931oag.22
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:36:21 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50EF2155.5060905@schinagl.nl>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
+	<CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
+	<50EF2155.5060905@schinagl.nl>
+Date: Fri, 11 Jan 2013 02:06:21 +0530
+Message-ID: <CAHFNz9L+B3O0E0dDo7venTAEbrhbaSGc7W9fszg-wUVh5Z4JSw@mail.gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Jiri Slaby <jirislaby@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On 1/11/13, Oliver Schinagl <oliver+list@schinagl.nl> wrote:
+> On 01/10/13 20:04, Manu Abraham wrote:
+>> It isn't that way. Users have to deal with 2 repositories as well.
+>> Anyway,
+>> the repository is not having that many developers to state that
+>> developers
+>> can handle all the burden. It is just but the reverse.
+> Well one of the biggest issues was, that the scanfiles where ill
+> maintained and projects where working around those shortcommings.
 
-I tested your patch on Exynos 4210 and it works. Ack on my side.
+I do see that Christoph hasn't been around lately. I would appreciate
+it as well, if you would maintain the files within the dvb-apps repository
+itself.
 
-Best wishes,
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: Wednesday, January 16, 2013 11:24 AM
-> To: Sylwester Nawrocki
-> Cc: linux-media@vger.kernel.org; ajaykumar.rs@samsung.com;
-> patches@linaro.org; Kamil Debski
-> Subject: Re: [PATCH] s5p-g2d: Add support for G2D H/W Rev.4.1
-> 
-> Hi Sylwester,
-> 
-> On 16 January 2013 15:43, Sylwester Nawrocki <s.nawrocki@samsung.com>
-> wrote:
-> > Hi Sachin,
-> >
-> > I have just one small comment...
-> >
-> > On 01/07/2013 07:44 AM, Sachin Kamat wrote:
-> >> +static void *g2d_get_drv_data(struct platform_device *pdev) {
-> >> +     struct g2d_variant *driver_data = NULL;
-> >> +
-> >> +     driver_data = (struct g2d_variant *)
-> >> +             platform_get_device_id(pdev)->driver_data;
-> >> +
-> >> +     return driver_data;
-> >> +}
-> >
-> > How about adding this to g2d.h as:
-> >
-> > static inline struct g2d_variant *g2d_get_drv_data(struct
-> > platform_device *pdev) {
-> >         return (struct g2d_variant
-> > *)platform_get_device_id(pdev)->driver_data;
-> > }
-> >
-> > ?
-> 
-> OK. I will move it to g2d.h and resend the patch.
-> 
-> >
-> > Otherwise the patch looks OK to me.
-> >
-> > --
-> >
-> > Thanks,
-> > Sylwester
-> 
-> 
-> 
-> --
-> With warm regards,
-> Sachin
-
-
+Manu
