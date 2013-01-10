@@ -1,94 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53857 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755900Ab3AEWxH (ORCPT
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:39511 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513Ab3AJUlV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 17:53:07 -0500
-Received: from localhost.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id DEABB60099
-	for <linux-media@vger.kernel.org>; Sun,  6 Jan 2013 00:53:00 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/1] v4l: Don't compile v4l2-int-device unless really needed
-Date: Sun,  6 Jan 2013 00:56:10 +0200
-Message-Id: <1357426570-9879-1-git-send-email-sakari.ailus@iki.fi>
+	Thu, 10 Jan 2013 15:41:21 -0500
+Received: by mail-ee0-f52.google.com with SMTP id b15so116668eek.25
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:41:19 -0800 (PST)
+Message-ID: <50EF276C.1080101@gmail.com>
+Date: Thu, 10 Jan 2013 21:41:16 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Oliver Schinagl <oliver+list@schinagl.nl>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
+In-Reply-To: <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a configuration option for v4l2-int-device so it is only compiled when
-necessary, which is only by omap24xxcam and tcm825x drivers.
+On 01/10/2013 09:38 PM, Manu Abraham wrote:
+> The format can be definitely changed. There's no issue to it.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-The side effect of this patch is that there's a new config option in the
-main media menu to select V4L2 int device. The drivers using it are hidden
-unless the option is selected.
+No you cannot. Applications depend on that, it's part of the dvb ABI. If
+you changed that, you would do the same mistake as Mauro let it flowing
+through his tree and it was pointed out by Linus in the link you sent...
 
- drivers/media/i2c/Kconfig        |    2 +-
- drivers/media/platform/Kconfig   |    2 +-
- drivers/media/v4l2-core/Kconfig  |   11 +++++++++++
- drivers/media/v4l2-core/Makefile |    3 ++-
- 4 files changed, 15 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 24d78e2..1e4b2d0 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -477,7 +477,7 @@ config VIDEO_MT9V032
- 
- config VIDEO_TCM825X
- 	tristate "TCM825x camera sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_INT_DEVICE
- 	depends on MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This is a driver for the Toshiba TCM825x VGA camera sensor.
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 3dcfea6..0641ade 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -92,7 +92,7 @@ config VIDEO_M32R_AR_M64278
- 
- config VIDEO_OMAP2
- 	tristate "OMAP2 Camera Capture Interface driver"
--	depends on VIDEO_DEV && ARCH_OMAP2
-+	depends on VIDEO_DEV && ARCH_OMAP2 && VIDEO_V4L2_INT_DEVICE
- 	select VIDEOBUF_DMA_SG
- 	---help---
- 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 65875c3..1f16110 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -82,3 +82,14 @@ config VIDEOBUF2_DMA_SG
- 	#depends on HAS_DMA
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_MEMOPS
-+
-+config VIDEO_V4L2_INT_DEVICE
-+	tristate "V4L2 int device (DEPRECATED)"
-+	depends on VIDEO_V4L2
-+	---help---
-+	  An early framework for a hardware-independent interface for
-+	  image sensors and bridges etc. Currently used by omap24xxcam and
-+	  tcm825x drivers that should be converted to V4L2 subdev.
-+
-+	  Do not use for new developments.
-+
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c2d61d4..a9d3552 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -10,7 +10,8 @@ ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
- 
--obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
-+obj-$(CONFIG_VIDEO_DEV) += videodev.o
-+obj-$(CONFIG_VIDEO_V4L2_INT_DEVICE) += v4l2-int-device.o
- obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
- 
- obj-$(CONFIG_VIDEO_TUNER) += tuner.o
 -- 
-1.7.10.4
-
+js
