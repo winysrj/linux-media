@@ -1,167 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60550 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757245Ab3APWCh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 17:02:37 -0500
-Date: Wed, 16 Jan 2013 20:01:53 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Simon Farnsworth <simon.farnsworth@onelan.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130116200153.3ec3ee7d@redhat.com>
-In-Reply-To: <2817386.vHx2V41lNt@f17simon>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:42216 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753050Ab3AJVWn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 16:22:43 -0500
+Received: by mail-ee0-f41.google.com with SMTP id d41so540868eek.28
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 13:22:41 -0800 (PST)
+Message-ID: <50EF311E.4010602@gmail.com>
+Date: Thu, 10 Jan 2013 22:22:38 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Oliver Schinagl <oliver+list@schinagl.nl>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com> <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com> <50EF2155.5060905@schinagl.nl> <CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com> <50EF256B.8030308@gmail.com> <CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com> <50EF276C.1080101@gmail.com> <CAHFNz9+h0srknbngfhhvqwxzu=iM_fLPOVj8ebschx7EUt8=YA@mail.gmail.com>
+In-Reply-To: <CAHFNz9+h0srknbngfhhvqwxzu=iM_fLPOVj8ebschx7EUt8=YA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 16 Jan 2013 19:29:28 +0000
-Simon Farnsworth <simon.farnsworth@onelan.com> escreveu:
-
-> On Wednesday 16 January 2013 23:56:48 Manu Abraham wrote:
-> > On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
-> <snip>
-> > >
-> > > It is a common sense that the existing API is broken. If my proposal
-> > > requires adjustments, please comment on each specific patchset, instead
-> > > of filling this thread of destructive and useless complains.
-> > 
-> > 
-> > No, the concept of such a generalization is broken, as each new device will
-> > be different and trying to make more generalization is a waste of developer
-> > time and effort. The simplest approach would be to do a coarse approach,
-> > which is not a perfect world, but it will do some good results for all the
-> > people who use Linux-DVB. Still, repeating myself we are not dealing with
-> > high end professional devices. If we have such devices, then it makes sense
-> > to start such a discussion. Anyway professional devices will need a lot of
-> > other API extensions, so your arguments on the need for professional
-> > devices that do not exist are pointless and not agreeable to.
-> > 
-> Let's step back a bit. As a sophisticated API user, I want to be able to give
-> my end-users the following information:
+On 01/10/2013 09:49 PM, Manu Abraham wrote:
+> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+>> On 01/10/2013 09:38 PM, Manu Abraham wrote:
+>>> The format can be definitely changed. There's no issue to it.
+>>
+>> No you cannot. Applications depend on that, it's part of the dvb ABI. If
+>> you changed that, you would do the same mistake as Mauro let it flowing
+>> through his tree and it was pointed out by Linus in the link you sent...
 > 
->  * Signal strength in dBm
->  * Signal quality as "poor", "OK" and "good".
->  * Ideally, "increase signal strength to improve things" or "attenuate signal
-> to improve things"
-> 
-> In a DVBv3 world, "poor" equates to UNC != 0, "OK" is UNC == 0, BER != 0,
-> and "good" is UNC == BER == 0. The idea is that a user seeing "poor" knows
-> that they will see glitches in the output; a user seeing "OK" knows that
-> there's no glitching right now, but that the setup is marginal and may
-> struggle if anything changes, and a user seeing "good" knows that they've got
-> high quality signal. 
-> 
-> VDR wants even simpler - it just wants strength and quality on a 0 to 100
-> scale, where 100 is perfect, and 0 is nothing present.
-> 
-> In both cases, we want per-layer quality for ISDB-T, for the reasons you've
-> already outlined.
-> 
-> So, how do you provide such information? Is it enough to simply provide
-> strength in dBm, and quality as 0 to 100, where anything under 33 indicates
-> uncorrected errors, and anything under 66 indicates that quality is marginal?
+> I understand what you are thinking, but that's not exactly about it. The format
+> can simply be updated by adding newer params to it's end, thus not breaking
+> any of the applications.
 
-Unfortunately, not all devices can provide strength in dBm. 
+OK, but that still does not explain why it is requisite to have the data
+along with the sources. There is no problem in updating both the files
+and scandata separately, because it has to be compatible.
 
-On this RFC proposal, the driver will report if the device is providing
-it either in dBm or on a 0% to 100% scale.
-
-UNC, BER and S/N ratio (actually, C/N) measures are provided. Again, S/N
-can either be in dB or on a 0% to 100% scale.
-
-A high S/N ratio means low UNC/BER counts, so S/N is probably what VDR would
-use for a quality indicator.
-
-Assuming that is_isdb is true for ISDB, and that pid_layer is equal
-to the ISDB layer for a given program (determined elsewhere in the
-code), In order to get the QoS properties, I would code it like the 
-following (untested) code:
-
-...
-       if (parms->version >= 0x510) {
-               struct dtv_property dvb_prop[6];
-               struct dtv_properties props;
-               int j, layer;
-
-               dvb_prop[0].cmd = DTV_QOS_SIGNAL_STRENGTH;
-               dvb_prop[1].cmd = DTV_QOS_CNR;
-               dvb_prop[2].cmd = DTV_QOS_BIT_ERROR_COUNT;
-               dvb_prop[3].cmd = DTV_QOS_TOTAL_BITS_COUNT;
-               dvb_prop[4].cmd = DTV_QOS_ERROR_BLOCK_COUNT;
-               dvb_prop[5].cmd = DTV_QOS_TOTAL_BLOCKS_COUNT;
-
-               props.num = 6;
-               props.props = dvb_prop;
-
-		if (is_isdb)
-			layer = pid_layer;
-		else
-			layer = 0;
-
-               /* Do a DVBv5.10 stats call */
-               if (ioctl(parms->fd, FE_GET_PROPERTY, &props) == 0)
-			display_statistics(dvb_prop, layer);
-       } else
-		/* DVBv3 fallback */
-...
-
-Where a display_statistics() that just shows every available measure
-would be:
-
-void display_statistics(struct dtv_property dvb_prop[6], unsigned layer)
-{
-	printf("Signal strength: ");
-	if (dvb_prop[0].u.st.len && dvb_prop[0].u.st.stat[0].scale == FE_SCALE_DECIBEL)
-		printf("%d dBm\n", (int)dvb_prop[0].u.st.stat[0].svalue);
-	else if (dvb_prop[0].u.st.len && dvb_prop[0].u.st.stat[0].scale == FE_SCALE_DECIBEL)
-		printf("%03.2f %\n", 100.*dvb_prop[0].u.st.stat[0].uvalue / 65535);
-	} else {
-		printf("not available\n");
-	}
-
-	printf("Carrier to Noise ratio: ");
-	if (dvb_prop[1].u.st.len > layer && dvb_prop[1].u.st.stat[layer].scale == FE_SCALE_DECIBEL)
-		printf("%d dB\n", (int)dvb_prop[1].u.st.stat[layer].svalue);
-	else if (dvb_prop[1].u.st.len > layer&& dvb_prop[1].u.st.stat[layer].scale == FE_SCALE_DECIBEL)
-		printf("%03.2f %\n", 100.*dvb_prop[1].u.st.stat[layer].uvalue / 65535);
-	} else {
-		printf("not available\n");
-	}
-
-	if (dvb_prop[2].u.st.len > layer && dvb_prop[2].u.st.stat[layer].scale == FE_SCALE_COUNTER &&
-	    dvb_prop[3].u.st.len > layer && dvb_prop[3].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
-		float ber = ((float)dvb_prop[2].u.st.stat[layer].uvalue) / dvb_prop[3].u.st.stat[layer].uvalue;
-		printf("BER = %e\n", ber);
-	}
-
-	if (dvb_prop[4].u.st.len > layer && dvb_prop[4].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
-		printf("UCB = %lld\n", dvb_prop[4].u.st.stat[layer].uvalue);
-	}
-
-	if (dvb_prop[4].u.st.len > layer && dvb_prop[4].u.st.stat[layer].scale == FE_SCALE_COUNTER &&
-	    dvb_prop[5].u.st.len > layer && dvb_prop[5].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
-		float per = ((float)dvb_prop[4].u.st.stat[layer].uvalue) / dvb_prop[5].u.st.stat[layer].uvalue;
-		printf("PER = %e\n", per);
-	}
-}
-
--
-
-Btw, I just finished the implementation of S/N on mb86a20s:
-	http://git.linuxtv.org/mchehab/experimental.git/commit/3640dcff0a6028dbf461f7f1e7b4ea0514eab20e
-
-The only stats left on my TODO list on mb86a20s is UCB/PER measurement, as
-I probably won't implement BER after Viterbi there.
+Also I'm not sure whether adding a column at the end wouldn't break the
+apps.
 
 -- 
-
-Cheers,
-Mauro
+js
