@@ -1,329 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:59826 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529Ab3ATVXO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 16:23:14 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/4] tuner-core: Change config from unsigned int to void *
-Date: Sun, 20 Jan 2013 22:22:18 +0100
-Message-Id: <1358716939-2133-4-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
-References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:59199 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932458Ab3AJHn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 02:43:57 -0500
+Received: by mail-oa0-f49.google.com with SMTP id l10so256284oag.22
+        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 23:43:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <3145597.3X0nZfdYRE@avalon>
+References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
+	<67872310.6yRVsVsClR@amdc1227>
+	<CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com>
+	<3145597.3X0nZfdYRE@avalon>
+Date: Thu, 10 Jan 2013 16:43:57 +0900
+Message-ID: <CAAQKjZMsH3xNdTD5D7L90KJhYforgEvL0_6rBKXNyPyB_P04iQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] [RFC] video: display: Adding frame related ops to
+ MIPI DSI video source struct
+From: Inki Dae <inki.dae@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
+	sunil joshi <joshi@samsung.com>,
+	dri-devel@lists.freedesktop.org, aditya.ps@samsung.com,
+	tomi.valkeinen@ti.com, Rob Clark <rob.clark@linaro.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-config looks like a hack that was added to tuner-core to allow some
-configuration of TDA8290 tuner (it's not used by any other driver).
-But with the new configuration options of tda8290 driver (no_i2c_gate
-and std_map), it's no longer sufficient.
+2013/1/10 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Vikas,
+>
+> Thank you for the patch.
+>
+> On Friday 04 January 2013 10:24:04 Vikas Sajjan wrote:
+>> On 3 January 2013 16:29, Tomasz Figa <t.figa@samsung.com> wrote:
+>> > On Wednesday 02 of January 2013 18:47:22 Vikas C Sajjan wrote:
+>> >> From: Vikas Sajjan <vikas.sajjan@linaro.org>
+>> >>
+>> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+>> >> ---
+>> >>
+>> >>  include/video/display.h |    6 ++++++
+>> >>  1 file changed, 6 insertions(+)
+>> >>
+>> >> diff --git a/include/video/display.h b/include/video/display.h
+>> >> index b639fd0..fb2f437 100644
+>> >> --- a/include/video/display.h
+>> >> +++ b/include/video/display.h
+>> >> @@ -117,6 +117,12 @@ struct dsi_video_source_ops {
+>> >>
+>> >>       void (*enable_hs)(struct video_source *src, bool enable);
+>> >>
+>> >> +     /* frame related */
+>> >> +     int (*get_frame_done)(struct video_source *src);
+>> >> +     int (*clear_frame_done)(struct video_source *src);
+>> >> +     int (*set_early_blank_mode)(struct video_source *src, int power);
+>> >> +     int (*set_blank_mode)(struct video_source *src, int power);
+>> >> +
+>> >
+>> > I'm not sure if all those extra ops are needed in any way.
+>> >
+>> > Looking and Exynos MIPI DSIM driver, set_blank_mode is handling only
+>> > FB_BLANK_UNBLANK status, which basically equals to the already existing
+>> > enable operation, while set_early_blank mode handles only
+>> > FB_BLANK_POWERDOWN, being equal to disable callback.
+>>
+>> Right, exynos_mipi_dsi_blank_mode() only supports FB_BLANK_UNBLANK as
+>> of now, but FB_BLANK_NORMAL will be supported in future.
+>> If not for Exynos, i think it will be need for other SoCs which
+>> support FB_BLANK_UNBLANK and FB_BLANK_NORMAL.
+>
+> Could you please explain in a bit more details what the set_early_blank_mode
+> and set_blank_mode operations do ?
+>
+>> > Both get_frame_done and clear_frame_done do not look at anything used at
+>> > the moment and if frame done status monitoring will be ever needed, I
+>> > think a better way should be implemented.
+>>
+>> You are right, as of now Exynos MIPI DSI Panels are NOT using these
+>> callbacks, but as you mentioned we will need frame done status monitoring
+>> anyways, so i included these callbacks here. Will check, if we can implement
+>> any better method.
+>
+> Do you expect the entity drivers (and in particular the panel drivers) to
+> require frame done notification ? If so, could you explain your use case(s) ?
+>
 
-Change config to be void * instead, which allows passing tuner-dependent
-config struct to drivers.
+Hi Laurent,
 
-Also update saa7134 driver to reflect this change (no other driver uses this).
+As you know, there are two types of MIPI-DSI based lcd panels, RGB and
+CPU mode. In case of CPU mode lcd panel, it has its own framebuffer
+internally and the image in the framebuffer is transferred on lcd
+panel in 60Hz itself. But for this, there is something we should
+consider. The display controller with CPU mode doens't transfer image
+data to MIPI-DSI controller itself. So we should set trigger bit of
+the display controller to 1 to do it and also check whether the data
+transmission in the framebuffer is done on lcd panel to avoid tearing
+issue and some confliction issue(A) between read and write operations
+like below,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/saa7134/saa7134-cards.c |   40 ++++++++++++++--------------
- drivers/media/pci/saa7134/saa7134.h       |    3 +-
- drivers/media/v4l2-core/tuner-core.c      |   20 +++++---------
- include/media/tuner.h                     |    2 +-
- 4 files changed, 30 insertions(+), 35 deletions(-)
+lcd_panel_frame_done_interrrupt_handler()
+{
+        ...
+        if (mipi-dsi frame done)
+                trigger display controller;
+        ...
+}
 
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index bc08f1d..fe54f88 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -2760,7 +2760,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 0,
-+		.tda829x_conf   = { .lna_cfg = 0 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = {{
-@@ -3291,7 +3291,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 1,
-+		.tda829x_conf   = { .lna_cfg = 1 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x000200000,
- 		.inputs         = {{
-@@ -3395,7 +3395,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 1,
-+		.tda829x_conf   = { .lna_cfg = 1 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200100,
- 		.inputs         = {{
-@@ -3426,7 +3426,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 3,
-+		.tda829x_conf   = { .lna_cfg = 3 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.ts_type	= SAA7134_MPEG_TS_SERIAL,
- 		.ts_force_val   = 1,
-@@ -3459,7 +3459,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 3,
-+		.tda829x_conf   = { .lna_cfg = 3 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.ts_type	= SAA7134_MPEG_TS_SERIAL,
- 		.gpiomask       = 0x0800100, /* GPIO 21 is an INPUT */
-@@ -3683,7 +3683,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = {{
-@@ -3736,7 +3736,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = {{
-@@ -3754,7 +3754,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.gpiomask	= 1 << 21,
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs         = {{
-@@ -3887,7 +3887,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 0,
-+		.tda829x_conf   = { .lna_cfg = 0 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs = {{
- 			.name   = name_tv, /* FIXME: analog tv untested */
-@@ -3903,7 +3903,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.gpiomask       = 0x020200000,
- 		.inputs         = {{
- 			.name = name_tv,
-@@ -3937,7 +3937,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type	= UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config	= 0,
-+		.tda829x_conf	= { .lna_cfg = 0 },
- 		.gpiomask	= 0x020200000,
- 		.inputs		= {{
- 			.name = name_tv,
-@@ -4737,7 +4737,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = {{
-@@ -4823,7 +4823,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type   = UNSET,
- 		.tuner_addr   = ADDR_UNSET,
- 		.radio_addr   = ADDR_UNSET,
--		.tuner_config = 0,
-+		.tda829x_conf = { .lna_cfg = 0 },
- 		.mpeg         = SAA7134_MPEG_DVB,
- 		.inputs       = {{
- 			.name = name_tv,
-@@ -4847,7 +4847,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = { {
-@@ -5057,7 +5057,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.gpiomask       = 1 << 21,
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs         = {{
-@@ -5087,7 +5087,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 2,
-+		.tda829x_conf   = { .lna_cfg = 2 },
- 		.gpiomask       = 1 << 21,
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs         = {{
-@@ -5176,7 +5176,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
--		.tuner_config   = 0,
-+		.tda829x_conf   = { .lna_cfg = 0 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.gpiomask       = 0x0200000,
- 		.inputs = { {
-@@ -5406,7 +5406,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
--		.tuner_config   = 0,
-+		.tda829x_conf   = { .lna_cfg = 0 },
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.ts_type	= SAA7134_MPEG_TS_PARALLEL,
- 		.inputs         = {{
-@@ -5629,7 +5629,7 @@ struct saa7134_board saa7134_boards[] = {
- 		.audio_clock	= 0x00187de7,
- 		.tuner_type	= TUNER_PHILIPS_TDA8290,
- 		.radio_type	= UNSET,
--		.tuner_config	= 3,
-+		.tda829x_conf	= { .lna_cfg = 3 },
- 		.tuner_addr	= ADDR_UNSET,
- 		.radio_addr	= ADDR_UNSET,
- 		.gpiomask	= 0x02050000,
-@@ -7616,7 +7616,7 @@ static void saa7134_tuner_setup(struct saa7134_dev *dev)
- 	if ((dev->tuner_type != TUNER_ABSENT) && (dev->tuner_type != UNSET)) {
- 		tun_setup.type = dev->tuner_type;
- 		tun_setup.addr = dev->tuner_addr;
--		tun_setup.config = saa7134_boards[dev->board].tuner_config;
-+		tun_setup.config = &saa7134_boards[dev->board].tda829x_conf;
- 		tun_setup.tuner_callback = saa7134_tuner_callback;
- 
- 		tun_setup.mode_mask = mode_mask;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index c24b651..ce1b4b5 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -44,6 +44,7 @@
- #if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
- #include <media/videobuf-dvb.h>
- #endif
-+#include "tda8290.h"
- 
- #define UNSET (-1U)
- 
-@@ -388,7 +389,7 @@ struct saa7134_board {
- 	unsigned char		rds_addr;
- 
- 	unsigned int            tda9887_conf;
--	unsigned int            tuner_config;
-+	struct tda829x_config   tda829x_conf;
- 
- 	/* peripheral I/O */
- 	enum saa7134_video_out  video_out;
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index b5a819a..14ad8f4 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -132,7 +132,7 @@ struct tuner {
- 	bool                standby;	/* Standby mode */
- 
- 	unsigned int        type; /* chip type id */
--	unsigned int        config;
-+	void                *config;
- 	const char          *name;
- };
- 
-@@ -272,9 +272,8 @@ static struct analog_demod_ops tuner_analog_ops = {
-  * @c:			i2c_client descriptoy
-  * @type:		type of the tuner (e. g. tuner number)
-  * @new_mode_mask:	Indicates if tuner supports TV and/or Radio
-- * @new_config:		an optional parameter ranging from 0-255 used by
--			a few tuners to adjust an internal parameter,
--			like LNA mode
-+ * @new_config:		an optional parameter used by a few tuners to adjust
-+			internal parameters, like LNA mode
-  * @tuner_callback:	an optional function to be called when switching
-  *			to analog mode
-  *
-@@ -282,7 +281,7 @@ static struct analog_demod_ops tuner_analog_ops = {
-  * by tun_setup structure. It contains several per-tuner initialization "magic"
-  */
- static void set_type(struct i2c_client *c, unsigned int type,
--		     unsigned int new_mode_mask, unsigned int new_config,
-+		     unsigned int new_mode_mask, void *new_config,
- 		     int (*tuner_callback) (void *dev, int component, int cmd, int arg))
- {
- 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
-@@ -297,8 +296,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 	}
- 
- 	t->type = type;
--	/* prevent invalid config values */
--	t->config = new_config < 256 ? new_config : 0;
-+	t->config = new_config;
- 	if (tuner_callback != NULL) {
- 		tuner_dbg("defining GPIO callback\n");
- 		t->fe.callback = tuner_callback;
-@@ -316,11 +314,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		break;
- 	case TUNER_PHILIPS_TDA8290:
- 	{
--		struct tda829x_config cfg = {
--			.lna_cfg        = t->config,
--		};
- 		if (!dvb_attach(tda829x_attach, &t->fe, t->i2c->adapter,
--				t->i2c->addr, &cfg))
-+				t->i2c->addr, t->config))
- 			goto attach_failed;
- 		break;
- 	}
-@@ -409,7 +404,6 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 	case TUNER_NXP_TDA18271:
- 	{
- 		struct tda18271_config cfg = {
--			.config = t->config,
- 			.small_i2c = TDA18271_03_BYTE_CHUNK_INIT,
- 		};
- 
-@@ -506,7 +500,7 @@ static int tuner_s_type_addr(struct v4l2_subdev *sd,
- 	struct tuner *t = to_tuner(sd);
- 	struct i2c_client *c = v4l2_get_subdevdata(sd);
- 
--	tuner_dbg("Calling set_type_addr for type=%d, addr=0x%02x, mode=0x%02x, config=0x%02x\n",
-+	tuner_dbg("Calling set_type_addr for type=%d, addr=0x%02x, mode=0x%02x, config=%p\n",
- 			tun_setup->type,
- 			tun_setup->addr,
- 			tun_setup->mode_mask,
-diff --git a/include/media/tuner.h b/include/media/tuner.h
-index 926aff9..c60552b 100644
---- a/include/media/tuner.h
-+++ b/include/media/tuner.h
-@@ -188,7 +188,7 @@ struct tuner_setup {
- 	unsigned short	addr; 	/* I2C address */
- 	unsigned int	type;   /* Tuner type */
- 	unsigned int	mode_mask;  /* Allowed tuner modes */
--	unsigned int	config; /* configuraion for more complex tuners */
-+	void		*config;    /* configuraion for more complex tuners */
- 	int (*tuner_callback) (void *dev, int component, int cmd, int arg);
- };
- 
--- 
-Ondrej Zary
+A. the issue that LCD panel can access its own framebuffer while some
+new data from MIPI-DSI controller is being written in the framebuffer.
 
+But I think there might be better way to avoid such thing.
+
+Thanks,
+Inki Dae
+
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
