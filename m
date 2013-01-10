@@ -1,43 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4445 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756401Ab3AQS7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:09 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx8BT027481
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:08 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 07/16] [media] mb86a20s: improve debug for RF level
-Date: Thu, 17 Jan 2013 16:58:21 -0200
-Message-Id: <1358449110-11203-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:57016 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751690Ab3AJRqH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 12:46:07 -0500
+Received: by mail-ob0-f181.google.com with SMTP id oi10so833457obb.40
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 09:46:07 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20130110204041.116fd9a4@bk.ru>
+References: <20130110204041.116fd9a4@bk.ru>
+Date: Thu, 10 Jan 2013 23:16:07 +0530
+Message-ID: <CAHFNz9LHG82wpV31zsg+KL2TLNoXcW1A0PVtcrC7QKgWaEaG+Q@mail.gmail.com>
+Subject: Re: dvb-apps - scan-s2 & szap-s2
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Goga777 <goga777@bk.ru>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Hi Goga,
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index f403b3e..adf292c 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -333,7 +333,8 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- 
- 			/* Rescale it from 2^12 (4096) to 2^16 */
- 			rf <<= (16 - 12);
--			dprintk("signal strength = %d\n", rf);
-+			dprintk("signal strength = %d (%d < RF=%d < %d)\n", rf,
-+				rf_min, rf, rf_max);
- 			return rf;
- 		}
- 	} while (1);
--- 
-1.7.11.7
+On 1/10/13, Goga777 <goga777@bk.ru> wrote:
+> Hi
+>
+> is there any plans to update dvb-apps repo and to add in it actual version
+> of scan-s2 and szap-s2 ?
 
+
+Yes there is. It took a gigantic efforts to fix crappy issues that
+crept in with
+API updates and things did really crawl down. There is an effort to get the
+apps updated.
+
+
+Regards,
+Manu
