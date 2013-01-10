@@ -1,70 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:45710 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749Ab3ADXQD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 18:16:03 -0500
-Received: by mail-ee0-f53.google.com with SMTP id c50so8165729eek.12
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 15:16:01 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH RFC v1 1/2] [media] Add header file defining standard image sizes
-Date: Sat,  5 Jan 2013 00:10:22 +0100
-Message-Id: <1357341023-3202-2-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1357341023-3202-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1357341023-3202-1-git-send-email-sylvester.nawrocki@gmail.com>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:44539 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754796Ab3AJTL4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 14:11:56 -0500
+Received: by mail-ea0-f170.google.com with SMTP id d11so391042eaa.29
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 11:11:54 -0800 (PST)
+Message-ID: <50EF1277.4060507@gmail.com>
+Date: Thu, 10 Jan 2013 20:11:51 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <50EF1034.7060100@gmail.com> <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+In-Reply-To: <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add common header file defining standard image sizes, so we can
-avoid redefining those in each driver.
+On 01/10/2013 08:08 PM, Manu Abraham wrote:
+> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+>> On 01/10/2013 07:46 PM, Manu Abraham wrote:
+>>> The scan files and config files are very specific to dvb-apps, some
+>>> applications
+>>> do rely on these config files. It doesn't really make sense to have
+>>> split out config
+>>> files for these  small applications.
+>>
+>> I don't care where they are, really. However I'm strongly against
+>> duplicating them. Feel free to remove the newly created repository, I'll
+>> be fine with that.
+> 
+> I haven't duplicated anything at all. It is Mauro who has duplicated stuff,
+> by creating a new tree altogether.
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- include/media/image-sizes.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
- create mode 100644 include/media/image-sizes.h
+I didn't accuse you. This was a general comment to everybody. Whatever
+the consensus is at the end, do not duplicate the data.
 
-diff --git a/include/media/image-sizes.h b/include/media/image-sizes.h
-new file mode 100644
-index 0000000..464b69a
---- /dev/null
-+++ b/include/media/image-sizes.h
-@@ -0,0 +1,34 @@
-+/*
-+ * Standard image size definitions
-+ *
-+ * Copyright (C) 2012, Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef _IMAGE_SIZES_H
-+#define _IMAGE_SIZES_H
-+
-+#define CIF_WIDTH	352
-+#define CIF_HEIGHT	288
-+
-+#define QCIF_WIDTH	176
-+#define QCIF_HEIGHT	144
-+
-+#define QQCIF_WIDTH	88
-+#define QQCIF_HEIGHT	72
-+
-+#define QQVGA_WIDTH	160
-+#define QQVGA_HEIGHT	120
-+
-+#define QVGA_WIDTH	320
-+#define QVGA_HEIGHT	240
-+
-+#define VGA_WIDTH	640
-+#define VGA_HEIGHT	480
-+
-+#define SXGA_WIDTH	1280
-+#define SXGA_HEIGHT	1024
-+
-+#endif /* _IMAGE_SIZES_H */
+> if you need the scan files to be properly maintained then you need to
+> handle it in the same repository altogether. Not by separating out the
+> configuration files of a few applications.
+
+That's up to you guys to decide. I don't mind either option.
+
 -- 
-1.7.4.1
-
+js
