@@ -1,157 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3986 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751626Ab3AGLTb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 06:19:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 1/6] uvcvideo: Set error_idx properly for extended controls API failures
-Date: Mon, 7 Jan 2013 12:19:22 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1348758980-21683-1-git-send-email-laurent.pinchart@ideasonboard.com> <22611337.csYnEZHssR@avalon> <201212271259.15502.hverkuil@xs4all.nl>
-In-Reply-To: <201212271259.15502.hverkuil@xs4all.nl>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:45228 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754038Ab3AJSqj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 13:46:39 -0500
+Received: by mail-ob0-f182.google.com with SMTP id 16so922404obc.13
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 10:46:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301071219.22324.hverkuil@xs4all.nl>
+In-Reply-To: <50EF0A4F.1000604@gmail.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+Date: Fri, 11 Jan 2013 00:16:38 +0530
+Message-ID: <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu December 27 2012 12:59:15 Hans Verkuil wrote:
-> On Wed December 26 2012 12:33:58 Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > On Tuesday 25 December 2012 12:50:51 Hans Verkuil wrote:
-> > > On Tue December 25 2012 12:23:00 Laurent Pinchart wrote:
-> > > > On Tuesday 25 December 2012 12:15:25 Hans Verkuil wrote:
-> > > > > On Mon December 24 2012 13:27:08 Laurent Pinchart wrote:
-> > > > > > On Thursday 27 September 2012 17:16:15 Laurent Pinchart wrote:
-> > > > > > > When one of the requested controls doesn't exist the error_idx field
-> > > > > > > must reflect that situation. For G_EXT_CTRLS and S_EXT_CTRLS,
-> > > > > > > error_idx must be set to the control count. For TRY_EXT_CTRLS, it
-> > > > > > > must be set to the index of the unexisting control.
-> > > > > > > 
-> > > > > > > This issue was found by the v4l2-compliance tool.
-> > > > > > 
-> > > > > > I'm revisiting this patch as it has been reverted in v3.8-rc1.
-> > > > > > 
-> > > > > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > > > ---
-> > > > > > > 
-> > > > > > >  drivers/media/usb/uvc/uvc_ctrl.c |   17 ++++++++++-------
-> > > > > > >  drivers/media/usb/uvc/uvc_v4l2.c |   19 ++++++++++++-------
-> > > > > > >  2 files changed, 22 insertions(+), 14 deletions(-)
-> > > > > > 
-> > > > > > [snip]
-> > > > > > 
-> > > > > > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..e5817b9 100644
-> > > > > > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> > > > > > > @@ -591,8 +591,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > > > *file,
-> > > > > > 
-> > > > > > [snip]
-> > > > > > 
-> > > > > > > @@ -637,8 +639,9 @@ static long uvc_v4l2_do_ioctl(struct file *file,
-> > > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_get(chain, ctrl);
-> > > > > > >  			if (ret < 0) {
-> > > > > > >  				uvc_ctrl_rollback(handle);
-> > > > > > > 
-> > > > > > > -				ctrls->error_idx = i;
-> > > > > > > -				return ret;
-> > > > > > > +				ctrls->error_idx = ret == -ENOENT
-> > > > > > > +						 ? ctrls->count : i;
-> > > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > > > >  			}
-> > > > > > >  		}
-> > > > > > >  		ctrls->error_idx = 0;
-> > > > > > > @@ -661,8 +664,10 @@ static long uvc_v4l2_do_ioctl(struct file
-> > > > > > > *file,
-> > > > > > > unsigned int cmd, void *arg) ret = uvc_ctrl_set(chain, ctrl);
-> > > > > > >  			if (ret < 0) {
-> > > > > > >  				uvc_ctrl_rollback(handle);
-> > > > > > > 
-> > > > > > > -				ctrls->error_idx = i;
-> > > > > > > -				return ret;
-> > > > > > > +				ctrls->error_idx = (ret == -ENOENT &&
-> > > > > > > +						    cmd == VIDIOC_S_EXT_CTRLS)
-> > > > > > > +						 ? ctrls->count : i;
-> > > > > > > +				return ret == -ENOENT ? -EINVAL : ret;
-> > > > > > >  			}
-> > > > > > >  		}
-> > > > > > 
-> > > > > > I've reread the V4L2 specification, and the least I can say is that
-> > > > > > the text is pretty ambiguous. Let's clarify it.
-> > > > > > 
-> > > > > > Is there a reason to differentiate between invalid control IDs and
-> > > > > > other errors as far as error_idx is concerned ? It would be simpler if
-> > > > > > error_idx was set to the index of the first error for get and try
-> > > > > > operations, regardless of the error type. What do you think ?
-> > > > > 
-> > > > > There is a good reason for doing this: the G/S_EXT_CTRLS ioctls have to
-> > > > > be as atomic as possible, i.e. it should try hard to prevent leaving the
-> > > > > hardware in an inconsistent state because not all controls could be set.
-> > > > > It can never be fully atomic since writing multiple registers over usb
-> > > > > or i2c can always return errors for one of those writes, but it should
-> > > > > certainly check for all the obvious errors first that do not require
-> > > > > actually writing to the hardware, such as whether all the controls in
-> > > > > the control list actually exist.
-> > > > > 
-> > > > > And for such errors error_idx should be set to the number of controls to
-> > > > > indicate that none of the controls were actually set but that there was
-> > > > > a problem with the list of controls itself.
-> > > > 
-> > > > For S_EXT_CTRLS, sure, but G_EXT_CTRLS doesn't modify the hardware state,
-> > > > so it could get all controls up to the erroneous one.
-> > > 
-> > > I have thought about that but I decided against it. One reason is to have
-> > > get and set behave the same since both access the hardware. The other
-> > > reason is that even getting a control value might change the hardware
-> > > state, for example by resetting some internal hardware counter when a
-> > > register is read (it's rare but there is hardware like that). Furthermore,
-> > > reading hardware registers can be slow so why not do the sanity check
-> > > first?
-> > 
-> > Get can indeed change the device state in rare cases, but the information 
-> > won't be lost, as the value of all controls before error_idx will be returned.
-> > 
-> > What bothers me with the current G_EXT_CTRLS implementation (beside that it's 
-> > very slightly more complex for the uvcvideo driver than the one I propose) is 
-> > that an application will have no way to know for which control G_EXT_CTRLS 
-> > failed. This is especially annoying during development.
-> 
-> For S_EXT_CTRLS you can call TRY_EXT_CTRLS first to check which control failed,
-> but you don't have that option for G_EXT_CTRLS. That's actually something I
-> hadn't considered.
-> 
-> > Maybe we could leave this behaviour as driver-specific ?
+On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 01/10/2013 06:40 PM, Manu Abraham wrote:
+>> On 1/9/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>> Em Wed, 9 Jan 2013 06:08:44 -0500
+>>> Michael Krufky <mkrufky@linuxtv.org> escreveu:
+>>>
+>>>> On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
+>>>> <mchehab@redhat.com> wrote:
+>>>>> Em Wed, 09 Jan 2013 10:43:23 +0100
+>>>>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>>>>>
+>>>>>> On 08-01-13 21:01, Johannes Stezenbach wrote:
+>>>>>>> On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
+>>>>>>>> On 07-01-13 11:46, Jiri Slaby wrote:
+>>>>>>>>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
+>>>>>>>>>> Unfortunatly, I have had zero replies.
+>>>>>>>>> Hmm, it's sad there is a silence in this thread from linux-media
+>>>>>>>>> guys :/.
+>>>>>>>> In their defense, they are very very busy people ;) chatter on this
+>>>>>>>> thread does bring it up however.
+>>>>>>> This is such a nice thing to say :-)
+>>>>>>> But it might be that Mauro thinks the dvb-apps maintainer should
+>>>>>>> respond, but apparently there is no dvb-apps maintainer...
+>>>>>>> Maybe you should ask Mauro directly to create an account for you
+>>>>>>> to implement what you proposed.
+>>>>>> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
+>>>>>> decides what I suggested is a good idea? I personally obviously think
+>>>>>> it
+>>>>>> is ;) and even more so if dvb-apps are unmaintained.
+>>>>>>
+>>>>>> I guess the question now becomes 'who okay's this change? Who says
+>>>>>> 'okay, lets do it this way. Once that is answered we can go from
+>>>>>> there
+>>>>>> ;)
+>>>>>
+>>>>> If I understood it right, you want to split the scan files into a
+>>>>> separate
+>>>>> git tree and maintain it, right?
+>>>>>
+>>>>> I'm ok with that.
+>>>>>
+>>>>> Regards,
+>>>>> Mauro
+>>>>
+>>>> As a DVB maintainer, I am OK with this as well - It does indeed make
+>>>> sense to separate the c code sources from the regional frequency
+>>>> tables, and I'm sure we'll see much benefit from this change.
+>>>
+>>> Done. I created a tree for Oliver to maintain it and an account for him.
+>>> I also created a new tree with just the DVB table commits to:
+>>> 	http://git.linuxtv.org/dtv-scan-tables.git
+>>>
+>>> I kept there both szap and scan files, although maybe it makes sense to
+>>> drop the szap table (channels-conf dir). It also makes sense to drop the
+>>> tables from the dvb-apps tree, to avoid duplicated stuff, and to avoid
+>>
+>> Being one of the maintainers:
+>>
+>> I will keep the tables in the dvb-apps tree for the time being.
+>
+> That does not make sense at all -- why? Duplicated stuff always hurts.
 
-I don't like the idea of leaving this driver-specific. That always bites you
-in the end.
 
-I thought seriously about changing the spec so G_EXT_CTRLS behaves like
-TRY_EXT_CTRLS when it comes to setting error_idx, but I decided against that.
+The scan files and config files are very specific to dvb-apps, some
+applications
+do rely on these config files. It doesn't really make sense to have
+split out config
+files for these  small applications.
 
-The main reason is that if G_EXT_CTRLS returns an error_idx < count, then you no
-longer know whether the values of the controls up to error_idx-1 were actually
-retrieved or not. v4l2-ctrls.c does sanity checks up front, so if it returns
-an error for control index 2, does that mean that the sanity checks failed
-in which case no controls were retrieved yet, or that getting control index
-2 failed due to some hardware-related problem, in which case controls 0 and 1
-*were* successfully retrieved.
 
-In addition, changing the behavior means changing the API, albeit in a very
-minor way, and I don't think it is worth doing that in this case.
+>
+>> Will decide to
+>> drop the config files as needed from dvb-apps. It is necessary to keep a
+>> copy of the config files for development purposes, rather than pulling
+>> from
+>> different trees.
+>
+> What development purposes, could you be more specific? You can still use
+> git submodules if really needed. But as it stands I do not see a reason
+> for that at all...
 
-I will prepare a patch that clarifies the API, though. It can certainly be
-improved.
 
-Also note that I agree that the situation is not ideal and if I would write
-the API from scratch I'd probably handle this a bit differently, most likely
-by adding some flags field that can be used to give more precise information.
+Did you think that the dvb-apps just came out of thin air ?
 
-Regards,
+development of dvb-applications, implies eventually config files also
+will be updated as necessary. Having them in separate repositories
+makes such work harder for working.
+while working with dvb-apps, it would make things saner if it is the
+same SCM, rather
+than having different SCM's. So according to you, you want to make it
+still harder for someone to work with dvb-apps.
 
-	Hans
+
+Manu
