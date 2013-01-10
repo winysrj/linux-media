@@ -1,67 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:60971 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753961Ab3AGNV1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 08:21:27 -0500
-Date: Mon, 7 Jan 2013 14:21:22 +0100
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-media@vger.kernel.org,
-	mchehab@infradead.org, kernel@pengutronix.de,
-	linux-kernel@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH] [media] coda: Fix build due to iram.h rename
-Message-ID: <20130107132122.GV14860@pengutronix.de>
-References: <1357553025-21094-1-git-send-email-s.hauer@pengutronix.de>
- <CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:56019 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755047Ab3AJRBd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 12:01:33 -0500
+Received: by mail-wi0-f180.google.com with SMTP id hj13so472614wib.13
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 09:01:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5Cpa2OYd+v=wE4hbw=sjmQk+bP1HrY49PEWmwRyiVD1dg@mail.gmail.com>
+In-Reply-To: <50ED8332.9080902@gmail.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<50ED8332.9080902@gmail.com>
+Date: Thu, 10 Jan 2013 17:33:54 +0100
+Message-ID: <CAL7owaCH3oSOmKPixnOKQHc+dh2+jUYpvDubm50qhqbBNurVrw@mail.gmail.com>
+Subject: Re: kaffeine.kde.org/scanfile.dvb.qz is obsolete [was: [RFC] Initial
+ scan files troubles and brainstorming]
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Fabio,
+2013/1/9 Jiri Slaby <jirislaby@gmail.com>:
+> On 01/09/2013 03:41 PM, Mauro Carvalho Chehab wrote:
+>> Christoph,
+>>
+>> Thank you for all the hard work over all those years!
+>
+> Yeah, I second this.
+>
+> I have a note though. Who is going to fix the URL in kaffeine?
 
-On Mon, Jan 07, 2013 at 08:16:02AM -0200, Fabio Estevam wrote:
-> Hi Sascha,
-> 
-> On Mon, Jan 7, 2013 at 8:03 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> > commit c045e3f13 (ARM: imx: include iram.h rather than mach/iram.h) changed the
-> > location of iram.h, which causes the following build error when building the coda
-> > driver:
-> >
-> > drivers/media/platform/coda.c:27:23: error: mach/iram.h: No such file or directory
-> > drivers/media/platform/coda.c: In function 'coda_probe':
-> > drivers/media/platform/coda.c:2000: error: implicit declaration of function 'iram_alloc'
-> > drivers/media/platform/coda.c:2001: warning: assignment makes pointer from integer without a cast
-> > drivers/media/platform/coda.c: In function 'coda_remove':
-> > drivers/media/platform/coda.c:2024: error: implicit declaration of function 'iram_free'
-> >
-> > Since the content of iram.h is not imx specific, move it to
-> > include/linux/platform_data/imx-iram.h instead. This is an intermediate solution
-> > until the i.MX iram allocator is converted to the generic SRAM allocator.
-> >
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > ---
-> >
-> > Based on an earlier version from Fabio Estevam, but this one moves iram.h
-> > to include/linux/platform_data/imx-iram.h instead of include/linux/iram.h
-> > which is a less generic name.
-> >
-> >  arch/arm/mach-imx/iram.h               |   41 --------------------------------
-> >  arch/arm/mach-imx/iram_alloc.c         |    3 +--
-> >  drivers/media/platform/coda.c          |    2 +-
-> >  include/linux/platform_data/imx-iram.h |   41 ++++++++++++++++++++++++++++++++
-> >  4 files changed, 43 insertions(+), 44 deletions(-)
-> >  delete mode 100644 arch/arm/mach-imx/iram.h
-> >  create mode 100644 include/linux/platform_data/imx-iram.h
-> 
-> It would be better to use git mv /git format-patch -M, so that git can
-> detect the file rename.
-Note that git-mv is not needed here. Using it doesn't change anything
-and you can use git-format-patch -M independant of it.
+That belongs to me.
 
-Best regards
-Uwe
+> And how
+> often is kaffeine.kde.org/scanfile.dvb.qz updated? Is this done
+> automatically?
+
+No, upload happens manually. I will take care of an update.
+
+> As it is pretty outdated (9/2011), I don't think it is...
+> Should this be moved somewhere else?
+>
+> thanks,
+> --
+> js
+
+Christoph
