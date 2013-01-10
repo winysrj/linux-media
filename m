@@ -1,44 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34]:59554 "EHLO
-	claranet-outbound-smtp01.uk.clara.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753327Ab3AJKTp convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 05:19:45 -0500
-From: Simon Farnsworth <simon.farnsworth@onelan.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality of Service
-Date: Thu, 10 Jan 2013 10:19:34 +0000
-Message-ID: <19692716.qk9lES9tlU@f17simon>
-In-Reply-To: <20130109132425.659243af@redhat.com>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <9912400.S8YXz1JbUM@f17simon> <20130109132425.659243af@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3361 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660Ab3AJVmi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 16:42:38 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0ALgYGs031049
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 22:42:36 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 582921700014
+	for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 22:42:33 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130110214233.582921700014@alastor.dyndns.org>
+Date: Thu, 10 Jan 2013 22:42:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 9 January 2013 13:24:25 Mauro Carvalho Chehab wrote:
-<snip>
-> Yes, it makes sense to document that the signal strength should be reported
-> on either dBm or dBµW, if the scale is FE_SCALE_DECIBEL. I prefer to specify
-> it in terms of Watt (or a submultiple) than in terms of voltage/impedance, as
-> different Countries use different impedances on DTV cabling (typically,
-> 50Ω or 75Ω).
-> 
-> So, either dBm or dBµW works for me. As you said, applications can convert
-> between those mesures as they wish, by simply adding some constant when
-> displaying the power measure.
-> 
-> As the wifi subsytem use dBm, I vote for using dBm for the signal measure
-> at the subsystem (actually, 0.1 dBm).
-> 
-0.1 dBm suits me. I just want something that I can present to the end user in
-a format that will match their aerial installer's kit.
--- 
-Simon Farnsworth
-Software Engineer
-ONELAN Ltd
-http://www.onelan.com
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:        Thu Jan 10 19:00:17 CET 2013
+git hash:    73ec66c000e9816806c7380ca3420f4e0638c40e
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
+
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: WARNINGS
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: OK
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
