@@ -1,67 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:62862 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456Ab3AKHkg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 02:40:36 -0500
-Received: by mail-vc0-f174.google.com with SMTP id d16so1175790vcd.33
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 23:40:36 -0800 (PST)
-MIME-Version: 1.0
-Date: Fri, 11 Jan 2013 08:40:36 +0100
-Message-ID: <CAMFWA=ZL9ApT2KLJ490iLoZEhWYqHeMs2NAzST6OzCLr0PBx5A@mail.gmail.com>
-Subject: Elgato EyeTV DTT
-From: Marco <mpiazza@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:40422 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754495Ab3AJUFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jan 2013 15:05:36 -0500
+Date: Thu, 10 Jan 2013 18:04:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+Message-ID: <20130110180434.0681a7e1@redhat.com>
+In-Reply-To: <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<50EF1034.7060100@gmail.com>
+	<CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I'm asking some help from the gurus....
+Em Fri, 11 Jan 2013 00:38:18 +0530
+Manu Abraham <abraham.manu@gmail.com> escreveu:
 
-I bought a brand new Elgato EyeTV DTT (last model), and It seems to be
-initialized correctly.
+> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+> > On 01/10/2013 07:46 PM, Manu Abraham wrote:
+> >> The scan files and config files are very specific to dvb-apps, some
+> >> applications
+> >> do rely on these config files. It doesn't really make sense to have
+> >> split out config
+> >> files for these  small applications.
+> >
+> > I don't care where they are, really. However I'm strongly against
+> > duplicating them. Feel free to remove the newly created repository, I'll
+> > be fine with that.
+> 
+> I haven't duplicated anything at all. It is Mauro who has duplicated stuff,
+> by creating a new tree altogether.
 
-But when I try to scan for channels I can hardly find one or two
-channels, whereas my DVB decoder find more than 100 channels.
+I only did it by request, and after having some consensus at the ML, and
+after people explicitly asking me to do that.
 
-This is the log from dmesg (kernel 3.7.1):
+I even tried to not express my opinion to anybody. But it seems I'm
+forced by you to give it. So, let it be.
 
-dvb-usb: found a 'Elgato EyeTV DTT rev. 2' in cold state, will try to
-load a firmware
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Elgato EyeTV DTT rev. 2' in warm state.
-power control: 1
-dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-DVB: registering new adapter (Elgato EyeTV DTT rev. 2)
-DiB7000P: checking demod on I2C address: 128 (80)
-ep 0 read error (status = -32)
-I2C read failed on address 0x40
-DiB7000P: i2c read error on 768
-DiB7000P: wrong Vendor ID (read=0x0)
-DiB7000P: checking demod on I2C address: 18 (12)
-DiB7000P: setting output mode for demod f50e0000 to 4
-DiB7000P: IC 0 initialized (to i2c_address 0x80)
-DiB7000P: setting output mode for demod f50e0000 to 0
-DiB7000P: checking demod on I2C address: 128 (80)
-DiB7000P: gpio dir: ffff: val: 0, pwm_pos: ffff
-DiB7000P: setting output mode for demod f50e0000 to 0
-DiB7000P: using default timf
-usb 1-1: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-sleep: 0reset: 1reset: 0
-DiB0070: Revision: 3
-DiB0070: CTRL_LO5: 0x16a5
-DiB0070: Gain: 6, WBDOffset (3.3V) = 543
-DiB0070: Gain: 7, WBDOffset (3.3V) = 631
-DiB0070: successfully identified
-DiB0070: successfully identified
-power control: 0
-dvb-usb: Elgato EyeTV DTT rev. 2 successfully initialized and connected.
-Firmware version: 66, 17, 0x10200, 0
+The last patches from you there were 11 months ago, and didn't bring any
+new functionality there... they are just indentation fixes:
+	http://www.linuxtv.org/hg/dvb-apps/
 
-Do I have to worry about those I2C errors in DIB7000P?
-Is Dib0070 the right tuner for this card?
-Is there something I can do to make the card work better?
+The last one with a new functionality seems to be this one, 15 months ago:
+	http://www.linuxtv.org/hg/dvb-apps/rev/d4e8bf5658ce
 
-Marco
+Also, people find a very bad time when they submit any fixes for the driver
+you wrote, as you doesn't seem to have enough time to review their patches.
+
+So, I suspect that you're a very very busy person, with almost no time to
+maintain your previous work. If something has changed, and you're now
+finding more time, I'd pleased if you could review the patches that 
+are there for a long time (there is one from 2011 that it is a rebase of
+an even older patch) before re-doing Oliver's scanfile updates at dvb-tools:
+	http://www.spinics.net/lists/linux-media/msg58283.html
+
+Considering that nobody is having much time for the dvb-apps tree
+nowadays, I really think that it would be great to get someone
+with more time to maintain those files, as otherwise the update scan
+files may be on the limbo for a long time, and releasing us to have
+more time with development.
+
+As proposed by Oliver, it seemed to be a good idea to have it on a
+separate tree, as those scan files are actually independent of the 
+dvb-apps, and can be used by other applications.
+
+That's why I welcomed Oliver's initiative to maintain it, and I wish
+him a good work with that.
+
+> Eventually what will happen is that, as applications do get developed,
+> the config files which are alongwith the applications will have proper
+> compatibility with the applications while, the split out config files will
+> be in a different state, providing nothing but pain for everyone.
+
+The format of those files can't be changed without breaking other existing
+applications that relies on its format, like mplayer, vlc, etc.
+
+It could make sense, though, to convert them in the future to a more generic
+format that would be delivery-system independent and that could easily be
+converted into all application-specific formats, and add there some
+format-change tool that would dynamically generate the files at 
+vdr, dvb-apps, kaffeine... format.
+
+By having it on a separate tree, with its own maintainer, Oliver can
+focus on it, without needing to be bothered with maintaining the dvb-apps.
+
+So, it makes all sense for me to have it maintained in separate.
+
+That's said, there's no problem on having those files maintained on two
+or more trees. Actually, there are already dozens of forks of it, as each
+distribution has its own dvb-apps fork, some outdated and eventually some
+with their own scan files there.
+
+So, if no agreement is reached, I would just keep it as is for a while and
+review it maybe an year later.
+
+Regards,
+Mauro
