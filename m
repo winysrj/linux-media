@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39779 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752883Ab3AVSor (ORCPT
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:56509 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755079Ab3AJUtX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 13:44:47 -0500
-Date: Tue, 22 Jan 2013 20:44:43 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, arun.kk@samsung.com,
-	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, kyungmin.park@samsung.com
-Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
- which use videobuf2
-Message-ID: <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
-References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
- <1358156164-11382-4-git-send-email-k.debski@samsung.com>
- <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
- <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
- <50FE6BFB.3090102@samsung.com>
- <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
+	Thu, 10 Jan 2013 15:49:23 -0500
+Received: by mail-oa0-f41.google.com with SMTP id k14so1100018oag.0
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:49:22 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
+In-Reply-To: <50EF276C.1080101@gmail.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
+	<CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
+	<50EF2155.5060905@schinagl.nl>
+	<CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com>
+	<50EF256B.8030308@gmail.com>
+	<CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
+	<50EF276C.1080101@gmail.com>
+Date: Fri, 11 Jan 2013 02:19:22 +0530
+Message-ID: <CAHFNz9+h0srknbngfhhvqwxzu=iM_fLPOVj8ebschx7EUt8=YA@mail.gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
+> On 01/10/2013 09:38 PM, Manu Abraham wrote:
+>> The format can be definitely changed. There's no issue to it.
+>
+> No you cannot. Applications depend on that, it's part of the dvb ABI. If
+> you changed that, you would do the same mistake as Mauro let it flowing
+> through his tree and it was pointed out by Linus in the link you sent...
 
-On Tue, Jan 22, 2013 at 06:58:09PM +0100, Kamil Debski wrote:
-...
-> > OTOH I'm not certain what's the main purpose of such copied timestamps,
-> > is it to identify which CAPTURE buffer comes from which OUTPUT buffer ?
-> > 
-> 
-> Yes, indeed. This is especially useful when the CAPTURE buffers can be
-> returned in an order different than the order of corresponding OUTPUT
-> buffers.
+I understand what you are thinking, but that's not exactly about it. The format
+can simply be updated by adding newer params to it's end, thus not breaking
+any of the applications.
 
-How about sequence numbers then? Shouldn't that be also copied?
-
-If you're interested in the order alone, comparing the sequence numbers is a
-better way to figure out the order. That does require strict one-to-one
-mapping between the output and capture buffers, though, and that does not
-help in knowing when it might be a good time to display a frame, for
-instance.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Manu
