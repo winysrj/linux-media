@@ -1,82 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-relais-roc.national.inria.fr ([192.134.164.82]:53122 "EHLO
-	mail1-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753688Ab3AGJAd (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:62862 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753456Ab3AKHkg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 04:00:33 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c: reposition free_irq to avoid access to invalid data
-Date: Mon,  7 Jan 2013 11:00:15 +0100
-Message-Id: <1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr>
+	Fri, 11 Jan 2013 02:40:36 -0500
+Received: by mail-vc0-f174.google.com with SMTP id d16so1175790vcd.33
+        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 23:40:36 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 11 Jan 2013 08:40:36 +0100
+Message-ID: <CAMFWA=ZL9ApT2KLJ490iLoZEhWYqHeMs2NAzST6OzCLr0PBx5A@mail.gmail.com>
+Subject: Elgato EyeTV DTT
+From: Marco <mpiazza@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hello,
+I'm asking some help from the gurus....
 
-The data referenced by an interrupt handler should not be freed before the
-interrupt is ended.  The handler is pxa_camera_irq.  This handler may call
-pxa_dma_start_channels, which references the channels that are freed on the
-lines before the call to free_irq.
+I bought a brand new Elgato EyeTV DTT (last model), and It seems to be
+initialized correctly.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+But when I try to scan for channels I can hardly find one or two
+channels, whereas my DVB decoder find more than 100 channels.
 
-// <smpl>
-@fn exists@
-expression list es;
-expression a,b;
-identifier f;
-@@
+This is the log from dmesg (kernel 3.7.1):
 
-if (...) {
-  ... when any
-  free_irq(a,b);
-  ... when any
-  f(es);
-  ... when any
-  return ...;
-}
+dvb-usb: found a 'Elgato EyeTV DTT rev. 2' in cold state, will try to
+load a firmware
+dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+dib0700: firmware started successfully.
+dvb-usb: found a 'Elgato EyeTV DTT rev. 2' in warm state.
+power control: 1
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (Elgato EyeTV DTT rev. 2)
+DiB7000P: checking demod on I2C address: 128 (80)
+ep 0 read error (status = -32)
+I2C read failed on address 0x40
+DiB7000P: i2c read error on 768
+DiB7000P: wrong Vendor ID (read=0x0)
+DiB7000P: checking demod on I2C address: 18 (12)
+DiB7000P: setting output mode for demod f50e0000 to 4
+DiB7000P: IC 0 initialized (to i2c_address 0x80)
+DiB7000P: setting output mode for demod f50e0000 to 0
+DiB7000P: checking demod on I2C address: 128 (80)
+DiB7000P: gpio dir: ffff: val: 0, pwm_pos: ffff
+DiB7000P: setting output mode for demod f50e0000 to 0
+DiB7000P: using default timf
+usb 1-1: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+sleep: 0reset: 1reset: 0
+DiB0070: Revision: 3
+DiB0070: CTRL_LO5: 0x16a5
+DiB0070: Gain: 6, WBDOffset (3.3V) = 543
+DiB0070: Gain: 7, WBDOffset (3.3V) = 631
+DiB0070: successfully identified
+DiB0070: successfully identified
+power control: 0
+dvb-usb: Elgato EyeTV DTT rev. 2 successfully initialized and connected.
+Firmware version: 66, 17, 0x10200, 0
 
-@@
-expression list fn.es;
-expression fn.a,fn.b;
-identifier fn.f;
-@@
+Do I have to worry about those I2C errors in DIB7000P?
+Is Dib0070 the right tuner for this card?
+Is there something I can do to make the card work better?
 
-*f(es);
-... when any
-*free_irq(a,b);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-
----
-Not compiled.  I have not observed the problem in practice; the code just
-looks suspicious.
-
- drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index f91f7bf..2a19aba 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1810,10 +1810,10 @@ static int pxa_camera_remove(struct platform_device *pdev)
- 
- 	clk_put(pcdev->clk);
- 
-+	free_irq(pcdev->irq, pcdev);
- 	pxa_free_dma(pcdev->dma_chans[0]);
- 	pxa_free_dma(pcdev->dma_chans[1]);
- 	pxa_free_dma(pcdev->dma_chans[2]);
--	free_irq(pcdev->irq, pcdev);
- 
- 	soc_camera_host_unregister(soc_host);
- 
-
+Marco
