@@ -1,61 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:34644 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755704Ab3AENVo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 08:21:44 -0500
-Received: by mail-we0-f176.google.com with SMTP id r5so8108528wey.21
-        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 05:21:43 -0800 (PST)
-Message-ID: <50E82900.9060701@googlemail.com>
-Date: Sat, 05 Jan 2013 14:22:08 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3154 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755208Ab3AKMWW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 07:22:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [REVIEWv2 PATCH 2/2] DocBook: improve the error_idx field documentation.
+Date: Fri, 11 Jan 2013 13:22:08 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl> <9035cddc289cc58a41d6122a10a17e5d27c6fc0f.1357903446.git.hans.verkuil@cisco.com> <3074833.VDmUTZxrWA@avalon>
+In-Reply-To: <3074833.VDmUTZxrWA@avalon>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/4] Some IR fixes for I2C devices on em28xx
-References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201301111322.08472.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 04.01.2013 22:15, schrieb Mauro Carvalho Chehab:
-> Frank pointed that IR was not working with I2C devices. So, I took some
-> time to fix them.
->
-> Tested with Hauppauge WinTV USB2.
->
-> Mauro Carvalho Chehab (4):
->   [media] em28xx: initialize button/I2C IR earlier
->   [media] em28xx: autoload em28xx-rc if the device has an I2C IR
->   [media] em28xx: simplify IR names on I2C devices
->   [media] em28xx: tell ir-kbd-i2c that WinTV uses an RC5 protocol
->
->  drivers/media/usb/em28xx/em28xx-cards.c |  2 +-
->  drivers/media/usb/em28xx/em28xx-input.c | 29 ++++++++++++++++-------------
->  2 files changed, 17 insertions(+), 14 deletions(-)
->
+On Fri January 11 2013 13:13:47 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch. This is much better in my opinion, please see below for 
+> two small comments.
+> 
+> On Friday 11 January 2013 12:26:03 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The documentation of the error_idx field was incomplete and confusing.
+> > This patch improves it.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   44 +++++++++++++----
+> >  1 file changed, 37 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml index
+> > 0a4b90f..e9f9735 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> > @@ -199,13 +199,43 @@ also be zero.</entry>
+> >  	  <row>
+> >  	    <entry>__u32</entry>
+> >  	    <entry><structfield>error_idx</structfield></entry>
+> > -	    <entry>Set by the driver in case of an error. If it is equal
+> > -to <structfield>count</structfield>, then no actual changes were made to
+> > -controls. In other words, the error was not associated with setting a
+> > -particular control. If it is another value, then only the controls up to
+> > -<structfield>error_idx-1</structfield> were modified and control
+> > -<structfield>error_idx</structfield> is the one that caused the error. The
+> > -<structfield>error_idx</structfield> value is undefined if the ioctl
+> > -returned 0 (success).</entry>
+> > +	    <entry><para>Set by the driver in case of an error. If the error is
+> > +associated with a particular control, then
+> > +<structfield>error_idx</structfield> is set to the index of that control.
+> > +If the error is not related to a specific control, or the pre-validation
+> > +step failed (see below), then <structfield>error_idx</structfield> is set
+> > +to <structfield>count</structfield>. The value is undefined if the ioctl
+> > +returned 0 (success).</para>
+> > +
+> > +<para>Before controls are read from/written to hardware a pre-validation
+> 
+> Maybe s/pre-validation/validation/ through the text ? We have a single 
+> validation step, it feels a bit weird to talk about pre-validation when 
+> there's no further validation :-)
 
-While these patches make I2C IR remote controls working again, they
-leave several issues unaddressed which should really be fixed:
-1) the i2c client isn't unregistered on module unload. This was the
-reason for patch 2 in my series. There is also a FIXME comment about
-this in em28xx_release_resources() (although this is the wrong place to
-do it).
-2) there is no error checking in em28xx_register_i2c_ir().
-em28xx_ir_init should really bail out if no i2c device is found.
-3) All RC maps should be assigned at the same place, no matter if the
-receiver/demodulator is built in or external. Spreading them over the
-code is inconsistent and makes the code bug prone.
-4) the list of known i2c devices in em28xx-i2c.c misses client address
-0x3e >> 1 = 0x1f. See client list in em28xx_register_i2c_ir().
-5) there should be a warning message for the case that we call
-ir-kbd-i2c with an unknown rc device.
-6) because we use our own key polling functions with ir-kbd-i2c, we
-should also select the polling interval value manually. That makes
-things consistent and avoids confusion.
+OK.
 
-The rest is a matter of taste / prefered code layout. I'm fine with it.
+> > +step takes place: this checks if all controls in the list are all valid
+> 
+> s/all valid/valid/ ?
+
+Indeed.
+
+> 
+> > +controls, if no attempt is made to write to a read-only control or read
+> > +from a write-only control, and any other up-front checks that can be done
+> > +without accessing the hardware.</para>
+
+How about adding this sentence to the end of the paragraph:
+
+"The exact validations done during this step are driver dependent since some
+checks might require hardware access for some devices, thus making it impossible
+to do those checks up-front. However, drivers should make a best-effort to do
+as many up-front checks as possible."
 
 Regards,
-Frank
+
+	Hans
+
+> > +
+> > +<para>This check is done to avoid leaving the hardware in an inconsistent
+> > +state due to easy-to-avoid problems. But it leads to another problem: the
+> > +application needs to know whether an error came from the pre-validation
+> > +step (meaning that the hardware was not touched) or from an error during
+> > +the actual reading from/writing to hardware.</para>
+> > +
+> > +<para>The, in hindsight quite poor, solution for that is to set
+> > +<structfield>error_idx</structfield> to <structfield>count</structfield>
+> > +if the pre-validation failed. This has the unfortunate side-effect that it
+> > +is not possible to see which control failed the pre-validation. If the
+> > +pre-validation was successful and the error happened while accessing the
+> > +hardware, then <structfield>error_idx</structfield> is less than
+> > +<structfield>count</structfield> and only the controls up to
+> > +<structfield>error_idx-1</structfield> were read or written correctly, and
+> > +the state of the remaining controls is undefined.</para>
+> > +
+> > +<para>Since <constant>VIDIOC_TRY_EXT_CTRLS</constant> does not access
+> > +hardware there is also no need to handle the pre-validation step in this
+> > +special way, so <structfield>error_idx</structfield> will just be set to
+> > +the control that failed the pre-validation step instead of to
+> > +<structfield>count</structfield>. This means that if
+> > +<constant>VIDIOC_S_EXT_CTRLS</constant> fails with
+> > +<structfield>error_idx</structfield> set to
+> > +<structfield>count</structfield>, then you can call
+> > +<constant>VIDIOC_TRY_EXT_CTRLS</constant> to try to discover the actual
+> > +control that failed the pre-validation step. Unfortunately, there is no
+> > +<constant>TRY</constant> equivalent for
+> > +<constant>VIDIOC_G_EXT_CTRLS</constant>. </para></entry>
+> >  	  </row>
+> >  	  <row>
+> >  	    <entry>__u32</entry>
+> 
