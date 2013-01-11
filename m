@@ -1,124 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:64577 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753567Ab3AaPCy (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:27800 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427Ab3AKKNv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 10:02:54 -0500
-Received: by mail-ob0-f175.google.com with SMTP id uz6so2925935obc.20
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 07:02:54 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <510A821F.1060101@iki.fi>
-References: <CABXgeUHzMhk7rCtpoVuEz1zUYuGwUMEmxrFMKripnO8qvNX+Sg@mail.gmail.com>
- <510A821F.1060101@iki.fi>
-From: Michael Stilmant-Rovi <stilmant.michael.rovi@gmail.com>
-Date: Thu, 31 Jan 2013 16:02:34 +0100
-Message-ID: <CABXgeUF9dRS9zeWTCOGExRYOU3ZOxJ1bPZxM0GqogQOaUF580Q@mail.gmail.com>
-Subject: Re: DVB_T2 Multistream support (PLP)
-To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 11 Jan 2013 05:13:51 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGG004DQHQKFGX0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Jan 2013 19:13:49 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MGG004WZHQQLJ10@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Jan 2013 19:13:49 +0900 (KST)
+From: Leela Krishna Amudala <l.krishna@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com
+Subject: [PATCH] [RFC] video: exynos dp: Making Exynos DP Compliant with CDF
+Date: Fri, 11 Jan 2013 05:35:40 -0500
+Message-id: <1357900540-19490-1-git-send-email-l.krishna@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks,
+The Exynos DP transmitter is treated as an end entity in the display pipeline
+and made this RFC patch compliant with CDF.
 
-Looking for a tuner supporting multiple PLP, is it conceivable to add
-to the driver the possibility to pass to the hardware that value? (I
-don't know if that need other math though) ( I will look the sources
-anyway but I don't have good knowledge)
+Any suggestions are welcome.
 
-If I want to look for another USB stick how could I know if the driver
-will support that feature?
-For example is TBS5880 DVB-T2 USB TV Tuner ?
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+---
+ drivers/video/display/display-core.c  |  2 +-
+ drivers/video/exynos/exynos_dp_core.c | 88 +++++++++++++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_core.h |  6 +++
+ 3 files changed, 95 insertions(+), 1 deletion(-)
 
-I understand here that the difficulties is that few people are in a
-MultiPLP DVB_T2 range. even myself.. .
+diff --git a/drivers/video/display/display-core.c b/drivers/video/display/display-core.c
+index 5f8be30..dbad7e9 100644
+--- a/drivers/video/display/display-core.c
++++ b/drivers/video/display/display-core.c
+@@ -15,7 +15,7 @@
+ #include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
+-#include <linux/videomode.h>
++#include <video/videomode.h>
+ 
+ #include <video/display.h>
+ 
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 4ef18e2..0f8de27b 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -23,6 +23,9 @@
+ #include <video/exynos_dp.h>
+ 
+ #include "exynos_dp_core.h"
++#include <video/videomode.h>
++#include <video/display.h>
++#define to_panel(p) container_of(p, struct exynos_dp_device, entity)
+ 
+ static int exynos_dp_init_dp(struct exynos_dp_device *dp)
+ {
+@@ -1033,6 +1036,81 @@ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ }
+ #endif /* CONFIG_OF */
+ 
++static int exynos_dp_power_on(struct exynos_dp_device *dp)
++{
++	struct platform_device *pdev = to_platform_device(dp->dev);
++	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
++
++	if (dp->dev->of_node) {
++		if (dp->phy_addr)
++			exynos_dp_phy_init(dp);
++	} else {
++		if (pdata->phy_init)
++			pdata->phy_init();
++	}
++
++	clk_prepare_enable(dp->clock);
++	exynos_dp_init_dp(dp);
++	enable_irq(dp->irq);
++
++	return 0;
++}
++
++static int dp_set_state(struct display_entity *entity,
++			enum display_entity_state state)
++{
++	struct exynos_dp_device *dp = to_panel(entity);
++	struct platform_device *pdev = to_platform_device(dp->dev);
++	int ret = 0;
++
++	switch (state) {
++	case DISPLAY_ENTITY_STATE_OFF:
++	case DISPLAY_ENTITY_STATE_STANDBY:
++		ret = exynos_dp_remove(pdev);
++		break;
++	case DISPLAY_ENTITY_STATE_ON:
++		ret = exynos_dp_power_on(dp);
++		break;
++	}
++	return ret;
++}
++
++static int dp_get_modes(struct display_entity *entity,
++			const struct videomode **modes)
++{
++	/* Rework has to be done here*/
++	return 1;
++}
++
++static int dp_get_size(struct display_entity *entity,
++			unsigned int *width, unsigned int *height)
++{
++	struct exynos_dp_device *dp = to_panel(entity);
++	struct platform_device *pdev = to_platform_device(dp->dev);
++	/*getting pdata in older way, rework has to be done  here to
++	  parse it from dt node */
++	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
++
++	/*Rework has to be done here */
++	*width = 1280;
++	*height = 800;
++	return 0;
++}
++
++static int dp_update(struct display_entity *entity,
++		void (*callback)(int, void *), void *data)
++{
++	/*Rework has to be done here*/
++	return 0;
++}
++
++static const struct display_entity_control_ops dp_control_ops = {
++	.set_state = dp_set_state,
++	.get_modes = dp_get_modes,
++	.get_size = dp_get_size,
++	.update = dp_update,
++};
++
+ static int exynos_dp_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+@@ -1111,6 +1189,16 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, dp);
+ 
++	/* setup panel entity */
++	dp->entity.dev = &pdev->dev;
++	dp->entity.release = exynos_dp_remove;
++	dp->entity.ops = &dp_control_ops;
++
++	ret = display_entity_register(&dp->entity);
++	if (ret < 0) {
++		pr_err("failed to register display entity\n");
++		return ret;
++	}
+ 	return 0;
+ }
+ 
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 6c567bb..eb18c10 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -13,6 +13,8 @@
+ #ifndef _EXYNOS_DP_CORE_H
+ #define _EXYNOS_DP_CORE_H
+ 
++#include <video/display.h>
++
+ enum dp_irq_type {
+ 	DP_IRQ_TYPE_HP_CABLE_IN,
+ 	DP_IRQ_TYPE_HP_CABLE_OUT,
+@@ -42,6 +44,7 @@ struct exynos_dp_device {
+ 	struct video_info	*video_info;
+ 	struct link_train	link_train;
+ 	struct work_struct	hotplug_work;
++	struct display_entity	entity;
+ };
+ 
+ /* exynos_dp_reg.c */
+@@ -133,6 +136,9 @@ void exynos_dp_config_video_slave_mode(struct exynos_dp_device *dp);
+ void exynos_dp_enable_scrambling(struct exynos_dp_device *dp);
+ void exynos_dp_disable_scrambling(struct exynos_dp_device *dp);
+ 
++static int exynos_dp_power_on(struct exynos_dp_device *dp);
++static int exynos_dp_remove(struct platform_device *pdev);
++
+ /* I2C EDID Chip ID, Slave Address */
+ #define I2C_EDID_DEVICE_ADDR			0x50
+ #define I2C_E_EDID_DEVICE_ADDR			0x30
+-- 
+1.8.0
 
-Regards,
-
-On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
->>
->> Hello,
->>
->> I would like to know the support status of Multiple PLPs in DVB-T2.
->> Is someone know if tests were performed in a broadcast with an
->> effective Multistream? (PLP Id: 0 and 1 for example)
->>
->> I'm out of range of such multiplex but I'm trying some tunes on London
->> DVB-T2 (CrystalPalace tower)
->> "unfortunately" that mux seems Single PLP and everything work well :-(
->>    ( yes tune always succeed :-D )
->>
->> I'm using DVB API 5.6.
->> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
->> 0, 1 or 15. the tune succeed.
->>
->> I'm not sure of the expected behavior, I was expecting if I tune with
->> plp_id 1 that the tuner would fail somewhere finding that stream.
->>
->> So in short I don't understand what is the requirements to be able to
->> use the DVB_T2 Multistream support proposed in APIs:
->>   o I see that the DVB API 5.8(?) had some patch at that level and so
->> it is maybe requested?
->>   o How can I know if my driver support that feature on DVB API 5.6?
->> (PCTV nanoStick T2 290e)?
->>
->> Thank you for all indications.
->>
->> -Michael
->
->
-> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
-> driver and I has only Live signal with single TS. What I think Windows
-> driver either supports that feature. It just tunes to first PLP regardless
-> of whole property and that's it.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
-
-On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
->>
->> Hello,
->>
->> I would like to know the support status of Multiple PLPs in DVB-T2.
->> Is someone know if tests were performed in a broadcast with an
->> effective Multistream? (PLP Id: 0 and 1 for example)
->>
->> I'm out of range of such multiplex but I'm trying some tunes on London
->> DVB-T2 (CrystalPalace tower)
->> "unfortunately" that mux seems Single PLP and everything work well :-(
->>    ( yes tune always succeed :-D )
->>
->> I'm using DVB API 5.6.
->> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
->> 0, 1 or 15. the tune succeed.
->>
->> I'm not sure of the expected behavior, I was expecting if I tune with
->> plp_id 1 that the tuner would fail somewhere finding that stream.
->>
->> So in short I don't understand what is the requirements to be able to
->> use the DVB_T2 Multistream support proposed in APIs:
->>   o I see that the DVB API 5.8(?) had some patch at that level and so
->> it is maybe requested?
->>   o How can I know if my driver support that feature on DVB API 5.6?
->> (PCTV nanoStick T2 290e)?
->>
->> Thank you for all indications.
->>
->> -Michael
->
->
-> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
-> driver and I has only Live signal with single TS. What I think Windows
-> driver either supports that feature. It just tunes to first PLP regardless
-> of whole property and that's it.
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
