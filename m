@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9167 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755023Ab3ADVQ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 16:16:27 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4] [media] em28xx: initialize button/I2C IR earlier
-Date: Fri,  4 Jan 2013 19:15:49 -0200
-Message-Id: <1357334152-3811-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
-References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59980 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752409Ab3AKN3a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 08:29:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] uvcvideo: Return -EACCES when trying to access a read/write-only control
+Date: Fri, 11 Jan 2013 14:31:12 +0100
+Message-ID: <1912507.Y1ty4L8jHZ@avalon>
+In-Reply-To: <201301111426.28433.hverkuil@xs4all.nl>
+References: <1357910040-27463-1-git-send-email-laurent.pinchart@ideasonboard.com> <201301111421.40294.hverkuil@xs4all.nl> <201301111426.28433.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The em28xx-input is used by 3 different types of input devices:
-	- devices with buttons (like cameras and grabber devices);
-	- devices with I2C remotes;
-	- em2860 or latter chips with RC support embedded.
-When the device has an I2C remote, all it needs to do is to call
-the proper I2C driver (ir-i2c-kbd), passing the proper data to
-it, and just leave the code.
-Also, button devices have its own init code that doesn't depend on
-having an IR or not (as a general rule, they don't have).
-So, move its init code to fix bugs introduced by earlier patches
-that prevent them to work.
+Hi Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/em28xx/em28xx-input.c | 20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+On Friday 11 January 2013 14:26:28 Hans Verkuil wrote:
+> On Fri January 11 2013 14:21:40 Hans Verkuil wrote:
+> > On Fri January 11 2013 14:13:58 Laurent Pinchart wrote:
+> > > Commit ba68c8530a263dc4de440fa10bb20a1c5b9d4ff5 (Partly revert "[media]
+> > > uvcvideo: Set error_idx properly for extended controls API failures")
+> > > also reverted commit 30ecb936cbcd83e3735625ac63e1b4466546f5fe
+> > > ("uvcvideo: Return -EACCES when trying to access a read/write-only
+> > > control") by mistake. Fix it.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Actually, I need a clarification first: the code only checks for access to
+> a read-only control, but the patch title says: "Return -EACCES when trying
+> to access a read/write-only control", so either there is something missing
+> in the patch, or the patch title is wrong.
+> 
+> I suspect it is just the title that is wrong.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 3598221..2a1b3d2 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -590,6 +590,17 @@ static int em28xx_ir_init(struct em28xx *dev)
- 	int err = -ENOMEM;
- 	u64 rc_type;
- 
-+	if (dev->board.has_snapshot_button)
-+		em28xx_register_snapshot_button(dev);
-+
-+	if (dev->board.has_ir_i2c) {
-+		em28xx_register_i2c_ir(dev);
-+#if defined(CONFIG_MODULES) && defined(MODULE)
-+		request_module("ir-kbd-i2c");
-+#endif
-+		return 0;
-+	}
-+
- 	if (dev->board.ir_codes == NULL) {
- 		/* No remote control support */
- 		em28xx_warn("Remote control support is not available for "
-@@ -663,15 +674,6 @@ static int em28xx_ir_init(struct em28xx *dev)
- 	if (err)
- 		goto error;
- 
--	em28xx_register_i2c_ir(dev);
--
--#if defined(CONFIG_MODULES) && defined(MODULE)
--	if (dev->board.has_ir_i2c)
--		request_module("ir-kbd-i2c");
--#endif
--	if (dev->board.has_snapshot_button)
--		em28xx_register_snapshot_button(dev);
--
- 	return 0;
- 
- error:
+Yes, the title is wrong. The original commit handled both, and 
+ba68c8530a263dc4de440fa10bb20a1c5b9d4ff5 reverted only half of it.
+
+I'll send a v2 with a fixed title.
+
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
