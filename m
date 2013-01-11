@@ -1,86 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:40311 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756519Ab3AOKiP (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:33583 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755166Ab3AKNhp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 05:38:15 -0500
-Received: by mail-ob0-f174.google.com with SMTP id ta14so4885601obb.5
-        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 02:38:14 -0800 (PST)
+	Fri, 11 Jan 2013 08:37:45 -0500
+Received: by mail-ea0-f182.google.com with SMTP id d1so723236eaa.13
+        for <linux-media@vger.kernel.org>; Fri, 11 Jan 2013 05:37:44 -0800 (PST)
+Message-ID: <50F015A5.80403@gmail.com>
+Date: Fri, 11 Jan 2013 14:37:41 +0100
+From: Jiri Slaby <jirislaby@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-Date: Tue, 15 Jan 2013 16:08:14 +0530
-Message-ID: <CAHFNz9JQPVoPXhs7d4Ou_vbYWV5uUKimTnuD+FCVOmwvCDDRkA@mail.gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-From: Manu Abraham <abraham.manu@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Oliver Schinagl <oliver+list@schinagl.nl>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <50EF1034.7060100@gmail.com> <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com> <20130110180434.0681a7e1@redhat.com> <CAHFNz9+Jon-YSjkX5gFOTXwX+Vsmi0Rq+X_N61-m2+AEX+8tGg@mail.gmail.com> <50EF29D1.2080102@schinagl.nl> <20130110201134.364d5bc6@redhat.com> <50EF4766.2070100@schinagl.nl> <20130111103937.2cd0d5c8@redhat.com>
+In-Reply-To: <20130111103937.2cd0d5c8@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 15, 2013 at 8:00 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Add DVBv5 methods to retrieve QoS statistics.
->
-> Those methods allow per-layer and global statistics.
->
-> Implemented 2 QoS statistics on mb86a20s, one global only
-> (signal strengh), and one per layer (BER).
->
-> Tested with a modified version of dvbv5-zap, that allows monitoring
-> those stats. Test data follows
->
-> Tested with 1-segment at layer A, and 12-segment at layer B:
->
-> [ 3735.973058] i2c i2c-4: mb86a20s_layer_bitrate: layer A bitrate: 440 kbps; counter = 196608 (0x030000)
-> [ 3735.976803] i2c i2c-4: mb86a20s_layer_bitrate: layer B bitrate: 16851 kbps; counter = 8257536 (0x7e0000)
->
-> a) Global stats:
->
-> Signal strength:
->         QOS_SIGNAL_STRENGTH[0] = 4096
->
-> BER (sum of BE count and bit counts for both layers):
->         QOS_BIT_ERROR_COUNT[0] = 1087865
->         QOS_TOTAL_BITS_COUNT[0] = 67043313
->
-> b) Per-layer stats:
->
-> Layer A BER:
->         QOS_BIT_ERROR_COUNT[1] = 236
->         QOS_TOTAL_BITS_COUNT[1] = 917490
->
-> Layer B BER:
->         QOS_BIT_ERROR_COUNT[2] = 1087629
->         QOS_TOTAL_BITS_COUNT[2] = 66125823
->
-> TODO:
->         - add more statistics at mb86a20s;
->         - implement support for DTV_QOS_ENUM;
->         - some cleanups at get_frontend logic at dvb core, to avoid
->           it to be called outside the DVB thread loop.
->
-> All the above changes can be done a little later during this development
-> cycle, so my plan is to merge it upstream at the beginning of the
-> next week, to allow others to test.
->
+On 01/11/2013 01:39 PM, Mauro Carvalho Chehab wrote:
+> tgz:
+> 	git archive --format tgz HEAD >dtv-scan-files-`date +"%Y%m%d.%H:%M"`.tar.gz
 
+Better to use the top commit date:
+git log -n1 --date=short --pretty=format:%ad
 
-An API should be simple. This is far from simple. This API looks horribly
-complex and broken, for anyone to use it in a sane way.
+You won't generate a snapshot every day with the same contents then.
 
-Polling from within dvb-core is not a good idea, as it can cause acquisition
-failures. Continuous polling is known to cause issues.
+or %ad-g%p if you want also a short commit id in there.
 
-Adding counters to be controlled externally by a user is the most silliest
-thing altogether.
-
-All these things put together, makes it the most inconvenient thing to be used.
-Eventually, it results in more broken applications than existing.
-
-Not to forget that too much work has to be put into drivers, which aren't going
-to make things better, but rather even more worser.
-
-
-Manu
+-- 
+js
