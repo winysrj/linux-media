@@ -1,47 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37232 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46043 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab3AKNMY (ORCPT
+	with ESMTP id S1752876Ab3AKNxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:12:24 -0500
+	Fri, 11 Jan 2013 08:53:08 -0500
+Received: from avalon.localnet (unknown [91.178.45.2])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8F3A535A82
+	for <linux-media@vger.kernel.org>; Fri, 11 Jan 2013 14:53:07 +0100 (CET)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 3/3] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures
-Date: Fri, 11 Jan 2013 14:14:00 +0100
-Message-Id: <1357910040-27463-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1357910040-27463-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1357910040-27463-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [GIT PULL FOR v3.8] uvcvideo fixes
+Date: Fri, 11 Jan 2013 14:54:50 +0100
+Message-ID: <1693696.M4Zb09gsEn@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The uvc_set_ctrl() calls don't write to the hardware. A failure at that
-point thus leaves the device in a clean state, with no control modified.
-Set the error_idx field to the count value to reflect that, as per the
-V4L2 specification.
+Hi Mauro,
 
-TRY_EXT_CTRLS is unchanged and the error_idx field must always be set to
-the failed control index in that case.
+The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_v4l2.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+  Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 5eb8989..68d59b5 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -685,7 +685,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 			ret = uvc_ctrl_set(chain, ctrl);
- 			if (ret < 0) {
- 				uvc_ctrl_rollback(handle);
--				ctrls->error_idx = i;
-+				ctrls->error_idx = cmd == VIDIOC_S_EXT_CTRLS
-+						 ? ctrls->count : i;
- 				return ret;
- 			}
- 		}
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
+
+Laurent Pinchart (3):
+      uvcvideo: Return -EACCES when trying to set a read-only control
+      uvcvideo: Cleanup leftovers of partial revert
+      uvcvideo: Set error_idx properly for S_EXT_CTRLS failures
+
+ drivers/media/usb/uvc/uvc_ctrl.c |    4 +++-
+ drivers/media/usb/uvc/uvc_v4l2.c |    6 ++----
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+The corresponding patchwork are
+
+pwclient update -s 'accepted' 16212
+pwclient update -s 'accepted' 16213
+pwclient update -s 'accepted' 16214
+
+(I've manually marked v1 as superseded through the web interface)
+
 -- 
-1.7.8.6
+Regards,
+
+Laurent Pinchart
 
