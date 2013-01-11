@@ -1,51 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46043 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab3AKNxI (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:32181 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752941Ab3AKKjy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:53:08 -0500
-Received: from avalon.localnet (unknown [91.178.45.2])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8F3A535A82
-	for <linux-media@vger.kernel.org>; Fri, 11 Jan 2013 14:53:07 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.8] uvcvideo fixes
-Date: Fri, 11 Jan 2013 14:54:50 +0100
-Message-ID: <1693696.M4Zb09gsEn@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 11 Jan 2013 05:39:54 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8
+Message-id: <50EFEBF7.4080801@samsung.com>
+Date: Fri, 11 Jan 2013 11:39:51 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: =?UTF-8?B?U2ViYXN0aWFuIERyw7ZnZQ==?= <slomo@circular-chaos.org>
+Cc: sylvester.nawrocki@gmail.com, LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: FIMC/CAMIF V4L2 driver
+References: <1356685333.4296.92.camel@thor.lan>
+In-reply-to: <1356685333.4296.92.camel@thor.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sebastian,
 
-The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
+Cc: <linux-media@vger.kernel.org>
 
-  Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
+On 12/28/2012 10:02 AM, Sebastian Dröge wrote:
+> Hi Sylwester,
+> 
+> Kamil Debski told me that you should be able to help me with any issues
+> about the FIMC/CAMIF V4L2 driver. I'm currently using it on Exynos 4
+> hardware and wrote a GStreamer plugin using it (and the MFC driver).
+> 
+> So far everything works great but I found a bug in the driver. When
+> configuring the CAPTURE side to use the pixel format
+> V4L2_PIX_FMT_YUV420M the strides that are reported are wrong.
+> 
+> I get them by setting a v4l2_format with VIDIOC_S_FMT and having the
+> fmt.pix_mp.plane_fmt[X].bytesperline set to zero. The value set there
+> after the ioctl is correct for the luma plane but has the same value for
+> the chroma planes while it should be the half.
+> By using a stride that is half the value I can get valid and usable
+> output.
+> 
+> For V4L2_PIX_FMT_NV12MT and V4L2_PIX_FMT_NV12M these stride values are
+> correct, so maybe a check for V4L2_PIX_FMT_YUV420M is missing somewhere
+> to divide by two for the chroma planes.
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
+Thank you for the bug report. And sorry for the delay..
 
-Laurent Pinchart (3):
-      uvcvideo: Return -EACCES when trying to set a read-only control
-      uvcvideo: Cleanup leftovers of partial revert
-      uvcvideo: Set error_idx properly for S_EXT_CTRLS failures
+The driver sets same bytesperline value for each plane, since I found
+definition of this parameter very vague for planar formats, especially
+the macro-block ones, e.g. [1]. So it's really a feature, not a bug ;)
 
- drivers/media/usb/uvc/uvc_ctrl.c |    4 +++-
- drivers/media/usb/uvc/uvc_v4l2.c |    6 ++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+Nevertheless, what the documentation [2] says is:
 
-The corresponding patchwork are
+"\bytesperline\    Distance in bytes between the leftmost pixels in two
+adjacent lines."
+...
 
-pwclient update -s 'accepted' 16212
-pwclient update -s 'accepted' 16213
-pwclient update -s 'accepted' 16214
+"When the image format is planar the bytesperline value applies to the
+largest plane and is divided by the same factor as the width field for
+any smaller planes. For example the Cb and Cr planes of a YUV 4:2:0 image
+have half as many padding bytes following each line as the Y plane. To
+avoid ambiguities drivers must return a bytesperline value rounded up to
+a multiple of the scale factor."
 
-(I've manually marked v1 as superseded through the web interface)
+Then, for V4L2_PIX_FMT_NV12M format bytesperline for both planes should be
+same, since according to the format definition chroma and luma plane width
+are same.
 
--- 
+For V4L2_PIX_FMT_YUV420M the Cr and Cb plane is half the width and half
+the height of the image (Y plane). I agree the bytesperline of the chroma
+should be half of that of luma plane.
+
+Please let me know if this patch helps:
+http://patchwork.linuxtv.org/patch/16205
+
+If it's OK then I'll submit it for v3.9 kernel.
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/re31.html
+[2] http://linuxtv.org/downloads/v4l-dvb-apis/pixfmt.html#v4l2-pix-format
+
+--
+
 Regards,
-
-Laurent Pinchart
-
+Sylwester
