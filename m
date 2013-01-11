@@ -1,85 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60140 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab3AAP2S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 10:28:18 -0500
-Date: Tue, 1 Jan 2013 16:28:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 02/15] [media] marvell-ccic: add MIPI support for
- marvell-ccic driver
-In-Reply-To: <1355565484-15791-3-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1301011600060.31619@axis700.grange>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-3-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bhuna.collabora.co.uk ([93.93.135.160]:33903 "EHLO
+	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755009Ab3AKLIs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 06:08:48 -0500
+Message-ID: <1357902525.6914.139.camel@thor.lan>
+Subject: Re: FIMC/CAMIF V4L2 driver
+From: Sebastian =?ISO-8859-1?Q?Dr=F6ge?=
+	<sebastian.droege@collabora.co.uk>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: sylvester.nawrocki@gmail.com, LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Date: Fri, 11 Jan 2013 12:08:45 +0100
+In-Reply-To: <50EFEBF7.4080801@samsung.com>
+References: <1356685333.4296.92.camel@thor.lan>
+	 <50EFEBF7.4080801@samsung.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-iokH9KH5og0QCgxmLBHd"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert
 
-Looks quite good to me, thanks for addressing my comments! Just a minor 
-nitpick below:
+--=-iokH9KH5og0QCgxmLBHd
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Sat, 15 Dec 2012, Albert Wang wrote:
+On Fr, 2013-01-11 at 11:39 +0100, Sylwester Nawrocki wrote:
+> Hi Sebastian,
+>=20
+> Cc: <linux-media@vger.kernel.org>
+>=20
+> On 12/28/2012 10:02 AM, Sebastian Dr=C3=B6ge wrote:
+> > Hi Sylwester,
+> >=20
+> > Kamil Debski told me that you should be able to help me with any issues
+> > about the FIMC/CAMIF V4L2 driver. I'm currently using it on Exynos 4
+> > hardware and wrote a GStreamer plugin using it (and the MFC driver).
+> >=20
+> > So far everything works great but I found a bug in the driver. When
+> > configuring the CAPTURE side to use the pixel format
+> > V4L2_PIX_FMT_YUV420M the strides that are reported are wrong.
+> >=20
+> > I get them by setting a v4l2_format with VIDIOC_S_FMT and having the
+> > fmt.pix_mp.plane_fmt[X].bytesperline set to zero. The value set there
+> > after the ioctl is correct for the luma plane but has the same value fo=
+r
+> > the chroma planes while it should be the half.
+> > By using a stride that is half the value I can get valid and usable
+> > output.
+> >=20
+> > For V4L2_PIX_FMT_NV12MT and V4L2_PIX_FMT_NV12M these stride values are
+> > correct, so maybe a check for V4L2_PIX_FMT_YUV420M is missing somewhere
+> > to divide by two for the chroma planes.
+>=20
+> Thank you for the bug report. And sorry for the delay..
+>=20
+> The driver sets same bytesperline value for each plane, since I found
+> definition of this parameter very vague for planar formats, especially
+> the macro-block ones, e.g. [1]. So it's really a feature, not a bug ;)
+>=20
+> Nevertheless, what the documentation [2] says is:
+>=20
+> "\bytesperline\    Distance in bytes between the leftmost pixels in two
+> adjacent lines."
+> ...
+>=20
+> "When the image format is planar the bytesperline value applies to the
+> largest plane and is divided by the same factor as the width field for
+> any smaller planes. For example the Cb and Cr planes of a YUV 4:2:0 image
+> have half as many padding bytes following each line as the Y plane. To
+> avoid ambiguities drivers must return a bytesperline value rounded up to
+> a multiple of the scale factor."
+>=20
+> Then, for V4L2_PIX_FMT_NV12M format bytesperline for both planes should b=
+e
+> same, since according to the format definition chroma and luma plane widt=
+h
+> are same.
+>=20
+> For V4L2_PIX_FMT_YUV420M the Cr and Cb plane is half the width and half
+> the height of the image (Y plane). I agree the bytesperline of the chroma
+> should be half of that of luma plane.
+>=20
+> Please let me know if this patch helps:
+> http://patchwork.linuxtv.org/patch/16205
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the MIPI support for marvell-ccic.
-> Board driver should determine whether using MIPI or not.
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> ---
+Thanks, especially for the long explanation of why it is like this :)
 
-A general request for future revisions: it would help if you could list changes 
-since the last version here - after any Sob's and the "---" line.
+I can't test the patch right now but it should do almost the right
+thing. IMHO for the chroma planes the bytesperline should be (width
++1)/2, otherwise you'll miss one chroma value per line for odd widths.
 
->  drivers/media/platform/marvell-ccic/mcam-core.c  |   70 ++++++++++++++++++++
->  drivers/media/platform/marvell-ccic/mcam-core.h  |   24 ++++++-
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   75 +++++++++++++++++++++-
->  include/media/mmp-camera.h                       |   10 +++
->  4 files changed, 177 insertions(+), 2 deletions(-)
 
-[snip]
+However I also noticed another bug. Currently S_FMT happily allows
+V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_BGR24, V4L2_PIX_FMT_RGB24 and probably
+others. But the output will be distorted and useless.
+(V4L2_PIX_FMT_RGB32 works perfectly fine)
 
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index c4c17fe..603fa0a 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
 
-[snip]
+BR,
+Sebastian
 
-> @@ -183,8 +251,14 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	mcam = &cam->mcam;
->  	mcam->plat_power_up = mmpcam_power_up;
->  	mcam->plat_power_down = mmpcam_power_down;
-> +	mcam->calc_dphy = mmpcam_calc_dphy;
-> +	mcam->pll1 = NULL;
+--=-iokH9KH5og0QCgxmLBHd
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-Strictly speaking this is not needed, it's allocated using kzalloc(). Kinda 
-pointless to use kzalloc() and then explicitly initialise each field, 
-including 0 / NULL...
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
->  	mcam->dev = &pdev->dev;
->  	mcam->use_smbus = 0;
-> +	mcam->bus_type = pdata->bus_type;
-> +	mcam->dphy = pdata->dphy;
-> +	mcam->mipi_enabled = 0;
+iEYEABECAAYFAlDv8r0ACgkQBsBdh1vkHyE4LQCdGPzmurjeUOFqR7jIPWpIIQbd
+NxYAn1NpRlGQFsxgbgsfGONjvnL/pCO3
+=ALWH
+-----END PGP SIGNATURE-----
 
-ditto
+--=-iokH9KH5og0QCgxmLBHd--
 
-> +	mcam->lane = pdata->lane;
->  	mcam->chip_id = V4L2_IDENT_ARMADA610;
->  	mcam->buffer_mode = B_DMA_sg;
->  	spin_lock_init(&mcam->dev_lock);
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
