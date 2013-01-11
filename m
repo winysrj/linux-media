@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f46.google.com ([209.85.210.46]:60969 "EHLO
-	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586Ab3AHG4k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 01:56:40 -0500
-Received: by mail-da0-f46.google.com with SMTP id p5so46278dak.5
-        for <linux-media@vger.kernel.org>; Mon, 07 Jan 2013 22:56:39 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/1] [media] s5k6aa: Use devm_regulator_bulk_get API
-Date: Tue,  8 Jan 2013 12:18:24 +0530
-Message-Id: <1357627704-14269-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60474 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754090Ab3AKL0a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 06:26:30 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8
+Message-id: <50EFF6E3.4090302@samsung.com>
+Date: Fri, 11 Jan 2013 12:26:27 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: =?UTF-8?B?U2ViYXN0aWFuIERyw7ZnZQ==?=
+	<sebastian.droege@collabora.co.uk>
+Cc: sylvester.nawrocki@gmail.com, LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Subject: Re: FIMC/CAMIF V4L2 driver
+References: <1356685333.4296.92.camel@thor.lan> <50EFEBF7.4080801@samsung.com>
+ <1357902525.6914.139.camel@thor.lan>
+In-reply-to: <1357902525.6914.139.camel@thor.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_regulator_bulk_get is device managed and saves some cleanup
-and exit code.
+Hi,
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/i2c/s5k6aa.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+On 01/11/2013 12:08 PM, Sebastian Dröge wrote:
+> I can't test the patch right now but it should do almost the right
+> thing. IMHO for the chroma planes the bytesperline should be (width
+> +1)/2, otherwise you'll miss one chroma value per line for odd widths.
 
-diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-index 57cd4fa..bdf5e3d 100644
---- a/drivers/media/i2c/s5k6aa.c
-+++ b/drivers/media/i2c/s5k6aa.c
-@@ -1598,7 +1598,7 @@ static int s5k6aa_probe(struct i2c_client *client,
- 	for (i = 0; i < S5K6AA_NUM_SUPPLIES; i++)
- 		s5k6aa->supplies[i].supply = s5k6aa_supply_names[i];
- 
--	ret = regulator_bulk_get(&client->dev, S5K6AA_NUM_SUPPLIES,
-+	ret = devm_regulator_bulk_get(&client->dev, S5K6AA_NUM_SUPPLIES,
- 				 s5k6aa->supplies);
- 	if (ret) {
- 		dev_err(&client->dev, "Failed to get regulators\n");
-@@ -1607,7 +1607,7 @@ static int s5k6aa_probe(struct i2c_client *client,
- 
- 	ret = s5k6aa_initialize_ctrls(s5k6aa);
- 	if (ret)
--		goto out_err4;
-+		goto out_err3;
- 
- 	s5k6aa_presets_data_init(s5k6aa);
- 
-@@ -1618,8 +1618,6 @@ static int s5k6aa_probe(struct i2c_client *client,
- 
- 	return 0;
- 
--out_err4:
--	regulator_bulk_free(S5K6AA_NUM_SUPPLIES, s5k6aa->supplies);
- out_err3:
- 	s5k6aa_free_gpios(s5k6aa);
- out_err2:
-@@ -1635,7 +1633,6 @@ static int s5k6aa_remove(struct i2c_client *client)
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	media_entity_cleanup(&sd->entity);
--	regulator_bulk_free(S5K6AA_NUM_SUPPLIES, s5k6aa->supplies);
- 	s5k6aa_free_gpios(s5k6aa);
- 
- 	return 0;
--- 
-1.7.4.1
+Odd widths are not allowed, the driver will adjust width to be multiple
+of 16 pixels. However, you can adjust the usable area more precisely with
+VIDIOC_S_CROP or VIDIOC_S_SELECTION ioctl. I still need to do some work to
+define properly the selection ioctl on mem-to-mem devices in the V4L2
+documentation.
+
+> However I also noticed another bug. Currently S_FMT happily allows
+> V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_BGR24, V4L2_PIX_FMT_RGB24 and probably
+> others. But the output will be distorted and useless.
+> (V4L2_PIX_FMT_RGB32 works perfectly fine)
+
+This shouldn't really happen. Are you checking pixelformat after VIDIOC_S_FMT
+call ? Isn't it adjusted to some valid and supported by the driver format ?
+
+--
+
+Regards,
+Sylwester
 
