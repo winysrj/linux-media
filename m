@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2579 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469Ab3AKLX3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 06:23:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] DocBook: media: struct v4l2_capability card field is a UTF-8 string
-Date: Fri, 11 Jan 2013 12:23:23 +0100
-Cc: linux-media@vger.kernel.org
-References: <1357590624-28567-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1357590624-28567-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:44301 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754156Ab3AKSik (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 13:38:40 -0500
+Message-ID: <50F05C09.3010104@iki.fi>
+Date: Fri, 11 Jan 2013 20:38:01 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: af9035 test needed!
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201301111223.23285.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon January 7 2013 21:30:24 Laurent Pinchart wrote:
-> The struct v4l2_capability card field stores the device name. That name
-> can be hardcoded in drivers, or be retrieved directly from the device.
-> The later is very common with USB devices. As several devices already
-> report names that include non-ASCII characters, update the field
-> description to use UTF-8.
->
+Hello Jose and Gianluca
 
-I missed this patch on Monday, but better late than never:
+Could you test that (tda18218 & mxl5007t):
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I wonder if ADC config logic still works for superheterodyne tuners 
+(tuner having IF). I changed it to adc / 2 always due to IT9135 tuner. 
+That makes me wonder it possible breaks tuners having IF, as ADC was 
+clocked just over 20MHz and if it is half then it is 10MHz. For BB that 
+is enough, but I think that having IF, which is 4MHz at least for 8MHz 
+BW it is too less.
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../DocBook/media/v4l/vidioc-querycap.xml          |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> index 4c70215..d5a3c97 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-> @@ -76,7 +76,7 @@ make sure the strings are properly NUL-terminated.</para></entry>
->  	  <row>
->  	    <entry>__u8</entry>
->  	    <entry><structfield>card</structfield>[32]</entry>
-> -	    <entry>Name of the device, a NUL-terminated ASCII string.
-> +	    <entry>Name of the device, a NUL-terminated UTF-8 string.
->  For example: "Yoyodyne TV/FM". One driver may support different brands
->  or models of video hardware. This information is intended for users,
->  for example in a menu of available devices. Since multiple TV cards of
-> 
+F*ck I hate to maintain driver without a hardware! Any idea where I can 
+get AF9035 device having tda18218 or mxl5007t?
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
