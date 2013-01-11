@@ -1,61 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48355 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751090Ab3AVMfz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 07:35:55 -0500
-Date: Tue, 22 Jan 2013 10:34:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>, Arnd Bergmann <arnd@arndb.de>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <arm@kernel.org>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH 09/15] media: coda: don't build on multiplatform
-Message-ID: <20130122103451.16522151@redhat.com>
-In-Reply-To: <20130122103222.27b615d7@redhat.com>
-References: <1358788568-11137-1-git-send-email-arnd@arndb.de>
-	<1358788568-11137-10-git-send-email-arnd@arndb.de>
-	<20130122035402.GC29677@S2100-06.ap.freescale.net>
-	<20130122103222.27b615d7@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4876 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137Ab3AKL0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 06:26:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 2/2] DocBook: improve the error_idx field documentation.
+Date: Fri, 11 Jan 2013 12:26:03 +0100
+Message-Id: <9035cddc289cc58a41d6122a10a17e5d27c6fc0f.1357903446.git.hans.verkuil@cisco.com>
+In-Reply-To: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
+References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
+References: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Jan 2013 10:32:22 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Em Tue, 22 Jan 2013 11:54:04 +0800
-> Shawn Guo <shawn.guo@linaro.org> escreveu:
-> 
-> > On Mon, Jan 21, 2013 at 05:16:02PM +0000, Arnd Bergmann wrote:
-> > > The coda video codec driver depends on a mach-imx or mach-mxs specific
-> > > header file "mach/iram.h". This is not available when building for
-> > > multiplatform, so let us disable this driver for v3.8 when building
-> > > multiplatform, and hopefully find a proper fix for v3.9.
-> > > 
-> > > drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
-> > > 
-> > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > Cc: Javier Martin <javier.martin@vista-silicon.com>
-> > > Cc: Fabio Estevam <fabio.estevam@freescale.com>
-> > > Cc: Sascha Hauer <kernel@pengutronix.de>
-> > > Cc: Shawn Guo <shawn.guo@linaro.org>
-> > 
-> > Acked-by: Shawn Guo <shawn.guo@linaro.org>
-> > 
-> > > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The documentation of the error_idx field was incomplete and confusing.
+This patch improves it.
 
-Err... actually, as Sascha has a proper fix for it, it should be used,
-instead. So:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   44 ++++++++++++++++----
+ 1 file changed, 37 insertions(+), 7 deletions(-)
 
-Nacked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index 0a4b90f..e9f9735 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -199,13 +199,43 @@ also be zero.</entry>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>error_idx</structfield></entry>
+-	    <entry>Set by the driver in case of an error. If it is equal
+-to <structfield>count</structfield>, then no actual changes were made to
+-controls. In other words, the error was not associated with setting a particular
+-control. If it is another value, then only the controls up to <structfield>error_idx-1</structfield>
+-were modified and control <structfield>error_idx</structfield> is the one that
+-caused the error. The <structfield>error_idx</structfield> value is undefined
+-if the ioctl returned 0 (success).</entry>
++	    <entry><para>Set by the driver in case of an error. If the error is
++associated with a particular control, then <structfield>error_idx</structfield>
++is set to the index of that control. If the error is not related to a specific
++control, or the pre-validation step failed (see below), then
++<structfield>error_idx</structfield> is set to <structfield>count</structfield>.
++The value is undefined if the ioctl returned 0 (success).</para>
++
++<para>Before controls are read from/written to hardware a pre-validation step
++takes place: this checks if all controls in the list are all valid controls,
++if no attempt is made to write to a read-only control or read from a write-only
++control, and any other up-front checks that can be done without accessing the
++hardware.</para>
++
++<para>This check is done to avoid leaving the hardware in an inconsistent state due
++to easy-to-avoid problems. But it leads to another problem: the application needs to
++know whether an error came from the pre-validation step (meaning that the hardware
++was not touched) or from an error during the actual reading from/writing to hardware.</para>
++
++<para>The, in hindsight quite poor, solution for that is to set <structfield>error_idx</structfield>
++to <structfield>count</structfield> if the pre-validation failed. This has the
++unfortunate side-effect that it is not possible to see which control failed the
++pre-validation. If the pre-validation was successful and the error happened while
++accessing the hardware, then <structfield>error_idx</structfield> is less than
++<structfield>count</structfield> and only the controls up to
++<structfield>error_idx-1</structfield> were read or written correctly, and the
++state of the remaining controls is undefined.</para>
++
++<para>Since <constant>VIDIOC_TRY_EXT_CTRLS</constant> does not access hardware
++there is also no need to handle the pre-validation step in this special way,
++so <structfield>error_idx</structfield> will just be set to the control that
++failed the pre-validation step instead of to <structfield>count</structfield>.
++This means that if <constant>VIDIOC_S_EXT_CTRLS</constant> fails with
++<structfield>error_idx</structfield> set to <structfield>count</structfield>,
++then you can call <constant>VIDIOC_TRY_EXT_CTRLS</constant> to try to discover
++the actual control that failed the pre-validation step. Unfortunately, there
++is no <constant>TRY</constant> equivalent for <constant>VIDIOC_G_EXT_CTRLS</constant>.
++</para></entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-- 
+1.7.10.4
 
-Regards,
-Mauro
