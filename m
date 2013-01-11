@@ -1,70 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:49576 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756142Ab3AOOXw (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:63833 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753533Ab3AKP3p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 09:23:52 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so77701eek.25
-        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 06:23:50 -0800 (PST)
-MIME-Version: 1.0
-Date: Tue, 15 Jan 2013 22:23:50 +0800
-Message-ID: <CAPUZ0n-yTOsJK1QDyirnBWQZ-WzqD5LNXzj1-+ZDeLrvXjhA4w@mail.gmail.com>
-Subject: [PATCH] cx23885: Add analog video input support for Compro E650F
-From: =?UTF-8?B?55un55Ge5YWD?= <rueiyuan.lu@gmail.com>
+	Fri, 11 Jan 2013 10:29:45 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGG00FQ1WDKYM40@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jan 2013 00:29:44 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MGG00G15WDC1520@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 12 Jan 2013 00:29:44 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=047d7b34413cb990e904d3548274
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	a.hajda@samsung.com, Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 1/3] s5p-mfc: Fix a watchdog bug
+Date: Fri, 11 Jan 2013 16:29:32 +0100
+Message-id: <1357918174-4651-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7b34413cb990e904d3548274
-Content-Type: text/plain; charset=UTF-8
+Fixed wrong condition in firmware reload function used by the watchdog.
 
-This patch enables all analog video inputs on Compro E650F cards.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-However, it modifies "cx23885_initialize()" in "cx25840-core.c" that
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 1682271..2e5f30b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -130,7 +130,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+ 		release_firmware(fw_blob);
+ 		return -ENOMEM;
+ 	}
+-	if (dev->fw_virt_addr) {
++	if (!dev->fw_virt_addr) {
+ 		mfc_err("MFC firmware is not allocated\n");
+ 		release_firmware(fw_blob);
+ 		return -EINVAL;
+-- 
+1.7.9.5
 
-may break other devices.
-
-I'm seeking a way to avoid modifying "cx23885_initialize()",
-
-any suggestions are appreciated.
-
-
-Regards
-
---047d7b34413cb990e904d3548274
-Content-Type: application/octet-stream;
-	name="Add-analog-video-input-support-for-Compro-E650F.patch"
-Content-Disposition: attachment;
-	filename="Add-analog-video-input-support-for-Compro-E650F.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hbz3yiti0
-
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMg
-Yi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1jYXJkcy5jCmluZGV4IGMzY2Yw
-ODkuLjI1MjQ4MzQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIz
-ODg1LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2Fy
-ZHMuYwpAQCAtMjM3LDcgKzIzNywyOSBAQCBzdHJ1Y3QgY3gyMzg4NV9ib2FyZCBjeDIzODg1X2Jv
-YXJkc1tdID0gewogCX0sCiAJW0NYMjM4ODVfQk9BUkRfQ09NUFJPX1ZJREVPTUFURV9FNjUwRl0g
-PSB7CiAJCS5uYW1lCQk9ICJDb21wcm8gVmlkZW9NYXRlIEU2NTBGIiwKKwkJLnBvcnRhCQk9IENY
-MjM4ODVfQU5BTE9HX1ZJREVPLAogCQkucG9ydGMJCT0gQ1gyMzg4NV9NUEVHX0RWQiwKKwkJLnR1
-bmVyX3R5cGUJPSBUVU5FUl9YQzIwMjgsCisJCS50dW5lcl9hZGRyCT0gMHg2MSwKKwkJLmlucHV0
-CQk9IHsKKwkJCXsKKwkJCQkudHlwZSAgID0gQ1gyMzg4NV9WTVVYX1RFTEVWSVNJT04sCisJCQkJ
-LnZtdXggICA9IENYMjU4NDBfQ09NUE9TSVRFMgorCQkJfSwgeworCQkJCS50eXBlICAgPSBDWDIz
-ODg1X1ZNVVhfQ09NUE9TSVRFMSwKKwkJCQkudm11eCAgID0gQ1gyNTg0MF9DT01QT1NJVEUxCisJ
-CQl9LCB7CisJCQkJLnR5cGUgICA9IENYMjM4ODVfVk1VWF9TVklERU8sCisJCQkJLnZtdXggICA9
-IENYMjU4NDBfU1ZJREVPX0xVTUE0fAorCQkJCQlDWDI1ODQwX1NWSURFT19DSFJPTUE3CisJCQl9
-LCB7CisJCQkJLnR5cGUgICA9IENYMjM4ODVfVk1VWF9DT01QT05FTlQsCisJCQkJLnZtdXggICA9
-IENYMjU4NDBfQ09NUE9ORU5UX09OfAorCQkJCQlDWDI1ODQwX1ZJTjNfQ0gxIHwKKwkJCQkJQ1gy
-NTg0MF9WSU42X0NIMiB8CisJCQkJCUNYMjU4NDBfVklOOF9DSDMKKwkJCX0sCisJCX0sCiAJfSwK
-IAlbQ1gyMzg4NV9CT0FSRF9UQlNfNjkyMF0gPSB7CiAJCS5uYW1lCQk9ICJUdXJib1NpZ2h0IFRC
-UyA2OTIwIiwKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQw
-LWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwppbmRl
-eCBjZDk5NzY0Li4xOWI1NjM0IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4
-NDAvY3gyNTg0MC1jb3JlLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4
-NDAtY29yZS5jCkBAIC01ODEsNyArNTgxLDcgQEAgc3RhdGljIHZvaWQgY3gyMzg4NV9pbml0aWFs
-aXplKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQpCiAJfTsKIAogCS8qIEFEQzIgaW5wdXQgc2Vs
-ZWN0ICovCi0JY3gyNTg0MF93cml0ZShjbGllbnQsIDB4MTAyLCAweDEwKTsKKwljeDI1ODQwX3dy
-aXRlKGNsaWVudCwgMHgxMDIsIDB4MDApOwogCiAJLyogVklOMSAmIFZJTjUgKi8KIAljeDI1ODQw
-X3dyaXRlKGNsaWVudCwgMHgxMDMsIDB4MTEpOwo=
---047d7b34413cb990e904d3548274--
