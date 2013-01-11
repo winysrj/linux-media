@@ -1,144 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34891 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752382Ab3AAQnw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 11:43:52 -0500
-Message-ID: <50E31220.5060405@iki.fi>
-Date: Tue, 01 Jan 2013 18:43:12 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH] [media] dvb: frontend API: Add a flag to indicate
- that get_frontend() can be called
-References: <1356738146-9352-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1356738146-9352-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:30468 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133Ab3AKKgd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 05:36:33 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGG0068OISV6A50@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Jan 2013 19:36:31 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MGG005GOISL9O40@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 11 Jan 2013 19:36:30 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-fimc: Fix bytesperline value for V4L2_PIX_FMT_YUV420M
+ format
+Date: Fri, 11 Jan 2013 11:36:19 +0100
+Message-id: <1357900579-22267-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/29/2012 01:42 AM, Mauro Carvalho Chehab wrote:
-> get_frontend() can't be called too early, as the device may not have it
-> yet. Yet, get_frontend() on OFDM standards can happen before FE_HAS_LOCK,
-> as the TMCC carriers (ISDB-T) or the TPS carriers (DVB-T) require a very
-> low signal to noise relation to be detected. The other carriers use
-> different modulations, so they require a higher SNR.
+Make sure bytesperline for Cb, Cr planes for V4L2_PIX_FMT_YUV420M
+format is half of the Y plane value, rather than having same
+bytesperline for all planes.
 
-I would like to questionable need of whole flag. Is there really need to 
-separate FE_HAS_PARAMETERS from FE_HAS_LOCK as we are not still making 
-the professional DTV analyzing equipment?
+While at it, simplify the bytesperline parameter handling by
+storing it when image format is set and returning those values
+when getting the format, instead of recalculating bytesperline
+from intermediate parameters.
 
-And on the other-hand, I don't see any change for DVB-core which syncs 
-cache when FE_HAS_PARAMETERS is set. What I remember current behavior of 
-DVB-core is to call get_frontend() after FE_HAS_LOCK is set and as that 
-patch does not change it => there is likely implementation bug too.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-capture.c |    8 ++++---
+ drivers/media/platform/s5p-fimc/fimc-core.c    |   27 +++++++++++-------------
+ drivers/media/platform/s5p-fimc/fimc-core.h    |    4 +++-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c     |    7 +++---
+ 4 files changed, 24 insertions(+), 22 deletions(-)
 
-regards
-Antti
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 1ef682b..784ed1e 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -960,9 +960,9 @@ static int fimc_cap_g_fmt_mplane(struct file *file, void *fh,
+ 				 struct v4l2_format *f)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+-	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
 
+-	return fimc_fill_format(&ctx->d_frame, f);
++	__fimc_get_format(&fimc->vid_cap.ctx->d_frame, f);
++	return 0;
+ }
 
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->   Documentation/DocBook/media/dvb/frontend.xml | 13 ++++++++++++-
->   drivers/media/dvb-frontends/mb86a20s.c       | 17 ++++++++++-------
->   include/uapi/linux/dvb/frontend.h            |  4 ++++
->   3 files changed, 26 insertions(+), 8 deletions(-)
->
-> v3: rebase it to apply with current tip and add an implementation example.
->
-> Obsoletes: http://patchwork.linuxtv.org/patch/13783/
->
-> diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-> index 426c252..5feff4e 100644
-> --- a/Documentation/DocBook/media/dvb/frontend.xml
-> +++ b/Documentation/DocBook/media/dvb/frontend.xml
-> @@ -216,6 +216,7 @@ typedef enum fe_status {
->   	FE_HAS_LOCK		= 0x10,
->   	FE_TIMEDOUT		= 0x20,
->   	FE_REINIT		= 0x40,
-> +	FE_HAS_PARAMETERS	= 0x80,
->   } fe_status_t;
->   </programlisting>
->   <para>to indicate the current state and/or state changes of the frontend hardware:
-> @@ -244,7 +245,17 @@ typedef enum fe_status {
->   <entry align="char">FE_REINIT</entry>
->   <entry align="char">The frontend was reinitialized, application is
->   recommended to reset DiSEqC, tone and parameters</entry>
-> -</row>
-> +</row><row>
-> +<entry align="char">FE_HAS_PARAMETERS</entry>
-> +<entry align="char"><link linkend="FE_GET_SET_PROPERTY">
-> +<constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></link> or
-> +<link linkend="FE_GET_FRONTEND"><constant>FE_GET_FRONTEND</constant></link> can now be
-> +called to provide the detected network parameters.
-> +This should be risen for example when the DVB-T TPS/ISDB-T TMCC is locked.
-> +This status can be risen before FE_HAS_SYNC, as the SNR required for
-> +parameters detection is lower than the requirement for the other
-> +carriers on the OFDM delivery systems.
-> +</entry></row>
->   </tbody></tgroup></informaltable>
->
->   </section>
-> diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-> index fade566..35153b6 100644
-> --- a/drivers/media/dvb-frontends/mb86a20s.c
-> +++ b/drivers/media/dvb-frontends/mb86a20s.c
-> @@ -333,19 +333,22 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
->   		fe->ops.i2c_gate_ctrl(fe, 1);
->
->   	if (val >= 2)
-> -		*status |= FE_HAS_SIGNAL;
-> +		*status |= FE_HAS_SIGNAL;	/* Tuner locked */
->
->   	if (val >= 4)
-> -		*status |= FE_HAS_CARRIER;
-> +		*status |= FE_HAS_CARRIER;	/* Mode reliably detected */
->
-> -	if (val >= 5)
-> -		*status |= FE_HAS_VITERBI;
-> +	if (val >= 6)
-> +		*status |= FE_HAS_VITERBI;	/* PLL locked and broadband detected */
->
->   	if (val >= 7)
-> -		*status |= FE_HAS_SYNC;
-> +		*status |= FE_HAS_SYNC;		/* Frame sync */
->
-> -	if (val >= 8)				/* Maybe 9? */
-> -		*status |= FE_HAS_LOCK;
-> +	if (val >= 8)
-> +		*status |= FE_HAS_PARAMETERS;	/* TMCC locked */
-> +
-> +	if (val >= 9)
-> +		*status |= FE_HAS_LOCK;		/* TS output started */
->
->   	dprintk("val = %d, status = 0x%02x\n", val, *status);
->
-> diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-> index c12d452..e4daeee 100644
-> --- a/include/uapi/linux/dvb/frontend.h
-> +++ b/include/uapi/linux/dvb/frontend.h
-> @@ -132,6 +132,9 @@ typedef enum fe_sec_mini_cmd {
->    * @FE_TIMEDOUT:	no lock within the last ~2 seconds
->    * @FE_REINIT:		frontend was reinitialized, application is recommended
->    *			to reset DiSEqC, tone and parameters
-> + * @FE_HAS_PARAMETERS:	get_frontend() can now be called to provide the
-> + *			detected network parameters. This should be risen
-> + *			for example when the DVB-T TPS/ISDB-T TMCC is locked.
->    */
->
->   typedef enum fe_status {
-> @@ -142,6 +145,7 @@ typedef enum fe_status {
->   	FE_HAS_LOCK		= 0x10,
->   	FE_TIMEDOUT		= 0x20,
->   	FE_REINIT		= 0x40,
-> +	FE_HAS_PARAMETERS	= 0x80,
->   } fe_status_t;
->
->   typedef enum fe_spectral_inversion {
->
+ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
+@@ -1084,8 +1084,10 @@ static int __fimc_capture_set_format(struct fimc_dev *fimc,
+ 			return ret;
+ 	}
 
+-	for (i = 0; i < ff->fmt->memplanes; i++)
++	for (i = 0; i < ff->fmt->memplanes; i++) {
++		ff->bytesperline[i] = pix->plane_fmt[i].bytesperline;
+ 		ff->payload[i] = pix->plane_fmt[i].sizeimage;
++	}
 
--- 
-http://palosaari.fi/
+ 	set_frame_bounds(ff, pix->width, pix->height);
+ 	/* Reset the composition rectangle if not yet configured */
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index d0b748e..800b837 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -697,7 +697,7 @@ void fimc_alpha_ctrl_update(struct fimc_ctx *ctx)
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+
+-int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f)
++void __fimc_get_format(struct fimc_frame *frame, struct v4l2_format *f)
+ {
+ 	struct v4l2_pix_format_mplane *pixm = &f->fmt.pix_mp;
+ 	int i;
+@@ -710,19 +710,9 @@ int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f)
+ 	pixm->num_planes = frame->fmt->memplanes;
+
+ 	for (i = 0; i < pixm->num_planes; ++i) {
+-		int bpl = frame->f_width;
+-		if (frame->fmt->colplanes == 1) /* packed formats */
+-			bpl = (bpl * frame->fmt->depth[0]) / 8;
+-		pixm->plane_fmt[i].bytesperline = bpl;
+-
+-		if (frame->fmt->flags & FMT_FLAGS_COMPRESSED) {
+-			pixm->plane_fmt[i].sizeimage = frame->payload[i];
+-			continue;
+-		}
+-		pixm->plane_fmt[i].sizeimage = (frame->o_width *
+-			frame->o_height * frame->fmt->depth[i]) / 8;
++		pixm->plane_fmt[i].bytesperline = frame->bytesperline[i];
++		pixm->plane_fmt[i].sizeimage = frame->payload[i];
+ 	}
+-	return 0;
+ }
+
+ void fimc_fill_frame(struct fimc_frame *frame, struct v4l2_format *f)
+@@ -771,9 +761,16 @@ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u32 width, u32 height,
+ 		if (fmt->colplanes == 1 && /* Packed */
+ 		    (bpl == 0 || ((bpl * 8) / fmt->depth[i]) < pix->width))
+ 			bpl = (pix->width * fmt->depth[0]) / 8;
+-
+-		if (i == 0) /* Same bytesperline for each plane. */
++		/*
++		 * Currently bytesperline for each plane is same, except
++		 * V4L2_PIX_FMT_YUV420M format. This calculation may need
++		 * to be changed when other multi-planar formats are added
++		 * to the fimc_formats[] array.
++		 */
++		if (i == 0)
+ 			bytesperline = bpl;
++		else if (i == 1 && fmt->memplanes == 3)
++			bytesperline /= 2;
+
+ 		plane_fmt->bytesperline = bytesperline;
+ 		plane_fmt->sizeimage = max((pix->width * pix->height *
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index be2c8d7..4555035 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -266,6 +266,7 @@ struct fimc_vid_buffer {
+  * @width:	image pixel width
+  * @height:	image pixel weight
+  * @payload:	image size in bytes (w x h x bpp)
++ * @bytesperline: bytesperline value for each plane
+  * @paddr:	image frame buffer physical addresses
+  * @dma_offset:	DMA offset in bytes
+  * @fmt:	fimc color format pointer
+@@ -280,6 +281,7 @@ struct fimc_frame {
+ 	u32	width;
+ 	u32	height;
+ 	unsigned int		payload[VIDEO_MAX_PLANES];
++	unsigned int		bytesperline[VIDEO_MAX_PLANES];
+ 	struct fimc_addr	paddr;
+ 	struct fimc_dma_offset	dma_offset;
+ 	struct fimc_fmt		*fmt;
+@@ -639,7 +641,7 @@ int fimc_ctrls_create(struct fimc_ctx *ctx);
+ void fimc_ctrls_delete(struct fimc_ctx *ctx);
+ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
+ void fimc_alpha_ctrl_update(struct fimc_ctx *ctx);
+-int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f);
++void __fimc_get_format(struct fimc_frame *frame, struct v4l2_format *f);
+ void fimc_adjust_mplane_format(struct fimc_fmt *fmt, u32 width, u32 height,
+ 			       struct v4l2_pix_format_mplane *pix);
+ struct fimc_fmt *fimc_find_format(const u32 *pixelformat, const u32 *mbus_code,
+diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+index 1d57f3b..1eabd7e 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
++++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+@@ -294,7 +294,8 @@ static int fimc_m2m_g_fmt_mplane(struct file *file, void *fh,
+ 	if (IS_ERR(frame))
+ 		return PTR_ERR(frame);
+
+-	return fimc_fill_format(frame, f);
++	__fimc_get_format(frame, f);
++	return 0;
+ }
+
+ static int fimc_try_fmt_mplane(struct fimc_ctx *ctx, struct v4l2_format *f)
+@@ -389,8 +390,8 @@ static int fimc_m2m_s_fmt_mplane(struct file *file, void *fh,
+ 	fimc_alpha_ctrl_update(ctx);
+
+ 	for (i = 0; i < frame->fmt->colplanes; i++) {
+-		frame->payload[i] =
+-			(pix->width * pix->height * frame->fmt->depth[i]) / 8;
++		frame->bytesperline[i] = pix->plane_fmt[i].bytesperline;
++		frame->payload[i] = pix->plane_fmt[i].sizeimage;
+ 	}
+
+ 	fimc_fill_frame(frame, f);
+--
+1.7.9.5
+
