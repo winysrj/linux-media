@@ -1,69 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server.prisktech.co.nz ([115.188.14.127]:59210 "EHLO
-	server.prisktech.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930Ab3ABFbw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 00:31:52 -0500
-Message-ID: <1357104713.30504.8.camel@gitbox>
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
- IS_ERR_OR_NULL
-From: Tony Prisk <linux@prisktech.co.nz>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Wed, 02 Jan 2013 18:31:53 +1300
-In-Reply-To: <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz>
-	 <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>
-	 <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com>
-	 <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1153 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753219Ab3AKL0P (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 06:26:15 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 1/2] DocBook: fix various validation errors
+Date: Fri, 11 Jan 2013 12:26:02 +0100
+Message-Id: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
+In-Reply-To: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
+References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-01-02 at 08:10 +0300, Dan Carpenter wrote:
-> clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
-> 
-> I told Tony about this but everyone has been gone with end of year
-> holidays so it hasn't been addressed.
-> 
-> Tony, please fix it so people don't apply these patches until
-> clk_get() is updated to not return NULL.  It sucks to have to revert
-> patches.
-> 
-> regards,
-> dan carpenter
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I posted the query to Mike Turquette, linux-kernel and linux-arm-kernel
-mailing lists, regarding the return of NULL when HAVE_CLK is undefined.
+Fixed the following errors (with exception of the SVG errors):
 
-Short Answer: A return value of NULL is valid and not an error therefore
-we should be using IS_ERR, not IS_ERR_OR_NULL on clk_get results.
+  GEN     /home/hans/work/src/v4l/media-git/Documentation/DocBook//v4l2.xml
+  rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 3.8.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/media_api.html >> Documentation/DocBook/index.html
+  /tmp/x.xml:883: element revremark: validity error : Element structname is not declared in revremark list of possible children
+  /tmp/x.xml:883: element revremark: validity error : Element xref is not declared in revremark list of possible children
+  /tmp/x.xml:1829: element footnote: validity error : Element footnote content does not follow the DTD, expecting (calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable)+, got (para para errorcode CDATA para )
+  /tmp/x.xml:9580: element xref: validity error : Element xref was declared EMPTY this one has content
+  /tmp/x.xml:13508: element link: validity error : Element link does not carry attribute linkend
+  /tmp/x.xml:13508: element link: validity error : No declaration for attribute linked of element link
+  /tmp/x.xml:16986: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
+  /tmp/x.xml:17003: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
+  /tmp/x.xml:17022: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
+  /tmp/x.xml:26795: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (section )
+  /tmp/x.xml:26852: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (table )
 
-I see the obvious problem this creates, and asked this question:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/common.xml         |    2 +-
+ Documentation/DocBook/media/v4l/io.xml             |    4 +--
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |    2 +-
+ Documentation/DocBook/media/v4l/v4l2.xml           |    5 +---
+ Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |   28 +++++++++-----------
+ 5 files changed, 17 insertions(+), 24 deletions(-)
 
-If the driver can't operate with a NULL clk, it should use a
-IS_ERR_OR_NULL test to test for failure, rather than IS_ERR.
-
-
-And Russell's answer:
-
-Why should a _consumer_ of a clock care?  It is _very_ important that
-people get this idea - to a consumer, the struct clk is just an opaque
-cookie.  The fact that it appears to be a pointer does _not_ mean that
-the driver can do any kind of dereferencing on that pointer - it should
-never do so.
-
-Thread can be viewed here:
-https://lkml.org/lkml/2012/12/20/105
-
-
-Regards
-Tony Prisk
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index 73c6847..ae06afb 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -609,7 +609,7 @@ to zero and the <constant>VIDIOC_G_STD</constant>,
+ 	<para>Applications can make use of the <xref linkend="input-capabilities" /> and
+ <xref linkend="output-capabilities"/> flags to determine whether the video standard ioctls
+ are available for the device.</para>
+-&ENOTTY;.
++
+ 	<para>See <xref linkend="buffer" /> for a rationale. Probably
+ even USB cameras follow some well known video standard. It might have
+ been better to explicitly indicate elsewhere if a device cannot live
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2c4646d..e6c5855 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -477,7 +477,7 @@ rest should be evident.</para>
+ 
+     <note>
+       <title>Experimental</title>
+-      <para>This is an <link linkend="experimental"> experimental </link>
++      <para>This is an <link linkend="experimental">experimental</link>
+       interface and may change in the future.</para>
+     </note>
+ 
+@@ -488,7 +488,7 @@ DMA buffer from userspace using a file descriptor previously exported for a
+ different or the same device (known as the importer role), or both. This
+ section describes the DMABUF importer role API in V4L2.</para>
+ 
+-    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
++    <para>Refer to <link linkend="vidioc-expbuf">DMABUF exporting</link> for
+ details about exporting V4L2 buffers as DMABUF file descriptors.</para>
+ 
+ <para>Input and output devices support the streaming I/O method when the
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+index c934192..29acc20 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+@@ -29,6 +29,6 @@
+ 	    formats with 10 bits per color compressed to 8 bits each,
+ 	    using the A-LAW algorithm. Each color component consumes 8
+ 	    bits of memory. In other respects this format is similar to
+-	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
++	    <xref linkend="V4L2-PIX-FMT-SRGGB8"></xref>.</para>
+ 	  </refsect1>
+ 	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 8fe2942..94ab0e1 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -143,10 +143,7 @@ applications. -->
+ 	<revnumber>3.9</revnumber>
+ 	<date>2012-12-03</date>
+ 	<authorinitials>sa</authorinitials>
+-	<revremark>Added timestamp types to
+-	<structname>v4l2_buffer</structname>, see <xref
+-	linkend="buffer-flags" />.
+-	</revremark>
++	<revremark>Added timestamp types to v4l2_buffer.</revremark>
+       </revision>
+ 
+       <revision>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+index 72dfbd2..e287c8f 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+@@ -83,15 +83,14 @@ descriptor. The application may pass it to other DMABUF-aware devices. Refer to
+ <link linkend="dmabuf">DMABUF importing</link> for details about importing
+ DMABUF files into V4L2 nodes. It is recommended to close a DMABUF file when it
+ is no longer used to allow the associated memory to be reclaimed. </para>
+-
+   </refsect1>
++
+   <refsect1>
+-   <section>
+-      <title>Examples</title>
++    <title>Examples</title>
+ 
+-      <example>
+-	<title>Exporting a buffer.</title>
+-	<programlisting>
++    <example>
++      <title>Exporting a buffer.</title>
++      <programlisting>
+ int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
+ {
+ 	&v4l2-exportbuffer; expbuf;
+@@ -108,12 +107,12 @@ int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
+ 
+ 	return 0;
+ }
+-        </programlisting>
+-      </example>
++      </programlisting>
++    </example>
+ 
+-      <example>
+-	<title>Exporting a buffer using the multi-planar API.</title>
+-	<programlisting>
++    <example>
++      <title>Exporting a buffer using the multi-planar API.</title>
++      <programlisting>
+ int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
+ 	int dmafd[], int n_planes)
+ {
+@@ -137,12 +136,9 @@ int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
+ 
+ 	return 0;
+ }
+-        </programlisting>
+-      </example>
+-   </section>
+-  </refsect1>
++      </programlisting>
++    </example>
+ 
+-  <refsect1>
+     <table pgwide="1" frame="none" id="v4l2-exportbuffer">
+       <title>struct <structname>v4l2_exportbuffer</structname></title>
+       <tgroup cols="3">
+-- 
+1.7.10.4
 
