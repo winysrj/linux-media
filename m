@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:43800 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756485Ab3AHRpl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:45:41 -0500
-Received: by mail-la0-f45.google.com with SMTP id ep20so786615lab.18
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:45:40 -0800 (PST)
-Message-ID: <50EC5B60.7000207@googlemail.com>
-Date: Tue, 08 Jan 2013 18:46:08 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from gate2.ipvision.dk ([94.127.49.3]:50412 "EHLO gate2.ipvision.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753946Ab3AKOKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jan 2013 09:10:44 -0500
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jonathan McCrohan <jmccrohan@gmail.com>,
+	Oliver Schinagl <oliver+list@schinagl.nl>,
+	Jiri Slaby <jirislaby@gmail.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Johannes Stezenbach <js@linuxtv.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Christoph Pfister <christophpfister@gmail.com>
+Subject: Re: [RFC] Initial scan files troubles and brainstorming
+References: <50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
+	<CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
+	<50EF2155.5060905@schinagl.nl>
+	<CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com>
+	<50EF256B.8030308@gmail.com>
+	<CAHFNz9KbwzYV_YLY-9StTn0DRV+vvFFhiG6FGcbjQ-EYV5S4wA@mail.gmail.com>
+	<50EF276C.1080101@gmail.com> <50EF2AC0.20206@schinagl.nl>
+	<20130111011232.GA3255@lambda.dereenigne.org>
+	<20130111102317.63b26248@redhat.com>
+Date: Fri, 11 Jan 2013 15:10:38 +0100
+In-Reply-To: <20130111102317.63b26248@redhat.com> (Mauro Carvalho Chehab's
+	message of "Fri, 11 Jan 2013 10:23:17 -0200")
+Message-ID: <m3d2xbolnl.fsf@ursa.amorsen.dk>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model
- 37284, rev B421
-References: <50E831F2.70400@googlemail.com> <20130105135734.237068c5@redhat.com> <50E9E05D.9090403@googlemail.com> <20130107142938.6e8f2c73@redhat.com>
-In-Reply-To: <20130107142938.6e8f2c73@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<snip>
->
->>> It probably makes sense to add a "has_ir_i2c" field at bttv, add a flag
->>> there at modprobe to prevent the autoload, and start tagging the boards
->>> with I2C IR with such tag.
->> Without having looked into the code, it seems that the driver detects
->> the i2c rc already without a board flag.
->> Otherwise it wouldn't register the i2c device. Unfortunately, it doesn't
->> display a message.
-> No. In the past (kernel 2.4 and upper), I2C bus used to work with 0-len
-> reads to scan the used I2C addresses. The I2C drivers like tuners, demods,
-> IR's etc used to register to the I2C core saying that they were to be used
-> on TV boards. The I2C logic binds them to the I2C bus driver when they were
-> detected, during the scanning process.
->
-> That's why it is so hard to know what boards are using I2C remotes, on
-> those older drivers.
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
 
-Hmmm... so the I2C subystem probes a list of addresses and just
-registers all devices it finds, but the driver itself doesn't know if
-one of them is a RC device ?
-Sounds odd. Will have to check the code to understand what's going on...
+> That's said, this is just database entries where the values were obtained
+> from a public service. Anyone else with access to the same
+> transponders/carriers would be obtaining the very same data. So, I don't 
+> think that copyright law applies here. IANAL, but it sounds to me
+> that such info would be public domain.
 
-Regards,
-Frank
+Please be aware that in at least the EU database compilations _can_ be
+copyrighted. It makes life a lot simpler for distributions if you just
+pretend that it can be copyrighted and apply a license. If you want
+something approaching public domain, the BSD license is an obvious
+choice. Going with the LGPL as you propose later in the email is
+perfectly fine too.
+
+
+/Benny
 
