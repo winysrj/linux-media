@@ -1,140 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40853 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755506Ab3AEO2n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 09:28:43 -0500
-Message-ID: <50E83874.5060700@iki.fi>
-Date: Sat, 05 Jan 2013 16:28:04 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:52039 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753835Ab3ALRoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jan 2013 12:44:39 -0500
 MIME-Version: 1.0
-To: Jacek Konieczny <jajcus@jajcus.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [BUG] Problem with LV5TDLX DVB-T USB and the 3.7.1 kernel
-References: <20130105150539.32186362@lolek.nigdzie>
-In-Reply-To: <20130105150539.32186362@lolek.nigdzie>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1615162.CJ0Ejj80il@avalon>
+References: <1351022246-8201-1-git-send-email-elezegarcia@gmail.com>
+	<CALF0-+VQKxu7_-=aJeW-FxmM4fdVX1nBE7AA5-0d9SRgRqqM1g@mail.gmail.com>
+	<20121227214937.6276e2a3@redhat.com>
+	<1615162.CJ0Ejj80il@avalon>
+Date: Sat, 12 Jan 2013 14:44:38 -0300
+Message-ID: <CALF0-+WigCJULSdSzSKNUbNJ2S_v=jN1h7t3xZTp7NwxZjL09w@mail.gmail.com>
+Subject: Re: [PATCH 01/23] uvc: Replace memcpy with struct assignment
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Julia.Lawall@lip6.fr, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/05/2013 04:05 PM, Jacek Konieczny wrote:
-> Hi,
+On Wed, Jan 9, 2013 at 9:19 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ezequiel,
 >
-> I have a 'NOT Only TV DVB-T USB Deluxe' tuner device:
+> On Thursday 27 December 2012 21:49:37 Mauro Carvalho Chehab wrote:
+>> Em Thu, 27 Dec 2012 18:12:46 -0300 Ezequiel Garcia escreveu:
+>> > On Tue, Oct 23, 2012 at 4:57 PM, Ezequiel Garcia wrote:
+>> > > This kind of memcpy() is error-prone. Its replacement with a struct
+>> > > assignment is prefered because it's type-safe and much easier to read.
+>> > >
+>> > > Found by coccinelle. Hand patched and reviewed.
+>> > > Tested by compilation only.
+>> > >
+>> > > A simplified version of the semantic match that finds this problem is as
+>> > > follows: (http://coccinelle.lip6.fr/)
+>> > >
+>> > > // <smpl>
+>> > > @@
+>> > > identifier struct_name;
+>> > > struct struct_name to;
+>> > > struct struct_name from;
+>> > > expression E;
+>> > > @@
+>> > > -memcpy(&(to), &(from), E);
+>> > > +to = from;
+>> > > // </smpl>
+>> > >
+>> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> > > Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>> > > Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+>> > > ---
+>> > >
+>> > >  drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
+>> > >  1 files changed, 3 insertions(+), 3 deletions(-)
+>> > >
+>> > > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+>> > > b/drivers/media/usb/uvc/uvc_v4l2.c index f00db30..4fc8737 100644
+>> > > --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> > > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> > > @@ -314,7 +314,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming
+>> > > *stream,
+>> > >                 goto done;
+>> > >         }
+>> > >
+>> > > -       memcpy(&stream->ctrl, &probe, sizeof probe);
+>> > > +       stream->ctrl = probe;
+>> > >
+>> > >         stream->cur_format = format;
+>> > >         stream->cur_frame = frame;
+>> > > @@ -386,7 +386,7 @@ static int uvc_v4l2_set_streamparm(struct
+>> > > uvc_streaming *stream,
+>> > >                 return -EBUSY;
+>> > >         }
+>> > >
+>> > > -       memcpy(&probe, &stream->ctrl, sizeof probe);
+>> > > +       probe = stream->ctrl;
+>> > >         probe.dwFrameInterval =
+>> > >                 uvc_try_frame_interval(stream->cur_frame, interval);
+>> > >
+>> > > @@ -397,7 +397,7 @@ static int uvc_v4l2_set_streamparm(struct
+>> > > uvc_streaming *stream,
+>> > >                 return ret;
+>> > >         }
+>> > >
+>> > > -       memcpy(&stream->ctrl, &probe, sizeof probe);
+>> > > +       stream->ctrl = probe;
+>> > >         mutex_unlock(&stream->mutex);
+>> > >
+>> > >         /* Return the actual frame period. */
+>> >
+>> > It seems you've marked this one as "Changes requested" [1].
+>> > However, Laurent didn't request any change,
+>> > but just pointed out we missed one memcpy replacement candidate.
+>> >
+>> > I believe it's safe to apply the patch (together with the other 20
+>> > patches) and we can fix the missing spot in another patch.
+>>
+>> The other patches got applied already. Well just do whatever Laurent asked
+>> you and re-submit this one ;)
 >
-> Model name: LV5TDLX DVB-T USB
-> P/N: STLV5TDLXT702
-> S/N: LV5TDLX120700116
-> USB ID: 1f4d:c803
->
-> This is based on the RTL2838UHIDIR chip with e4000 tuner (at least, that
-> is detected by various drivers).
->
-> I had some minor success with it with some old 3.x kernel and the
-> drivers from:
->
-> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
->
-> This stopped working with kernel 3.5 and would not even build with newer
-> kernels.
->
-> Then I tried drivers from linuxtv.org, with little success. The RTL2838u
-> driver has been recently included in the upstream kernel (3.7), so I
-> have tried that (3.7.1). The hardware is detected, but I am not able to
-> tune in.
->
-> The signal is good - tested with my TV set. The USB tuner device is also
-> OK, I have tried it with Windows and the software provided with the
-> device and the same channels are available as on the TV.
->
-> So the driver must be broken. Any ideas how can I debug or fix that?
->
-> dmesg:
->> [ 3336.916384] usb 2-4: new high-speed USB device number 7 using ehci_hcd
->> [ 3337.051822] usb 2-4: New USB device found, idVendor=1f4d, idProduct=c803
->> [ 3337.051829] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
->> [ 3337.051835] usb 2-4: Product: RTL2838UHIDIR
->> [ 3337.051839] usb 2-4: Manufacturer: Realtek
->> [ 3337.051843] usb 2-4: SerialNumber: 00000001
->> [ 3337.072145] usb 2-4: dvb_usb_v2: found a 'Trekstor DVB-T Stick Terres 2.0' in warm state
->> [ 3337.072194] usbcore: registered new interface driver dvb_usb_rtl28xxu
->> [ 3337.136867] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
->> [ 3337.136886] DVB: registering new adapter (Trekstor DVB-T Stick Terres 2.0)
->> [ 3337.147449] usb 2-4: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
->> [ 3337.163939] i2c i2c-7: e4000: Elonics E4000 successfully identified
->> [ 3337.174823] Registered IR keymap rc-empty
->> [ 3337.174928] input: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input15
->> [ 3337.174989] rc0: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
->> [ 3337.174994] usb 2-4: dvb_usb_v2: schedule remote query interval to 400 msecs
->> [ 3337.187693] usb 2-4: dvb_usb_v2: 'Trekstor DVB-T Stick Terres 2.0' successfully initialized and connected
->
-> Scanning on one of the available channels:
->> # tzap -r "TVP2"
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> reading channels from file '/root/.tzap/channels.conf'
->> tuning to 746000000 Hz
->> video pid 0x00ca, audio pid 0x00cb
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 008c | ber 00004ca0 | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 008d | ber 00004ca0 | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0072 | ber 00004ca0 | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->> status 00 | signal bfe1 | snr 008b | ber 00004ca0 | unc bfe14648 |
->> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 |
->
-> And on the other one:
->> # tzap -r "Polsat"
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> reading channels from file '/root/.tzap/channels.conf'
->> tuning to 698000000 Hz
->> video pid 0x0066, audio pid 0x0067
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 |
->
-> Greets,
-> 	Jacek
+> Could you please resubmit this patch with the missed memcpy replaced by a
+> struct assignment ? I'll then add it to my tree.
 >
 
-It is likely e4000 driver bug. It is not optimized nor tested very well 
-- just few live multiplexes I have here. You are the first one reporting 
-(performance?) issues like that, I am quite sure it works somehow well 
-for the most.
+Sure!
 
-Take USB sniffs, make scripts to generate e4000 register write code from 
-the sniffs, copy & paste that code from the sniffs until it starts 
-working. After it starts working it is quite easy to comment out / tweak 
-with driver in order to find problem. With the experience and luck it is 
-only few hours to fix, but without a experience you will likely need to 
-learn a lot of stuff first.
-
-Of course those sniffs needed to take from working case, which just 
-makes successful tuning to 746000000 or 698000000.
-
-Also you could use to attenuate or amplifier signal to see if it helps.
-
-I don't have much time / money, no interest, no equipment (DVB-T 
-modulator) to start optimizing it currently.
-
-regards
-Antti
+Thanks,
 
 -- 
-http://palosaari.fi/
+    Ezequiel
