@@ -1,84 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from amsterdam.lcs.mit.edu ([18.26.4.9]:35303 "EHLO
-	amsterdam.lcs.mit.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751338Ab3AHC2c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 21:28:32 -0500
-From: Nickolai Zeldovich <nickolai@csail.mit.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Cc: Nickolai Zeldovich <nickolai@csail.mit.edu>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media/pci: use memmove for overlapping regions
-Date: Mon,  7 Jan 2013 21:28:05 -0500
-Message-Id: <1357612085-30075-1-git-send-email-nickolai@csail.mit.edu>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56835 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754011Ab3ALWCR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jan 2013 17:02:17 -0500
+Message-ID: <50F1DE2B.6060508@iki.fi>
+Date: Sun, 13 Jan 2013 00:05:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Andrzej Hajda <a.hajda@samsung.com>
+CC: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: RFC: add parameters to V4L controls
+References: <50EAA78E.4090904@samsung.com>
+In-Reply-To: <50EAA78E.4090904@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change several memcpy() to memmove() in cases when the regions are
-definitely overlapping; memcpy() of overlapping regions is undefined
-behavior in C and can produce different results depending on the compiler,
-the memcpy implementation, etc.
+Hi Andrzej,
 
-Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
----
- drivers/media/pci/bt8xx/dst_ca.c  |    4 ++--
- drivers/media/pci/cx18/cx18-vbi.c |    2 +-
- drivers/media/pci/ivtv/ivtv-vbi.c |    4 ++--
- 3 files changed, 5 insertions(+), 5 deletions(-)
+Andrzej Hajda wrote:
+> Hi,
+> 
+> I have included this proposition already in the post "[PATCH RFC 0/2]
+> V4L: Add auto focus area control and selection" but it left unanswered.
+> I repost it again in a separate e-mail, I hope this way it will be
+> easier to attract attention.
+> 
+> Problem description
+> 
+> Currently V4L2 controls can have only single value (of type int, int64,
+> string). Some hardware controls require more than single int parameter,
+> for example to set auto-focus (AF) rectangle four coordinates should be
+> passed, to set auto-focus spot two coordinates should be passed.
+> 
+> Current solution
+> 
+> In case of AF rectangle we can reuse selection API as in "[PATCH RFC
+> 0/2] V4L: Add auto focus area control and selection" post.
+> Pros:
+> - reuse existing API,
+> Cons:
+> - two IOCTL's to perform one action,
 
-diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-index 7d96fab..0e788fc 100644
---- a/drivers/media/pci/bt8xx/dst_ca.c
-+++ b/drivers/media/pci/bt8xx/dst_ca.c
-@@ -180,11 +180,11 @@ static int ca_get_app_info(struct dst_state *state)
- 	put_command_and_length(&state->messages[0], CA_APP_INFO, length);
- 
- 	// Copy application_type, application_manufacturer and manufacturer_code
--	memcpy(&state->messages[4], &state->messages[7], 5);
-+	memmove(&state->messages[4], &state->messages[7], 5);
- 
- 	// Set string length and copy string
- 	state->messages[9] = str_length;
--	memcpy(&state->messages[10], &state->messages[12], str_length);
-+	memmove(&state->messages[10], &state->messages[12], str_length);
- 
- 	return 0;
- }
-diff --git a/drivers/media/pci/cx18/cx18-vbi.c b/drivers/media/pci/cx18/cx18-vbi.c
-index 6d3121f..add9964 100644
---- a/drivers/media/pci/cx18/cx18-vbi.c
-+++ b/drivers/media/pci/cx18/cx18-vbi.c
-@@ -84,7 +84,7 @@ static void copy_vbi_data(struct cx18 *cx, int lines, u32 pts_stamp)
- 		   (the max size of the VBI data is 36 * 43 + 4 bytes).
- 		   So in this case we use the magic number 'ITV0'. */
- 		memcpy(dst + sd, "ITV0", 4);
--		memcpy(dst + sd + 4, dst + sd + 12, line * 43);
-+		memmove(dst + sd + 4, dst + sd + 12, line * 43);
- 		size = 4 + ((43 * line + 3) & ~3);
- 	} else {
- 		memcpy(dst + sd, "itv0", 4);
-diff --git a/drivers/media/pci/ivtv/ivtv-vbi.c b/drivers/media/pci/ivtv/ivtv-vbi.c
-index 293db80..3c156bc 100644
---- a/drivers/media/pci/ivtv/ivtv-vbi.c
-+++ b/drivers/media/pci/ivtv/ivtv-vbi.c
-@@ -224,7 +224,7 @@ static void copy_vbi_data(struct ivtv *itv, int lines, u32 pts_stamp)
- 		   (the max size of the VBI data is 36 * 43 + 4 bytes).
- 		   So in this case we use the magic number 'ITV0'. */
- 		memcpy(dst + sd, "ITV0", 4);
--		memcpy(dst + sd + 4, dst + sd + 12, line * 43);
-+		memmove(dst + sd + 4, dst + sd + 12, line * 43);
- 		size = 4 + ((43 * line + 3) & ~3);
- 	} else {
- 		memcpy(dst + sd, "itv0", 4);
-@@ -532,7 +532,7 @@ void ivtv_vbi_work_handler(struct ivtv *itv)
- 		while (vi->cc_payload_idx) {
- 			cc = vi->cc_payload[0];
- 
--			memcpy(vi->cc_payload, vi->cc_payload + 1,
-+			memmove(vi->cc_payload, vi->cc_payload + 1,
- 					sizeof(vi->cc_payload) - sizeof(vi->cc_payload[0]));
- 			vi->cc_payload_idx--;
- 			if (vi->cc_payload_idx && cc.odd[0] == 0x80 && cc.odd[1] == 0x80)
+I think changing AF mode and AF window of interest are still two
+operations: you may well change just either one, and be happy with it.
+You might want to disable AF during the configuration from the
+application. Would this work for you?
+
+> - non-atomic operation,
+
+True, but this is the way V4L2 works.
+
+There are many cases where implementing multiple more or less unrelated
+operations atomically would be beneficial, but so far there always have
+been workarounds to perform those actions non-atomicly. Format
+configuration, for example.
+
+Atomic operations are hard to get right and typically the required
+effort refutes the gain of doing so in drivers, and everything that may
+be done atomically always must be implemented beforehand in drivers.
+
+Your use case would be from the more simple end, though.
+
+> - fits well only for rectangles and spots (but with unused fields width,
+> height), in case of other parameters we should find a different way.
+> 
+> Proposed solution
+> 
+> The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
+> ioctls can be called with multiple controls per call.
+> 
+> I will present it using AF area control example.
+> 
+> There could be added four pseudo-controls, lets call them for short:
+> LEFT, TOP, WIDTH, HEIGHT.
+> Those controls could be passed together with V4L2_AUTO_FOCUS_AREA_RECTANGLE
+> control in one ioctl as a kind of parameters.
+> 
+> For example setting auto-focus spot would require calling
+> VIDIOC_S_EXT_CTRLS
+> with the following controls:
+> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+> - LEFT = ...
+> - RIGHT = ...
+> 
+> Setting AF rectangle:
+> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+> - LEFT = ...
+> - TOP = ...
+> - WIDTH = ...
+> - HEIGHT = ...
+> 
+> Setting  AF object detection (no parameters required):
+> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
+> 
+> I have presented all three cases to show the advantages of this solution:
+> - atomicity - control and its parameters are passed in one call,
+> - flexibility - we are not limited by a fixed number of parameters,
+> - no-redundancy - we can pass only required parameters
+>     (no need to pass null width and height in case of spot selection),
+> - extensibility - it is possible to extend parameters in the future,
+> for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
+> without breaking API,
+> - backward compatibility,
+> - re-usability - this schema could be used in other controls,
+>     pseudo-controls could be re-used in other controls as well.
+> - API backward compatibility.
+
+What I'm not terribly fond of in the above proposal is that it uses
+several controls to describe rectangles which are an obvious domain of
+the selection API: selections are roughly like controls but rather use a
+rectangle type instead of a single integer value (or a string).
+
+Also, I can't see any other reason to use controls for this than making
+the operation atomic.
+
 -- 
-1.7.10.4
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@iki.fi
