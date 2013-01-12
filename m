@@ -1,85 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:54896 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674Ab3A3NZ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 08:25:27 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id B554240B98
-	for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 14:25:25 +0100 (CET)
-Date: Wed, 30 Jan 2013 14:25:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] soc-camera: fix compilation breakage in 3 drivers
-Message-ID: <Pine.LNX.4.64.1301301419000.3113@axis700.grange>
+Received: from pequod.mess.org ([46.65.169.142]:46795 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752813Ab3ALLmm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jan 2013 06:42:42 -0500
+Date: Sat, 12 Jan 2013 11:42:40 +0000
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] [media] iguanair: intermittent initialization
+ failure
+Message-ID: <20130112114240.GA1784@pequod.mess.org>
+References: <1357492785-30966-1-git-send-email-sean@mess.org>
+ <1357492785-30966-3-git-send-email-sean@mess.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1357492785-30966-3-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent commit broke compilation of 3 camera drivers: for PXA2x0, OMAP1
-and MX1 by using a wrong pointer. Fix them.
+On Sun, Jan 06, 2013 at 05:19:45PM +0000, Sean Young wrote:
+> Sometimes the first version request is sent before the device has fully
+> initialized. This seems to happen on some hardware during boot when the
+> iguanair is plugged into a root hub.
+> 
+> Signed-off-by: Sean Young <sean@mess.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Mauro, please ignore this patch. I've found the cause in the firmware and
+I've got a better way of solving this.
 
-Mauro, if possible, would be nice to merge this with 
-http://patchwork.linuxtv.org/patch/15990/
-which is already in -next. If too late - well, bisection will be 
-interesting for those 3 drivers for a few commits :)
 Thanks
-Guennadi
+Sean
 
- drivers/media/platform/soc_camera/mx1_camera.c   |    2 +-
- drivers/media/platform/soc_camera/omap1_camera.c |    4 ++--
- drivers/media/platform/soc_camera/pxa_camera.c   |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
-index 4b661e8..25b2a28 100644
---- a/drivers/media/platform/soc_camera/mx1_camera.c
-+++ b/drivers/media/platform/soc_camera/mx1_camera.c
-@@ -372,7 +372,7 @@ static void mx1_camera_init_videobuf(struct videobuf_queue *q,
- 	videobuf_queue_dma_contig_init(q, &mx1_videobuf_ops, icd->parent,
- 				&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 				V4L2_FIELD_NONE,
--				sizeof(struct mx1_buffer), icd, &icd->host_lock);
-+				sizeof(struct mx1_buffer), icd, &ici->host_lock);
- }
- 
- static int mclk_get_divisor(struct mx1_camera_dev *pcdev)
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-index dcf7be8..2547bf8 100644
---- a/drivers/media/platform/soc_camera/omap1_camera.c
-+++ b/drivers/media/platform/soc_camera/omap1_camera.c
-@@ -1383,12 +1383,12 @@ static void omap1_cam_init_videobuf(struct videobuf_queue *q,
- 		videobuf_queue_dma_contig_init(q, &omap1_videobuf_ops,
- 				icd->parent, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct omap1_cam_buf), icd, &icd->host_lock);
-+				sizeof(struct omap1_cam_buf), icd, &ici->host_lock);
- 	else
- 		videobuf_queue_sg_init(q, &omap1_videobuf_ops,
- 				icd->parent, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct omap1_cam_buf), icd, &icd->host_lock);
-+				sizeof(struct omap1_cam_buf), icd, &ici->host_lock);
- 
- 	/* use videobuf mode (auto)selected with the module parameter */
- 	pcdev->vb_mode = sg_mode ? OMAP1_CAM_DMA_SG : OMAP1_CAM_DMA_CONTIG;
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index 3e8a82e..395e2e0 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -842,7 +842,7 @@ static void pxa_camera_init_videobuf(struct videobuf_queue *q,
- 	 */
- 	videobuf_queue_sg_init(q, &pxa_videobuf_ops, NULL, &pcdev->lock,
- 				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
--				sizeof(struct pxa_buffer), icd, &icd->host_lock);
-+				sizeof(struct pxa_buffer), icd, &ici->host_lock);
- }
- 
- static u32 mclk_get_divisor(struct platform_device *pdev,
--- 
-1.7.2.5
-
+> ---
+>  drivers/media/rc/iguanair.c | 19 ++++++++++---------
+>  1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+> index a569c69..bc3557b 100644
+> --- a/drivers/media/rc/iguanair.c
+> +++ b/drivers/media/rc/iguanair.c
+> @@ -224,6 +224,14 @@ static int iguanair_get_features(struct iguanair *ir)
+>  	ir->packet->header.cmd = CMD_GET_VERSION;
+>  
+>  	rc = iguanair_send(ir, sizeof(ir->packet->header));
+> +
+> +	/*
+> +	 * We might have sent the command before the device had time to
+> +	 * initialize. Retry if we got no response.
+> +	 */
+> +	if (rc == -ETIMEDOUT)
+> +		rc = iguanair_send(ir, sizeof(ir->packet->header));
+> +
+>  	if (rc) {
+>  		dev_info(ir->dev, "failed to get version\n");
+>  		goto out;
+> @@ -255,19 +263,14 @@ static int iguanair_get_features(struct iguanair *ir)
+>  	ir->packet->header.cmd = CMD_GET_FEATURES;
+>  
+>  	rc = iguanair_send(ir, sizeof(ir->packet->header));
+> -	if (rc) {
+> +	if (rc)
+>  		dev_info(ir->dev, "failed to get features\n");
+> -		goto out;
+> -	}
+> -
+>  out:
+>  	return rc;
+>  }
+>  
+>  static int iguanair_receiver(struct iguanair *ir, bool enable)
+>  {
+> -	int rc;
+> -
+>  	ir->packet->header.start = 0;
+>  	ir->packet->header.direction = DIR_OUT;
+>  	ir->packet->header.cmd = enable ? CMD_RECEIVER_ON : CMD_RECEIVER_OFF;
+> @@ -275,9 +278,7 @@ static int iguanair_receiver(struct iguanair *ir, bool enable)
+>  	if (enable)
+>  		ir_raw_event_reset(ir->rc);
+>  
+> -	rc = iguanair_send(ir, sizeof(ir->packet->header));
+> -
+> -	return rc;
+> +	return iguanair_send(ir, sizeof(ir->packet->header));
+>  }
+>  
+>  /*
+> -- 
+> 1.7.11.7
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
