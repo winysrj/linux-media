@@ -1,80 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f177.google.com ([209.85.214.177]:37200 "EHLO
-	mail-ob0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752407Ab3AAQ4E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 11:56:04 -0500
-Received: by mail-ob0-f177.google.com with SMTP id uo13so12027312obb.8
-        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 08:56:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20130101130041.52dee65f@redhat.com>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-Date: Tue, 1 Jan 2013 22:18:49 +0530
-Message-ID: <CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-Subject: Re: [PATCH RFCv3] dvb: Add DVBv5 properties for quality parameters
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3919 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754263Ab3ALVml (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jan 2013 16:42:41 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0CLgaq3083458
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 12 Jan 2013 22:42:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1A2811700074
+	for <linux-media@vger.kernel.org>; Sat, 12 Jan 2013 22:42:33 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130112214234.1A2811700074@alastor.dyndns.org>
+Date: Sat, 12 Jan 2013 22:42:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 1, 2013 at 8:30 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> [RFCv4] dvb: Add DVBv5 properties for quality parameters
->
-> The DVBv3 quality parameters are limited on several ways:
->         - Doesn't provide any way to indicate the used measure;
->         - Userspace need to guess how to calculate the measure;
->         - Only a limited set of stats are supported;
->         - Doesn't provide QoS measure for the OFDM TPS/TMCC
->           carriers, used to detect the network parameters for
->           DVB-T/ISDB-T;
->         - Can't be called in a way to require them to be filled
->           all at once (atomic reads from the hardware), with may
->           cause troubles on interpreting them on userspace;
->         - On some OFDM delivery systems, the carriers can be
->           independently modulated, having different properties.
->           Currently, there's no way to report per-layer stats;
+Results of the daily build of media_tree:
 
-per layer stats is a mythical bird, nothing of that sort does exist. If some
-driver states that it is simply due to lack of knowledge at the coding side.
+date:        Sat Jan 12 19:00:17 CET 2013
+git hash:    3151d14aa6e983aa36d51a80d0477859f9ba12af
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-ISDB-T uses hierarchial modulation, just like DVB-S2 or DVB-T2
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: WARNINGS
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: WARNINGS
+linux-3.0-i686: WARNINGS
+linux-3.1-i686: WARNINGS
+linux-3.2.1-i686: WARNINGS
+linux-3.3-i686: WARNINGS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: OK
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: WARNINGS
+linux-3.0-x86_64: WARNINGS
+linux-3.1-x86_64: WARNINGS
+linux-3.2.1-x86_64: WARNINGS
+linux-3.3-x86_64: WARNINGS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Once the Outer code is decoded, the OFDM segments are separated
-using Hierarchial separation. This is well described by NHK.
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-"To improve mobile reception and robustness to multipath
-interference, the system performs, in symbol units, time
-interleaving plus frequency interleaving according to the
-arrangement of OFDM segments. Pilot signals for
-demodulation and control symbols consisting of TMCC
-information are combined with information symbols to an
-OFDM frame. Here, information symbols are modulated
-by Differential Binary Phase Shift Keying (DBPSK) and
-guard intervals are added at the IFFT output.
+Full logs are available here:
 
-[3] Hierarchical transmission
-A mixture of fixed-reception programs and mobile reception
-programs in the transmission system is made
-possible through the application of hierarchical
-transmission achieved by band division within a channel.
-"Hierarchical transmission" means that the three elements
-of channel coding, namely, the modulation system, the
-coding rate of convolutional correction code, and the time
-interleave length, can be independently set. Time and
-frequency interleaving are each performed in their
-respective hierarchical data segment.
-As described earlier, the smallest hierarchical unit in a
-frequency spectrum is one OFDM segment."
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The V4L-DVB specification from this daily build is here:
 
-Please don't muck up existing working things with uber crap.
-
-Manu
+http://www.xs4all.nl/~hverkuil/spec/media.html
