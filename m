@@ -1,105 +1,389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:38505 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752185Ab3A0PfA (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:21063 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754722Ab3AMMal (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 10:35:00 -0500
-Message-ID: <5105491E.9050907@googlemail.com>
-Date: Sun, 27 Jan 2013 15:34:54 +0000
-From: Chris Clayton <chris2553@googlemail.com>
-MIME-Version: 1.0
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
-CC: Yijing Wang <wangyijing0307@gmail.com>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-pci@vger.kernel.org
-Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
-References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <510494D6.1010000@gmail.com> <51050D43.2050703@googlemail.com> <51051B1B.3080105@gmail.com> <51052DB2.4090702@googlemail.com> <51053917.6060400@fold.natur.cuni.cz>
-In-Reply-To: <51053917.6060400@fold.natur.cuni.cz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Sun, 13 Jan 2013 07:30:41 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGK00I0IDEUZJ00@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 13 Jan 2013 21:30:40 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MGK00B86DEGTC60@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 13 Jan 2013 21:30:40 +0900 (KST)
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	inki.dae@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH 4/4] alsa/soc: add hdmi audio codec based on cdf
+Date: Sun, 13 Jan 2013 07:52:14 -0500
+Message-id: <1358081534-21372-5-git-send-email-rahul.sharma@samsung.com>
+In-reply-to: <1358081534-21372-1-git-send-email-rahul.sharma@samsung.com>
+References: <1358081534-21372-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch registers hdmi-audio codec to the ALSA framework. This is the second
+client to the hdmi panel. Once notified by the CDF Core it proceeds towards
+audio setting and audio control. It also subscribes for hpd notification to
+implement hpd related audio requirements.
 
+Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
+---
+ sound/soc/codecs/Kconfig             |   4 +
+ sound/soc/codecs/Makefile            |   2 +
+ sound/soc/codecs/exynos_hdmi_audio.c | 307 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 313 insertions(+)
+ create mode 100644 sound/soc/codecs/exynos_hdmi_audio.c
 
-On 01/27/13 14:26, Martin Mokrejs wrote:
-> Chris Clayton wrote:
->>
->>
->> On 01/27/13 12:18, Yijing Wang wrote:
->>> 于 2013-01-27 19:19, Chris Clayton 写道:
->>>> Hi Yijing
->>>>
->>>> On 01/27/13 02:45, Yijing Wang wrote:
->>>>> 于 2013-01-27 4:54, Chris Clayton 写道:
->>>>>> Hi Martin,
->>>>>>
->>>>>> On 01/24/13 19:21, Martin Mokrejs wrote:
->>>>>>> Hi Chris,
->>>>>>>       try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
->>>>>>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
->>>>>>>
->>>>>>
->>>>>> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
->>>>>
->>>>> Not loaded pciehp driver? Remove the device from this slot without poweroff ?
->>>>>
->>>>
->>>> That's correct. When I first encountered the oops, I did not have the pciehp driver loaded and removing the device from the slot whilst the laptop was powered on resulted in the oops.
->>>
->>> Hmm, that's unsafe and dangerous, because device now may be running.
->>> There are two ways to trigger pci hot-add or hot-remove in linux, after loaded pciehp or acpiphp module
->>> (the two modules only one can loaded into system at the same time). You can trigger hot-add/hot-remove by
->>> sysfs interface under /sys/bus/pci/slots/[slot-name]/power or attention button on hardware (if your laptop supports that).
->>>
->>
->> OK, thanks for the advice.
->>
->>>>>>
->>>>>>>       The best would if you subscribe to linux-pci, and read my recent threads
->>>>>>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
->>>>>>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
->>>>>>> archives of linux-pci and see the pacthes and the discussion.
->>>>>>
->>>>>> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
->>>>>>
->>>>>> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
->>>>>
->>>>> Hi Chris,
->>>>>       What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
->>>>>
->>>>> Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
->>>>>
->>>>
->>>> I wasn't sure whether or not the pciehp driver should be loaded on its own or with the acpiphp driver also loaded. So I built them both as modules and planned to try both, pciehp only and acpiphp only. However, I've found that acpiphp will not load (regardless of whether or not pciehp is already loaded). What I get is:
->>>>
->>>> [chris:~]$ sudo modprobe acpiphp debug=1
->>>> modprobe: ERROR: could not insert 'acpiphp': No such device
->
-> Are you sure you had pciehp already loaded?
->
-Yes, I'm sure it was.
->>>>
->>>
->>> Currently, If your hardware support pciehp native hotplug, acpiphp driver will be rejected when loading it in system
->>> (you can force loading it by add boot parameter pcie_aspm=off as Martin said).
->>>
->>
->> OK, thanks again for the advice. I've disabled the acpiphp driver.
->
-> Pitty. For me only with acpiphp works detection of express card in the slot. With pciehp
-> the PresDet is not updated properly upon removal/insertion and sometimes, probably as a result
-> of the previous, PresDet on the SltSta: line of lspci is not correct. So I moved away from pciehp.
-> I have a SandyBridge based laptop so I was hoping with your i5-based laptop you have also great
-> chance to get rid of pciehp issues.
->
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index b92759a..93f3f6b 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -496,3 +496,7 @@ config SND_SOC_ML26124
+ 
+ config SND_SOC_TPA6130A2
+ 	tristate
++
++config SND_SOC_EXYNOS_HDMI_AUDIO
++	tristate
++	default y
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 9bd4d95..bfe93e6 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -112,6 +112,7 @@ snd-soc-wm9705-objs := wm9705.o
+ snd-soc-wm9712-objs := wm9712.o
+ snd-soc-wm9713-objs := wm9713.o
+ snd-soc-wm-hubs-objs := wm_hubs.o
++snd-soc-exynos-hdmi-audio-objs := exynos_hdmi_audio.o
+ 
+ # Amp
+ snd-soc-max9877-objs := max9877.o
+@@ -230,6 +231,7 @@ obj-$(CONFIG_SND_SOC_WM9705)	+= snd-soc-wm9705.o
+ obj-$(CONFIG_SND_SOC_WM9712)	+= snd-soc-wm9712.o
+ obj-$(CONFIG_SND_SOC_WM9713)	+= snd-soc-wm9713.o
+ obj-$(CONFIG_SND_SOC_WM_HUBS)	+= snd-soc-wm-hubs.o
++obj-$(CONFIG_SND_SOC_EXYNOS_HDMI_AUDIO)	+= snd-soc-exynos-hdmi-audio.o
+ 
+ # Amp
+ obj-$(CONFIG_SND_SOC_MAX9877)	+= snd-soc-max9877.o
+diff --git a/sound/soc/codecs/exynos_hdmi_audio.c b/sound/soc/codecs/exynos_hdmi_audio.c
+new file mode 100644
+index 0000000..50e8564
+--- /dev/null
++++ b/sound/soc/codecs/exynos_hdmi_audio.c
+@@ -0,0 +1,307 @@
++/*
++ * ALSA SoC codec driver for HDMI audio on Samsung Exynos processors.
++ * Copyright (C) 2012 Samsung corp.
++ * Author: Rahul Sharma <rahul.sharma@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <sound/soc.h>
++#include <video/display.h>
++#include <video/exynos_hdmi.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++
++#undef dev_info
++
++#define dev_info(dev, format, arg...)		\
++	dev_printk(KERN_CRIT, dev, format, ##arg)
++
++static struct snd_soc_codec_driver hdmi_codec;
++
++/* platform device pointer for eynos hdmi audio device. */
++static struct platform_device *exynos_hdmi_audio_pdev;
++
++struct hdmi_audio_context {
++	struct platform_device		*pdev;
++	atomic_t				plugged;
++	struct display_entity_audio_params	audio_params;
++	struct display_entity		*entity;
++	struct display_entity_notifier	notf;
++	struct display_event_subscriber	subscriber;
++};
++
++static int exynos_hdmi_audio_hw_params(struct snd_pcm_substream *substream,
++		struct snd_pcm_hw_params *params,
++		struct snd_soc_dai *dai)
++{
++	struct snd_soc_codec *codec = dai->codec;
++	struct hdmi_audio_context *ctx = snd_soc_codec_get_drvdata(codec);
++	int ret;
++
++	dev_info(codec->dev, "[%d] %s\n", __LINE__, __func__);
++
++	ctx->audio_params.type = DISPLAY_ENTITY_AUDIO_I2S;
++
++	switch (params_channels(params)) {
++	case 6:
++	case 4:
++	case 2:
++	case 1:
++		ctx->audio_params.channels = params_channels(params);
++		break;
++	default:
++		dev_err(codec->dev, "%d channels not supported\n",
++				params_channels(params));
++		return -EINVAL;
++	}
++
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S8:
++		ctx->audio_params.bits_per_sample = 8;
++		break;
++	case SNDRV_PCM_FORMAT_S16_LE:
++		ctx->audio_params.bits_per_sample = 12;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		ctx->audio_params.bits_per_sample = 16;
++		break;
++	default:
++		dev_err(codec->dev, "Format(%d) not supported\n",
++				params_format(params));
++		return -EINVAL;
++	}
++
++	switch (params_rate(params)) {
++	case 32000:
++	case 44100:
++	case 88200:
++	case 176400:
++	case 48000:
++	case 96000:
++	case 192000:
++		ctx->audio_params.sf = params_rate(params);
++		break;
++	default:
++		dev_err(codec->dev, "%d Rate supported\n",
++				params_rate(params));
++		return -EINVAL;
++	}
++
++	/* checking here to cache audioparms for hpd plug handling */
++	if (!atomic_read(&ctx->plugged))
++		return -EINVAL;
++
++	ret =
++	display_entity_hdmi_init_audio(ctx->entity, &ctx->audio_params);
++	return ret;
++}
++
++static int exynos_hdmi_audio_trigger(struct snd_pcm_substream *substream,
++			int cmd, struct snd_soc_dai *dai)
++{
++	struct snd_soc_codec *codec = dai->codec;
++	struct hdmi_audio_context *ctx = snd_soc_codec_get_drvdata(codec);
++	int ret;
++
++	dev_info(codec->dev, "[%d] %s\n", __LINE__, __func__);
++
++	/* checking here to cache audioparms for hpd plug handling */
++	if (!atomic_read(&ctx->plugged))
++		return -EINVAL;
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		ret = display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_ON);
++		if (ret) {
++			dev_err(codec->dev, "audio enable failed.\n");
++			return -EINVAL;
++		}
++		break;
++	case SNDRV_PCM_TRIGGER_STOP:
++		ret = display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_OFF);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static const struct snd_soc_dai_ops exynos_hdmi_audio_dai_ops = {
++	.hw_params = exynos_hdmi_audio_hw_params,
++	.trigger = exynos_hdmi_audio_trigger,
++};
++
++static struct snd_soc_dai_driver hdmi_codec_dai = {
++	.name = "exynos-hdmi-audio",
++	.playback = {
++		.channels_min = 2,
++		.channels_max = 8,
++		.rates = SNDRV_PCM_RATE_32000 |
++			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
++			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
++			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
++		.formats = SNDRV_PCM_FMTBIT_S16_LE |
++			SNDRV_PCM_FMTBIT_S24_LE,
++	},
++	.ops = &exynos_hdmi_audio_dai_ops,
++};
++
++void hdmi_audio_event_notify(struct display_entity *entity,
++		enum display_entity_event_type type,
++		unsigned int value, void *context)
++{
++	struct hdmi_audio_context *ctx = (struct hdmi_audio_context *)context;
++
++	if (type == DISPLAY_ENTITY_HDMI_HOTPLUG) {
++		dev_info(&ctx->pdev->dev, "[%d][%s] hpd(%d)\n", __LINE__,
++			__func__, value);
++		atomic_set(&ctx->plugged, !!value);
++	}
++}
++
++int exynos_hdmi_audio_notification(struct display_entity_notifier *notf,
++		struct display_entity *entity, int status)
++{
++	struct hdmi_audio_context *ctx = container_of(notf,
++		struct hdmi_audio_context, notf);
++	struct exynos_hdmi_control_ops *exynos_ops =
++		(struct exynos_hdmi_control_ops *)entity->private;
++	int hpd;
++
++	if (status != DISPLAY_ENTITY_NOTIFIER_CONNECT && entity)
++		return -EINVAL;
++
++	dev_info(&ctx->pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	ctx->entity = entity;
++
++	ctx->subscriber.context = ctx;
++	ctx->subscriber.notify = hdmi_audio_event_notify;
++
++	display_entity_subscribe_event(entity, &ctx->subscriber);
++
++	exynos_ops->get_hpdstate(entity, &hpd);
++	atomic_set(&ctx->plugged, !!hpd);
++
++	return 0;
++}
++
++static __devinit int hdmi_codec_probe(struct platform_device *pdev)
++{
++	int ret;
++	struct hdmi_audio_context *ctx;
++	struct device_node *dev_node;
++	struct platform_device *disp_pdev;
++
++	dev_info(&pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	ret = snd_soc_register_codec(&pdev->dev, &hdmi_codec,
++			&hdmi_codec_dai, 1);
++
++	if (ret) {
++		dev_err(&pdev->dev, "register_codec failed (%d)\n", ret);
++		return ret;
++	}
++
++	ctx = devm_kzalloc(&pdev->dev, sizeof(struct hdmi_audio_context),
++				GFP_KERNEL);
++	if (ctx == NULL)
++		return -ENOMEM;
++
++	ctx->pdev = pdev;
++	atomic_set(&ctx->plugged, 0);
++	platform_set_drvdata(pdev, ctx);
++
++	dev_node = of_find_compatible_node(NULL, NULL,
++			"samsung,exynos5-hdmi");
++	if (!dev_node) {
++		dev_err(&pdev->dev, "[%d][%s] dt node not found.\n",
++			__LINE__, __func__);
++		return -EINVAL;
++	}
++
++	disp_pdev = of_find_device_by_node(dev_node);
++	if (!disp_pdev) {
++		dev_err(&pdev->dev, "[ERROR][%d][%s] No pdev\n",
++			__LINE__, __func__);
++		return -EINVAL;
++	}
++
++	ctx->notf.dev = &disp_pdev->dev;
++	ctx->notf.notify = exynos_hdmi_audio_notification;
++
++	ret = display_entity_register_notifier(&ctx->notf);
++	if (ret) {
++		dev_err(&pdev->dev, "[%d][%s] entity registe failed.\n",
++			__LINE__, __func__);
++		return -EINVAL;
++	}
++	return ret;
++}
++
++static __devexit int hdmi_codec_remove(struct platform_device *pdev)
++{
++	dev_info(&pdev->dev, " %s:%s:%d", __FILE__, __func__, __LINE__);
++	mdelay(1000);
++
++	snd_soc_unregister_codec(&pdev->dev);
++	return 0;
++}
++
++static struct platform_driver hdmi_codec_driver = {
++	.driver		= {
++		.name	= "exynos-hdmi-audio-codec",
++		.owner	= THIS_MODULE,
++	},
++
++	.probe		= hdmi_codec_probe,
++	.remove		= __devexit_p(hdmi_codec_remove),
++};
++
++static int __init hdmi_codec_init(void)
++{
++	int ret;
++
++	ret = platform_driver_register(&hdmi_codec_driver);
++	if (ret < 0)
++		return -EINVAL;
++
++	exynos_hdmi_audio_pdev = platform_device_register_simple
++		("exynos-hdmi-audio-codec", -1, NULL, 0);
++	if (IS_ERR_OR_NULL(exynos_hdmi_audio_pdev)) {
++		ret = PTR_ERR(exynos_hdmi_audio_pdev);
++		platform_driver_unregister(&hdmi_codec_driver);
++		return ret;
++	}
++
++	return 0;
++}
++static void __exit hdmi_codec_exit(void)
++{
++	platform_driver_unregister(&hdmi_codec_driver);
++	platform_device_unregister(exynos_hdmi_audio_pdev);
++}
++
++module_init(hdmi_codec_init);
++module_exit(hdmi_codec_exit);
++
++MODULE_AUTHOR("Rahul Sharma <rahul.sharma@samsung.com>");
++MODULE_DESCRIPTION("ASoC EXYNOS HDMI codec driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+-- 
+1.8.0
 
-I've just (very carefully) set this up again (i.e. no pciehp driver 
-(module or builtin), acpiphp driver built in and pcie_aspm=off on the 
-kernel command line (via grub). My card is not detected on insertion. :-(
-
-Thanks for your suggestions, Martin. I am grateful.
-
-Chris
-> Martin
->
