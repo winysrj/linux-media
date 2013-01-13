@@ -1,169 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1153 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753219Ab3AKL0P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 06:26:15 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 1/2] DocBook: fix various validation errors
-Date: Fri, 11 Jan 2013 12:26:02 +0100
-Message-Id: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
-In-Reply-To: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
-References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:58180 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754921Ab3AMQiV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jan 2013 11:38:21 -0500
+Message-ID: <50F2E2D7.7000208@iki.fi>
+Date: Sun, 13 Jan 2013 18:37:43 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jacek Konieczny <jajcus@jajcus.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [BUG] Problem with LV5TDLX DVB-T USB and the 3.7.1 kernel
+References: <20130105150539.32186362@lolek.nigdzie> <50E83874.5060700@iki.fi> <20130107121034.7da1a00a@jajo.eggsoft>
+In-Reply-To: <20130107121034.7da1a00a@jajo.eggsoft>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/07/2013 01:10 PM, Jacek Konieczny wrote:
+> On Sat, 05 Jan 2013 16:28:04 +0200
+> Antti Palosaari <crope@iki.fi> wrote:
+>
+>> Take USB sniffs, make scripts to generate e4000 register write code
+>> from the sniffs, copy & paste that code from the sniffs until it
+>> starts working. After it starts working it is quite easy to comment
+>> out / tweak with driver in order to find problem. With the experience
+>> and luck it is only few hours to fix, but without a experience you
+>> will likely need to learn a lot of stuff first.
+>
+> I have not experience with the linux media drivers coding, so it probably
+> would take me much more than a few hours or require lots of luck.
+>
+>> Of course those sniffs needed to take from working case, which just
+>> makes successful tuning to 746000000 or 698000000.
+>>
+>> Also you could use to attenuate or amplifier signal to see if it
+>> helps.
+>
+> Already tried that, with various levels of attenuation and amplification,
+> the results vary from snr always 0000 to, at best, approximately every
+> second line of tzap output shows non-zero snr.
+>
+>> I don't have much time / money, no interest, no equipment (DVB-T
+>> modulator) to start optimizing it currently.
+>
+> I see. Can sending the device to you help in any way? In case I cannot make
+> it work, I can, as well, send it to someone who could do good use of it.
+> But first, I will try to fix it myself somehow.
+>
+> I'll try my luck with code. Maybe comparing the drivers with those from
+> Realtek, which used to work for me, will help. Thanks for all the hints.
 
-Fixed the following errors (with exception of the SVG errors):
+I haven't tested whole device as someone else has added that USB ID. 
+That makes me thinking if there has been test mistake or testing at all. 
+As it is still e4000 reference design it should work just like all the 
+others, but you never know... Small hw difference with a driver bug 
+(like some wrong GPIO) and it could lead situation like that. GPIO based 
+antenna switch?
 
-  GEN     /home/hans/work/src/v4l/media-git/Documentation/DocBook//v4l2.xml
-  rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 3.8.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/media_api.html >> Documentation/DocBook/index.html
-  /tmp/x.xml:883: element revremark: validity error : Element structname is not declared in revremark list of possible children
-  /tmp/x.xml:883: element revremark: validity error : Element xref is not declared in revremark list of possible children
-  /tmp/x.xml:1829: element footnote: validity error : Element footnote content does not follow the DTD, expecting (calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable)+, got (para para errorcode CDATA para )
-  /tmp/x.xml:9580: element xref: validity error : Element xref was declared EMPTY this one has content
-  /tmp/x.xml:13508: element link: validity error : Element link does not carry attribute linkend
-  /tmp/x.xml:13508: element link: validity error : No declaration for attribute linked of element link
-  /tmp/x.xml:16986: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-  /tmp/x.xml:17003: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-  /tmp/x.xml:17022: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-  /tmp/x.xml:26795: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (section )
-  /tmp/x.xml:26852: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (table )
+Feel free to send it for me if you don't find problem yourself. Address 
+could be found from my LinuxTV project page:
+http://palosaari.fi/linux/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/common.xml         |    2 +-
- Documentation/DocBook/media/v4l/io.xml             |    4 +--
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |    2 +-
- Documentation/DocBook/media/v4l/v4l2.xml           |    5 +---
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |   28 +++++++++-----------
- 5 files changed, 17 insertions(+), 24 deletions(-)
+regard
+Antti
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 73c6847..ae06afb 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -609,7 +609,7 @@ to zero and the <constant>VIDIOC_G_STD</constant>,
- 	<para>Applications can make use of the <xref linkend="input-capabilities" /> and
- <xref linkend="output-capabilities"/> flags to determine whether the video standard ioctls
- are available for the device.</para>
--&ENOTTY;.
-+
- 	<para>See <xref linkend="buffer" /> for a rationale. Probably
- even USB cameras follow some well known video standard. It might have
- been better to explicitly indicate elsewhere if a device cannot live
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4646d..e6c5855 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -477,7 +477,7 @@ rest should be evident.</para>
- 
-     <note>
-       <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
-+      <para>This is an <link linkend="experimental">experimental</link>
-       interface and may change in the future.</para>
-     </note>
- 
-@@ -488,7 +488,7 @@ DMA buffer from userspace using a file descriptor previously exported for a
- different or the same device (known as the importer role), or both. This
- section describes the DMABUF importer role API in V4L2.</para>
- 
--    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
-+    <para>Refer to <link linkend="vidioc-expbuf">DMABUF exporting</link> for
- details about exporting V4L2 buffers as DMABUF file descriptors.</para>
- 
- <para>Input and output devices support the streaming I/O method when the
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-index c934192..29acc20 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-@@ -29,6 +29,6 @@
- 	    formats with 10 bits per color compressed to 8 bits each,
- 	    using the A-LAW algorithm. Each color component consumes 8
- 	    bits of memory. In other respects this format is similar to
--	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
-+	    <xref linkend="V4L2-PIX-FMT-SRGGB8"></xref>.</para>
- 	  </refsect1>
- 	</refentry>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 8fe2942..94ab0e1 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -143,10 +143,7 @@ applications. -->
- 	<revnumber>3.9</revnumber>
- 	<date>2012-12-03</date>
- 	<authorinitials>sa</authorinitials>
--	<revremark>Added timestamp types to
--	<structname>v4l2_buffer</structname>, see <xref
--	linkend="buffer-flags" />.
--	</revremark>
-+	<revremark>Added timestamp types to v4l2_buffer.</revremark>
-       </revision>
- 
-       <revision>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-index 72dfbd2..e287c8f 100644
---- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -83,15 +83,14 @@ descriptor. The application may pass it to other DMABUF-aware devices. Refer to
- <link linkend="dmabuf">DMABUF importing</link> for details about importing
- DMABUF files into V4L2 nodes. It is recommended to close a DMABUF file when it
- is no longer used to allow the associated memory to be reclaimed. </para>
--
-   </refsect1>
-+
-   <refsect1>
--   <section>
--      <title>Examples</title>
-+    <title>Examples</title>
- 
--      <example>
--	<title>Exporting a buffer.</title>
--	<programlisting>
-+    <example>
-+      <title>Exporting a buffer.</title>
-+      <programlisting>
- int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
- {
- 	&v4l2-exportbuffer; expbuf;
-@@ -108,12 +107,12 @@ int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
- 
- 	return 0;
- }
--        </programlisting>
--      </example>
-+      </programlisting>
-+    </example>
- 
--      <example>
--	<title>Exporting a buffer using the multi-planar API.</title>
--	<programlisting>
-+    <example>
-+      <title>Exporting a buffer using the multi-planar API.</title>
-+      <programlisting>
- int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
- 	int dmafd[], int n_planes)
- {
-@@ -137,12 +136,9 @@ int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
- 
- 	return 0;
- }
--        </programlisting>
--      </example>
--   </section>
--  </refsect1>
-+      </programlisting>
-+    </example>
- 
--  <refsect1>
-     <table pgwide="1" frame="none" id="v4l2-exportbuffer">
-       <title>struct <structname>v4l2_exportbuffer</structname></title>
-       <tgroup cols="3">
 -- 
-1.7.10.4
-
+http://palosaari.fi/
