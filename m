@@ -1,66 +1,264 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:56592 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754852Ab3AFBn0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 20:43:26 -0500
-Received: from mailout-de.gmx.net ([10.1.76.31]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0MWvNq-1TWi5o1nqW-00VzBa for
- <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 02:43:24 +0100
-Message-ID: <50E8D6AA.1040305@gmx.net>
-Date: Sun, 06 Jan 2013 02:43:06 +0100
-From: Andreas Nagel <andreasnagel@gmx.net>
+Received: from impaqm3.telefonica.net ([213.4.138.19]:63447 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755392Ab3AMUTx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jan 2013 15:19:53 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: af9035 test needed!
+Date: Sun, 13 Jan 2013 21:19:42 +0100
+Message-ID: <2975217.iWIPt6bt0t@jar7.dominio>
+In-Reply-To: <1399201.n4JJjs39sT@jar7.dominio>
+References: <50F05C09.3010104@iki.fi> <50F0A501.5000103@iki.fi> <1399201.n4JJjs39sT@jar7.dominio>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: How to configure resizer in ISP pipeline?
-References: <50C747B7.20107@gmx.net> <20130106010321.GE13641@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130106010321.GE13641@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sábado, 12 de enero de 2013 22:14:07 Jose Alberto Reguero escribió:
+> On Sábado, 12 de enero de 2013 01:49:21 Antti Palosaari escribió:
+> > On 01/12/2013 01:45 AM, Jose Alberto Reguero wrote:
+> > > On Viernes, 11 de enero de 2013 20:38:01 Antti Palosaari escribió:
+> > >> Hello Jose and Gianluca
+> > >> 
+> > >> Could you test that (tda18218 & mxl5007t):
+> > >> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_t
+> > >> une r
+> > >> 
+> > >> I wonder if ADC config logic still works for superheterodyne tuners
+> > >> (tuner having IF). I changed it to adc / 2 always due to IT9135 tuner.
+> > >> That makes me wonder it possible breaks tuners having IF, as ADC was
+> > >> clocked just over 20MHz and if it is half then it is 10MHz. For BB that
+> > >> is enough, but I think that having IF, which is 4MHz at least for 8MHz
+> > >> BW it is too less.
+> > >> 
+> > >> F*ck I hate to maintain driver without a hardware! Any idea where I can
+> > >> get AF9035 device having tda18218 or mxl5007t?
+> > >> 
+> > >> regards
+> > >> Antti
+> > > 
+> > > Still pending the changes for  mxl5007t. Attached is a patch for that.
+> > > 
+> > > Changes to make work Avermedia Twinstar with the af9035 driver.
+> > > 
+> > > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+> > 
+> > I cannot do much about this as it changes mxl5007t driver which is not
+> > maintained by me. :)
+> > 
+> > regards
+> > Antti
+> >
+> 
+> Adding CC to Michael Krufky because it is the maintainer of mxl5007t driver. 
+> Michael, any chance to get this patch merged?
+> 
+> Jose Alberto
+>   
+> > > Jose Alberto
+> > > 
+> > > diff -upr linux/drivers/media/tuners/mxl5007t.c
+> > > linux.new/drivers/media/tuners/mxl5007t.c
+> > > --- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000
+> > > +0200 +++ linux.new/drivers/media/tuners/mxl5007t.c	2013-01-10
+> > > 19:23:09.247556275 +0100
+> > > @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+> > > 
+> > >   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+> > >   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+> > > 
+> > > -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+> > > 
+> > >   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+> > >   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+> > > 
+> > > @@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
+> > > 
+> > >   	struct reg_pair_t *init_regs;
+> > >   	int ret;
+> > > 
+> > > -	ret = mxl5007t_soft_reset(state);
+> > > -	if (mxl_fail(ret))
+> > > +	if (!state->config->no_reset) {
+> > > +		ret = mxl5007t_soft_reset(state);
+> > > +		if (mxl_fail(ret))
+> > > 
+> > >   		goto fail;
+> > > 
+> > > +	}
+> > > +
+> > > 
+> > >   	/* calculate initialization reg array */
+> > >   	init_regs = mxl5007t_calc_init_regs(state, mode);
+> > > 
+> > > @@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
+> > > 
+> > >   		if (fe->ops.i2c_gate_ctrl)
+> > >   		
+> > >   			fe->ops.i2c_gate_ctrl(fe, 1);
+> > > 
+> > > -		ret = mxl5007t_get_chip_id(state);
+> > > +		if (!state->config->no_probe)
+> > > +			ret = mxl5007t_get_chip_id(state);
+> > > +
+> > > +		ret = mxl5007t_write_reg(state, 0x04,
+> > > +			state->config->loop_thru_enable);
+> > > +
+> > > 
+> > >   		if (fe->ops.i2c_gate_ctrl)
+> > >   		
+> > >   			fe->ops.i2c_gate_ctrl(fe, 0);
+> > > 
+> > > diff -upr linux/drivers/media/tuners/mxl5007t.h
+> > > linux.new/drivers/media/tuners/mxl5007t.h
+> > > --- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000
+> > > +0200 +++ linux.new/drivers/media/tuners/mxl5007t.h	2013-01-10
+> > > 19:19:11.204379581 +0100
+> > > @@ -73,8 +73,10 @@ struct mxl5007t_config {
+> > > 
+> > >   	enum mxl5007t_xtal_freq xtal_freq_hz;
+> > >   	enum mxl5007t_if_freq if_freq_hz;
+> > >   	unsigned int invert_if:1;
+> > > 
+> > > -	unsigned int loop_thru_enable:1;
+> > > +	unsigned int loop_thru_enable:3;
+> > > 
+> > >   	unsigned int clk_out_enable:1;
+> > > 
+> > > +	unsigned int no_probe:1;
+> > > +	unsigned int no_reset:1;
+> > > 
+> > >   };
+> > >   
+> > >   #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
+> > > 
+> > > (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
+> > > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+> > > linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+> > > --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
+> > > 05:45:57.000000000 +0100
+> > > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-12
+> > > 00:30:57.557310465 +0100
+> > > @@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
+> > > 
+> > >   		.loop_thru_enable = 0,
+> > >   		.clk_out_enable = 0,
+> > >   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+> > > 
+> > > +		.no_probe = 1,
+> > > +		.no_reset = 1,
+> > > 
+> > >   	}, {
+> > >   	
+> > >   		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+> > >   		.if_freq_hz = MxL_IF_4_57_MHZ,
+> > >   		.invert_if = 0,
+> > > 
+> > > -		.loop_thru_enable = 1,
+> > > +		.loop_thru_enable = 3,
+> > > 
+> > >   		.clk_out_enable = 1,
+> > >   		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+> > > 
+> > > +		.no_probe = 1,
+> > > +		.no_reset = 1,
+> > > 
+> > >   	}
+> > >   
+> > >   };
+> --
 
-thanks for helping.
+Sending again because some lines are mangled.
 
->> My "sensor" (TVP5146) already provides YUV data, so I can skip the
->> previewer. I tried setting the input and output pad of the resizer
->> subdevice to incoming resolution (input pad) and desired resolution
->> (output pad). For example: 720x576 --> 352x288. But it didn't work
->> out quite well.
-> How did it not work quite well? :)
+Changes  to make work Avermedia Twinstar with the af9035 driver.
 
-Not sure, if I recall all the details. I haven't done much in this area 
-for a few weeks now.
-Currently, I actually can configure the resizer, but then 
-VIDIOC_STREAMON fails with EINVAL when I configure the devnode. Don't 
-know why.
-I do connect the resizer source to the resizer output (devnode) and then 
-capture from there. I think it is /dev/video6.
-If I leave the resizer out and connect the ccdc source to the ccdc 
-output (/dev/video2), capturing works just fine.
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-One reason could be, that the resizer isn't supported right now. (You 
-remember, I have to use Technexion's TI kernel 2.6.37 with its exotic 
-ISP driver. ;-) )
-That's, what one could interpret from this TI wiki page.
-http://processors.wiki.ti.com/index.php/UserGuideOmap35xCaptureDriver_PSP_04.02.00.07#Architecture
-Under the block diagram, there's a note saying, that only the path with 
-the continuous line has been validated. So, the dotted lines are ISP 
-paths that might not have been validated ("supported"?) yet.
+diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
+--- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
++++ linux.new/drivers/media/tuners/mxl5007t.c	2013-01-10 19:23:09.247556275 +0100
+@@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+ 	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+ 	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+ 
+-	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+ 	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+ 	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+ 
+@@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
+ 	struct reg_pair_t *init_regs;
+ 	int ret;
+ 
+-	ret = mxl5007t_soft_reset(state);
+-	if (mxl_fail(ret))
++	if (!state->config->no_reset) {
++		ret = mxl5007t_soft_reset(state);
++		if (mxl_fail(ret))
+ 		goto fail;
++	}
++
+ 
+ 	/* calculate initialization reg array */
+ 	init_regs = mxl5007t_calc_init_regs(state, mode);
+@@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+-		ret = mxl5007t_get_chip_id(state);
++		if (!state->config->no_probe)
++			ret = mxl5007t_get_chip_id(state);
++
++		ret = mxl5007t_write_reg(state, 0x04,
++			state->config->loop_thru_enable);
++
+ 
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+diff -upr linux/drivers/media/tuners/mxl5007t.h linux.new/drivers/media/tuners/mxl5007t.h
+--- linux/drivers/media/tuners/mxl5007t.h	2012-08-14 05:45:22.000000000 +0200
++++ linux.new/drivers/media/tuners/mxl5007t.h	2013-01-10 19:19:11.204379581 +0100
+@@ -73,8 +73,10 @@ struct mxl5007t_config {
+ 	enum mxl5007t_xtal_freq xtal_freq_hz;
+ 	enum mxl5007t_if_freq if_freq_hz;
+ 	unsigned int invert_if:1;
+-	unsigned int loop_thru_enable:1;
++	unsigned int loop_thru_enable:3;
+ 	unsigned int clk_out_enable:1;
++	unsigned int no_probe:1;
++	unsigned int no_reset:1;
+ };
+ 
+ #if defined(CONFIG_MEDIA_TUNER_MXL5007T) || (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
+diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+--- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000 +0100
++++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-12 00:30:57.557310465 +0100
+@@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
+ 		.loop_thru_enable = 0,
+ 		.clk_out_enable = 0,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++		.no_probe = 1,
++		.no_reset = 1,
+ 	}, {
+ 		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+ 		.if_freq_hz = MxL_IF_4_57_MHZ,
+ 		.invert_if = 0,
+-		.loop_thru_enable = 1,
++		.loop_thru_enable = 3,
+ 		.clk_out_enable = 1,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++		.no_probe = 1,
++		.no_reset = 1,
+ 	}
+ };
+ 
 
 
-(I might add, that all this is part of my master thesis and resizing 
-would be a nice-to-have goal, but not a must-have. So I can live with it 
-if it won't work.)
 
->> Can someone explain how one properly configures the resizer in an
->> ISP pipeline (with Media Controller API) ? I spend some hours
->> researching, but this topic seems to be a well guarded secret...
-> There's nothing special about it. Really.
->
-> The resizing factor is chosen by setting the media bus format on the source
-> pad to the desired size.
 
-Yes, that is what I figured out eventually.
+ 
