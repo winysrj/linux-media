@@ -1,89 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f43.google.com ([209.85.216.43]:63667 "EHLO
-	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab3ASXmA (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:34463 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755148Ab3AMOYd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:00 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: schulz@macnetix.de, dhowells@redhat.com, peter.senna@gmail.com,
-	mkrufky@linuxtv.org, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH V2 03/24] pci/ttpci/av7110.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:10 -0200
-Message-Id: <1358638891-4775-4-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+	Sun, 13 Jan 2013 09:24:33 -0500
+Received: by mail-ea0-f174.google.com with SMTP id e13so1377809eaa.33
+        for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 06:24:32 -0800 (PST)
+Message-ID: <50F2C3C0.8000503@googlemail.com>
+Date: Sun, 13 Jan 2013 15:25:04 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Subject: Re: [PATCH 1/3] em28xx: add missing IR RC slave address to the list
+ of known i2c devices
+References: <1358086508-6902-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1358086508-6902-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT_EVDEV) || \
-     defined(CONFIG_INPUT_EVDEV_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT_EVDEV)
+Am 13.01.2013 15:15, schrieb Frank Schäfer:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-i2c.c |    1 +
+>  1 Datei geändert, 1 Zeile hinzugefügt(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 9ae8f60..8532c1d 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -534,6 +534,7 @@ static struct i2c_client em28xx_client_template = {
+>   * incomplete list of known devices
+>   */
+>  static char *i2c_devs[128] = {
+> +	[0x3e >> 1] = "remote IR sensor",
+>  	[0x4a >> 1] = "saa7113h",
+>  	[0x52 >> 1] = "drxk",
+>  	[0x60 >> 1] = "remote IR sensor",
 
-This change was made for: CONFIG_INPUT_EVDEV,
-CONFIG_DVB_SP8870
+Sorry...I've made a mistake with "git format-patch"...
+There are no patches 2/3 and 3/3.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
-Changes from V1:
-   Updated subject
-
- drivers/media/pci/ttpci/av7110.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
-index 2f54e2b..fc9e7e5 100644
---- a/drivers/media/pci/ttpci/av7110.c
-+++ b/drivers/media/pci/ttpci/av7110.c
-@@ -235,7 +235,7 @@ static void recover_arm(struct av7110 *av7110)
- 
- 	restart_feeds(av7110);
- 
--#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT_EVDEV)
- 	av7110_check_ir_config(av7110, true);
- #endif
- }
-@@ -268,7 +268,7 @@ static int arm_thread(void *data)
- 		if (!av7110->arm_ready)
- 			continue;
- 
--#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT_EVDEV)
- 		av7110_check_ir_config(av7110, false);
- #endif
- 
-@@ -1730,7 +1730,7 @@ static int alps_tdlb7_tuner_set_params(struct dvb_frontend *fe)
- 
- static int alps_tdlb7_request_firmware(struct dvb_frontend* fe, const struct firmware **fw, char* name)
- {
--#if defined(CONFIG_DVB_SP8870) || defined(CONFIG_DVB_SP8870_MODULE)
-+#if IS_ENABLED(CONFIG_DVB_SP8870)
- 	struct av7110* av7110 = fe->dvb->priv;
- 
- 	return request_firmware(fw, name, &av7110->dev->pci->dev);
-@@ -2725,7 +2725,7 @@ static int __devinit av7110_attach(struct saa7146_dev* dev,
- 
- 	mutex_init(&av7110->ioctl_mutex);
- 
--#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT_EVDEV)
- 	av7110_ir_init(av7110);
- #endif
- 	printk(KERN_INFO "dvb-ttpci: found av7110-%d.\n", av7110_num);
-@@ -2768,7 +2768,7 @@ static int __devexit av7110_detach(struct saa7146_dev* saa)
- 	struct av7110 *av7110 = saa->ext_priv;
- 	dprintk(4, "%p\n", av7110);
- 
--#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT_EVDEV)
- 	av7110_ir_exit(av7110);
- #endif
- 	if (budgetpatch || av7110->full_ts) {
--- 
-1.7.11.7
-
+Regards,
+Frank
