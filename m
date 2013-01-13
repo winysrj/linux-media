@@ -1,324 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f43.google.com ([209.85.210.43]:34702 "EHLO
-	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754170Ab3AYJvy (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:25062 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754722Ab3AMMag (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 04:51:54 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH] media: tvp514x: enable TVP514X for media controller based usage
-Date: Fri, 25 Jan 2013 15:21:40 +0530
-Message-Id: <1359107500-16039-1-git-send-email-prabhakar.lad@ti.com>
+	Sun, 13 Jan 2013 07:30:36 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGK007KKDEY6Y20@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 13 Jan 2013 21:30:34 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MGK00B86DEGTC60@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Sun, 13 Jan 2013 21:30:33 +0900 (KST)
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	inki.dae@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH 0/4] exynos-drm-hdmi driver to CDF complaint display driver
+Date: Sun, 13 Jan 2013 07:52:10 -0500
+Message-id: <1358081534-21372-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunath Hadli <manjunath.hadli@ti.com>
+This patch set is a proposal to change Exynos Drm Hdmi driver to a CDF
+complaint panel driver. This migration serves 2 purposes. One is to eliminate
+duplication due to v4l and drm hdmi drivers. Second is to add support for Hdmi
+audio ALSA codec which is not possible with drm/v4l hdmi driver (specially for
+exynos as hdmi audio and hdmi core registers are intermixed.).
 
-add support for TVP514x as a media entity and support for
-pad operations. The decoder supports 1 output pad.
-The default format code was V4L2_MBUS_FMT_YUYV10_2X10
-changed it to V4L2_MBUS_FMT_UYVY8_2X8.
+This patch series is based on the Second RFC of CDF from Laurent Pinchart.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
----
- This patch depends on patch http://patchwork.linuxtv.org/patch/16458/
+[PATCH 1/4] video: display: add event handling, set mode and hdmi ops to cdf
+core
 
- drivers/media/i2c/tvp514x.c |  161 ++++++++++++++++++++++++++++++++++++++++--
- 1 files changed, 153 insertions(+), 8 deletions(-)
+This patch adds
+1) Event Notification to CDF Core:
+	Adds simple event notification mechanism supports multiple
+	subscribers. This is used for hot-plug notification to the clients
+	of hdmi display i.e. exynos-drm and alsa-codec. CDF Core maintains
+	multiple subscriber list. When entity reports a event Core will
+	route it to all of them. Un-superscription is not implemented which
+	can be done if notification callback is Null.
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index d5e1021..f0a768b 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -12,6 +12,7 @@
-  *     Hardik Shah <hardik.shah@ti.com>
-  *     Manjunath Hadli <mrh@ti.com>
-  *     Karicheri Muralidharan <m-karicheri2@ti.com>
-+ *     Prabhakar Lad <prabhakar.lad@ti.com>
-  *
-  * This package is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -33,6 +34,7 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <linux/module.h>
-+#include <linux/v4l2-mediabus.h>
- 
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
-@@ -40,12 +42,10 @@
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/tvp514x.h>
-+#include <media/media-entity.h>
- 
- #include "tvp514x_regs.h"
- 
--/* Module Name */
--#define TVP514X_MODULE_NAME		"tvp514x"
--
- /* Private macros for TVP */
- #define I2C_RETRY_COUNT                 (5)
- #define LOCK_RETRY_COUNT                (5)
-@@ -91,6 +91,9 @@ static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable);
-  * @pdata: Board specific
-  * @ver: Chip version
-  * @streaming: TVP5146/47 decoder streaming - enabled or disabled.
-+ * @pix: Current pixel format
-+ * @num_fmts: Number of formats
-+ * @fmt_list: Format list
-  * @current_std: Current standard
-  * @num_stds: Number of standards
-  * @std_list: Standards list
-@@ -106,12 +109,20 @@ struct tvp514x_decoder {
- 	int ver;
- 	int streaming;
- 
-+	struct v4l2_pix_format pix;
-+	int num_fmts;
-+	const struct v4l2_fmtdesc *fmt_list;
-+
- 	enum tvp514x_std current_std;
- 	int num_stds;
- 	const struct tvp514x_std_info *std_list;
- 	/* Input and Output Routing parameters */
- 	u32 input;
- 	u32 output;
-+
-+	/* mc related members */
-+	struct media_pad pad;
-+	struct v4l2_mbus_framefmt format;
- };
- 
- /* TVP514x default register values */
-@@ -200,6 +211,21 @@ static struct tvp514x_reg tvp514x_reg_list_default[] = {
- };
- 
- /**
-+ * List of image formats supported by TVP5146/47 decoder
-+ * Currently we are using 8 bit mode only, but can be
-+ * extended to 10/20 bit mode.
-+ */
-+static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
-+	{
-+	 .index		= 0,
-+	 .type		= V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+	 .flags		= 0,
-+	 .description	= "8-bit UYVY 4:2:2 Format",
-+	 .pixelformat	= V4L2_PIX_FMT_UYVY,
-+	},
-+};
-+
-+/**
-  * Supported standards -
-  *
-  * Currently supports two standards only, need to add support for rest of the
-@@ -733,7 +759,7 @@ tvp514x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
- }
- 
- /**
-- * tvp514x_mbus_fmt_cap() - V4L2 decoder interface handler for try/s/g_mbus_fmt
-+ * tvp514x_mbus_fmt() - V4L2 decoder interface handler for try/s/g_mbus_fmt
-  * @sd: pointer to standard V4L2 sub-device structure
-  * @f: pointer to the mediabus format structure
-  *
-@@ -751,12 +777,11 @@ tvp514x_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
- 	/* Calculate height and width based on current standard */
- 	current_std = decoder->current_std;
- 
--	f->code = V4L2_MBUS_FMT_YUYV10_2X10;
-+	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
- 	f->width = decoder->std_list[current_std].width;
- 	f->height = decoder->std_list[current_std].height;
- 	f->field = V4L2_FIELD_INTERLACED;
- 	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
--
- 	v4l2_dbg(1, debug, sd, "MBUS_FMT: Width - %d, Height - %d\n",
- 			f->width, f->height);
- 	return 0;
-@@ -892,6 +917,88 @@ static const struct v4l2_ctrl_ops tvp514x_ctrl_ops = {
- 	.s_ctrl = tvp514x_s_ctrl,
- };
- 
-+/**
-+ * tvp514x_enum_mbus_code() - V4L2 decoder interface handler for enum_mbus_code
-+ * @sd: pointer to standard V4L2 sub-device structure
-+ * @fh: file handle
-+ * @code: pointer to v4l2_subdev_mbus_code_enum structure
-+ *
-+ * Enumertaes mbus codes supported
-+ */
-+static int tvp514x_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	u32 pad = code->pad;
-+	u32 index = code->index;
-+
-+	memset(code, 0, sizeof(*code));
-+	code->index = index;
-+	code->pad = pad;
-+
-+	if (index != 0)
-+		return -EINVAL;
-+
-+	code->code = V4L2_MBUS_FMT_YUYV8_2X8;
-+
-+	return 0;
-+}
-+
-+/**
-+ * tvp514x_get_pad_format() - V4L2 decoder interface handler for get pad format
-+ * @sd: pointer to standard V4L2 sub-device structure
-+ * @fh: file handle
-+ * @format: pointer to v4l2_subdev_format structure
-+ *
-+ * Retrieves pad format which is active or tried based on requirement
-+ */
-+static int tvp514x_get_pad_format(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *format)
-+{
-+	struct tvp514x_decoder *decoder = to_decoder(sd);
-+	__u32 which = format->which;
-+
-+	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+		format->format = decoder->format;
-+		return 0;
-+	}
-+
-+	format->format.code = V4L2_MBUS_FMT_YUYV8_2X8;
-+	format->format.width = tvp514x_std_list[decoder->current_std].width;
-+	format->format.height = tvp514x_std_list[decoder->current_std].height;
-+	format->format.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	format->format.field = V4L2_FIELD_INTERLACED;
-+
-+	return 0;
-+}
-+
-+/**
-+ * tvp514x_set_pad_format() - V4L2 decoder interface handler for set pad format
-+ * @sd: pointer to standard V4L2 sub-device structure
-+ * @fh: file handle
-+ * @format: pointer to v4l2_subdev_format structure
-+ *
-+ * Set pad format for the output pad
-+ */
-+static int tvp514x_set_pad_format(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct tvp514x_decoder *decoder = to_decoder(sd);
-+
-+	if (fmt->format.field != V4L2_FIELD_INTERLACED ||
-+	    fmt->format.code != V4L2_MBUS_FMT_YUYV8_2X8 ||
-+	    fmt->format.colorspace != V4L2_COLORSPACE_SMPTE170M ||
-+	    fmt->format.width != tvp514x_std_list[decoder->current_std].width ||
-+	    fmt->format.height != tvp514x_std_list[decoder->current_std].height)
-+		return -EINVAL;
-+
-+	decoder->format = fmt->format;
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_core_ops tvp514x_core_ops = {
- 	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
- 	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-@@ -915,13 +1022,33 @@ static const struct v4l2_subdev_video_ops tvp514x_video_ops = {
- 	.s_stream = tvp514x_s_stream,
- };
- 
-+static const struct v4l2_subdev_pad_ops tvp514x_pad_ops = {
-+	.enum_mbus_code = tvp514x_enum_mbus_code,
-+	.get_fmt = tvp514x_get_pad_format,
-+	.set_fmt = tvp514x_set_pad_format,
-+};
-+
- static const struct v4l2_subdev_ops tvp514x_ops = {
- 	.core = &tvp514x_core_ops,
- 	.video = &tvp514x_video_ops,
-+	.pad = &tvp514x_pad_ops,
- };
- 
- static struct tvp514x_decoder tvp514x_dev = {
- 	.streaming = 0,
-+	.fmt_list = tvp514x_fmt_list,
-+	.num_fmts = ARRAY_SIZE(tvp514x_fmt_list),
-+	.pix = {
-+		/* Default to NTSC 8-bit YUV 422 */
-+		.width		= NTSC_NUM_ACTIVE_PIXELS,
-+		.height		= NTSC_NUM_ACTIVE_LINES,
-+		.pixelformat	= V4L2_PIX_FMT_UYVY,
-+		.field		= V4L2_FIELD_INTERLACED,
-+		.bytesperline	= NTSC_NUM_ACTIVE_PIXELS * 2,
-+		.sizeimage	= NTSC_NUM_ACTIVE_PIXELS * 2 *
-+					NTSC_NUM_ACTIVE_LINES,
-+		.colorspace	= V4L2_COLORSPACE_SMPTE170M,
-+		},
- 	.current_std = STD_NTSC_MJ,
- 	.std_list = tvp514x_std_list,
- 	.num_stds = ARRAY_SIZE(tvp514x_std_list),
-@@ -941,6 +1068,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct tvp514x_decoder *decoder;
- 	struct v4l2_subdev *sd;
-+	int ret;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -981,7 +1109,21 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
-+	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
-+
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
- 
-+	ret = media_entity_init(&decoder->sd.entity, 1, &decoder->pad, 0);
-+	if (ret < 0) {
-+		v4l2_err(sd, "%s decoder driver failed to register !!\n",
-+			 sd->name);
-+		kfree(decoder);
-+		return ret;
-+	}
-+#endif
- 	v4l2_ctrl_handler_init(&decoder->hdl, 5);
- 	v4l2_ctrl_new_std(&decoder->hdl, &tvp514x_ctrl_ops,
- 		V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-@@ -995,11 +1137,11 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
- 	sd->ctrl_handler = &decoder->hdl;
- 	if (decoder->hdl.error) {
--		int err = decoder->hdl.error;
-+		ret = decoder->hdl.error;
- 
- 		v4l2_ctrl_handler_free(&decoder->hdl);
- 		kfree(decoder);
--		return err;
-+		return ret;
- 	}
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
-@@ -1022,6 +1164,9 @@ static int tvp514x_remove(struct i2c_client *client)
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&decoder->sd.entity);
-+#endif
- 	v4l2_ctrl_handler_free(&decoder->hdl);
- 	kfree(decoder);
- 	return 0;
+2) set_mode to generic ops:
+	It is meaningful for a panel like hdmi which supports multiple
+	resolutions.
+
+3) Provision for platform specific interfaces through void *private in display
+entity:
+
+	It has added void *private to display entity which can be used to
+	expose interfaces which are very much specific to a particular platform.
+
+	In exynos, hpd is connected to the soc via gpio bus. During initial
+	hdmi poweron, hpd interrupt is not raised as there is no change in the
+	gpio status. This is solved by providing a platform specific interface
+	which is queried by the drm to get the hpd state. This interface may
+	not be required by all platforms.
+
+4) hdmi ops:
+	get_edid: to query raw EDID data and length from the panel.
+	check_mode: To check if a given mode is supported by exynos HDMI IP
+			"AND" Connected HDMI Sink (tv/monitor).
+	init_audio: Configure hdmi audio registers for Audio interface type
+	(i2s/ spdif), SF, Audio Channels, BPS.
+	set_audiostate: enable disable audio.
+
+[PATCH 2/4] drm/edid: temporarily exposing generic edid-read interface from drm
+
+It exposes generic interface from drm_edid.c to get the edid data and length
+by any display entity. Once I get clear idea about edid handling in CDF, I need
+to revert these temporary changes.
+
+[PATCH 3/4] drm/exynos: moved drm hdmi driver to cdf framework
+
+This patch implements exynos_hdmi_cdf.c which is a glue component between
+exynos DRM and hdmi cdf panel. It is a platform driver register through
+exynos_drm_drv.c. Exynos_hdmi.c is modified to register hdmi as display panel.
+exynos_hdmi_cdf.c registers for exynos hdmi display entity and if successful,
+proceeds for mode setting.
+
+[PATCH 4/4] alsa/soc: add hdmi audio codec based on cdf
+
+It registers hdmi-audio codec to the ALSA framework. This is the second client
+to the hdmi panel. Once notified by the CDF Core it proceeds towards audio
+setting and audio control. It also subscribes for hpd notification to implement
+hpd related audio requirements.
+
+Tested for:
+1) hdmi mode negotiation.
+2) Hpd Scenarios for hdmi and hdmi-audio.
+3) hdmi mode switching.
+4) hdmi-audio static audio configuration enable/ disable.
+
+Pending:
+1) Registering hdmi-audio sound card.
+2) Moving exynos_hdmi to driver/video/display
+
+Rahul Sharma (4):
+  video: display: add event handling, set mode and hdmi ops to cdf core
+  drm/edid: temporarily exposing generic edid-read interface from drm
+  drm/exynos: moved drm hdmi driver to cdf framework
+  alsa/soc: add hdmi audio codec based on cdf
+
+ drivers/gpu/drm/drm_edid.c               |  88 ++++++
+ drivers/gpu/drm/exynos/Kconfig           |   6 +
+ drivers/gpu/drm/exynos/Makefile          |   1 +
+ drivers/gpu/drm/exynos/exynos_drm_drv.c  |  24 ++
+ drivers/gpu/drm/exynos/exynos_drm_drv.h  |   1 +
+ drivers/gpu/drm/exynos/exynos_hdmi.c     | 446 ++++++++++++++++---------------
+ drivers/gpu/drm/exynos/exynos_hdmi_cdf.c | 370 +++++++++++++++++++++++++
+ drivers/video/display/display-core.c     |  85 ++++++
+ include/video/display.h                  | 111 +++++++-
+ include/video/exynos_hdmi.h              |  25 ++
+ sound/soc/codecs/Kconfig                 |   4 +
+ sound/soc/codecs/Makefile                |   2 +
+ sound/soc/codecs/exynos_hdmi_audio.c     | 307 +++++++++++++++++++++
+ 13 files changed, 1253 insertions(+), 217 deletions(-)
+ create mode 100644 drivers/gpu/drm/exynos/exynos_hdmi_cdf.c
+ mode change 100755 => 100644 drivers/video/display/display-core.c
+ mode change 100755 => 100644 include/video/display.h
+ create mode 100644 include/video/exynos_hdmi.h
+ create mode 100644 sound/soc/codecs/exynos_hdmi_audio.c
+
 -- 
-1.7.4.1
+1.8.0
 
