@@ -1,72 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:46336 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757314Ab3AII3r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 03:29:47 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<9690842.n93imGlCHA@avalon>
-	<CAF6AEGt+gwUq-xGze5bTgrKUMRijSBo_ORreq=Ot1RMD-WrbYQ@mail.gmail.com>
-	<1563062.kh1jqNm1kH@avalon>
-	<CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
-Date: Wed, 9 Jan 2013 13:53:30 +0530
-Message-ID: <CAPdUM4P6riQVJ4m4Sdkh1O8xmpKF4YnhGq69p7DkxAdr165KYA@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rahul Sharma <r.sh.open@gmail.com>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56982 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756149Ab3AMWoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jan 2013 17:44:19 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH 2/3] Implement v4l2_subdev_enum_mbus_code()
+Date: Mon, 14 Jan 2013 00:47:32 +0200
+Message-Id: <1358117253-13707-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1358117253-13707-1-git-send-email-sakari.ailus@iki.fi>
+References: <50F3396E.2010505@iki.fi>
+ <1358117253-13707-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+v4l2_subdev_enum_mbus_code() enumerates the media bus pixel codes on a pad
+of a given entity. The function returns a struct containing the array of
+enumerated pixel codes. Once the user no longer needs the array, its memory
+is released using free(3).
 
-CDF will also be helpful in supporting Panels with integrated
-audio (HDMI/DP) if we can add audio related control operations to
-display_entity_control_ops. Video controls will be called by crtc
-in DRM/V4L and audio controls from Alsa.
+The decision not to store the media bus pixel codes in the library's
+internal data structures is an informed one: the configuration of the device
+could affect the selection of possible pixel codes on the device. One
+example of such is the chosen try pixel code on the sink pad which is known
+to affect the selection of available pixel codes on the source pad of the
+OMAP 3 ISP resizer.
 
-Secondly, if I need to support get_modes operation in hdmi/dp
-panel, I need to implement edid parser inside the panel driver. It
-will be meaningful to add get_edid control operation for hdmi/dp.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ src/v4l2subdev.c |   46 ++++++++++++++++++++++++++++++++++++++++++++++
+ src/v4l2subdev.h |   20 ++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
 
-regards,
-Rahul Sharma.
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 56964ce..946c030 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -27,6 +27,7 @@
+ #include <fcntl.h>
+ #include <stdbool.h>
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ #include <unistd.h>
+ 
+@@ -64,6 +65,51 @@ void v4l2_subdev_close(struct media_entity *entity)
+ 	}
+ }
+ 
++struct v4l2_subdev_mbus_codes *
++v4l2_subdev_enum_mbus_code(struct media_entity *entity, unsigned int pad)
++{
++	struct v4l2_subdev_mbus_code_enum c;
++	struct v4l2_subdev_mbus_codes *codes = NULL;
++	int ret;
++
++	ret = v4l2_subdev_open(entity);
++	if (ret < 0)
++		return NULL;
++
++	memset(&c, 0, sizeof(c));
++	c.pad = pad;
++
++	for (; ; c.index++) {
++		void *tmp;
++
++		ret = ioctl(entity->fd, VIDIOC_SUBDEV_ENUM_MBUS_CODE, &c);
++		if (ret == -1) {
++			if (errno == EINVAL)
++				break;
++			else
++				goto out_err;
++		}
++
++		tmp = realloc(codes, sizeof(*codes)
++			      + (c.index + 1) * sizeof(codes->code[0]));
++		if (!tmp)
++			goto out_err;
++		codes = tmp;
++
++		codes->code[c.index] = c.code;
++	}
++
++	codes->ncode = c.index;
++
++	v4l2_subdev_close(entity);
++	return codes;
++
++out_err:
++	v4l2_subdev_close(entity);
++	free(codes);
++	return NULL;
++}
++
+ int v4l2_subdev_get_format(struct media_entity *entity,
+ 	struct v4l2_mbus_framefmt *format, unsigned int pad,
+ 	enum v4l2_subdev_format_whence which)
+diff --git a/src/v4l2subdev.h b/src/v4l2subdev.h
+index 43d5c1f..8b42f4d 100644
+--- a/src/v4l2subdev.h
++++ b/src/v4l2subdev.h
+@@ -48,6 +48,26 @@ int v4l2_subdev_open(struct media_entity *entity);
+  */
+ void v4l2_subdev_close(struct media_entity *entity);
+ 
++struct v4l2_subdev_mbus_codes {
++	unsigned int ncode;
++	unsigned int code[0];
++} __packed;
++
++/**
++ * @brief Enumerate mbus pixel codes.
++ * @param entity - subdev-device media entity.
++ * @param pad - the pad of the media entity
++ *
++ * Enumerate media bus pixel codes. This is just a wrapper for
++ * VIDIOC_SUBDEV_ENUM_MBUS_CODE IOCTL.
++ *
++ * @return NULL on error; otherwise struct v4l2_subdev_mbus_code_enum
++ * containing the media bus codes. The user MUST use free(3) to
++ * release the returned struct once the user no longer needs it.
++ */
++struct v4l2_subdev_mbus_codes *
++v4l2_subdev_enum_mbus_code(struct media_entity *entity, unsigned int pad);
++
+ /**
+  * @brief Retrieve the format on a pad.
+  * @param entity - subdev-device media entity.
+-- 
+1.7.10.4
 
-On Tue, Jan 8, 2013 at 9:43 PM, Rob Clark <rob.clark@linaro.org> wrote:
-> On Tue, Jan 8, 2013 at 2:25 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Rob,
->>
->> On Thursday 27 December 2012 09:54:55 Rob Clark wrote:
->>> What I've done to avoid that so far is that the master device registers the
->>> drivers for it's output sub-devices before registering it's own device.
->>
->> I'm not sure to follow you here. The master device doesn't register anything,
->> do you mean the master device driver ? If so, how does the master device
->> driver register its own device ? Devices are not registered by their driver.
->
-> sorry, that should have read "master driver registers drivers for it's
-> sub-devices.."
->
-> BR,
-> -R
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
