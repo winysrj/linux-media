@@ -1,61 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:56019 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755047Ab3AJRBd (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:60714 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755019Ab3AMOUa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 12:01:33 -0500
-Received: by mail-wi0-f180.google.com with SMTP id hj13so472614wib.13
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 09:01:32 -0800 (PST)
+	Sun, 13 Jan 2013 09:20:30 -0500
+Received: by mail-ea0-f182.google.com with SMTP id d1so1375356eaa.41
+        for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 06:20:29 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/7] em28xx-input: remove dead code line from em28xx_get_key_em_haup()
+Date: Sun, 13 Jan 2013 15:20:39 +0100
+Message-Id: <1358086845-6989-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <50ED8332.9080902@gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-	<50ED8332.9080902@gmail.com>
-Date: Thu, 10 Jan 2013 17:33:54 +0100
-Message-ID: <CAL7owaCH3oSOmKPixnOKQHc+dh2+jUYpvDubm50qhqbBNurVrw@mail.gmail.com>
-Subject: Re: kaffeine.kde.org/scanfile.dvb.qz is obsolete [was: [RFC] Initial
- scan files troubles and brainstorming]
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/1/9 Jiri Slaby <jirislaby@gmail.com>:
-> On 01/09/2013 03:41 PM, Mauro Carvalho Chehab wrote:
->> Christoph,
->>
->> Thank you for all the hard work over all those years!
->
-> Yeah, I second this.
->
-> I have a note though. Who is going to fix the URL in kaffeine?
+Field 'old' of struct IR_i2c is used nowhere in module ir-kbd-i2c.
 
-That belongs to me.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-input.c |    2 --
+ 1 Datei geändert, 2 Zeilen entfernt(-)
 
-> And how
-> often is kaffeine.kde.org/scanfile.dvb.qz updated? Is this done
-> automatically?
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 07f6030..f554a52 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -125,8 +125,6 @@ static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	if (buf[1] == 0xff)
+ 		return 0;
+ 
+-	ir->old = buf[1];
+-
+ 	/*
+ 	 * Rearranges bits to the right order.
+ 	 * The bit order were determined experimentally by using
+-- 
+1.7.10.4
 
-No, upload happens manually. I will take care of an update.
-
-> As it is pretty outdated (9/2011), I don't think it is...
-> Should this be moved somewhere else?
->
-> thanks,
-> --
-> js
-
-Christoph
