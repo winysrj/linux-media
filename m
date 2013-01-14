@@ -1,96 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2940 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755395Ab3A0UEk (ORCPT
+Received: from mailfe05.c2i.net ([212.247.154.130]:33581 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756300Ab3ANPE5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 15:04:40 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0RK4bQu004986
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:04:39 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 85DC611E00AE
-	for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:04:36 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 14 Jan 2013 10:04:57 -0500
+Received: from [176.74.213.204] (account mc467741@c2i.net HELO laptop015.hselasky.homeunix.org)
+  by mailfe05.swip.net (CommuniGate Pro SMTP 5.4.4)
+  with ESMTPA id 363335668 for linux-media@vger.kernel.org; Mon, 14 Jan 2013 16:04:54 +0100
+From: Hans Petter Selasky <hselasky@c2i.net>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130127200436.85DC611E00AE@alastor.dyndns.org>
-Date: Sun, 27 Jan 2013 21:04:36 +0100 (CET)
+Subject: Re: [PATCH] Correctly set data for USB request in case of a previous failure.
+Date: Mon, 14 Jan 2013 16:06:20 +0100
+References: <201301141355.52394.hselasky@c2i.net>
+In-Reply-To: <201301141355.52394.hselasky@c2i.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201301141606.20156.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Improved patch follows:
 
-Results of the daily build of media_tree:
+--HPS
 
-date:		Sun Jan 27 19:00:16 CET 2013
-git branch:	for_v3.9
-git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.4.07-marune
+>From a88d72d2108f92f004a3f050a708d9b7f661f924 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 14 Jan 2013 13:53:21 +0100
+Subject: [PATCH] Correctly initialize data for USB request.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Found-by: Jan Beich
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/input/tablet/wacom.h     | 1 +
+ drivers/input/tablet/wacom_sys.c | 8 +++++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/input/tablet/wacom.h b/drivers/input/tablet/wacom.h
+index b79d451..d6fad87 100644
+--- a/drivers/input/tablet/wacom.h
++++ b/drivers/input/tablet/wacom.h
+@@ -89,6 +89,7 @@
+ #include <linux/init.h>
+ #include <linux/usb/input.h>
+ #include <linux/power_supply.h>
++#include <linux/string.h>
+ #include <asm/unaligned.h>
+ 
+ /*
+diff --git a/drivers/input/tablet/wacom_sys.c b/drivers/input/tablet/wacom_sys.c
+index f92d34f..23bc71e 100644
+--- a/drivers/input/tablet/wacom_sys.c
++++ b/drivers/input/tablet/wacom_sys.c
+@@ -553,10 +553,12 @@ static int wacom_set_device_mode(struct usb_interface *intf, int report_id, int
+ 	if (!rep_data)
+ 		return error;
+ 
+-	rep_data[0] = report_id;
+-	rep_data[1] = mode;
+-
+ 	do {
++		memset(rep_data, 0, length);
++
++		rep_data[0] = report_id;
++		rep_data[1] = mode;
++
+ 		error = wacom_set_report(intf, WAC_HID_FEATURE_REPORT,
+ 		                         report_id, rep_data, length, 1);
+ 		if (error >= 0)
+-- 
+1.7.11.4
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
