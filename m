@@ -1,81 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:42227 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755276Ab3A0Cpv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jan 2013 21:45:51 -0500
-Message-ID: <510494D6.1010000@gmail.com>
-Date: Sun, 27 Jan 2013 10:45:42 +0800
-From: Yijing Wang <wangyijing0307@gmail.com>
-MIME-Version: 1.0
-To: Chris Clayton <chris2553@googlemail.com>
-CC: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-pci@vger.kernel.org
-Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
-References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com>
-In-Reply-To: <5104427D.2050002@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from pequod.mess.org ([46.65.169.142]:37213 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755533Ab3ANJvr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 04:51:47 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2] [media] iguanair: intermittent initialization failure
+Date: Mon, 14 Jan 2013 09:51:44 +0000
+Message-Id: <1358157104-3665-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013-01-27 4:54, Chris Clayton 写道:
-> Hi Martin,
-> 
-> On 01/24/13 19:21, Martin Mokrejs wrote:
->> Hi Chris,
->>    try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
->> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
->>
-> 
-> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
+On cold boot the device does not initialize until the first packet is
+received, and that packet is not processed.
 
-Not loaded pciehp driver? Remove the device from this slot without poweroff ?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/iguanair.c | 25 +++++++++++++++----------
+ 1 file changed, 15 insertions(+), 10 deletions(-)
 
-> 
->>    The best would if you subscribe to linux-pci, and read my recent threads
->> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
->> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
->> archives of linux-pci and see the pacthes and the discussion.
-> 
-> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
-> 
-> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
-
-Hi Chris,
-   What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
-
-Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
-
-Thanks!
-Yijing.
-
-> Thanks again.
-> 
-> Chris
-> 
->> Martin
->>
->> Chris Clayton wrote:
->>> Hi,
->>>
->>> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
->>>
->>> I have attached three files:
->>>
->>> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
->>>
->>> 2. the .config file for the kernel that oopsed.
->>>
->>> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
->>>
->>> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
->>>
->>> Chris
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index a569c69..8d390a8 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -58,6 +58,7 @@ struct iguanair {
+ 	char phys[64];
+ };
+ 
++#define CMD_NOP			0x00
+ #define CMD_GET_VERSION		0x01
+ #define CMD_GET_BUFSIZE		0x11
+ #define CMD_GET_FEATURES	0x10
+@@ -196,6 +197,10 @@ static void iguanair_irq_out(struct urb *urb)
+ 
+ 	if (urb->status)
+ 		dev_dbg(ir->dev, "Error: out urb status = %d\n", urb->status);
++
++	/* if we sent an nop packet, do not expect a response */
++	if (urb->status == 0 && ir->packet->header.cmd == CMD_NOP)
++		complete(&ir->completion);
+ }
+ 
+ static int iguanair_send(struct iguanair *ir, unsigned size)
+@@ -219,10 +224,17 @@ static int iguanair_get_features(struct iguanair *ir)
+ {
+ 	int rc;
+ 
++	/*
++	 * On cold boot, the iguanair initializes on the first packet
++	 * received but does not process that packet. Send an empty
++	 * packet.
++	 */
+ 	ir->packet->header.start = 0;
+ 	ir->packet->header.direction = DIR_OUT;
+-	ir->packet->header.cmd = CMD_GET_VERSION;
++	ir->packet->header.cmd = CMD_NOP;
++	iguanair_send(ir, sizeof(ir->packet->header));
+ 
++	ir->packet->header.cmd = CMD_GET_VERSION;
+ 	rc = iguanair_send(ir, sizeof(ir->packet->header));
+ 	if (rc) {
+ 		dev_info(ir->dev, "failed to get version\n");
+@@ -255,19 +267,14 @@ static int iguanair_get_features(struct iguanair *ir)
+ 	ir->packet->header.cmd = CMD_GET_FEATURES;
+ 
+ 	rc = iguanair_send(ir, sizeof(ir->packet->header));
+-	if (rc) {
++	if (rc)
+ 		dev_info(ir->dev, "failed to get features\n");
+-		goto out;
+-	}
+-
+ out:
+ 	return rc;
+ }
+ 
+ static int iguanair_receiver(struct iguanair *ir, bool enable)
+ {
+-	int rc;
+-
+ 	ir->packet->header.start = 0;
+ 	ir->packet->header.direction = DIR_OUT;
+ 	ir->packet->header.cmd = enable ? CMD_RECEIVER_ON : CMD_RECEIVER_OFF;
+@@ -275,9 +282,7 @@ static int iguanair_receiver(struct iguanair *ir, bool enable)
+ 	if (enable)
+ 		ir_raw_event_reset(ir->rc);
+ 
+-	rc = iguanair_send(ir, sizeof(ir->packet->header));
+-
+-	return rc;
++	return iguanair_send(ir, sizeof(ir->packet->header));
+ }
+ 
+ /*
+-- 
+1.7.11.7
 
