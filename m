@@ -1,23 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <jajcus@jajcus.net>) id 1TrUH4-0000Op-IH
-	for linux-dvb@linuxtv.org; Sat, 05 Jan 2013 14:59:23 +0100
-Received: from tropek.jajcus.net ([84.205.176.49])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-2) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1TrUH4-00079p-GL; Sat, 05 Jan 2013 14:58:58 +0100
-Received: from lolek.nigdzie (lolek.nigdzie [10.253.0.124])
-	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-	(No client certificate requested)
-	by tropek.jajcus.net (Postfix) with ESMTPSA id 6FA185002
-	for <linux-dvb@linuxtv.org>; Sat,  5 Jan 2013 14:58:55 +0100 (CET)
-Date: Sat, 5 Jan 2013 14:58:55 +0100
-From: Jacek Konieczny <jajcus@jajcus.net>
+	(envelope-from <nise.design@gmail.com>) id 1TunQV-0004Ia-26
+	for linux-dvb@linuxtv.org; Mon, 14 Jan 2013 18:02:23 +0100
+Received: from mail-pa0-f51.google.com ([209.85.220.51])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
+	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
+	id 1TunQU-0000Tl-AN; Mon, 14 Jan 2013 18:02:22 +0100
+Received: by mail-pa0-f51.google.com with SMTP id fb11so2328095pad.24
+	for <linux-dvb@linuxtv.org>; Mon, 14 Jan 2013 09:02:20 -0800 (PST)
+Message-ID: <50F43A17.7000805@gmail.com>
+Date: Tue, 15 Jan 2013 01:02:15 +0800
+From: "nise.design" <nise.design@gmail.com>
+MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Message-ID: <20130105145855.75998a29@lolek.nigdzie>
-Mime-Version: 1.0
-Subject: [linux-dvb] Problem with 'NOT Only TV DVB-T USB Deluxe"
+Subject: [linux-dvb] Problem between DMB-TH USB dongle drivers and Frontend
+ broken (DVBv3 migrate to DVBv5)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,107 +24,217 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0975635843=="
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--===============0975635843==
+Content-Type: multipart/alternative;
+ boundary="------------040200020005070603060906"
 
-I have a 'NOT Only TV DVB-T USB Deluxe' tuner device:
+This is a multi-part message in MIME format.
+--------------040200020005070603060906
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Model name: LV5TDLX DVB-T USB
-P/N: STLV5TDLXT702
-S/N: LV5TDLX120700116
-USB ID: 1f4d:c803
+Hello,
+          I'm a Ubuntu and DMB-TH digital TV USB dongle user.  The USB 
+dongle working flawlessly in Ubuntu 10.XX, but it failed after migrate 
+to latest Ubuntu 12.10.  Then I using google to find out the problem and 
+suspect the problem come from DVBv3 migrate to DVBv5. Because of creator 
+of original DMB-TH drivers passed away so I wanted to continue his work 
+to migrate DMB-TH drivers to new DVBv5 system.  I need some help to 
+perform this task and the situation as below:
 
-This is based on the RTL2838UHIDIR chip with e4000 tuner (at least, that
-is detected by various drivers).
+I plugged the USB dongle to USB port and it init normally:
+[103542.354826] usb 2-1.7: new high-speed USB device number 9 using ehci_hcd
+[103542.448349] usb 2-1.7: New USB device found, idVendor=0572, 
+idProduct=d811
+[103542.448353] usb 2-1.7: New USB device strings: Mfr=1, Product=2, 
+SerialNumber=3
+[103542.448356] usb 2-1.7: Product: USB Stick
+[103542.448358] usb 2-1.7: Manufacturer: Geniatech
+[103542.448360] usb 2-1.7: SerialNumber: 080116
+[103542.449395] dvb-usb: found a 'Mygica D689 DMB-TH' in warm state.
+[103542.790351] dvb-usb: will pass the complete MPEG2 transport stream 
+to the software demuxer.
+[103542.790666] DVB: registering new adapter (Mygica D689 DMB-TH)
+[103543.038504] usb 2-1.7: DVB: registering adapter 0 frontend 0 
+(AltoBeam ATBM8830/8831 DMB-TH)...
+[103543.055041] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/input/input18
+[103543.055119] dvb-usb: schedule remote query interval to 100 msecs.
+[103543.055215] dvb-usb: Mygica D689 DMB-TH successfully initialized and 
+connected.
 
-I had some minor success with it with some old 3.x kernel and the
-drivers from:
+It failed after issued scan or any other command with messages:
+[103835.202015] usb 2-1.7: dtv_property_cache_sync: doesn't know how to 
+handle a DVBv3 call to delivery system 0
 
-https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+Its alway show xxxx: doesn't know how to handle a DVBv3 call to delivery 
+system 0.  I have two dongles using altobeam 8830 chip and LG8GXX chip 
+but both had same issued.
 
-This stopped working with kernel 3.5 and would not even build with newer
-kernels.
+After google search I think the problem may be come from connection 
+between DMB-TH drivers and dvb_frontend.c broken. I wanted to know any 
+example code or instruction about DVBv3 driver connect to 
+dvb_frontend.c.  Thank you for any advice.
 
-Then I tried drivers from linuxtv.org, with little success. The RTL2838u
-driver has been recently included in the upstream kernel (3.7), so I
-have tried that. The hardware is detected, but I am not able to tune in.
+KP Lee.
 
-The signal is good - tested with my TV set. The USB tuner device is also
-OK, I have tried it with Windows and the software provided with the
-device and the same channels are available as on the TV.
+google search attached:
 
-So the driver must be broken. Any ideas how can I debug or fix that?
+*[PATCHv2 00/94] Only use DVBv5 internally on frontend drivers*
 
-dmesg:
-> [ 3336.916384] usb 2-4: new high-speed USB device number 7 using ehci_hcd
-> [ 3337.051822] usb 2-4: New USB device found, idVendor=1f4d, idProduct=c803
-> [ 3337.051829] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [ 3337.051835] usb 2-4: Product: RTL2838UHIDIR
-> [ 3337.051839] usb 2-4: Manufacturer: Realtek
-> [ 3337.051843] usb 2-4: SerialNumber: 00000001
-> [ 3337.072145] usb 2-4: dvb_usb_v2: found a 'Trekstor DVB-T Stick Terres 2.0' in warm state
-> [ 3337.072194] usbcore: registered new interface driver dvb_usb_rtl28xxu
-> [ 3337.136867] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-> [ 3337.136886] DVB: registering new adapter (Trekstor DVB-T Stick Terres 2.0)
-> [ 3337.147449] usb 2-4: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
-> [ 3337.163939] i2c i2c-7: e4000: Elonics E4000 successfully identified
-> [ 3337.174823] Registered IR keymap rc-empty
-> [ 3337.174928] input: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input15
-> [ 3337.174989] rc0: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
-> [ 3337.174994] usb 2-4: dvb_usb_v2: schedule remote query interval to 400 msecs
-> [ 3337.187693] usb 2-4: dvb_usb_v2: 'Trekstor DVB-T Stick Terres 2.0' successfully initialized and connected
+  * /Subject/: [PATCHv2 00/94] Only use DVBv5 internally on frontend drivers
+  * /From/: Mauro Carvalho Chehab <mchehab@xxxxxxxxxx
+    <mailto:mchehab@DOMAIN.HIDDEN>>
+  * /Date/: Fri, 30 Dec 2011 13:06:57 -0200
+  * /Cc/: Mauro Carvalho Chehab <mchehab@xxxxxxxxxx
+    <mailto:mchehab@DOMAIN.HIDDEN>>, Linux Media Mailing List
+    <linux-media@xxxxxxxxxxxxxxx <mailto:linux-media@DOMAIN.HIDDEN>>
 
-Scanning on one of the available channels:
-> # tzap -r "TVP2" 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.tzap/channels.conf'
-> tuning to 746000000 Hz
-> video pid 0x00ca, audio pid 0x00cb
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008c | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008d | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0072 | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008b | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
+This patch series comes after the previous series of 47 patches. 
+Basically, changes all DVB frontend drivers to work directly with the 
+DVBv5 structure. This warrants that all drivers will be getting/setting 
+frontend parameters on a consistent way, and opens space for improving 
+the DVB core, in order to avoid copying data from/to the DVBv3 structs 
+without need. Most of the patches on this series are trivial changes. 
+Yet, it would be great to test them, in order to be sure that nothing 
+broke. The last patch in this series hide the DVBv3 parameters struct 
+from the frontend drivers, keeping them visible only to the dvb_core. 
+This helps to warrant that everything were ported, and that newer 
+patches won't re-introduce DVBv3 structs by mistake. There aren't many 
+cleanups inside the dvb_frontend.c yet. Before cleaning up the core, I 
+intend to do some tests with a some devices, in order to be sure that 
+nothing broke with all those changes. Test reports are welcome.
 
-And on the other one:
-> # tzap -r "Polsat"
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.tzap/channels.conf'
-> tuning to 698000000 Hz
-> video pid 0x0066, audio pid 0x0067
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
+[media] atbm8830: convert set_fontend to new way and fix delivery system
+[media] lgs8gl5: convert set_fontend to use DVBv5 parameters
+[media] lgs8gxx: convert set_fontend to use DVBv5 parameters
 
-Greets,
-	Jacek
+drivers/media/dvb/frontends/atbm8830.c | 24 ++--
+drivers/media/dvb/frontends/lgs8gl5.c | 26 ++--
+drivers/media/dvb/frontends/lgs8gxx.c | 23 ++--
+
+
+
+--------------040200020005070603060906
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+<html>
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    Hello,<br>
+             I'm a Ubuntu and DMB-TH digital TV USB dongle user.  The
+    USB dongle working flawlessly in Ubuntu 10.XX, but it failed after
+    migrate to latest Ubuntu 12.10.  Then I using google to find out the
+    problem and suspect the problem come from DVBv3 migrate to DVBv5. 
+    Because of creator of original DMB-TH drivers passed away so I
+    wanted to continue his work to migrate DMB-TH drivers to new DVBv5
+    system.  I need some help to perform this task and the situation as
+    below:<br>
+    <br>
+    I plugged the USB dongle to USB port and it init normally:<br>
+    [103542.354826] usb 2-1.7: new high-speed USB device number 9 using
+    ehci_hcd<br>
+    [103542.448349] usb 2-1.7: New USB device found, idVendor=0572,
+    idProduct=d811<br>
+    [103542.448353] usb 2-1.7: New USB device strings: Mfr=1, Product=2,
+    SerialNumber=3<br>
+    [103542.448356] usb 2-1.7: Product: USB Stick<br>
+    [103542.448358] usb 2-1.7: Manufacturer: Geniatech<br>
+    [103542.448360] usb 2-1.7: SerialNumber: 080116<br>
+    [103542.449395] dvb-usb: found a 'Mygica D689 DMB-TH' in warm state.<br>
+    [103542.790351] dvb-usb: will pass the complete MPEG2 transport
+    stream to the software demuxer.<br>
+    [103542.790666] DVB: registering new adapter (Mygica D689 DMB-TH)<br>
+    [103543.038504] usb 2-1.7: DVB: registering adapter 0 frontend 0
+    (AltoBeam ATBM8830/8831 DMB-TH)...<br>
+    [103543.055041] input: IR-receiver inside an USB DVB receiver as
+    /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.7/input/input18<br>
+    [103543.055119] dvb-usb: schedule remote query interval to 100
+    msecs.<br>
+    [103543.055215] dvb-usb: Mygica D689 DMB-TH successfully initialized
+    and connected.<br>
+    <br>
+    It failed after issued scan or any other command with messages:<br>
+    [103835.202015] usb 2-1.7: dtv_property_cache_sync: doesn't know how
+    to handle a DVBv3 call to delivery system 0<br>
+    <br>
+    Its alway show xxxx: doesn't know how to handle a DVBv3 call to
+    delivery system 0.  I have two dongles using altobeam 8830 chip and
+    LG8GXX chip but both had same issued.<br>
+    <br>
+    After google search I think the problem may be come from connection
+    between DMB-TH drivers and dvb_frontend.c broken. I wanted to know
+    any example code or instruction about DVBv3 driver connect to
+    dvb_frontend.c.  Thank you for any advice.<br>
+    <br>
+    KP Lee.<br>
+    <br>
+    google search attached:<br>
+    <br>
+    <b>[PATCHv2 00/94] Only use DVBv5 internally on frontend drivers</b><br>
+    <br>
+    <ul>
+      <li><i>Subject</i>: [PATCHv2 00/94] Only use DVBv5 internally on
+        frontend drivers</li>
+      <li><i>From</i>: Mauro Carvalho Chehab &lt;<a
+          href="mailto:mchehab@DOMAIN.HIDDEN">mchehab@xxxxxxxxxx</a>&gt;</li>
+      <li><i>Date</i>: Fri, 30 Dec 2011 13:06:57 -0200</li>
+      <li><i>Cc</i>: Mauro Carvalho Chehab &lt;<a
+          href="mailto:mchehab@DOMAIN.HIDDEN">mchehab@xxxxxxxxxx</a>&gt;,
+        Linux Media Mailing List &lt;<a
+          href="mailto:linux-media@DOMAIN.HIDDEN">linux-media@xxxxxxxxxxxxxxx</a>&gt;</li>
+    </ul>
+    This patch series comes after the previous series of 47 patches.
+    Basically, changes all DVB frontend drivers to work directly with
+    the DVBv5 structure. This warrants that all drivers will be
+    getting/setting frontend parameters on a consistent way, and opens
+    space for improving the DVB core, in order to avoid copying data
+    from/to the DVBv3 structs without need. Most of the patches on this
+    series are trivial changes. Yet, it would be great to test them, in
+    order to be sure that nothing broke. The last patch in this series
+    hide the DVBv3 parameters struct from the frontend drivers, keeping
+    them visible only to the dvb_core. This helps to warrant that
+    everything were ported, and that newer patches won't re-introduce
+    DVBv3 structs by mistake. There aren't many cleanups inside the
+    dvb_frontend.c yet. Before cleaning up the core, I intend to do some
+    tests with a some devices, in order to be sure that nothing broke
+    with all those changes. Test reports are welcome.<br>
+    <br>
+    [media] atbm8830: convert set_fontend to new way and fix delivery
+    system<br>
+    [media] lgs8gl5: convert set_fontend to use DVBv5 parameters<br>
+    [media] lgs8gxx: convert set_fontend to use DVBv5 parameters<br>
+    <br>
+    drivers/media/dvb/frontends/atbm8830.c | 24 ++--<br>
+    drivers/media/dvb/frontends/lgs8gl5.c | 26 ++-- <br>
+    drivers/media/dvb/frontends/lgs8gxx.c | 23 ++-- <br>
+    <br>
+    <br>
+  </body>
+</html>
+
+--------------040200020005070603060906--
+
+
+--===============0975635843==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0975635843==--
