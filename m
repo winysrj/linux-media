@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2238 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756756Ab3A1OXg (ORCPT
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:35161 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758484Ab3ANWVx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 09:23:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [media] staging: go7007: fix test for V4L2_STD_SECAM
-Date: Mon, 28 Jan 2013 15:22:49 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	linux-media@vger.kernel.org, Ross Cohen <rcohen@snurgle.org>,
-	kernel-janitors@vger.kernel.org
-References: <20130128141942.GC24528@elgon.mountain>
-In-Reply-To: <20130128141942.GC24528@elgon.mountain>
+	Mon, 14 Jan 2013 17:21:53 -0500
+Received: by mail-vc0-f171.google.com with SMTP id n11so4153671vch.30
+        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 14:21:52 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301281522.49633.hverkuil@xs4all.nl>
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Mon, 14 Jan 2013 23:21:32 +0100
+Message-ID: <CAKdnbx7Qx7z1BVxaXsDAe8mDG9jhPQeAkPbZGof++B1xK31Wsw@mail.gmail.com>
+Subject: [PATCH] Support Digivox Mini HD (rtl2832)
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon January 28 2013 15:19:42 Dan Carpenter wrote:
-> The current test doesn't make a lot of sense.  It's likely to be true,
-> which is what we would want in most cases.  From looking at how this is
-> handled in other drivers,  I think "&" was intended instead of "*".
-> It's an easy mistake to make because they are next to each other on the
-> keyboard.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Add support for Digivox Mini HD (rtl2832)
 
-For the record, it should indeed be '&'. Nice catch.
+The tuner works, but with worst performance then realtek linux driver,
+due to incomplete implementation of fc2580.c
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+Tested-by: Lorenzo Dongarrà <lorenzo_64@katamail.com>
 
-Regards,
-
-	Hans
-
-> 
-> diff --git a/drivers/staging/media/go7007/wis-saa7113.c b/drivers/staging/media/go7007/wis-saa7113.c
-> index 8810c1e..891cde7 100644
-> --- a/drivers/staging/media/go7007/wis-saa7113.c
-> +++ b/drivers/staging/media/go7007/wis-saa7113.c
-> @@ -141,7 +141,7 @@ static int wis_saa7113_command(struct i2c_client *client,
->  		} else if (dec->norm & V4L2_STD_PAL) {
->  			write_reg(client, 0x0e, 0x01);
->  			write_reg(client, 0x10, 0x48);
-> -		} else if (dec->norm * V4L2_STD_SECAM) {
-> +		} else if (dec->norm & V4L2_STD_SECAM) {
->  			write_reg(client, 0x0e, 0x50);
->  			write_reg(client, 0x10, 0x48);
->  		}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index b6f4849..c05ea16 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1368,6 +1368,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+                &rtl2832u_props, "ASUS My Cinema-U3100Mini Plus V2", NULL) },
+        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd393,
+                &rtl2832u_props, "GIGABYTE U7300", NULL) },
++       { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1104,
++               &rtl2832u_props, "Digivox Micro Hd", NULL) },
+        { }
+ };
+ MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
