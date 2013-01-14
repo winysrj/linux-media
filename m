@@ -1,102 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:61665 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408Ab3AaJcQ (ORCPT
+Received: from mailfe01.c2i.net ([212.247.154.2]:45252 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751759Ab3ANM7b convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 04:32:16 -0500
+	Mon, 14 Jan 2013 07:59:31 -0500
+Received: from [176.74.213.204] (account mc467741@c2i.net HELO laptop015.hselasky.homeunix.org)
+  by mailfe01.swip.net (CommuniGate Pro SMTP 5.4.4)
+  with ESMTPA id 370893116 for linux-media@vger.kernel.org; Mon, 14 Jan 2013 13:54:26 +0100
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Correctly set data for USB request in case of a previous failure.
+Date: Mon, 14 Jan 2013 13:55:52 +0100
 MIME-Version: 1.0
-In-Reply-To: <1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com>
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
-	<1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com>
-Date: Thu, 31 Jan 2013 18:32:15 +0900
-Message-ID: <CAAQKjZMpFin6s+-z8ei+JcxcdFrWUpFZrsCuxv7AH+8wVfTUqw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/7] fence: dma-buf cross-device
- synchronization (v11)
-From: Inki Dae <inki.dae@samsung.com>
-To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201301141355.52394.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+>From 89326793e2429dc55d951f336b3e3e3b73bedb95 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Mon, 14 Jan 2013 13:53:21 +0100
+Subject: [PATCH] Correctly set data for USB request in case of a previous
+ failure.
 
-below is my opinion.
+Found-by: Jan Beich
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/input/tablet/wacom_sys.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-> +struct fence;
-> +struct fence_ops;
-> +struct fence_cb;
-> +
-> +/**
-> + * struct fence - software synchronization primitive
-> + * @refcount: refcount for this fence
-> + * @ops: fence_ops associated with this fence
-> + * @cb_list: list of all callbacks to call
-> + * @lock: spin_lock_irqsave used for locking
-> + * @priv: fence specific private data
-> + * @flags: A mask of FENCE_FLAG_* defined below
-> + *
-> + * the flags member must be manipulated and read using the appropriate
-> + * atomic ops (bit_*), so taking the spinlock will not be needed most
-> + * of the time.
-> + *
-> + * FENCE_FLAG_SIGNALED_BIT - fence is already signaled
-> + * FENCE_FLAG_ENABLE_SIGNAL_BIT - enable_signaling might have been called*
-> + * FENCE_FLAG_USER_BITS - start of the unused bits, can be used by the
-> + * implementer of the fence for its own purposes. Can be used in different
-> + * ways by different fence implementers, so do not rely on this.
-> + *
-> + * *) Since atomic bitops are used, this is not guaranteed to be the case.
-> + * Particularly, if the bit was set, but fence_signal was called right
-> + * before this bit was set, it would have been able to set the
-> + * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
-> + * Adding a check for FENCE_FLAG_SIGNALED_BIT after setting
-> + * FENCE_FLAG_ENABLE_SIGNAL_BIT closes this race, and makes sure that
-> + * after fence_signal was called, any enable_signaling call will have either
-> + * been completed, or never called at all.
-> + */
-> +struct fence {
-> +       struct kref refcount;
-> +       const struct fence_ops *ops;
-> +       struct list_head cb_list;
-> +       spinlock_t *lock;
-> +       unsigned context, seqno;
-> +       unsigned long flags;
-> +};
-> +
-> +enum fence_flag_bits {
-> +       FENCE_FLAG_SIGNALED_BIT,
-> +       FENCE_FLAG_ENABLE_SIGNAL_BIT,
-> +       FENCE_FLAG_USER_BITS, /* must always be last member */
-> +};
-> +
+diff --git a/drivers/input/tablet/wacom_sys.c b/drivers/input/tablet/wacom_sys.c
+index f92d34f..aaf23ae 100644
+--- a/drivers/input/tablet/wacom_sys.c
++++ b/drivers/input/tablet/wacom_sys.c
+@@ -553,10 +553,10 @@ static int wacom_set_device_mode(struct usb_interface *intf, int report_id, int
+ 	if (!rep_data)
+ 		return error;
+ 
+-	rep_data[0] = report_id;
+-	rep_data[1] = mode;
+-
+ 	do {
++		rep_data[0] = report_id;
++		rep_data[1] = mode;
++
+ 		error = wacom_set_report(intf, WAC_HID_FEATURE_REPORT,
+ 		                         report_id, rep_data, length, 1);
+ 		if (error >= 0)
+-- 
+1.7.11.4
 
-It seems like that this fence framework need to add read/write flags.
-In case of two read operations, one might wait for another one. But
-the another is just read operation so we doesn't need to wait for it.
-Shouldn't fence-wait-request be ignored? In this case, I think it's
-enough to consider just only write operation.
-
-For this, you could add the following,
-
-enum fence_flag_bits {
-        ...
-        FENCE_FLAG_ACCESS_READ_BIT,
-        FENCE_FLAG_ACCESS_WRITE_BIT,
-        ...
-};
-
-And the producer could call fence_init() like below,
-__fence_init(..., FENCE_FLAG_ACCESS_WRITE_BIT,...);
-
-With this, fence->flags has FENCE_FLAG_ACCESS_WRITE_BIT as write
-operation and then other sides(read or write operation) would wait for
-the write operation completion.
-And also consumer calls that function with FENCE_FLAG_ACCESS_READ_BIT
-so that other consumers could ignore the fence-wait to any read
-operations.
-
-Thanks,
-Inki Dae
