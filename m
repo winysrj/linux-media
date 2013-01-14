@@ -1,69 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:46869 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906Ab3ASQlo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:41:44 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 15/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:41:26 -0200
-Message-Id: <1358613686-4468-1-git-send-email-peter.senna@gmail.com>
+Received: from mail.fuel7.com ([74.222.0.51]:34050 "EHLO mail.fuel7.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756202Ab3ANWVd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 17:21:33 -0500
+Message-ID: <50F484E9.9060103@fuel7.com>
+Date: Mon, 14 Jan 2013 14:21:29 -0800
+From: William Swanson <william.swanson@fuel7.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Ken Petit <ken@fuel7.com>, sakari.ailus@iki.fi
+Subject: Re: [PATCH] omap3isp: Add support for interlaced input data
+References: <1355796739-2580-1-git-send-email-william.swanson@fuel7.com> <1489481.HbZGQ48duQ@avalon> <50ECA285.2000909@fuel7.com> <2574136.Nmpnc7I1z4@avalon>
+In-Reply-To: <2574136.Nmpnc7I1z4@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+On 01/09/2013 02:35 PM, Laurent Pinchart wrote:
+> On Tuesday 08 January 2013 14:49:41 William Swanson wrote:
+>> I believe the data is combined in a single buffer, with alternate fields
+>> interleaved.
+>
+> Could you please double-check that ? I'd like to be sure, not just believe :-)
 
-This change was made for: CONFIG_INPUT
+Sorry for the delay in getting back to you. I have checked it, and the 
+fields are indeed interlaced into a single buffer. On the other hand, 
+looking at this caused me to discover another problem with the patch.
 
-Also replaced:
+According to the TI documentation, the CCDC_SDOFST register controls the 
+deinterlacing process. My patch never configures this register, however, 
+which is surprising. The reason things work on our boards is because we 
+are carrying a separate patch which changes the register by accident. 
+Oops! I have fixed this, and will be sending another patch with the 
+CCDC_SDOFST changes.
 
-with:
+> In that case the OMAP3 ISP driver should set the v4l2_pix_format::field to
+> V4L2_FIELD_INTERLACED in the format-related ioctl when an interlaced format is
+> used. I suppose this could be added later - Sakari, any opinion ?
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/usb/gspca/sonixb.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I don't have a lot of time to work on this stuff, so my main focus is 
+just getting the data to flow. Changing the output format information 
+involves other parts of the driver that I am not familiar with, so I 
+don't know if I will be able to work on that bit.
 
-diff --git a/drivers/media/usb/gspca/sonixb.c b/drivers/media/usb/gspca/sonixb.c
-index 1220340..104ae25 100644
---- a/drivers/media/usb/gspca/sonixb.c
-+++ b/drivers/media/usb/gspca/sonixb.c
-@@ -1400,7 +1400,7 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
- 			u8 *data,		/* interrupt packet data */
- 			int len)		/* interrupt packet length */
-@@ -1430,7 +1430,7 @@ static const struct sd_desc sd_desc = {
- 	.pkt_scan = sd_pkt_scan,
- 	.querymenu = sd_querymenu,
- 	.dq_callback = do_autogain,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.int_pkt_scan = sd_int_pkt_scan,
- #endif
- };
-@@ -1448,7 +1448,7 @@ static const struct usb_device_id device_table[] = {
- 	{USB_DEVICE(0x0c45, 0x600d), SB(PAS106, 101)},
- 	{USB_DEVICE(0x0c45, 0x6011), SB(OV6650, 101)},
- 	{USB_DEVICE(0x0c45, 0x6019), SB(OV7630, 101)},
--#if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
-+#if !IS_ENABLED(CONFIG_USB_SN9C102)
- 	{USB_DEVICE(0x0c45, 0x6024), SB(TAS5130CXX, 102)},
- 	{USB_DEVICE(0x0c45, 0x6025), SB(TAS5130CXX, 102)},
- #endif
--- 
-1.7.11.7
+By the way, thanks for taking the time to review this, Laurent.
 
+-William
