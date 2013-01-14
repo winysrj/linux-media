@@ -1,57 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:62328 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab3ADFiC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 00:38:02 -0500
-Received: by mail-ob0-f182.google.com with SMTP id 16so14328754obc.41
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 21:38:01 -0800 (PST)
+Received: from mail-1.atlantis.sk ([80.94.52.57]:45206 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755659Ab3ANVaR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 16:30:17 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH] saa7134: Add AverMedia Satelllite Hybrid+FM A706 (and FM radio problems)
+Date: Mon, 14 Jan 2013 22:29:58 +0100
+References: <201301122124.51767.linux@rainbow-software.org>
+In-Reply-To: <201301122124.51767.linux@rainbow-software.org>
 MIME-Version: 1.0
-In-Reply-To: <CAA7C2qiGFc2CaVGaVFwe3kQ697ME2uCpjEF8e5yJhbrt5sKOAA@mail.gmail.com>
-References: <1356739006-22111-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfix=2-pXmTE149XvwT+f7j1F29L3Q-dse0y_Rc-3LKucsQ@mail.gmail.com>
-	<20130101130041.52dee65f@redhat.com>
-	<CAHFNz9+hwx9Bpd5ZJC5RRchpvYzKUzzKv43PSzDunr403xiOsQ@mail.gmail.com>
-	<20130101152932.3873d4cc@redhat.com>
-	<CAHFNz9LzBX0G9G0G_6C+WHooaQ1ridG1pkCcOPyzPG+FgOZKxw@mail.gmail.com>
-	<20130103112044.4267b274@redhat.com>
-	<50E5A142.2090807@tvdr.de>
-	<20130103141429.03766540@redhat.com>
-	<20130103142959.3d838015@redhat.com>
-	<50E5F93D.1000302@iki.fi>
-	<CAA7C2qiGFc2CaVGaVFwe3kQ697ME2uCpjEF8e5yJhbrt5sKOAA@mail.gmail.com>
-Date: Fri, 4 Jan 2013 11:00:31 +0530
-Message-ID: <CAHFNz9KiaHbypyDGSAy+FktF6ALXtLFJ6DKyV1R7Bzu8xd-NLA@mail.gmail.com>
-Subject: Re: [linux-media] Re: [PATCH RFCv3] dvb: Add DVBv5 properties for
- quality parameters
-From: Manu Abraham <abraham.manu@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201301142229.58923.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 4, 2013 at 10:33 AM, VDR User <user.vdr@gmail.com> wrote:
-> On Thu, Jan 3, 2013 at 1:33 PM, Antti Palosaari <crope@iki.fi> wrote:
->> I would not like to define exact units for BER and USB as those are quite
->> hard to implement and also non-sense. User would like just to see if there
->> is some (random) numbers and if those numbers are rising or reducing when he
->> changes antenna or adjusts gain. We are not making a professional signal
->> analyzers - numbers does not need to be 100% correctly.
+On Saturday 12 January 2013 21:24:50 Ondrej Zary wrote:
+> Partially working: FM radio
+> Radio seems to be a long-standing problem with saa7134 cards using silicon
+> tuners (according to various mailing lists).
 >
-> Just a small comment here. Since this may finally be done, why not do
-> it the best way? In the end I think that's better and I don't see any
-> harm in having the capability to make a pro-grade signal analyzer.
-> After years of waiting, I don't think half-assing is a good idea.
+> On this card, GPIO11 controls 74HC4052 MUX. It switches two things:
+> something at TDA18271 V_IFAGC pin and something that goes to SAA7131E.
+> GPIO11 is enabled for radio and disabled for TV in Windows. I did the same
+> thing in this patch.
+>
+> Windows INF file says:
+> ; Setting FM radio of the Silicon tuner via SIF (GPIO 21 in use/ 5.5MHz)
+> HKR, "Audio", "FM Radio IF", 0x00010001, 0xDEEAAB
+>
+> But that seems not to be true. GPIO21 does nothing and RegSpy (from
+> DScaler, modified to include 0x42c register) says that the register is
+> 0x80729555. That matches the value present in saa7134-tvaudio.c (except the
+> first 0x80).
+>
+> With this value, the radio stations are off by about 4.2-4.3 MHz, e.g.:
+> station at 97.90 MHz is tuned as 102.20 MHz
+> station at 101.80 MHz is tuned as 106.0 MHz
+>
+> I also tried 0xDEEAAB. With this, the offset is different, about 0.4 MHz:
+> station at 101.80 MHz is tuned as 102.2 MHz
 
-The problem is not in creating an API for such a thing. The problem arises
-from the fact that all devices need to worked to comply to the API. It might
-not factually possible to do that, since most drivers are reverse engineered
-or written in a crude way.. In a lot many cases, there are not even the right
-documents to do that. An API alone doesn't solve anything at all. Here we
-are talking about making pro grade software based on home grade silicon,
-for which most don't have proper documentation.
+The offset seems bogus, maybe affected by my TV antenna (cable).
 
-Manu
+For debugging, tried another card with similar chips: Pinnacle PCTV 
+40i/50i/110i. It has SAA7131E chip too, but different tuner - TDA8275A. And 
+the radio problem is the same as found first on the A706 - the tuned station 
+sound starts but then turns into noise. So it seems that the problem is not 
+in tda18271 but in tda8290 or saa7134.
+
+With tda8290.debug=1, I see this:
+tda829x 2-004b: tda8290 not locked, no signal?
+tda829x 2-004b: tda8290 not locked, no signal?
+tda829x 2-004b: tda8290 not locked, no signal?
+tda829x 2-004b: adjust gain, step 1. Agc: 193, ADC stat: 255, lock: 0
+tda829x 2-004b: adjust gain, step 2. Agc: 255, lock: 0
+tda829x 2-004b: adjust gain, step 3. Agc: 173
+
+During that, the sound is good. Then it turns into noise.
+When I increased the number of lock detections in tda8290_set_params() from 3 
+to (e.g.) 10, it works longer. And when I'm quick enough to stop the console 
+output using scroll lock, the radio remains working.
+
+> And what's worst, connecting analog TV antenna (cable TV) affects the radio
+> tuner! E.g. the radio is tuned to 106.0 MHz (real 101.80 MHz) with nice
+> clean sound. Connecting TV antenna adds strong noise to the sound, tuning
+> does not help. This problem is not present in Windows.
+
+I've found a tiny chip marked S79 near the analog tuner. It's Skyworks 
+AS179-92LF antenna switch that switches either the TV or FM antenna to the 
+TDA18271 FM_IN pin! That's why TV antenna affected the radio. The switch is 
+probably controlled by some other GPIO pin (haven't tested this yet). What's 
+the best way to expose this switch to userspace?
+
+-- 
+Ondrej Zary
