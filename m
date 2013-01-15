@@ -1,117 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:33702 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867Ab3ABVYq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 16:24:46 -0500
-Received: by mail-ee0-f45.google.com with SMTP id d49so7025966eek.18
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 13:24:45 -0800 (PST)
-Message-ID: <50E4A5B6.1090005@googlemail.com>
-Date: Wed, 02 Jan 2013 22:25:10 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Sascha Sommer <saschasommer@freenet.de>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
- i2c transfers
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com> <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com> <20121222220746.64611c08@redhat.com> <20130102214512.5e73075c@madeira.sommer.dynalias.net>
-In-Reply-To: <20130102214512.5e73075c@madeira.sommer.dynalias.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:4038 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756001Ab3AORMm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 12:12:42 -0500
+Date: Tue, 15 Jan 2013 15:12:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130115151203.7221b1db@redhat.com>
+In-Reply-To: <50F57519.5060402@iki.fi>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<50F522AD.8000109@iki.fi>
+	<20130115111041.6b78a935@redhat.com>
+	<50F56C63.7010503@iki.fi>
+	<50F57519.5060402@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+Em Tue, 15 Jan 2013 17:26:17 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Am 02.01.2013 21:45, schrieb Sascha Sommer:
-> Hello,
->
-> Am Sat, 22 Dec 2012 22:07:46 -0200
-> schrieb Mauro Carvalho Chehab <mchehab@redhat.com>:
->
->> Em Sun, 16 Dec 2012 19:23:28 +0100
->> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>
->>> The em2800 can transfer up to 4 bytes per i2c message.
->>> All other em25xx/em27xx/28xx chips can transfer at least 64 bytes
->>> per message.
->>>
->>> I2C adapters should never split messages transferred via the I2C
->>> subsystem into multiple message transfers, because the result will
->>> almost always NOT be the same as when the whole data is transferred
->>> to the I2C client in a single message.
->>> If the message size exceeds the capabilities of the I2C adapter,
->>> -EOPNOTSUPP should be returned.
->>>
->>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>> ---
->>>  drivers/media/usb/em28xx/em28xx-i2c.c |   44
->>> ++++++++++++++------------------- 1 Datei geändert, 18 Zeilen
->>> hinzugefügt(+), 26 Zeilen entfernt(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
->>> b/drivers/media/usb/em28xx/em28xx-i2c.c index 44533e4..c508c12
->>> 100644 --- a/drivers/media/usb/em28xx/em28xx-i2c.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
->>> @@ -50,14 +50,18 @@ do
->>> {							\ } while
->>> (0) 
->>>  /*
->>> - * em2800_i2c_send_max4()
->>> - * send up to 4 bytes to the i2c device
->>> + * em2800_i2c_send_bytes()
->>> + * send up to 4 bytes to the em2800 i2c device
->>>   */
->>> -static int em2800_i2c_send_max4(struct em28xx *dev, u8 addr, u8
->>> *buf, u16 len) +static int em2800_i2c_send_bytes(struct em28xx
->>> *dev, u8 addr, u8 *buf, u16 len) {
->>>  	int ret;
->>>  	int write_timeout;
->>>  	u8 b2[6];
->>> +
->>> +	if (len < 1 || len > 4)
->>> +		return -EOPNOTSUPP;
->>> +
->> Except if you actually tested it with all em2800 devices, I think that
->> this change just broke it for em2800.
->>
->> Maybe Sascha could review this patch series on his em2800 devices.
->>
->> Those devices are limited, and just like other devices (cx231xx for
->> example), the I2C bus need to split long messages, otherwise the I2C
->> devices will fail.
->>
-> The only device that I own is the Terratec Cinergy 200 USB.
-> Unfortunately I left it in my parents house so I won't be able to
-> test the patch within the next two weeks. I don't know if any of the
-> other devices ever transfered more than 4 bytes but as far as I
-> remember the windows driver of the cinergy 200 usb did not do this.
-> The traces obtained from it were the only information I had during
-> development. On first sight, the splitting code looks wrong.
+> On 01/15/2013 04:49 PM, Antti Palosaari wrote:
+> > I am a little bit lazy to read all those patches, but I assume it is
+> > possible:
+> > * return SNR (CNR) as both dB and linear?
+> > * return signal strength as both dBm and linear?
+> >
+> > And what happens when when multiple statistics are queried, but fronted
+> > cannot perform all those?
+> >
+> > Lets say SS, SNR, BER, UCB are queried, but only SS and SNR are ready to
+> > be returned, whilst rest are not possible? As I remember DVBv5 API is
+> > broken by design and cannot return error code per request.
+> 
+> OK, I read that patch still. All these are OK as there is SCALE flag 
+> used to inform if there is measurement or not available.
+> No anymore question about these.
+> 
+> Issues what I still would like to raise now are:
+> 
+> 1) How about change unit from dB/10 to dB/100 or even dB/1000, just for 
+> the sure?
 
-Thanks for your reply !
-I have a Terratec Cinergy 200 USB, too, and I used this device for
-testing the code.
-You are right, the Windows driver never transfers more than 4 bytes
-(verified with USB-logs).
-Do you know if there is something like a control flag for non-stopping
-i2c transfers ?
+I'm OK with that. I doubt that it would be practical, but we have 64
+bits for it, so db/1000 will fit.
 
-Maybe you also noticed the following tread:
-http://www.spinics.net/lists/linux-media/msg57442.html
+> 2) Counter are reset when DELIVERY SYSTEM is set, practically when 
+> tuning attempt is done. There is new callback for that, but no API 
+> command. Functionality is correct for my eyes, is that extra callback 
+> needed?
 
-Do you remember any details about your device ?
-One thing not mentioned in this tread is, that there seem to be multiple
-chip IDs for the EM2800.
-The em28xx only knows about ID=7 and I assume that's what you device
-uses. But the chip in my device uses ID=4...
+Not sure. It should be noticed that, at least on ISDB, some sort of 
+reset may happen, for example if one layer disappears. The global BER
+will (with the current code) reflect the lack of the layer, by not summing
+up the data from the removed layer.
+
+Perhaps it makes more sense to, instead, add a way for the driver to flag
+when a counter reset happened.
+
+> 3) Post-BER. I don't need it, but is there someone else who thinks there 
+> should be both pre-BER and post-BER? IMHO, just better to leave it out 
+> to keep it simple. In practice both pre-BER and post-BER are running 
+> relatively, lets say if pre-BER shows number 1000 then post-BER shows 
+> only 10. Or pre-BER 600, post-BER 6. Due to that, I don't see much 
+> interest to return it for userspace. Of course someone would like to 
+> know how much inner coder is working and fixing error bits and in that 
+> case both BERs are nice...
+
+I don't see any need for it. In the case of ISDB, I'll likely convert
+the post-BER error into per-layer CNR, as it might be useful for one.
+
+I don't have any strong opinion on that though.
+
+> 4) Returning bit counts as BER and UCB means also driver should start 
+> polling work in order to keep driver internal counters up to date. 
+> Returning BER as rate is cheaper in that mean, as driver could make 
+> decision how often to poll and in which condition (and return values 
+> from cache). Keeping track of total bit counts means continuous polling!
+
+The way it was specified, the bit count/block count is relative to the
+same period where bit error/block error count was taken, and are there
+to calculate BER and PER.
+
+Not all frontends allow continuous measurement of BER and PER. In the
+case of mb86a20s, BER is currently not continuous. I think that there's
+a way to do continuous PER measurement, but I need to double-check
+it.
 
 Regards,
-Frank
-
-> Regards
->
-> Sascha
->
->
-
+Mauro
