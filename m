@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:46741 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757631Ab3AYR0v (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:42217 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756505Ab3AOMe1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 12:26:51 -0500
-Received: by mail-ea0-f173.google.com with SMTP id i1so273571eaa.32
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:49 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [REVIEW PATCH 05/12] em28xx: disable ioctl VIDIOC_S_PARM for VBI devices
-Date: Fri, 25 Jan 2013 18:26:55 +0100
-Message-Id: <1359134822-4585-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 15 Jan 2013 07:34:27 -0500
+From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Subject: [PATCH 3/7] sched: allow try_to_wake_up to be used internally outside of core.c
+Date: Tue, 15 Jan 2013 13:34:00 +0100
+Message-Id: <1358253244-11453-4-git-send-email-maarten.lankhorst@canonical.com>
+In-Reply-To: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_S_PARM doesn't make sense for VBI device nodes, because we don't support
-selecting the number of read buffers to use.
+Not exported, since only used by the fence implementation.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |    1 +
- 1 Datei geändert, 1 Zeile hinzugefügt(+)
+ include/linux/wait.h | 1 +
+ kernel/sched/core.c  | 2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index c76714d..d4dc5b2 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1920,6 +1920,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
+diff --git a/include/linux/wait.h b/include/linux/wait.h
+index 7cb64d4..7aaba95 100644
+--- a/include/linux/wait.h
++++ b/include/linux/wait.h
+@@ -11,6 +11,7 @@
+ typedef struct __wait_queue wait_queue_t;
+ typedef int (*wait_queue_func_t)(wait_queue_t *wait, unsigned mode, int flags, void *key);
+ int default_wake_function(wait_queue_t *wait, unsigned mode, int flags, void *key);
++int try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags);
  
- 		/* disable inapplicable ioctls */
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_PARM);
- 		if (dev->tuner_type == TUNER_ABSENT) {
- 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_TUNER);
- 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_TUNER);
+ struct __wait_queue {
+ 	unsigned int flags;
+diff --git a/kernel/sched/core.c b/kernel/sched/core.c
+index 257002c..5f23fe3 100644
+--- a/kernel/sched/core.c
++++ b/kernel/sched/core.c
+@@ -1425,7 +1425,7 @@ static void ttwu_queue(struct task_struct *p, int cpu)
+  * Returns %true if @p was woken up, %false if it was already running
+  * or @state didn't match @p's state.
+  */
+-static int
++int
+ try_to_wake_up(struct task_struct *p, unsigned int state, int wake_flags)
+ {
+ 	unsigned long flags;
 -- 
-1.7.10.4
+1.8.0.3
 
