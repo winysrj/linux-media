@@ -1,135 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55820 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:19730 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752404Ab3ABT3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jan 2013 14:29:54 -0500
-Message-ID: <50E48A89.1040901@iki.fi>
-Date: Wed, 02 Jan 2013 21:29:13 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	saschasommer@freenet.de,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/5] em28xx: respect the message size constraints for
- i2c transfers
-References: <1355682211-13604-1-git-send-email-fschaefer.oss@googlemail.com> <1355682211-13604-3-git-send-email-fschaefer.oss@googlemail.com> <20121222220746.64611c08@redhat.com> <50D70DF4.2000408@googlemail.com> <20121223124624.0122504c@redhat.com> <50D837EE.6040207@googlemail.com>
-In-Reply-To: <50D837EE.6040207@googlemail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1752705Ab3AONLW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 08:11:22 -0500
+Date: Tue, 15 Jan 2013 11:10:41 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130115111041.6b78a935@redhat.com>
+In-Reply-To: <50F522AD.8000109@iki.fi>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<50F522AD.8000109@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/24/2012 01:09 PM, Frank Schäfer wrote:
-> Am 23.12.2012 15:46, schrieb Mauro Carvalho Chehab:
->> Em Sun, 23 Dec 2012 14:58:12 +0100
->> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>
->>> Am 23.12.2012 01:07, schrieb Mauro Carvalho Chehab:
->>>> Em Sun, 16 Dec 2012 19:23:28 +0100
->>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->>>> Those devices are limited, and just like other devices (cx231xx for example),
->>>> the I2C bus need to split long messages, otherwise the I2C devices will
->>>> fail.
->>> I2C adapters are supposed to fail with -EOPNOTSUPP if the message length
->>> exceeds their capabilities.
->>> Drivers must be able to handle this error, otherwise they have to be fixed.
->> Currently, afaikt, no V4L2 I2C client knows how to handle it.
->
-> Maybe. Fortunately, it seems to cause no trouble.
->
->>   Ok, returning
->> -EOPNOTSUPP if the I2C data came from userspace makes sense.
->>
->>>> Btw, there was already a long discussion with regards to splitting long
->>>> I2C messages at the I2C bus or at the I2C adapters. The decision was
->>>> to do it at the I2C bus logic, as it is simpler than making a code
->>>> at each I2C client for them to properly handle -EOPNOTSUPP and implement
->>>> a fallback logic to reduce the transfer window until reach what's
->>>> supported by the device.
->>> While letting the i2c bus layer split messages sounds like the right
->>> thing to do, it is hard to realize that in practice.
->>> The reason is, that the needed algorithm depends on the capabilities and
->>> behavior of the i2c adapter _and_ the connected i2c client.
->>> The three main parameters are:
->>> - message size limits
->>> - client register width
->>> - automatic register index incrementation
->>>
->>> I don't know what has been discussed in past,
->> You'll need to dig into the ML archives. This is a recurrent theme, and,
->> we have implementations doing I2C split at bus (most cases) and a few
->> ones doing it at the client side.
->
-> Yeah, I also have a working implementation of i2c block read/write
-> emulation in my experimental code. ;)
->
->>> but I talked to Jean
->>> Delvare about the message size constraints a few weeks ago.
->>> He told me that it doesn't make sense to try to handle this at the i2c
->>> subsystem level. The parameters can be different for reading and
->>> writing, adapter and client and things are getting complicated quickly.
->> Jean's opinion is to push it to I2C clients (and we actually do it on a
->> few cases), but as I explained before, there are several drivers where
->> this is better done at the I2C bus driver, as the I2C implementation
->> allows doing it easily at bus level by playing with I2C STOP bits/I2C
->> start bits.
->>
->> We simply have too much I2C clients, and -EOPNOTSUPP error code doesn't
->> tell the max size of the I2C messages. Adding a complex split logic
->> for every driver is not a common practice, as just a few I2C bus bridge
->> drivers suffer from very strict limits.
->
-> Yes, and even with those who have such a strict limit, it is usually not
-> exceeded because the clients are too 'simple'. ;)
->
->> Also, clients that split I2C messages don't actually handle -EOPNOTSUPP.
->> Instead, they have an init parameter telling the maximum size of the
->> I2C messages accepted by the bus.
->>
->> The logic there is complex, and may require an additional logic at the
->> bus side, in order to warrant that no I2C stop/start bits will be sent
->> in the middle of a message, or otherwise the device will fail[1].
->>
->> So, it is generally simpler and more effective to just do it at the bus
->> side.
->
-> Maybe. I have no opinion yet.
-> My feeling is, that this should be handled by the i2c subsystem as much
-> as possible, but
-> a) it's complex due to the described reasons
-> b) I have no complete concept yet
-> c) the i2c people seem to be not very interested
-> d) there is lots of other stuff with a higher priority on my TODO list
+Em Tue, 15 Jan 2013 11:34:37 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Maybe you already have seen, but I did some initial stuff year or two 
-ago for implementing that but left it unimplemented as there was so much 
-stuff to check and discuss in order to agree correct solution.
+> On 01/15/2013 04:30 AM, Mauro Carvalho Chehab wrote:
+> 
+> >      v6: Add DocBook documentation.
+> >      v7: Some fixes as suggested by Antti
+> >      v8: Documentation fix, compilation fix and name the stats struct,
+> >          for its reusage inside the core
+> >      v9: counters need 32 bits. So, change the return data types to
+> >          s32/u32 types
+> >      v10: Counters changed to 64 bits for monotonic increment
+> > 	 Don't create a separate get_stats callback. get_frontend
+> > 	 is already good enough for it.
+> 
+> Is there way to return BER as rate, or should it be calculated by the 
+> application (from total and error bit counts)?
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg38840.html
+I don't think it makes sense to let such calculus happen inside Kernel.
+It is very easy for userspace to get both numbers at the same ioctl call,
+convert from u64 to float and do a float point division in userspace.
 
-There is regmap which maybe could do stuff like that, I am not sure as I 
-never tested it. At least it could do some stuff top of I2C bus.
+In order to handling tose two u64 numbers in kernelspace, the math will
+be tricky to avoid overflow. It would also require some scale for BER,
+as BER is always a fractional number, generally expressed in E-06 or E-09.
 
-Also I heavily disagree you what goes to I2C subsystem integration. That 
-is clearly stuff which resides top of I2C bus and it is *not bus 
-dependent*. There is many other buses too having similar splitting logic 
-like SPI?
+> You seems to change value to 64 bit already, which is enough. 32bit is 
+> absolutely too small, it will overflow in seconds (practically around 
+> 10sec when there is radio channel of 32MHz and quite optimal conditions).
 
-> The reason why I started looking into this is, that the em2765 in the
-> SpeedLink VAD Laplace webcam (and likely all similar chip variants, e.g.
-> em2760, em277x, em25xx) can transfer only 1 byte per message to/from the
-> sensor client when using the 2nd i2c bus. I don't know where this
-> restriction comes from, possible explanations are:
-> - because that the 2nd bus is realized using GPIO pins
+Yes, 32 bits can cause overflow very quick.
 
-Just to mention, there is existing framework for GPIO I2C.
+> It is 64bit returned to userspace, is it?
 
-> - because the OV2640 uses SCCB
+Yes.
 
-regards
-Antti
+> Does 64bit calculations causes any complexity of Kernel or app space?
+
+On the Kernel side, nothing complex was introduced on the frontend I
+added it. See the mb86a20s_get_stats function there:
+	http://git.linuxtv.org/mchehab/experimental.git/blob/refs/heads/stats:/drivers/media/dvb-frontends/mb86a20s.c#l934
+
+The logic that fills it is here, at line 953:
+	...
+	rc = mb86a20s_get_ber_before_vterbi(fe, i, &bit_error, &bit_count);
+	if (rc >= 0) {
+		c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
+		c->bit_error.stat[1 + i].uvalue += bit_error;
+		c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
+		c->bit_count.stat[1 + i].uvalue += bit_count;
+	...
+
+What it was a little more complex were the calculus of a "global" BER measure
+for the (up to) 3 layers. I rewrote that code a few times, until I got
+satisfied with it. The thing is that, as each layer works like an independent
+channel, the BER measure for each layer happens on a different moment.
+
+So, I was in doubt if total BER measure should wait for all layer stats to
+be measured or if it should start to appear when the first layer starts to
+have statistics. I decided for the second.
+
+On the userspace, I did just a very quick hack at late night yesterday
+in order to be able to better see the statistics measures together.
+I don't expect any problem to handle those measures there through.
+As you can see, the patch that gets all stats is very simple:
+
+	http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/commitdiff/fffeedfd683033c3d97e0b8c781e7486203a0568
+
+What it is missed there is to do the division to convert bit error into BER,
+and a logic that would display "dB" or "dBm" if the signal strength/CNR
+measures are scaled in dB.
+
+Btw, I'm even in doubt if we should implement the stats ENUM property.
+Currently, all unsupported properties are returned with len=0. So, I don't
+see any need to have a separate ioctl for that. Perhaps we can just get
+rid of it, in order to simplify the API.
+
+Displaying the per-layer stats there can be a little tricky. It probably
+only makes sense to display one layer at dvbv5-zap application: the layer
+that matches the filtered channel. I need to investigate a little more to
+check how to do such match. Maybe the dvbv5-scan application will need to
+be able to parse some MPEG descriptor to get such data.
+
+> Basically, that API is more complex that I would like to see, but I can 
+> live with it. I still fear making too complex API causes same problems 
+> as we has currently... lack of app support.
+
+While coding both drivers and userspace, I didn't fill it to be complex.
+At kernelspace, all it was needed were to fill the len for those stats
+measures that would be used. Then, to fill the value and the scale when
+the measure get available, or to mark them as unavailable, if they
+disappear (for example, broadcaster may dynamically change the layers
+layout, so one layer measure could disappear at runtime).
+
+at userspace, just one ioctl is enough to get all stats:
+
+	dvb_prop[0].cmd = DTV_QOS_SIGNAL_STRENGTH;
+	dvb_prop[1].cmd = DTV_QOS_CNR;
+	dvb_prop[2].cmd = DTV_QOS_BIT_ERROR_COUNT;
+	dvb_prop[3].cmd = DTV_QOS_TOTAL_BITS_COUNT;
+	dvb_prop[4].cmd = DTV_QOS_ERROR_BLOCK_COUNT;
+	dvb_prop[5].cmd = DTV_QOS_TOTAL_BLOCKS_COUNT;
+	props.num = 6;
+	props.props = dvb_prop;
+
+	if (ioctl(parms->fd, FE_GET_PROPERTY, &props) == -1)
+		perror("FE_GET_PROPERTY");
+
+A simple display mechanism to display all values would be this one:
+
+	for (i = 0; i < 6; i++) {
+		for (j = 0; j < dvb_prop[i].u.st.len; j++) {
+			if (dvb_prop[i].u.st.stat[j].scale != FE_SCALE_NOT_AVAILABLE)
+				printf("%s[%d] = %u\n", dvb_v5_name[dvb_prop[i].cmd], j, (unsigned int)dvb_prop[i].u.st.stat[j].uvalue);
+		}
+	}
+
+Or, if just the global value is enough:
+
+	for (i = 0; i < 6; i++) {
+		if (dvb_prop[i].u.st.stat[0].scale != FE_SCALE_NOT_AVAILABLE)
+			printf("%s = %u\n", dvb_v5_name[dvb_prop[i].cmd], (unsigned int)dvb_prop[i].u.st.stat[0].uvalue);
+	}
+
+
+Of course, for BER, we would do, instead:
+
+double BER = ((double)dvb_prop[i].u.st.stat[2].uvalue) / dvb_prop[i].u.st.stat[5].uvalue;
 
 -- 
-http://palosaari.fi/
+
+Cheers,
+Mauro
