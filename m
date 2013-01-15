@@ -1,168 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3478 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753814Ab3A2Qd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 11:33:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 03/20] cx231xx: clean up radio support.
-Date: Tue, 29 Jan 2013 17:32:56 +0100
-Message-Id: <3f68cc912eb50e320dcfc2b41942e59cfc3186d8.1359476777.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
-References: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11565 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757200Ab3AOCbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 21:31:36 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2Vaip015426
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:36 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv10 01/15] mb86a20s: improve error handling at get_frontend
+Date: Tue, 15 Jan 2013 00:30:47 -0200
+Message-Id: <1358217061-14982-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The read/write errors are not handled well on get_frontend. Fix it,
+by letting the frontend cached values to represent the DVB properties
+that were successfully retrieved.
 
-Radio should not use video or audio inputs.
-In addition, fix a bug in radio_g_tuner where s_tuner was called in the tuner
-subdev instead of g_tuner.
+While here, use "c" for dtv_frontend_properties cache, instead of
+"p", as this is more common.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-video.c |   79 +++++++----------------------
- 1 file changed, 18 insertions(+), 61 deletions(-)
+ drivers/media/dvb-frontends/mb86a20s.c | 138 +++++++++++++++++++--------------
+ 1 file changed, 80 insertions(+), 58 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 44bc687..666152f 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1873,20 +1873,24 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strlcpy(cap->card, cx231xx_boards[dev->model].name, sizeof(cap->card));
- 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index fade566..4ff3a0c 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -1,11 +1,9 @@
+ /*
+  *   Fujitu mb86a20s ISDB-T/ISDB-Tsb Module driver
+  *
+- *   Copyright (C) 2010 Mauro Carvalho Chehab <mchehab@redhat.com>
++ *   Copyright (C) 2010-2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+  *   Copyright (C) 2009-2010 Douglas Landgraf <dougsland@redhat.com>
+  *
+- *   FIXME: Need to port to DVB v5.2 API
+- *
+  *   This program is free software; you can redistribute it and/or
+  *   modify it under the terms of the GNU General Public License as
+  *   published by the Free Software Foundation version 2.
+@@ -360,7 +358,7 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 	/*
+ 	 * FIXME: Properly implement the set frontend properties
+ 	 */
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ #endif
  
--	cap->device_caps =
--		V4L2_CAP_AUDIO		|
--		V4L2_CAP_READWRITE	|
--		V4L2_CAP_STREAMING;
--
--	if (vdev->vfl_type == VFL_TYPE_VBI)
--		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
--	else
--		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
-+	if (vdev->vfl_type == VFL_TYPE_RADIO)
-+		cap->device_caps = V4L2_CAP_RADIO;
-+	else {
-+		cap->device_caps = V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
-+			V4L2_CAP_STREAMING;
-+		if (vdev->vfl_type == VFL_TYPE_VBI)
-+			cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
-+		else
-+			cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+ 	dprintk("\n");
+@@ -507,93 +505,117 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+ 	return count;
+ }
+ 
++static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	/* Fixed parameters */
++	c->delivery_system = SYS_ISDBT;
++	c->bandwidth_hz = 6000000;
++
++	/* Initialize values that will be later autodetected */
++	c->isdbt_layer_enabled = 0;
++	c->transmission_mode = TRANSMISSION_MODE_AUTO;
++	c->guard_interval = GUARD_INTERVAL_AUTO;
++	c->isdbt_sb_mode = 0;
++	c->isdbt_sb_segment_count = 0;
++}
++
+ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int i, rc;
+ 
+-	/* Fixed parameters */
+-	p->delivery_system = SYS_ISDBT;
+-	p->bandwidth_hz = 6000000;
++	/* Reset frontend cache to default values */
++	mb86a20s_reset_frontend_cache(fe);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	/* Check for partial reception */
+ 	rc = mb86a20s_writereg(state, 0x6d, 0x85);
+-	if (rc >= 0)
+-		rc = mb86a20s_readreg(state, 0x6e);
+-	if (rc >= 0)
+-		p->isdbt_partial_reception = (rc & 0x10) ? 1 : 0;
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x6e);
++	if (rc < 0)
++		return rc;
++	c->isdbt_partial_reception = (rc & 0x10) ? 1 : 0;
+ 
+ 	/* Get per-layer data */
+-	p->isdbt_layer_enabled = 0;
++
+ 	for (i = 0; i < 3; i++) {
+ 		rc = mb86a20s_get_segment_count(state, i);
+-			if (rc >= 0 && rc < 14)
+-				p->layer[i].segment_count = rc;
+-		if (rc == 0x0f)
++		if (rc < 0)
++			goto error;
++		if (rc >= 0 && rc < 14)
++			c->layer[i].segment_count = rc;
++		else {
++			c->layer[i].segment_count = 0;
+ 			continue;
+-		p->isdbt_layer_enabled |= 1 << i;
++		}
++		c->isdbt_layer_enabled |= 1 << i;
+ 		rc = mb86a20s_get_modulation(state, i);
+-			if (rc >= 0)
+-				p->layer[i].modulation = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].modulation = rc;
+ 		rc = mb86a20s_get_fec(state, i);
+-			if (rc >= 0)
+-				p->layer[i].fec = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].fec = rc;
+ 		rc = mb86a20s_get_interleaving(state, i);
+-			if (rc >= 0)
+-				p->layer[i].interleaving = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].interleaving = rc;
+ 	}
+ 
+-	p->isdbt_sb_mode = 0;
+ 	rc = mb86a20s_writereg(state, 0x6d, 0x84);
+-	if ((rc >= 0) && ((rc & 0x60) == 0x20)) {
+-		p->isdbt_sb_mode = 1;
++	if (rc < 0)
++		return rc;
++	if ((rc & 0x60) == 0x20) {
++		c->isdbt_sb_mode = 1;
+ 		/* At least, one segment should exist */
+-		if (!p->isdbt_sb_segment_count)
+-			p->isdbt_sb_segment_count = 1;
+-	} else
+-		p->isdbt_sb_segment_count = 0;
++		if (!c->isdbt_sb_segment_count)
++			c->isdbt_sb_segment_count = 1;
 +	}
- 	if (dev->tuner_type != TUNER_ABSENT)
- 		cap->device_caps |= V4L2_CAP_TUNER;
- 	cap->capabilities = cap->device_caps |
- 		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE |
--		V4L2_CAP_DEVICE_CAPS;
-+		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
-+		V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
-+	if (dev->radio_dev)
-+		cap->capabilities |= V4L2_CAP_RADIO;
  
- 	return 0;
- }
-@@ -2053,53 +2057,19 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
- /* RADIO ESPECIFIC IOCTLS                                      */
- /* ----------------------------------------------------------- */
+ 	/* Get transmission mode and guard interval */
+-	p->transmission_mode = TRANSMISSION_MODE_AUTO;
+-	p->guard_interval = GUARD_INTERVAL_AUTO;
+ 	rc = mb86a20s_readreg(state, 0x07);
+-	if (rc >= 0) {
+-		if ((rc & 0x60) == 0x20) {
+-			switch (rc & 0x0c >> 2) {
+-			case 0:
+-				p->transmission_mode = TRANSMISSION_MODE_2K;
+-				break;
+-			case 1:
+-				p->transmission_mode = TRANSMISSION_MODE_4K;
+-				break;
+-			case 2:
+-				p->transmission_mode = TRANSMISSION_MODE_8K;
+-				break;
+-			}
++	if (rc < 0)
++		return rc;
++	if ((rc & 0x60) == 0x20) {
++		switch (rc & 0x0c >> 2) {
++		case 0:
++			c->transmission_mode = TRANSMISSION_MODE_2K;
++			break;
++		case 1:
++			c->transmission_mode = TRANSMISSION_MODE_4K;
++			break;
++		case 2:
++			c->transmission_mode = TRANSMISSION_MODE_8K;
++			break;
+ 		}
+-		if (!(rc & 0x10)) {
+-			switch (rc & 0x3) {
+-			case 0:
+-				p->guard_interval = GUARD_INTERVAL_1_4;
+-				break;
+-			case 1:
+-				p->guard_interval = GUARD_INTERVAL_1_8;
+-				break;
+-			case 2:
+-				p->guard_interval = GUARD_INTERVAL_1_16;
+-				break;
+-			}
++	}
++	if (!(rc & 0x10)) {
++		switch (rc & 0x3) {
++		case 0:
++			c->guard_interval = GUARD_INTERVAL_1_4;
++			break;
++		case 1:
++			c->guard_interval = GUARD_INTERVAL_1_8;
++			break;
++		case 2:
++			c->guard_interval = GUARD_INTERVAL_1_16;
++			break;
+ 		}
+ 	}
  
--static int radio_querycap(struct file *file, void *priv,
--			  struct v4l2_capability *cap)
--{
--	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
--
--	strlcpy(cap->driver, "cx231xx", sizeof(cap->driver));
--	strlcpy(cap->card, cx231xx_boards[dev->model].name, sizeof(cap->card));
--	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
--
--	cap->capabilities = V4L2_CAP_TUNER;
++error:
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
 -	return 0;
--}
--
- static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
- 
--	if (unlikely(t->index > 0))
-+	if (t->index)
- 		return -EINVAL;
- 
- 	strcpy(t->name, "Radio");
--	t->type = V4L2_TUNER_RADIO;
--
--	call_all(dev, tuner, s_tuner, t);
--
--	return 0;
--}
- 
--static int radio_enum_input(struct file *file, void *priv, struct v4l2_input *i)
--{
--	if (i->index != 0)
--		return -EINVAL;
--	strcpy(i->name, "Radio");
--	i->type = V4L2_INPUT_TYPE_TUNER;
--
--	return 0;
--}
--
--static int radio_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
--{
--	if (unlikely(a->index))
--		return -EINVAL;
-+	call_all(dev, tuner, g_tuner, t);
- 
--	strcpy(a->name, "Radio");
- 	return 0;
- }
--
- static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
-@@ -2112,16 +2082,6 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	return 0;
++	return rc;
++
  }
  
--static int radio_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
--{
--	return 0;
--}
--
--static int radio_s_input(struct file *file, void *fh, unsigned int i)
--{
--	return 0;
--}
--
- static int radio_queryctrl(struct file *file, void *priv,
- 			   struct v4l2_queryctrl *c)
- {
-@@ -2550,18 +2510,15 @@ static const struct v4l2_file_operations radio_fops = {
- };
- 
- static const struct v4l2_ioctl_ops radio_ioctl_ops = {
--	.vidioc_querycap    = radio_querycap,
-+	.vidioc_querycap    = vidioc_querycap,
- 	.vidioc_g_tuner     = radio_g_tuner,
--	.vidioc_enum_input  = radio_enum_input,
--	.vidioc_g_audio     = radio_g_audio,
- 	.vidioc_s_tuner     = radio_s_tuner,
--	.vidioc_s_audio     = radio_s_audio,
--	.vidioc_s_input     = radio_s_input,
- 	.vidioc_queryctrl   = radio_queryctrl,
- 	.vidioc_g_ctrl      = vidioc_g_ctrl,
- 	.vidioc_s_ctrl      = vidioc_s_ctrl,
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
-+	.vidioc_g_chip_ident = vidioc_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register  = vidioc_g_register,
- 	.vidioc_s_register  = vidioc_s_register,
+ static int mb86a20s_tune(struct dvb_frontend *fe,
 -- 
-1.7.10.4
+1.7.11.7
 
