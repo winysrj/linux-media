@@ -1,95 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4038 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756001Ab3AORMm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 12:12:42 -0500
-Date: Tue, 15 Jan 2013 15:12:03 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130115151203.7221b1db@redhat.com>
-In-Reply-To: <50F57519.5060402@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<50F522AD.8000109@iki.fi>
-	<20130115111041.6b78a935@redhat.com>
-	<50F56C63.7010503@iki.fi>
-	<50F57519.5060402@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:45794 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175Ab3AOIBD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 03:01:03 -0500
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH] media: adv7343: accept configuration through platform data
+Date: Tue, 15 Jan 2013 13:30:53 +0530
+Message-Id: <1358236853-2467-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 15 Jan 2013 17:26:17 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+The current code was implemented with some default configurations,
+this default configuration works on board and doesn't work on other.
 
-> On 01/15/2013 04:49 PM, Antti Palosaari wrote:
-> > I am a little bit lazy to read all those patches, but I assume it is
-> > possible:
-> > * return SNR (CNR) as both dB and linear?
-> > * return signal strength as both dBm and linear?
-> >
-> > And what happens when when multiple statistics are queried, but fronted
-> > cannot perform all those?
-> >
-> > Lets say SS, SNR, BER, UCB are queried, but only SS and SNR are ready to
-> > be returned, whilst rest are not possible? As I remember DVBv5 API is
-> > broken by design and cannot return error code per request.
-> 
-> OK, I read that patch still. All these are OK as there is SCALE flag 
-> used to inform if there is measurement or not available.
-> No anymore question about these.
-> 
-> Issues what I still would like to raise now are:
-> 
-> 1) How about change unit from dB/10 to dB/100 or even dB/1000, just for 
-> the sure?
+This patch accepts the configuration through platform data and configures
+the encoder depending on the data set.
 
-I'm OK with that. I doubt that it would be practical, but we have 64
-bits for it, so db/1000 will fit.
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/i2c/adv7343.c |   36 +++++++++++++++++++++++++++++++-----
+ include/media/adv7343.h     |   32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+), 5 deletions(-)
 
-> 2) Counter are reset when DELIVERY SYSTEM is set, practically when 
-> tuning attempt is done. There is new callback for that, but no API 
-> command. Functionality is correct for my eyes, is that extra callback 
-> needed?
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 2b5aa67..a058058 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -43,6 +43,7 @@ MODULE_PARM_DESC(debug, "Debug level 0-1");
+ struct adv7343_state {
+ 	struct v4l2_subdev sd;
+ 	struct v4l2_ctrl_handler hdl;
++	const struct adv7343_platform_data *pdata;
+ 	u8 reg00;
+ 	u8 reg01;
+ 	u8 reg02;
+@@ -215,12 +216,23 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 	/* Enable Appropriate DAC */
+ 	val = state->reg00 & 0x03;
+ 
+-	if (output_type == ADV7343_COMPOSITE_ID)
+-		val |= ADV7343_COMPOSITE_POWER_VALUE;
+-	else if (output_type == ADV7343_COMPONENT_ID)
+-		val |= ADV7343_COMPONENT_POWER_VALUE;
++	/* configure default configuration */
++	if (!state->pdata)
++		if (output_type == ADV7343_COMPOSITE_ID)
++			val |= ADV7343_COMPOSITE_POWER_VALUE;
++		else if (output_type == ADV7343_COMPONENT_ID)
++			val |= ADV7343_COMPONENT_POWER_VALUE;
++		else
++			val |= ADV7343_SVIDEO_POWER_VALUE;
+ 	else
+-		val |= ADV7343_SVIDEO_POWER_VALUE;
++		val = state->pdata->mode_config.sleep_mode << 0 |
++		      state->pdata->mode_config.pll_control << 1 |
++		      state->pdata->mode_config.dac_3 << 2 |
++		      state->pdata->mode_config.dac_2 << 3 |
++		      state->pdata->mode_config.dac_1 << 4 |
++		      state->pdata->mode_config.dac_6 << 5 |
++		      state->pdata->mode_config.dac_5 << 6 |
++		      state->pdata->mode_config.dac_4 << 7;
+ 
+ 	err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+ 	if (err < 0)
+@@ -238,6 +250,17 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 
+ 	/* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+ 	val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
++
++	if (state->pdata && state->pdata->sd_config.sd_dac_out1)
++		val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
++		val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
++
++	if (state->pdata && state->pdata->sd_config.sd_dac_out2)
++		val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
++		val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
++
+ 	err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+ 	if (err < 0)
+ 		goto setoutput_exit;
+@@ -401,6 +424,9 @@ static int adv7343_probe(struct i2c_client *client,
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 
++	/* Copy board specific information here */
++	state->pdata = client->dev.platform_data;
++
+ 	state->reg00	= 0x80;
+ 	state->reg01	= 0x00;
+ 	state->reg02	= 0x20;
+diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+index d6f8a4e..8086e46 100644
+--- a/include/media/adv7343.h
++++ b/include/media/adv7343.h
+@@ -20,4 +20,36 @@
+ #define ADV7343_COMPONENT_ID	(1)
+ #define ADV7343_SVIDEO_ID	(2)
+ 
++struct adv7343_power_mode {
++	bool sleep_mode;
++	bool pll_control;
++	bool dac_1;
++	bool dac_2;
++	bool dac_3;
++	bool dac_4;
++	bool dac_5;
++	bool dac_6;
++};
++
++/**
++ * struct adv7343_sd_config - SD Only Output Configuration.
++ * @sd_dac_out1: Configure SD DAC Output 1.
++ * @sd_dac_out2: Configure SD DAC Output 2.
++ */
++struct adv7343_sd_config {
++	/* SD only Output Configuration */
++	bool sd_dac_out1;
++	bool sd_dac_out2;
++};
++
++/**
++ * struct adv7343_platform_data - Platform data values and access functions.
++ * @mode_config: Configuration for power mode.
++ * @sd_config: SD Only Configuration.
++ */
++struct adv7343_platform_data {
++	struct adv7343_power_mode mode_config;
++	struct adv7343_sd_config sd_config;
++};
++
+ #endif				/* End of #ifndef ADV7343_H */
+-- 
+1.7.4.1
 
-Not sure. It should be noticed that, at least on ISDB, some sort of 
-reset may happen, for example if one layer disappears. The global BER
-will (with the current code) reflect the lack of the layer, by not summing
-up the data from the removed layer.
-
-Perhaps it makes more sense to, instead, add a way for the driver to flag
-when a counter reset happened.
-
-> 3) Post-BER. I don't need it, but is there someone else who thinks there 
-> should be both pre-BER and post-BER? IMHO, just better to leave it out 
-> to keep it simple. In practice both pre-BER and post-BER are running 
-> relatively, lets say if pre-BER shows number 1000 then post-BER shows 
-> only 10. Or pre-BER 600, post-BER 6. Due to that, I don't see much 
-> interest to return it for userspace. Of course someone would like to 
-> know how much inner coder is working and fixing error bits and in that 
-> case both BERs are nice...
-
-I don't see any need for it. In the case of ISDB, I'll likely convert
-the post-BER error into per-layer CNR, as it might be useful for one.
-
-I don't have any strong opinion on that though.
-
-> 4) Returning bit counts as BER and UCB means also driver should start 
-> polling work in order to keep driver internal counters up to date. 
-> Returning BER as rate is cheaper in that mean, as driver could make 
-> decision how often to poll and in which condition (and return values 
-> from cache). Keeping track of total bit counts means continuous polling!
-
-The way it was specified, the bit count/block count is relative to the
-same period where bit error/block error count was taken, and are there
-to calculate BER and PER.
-
-Not all frontends allow continuous measurement of BER and PER. In the
-case of mb86a20s, BER is currently not continuous. I think that there's
-a way to do continuous PER measurement, but I need to double-check
-it.
-
-Regards,
-Mauro
