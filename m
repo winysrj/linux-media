@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:47615 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436Ab3A1Fpo (ORCPT
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:56718 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752713Ab3AOPrv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 00:45:44 -0500
-Received: by mail-pa0-f44.google.com with SMTP id hz11so1300824pad.31
-        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:45:44 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
-	l.krishna@samsung.com
-Subject: [PATCH] Adds display-timing node parsing to exynos drm fimd as per
-Date: Mon, 28 Jan 2013 11:15:35 +0530
-Message-Id: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
+	Tue, 15 Jan 2013 10:47:51 -0500
+Received: by mail-qc0-f182.google.com with SMTP id k19so151097qcs.41
+        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 07:47:50 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20130115132151.415180e1@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<50F522AD.8000109@iki.fi>
+	<20130115111041.6b78a935@redhat.com>
+	<50F56C63.7010503@iki.fi>
+	<20130115132151.415180e1@redhat.com>
+Date: Tue, 15 Jan 2013 10:47:50 -0500
+Message-ID: <CAGoCfiw+rXzeskA95iHkwW-OU5v=QVYMryO82dLJYKxDjsvWBw@mail.gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing to drm fimd, this depends on
-the display helper patchset at
-http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg33354.html
+On Tue, Jan 15, 2013 at 10:21 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>> Lets say SS, SNR, BER, UCB are queried, but only SS and SNR are ready to
+>> be returned, whilst rest are not possible? As I remember DVBv5 API is
+>> broken by design and cannot return error code per request.
+>
+> The one(s) not available will have "FE_SCALE_NOT_AVAILABLE" as scale,
+> and its value is undefined.
 
-It also adds pinctrl support for drm fimd.
+We may wish to rethink this approach - it lacks the ability to specify
+why the data isn't available.  It would probably be very useful for
+userland to know the difference between a statistic not being
+available because the hardware doesn't ever provide that data (in
+which case a GUI might do something like not show the option), versus
+it not being available temporarily due to a lack of signal lock (in
+which as a GUI might show the option but indicate that the data is not
+currently available).  Likewise I would want to know that data isn't
+being shown due to some error condition versus it not being supported
+by the hardware or the data being temporarily unavailable due to a
+lack of signal lock.
 
-patch is based on branch "exynos-drm-next" at
-http://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
+See, I've been thinking about it for two minutes, and already found
+three perfectly reasonable error conditions userland would probably
+want to differentiate between.  Do we really think it's wise to make
+this field the equivalent of a bool?
 
-It is tested on Exynos4412 board by applying dependent patches available at
-http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg33354.html
+It might make sense to add something equivalent to errno for a per-stat basis.
 
-Vikas Sajjan (1):
-  video: drm: exynos: Adds display-timing node parsing using video
-    helper function
-
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35 ++++++++++++++++++++++++++++--
- 1 file changed, 33 insertions(+), 2 deletions(-)
+Devin
 
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
