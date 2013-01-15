@@ -1,284 +1,489 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:58222 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757437Ab3ANW0q (ORCPT
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:39632 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756665Ab3AOMek (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 17:26:46 -0500
-Received: by mail-ea0-f181.google.com with SMTP id k14so1857031eaa.26
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 14:26:44 -0800 (PST)
-Message-ID: <50F48622.8060704@gmail.com>
-Date: Mon, 14 Jan 2013 23:26:42 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC v1 2/2] V4L: Add driver for OV9650/52 image sensors
-References: <1357341023-3202-1-git-send-email-sylvester.nawrocki@gmail.com> <201301071438.30139.hverkuil@xs4all.nl> <50F33FDF.9080206@gmail.com> <201301141045.44403.hverkuil@xs4all.nl>
-In-Reply-To: <201301141045.44403.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 15 Jan 2013 07:34:40 -0500
+From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+To: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Subject: [PATCH 7/7] reservation: Add lockdep annotation and selftests
+Date: Tue, 15 Jan 2013 13:34:04 +0100
+Message-Id: <1358253244-11453-8-git-send-email-maarten.lankhorst@canonical.com>
+In-Reply-To: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/14/2013 10:45 AM, Hans Verkuil wrote:
-> On Mon January 14 2013 00:14:39 Sylwester Nawrocki wrote:
-...
->> I've checked the datasheets and the gain ceiling control is supported by
->> virtually every Omnivision sensor: OV2655, OV3640, OV5630, OV9650, OV9655,
->> OV7690, with even identical range 2x...128x.
->>
->> The _OV965X prefix for the control doesn't seem right then. Should I make
->> it something (ugly) like V4L2_CID_OVXXXX_GAIN_CEILING ?
->
-> In that case it would make sense to make this a documented chipset control.
-> See e.g. the cx2341x and mfc51 MPEG controls:
->
-> http://hverkuil.home.xs4all.nl/spec/media.html#mpeg-controls
->
-> I'd drop the XXXX in that case.
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 
-That makes sense. I'm not sure if I'll manage to complete all this in time
-for v3.9. I guess it would be OK to postpone adding these 2 private 
-controls
-to the next kernel release ? In fact they are only "nice to have" ones.
+---
 
->> And should ranges be reserved for each driver ?
->
-> Both, actually. Chipset specific controls get a range, and so do driver specific
-> controls.
+The self-tests will fail if the commit "lockdep: Check if nested
+lock is actually held" from linux tip core/locking is not applied.
+---
+ lib/Kconfig.debug      |   1 +
+ lib/locking-selftest.c | 385 ++++++++++++++++++++++++++++++++++++++++++++++---
+ 2 files changed, 367 insertions(+), 19 deletions(-)
 
-OK. I will likely need to create such a control set for Exynos4412/Exynos5
-camera ISP. There should be not many of them but I suspect we'll need some.
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 67604e5..017bcea 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -716,6 +716,7 @@ config DEBUG_ATOMIC_SLEEP
+ config DEBUG_LOCKING_API_SELFTESTS
+ 	bool "Locking API boot-time self-tests"
+ 	depends on DEBUG_KERNEL
++	select CONFIG_DMA_SHARED_BUFFER
+ 	help
+ 	  Say Y here if you want the kernel to run a short self-test during
+ 	  bootup. The self-test checks whether common types of locking bugs
+diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
+index 7aae0f2..7fe22c2 100644
+--- a/lib/locking-selftest.c
++++ b/lib/locking-selftest.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/debug_locks.h>
+ #include <linux/irqflags.h>
++#include <linux/reservation.h>
+ 
+ /*
+  * Change this to 1 if you want to see the failure printouts:
+@@ -42,6 +43,7 @@ __setup("debug_locks_verbose=", setup_debug_locks_verbose);
+ #define LOCKTYPE_RWLOCK	0x2
+ #define LOCKTYPE_MUTEX	0x4
+ #define LOCKTYPE_RWSEM	0x8
++#define LOCKTYPE_RESERVATION	0x10
+ 
+ /*
+  * Normal standalone locks, for the circular and irq-context
+@@ -920,11 +922,17 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion_soft)
+ static void reset_locks(void)
+ {
+ 	local_irq_disable();
++	lockdep_free_key_range(&reservation_object_class, 1);
++	lockdep_free_key_range(&reservation_ticket_class, 1);
++
+ 	I1(A); I1(B); I1(C); I1(D);
+ 	I1(X1); I1(X2); I1(Y1); I1(Y2); I1(Z1); I1(Z2);
+ 	lockdep_reset();
+ 	I2(A); I2(B); I2(C); I2(D);
+ 	init_shared_classes();
++
++	memset(&reservation_object_class, 0, sizeof reservation_object_class);
++	memset(&reservation_ticket_class, 0, sizeof reservation_ticket_class);
+ 	local_irq_enable();
+ }
+ 
+@@ -938,7 +946,6 @@ static int unexpected_testcase_failures;
+ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
+ {
+ 	unsigned long saved_preempt_count = preempt_count();
+-	int expected_failure = 0;
+ 
+ 	WARN_ON(irqs_disabled());
+ 
+@@ -946,26 +953,16 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
+ 	/*
+ 	 * Filter out expected failures:
+ 	 */
++	if (debug_locks != expected) {
+ #ifndef CONFIG_PROVE_LOCKING
+-	if ((lockclass_mask & LOCKTYPE_SPIN) && debug_locks != expected)
+-		expected_failure = 1;
+-	if ((lockclass_mask & LOCKTYPE_RWLOCK) && debug_locks != expected)
+-		expected_failure = 1;
+-	if ((lockclass_mask & LOCKTYPE_MUTEX) && debug_locks != expected)
+-		expected_failure = 1;
+-	if ((lockclass_mask & LOCKTYPE_RWSEM) && debug_locks != expected)
+-		expected_failure = 1;
++		expected_testcase_failures++;
++		printk("failed|");
++#else
++		unexpected_testcase_failures++;
++		printk("FAILED|");
++
++		dump_stack();
+ #endif
+-	if (debug_locks != expected) {
+-		if (expected_failure) {
+-			expected_testcase_failures++;
+-			printk("failed|");
+-		} else {
+-			unexpected_testcase_failures++;
+-
+-			printk("FAILED|");
+-			dump_stack();
+-		}
+ 	} else {
+ 		testcase_successes++;
+ 		printk("  ok  |");
+@@ -1108,6 +1105,354 @@ static inline void print_testname(const char *testname)
+ 	DO_TESTCASE_6IRW(desc, name, 312);			\
+ 	DO_TESTCASE_6IRW(desc, name, 321);
+ 
++static void reservation_test_fail_reserve(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_ticket_init(&t);
++	t.seqno++;
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++
++	BUG_ON(!atomic_long_read(&o.lock.reservation_id));
++
++	/* No lockdep test, pure API */
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret != -EDEADLK);
++
++	t.seqno++;
++	ret = mutex_trylock(&o.lock.base);
++	WARN_ON(ret);
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret != -EAGAIN);
++	mutex_unlock(&o.lock.base);
++
++	if (mutex_trylock(&o.lock.base))
++		mutex_unlock(&o.lock.base);
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++	else DEBUG_LOCKS_WARN_ON(1);
++#endif
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_two_tickets(void)
++{
++	struct reservation_ticket t, t2;
++
++	reservation_ticket_init(&t);
++	reservation_ticket_init(&t2);
++
++	reservation_ticket_fini(&t2);
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_ticket_unreserve_twice(void)
++{
++	struct reservation_ticket t;
++
++	reservation_ticket_init(&t);
++	reservation_ticket_fini(&t);
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_object_unreserve_twice(void)
++{
++	struct reservation_object o;
++
++	reservation_object_init(&o);
++	mutex_lock(&o.lock.base);
++	mutex_unlock(&o.lock.base);
++	mutex_unlock(&o.lock.base);
++}
++
++static void reservation_test_fence_nest_unreserved(void)
++{
++	struct reservation_object o;
++
++	reservation_object_init(&o);
++
++	spin_lock_nest_lock(&lock_A, &o.lock.base);
++	spin_unlock(&lock_A);
++}
++
++static void reservation_test_ticket_block(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o, o2;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret);
++	mutex_lock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unreserve_unlock(&o.lock);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_ticket_try(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o, o2;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret);
++
++	mutex_trylock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unreserve_unlock(&o.lock);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_ticket_ticket(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o, o2;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret);
++
++	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
++	WARN_ON(ret);
++
++	mutex_unreserve_unlock(&o2.lock);
++	mutex_unreserve_unlock(&o.lock);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_try_block(void)
++{
++	struct reservation_object o, o2;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_trylock(&o.lock.base);
++	mutex_lock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unlock(&o.lock.base);
++}
++
++static void reservation_test_try_try(void)
++{
++	struct reservation_object o, o2;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_trylock(&o.lock.base);
++	mutex_trylock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unlock(&o.lock.base);
++}
++
++static void reservation_test_try_ticket(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o, o2;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_trylock(&o.lock.base);
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
++	WARN_ON(ret);
++
++	mutex_unreserve_unlock(&o2.lock);
++	mutex_unlock(&o.lock.base);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_block_block(void)
++{
++	struct reservation_object o, o2;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_lock(&o.lock.base);
++	mutex_lock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unlock(&o.lock.base);
++}
++
++static void reservation_test_block_try(void)
++{
++	struct reservation_object o, o2;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_lock(&o.lock.base);
++	mutex_trylock(&o2.lock.base);
++	mutex_unlock(&o2.lock.base);
++	mutex_unlock(&o.lock.base);
++}
++
++static void reservation_test_block_ticket(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o, o2;
++	int ret;
++
++	reservation_object_init(&o);
++	reservation_object_init(&o2);
++
++	mutex_lock(&o.lock.base);
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
++	WARN_ON(ret);
++	mutex_unreserve_unlock(&o2.lock);
++	mutex_unlock(&o.lock.base);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_test_fence_block(void)
++{
++	struct reservation_object o;
++
++	reservation_object_init(&o);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++
++	mutex_lock(&o.lock.base);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++	mutex_unlock(&o.lock.base);
++
++	spin_lock(&lock_A);
++	mutex_lock(&o.lock.base);
++	mutex_unlock(&o.lock.base);
++	spin_unlock(&lock_A);
++}
++
++static void reservation_test_fence_try(void)
++{
++	struct reservation_object o;
++
++	reservation_object_init(&o);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++
++	mutex_trylock(&o.lock.base);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++	mutex_unlock(&o.lock.base);
++
++	spin_lock(&lock_A);
++	mutex_trylock(&o.lock.base);
++	mutex_unlock(&o.lock.base);
++	spin_unlock(&lock_A);
++}
++
++static void reservation_test_fence_ticket(void)
++{
++	struct reservation_ticket t;
++	struct reservation_object o;
++	int ret;
++
++	reservation_object_init(&o);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++
++	reservation_ticket_init(&t);
++
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret);
++	spin_lock(&lock_A);
++	spin_unlock(&lock_A);
++	mutex_unreserve_unlock(&o.lock);
++
++	spin_lock(&lock_A);
++	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
++	WARN_ON(ret);
++	mutex_unreserve_unlock(&o.lock);
++	spin_unlock(&lock_A);
++
++	reservation_ticket_fini(&t);
++}
++
++static void reservation_tests(void)
++{
++	printk("  --------------------------------------------------------------------------\n");
++	printk("  | Reservation tests |\n");
++	printk("  ---------------------\n");
++
++	print_testname("reservation api failures");
++	dotest(reservation_test_fail_reserve, SUCCESS, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("reserving two tickets");
++	dotest(reservation_test_two_tickets, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("unreserve ticket twice");
++	dotest(reservation_test_ticket_unreserve_twice, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("unreserve object twice");
++	dotest(reservation_test_object_unreserve_twice, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("spinlock nest unreserved");
++	dotest(reservation_test_fence_nest_unreserved, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	printk("  -----------------------------------------------------\n");
++	printk("                                 |block | try  |ticket|\n");
++	printk("  -----------------------------------------------------\n");
++
++	print_testname("ticket");
++	dotest(reservation_test_ticket_block, FAILURE, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_ticket_try, SUCCESS, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_ticket_ticket, SUCCESS, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("try");
++	dotest(reservation_test_try_block, FAILURE, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_try_try, SUCCESS, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_try_ticket, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("block");
++	dotest(reservation_test_block_block, FAILURE, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_block_try, SUCCESS, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_block_ticket, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++
++	print_testname("spinlock");
++	dotest(reservation_test_fence_block, FAILURE, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_fence_try, SUCCESS, LOCKTYPE_RESERVATION);
++	dotest(reservation_test_fence_ticket, FAILURE, LOCKTYPE_RESERVATION);
++	printk("\n");
++}
+ 
+ void locking_selftest(void)
+ {
+@@ -1188,6 +1533,8 @@ void locking_selftest(void)
+ 	DO_TESTCASE_6x2("irq read-recursion", irq_read_recursion);
+ //	DO_TESTCASE_6x2B("irq read-recursion #2", irq_read_recursion2);
+ 
++	reservation_tests();
++
+ 	if (unexpected_testcase_failures) {
+ 		printk("-----------------------------------------------------------------\n");
+ 		debug_locks = 0;
+-- 
+1.8.0.3
 
->> Or maybe only per
->> manufacturer?
-...
->>>> +static int ov965x_set_gain(struct ov965x *ov965x, int auto_gain, bool init)
->>>> +{
->>>> +	struct i2c_client *client = ov965x->client;
->>>> +	struct ov965x_ctrls *ctrls =&ov965x->ctrls;
->>>> +	int ret = 0;
->>>> +	u8 reg;
->>>> +	/*
->>>> +	 * For manual mode we need to disable AGC first, so
->>>> +	 * gain value in REG_VREF, REG_GAIN is not overwritten.
->>>> +	 */
->>>> +	if (ctrls->auto_gain->is_new || init) {
->>>> +		ret = ov965x_read(client, REG_COM8,&reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		if (ctrls->auto_gain->val)
->>>> +			reg |= COM8_AGC;
->>>> +		else
->>>> +			reg&= ~COM8_AGC;
->>>> +		ret = ov965x_write(client, REG_COM8, reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +	}
->>>> +
->>>> +	if ((ctrls->gain->is_new || init)&&   !auto_gain) {
->>>> +		unsigned int gain = ctrls->gain->val;
->>>> +		unsigned int rgain;
->>>> +		int m;
->>>> +		/*
->>>> +		 * Convert gain control value to the sensor's gain
->>>> +		 * registers (VREF[7:6], GAIN[7:0]) format.
->>>> +		 */
->>>> +		for (m = 6; m>= 0; m--)
->>>> +			if (gain>= (1<<   m) * 16)
->>>> +				break;
->>>> +		rgain = (gain - ((1<<   m) * 16)) / (1<<   m);
->>>> +		rgain |= (((1<<   m) - 1)<<   4);
->>>> +
->>>> +		ret = ov965x_write(client, REG_GAIN, rgain&   0xff);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		ret = ov965x_read(client, REG_VREF,&reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		reg&= ~VREF_GAIN_MASK;
->>>> +		reg |= (((rgain>>   8)&   0x3)<<   6);
->>>> +		ret = ov965x_write(client, REG_VREF, reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		/* Return updated control's value to userspace */
->>>> +		ctrls->gain->val = (1<<   m) * (16 + (rgain&   0xf));
->>>> +	}
->>>> +
->>>> +	if (ctrls->gain_ceiling->is_new || init) {
->>>> +		u8 gc = ctrls->gain_ceiling->val;
->>>> +		ret = ov965x_read(client, REG_COM9,&reg);
->>>> +		if (!ret) {
->>>> +			reg&= ~COM9_GAIN_CEIL_MASK;
->>>> +			reg |= ((gc&   0x07)<<   4);
->>>> +			ret = ov965x_write(client, REG_COM9, reg);
->>>> +		}
->>>> +	}
->>>> +	if (auto_gain)
->>>> +		ctrls->gain->flags |= CTRL_FLAG_READ_ONLY_VOLATILE;
->>>> +	else
->>>> +		ctrls->gain->flags&= ~CTRL_FLAG_READ_ONLY_VOLATILE;
->>>> +
->>>> +	return ret;
->>>> +}
->> ...
->>>> +static int ov965x_set_exposure(struct ov965x *ov965x, int exp, bool init)
->>>> +{
->>>> +	struct i2c_client *client = ov965x->client;
->>>> +	struct ov965x_ctrls *ctrls =&ov965x->ctrls;
->>>> +	bool auto_exposure = (exp == V4L2_EXPOSURE_AUTO);
->>>> +	int ret;
->>>> +	u8 reg;
->>>> +
->>>> +	if (ctrls->auto_exp->is_new || init) {
->>>> +		ret = ov965x_read(client, REG_COM8,&reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		if (auto_exposure)
->>>> +			reg |= (COM8_AEC | COM8_AGC);
->>>> +		else
->>>> +			reg&= ~(COM8_AEC | COM8_AGC);
->>>> +		ret = ov965x_write(client, REG_COM8, reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +	}
->>>> +
->>>> +	if (!auto_exposure&&   (ctrls->exposure->is_new || init)) {
->>>> +		unsigned int exposure = (ctrls->exposure->val * 100)
->>>> +					 / ov965x->exp_row_interval;
->>>> +		/*
->>>> +		 * Manual exposure value
->>>> +		 * [b15:b0] - AECHM (b15:b10), AECH (b9:b2), COM1 (b1:b0)
->>>> +		 */
->>>> +		ret = ov965x_write(client, REG_COM1, exposure&   0x3);
->>>> +		if (!ret)
->>>> +			ret = ov965x_write(client, REG_AECH,
->>>> +					   (exposure>>   2)&   0xff);
->>>> +		if (!ret)
->>>> +			ret = ov965x_write(client, REG_AECHM,
->>>> +					   (exposure>>   10)&   0x3f);
->>>> +		/* Update the value to minimize rounding errors */
->>>> +		ctrls->exposure->val = ((exposure * ov965x->exp_row_interval)
->>>> +							+ 50) / 100;
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +	}
->>>> +
->>>> +	if (ctrls->ae_frame_area->is_new || init) {
->>>> +		ret = ov965x_read(client, REG_COM11,&reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +		reg&= ~COM11_AEC_REF_MASK;
->>>> +		reg |= ((ctrls->ae_frame_area->val&   0x3)<<   3);
->>>> +		ret = ov965x_write(client, REG_COM11, reg);
->>>> +		if (ret<   0)
->>>> +			return ret;
->>>> +	}
->>>> +
->>>> +	if (auto_exposure)
->>>> +		ctrls->exposure->flags |= CTRL_FLAG_READ_ONLY_VOLATILE;
->>>> +	else
->>>> +		ctrls->exposure->flags&= ~CTRL_FLAG_READ_ONLY_VOLATILE;
->>>> +
->>>> +	v4l2_ctrl_activate(ov965x->ctrls.brightness, !exp);
->>>> +	return 0;
->>>> +}
-...
->>>> +static int ov965x_initialize_controls(struct ov965x *ov965x)
->>>> +{
->>>> +	const struct v4l2_ctrl_ops *ops =&ov965x_ctrl_ops;
->>>> +	struct ov965x_ctrls *ctrls =&ov965x->ctrls;
->>>> +	struct v4l2_ctrl_handler *hdl =&ctrls->handler;
->>>> +	int ret;
->>>> +
->>>> +	ret = v4l2_ctrl_handler_init(hdl, 13);
->>>> +	if (ret<   0)
->>>> +		return ret;
->>>> +
->>>> +	/* Auto/manual white balance */
->>>> +	ctrls->auto_wb = v4l2_ctrl_new_std(hdl, ops,
->>>> +				V4L2_CID_AUTO_WHITE_BALANCE,
->>>> +				0, 1, 1, 1);
->>>> +	ctrls->blue_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BLUE_BALANCE,
->>>> +						0, 0xff, 1, 0x80);
->>>> +	ctrls->red_balance = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_RED_BALANCE,
->>>> +						0, 0xff, 1, 0x80);
->>>> +	/* Auto/manual exposure */
->>>> +	ctrls->auto_exp = v4l2_ctrl_new_std_menu(hdl, ops,
->>>> +				V4L2_CID_EXPOSURE_AUTO,
->>>> +				V4L2_EXPOSURE_MANUAL, 0, V4L2_EXPOSURE_AUTO);
->>>> +	/* Exposure time, in 100 us units. min/max is updated dynamically. */
->>>> +	ctrls->exposure = v4l2_ctrl_new_std(hdl, ops,
->>>> +				V4L2_CID_EXPOSURE_ABSOLUTE,
->>>> +				2, 1500, 1, 500);
->>>> +	/* Auto exposure reference frame area */
->>>> +	ctrls->ae_frame_area = v4l2_ctrl_new_custom(hdl,
->>>> +						&ov965x_ctrls[1], NULL);
->>>> +	/* Auto/manual gain */
->>>> +	ctrls->auto_gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_AUTOGAIN,
->>>> +						0, 1, 1, 1);
->>>> +	ctrls->gain = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_GAIN,
->>>> +						16, 64 * (16 + 15), 1, 64 * 16);
->>>> +	ctrls->gain_ceiling = v4l2_ctrl_new_custom(hdl,&ov965x_ctrls[0], NULL);
->>>> +
->>>> +	ctrls->saturation = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SATURATION,
->>>> +						-2, 2, 1, 0);
->>>> +	ctrls->brightness = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_BRIGHTNESS,
->>>> +						-3, 3, 1, 0);
->>>> +	ctrls->contrast = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_CONTRAST,
->>>> +						-2, 2, 1, 0);
->>>> +	ctrls->sharpness = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_SHARPNESS,
->>>> +						0, 32, 1, 6);
->>>> +
->>>> +	ctrls->hflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_HFLIP, 0, 1, 1, 0);
->>>> +	ctrls->vflip = v4l2_ctrl_new_std(hdl, ops, V4L2_CID_VFLIP, 0, 1, 1, 0);
->>>> +
->>>> +	ctrls->light_freq = v4l2_ctrl_new_std_menu(hdl, ops,
->>>> +				V4L2_CID_POWER_LINE_FREQUENCY,
->>>> +				V4L2_CID_POWER_LINE_FREQUENCY_60HZ, ~0x7,
->>>> +				V4L2_CID_POWER_LINE_FREQUENCY_50HZ);
->>>> +
->>>> +	v4l2_ctrl_new_std_menu_items(hdl, ops, V4L2_CID_TEST_PATTERN,
->>>> +				ARRAY_SIZE(test_pattern_menu) - 1, 0, 0,
->>>> +				test_pattern_menu);
->>>> +	if (hdl->error) {
->>>> +		ret = hdl->error;
->>>> +		v4l2_ctrl_handler_free(hdl);
->>>> +		return ret;
->>>> +	}
->>>> +
->>>> +	ctrls->gain->flags |= V4L2_CTRL_FLAG_VOLATILE;
->>>> +	ctrls->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
->>>> +
->>>> +	v4l2_ctrl_auto_cluster(3,&ctrls->auto_wb, 0, false);
->>>> +	v4l2_ctrl_cluster(3,&ctrls->auto_exp);
->>>> +	v4l2_ctrl_cluster(2,&ctrls->hflip);
->>>> +	v4l2_ctrl_cluster(3,&ctrls->auto_gain);
->>>
->>> Why don't you use auto_cluster for gain and exposure? It should simplify your
->>> code quite a bit.
->>
->> I tried, but it didn't work in these use cases.
->>
->> Note there are 3 controls in each cluster, e.g. auto/manual gain,
->> manual_gain,
->> gain_ceiling (max auto gain limit). gain_ceiling is only valid for automatic
->> gain, and the manual_gain value of course only for manual gain mode. With
->> auto_cluster gain_ceiling would be deactivated when gain is set to auto
->> mode,
->
-> Does gain_ceiling have to be part of a cluster? Isn't it a standalone control?
-> It seems to be set independent of the other gain related controls.
-
-I thought it's cleaner that way. gain_ceiling is only effective with AGC 
-enabled.
-Now I see I missed to set relevant control flags, so user space is aware 
-of that.
-
-> Ditto for ae_frame_area AFAICT.
-
-Yeah, similar situation here.
-
-
-Thanks,
-Sylwester
