@@ -1,77 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57207 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:20603 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754326Ab3ACVqa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jan 2013 16:46:30 -0500
-Message-ID: <50E5FC11.5040306@iki.fi>
-Date: Thu, 03 Jan 2013 23:45:53 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Diorser <diorser@gmx.fr>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
-References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi> <op.wp9b661h4bfdfw@quantal> <50E37C95.3020208@iki.fi> <op.wqctq1ej4bfdfw@quantal>
-In-Reply-To: <op.wqctq1ej4bfdfw@quantal>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1757241Ab3AOCbi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 21:31:38 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2VbSO015436
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:38 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv10 12/15] mb86a20s: Some improvements for BER measurement
+Date: Tue, 15 Jan 2013 00:30:58 -0200
+Message-Id: <1358217061-14982-13-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2013 11:24 PM, Diorser wrote:
->
->>  I don't know why you resists to remove antenna or unplug stick, but
->> even you remove antenna I am quite sure you will see similar results.
->
-> I've been simply confused by the signal reported at ffff level most of
-> the time, and the scanning working.
+Reduce the bit count from 2^24-1 to 2^16-1 to speedup
+BER measurement;
 
-hmm, you could say it is working as you don't see errors but for me 
-working means you could tune to channels and see programs. "Tuning 
-failed" is not working for me.
+Do a per-layer reset, instead of waiting for data on all
+layers;
 
-> I thought the problem was a step behind with the demux error reported by
-> dvbsnoop wrongly used.
->
-> Can you confirm, either you personally, or someone else you know, that
-> AVerTV_Volar_HD_PRO_A835 using same components as A918R fully works
-> including tuning+scanning ?
-> If so, it's hard to believe that Avermedia made something different when
-> changing from a USB stick to Express card detected as USB, but who
-> knows....
->
->> Maybe there is some GPIO controlling antenna input or switching some
->> other.
->
-> I've noticed that af9035.c does not contain any GPIO settings for
-> TDA18218 (all other tuners have).
-> Would it be possible to implement gpio setting for TDA18218 so that they
-> are used for implementations requesting it ? (just an assumption of
-> course). Don't know at all if this kind of information is easily available.
+Global stats now start to appear as soon as the first layer
+(e. g. the one with the biggest number of segments) start to
+have collected data.
 
-I am quite 100% sure problems is GPIOs. Those could be different from 
-design to design, especially in case of AverMedia....
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 52 +++++++++++++++++++++++++---------
+ 1 file changed, 39 insertions(+), 13 deletions(-)
 
-> If necessary, although not familiar at all with debugging, I can try co
-> compile a specific kernel with CONFIG_DEBUG_KERNEL=y option to see if I
-> can grab something interesting.
->
-> Finally, it seems that fresh implementation of TDA18218 needs a bit more
-> investigation checked on more devices.
->
-> BTW, is the A918R patch proposal accepted to be taken into
-> consideration, or do I have to make a more formal GIT request ?
->
-> Regards.
-> Diorser.
-
-Without the hardware it is hard to do anything. I don't care to spend my 
-time of debugging it remotely.
-
-Surely it is only under 10 lines of new code to support that device, but 
-finding out reason is thing which took time.
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 21e7e68..0d13c87 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -86,16 +86,36 @@ static struct regdata mb86a20s_init[] = {
+ 	{ 0x04, 0x13 }, { 0x05, 0xff },
+ 	{ 0x04, 0x15 }, { 0x05, 0x4e },
+ 	{ 0x04, 0x16 }, { 0x05, 0x20 },
++
++	/*
++	 * On this demod, when the bit count reaches the count below,
++	 * it collects the bit error count.
++	 *
++	 * As FE thread runs on every 3 seconds, adjust the counters to
++	 * provide one collect before 3 seconds, at the worse case (DQPSK,
++	 * 1/4 guard interval, 1/2 FEC, 1-seg rate is 280 Mbps, and
++	 * 3 seconds takes 0xcdb9f bits. Rounds it down to 0xccfff
++	 *
++	 * It should be noticed, however, that, with QAM-64 1/32 guard interval,
++	 * 1 segment bit rate is 1.78 Mbps, and 12-seg is about 21.5 Mbps.
++	 * At such rate, the time to measure BER is about 40 ms.
++	 *
++	 * It makes sense to change the logic there to use TMCC parameters and
++	 * adjust the counters in order to have all of them to take a little
++	 * less than 3 seconds, in order to have a more realistic BER rate,
++	 * instead of having short samples for 12-segs.
++	 */
+ 	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
+-	{ 0x50, 0xa7 }, { 0x51, 0xff },
+-	{ 0x50, 0xa8 }, { 0x51, 0xff },
++	{ 0x50, 0xa7 }, { 0x51, 0x0c },
++	{ 0x50, 0xa8 }, { 0x51, 0xcf },
+ 	{ 0x50, 0xa9 }, { 0x51, 0xff },
+-	{ 0x50, 0xaa }, { 0x51, 0xff },
+-	{ 0x50, 0xab }, { 0x51, 0xff },
++	{ 0x50, 0xaa }, { 0x51, 0x0c },
++	{ 0x50, 0xab }, { 0x51, 0xcf },
+ 	{ 0x50, 0xac }, { 0x51, 0xff },
+-	{ 0x50, 0xad }, { 0x51, 0xff },
+-	{ 0x50, 0xae }, { 0x51, 0xff },
++	{ 0x50, 0xad }, { 0x51, 0x0c },
++	{ 0x50, 0xae }, { 0x51, 0xcf },
+ 	{ 0x50, 0xaf }, { 0x51, 0xff },
++
+ 	{ 0x5e, 0x07 },
+ 	{ 0x50, 0xdc }, { 0x51, 0x01 },
+ 	{ 0x50, 0xdd }, { 0x51, 0xf4 },
+@@ -711,6 +731,14 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 		"%s: bit count before Viterbi for layer %c: %d.\n",
+ 		__func__, 'A' + layer, *count);
+ 
++	/* Reset counter to collect new data */
++	rc = mb86a20s_writereg(state, 0x53, 0x07 & ~(1 << layer));
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_writereg(state, 0x53, 0x07);
++	if (rc < 0)
++		return rc;
++
+ 	return 0;
+ }
+ 
+@@ -799,7 +827,11 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 		}
+ 	}
+ 
+-	if (active_layers == ber_layers) {
++	/*
++	 * Start showing global count if at least one error count is
++	 * available.
++	 */
++	if (ber_layers) {
+ 		/*
+ 		 * All BER values are read. We can now calculate the total BER
+ 		 * And ask for another BER measure
+@@ -812,12 +844,6 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
+ 		c->bit_count.stat[0].uvalue += t_bit_count;
+ 
+-		/* Reset counters to collect new data */
+-		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
+-		if (rc < 0)
+-			dev_err(&state->i2c->dev,
+-				"%s: Can't reset VBER registers.\n", __func__);
+-
+ 		/* All BER measures need to be collected when ready */
+ 		for (i = 0; i < 3; i++)
+ 			state->read_ber[i] = true;
 -- 
-http://palosaari.fi/
+1.7.11.7
+
