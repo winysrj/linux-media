@@ -1,47 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:41208 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649Ab3ABNZL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 08:25:11 -0500
-Received: by mail-pa0-f53.google.com with SMTP id hz1so7964917pad.26
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 05:25:11 -0800 (PST)
-From: Vikas C Sajjan <vikas.sajjan@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: inki.dae@samsung.com, laurent.pinchart@ideasonboard.com,
-	tomi.valkeinen@ti.com, jesse.barker@linaro.org,
-	aditya.ps@samsung.com
-Subject: [PATCH 2/2] [RFC] video: display: Adding frame related ops to MIPI DSI video source struct
-Date: Wed,  2 Jan 2013 18:47:22 +0530
-Message-Id: <1357132642-24588-3-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:52157 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756501Ab3AOIze (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 03:55:34 -0500
+MIME-Version: 1.0
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 15 Jan 2013 14:25:12 +0530
+Message-ID: <CA+V-a8sVhQDoni=mouiOjNCmgfn_rJTHaNfQ-O_E0yxMkeRfRA@mail.gmail.com>
+Subject: [GIT PULL FOR v3.9] media i2c devices trivial fixes
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Hi Mauro,
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- include/video/display.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+Please pull the following patches, which use devm_kzalloc() instead of
+kzalloc().
 
-diff --git a/include/video/display.h b/include/video/display.h
-index b639fd0..fb2f437 100644
---- a/include/video/display.h
-+++ b/include/video/display.h
-@@ -117,6 +117,12 @@ struct dsi_video_source_ops {
- 
- 	void (*enable_hs)(struct video_source *src, bool enable);
- 
-+	/* frame related */
-+	int (*get_frame_done)(struct video_source *src);
-+	int (*clear_frame_done)(struct video_source *src);
-+	int (*set_early_blank_mode)(struct video_source *src, int power);
-+	int (*set_blank_mode)(struct video_source *src, int power);
-+
- 	/* data transfer */
- 	int (*dcs_write)(struct video_source *src, int channel,
- 			u8 *data, size_t len);
--- 
-1.7.9.5
+Regards,
+--Prabhakar Lad
 
+The following changes since commit 3151d14aa6e983aa36d51a80d0477859f9ba12af:
+
+  [media] media: remove __dev* annotations (2013-01-11 13:03:24 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git media-i2c-fixes
+
+Lad, Prabhakar (4):
+      ths7303: use devm_kzalloc() instead of kzalloc()
+      tvp7002: use devm_kzalloc() instead of kzalloc()
+      tvp514x: use devm_kzalloc() instead of kzalloc()
+      adv7343: use devm_kzalloc() instead of kzalloc()
+
+ drivers/media/i2c/adv7343.c |    9 +++------
+ drivers/media/i2c/ths7303.c |    3 +--
+ drivers/media/i2c/tvp514x.c |    4 +---
+ drivers/media/i2c/tvp7002.c |   18 ++++++------------
+ 4 files changed, 11 insertions(+), 23 deletions(-)
