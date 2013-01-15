@@ -1,234 +1,478 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:55480 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab3A2NHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 08:07:47 -0500
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH RFC v2] media: tvp514x: add OF support
-Date: Tue, 29 Jan 2013 18:37:11 +0530
-Message-Id: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:14741 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757207Ab3AOCbh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 21:31:37 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2Va6e014231
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:36 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv10 09/15] mb86a20s: convert it to use dev_info/dev_err/dev_dbg
+Date: Tue, 15 Jan 2013 00:30:55 -0200
+Message-Id: <1358217061-14982-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+Also add some additional debug and error messages when needed.
 
-add OF support for the tvp514x driver.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Changes for v2:
-  1: Fixed review comment pointed by Heiko.
-  2: Fixed review comment pointed by Laurent.
+ drivers/media/dvb-frontends/mb86a20s.c | 156 +++++++++++++++++++++++----------
+ 1 file changed, 111 insertions(+), 45 deletions(-)
 
- This patch is on top of following patches:
-  1: https://patchwork.kernel.org/patch/1930941/
-  2: http://patchwork.linuxtv.org/patch/16193/
-  3: https://patchwork.kernel.org/patch/1944901
-
- .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
- drivers/media/i2c/tvp514x.c                        |   70 ++++++++++++++++++--
- 2 files changed, 103 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-new file mode 100644
-index 0000000..55d3ffd
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-@@ -0,0 +1,38 @@
-+* Texas Instruments TVP514x video decoder
-+
-+The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
-+digital video decoder that digitizes and decodes all popular baseband analog
-+video formats into digital video component. The tvp514x decoder supports analog-
-+to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
-+conversion and decoding of NTSC, PAL and SECAM composite and S-video into
-+component YCbCr.
-+
-+Required Properties :
-+- compatible: Must be "ti,tvp514x-decoder"
-+- hsync-active: HSYNC Polarity configuration for current interface.
-+- vsync-active: VSYNC Polarity configuration for current interface.
-+- data-active: Clock polarity of the current interface.
-+
-+Example:
-+
-+i2c0@1c22000 {
-+	...
-+	...
-+
-+	tvp514x@5c {
-+		compatible = "ti,tvp514x-decoder";
-+		reg = <0x5c>;
-+
-+		port {
-+			tvp514x_1: endpoint {
-+				/* Active high (Defaults to 0) */
-+				hsync-active = <1>;
-+				/* Active high (Defaults to 0) */
-+				hsync-active = <1>;
-+				/* Active low (Defaults to 0) */
-+				data-active = <0>;
-+			};
-+		};
-+	};
-+	...
-+};
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index a4f0a70..24ce759 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -12,6 +12,7 @@
-  *     Hardik Shah <hardik.shah@ti.com>
-  *     Manjunath Hadli <mrh@ti.com>
-  *     Karicheri Muralidharan <m-karicheri2@ti.com>
-+ *     Prabhakar Lad <prabhakar.lad@ti.com>
-  *
-  * This package is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -33,7 +34,9 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <linux/module.h>
-+#include <linux/of_device.h>
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index d14824a..e73f66d 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -24,18 +24,6 @@ static int debug = 1;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
  
-+#include <media/v4l2-of.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
-@@ -930,6 +933,58 @@ static struct tvp514x_decoder tvp514x_dev = {
+-#define rc(args...)  do {						\
+-	printk(KERN_ERR  "mb86a20s: " args);				\
+-} while (0)
+-
+-#define dprintk(args...)						\
+-	do {								\
+-		if (debug) {						\
+-			printk(KERN_DEBUG "mb86a20s: %s: ", __func__);	\
+-			printk(args);					\
+-		}							\
+-	} while (0)
+-
+ struct mb86a20s_state {
+ 	struct i2c_adapter *i2c;
+ 	const struct mb86a20s_config *config;
+@@ -209,8 +197,9 @@ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
  
- };
+ 	rc = i2c_transfer(state->i2c, &msg, 1);
+ 	if (rc != 1) {
+-		printk("%s: writereg error (rc == %i, reg == 0x%02x,"
+-			 " data == 0x%02x)\n", __func__, rc, reg, data);
++		dev_err(&state->i2c->dev,
++			"%s: writereg error (rc == %i, reg == 0x%02x, data == 0x%02x)\n",
++			__func__, rc, reg, data);
+ 		return rc;
+ 	}
  
-+#if defined(CONFIG_OF)
-+static const struct of_device_id tvp514x_of_match[] = {
-+	{.compatible = "ti,tvp514x-decoder", },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, tvp514x_of_match);
-+
-+static struct tvp514x_platform_data
-+	*tvp514x_get_pdata(struct i2c_client *client)
-+{
-+	if (!client->dev.platform_data && client->dev.of_node) {
-+		struct tvp514x_platform_data *pdata;
-+		struct v4l2_of_endpoint bus_cfg;
-+		struct device_node *endpoint;
-+
-+		pdata = devm_kzalloc(&client->dev,
-+				sizeof(struct tvp514x_platform_data),
-+				GFP_KERNEL);
-+		client->dev.platform_data = pdata;
-+		if (!pdata)
-+			return NULL;
-+
-+		endpoint = of_get_child_by_name(client->dev.of_node, "port");
-+		if (endpoint)
-+			endpoint = of_get_child_by_name(endpoint, "endpoint");
-+
-+		if (!endpoint) {
-+			v4l2_info(client, "Using default data!!\n");
-+		} else {
-+			v4l2_of_parse_parallel_bus(endpoint, &bus_cfg);
-+
-+			if (bus_cfg.mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+				pdata->hs_polarity = 1;
-+			if (bus_cfg.mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+				pdata->vs_polarity = 1;
-+			if (bus_cfg.mbus_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+				pdata->clk_polarity = 1;
-+		}
-+	}
-+
-+	return client->dev.platform_data;
-+}
-+#else
-+#define tvp514x_of_match NULL
-+
-+static struct tvp514x_platform_data
-+	*tvp514x_get_pdata(struct i2c_client *client)
-+{
-+	return client->dev.platform_data;
-+}
-+#endif
-+
- /**
-  * tvp514x_probe() - decoder driver i2c probe handler
-  * @client: i2c driver client device structure
-@@ -941,6 +996,7 @@ static struct tvp514x_decoder tvp514x_dev = {
- static int
- tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+@@ -244,7 +233,8 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+ 	rc = i2c_transfer(state->i2c, msg, 2);
+ 
+ 	if (rc != 2) {
+-		rc("%s: reg=0x%x (error=%d)\n", __func__, reg, rc);
++		dev_err(&state->i2c->dev, "%s: reg=0x%x (error=%d)\n",
++			__func__, reg, rc);
+ 		return (rc < 0) ? rc : -EIO;
+ 	}
+ 
+@@ -270,7 +260,6 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	int val;
+ 
+-	dprintk("\n");
+ 	*status = 0;
+ 
+ 	val = mb86a20s_readreg(state, 0x0a) & 0xf;
+@@ -292,7 +281,8 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	if (val >= 8)				/* Maybe 9? */
+ 		*status |= FE_HAS_LOCK;
+ 
+-	dprintk("val = %d, status = 0x%02x\n", val, *status);
++	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
++		 __func__, *status, val);
+ 
+ 	return 0;
+ }
+@@ -333,8 +323,9 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+ 
+ 			/* Rescale it from 2^12 (4096) to 2^16 */
+ 			rf <<= (16 - 12);
+-			dprintk("signal strength = %d (%d < RF=%d < %d)\n", rf,
+-				rf_min, rf, rf_max);
++			dev_dbg(&state->i2c->dev,
++				"%s: signal strength = %d (%d < RF=%d < %d)\n",
++				__func__, rf, rf_min, rf >> 4, rf_max);
+ 			return (rf);
+ 		}
+ 	} while (1);
+@@ -435,15 +426,17 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+ 				      unsigned layer)
  {
-+	struct tvp514x_platform_data *pdata;
- 	struct tvp514x_decoder *decoder;
- 	struct v4l2_subdev *sd;
- 	int ret;
-@@ -949,22 +1005,25 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
+ 	int rc, count;
+-
+ 	static unsigned char reg[] = {
+ 		[0] = 0x89,	/* Layer A */
+ 		[1] = 0x8d,	/* Layer B */
+ 		[2] = 0x91,	/* Layer C */
+ 	};
  
-+	pdata = tvp514x_get_pdata(client);
-+	if (!pdata) {
-+		v4l2_err(client, "No platform data!!\n");
-+		return -EPROBE_DEFER;
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	if (layer >= ARRAY_SIZE(reg))
+ 		return -EINVAL;
++
+ 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
+ 	if (rc < 0)
+ 		return rc;
+@@ -452,13 +445,18 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+ 		return rc;
+ 	count = (rc >> 4) & 0x0f;
+ 
++	dev_dbg(&state->i2c->dev, "%s: segments: %d.\n", __func__, count);
++
+ 	return count;
+ }
+ 
+ static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
+ {
++	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	/* Fixed parameters */
+ 	c->delivery_system = SYS_ISDBT;
+ 	c->bandwidth_hz = 6000000;
+@@ -477,6 +475,8 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int i, rc;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	/* Reset frontend cache to default values */
+ 	mb86a20s_reset_frontend_cache(fe);
+ 
+@@ -492,9 +492,12 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 	/* Get per-layer data */
+ 
+ 	for (i = 0; i < 3; i++) {
++		dev_dbg(&state->i2c->dev, "%s: getting data for layer %c.\n",
++			__func__, 'A' + i);
++
+ 		rc = mb86a20s_get_segment_count(state, i);
+ 		if (rc < 0)
+-			goto error;
++			goto noperlayer_error;
+ 		if (rc >= 0 && rc < 14)
+ 			c->layer[i].segment_count = rc;
+ 		else {
+@@ -504,15 +507,21 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 		c->isdbt_layer_enabled |= 1 << i;
+ 		rc = mb86a20s_get_modulation(state, i);
+ 		if (rc < 0)
+-			goto error;
++			goto noperlayer_error;
++		dev_dbg(&state->i2c->dev, "%s: modulation %d.\n",
++			__func__, rc);
+ 		c->layer[i].modulation = rc;
+ 		rc = mb86a20s_get_fec(state, i);
+ 		if (rc < 0)
+-			goto error;
++			goto noperlayer_error;
++		dev_dbg(&state->i2c->dev, "%s: FEC %d.\n",
++			__func__, rc);
+ 		c->layer[i].fec = rc;
+ 		rc = mb86a20s_get_interleaving(state, i);
+ 		if (rc < 0)
+-			goto error;
++			goto noperlayer_error;
++		dev_dbg(&state->i2c->dev, "%s: interleaving %d.\n",
++			__func__, rc);
+ 		c->layer[i].interleaving = rc;
+ 	}
+ 
+@@ -558,7 +567,8 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 	}
+ 	return 0;
+ 
+-error:
++noperlayer_error:
++
+ 	/* per-layer info is incomplete; discard all per-layer */
+ 	c->isdbt_layer_enabled = 0;
+ 
+@@ -570,6 +580,8 @@ static int mb86a20s_reset_counters(struct dvb_frontend *fe)
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	int rc, val, i;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+@@ -614,7 +626,12 @@ static int mb86a20s_reset_counters(struct dvb_frontend *fe)
+ 	if (rc < 0)
+ 		goto err;
+ 
++	goto ok;
+ err:
++	dev_err(&state->i2c->dev,
++		"%s: Can't reset FE QoS counters (error %d).\n",
++		__func__, rc);
++ok:
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+@@ -629,6 +646,8 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 	u8 byte[3];
+ 	int rc;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	if (layer >= 3)
+ 		return -EINVAL;
+ 
+@@ -638,8 +657,12 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 		return rc;
+ 
+ 	/* Check if data is available for that layer */
+-	if (!(rc & (1 << layer)))
++	if (!(rc & (1 << layer))) {
++		dev_info(&state->i2c->dev,
++			"%s: BER for layer %c is not available yet.\n",
++			__func__, 'A' + layer);
+ 		return -EBUSY;
 +	}
+ 
+ 	/* Read Bit Error Count */
+ 	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
+@@ -656,6 +679,10 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 	byte[2] = rc;
+ 	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
+ 
++	dev_err(&state->i2c->dev,
++		"%s: bit error before Viterbi for layer %c: %d.\n",
++		__func__, 'A' + layer, *error);
 +
- 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
- 	if (!decoder)
- 		return -ENOMEM;
+ 	/* Read Bit Count */
+ 	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
+ 	if (rc < 0)
+@@ -679,15 +706,21 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 		return rc;
+ 	byte[2] = rc;
+ 	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
++	dev_dbg(&state->i2c->dev,
++		"%s: bit count before Viterbi for layer %c: %d.\n",
++		__func__, 'A' + layer, *count);
  
- 	/* Initialize the tvp514x_decoder with default configuration */
- 	*decoder = tvp514x_dev;
--	if (!client->dev.platform_data) {
--		v4l2_err(client, "No platform data!!\n");
--		return -EPROBE_DEFER;
--	}
+-	return rc;
++	return 0;
+ }
+ 
+ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
+ {
++	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int i;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
 +
- 	/* Copy default register configuration */
- 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
- 			sizeof(tvp514x_reg_list_default));
+ 	/* Fill the length of each status counter */
  
- 	/* Copy board specific information here */
--	decoder->pdata = client->dev.platform_data;
-+	decoder->pdata = pdata;
+ 	/* Only global stats */
+@@ -723,6 +756,8 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 	u32 t_bit_error = 0, t_bit_count = 0;
+ 	int active_layers = 0, ber_layers = 0;
  
- 	/**
- 	 * Fetch platform specific data, and configure the
-@@ -1096,6 +1155,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	/* Get per-layer stats */
+ 	for (i = 0; i < 3; i++) {
+ 		if (c->isdbt_layer_enabled & (1 << i)) {
+@@ -747,6 +782,10 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 					 */
+ 					c->bit_error.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
+ 					c->bit_count.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
++					dev_err(&state->i2c->dev,
++						"%s: Can't get BER for layer %c (error %d).\n",
++						__func__, 'A' + i, rc);
++
+ 				}
+ 			}
+ 			if (!state->read_ber[i]) {
+@@ -774,6 +813,9 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
  
- static struct i2c_driver tvp514x_driver = {
- 	.driver = {
-+		.of_match_table = tvp514x_of_match,
- 		.owner = THIS_MODULE,
- 		.name = TVP514X_MODULE_NAME,
- 	},
+ 		/* Reset counters to collect new data */
+ 		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
++		if (rc < 0)
++			dev_err(&state->i2c->dev,
++				"%s: Can't reset VBER registers.\n", __func__);
+ 
+ 		/* All BER measures need to be collected when ready */
+ 		for (i = 0; i < 3; i++)
+@@ -792,7 +834,7 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
+ 	int rc;
+ 	u8  regD5 = 1;
+ 
+-	dprintk("\n");
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+@@ -819,10 +861,11 @@ err:
+ 
+ 	if (rc < 0) {
+ 		state->need_init = true;
+-		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
++		dev_info(&state->i2c->dev,
++			 "mb86a20s: Init failed. Will try again later\n");
+ 	} else {
+ 		state->need_init = false;
+-		dprintk("Initialization succeeded.\n");
++		dev_dbg(&state->i2c->dev, "Initialization succeeded.\n");
+ 	}
+ 	return rc;
+ }
+@@ -831,6 +874,9 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	int rc;
++
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ #if 0
+ 	/*
+ 	 * FIXME: Properly implement the set frontend properties
+@@ -838,15 +884,12 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ #endif
+ 
+-	dprintk("\n");
+-
+ 	/*
+ 	 * Gate should already be opened, but it doesn't hurt to
+ 	 * double-check
+ 	 */
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+-	dprintk("Calling tuner set parameters\n");
+ 	fe->ops.tuner_ops.set_params(fe);
+ 
+ 	/*
+@@ -874,9 +917,12 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 					  fe_status_t *status)
+ {
++	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int rc;
+ 
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+@@ -886,14 +932,21 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 		mb86a20s_stats_not_ready(fe);
+ 		mb86a20s_reset_frontend_cache(fe);
+ 	}
+-	if (rc < 0)
++	if (rc < 0) {
++		dev_err(&state->i2c->dev,
++			"%s: Can't read frontend lock status\n", __func__);
+ 		goto error;
++	}
+ 
+ 	/* Get signal strength */
+ 	rc = mb86a20s_read_signal_strength(fe);
+ 	if (rc < 0) {
++		dev_err(&state->i2c->dev,
++			"%s: Can't reset VBER registers.\n", __func__);
+ 		mb86a20s_stats_not_ready(fe);
+ 		mb86a20s_reset_frontend_cache(fe);
++
++		rc = 0;		/* Status is OK */
+ 		goto error;
+ 	}
+ 	/* Fill signal strength */
+@@ -902,13 +955,21 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 	if (*status & FE_HAS_LOCK) {
+ 		/* Get TMCC info*/
+ 		rc = mb86a20s_get_frontend(fe);
+-		if (rc < 0)
++		if (rc < 0) {
++			dev_err(&state->i2c->dev,
++				"%s: Can't get FE TMCC data.\n", __func__);
++			rc = 0;		/* Status is OK */
+ 			goto error;
++		}
+ 
+ 		/* Get QoS statistics */
+ 		rc = mb86a20s_get_stats(fe);
+-		if (rc < 0)
++		if (rc < 0) {
++			dev_err(&state->i2c->dev,
++				"%s: Can't get FE QoS statistics.\n", __func__);
++			rc = 0;
+ 			goto error;
++		}
+ 	}
+ 	goto ok;
+ 
+@@ -939,9 +1000,10 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 			unsigned int *delay,
+ 			fe_status_t *status)
+ {
++	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	int rc = 0;
+ 
+-	dprintk("\n");
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+ 	if (re_tune)
+ 		rc = mb86a20s_set_frontend(fe);
+@@ -956,7 +1018,7 @@ static void mb86a20s_release(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 
+-	dprintk("\n");
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+ 	kfree(state);
+ }
+@@ -967,14 +1029,16 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
+ 				    struct i2c_adapter *i2c)
+ {
+ 	u8	rev;
++	struct mb86a20s_state *state;
+ 
+ 	/* allocate memory for the internal state */
+-	struct mb86a20s_state *state =
+-		kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL);
++
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+-	dprintk("\n");
+ 	if (state == NULL) {
+-		rc("Unable to kzalloc\n");
++		dev_err(&state->i2c->dev,
++			"%s: unable to allocate memory for state\n", __func__);
+ 		goto error;
+ 	}
+ 
+@@ -991,10 +1055,12 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
+ 	rev = mb86a20s_readreg(state, 0);
+ 
+ 	if (rev == 0x13) {
+-		printk(KERN_INFO "Detected a Fujitsu mb86a20s frontend\n");
++		dev_info(&state->i2c->dev,
++			 "Detected a Fujitsu mb86a20s frontend\n");
+ 	} else {
+-		printk(KERN_ERR "Frontend revision %d is unknown - aborting.\n",
+-		       rev);
++		dev_err(&state->i2c->dev,
++		        "Frontend revision %d is unknown - aborting.\n",
++		        rev);
+ 		goto error;
+ 	}
+ 
 -- 
-1.7.4.1
+1.7.11.7
 
