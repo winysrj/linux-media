@@ -1,174 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31817 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754628Ab3AHAhk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 19:37:40 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080bdip021336
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:37:40 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv9] mb86a20s: add BER measure
-Date: Mon,  7 Jan 2013 22:37:06 -0200
-Message-Id: <1357605426-20616-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357604750-772-5-git-send-email-mchehab@redhat.com>
-References: <1357604750-772-5-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:55617 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750993Ab3AOL11 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 06:27:27 -0500
+Received: by mail-oa0-f49.google.com with SMTP id l10so4983422oag.8
+        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 03:27:27 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20130106113455.329ad868@redhat.com>
+References: <20130106113455.329ad868@redhat.com>
+Date: Tue, 15 Jan 2013 16:57:26 +0530
+Message-ID: <CAHFNz9JjP1ZjLM67SA-01raNKcoUjVmD8-2JfkDe=hHAB61Lig@mail.gmail.com>
+Subject: Re: Status of the patches under review at LMML (35 patches)
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add per-layer BER measure. In order to provide some data for
-applications not prepared for layers support, calculate BER for
-the worse-case scenario, e. g. sums the BER values for all layers
-and provide it as a "global BER" value.
+On Sun, Jan 6, 2013 at 7:04 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is the summary of the patches that are currently under review at
+> Linux Media Mailing List <linux-media@vger.kernel.org>.
+> Each patch is represented by its submission date, the subject (up to 70
+> chars) and the patchwork link (if submitted via email).
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
+>
+>
+>                 == Manu Abraham <abraham.manu@gmail.com> ==
+>
+> Those patches are there for a long time. I think I'll simply apply all of
+> them, if they're not reviewed on the next couple weeks:
+>
+> Mar,11 2012: [2/3] stv090x: use error counter 1 for BER estimation                  http://patchwork.linuxtv.org/patch/10301  Andreas Regel <andreas.regel@gmx.de>
 
-v2: by mistake, I sent the wrong version that weren't properly incrementing
-    the per-layer registers
 
- drivers/media/dvb-frontends/mb86a20s.c | 104 +++++++++++++++++++++++++++++++--
- 1 file changed, 99 insertions(+), 5 deletions(-)
+I am not at all sure on this patch. If there is a valid test result on this
+patch, then I am all for it.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index c2cc207..8a10111 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -94,7 +94,7 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x04, 0x13 }, { 0x05, 0xff },
- 	{ 0x04, 0x15 }, { 0x05, 0x4e },
- 	{ 0x04, 0x16 }, { 0x05, 0x20 },
--	{ 0x52, 0x01 },
-+	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
- 	{ 0x50, 0xa7 }, { 0x51, 0xff },
- 	{ 0x50, 0xa8 }, { 0x51, 0xff },
- 	{ 0x50, 0xa9 }, { 0x51, 0xff },
-@@ -705,13 +705,76 @@ err:
- 	return rc;
- }
- 
--static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
-+					  unsigned layer,
-+					  u32 *error, u32 *count)
- {
--	int rc, i;
--	__u16 strength;
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	u8 byte[3];
-+	int rc;
-+
-+	if (layer >= 3)
-+		return -EINVAL;
-+
-+	/* Check if it is available */
-+	rc = mb86a20s_readreg(state, 0x54);
-+	if (rc < 0)
-+		return rc;
-+	/* Check if data is available for that layer */
-+	if (!(rc & (1 << layer)))
-+		return -EBUSY;
-+
-+	/* Read Bit Error Count */
-+	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_readreg(state, 0x56 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_readreg(state, 0x57 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
-+
-+	/* Read Bit Count */
-+	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
-+
-+	return rc;
-+}
- 
-+static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+{
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int rc, i;
-+	u16 strength;
-+	u32 bit_error = 0, bit_count = 0;
-+	u32 t_bit_error = 0, t_bit_count = 0;
-+	bool has_total_ber = true;
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-@@ -732,10 +795,41 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 		if (rc > 0 && rc < 14) {
- 			/* Layer is active and has rc segments */
- 
--			/* FIXME: add a per-layer stats logic */
-+			/* Handle BER before vterbi */
-+			rc = mb86a20s_get_ber_before_vterbi(fe, i, &bit_error,
-+							    &bit_count);
-+			if (rc >= 0) {
-+				c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
-+				c->bit_error.stat[1 + i].uvalue = bit_error;
-+				c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
-+				c->bit_count.stat[1 + i].uvalue = bit_count;
-+			}
-+			if (c->bit_error.stat[1 + i].scale != FE_SCALE_COUNTER)
-+				has_total_ber = false;
-+			else {
-+				t_bit_error += c->bit_error.stat[1 + i].uvalue;
-+				t_bit_count += c->bit_count.stat[1 + i].uvalue;
-+			}
-+
- 		}
- 	}
- 
-+	/*
-+	 * FIXME: Some logic is likely need to ask the frontend to measure
-+	 *	  BER again
-+	 */
-+
-+	if (has_total_ber) {
-+		/*
-+		 * Total Bit Error/Count is calculated as the sum of the
-+		 * bit errors on all active layers.
-+		 */
-+		c->bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_error.stat[0].uvalue = t_bit_error;
-+		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_count.stat[0].uvalue = t_bit_count;
-+	}
-+
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
--- 
-1.7.11.7
 
+> Mar,11 2012: [3/3] stv090x: On STV0903 do not set registers of the second path.     http://patchwork.linuxtv.org/patch/10302  Andreas Regel <andreas.regel@gmx.de>
+
+Patch seems mostly correct, there are some unpleasantness in it.
+But nevertheless it looks okay. Haven't tested it at all.
+
+Acked-by: Manu Abraham <manu@linuxtv.org>
+
+
+> Nov,29 2011: stv090x: implement function for reading uncorrected blocks count       http://patchwork.linuxtv.org/patch/8656   Mariusz Bia?o?czyk <manio@skyboo.net>
+
+
+Comments within patchwork itself.
+
+
+
+> Jun, 8 2011: Add remote control support for mantis                                  http://patchwork.linuxtv.org/patch/7217   Christoph Pinkl <christoph.pinkl@gmail.com>
+
+
+I did test this patch a while back. It didn't work as expected at all.
+
+
+> Apr, 1 2012: [05/11] Slightly more friendly debugging output.                       http://patchwork.linuxtv.org/patch/10520  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+Simply a cosmetic patch. Doesn't bring any advantage. Knowing what
+ MMIO address failed doesn't help at all. If you have failures, then you
+will have failures with the entire mapped addresses. So AFAICT, this
+patch doesn't bring any advantage to help in additional debugging either.
+
+
+> Apr, 1 2012: [06/11] Replace ca_lock by a slightly more general int_stat_lock.      http://patchwork.linuxtv.org/patch/10521  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+
+This is actually sleeping in interrupt context. All it does is a cosmetic
+name change and adding a mutex across the IRQ handler, which is
+ not a valid thing to do.
+
+> Apr, 1 2012: [07/11] Fix a ton of SMP-unsafe accesses.                              http://patchwork.linuxtv.org/patch/10523  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+
+Use of volatile .. I am not sure. It does need a lock someplace, but I am
+not sure whether this patch is doing correctly at all.
+
+
+> Apr, 1 2012: [08/11] Remove some unused structure members.                          http://patchwork.linuxtv.org/patch/10525  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+
+The enumeration holds the status of the SmartBuffer, currently it is not
+being checked against. Deleting it might not be a useful thing.. ? Though
+the gpif_status in the mantis_dev structure could be removed, thus
+removing a dereference.
+
+
+> Apr, 1 2012: [09/11] Correct wait_event_timeout error return check.                 http://patchwork.linuxtv.org/patch/10526  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+Patch is correct, but likely needs to be regenerated, being dependant on
+another patch
+
+
+> Apr, 1 2012: [10/11] Ignore timeouts waiting for the IRQ0 flag.                     http://patchwork.linuxtv.org/patch/10527  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+There is something really wrong going on. The CPU went into a loop and
+hence reads do not return. Ignoring timeouts doesn't seem the proper way
+to me.
+
+
+> Apr, 1 2012: [11/11] Enable Mantis CA support.                                      http://patchwork.linuxtv.org/patch/10524  "Steinar H. Gunderson" <sesse@samfundet.no>
+
+Not yet there.
