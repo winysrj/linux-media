@@ -1,297 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:49534 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751223Ab3ACFoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 00:44:14 -0500
-Received: by mail-ob0-f172.google.com with SMTP id za17so13555118obc.31
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 21:44:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1357132642-24588-2-git-send-email-vikas.sajjan@linaro.org>
-References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
-	<1357132642-24588-2-git-send-email-vikas.sajjan@linaro.org>
-Date: Thu, 3 Jan 2013 11:14:14 +0530
-Message-ID: <CAK9yfHxd3JyzmZcgaj=+RdQzko9sNg7E-AuYdnrbSo7g8KofZg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [RFC] video: exynos mipi dsi: Making Exynos MIPI
- Complaint with CDF
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Vikas C Sajjan <vikas.sajjan@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	inki.dae@samsung.com, laurent.pinchart@ideasonboard.com,
-	tomi.valkeinen@ti.com, jesse.barker@linaro.org,
-	aditya.ps@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:21872 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757247Ab3AOCbj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jan 2013 21:31:39 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2Vdlb032512
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:39 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv10 03/15] dvb: the core logic to handle the DVBv5 QoS properties
+Date: Tue, 15 Jan 2013 00:30:49 -0200
+Message-Id: <1358217061-14982-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vikas,
+Add the logic to poll, reset counters and report the QoS stats
+to the end user.
 
-Some nitpicks inline
+The idea is that the core will periodically poll the frontend for
+the stats. The frontend may return -EBUSY, if the previous collect
+didn't finish, or it may fill the cached data.
 
-Subject: s/Complaint/Compliant
+The value returned to the end user is always the cached data.
 
-On 2 January 2013 18:47, Vikas C Sajjan <vikas.sajjan@linaro.org> wrote:
-> From: Vikas Sajjan <vikas.sajjan@linaro.org>
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 53 +++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvb_frontend.h | 11 ++++++++
+ 2 files changed, 64 insertions(+)
 
-Please add some description about this patch here.
-
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/video/exynos/exynos_mipi_dsi.c        |   46 ++++++++++++++++++-------
->  drivers/video/exynos/exynos_mipi_dsi_common.c |   22 ++++++++----
->  drivers/video/exynos/exynos_mipi_dsi_common.h |   12 +++----
->  include/video/exynos_mipi_dsim.h              |    5 ++-
->  4 files changed, 56 insertions(+), 29 deletions(-)
->
-> diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
-> index 07d70a3..88b2aa9 100644
-> --- a/drivers/video/exynos/exynos_mipi_dsi.c
-> +++ b/drivers/video/exynos/exynos_mipi_dsi.c
-> @@ -32,14 +32,13 @@
->  #include <linux/notifier.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/pm_runtime.h>
-> -
-> +#include <video/display.h>
->  #include <video/exynos_mipi_dsim.h>
->
->  #include <plat/fb.h>
->
->  #include "exynos_mipi_dsi_common.h"
->  #include "exynos_mipi_dsi_lowlevel.h"
-> -
->  struct mipi_dsim_ddi {
->         int                             bus_id;
->         struct list_head                list;
-> @@ -111,12 +110,13 @@ static void exynos_mipi_update_cfg(struct mipi_dsim_device *dsim)
->         exynos_mipi_dsi_stand_by(dsim, 1);
->  }
->
-> -static int exynos_mipi_dsi_early_blank_mode(struct mipi_dsim_device *dsim,
-> +static int exynos_mipi_dsi_early_blank_mode(struct video_source *video_source,
->                 int power)
->  {
-> +       struct mipi_dsim_device *dsim = container_of(video_source,
-> +                                       struct mipi_dsim_device, video_source);
->         struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
->         struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-> -
->         switch (power) {
->         case FB_BLANK_POWERDOWN:
->                 if (dsim->suspended)
-> @@ -139,12 +139,13 @@ static int exynos_mipi_dsi_early_blank_mode(struct mipi_dsim_device *dsim,
->         return 0;
->  }
->
-> -static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
-> +static int exynos_mipi_dsi_blank_mode(struct video_source *video_source, int power)
->  {
-> +       struct mipi_dsim_device *dsim = container_of(video_source,
-> +                                       struct mipi_dsim_device, video_source);
->         struct platform_device *pdev = to_platform_device(dsim->dev);
->         struct mipi_dsim_lcd_driver *client_drv = dsim->dsim_lcd_drv;
->         struct mipi_dsim_lcd_device *client_dev = dsim->dsim_lcd_dev;
-> -
->         switch (power) {
->         case FB_BLANK_UNBLANK:
->                 if (!dsim->suspended)
-> @@ -319,12 +320,19 @@ static struct mipi_dsim_ddi *exynos_mipi_dsi_bind_lcd_ddi(
->         return NULL;
->  }
->
-> -/* define MIPI-DSI Master operations. */
-> -static struct mipi_dsim_master_ops master_ops = {
-> -       .cmd_read                       = exynos_mipi_dsi_rd_data,
-> -       .cmd_write                      = exynos_mipi_dsi_wr_data,
-> -       .get_dsim_frame_done            = exynos_mipi_dsi_get_frame_done_status,
-> -       .clear_dsim_frame_done          = exynos_mipi_dsi_clear_frame_done,
->
-
-+static void panel_dsi_release(struct video_source *src)
-
-How about exynos_dsi_panel_release in line with other function names?
-
-> +{
-> +       printk("dsi entity release\n");
-
-Please use pr_* function here (instead of printk).
-
-> +}
-> +
-> +static const struct common_video_source_ops dsi_common_ops = {
-
-Some comments for this place holder would be good.
-
-> +};
-> +
-> +static const struct dsi_video_source_ops exynos_dsi_ops = {
-> +       .dcs_read                       = exynos_mipi_dsi_rd_data,
-> +       .dcs_write                      = exynos_mipi_dsi_wr_data,
-> +       .get_frame_done                 = exynos_mipi_dsi_get_frame_done_status,
-> +       .clear_frame_done               = exynos_mipi_dsi_clear_frame_done,
->         .set_early_blank_mode           = exynos_mipi_dsi_early_blank_mode,
->         .set_blank_mode                 = exynos_mipi_dsi_blank_mode,
->  };
-> @@ -362,7 +370,6 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
->         }
->
->         dsim->dsim_config = dsim_config;
-> -       dsim->master_ops = &master_ops;
->
->         mutex_init(&dsim->lock);
->
-> @@ -463,6 +470,19 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
->
->         dsim->suspended = false;
->
-> +       dsim->video_source.dev = &pdev->dev;
-> +       dsim->video_source.release = panel_dsi_release;
-> +       dsim->video_source.common_ops = &dsi_common_ops;
-> +       dsim->video_source.ops.dsi = &exynos_dsi_ops;
-> +       dsim->video_source.name = "exynos";
-
-Can't we get this from pdev?
-
-> +
-> +       ret = video_source_register(&dsim->video_source);
-> +       if (ret < 0) {
-> +               printk("dsi entity register failed\n");
-
-  Please use pr_* function here (instead of printk).
-
-> +               goto err_bind;
-> +       }
-> +       printk("dsi entity registered: %p\n", &dsim->video_source);
-
-ditto.
-
-
-> +       return 0;
->  done:
->         platform_set_drvdata(pdev, dsim);
->
-> diff --git a/drivers/video/exynos/exynos_mipi_dsi_common.c b/drivers/video/exynos/exynos_mipi_dsi_common.c
-> index 3cd29a4..e59911e 100644
-> --- a/drivers/video/exynos/exynos_mipi_dsi_common.c
-> +++ b/drivers/video/exynos/exynos_mipi_dsi_common.c
-> @@ -153,11 +153,12 @@ static void exynos_mipi_dsi_long_data_wr(struct mipi_dsim_device *dsim,
->                 }
->         }
->  }
-> -
-> -int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-> -       const unsigned char *data0, unsigned int data_size)
-> +int exynos_mipi_dsi_wr_data(struct video_source *video_source, int data_id,
-> +       u8 *data0, size_t data_size)
->  {
->         unsigned int check_rx_ack = 0;
-> +       struct mipi_dsim_device *dsim = container_of(video_source,
-> +                               struct mipi_dsim_device, video_source);
->
->         if (dsim->state == DSIM_STATE_ULPS) {
->                 dev_err(dsim->dev, "state is ULPS.\n");
-> @@ -340,12 +341,14 @@ static unsigned int exynos_mipi_dsi_response_size(unsigned int req_size)
->         }
->  }
->
-> -int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-> -       unsigned int data0, unsigned int req_size, u8 *rx_buf)
-> +int exynos_mipi_dsi_rd_data(struct video_source *video_source, int data_id,
-> +                       u8 data0, u8 *rx_buf,size_t req_size)
->  {
->         unsigned int rx_data, rcv_pkt, i;
->         u8 response = 0;
->         u16 rxsize;
-> +       struct mipi_dsim_device *dsim = container_of(video_source,
-> +                               struct mipi_dsim_device, video_source);
->
->         if (dsim->state == DSIM_STATE_ULPS) {
->                 dev_err(dsim->dev, "state is ULPS.\n");
-> @@ -843,13 +846,18 @@ int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
->         return 0;
->  }
->
-> -int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim)
-> +int exynos_mipi_dsi_get_frame_done_status(struct video_source *video_source)
->  {
-> +        struct mipi_dsim_device *dsim = container_of(video_source,
-> +                               struct mipi_dsim_device, video_source);
-> +
->         return _exynos_mipi_dsi_get_frame_done_status(dsim);
->  }
->
-> -int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim)
-> +int exynos_mipi_dsi_clear_frame_done(struct video_source *video_source)
->  {
-> +        struct mipi_dsim_device *dsim = container_of(video_source,
-> +                               struct mipi_dsim_device, video_source);
->         _exynos_mipi_dsi_clear_frame_done(dsim);
->
->         return 0;
-> diff --git a/drivers/video/exynos/exynos_mipi_dsi_common.h b/drivers/video/exynos/exynos_mipi_dsi_common.h
-> index 4125522..cd89154 100644
-> --- a/drivers/video/exynos/exynos_mipi_dsi_common.h
-> +++ b/drivers/video/exynos/exynos_mipi_dsi_common.h
-> @@ -18,10 +18,10 @@
->  static DECLARE_COMPLETION(dsim_rd_comp);
->  static DECLARE_COMPLETION(dsim_wr_comp);
->
-> -int exynos_mipi_dsi_wr_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-> -       const unsigned char *data0, unsigned int data_size);
-> -int exynos_mipi_dsi_rd_data(struct mipi_dsim_device *dsim, unsigned int data_id,
-> -       unsigned int data0, unsigned int req_size, u8 *rx_buf);
-> +int exynos_mipi_dsi_rd_data(struct video_source *video_source, int data_id,
-> +                               u8 data0, u8 *rx_buf,size_t req_size);
-> +int exynos_mipi_dsi_wr_data(struct video_source *video_source, int data_id,
-> +                               u8 *data0, size_t data_size);
->  irqreturn_t exynos_mipi_dsi_interrupt_handler(int irq, void *dev_id);
->  void exynos_mipi_dsi_init_interrupt(struct mipi_dsim_device *dsim);
->  int exynos_mipi_dsi_init_dsim(struct mipi_dsim_device *dsim);
-> @@ -35,8 +35,8 @@ int exynos_mipi_dsi_set_data_transfer_mode(struct mipi_dsim_device *dsim,
->                 unsigned int mode);
->  int exynos_mipi_dsi_enable_frame_done_int(struct mipi_dsim_device *dsim,
->         unsigned int enable);
-> -int exynos_mipi_dsi_get_frame_done_status(struct mipi_dsim_device *dsim);
-> -int exynos_mipi_dsi_clear_frame_done(struct mipi_dsim_device *dsim);
-> +int exynos_mipi_dsi_get_frame_done_status(struct video_source *video_source);
-> +int exynos_mipi_dsi_clear_frame_done(struct video_source *video_source);
->
->  extern struct fb_info *registered_fb[FB_MAX] __read_mostly;
->
-> diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
-> index 83ce5e6..e50438e 100644
-> --- a/include/video/exynos_mipi_dsim.h
-> +++ b/include/video/exynos_mipi_dsim.h
-> @@ -17,7 +17,7 @@
->
->  #include <linux/device.h>
->  #include <linux/fb.h>
-> -
-> +#include <video/display.h>
->  #define PANEL_NAME_SIZE                (32)
->
->  /*
-> @@ -225,9 +225,8 @@ struct mipi_dsim_device {
->         unsigned int                    irq;
->         void __iomem                    *reg_base;
->         struct mutex                    lock;
-> -
-> +       struct video_source             video_source;
->         struct mipi_dsim_config         *dsim_config;
-> -       struct mipi_dsim_master_ops     *master_ops;
->         struct mipi_dsim_lcd_device     *dsim_lcd_dev;
->         struct mipi_dsim_lcd_driver     *dsim_lcd_drv;
->
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index dd35fa9..e48e46fb 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1053,6 +1053,15 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++
++	/* Statistics API */
++	_DTV_CMD(DTV_QOS_ENUM, 0, 0),
++	_DTV_CMD(DTV_QOS_SIGNAL_STRENGTH, 0, 0),
++	_DTV_CMD(DTV_QOS_CNR, 0, 0),
++	_DTV_CMD(DTV_QOS_BIT_ERROR_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_TOTAL_BITS_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_ERROR_BLOCK_COUNT, 0, 0),
++	_DTV_CMD(DTV_QOS_TOTAL_BLOCKS_COUNT, 0, 0),
+ };
+ 
+ static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
+@@ -1443,6 +1452,25 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 		tvp->u.data = c->lna;
+ 		break;
+ 
++	/* Fill quality measures */
++	case DTV_QOS_SIGNAL_STRENGTH:
++		tvp->u.st = c->strength;
++		break;
++	case DTV_QOS_CNR:
++		tvp->u.st = c->cnr;
++		break;
++	case DTV_QOS_BIT_ERROR_COUNT:
++		tvp->u.st = c->bit_error;
++		break;
++	case DTV_QOS_TOTAL_BITS_COUNT:
++		tvp->u.st = c->bit_count;
++		break;
++	case DTV_QOS_ERROR_BLOCK_COUNT:
++		tvp->u.st = c->block_error;
++		break;
++	case DTV_QOS_TOTAL_BLOCKS_COUNT:
++		tvp->u.st = c->block_count;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1646,6 +1674,26 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
+ 	return 0;
+ }
+ 
++static int reset_qos_counters(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	/* Reset QoS cache */
++
++	memset (&c->strength, 0, sizeof(c->strength));
++	memset (&c->cnr, 0, sizeof(c->cnr));
++	memset (&c->bit_error, 0, sizeof(c->bit_error));
++	memset (&c->bit_count, 0, sizeof(c->bit_count));
++	memset (&c->block_error, 0, sizeof(c->block_error));
++	memset (&c->block_count, 0, sizeof(c->block_count));
++
++	/* Call frontend reset counter method, if available */
++	if (fe->ops.reset_qos_counters)
++		return fe->ops.reset_qos_counters(fe);
++
++	return 0;
++}
++
+ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 				    struct dtv_property *tvp,
+ 				    struct file *file)
+@@ -1705,6 +1753,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		break;
+ 	case DTV_DELIVERY_SYSTEM:
+ 		r = set_delivery_system(fe, tvp->u.data);
++		if (r >= 0)
++			reset_qos_counters(fe);
+ 		break;
+ 	case DTV_VOLTAGE:
+ 		c->voltage = tvp->u.data;
+@@ -2305,6 +2355,9 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		if (err)
+ 			break;
+ 		err = dtv_set_frontend(fe);
++		if (err >= 0)
++			reset_qos_counters(fe);
++
+ 		break;
+ 	case FE_GET_EVENT:
+ 		err = dvb_frontend_get_event (fe, parg, file->f_flags);
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 97112cd..b7aa815 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -315,6 +315,9 @@ struct dvb_frontend_ops {
+ 
+ 	int (*set_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
+ 	int (*get_property)(struct dvb_frontend* fe, struct dtv_property* tvp);
++
++	/* QoS statistics callbacks */
++	int (*reset_qos_counters)(struct dvb_frontend *fe);
+ };
+ 
+ #ifdef __DVB_CORE__
+@@ -393,6 +396,14 @@ struct dtv_frontend_properties {
+ 	u8			atscmh_sccc_code_mode_d;
+ 
+ 	u32			lna;
++
++	/* QoS statistics data */
++	struct dtv_fe_stats 	strength;
++	struct dtv_fe_stats	cnr;
++	struct dtv_fe_stats	bit_error;
++	struct dtv_fe_stats	bit_count;
++	struct dtv_fe_stats	block_error;
++	struct dtv_fe_stats	block_count;
+ };
+ 
+ struct dvb_frontend {
 -- 
-With warm regards,
-Sachin
+1.7.11.7
+
