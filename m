@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:58651 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754664Ab3AVPlX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 10:41:23 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 09/15] media: coda: don't build on multiplatform
-Date: Tue, 22 Jan 2013 15:41:05 +0000
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	arm@kernel.org, Javier Martin <javier.martin@vista-silicon.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1358788568-11137-1-git-send-email-arnd@arndb.de> <1358788568-11137-10-git-send-email-arnd@arndb.de> <20130122082158.GC9414@pengutronix.de>
-In-Reply-To: <20130122082158.GC9414@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mx1.redhat.com ([209.132.183.28]:63164 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750964Ab3AOMYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 07:24:42 -0500
+Date: Tue, 15 Jan 2013 10:23:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Johannes Stezenbach <js@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130115102357.536c7b00@redhat.com>
+In-Reply-To: <50F51994.1030703@iki.fi>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<20130115082008.GA30007@linuxtv.org>
+	<50F51994.1030703@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201301221541.05636.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 22 January 2013, Sascha Hauer wrote:
-> On Mon, Jan 21, 2013 at 05:16:02PM +0000, Arnd Bergmann wrote:
-> > The coda video codec driver depends on a mach-imx or mach-mxs specific
-> > header file "mach/iram.h". This is not available when building for
-> > multiplatform, so let us disable this driver for v3.8 when building
-> > multiplatform, and hopefully find a proper fix for v3.9.
-> > 
-> > drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
+Em Tue, 15 Jan 2013 10:55:48 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
+
+> On 01/15/2013 10:20 AM, Johannes Stezenbach wrote:
+> > On Tue, Jan 15, 2013 at 12:30:46AM -0200, Mauro Carvalho Chehab wrote:
+> >> Add DVBv5 methods to retrieve QoS statistics.
+> >
+> > According to http://en.wikipedia.org/wiki/Qos:
+> > "Quality of service in computer network trafficking refers
+> > to resource reservation control mechanisms"
+> >
+> > I think it is misleading to use the term QoS for DVB, what
+> > the patch series seems to be about is receiption or signal quality.
 > 
-> I just sent a pull request for this with a proper fix.
+> I totally agree that (and I have used name signal statistics).
 
-Ok, even better. Thanks for taking care of it!
+I have no problem on calling it as signal statistics. 
 
-	Arnd
+Yet, IMHO, the above definition is not ok. Being worked on a 
+telecommunications service provider during a long time, the QoS term 
+is used to any measures used to measure the quality level of a service. 
+As such, BER measure on a PDH or SDH link is called as a QoS measure.
+
+Ok, in recent years, the mechanism that priorizes voice/video traffic
+on an IP network got called QoS mechanisms, as they are there to
+improve the QoS measures on an IP link, making them close to the
+QoS measures (in particular, latency) obtained on a non-IP media.
+
+Anyway, to avoid confusion, I'll just use "DVB statistics API" on
+the next rfc's.
+
+Regards,
+Mauro
