@@ -1,73 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25357 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757454Ab3APWL5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 17:11:57 -0500
-Date: Wed, 16 Jan 2013 20:11:13 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130116201113.5394cd14@redhat.com>
-In-Reply-To: <CAHFNz9K7EJWjmeU8ViW_bnxO-inNuSU4S+=vH_FHnCF9Aq+kBg@mail.gmail.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:40311 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756519Ab3AOKiP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 05:38:15 -0500
+Received: by mail-ob0-f174.google.com with SMTP id ta14so4885601obb.5
+        for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 02:38:14 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
 References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<CAHFNz9K7EJWjmeU8ViW_bnxO-inNuSU4S+=vH_FHnCF9Aq+kBg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Date: Tue, 15 Jan 2013 16:08:14 +0530
+Message-ID: <CAHFNz9JQPVoPXhs7d4Ou_vbYWV5uUKimTnuD+FCVOmwvCDDRkA@mail.gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Jan 2013 03:07:21 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
+On Tue, Jan 15, 2013 at 8:00 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Add DVBv5 methods to retrieve QoS statistics.
+>
+> Those methods allow per-layer and global statistics.
+>
+> Implemented 2 QoS statistics on mb86a20s, one global only
+> (signal strengh), and one per layer (BER).
+>
+> Tested with a modified version of dvbv5-zap, that allows monitoring
+> those stats. Test data follows
+>
+> Tested with 1-segment at layer A, and 12-segment at layer B:
+>
+> [ 3735.973058] i2c i2c-4: mb86a20s_layer_bitrate: layer A bitrate: 440 kbps; counter = 196608 (0x030000)
+> [ 3735.976803] i2c i2c-4: mb86a20s_layer_bitrate: layer B bitrate: 16851 kbps; counter = 8257536 (0x7e0000)
+>
+> a) Global stats:
+>
+> Signal strength:
+>         QOS_SIGNAL_STRENGTH[0] = 4096
+>
+> BER (sum of BE count and bit counts for both layers):
+>         QOS_BIT_ERROR_COUNT[0] = 1087865
+>         QOS_TOTAL_BITS_COUNT[0] = 67043313
+>
+> b) Per-layer stats:
+>
+> Layer A BER:
+>         QOS_BIT_ERROR_COUNT[1] = 236
+>         QOS_TOTAL_BITS_COUNT[1] = 917490
+>
+> Layer B BER:
+>         QOS_BIT_ERROR_COUNT[2] = 1087629
+>         QOS_TOTAL_BITS_COUNT[2] = 66125823
+>
+> TODO:
+>         - add more statistics at mb86a20s;
+>         - implement support for DTV_QOS_ENUM;
+>         - some cleanups at get_frontend logic at dvb core, to avoid
+>           it to be called outside the DVB thread loop.
+>
+> All the above changes can be done a little later during this development
+> cycle, so my plan is to merge it upstream at the beginning of the
+> next week, to allow others to test.
+>
 
-> With ISDB-T, with the 3 layers, you have BER/UNC for each of the layers, though
-> the rate difference could be very little.
 
-Where? There's no way to report per-layer report with DVBv3.
+An API should be simple. This is far from simple. This API looks horribly
+complex and broken, for anyone to use it in a sane way.
 
-And no, the difference is not very little:
+Polling from within dvb-core is not a good idea, as it can cause acquisition
+failures. Continuous polling is known to cause issues.
 
-$ dmesg|grep -e mb86a20s_get_main_CNR -e "bit error before" -e "bit count before"
+Adding counters to be controlled externally by a user is the most silliest
+thing altogether.
 
-[12785.798746] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 252.
-[12785.810743] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12785.856385] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12786.399684] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12786.410678] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 248.
-[12786.422693] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12786.425547] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer B: 80209.
-[12786.437537] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer B: 8257536.
-[12786.919289] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12786.930410] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 213.
-[12786.942553] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12786.989127] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12787.387172] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12787.398062] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 234.
-[12787.409657] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12787.412529] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer B: 83533.
-[12787.424293] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer B: 8257536.
-[12788.052702] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12788.063443] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 183.
-[12788.075438] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12788.078165] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer B: 91502.
-[12788.089946] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer B: 8257536.
-[12788.126411] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12788.388646] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12788.399268] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 181.
-[12788.410887] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12789.189254] i2c i2c-4: mb86a20s_get_main_CNR: CNR is 24.4 dB (1285)
-[12789.200099] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer A: 191.
-[12789.211719] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer A: 65535.
-[12789.214465] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit error before Viterbi for layer B: 83536.
-[12789.226348] i2c i2c-4: mb86a20s_get_ber_before_vterbi: bit count before Viterbi for layer B: 8257536.
+All these things put together, makes it the most inconvenient thing to be used.
+Eventually, it results in more broken applications than existing.
 
--- 
+Not to forget that too much work has to be put into drivers, which aren't going
+to make things better, but rather even more worser.
 
-Cheers,
-Mauro
+
+Manu
