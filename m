@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:51412 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752467Ab3AAVkl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 16:40:41 -0500
-Received: from mailout-eu.gmx.com ([10.1.101.214]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0MgJFg-1TdPZg3XC2-00Nglu for
- <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 22:40:38 +0100
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Date: Tue, 01 Jan 2013 22:40:35 +0100
-To: linux-media@vger.kernel.org
-Subject: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:38379 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637Ab3AOVHI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jan 2013 16:07:08 -0500
+Date: Tue, 15 Jan 2013 22:07:02 +0100
+From: Cong Ding <dinggnu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
+	Evgeny Plehov <EvgenyPlehov@ukr.net>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v] media: dvb-frontends: remove unnecessary null pointer check
+Message-ID: <20130115210700.GA12272@gmail.com>
+References: <1358282897-8530-1-git-send-email-dinggnu@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: Diorser <diorser@gmx.fr>
-Message-ID: <op.wp845xcf4bfdfw@quantal>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1358282897-8530-1-git-send-email-dinggnu@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The address of a variable is impossible to be null, so we remove the check.
 
-After struggling some days trying to wake up a AVerTV_HD_Express_A918R  
-DVB-T card, I am stuck with a DMX_SET_PES_FILTER error reported by  
-dvbsnoop, I cannot solve (beyond my skills).
-This card is based on Afatech AF9035 +  AF9033 + NXP TDA18218HN, and then  
-very similar to AVerTV_Volar_HD_PRO_A835 (in term of components used).
+Signed-off-by: Cong Ding <dinggnu@gmail.com>
+---
+sorry for sending again. I didn't notice there are another 2 places with the
+same issue.
+ - cong
 
-You will find all details and current state at:
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_HD_Express_A918R
+ drivers/media/dvb-frontends/stv0900_core.c |   14 ++++----------
+ drivers/media/dvb-frontends/stv0900_sw.c   |    7 ++-----
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-In the meantime, I propose following patches to get dvb_usb_af9035  
-compatible with A918R.
---------------------------------------------------------------------------------------
---- /drivers/media/dvb-core/dvb-usb-ids.h
-+++ /drivers/media/dvb-core/dvb-usb-ids.h
-   @@ -233,6 +233,7 @@
-   #define USB_PID_AVERMEDIA_A835                         0xa835
-   #define USB_PID_AVERMEDIA_B835                         0xb835
-  +#define USB_PID_AVERMEDIA_A918R                      0x0918
-   #define USB_PID_AVERMEDIA_1867                         0x1867
-   #define USB_PID_AVERMEDIA_A867                         0xa867
---------------------------------------------------------------------------------------
-  --- /drivers/media/usb/dvb-usb-v2/af9035.c
-  +++ /drivers/media/usb/dvb-usb-v2/af9035.c
-  @@ -1125,6 +1125,8 @@
-          { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B835,
-                &af9035_props, "AVerMedia AVerTV Volar HD/PRO (A835)",  
-NULL) },
-  +       { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A918R,
-  +             &af9035_props, "AVerMedia AverTV (A918R)", NULL) },
-          { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867,
-                &af9035_props, "AVerMedia HD Volar (A867)", NULL) },
---------------------------------------------------------------------------------------
-If someone has some ideas to solve/understand the DMX_SET_PES_FILTER  
-issue, please feel free to advise what should be tested or modified.
-Thanks, and ... Happy New Year !
-Diorser.
+diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
+index 0fb34e1..e5a87b5 100644
+--- a/drivers/media/dvb-frontends/stv0900_core.c
++++ b/drivers/media/dvb-frontends/stv0900_core.c
+@@ -524,11 +524,8 @@ void stv0900_set_tuner(struct dvb_frontend *fe, u32 frequency,
+ 	struct dvb_frontend_ops *frontend_ops = NULL;
+ 	struct dvb_tuner_ops *tuner_ops = NULL;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++	frontend_ops = &fe->ops;
++	tuner_ops = &frontend_ops->tuner_ops;
+ 
+ 	if (tuner_ops->set_frequency) {
+ 		if ((tuner_ops->set_frequency(fe, frequency)) < 0)
+@@ -552,11 +549,8 @@ void stv0900_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
+ 	struct dvb_frontend_ops *frontend_ops = NULL;
+ 	struct dvb_tuner_ops *tuner_ops = NULL;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++	frontend_ops = &fe->ops;
++	tuner_ops = &frontend_ops->tuner_ops;
+ 
+ 	if (tuner_ops->set_bandwidth) {
+ 		if ((tuner_ops->set_bandwidth(fe, bandwidth)) < 0)
+diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
+index 4af2078..0a40edf 100644
+--- a/drivers/media/dvb-frontends/stv0900_sw.c
++++ b/drivers/media/dvb-frontends/stv0900_sw.c
+@@ -1167,11 +1167,8 @@ static u32 stv0900_get_tuner_freq(struct dvb_frontend *fe)
+ 	struct dvb_tuner_ops *tuner_ops = NULL;
+ 	u32 freq = 0;
+ 
+-	if (&fe->ops)
+-		frontend_ops = &fe->ops;
+-
+-	if (&frontend_ops->tuner_ops)
+-		tuner_ops = &frontend_ops->tuner_ops;
++	frontend_ops = &fe->ops;
++	tuner_ops = &frontend_ops->tuner_ops;
+ 
+ 	if (tuner_ops->get_frequency) {
+ 		if ((tuner_ops->get_frequency(fe, &freq)) < 0)
+-- 
+1.7.10.4
+
