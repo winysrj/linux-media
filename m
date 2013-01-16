@@ -1,115 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9355 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60550 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753116Ab3AaKIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 05:08:14 -0500
-Date: Thu, 31 Jan 2013 08:08:07 -0200
+	id S1757245Ab3APWCh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jan 2013 17:02:37 -0500
+Date: Wed, 16 Jan 2013 20:01:53 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Frank =?UTF-8?B?U2Now6Rm?= =?UTF-8?B?ZXI=?=
-	<fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
-Message-ID: <20130131080807.55e796ea@redhat.com>
-In-Reply-To: <201301310816.39891.hverkuil@xs4all.nl>
-References: <201301300901.22486.hverkuil@xs4all.nl>
-	<201301301049.25541.hverkuil@xs4all.nl>
-	<20130130170729.59d9e04d@redhat.com>
-	<201301310816.39891.hverkuil@xs4all.nl>
+To: Simon Farnsworth <simon.farnsworth@onelan.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130116200153.3ec3ee7d@redhat.com>
+In-Reply-To: <2817386.vHx2V41lNt@f17simon>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<20130116152151.5461221c@redhat.com>
+	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+	<2817386.vHx2V41lNt@f17simon>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 31 Jan 2013 08:16:39 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Wed, 16 Jan 2013 19:29:28 +0000
+Simon Farnsworth <simon.farnsworth@onelan.com> escreveu:
 
-> On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
-> > Em Wed, 30 Jan 2013 10:49:25 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> On Wednesday 16 January 2013 23:56:48 Manu Abraham wrote:
+> > On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
+> <snip>
+> > >
+> > > It is a common sense that the existing API is broken. If my proposal
+> > > requires adjustments, please comment on each specific patchset, instead
+> > > of filling this thread of destructive and useless complains.
 > > 
-> > > On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
-> > > > Em Wed, 30 Jan 2013 09:01:22 +0100
-> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > > > 
-> > > > > This was part of my original em28xx patch series. That particular patch
-> > > > > combined two things: this fix and the change where TRY_FMT would no
-> > > > > longer return -EINVAL for unsupported pixelformats. The latter change was
-> > > > > rejected (correctly), but we all forgot about the second part of the patch
-> > > > > which fixed a real bug. I'm reposting just that fix.
-> > > > > 
-> > > > > Changes since v1:
-> > > > > 
-> > > > > - v1 still miscalculated the bytesperline and imagesize values (they were
-> > > > >   too large).
-> > > > > - G_FMT had the same calculation bug.
-> > > > > 
-> > > > > Tested with my em28xx.
-> > > > > 
-> > > > > Regards,
-> > > > > 
-> > > > >         Hans
-> > > > > 
-> > > > > The bytesperline calculation was incorrect: it used the old width instead of
-> > > > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
-> > > > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
-> > > > > bytesperline value should be the bytesperline of the widest plane, which is
-> > > > > the Y plane which has 8 bits per pixel, not 12.
-> > > > > 
-> > > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > > ---
-> > > > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
-> > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > > > > index 2eabf2a..6ced426 100644
-> > > > > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > > > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > > > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> > > > >  	f->fmt.pix.width = dev->width;
-> > > > >  	f->fmt.pix.height = dev->height;
-> > > > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
-> > > > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
-> > > > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
-> > > > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
-> > > > 
-> > > > Why did you remove the round up here?
-> > > 
-> > > Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
-> > > planar format is the one with depth 12. But for the purposes of the bytesperline
-> > > calculation only the depth of the largest plane counts, which is the luma plane
-> > > with a depth of 8. So for a width of 720 the value of bytesperline should be:
-> > > 
-> > > depth=8 -> bytesperline = 720
-> > > depth=12 -> bytesperline = 720
 > > 
-> > With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+> > No, the concept of such a generalization is broken, as each new device will
+> > be different and trying to make more generalization is a waste of developer
+> > time and effort. The simplest approach would be to do a coarse approach,
+> > which is not a perfect world, but it will do some good results for all the
+> > people who use Linux-DVB. Still, repeating myself we are not dealing with
+> > high end professional devices. If we have such devices, then it makes sense
+> > to start such a discussion. Anyway professional devices will need a lot of
+> > other API extensions, so your arguments on the need for professional
+> > devices that do not exist are pointless and not agreeable to.
+> > 
+> Let's step back a bit. As a sophisticated API user, I want to be able to give
+> my end-users the following information:
 > 
-> No, it's not. It's a *planar* format: first the Y plane, then the two smaller
-> chroma planes. The spec says that bytesperline for planar formats refers to
-> the largest plane.
+>  * Signal strength in dBm
+>  * Signal quality as "poor", "OK" and "good".
+>  * Ideally, "increase signal strength to improve things" or "attenuate signal
+> to improve things"
 > 
-> For this format the luma plane is one byte per pixel. Each of the two chroma
-> planes have effectively two bits per pixel (actually one byte per four pixels),
-> so you end up with 8+2+2=12 bits per pixel.
+> In a DVBv3 world, "poor" equates to UNC != 0, "OK" is UNC == 0, BER != 0,
+> and "good" is UNC == BER == 0. The idea is that a user seeing "poor" knows
+> that they will see glitches in the output; a user seeing "OK" knows that
+> there's no glitching right now, but that the setup is marginal and may
+> struggle if anything changes, and a user seeing "good" knows that they've got
+> high quality signal. 
 > 
-> Hence bytesperline should be 720 for this particular format.
+> VDR wants even simpler - it just wants strength and quality on a 0 to 100
+> scale, where 100 is perfect, and 0 is nothing present.
+> 
+> In both cases, we want per-layer quality for ISDB-T, for the reasons you've
+> already outlined.
+> 
+> So, how do you provide such information? Is it enough to simply provide
+> strength in dBm, and quality as 0 to 100, where anything under 33 indicates
+> uncorrected errors, and anything under 66 indicates that quality is marginal?
 
-If I understood what you just said, you're talking that the only format marked
-as depth=12 is actually depth=8, right? Then the fix would be to change depth
-in the table, and not here.
+Unfortunately, not all devices can provide strength in dBm. 
 
-Yet, I'm not sure if this is the proper fix.
+On this RFC proposal, the driver will report if the device is providing
+it either in dBm or on a 0% to 100% scale.
 
-The only used I saw on userspace apps for this field is to allocate size for
-the memory buffer. Some userspace applications use to get bytesperline and
-multiply by the image height and get the image size, instead of relying
-on sizeimage, as some drivers didn't use to fill sizeimage properly.
+UNC, BER and S/N ratio (actually, C/N) measures are provided. Again, S/N
+can either be in dB or on a 0% to 100% scale.
 
-By using bytesperline equal to 1080 in this case warrants that the buffers
-on userspace will have enough space.
+A high S/N ratio means low UNC/BER counts, so S/N is probably what VDR would
+use for a quality indicator.
 
-Regards,
+Assuming that is_isdb is true for ISDB, and that pid_layer is equal
+to the ISDB layer for a given program (determined elsewhere in the
+code), In order to get the QoS properties, I would code it like the 
+following (untested) code:
+
+...
+       if (parms->version >= 0x510) {
+               struct dtv_property dvb_prop[6];
+               struct dtv_properties props;
+               int j, layer;
+
+               dvb_prop[0].cmd = DTV_QOS_SIGNAL_STRENGTH;
+               dvb_prop[1].cmd = DTV_QOS_CNR;
+               dvb_prop[2].cmd = DTV_QOS_BIT_ERROR_COUNT;
+               dvb_prop[3].cmd = DTV_QOS_TOTAL_BITS_COUNT;
+               dvb_prop[4].cmd = DTV_QOS_ERROR_BLOCK_COUNT;
+               dvb_prop[5].cmd = DTV_QOS_TOTAL_BLOCKS_COUNT;
+
+               props.num = 6;
+               props.props = dvb_prop;
+
+		if (is_isdb)
+			layer = pid_layer;
+		else
+			layer = 0;
+
+               /* Do a DVBv5.10 stats call */
+               if (ioctl(parms->fd, FE_GET_PROPERTY, &props) == 0)
+			display_statistics(dvb_prop, layer);
+       } else
+		/* DVBv3 fallback */
+...
+
+Where a display_statistics() that just shows every available measure
+would be:
+
+void display_statistics(struct dtv_property dvb_prop[6], unsigned layer)
+{
+	printf("Signal strength: ");
+	if (dvb_prop[0].u.st.len && dvb_prop[0].u.st.stat[0].scale == FE_SCALE_DECIBEL)
+		printf("%d dBm\n", (int)dvb_prop[0].u.st.stat[0].svalue);
+	else if (dvb_prop[0].u.st.len && dvb_prop[0].u.st.stat[0].scale == FE_SCALE_DECIBEL)
+		printf("%03.2f %\n", 100.*dvb_prop[0].u.st.stat[0].uvalue / 65535);
+	} else {
+		printf("not available\n");
+	}
+
+	printf("Carrier to Noise ratio: ");
+	if (dvb_prop[1].u.st.len > layer && dvb_prop[1].u.st.stat[layer].scale == FE_SCALE_DECIBEL)
+		printf("%d dB\n", (int)dvb_prop[1].u.st.stat[layer].svalue);
+	else if (dvb_prop[1].u.st.len > layer&& dvb_prop[1].u.st.stat[layer].scale == FE_SCALE_DECIBEL)
+		printf("%03.2f %\n", 100.*dvb_prop[1].u.st.stat[layer].uvalue / 65535);
+	} else {
+		printf("not available\n");
+	}
+
+	if (dvb_prop[2].u.st.len > layer && dvb_prop[2].u.st.stat[layer].scale == FE_SCALE_COUNTER &&
+	    dvb_prop[3].u.st.len > layer && dvb_prop[3].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
+		float ber = ((float)dvb_prop[2].u.st.stat[layer].uvalue) / dvb_prop[3].u.st.stat[layer].uvalue;
+		printf("BER = %e\n", ber);
+	}
+
+	if (dvb_prop[4].u.st.len > layer && dvb_prop[4].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
+		printf("UCB = %lld\n", dvb_prop[4].u.st.stat[layer].uvalue);
+	}
+
+	if (dvb_prop[4].u.st.len > layer && dvb_prop[4].u.st.stat[layer].scale == FE_SCALE_COUNTER &&
+	    dvb_prop[5].u.st.len > layer && dvb_prop[5].u.st.stat[layer].scale == FE_SCALE_COUNTER) {
+		float per = ((float)dvb_prop[4].u.st.stat[layer].uvalue) / dvb_prop[5].u.st.stat[layer].uvalue;
+		printf("PER = %e\n", per);
+	}
+}
+
+-
+
+Btw, I just finished the implementation of S/N on mb86a20s:
+	http://git.linuxtv.org/mchehab/experimental.git/commit/3640dcff0a6028dbf461f7f1e7b4ea0514eab20e
+
+The only stats left on my TODO list on mb86a20s is UCB/PER measurement, as
+I probably won't implement BER after Viterbi there.
+
+-- 
+
+Cheers,
 Mauro
