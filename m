@@ -1,46 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:64964 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759315Ab3AQJZI (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:36376 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751762Ab3APOdR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 04:25:08 -0500
-Received: by mail-ee0-f53.google.com with SMTP id e53so1121737eek.40
-        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 01:25:07 -0800 (PST)
+	Wed, 16 Jan 2013 09:33:17 -0500
+Date: Wed, 16 Jan 2013 17:33:21 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Volokh Konstantin <volokh84@gmail.com>
+Cc: devel@driverdev.osuosl.org, mchehab@redhat.com,
+	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+	dhowells@redhat.com, rdunlap@xenotime.net, hans.verkuil@cisco.com,
+	justinmattock@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] staging: media: go7007: i2c GPIO initialization
+ Reset i2c stuff for GO7007_BOARDID_ADLINK_MPG24 need reset GPIO always when
+ encoder initialize
+Message-ID: <20130116143321.GI4584@mwanda>
+References: <1358341251-10087-1-git-send-email-volokh84@gmail.com>
+ <1358341251-10087-3-git-send-email-volokh84@gmail.com>
+ <20130116133608.GH4584@mwanda>
+ <20130116140013.GB20944@VPir>
 MIME-Version: 1.0
-Date: Thu, 17 Jan 2013 11:19:20 +0200
-Message-ID: <CAEK=PesFD3X61dG9ZeQ-oMs_amr4moTz=0pPbpX3sHESfTWDWw@mail.gmail.com>
-Subject: Baseband I/Q raw data from a dvb-s/dvb-s2 card. Is it possible ?
-From: Stelios Koroneos <stelios.koroneos@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130116140013.GB20944@VPir>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings to all !
-First of all apologies, as this might not an "on-topic " question for the list.
+On Wed, Jan 16, 2013 at 06:00:13PM +0400, Volokh Konstantin wrote:
+> On Wed, Jan 16, 2013 at 04:36:08PM +0300, Dan Carpenter wrote:
+> > You've added the writes for GO7007_BOARDID_ADLINK_MPG24 but removed
+> > them for GO7007_BOARDID_XMEN and GO7007_BOARDID_XMEN_III.  Won't
+> > that break those boards?
+> >
+> I don`t remove code for GO7007_BOARDID_XMEN and GO7007_BOARDID_XMEN_III.
+> case there are auto reusing for XMen and XMen-III:
 
-I am looking for a way to access the raw baseband I/Q data either for
-dvb-s or dvb-s2 but i am kind of confused if this is possible and with
-which card.
-I had a look at some of the driver(s) code, but still could not figure it out.
-As far as i can tell a demodulator like the STB0899 for example
-provides this info but i am not sure if this is available by the
-driver, or if there are any other alternatives.
+Ah.  Grand.
 
-The reason i want to access the raw I/Q stream is because i am in the
-process of building a high speed random number generator that will use
-the thermal noise
- produced by the LNB
+Reviewed-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-I know its possible to tap to the I/Q stream by adding some external
-fast ADC/comperator but i am looking to see if there is a way to do
-that without modifications to the card etc
+regards,
+dan carpenter
 
-Any help,info,pointers would be highly appreciated
-
-Best regards
-
-Stelios
-
-
-PGP Key fingerprint = DC66 109A 6C3A 2D65 BA52  806E 6122 DAF4 32E7 076A
