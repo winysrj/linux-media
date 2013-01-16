@@ -1,78 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38646 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755584Ab3AQSvV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:51:21 -0500
-Date: Thu, 17 Jan 2013 16:50:37 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from claranet-outbound-smtp06.uk.clara.net ([195.8.89.39]:33209 "EHLO
+	claranet-outbound-smtp06.uk.clara.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755600Ab3APT3o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jan 2013 14:29:44 -0500
+From: Simon Farnsworth <simon.farnsworth@onelan.com>
 To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130117165037.6ed80366@redhat.com>
-In-Reply-To: <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Date: Wed, 16 Jan 2013 19:29:28 +0000
+Message-ID: <2817386.vHx2V41lNt@f17simon>
+In-Reply-To: <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 18 Jan 2013 00:07:17 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
-
-> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
-> 
+On Wednesday 16 January 2013 23:56:48 Manu Abraham wrote:
+> On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
+<snip>
 > >
-> >
-> > Resetting counters when user tunes channel sounds the only correct option.
-> >
-> 
-> This might not be correct, especially when we have true Multiple Input Streams.
-> The tune might be single, but the filter setup would be different. In
-> which case it
-> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
-> should be the responsibility of the driver.
-
-I moved the counters reset to the driver's logic on v11. I'm posting the
-patches in a few.
-
-> As I said in an earlier
-> post, anything
-> other than the driver handling any statistical event monitoring, such an API is
-> broken for sure, without even reading single line of code for that API for which
->  it is written for.
-
-Yes, driver should have full control on it.
-
-> > OK, maybe we will see in near future if that works well or not. I think that
-> > for calculating of PER it is required to start continuous polling to keep up
-> > total block counters. Maybe updating UCB counter continously needs that too,
-> > so it should work.
+> > It is a common sense that the existing API is broken. If my proposal
+> > requires adjustments, please comment on each specific patchset, instead
+> > of filling this thread of destructive and useless complains.
 > 
 > 
-> With multi-standard demodulators, some of them PER compute is a by-product
-> of some internal demodulator algorithmic operation. In some cases, it might
-> require a loop in the driver. As I said, again; It is very hard/wrong
-> to do basic
-> generalizations.
+> No, the concept of such a generalization is broken, as each new device will
+> be different and trying to make more generalization is a waste of developer
+> time and effort. The simplest approach would be to do a coarse approach,
+> which is not a perfect world, but it will do some good results for all the
+> people who use Linux-DVB. Still, repeating myself we are not dealing with
+> high end professional devices. If we have such devices, then it makes sense
+> to start such a discussion. Anyway professional devices will need a lot of
+> other API extensions, so your arguments on the need for professional
+> devices that do not exist are pointless and not agreeable to.
+> 
+Let's step back a bit. As a sophisticated API user, I want to be able to give
+my end-users the following information:
 
-Agreed.
+ * Signal strength in dBm
+ * Signal quality as "poor", "OK" and "good".
+ * Ideally, "increase signal strength to improve things" or "attenuate signal
+to improve things"
 
+In a DVBv3 world, "poor" equates to UNC != 0, "OK" is UNC == 0, BER != 0,
+and "good" is UNC == BER == 0. The idea is that a user seeing "poor" knows
+that they will see glitches in the output; a user seeing "OK" knows that
+there's no glitching right now, but that the setup is marginal and may
+struggle if anything changes, and a user seeing "good" knows that they've got
+high quality signal.
+
+VDR wants even simpler - it just wants strength and quality on a 0 to 100
+scale, where 100 is perfect, and 0 is nothing present.
+
+In both cases, we want per-layer quality for ISDB-T, for the reasons you've
+already outlined.
+
+So, how do you provide such information? Is it enough to simply provide
+strength in dBm, and quality as 0 to 100, where anything under 33 indicates
+uncorrected errors, and anything under 66 indicates that quality is marginal?
 -- 
-
-Cheers,
-Mauro
+Simon Farnsworth
+Software Engineer
+ONELAN Ltd
+http://www.onelan.com
