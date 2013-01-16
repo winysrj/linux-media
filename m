@@ -1,217 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:44170 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752476Ab3AATgi convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 14:36:38 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Tue, 1 Jan 2013 11:36:35 -0800
-Subject: RE: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
- for marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D13EA8815@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-4-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:46805 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756312Ab3APS0s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jan 2013 13:26:48 -0500
+Received: by mail-oa0-f53.google.com with SMTP id j6so1755849oag.12
+        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2013 10:26:48 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <20130116152151.5461221c@redhat.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<50F522AD.8000109@iki.fi>
+	<20130115111041.6b78a935@redhat.com>
+	<50F56C63.7010503@iki.fi>
+	<50F57519.5060402@iki.fi>
+	<20130115151203.7221b1db@redhat.com>
+	<50F5BE14.9000705@iki.fi>
+	<CAHFNz9L9Lg-uttCVOk90UghM_WVbge44Ascxv4qrag3GvWetnQ@mail.gmail.com>
+	<20130116115605.0fea6d03@redhat.com>
+	<CAHFNz9KniYSbfoDHOw+=x3aA0eWqpiQd9LxgQEt3fjm1RwUc7g@mail.gmail.com>
+	<20130116152151.5461221c@redhat.com>
+Date: Wed, 16 Jan 2013 23:56:48 +0530
+Message-ID: <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+
+>> If you have sufficient documentation, you can scale your demodulator statistics
+>> to fit in that window area. I had done something similarly with a MB86A16
+>> demodulator. IIRC, some effort was done on the STV0900 and STV0903
+>> demodulator support as well to fit into that convention.
+>>
+>> All you need to do is scale the output of your demodulator to fit into
+>> that window.
+>
+> To what scale? dB? linear? 0% to 100%?
 
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Wednesday, 02 January, 2013 00:06
->To: Albert Wang
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for marvell-
->ccic driver
->
->On Sat, 15 Dec 2012, Albert Wang wrote:
->
->> From: Libin Yang <lbyang@marvell.com>
->>
->> This patch adds the clock tree support for marvell-ccic.
->>
->> Each board may require different clk enabling sequence.
->> Developer need add the clk_name in correct sequence in board driver
->> to use this feature.
->>
->> Signed-off-by: Libin Yang <lbyang@marvell.com>
->> Signed-off-by: Albert Wang <twang13@marvell.com>
->> ---
->>  drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
->>  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 +++++++++++++++++++++-
->>  include/media/mmp-camera.h                       |    5 ++
->>  3 files changed, 65 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
->b/drivers/media/platform/marvell-ccic/mcam-core.h
->> index ca63010..86e634e 100755
->> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
->> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
->> @@ -88,6 +88,7 @@ struct mcam_frame_state {
->>   *          the dev_lock spinlock; they are marked as such by comments.
->>   *          dev_lock is also required for access to device registers.
->>   */
->> +#define NR_MCAM_CLK 4
->>  struct mcam_camera {
->>  	/*
->>  	 * These fields should be set by the platform code prior to
->> @@ -109,6 +110,9 @@ struct mcam_camera {
->>  	int lane;			/* lane number */
->>
->>  	struct clk *pll1;
->> +	/* clock tree support */
->> +	struct clk *clk[NR_MCAM_CLK];
->> +	int clk_num;
->>
->>  	/*
->>  	 * Callbacks from the core to the platform code.
->> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
->b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> index 603fa0a..2c4dce3 100755
->> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
->> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> @@ -104,6 +104,23 @@ static struct mmp_camera *mmpcam_find_device(struct
->platform_device *pdev)
->>  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
->>  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
->>
->> +static void mcam_clk_set(struct mcam_camera *mcam, int on)
->
->Personally, I would also make two functions out of this - "on" and "off,"
->but that's a matter of taste, perhaps.
->
-[Albert Wang] That's we have planned to do in next version.
+It is in a db scale, scaled to the window, IIRC. In an application, you can
+convert that window area, you can convert it into a linear scale as well.
 
->> +{
->> +	unsigned int i;
->> +
->> +	if (on) {
->> +		for (i = 0; i < mcam->clk_num; i++) {
->> +			if (mcam->clk[i])
->> +				clk_enable(mcam->clk[i]);
->> +		}
->> +	} else {
->> +		for (i = mcam->clk_num; i > 0; i--) {
->> +			if (mcam->clk[i - 1])
->> +				clk_disable(mcam->clk[i - 1]);
->> +		}
->> +	}
->> +}
->> +
->>  /*
->>   * Power control.
->>   */
->> @@ -134,6 +151,8 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
->>  	mdelay(5);
->>  	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
->>  	mdelay(5);
->> +
->> +	mcam_clk_set(mcam, 1);
->>  }
->>
->>  static void mmpcam_power_down(struct mcam_camera *mcam)
->> @@ -151,6 +170,8 @@ static void mmpcam_power_down(struct mcam_camera
->*mcam)
->>  	pdata = cam->pdev->dev.platform_data;
->>  	gpio_set_value(pdata->sensor_power_gpio, 0);
->>  	gpio_set_value(pdata->sensor_reset_gpio, 0);
->> +
->> +	mcam_clk_set(mcam, 0);
->>  }
->>
->>  /*
->> @@ -202,7 +223,7 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
->>  	 * pll1 will never be changed, it is a fixed value
->>  	 */
->>
->> -	if (IS_ERR(mcam->pll1))
->> +	if (IS_ERR_OR_NULL(mcam->pll1))
->
->Why are you changing this? If this really were needed, you should do this
->already in the previous patch, where you add these lines. But I don't
->think this is a good idea, don't think Russell would like this :-) NULL is
->a valid clock. Only a negative error is a failure. In fact, if you like,
->you could initialise .pll1 to ERR_PTR(-EINVAL) in your previous patch in
->mmpcam_probe().
->
-[Albert Wang] We will double check it if it's our mistake.
-Thanks.
 
->>  		return;
->>
->>  	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
->> @@ -229,6 +250,35 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
->>  	return IRQ_RETVAL(handled);
->>  }
->>
->> +static void mcam_init_clk(struct mcam_camera *mcam,
->> +			struct mmp_camera_platform_data *pdata, int init)
 >
->I don't think this "int init" makes sense. Please, remove the parameter
->and you actually don't need the de-initialisation, no reason to set
->num_clk = 0 before freeing memory.
+> As there's no way to tell what's the used scale, if some scale is required,
+> _all_ demods are required to be converted to that scale, otherwise, userspace
+> can't rely on the scale.
 >
-[Albert Wang] OK, we will double check it.
+> Are you capable of doing such change on _all demods? If not, please stop
+> arguing that the existing API can be fixable.
+>
+> Besides that, changing the existing stats to whatever scale breaks
+> userspace compatibility.
+>
+> BREAKING USERSPACE IS A BIG NO.
+>
 
->> +{
->> +	unsigned int i;
->> +
->> +	if (NR_MCAM_CLK < pdata->clk_num) {
->> +		dev_err(mcam->dev, "Too many mcam clocks defined\n");
->> +		mcam->clk_num = 0;
->> +		return;
->> +	}
->> +
->> +	if (init) {
->> +		for (i = 0; i < pdata->clk_num; i++) {
->> +			if (pdata->clk_name[i] != NULL) {
->> +				mcam->clk[i] = devm_clk_get(mcam->dev,
->> +						pdata->clk_name[i]);
->
->Sorry, no. Passing clock names in platform data doesn't look right to me.
->Clock names are a property of the consumer device, not of clock supplier.
->Also, your platform tells you to get clk_num clocks, you fail to get one
->of them, you don't continue trying the rest and just return with no error.
->This seems strange, usually a failure to get clocks, that the platform
->tells you to get, is fatal.
->
-[Albert Wang] We will update it.
+Consider this simple situation:
+Your new API is using get_frontend and is polling the hardware, Now an
+existing application is also doing monitoring of the statistics. So, now all
+the decision box calculations are screwed.
+Now, WHO BROKE USERSPACE ?
 
->> +				if (IS_ERR(mcam->clk[i])) {
->> +					dev_err(mcam->dev,
->> +						"Could not get clk: %s\n",
->> +						pdata->clk_name[i]);
->> +					mcam->clk_num = 0;
->> +					return;
->> +				}
->> +			}
->> +		}
->> +		mcam->clk_num = pdata->clk_num;
->> +	} else
->> +		mcam->clk_num = 0;
->> +}
+The same situation will happen for any new API that's going to be built.
+
+Scaling the output values of a demodulator, which doesn't behave in
+accordance to the specifications is NOT BREAKING USERSPACE.
+
+
+>> What you are stating are just excuses, that do not exist.
 >>
->>  static int mmpcam_probe(struct platform_device *pdev)
->>  {
+>> The same issue will exist, even with a new API and newer drivers not complying
+>> to that API. I don't understand, why you fail to accept that fact.
 >
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
+> Newer drivers that don't implement an API right (being the a new one or an
+> existing one) need to be fixed before being merged.
+>
+> It is as simple as that.
 
-Thanks
-Albert Wang
-86-21-61092656
+
+Okay, so what happens when a device that doesn't fit into your QoS
+API, or that the
+outputs of it are broken because of your API ?
+I don't think it is that simple.
+
+
+>> >> What is eventually wanted is a 0-100% scale, a self rotating counter etc scaled
+>> >> to a maxima minima, rather than adding in complexities. This already exists,
+>> >> all it needs to do is add some more devices to be scaled to that convention.
+>> >> And more importantly, one is not going to get that real professional
+>> >> measurements
+>> >>  from these *home segment* devices. One of the chipset manufacturers once told
+>> >> me that the PC segment never was interested in any real world performance
+>> >> oriented devices, it is all about cost and hence it is stuck with such
+>> >> low devices.
+>> >
+>> > The DVB API should be able to fit on both home and professional segment.
+>>
+>>
+>> I don't see any professional hardware drivers being written for the
+>> Linux DVB API.
+>
+> From the feedbacks we're getting during the media mini-summits,
+> there are vendors that seem to be working on it. Anyway, what I'm saying
+> is that the API should not be bound to any specific market segment.
+>
+> If drivers will be submitted upstream for professional hardware or not
+> is a separate issue.
+
+
+You are the one who had been touting all along on many linux-media threads,
+on linux-kernel threads and what not; that API changes should not be made
+for hardware that is not submitted upstream. So, I don't buy your argument
+at all. Why did you argue with nvidia people that they shouldn't use dma-buf,
+unless their driver is upstream. The same should hold good for what you are
+talking now as well.
+
+
+
+>> >
+>> > Anyway, the existing API will be kept. Userspace may opt to use the legacy
+>> > API if they're not interested on a scaled value.
+>>
+>>
+>> That is simply stating, that whatever other people like it or not, you
+>> will whack
+>> nonsense in.
+>
+> No. I'm simply stating that removing the existing API is not an option.
+>
+> Also, plese stop with fallacy: it is not me saying that the existing API
+> is broken. I'm just the poor guy that is trying to fix the already known
+> issue. Several users, userspace developers and kernelspace developers
+> complain about the existing stats API. Even _you_ submitted a proposal
+> years ago for a new stats API to try solving those issues.
+
+
+I submitted a proposal to distinguish between the various statistics modes
+used by different devices. But eventually it was found that it wasn't possible
+to fit *all* devices that do exist into any convention. That was why I didn't
+pursue that proposal further.
+
+>From what I learned from that, such information provided should be the
+simplest possible thing, if we were to generalize on a large set of devices.
+When being generalized with a large set of devices, however clever you are
+or whatever technical might you have, you will still have issues with some
+devices or the other. The end thoughts gathered from many people was that
+such a generalization is futile, unless it is made for a very specific usecase.
+A home user targeted API gets too complex and unusable in such an
+ approach, making it harder for everyone altogether. As some other
+people (I guess Klaus did) said, even an idiot should be able to make out
+what it is, rather than trying to figure out what is what.
+
+In any case, a true atomic operation cannot be made, for the same reasons
+associated with consumer equipment based, or the so called Home segment
+as described earlier. In such a case, it makes no difference if the existing
+statistics related calls are made in a serialized way (driver also has to
+serialize anyway). Other than that serialization, most demods have
+restrictions that some operations it won't do simultaneously. So it doesn't
+make any difference in real life. By having such a bloated API, you can just
+more jeer that you are the author of that bloatware and nothing more than
+that.
+
+
+>
+> It is a common sense that the existing API is broken. If my proposal
+> requires adjustments, please comment on each specific patchset, instead
+> of filling this thread of destructive and useless complains.
+
+
+No, the concept of such a generalization is broken, as each new device will
+be different and trying to make more generalization is a waste of developer
+time and effort. The simplest approach would be to do a coarse approach,
+which is not a perfect world, but it will do some good results for all the
+people who use Linux-DVB. Still, repeating myself we are not dealing with
+high end professional devices. If we have such devices, then it makes sense
+to start such a discussion. Anyway professional devices will need a lot of
+other API extensions, so your arguments on the need for professional
+devices that do not exist are pointless and not agreeable to.
+
+Manu
