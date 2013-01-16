@@ -1,117 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36624 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753500Ab3AGQNf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 11:13:35 -0500
-Date: Mon, 7 Jan 2013 14:13:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/4] Some IR fixes for I2C devices on em28xx
-Message-ID: <20130107141302.642f5875@redhat.com>
-In-Reply-To: <50E9DE06.2000205@googlemail.com>
-References: <1357334152-3811-1-git-send-email-mchehab@redhat.com>
-	<50E82900.9060701@googlemail.com>
-	<50E82DB2.4070405@googlemail.com>
-	<20130105133511.325fda1d@redhat.com>
-	<50E9DE06.2000205@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from youngberry.canonical.com ([91.189.89.112]:34063 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758797Ab3APKgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jan 2013 05:36:53 -0500
+Message-ID: <50F682C0.3030009@canonical.com>
+Date: Wed, 16 Jan 2013 11:36:48 +0100
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Inki Dae <inki.dae@samsung.com>
+CC: Maarten Lankhorst <m.b.lankhorst@gmail.com>,
+	dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [PATCH 5/7] seqno-fence: Hardware dma-buf implementation
+ of fencing (v4)
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com> <1358253244-11453-6-git-send-email-maarten.lankhorst@canonical.com> <CAAQKjZNiVE7Eknyfjf+d5o-SMzSd8wKHJ=Jn6_2=BprZXLcYbA@mail.gmail.com>
+In-Reply-To: <CAAQKjZNiVE7Eknyfjf+d5o-SMzSd8wKHJ=Jn6_2=BprZXLcYbA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Jan 2013 21:26:46 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Op 16-01-13 07:28, Inki Dae schreef:
+> 2013/1/15 Maarten Lankhorst <m.b.lankhorst@gmail.com>:
+>> This type of fence can be used with hardware synchronization for simple
+>> hardware that can block execution until the condition
+>> (dma_buf[offset] - value) >= 0 has been met.
+>>
+>> A software fallback still has to be provided in case the fence is used
+>> with a device that doesn't support this mechanism. It is useful to expose
+>> this for graphics cards that have an op to support this.
+>>
+>> Some cards like i915 can export those, but don't have an option to wait,
+>> so they need the software fallback.
+>>
+>> I extended the original patch by Rob Clark.
+>>
+>> v1: Original
+>> v2: Renamed from bikeshed to seqno, moved into dma-fence.c since
+>>     not much was left of the file. Lots of documentation added.
+>> v3: Use fence_ops instead of custom callbacks. Moved to own file
+>>     to avoid circular dependency between dma-buf.h and fence.h
+>> v4: Add spinlock pointer to seqno_fence_init
+>>
+>> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> ---
+>>  Documentation/DocBook/device-drivers.tmpl |   1 +
+>>  drivers/base/fence.c                      |  38 +++++++++++
+>>  include/linux/seqno-fence.h               | 105 ++++++++++++++++++++++++++++++
+>>  3 files changed, 144 insertions(+)
+>>  create mode 100644 include/linux/seqno-fence.h
+>>
+>> diff --git a/Documentation/DocBook/device-drivers.tmpl b/Documentation/DocBook/device-drivers.tmpl
+>> index 6f53fc0..ad14396 100644
+>> --- a/Documentation/DocBook/device-drivers.tmpl
+>> +++ b/Documentation/DocBook/device-drivers.tmpl
+>> @@ -128,6 +128,7 @@ X!Edrivers/base/interface.c
+>>  !Edrivers/base/dma-buf.c
+>>  !Edrivers/base/fence.c
+>>  !Iinclude/linux/fence.h
+>> +!Iinclude/linux/seqno-fence.h
+>>  !Edrivers/base/dma-coherent.c
+>>  !Edrivers/base/dma-mapping.c
+>>       </sect1>
+>> diff --git a/drivers/base/fence.c b/drivers/base/fence.c
+>> index 28e5ffd..1d3f29c 100644
+>> --- a/drivers/base/fence.c
+>> +++ b/drivers/base/fence.c
+>> @@ -24,6 +24,7 @@
+>>  #include <linux/slab.h>
+>>  #include <linux/export.h>
+>>  #include <linux/fence.h>
+>> +#include <linux/seqno-fence.h>
+>>
+>>  atomic_t fence_context_counter = ATOMIC_INIT(0);
+>>  EXPORT_SYMBOL(fence_context_counter);
+>> @@ -284,3 +285,40 @@ out:
+>>         return ret;
+>>  }
+>>  EXPORT_SYMBOL(fence_default_wait);
+>> +
+>> +static bool seqno_enable_signaling(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->enable_signaling(fence);
+>> +}
+>> +
+>> +static bool seqno_signaled(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *seqno_fence = to_seqno_fence(fence);
+>> +       return seqno_fence->ops->signaled && seqno_fence->ops->signaled(fence);
+>> +}
+>> +
+>> +static void seqno_release(struct fence *fence)
+>> +{
+>> +       struct seqno_fence *f = to_seqno_fence(fence);
+>> +
+>> +       dma_buf_put(f->sync_buf);
+>> +       if (f->ops->release)
+>> +               f->ops->release(fence);
+>> +       else
+>> +               kfree(f);
+>> +}
+>> +
+>> +static long seqno_wait(struct fence *fence, bool intr, signed long timeout)
+>> +{
+>> +       struct seqno_fence *f = to_seqno_fence(fence);
+>> +       return f->ops->wait(fence, intr, timeout);
+>> +}
+>> +
+>> +const struct fence_ops seqno_fence_ops = {
+>> +       .enable_signaling = seqno_enable_signaling,
+>> +       .signaled = seqno_signaled,
+>> +       .wait = seqno_wait,
+>> +       .release = seqno_release
+>> +};
+>> +EXPORT_SYMBOL_GPL(seqno_fence_ops);
+>> diff --git a/include/linux/seqno-fence.h b/include/linux/seqno-fence.h
+>> new file mode 100644
+>> index 0000000..603adc0
+>> --- /dev/null
+>> +++ b/include/linux/seqno-fence.h
+>> @@ -0,0 +1,105 @@
+>> +/*
+>> + * seqno-fence, using a dma-buf to synchronize fencing
+>> + *
+>> + * Copyright (C) 2012 Texas Instruments
+>> + * Copyright (C) 2012 Canonical Ltd
+>> + * Authors:
+>> + *   Rob Clark <rob.clark@linaro.org>
+>> + *   Maarten Lankhorst <maarten.lankhorst@canonical.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify it
+>> + * under the terms of the GNU General Public License version 2 as published by
+>> + * the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but WITHOUT
+>> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+>> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+>> + * more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License along with
+>> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+>> + */
+>> +
+>> +#ifndef __LINUX_SEQNO_FENCE_H
+>> +#define __LINUX_SEQNO_FENCE_H
+>> +
+>> +#include <linux/fence.h>
+>> +#include <linux/dma-buf.h>
+>> +
+>> +struct seqno_fence {
+>> +       struct fence base;
+>> +
+>> +       const struct fence_ops *ops;
+>> +       struct dma_buf *sync_buf;
+>> +       uint32_t seqno_ofs;
+>> +};
+> Hi maarten,
+>
+> I'm applying dma-fence v11 and seqno-fence v4 to exynos drm and have
+> some proposals.
+>
+> The above seqno_fence structure has only one dmabuf. Shouldn't it have
+> mutiple dmabufs? For example, in case of drm driver, when pageflip is
+> requested, one framebuffer could have one more gem buffer for NV12M
+> format. And this means that one more exported dmabufs should be
+> sychronized with other devices. Below is simple structure for it,
+The fence guards a single operation, as such I didn't feel like more than one
+dma-buf was needed to guard it.
 
-> Am 05.01.2013 16:35, schrieb Mauro Carvalho Chehab:
-> > Em Sat, 05 Jan 2013 14:42:10 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Am 05.01.2013 14:22, schrieb Frank Schäfer:
-> >>> Am 04.01.2013 22:15, schrieb Mauro Carvalho Chehab:
-> >>>> Frank pointed that IR was not working with I2C devices. So, I took some
-> >>>> time to fix them.
-> >>>>
-> >>>> Tested with Hauppauge WinTV USB2.
-> >>>>
-> >>>> Mauro Carvalho Chehab (4):
-> >>>>   [media] em28xx: initialize button/I2C IR earlier
-> >>>>   [media] em28xx: autoload em28xx-rc if the device has an I2C IR
-> >>>>   [media] em28xx: simplify IR names on I2C devices
-> >>>>   [media] em28xx: tell ir-kbd-i2c that WinTV uses an RC5 protocol
-> >>>>
-> >>>>  drivers/media/usb/em28xx/em28xx-cards.c |  2 +-
-> >>>>  drivers/media/usb/em28xx/em28xx-input.c | 29 ++++++++++++++++-------------
-> >>>>  2 files changed, 17 insertions(+), 14 deletions(-)
-> >>>>
-> >>> While these patches make I2C IR remote controls working again, they
-> >>> leave several issues unaddressed which should really be fixed:
-> >>> 1) the i2c client isn't unregistered on module unload. This was the
-> >>> reason for patch 2 in my series. There is also a FIXME comment about
-> >>> this in em28xx_release_resources() (although this is the wrong place to
-> >>> do it).
-> >>> 2) there is no error checking in em28xx_register_i2c_ir().
-> >>> em28xx_ir_init should really bail out if no i2c device is found.
-> >>> 3) All RC maps should be assigned at the same place, no matter if the
-> >>> receiver/demodulator is built in or external. Spreading them over the
-> >>> code is inconsistent and makes the code bug prone.
-> >>> 4) the list of known i2c devices in em28xx-i2c.c misses client address
-> >>> 0x3e >> 1 = 0x1f. See client list in em28xx_register_i2c_ir().
-> >>> 5) there should be a warning message for the case that we call
-> >>> ir-kbd-i2c with an unknown rc device.
-> >>> 6) because we use our own key polling functions with ir-kbd-i2c, we
-> >>> should also select the polling interval value manually. That makes
-> >>> things consistent and avoids confusion.
-> >>>
-> >>> The rest is a matter of taste / prefered code layout. I'm fine with it.
-> >>>
-> >>> Regards,
-> >>> Frank
-> >> It seems like already applied them... :(
-> >>
-> >> While I certainly appreciate patches beeing applied as soon as possible,
-> >> I think there should really be a chance to review them before this happens.
-> >> Especially when the changes are non-trivial and someone else has posted
-> >> patches addressing the same issues before (other contributers might feel
-> >> offended ;) ).
-> > All the 4 applied patches are really trivial:
-> > 	- patch 1: just reorder existing code;
-> > 	- patch 2: one-line patch adding another condition to an existing if;
-> > 	- patch 3: pure string rename;
-> > 	- patch 4: one line patch properly reporting the RC5 protocol on WinTV.
-> 
-> Just because a patch "just reorders existing code" or "just changes a
-> single line" it's not automatically trivial.
+Have you considered simply attaching multiple fences instead? Each with their own dma-buf.
+There has been some muttering about allowing multiple exclusive fences to be attached, for arm soc's.
 
-True, but this is not the case of all the above ones: all of them are obvious,
-and do what are described there.
+But I'm also considering getting rid of the dma-buf member and add a function call to retrieve it, since
+the sync dma-buf member should not be changing often, and it would zap 2 atomic ops on every fence,
+but I want it replaced by something that's not 10x more complicated.
 
-> I'm sure you have seen more cases than me in which it were patches like
-> this who caused big trouble. ;)
+Maybe "int get_sync_dma_buf(fence, old_dma_buf, &new_dma_buf)" that will set new_dma_buf = NULL
+if the old_dma_buf is unchanged, and return true + return a new reference to the sync dma_buf if it's not identical to old_dma_buf.
+old_dma_buf can also be NULL or a dma_buf that belongs to a different fence->context entirely. It might be capable of
+returning an error, in which case the fence would count as being signaled. This could reduce the need for separately checking
+fence_is_signaled first.
 
-Trivial patches are known to cause troubles, just like any other code change.
+I think this would allow caching the synchronization dma_buf in a similar way without each fence needing
+to hold a reference to the dma_buf all the time, even for fences that are only used internally.
 
-The thing is that trivial patches are:
-	1) easy to review, especially when properly described;
-	2) when they're wrong, easy to fix;
-	3) easy to get them accepted/merged at stable kernels.
+> struct seqno_fence_dmabuf {
+>         struct list_head        list;
+>         int                            id;
+>         struct dmabuf          *sync_buf;
+>         uint32_t                   seqno_ops;
+>         uint32_t                   seqno;
+> };
+>
+> The member, id, could be used to identify which device sync_buf is
+> going to be accessed by. In case of drm driver, one framebuffer could
+> be accessed by one more devices, one is Display controller and another
+> is HDMI controller. So id would have crtc number.
+Why do you need this? the base fence already has a context member.
 
-In any case, if you found any breakage caused by the above patches, feel
-free to send a patch fixing it.
+In fact I don't see why you need a linked list, at worst you'd need a static array since the amount of
+dma-bufs should already be known during allocation time.
 
-If you're concerned with other things that aren't there, send in separate.
+I would prefer to simply make reservation_object->fence_exclusive an array, since it would be easier to implement,
+and there have been some calls that arm might need such a thing.
 
-The rule is one patch by each logical change.
 
-> Yeah, I understand your time problems and I really appreciate patches
-> beeing applied as soon as possible (after they have been reviewed).
-> But delaying a patch for a few days really shouldn't cause too much
-> extra work.
+> And seqno_fence structure could be defined like below,
+>
+> struct seqno_fence {
+>         struct list_head                sync_buf_list;
+>         struct fence                      base;
+>         const struct fence_ops     *ops;
+> };
+>
+> In addition, I have implemented fence-helper framework for sw sync as
+> WIP and below is intefaces for it,
+>
+> struct fence_helper {
+>         struct list_head                    entries;
+>         struct reservation_ticket       ticket;
+>         struct seqno_fence              *sf;
+>         spinlock_t                             lock;
+>         void                                      *priv;
+> };
+>
+> int fence_helper_init(struct fence_helper *fh, void *priv, void
+> (*remease)(struct fence *fence));
+> - This function is called at driver open so process unique context
+> would have a new seqno_fence instance. This function does just
+> seqno_fence_init call, initialize entries list and set device specific
+> fence release callback.
+>
+> bool fence_helper_check_sync_buf(struct fence_helper *fh, struct
+> dma_buf *sync_buf, int id);
+> - This function is called before dma is started and checks if same
+> sync_bufs had already be committed to reservation_object,
+> bo->fence_shared[n]. And id could be used to identy which device
+> sync_buf is going to be accessed by.
+>
+> int fence_helper_add_sync_buf(struct fence_helper *fh, struct dma_buf
+> *sync_buf, int id);
+> - This function is called if fence_helper_check_sync_buf() is true and
+> adds it seqno_fence's sync_buf_list wrapping sync_buf as
+> seqno_fence_dma_buf structure. With this function call, one
+> seqno_fence instance would have more sync_bufs. At this time, the
+> reference count to this sync_buf is taken.
+>
+> void fence_helper_del_sync_buf(struct fence_helper *fh, int id);
+> - This function is called if some operation is failed after
+> fence_helper_add_sync_buf call to release relevant resources.
+>
+> int fence_helper_init_reservation_entry(struct fence_helper *fh,
+> struct dma_buf *dmabuf, bool shared, int id);
+> - This function is called after fence_helper_add_sync_buf call and
+> calls reservation_entry_init function to set a reservation object of
+> sync_buf to a new reservation_entry object. And then the new
+> reservation_entry is added to fh->entries to track all sync_bufs this
+> device is going to access.
+>
+> void fence_helper_fini_reservation_entry(struct fence_helper *fh, int id);
+> - This function is called if some operation is failed after
+> fence_helper_init_reservation_entry call to releae relevant resources.
+>
+> int fence_helper_ticket_reserve(struct fence_helper *fh, int id);
+> - This function is called after fence_helper_init_reservation_entry
+> call and calls ticket_reserve function to reserve a ticket(locked for
+> each reservation entry in fh->entires)
+>
+> void fence_helper_ticket_commit(struct fence_helper *fh, int id);
+> - This function is called after fence_helper_ticket_reserve() is
+> called to commit this device's fence to all reservation_objects of
+> each sync_buf. After that, once other devices try to access these
+> buffers, they would be blocked and unlock each reservation entry in
+> fh->entires.
+>
+> int fence_helper_wait(struct fence_helper *fh, struct dma_buf *dmabuf,
+> bool intr);
+> - This function is called before fence_helper_add_sync_buf() is called
+> to wait for a signal from other devices.
+>
+> int fence_helper_signal(struct fence_helper *fh, int id);
+> - This function is called by device's interrupt handler or somewhere
+> when dma access to this buffer has been completed and calls
+> fence_signal() with each fence registed to each reservation object in
+> fh->entries to notify dma access completion to other deivces. At this
+> time, other devices blocked would be waked up and forward their next
+> step.
+>
+> For more detail, in addition, this function does the following,
+> - delete each reservation entry in fh->entries.
+> - release each seqno_fence_dmabuf object in seqno_fence's
+> sync_buf_list and call dma_buf_put() to put the reference count to
+> dmabuf.
+>
+>
+> Now the fence-helper framework is just WIP yet so there may be my
+> missing points. If you are ok, I'd like to post it as RFC.
+Way too complicated..
 
-It causes, as my main work is unrelated to drivers/media maintenance.
-So, it may take weeks for me to be able to get a time slice big enough
-for installing a kernel on my test machines and re-test some code.
 
-Cheers,
-Mauro
