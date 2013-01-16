@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:60216 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963Ab3AVP4A (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:62470 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037Ab3APNIz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 10:56:00 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hm6so8274616wib.3
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 07:55:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <2391937.KLGgbijk6r@avalon>
-References: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com>
- <2391937.KLGgbijk6r@avalon>
-From: Adriano Martins <adrianomatosmartins@gmail.com>
-Date: Tue, 22 Jan 2013 13:48:40 -0200
-Message-ID: <CAJRKTVphZiZyUTzmxaG_rU0Ba_08jRZAqADeFQNdQR+pZX1YQg@mail.gmail.com>
-Subject: Re: yavta - Broken pipe
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 16 Jan 2013 08:08:55 -0500
+From: Volokh Konstantin <volokh84@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, gregkh@linuxfoundation.org, volokh84@gmail.com,
+	dhowells@redhat.com, rdunlap@xenotime.net, hans.verkuil@cisco.com,
+	justinmattock@gmail.com, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 4/4] staging: media: go7007: call_all stream stuff Some Additional stuff for v4l2_subdev stream events partial need for new style framework. Also need for wis_tw2804 notification stuff
+Date: Wed, 16 Jan 2013 17:00:51 +0400
+Message-Id: <1358341251-10087-4-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1358341251-10087-1-git-send-email-volokh84@gmail.com>
+References: <1358341251-10087-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/go7007-v4l2.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-2013/1/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Adriano,
->
-> On Tuesday 22 January 2013 09:31:58 Adriano Martins wrote:
->> Hello Laurent and all.
->>
->> Can you explain me what means the message in yavta output:
->>
->> "Unable to start streaming: Broken pipe (32)."
->
-> This means that the ISP hardware pipeline hasn't been properly configured.
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index a69250f..2330861 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -953,6 +953,7 @@ static int vidioc_streamon(struct file *file, void *priv,
+ 	}
+ 	mutex_unlock(&go->hw_lock);
+ 	mutex_unlock(&gofh->lock);
++	call_all(&go->v4l2_dev, video, s_stream, 1);
+ 
+ 	return retval;
+ }
+@@ -968,6 +969,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 	mutex_lock(&gofh->lock);
+ 	go7007_streamoff(go);
+ 	mutex_unlock(&gofh->lock);
++	call_all(&go->v4l2_dev, video, s_stream, 0);
+ 
+ 	return 0;
+ }
+-- 
+1.7.7.6
 
-well, I already configured it before, with:
-media-ctl -V '"OMAP3 ISP CCDC":2 [UYVY 640x480], "OMAP3 ISP preview":1
-[UYVY 640x480], "OMAP3 ISP resizer":1 [UYVY 640x480]'
-and
-media-ctl -r -l '"ov5640 3-003c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
-CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP \
-preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3
-ISP resizer output":0[1]'
-Do you think it can be a hardware problem or wrong frame format from
-sensor? Or media-ctl commands is wrong.
-
-> Unlike most V4L2 devices, the OMAP3 ISP requires userspace to configure the
-> hardware pipeline before starting the video stream. You can do so with the
-> media-ctl utility (available at http://git.ideasonboard.org/media-ctl.git).
-> Plenty of examples should be available online.
->
->> I'm using omap3isp driver on DM3730 processor and a ov5640 sensor. I
->> configured it as parallel mode, but I can't get data from /dev/video6
->> (OMAP3 ISP resizer output)
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-Regards
-Adriano
