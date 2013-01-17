@@ -1,95 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3949 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754929Ab3AOVmu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 16:42:50 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0FLgko3079710
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 22:42:48 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 979113A00132
-	for <linux-media@vger.kernel.org>; Tue, 15 Jan 2013 22:42:45 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130115214245.979113A00132@alastor.dyndns.org>
-Date: Tue, 15 Jan 2013 22:42:45 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:38646 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755584Ab3AQSvV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:51:21 -0500
+Date: Thu, 17 Jan 2013 16:50:37 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130117165037.6ed80366@redhat.com>
+In-Reply-To: <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<20130116152151.5461221c@redhat.com>
+	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+	<2817386.vHx2V41lNt@f17simon>
+	<20130116200153.3ec3ee7d@redhat.com>
+	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
+	<50F7C57A.6090703@iki.fi>
+	<20130117145036.55745a60@redhat.com>
+	<50F831AA.8010708@iki.fi>
+	<20130117161126.6b2e809d@redhat.com>
+	<50F84276.3080909@iki.fi>
+	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 18 Jan 2013 00:07:17 +0530
+Manu Abraham <abraham.manu@gmail.com> escreveu:
 
-Results of the daily build of media_tree:
+> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
+> 
+> >
+> >
+> > Resetting counters when user tunes channel sounds the only correct option.
+> >
+> 
+> This might not be correct, especially when we have true Multiple Input Streams.
+> The tune might be single, but the filter setup would be different. In
+> which case it
+> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
+> should be the responsibility of the driver.
 
-date:        Tue Jan 15 19:00:19 CET 2013
-git hash:    3151d14aa6e983aa36d51a80d0477859f9ba12af
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+I moved the counters reset to the driver's logic on v11. I'm posting the
+patches in a few.
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+> As I said in an earlier
+> post, anything
+> other than the driver handling any statistical event monitoring, such an API is
+> broken for sure, without even reading single line of code for that API for which
+>  it is written for.
 
-Detailed results are available here:
+Yes, driver should have full control on it.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> > OK, maybe we will see in near future if that works well or not. I think that
+> > for calculating of PER it is required to start continuous polling to keep up
+> > total block counters. Maybe updating UCB counter continously needs that too,
+> > so it should work.
+> 
+> 
+> With multi-standard demodulators, some of them PER compute is a by-product
+> of some internal demodulator algorithmic operation. In some cases, it might
+> require a loop in the driver. As I said, again; It is very hard/wrong
+> to do basic
+> generalizations.
 
-Full logs are available here:
+Agreed.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+-- 
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
