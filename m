@@ -1,297 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36816 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28027 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756416Ab3AQS7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:09 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx9Nr015144
+	id S1756360Ab3AQS7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:59:08 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx8iu007183
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:09 -0500
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:08 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 05/16] [media] mb86a20s: functions reorder
-Date: Thu, 17 Jan 2013 16:58:19 -0200
-Message-Id: <1358449110-11203-5-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFCv11 08/16] [media] mb86a20s: fix interleaving and FEC retrival
+Date: Thu, 17 Jan 2013 16:58:22 -0200
+Message-Id: <1358449110-11203-8-git-send-email-mchehab@redhat.com>
 In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
 References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No functional changes here. Just re-organizes the functions
-inside the file.
+Get the proper bits from the TMCC table registers.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 223 +++++++++++++++++----------------
- 1 file changed, 118 insertions(+), 105 deletions(-)
+ drivers/media/dvb-frontends/mb86a20s.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index a0c9f41..526660a 100644
+index adf292c..30a864b 100644
 --- a/drivers/media/dvb-frontends/mb86a20s.c
 +++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -194,6 +194,10 @@ static struct regdata mb86a20s_clear_stats[] = {
- 	{ 0x51, 0x01 },
- };
- 
-+/*
-+ * I2C read/write functions and macros
-+ */
-+
- static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
- 			     u8 i2c_addr, int reg, int data)
- {
-@@ -255,45 +259,42 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
- 	mb86a20s_i2c_writeregdata(state, state->config->demod_address, \
- 	regdata, ARRAY_SIZE(regdata))
- 
--static int mb86a20s_initfe(struct dvb_frontend *fe)
-+/*
-+ * Ancillary internal routines (likely compiled inlined)
-+ *
-+ * The functions below assume that gateway lock has already obtained
-+ */
-+
-+static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
--	u8  regD5 = 1;
-+	int val;
- 
- 	dprintk("\n");
-+	*status = 0;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
-+	val = mb86a20s_readreg(state, 0x0a) & 0xf;
-+	if (val < 0)
-+		return val;
- 
--	/* Initialize the frontend */
--	rc = mb86a20s_writeregdata(state, mb86a20s_init);
--	if (rc < 0)
--		goto err;
-+	if (val >= 2)
-+		*status |= FE_HAS_SIGNAL;
- 
--	if (!state->config->is_serial) {
--		regD5 &= ~1;
-+	if (val >= 4)
-+		*status |= FE_HAS_CARRIER;
- 
--		rc = mb86a20s_writereg(state, 0x50, 0xd5);
--		if (rc < 0)
--			goto err;
--		rc = mb86a20s_writereg(state, 0x51, regD5);
--		if (rc < 0)
--			goto err;
--	}
-+	if (val >= 5)
-+		*status |= FE_HAS_VITERBI;
- 
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
-+	if (val >= 7)
-+		*status |= FE_HAS_SYNC;
- 
--err:
--	if (rc < 0) {
--		state->need_init = true;
--		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
--	} else {
--		state->need_init = false;
--		dprintk("Initialization succeeded.\n");
--	}
+@@ -360,7 +360,7 @@ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	switch ((rc & 0x70) >> 4) {
++	switch ((rc >> 4) & 0x07) {
+ 	case 0:
+ 		return DQPSK;
+ 	case 1:
+@@ -393,7 +393,7 @@ static int mb86a20s_get_fec(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	switch (rc) {
++	switch ((rc >> 4) & 0x07) {
+ 	case 0:
+ 		return FEC_1_2;
+ 	case 1:
+@@ -428,9 +428,21 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	if (rc > 3)
+-		return -EINVAL;	/* Not used */
 -	return rc;
-+	if (val >= 8)				/* Maybe 9? */
-+		*status |= FE_HAS_LOCK;
 +
-+	dprintk("val = %d, status = 0x%02x\n", val, *status);
++	switch ((rc >> 4) & 0x07) {
++	case 1:
++		return GUARD_INTERVAL_1_4;
++	case 2:
++		return GUARD_INTERVAL_1_8;
++	case 3:
++		return GUARD_INTERVAL_1_16;
++	case 4:
++		return GUARD_INTERVAL_1_32;
 +
-+	return 0;
- }
- 
- static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
-@@ -340,82 +341,6 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- 	return 0;
- }
- 
--static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
--{
--	struct mb86a20s_state *state = fe->demodulator_priv;
--	int val;
--
--	dprintk("\n");
--	*status = 0;
--
--	val = mb86a20s_readreg(state, 0x0a) & 0xf;
--	if (val < 0)
--		return val;
--
--	if (val >= 2)
--		*status |= FE_HAS_SIGNAL;
--
--	if (val >= 4)
--		*status |= FE_HAS_CARRIER;
--
--	if (val >= 5)
--		*status |= FE_HAS_VITERBI;
--
--	if (val >= 7)
--		*status |= FE_HAS_SYNC;
--
--	if (val >= 8)				/* Maybe 9? */
--		*status |= FE_HAS_LOCK;
--
--	dprintk("val = %d, status = 0x%02x\n", val, *status);
--
--	return 0;
--}
--
--static int mb86a20s_reset_counters(struct dvb_frontend *fe);
--
--static int mb86a20s_set_frontend(struct dvb_frontend *fe)
--{
--	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
--#if 0
--	/*
--	 * FIXME: Properly implement the set frontend properties
--	 */
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--#endif
--
--	dprintk("\n");
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--	dprintk("Calling tuner set parameters\n");
--	fe->ops.tuner_ops.set_params(fe);
--
--	/*
--	 * Make it more reliable: if, for some reason, the initial
--	 * device initialization doesn't happen, initialize it when
--	 * a SBTVD parameters are adjusted.
--	 *
--	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
--	 * the agc callback logic is not called during DVB attach time,
--	 * causing mb86a20s to not be initialized with Kworld SBTVD.
--	 * So, this hack is needed, in order to make Kworld SBTVD to work.
--	 */
--	if (state->need_init)
--		mb86a20s_initfe(fe);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 1);
--
--	mb86a20s_reset_counters(fe);
--
--	return rc;
--}
--
- static int mb86a20s_get_modulation(struct mb86a20s_state *state,
- 				   unsigned layer)
- {
-@@ -868,6 +793,94 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 	return rc;
- }
- 
-+/*
-+ * The functions below are called via DVB callbacks, so they need to
-+ * properly use the I2C gate control
-+ */
-+
-+static int mb86a20s_initfe(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
-+	u8  regD5 = 1;
-+
-+	dprintk("\n");
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	/* Initialize the frontend */
-+	rc = mb86a20s_writeregdata(state, mb86a20s_init);
-+	if (rc < 0)
-+		goto err;
-+
-+	if (!state->config->is_serial) {
-+		regD5 &= ~1;
-+
-+		rc = mb86a20s_writereg(state, 0x50, 0xd5);
-+		if (rc < 0)
-+			goto err;
-+		rc = mb86a20s_writereg(state, 0x51, regD5);
-+		if (rc < 0)
-+			goto err;
++	default:
++	case 0:
++		return GUARD_INTERVAL_AUTO;
 +	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+err:
-+	if (rc < 0) {
-+		state->need_init = true;
-+		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
-+	} else {
-+		state->need_init = false;
-+		dprintk("Initialization succeeded.\n");
-+	}
-+	return rc;
-+}
-+
-+static int mb86a20s_set_frontend(struct dvb_frontend *fe)
-+{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	int rc;
-+#if 0
-+	/*
-+	 * FIXME: Properly implement the set frontend properties
-+	 */
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+#endif
-+
-+	dprintk("\n");
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+	dprintk("Calling tuner set parameters\n");
-+	fe->ops.tuner_ops.set_params(fe);
-+
-+	/*
-+	 * Make it more reliable: if, for some reason, the initial
-+	 * device initialization doesn't happen, initialize it when
-+	 * a SBTVD parameters are adjusted.
-+	 *
-+	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
-+	 * the agc callback logic is not called during DVB attach time,
-+	 * causing mb86a20s to not be initialized with Kworld SBTVD.
-+	 * So, this hack is needed, in order to make Kworld SBTVD to work.
-+	 */
-+	if (state->need_init)
-+		mb86a20s_initfe(fe);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	mb86a20s_reset_counters(fe);
-+
-+	return rc;
-+}
-+
- static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 					  fe_status_t *status)
- {
+ }
+ 
+ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
 -- 
 1.7.11.7
 
