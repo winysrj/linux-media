@@ -1,116 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3831 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752814Ab3AGJrO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 04:47:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [PATCH V4 2/3] sta2x11_vip: convert to videobuf2 and control framework
-Date: Mon, 7 Jan 2013 10:46:43 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com> <1357493343-13090-2-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1357493343-13090-2-git-send-email-federico.vaga@gmail.com>
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:44600 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752728Ab3AQLUL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 06:20:11 -0500
+Received: by mail-oa0-f41.google.com with SMTP id k14so2528407oag.14
+        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 03:20:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301071046.43331.hverkuil@xs4all.nl>
+In-Reply-To: <50F7DD7F.5030504@samsung.com>
+References: <1358395638-26086-1-git-send-email-sachin.kamat@linaro.org>
+	<50F7DD7F.5030504@samsung.com>
+Date: Thu, 17 Jan 2013 16:50:07 +0530
+Message-ID: <CAK9yfHzF7Zbu+p8mgUmJmVi58Bf9qNVYSG5ih+tfOaDiUCOq8A@mail.gmail.com>
+Subject: Re: [PATCH v2] s5p-g2d: Add support for G2D H/W Rev.4.1
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Frederico!
+Hi Sylwester,
 
-Just one comment, see below:
+On 17 January 2013 16:46, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
+> Hi Sachin,
+>
+> On 01/17/2013 05:07 AM, Sachin Kamat wrote:
+>> Modified the G2D driver (which initially supported only H/W Rev.3)
+>> to support H/W Rev.4.1 present on Exynos4x12 and Exynos52x0 SOCs.
+>>
+>> -- Set the SRC and DST type to 'memory' instead of using reset values.
+>> -- FIMG2D v4.1 H/W uses different logic for stretching(scaling).
+>> -- Use CACHECTL_REG only with FIMG2D v3.
+>>
+>> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
+>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>> Acked-by: Kamil Debski <k.debski@samsung.com>
+>> ---
+>> Changes since v1:
+>> Moved g2d_get_drv_data() to g2d.h as suggested by
+>> Sylwester Nawrocki <s.nawrocki@samsung.com>.
+>
+> I have applied this patch for 3.9, thanks.
+Thank you.
 
-On Sun January 6 2013 18:29:02 Federico Vaga wrote:
-> This patch re-write the driver and use the videobuf2
-> interface instead of the old videobuf. Moreover, it uses also
-> the control framework which allows the driver to inherit
-> controls from its subdevice (ADV7180)
-> 
-> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-> Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
-> ---
->  drivers/media/pci/sta2x11/Kconfig       |    2 +-
->  drivers/media/pci/sta2x11/sta2x11_vip.c | 1244 ++++++++++---------------------
->  2 file modificati, 414 inserzioni(+), 832 rimozioni(-)
-> 
-> diff --git a/drivers/media/pci/sta2x11/Kconfig b/drivers/media/pci/sta2x11/Kconfig
-> index 6749f67..a94ccad 100644
-> --- a/drivers/media/pci/sta2x11/Kconfig
-> +++ b/drivers/media/pci/sta2x11/Kconfig
-> @@ -2,7 +2,7 @@ config STA2X11_VIP
->  	tristate "STA2X11 VIP Video For Linux"
->  	depends on STA2X11
->  	select VIDEO_ADV7180 if MEDIA_SUBDRV_AUTOSELECT
-> -	select VIDEOBUF_DMA_CONTIG
-> +	select VIDEOBUF2_DMA_CONTIG
->  	depends on PCI && VIDEO_V4L2 && VIRT_TO_BUS
->  	help
->  	  Say Y for support for STA2X11 VIP (Video Input Port) capture
-> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
-> index ed1337a..e379e03 100644
-> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+You may also need a patch
+> adding DT support, since those new SoCs are in mainline DT only.
 
-<snip>
+Yes. I have also created a patch adding DT support. I will post it shortly.
 
-> -/**
-> - * vidioc_try_fmt_vid_cap - set video capture format
-> - * @file: descriptor of device ( not used)
-> - * @priv: points to current videodevice
-> - * @f: new format
-> - *
-> - * new video format is set which includes width and
-> - * field type. width is fixed to 720, no scaling.
-> - * Only UYVY is supported by this hardware.
-> - * the minimum height is 200, the maximum is 576 (PAL)
-> - *
-> - * return value: 0, no error
-> - *
-> - * -EINVAL, pixel or field format not supported
-> - *
-> - */
->  static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
->  				  struct v4l2_format *f)
->  {
-> -	struct video_device *dev = priv;
-> -	struct sta2x11_vip *vip = video_get_drvdata(dev);
-> +	struct sta2x11_vip *vip = video_drvdata(file);
->  	int interlace_lim;
->  
-> -	if (V4L2_PIX_FMT_UYVY != f->fmt.pix.pixelformat)
-> -		return -EINVAL;
-> -
+>
+> --
+>
+> Regards,
+> Sylwester
 
-You should keep this check for now. See this discussion:
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
 
-I'm going to change v4l2-compliance to make this a warning instead of an
-error for now.
-
->  	if (V4L2_STD_525_60 & vip->std)
->  		interlace_lim = 240;
->  	else
->  		interlace_lim = 288;
->  
->  	switch (f->fmt.pix.field) {
-> +	default:
->  	case V4L2_FIELD_ANY:
->  		if (interlace_lim < f->fmt.pix.height)
->  			f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-
-After updating v4l2-compliance (I've just made the change to v4l2-compliance)
-can you also post the output of v4l2-compliance for this driver?
-
-Thanks,
-
-	Hans
+-- 
+With warm regards,
+Sachin
