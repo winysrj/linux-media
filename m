@@ -1,135 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56008 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:33650 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754491Ab3AXQ2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 11:28:55 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0OGStTh032740
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 11:28:55 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	id S1750834Ab3AQRWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 12:22:44 -0500
+Message-ID: <50F8333E.2020904@iki.fi>
+Date: Thu, 17 Jan 2013 19:22:06 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/5] [media] mb86a20s: some fixes at preBER logic
-Date: Thu, 24 Jan 2013 14:28:48 -0200
-Message-Id: <1359044931-13058-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1359044931-13058-1-git-send-email-mchehab@redhat.com>
-References: <1359044931-13058-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic that resets the device is wrong. It should be resetting
-just the layer that got read. Also, stop is needed before updating
-the counters.
-While there, rename it, as we'll soon introduce a postBER logic
-there.
+On 01/17/2013 07:16 PM, Manu Abraham wrote:
+> On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 01/17/2013 05:40 AM, Manu Abraham wrote:
+>>> MB86A20 is not the only demodulator driver with the Linux DVB.
+>>> And not all devices can output in dB scale proposed by you, But any device
+>>> output can be scaled in a relative way. So I don't see any reason why
+>>> userspace has to deal with cumbersome controls to deal with redundant
+>>> statistics, which is nonsense.
+>>
+>>
+>> What goes to these units in general, dB conversion is done by the driver
+>> about always. It is quite hard or even impossible to find out that formula
+>> unless you has adjustable test signal generator.
+>>
+>> Also we could not offer always dBm as signal strength. This comes to fact
+>> that only recent silicon RF-tuners are able to provide RF strength. More
+>> traditionally that estimation is done by demod from IF/RF AGC, which leads
+>> very, very, rough estimation.
+>
+> What I am saying is that, rather than sticking to a dB scale, it would be
+> better to fit it into a relative scale, ie loose dB altogether and use only the
+> relative scale. With that approach any device can be fit into that convention.
+> Even with an unknown device, it makes it pretty easy for anyone to fit
+> into that
+> scale. All you need is a few trial runs to get maxima/minima. When there
+> exists only a single convention that is simple, it makes it more easier for
+> people to stick to that convention, rather than for people to not support it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 51 ++++++++++++++++++++++++++--------
- 1 file changed, 39 insertions(+), 12 deletions(-)
+That is true. I don't have really clear opinion whether to force all to 
+one scale, or return dBm those which could and that dummy scale for the 
+others. Maybe I will still vote for both relative and dBm.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index c5c2c49..305ebc0 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -785,12 +785,12 @@ ok:
- 	return rc;
- }
- 
--static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
--					  unsigned layer,
--					  u32 *error, u32 *count)
-+static int mb86a20s_get_pre_ber(struct dvb_frontend *fe,
-+				unsigned layer,
-+				u32 *error, u32 *count)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
--	int rc;
-+	int rc, val;
- 
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
-@@ -805,7 +805,7 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 	/* Check if data is available for that layer */
- 	if (!(rc & (1 << layer))) {
- 		dev_dbg(&state->i2c->dev,
--			"%s: BER for layer %c is not available yet.\n",
-+			"%s: preBER for layer %c is not available yet.\n",
- 			__func__, 'A' + layer);
- 		return -EBUSY;
- 	}
-@@ -866,8 +866,13 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 	if (state->estimated_rate[layer]
- 	    && state->estimated_rate[layer] != *count) {
- 		dev_dbg(&state->i2c->dev,
--			"%s: updating layer %c counter to %d.\n",
-+			"%s: updating layer %c preBER counter to %d.\n",
- 			__func__, 'A' + layer, state->estimated_rate[layer]);
-+
-+		/* Turn off BER before Viterbi */
-+		rc = mb86a20s_writereg(state, 0x52, 0x00);
-+
-+		/* Update counter for this layer */
- 		rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
- 		if (rc < 0)
- 			return rc;
-@@ -889,16 +894,39 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 				       state->estimated_rate[layer]);
- 		if (rc < 0)
- 			return rc;
-+
-+		/* Turn on BER before Viterbi */
-+		rc = mb86a20s_writereg(state, 0x52, 0x01);
-+
-+		/* Reset all preBER counters */
-+		rc = mb86a20s_writereg(state, 0x53, 0x00);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x53, 0x07);
-+	} else {
-+		/* Reset counter to collect new data */
-+		rc = mb86a20s_readreg(state, 0x53);
-+		if (rc < 0)
-+			return rc;
-+		val = rc;
-+		rc = mb86a20s_writereg(state, 0x53, val & ~(1 << layer));
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x53, val | (1 << layer));
- 	}
- 
- 
- 	/* Reset counter to collect new data */
--	rc = mb86a20s_writereg(state, 0x53, 0x07 & ~(1 << layer));
-+	rc = mb86a20s_readreg(state, 0x5f);
- 	if (rc < 0)
- 		return rc;
--	rc = mb86a20s_writereg(state, 0x53, 0x07);
-+	val = rc;
-+	rc = mb86a20s_writereg(state, 0x5f, val & ~(1 << layer));
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_writereg(state, 0x5f, val);
- 
--	return 0;
-+	return rc;
- }
- 
- static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
-@@ -1401,9 +1429,8 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 
- 			/* Read per-layer BER */
- 			/* Handle BER before vterbi */
--			rc = mb86a20s_get_ber_before_vterbi(fe, i,
--							&bit_error,
--							&bit_count);
-+			rc = mb86a20s_get_pre_ber(fe, i,
-+						  &bit_error, &bit_count);
- 			if (rc >= 0) {
- 				c->pre_bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
- 				c->pre_bit_error.stat[1 + i].uvalue += bit_error;
+Shortly there is two possibilities:
+1) support only relative scale
+2) support both dBm and relative scale (with dBm priority)
+
+[3) support only dBm is not possible]
+
+regards
+Antti
+
 -- 
-1.8.1
-
+http://palosaari.fi/
