@@ -1,68 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:46804 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695Ab3ABMfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:35:33 -0500
-Received: by mail-we0-f177.google.com with SMTP id x48so6635832wey.22
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 04:35:32 -0800 (PST)
+Received: from racoon.tvdr.de ([188.40.50.18]:38108 "EHLO racoon.tvdr.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754221Ab3AQRjZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 12:39:25 -0500
+Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
+	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r0HHdOvc009596
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:39:24 +0100
+Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
+	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r0HHdIo8013488
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:39:18 +0100
+Message-ID: <50F83746.8020409@tvdr.de>
+Date: Thu, 17 Jan 2013 18:39:18 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5ACPWoM_SoDCf5JrU1iVt=qXOZz15r0H-Bkt1GLPY04mw@mail.gmail.com>
-References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
-	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
-	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
-	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
-	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
-	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
-	<CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
-	<CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
-	<CAOMZO5ACPWoM_SoDCf5JrU1iVt=qXOZz15r0H-Bkt1GLPY04mw@mail.gmail.com>
-Date: Wed, 2 Jan 2013 13:35:32 +0100
-Message-ID: <CACKLOr2DB4-ag7v=csVySeeff9tRV7-_yRNwS6vHht9s6CL45g@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, fabio.estevam@freescale.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-media] Re: [linux-media] Re: [PATCH RFCv10 00/15] DVB
+ QoS statistics API
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com> <50F8333E.2020904@iki.fi> <50F836CE.2020502@tvdr.de>
+In-Reply-To: <50F836CE.2020502@tvdr.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
-
-On 2 January 2013 13:25, Fabio Estevam <festevam@gmail.com> wrote:
-> Hi Javier,
+On 17.01.2013 18:37, Klaus Schmidinger wrote:
+> On 17.01.2013 18:22, Antti Palosaari wrote:
+>> On 01/17/2013 07:16 PM, Manu Abraham wrote:
+>>> On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>> On 01/17/2013 05:40 AM, Manu Abraham wrote:
+>>>>> MB86A20 is not the only demodulator driver with the Linux DVB.
+>>>>> And not all devices can output in dB scale proposed by you, But any device
+>>>>> output can be scaled in a relative way. So I don't see any reason why
+>>>>> userspace has to deal with cumbersome controls to deal with redundant
+>>>>> statistics, which is nonsense.
+>>>>
+>>>>
+>>>> What goes to these units in general, dB conversion is done by the driver
+>>>> about always. It is quite hard or even impossible to find out that formula
+>>>> unless you has adjustable test signal generator.
+>>>>
+>>>> Also we could not offer always dBm as signal strength. This comes to fact
+>>>> that only recent silicon RF-tuners are able to provide RF strength. More
+>>>> traditionally that estimation is done by demod from IF/RF AGC, which leads
+>>>> very, very, rough estimation.
+>>>
+>>> What I am saying is that, rather than sticking to a dB scale, it would be
+>>> better to fit it into a relative scale, ie loose dB altogether and use only the
+>>> relative scale. With that approach any device can be fit into that convention.
+>>> Even with an unknown device, it makes it pretty easy for anyone to fit
+>>> into that
+>>> scale. All you need is a few trial runs to get maxima/minima. When there
+>>> exists only a single convention that is simple, it makes it more easier for
+>>> people to stick to that convention, rather than for people to not support it.
+>>
+>> That is true. I don't have really clear opinion whether to force all to one scale, or return dBm those which could and that dummy scale for the others. Maybe I will still vote for both relative and dBm.
+>>
+>> Shortly there is two possibilities:
+>> 1) support only relative scale
+>> 2) support both dBm and relative scale (with dBm priority)
+>>
+>> [3) support only dBm is not possible]
 >
-> On Wed, Jan 2, 2013 at 10:18 AM, javier Martin
-> <javier.martin@vista-silicon.com> wrote:
+> 4) support relative scale (mandatory!) and dBm (if applicable).
 >
->> That's great. Did you need to change anything in the mx2 camera driver
->> for mx25 to work? Have you already submitted the patches?
+> I concur with Antti.
+
+Sorry, that should have been "Manu" - got the wrong quote level...
+
+>  Any device's values can be made to fit into
+> a 0..100 (or whatever) range, so *that* should be the primary (and
+> mandatory) value. If the device can do so, it can also provide a dB*
+> value (replace * with anything you like, 'm', 'uV', 'uW', whatever)
+> and maybe all other sorts of bells and whistles.
+> So real world applications could simply and savely use the relative
+> value (which is all they need), and special applications could fiddle
+> around with dB values (provided the device in use can deliver them).
 >
-> I only touched board file code:
-> http://www.spinics.net/lists/arm-kernel/msg210216.html
+> @Mauro: here's some further reading for you, just in case ;-)
 >
-> ,and have only verified that camera probe worked on mx25pdk.
-
-Sorry Fabio but IMHO that's not enough. The probe() callback may work
-properly but it doesn't mean that buffer and HW handling for i.MX25
-are functional.
-The condition to keep i.MX25 support in this file was that you were
-going to fix it but instead you have just added board support for a
-broken driver.
-
-I'd like to hear Guennadi's view on the matter but I think we've given
-plenty of time for this.
-
-Regards.
-
-
-
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+>    http://en.wikipedia.org/wiki/KISS_principle
+>    http://www.inspireux.com/2008/07/14/a-designer-achieves-perfection-when-there-is-nothing-left-to-take-away
+>
+> Klaus
