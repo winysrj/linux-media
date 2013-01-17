@@ -1,224 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:57096 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752415Ab3AAQ4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 11:56:20 -0500
-Date: Tue, 1 Jan 2013 17:56:13 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 06/15] [media] marvell-ccic: add new formats support
- for marvell-ccic driver
-In-Reply-To: <1355565484-15791-7-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1301011734070.31619@axis700.grange>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-7-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:14126 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754140Ab3AQSMJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:12:09 -0500
+Date: Thu, 17 Jan 2013 16:11:26 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+Message-ID: <20130117161126.6b2e809d@redhat.com>
+In-Reply-To: <50F831AA.8010708@iki.fi>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<20130116152151.5461221c@redhat.com>
+	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+	<2817386.vHx2V41lNt@f17simon>
+	<20130116200153.3ec3ee7d@redhat.com>
+	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
+	<50F7C57A.6090703@iki.fi>
+	<20130117145036.55745a60@redhat.com>
+	<50F831AA.8010708@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012, Albert Wang wrote:
+Em Thu, 17 Jan 2013 19:15:22 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-> From: Libin Yang <lbyang@marvell.com>
+> On 01/17/2013 06:50 PM, Mauro Carvalho Chehab wrote:
+> > Em Thu, 17 Jan 2013 11:33:46 +0200
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> What goes to these units in general, dB conversion is done by the driver
+> >> about always. It is quite hard or even impossible to find out that
+> >> formula unless you has adjustable test signal generator.
+> >>
+> >> Also we could not offer always dBm as signal strength. This comes to
+> >> fact that only recent silicon RF-tuners are able to provide RF strength.
+> >> More traditionally that estimation is done by demod from IF/RF AGC,
+> >> which leads very, very, rough estimation.
+> >>
+> >> So at least for the signal strength it is impossible to require dBm. dB
+> >> for SNR is possible, but it is very hard due to lack of developers
+> >> knowledge and test equipment. SNR could be still forced to look like it
+> >> is in given dB scale. I think it is not big loss even though SNR values
+> >> reported are a little bit wrong.
+> >>
+> >>
+> >> About half year ago I looked how SNR was measured every demod we has:
+> >>
+> >> http://palosaari.fi/linux/v4l-dvb/snr_2012-05-21.txt
+> >>
+> >> as we can see there is currently only two style used:
+> >> 1) 0.1 dB (very common in new drivers)
+> >> 2) unknown (== mostly just raw register values)
+> >
+> > It could make sense to have an FE_SCALE_UNKNOWN for those drivers, if
+> > they can't converted into any of the supported scales.
+> >
+> > Btw, as agreed, on v11:
+> > 	- dB scale changed to 0.001 dB (not sure if this will bring much
+> > gain, as I doubt that demods have that much precision);
+> > 	- removed QoS nomenclature (I hope I didn't forget it left on
+> > 	  some patch);
+> > 	- removed DTV_QOS_ENUM;
+> > 	- counters reset logic is now driver-specific (currently, resetting
+> > 	  it at set_frontend callback on mb8620s);
+> >
+> > I'll be posting the patches after finishing the tests.
+> >
+> > What's left (probably we need more discussions):
+> >
+> > a) a flag to indicate a counter reset (my suggestion).
+> >
+> > Does it make sense? If so, where should it be? At fe_status_t?
+> >
+> > b) per-stats/per-dvb-property error indicator (Devin's suggestion).
+> >
+> > I don't think it is needed for statistics. Yet, it may be interesting for
+> > the other dvb properties.
+> >
+> > So, IMHO, I would do add it like:
+> >
+> > struct dtv_property {
+> >          __u32 cmd;
+> > 	__s32 error;		/* Linux error code when set/get this specific property */
+> >          __u32 reserved[2];
+> >          union {
+> >                  __u32 data;
+> >                  struct dtv_fe_stats st;
+> >                  struct {
+> >                          __u8 data[32];
+> >                          __u32 len;
+> >                          __u32 reserved1[3];
+> >                          void *reserved2;
+> >                 	} buffer;
+> >          } u;
+> >          int result;
+> > } __attribute__ ((packed));
+> >
+> > A patch adding this for statistics should be easy, as there's just one
+> > driver currently implementing it. Making the core and drivers handle
+> > per-property errors can be trickier and will require more work.
+> >
+> > But I'm still in doubt if it does make sense for stats.
+> >
+> > Devin?
+> >
+> > Cheers,
+> > Mauro
+> >
 > 
-> This patch adds the new formats support for marvell-ccic.
+> There is one issue what I now still think.
 > 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c |  175 ++++++++++++++++++-----
->  drivers/media/platform/marvell-ccic/mcam-core.h |    6 +
->  2 files changed, 149 insertions(+), 32 deletions(-)
+> dvb_prop[2].cmd = DTV_QOS_BIT_ERROR_COUNT;
+> dvb_prop[3].cmd = DTV_QOS_TOTAL_BITS_COUNT;
+> dvb_prop[4].cmd = DTV_QOS_ERROR_BLOCK_COUNT;
+> dvb_prop[5].cmd = DTV_QOS_TOTAL_BLOCKS_COUNT;
 > 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index 3cc1d0c..a679917 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> For me this looks like uncorrected errors are reported as a rate too (as 
+> both error count and total count are reported to app). But that is not 
+> suitable for reporting uncorrected blocks! It fits fine for BER, but not 
+> UCB. If UCB counter is running that fast then picture is totally broken. 
 
-[snip]
+UCB is just DTV_QOS_ERROR_BLOCK_COUNT. 
 
-> @@ -658,49 +708,85 @@ static inline void mcam_sg_restart(struct mcam_camera *cam)
->   */
->  static void mcam_ctlr_image(struct mcam_camera *cam)
->  {
-> -	int imgsz;
->  	struct v4l2_pix_format *fmt = &cam->pix_format;
-> +	u32 widthy = 0, widthuv = 0, imgsz_h, imgsz_w;
-> +
-> +	cam_dbg(cam, "camera: bytesperline = %d; height = %d\n",
-> +		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
-> +	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
-> +	imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
-> +
-> +	switch (fmt->pixelformat) {
-> +	case V4L2_PIX_FMT_YUYV:
-> +	case V4L2_PIX_FMT_UYVY:
-> +		widthy = fmt->width * 2;
-> +		widthuv = 0;
-> +		break;
-> +	case V4L2_PIX_FMT_JPEG:
-> +		imgsz_h = (fmt->sizeimage / fmt->bytesperline) << IMGSZ_V_SHIFT;
-> +		widthy = fmt->bytesperline;
-> +		widthuv = 0;
-> +		break;
-> +	case V4L2_PIX_FMT_YUV422P:
-> +	case V4L2_PIX_FMT_YUV420:
-> +	case V4L2_PIX_FMT_YVU420:
-> +		imgsz_w = (fmt->bytesperline * 4 / 3) & IMGSZ_H_MASK;
-> +		widthy = fmt->width;
-> +		widthuv = fmt->width / 2;
+PER is DTV_QOS_ERROR_BLOCK_COUNT / DTV_QOS_TOTAL_BLOCKS_COUNT
 
-I might be wrong, but the above doesn't look right to me. Firstly, YUV422P 
-is a 4:2:2 format, whereas YUV420 and YVU420 are 4:2:0 formats, so, I 
-would expect calculations for them to differ. Besides, bytesperline * 4 / 
-3 doesn't look right for any of them. If this is what I think - total 
-number of bytes per line, i.e., sizeimage / height, than shouldn't YAU422P 
-have
-+		imgsz_w = fmt->bytesperline & IMGSZ_H_MASK;
-and the other two
-+		imgsz_w = (fmt->bytesperline * 3 / 2) & IMGSZ_H_MASK;
-? But maybe I'm wrong, please, double-check and confirm.
+Not all frontends will of course provide PER.
 
-> +		break;
-> +	default:
-> +		widthy = fmt->bytesperline;
-> +		widthuv = 0;
-> +	}
-> +
-> +	mcam_reg_write_mask(cam, REG_IMGPITCH, widthuv << 16 | widthy,
-> +			IMGP_YP_MASK | IMGP_UVP_MASK);
-> +	mcam_reg_write(cam, REG_IMGSIZE, imgsz_h | imgsz_w);
-> +	mcam_reg_write(cam, REG_IMGOFFSET, 0x0);
->  
-> -	imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
-> -		(fmt->bytesperline & IMGSZ_H_MASK);
-> -	mcam_reg_write(cam, REG_IMGSIZE, imgsz);
-> -	mcam_reg_write(cam, REG_IMGOFFSET, 0);
-> -	/* YPITCH just drops the last two bits */
-> -	mcam_reg_write_mask(cam, REG_IMGPITCH, fmt->bytesperline,
-> -			IMGP_YP_MASK);
->  	/*
->  	 * Tell the controller about the image format we are using.
->  	 */
-> -	switch (cam->pix_format.pixelformat) {
-> +	switch (fmt->pixelformat) {
-> +	case V4L2_PIX_FMT_YUV422P:
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
-> +		break;
-> +	case V4L2_PIX_FMT_YUV420:
-> +	case V4L2_PIX_FMT_YVU420:
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
-> +		break;
->  	case V4L2_PIX_FMT_YUYV:
-> -	    mcam_reg_write_mask(cam, REG_CTRL0,
-> -			    C0_DF_YUV|C0_YUV_PACKED|C0_YUVE_YUYV,
-> -			    C0_DF_MASK);
-> -	    break;
-> -
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
-> +		break;
-> +	case V4L2_PIX_FMT_UYVY:
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-> +		break;
-> +	case V4L2_PIX_FMT_JPEG:
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-> +		break;
->  	case V4L2_PIX_FMT_RGB444:
-> -	    mcam_reg_write_mask(cam, REG_CTRL0,
-> -			    C0_DF_RGB|C0_RGBF_444|C0_RGB4_XRGB,
-> -			    C0_DF_MASK);
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_RGB | C0_RGBF_444 | C0_RGB4_XRGB, C0_DF_MASK);
->  		/* Alpha value? */
-> -	    break;
-> -
-> +		break;
->  	case V4L2_PIX_FMT_RGB565:
-> -	    mcam_reg_write_mask(cam, REG_CTRL0,
-> -			    C0_DF_RGB|C0_RGBF_565|C0_RGB5_BGGR,
-> -			    C0_DF_MASK);
-> -	    break;
-> -
-> +		mcam_reg_write_mask(cam, REG_CTRL0,
-> +			C0_DF_RGB | C0_RGBF_565 | C0_RGB5_BGGR, C0_DF_MASK);
-> +		break;
->  	default:
-> -	    cam_err(cam, "Unknown format %x\n", cam->pix_format.pixelformat);
-> -	    break;
-> +		cam_err(cam, "camera: unknown format: %#x\n", fmt->pixelformat);
-> +		break;
->  	}
-> +
->  	/*
->  	 * Make sure it knows we want to use hsync/vsync.
->  	 */
-> -	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
-> -			C0_SIFM_MASK);
-> -
-> +	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
->  	/*
->  	 * This field controls the generation of EOF(DVP only)
->  	 */
-> @@ -711,7 +797,6 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
->  	}
->  }
->  
-> -
->  /*
->   * Configure the controller for operation; caller holds the
->   * device mutex.
-> @@ -984,11 +1069,37 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
->  {
->  	struct mcam_vb_buffer *mvb = vb_to_mvb(vb);
->  	struct mcam_camera *cam = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct v4l2_pix_format *fmt = &cam->pix_format;
->  	unsigned long flags;
->  	int start;
-> +	dma_addr_t dma_handle;
-> +	u32 pixel_count = fmt->width * fmt->height;
->  
->  	spin_lock_irqsave(&cam->dev_lock, flags);
-> +	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
-> +	BUG_ON(!dma_handle);
->  	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
-> +
-> +	switch (cam->pix_format.pixelformat) {
-> +	case V4L2_PIX_FMT_YUV422P:
-> +		mvb->yuv_p.y = dma_handle;
+> Behavior of UCB should remain quite same as it is currently, increases 
+> slowly over the time. If you start resetting counters as for BER then 
+> UCB is almost all the time 0. User wants to know UCB errors in frame of 
+> days rather than minutes.
 
-The above line is common for all cases, perhaps just put it above switch?
+Hmm... good point.
 
-> +		mvb->yuv_p.u = mvb->yuv_p.y + pixel_count;
-> +		mvb->yuv_p.v = mvb->yuv_p.u + pixel_count / 2;
-> +		break;
-> +	case V4L2_PIX_FMT_YUV420:
-> +		mvb->yuv_p.y = dma_handle;
-> +		mvb->yuv_p.u = mvb->yuv_p.y + pixel_count;
-> +		mvb->yuv_p.v = mvb->yuv_p.u + pixel_count / 4;
-> +		break;
-> +	case V4L2_PIX_FMT_YVU420:
-> +		mvb->yuv_p.y = dma_handle;
-> +		mvb->yuv_p.v = mvb->yuv_p.y + pixel_count;
-> +		mvb->yuv_p.u = mvb->yuv_p.v + pixel_count / 4;
-> +		break;
-> +	default:
-> +		mvb->yuv_p.y = dma_handle;
-> +	}
-> +
->  	list_add(&mvb->queue, &cam->buffers);
->  	if (cam->state == S_STREAMING && test_bit(CF_SG_RESTART, &cam->flags))
->  		mcam_sg_restart(cam);
+Let's see when those counters would overflow with u64 (please correct
+if I did any wrong calculus on bc).
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+We have:
+	2^64 = 18,446,744,073,709,551,616
+
+Assuming a bit rate of 54 Mbps, we have:
+	bits_per_sec = (54*1024*1024*1024)
+	bits_per_sec = 57,982,058,496
+
+In this case, the bit error count will overflow in:
+	time_to_overflow = 2^64 seconds / bits_per_sec =
+			 = 18,446,744,073,709,551,616 / 57,982,058,496
+		         = 318,145,725 seconds
+So,
+	time_to_overflow is more than 3682 days and more than 10 years
+
+DTV_QOS_TOTAL_BLOCKS_COUNT increments slower than DTV_QOS_TOTAL_BITS_COUNT
+(204 * 8 times slower).
+
+So, it would take 318,145,725 * 204 * 8 seconds (or 6,009,419 days) to
+overflow).
+
+IMHO, except for professional applications that would be continuously
+running for more than 10 years , there's no need to be
+careful about overflows.
+
+That said, I still think that the counters should be reset when
+a new channel is tuned (e. g. when set_frontend is called from
+userspace) or when the user requests for a counters reset, as the 
+statistics from one channel/transponder are different than the ones
+for other channels/transponders.
+
+Mauro
