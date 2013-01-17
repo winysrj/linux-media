@@ -1,91 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:35904 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab3ACJFu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 04:05:50 -0500
-Date: Thu, 3 Jan 2013 12:05:20 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Tony Prisk <linux@prisktech.co.nz>
-Cc: Dan Carpenter <error27@gmail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
- IS_ERR_OR_NULL
-Message-ID: <20130103090520.GC7247@mwanda>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz>
- <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>
- <50D62BC9.9010706@mvista.com>
- <50E32C06.5020104@gmail.com>
- <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
- <1357104713.30504.8.camel@gitbox>
+Received: from mail.kapsi.fi ([217.30.184.167]:45020 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752070Ab3AQS1n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:27:43 -0500
+Message-ID: <50F84276.3080909@iki.fi>
+Date: Thu, 17 Jan 2013 20:27:02 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1357104713.30504.8.camel@gitbox>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <20130117145036.55745a60@redhat.com> <50F831AA.8010708@iki.fi> <20130117161126.6b2e809d@redhat.com>
+In-Reply-To: <20130117161126.6b2e809d@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 02, 2013 at 06:31:53PM +1300, Tony Prisk wrote:
-> On Wed, 2013-01-02 at 08:10 +0300, Dan Carpenter wrote:
-> > clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
-> > 
-> > I told Tony about this but everyone has been gone with end of year
-> > holidays so it hasn't been addressed.
-> > 
-> > Tony, please fix it so people don't apply these patches until
-> > clk_get() is updated to not return NULL.  It sucks to have to revert
-> > patches.
-> > 
-> > regards,
-> > dan carpenter
-> 
-> I posted the query to Mike Turquette, linux-kernel and linux-arm-kernel
-> mailing lists, regarding the return of NULL when HAVE_CLK is undefined.
-> 
-> Short Answer: A return value of NULL is valid and not an error therefore
-> we should be using IS_ERR, not IS_ERR_OR_NULL on clk_get results.
-> 
-> I see the obvious problem this creates, and asked this question:
-> 
-> If the driver can't operate with a NULL clk, it should use a
-> IS_ERR_OR_NULL test to test for failure, rather than IS_ERR.
-> 
-> 
-> And Russell's answer:
-> 
-> Why should a _consumer_ of a clock care?  It is _very_ important that
-> people get this idea - to a consumer, the struct clk is just an opaque
-> cookie.  The fact that it appears to be a pointer does _not_ mean that
-> the driver can do any kind of dereferencing on that pointer - it should
-> never do so.
-> 
-> Thread can be viewed here:
-> https://lkml.org/lkml/2012/12/20/105
-> 
+On 01/17/2013 08:11 PM, Mauro Carvalho Chehab wrote:
+> Em Thu, 17 Jan 2013 19:15:22 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 01/17/2013 06:50 PM, Mauro Carvalho Chehab wrote:
+>>> Em Thu, 17 Jan 2013 11:33:46 +0200
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>
+>>>> What goes to these units in general, dB conversion is done by the driver
+>>>> about always. It is quite hard or even impossible to find out that
+>>>> formula unless you has adjustable test signal generator.
+>>>>
+>>>> Also we could not offer always dBm as signal strength. This comes to
+>>>> fact that only recent silicon RF-tuners are able to provide RF strength.
+>>>> More traditionally that estimation is done by demod from IF/RF AGC,
+>>>> which leads very, very, rough estimation.
+>>>>
+>>>> So at least for the signal strength it is impossible to require dBm. dB
+>>>> for SNR is possible, but it is very hard due to lack of developers
+>>>> knowledge and test equipment. SNR could be still forced to look like it
+>>>> is in given dB scale. I think it is not big loss even though SNR values
+>>>> reported are a little bit wrong.
+>>>>
+>>>>
+>>>> About half year ago I looked how SNR was measured every demod we has:
+>>>>
+>>>> http://palosaari.fi/linux/v4l-dvb/snr_2012-05-21.txt
+>>>>
+>>>> as we can see there is currently only two style used:
+>>>> 1) 0.1 dB (very common in new drivers)
+>>>> 2) unknown (== mostly just raw register values)
+>>>
+>>> It could make sense to have an FE_SCALE_UNKNOWN for those drivers, if
+>>> they can't converted into any of the supported scales.
+>>>
+>>> Btw, as agreed, on v11:
+>>> 	- dB scale changed to 0.001 dB (not sure if this will bring much
+>>> gain, as I doubt that demods have that much precision);
+>>> 	- removed QoS nomenclature (I hope I didn't forget it left on
+>>> 	  some patch);
+>>> 	- removed DTV_QOS_ENUM;
+>>> 	- counters reset logic is now driver-specific (currently, resetting
+>>> 	  it at set_frontend callback on mb8620s);
+>>>
+>>> I'll be posting the patches after finishing the tests.
+>>>
+>>> What's left (probably we need more discussions):
+>>>
+>>> a) a flag to indicate a counter reset (my suggestion).
+>>>
+>>> Does it make sense? If so, where should it be? At fe_status_t?
+>>>
+>>> b) per-stats/per-dvb-property error indicator (Devin's suggestion).
+>>>
+>>> I don't think it is needed for statistics. Yet, it may be interesting for
+>>> the other dvb properties.
+>>>
+>>> So, IMHO, I would do add it like:
+>>>
+>>> struct dtv_property {
+>>>           __u32 cmd;
+>>> 	__s32 error;		/* Linux error code when set/get this specific property */
+>>>           __u32 reserved[2];
+>>>           union {
+>>>                   __u32 data;
+>>>                   struct dtv_fe_stats st;
+>>>                   struct {
+>>>                           __u8 data[32];
+>>>                           __u32 len;
+>>>                           __u32 reserved1[3];
+>>>                           void *reserved2;
+>>>                  	} buffer;
+>>>           } u;
+>>>           int result;
+>>> } __attribute__ ((packed));
+>>>
+>>> A patch adding this for statistics should be easy, as there's just one
+>>> driver currently implementing it. Making the core and drivers handle
+>>> per-property errors can be trickier and will require more work.
+>>>
+>>> But I'm still in doubt if it does make sense for stats.
+>>>
+>>> Devin?
+>>>
+>>> Cheers,
+>>> Mauro
+>>>
+>>
+>> There is one issue what I now still think.
+>>
+>> dvb_prop[2].cmd = DTV_QOS_BIT_ERROR_COUNT;
+>> dvb_prop[3].cmd = DTV_QOS_TOTAL_BITS_COUNT;
+>> dvb_prop[4].cmd = DTV_QOS_ERROR_BLOCK_COUNT;
+>> dvb_prop[5].cmd = DTV_QOS_TOTAL_BLOCKS_COUNT;
+>>
+>> For me this looks like uncorrected errors are reported as a rate too (as
+>> both error count and total count are reported to app). But that is not
+>> suitable for reporting uncorrected blocks! It fits fine for BER, but not
+>> UCB. If UCB counter is running that fast then picture is totally broken.
+>
+> UCB is just DTV_QOS_ERROR_BLOCK_COUNT.
+>
+> PER is DTV_QOS_ERROR_BLOCK_COUNT / DTV_QOS_TOTAL_BLOCKS_COUNT
+>
+> Not all frontends will of course provide PER.
+>
+>> Behavior of UCB should remain quite same as it is currently, increases
+>> slowly over the time. If you start resetting counters as for BER then
+>> UCB is almost all the time 0. User wants to know UCB errors in frame of
+>> days rather than minutes.
+>
+> Hmm... good point.
+>
+> Let's see when those counters would overflow with u64 (please correct
+> if I did any wrong calculus on bc).
 
-Ah.  Grand.  Thanks...
+It will not overflow, as you maybe remember I calculated few days back 
+that u32 will overflow BER counter in 10 seconds in very special case 
+where I used 32MHz BW (DVB-C2) and quite optimal (14bit? SNR very big) 
+samples from Shannon. If BER will not overflow then no need to care 
+about uncorrected blocks as those are much more smaller than BER total bits.
 
-Btw. The documentation for clk_get() really should include some of
-this information.  I know Russell thinks that the driver authors are
-stupid and lazy, and it's probably true.  But if everyone makes the
-same mistake over and over, then it probably means we could put a
-special note:
+> We have:
+> 	2^64 = 18,446,744,073,709,551,616
+>
+> Assuming a bit rate of 54 Mbps, we have:
+> 	bits_per_sec = (54*1024*1024*1024)
+> 	bits_per_sec = 57,982,058,496
+>
+> In this case, the bit error count will overflow in:
+> 	time_to_overflow = 2^64 seconds / bits_per_sec =
+> 			 = 18,446,744,073,709,551,616 / 57,982,058,496
+> 		         = 318,145,725 seconds
+> So,
+> 	time_to_overflow is more than 3682 days and more than 10 years
+>
+> DTV_QOS_TOTAL_BLOCKS_COUNT increments slower than DTV_QOS_TOTAL_BITS_COUNT
+> (204 * 8 times slower).
+>
+> So, it would take 318,145,725 * 204 * 8 seconds (or 6,009,419 days) to
+> overflow).
+>
+> IMHO, except for professional applications that would be continuously
+> running for more than 10 years , there's no need to be
+> careful about overflows.
+>
+> That said, I still think that the counters should be reset when
+> a new channel is tuned (e. g. when set_frontend is called from
+> userspace) or when the user requests for a counters reset, as the
+> statistics from one channel/transponder are different than the ones
+> for other channels/transponders.
 
-"Do not check this with IS_ERR_OR_NULL().  Null values are not an
-error.  Drivers should treat the return value as an opaque cookie
-and they should not dereference it."
+Resetting counters when user tunes channel sounds the only correct option.
 
-This is probably there in the file somewhere else, but I searched
-for "opaque", "cookie", and "dereference" and I didn't find
-anything.  I'm not saying the documentation isn't perfect, just that
-driver authors are lazy and stupid but we can't kill them so we have
-to live with them.
+OK, maybe we will see in near future if that works well or not. I think 
+that for calculating of PER it is required to start continuous polling 
+to keep up total block counters. Maybe updating UCB counter continously 
+needs that too, so it should work.
 
-regards,
-dan carpenter
+regards
+Antti
 
+-- 
+http://palosaari.fi/
