@@ -1,95 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4041 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754610Ab3AKVo7 (ORCPT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:64964 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759315Ab3AQJZI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 16:44:59 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0BLitWl043814
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 11 Jan 2013 22:44:57 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 58E9F1700014
-	for <linux-media@vger.kernel.org>; Fri, 11 Jan 2013 22:44:55 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130111214455.58E9F1700014@alastor.dyndns.org>
-Date: Fri, 11 Jan 2013 22:44:55 +0100 (CET)
+	Thu, 17 Jan 2013 04:25:08 -0500
+Received: by mail-ee0-f53.google.com with SMTP id e53so1121737eek.40
+        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 01:25:07 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 17 Jan 2013 11:19:20 +0200
+Message-ID: <CAEK=PesFD3X61dG9ZeQ-oMs_amr4moTz=0pPbpX3sHESfTWDWw@mail.gmail.com>
+Subject: Baseband I/Q raw data from a dvb-s/dvb-s2 card. Is it possible ?
+From: Stelios Koroneos <stelios.koroneos@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Greetings to all !
+First of all apologies, as this might not an "on-topic " question for the list.
 
-Results of the daily build of media_tree:
+I am looking for a way to access the raw baseband I/Q data either for
+dvb-s or dvb-s2 but i am kind of confused if this is possible and with
+which card.
+I had a look at some of the driver(s) code, but still could not figure it out.
+As far as i can tell a demodulator like the STB0899 for example
+provides this info but i am not sure if this is available by the
+driver, or if there are any other alternatives.
 
-date:        Fri Jan 11 19:02:29 CET 2013
-git hash:    3151d14aa6e983aa36d51a80d0477859f9ba12af
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+The reason i want to access the raw I/Q stream is because i am in the
+process of building a high speed random number generator that will use
+the thermal noise
+ produced by the LNB
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I know its possible to tap to the I/Q stream by adding some external
+fast ADC/comperator but i am looking to see if there is a way to do
+that without modifications to the card etc
 
-Detailed results are available here:
+Any help,info,pointers would be highly appreciated
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Best regards
 
-Full logs are available here:
+Stelios
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+PGP Key fingerprint = DC66 109A 6C3A 2D65 BA52  806E 6122 DAF4 32E7 076A
