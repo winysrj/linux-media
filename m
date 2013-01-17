@@ -1,59 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:61028 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3ABL6k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:58:40 -0500
-Date: Wed, 2 Jan 2013 12:58:37 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: linux-media@vger.kernel.org, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH RFC v2 02/15] [media] Add a V4L2 OF parser
-In-Reply-To: <1356969793-27268-3-git-send-email-s.nawrocki@samsung.com>
-Message-ID: <Pine.LNX.4.64.1301021255380.7829@axis700.grange>
-References: <1356969793-27268-1-git-send-email-s.nawrocki@samsung.com>
- <1356969793-27268-3-git-send-email-s.nawrocki@samsung.com>
+Received: from hornet.asctec.de ([176.9.40.213]:40021 "EHLO hornet.asctec.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755444Ab3AQHio convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 02:38:44 -0500
+From: Jan Stumpf <Jan.Stumpf@asctec.de>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [cx231xx] Support for Arm / Omap working at all?
+Date: Thu, 17 Jan 2013 07:31:50 +0000
+Message-ID: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester
+Hi!
 
-Just one question to this one:
+I'm trying to get an Hauppauge Live Usb 2 video grabber to run on on Omap4 (Gumstix Duovero). I'm using Sakomans omap-3.6 head kernel sources from http://git.sakoman.com/git/gitweb.cgi?p=linux.git;a=summary . The hardware is successfully detected on the USB host port, the driver loads perfectly including the firmware. With v4l2-ctl --all I can see if thee video signal on the composite port is ok or if the sync is lost, but as soon as I use any v4l2 software (e.g. yavta) to grab some images the driver uses 100% of the cpu, returns the first image and after some seconds I see EPROTO (-71) errors in dmesg. First I get " cx231xx #0: can't change interface 3 alt. no to 0 (err=-71)" and then "UsbInterface::sendCommand, failed with status --71"
 
-On Mon, 31 Dec 2012, Sylwester Nawrocki wrote:
+I did the following tests:
 
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> new file mode 100644
-> index 0000000..cdac04b
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -0,0 +1,249 @@
-> +/*
-> + * V4L2 OF binding parsing library
-> + *
-> + * Copyright (C) 2012 Renesas Electronics Corp.
-> + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/slab.h>
+- checked that all patches I found (e.g from http://git.linuxtv.org/mchehab/cx231xx.git) are included in my kernel, including the URB DMA related patches and the timing patches
+- tried the same on an Gumstix Overo (Overo Fire and Overo WarerStorm) on several different header boards.
+- tried older kernels (3.2 and 2.6.32) with rougly the same results or known errors due to missing patches
 
-Is slab.h really needed? I didn't have it in my version. Maybe you meant 
-to include string.h for memset()?
+Unfortunately I can't use other capture devices because the final hardware is custom made with the cx23102 chip :-( I could use an omap3 instead of an omap4, but omap4 is preferred.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+My questions are: 
+
+- Did anybody ever used the cx231xx driver with an omap3 or omap4 successfully? 
+- If yes, could you let me know the kernel version and maybe the config? 
+- Any hints what I could try? I'm an expirienced embedded C programmer but I dont have much expirience in USB kernel drivers. 
+
+Any help is greatly appriciated!
+
+Thanks in Advance!
+
+Jan
