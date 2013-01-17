@@ -1,171 +1,548 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:41726 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754317Ab3AJTEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 14:04:12 -0500
-Received: by mail-oa0-f51.google.com with SMTP id n12so971705oag.38
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 11:04:11 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
-	<50EF0A4F.1000604@gmail.com>
-	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
-	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
-Date: Fri, 11 Jan 2013 00:34:11 +0530
-Message-ID: <CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:17141 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756403Ab3AQS7N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:59:13 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIxD13015162
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:13 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv11 04/16] [media] mb86a20s: Add DVBv5 statistics at FE read_status
+Date: Thu, 17 Jan 2013 16:58:18 -0200
+Message-Id: <1358449110-11203-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
+References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/11/13, Michael Krufky <mkrufky@linuxtv.org> wrote:
-> On Thu, Jan 10, 2013 at 1:46 PM, Manu Abraham <abraham.manu@gmail.com>
-> wrote:
->> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
->>> On 01/10/2013 06:40 PM, Manu Abraham wrote:
->>>> On 1/9/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>>>> Em Wed, 9 Jan 2013 06:08:44 -0500
->>>>> Michael Krufky <mkrufky@linuxtv.org> escreveu:
->>>>>
->>>>>> On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
->>>>>> <mchehab@redhat.com> wrote:
->>>>>>> Em Wed, 09 Jan 2013 10:43:23 +0100
->>>>>>> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
->>>>>>>
->>>>>>>> On 08-01-13 21:01, Johannes Stezenbach wrote:
->>>>>>>>> On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
->>>>>>>>>> On 07-01-13 11:46, Jiri Slaby wrote:
->>>>>>>>>>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
->>>>>>>>>>>> Unfortunatly, I have had zero replies.
->>>>>>>>>>> Hmm, it's sad there is a silence in this thread from linux-media
->>>>>>>>>>> guys :/.
->>>>>>>>>> In their defense, they are very very busy people ;) chatter on
->>>>>>>>>> this
->>>>>>>>>> thread does bring it up however.
->>>>>>>>> This is such a nice thing to say :-)
->>>>>>>>> But it might be that Mauro thinks the dvb-apps maintainer should
->>>>>>>>> respond, but apparently there is no dvb-apps maintainer...
->>>>>>>>> Maybe you should ask Mauro directly to create an account for you
->>>>>>>>> to implement what you proposed.
->>>>>>>> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
->>>>>>>> decides what I suggested is a good idea? I personally obviously
->>>>>>>> think
->>>>>>>> it
->>>>>>>> is ;) and even more so if dvb-apps are unmaintained.
->>>>>>>>
->>>>>>>> I guess the question now becomes 'who okay's this change? Who says
->>>>>>>> 'okay, lets do it this way. Once that is answered we can go from
->>>>>>>> there
->>>>>>>> ;)
->>>>>>>
->>>>>>> If I understood it right, you want to split the scan files into a
->>>>>>> separate
->>>>>>> git tree and maintain it, right?
->>>>>>>
->>>>>>> I'm ok with that.
->>>>>>>
->>>>>>> Regards,
->>>>>>> Mauro
->>>>>>
->>>>>> As a DVB maintainer, I am OK with this as well - It does indeed make
->>>>>> sense to separate the c code sources from the regional frequency
->>>>>> tables, and I'm sure we'll see much benefit from this change.
->>>>>
->>>>> Done. I created a tree for Oliver to maintain it and an account for
->>>>> him.
->>>>> I also created a new tree with just the DVB table commits to:
->>>>>     http://git.linuxtv.org/dtv-scan-tables.git
->>>>>
->>>>> I kept there both szap and scan files, although maybe it makes sense
->>>>> to
->>>>> drop the szap table (channels-conf dir). It also makes sense to drop
->>>>> the
->>>>> tables from the dvb-apps tree, to avoid duplicated stuff, and to avoid
->>>>
->>>> Being one of the maintainers:
->>>>
->>>> I will keep the tables in the dvb-apps tree for the time being.
->>>
->>> That does not make sense at all -- why? Duplicated stuff always hurts.
->>
->>
->> The scan files and config files are very specific to dvb-apps, some
->> applications
->> do rely on these config files. It doesn't really make sense to have
->> split out config
->> files for these  small applications.
->>
->>
->>>
->>>> Will decide to
->>>> drop the config files as needed from dvb-apps. It is necessary to keep
->>>> a
->>>> copy of the config files for development purposes, rather than pulling
->>>> from
->>>> different trees.
->>>
->>> What development purposes, could you be more specific? You can still use
->>> git submodules if really needed. But as it stands I do not see a reason
->>> for that at all...
->>
->>
->> Did you think that the dvb-apps just came out of thin air ?
->>
->> development of dvb-applications, implies eventually config files also
->> will be updated as necessary. Having them in separate repositories
->> makes such work harder for working.
->> while working with dvb-apps, it would make things saner if it is the
->> same SCM, rather
->> than having different SCM's. So according to you, you want to make it
->> still harder for someone to work with dvb-apps.
->>
->>
->> Manu
->
-> Manu,
->
-> I see great value in separating the history of the data files from the
-> code files.  If you really think this is such a terrible task for a
-> developer to have to pull from a second repository to fetch these data
-> files, then I find no reason why we couldn't script it such that
-> building the dvb-apps package would trigger the pull from the
-> additional repository.
->
-> I think that's a fair compromise.
+Instead of providing separate callbacks to read the several FE
+status properties, the better seems to use just one method that will:
+    - Read lock status;
+    - Read signal strength;
+    - if locked, get TMCC data;
+    - if locked, get DVB status.
+As the DVB frontend thread will call this method on every 3 seconds,
+all stats data will be updated together, with is a good thing.
+It also prevents userspace to generate undesired I2C traffic.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 384 +++++++++++++++++++++++++++++----
+ 1 file changed, 348 insertions(+), 36 deletions(-)
 
- As someone who has long been working with dvb-apps, I see no value
-in this, but just pain altogether. For people who have never worked with it,
-they can say anything what they want, which makes no sense at all.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 4ff3a0c..a0c9f41 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -43,6 +43,12 @@ struct mb86a20s_state {
+ 	struct dvb_frontend frontend;
+ 
+ 	bool need_init;
++
++	/*
++	 * Stats measure flags to be used to know when it is possible to
++	 * artificially generate a "global" measure, based on all 3 layers
++	 */
++	bool read_ber[3];
+ };
+ 
+ struct regdata {
+@@ -92,7 +98,7 @@ static struct regdata mb86a20s_init[] = {
+ 	{ 0x04, 0x13 }, { 0x05, 0xff },
+ 	{ 0x04, 0x15 }, { 0x05, 0x4e },
+ 	{ 0x04, 0x16 }, { 0x05, 0x20 },
+-	{ 0x52, 0x01 },
++	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
+ 	{ 0x50, 0xa7 }, { 0x51, 0xff },
+ 	{ 0x50, 0xa8 }, { 0x51, 0xff },
+ 	{ 0x50, 0xa9 }, { 0x51, 0xff },
+@@ -117,8 +123,8 @@ static struct regdata mb86a20s_init[] = {
+ 	{ 0x50, 0xb6 }, { 0x51, 0xff },
+ 	{ 0x50, 0xb7 }, { 0x51, 0xff },
+ 	{ 0x50, 0x50 }, { 0x51, 0x02 },
+-	{ 0x50, 0x51 }, { 0x51, 0x04 },
+-	{ 0x45, 0x04 },
++	{ 0x50, 0x51 }, { 0x51, 0x04 },		/* MER symbol 4 */
++	{ 0x45, 0x04 },				/* CN symbol 4 */
+ 	{ 0x48, 0x04 },
+ 	{ 0x50, 0xd5 }, { 0x51, 0x01 },		/* Serial */
+ 	{ 0x50, 0xd6 }, { 0x51, 0x1f },
+@@ -174,6 +180,20 @@ static struct regdata mb86a20s_reset_reception[] = {
+ 	{ 0x08, 0x00 },
+ };
+ 
++static struct regdata mb86a20s_vber_reset[] = {
++	{ 0x53, 0x00 },	/* VBER Counter reset */
++	{ 0x53, 0x07 },
++};
++
++static struct regdata mb86a20s_clear_stats[] = {
++	{ 0x5f, 0x00 },	/* SBER Counter reset */
++	{ 0x5f, 0x07 },
++
++	{ 0x50, 0xb1 },	/* PBER Counter reset */
++	{ 0x51, 0x07 },
++	{ 0x51, 0x01 },
++};
++
+ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
+ 			     u8 i2c_addr, int reg, int data)
+ {
+@@ -221,7 +241,7 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+ 
+ 	if (rc != 2) {
+ 		rc("%s: reg=0x%x (error=%d)\n", __func__, reg, rc);
+-		return rc;
++		return (rc < 0) ? rc : -EIO;
+ 	}
+ 
+ 	return val;
+@@ -276,59 +296,61 @@ err:
+ 	return rc;
+ }
+ 
+-static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
++static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
+ 	unsigned rf_max, rf_min, rf;
+-	u8	 val;
+-
+-	dprintk("\n");
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	/* Does a binary search to get RF strength */
+ 	rf_max = 0xfff;
+ 	rf_min = 0;
+ 	do {
+ 		rf = (rf_max + rf_min) / 2;
+-		mb86a20s_writereg(state, 0x04, 0x1f);
+-		mb86a20s_writereg(state, 0x05, rf >> 8);
+-		mb86a20s_writereg(state, 0x04, 0x20);
+-		mb86a20s_writereg(state, 0x04, rf);
++		rc = mb86a20s_writereg(state, 0x04, 0x1f);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x05, rf >> 8);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x04, 0x20);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x04, rf);
++		if (rc < 0)
++			return rc;
+ 
+-		val = mb86a20s_readreg(state, 0x02);
+-		if (val & 0x08)
++		rc = mb86a20s_readreg(state, 0x02);
++		if (rc < 0)
++			return rc;
++		if (rc & 0x08)
+ 			rf_min = (rf_max + rf_min) / 2;
+ 		else
+ 			rf_max = (rf_max + rf_min) / 2;
+ 		if (rf_max - rf_min < 4) {
+-			*strength = (((rf_max + rf_min) / 2) * 65535) / 4095;
+-			break;
++			rf = (rf_max + rf_min) / 2;
++
++			/* Rescale it from 2^12 (4096) to 2^16 */
++			rf <<= (16 - 12);
++			dprintk("signal strength = %d\n", rf);
++			return rf;
+ 		}
+ 	} while (1);
+ 
+-	dprintk("signal strength = %d\n", *strength);
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+ 	return 0;
+ }
+ 
+ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	u8 val;
++	int val;
+ 
+ 	dprintk("\n");
+ 	*status = 0;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+ 	val = mb86a20s_readreg(state, 0x0a) & 0xf;
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
++	if (val < 0)
++		return val;
+ 
+ 	if (val >= 2)
+ 		*status |= FE_HAS_SIGNAL;
+@@ -350,6 +372,8 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	return 0;
+ }
+ 
++static int mb86a20s_reset_counters(struct dvb_frontend *fe);
++
+ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+@@ -387,6 +411,8 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
++	mb86a20s_reset_counters(fe);
++
+ 	return rc;
+ }
+ 
+@@ -530,9 +556,6 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 	/* Reset frontend cache to default values */
+ 	mb86a20s_reset_frontend_cache(fe);
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-
+ 	/* Check for partial reception */
+ 	rc = mb86a20s_writereg(state, 0x6d, 0x85);
+ 	if (rc < 0)
+@@ -609,15 +632,305 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 			break;
+ 		}
+ 	}
++	return 0;
+ 
+ error:
++	/* per-layer info is incomplete; discard all per-layer */
++	c->isdbt_layer_enabled = 0;
++
++	return rc;
++}
++
++static int mb86a20s_reset_counters(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int rc, val, i;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	/* Reset the counters */
++	memset(&c->strength, 0, sizeof(c->strength));
++	memset(&c->cnr, 0, sizeof(c->cnr));
++	memset(&c->bit_error, 0, sizeof(c->bit_error));
++	memset(&c->bit_count, 0, sizeof(c->bit_count));
++	memset(&c->block_error, 0, sizeof(c->block_error));
++	memset(&c->block_count, 0, sizeof(c->block_count));
++
++	/* Clear status for most stats */
++
++	/* BER counter reset */
++	rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
++	if (rc < 0)
++		goto err;
++	for (i = 0; i < 3; i++)
++		state->read_ber[i] = true;
++
++	/* MER, PER counter reset */
++	rc = mb86a20s_writeregdata(state, mb86a20s_clear_stats);
++	if (rc < 0)
++		goto err;
++
++	/* CNR counter reset */
++	rc = mb86a20s_readreg(state, 0x45);
++	if (rc < 0)
++		goto err;
++	val = rc;
++	rc = mb86a20s_writereg(state, 0x45, val | 0x10);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_writereg(state, 0x45, val & 0x6f);
++	if (rc < 0)
++		goto err;
++
++	/* MER counter reset */
++	rc = mb86a20s_writereg(state, 0x50, 0x50);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		goto err;
++	val = rc;
++	rc = mb86a20s_writereg(state, 0x51, val | 0x01);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_writereg(state, 0x51, val & 0x06);
++	if (rc < 0)
++		goto err;
++
++err:
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+ 	return rc;
++}
++
++static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
++					  unsigned layer,
++					  u32 *error, u32 *count)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	u8 byte[3];
++	int rc;
+ 
++	if (layer >= 3)
++		return -EINVAL;
++
++	/* Check if the BER measures are already available */
++	rc = mb86a20s_readreg(state, 0x54);
++	if (rc < 0)
++		return rc;
++
++	/* Check if data is available for that layer */
++	if (!(rc & (1 << layer)))
++		return -EBUSY;
++
++	/* Read Bit Error Count */
++	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[0] = rc;
++	rc = mb86a20s_readreg(state, 0x56 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[1] = rc;
++	rc = mb86a20s_readreg(state, 0x57 + layer * 3);
++	if (rc < 0)
++		return rc;
++	byte[2] = rc;
++	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
++
++	/* Read Bit Count */
++	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[0] = rc;
++	rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[1] = rc;
++	rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	byte[2] = rc;
++	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
++
++	return rc;
++}
++
++static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int i;
++
++	/* Fill the length of each status counter */
++
++	/* Only global stats */
++	c->strength.len = 1;
++
++	/* Per-layer stats - 3 layers + global */
++	c->cnr.len = 4;
++	c->bit_error.len = 4;
++	c->bit_count.len = 4;
++	c->block_error.len = 4;
++	c->block_count.len = 4;
++
++	/* Signal is always available */
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = 0;
++
++	/* Put all of them at FE_SCALE_NOT_AVAILABLE */
++	for (i = 0; i < 4; i++) {
++		c->cnr.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
++		c->bit_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
++		c->bit_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
++		c->block_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
++		c->block_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
++	}
+ }
+ 
++static int mb86a20s_get_stats(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int rc = 0, i;
++	u32 bit_error = 0, bit_count = 0;
++	u32 t_bit_error = 0, t_bit_count = 0;
++	int active_layers = 0, ber_layers = 0;
++
++	/* Get per-layer stats */
++	for (i = 0; i < 3; i++) {
++		if (c->isdbt_layer_enabled & (1 << i)) {
++			/* Layer is active and has rc segments */
++			active_layers++;
++
++			if (state->read_ber[i]) {
++				/* Handle BER before vterbi */
++				rc = mb86a20s_get_ber_before_vterbi(fe, i,
++								&bit_error,
++								&bit_count);
++				if (rc >= 0) {
++					c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
++					c->bit_error.stat[1 + i].uvalue += bit_error;
++					c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
++					c->bit_count.stat[1 + i].uvalue += bit_count;
++
++					state->read_ber[i] = false;
++				} else if (rc != -EBUSY) {
++					/*
++					 * If an I/O error happened,
++					 * measures are now unavailable
++					 */
++					c->bit_error.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
++					c->bit_count.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
++				}
++			}
++			if (!state->read_ber[i]) {
++				/* Update total BER counter */
++				t_bit_error += c->bit_error.stat[1 + i].uvalue;
++				t_bit_count += c->bit_count.stat[1 + i].uvalue;
++
++				ber_layers++;
++			}
++		}
++	}
++
++	if (active_layers == ber_layers) {
++		/*
++		 * All BER values are read. We can now calculate the total BER
++		 * And ask for another BER measure
++		 *
++		 * Total Bit Error/Count is calculated as the sum of the
++		 * bit errors on all active layers.
++		 */
++		c->bit_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->bit_error.stat[0].uvalue += t_bit_error;
++		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->bit_count.stat[0].uvalue += t_bit_count;
++
++		/* Reset counters to collect new data */
++		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
++
++		/* All BER measures need to be collected when ready */
++		for (i = 0; i < 3; i++)
++			state->read_ber[i] = true;
++	}
++	return rc;
++}
++
++static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
++					  fe_status_t *status)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	int rc;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	/* Get lock */
++	rc = mb86a20s_read_status(fe, status);
++	if (!(*status & FE_HAS_LOCK)) {
++		mb86a20s_stats_not_ready(fe);
++		mb86a20s_reset_frontend_cache(fe);
++	}
++	if (rc < 0)
++		goto error;
++
++	/* Get signal strength */
++	rc = mb86a20s_read_signal_strength(fe);
++	if (rc < 0) {
++		mb86a20s_stats_not_ready(fe);
++		mb86a20s_reset_frontend_cache(fe);
++		goto error;
++	}
++	/* Fill signal strength */
++	c->strength.stat[0].uvalue = rc;
++
++	if (*status & FE_HAS_LOCK) {
++		/* Get TMCC info*/
++		rc = mb86a20s_get_frontend(fe);
++		if (rc < 0)
++			goto error;
++
++		/* Get statistics */
++		rc = mb86a20s_get_stats(fe);
++		if (rc < 0)
++			goto error;
++	}
++	goto ok;
++
++error:
++	mb86a20s_stats_not_ready(fe);
++
++ok:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	return rc;
++}
++
++static int mb86a20s_read_signal_strength_from_cache(struct dvb_frontend *fe,
++						    u16 *strength)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++
++	*strength = c->strength.stat[0].uvalue;
++
++	return 0;
++}
++
++
+ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 			bool re_tune,
+ 			unsigned int mode_flags,
+@@ -632,7 +945,7 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 		rc = mb86a20s_set_frontend(fe);
+ 
+ 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
+-		mb86a20s_read_status(fe, status);
++		mb86a20s_read_status_and_stats(fe, status);
+ 
+ 	return rc;
+ }
+@@ -712,9 +1025,8 @@ static struct dvb_frontend_ops mb86a20s_ops = {
+ 
+ 	.init = mb86a20s_initfe,
+ 	.set_frontend = mb86a20s_set_frontend,
+-	.get_frontend = mb86a20s_get_frontend,
+-	.read_status = mb86a20s_read_status,
+-	.read_signal_strength = mb86a20s_read_signal_strength,
++	.read_status = mb86a20s_read_status_and_stats,
++	.read_signal_strength = mb86a20s_read_signal_strength_from_cache,
+ 	.tune = mb86a20s_tune,
+ };
+ 
+-- 
+1.7.11.7
 
-
-> Meanwhile, your argument is for developers.  Developers can handle
-> pulling from a separated tree for data files who shouldn't be clouding
-> the history of source code development, anyway.  Developers are indeed
-> used to dealing with multiple repositories, and if any developer
-> isn't, then now is the time to get with the program!
-
-
-It isn't that way. Users have to deal with 2 repositories as well. Anyway,
-the repository is not having that many developers to state that developers
-can handle all the burden. It is just but the reverse.
-
-Manu
