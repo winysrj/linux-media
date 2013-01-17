@@ -1,110 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tropek.jajcus.net ([84.205.176.49]:43823 "EHLO
-	tropek.jajcus.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755691Ab3AEOMr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 09:12:47 -0500
-Date: Sat, 5 Jan 2013 15:05:39 +0100
-From: Jacek Konieczny <jajcus@jajcus.net>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [BUG] Problem with LV5TDLX DVB-T USB and the 3.7.1 kernel
-Message-ID: <20130105150539.32186362@lolek.nigdzie>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:37899 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab3AQTLr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 14:11:47 -0500
+Message-ID: <50F84CCC.5040103@iki.fi>
+Date: Thu, 17 Jan 2013 21:11:08 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Manu Abraham <abraham.manu@gmail.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <20130117145036.55745a60@redhat.com> <50F831AA.8010708@iki.fi> <20130117161126.6b2e809d@redhat.com> <50F84276.3080909@iki.fi> <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com> <20130117165037.6ed80366@redhat.com>
+In-Reply-To: <20130117165037.6ed80366@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 01/17/2013 08:50 PM, Mauro Carvalho Chehab wrote:
+> Em Fri, 18 Jan 2013 00:07:17 +0530
+> Manu Abraham <abraham.manu@gmail.com> escreveu:
+>
+>> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>
+>>>
+>>>
+>>> Resetting counters when user tunes channel sounds the only correct option.
+>>>
+>>
+>> This might not be correct, especially when we have true Multiple Input Streams.
+>> The tune might be single, but the filter setup would be different. In
+>> which case it
+>> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
+>> should be the responsibility of the driver.
+>
+> I moved the counters reset to the driver's logic on v11. I'm posting the
+> patches in a few.
+>
+>> As I said in an earlier
+>> post, anything
+>> other than the driver handling any statistical event monitoring, such an API is
+>> broken for sure, without even reading single line of code for that API for which
+>>   it is written for.
+>
+> Yes, driver should have full control on it.
+>
+>>> OK, maybe we will see in near future if that works well or not. I think that
+>>> for calculating of PER it is required to start continuous polling to keep up
+>>> total block counters. Maybe updating UCB counter continously needs that too,
+>>> so it should work.
+>>
+>>
+>> With multi-standard demodulators, some of them PER compute is a by-product
+>> of some internal demodulator algorithmic operation. In some cases, it might
+>> require a loop in the driver. As I said, again; It is very hard/wrong
+>> to do basic
+>> generalizations.
+>
+> Agreed.
+>
 
-I have a 'NOT Only TV DVB-T USB Deluxe' tuner device:
+I think we will have soon kinda consensus everyone could approve! 
+Anyhow, I didn't liked that kind of PATCH RFC process. That change was 
+too big for PATCH style RFC and it was hard to keep track what going on 
+looking those patches. Maybe requirement specification RFCs first and 
+when requirements are clear => PATCH RFC for implementation.
 
-Model name: LV5TDLX DVB-T USB
-P/N: STLV5TDLXT702
-S/N: LV5TDLX120700116
-USB ID: 1f4d:c803
+What I know understand, requirements are:
 
-This is based on the RTL2838UHIDIR chip with e4000 tuner (at least, that
-is detected by various drivers).
+signal strength:
+==============
+Offer both discussed methods.
+Simple [0...n] scale and dB...
+Driver must support simple scale over dB.
 
-I had some minor success with it with some old 3.x kernel and the
-drivers from:
+CNR (SNR)
+==============
+Offer both discussed methods.
+Simple [0...n] scale and dB...
+Driver must support simple scale over dB.
 
-https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+BER
+==============
+Offer global BER and per layer BER.
+Measure is returned as two numbers, one for error bit count and one for 
+total bit count.
 
-This stopped working with kernel 3.5 and would not even build with newer
-kernels.
+uncorrected packets/blocks
+==============
+Offer global UCB and per layer UCB.
+Measure is returned as two numbers, one for uncorrected packet count and 
+one for total packet count.
 
-Then I tried drivers from linuxtv.org, with little success. The RTL2838u
-driver has been recently included in the upstream kernel (3.7), so I
-have tried that (3.7.1). The hardware is detected, but I am not able to
-tune in. 
+counter reset
+==============
+counters are reset when channel is tuned
 
-The signal is good - tested with my TV set. The USB tuner device is also
-OK, I have tried it with Windows and the software provided with the
-device and the same channels are available as on the TV.
 
-So the driver must be broken. Any ideas how can I debug or fix that?
 
-dmesg:
-> [ 3336.916384] usb 2-4: new high-speed USB device number 7 using ehci_hcd
-> [ 3337.051822] usb 2-4: New USB device found, idVendor=1f4d, idProduct=c803
-> [ 3337.051829] usb 2-4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [ 3337.051835] usb 2-4: Product: RTL2838UHIDIR
-> [ 3337.051839] usb 2-4: Manufacturer: Realtek
-> [ 3337.051843] usb 2-4: SerialNumber: 00000001
-> [ 3337.072145] usb 2-4: dvb_usb_v2: found a 'Trekstor DVB-T Stick Terres 2.0' in warm state
-> [ 3337.072194] usbcore: registered new interface driver dvb_usb_rtl28xxu
-> [ 3337.136867] usb 2-4: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-> [ 3337.136886] DVB: registering new adapter (Trekstor DVB-T Stick Terres 2.0)
-> [ 3337.147449] usb 2-4: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
-> [ 3337.163939] i2c i2c-7: e4000: Elonics E4000 successfully identified
-> [ 3337.174823] Registered IR keymap rc-empty
-> [ 3337.174928] input: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0/input15
-> [ 3337.174989] rc0: Trekstor DVB-T Stick Terres 2.0 as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
-> [ 3337.174994] usb 2-4: dvb_usb_v2: schedule remote query interval to 400 msecs
-> [ 3337.187693] usb 2-4: dvb_usb_v2: 'Trekstor DVB-T Stick Terres 2.0' successfully initialized and connected
+And if we end up returning "simple" values over dB values, then I think 
+driver could be simple and implement only dB and dvb-core is responsible 
+to convert dB => simple. That should quite be possible as we know which 
+dB value is good signal and which is bad signal.
 
-Scanning on one of the available channels:
-> # tzap -r "TVP2" 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.tzap/channels.conf'
-> tuning to 746000000 Hz
-> video pid 0x00ca, audio pid 0x00cb
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008c | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008d | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0072 | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 008b | ber 00004ca0 | unc bfe14648 | 
-> status 00 | signal bfe1 | snr 0000 | ber 0000ffff | unc bfe14648 | 
 
-And on the other one:
-> # tzap -r "Polsat"
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> reading channels from file '/root/.tzap/channels.conf'
-> tuning to 698000000 Hz
-> video pid 0x0066, audio pid 0x0067
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
-> status 00 | signal bfb5 | snr 0000 | ber 0000ffff | unc bfb5f4d8 | 
+Are these requirements now in line what is spoken?
 
-Greets,
-	Jacek
+regards
+Antti
+
+-- 
+http://palosaari.fi/
