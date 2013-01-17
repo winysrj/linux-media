@@ -1,154 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f180.google.com ([209.85.128.180]:47902 "EHLO
-	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753892Ab3A1RLI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 12:11:08 -0500
-Received: by mail-ve0-f180.google.com with SMTP id jx10so591651veb.39
-        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 09:11:07 -0800 (PST)
+Received: from racoon.tvdr.de ([188.40.50.18]:38106 "EHLO racoon.tvdr.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756325Ab3AQRh0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 12:37:26 -0500
+Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
+	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r0HHbOr0009567
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:37:25 +0100
+Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
+	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r0HHbIpX013472
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 18:37:19 +0100
+Message-ID: <50F836CE.2020502@tvdr.de>
+Date: Thu, 17 Jan 2013 18:37:18 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
 MIME-Version: 1.0
-In-Reply-To: <CAOw6vbL0yOtMsap_xAWjK04SSuusWce7s-ybq92SVGS1Ejudsg@mail.gmail.com>
-References: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
- <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org> <CAOw6vbL0yOtMsap_xAWjK04SSuusWce7s-ybq92SVGS1Ejudsg@mail.gmail.com>
-From: Leela Krishna Amudala <l.krishna@samsung.com>
-Date: Mon, 28 Jan 2013 22:32:57 +0530
-Message-ID: <CAL1wa8fYYDrWi38cx1RJBsPGxRNiKbm5VR2XtycB9p6aSgCssg@mail.gmail.com>
-Subject: Re: [PATCH] video: drm: exynos: Adds display-timing node parsing
- using video helper function
-To: Sean Paul <seanpaul@chromium.org>
-Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
-	"kgene.kim" <kgene.kim@samsung.com>, s.trumtrar@pengutronix.de,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-media] Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com> <50F8333E.2020904@iki.fi>
+In-Reply-To: <50F8333E.2020904@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 28, 2013 at 9:24 PM, Sean Paul <seanpaul@chromium.org> wrote:
+On 17.01.2013 18:22, Antti Palosaari wrote:
+> On 01/17/2013 07:16 PM, Manu Abraham wrote:
+>> On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>> On 01/17/2013 05:40 AM, Manu Abraham wrote:
+>>>> MB86A20 is not the only demodulator driver with the Linux DVB.
+>>>> And not all devices can output in dB scale proposed by you, But any device
+>>>> output can be scaled in a relative way. So I don't see any reason why
+>>>> userspace has to deal with cumbersome controls to deal with redundant
+>>>> statistics, which is nonsense.
+>>>
+>>>
+>>> What goes to these units in general, dB conversion is done by the driver
+>>> about always. It is quite hard or even impossible to find out that formula
+>>> unless you has adjustable test signal generator.
+>>>
+>>> Also we could not offer always dBm as signal strength. This comes to fact
+>>> that only recent silicon RF-tuners are able to provide RF strength. More
+>>> traditionally that estimation is done by demod from IF/RF AGC, which leads
+>>> very, very, rough estimation.
+>>
+>> What I am saying is that, rather than sticking to a dB scale, it would be
+>> better to fit it into a relative scale, ie loose dB altogether and use only the
+>> relative scale. With that approach any device can be fit into that convention.
+>> Even with an unknown device, it makes it pretty easy for anyone to fit
+>> into that
+>> scale. All you need is a few trial runs to get maxima/minima. When there
+>> exists only a single convention that is simple, it makes it more easier for
+>> people to stick to that convention, rather than for people to not support it.
 >
-> On Mon, Jan 28, 2013 at 12:45 AM, Vikas Sajjan <vikas.sajjan@linaro.org>
-> wrote:
-> > This patch adds display-timing node parsing using video helper function
-> >
-> > Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> > ---
-> >  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35
-> > ++++++++++++++++++++++++++++--
-> >  1 file changed, 33 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > index bf0d9ba..975e7f7 100644
-> > --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > @@ -19,6 +19,7 @@
-> >  #include <linux/clk.h>
-> >  #include <linux/of_device.h>
-> >  #include <linux/pm_runtime.h>
-> > +#include <linux/pinctrl/consumer.h>
-> >
-> >  #include <video/samsung_fimd.h>
-> >  #include <drm/exynos_drm.h>
-> > @@ -903,21 +904,51 @@ static int __devinit fimd_probe(struct
-> > platform_device *pdev)
-> >         struct device *dev = &pdev->dev;
-> >         struct fimd_context *ctx;
-> >         struct exynos_drm_subdrv *subdrv;
-> > -       struct exynos_drm_fimd_pdata *pdata;
-> > +       struct exynos_drm_fimd_pdata *pdata = pdev->dev.platform_data;
-> >         struct exynos_drm_panel_info *panel;
-> > +       struct fb_videomode *fbmode;
-> > +       struct device *disp_dev = &pdev->dev;
-> > +       struct pinctrl *pctrl;
-> >         struct resource *res;
-> >         int win;
-> >         int ret = -EINVAL;
-> >
-> >         DRM_DEBUG_KMS("%s\n", __FILE__);
-> >
-> > -       pdata = pdev->dev.platform_data;
-> > +       if (pdev->dev.of_node) {
-> > +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> > +               if (!pdata) {
-> > +                       dev_err(dev, "memory allocation for pdata
-> > failed\n");
-> > +                       return -ENOMEM;
-> > +               }
-> > +
-> > +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-> > +               if (!fbmode) {
-> > +                       dev_err(dev, "memory allocation for fbmode
-> > failed\n");
+> That is true. I don't have really clear opinion whether to force all to one scale, or return dBm those which could and that dummy scale for the others. Maybe I will still vote for both relative and dBm.
 >
-> Why dev_err instead of DRM_ERROR?
+> Shortly there is two possibilities:
+> 1) support only relative scale
+> 2) support both dBm and relative scale (with dBm priority)
 >
+> [3) support only dBm is not possible]
 
-Will change it to DRM_ERROR
+4) support relative scale (mandatory!) and dBm (if applicable).
 
-> > +                       return -ENOMEM;
-> > +               }
-> > +
-> > +               ret = of_get_fb_videomode(disp_dev->of_node, fbmode,
-> > -1);
-> > +               if (ret) {
-> > +                       dev_err(dev, "failed to get fb_videomode\n");
-> > +                       return -EINVAL;
-> > +               }
-> > +               pdata->panel.timing = (struct fb_videomode) *fbmode;
-> > +       }
-> > +
-> >         if (!pdata) {
->
-> This condition is kind of weird, in that it's really checking if
-> (!pdev->dev.of_node) implicitly (since you already check the
-> allocation of pdata above).
->
-Even I thought the same. But kept this check because If DT node is
-not available and driver still gets plat data from machine file then the
-if (pdev->dev.of_node){} block will be skipped and plat data should be checked.
+I concur with Antti. Any device's values can be made to fit into
+a 0..100 (or whatever) range, so *that* should be the primary (and
+mandatory) value. If the device can do so, it can also provide a dB*
+value (replace * with anything you like, 'm', 'uV', 'uW', whatever)
+and maybe all other sorts of bells and whistles.
+So real world applications could simply and savely use the relative
+value (which is all they need), and special applications could fiddle
+around with dB values (provided the device in use can deliver them).
 
-> Seems like you could make this more clear and save a level of
-> indentation by doing the following above:
->
-> if (!pdev->dev.of_node) {
->         DRM_ERROR("Device tree node was not found\n");
->         return -EINVAL;
-> }
->
-If I return -EINVAL here then this driver will become Full DT based one.
-and probe will be failed if DT node is not present.
+@Mauro: here's some further reading for you, just in case ;-)
 
-Will correct the if check and post the next version.
+   http://en.wikipedia.org/wiki/KISS_principle
+   http://www.inspireux.com/2008/07/14/a-designer-achieves-perfection-when-there-is-nothing-left-to-take-away
 
-/Leela Krishna Amudala
-> Then just get rid of this check and the one wrapping the allocations
-> above.
->
-> Sean
->
-> >                 dev_err(dev, "no platform data specified\n");
-> >                 return -EINVAL;
-> >         }
-> >
-> > +       pctrl = devm_pinctrl_get_select_default(dev);
-> > +       if (IS_ERR(pctrl)) {
-> > +               dev_err(dev, "no pinctrl data provided.\n");
-> > +               return -EINVAL;
-> > +       }
-> > +
-> >         panel = &pdata->panel;
-> > +
-> >         if (!panel) {
-> >                 dev_err(dev, "panel is null.\n");
-> >                 return -EINVAL;
-> > --
-> > 1.7.9.5
-> >
-> > _______________________________________________
-> > dri-devel mailing list
-> > dri-devel@lists.freedesktop.org
-> > http://lists.freedesktop.org/mailman/listinfo/dri-devel
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Klaus
