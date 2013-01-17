@@ -1,72 +1,297 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:40306 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756298Ab3ANJhJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 04:37:09 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGM00E39018K3J0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Jan 2013 18:36:44 +0900 (KST)
-Received: from amdc1342.digital.local ([106.116.147.39])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MGM0003F00DON80@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 Jan 2013 18:36:44 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, s.nawrocki@samsung.com, mchehab@redhat.com,
-	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
-	sakari.ailus@iki.fi, kyungmin.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 1/3] v4l: Define video buffer flag for the COPY timestamp type
-Date: Mon, 14 Jan 2013 10:36:02 +0100
-Message-id: <1358156164-11382-2-git-send-email-k.debski@samsung.com>
-In-reply-to: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
-References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36816 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756416Ab3AQS7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:59:09 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx9Nr015144
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv11 05/16] [media] mb86a20s: functions reorder
+Date: Thu, 17 Jan 2013 16:58:19 -0200
+Message-Id: <1358449110-11203-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
+References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define video buffer flag for the COPY timestamp. In this case the timestamp
-value is copied from the OUTPUT to the corresponding CAPTURE buffer.
+No functional changes here. Just re-organizes the functions
+inside the file.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Documentation/DocBook/media/v4l/io.xml |    6 ++++++
- include/uapi/linux/videodev2.h         |    1 +
- 2 files changed, 7 insertions(+)
+ drivers/media/dvb-frontends/mb86a20s.c | 223 +++++++++++++++++----------------
+ 1 file changed, 118 insertions(+), 105 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 73f202f..fdd1822 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -1145,6 +1145,12 @@ in which case caches have not been used.</entry>
- 	    same clock outside V4L2, use
- 	    <function>clock_gettime(2)</function> .</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
-+	    <entry>0x4000</entry>
-+	    <entry>The CAPTURE buffer timestamp has been taken from the
-+	    corresponding OUTPUT buffer.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 72e9921..d5a59af 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -697,6 +697,7 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
- #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
- #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
-+#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index a0c9f41..526660a 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -194,6 +194,10 @@ static struct regdata mb86a20s_clear_stats[] = {
+ 	{ 0x51, 0x01 },
+ };
  
- /**
-  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
++/*
++ * I2C read/write functions and macros
++ */
++
+ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
+ 			     u8 i2c_addr, int reg, int data)
+ {
+@@ -255,45 +259,42 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+ 	mb86a20s_i2c_writeregdata(state, state->config->demod_address, \
+ 	regdata, ARRAY_SIZE(regdata))
+ 
+-static int mb86a20s_initfe(struct dvb_frontend *fe)
++/*
++ * Ancillary internal routines (likely compiled inlined)
++ *
++ * The functions below assume that gateway lock has already obtained
++ */
++
++static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int rc;
+-	u8  regD5 = 1;
++	int val;
+ 
+ 	dprintk("\n");
++	*status = 0;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	val = mb86a20s_readreg(state, 0x0a) & 0xf;
++	if (val < 0)
++		return val;
+ 
+-	/* Initialize the frontend */
+-	rc = mb86a20s_writeregdata(state, mb86a20s_init);
+-	if (rc < 0)
+-		goto err;
++	if (val >= 2)
++		*status |= FE_HAS_SIGNAL;
+ 
+-	if (!state->config->is_serial) {
+-		regD5 &= ~1;
++	if (val >= 4)
++		*status |= FE_HAS_CARRIER;
+ 
+-		rc = mb86a20s_writereg(state, 0x50, 0xd5);
+-		if (rc < 0)
+-			goto err;
+-		rc = mb86a20s_writereg(state, 0x51, regD5);
+-		if (rc < 0)
+-			goto err;
+-	}
++	if (val >= 5)
++		*status |= FE_HAS_VITERBI;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
++	if (val >= 7)
++		*status |= FE_HAS_SYNC;
+ 
+-err:
+-	if (rc < 0) {
+-		state->need_init = true;
+-		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
+-	} else {
+-		state->need_init = false;
+-		dprintk("Initialization succeeded.\n");
+-	}
+-	return rc;
++	if (val >= 8)				/* Maybe 9? */
++		*status |= FE_HAS_LOCK;
++
++	dprintk("val = %d, status = 0x%02x\n", val, *status);
++
++	return 0;
+ }
+ 
+ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+@@ -340,82 +341,6 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+-{
+-	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int val;
+-
+-	dprintk("\n");
+-	*status = 0;
+-
+-	val = mb86a20s_readreg(state, 0x0a) & 0xf;
+-	if (val < 0)
+-		return val;
+-
+-	if (val >= 2)
+-		*status |= FE_HAS_SIGNAL;
+-
+-	if (val >= 4)
+-		*status |= FE_HAS_CARRIER;
+-
+-	if (val >= 5)
+-		*status |= FE_HAS_VITERBI;
+-
+-	if (val >= 7)
+-		*status |= FE_HAS_SYNC;
+-
+-	if (val >= 8)				/* Maybe 9? */
+-		*status |= FE_HAS_LOCK;
+-
+-	dprintk("val = %d, status = 0x%02x\n", val, *status);
+-
+-	return 0;
+-}
+-
+-static int mb86a20s_reset_counters(struct dvb_frontend *fe);
+-
+-static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+-{
+-	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int rc;
+-#if 0
+-	/*
+-	 * FIXME: Properly implement the set frontend properties
+-	 */
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-#endif
+-
+-	dprintk("\n");
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-	dprintk("Calling tuner set parameters\n");
+-	fe->ops.tuner_ops.set_params(fe);
+-
+-	/*
+-	 * Make it more reliable: if, for some reason, the initial
+-	 * device initialization doesn't happen, initialize it when
+-	 * a SBTVD parameters are adjusted.
+-	 *
+-	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
+-	 * the agc callback logic is not called during DVB attach time,
+-	 * causing mb86a20s to not be initialized with Kworld SBTVD.
+-	 * So, this hack is needed, in order to make Kworld SBTVD to work.
+-	 */
+-	if (state->need_init)
+-		mb86a20s_initfe(fe);
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+-	mb86a20s_reset_counters(fe);
+-
+-	return rc;
+-}
+-
+ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
+ 				   unsigned layer)
+ {
+@@ -868,6 +793,94 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 	return rc;
+ }
+ 
++/*
++ * The functions below are called via DVB callbacks, so they need to
++ * properly use the I2C gate control
++ */
++
++static int mb86a20s_initfe(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
++	u8  regD5 = 1;
++
++	dprintk("\n");
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	/* Initialize the frontend */
++	rc = mb86a20s_writeregdata(state, mb86a20s_init);
++	if (rc < 0)
++		goto err;
++
++	if (!state->config->is_serial) {
++		regD5 &= ~1;
++
++		rc = mb86a20s_writereg(state, 0x50, 0xd5);
++		if (rc < 0)
++			goto err;
++		rc = mb86a20s_writereg(state, 0x51, regD5);
++		if (rc < 0)
++			goto err;
++	}
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++err:
++	if (rc < 0) {
++		state->need_init = true;
++		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
++	} else {
++		state->need_init = false;
++		dprintk("Initialization succeeded.\n");
++	}
++	return rc;
++}
++
++static int mb86a20s_set_frontend(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
++#if 0
++	/*
++	 * FIXME: Properly implement the set frontend properties
++	 */
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++#endif
++
++	dprintk("\n");
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++	dprintk("Calling tuner set parameters\n");
++	fe->ops.tuner_ops.set_params(fe);
++
++	/*
++	 * Make it more reliable: if, for some reason, the initial
++	 * device initialization doesn't happen, initialize it when
++	 * a SBTVD parameters are adjusted.
++	 *
++	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
++	 * the agc callback logic is not called during DVB attach time,
++	 * causing mb86a20s to not be initialized with Kworld SBTVD.
++	 * So, this hack is needed, in order to make Kworld SBTVD to work.
++	 */
++	if (state->need_init)
++		mb86a20s_initfe(fe);
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	mb86a20s_reset_counters(fe);
++
++	return rc;
++}
++
+ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 					  fe_status_t *status)
+ {
 -- 
-1.7.9.5
+1.7.11.7
 
