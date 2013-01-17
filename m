@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:52205 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3ASQek (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19251 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752728Ab3AQLQS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:40 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 17/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:19 -0200
-Message-Id: <1358613206-4274-16-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	Thu, 17 Jan 2013 06:16:18 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGR002XCOJVN440@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Jan 2013 11:16:16 +0000 (GMT)
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MGR00HLUON4RFA0@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 17 Jan 2013 11:16:16 +0000 (GMT)
+Message-id: <50F7DD7F.5030504@samsung.com>
+Date: Thu, 17 Jan 2013 12:16:15 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH v2] s5p-g2d: Add support for G2D H/W Rev.4.1
+References: <1358395638-26086-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1358395638-26086-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+Hi Sachin,
 
-This change was made for: CONFIG_INPUT
+On 01/17/2013 05:07 AM, Sachin Kamat wrote:
+> Modified the G2D driver (which initially supported only H/W Rev.3)
+> to support H/W Rev.4.1 present on Exynos4x12 and Exynos52x0 SOCs.
+> 
+> -- Set the SRC and DST type to 'memory' instead of using reset values.
+> -- FIMG2D v4.1 H/W uses different logic for stretching(scaling).
+> -- Use CACHECTL_REG only with FIMG2D v3.
+> 
+> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> Acked-by: Kamil Debski <k.debski@samsung.com>
+> ---
+> Changes since v1:
+> Moved g2d_get_drv_data() to g2d.h as suggested by
+> Sylwester Nawrocki <s.nawrocki@samsung.com>.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/usb/gspca/spca561.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+I have applied this patch for 3.9, thanks. You may also need a patch
+adding DT support, since those new SoCs are in mainline DT only.
 
-diff --git a/drivers/media/usb/gspca/spca561.c b/drivers/media/usb/gspca/spca561.c
-index cfe71dd..d1db3d8 100644
---- a/drivers/media/usb/gspca/spca561.c
-+++ b/drivers/media/usb/gspca/spca561.c
-@@ -741,7 +741,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 			return;
- 		}
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 		if (data[0] & 0x20) {
- 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, 1);
- 			input_sync(gspca_dev->input_dev);
-@@ -866,7 +866,7 @@ static const struct sd_desc sd_desc_12a = {
- 	.start = sd_start_12a,
- 	.stopN = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
- #endif
- };
-@@ -879,7 +879,7 @@ static const struct sd_desc sd_desc_72a = {
- 	.stopN = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
- 	.dq_callback = do_autogain,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
- #endif
- };
--- 
-1.7.11.7
+--
 
+Regards,
+Sylwester
