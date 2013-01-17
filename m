@@ -1,40 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:33363 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755384Ab3A0Tp7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 14:45:59 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 6/7] saa7134: v4l2-compliance: remove V4L2_IN_ST_NO_SYNC from enum_input
-Date: Sun, 27 Jan 2013 20:45:11 +0100
-Message-Id: <1359315912-1767-7-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+Received: from mail-ob0-f173.google.com ([209.85.214.173]:53112 "EHLO
+	mail-ob0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752070Ab3AQShS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jan 2013 13:37:18 -0500
+Received: by mail-ob0-f173.google.com with SMTP id xn12so2831487obc.4
+        for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 10:37:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50F84276.3080909@iki.fi>
+References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
+	<20130116152151.5461221c@redhat.com>
+	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
+	<2817386.vHx2V41lNt@f17simon>
+	<20130116200153.3ec3ee7d@redhat.com>
+	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
+	<50F7C57A.6090703@iki.fi>
+	<20130117145036.55745a60@redhat.com>
+	<50F831AA.8010708@iki.fi>
+	<20130117161126.6b2e809d@redhat.com>
+	<50F84276.3080909@iki.fi>
+Date: Fri, 18 Jan 2013 00:07:17 +0530
+Message-ID: <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
+Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Simon Farnsworth <simon.farnsworth@onelan.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make saa7134 driver more V4L2 compliant: don't set bogus V4L2_IN_ST_NO_SYNC
-flag in enum_input as it's for digital video only
+On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/saa7134/saa7134-video.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+>
+>
+> Resetting counters when user tunes channel sounds the only correct option.
+>
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 0b42f0c..fff6735 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1757,8 +1757,6 @@ static int saa7134_enum_input(struct file *file, void *priv,
- 
- 		if (0 != (v1 & 0x40))
- 			i->status |= V4L2_IN_ST_NO_H_LOCK;
--		if (0 != (v2 & 0x40))
--			i->status |= V4L2_IN_ST_NO_SYNC;
- 		if (0 != (v2 & 0x0e))
- 			i->status |= V4L2_IN_ST_MACROVISION;
- 	}
--- 
-Ondrej Zary
+This might not be correct, especially when we have true Multiple Input Streams.
+The tune might be single, but the filter setup would be different. In
+which case it
+wouldn't correct to do a reset of the counters ona tune. Resetting the counters
+should be the responsibility of the driver. As I said in an earlier
+post, anything
+other than the driver handling any statistical event monitoring, such an API is
+broken for sure, without even reading single line of code for that API for which
+ it is written for.
 
+
+> OK, maybe we will see in near future if that works well or not. I think that
+> for calculating of PER it is required to start continuous polling to keep up
+> total block counters. Maybe updating UCB counter continously needs that too,
+> so it should work.
+
+
+With multi-standard demodulators, some of them PER compute is a by-product
+of some internal demodulator algorithmic operation. In some cases, it might
+require a loop in the driver. As I said, again; It is very hard/wrong
+to do basic
+generalizations.
+
+Manu
