@@ -1,85 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52785 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752294Ab3AGAFa (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:33585 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab3ARJjw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 19:05:30 -0500
-Message-ID: <1357517060.1851.16.camel@palomino.walls.org>
-Subject: Re: [PATCH] [media] ivtv: ivtv-driver: Replace 'flush_work_sync()'
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media ML <linux-media@vger.kernel.org>
-Date: Sun, 06 Jan 2013 19:04:20 -0500
-In-Reply-To: <20121220151845.4e92f056@redhat.com>
-References: <20121121152809.51c780a6@redhat.com>
-	 <20121220151845.4e92f056@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 18 Jan 2013 04:39:52 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGT00C77EUE9DW0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Jan 2013 18:39:50 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MGT00HHDETSPZ00@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Jan 2013 18:39:50 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com
+Subject: [PATCH] s5p-fimc: set m2m context to null at the end of fimc_m2m_resume
+Date: Fri, 18 Jan 2013 05:01:18 -0500
+Message-id: <1358503278-13414-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-12-20 at 15:18 -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 21 Nov 2012 15:28:09 -0200
-> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-> 
-> > Hi Andy,
-> > 
-> > I'm understanding that you'll be reviewing this patch. So, I'm marking it as
-> > under_review at patchwork.
-> 
-> -ENOANSWER. Let me apply it, in order to fix the warning.
+fimc_m2m_job_finish() has to be called with the m2m context for the necessary
+cleanup while resume. But currently fimc_m2m_job_finish() always passes
+fimc->m2m.ctx as NULL.
 
-Ooops.  Sorry about that.
+This patch changes the order of the calls for proper cleanup while resume.
 
-Strictly speaking, I think the patch introduces a race condition that is
-extremely unlikely to be encountered, and it likely wouldn't have
-terrible consequences anyway.
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-For the normal end-user, it will never be a problem.
-
-FWIW:
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-Regards,
-Andy
-> > 
-> > Thanks,
-> > Mauro
-> > 
-> > Forwarded message:
-> > 
-> > Date: Wed, 24 Oct 2012 10:14:16 -0200
-> > From: Fabio Estevam <festevam@gmail.com>
-> > To: awalls@md.metrocast.net
-> > Cc: mchehab@infradead.org, linux-media@vger.kernel.org, tj@kernel.org, Fabio Estevam <fabio.estevam@freescale.com>
-> > Subject: [PATCH] [media] ivtv: ivtv-driver: Replace 'flush_work_sync()'
-> > 
-> > 
-> > From: Fabio Estevam <fabio.estevam@freescale.com>
-> > 
-> > Since commit 43829731d (workqueue: deprecate flush[_delayed]_work_sync()),
-> > flush_work() should be used instead of flush_work_sync().
-> > 
-> > Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> > ---
-> >  drivers/media/pci/ivtv/ivtv-driver.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
-> > index 74e9a50..5d0a5df 100644
-> > --- a/drivers/media/pci/ivtv/ivtv-driver.c
-> > +++ b/drivers/media/pci/ivtv/ivtv-driver.c
-> > @@ -304,7 +304,7 @@ static void request_modules(struct ivtv *dev)
-> >  
-> >  static void flush_request_modules(struct ivtv *dev)
-> >  {
-> > -	flush_work_sync(&dev->request_module_wk);
-> > +	flush_work(&dev->request_module_wk);
-> >  }
-> >  #else
-> >  #define request_modules(dev)
-> 
-> 
-
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index 2a1558a..5b11544 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -868,14 +868,15 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+ 
++	if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
++		fimc_m2m_job_finish(fimc->m2m.ctx,
++				    VB2_BUF_STATE_ERROR);
++
+ 	spin_lock_irqsave(&fimc->slock, flags);
+ 	/* Clear for full H/W setup in first run after resume */
+ 	fimc->m2m.ctx = NULL;
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ 
+-	if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
+-		fimc_m2m_job_finish(fimc->m2m.ctx,
+-				    VB2_BUF_STATE_ERROR);
+ 	return 0;
+ }
+ 
+-- 
+1.8.0
 
