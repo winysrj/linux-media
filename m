@@ -1,102 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35540 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750955Ab3AUIHf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 03:07:35 -0500
-Message-ID: <50FCF71E.4060909@iki.fi>
-Date: Mon, 21 Jan 2013 10:06:54 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
-References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org> <1358716939-2133-2-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1358716939-2133-2-git-send-email-linux@rainbow-software.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:52397 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751072Ab3ARK23 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jan 2013 05:28:29 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MGT00EREH201L40@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Jan 2013 10:28:27 +0000 (GMT)
+Received: from [106.116.147.32] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MGT00GPWH3F8V10@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 18 Jan 2013 10:28:27 +0000 (GMT)
+Message-id: <50F923C9.8000205@samsung.com>
+Date: Fri, 18 Jan 2013 11:28:25 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] s5p-fimc: set m2m context to null at the end of
+ fimc_m2m_resume
+References: <1358503278-13414-1-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1358503278-13414-1-git-send-email-shaik.ameer@samsung.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/2013 11:22 PM, Ondrej Zary wrote:
-> Allow disabling I2C gate handling by external configuration.
-> This is required by cards that have all devices on a single I2C bus,
-> like AverMedia A706.
+Hi Shaik,
 
-My personal opinion is that I2C gate control should be disabled setting 
-callback to NULL (same for the other unwanted callbacks too). There is 
-checks for callback existence in DVB-core, it does not call callback if 
-it is NULL.
-
-regards
-Antti
-
->
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+On 01/18/2013 11:01 AM, Shaik Ameer Basha wrote:
+> fimc_m2m_job_finish() has to be called with the m2m context for the necessary
+> cleanup while resume. But currently fimc_m2m_job_finish() always passes
+> fimc->m2m.ctx as NULL.
+> 
+> This patch changes the order of the calls for proper cleanup while resume.
+> 
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 > ---
->   drivers/media/tuners/tda8290.c |   13 +++++++++++--
->   drivers/media/tuners/tda8290.h |    1 +
->   2 files changed, 12 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-> index 8c48521..16dfbf2 100644
-> --- a/drivers/media/tuners/tda8290.c
-> +++ b/drivers/media/tuners/tda8290.c
-> @@ -54,6 +54,7 @@ struct tda8290_priv {
->   #define TDA18271 16
->
->   	struct tda827x_config cfg;
-> +	bool no_i2c_gate;
->   };
->
->   /*---------------------------------------------------------------------*/
-> @@ -66,6 +67,9 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe, int close)
->   	unsigned char disable[2] = { 0x21, 0x00 };
->   	unsigned char *msg;
->
-> +	if (priv->no_i2c_gate)
-> +		return 0;
+>  drivers/media/platform/s5p-fimc/fimc-core.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+> index 2a1558a..5b11544 100644
+> --- a/drivers/media/platform/s5p-fimc/fimc-core.c
+> +++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+> @@ -868,14 +868,15 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+>  {
+>  	unsigned long flags;
+>  
+> +	if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
+> +		fimc_m2m_job_finish(fimc->m2m.ctx,
+> +				    VB2_BUF_STATE_ERROR);
 > +
->   	if (close) {
->   		msg = enable;
->   		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
-> @@ -88,6 +92,9 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
->   	unsigned char buf[3] = { 0x45, 0x01, 0x00 };
->   	unsigned char *msg;
->
-> +	if (priv->no_i2c_gate)
-> +		return 0;
-> +
->   	if (close) {
->   		msg = enable;
->   		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
-> @@ -740,8 +747,10 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
->   	priv->i2c_props.addr     = i2c_addr;
->   	priv->i2c_props.adap     = i2c_adap;
->   	priv->i2c_props.name     = "tda829x";
-> -	if (cfg)
-> -		priv->cfg.config         = cfg->lna_cfg;
-> +	if (cfg) {
-> +		priv->cfg.config = cfg->lna_cfg;
-> +		priv->no_i2c_gate = cfg->no_i2c_gate;
-> +	}
->
->   	if (tda8290_probe(&priv->i2c_props) == 0) {
->   		priv->ver = TDA8290;
-> diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
-> index 7e288b2..9959cc8 100644
-> --- a/drivers/media/tuners/tda8290.h
-> +++ b/drivers/media/tuners/tda8290.h
-> @@ -26,6 +26,7 @@ struct tda829x_config {
->   	unsigned int probe_tuner:1;
->   #define TDA829X_PROBE_TUNER 0
->   #define TDA829X_DONT_PROBE  1
-> +	unsigned int no_i2c_gate:1;
->   };
->
->   #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
->
+>  	spin_lock_irqsave(&fimc->slock, flags);
+>  	/* Clear for full H/W setup in first run after resume */
+>  	fimc->m2m.ctx = NULL;
+>  	spin_unlock_irqrestore(&fimc->slock, flags);
+>  
+> -	if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
+> -		fimc_m2m_job_finish(fimc->m2m.ctx,
+> -				    VB2_BUF_STATE_ERROR);
 
+Thanks for the patch. Not sure how I managed to miss that...
+I'm not convince this is the right fix though. fimc->m2m.ctx should
+be reset so the device is properly configured in fimc_dma_run()
+callback. Since after suspend/resume cycle all previous registers'
+state is lost.
+So I think something more like below is needed. Can you check if it
+helps ? And what problem exactly are you observing ? Streaming is not
+resumed after system resume ?
+
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c
+b/drivers/media/platform/s5p-fimc/fimc-core.c
+index bdb544f..feb8620 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -869,16 +869,18 @@ static int fimc_m2m_suspend(struct fimc_dev *fimc)
+
+ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ {
++       struct fimc_ctx *ctx;
+        unsigned long flags;
+
+        spin_lock_irqsave(&fimc->slock, flags);
+        /* Clear for full H/W setup in first run after resume */
++       ctx = fimc->m2m.ctx;
+        fimc->m2m.ctx = NULL;
+        spin_unlock_irqrestore(&fimc->slock, flags);
+
+        if (test_and_clear_bit(ST_M2M_SUSPENDED, &fimc->state))
+-               fimc_m2m_job_finish(fimc->m2m.ctx,
+-                                   VB2_BUF_STATE_ERROR);
++               fimc_m2m_job_finish(ctx, VB2_BUF_STATE_ERROR);
++
+        return 0;
+ }
+
+Regards,
+Sylwester
 
 -- 
-http://palosaari.fi/
+Sylwester Nawrocki
+Samsung Poland R&D Center
