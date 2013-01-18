@@ -1,149 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:49315
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750896Ab3ABHaC (ORCPT
+Received: from [207.46.163.26] ([207.46.163.26]:33158 "EHLO
+	co9outboundpool.messaging.microsoft.com" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1750750Ab3ARIMM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jan 2013 02:30:02 -0500
-Date: Wed, 2 Jan 2013 08:29:57 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Tony Prisk <linux@prisktech.co.nz>
-cc: Dan Carpenter <error27@gmail.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
- IS_ERR_OR_NULL
-In-Reply-To: <1357104713.30504.8.camel@gitbox>
-Message-ID: <alpine.DEB.2.02.1301020827040.2241@localhost6.localdomain6>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz>  <1355852048-23188-7-git-send-email-linux@prisktech.co.nz>  <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com>  <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com>
- <1357104713.30504.8.camel@gitbox>
+	Fri, 18 Jan 2013 03:12:12 -0500
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<uclinux-dist-devel@blackfin.uclinux.org>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH 2/2] [media] blackfin: add error frame support
+Date: Fri, 18 Jan 2013 16:09:48 -0500
+Message-ID: <1358543388-29451-2-git-send-email-scott.jiang.linux@gmail.com>
+In-Reply-To: <1358543388-29451-1-git-send-email-scott.jiang.linux@gmail.com>
+References: <1358543388-29451-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mark current frame as error frame when ppi error interrupt
+report fifo error. Member next_frm in struct bcap_device can
+be optimized out.
 
+Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c |   37 +++++++++++++-----------
+ drivers/media/platform/blackfin/ppi.c          |   11 +++++++
+ include/media/blackfin/ppi.h                   |    3 +-
+ 3 files changed, 33 insertions(+), 18 deletions(-)
 
-On Wed, 2 Jan 2013, Tony Prisk wrote:
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index aa9f846..54d8cc5 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -91,8 +91,6 @@ struct bcap_device {
+ 	int num_sensor_formats;
+ 	/* pointing to current video buffer */
+ 	struct bcap_buffer *cur_frm;
+-	/* pointing to next video buffer */
+-	struct bcap_buffer *next_frm;
+ 	/* buffer queue used in videobuf2 */
+ 	struct vb2_queue buffer_queue;
+ 	/* allocator-specific contexts for each plane */
+@@ -455,10 +453,10 @@ static int bcap_stop_streaming(struct vb2_queue *vq)
+ 
+ 	/* release all active buffers */
+ 	while (!list_empty(&bcap_dev->dma_queue)) {
+-		bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
++		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 						struct bcap_buffer, list);
+-		list_del(&bcap_dev->next_frm->list);
+-		vb2_buffer_done(&bcap_dev->next_frm->vb, VB2_BUF_STATE_ERROR);
++		list_del(&bcap_dev->cur_frm->list);
++		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
+ 	}
+ 	return 0;
+ }
+@@ -535,10 +533,21 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 
+ 	spin_lock(&bcap_dev->lock);
+ 
+-	if (bcap_dev->cur_frm != bcap_dev->next_frm) {
++	if (!list_empty(&bcap_dev->dma_queue)) {
+ 		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
+-		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+-		bcap_dev->cur_frm = bcap_dev->next_frm;
++		if (ppi->err) {
++			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
++			ppi->err = false;
++		} else {
++			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
++		}
++		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
++				struct bcap_buffer, list);
++		list_del(&bcap_dev->cur_frm->list);
++	} else {
++		/* clear error flag, we will get a new frame */
++		if (ppi->err)
++			ppi->err = false;
+ 	}
+ 
+ 	ppi->ops->stop(ppi);
+@@ -546,13 +555,8 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 	if (bcap_dev->stop) {
+ 		complete(&bcap_dev->comp);
+ 	} else {
+-		if (!list_empty(&bcap_dev->dma_queue)) {
+-			bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
+-						struct bcap_buffer, list);
+-			list_del(&bcap_dev->next_frm->list);
+-			addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->next_frm->vb, 0);
+-			ppi->ops->update_addr(ppi, (unsigned long)addr);
+-		}
++		addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
++		ppi->ops->update_addr(ppi, (unsigned long)addr);
+ 		ppi->ops->start(ppi);
+ 	}
+ 
+@@ -586,9 +590,8 @@ static int bcap_streamon(struct file *file, void *priv,
+ 	}
+ 
+ 	/* get the next frame from the dma queue */
+-	bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
++	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
+ 					struct bcap_buffer, list);
+-	bcap_dev->cur_frm = bcap_dev->next_frm;
+ 	/* remove buffer from the dma queue */
+ 	list_del(&bcap_dev->cur_frm->list);
+ 	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
+diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
+index 1e24584..01b5b50 100644
+--- a/drivers/media/platform/blackfin/ppi.c
++++ b/drivers/media/platform/blackfin/ppi.c
+@@ -59,19 +59,30 @@ static irqreturn_t ppi_irq_err(int irq, void *dev_id)
+ 		 * others are W1C
+ 		 */
+ 		status = bfin_read16(&reg->status);
++		if (status & 0x3000)
++			ppi->err = true;
+ 		bfin_write16(&reg->status, 0xff00);
+ 		break;
+ 	}
+ 	case PPI_TYPE_EPPI:
+ 	{
+ 		struct bfin_eppi_regs *reg = info->base;
++		unsigned short status;
++
++		status = bfin_read16(&reg->status);
++		if (status & 0x2)
++			ppi->err = true;
+ 		bfin_write16(&reg->status, 0xffff);
+ 		break;
+ 	}
+ 	case PPI_TYPE_EPPI3:
+ 	{
+ 		struct bfin_eppi3_regs *reg = info->base;
++		unsigned long stat;
+ 
++		stat = bfin_read32(&reg->stat);
++		if (stat & 0x2)
++			ppi->err = true;
+ 		bfin_write32(&reg->stat, 0xc0ff);
+ 		break;
+ 	}
+diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
+index 65c4675..d0697f4 100644
+--- a/include/media/blackfin/ppi.h
++++ b/include/media/blackfin/ppi.h
+@@ -86,7 +86,8 @@ struct ppi_if {
+ 	unsigned long ppi_control;
+ 	const struct ppi_ops *ops;
+ 	const struct ppi_info *info;
+-	bool err_int;
++	bool err_int; /* if we need request error interrupt */
++	bool err; /* if ppi has fifo error */
+ 	void *priv;
+ };
+ 
+-- 
+1.7.0.4
 
-> On Wed, 2013-01-02 at 08:10 +0300, Dan Carpenter wrote:
->> clk_get() returns NULL if CONFIG_HAVE_CLK is disabled.
->>
->> I told Tony about this but everyone has been gone with end of year
->> holidays so it hasn't been addressed.
->>
->> Tony, please fix it so people don't apply these patches until
->> clk_get() is updated to not return NULL.  It sucks to have to revert
->> patches.
->>
->> regards,
->> dan carpenter
->
-> I posted the query to Mike Turquette, linux-kernel and linux-arm-kernel
-> mailing lists, regarding the return of NULL when HAVE_CLK is undefined.
->
-> Short Answer: A return value of NULL is valid and not an error therefore
-> we should be using IS_ERR, not IS_ERR_OR_NULL on clk_get results.
->
-> I see the obvious problem this creates, and asked this question:
->
-> If the driver can't operate with a NULL clk, it should use a
-> IS_ERR_OR_NULL test to test for failure, rather than IS_ERR.
->
->
-> And Russell's answer:
->
-> Why should a _consumer_ of a clock care?  It is _very_ important that
-> people get this idea - to a consumer, the struct clk is just an opaque
-> cookie.  The fact that it appears to be a pointer does _not_ mean that
-> the driver can do any kind of dereferencing on that pointer - it should
-> never do so.
->
-> Thread can be viewed here:
-> https://lkml.org/lkml/2012/12/20/105
-
-There are dereferences to the result of clk_get a few times.  I tried the 
-following semantic patch:
-
-@@ expression E; identifier I; @@
-* E = clk_get(...) ... E->I
-
-It gives the results shown below (- marks matched lines, not lines to 
-remove).  I also tried with devm_clk_get instead of clk_get, but got 
-nothing.
-
-julia
-
-diff -u -p /var/linuxes/linux-next/arch/sh/kernel/cpufreq.c /tmp/nothing/arch/sh/kernel/cpufreq.c
---- /var/linuxes/linux-next/arch/sh/kernel/cpufreq.c
-+++ /tmp/nothing/arch/sh/kernel/cpufreq.c
-@@ -117,15 +117,11 @@ static int sh_cpufreq_cpu_init(struct cp
-
-  	dev = get_cpu_device(cpu);
-
--	cpuclk = clk_get(dev, "cpu_clk");
--	if (IS_ERR(cpuclk)) {
-  		dev_err(dev, "couldn't get CPU clk\n");
-  		return PTR_ERR(cpuclk);
-  	}
-
--	policy->cur = policy->min = policy->max = sh_cpufreq_get(cpu);
-
--	freq_table = cpuclk->nr_freqs ? cpuclk->freq_table : NULL;
-  	if (freq_table) {
-  		int result;
-
-diff -u -p /var/linuxes/linux-next/arch/mips/kernel/cpufreq/loongson2_cpufreq.c /tmp/nothing/arch/mips/kernel/cpufreq/loongson2_cpufreq.c
---- /var/linuxes/linux-next/arch/mips/kernel/cpufreq/loongson2_cpufreq.c
-+++ /tmp/nothing/arch/mips/kernel/cpufreq/loongson2_cpufreq.c
-@@ -111,13 +111,10 @@ static int loongson2_cpufreq_cpu_init(st
-  	if (!cpu_online(policy->cpu))
-  		return -ENODEV;
-
--	cpuclk = clk_get(NULL, "cpu_clk");
--	if (IS_ERR(cpuclk)) {
-  		printk(KERN_ERR "cpufreq: couldn't get CPU clk\n");
-  		return PTR_ERR(cpuclk);
-  	}
-
--	cpuclk->rate = cpu_clock_freq / 1000;
-  	if (!cpuclk->rate)
-  		return -EINVAL;
-
-diff -u -p /var/linuxes/linux-next/drivers/net/ethernet/ti/cpts.c /tmp/nothing/drivers/net/ethernet/ti/cpts.c
---- /var/linuxes/linux-next/drivers/net/ethernet/ti/cpts.c
-+++ /tmp/nothing/drivers/net/ethernet/ti/cpts.c
-@@ -241,14 +241,10 @@ static void cpts_overflow_check(struct w
-
-  static void cpts_clk_init(struct cpts *cpts)
-  {
--	cpts->refclk = clk_get(NULL, CPTS_REF_CLOCK_NAME);
--	if (IS_ERR(cpts->refclk)) {
-  		pr_err("Failed to clk_get %s\n", CPTS_REF_CLOCK_NAME);
-  		cpts->refclk = NULL;
-  		return;
-  	}
--	clk_enable(cpts->refclk);
--	cpts->freq = cpts->refclk->recalc(cpts->refclk);
-  }
-
-  static void cpts_clk_release(struct cpts *cpts)
-diff -u -p /var/linuxes/linux-next/drivers/i2c/busses/i2c-sh7760.c /tmp/nothing/drivers/i2c/busses/i2c-sh7760.c
---- /var/linuxes/linux-next/drivers/i2c/busses/i2c-sh7760.c
-+++ /tmp/nothing/drivers/i2c/busses/i2c-sh7760.c
-@@ -397,11 +397,7 @@ static int calc_CCR(unsigned long scl_hz
-  	signed char cdf, cdfm;
-  	int scgd, scgdm, scgds;
-
--	mclk = clk_get(NULL, "peripheral_clk");
--	if (IS_ERR(mclk)) {
-  		return PTR_ERR(mclk);
--	} else {
--		mck = mclk->rate;
-  		clk_put(mclk);
-  	}
 
