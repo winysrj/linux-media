@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4403 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756553Ab3A3SFY (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:41218 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752125Ab3ASRsw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 13:05:24 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0UI5KR5013137
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 19:05:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.lan (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C1C9811E00CB
-	for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 19:05:20 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFC PATCH 0/2] c-qcam: v4l2-compliance fixes
-Date: Wed, 30 Jan 2013 19:05:16 +0100
-Message-Id: <1359569118-28009-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 19 Jan 2013 12:48:52 -0500
+From: Nikola Pajkovsky <n.pajkovsky@gmail.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: mchehab@redhat.com, hans.verkuil@cisco.com, jrnieder@gmail.com,
+	emilgoode@gmail.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+Date: Sat, 19 Jan 2013 18:49:00 +0100
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com> (Peter
+	Senna Tschudin's message of "Sat, 19 Jan 2013 14:33:04 -0200")
+Message-ID: <87txqdysfn.fsf@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Again, old patches I worked on months ago and now have time to post.
+Peter Senna Tschudin <peter.senna@gmail.com> writes:
 
-These changes make the old c-qcam driver comply with v4l2-compliance.
+> replace:
+>  #if defined(CONFIG_VIDEO_CX88_DVB) || \
+>      defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+> with:
+>  #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+>
+> This change was made for: CONFIG_VIDEO_CX88_DVB,
+> CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
+>
+> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+> ---
+>  drivers/media/pci/cx88/cx88.h | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
 
-Tested with my Connectix webcam.
+sorry, all patch-set have same 'use IS_ENABLED() macro'. not wise. at
+least prefix it by subsystem, driver or whatever useful.
 
-As an aside: I never have been able to get a proper picture out of it.
-I suspect that the sensor might be bad. But it works well enough that
-I can run v4l2-compliance and get some frames captured (although they
-are usually black :-) ).
-
-Regards,
-
-	Hans
-
+-- 
+Nikola
