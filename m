@@ -1,118 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5633 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757951Ab3AIPZB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 10:25:01 -0500
-Date: Wed, 9 Jan 2013 13:24:25 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Simon Farnsworth <simon.farnsworth@onelan.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Frank =?UTF-8?B?U2No?= =?UTF-8?B?w6RmZXI=?=
-	<fschaefer.oss@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality
- of Service
-Message-ID: <20130109132425.659243af@redhat.com>
-In-Reply-To: <9912400.S8YXz1JbUM@f17simon>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-	<1718385.5pOCXcV7mc@f17simon>
-	<CAGoCfiwwLwJkjZhEZP6-ek6cs6j51kNEDTC2LSmDnbimgX0KLQ@mail.gmail.com>
-	<9912400.S8YXz1JbUM@f17simon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qa0-f47.google.com ([209.85.216.47]:34100 "EHLO
+	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040Ab3ASQe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 11:34:56 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: mchehab@redhat.com
+Cc: jarod@redhat.com, tralph@mythtv.org, peter.senna@gmail.com,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 22/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:24 -0200
+Message-Id: <1358613206-4274-21-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 09 Jan 2013 11:02:23 +0000
-Simon Farnsworth <simon.farnsworth@onelan.com> escreveu:
+replace:
+ #if defined(CONFIG_I2C) || \
+     defined(CONFIG_I2C_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_I2C)
 
-> On Tuesday 8 January 2013 18:28:53 Devin Heitmueller wrote:
-> > On Tue, Jan 8, 2013 at 6:18 PM, Simon Farnsworth
-> > <simon.farnsworth@onelan.com> wrote:
-> > > The wireless folk use dBm (reference point 1 milliwatt), as that's the
-> > > reference point used in the 802.11 standard.
-> > >
-> > > Perhaps we need an extra FE_SCALE constant; FE_SCALE_DECIBEL has no reference
-> > > point (so suitable for carrier to noise etc, or for when the reference point
-> > > is unknown), and FE_SCALE_DECIBEL_MILLIWATT for when the reference point is
-> > > 1mW, so that frontends report in dBm?
-> > >
-> > > Note that if the frontend internally uses a different reference point, the
-> > > conversion is always going to be adding or subtracting a constant.
-> > 
-> > Hi Simon,
-> > 
-> > Probably the biggest issue you're going to have is that very few of
-> > the consumer-grade demodulators actually report data in that format.
-> > And only a small subset of those actually provide the documentation in
-> > their datasheet.
-> > 
-> <snip>
-> My specific concern is that we already see people complaining that their cable
-> system or aerial installer's meter comes up with one number, and our
-> documentation has completely different numbers. When we dig, this usually
-> turns out to be because our documentation is in dBm, while their installer is
-> using dBmV or dBµW, and no-one at the customer site knows the differences.
-> 
-> If consumer demods don't report in a dB scale at all, we should drop dB as a
-> unit; if they do report in a true dB scale, but the reference point is
-> normally not documented, we need some way to distinguish demods where the
-> reference point is unknown, and demods where someone has taken the time to
-> find the reference point (which can be done with a signal generator).
-> 
-> This is sounding more and more like an argument for adding
-> FE_SCALE_DECIBEL_MILLIWATT - it gives those applications that care a way to
-> tell the user that the signal strength reading from the application should
-> match up to the signal strength reading on your installer's kit. Said
-> applications could even choose to do the conversions for you, giving you all
-> four commonly seen units (dBm, dBmV at 50Ω, dBmV at 75Ω, dBµW).
-> 
-> > For that matter, even the SNR field being reported in dB isn't going
-> > to allow you to reliably compare across different demodulator chips.
-> > If demod X says 28.3 dB and demod Y says 29.2 dB, that doesn't
-> > really mean demod Y performs better - just that it's reporting a
-> > better number.  However it does allow you to compare the demod
-> > against itself either across multiple frequencies or under different
-> > signal conditions - which is what typical users really care about.
-> 
-> I'm not expecting people to compare across demods - I only care about the
-> case where a user has got in a professional installer to help with their
-> setup. The problem I want to avoid is a Linux application saying "-48 dB
-> signal strength, 15 dB CNR", and the installer's kit saying "60 dBuV signal
-> strength, 20 dB CNR", when we have enough information for the Linux
-> application to say "-48 dBm (60 dBuV at 75Ω), 15 dB CNR", cueing the
-> professional to remember that not all dB use the same reference point, and
-> from there into accepting that Linux is reporting a similar signal strength
-> and CNR to his kit.
-> 
-> This also has implications for things like VDR - if the scale is
-> FE_SCALE_DECIBEL but the measurement is absolute, the application probably
-> doesn't want to report the measurement as a dB measure, but as an arbitrary
-> scale; again, you don't want the application saying "50 dB", when the
-> professional installer tells you that you have "0 dBuV".
+This change was made for: CONFIG_I2C
 
-Yes, it makes sense to document that the signal strength should be reported
-on either dBm or dBµW, if the scale is FE_SCALE_DECIBEL. I prefer to specify
-it in terms of Watt (or a submultiple) than in terms of voltage/impedance, as
-different Countries use different impedances on DTV cabling (typically,
-50Ω or 75Ω).
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-So, either dBm or dBµW works for me. As you said, applications can convert
-between those mesures as they wish, by simply adding some constant when
-displaying the power measure.
-
-As the wifi subsytem use dBm, I vote for using dBm for the signal measure
-at the subsystem (actually, 0.1 dBm).
-
-Comments?
-
-Regards,
-Mauro
-
-
-
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 84dc26f..5c61935 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -391,7 +391,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 		goto error;
+ 	}
+ 
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if IS_ENABLED(CONFIG_I2C)
+ 	retval = hdpvr_register_i2c_adapter(dev);
+ 	if (retval < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
+@@ -419,7 +419,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	return 0;
+ 
+ reg_fail:
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if IS_ENABLED(CONFIG_I2C)
+ 	i2c_del_adapter(&dev->i2c_adapter);
+ #endif
+ error:
+@@ -451,7 +451,7 @@ static void hdpvr_disconnect(struct usb_interface *interface)
+ 	mutex_lock(&dev->io_mutex);
+ 	hdpvr_cancel_queue(dev);
+ 	mutex_unlock(&dev->io_mutex);
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if IS_ENABLED(CONFIG_I2C)
+ 	i2c_del_adapter(&dev->i2c_adapter);
+ #endif
+ 	video_unregister_device(dev->video_dev);
 -- 
+1.7.11.7
 
-Cheers,
-Mauro
