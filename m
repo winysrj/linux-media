@@ -1,63 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from umlaeute.mur.at ([89.106.215.196]:43284 "EHLO umlaeute.mur.at"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753354Ab3AXQgm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 11:36:42 -0500
-Received: from inf190.kug.ac.at ([193.170.191.190] helo=[192.168.171.180])
-	by umlaeute.mur.at with esmtpsa (TLS1.0:DHE_RSA_CAMELLIA_256_CBC_SHA1:256)
-	(Exim 4.80)
-	(envelope-from <zmoelnig@umlaeute.mur.at>)
-	id 1TyPjF-0004fu-1E
-	for linux-media@vger.kernel.org; Thu, 24 Jan 2013 17:32:41 +0100
-Message-ID: <51016311.6030202@umlaeute.mur.at>
-Date: Thu, 24 Jan 2013 17:36:33 +0100
-From: =?ISO-8859-15?Q?forum=3A=3Af=FCr=3A=3Auml=E4ute?=
-	<zmoelnig@umlaeute.mur.at>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: v4l2loopback and kernel-3.7
-References: <51015A68.50808@umlaeute.mur.at>
-In-Reply-To: <51015A68.50808@umlaeute.mur.at>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:38409 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752323Ab3ASXmr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 18:42:47 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: hdegoede@redhat.com
+Cc: mchehab@redhat.com, hans.verkuil@cisco.com, peter.senna@gmail.com,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH V2 18/24] usb/gspca/stv06xx/stv06xx.c: use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 21:41:25 -0200
+Message-Id: <1358638891-4775-19-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2013-01-24 16:59, forum::für::umläute wrote:
-> hi all,
+replace:
+ #if defined(CONFIG_INPUT) || \
+     defined(CONFIG_INPUT_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT)
 
-just in case: please CC me, as i'm not subscribed to this list (yet).
+This change was made for: CONFIG_INPUT
 
-gfadmsr
-IOhannes
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+Changes from V1:
+   Updated subject
 
-> 
-> i'm currently maintainer of the "v4l2loopback" device [1], a virtual
-> video device that allows applications to share video-streams via the
-> v4l2 API (each device being V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT).
-> 
-> now (unfortunately for someone maintaining a driver) i have not been
-> following development of the linux-kernel very closely (mainly using
-> debian unstable kernels myself), but some of my users do.
-> it seems that with newer kernel-versions the functionality for
-> video-output modules have been somehow removed from the kernel (3.7.1
-> has been confirmed to make troubles, whereas 3.6.10 still works).
-> 
-> i'd like to inquire, what happened in/to the mainstream kernel, and
-> what's the supposed way to proceed for a virtual video device like mine.
-> (i naively ask the question here, as i'm a bit afraid of kernel-dev
-> mailing list :-))
-> 
-> what's more, if the v4l2-taskforce would be interested to take over a
-> kernel-module that - to my knowledge - is currently the only feasible
-> way on linux to exchange live video streams between applications, we
-> might talk about that :-)
-> 
-> fgasdmr
-> IOhannes
-> 
-> 
-> 
-> 
-> [1] https://github.com/umlaeute/v4l2loopback/
+ drivers/media/usb/gspca/stv06xx/stv06xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/gspca/stv06xx/stv06xx.c b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+index 999ec77..657160b 100644
+--- a/drivers/media/usb/gspca/stv06xx/stv06xx.c
++++ b/drivers/media/usb/gspca/stv06xx/stv06xx.c
+@@ -492,7 +492,7 @@ frame_data:
+ 	}
+ }
+ 
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 			u8 *data,		/* interrupt packet data */
+ 			int len)		/* interrupt packet length */
+@@ -529,7 +529,7 @@ static const struct sd_desc sd_desc = {
+ 	.pkt_scan = stv06xx_pkt_scan,
+ 	.isoc_init = stv06xx_isoc_init,
+ 	.isoc_nego = stv06xx_isoc_nego,
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	.int_pkt_scan = sd_int_pkt_scan,
+ #endif
+ };
+-- 
+1.7.11.7
 
