@@ -1,30 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53860 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755900Ab3AEWyv (ORCPT
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:38888 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751965Ab3ASQe3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 17:54:51 -0500
-Message-ID: <50E8AFF7.9060000@iki.fi>
-Date: Sun, 06 Jan 2013 00:57:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] omap3isp: Remove unneeded memset after kzalloc
-References: <1356971395-3135-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130104230517.GA13641@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130104230517.GA13641@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 19 Jan 2013 11:34:29 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: hdegoede@redhat.com
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 12/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:15 -0200
+Message-Id: <1358613206-4274-12-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari Ailus wrote:
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+replace:
+ #if defined(CONFIG_INPUT) || \
+     defined(CONFIG_INPUT_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT)
 
-I forgot to mention this applies to both of the patches.
+This change was made for: CONFIG_INPUT
 
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/usb/gspca/pac7311.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/gspca/pac7311.c b/drivers/media/usb/gspca/pac7311.c
+index ba3558d..a12dfbf 100644
+--- a/drivers/media/usb/gspca/pac7311.c
++++ b/drivers/media/usb/gspca/pac7311.c
+@@ -621,7 +621,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
+ 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
+ }
+ 
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 			u8 *data,		/* interrupt packet data */
+ 			int len)		/* interrupt packet length */
+@@ -661,7 +661,7 @@ static const struct sd_desc sd_desc = {
+ 	.stopN = sd_stopN,
+ 	.pkt_scan = sd_pkt_scan,
+ 	.dq_callback = do_autogain,
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	.int_pkt_scan = sd_int_pkt_scan,
+ #endif
+ };
 -- 
-Cheers,
+1.7.11.7
 
-Sakari Ailus
-sakari.ailus@iki.fi
