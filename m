@@ -1,105 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56992 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755490Ab3AGUFw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 15:05:52 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r07K5qII019992
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 15:05:52 -0500
-Date: Mon, 7 Jan 2013 18:05:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv8 2/2] dvb: the core logic to handle the DVBv5 QoS
- properties
-Message-ID: <20130107180521.20aad4c6@redhat.com>
-In-Reply-To: <1357584255-6500-2-git-send-email-mchehab@redhat.com>
-References: <1357584255-6500-1-git-send-email-mchehab@redhat.com>
-	<1357584255-6500-2-git-send-email-mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:63735 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab3ASN7g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 08:59:36 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c50so2139955eek.30
+        for <linux-media@vger.kernel.org>; Sat, 19 Jan 2013 05:59:35 -0800 (PST)
+Message-ID: <50FAA6C4.9020606@gmail.com>
+Date: Sat, 19 Jan 2013 14:59:32 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.8] Exynos/s5p driver fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon,  7 Jan 2013 16:44:15 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hi Mauro,
 
-> Add the logic to poll, reset counters and report the QoS stats
-> to the end user.
-> 
-> The idea is that the core will periodically poll the frontend for
-> the stats. The frontend may return -EBUSY, if the previous collect
-> didn't finish, or it may fill the cached data.
-> 
-> The value returned to the end user is always the cached data.
-> 
+The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
 
-It is probably better to have a routine to reset the counters, and do the
-cache cleanup there, instead duplicating it on each frontend driver.
+   Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
 
-So, I'll amend the following driver on my version. I won't be posting a v9
-just due to that. My intention is to post v9 together with a driver's code.
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
+
+Kamil Debski (1):
+       s5p-mfc: end-of-stream handling in encoder bug fix
+
+Sylwester Nawrocki (2):
+       s5p-fimc: Fix fimc-lite entities deregistration
+       s5p-csis: Fix clock handling on error path in probe()
+
+  drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
+  drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
+  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
+  3 files changed, 4 insertions(+), 2 deletions(-)
+
+
+pwclient update -s accepted 16223
+pwclient update -s accepted 16206
+pwclient update -s accepted 16314
+
+--
 
 Regards,
-Mauro
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index f8be7be..b8bd674 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1677,6 +1677,25 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 	return 0;
- }
- 
-+static int reset_qos_counters(struct dvb_frontend *fe)
-+{
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+
-+	/* Reset QoS cache */
-+
-+	memset (&c->strength, 0, sizeof(c->strength));
-+	memset (&c->cnr, 0, sizeof(c->cnr));
-+	memset (&c->bit_error, 0, sizeof(c->bit_error));
-+	memset (&c->block_error, 0, sizeof(c->block_error));
-+	memset (&c->block_count, 0, sizeof(c->block_count));
-+
-+	/* Call frontend reset counter method, if available */
-+	if (fe->ops.reset_qos_counters)
-+		return fe->ops.reset_qos_counters(fe);
-+
-+	return 0;
-+}
-+
- static int dtv_property_process_set(struct dvb_frontend *fe,
- 				    struct dtv_property *tvp,
- 				    struct file *file)
-@@ -1736,8 +1755,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		break;
- 	case DTV_DELIVERY_SYSTEM:
- 		r = set_delivery_system(fe, tvp->u.data);
--		if (r >= 0 && fe->ops.reset_qos_counters)
--			fe->ops.reset_qos_counters(fe);
-+		if (r >= 0)
-+			reset_qos_counters(fe);
- 		break;
- 	case DTV_VOLTAGE:
- 		c->voltage = tvp->u.data;
-@@ -2338,8 +2357,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		if (err)
- 			break;
- 		err = dtv_set_frontend(fe);
--		if (err >= 0 && fe->ops.reset_qos_counters)
--			fe->ops.reset_qos_counters(fe);
-+		if (err >= 0)
-+			reset_qos_counters(fe);
- 
- 		break;
- 	case FE_GET_EVENT:
-
-
--- 
-
-Cheers,
-Mauro
+Sylwester
