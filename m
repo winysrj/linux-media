@@ -1,109 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:55198 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013Ab3AFUfi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 15:35:38 -0500
-Received: by mail-ee0-f50.google.com with SMTP id b45so9186416eek.37
-        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 12:35:37 -0800 (PST)
-Message-ID: <1357504527.7859.12.camel@canaries64>
-Subject: Re: [PATCH] ts2020: call get_rf_strength from frontend
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Date: Sun, 06 Jan 2013 20:35:27 +0000
-In-Reply-To: <50E9C647.4090301@iki.fi>
-References: <1357476042.16016.8.camel@canaries64> <50E97E05.1090607@iki.fi>
-	 <1357496042.4129.26.camel@canaries64> <50E9C647.4090301@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:35904 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab3ASQdv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 11:33:51 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: mchehab@redhat.com
+Cc: schulz@macnetix.de, dhowells@redhat.com, peter.senna@gmail.com,
+	mkrufky@linuxtv.org, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 03/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:06 -0200
+Message-Id: <1358613206-4274-3-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2013-01-06 at 20:45 +0200, Antti Palosaari wrote:
-> On 01/06/2013 08:14 PM, Malcolm Priestley wrote:
-> > On Sun, 2013-01-06 at 15:37 +0200, Antti Palosaari wrote:
-> >> On 01/06/2013 02:40 PM, Malcolm Priestley wrote:
-> >>> Restore ds3000.c read_signal_strength.
-> >>>
-> >>> Call tuner get_rf_strength from frontend read_signal_strength.
-> >>>
-> >>> We are able to do a NULL check and doesn't limit the tuner
-> >>> attach to the frontend attach area.
-> >>>
-> >>> At the moment the lmedm04 tuner attach is stuck in frontend
-> >>> attach area.
-> >>
-> >> I would like to nack that, as I see some problems:
-> >> 1) it changes deviation against normal procedures
-> >> 2) interface driver (usb/pci) should have full control to make decision
-> >> 3) you shoot to our own leg easily in power management
-> >>
-> > This patch does not do any operational changes, and is a proper way to
-> > call to another module with a run time NULL check. The same way as
-> > another tuner function from demodulator is called.
-> 
-> uh, certainly I understand it does not change functionality in that 
-> case! I tried to point out it is logically insane and error proof. Ee 
-> should make this kind of direct calls between drivers as less as 
-> possible - just to make life easier in future. It could work for you, 
-> but for some other it could cause problems as hardware is designed 
-> differently.
-> 
-> >> * actually bug 3) already happened some drivers, like rtl28xxu. Tuner is
-> >> behind demod and demod is put sleep => no access to tuner. FE callback
-> >> is overridden (just like you are trying to do as default) which means
-> >> user-space could still make queries => I/O errors.
-> >
-> > In such cases, the tuner init/sleep should also be called.
-> 
-> ???????
-> I think you don't understand functionality at all!
-> 
-Please, I have been working with the I2C bus in the electronics field
-for the last 20 years.
+replace:
+ #if defined(CONFIG_INPUT_EVDEV) || \
+     defined(CONFIG_INPUT_EVDEV_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT_EVDEV)
 
-If you are really worried about the the tuner being a sleep. You add
-fe variable check this in it's own init/sleep and define the function
-something like this.
+This change was made for: CONFIG_INPUT_EVDEV,
+CONFIG_DVB_SP8870
 
-static int fe_foo_read_signal_strength(struct dvb_frontend *fe,
-	u16 *strength)
-{
-	struct fe_foo_state *state = fe->demodulator_priv;
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/pci/ttpci/av7110.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-	if (state->fe_inactive) {
-... any extra commands to restore tuner power
-		if (fe->ops.tuner_ops.init)
-			fe->ops.tuner_ops.init(fe);
-			
-	}		
-
-	if (fe->ops.tuner_ops.get_rf_strength)
-		fe->ops.tuner_ops.get_rf_strength(fe, strength);
-
-	if (state->fe_inactive) {
-		if (fe->ops.tuner_ops.sleep)
-			fe->ops.tuner_ops.sleep(fe);
-... any extra commands to remove tuner power
-	}
-
-	return 0;
-}
-
-However, I think this is unnecessary in the rs2000 and ds3000.
-
-Regards
-
-
-Malcolm
-
-
-
-
-
-
-
+diff --git a/drivers/media/pci/ttpci/av7110.c b/drivers/media/pci/ttpci/av7110.c
+index 2f54e2b..fc9e7e5 100644
+--- a/drivers/media/pci/ttpci/av7110.c
++++ b/drivers/media/pci/ttpci/av7110.c
+@@ -235,7 +235,7 @@ static void recover_arm(struct av7110 *av7110)
+ 
+ 	restart_feeds(av7110);
+ 
+-#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
++#if IS_ENABLED(CONFIG_INPUT_EVDEV)
+ 	av7110_check_ir_config(av7110, true);
+ #endif
+ }
+@@ -268,7 +268,7 @@ static int arm_thread(void *data)
+ 		if (!av7110->arm_ready)
+ 			continue;
+ 
+-#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
++#if IS_ENABLED(CONFIG_INPUT_EVDEV)
+ 		av7110_check_ir_config(av7110, false);
+ #endif
+ 
+@@ -1730,7 +1730,7 @@ static int alps_tdlb7_tuner_set_params(struct dvb_frontend *fe)
+ 
+ static int alps_tdlb7_request_firmware(struct dvb_frontend* fe, const struct firmware **fw, char* name)
+ {
+-#if defined(CONFIG_DVB_SP8870) || defined(CONFIG_DVB_SP8870_MODULE)
++#if IS_ENABLED(CONFIG_DVB_SP8870)
+ 	struct av7110* av7110 = fe->dvb->priv;
+ 
+ 	return request_firmware(fw, name, &av7110->dev->pci->dev);
+@@ -2725,7 +2725,7 @@ static int __devinit av7110_attach(struct saa7146_dev* dev,
+ 
+ 	mutex_init(&av7110->ioctl_mutex);
+ 
+-#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
++#if IS_ENABLED(CONFIG_INPUT_EVDEV)
+ 	av7110_ir_init(av7110);
+ #endif
+ 	printk(KERN_INFO "dvb-ttpci: found av7110-%d.\n", av7110_num);
+@@ -2768,7 +2768,7 @@ static int __devexit av7110_detach(struct saa7146_dev* saa)
+ 	struct av7110 *av7110 = saa->ext_priv;
+ 	dprintk(4, "%p\n", av7110);
+ 
+-#if defined(CONFIG_INPUT_EVDEV) || defined(CONFIG_INPUT_EVDEV_MODULE)
++#if IS_ENABLED(CONFIG_INPUT_EVDEV)
+ 	av7110_ir_exit(av7110);
+ #endif
+ 	if (budgetpatch || av7110->full_ts) {
+-- 
+1.7.11.7
 
