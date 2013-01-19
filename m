@@ -1,17 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:61992 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab3ASXmP (ORCPT
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:57344 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752279Ab3ASXmm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:15 -0500
+	Sat, 19 Jan 2013 18:42:42 -0500
 From: Peter Senna Tschudin <peter.senna@gmail.com>
 To: hdegoede@redhat.com
 Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
 	kernel-janitors@vger.kernel.org,
 	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 06/24] usb/gspca/cpia1.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:13 -0200
-Message-Id: <1358638891-4775-7-git-send-email-peter.senna@gmail.com>
+Subject: [PATCH V2 16/24] usb/gspca/sonixj.c: use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 21:41:23 -0200
+Message-Id: <1358638891-4775-17-git-send-email-peter.senna@gmail.com>
 In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
 References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -31,38 +31,29 @@ Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 Changes from V1:
    Updated subject
 
- drivers/media/usb/gspca/cpia1.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/gspca/sonixj.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/gspca/cpia1.c b/drivers/media/usb/gspca/cpia1.c
-index b3ba47d..1dcdd9f 100644
---- a/drivers/media/usb/gspca/cpia1.c
-+++ b/drivers/media/usb/gspca/cpia1.c
-@@ -541,7 +541,7 @@ static int do_command(struct gspca_dev *gspca_dev, u16 command,
- 		/* test button press */
- 		a = ((gspca_dev->usb_buf[1] & 0x02) == 0);
- 		if (a != sd->params.qx3.button) {
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 			input_report_key(gspca_dev->input_dev, KEY_CAMERA, a);
- 			input_sync(gspca_dev->input_dev);
- #endif
-@@ -1640,7 +1640,7 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 	/* Update the camera status */
- 	do_command(gspca_dev, CPIA_COMMAND_GetCameraStatus, 0, 0, 0, 0);
+diff --git a/drivers/media/usb/gspca/sonixj.c b/drivers/media/usb/gspca/sonixj.c
+index 36307a9..671d0c6 100644
+--- a/drivers/media/usb/gspca/sonixj.c
++++ b/drivers/media/usb/gspca/sonixj.c
+@@ -3077,7 +3077,7 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
+ 	return -EINVAL;
+ }
  
 -#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
 +#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->params.qx3.button) {
- 		/* The camera latch will hold the pressed state until we reset
-@@ -1869,7 +1869,7 @@ static const struct sd_desc sd_desc = {
- 	.stopN = sd_stopN,
- 	.dq_callback = sd_dq_callback,
+ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 			u8 *data,		/* interrupt packet data */
+ 			int len)		/* interrupt packet length */
+@@ -3109,7 +3109,7 @@ static const struct sd_desc sd_desc = {
  	.pkt_scan = sd_pkt_scan,
+ 	.dq_callback = do_autogain,
+ 	.querymenu = sd_querymenu,
 -#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
 +#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
+ 	.int_pkt_scan = sd_int_pkt_scan,
  #endif
  };
 -- 
