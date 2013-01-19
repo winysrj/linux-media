@@ -1,103 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:44776 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751663Ab3AaG3K (ORCPT
+Received: from mail-qc0-f171.google.com ([209.85.216.171]:57717 "EHLO
+	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab3ASQer (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 01:29:10 -0500
-Received: by mail-ob0-f176.google.com with SMTP id v19so2538377obq.21
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 22:29:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <510992D8.9030800@gmail.com>
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
-	<510992D8.9030800@gmail.com>
-Date: Thu, 31 Jan 2013 11:59:10 +0530
-Message-ID: <CAK9yfHzHOY4D_QW3BU0ihUcvrJ96vN7mQwEXQD0ezcjesbKwuw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] s5p-g2d: Add DT based discovery support
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, k.debski@samsung.com,
-	inki.dae@samsung.com, ajaykumar.rs@samsung.com, patches@linaro.org,
-	s.nawrocki@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 19 Jan 2013 11:34:47 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: lcostantino@gmail.com
+Cc: hdegoede@redhat.com, mchehab@redhat.com,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 19/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:21 -0200
+Message-Id: <1358613206-4274-18-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester.
+replace:
+ #if defined(CONFIG_INPUT) || \
+     defined(CONFIG_INPUT_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT)
 
-Thank you for the review.
+This change was made for: CONFIG_INPUT
 
-On 31 January 2013 03:08, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Sachin,
->
->
-> On 01/25/2013 10:55 AM, Sachin Kamat wrote:
->>
->> This patch adds device tree based discovery support to G2D driver
->>
->> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
->> ---
->
-> Don' you need something like:
->
->         else {
->                 of_id = of_match_node(exynos_g2d_match, pdev->dev.of_node);
->                 if (!of_id)
->                         return -ENODEV;
->                 dev->variant = (struct g2d_variant *)of_id->data;
->         }
-> ?
->
-> Otherwise dev->variant is left uninitialized...?
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/usb/gspca/t613.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Exactly. The above code is very much required. Not sure how I missed it :(
-
->
->
->>         return 0;
->>
->> @@ -844,6 +846,18 @@ static struct g2d_variant g2d_drvdata_v4x = {
->>         .hw_rev = TYPE_G2D_4X, /* Revision 4.1 for Exynos4X12 and Exynos5
->> */
->>   };
->>
->> +static const struct of_device_id exynos_g2d_match[] = {
->> +       {
->> +               .compatible = "samsung,g2d-v3",
->> +               .data =&g2d_drvdata_v3x,
->> +       }, {
->> +               .compatible = "samsung,g2d-v41",
->> +               .data =&g2d_drvdata_v4x,
->
->
-> Didn't you consider adding "exynos" to these compatible strings ?
-> I'm afraid g2d may be too generic.
-
-Choosing the right compatible string seems to be the biggest challenge :)
-I did consider adding "exynos" to the compatible strings, but then MFC
-used it as "mfc-v5" and I followed the same example. Prepending exynos
-makes it more specific and should be added (even to MFC) IMO too.
-We need to arrive at a consensus about the bindings (right now for
-g2d) as they would be common irrespective of DRM or V4L2 framework.
-Please let me know your opinion about Inki's suggestion to use version
-property instead.
-
->
->
->> +       },
->> +       {},
->> +               .of_match_table = of_match_ptr(exynos_g2d_match),
->
->
-> of_match_ptr() could be dropped, since exynos_g2d_match[] is
-> always compiled in.
-
-OK.
-
-Once I get confirmation about the compatible strings, I will resend
-this patch with other suggested updates.
-
+diff --git a/drivers/media/usb/gspca/t613.c b/drivers/media/usb/gspca/t613.c
+index b92d4ef..e2cc4e5 100644
+--- a/drivers/media/usb/gspca/t613.c
++++ b/drivers/media/usb/gspca/t613.c
+@@ -823,7 +823,7 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
+ 		msleep(20);
+ 		reg_w(gspca_dev, 0x0309);
+ 	}
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	/* If the last button state is pressed, release it now! */
+ 	if (sd->button_pressed) {
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+@@ -841,7 +841,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
+ 	int pkt_type;
+ 
+ 	if (data[0] == 0x5a) {
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 		if (len > 20) {
+ 			u8 state = (data[20] & 0x80) ? 1 : 0;
+ 			if (sd->button_pressed != state) {
+@@ -1019,7 +1019,7 @@ static const struct sd_desc sd_desc = {
+ 	.start = sd_start,
+ 	.stopN = sd_stopN,
+ 	.pkt_scan = sd_pkt_scan,
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	.other_input = 1,
+ #endif
+ };
 -- 
-With warm regards,
-Sachin
+1.7.11.7
+
