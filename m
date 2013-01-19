@@ -1,52 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3.infomaniak.ch ([84.16.68.91]:51950 "EHLO
-	smtp3.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753624Ab3ACVeR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 16:34:17 -0500
-Message-ID: <50E5F798.3010202@pobox.com>
-Date: Thu, 03 Jan 2013 22:26:48 +0100
-From: Remy Blank <remy.blank@pobox.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Sommer <saschasommer@freenet.de>
-Subject: Re: Bug 14126 (em28xx, Terratec Cinergy 200/250 USB)
-References: <50CA162A.8080108@googlemail.com> <20121213184300.13c92fb0@redhat.com> <50E5C768.6060707@googlemail.com>
-In-Reply-To: <50E5C768.6060707@googlemail.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigE97C1E0D99454C4E78F0A616"
+Received: from mail-qa0-f48.google.com ([209.85.216.48]:56593 "EHLO
+	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939Ab3ASQfC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 11:35:02 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: mchehab@redhat.com
+Cc: hans.verkuil@cisco.com, sakari.ailus@iki.fi, dhowells@redhat.com,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 24/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:26 -0200
+Message-Id: <1358613206-4274-23-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE97C1E0D99454C4E78F0A616
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+replace:
+ #if defined(CONFIG_MEDIA_TUNER_TEA5761) || \
+     defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
 
-Frank Sch=C3=A4fer wrote:
-> Remy, your patch needs to be rebased against the linux-media tree.
-> Is it ok for you when I create a new patch including the composite inpu=
-t
-> fix and submit it ?
+This change was made for: CONFIG_MEDIA_TUNER_TEA5761
 
-Sure, please do. Thanks for taking the time to get this included.
+Also replaced:
 
--- Remy
+with:
 
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-common.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---------------enigE97C1E0D99454C4E78F0A616
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 614316f..aa044f4 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -238,7 +238,7 @@ int v4l2_chip_match_host(const struct v4l2_dbg_match *match)
+ }
+ EXPORT_SYMBOL(v4l2_chip_match_host);
+ 
+-#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
++#if IS_ENABLED(CONFIG_I2C)
+ int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
+ {
+ 	int len;
+@@ -384,7 +384,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_addr);
+ const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
+ {
+ 	static const unsigned short radio_addrs[] = {
+-#if defined(CONFIG_MEDIA_TUNER_TEA5761) || defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
++#if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
+ 		0x10,
+ #endif
+ 		0x60,
+-- 
+1.7.11.7
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iEYEARECAAYFAlDl95wACgkQCeNfIyhvXjIONQCgoHSArqywGt5ThP3ETLM6djcC
-nwMAoMbjjkvvqFqeZ2+7HpedQdU6Qy73
-=nGtr
------END PGP SIGNATURE-----
-
---------------enigE97C1E0D99454C4E78F0A616--
