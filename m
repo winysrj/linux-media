@@ -1,234 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34193 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754864Ab3AWRbw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 12:31:52 -0500
-Message-ID: <51001E60.4060102@iki.fi>
-Date: Wed, 23 Jan 2013 19:31:12 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
-References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org> <201301210918.07199.linux@rainbow-software.org> <50FD04F9.5000401@iki.fi> <201301211928.06111.linux@rainbow-software.org>
-In-Reply-To: <201301211928.06111.linux@rainbow-software.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:51227 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040Ab3ASQew (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jan 2013 11:34:52 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: hdegoede@redhat.com
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 21/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:23 -0200
+Message-Id: <1358613206-4274-20-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/2013 08:28 PM, Ondrej Zary wrote:
-> On Monday 21 January 2013 10:06:01 Antti Palosaari wrote:
->> On 01/21/2013 10:18 AM, Ondrej Zary wrote:
->>> On Monday 21 January 2013, Antti Palosaari wrote:
->>>> On 01/20/2013 11:22 PM, Ondrej Zary wrote:
->>>>> Allow disabling I2C gate handling by external configuration.
->>>>> This is required by cards that have all devices on a single I2C bus,
->>>>> like AverMedia A706.
->>>>
->>>> My personal opinion is that I2C gate control should be disabled setting
->>>> callback to NULL (same for the other unwanted callbacks too). There is
->>>> checks for callback existence in DVB-core, it does not call callback if
->>>> it is NULL.
->>>
->>> This is TDA8290 internal I2C gate which is used by tda8290 internally and
->>> also by tda827x or tda18271.
->>
->> That sounds like there is some logical problems in the driver then, not
->> split correctly?
->>
->> What I think, scenario is tda8290 is analog decoder, tda18271 is silicon
->> tuner, which is connected (usually) to the tda8290 I2C bus. tda18271
->> calls tda8290 I2C-gate control when needed. Analog or digital demod
->> should not call its own I2C gate directly - and if it was done in some
->> weird reason then it should call own callback conditionally, checking
->> whether or not it is NULL.
->
-> Something like this? It seems to work for both cases (I2C gate control
-> enabled and disabled) - tested with Pinnacle PCTV 110i and this AverMedia
-> A706.
+replace:
+ #if defined(CONFIG_INPUT) || \
+     defined(CONFIG_INPUT_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT)
 
-Yes, that looks more what it should be. Main problem there is that this 
-driver access directly to the tuner and due to that it needs to call its 
-own gate control. It indicates that tuner is not split out from that 
-analog demod driver correctly. There is TDA8275 (RF-tuner) and TDA8275A 
-(RF-tuner) drivers integrated to that TDA8290 (analog demod) driver. 
-Third used RF-tuner is TDA18271, which is split correctly to own module. 
-As it is old driver, without a large interest, there is no idea to spend 
-time splitting those two tuners out. Anyhow, that patch looks good, but 
-is it too risky?
+This change was made for: CONFIG_INPUT
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+---
+ drivers/media/usb/gspca/zc3xx.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-regards
-Antti
-
-
-
->
-> ---
->   drivers/media/tuners/tda8290.c |   49 +++++++++++++++++++++++----------------
->   drivers/media/tuners/tda8290.h |    1 +
->   2 files changed, 30 insertions(+), 20 deletions(-)
->
-> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-> index 8c48521..a2b7a9f 100644
-> --- a/drivers/media/tuners/tda8290.c
-> +++ b/drivers/media/tuners/tda8290.c
-> @@ -233,7 +233,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
->   	}
->
->
-> -	tda8290_i2c_bridge(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->
->   	if (fe->ops.tuner_ops.set_analog_params)
->   		fe->ops.tuner_ops.set_analog_params(fe, params);
-> @@ -302,7 +303,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
->   		}
->   	}
->
-> -	tda8290_i2c_bridge(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->   	tuner_i2c_xfer_send(&priv->i2c_props, if_agc_set, 2);
->   }
->
-> @@ -424,7 +426,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
->   	tuner_i2c_xfer_send(&priv->i2c_props, blanking_mode, 2);
->   	msleep(20);
->
-> -	tda8295_i2c_bridge(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->
->   	if (fe->ops.tuner_ops.set_analog_params)
->   		fe->ops.tuner_ops.set_analog_params(fe, params);
-> @@ -437,7 +440,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
->   	else
->   		tuner_dbg("tda8295 not locked, no signal?\n");
->
-> -	tda8295_i2c_bridge(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->   }
->
->   /*---------------------------------------------------------------------*/
-> @@ -465,11 +469,13 @@ static void tda8290_standby(struct dvb_frontend *fe)
->   	unsigned char tda8290_agc_tri[] = { 0x02, 0x20 };
->   	struct i2c_msg msg = {.addr = priv->tda827x_addr, .flags=0, .buf=cb1, .len = 2};
->
-> -	tda8290_i2c_bridge(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->   	if (priv->ver & TDA8275A)
->   		cb1[1] = 0x90;
->   	i2c_transfer(priv->i2c_props.adap, &msg, 1);
-> -	tda8290_i2c_bridge(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->   	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_agc_tri, 2);
->   	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_standby, 2);
->   }
-> @@ -537,9 +543,11 @@ static void tda8290_init_tuner(struct dvb_frontend *fe)
->   	if (priv->ver & TDA8275A)
->   		msg.buf = tda8275a_init;
->
-> -	tda8290_i2c_bridge(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->   	i2c_transfer(priv->i2c_props.adap, &msg, 1);
-> -	tda8290_i2c_bridge(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->   }
->
->   /*---------------------------------------------------------------------*/
-> @@ -565,19 +573,13 @@ static struct tda18271_config tda829x_tda18271_config = {
->   static int tda829x_find_tuner(struct dvb_frontend *fe)
->   {
->   	struct tda8290_priv *priv = fe->analog_demod_priv;
-> -	struct analog_demod_ops *analog_ops = &fe->ops.analog_ops;
->   	int i, ret, tuners_found;
->   	u32 tuner_addrs;
->   	u8 data;
->   	struct i2c_msg msg = { .flags = I2C_M_RD, .buf = &data, .len = 1 };
->
-> -	if (!analog_ops->i2c_gate_ctrl) {
-> -		printk(KERN_ERR "tda8290: no gate control were provided!\n");
-> -
-> -		return -EINVAL;
-> -	}
-> -
-> -	analog_ops->i2c_gate_ctrl(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->
->   	/* probe for tuner chip */
->   	tuners_found = 0;
-> @@ -595,7 +597,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->   	   give a response now
->   	 */
->
-> -	analog_ops->i2c_gate_ctrl(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->
->   	if (tuners_found > 1)
->   		for (i = 0; i < tuners_found; i++) {
-> @@ -618,12 +621,14 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->   	priv->tda827x_addr = tuner_addrs;
->   	msg.addr = tuner_addrs;
->
-> -	analog_ops->i2c_gate_ctrl(fe, 1);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
->   	ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
->
->   	if (ret != 1) {
->   		tuner_warn("tuner access failed!\n");
-> -		analog_ops->i2c_gate_ctrl(fe, 0);
-> +		if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +			fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->   		return -EREMOTEIO;
->   	}
->
-> @@ -648,7 +653,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->   	if (fe->ops.tuner_ops.sleep)
->   		fe->ops.tuner_ops.sleep(fe);
->
-> -	analog_ops->i2c_gate_ctrl(fe, 0);
-> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
-> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
->
->   	return 0;
->   }
-> @@ -755,6 +761,9 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
->   		       sizeof(struct analog_demod_ops));
->   	}
->
-> +	if (cfg && cfg->no_i2c_gate)
-> +		fe->ops.analog_ops.i2c_gate_ctrl = NULL;
-> +
->   	if (!(cfg) || (TDA829X_PROBE_TUNER == cfg->probe_tuner)) {
->   		tda8295_power(fe, 1);
->   		if (tda829x_find_tuner(fe) < 0)
-> diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
-> index 7e288b2..9959cc8 100644
-> --- a/drivers/media/tuners/tda8290.h
-> +++ b/drivers/media/tuners/tda8290.h
-> @@ -26,6 +26,7 @@ struct tda829x_config {
->   	unsigned int probe_tuner:1;
->   #define TDA829X_PROBE_TUNER 0
->   #define TDA829X_DONT_PROBE  1
-> +	unsigned int no_i2c_gate:1;
->   };
->
->   #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
->
-
-
+diff --git a/drivers/media/usb/gspca/zc3xx.c b/drivers/media/usb/gspca/zc3xx.c
+index 77c5775..a8dc421 100644
+--- a/drivers/media/usb/gspca/zc3xx.c
++++ b/drivers/media/usb/gspca/zc3xx.c
+@@ -6902,7 +6902,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 			u8 *data,		/* interrupt packet data */
+ 			int len)		/* interrput packet length */
+@@ -6929,7 +6929,7 @@ static const struct sd_desc sd_desc = {
+ 	.pkt_scan = sd_pkt_scan,
+ 	.get_jcomp = sd_get_jcomp,
+ 	.set_jcomp = sd_set_jcomp,
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	.int_pkt_scan = sd_int_pkt_scan,
+ #endif
+ };
 -- 
-http://palosaari.fi/
+1.7.11.7
+
