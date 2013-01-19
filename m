@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:38198 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921Ab3AaTlA (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59995 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752068Ab3ASRne (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 14:41:00 -0500
-Received: by mail-wg0-f52.google.com with SMTP id 12so2268734wgh.31
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 11:40:59 -0800 (PST)
+	Sat, 19 Jan 2013 12:43:34 -0500
+Date: Sat, 19 Jan 2013 19:43:29 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, arun.kk@samsung.com,
+	s.nawrocki@samsung.com, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Message-ID: <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-From: Adriano Martins <adrianomatosmartins@gmail.com>
-Date: Thu, 31 Jan 2013 17:40:38 -0200
-Message-ID: <CAJRKTVq-dgT2yMViBY=ZCbTHmV7m_9KN+mGXfCeqf1myL5tsWg@mail.gmail.com>
-Subject: omap3isp omap3isp: CCDC stop timeout!
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1358156164-11382-4-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Kamil,
 
-I'm trying capture images from an ov5640 sensor on parallel mode. The
-sensor output format is UYVY8_2X8.
-And the CCDC input is configured as  UYVY8_2X8 too. I can do it, after
-I applied the Laurent's patches:
-"[PATCH 0/6] YUV input support for the OMAP3 ISP".
+Thanks for the patch.
 
-I have my sensor configured:
-{
-.subdevs = cm-t35_ov5640_primary_subdevs,
-.interface = ISP_INTERFACE_PARALLEL,
-.bus = {
-     .parallel = {
-     .data_lane_shift = 2,
-     .clk_pol = 0,
-     .hs_pol = 1,
-     .vs_pol = 1,
-     .data_pol = 1,
-},
-},
+On Mon, Jan 14, 2013 at 10:36:04AM +0100, Kamil Debski wrote:
+> Set proper timestamp type in drivers that I am sure that use either
+> MONOTONIC or COPY timestamps. Other drivers will correctly report
+> UNKNOWN timestamp type instead of assuming that all drivers use monotonic
+> timestamps.
 
-I defined ISP_ISR_DEBUG and DEBUG in the isp.c
-Then, I configure the media-controller pipeline and try to capture:
+What other kind of timestamps there can be? All drivers (at least those not
+mem-to-mem) that do obtain timestamps using system clock use monotonic ones.
 
-media-ctl -v -r -l '"ov5640 3-003c":0->"OMAP3 ISP CCDC":0[1]'
-media-ctl -v  -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-media-ctl -v -V '"ov5640 3-003c":0 [UYVY2X8 640x480]'
-media-ctl -v -V '"OMAP3 ISP CCDC":0 [UYVY2X8 640x480]'
-yavta -f UYVY -s 640x480 --capture=5 --file=image# /dev/video2
+I'd think that there should no longer be any drivers using the UNKNOWN
+timestamp type: UNKNOWN is either from monotonic or realtime clock, and we
+just replaced all of them with the monotonic ones. No driver uses realtime
+timestamps anymore.
 
-In this point, it hangs, and I need hit ctrol-c.
-I get this message:
-[ 1640.308807] omap3isp omap3isp: CCDC stop timeout!
+How about making MONOTONIC timestamps default instead, or at least assigning
+all drivers something else than UNKNOWN?
 
-I have observed that I don't get any interrupt messages. However, the
-DATA0:7, PCLK, HSYNC and VSYNC is working fine, I guess.
+-- 
+Kind regards,
 
-NOTE: the sensor has externel 24 MHz oscillator, and the signals never
-stop into CCDC:
-
-Somebody can help me?
-
-Thanks
-
-Regards
-Adriano Martins
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
