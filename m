@@ -1,84 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:65433 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923Ab3ATN0U (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:61872 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab3ASQdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 08:26:20 -0500
-Received: by mail-ea0-f172.google.com with SMTP id f13so2146244eaa.31
-        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 05:26:19 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+	Sat, 19 Jan 2013 11:33:43 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: overhaul em28xx_capture_area_set()
-Date: Sun, 20 Jan 2013 14:26:47 +0100
-Message-Id: <1358688407-5146-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: hans.verkuil@cisco.com, jrnieder@gmail.com, peter.senna@gmail.com,
+	emilgoode@gmail.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 01/24] use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 14:33:04 -0200
+Message-Id: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-- move the bit shifting of width+height values inside the function
-- fix the debug message format and output values
-- add comment about the size limit (e.g. EM277x supports >2MPix)
-- make void, because error checking is incomplete and we never check the
-  returned value (we would continue anyway)
+replace:
+ #if defined(CONFIG_VIDEO_CX88_DVB) || \
+     defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+This change was made for: CONFIG_VIDEO_CX88_DVB,
+CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
+
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-core.c |   22 ++++++++++++----------
- 1 Datei geändert, 12 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
+ drivers/media/pci/cx88/cx88.h | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 210859a..f516a63 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -733,22 +733,24 @@ static int em28xx_accumulator_set(struct em28xx *dev, u8 xmin, u8 xmax,
- 	return em28xx_write_regs(dev, EM28XX_R2B_YMAX, &ymax, 1);
- }
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index ba0dba4..feff53c 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -363,7 +363,7 @@ struct cx88_core {
+ 	unsigned int               tuner_formats;
  
--static int em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
-+static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
- 				   u16 width, u16 height)
- {
--	u8 cwidth = width;
--	u8 cheight = height;
--	u8 overflow = (height >> 7 & 0x02) | (width >> 8 & 0x01);
-+	u8 cwidth = width >> 2;
-+	u8 cheight = height >> 2;
-+	u8 overflow = (height >> 9 & 0x02) | (width >> 10 & 0x01);
-+	/* NOTE: size limit: 2047x1023 = 2MPix */
+ 	/* config info -- dvb */
+-#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
++#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+ 	int 			   (*prev_set_voltage)(struct dvb_frontend *fe, fe_sec_voltage_t voltage);
+ #endif
+ 	void			   (*gate_ctrl)(struct cx88_core  *core, int open);
+@@ -562,8 +562,7 @@ struct cx8802_dev {
  
--	em28xx_coredbg("em28xx Area Set: (%d,%d)\n",
--			(width | (overflow & 2) << 7),
--			(height | (overflow & 1) << 8));
-+	em28xx_coredbg("capture area set to (%d,%d): %dx%d\n",
-+		       hstart, vstart,
-+		       ((overflow & 2) << 9 | cwidth << 2),
-+		       ((overflow & 1) << 10 | cheight << 2));
+ 	/* for blackbird only */
+ 	struct list_head           devlist;
+-#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
+-    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
++#if IS_ENABLED(CONFIG_VIDEO_CX88_BLACKBIRD)
+ 	struct video_device        *mpeg_dev;
+ 	u32                        mailbox;
+ 	int                        width;
+@@ -574,13 +573,12 @@ struct cx8802_dev {
+ 	struct cx2341x_handler     cxhdl;
+ #endif
  
- 	em28xx_write_regs(dev, EM28XX_R1C_HSTART, &hstart, 1);
- 	em28xx_write_regs(dev, EM28XX_R1D_VSTART, &vstart, 1);
- 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
- 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
--	return em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
-+	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
- }
+-#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
++#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+ 	/* for dvb only */
+ 	struct videobuf_dvb_frontends frontends;
+ #endif
  
- static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
-@@ -801,9 +803,9 @@ int em28xx_resolution_set(struct em28xx *dev)
- 	   it out, we end up with the same format as the rest of the VBI
- 	   region */
- 	if (em28xx_vbi_supported(dev) == 1)
--		em28xx_capture_area_set(dev, 0, 2, width >> 2, height >> 2);
-+		em28xx_capture_area_set(dev, 0, 2, width, height);
- 	else
--		em28xx_capture_area_set(dev, 0, 0, width >> 2, height >> 2);
-+		em28xx_capture_area_set(dev, 0, 0, width, height);
- 
- 	return em28xx_scaler_set(dev, dev->hscale, dev->vscale);
- }
+-#if defined(CONFIG_VIDEO_CX88_VP3054) || \
+-    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
++#if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
+ 	/* For VP3045 secondary I2C bus support */
+ 	struct vp3054_i2c_state	   *vp3054;
+ #endif
 -- 
-1.7.10.4
+1.7.11.7
 
