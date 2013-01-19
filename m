@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:38379 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637Ab3AOVHI (ORCPT
+Received: from mail-qa0-f47.google.com ([209.85.216.47]:57937 "EHLO
+	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751304Ab3ASXmX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 16:07:08 -0500
-Date: Tue, 15 Jan 2013 22:07:02 +0100
-From: Cong Ding <dinggnu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Wei Yongjun <yongjun_wei@trendmicro.com.cn>,
-	Evgeny Plehov <EvgenyPlehov@ukr.net>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v] media: dvb-frontends: remove unnecessary null pointer check
-Message-ID: <20130115210700.GA12272@gmail.com>
-References: <1358282897-8530-1-git-send-email-dinggnu@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1358282897-8530-1-git-send-email-dinggnu@gmail.com>
+	Sat, 19 Jan 2013 18:42:23 -0500
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: hdegoede@redhat.com
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH V2 09/24] usb/gspca/ov519.c: use IS_ENABLED() macro
+Date: Sat, 19 Jan 2013 21:41:16 -0200
+Message-Id: <1358638891-4775-10-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The address of a variable is impossible to be null, so we remove the check.
+replace:
+ #if defined(CONFIG_INPUT) || \
+     defined(CONFIG_INPUT_MODULE)
+with:
+ #if IS_ENABLED(CONFIG_INPUT)
 
-Signed-off-by: Cong Ding <dinggnu@gmail.com>
+This change was made for: CONFIG_INPUT
+
+Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
-sorry for sending again. I didn't notice there are another 2 places with the
-same issue.
- - cong
+Changes from V1:
+   Updated subject
 
- drivers/media/dvb-frontends/stv0900_core.c |   14 ++++----------
- drivers/media/dvb-frontends/stv0900_sw.c   |    7 ++-----
- 2 files changed, 6 insertions(+), 15 deletions(-)
+ drivers/media/usb/gspca/ov519.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0900_core.c b/drivers/media/dvb-frontends/stv0900_core.c
-index 0fb34e1..e5a87b5 100644
---- a/drivers/media/dvb-frontends/stv0900_core.c
-+++ b/drivers/media/dvb-frontends/stv0900_core.c
-@@ -524,11 +524,8 @@ void stv0900_set_tuner(struct dvb_frontend *fe, u32 frequency,
- 	struct dvb_frontend_ops *frontend_ops = NULL;
- 	struct dvb_tuner_ops *tuner_ops = NULL;
+diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
+index 9aa09f8..9ad19a7 100644
+--- a/drivers/media/usb/gspca/ov519.c
++++ b/drivers/media/usb/gspca/ov519.c
+@@ -4238,7 +4238,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
+ 	if (sd->bridge == BRIDGE_W9968CF)
+ 		w9968cf_stop0(sd);
  
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
-+	frontend_ops = &fe->ops;
-+	tuner_ops = &frontend_ops->tuner_ops;
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	/* If the last button state is pressed, release it now! */
+ 	if (sd->snapshot_pressed) {
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
+@@ -4255,7 +4255,7 @@ static void ov51x_handle_button(struct gspca_dev *gspca_dev, u8 state)
+ 	struct sd *sd = (struct sd *) gspca_dev;
  
- 	if (tuner_ops->set_frequency) {
- 		if ((tuner_ops->set_frequency(fe, frequency)) < 0)
-@@ -552,11 +549,8 @@ void stv0900_set_bandwidth(struct dvb_frontend *fe, u32 bandwidth)
- 	struct dvb_frontend_ops *frontend_ops = NULL;
- 	struct dvb_tuner_ops *tuner_ops = NULL;
- 
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
-+	frontend_ops = &fe->ops;
-+	tuner_ops = &frontend_ops->tuner_ops;
- 
- 	if (tuner_ops->set_bandwidth) {
- 		if ((tuner_ops->set_bandwidth(fe, bandwidth)) < 0)
-diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
-index 4af2078..0a40edf 100644
---- a/drivers/media/dvb-frontends/stv0900_sw.c
-+++ b/drivers/media/dvb-frontends/stv0900_sw.c
-@@ -1167,11 +1167,8 @@ static u32 stv0900_get_tuner_freq(struct dvb_frontend *fe)
- 	struct dvb_tuner_ops *tuner_ops = NULL;
- 	u32 freq = 0;
- 
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
-+	frontend_ops = &fe->ops;
-+	tuner_ops = &frontend_ops->tuner_ops;
- 
- 	if (tuner_ops->get_frequency) {
- 		if ((tuner_ops->get_frequency(fe, &freq)) < 0)
+ 	if (sd->snapshot_pressed != state) {
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, state);
+ 		input_sync(gspca_dev->input_dev);
+ #endif
+@@ -4924,7 +4924,7 @@ static const struct sd_desc sd_desc = {
+ 	.dq_callback = sd_reset_snapshot,
+ 	.get_jcomp = sd_get_jcomp,
+ 	.set_jcomp = sd_set_jcomp,
+-#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
++#if IS_ENABLED(CONFIG_INPUT)
+ 	.other_input = 1,
+ #endif
+ };
 -- 
-1.7.10.4
+1.7.11.7
 
