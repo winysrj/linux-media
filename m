@@ -1,66 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fuel7.com ([74.222.0.51]:57073 "EHLO mail.fuel7.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754887Ab3ADUV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 15:21:57 -0500
-Message-ID: <50E732FC.10203@fuel7.com>
-Date: Fri, 04 Jan 2013 11:52:28 -0800
-From: William Swanson <william.swanson@fuel7.com>
+Received: from firefly.pyther.net ([50.116.37.168]:44369 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752090Ab3ATOkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jan 2013 09:40:32 -0500
+Message-ID: <50FC01DE.3080203@pyther.net>
+Date: Sun, 20 Jan 2013 09:40:30 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Antti Palosaari <crope@iki.fi>
 CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	William Swanson <william.swanson@fuel7.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Ken Petit <ken@fuel7.com>
-Subject: Re: [PATCH] omap3isp: Add support for interlaced input data
-References: <1355796739-2580-1-git-send-email-william.swanson@fuel7.com> <1447136.vJuIcl6Gth@avalon> <20121227182709.5e89a61a@redhat.com>
-In-Reply-To: <20121227182709.5e89a61a@redhat.com>
+	=?ISO-8859-1?Q?Frank_Sc?= =?ISO-8859-1?Q?h=E4fer?=
+	<fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jwilson@redhat.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <CAGoCfizTfZVFkNvdQuuisOugM2BGipYd_75R63nnj=K7E8ULWQ@mail.gmail.com> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net> <50CE74C7.90809@iki.fi> <50CE7763.3030900@pyther.net> <50CEE6FA.4030901@iki.fi> <50CEFD29.8060009@iki.fi> <50CEFF43.1030704@pyther.net> <50CF44CD.5060707@redhat.com> <50CFDE2B.6040100@pyther.net> <50E49FA6.8010402@iki.fi> <50E4F2BA.7060407@pyther.net>
+In-Reply-To: <50E4F2BA.7060407@pyther.net>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
->> On Monday 17 December 2012 18:12:19 William Swanson wrote:
->>> If the remote video sensor reports an interlaced video mode, the CCDC block
->>> should configure itself appropriately.
+On 01/02/2013 09:53 PM, Matthew Gyurgyik wrote:
+> On 01/02/2013 03:59 PM, Antti Palosaari wrote:
+>> On 12/18/2012 05:08 AM, Matthew Gyurgyik wrote:
+>>> I can test patches Tue and Wed this week. Afterwards, I probably won't
+>>> be able to test anything until Dec 28th/29th as I will be away from my
+>>> workstation.
+>>>
+>>> In regards to my issue compiling my kernel, it helps if I include
+>>> devtmpfs. :)
 >>
->> What will the CCDC do in that case ? Will it capture fields or frames to
->> memory ? If frames, what's the field layout ? You will most likely need to
->> modify ispvideo.c as well, to support interlacing in the V4L2 API, and
->> possibly add interlaced formats support to the media bus API.
+>> Matthew, test? Both remote and television.
+>>
+>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/HU345-Q
+>>
+>> regards
+>> Antti
+>
+>
+> So using the HU345-Q branch I get the following results
+>
+> Remote:
+>
+> Using evtest it looks like all the key codes register correctly. (KEY_1,
+> KEY_YELLOW, KEY_VOLUMEUP, etc...)
+>
+> However, ir_keytable fails
+>
+> [root@tux bin]# ./ir-keytable -t
+> Not found device rc0
+>
+> Tunning:
+>
+> I did a basic test with mplayer and tunning worked. I'll have to do more
+> testing.
+>
+> Scanning:
+>
+> Running a scan resulted in a kernel panic.
+>
+> Scan command: scan -A 2 -t 1
+> /usr/share/dvb/atsc/us-Cable-Standard-center-frequencies-QAM256 >
+> ~/channels_msidigivox.conf
+>
+> Kernel Messages: http://pyther.net/a/digivox_atsc/jan02/kernel_log.txt
+>
+> Let me know what additional info I can provide. As always, I appreciate
+> the help!
+>
+> Thanks,
+> Matthew
+>
 
-Sorry for the delay in responding; today is my first day back at the 
-office. I do not know the answers to these questions, and the 
-documentation doesn't discuss interlacing much. Our application has the 
-following pipeline:
 
-     composite video -> TVP5146 decoder
-     -> CCDC parallel interface -> memory -> application
+Antti,
 
-One of the wires in the parallel interface, cam_fld, indicates the 
-current field, and this patch simply enables that wire. Without the 
-patch, every other line in our memory buffer is garbage; with the patch, 
-the image comes out correctly.
+Is there any follow up testing I could do? Is there any additional 
+information you need from me.
 
-As a matter of fact, an earlier version of the ISP driver actually 
-contained code for dealing with this flag; it was removed in 
-cf7a3d91ade6c56bfd860b377f84bd58132f7a81 along with a bunch of other 
-cleanup work. This patch simply adds the code back, but in a way that is 
-compatible with the new media pipeline stuff.
-
-I believe that the CCDC simply captures image data a line at a time and 
-writes it directly to memory, at least in our use case. The CCDC_SDOFST
-register controls the layout, and the default value (which is what the 
-driver uses now) is basically correct. I am not familiar enough with the 
-V4L2 architecture to tell you how the driver decides that it now has a 
-complete frame, or what that even means in an interlaced case.
-
-On 12/27/2012 12:27 PM, Mauro Carvalho Chehab wrote:
- > Btw, you missed to add a Signed-off-by: line on it.
-
-Oops, this was a problem with my git setup. Both email addresses are 
-mine; I can re-send the patch with them both set to the same address if 
-you would prefer that.
-
--William
+Thanks,
+Matthew
