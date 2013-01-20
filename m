@@ -1,51 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:39428 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754609Ab3AEMtR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 07:49:17 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a14so7278335eaa.41
-        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 04:49:15 -0800 (PST)
-Message-ID: <50E82165.1000100@googlemail.com>
-Date: Sat, 05 Jan 2013 13:49:41 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:57445 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548Ab3ATSrm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jan 2013 13:47:42 -0500
+Received: by mail-bk0-f48.google.com with SMTP id jk14so138454bkc.35
+        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 10:47:41 -0800 (PST)
+Message-ID: <50FC3BCA.9080301@gmail.com>
+Date: Sun, 20 Jan 2013 19:47:38 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [GIT PULL FOR 3.9] em28xx videobuf2 support and v4l2-compliance
- fixes
-References: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com> <CALF0-+VEKesGiX+RXwUju-fkgwBpJfSEK-t_fVO5Y9Q8WKR=uw@mail.gmail.com> <CAGoCfiyEUQs3J7x2uppQD3AnEpAL0S0z_WZ5jRE2-+ia6iGyuQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiyEUQs3J7x2uppQD3AnEpAL0S0z_WZ5jRE2-+ia6iGyuQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] s5k6aa: Use devm_regulator_bulk_get API
+References: <1357627704-14269-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1357627704-14269-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-First of all:
-Hans, Devin thank you for working on this stuff !
+Hi Sachin,
 
-Am 04.01.2013 21:59, schrieb Devin Heitmueller:
-> On Fri, Jan 4, 2013 at 2:59 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> Maybe I'm wrong, but weren't **all** changes supposed to be sent as a PATCH
->> to the mailing list for community review, before the PULL request was sent?
-> No, you are correct.  I did a PULL specifically because Mauro asked me
-> to. 
+On 01/08/2013 07:48 AM, Sachin Kamat wrote:
+> devm_regulator_bulk_get is device managed and saves some cleanup
+> and exit code.
 
-Interesting. Can you shed some light on whats going on behind the scenes
-? ;)
-How does this "request for pull-request" thing work and shouldn't this
-happen on the public ML, too ?
+Applied to my tree for 3.9, thanks.
 
-> I'll resend the individual patches now to the list.
+I had some doubts initially, since this driver ideally needs to have
+regulator_bulk_enable/disable function calls replaced with explicit
+regulator_enable/regulator_disable calls, to ensure proper voltage
+regulator enable/disable sequence (the bulk API doesn't guarantee
+any specific sequence).
 
-Do you still want me to review/test it ?
-I'm willing to invest some time for it, but as there is already a pull
-request, it seems to be ready and I really don't want to waste my time... !?
+But this patch is just about regulator_get/regulator_put and it looks
+fine.
 
-Regards,
-Frank
+--
 
-> Devin
->
-
+Thanks,
+Sylwester
