@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:42123 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750923Ab3AHHHC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 02:07:02 -0500
-Received: by mail-pb0-f44.google.com with SMTP id uo1so63328pbc.17
-        for <linux-media@vger.kernel.org>; Mon, 07 Jan 2013 23:07:01 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/1] [media] s5p-csis: Use devm_regulator_bulk_get API
-Date: Tue,  8 Jan 2013 12:28:51 +0530
-Message-Id: <1357628331-18955-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:55979 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752529Ab3ATVXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jan 2013 16:23:09 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/4] tda8290: Allow custom std_map for tda18271
+Date: Sun, 20 Jan 2013 22:22:17 +0100
+Message-Id: <1358716939-2133-3-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
+References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-devm_regulator_bulk_get is device managed and saves some cleanup
-and exit code.
+Allow specifying a custom std_map for tda18271 by external configuration.
+This is required by cards that require custom std_map for analog TV or radio,
+like AverMedia A706.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/platform/s5p-fimc/mipi-csis.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/media/tuners/tda8290.c |    3 +++
+ drivers/media/tuners/tda8290.h |    2 ++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index cde510f..7e36ad9 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -743,7 +743,7 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 	for (i = 0; i < CSIS_NUM_SUPPLIES; i++)
- 		state->supplies[i].supply = csis_supply_name[i];
+diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+index 16dfbf2..45fdb46 100644
+--- a/drivers/media/tuners/tda8290.c
++++ b/drivers/media/tuners/tda8290.c
+@@ -55,6 +55,7 @@ struct tda8290_priv {
  
--	ret = regulator_bulk_get(&pdev->dev, CSIS_NUM_SUPPLIES,
-+	ret = devm_regulator_bulk_get(&pdev->dev, CSIS_NUM_SUPPLIES,
- 				 state->supplies);
- 	if (ret)
- 		return ret;
-@@ -762,7 +762,7 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 			       0, dev_name(&pdev->dev), state);
- 	if (ret) {
- 		dev_err(&pdev->dev, "Interrupt request failed\n");
--		goto e_regput;
-+		goto e_clkput;
+ 	struct tda827x_config cfg;
+ 	bool no_i2c_gate;
++	struct tda18271_std_map *tda18271_std_map;
+ };
+ 
+ /*---------------------------------------------------------------------*/
+@@ -637,6 +638,7 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ 	if ((data == 0x83) || (data == 0x84)) {
+ 		priv->ver |= TDA18271;
+ 		tda829x_tda18271_config.config = priv->cfg.config;
++		tda829x_tda18271_config.std_map = priv->tda18271_std_map;
+ 		dvb_attach(tda18271_attach, fe, priv->tda827x_addr,
+ 			   priv->i2c_props.adap, &tda829x_tda18271_config);
+ 	} else {
+@@ -750,6 +752,7 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
+ 	if (cfg) {
+ 		priv->cfg.config = cfg->lna_cfg;
+ 		priv->no_i2c_gate = cfg->no_i2c_gate;
++		priv->tda18271_std_map = cfg->tda18271_std_map;
  	}
  
- 	v4l2_subdev_init(&state->sd, &s5pcsis_subdev_ops);
-@@ -793,8 +793,6 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 	return 0;
+ 	if (tda8290_probe(&priv->i2c_props) == 0) {
+diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
+index 9959cc8..280b70d 100644
+--- a/drivers/media/tuners/tda8290.h
++++ b/drivers/media/tuners/tda8290.h
+@@ -19,6 +19,7 @@
  
--e_regput:
--	regulator_bulk_free(CSIS_NUM_SUPPLIES, state->supplies);
- e_clkput:
- 	clk_disable(state->clock[CSIS_CLK_MUX]);
- 	s5pcsis_clk_put(state);
-@@ -903,7 +901,6 @@ static int s5pcsis_remove(struct platform_device *pdev)
- 	clk_disable(state->clock[CSIS_CLK_MUX]);
- 	pm_runtime_set_suspended(&pdev->dev);
- 	s5pcsis_clk_put(state);
--	regulator_bulk_free(CSIS_NUM_SUPPLIES, state->supplies);
+ #include <linux/i2c.h>
+ #include "dvb_frontend.h"
++#include "tda18271.h"
  
- 	media_entity_cleanup(&state->sd.entity);
+ struct tda829x_config {
+ 	unsigned int lna_cfg;
+@@ -27,6 +28,7 @@ struct tda829x_config {
+ #define TDA829X_PROBE_TUNER 0
+ #define TDA829X_DONT_PROBE  1
+ 	unsigned int no_i2c_gate:1;
++	struct tda18271_std_map *tda18271_std_map;
+ };
  
+ #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
 -- 
-1.7.4.1
+Ondrej Zary
 
