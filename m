@@ -1,72 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64070 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:42207 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755574Ab3AEPhj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jan 2013 10:37:39 -0500
-Date: Sat, 5 Jan 2013 13:36:47 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 10/15] em28xx: fix broken TRY_FMT.
-Message-ID: <20130105133647.021d4d80@redhat.com>
-In-Reply-To: <201301051434.04835.hverkuil@xs4all.nl>
-References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
-	<1357333186-8466-11-git-send-email-dheitmueller@kernellabs.com>
-	<20130105005444.361b2604@redhat.com>
-	<201301051434.04835.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1751162Ab3ATSNg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jan 2013 13:13:36 -0500
+Message-ID: <50FC33A4.1060106@iki.fi>
+Date: Sun, 20 Jan 2013 20:12:52 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+CC: mchehab@redhat.com, mkrufky@linuxtv.org, patricechotard@free.fr,
+	kosio.dimitrov@gmail.com, liplianin@me.by, danny.kukawka@bisect.de,
+	s.nawrocki@samsung.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH] [media] use IS_ENABLED() macro
+References: <1358659976-8767-1-git-send-email-peter.senna@gmail.com> <50FC327B.6050903@iki.fi>
+In-Reply-To: <50FC327B.6050903@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 5 Jan 2013 14:34:04 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On 01/20/2013 08:07 PM, Antti Palosaari wrote:
+> On 01/20/2013 07:32 AM, Peter Senna Tschudin wrote:
+>> This patch introduces the use of IS_ENABLED() macro. For example,
+>> replacing:
+>>   #if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) &&
+>> defined(MODULE))
+>>
+>> with:
+>>   #if IS_ENABLED(CONFIG_I2C)
+>>
+>> All changes made by this patch respect the same replacement pattern.
+>>
+>> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>
+> For my drivers
+>
+>>   drivers/media/tuners/qt1010.h             | 2 +-
+>>   drivers/media/tuners/xc4000.h             | 2 +-
 
-> On Sat January 5 2013 03:54:44 Mauro Carvalho Chehab wrote:
-> > Hans/Devin,
-> > 
-> > Em Fri,  4 Jan 2013 15:59:40 -0500
-> > Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-> > 
-> > > TRY_FMT should not return an error if a pixelformat is unsupported. Instead just
-> > > pick a common pixelformat.
-> > > 
-> > > Also the bytesperline calculation was incorrect: it used the old width instead of
-> > > the provided with, and it miscalculated the bytesperline value for the depth == 12
-> > > case.
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-> > > ---
-> > >  drivers/media/usb/em28xx/em28xx-video.c |    4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-> > > index a91a248..7c09b55 100644
-> > > --- a/drivers/media/usb/em28xx/em28xx-video.c
-> > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
-> > > @@ -821,7 +821,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> > >  	if (!fmt) {
-> > >  		em28xx_videodbg("Fourcc format (%08x) invalid.\n",
-> > >  				f->fmt.pix.pixelformat);
-> > > -		return -EINVAL;
-> > > +		fmt = format_by_fourcc(V4L2_PIX_FMT_YUYV);
-> > 
-> > This change has the potential of causing userspace regressions, so,
-> > for now, I won't apply such change.
-> 
-> Good!
-> 
-> > We need to discuss it better, before risk breaking things, and likely fix
-> > applications first.
-> 
-> Absolutely. I also want to change this test in v4l2-compliance from 'failure'
-> to 'warning' for the time being.
+Ooops, I messed xc4000 with e4000 driver. Anyhow, your patch is just 
+correct what I know.
 
-Sounds reasonable for me.
+>
+> Acked-by: Antti Palosaari <crope@iki.fi>
+>
+>
+> Why you didn't changed all those drivers as once?
+>
+> I was planning to do just similar change to all dvb drivers (I did it
+> for DVB USB V2 remote controller already).
+>
+> I have also changed some of my new driver printk() calls from these
+> headers to new pr/dev _foo() style. Please, could you fix it also :)
+>
+> regard
+> Antti
+>
 
-Regards,
-Mauro
+
+-- 
+http://palosaari.fi/
