@@ -1,105 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2647 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009Ab3A1KiX (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:65433 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751923Ab3ATN0U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 05:38:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH 7/7] saa7134: v4l2-compliance: remove bogus audio input support
-Date: Mon, 28 Jan 2013 11:38:13 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-8-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359315912-1767-8-git-send-email-linux@rainbow-software.org>
+	Sun, 20 Jan 2013 08:26:20 -0500
+Received: by mail-ea0-f172.google.com with SMTP id f13so2146244eaa.31
+        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 05:26:19 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx: overhaul em28xx_capture_area_set()
+Date: Sun, 20 Jan 2013 14:26:47 +0100
+Message-Id: <1358688407-5146-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301281138.13838.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun January 27 2013 20:45:12 Ondrej Zary wrote:
-> Make saa7134 driver more V4L2 compliant: remove empty g_audio and s_audio
-> functions and don't set audioset in enum_input
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+- move the bit shifting of width+height values inside the function
+- fix the debug message format and output values
+- add comment about the size limit (e.g. EM277x supports >2MPix)
+- make void, because error checking is incomplete and we never check the
+  returned value (we would continue anyway)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   22 ++++++++++++----------
+ 1 Datei geändert, 12 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
 
-> ---
->  drivers/media/pci/saa7134/saa7134-video.c |   30 -----------------------------
->  1 files changed, 0 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-> index fff6735..b63cdad 100644
-> --- a/drivers/media/pci/saa7134/saa7134-video.c
-> +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> @@ -1750,7 +1750,6 @@ static int saa7134_enum_input(struct file *file, void *priv,
->  	strcpy(i->name, card_in(dev, n).name);
->  	if (card_in(dev, n).tv)
->  		i->type = V4L2_INPUT_TYPE_TUNER;
-> -	i->audioset = 1;
->  	if (n == dev->ctl_input) {
->  		int v1 = saa_readb(SAA7134_STATUS_VIDEO1);
->  		int v2 = saa_readb(SAA7134_STATUS_VIDEO2);
-> @@ -2079,17 +2078,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
->  	return 0;
->  }
->  
-> -static int saa7134_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
-> -{
-> -	strcpy(a->name, "audio");
-> -	return 0;
-> -}
-> -
-> -static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
-> -{
-> -	return 0;
-> -}
-> -
->  static int saa7134_enum_fmt_vid_cap(struct file *file, void  *priv,
->  					struct v4l2_fmtdesc *f)
->  {
-> @@ -2330,20 +2318,6 @@ static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
->  	return 0;
->  }
->  
-> -static int radio_g_audio(struct file *file, void *priv,
-> -					struct v4l2_audio *a)
-> -{
-> -	memset(a, 0, sizeof(*a));
-> -	strcpy(a->name, "Radio");
-> -	return 0;
-> -}
-> -
-> -static int radio_s_audio(struct file *file, void *priv,
-> -					const struct v4l2_audio *a)
-> -{
-> -	return 0;
-> -}
-> -
->  static int radio_s_input(struct file *filp, void *priv, unsigned int i)
->  {
->  	return 0;
-> @@ -2394,8 +2368,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
->  	.vidioc_g_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
->  	.vidioc_try_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
->  	.vidioc_s_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
-> -	.vidioc_g_audio			= saa7134_g_audio,
-> -	.vidioc_s_audio			= saa7134_s_audio,
->  	.vidioc_cropcap			= saa7134_cropcap,
->  	.vidioc_reqbufs			= saa7134_reqbufs,
->  	.vidioc_querybuf		= saa7134_querybuf,
-> @@ -2440,9 +2412,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
->  	.vidioc_querycap	= saa7134_querycap,
->  	.vidioc_g_tuner		= radio_g_tuner,
->  	.vidioc_enum_input	= radio_enum_input,
-> -	.vidioc_g_audio		= radio_g_audio,
->  	.vidioc_s_tuner		= radio_s_tuner,
-> -	.vidioc_s_audio		= radio_s_audio,
->  	.vidioc_s_input		= radio_s_input,
->  	.vidioc_s_std		= radio_s_std,
->  	.vidioc_queryctrl	= radio_queryctrl,
-> 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 210859a..f516a63 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -733,22 +733,24 @@ static int em28xx_accumulator_set(struct em28xx *dev, u8 xmin, u8 xmax,
+ 	return em28xx_write_regs(dev, EM28XX_R2B_YMAX, &ymax, 1);
+ }
+ 
+-static int em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
++static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
+ 				   u16 width, u16 height)
+ {
+-	u8 cwidth = width;
+-	u8 cheight = height;
+-	u8 overflow = (height >> 7 & 0x02) | (width >> 8 & 0x01);
++	u8 cwidth = width >> 2;
++	u8 cheight = height >> 2;
++	u8 overflow = (height >> 9 & 0x02) | (width >> 10 & 0x01);
++	/* NOTE: size limit: 2047x1023 = 2MPix */
+ 
+-	em28xx_coredbg("em28xx Area Set: (%d,%d)\n",
+-			(width | (overflow & 2) << 7),
+-			(height | (overflow & 1) << 8));
++	em28xx_coredbg("capture area set to (%d,%d): %dx%d\n",
++		       hstart, vstart,
++		       ((overflow & 2) << 9 | cwidth << 2),
++		       ((overflow & 1) << 10 | cheight << 2));
+ 
+ 	em28xx_write_regs(dev, EM28XX_R1C_HSTART, &hstart, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1D_VSTART, &vstart, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
+-	return em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
++	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
+ }
+ 
+ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+@@ -801,9 +803,9 @@ int em28xx_resolution_set(struct em28xx *dev)
+ 	   it out, we end up with the same format as the rest of the VBI
+ 	   region */
+ 	if (em28xx_vbi_supported(dev) == 1)
+-		em28xx_capture_area_set(dev, 0, 2, width >> 2, height >> 2);
++		em28xx_capture_area_set(dev, 0, 2, width, height);
+ 	else
+-		em28xx_capture_area_set(dev, 0, 0, width >> 2, height >> 2);
++		em28xx_capture_area_set(dev, 0, 0, width, height);
+ 
+ 	return em28xx_scaler_set(dev, dev->hscale, dev->vscale);
+ }
+-- 
+1.7.10.4
+
