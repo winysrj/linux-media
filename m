@@ -1,246 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:52218 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754750Ab3AXSaP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 13:30:15 -0500
-Message-id: <51017DB2.5050905@samsung.com>
-Date: Thu, 24 Jan 2013 19:30:10 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	g.liakhovetski@gmx.de, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, myungjoo.ham@samsung.com,
-	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH RFC v4 01/14] [media] Add common video interfaces OF
- bindings documentation
-References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
- <1358969489-20420-2-git-send-email-s.nawrocki@samsung.com>
- <1525960.fMnIjkZnjX@avalon>
-In-reply-to: <1525960.fMnIjkZnjX@avalon>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail-1.atlantis.sk ([80.94.52.57]:60154 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752351Ab3AUIS1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 03:18:27 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
+Date: Mon, 21 Jan 2013 09:18:07 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org> <1358716939-2133-2-git-send-email-linux@rainbow-software.org> <50FCF71E.4060909@iki.fi>
+In-Reply-To: <50FCF71E.4060909@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201301210918.07199.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Monday 21 January 2013, Antti Palosaari wrote:
+> On 01/20/2013 11:22 PM, Ondrej Zary wrote:
+> > Allow disabling I2C gate handling by external configuration.
+> > This is required by cards that have all devices on a single I2C bus,
+> > like AverMedia A706.
+>
+> My personal opinion is that I2C gate control should be disabled setting
+> callback to NULL (same for the other unwanted callbacks too). There is
+> checks for callback existence in DVB-core, it does not call callback if
+> it is NULL.
 
-Thanks for the review.
+This is TDA8290 internal I2C gate which is used by tda8290 internally and also 
+by tda827x or tda18271.
 
-On 01/24/2013 11:16 AM, Laurent Pinchart wrote:
-[...]
->> +Data interfaces on all video devices are described by their child 'port'
->> +nodes. Configuration of a port depends on other devices participating in
->> +the data transfer and is described by 'endpoint' subnodes.
->> +
->> +dev {
->> +	#address-cells = <1>;
->> +	#size-cells = <0>;
->> +	port@0 {
->> +		endpoint@0 { ... };
->> +		endpoint@1 { ... };
->> +	};
->> +	port@1 { ... };
->> +};
->> +
->> +If a port can be configured to work with more than one other device on the
->> +same bus, an 'endpoint' child node must be provided for each of them.  If
->> +more than one port is present in a device node or there is more than one
->> +endpoint at a port, a common scheme, using '#address-cells', '#size-cells'
->> +and 'reg' properties is used.
-> 
-> Wouldn't this cause problems if the device has both video ports and a child 
-> bus ? Using #address-cells and #size-cells for the video ports would prevent 
-> the child bus from being handled in the usual way.
 
-Indeed, it looks like a serious issue in these bindings.
+> regards
+> Antti
+>
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> > ---
+> >   drivers/media/tuners/tda8290.c |   13 +++++++++++--
+> >   drivers/media/tuners/tda8290.h |    1 +
+> >   2 files changed, 12 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/tuners/tda8290.c
+> > b/drivers/media/tuners/tda8290.c index 8c48521..16dfbf2 100644
+> > --- a/drivers/media/tuners/tda8290.c
+> > +++ b/drivers/media/tuners/tda8290.c
+> > @@ -54,6 +54,7 @@ struct tda8290_priv {
+> >   #define TDA18271 16
+> >
+> >   	struct tda827x_config cfg;
+> > +	bool no_i2c_gate;
+> >   };
+> >
+> >  
+> > /*---------------------------------------------------------------------*/
+> > @@ -66,6 +67,9 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe,
+> > int close) unsigned char disable[2] = { 0x21, 0x00 };
+> >   	unsigned char *msg;
+> >
+> > +	if (priv->no_i2c_gate)
+> > +		return 0;
+> > +
+> >   	if (close) {
+> >   		msg = enable;
+> >   		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
+> > @@ -88,6 +92,9 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe,
+> > int close) unsigned char buf[3] = { 0x45, 0x01, 0x00 };
+> >   	unsigned char *msg;
+> >
+> > +	if (priv->no_i2c_gate)
+> > +		return 0;
+> > +
+> >   	if (close) {
+> >   		msg = enable;
+> >   		tuner_i2c_xfer_send(&priv->i2c_props, msg, 2);
+> > @@ -740,8 +747,10 @@ struct dvb_frontend *tda829x_attach(struct
+> > dvb_frontend *fe, priv->i2c_props.addr     = i2c_addr;
+> >   	priv->i2c_props.adap     = i2c_adap;
+> >   	priv->i2c_props.name     = "tda829x";
+> > -	if (cfg)
+> > -		priv->cfg.config         = cfg->lna_cfg;
+> > +	if (cfg) {
+> > +		priv->cfg.config = cfg->lna_cfg;
+> > +		priv->no_i2c_gate = cfg->no_i2c_gate;
+> > +	}
+> >
+> >   	if (tda8290_probe(&priv->i2c_props) == 0) {
+> >   		priv->ver = TDA8290;
+> > diff --git a/drivers/media/tuners/tda8290.h
+> > b/drivers/media/tuners/tda8290.h index 7e288b2..9959cc8 100644
+> > --- a/drivers/media/tuners/tda8290.h
+> > +++ b/drivers/media/tuners/tda8290.h
+> > @@ -26,6 +26,7 @@ struct tda829x_config {
+> >   	unsigned int probe_tuner:1;
+> >   #define TDA829X_PROBE_TUNER 0
+> >   #define TDA829X_DONT_PROBE  1
+> > +	unsigned int no_i2c_gate:1;
+> >   };
+> >
+> >   #if defined(CONFIG_MEDIA_TUNER_TDA8290) ||
+> > (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
 
-> A possible solution would be to number ports with a dash instead of a @, as 
-> done in pinctrl for instance. We would then get
-> 
-> 	port-0 {
-> 		endpoint-0 { ... };
-> 		endpoint-1 { ... };
-> 	};
-> 	port-1 { ... };
 
-Sounds like a good alternative, I can't think of any better solution at the
-moment.
 
->> +Two 'endpoint' nodes are linked with each other through their
->> +'remote-endpoint' phandles.  An endpoint subnode of a device contains all
->> +properties needed for configuration of this device for data exchange with
->> +the other device.  In most cases properties at the peer 'endpoint' nodes
->> +will be identical, however they might need to be different when there is
->> +any signal modifications on the bus between two devices, e.g. there are
->> +logic signal inverters on the lines.
->> +
->> +Required properties
->> +-------------------
->> +
->> +If there is more than one 'port' or more than one 'endpoint' node following
->> +properties are required in relevant parent node:
->> +
->> +- #address-cells : number of cells required to define port number, should
->> be 1.
->> +- #size-cells    : should be zero.
-> 
-> I wonder if we should specify whether a port is a data sink or data source. A 
-> source can be connected to multiple sinks at the same time, but a sink can 
-> only be connected to a single source. If we want to perform automatic sanity 
-> checks in the core knowing the direction might help.
-
-Multiple sources can be linked to a single sink, but only one link can be 
-active at any time.
-
-So I'm not sure if knowing if a DT port is a data source or data sink would
-let us to validate device tree structure statically in general.
-
-Such source/sink property could be useful later at runtime, when data pipeline
-is set up for streaming.
-
-How do you think this could be represented ? By just having boolean 
-properties like: 'source' and 'sink' in the port nodes ? Or perhaps in the 
-endpoint nodes, since some devices might be bidirectional ? I don't recall 
-any at the moment though.
-
->> +Optional endpoint properties
->> +----------------------------
->> +
->> +- remote-endpoint: phandle to an 'endpoint' subnode of the other device
->> +  node.
->> +- slave-mode: a boolean property, run the link in slave mode.
->> +  Default is master mode.
-> 
-> What are master and slave modes ? It might be worth it describing them.
-
-This was originally proposed by Guennadi, I think he knows exactly what's
-the meaning of this property. I'll dig into relevant documentation to 
-find out and provide more detailed description.
-
->> +- bus-width: number of data lines, valid for parallel busses.
->> +- data-shift: on parallel data busses, if bus-width is used to specify the
->> +  number of data lines, data-shift can be used to specify which data lines
->> +  are used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2
->> +  are used.
->> +- hsync-active: active state of HSYNC signal, 0/1 for LOW/HIGH
->> +  respectively.
->> +- vsync-active: active state of VSYNC signal, 0/1 for LOW/HIGH
->> +  respectively. Note, that if HSYNC and VSYNC polarities are not
->> +  specified, embedded synchronization may be required, where supported.
->> +- data-active: similar to HSYNC and VSYNC, specifies data line polarity.
->> +- field-even-active: field signal level during the even field data
->> +  transmission.
->> +- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel
->> +  clock signal.
->> +- data-lanes: an array of physical data lane indexes. Position of an entry
->> +  determines the logical lane number, while the value of an entry indicates
->> +  physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
->> +  "data-lanes = <1>, <2>;", assuming the clock lane is on hardware lane 0.
->> +  This property is valid for serial busses only (e.g. MIPI CSI-2).
->> +- clock-lanes: an array of physical clock lane indexes. Position of an
->> +  entry determines the logical lane number, while the value of an entry
->> +  indicates physical lane, e.g. for a MIPI CSI-2 bus we could have
->> +  "clock-lanes = <0>;", which places the clock lane on hardware lane 0.
->> +  This property is valid for serial busses only (e.g. MIPI CSI-2). Note
->> +  that for the MIPI CSI-2 bus this array contains only one entry.
->> +- clock-noncontinuous: a boolean property to allow MIPI CSI-2
->> +  non-continuous clock mode.
->> +
->> +Example
->> +-------
->> +
->> +The example snippet below describes two data pipelines.  ov772x and imx074
->> +are camera sensors with a parallel and serial (MIPI CSI-2) video bus
->> +respectively. Both sensors are on the I2C control bus corresponding to the
->> +i2c0 controller node.  ov772x sensor is linked directly to the ceu0 video
->> +host interface. imx074 is linked to ceu0 through the MIPI CSI-2 receiver
->> +(csi2). ceu0 has a (single) DMA engine writing captured data to memory. 
->> +ceu0 node has a single 'port' node which indicates that at any time only
->> +one of the following data pipelines can be active: ov772x -> ceu0 or
->> +imx074 -> csi2 -> ceu0.
->> +
->> +	ceu0: ceu@0xfe910000 {
->> +		compatible = "renesas,sh-mobile-ceu";
->> +		reg = <0xfe910000 0xa0>;
->> +		interrupts = <0x880>;
->> +
->> +		mclk: master_clock {
->> +			compatible = "renesas,ceu-clock";
->> +			#clock-cells = <1>;
->> +			clock-frequency = <50000000>;	/* Max clock frequency */
->> +			clock-output-names = "mclk";
->> +		};
->> +
->> +		port {
->> +			#address-cells = <1>;
->> +			#size-cells = <0>;
->> +
->> +			ceu0_1: endpoint@1 {
->> +				reg = <1>;		/* Local endpoint # */
->> +				remote = <&ov772x_1_1>;	/* Remote phandle */
->> +				bus-width = <8>;	/* Used data lines */
->> +				data-shift = <0>;	/* Lines 7:0 are used */
-> 
-> As data-shift is optional, shouldn't it be left out when equal to 0 ? It 
-> would, however, be nice to have a non-zero data-shift somewhere in the 
-> example.
-
-Yes, good point. data-shift could be ommited. I'm going to increase the 
-bus-width and make data-shit non-zero.
-
->> +
->> +				/* If hsync-active/vsync-active are missing,
->> +				   embedded bt.605 sync is used */
->> +				hsync-active = <1>;	/* Active high */
->> +				vsync-active = <1>;	/* Active high */
->> +				data-active = <1>;	/* Active high */
->> +				pclk-sample = <1>;	/* Rising */
->> +			};
->> +
->> +			ceu0_0: endpoint@0 {
->> +				reg = <0>;
->> +				remote = <&csi2_2>;
->> +				immutable;
-> 
-> What is the immutable property for her e?
-
-I was staring at this yesterday and finally I forgot to remove it. It is
-undocumented and I think it's not supposed to be here. Guennadi, would
-you have any comments on that ?
-
->> +			};
->> +		};
->> +	};
->> +
->> +	i2c0: i2c@0xfff20000 {
->> +		...
->> +		ov772x_1: camera@0x21 {
->> +			compatible = "omnivision,ov772x";
->> +			reg = <0x21>;
->> +			vddio-supply = <&regulator1>;
->> +			vddcore-supply = <&regulator2>;
->> +
->> +			clock-frequency = <20000000>;
->> +			clocks = <&mclk 0>;
->> +			clock-names = "xclk";
->> +
->> +			port {
->> +				/* With 1 endpoint per port no need in addresses. */
-> 
-> s/in/for/ ?
-
-I proposed same change to Guennadi, but he argued that "in" is also
-commonly used. I agreed even though 'for' seemed more natural to me.
-I would change it, unless there is a strong opposition. :)
-
---
-
-Regards,
-Sylwester
-
+-- 
+Ondrej Zary
