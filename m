@@ -1,66 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:42661 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757549Ab3AYR0m (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40409 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753046Ab3AULJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 12:26:42 -0500
-Received: by mail-ea0-f180.google.com with SMTP id c1so260982eaa.39
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:40 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [REVIEW PATCH 02/12] em28xx: disable tuner related ioctls for video and VBI devices without tuner
-Date: Fri, 25 Jan 2013 18:26:52 +0100
-Message-Id: <1359134822-4585-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 21 Jan 2013 06:09:04 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org,
+	David Airlie <airlied@linux.ie>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: [PATCH v16 RESEND 0/7] of: add display helper
+Date: Mon, 21 Jan 2013 12:07:55 +0100
+Message-Id: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Disable the ioctls VIDIOC_G_TUNER, VIDIOC_S_TUNER, VIDIOC_G_FREQUENCY and
-VIDIOC_S_FREQUENCY for video and VBI devices without tuner.
+Hi!
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   14 ++++++++++++++
- 1 Datei geändert, 14 Zeilen hinzugefügt(+)
+There was still no maintainer, that commented, ack'd, nack'd, apply'd the
+series. So, this is just a resend.
+The patches were tested with:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 7f1f37c..dd2e31c 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1899,6 +1899,12 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_STD);
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_STD);
- 	}
-+	if (dev->tuner_type == TUNER_ABSENT) {
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_TUNER);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_TUNER);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_FREQUENCY);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_FREQUENCY);
-+	}
- 
- 	/* register v4l2 video video_device */
- 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
-@@ -1917,6 +1923,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		dev->vbi_dev->queue = &dev->vb_vbiq;
- 		dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
- 
-+		/* disable inapplicable ioctls */
-+		if (dev->tuner_type == TUNER_ABSENT) {
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_TUNER);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_TUNER);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_FREQUENCY);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_FREQUENCY);
-+		}
-+
- 		/* register v4l2 vbi video_device */
- 		ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
- 					    vbi_nr[dev->devno]);
+	- v15 on Tegra by Thierry
+	- sh-mobile-lcdcfb by Laurent
+	- MX53QSB by Marek
+	- Exynos: smdk5250 by Leela
+	- AM335X EVM & AM335X EVM-SK by Afzal
+	- imx6q: sabrelite, sabresd by Philipp and me
+	- imx53: tqma53/mba53 by me
+
+
+Changes since v15:
+        - move include/linux/{videomode,display_timing}.h to include/video
+        - move include/linux/of_{videomode,display_timing}.h to include/video
+        - reimplement flags: add VESA flags and data flags
+        - let pixelclock in struct videomode be unsigned long
+        - rename of_display_timings_exists to of_display_timings_exist
+        - revise logging/error messages: replace __func__ with np->full_name
+        - rename pixelclk-inverted to pixelclk-active
+        - revise comments in code
+
+Changes since v14:
+        - fix "const struct *" warning
+                (reported by: Leela Krishna Amudala <l.krishna@samsung.com>)
+        - return -EINVAL when htotal or vtotal are zero
+        - remove unreachable code in of_get_display_timings
+        - include headers in .c files and not implicit in .h
+        - sort includes alphabetically
+        - fix lower/uppercase in binding documentation
+        - rebase onto v3.7-rc7
+
+Changes since v13:
+        - fix "const struct *" warning
+                (reported by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>)
+        - prevent division by zero in fb_videomode_from_videomode
+
+Changes since v12:
+        - rename struct display_timing to via_display_timing in via subsystem
+        - fix refreshrate calculation
+        - fix "const struct *" warnings
+                (reported by: Manjunathappa, Prakash <prakash.pm@ti.com>)
+        - some CodingStyle fixes
+        - rewrite parts of commit messages and display-timings.txt
+        - let display_timing_get_value get all values instead of just typical
+
+Changes since v11:
+        - make pointers const where applicable
+        - add reviewed-by Laurent Pinchart
+
+Changes since v10:
+        - fix function name (drm_)display_mode_from_videomode
+        - add acked-by, reviewed-by, tested-by
+
+Changes since v9:
+        - don't leak memory when previous timings were correct
+        - CodingStyle fixes
+        - move blank lines around
+
+Changes since v8:
+        - fix memory leaks
+        - change API to be more consistent (foo_from_bar(struct bar, struct foo))
+        - include headers were necessary
+        - misc minor bugfixes
+
+Changes since v7:
+        - move of_xxx to drivers/video
+        - remove non-binding documentation from display-timings.txt
+        - squash display_timings and videomode in one patch
+        - misc minor fixes
+
+Changes since v6:
+        - get rid of some empty lines etc.
+        - move functions to their subsystems
+        - split of_ from non-of_ functions
+        - add at least some kerneldoc to some functions
+
+Changes since v5:
+        - removed all display stuff and just describe timings
+
+Changes since v4:
+        - refactored functions
+
+Changes since v3:
+        - print error messages
+        - free alloced memory
+        - general cleanup
+
+Changes since v2:
+        - use hardware-near property-names
+        - provide a videomode structure
+        - allow ranges for all properties (<min,typ,max>)
+        - functions to get display_mode or fb_videomode
+
+
+Regards,
+Steffen
+
+
+Steffen Trumtrar (7):
+  viafb: rename display_timing to via_display_timing
+  video: add display_timing and videomode
+  video: add of helper for display timings/videomode
+  fbmon: add videomode helpers
+  fbmon: add of_videomode helpers
+  drm_modes: add videomode helpers
+  drm_modes: add of_videomode helpers
+
+ .../devicetree/bindings/video/display-timing.txt   |  109 +++++++++
+ drivers/gpu/drm/drm_modes.c                        |   70 ++++++
+ drivers/video/Kconfig                              |   21 ++
+ drivers/video/Makefile                             |    4 +
+ drivers/video/display_timing.c                     |   24 ++
+ drivers/video/fbmon.c                              |   94 ++++++++
+ drivers/video/of_display_timing.c                  |  239 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   54 +++++
+ drivers/video/via/hw.c                             |    6 +-
+ drivers/video/via/hw.h                             |    2 +-
+ drivers/video/via/lcd.c                            |    2 +-
+ drivers/video/via/share.h                          |    2 +-
+ drivers/video/via/via_modesetting.c                |    8 +-
+ drivers/video/via/via_modesetting.h                |    6 +-
+ drivers/video/videomode.c                          |   39 ++++
+ include/drm/drmP.h                                 |    9 +
+ include/linux/fb.h                                 |    8 +
+ include/video/display_timing.h                     |  124 ++++++++++
+ include/video/of_display_timing.h                  |   20 ++
+ include/video/of_videomode.h                       |   18 ++
+ include/video/videomode.h                          |   48 ++++
+ 21 files changed, 894 insertions(+), 13 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timing.txt
+ create mode 100644 drivers/video/display_timing.c
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 drivers/video/videomode.c
+ create mode 100644 include/video/display_timing.h
+ create mode 100644 include/video/of_display_timing.h
+ create mode 100644 include/video/of_videomode.h
+ create mode 100644 include/video/videomode.h
+
 -- 
 1.7.10.4
 
