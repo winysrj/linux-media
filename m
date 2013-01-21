@@ -1,141 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55087 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754031Ab3AYJCe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 04:02:34 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org, Dave Airlie <airlied@linux.ie>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"Rob Clark" <robdclark@gmail.com>,
-	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
-	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
-Subject: [PATCH v17 4/7] fbmon: add videomode helpers
-Date: Fri, 25 Jan 2013 10:01:52 +0100
-Message-Id: <1359104515-8907-5-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:53509 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752223Ab3AUJGl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 04:06:41 -0500
+Message-ID: <50FD04F9.5000401@iki.fi>
+Date: Mon, 21 Jan 2013 11:06:01 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Ondrej Zary <linux@rainbow-software.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
+References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org> <1358716939-2133-2-git-send-email-linux@rainbow-software.org> <50FCF71E.4060909@iki.fi> <201301210918.07199.linux@rainbow-software.org>
+In-Reply-To: <201301210918.07199.linux@rainbow-software.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a function to convert from the generic videomode to a fb_videomode.
+On 01/21/2013 10:18 AM, Ondrej Zary wrote:
+> On Monday 21 January 2013, Antti Palosaari wrote:
+>> On 01/20/2013 11:22 PM, Ondrej Zary wrote:
+>>> Allow disabling I2C gate handling by external configuration.
+>>> This is required by cards that have all devices on a single I2C bus,
+>>> like AverMedia A706.
+>>
+>> My personal opinion is that I2C gate control should be disabled setting
+>> callback to NULL (same for the other unwanted callbacks too). There is
+>> checks for callback existence in DVB-core, it does not call callback if
+>> it is NULL.
+>
+> This is TDA8290 internal I2C gate which is used by tda8290 internally and also
+> by tda827x or tda18271.
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Afzal Mohammed <Afzal@ti.com>
-Tested-by: Rob Clark <robclark@gmail.com>
-Tested-by: Leela Krishna Amudala <leelakrishna.a@gmail.com>
----
- drivers/video/fbmon.c |   52 +++++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/fb.h    |    4 ++++
- 2 files changed, 56 insertions(+)
+That sounds like there is some logical problems in the driver then, not 
+split correctly?
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index cef6557..17ce135 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -31,6 +31,7 @@
- #include <linux/pci.h>
- #include <linux/slab.h>
- #include <video/edid.h>
-+#include <video/videomode.h>
- #ifdef CONFIG_PPC_OF
- #include <asm/prom.h>
- #include <asm/pci-bridge.h>
-@@ -1373,6 +1374,57 @@ int fb_get_mode(int flags, u32 val, struct fb_var_screeninfo *var, struct fb_inf
- 	kfree(timings);
- 	return err;
- }
-+
-+#if IS_ENABLED(CONFIG_VIDEOMODE)
-+int fb_videomode_from_videomode(const struct videomode *vm,
-+				struct fb_videomode *fbmode)
-+{
-+	unsigned int htotal, vtotal;
-+
-+	fbmode->xres = vm->hactive;
-+	fbmode->left_margin = vm->hback_porch;
-+	fbmode->right_margin = vm->hfront_porch;
-+	fbmode->hsync_len = vm->hsync_len;
-+
-+	fbmode->yres = vm->vactive;
-+	fbmode->upper_margin = vm->vback_porch;
-+	fbmode->lower_margin = vm->vfront_porch;
-+	fbmode->vsync_len = vm->vsync_len;
-+
-+	/* prevent division by zero in KHZ2PICOS macro */
-+	fbmode->pixclock = vm->pixelclock ?
-+			KHZ2PICOS(vm->pixelclock / 1000) : 0;
-+
-+	fbmode->sync = 0;
-+	fbmode->vmode = 0;
-+	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
-+		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-+	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
-+		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-+	if (vm->data_flags & DISPLAY_FLAGS_INTERLACED)
-+		fbmode->vmode |= FB_VMODE_INTERLACED;
-+	if (vm->data_flags & DISPLAY_FLAGS_DOUBLESCAN)
-+		fbmode->vmode |= FB_VMODE_DOUBLE;
-+	fbmode->flag = 0;
-+
-+	htotal = vm->hactive + vm->hfront_porch + vm->hback_porch +
-+		 vm->hsync_len;
-+	vtotal = vm->vactive + vm->vfront_porch + vm->vback_porch +
-+		 vm->vsync_len;
-+	/* prevent division by zero */
-+	if (htotal && vtotal) {
-+		fbmode->refresh = vm->pixelclock / (htotal * vtotal);
-+	/* a mode must have htotal and vtotal != 0 or it is invalid */
-+	} else {
-+		fbmode->refresh = 0;
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-+#endif
-+
- #else
- int fb_parse_edid(unsigned char *edid, struct fb_var_screeninfo *var)
- {
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index c7a9571..100a176 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -19,6 +19,7 @@ struct vm_area_struct;
- struct fb_info;
- struct device;
- struct file;
-+struct videomode;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -714,6 +715,9 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
- extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
- extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
- 
-+extern int fb_videomode_from_videomode(const struct videomode *vm,
-+				       struct fb_videomode *fbmode);
-+
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
- extern void fb_var_to_videomode(struct fb_videomode *mode,
+What I think, scenario is tda8290 is analog decoder, tda18271 is silicon 
+tuner, which is connected (usually) to the tda8290 I2C bus. tda18271 
+calls tda8290 I2C-gate control when needed. Analog or digital demod 
+should not call its own I2C gate directly - and if it was done in some 
+weird reason then it should call own callback conditionally, checking 
+whether or not it is NULL.
+
+regards
+Antti
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
