@@ -1,64 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41134 "EHLO
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40463 "EHLO
 	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753098Ab3AGHrF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 02:47:05 -0500
-Date: Mon, 7 Jan 2013 08:46:53 +0100
+	with ESMTP id S1753093Ab3AULJK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 06:09:10 -0500
 From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: "Mohammed, Afzal" <afzal@ti.com>
-Cc: "devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	Rob Herring <robherring2@gmail.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	David Airlie <airlied@linux.ie>,
-	Rob Clark <robdclark@gmail.com>,
-	Leela Krishna Amudala <leelakrishna.a@gmail.com>
-Subject: Re: [PATCHv16 0/7] of: add display helper
-Message-ID: <20130107074653.GA23478@pengutronix.de>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
- <C8443D0743D26F4388EA172BF4E2A7A93EA7FB16@DBDE01.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA7FB16@DBDE01.ent.ti.com>
+To: devicetree-discuss@lists.ozlabs.org,
+	David Airlie <airlied@linux.ie>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: [PATCH v16 RESEND 7/7] drm_modes: add of_videomode helpers
+Date: Mon, 21 Jan 2013 12:08:02 +0100
+Message-Id: <1358766482-6275-8-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 07, 2013 at 06:23:54AM +0000, Mohammed, Afzal wrote:
-> Hi Steffen,
-> 
-> On Tue, Dec 18, 2012 at 22:34:09, Steffen Trumtrar wrote:
-> 
-> > Finally, right in time before the end of the world on friday, v16 of the
-> > display helpers.
-> 
-> After another big bang, your series in the previous world was tried ;)
-> 
-> This series has been tested on DA850 EVM, AM335x EVM, EVM-SK along
-> with the fix mentioned in 5/7, there was a build breakage on default
-> config on DaVinci boards with this series, fix as well as more
-> details are mentioned as reply to 5/7.
-> 
-> With those changes or equivalent to achieve the same,
-> 
-> Tested-by: Afzal Mohammed <Afzal@ti.com>
->
+Add helper to get drm_display_mode from devicetree.
 
-Thanks.
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested-by: Afzal Mohammed <Afzal@ti.com>
+---
+ drivers/gpu/drm/drm_modes.c |   33 +++++++++++++++++++++++++++++++++
+ include/drm/drmP.h          |    4 ++++
+ 2 files changed, 37 insertions(+)
 
-Steffen
-
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 184a22d..fd53454 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -35,6 +35,7 @@
+ #include <linux/export.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
++#include <video/of_videomode.h>
+ #include <video/videomode.h>
+ 
+ /**
+@@ -541,6 +542,38 @@ int drm_display_mode_from_videomode(const struct videomode *vm,
+ EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
+ #endif
+ 
++#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
++/**
++ * of_get_drm_display_mode - get a drm_display_mode from devicetree
++ * @np: device_node with the timing specification
++ * @dmode: will be set to the return value
++ * @index: index into the list of display timings in devicetree
++ *
++ * This function is expensive and should only be used, if only one mode is to be
++ * read from DT. To get multiple modes start with of_get_display_timings and
++ * work with that instead.
++ */
++int of_get_drm_display_mode(struct device_node *np,
++			    struct drm_display_mode *dmode, int index)
++{
++	struct videomode vm;
++	int ret;
++
++	ret = of_get_videomode(np, &vm, index);
++	if (ret)
++		return ret;
++
++	drm_display_mode_from_videomode(&vm, dmode);
++
++	pr_debug("%s: got %dx%d display mode from %s\n",
++		of_node_full_name(np), vm.hactive, vm.vactive, np->name);
++	drm_mode_debug_printmodeline(dmode);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
++#endif
++
+ /**
+  * drm_mode_set_name - set the name on a mode
+  * @mode: name will be set in this mode
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 5fbb0fe..e26ca59 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -85,6 +85,7 @@ struct module;
+ struct drm_file;
+ struct drm_device;
+ 
++struct device_node;
+ struct videomode;
+ 
+ #include <drm/drm_os_linux.h>
+@@ -1458,6 +1459,9 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
+ 
+ extern int drm_display_mode_from_videomode(const struct videomode *vm,
+ 					   struct drm_display_mode *dmode);
++extern int of_get_drm_display_mode(struct device_node *np,
++				   struct drm_display_mode *dmode,
++				   int index);
+ 
+ /* Modesetting support */
+ extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
