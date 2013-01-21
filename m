@@ -1,166 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40005 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750989Ab3ADFr3 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 00:47:29 -0500
-From: Libin Yang <lbyang@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Albert Wang <twang13@marvell.com>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 3 Jan 2013 21:42:42 -0800
-Subject: RE: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support
- for marvell-ccic driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230AFE224B@SC-VEXCH4.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-4-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1301011633530.31619@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:65365 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752135Ab3AUKWy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 05:22:54 -0500
 MIME-Version: 1.0
+In-Reply-To: <201301211101.10562.hverkuil@xs4all.nl>
+References: <1358236853-2467-1-git-send-email-prabhakar.lad@ti.com> <201301211101.10562.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 21 Jan 2013 15:52:32 +0530
+Message-ID: <CA+V-a8uoHP_m2MMfTvgkuMNtEJe28Df94izyfmNxNDzSA2o6jQ@mail.gmail.com>
+Subject: Re: [PATCH] media: adv7343: accept configuration through platform data
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Hans,
 
-Thanks for your review. Please see my comments below.
+Thanks for the review!
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Wednesday, January 02, 2013 12:06 AM
->To: Albert Wang
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: Re: [PATCH V3 03/15] [media] marvell-ccic: add clock tree support for
->marvell-ccic driver
+On Mon, Jan 21, 2013 at 3:31 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tue January 15 2013 09:00:53 Lad, Prabhakar wrote:
+>> The current code was implemented with some default configurations,
+>> this default configuration works on board and doesn't work on other.
+>>
+>> This patch accepts the configuration through platform data and configures
+>> the encoder depending on the data set.
 >
->On Sat, 15 Dec 2012, Albert Wang wrote:
+> Just one small comment...
 >
->> From: Libin Yang <lbyang@marvell.com>
 >>
->> This patch adds the clock tree support for marvell-ccic.
->>
->> Each board may require different clk enabling sequence.
->> Developer need add the clk_name in correct sequence in board driver
->> to use this feature.
->>
->> Signed-off-by: Libin Yang <lbyang@marvell.com>
->> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 >> ---
->>  drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
->>  drivers/media/platform/marvell-ccic/mmp-driver.c |   57 +++++++++++++++++++++-
->>  include/media/mmp-camera.h                       |    5 ++
->>  3 files changed, 65 insertions(+), 1 deletion(-)
+>>  drivers/media/i2c/adv7343.c |   36 +++++++++++++++++++++++++++++++-----
+>>  include/media/adv7343.h     |   32 ++++++++++++++++++++++++++++++++
+>>  2 files changed, 63 insertions(+), 5 deletions(-)
 >>
-[snip]
-
->> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
->b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> index 603fa0a..2c4dce3 100755
->> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
->> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-[snip]
-
+>> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+>> index 2b5aa67..a058058 100644
+>> --- a/drivers/media/i2c/adv7343.c
+>> +++ b/drivers/media/i2c/adv7343.c
+>> @@ -43,6 +43,7 @@ MODULE_PARM_DESC(debug, "Debug level 0-1");
+>>  struct adv7343_state {
+>>       struct v4l2_subdev sd;
+>>       struct v4l2_ctrl_handler hdl;
+>> +     const struct adv7343_platform_data *pdata;
+>>       u8 reg00;
+>>       u8 reg01;
+>>       u8 reg02;
+>> @@ -215,12 +216,23 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+>>       /* Enable Appropriate DAC */
+>>       val = state->reg00 & 0x03;
+>>
+>> -     if (output_type == ADV7343_COMPOSITE_ID)
+>> -             val |= ADV7343_COMPOSITE_POWER_VALUE;
+>> -     else if (output_type == ADV7343_COMPONENT_ID)
+>> -             val |= ADV7343_COMPONENT_POWER_VALUE;
+>> +     /* configure default configuration */
+>> +     if (!state->pdata)
+>> +             if (output_type == ADV7343_COMPOSITE_ID)
+>> +                     val |= ADV7343_COMPOSITE_POWER_VALUE;
+>> +             else if (output_type == ADV7343_COMPONENT_ID)
+>> +                     val |= ADV7343_COMPONENT_POWER_VALUE;
+>> +             else
+>> +                     val |= ADV7343_SVIDEO_POWER_VALUE;
+>>       else
+>> -             val |= ADV7343_SVIDEO_POWER_VALUE;
+>> +             val = state->pdata->mode_config.sleep_mode << 0 |
+>> +                   state->pdata->mode_config.pll_control << 1 |
+>> +                   state->pdata->mode_config.dac_3 << 2 |
+>> +                   state->pdata->mode_config.dac_2 << 3 |
+>> +                   state->pdata->mode_config.dac_1 << 4 |
+>> +                   state->pdata->mode_config.dac_6 << 5 |
+>> +                   state->pdata->mode_config.dac_5 << 6 |
+>> +                   state->pdata->mode_config.dac_4 << 7;
+>>
+>>       err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+>>       if (err < 0)
+>> @@ -238,6 +250,17 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+>>
+>>       /* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+>>       val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
 >> +
->> +	mcam_clk_set(mcam, 0);
->>  }
->>
->>  /*
->> @@ -202,7 +223,7 @@ void mmpcam_calc_dphy(struct mcam_camera *mcam)
->>  	 * pll1 will never be changed, it is a fixed value
->>  	 */
->>
->> -	if (IS_ERR(mcam->pll1))
->> +	if (IS_ERR_OR_NULL(mcam->pll1))
->
->Why are you changing this? If this really were needed, you should do this
->already in the previous patch, where you add these lines. But I don't
->think this is a good idea, don't think Russell would like this :-) NULL is
->a valid clock. Only a negative error is a failure. In fact, if you like,
->you could initialise .pll1 to ERR_PTR(-EINVAL) in your previous patch in
->mmpcam_probe().
-
-In the below code, we will use platform related clk_get_rate() to get the rate. 
-In the function we do not judge the clk is NULL or not. If we do not judge here, 
-we need judge for NULL in the later, otherwise, error may happen. Or do you
-think it is better that we should judge the pointer in the function clk_get_rate()?
-
->
->>  		return;
->>
->>  	tx_clk_esc = clk_get_rate(mcam->pll1) / 1000000 / 12;
->> @@ -229,6 +250,35 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
->>  	return IRQ_RETVAL(handled);
->>  }
->>
->> +static void mcam_init_clk(struct mcam_camera *mcam,
->> +			struct mmp_camera_platform_data *pdata, int init)
->
->I don't think this "int init" makes sense. Please, remove the parameter
->and you actually don't need the de-initialisation, no reason to set
->num_clk = 0 before freeing memory.
-
-Yes, the init parameter is not good here, which make confusion.
-The driver de-initiatives the clks because
-I want to make sure the driver will never enable the clks after de-initialization.
-After second consideration based on your suggestion, I will remove
-de-initialization, because this scenario will never happen.
-
->
->> +{
->> +	unsigned int i;
+>> +     if (state->pdata && state->pdata->sd_config.sd_dac_out1)
+>> +             val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
+>> +     else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
+>> +             val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
 >> +
->> +	if (NR_MCAM_CLK < pdata->clk_num) {
->> +		dev_err(mcam->dev, "Too many mcam clocks defined\n");
->> +		mcam->clk_num = 0;
->> +		return;
->> +	}
+>> +     if (state->pdata && state->pdata->sd_config.sd_dac_out2)
+>> +             val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
+>> +     else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
+>> +             val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
 >> +
->> +	if (init) {
->> +		for (i = 0; i < pdata->clk_num; i++) {
->> +			if (pdata->clk_name[i] != NULL) {
->> +				mcam->clk[i] = devm_clk_get(mcam->dev,
->> +						pdata->clk_name[i]);
->
->Sorry, no. Passing clock names in platform data doesn't look right to me.
->Clock names are a property of the consumer device, not of clock supplier.
->Also, your platform tells you to get clk_num clocks, you fail to get one
->of them, you don't continue trying the rest and just return with no error.
->This seems strange, usually a failure to get clocks, that the platform
->tells you to get, is fatal.
-
-I agree that after failing to get the clk, we should return error
-instead of just returning. 
-
-For the clock names, the clock names are different on different platforms.
-So we need platform data passing the clock names. Do you have any suggestions?
-
->
->> +				if (IS_ERR(mcam->clk[i])) {
->> +					dev_err(mcam->dev,
->> +						"Could not get clk: %s\n",
->> +						pdata->clk_name[i]);
->> +					mcam->clk_num = 0;
->> +					return;
->> +				}
->> +			}
->> +		}
->> +		mcam->clk_num = pdata->clk_num;
->> +	} else
->> +		mcam->clk_num = 0;
->> +}
+>>       err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+>>       if (err < 0)
+>>               goto setoutput_exit;
+>> @@ -401,6 +424,9 @@ static int adv7343_probe(struct i2c_client *client,
+>>       if (state == NULL)
+>>               return -ENOMEM;
 >>
->>  static int mmpcam_probe(struct platform_device *pdev)
->>  {
+>> +     /* Copy board specific information here */
+>> +     state->pdata = client->dev.platform_data;
+>> +
+>>       state->reg00    = 0x80;
+>>       state->reg01    = 0x00;
+>>       state->reg02    = 0x20;
+>> diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+>> index d6f8a4e..8086e46 100644
+>> --- a/include/media/adv7343.h
+>> +++ b/include/media/adv7343.h
+>> @@ -20,4 +20,36 @@
+>>  #define ADV7343_COMPONENT_ID (1)
+>>  #define ADV7343_SVIDEO_ID    (2)
+>>
+>> +struct adv7343_power_mode {
+>> +     bool sleep_mode;
+>> +     bool pll_control;
+>> +     bool dac_1;
+>> +     bool dac_2;
+>> +     bool dac_3;
+>> +     bool dac_4;
+>> +     bool dac_5;
+>> +     bool dac_6;
+>> +};
 >
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
+> Can you add a short description for struct adv7343_power_mode? It's
+> sufficient to point to the relevant section in the datasheet (add a url
+> or something like that).
+>
+Ok I'll do the needy. and respin v2.
 
 Regards,
-Libin
+--Prabhakar
+
+> Regards,
+>
+>         Hans
+>
+>> +
+>> +/**
+>> + * struct adv7343_sd_config - SD Only Output Configuration.
+>> + * @sd_dac_out1: Configure SD DAC Output 1.
+>> + * @sd_dac_out2: Configure SD DAC Output 2.
+>> + */
+>> +struct adv7343_sd_config {
+>> +     /* SD only Output Configuration */
+>> +     bool sd_dac_out1;
+>> +     bool sd_dac_out2;
+>> +};
+>> +
+>> +/**
+>> + * struct adv7343_platform_data - Platform data values and access functions.
+>> + * @mode_config: Configuration for power mode.
+>> + * @sd_config: SD Only Configuration.
+>> + */
+>> +struct adv7343_platform_data {
+>> +     struct adv7343_power_mode mode_config;
+>> +     struct adv7343_sd_config sd_config;
+>> +};
+>> +
+>>  #endif                               /* End of #ifndef ADV7343_H */
+>>
