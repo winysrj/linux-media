@@ -1,92 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f49.google.com ([209.85.215.49]:50868 "EHLO
-	mail-la0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab3ADEyG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 23:54:06 -0500
-Received: by mail-la0-f49.google.com with SMTP id fk20so8922125lab.8
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 20:54:05 -0800 (PST)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4567 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833Ab3AUJxu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 04:53:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jan Stumpf <Jan.Stumpf@asctec.de>
+Subject: Re: [cx231xx] Support for Arm / Omap working at all?
+Date: Mon, 21 Jan 2013 10:53:43 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
+In-Reply-To: <5AFD6ADC04BAC644902876711A98009E43BC3C18@ASCTECSBS2.asctec.local>
 MIME-Version: 1.0
-In-Reply-To: <67872310.6yRVsVsClR@amdc1227>
-References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
-	<1357132642-24588-3-git-send-email-vikas.sajjan@linaro.org>
-	<67872310.6yRVsVsClR@amdc1227>
-Date: Fri, 4 Jan 2013 10:24:04 +0530
-Message-ID: <CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [RFC] video: display: Adding frame related ops to
- MIPI DSI video source struct
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	inki.dae@samsung.com, tomi.valkeinen@ti.com,
-	laurent.pinchart@ideasonboard.com, aditya.ps@samsung.com,
-	sunil joshi <joshi@samsung.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301211053.43912.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mr. Figa,
+On Thu January 17 2013 08:31:50 Jan Stumpf wrote:
+> Hi!
+> 
+> I'm trying to get an Hauppauge Live Usb 2 video grabber to run on on Omap4 (Gumstix Duovero). I'm using Sakomans omap-3.6 head kernel sources from http://git.sakoman.com/git/gitweb.cgi?p=linux.git;a=summary . The hardware is successfully detected on the USB host port, the driver loads perfectly including the firmware. With v4l2-ctl --all I can see if thee video signal on the composite port is ok or if the sync is lost, but as soon as I use any v4l2 software (e.g. yavta) to grab some images the driver uses 100% of the cpu, returns the first image and after some seconds I see EPROTO (-71) errors in dmesg. First I get " cx231xx #0: can't change interface 3 alt. no to 0 (err=-71)" and then "UsbInterface::sendCommand, failed with status --71"
+> 
+> I did the following tests:
+> 
+> - checked that all patches I found (e.g from http://git.linuxtv.org/mchehab/cx231xx.git) are included in my kernel, including the URB DMA related patches and the timing patches
+> - tried the same on an Gumstix Overo (Overo Fire and Overo WarerStorm) on several different header boards.
+> - tried older kernels (3.2 and 2.6.32) with rougly the same results or known errors due to missing patches
+> 
+> Unfortunately I can't use other capture devices because the final hardware is custom made with the cx23102 chip :-( I could use an omap3 instead of an omap4, but omap4 is preferred.
+> 
+> My questions are: 
+> 
+> - Did anybody ever used the cx231xx driver with an omap3 or omap4 successfully? 
 
-Thanks for reviewing.
+I'm pretty sure the answer is that you're the first to try it.
 
-On 3 January 2013 16:29, Tomasz Figa <t.figa@samsung.com> wrote:
-> Hi Vikas,
->
-> On Wednesday 02 of January 2013 18:47:22 Vikas C Sajjan wrote:
->> From: Vikas Sajjan <vikas.sajjan@linaro.org>
->>
->> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->> ---
->>  include/video/display.h |    6 ++++++
->>  1 file changed, 6 insertions(+)
->>
->> diff --git a/include/video/display.h b/include/video/display.h
->> index b639fd0..fb2f437 100644
->> --- a/include/video/display.h
->> +++ b/include/video/display.h
->> @@ -117,6 +117,12 @@ struct dsi_video_source_ops {
->>
->>       void (*enable_hs)(struct video_source *src, bool enable);
->>
->> +     /* frame related */
->> +     int (*get_frame_done)(struct video_source *src);
->> +     int (*clear_frame_done)(struct video_source *src);
->> +     int (*set_early_blank_mode)(struct video_source *src, int power);
->> +     int (*set_blank_mode)(struct video_source *src, int power);
->> +
->
-> I'm not sure if all those extra ops are needed in any way.
->
-> Looking and Exynos MIPI DSIM driver, set_blank_mode is handling only
-> FB_BLANK_UNBLANK status, which basically equals to the already existing
-> enable operation, while set_early_blank mode handles only
-> FB_BLANK_POWERDOWN, being equal to disable callback.
->
+> - If yes, could you let me know the kernel version and maybe the config? 
+> - Any hints what I could try? I'm an expirienced embedded C programmer but I dont have much expirience in USB kernel drivers. 
 
-Right, exynos_mipi_dsi_blank_mode() only supports FB_BLANK_UNBLANK as
-of now, but FB_BLANK_NORMAL will be supported in future.
-If not for Exynos, i think it will be need for other SoCs which
-support  FB_BLANK_UNBLANK and FB_BLANK_NORMAL.
+A few months back I was working on improving this driver and I made a number
+of fixes that are available in my git tree:
 
-> Both get_frame_done and clear_frame_done do not look at anything used at
-> the moment and if frame done status monitoring will be ever needed, I
-> think a better way should be implemented.
->
-You are right, as of now Exynos MIPI DSI Panels are NOT using these
-callbacks, but as you mentioned we will need frame done status
-monitoring anyways, so i included these callbacks here. Will check, if
-we can implement any better method.
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx
 
-> Best regards,
-> --
-> Tomasz Figa
-> Samsung Poland R&D Center
-> SW Solution Development, Linux Platform
->
+In particular this patch might be relevant:
 
+http://git.linuxtv.org/hverkuil/media_tree.git/commit/7bcf29cf460569c523b15d3c0dfed1397a7b770e
 
+Regards,
 
--- 
-Thanks and Regards
- Vikas Sajjan
+	Hans
+
+> 
+> Any help is greatly appriciated!
+> 
+> Thanks in Advance!
+> 
+> Jan--
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
