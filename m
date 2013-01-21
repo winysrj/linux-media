@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f74.google.com ([209.85.212.74]:37210 "EHLO
-	mail-vb0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752994Ab3AQAIf (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1235 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751404Ab3AUJ4t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 19:08:35 -0500
-Received: by mail-vb0-f74.google.com with SMTP id r6so149185vbi.3
-        for <linux-media@vger.kernel.org>; Wed, 16 Jan 2013 16:08:34 -0800 (PST)
-From: Simon Que <sque@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: msb@chromium.org, Simon Que <sque@chromium.org>
-Subject: [PATCH] media: tuners: initialize hw and fw ids in xc4000.c
-Date: Wed, 16 Jan 2013 15:40:35 -0800
-Message-Id: <1358379635-14542-1-git-send-email-sque@chromium.org>
+	Mon, 21 Jan 2013 04:56:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] media: tvp514x: remove field description
+Date: Mon, 21 Jan 2013 10:56:09 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+References: <1358236540-2091-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1358236540-2091-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301211056.09244.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These variables are implicitly initialized by passing them to
-xc_get_version().  However, initializing them to 0 explicitly will avoid
-compile warnings.
+On Tue January 15 2013 08:55:40 Lad, Prabhakar wrote:
+> This patch removes the field description of fields that no
+> longer exists, along side aligns the field description of
+> fields.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Signed-off-by: Simon Que <sque@chromium.org>
----
- drivers/media/tuners/xc4000.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/tuners/xc4000.c b/drivers/media/tuners/xc4000.c
-index 4937712..d9dd53d 100644
---- a/drivers/media/tuners/xc4000.c
-+++ b/drivers/media/tuners/xc4000.c
-@@ -934,7 +934,8 @@ static int check_firmware(struct dvb_frontend *fe, unsigned int type,
- 	int			   rc = 0, is_retry = 0;
- 	u16			   hwmodel;
- 	v4l2_std_id		   std0;
--	u8			   hw_major, hw_minor, fw_major, fw_minor;
-+	u8			   hw_major = 0, hw_minor = 0;
-+	u8			   fw_major = 0, fw_minor = 0;
- 
- 	dprintk(1, "%s called\n", __func__);
- 
--- 
-1.7.8.6
+Regards,
 
+	Hans
+
+> ---
+>  include/media/tvp514x.h |    7 ++-----
+>  1 files changed, 2 insertions(+), 5 deletions(-)
+> 
+> diff --git a/include/media/tvp514x.h b/include/media/tvp514x.h
+> index 74387e8..86ed7e8 100644
+> --- a/include/media/tvp514x.h
+> +++ b/include/media/tvp514x.h
+> @@ -96,12 +96,9 @@ enum tvp514x_output {
+>  
+>  /**
+>   * struct tvp514x_platform_data - Platform data values and access functions.
+> - * @power_set: Power state access function, zero is off, non-zero is on.
+> - * @ifparm: Interface parameters access function.
+> - * @priv_data_set: Device private data (pointer) access function.
+>   * @clk_polarity: Clock polarity of the current interface.
+> - * @ hs_polarity: HSYNC Polarity configuration for current interface.
+> - * @ vs_polarity: VSYNC Polarity configuration for current interface.
+> + * @hs_polarity: HSYNC Polarity configuration for current interface.
+> + * @vs_polarity: VSYNC Polarity configuration for current interface.
+>   */
+>  struct tvp514x_platform_data {
+>  	/* Interface control params */
+> 
