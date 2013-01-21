@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9979 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580Ab3AVJt2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 04:49:28 -0500
-Message-ID: <50FE6148.1010200@redhat.com>
-Date: Tue, 22 Jan 2013 10:52:08 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Nieder <jrnieder@gmail.com>, emilgoode@gmail.com,
-	linux-media <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com> <50FD38D1.5020104@redhat.com> <CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
-In-Reply-To: <CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.171]:53003 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752537Ab3AURRG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 12:17:06 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, arm@kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 09/15] media: coda: don't build on multiplatform
+Date: Mon, 21 Jan 2013 17:16:02 +0000
+Message-Id: <1358788568-11137-10-git-send-email-arnd@arndb.de>
+In-Reply-To: <1358788568-11137-1-git-send-email-arnd@arndb.de>
+References: <1358788568-11137-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The coda video codec driver depends on a mach-imx or mach-mxs specific
+header file "mach/iram.h". This is not available when building for
+multiplatform, so let us disable this driver for v3.8 when building
+multiplatform, and hopefully find a proper fix for v3.9.
 
-On 01/21/2013 01:51 PM, Peter Senna Tschudin wrote:
-> On Mon, Jan 21, 2013 at 10:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
->>
->> Thanks for the patches I'll pick up 5 - 21 and add them to
->> my tree for Mauro.
-> I have sent V2 of this patches with another subject and with fixed
-> commit message for two patches.
+drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
 
-Oh, those did not show up in my mailbox though, so I guess you
-did not send V2 to the linux-media list? Can you please re-send
-them to the linux-media list, then I'll pick up the gspca patches
-among them.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/platform/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 3dcfea6..049d2b2 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -142,7 +142,7 @@ if V4L_MEM2MEM_DRIVERS
+ 
+ config VIDEO_CODA
+ 	tristate "Chips&Media Coda multi-standard codec IP"
+-	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
++	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC && !ARCH_MULTIPLATFORM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	select IRAM_ALLOC if SOC_IMX53
+-- 
+1.7.10.4
 
-Hans
