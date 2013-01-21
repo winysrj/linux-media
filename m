@@ -1,268 +1,578 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22793 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755122Ab3AVQo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 11:44:59 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MGix9b011680
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 11:44:59 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [REVIEW PATCHv12 5/6] [media] mb86a20s: improve bit error count for BER
-Date: Tue, 22 Jan 2013 14:44:19 -0200
-Message-Id: <1358873060-27609-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358873060-27609-1-git-send-email-mchehab@redhat.com>
-References: <1358873060-27609-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40406 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752982Ab3AULJD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 06:09:03 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org,
+	David Airlie <airlied@linux.ie>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: =?UTF-8?q?=5BPATCH=20v16=20RESEND=203/7=5D=20video=3A=20add=20of=20helper=20for=20display=20timings/videomode?=
+Date: Mon, 21 Jan 2013 12:07:58 +0100
+Message-Id: <1358766482-6275-4-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do a better job on setting the bit error counters, in order to
-have all layer measures to happen in a little less than one
-second.
+This adds support for reading display timings from DT into a struct
+display_timings. The of_display_timing implementation supports multiple
+subnodes. All children are read into an array, that can be queried.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+If no native mode is specified, the first subnode will be used.
+
+For cases where the graphics driver knows there can be only one
+mode description or where the driver only supports one mode, a helper
+function of_get_videomode is added, that gets a struct videomode from DT.
+
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Acked-by: Stephen Warren <swarren@nvidia.com>
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Tested-by: Afzal Mohammed <Afzal@ti.com>
 ---
+ .../devicetree/bindings/video/display-timing.txt   |  109 +++++++++
+ drivers/video/Kconfig                              |   15 ++
+ drivers/video/Makefile                             |    2 +
+ drivers/video/of_display_timing.c                  |  239 ++++++++++++++++++++
+ drivers/video/of_videomode.c                       |   54 +++++
+ include/video/of_display_timing.h                  |   20 ++
+ include/video/of_videomode.h                       |   18 ++
+ 7 files changed, 457 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/display-timing.txt
+ create mode 100644 drivers/video/of_display_timing.c
+ create mode 100644 drivers/video/of_videomode.c
+ create mode 100644 include/video/of_display_timing.h
+ create mode 100644 include/video/of_videomode.h
 
-v12: some improvements:
-
-- Add a macro that defines the desired time for the bit count registers;
-- Don't divide the counter by two anymore;
-- avoid counter registers underflow/overflow.
-
- drivers/media/dvb-frontends/mb86a20s.c | 161 ++++++++++++++++++++++++++++++++-
- 1 file changed, 158 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 0017ecb..4440df6 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -27,9 +27,12 @@ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
- struct mb86a20s_state {
- 	struct i2c_adapter *i2c;
- 	const struct mb86a20s_config *config;
-+	u32 last_frequency;
- 
- 	struct dvb_frontend frontend;
- 
-+	u32 estimated_rate[3];
+diff --git a/Documentation/devicetree/bindings/video/display-timing.txt b/Documentation/devicetree/bindings/video/display-timing.txt
+new file mode 100644
+index 0000000..1500385
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/display-timing.txt
+@@ -0,0 +1,109 @@
++display-timing bindings
++=======================
 +
- 	bool need_init;
- };
- 
-@@ -38,6 +41,8 @@ struct regdata {
- 	u8 data;
- };
- 
-+#define BER_SAMPLING_RATE	1	/* Seconds */
++display-timings node
++--------------------
 +
- /*
-  * Initialization sequence: Use whatevere default values that PV SBTVD
-  * does on its initialisation, obtained via USB snoop
-@@ -86,7 +91,7 @@ static struct regdata mb86a20s_init[] = {
- 	 * it collects the bit error count. The bit counters are initialized
- 	 * to 65535 here. This warrants that all of them will be quickly
- 	 * calculated when device gets locked. As TMCC is parsed, the values
--	 * can be adjusted later in the driver's code.
-+	 * will be adjusted later in the driver's code.
- 	 */
- 	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
- 	{ 0x50, 0xa7 }, { 0x51, 0x00 },
-@@ -484,6 +489,113 @@ static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
- 	c->isdbt_sb_segment_count = 0;
- }
++required properties:
++ - none
++
++optional properties:
++ - native-mode: The native mode for the display, in case multiple modes are
++		provided. When omitted, assume the first node is the native.
++
++timing subnode
++--------------
++
++required properties:
++ - hactive, vactive: display resolution
++ - hfront-porch, hback-porch, hsync-len: horizontal display timing parameters
++   in pixels
++   vfront-porch, vback-porch, vsync-len: vertical display timing parameters in
++   lines
++ - clock-frequency: display clock in Hz
++
++optional properties:
++ - hsync-active: hsync pulse is active low/high/ignored
++ - vsync-active: vsync pulse is active low/high/ignored
++ - de-active: data-enable pulse is active low/high/ignored
++ - pixelclk-active: with
++			- active high = drive pixel data on rising edge/
++					sample data on falling edge
++			- active low  = drive pixel data on falling edge/
++					sample data on rising edge
++			- ignored     = ignored
++ - interlaced (bool): boolean to enable interlaced mode
++ - doublescan (bool): boolean to enable doublescan mode
++
++All the optional properties that are not bool follow the following logic:
++    <1>: high active
++    <0>: low active
++    omitted: not used on hardware
++
++There are different ways of describing the capabilities of a display. The
++devicetree representation corresponds to the one commonly found in datasheets
++for displays. If a display supports multiple signal timings, the native-mode
++can be specified.
++
++The parameters are defined as:
++
++  +----------+-------------------------------------+----------+-------+
++  |          |        ↑                            |          |       |
++  |          |        |vback_porch                 |          |       |
++  |          |        ↓                            |          |       |
++  +----------#######################################----------+-------+
++  |          #        ↑                            #          |       |
++  |          #        |                            #          |       |
++  |  hback   #        |                            #  hfront  | hsync |
++  |   porch  #        |       hactive              #  porch   |  len  |
++  |<-------->#<-------+--------------------------->#<-------->|<----->|
++  |          #        |                            #          |       |
++  |          #        |vactive                     #          |       |
++  |          #        |                            #          |       |
++  |          #        ↓                            #          |       |
++  +----------#######################################----------+-------+
++  |          |        ↑                            |          |       |
++  |          |        |vfront_porch                |          |       |
++  |          |        ↓                            |          |       |
++  +----------+-------------------------------------+----------+-------+
++  |          |        ↑                            |          |       |
++  |          |        |vsync_len                   |          |       |
++  |          |        ↓                            |          |       |
++  +----------+-------------------------------------+----------+-------+
++
++Example:
++
++	display-timings {
++		native-mode = <&timing0>;
++		timing0: 1080p24 {
++			/* 1920x1080p24 */
++			clock-frequency = <52000000>;
++			hactive = <1920>;
++			vactive = <1080>;
++			hfront-porch = <25>;
++			hback-porch = <25>;
++			hsync-len = <25>;
++			vback-porch = <2>;
++			vfront-porch = <2>;
++			vsync-len = <2>;
++			hsync-active = <1>;
++		};
++	};
++
++Every required property also supports the use of ranges, so the commonly used
++datasheet description with minimum, typical and maximum values can be used.
++
++Example:
++
++	timing1: timing {
++		/* 1920x1080p24 */
++		clock-frequency = <148500000>;
++		hactive = <1920>;
++		vactive = <1080>;
++		hsync-len = <0 44 60>;
++		hfront-porch = <80 88 95>;
++		hback-porch = <100 148 160>;
++		vfront-porch = <0 4 6>;
++		vback-porch = <0 36 50>;
++		vsync-len = <0 5 6>;
++	};
+diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+index 2a23b18..c000f5a 100644
+--- a/drivers/video/Kconfig
++++ b/drivers/video/Kconfig
+@@ -39,6 +39,21 @@ config DISPLAY_TIMING
+ config VIDEOMODE
+        bool
  
++config OF_DISPLAY_TIMING
++	bool "Enable device tree display timing support"
++	depends on OF
++	select DISPLAY_TIMING
++	help
++	  helper to parse display timings from the devicetree
++
++config OF_VIDEOMODE
++	bool "Enable device tree videomode support"
++	depends on OF
++	select VIDEOMODE
++	select OF_DISPLAY_TIMING
++	help
++	  helper to get videomodes from the devicetree
++
+ menuconfig FB
+ 	tristate "Support for frame buffer devices"
+ 	---help---
+diff --git a/drivers/video/Makefile b/drivers/video/Makefile
+index fc30439..b936b00 100644
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -168,4 +168,6 @@ obj-$(CONFIG_FB_VIRTUAL)          += vfb.o
+ #video output switch sysfs driver
+ obj-$(CONFIG_VIDEO_OUTPUT_CONTROL) += output.o
+ obj-$(CONFIG_DISPLAY_TIMING) += display_timing.o
++obj-$(CONFIG_OF_DISPLAY_TIMING) += of_display_timing.o
+ obj-$(CONFIG_VIDEOMODE) += videomode.o
++obj-$(CONFIG_OF_VIDEOMODE) += of_videomode.o
+diff --git a/drivers/video/of_display_timing.c b/drivers/video/of_display_timing.c
+new file mode 100644
+index 0000000..13ecd98
+--- /dev/null
++++ b/drivers/video/of_display_timing.c
+@@ -0,0 +1,239 @@
 +/*
-+ * Estimates the bit rate using the per-segment bit rate given by
-+ * ABNT/NBR 15601 spec (table 4).
++ * OF helpers for parsing display timings
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * based on of_videomode.c by Sascha Hauer <s.hauer@pengutronix.de>
++ *
++ * This file is released under the GPLv2
 + */
-+static u32 isdbt_rate[3][5][4] = {
-+	{	/* DQPSK/QPSK */
-+		{  280850,  312060,  330420,  340430 },	/* 1/2 */
-+		{  374470,  416080,  440560,  453910 },	/* 2/3 */
-+		{  421280,  468090,  495630,  510650 },	/* 3/4 */
-+		{  468090,  520100,  550700,  567390 },	/* 5/6 */
-+		{  491500,  546110,  578230,  595760 },	/* 7/8 */
-+	}, {	/* QAM16 */
-+		{  561710,  624130,  660840,  680870 },	/* 1/2 */
-+		{  748950,  832170,  881120,  907820 },	/* 2/3 */
-+		{  842570,  936190,  991260, 1021300 },	/* 3/4 */
-+		{  936190, 1040210, 1101400, 1134780 },	/* 5/6 */
-+		{  983000, 1092220, 1156470, 1191520 },	/* 7/8 */
-+	}, {	/* QAM64 */
-+		{  842570,  936190,  991260, 1021300 },	/* 1/2 */
-+		{ 1123430, 1248260, 1321680, 1361740 },	/* 2/3 */
-+		{ 1263860, 1404290, 1486900, 1531950 },	/* 3/4 */
-+		{ 1404290, 1560320, 1652110, 1702170 },	/* 5/6 */
-+		{ 1474500, 1638340, 1734710, 1787280 },	/* 7/8 */
-+	}
-+};
++#include <linux/export.h>
++#include <linux/of.h>
++#include <linux/slab.h>
++#include <video/display_timing.h>
++#include <video/of_display_timing.h>
 +
-+static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
-+				   u32 modulation, u32 fec, u32 interleaving,
-+				   u32 segment)
++/**
++ * parse_timing_property - parse timing_entry from device_node
++ * @np: device_node with the property
++ * @name: name of the property
++ * @result: will be set to the return value
++ *
++ * DESCRIPTION:
++ * Every display_timing can be specified with either just the typical value or
++ * a range consisting of min/typ/max. This function helps handling this
++ **/
++static int parse_timing_property(struct device_node *np, const char *name,
++			  struct timing_entry *result)
 +{
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	u32 rate;
-+	int m, f, i;
++	struct property *prop;
++	int length, cells, ret;
 +
-+	/*
-+	 * If modulation/fec/interleaving is not detected, the default is
-+	 * to consider the lowest bit rate, to avoid taking too long time
-+	 * to get BER.
-+	 */
-+	switch (modulation) {
-+	case DQPSK:
-+	case QPSK:
-+	default:
-+		m = 0;
-+		break;
-+	case QAM_16:
-+		m = 1;
-+		break;
-+	case QAM_64:
-+		m = 2;
-+		break;
++	prop = of_find_property(np, name, &length);
++	if (!prop) {
++		pr_err("%s: could not find property %s\n",
++			of_node_full_name(np), name);
++		return -EINVAL;
 +	}
 +
-+	switch (fec) {
-+	default:
-+	case FEC_1_2:
-+	case FEC_AUTO:
-+		f = 0;
-+		break;
-+	case FEC_2_3:
-+		f = 1;
-+		break;
-+	case FEC_3_4:
-+		f = 2;
-+		break;
-+	case FEC_5_6:
-+		f = 3;
-+		break;
-+	case FEC_7_8:
-+		f = 4;
-+		break;
++	cells = length / sizeof(u32);
++	if (cells == 1) {
++		ret = of_property_read_u32(np, name, &result->typ);
++		result->min = result->typ;
++		result->max = result->typ;
++	} else if (cells == 3) {
++		ret = of_property_read_u32_array(np, name, &result->min, cells);
++	} else {
++		pr_err("%s: illegal timing specification in %s\n",
++			of_node_full_name(np), name);
++		return -EINVAL;
 +	}
 +
-+	switch (interleaving) {
-+	default:
-+	case GUARD_INTERVAL_1_4:
-+		i = 0;
-+		break;
-+	case GUARD_INTERVAL_1_8:
-+		i = 1;
-+		break;
-+	case GUARD_INTERVAL_1_16:
-+		i = 2;
-+		break;
-+	case GUARD_INTERVAL_1_32:
-+		i = 3;
-+		break;
-+	}
-+
-+	/* Samples BER at BER_SAMPLING_RATE seconds */
-+	rate = isdbt_rate[m][f][i] * segment * BER_SAMPLING_RATE;
-+
-+	/* Avoids sampling too quickly or to overflow the register */
-+	if (rate < 256)
-+		rate = 256;
-+	else if (rate > (1 << 24) - 1)
-+		rate = (1 << 24) - 1;
-+
-+	dev_dbg(&state->i2c->dev,
-+		"%s: layer %c bitrate: %d kbps; counter = %d (0x%06x)\n",
-+	       __func__, 'A' + layer, segment * isdbt_rate[m][f][i]/1000,
-+		rate, rate);
-+
-+	state->estimated_rate[i] = rate;
++	return ret;
 +}
 +
++/**
++ * of_get_display_timing - parse display_timing entry from device_node
++ * @np: device_node with the properties
++ **/
++static struct display_timing *of_get_display_timing(struct device_node *np)
++{
++	struct display_timing *dt;
++	u32 val = 0;
++	int ret = 0;
 +
- static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
-@@ -513,10 +625,11 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 		rc = mb86a20s_get_segment_count(state, i);
- 		if (rc < 0)
- 			goto noperlayer_error;
--		if (rc >= 0 && rc < 14)
-+		if (rc >= 0 && rc < 14) {
- 			c->layer[i].segment_count = rc;
--		else {
-+		} else {
- 			c->layer[i].segment_count = 0;
-+			state->estimated_rate[i] = 0;
- 			continue;
- 		}
- 		c->isdbt_layer_enabled |= 1 << i;
-@@ -538,6 +651,10 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 		dev_dbg(&state->i2c->dev, "%s: interleaving %d.\n",
- 			__func__, rc);
- 		c->layer[i].interleaving = rc;
-+		mb86a20s_layer_bitrate(fe, i, c->layer[i].modulation,
-+				       c->layer[i].fec,
-+				       c->layer[i].interleaving,
-+				       c->layer[i].segment_count);
- 	}
- 
- 	rc = mb86a20s_writereg(state, 0x6d, 0x84);
-@@ -729,6 +846,42 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 		__func__, 'A' + layer, *count);
- 
- 
-+	/*
-+	 * As we get TMCC data from the frontend, we can better estimate the
-+	 * BER bit counters, in order to do the BER measure during a longer
-+	 * time. Use those data, if available, to update the bit count
-+	 * measure.
-+	 */
-+
-+	if (state->estimated_rate[layer]
-+	    && state->estimated_rate[layer] != *count) {
-+		dev_dbg(&state->i2c->dev,
-+			"%s: updating layer %c counter to %d.\n",
-+			__func__, 'A' + layer, state->estimated_rate[layer]);
-+		rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer] >> 16);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer] >> 8);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer * 3);
-+		if (rc < 0)
-+			return rc;
-+		rc = mb86a20s_writereg(state, 0x51,
-+				       state->estimated_rate[layer]);
-+		if (rc < 0)
-+			return rc;
++	dt = kzalloc(sizeof(*dt), GFP_KERNEL);
++	if (!dt) {
++		pr_err("%s: could not allocate display_timing struct\n",
++			of_node_full_name(np));
++		return NULL;
 +	}
 +
++	ret |= parse_timing_property(np, "hback-porch", &dt->hback_porch);
++	ret |= parse_timing_property(np, "hfront-porch", &dt->hfront_porch);
++	ret |= parse_timing_property(np, "hactive", &dt->hactive);
++	ret |= parse_timing_property(np, "hsync-len", &dt->hsync_len);
++	ret |= parse_timing_property(np, "vback-porch", &dt->vback_porch);
++	ret |= parse_timing_property(np, "vfront-porch", &dt->vfront_porch);
++	ret |= parse_timing_property(np, "vactive", &dt->vactive);
++	ret |= parse_timing_property(np, "vsync-len", &dt->vsync_len);
++	ret |= parse_timing_property(np, "clock-frequency", &dt->pixelclock);
 +
- 	/* Reset counter to collect new data */
- 	rc = mb86a20s_writereg(state, 0x53, 0x07 & ~(1 << layer));
- 	if (rc < 0)
-@@ -921,8 +1074,10 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
++	dt->dmt_flags = 0;
++	dt->data_flags = 0;
++	if (!of_property_read_u32(np, "vsync-active", &val))
++		dt->dmt_flags |= val ? VESA_DMT_VSYNC_HIGH :
++				VESA_DMT_VSYNC_LOW;
++	if (!of_property_read_u32(np, "hsync-active", &val))
++		dt->dmt_flags |= val ? VESA_DMT_HSYNC_HIGH :
++				VESA_DMT_HSYNC_LOW;
++	if (!of_property_read_u32(np, "de-active", &val))
++		dt->data_flags |= val ? DISPLAY_FLAGS_DE_HIGH :
++				DISPLAY_FLAGS_DE_LOW;
++	if (!of_property_read_u32(np, "pixelclk-active", &val))
++		dt->data_flags |= val ? DISPLAY_FLAGS_PIXDATA_POSEDGE :
++				DISPLAY_FLAGS_PIXDATA_NEGEDGE;
 +
- 	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
- 	mb86a20s_reset_counters(fe);
++	if (of_property_read_bool(np, "interlaced"))
++		dt->data_flags |= DISPLAY_FLAGS_INTERLACED;
++	if (of_property_read_bool(np, "doublescan"))
++		dt->data_flags |= DISPLAY_FLAGS_DOUBLESCAN;
 +
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
++	if (ret) {
++		pr_err("%s: error reading timing properties\n",
++			of_node_full_name(np));
++		kfree(dt);
++		return NULL;
++	}
++
++	return dt;
++}
++
++/**
++ * of_get_display_timings - parse all display_timing entries from a device_node
++ * @np: device_node with the subnodes
++ **/
++struct display_timings *of_get_display_timings(struct device_node *np)
++{
++	struct device_node *timings_np;
++	struct device_node *entry;
++	struct device_node *native_mode;
++	struct display_timings *disp;
++
++	if (!np) {
++		pr_err("%s: no devicenode given\n", of_node_full_name(np));
++		return NULL;
++	}
++
++	timings_np = of_find_node_by_name(np, "display-timings");
++	if (!timings_np) {
++		pr_err("%s: could not find display-timings node\n",
++			of_node_full_name(np));
++		return NULL;
++	}
++
++	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
++	if (!disp) {
++		pr_err("%s: could not allocate struct disp'\n",
++			of_node_full_name(np));
++		goto dispfail;
++	}
++
++	entry = of_parse_phandle(timings_np, "native-mode", 0);
++	/* assume first child as native mode if none provided */
++	if (!entry)
++		entry = of_get_next_child(np, NULL);
++	/* if there is no child, it is useless to go on */
++	if (!entry) {
++		pr_err("%s: no timing specifications given\n",
++			of_node_full_name(np));
++		goto entryfail;
++	}
++
++	pr_debug("%s: using %s as default timing\n",
++		of_node_full_name(np), entry->name);
++
++	native_mode = entry;
++
++	disp->num_timings = of_get_child_count(timings_np);
++	if (disp->num_timings == 0) {
++		/* should never happen, as entry was already found above */
++		pr_err("%s: no timings specified\n", of_node_full_name(np));
++		goto entryfail;
++	}
++
++	disp->timings = kzalloc(sizeof(struct display_timing *) *
++				disp->num_timings, GFP_KERNEL);
++	if (!disp->timings) {
++		pr_err("%s: could not allocate timings array\n",
++			of_node_full_name(np));
++		goto entryfail;
++	}
++
++	disp->num_timings = 0;
++	disp->native_mode = 0;
++
++	for_each_child_of_node(timings_np, entry) {
++		struct display_timing *dt;
++
++		dt = of_get_display_timing(entry);
++		if (!dt) {
++			/*
++			 * to not encourage wrong devicetrees, fail in case of
++			 * an error
++			 */
++			pr_err("%s: error in timing %d\n",
++				of_node_full_name(np), disp->num_timings + 1);
++			goto timingfail;
++		}
++
++		if (native_mode == entry)
++			disp->native_mode = disp->num_timings;
++
++		disp->timings[disp->num_timings] = dt;
++		disp->num_timings++;
++	}
++	of_node_put(timings_np);
++	/*
++	 * native_mode points to the device_node returned by of_parse_phandle
++	 * therefore call of_node_put on it
++	 */
++	of_node_put(native_mode);
++
++	pr_debug("%s: got %d timings. Using timing #%d as default\n",
++		of_node_full_name(np), disp->num_timings,
++		disp->native_mode + 1);
++
++	return disp;
++
++timingfail:
++	if (native_mode)
++		of_node_put(native_mode);
++	display_timings_release(disp);
++entryfail:
++	kfree(disp);
++dispfail:
++	of_node_put(timings_np);
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(of_get_display_timings);
++
++/**
++ * of_display_timings_exist - check if a display-timings node is provided
++ * @np: device_node with the timing
++ **/
++int of_display_timings_exist(struct device_node *np)
++{
++	struct device_node *timings_np;
++
++	if (!np)
++		return -EINVAL;
++
++	timings_np = of_parse_phandle(np, "display-timings", 0);
++	if (!timings_np)
++		return -EINVAL;
++
++	of_node_put(timings_np);
++	return 1;
++}
++EXPORT_SYMBOL_GPL(of_display_timings_exist);
+diff --git a/drivers/video/of_videomode.c b/drivers/video/of_videomode.c
+new file mode 100644
+index 0000000..5b8066c
+--- /dev/null
++++ b/drivers/video/of_videomode.c
+@@ -0,0 +1,54 @@
++/*
++ * generic videomode helper
++ *
++ * Copyright (c) 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>, Pengutronix
++ *
++ * This file is released under the GPLv2
++ */
++#include <linux/errno.h>
++#include <linux/export.h>
++#include <linux/of.h>
++#include <video/display_timing.h>
++#include <video/of_display_timing.h>
++#include <video/of_videomode.h>
++#include <video/videomode.h>
++
++/**
++ * of_get_videomode - get the videomode #<index> from devicetree
++ * @np - devicenode with the display_timings
++ * @vm - set to return value
++ * @index - index into list of display_timings
++ *	    (Set this to OF_USE_NATIVE_MODE to use whatever mode is
++ *	     specified as native mode in the DT.)
++ *
++ * DESCRIPTION:
++ * Get a list of all display timings and put the one
++ * specified by index into *vm. This function should only be used, if
++ * only one videomode is to be retrieved. A driver that needs to work
++ * with multiple/all videomodes should work with
++ * of_get_display_timings instead.
++ **/
++int of_get_videomode(struct device_node *np, struct videomode *vm,
++		     int index)
++{
++	struct display_timings *disp;
++	int ret;
++
++	disp = of_get_display_timings(np);
++	if (!disp) {
++		pr_err("%s: no timings specified\n", of_node_full_name(np));
++		return -EINVAL;
++	}
++
++	if (index == OF_USE_NATIVE_MODE)
++		index = disp->native_mode;
++
++	ret = videomode_from_timing(disp, vm, index);
++	if (ret)
++		return ret;
++
++	display_timings_release(disp);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(of_get_videomode);
+diff --git a/include/video/of_display_timing.h b/include/video/of_display_timing.h
+new file mode 100644
+index 0000000..8016eb7
+--- /dev/null
++++ b/include/video/of_display_timing.h
+@@ -0,0 +1,20 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * display timings of helpers
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_OF_DISPLAY_TIMING_H
++#define __LINUX_OF_DISPLAY_TIMING_H
++
++struct device_node;
++struct display_timings;
++
++#define OF_USE_NATIVE_MODE -1
++
++struct display_timings *of_get_display_timings(struct device_node *np);
++int of_display_timings_exist(struct device_node *np);
++
++#endif
+diff --git a/include/video/of_videomode.h b/include/video/of_videomode.h
+new file mode 100644
+index 0000000..a07efcc
+--- /dev/null
++++ b/include/video/of_videomode.h
+@@ -0,0 +1,18 @@
++/*
++ * Copyright 2012 Steffen Trumtrar <s.trumtrar@pengutronix.de>
++ *
++ * videomode of-helpers
++ *
++ * This file is released under the GPLv2
++ */
++
++#ifndef __LINUX_OF_VIDEOMODE_H
++#define __LINUX_OF_VIDEOMODE_H
++
++struct device_node;
++struct videomode;
++
++int of_get_videomode(struct device_node *np, struct videomode *vm,
++		     int index);
++
++#endif /* __LINUX_OF_VIDEOMODE_H */
 -- 
-1.7.11.7
+1.7.10.4
 
