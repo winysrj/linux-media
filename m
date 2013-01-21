@@ -1,48 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:47678 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755362Ab3AWOFH (ORCPT
+Received: from mail-qa0-f45.google.com ([209.85.216.45]:43853 "EHLO
+	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752528Ab3AUCJY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 09:05:07 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: [PATCH v6 2/2] adv7180: remove {query/g_/s_}ctrl
-Date: Wed, 23 Jan 2013 15:07:07 +0100
-Message-Id: <1358950027-27419-2-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1358950027-27419-1-git-send-email-federico.vaga@gmail.com>
-References: <1358950027-27419-1-git-send-email-federico.vaga@gmail.com>
+	Sun, 20 Jan 2013 21:09:24 -0500
+Received: by mail-qa0-f45.google.com with SMTP id bv4so2600655qab.4
+        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 18:09:23 -0800 (PST)
+Date: Sun, 20 Jan 2013 21:03:24 -0500
+From: mrf <gc2majortom@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: tuner-xc2028.c fix for EVGA inDtube tuner
+Message-ID: <20130121020324.GB9028@orion>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All drivers which use this subdevice use also the control framework.
-The v4l2_subdev_core_ops operations {query/g_/s_}ctrl are useless because
-device drivers will inherit controls from this subdevice.
+Hi,
+Let me begin with, I'm an end user, not a programmer...
 
-Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
----
- drivers/media/i2c/adv7180.c | 3 ---
- 1 file modificato, 3 rimozioni(-)
+I have noticed the EVGA inDtube tuner that I use (North American ATSC)
+has been broken for quite a while. The Frequency offsets are wrong,
+and up till now I have always had to fudge the frequency to account
+for the incorrect offset. 
+I found a fix that works for me, and waiting for a friend of mine,
+another inDtube user, to try the same fix and get back to me.
 
-diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
-index 45ecf8d..43bc2b9 100644
---- a/drivers/media/i2c/adv7180.c
-+++ b/drivers/media/i2c/adv7180.c
-@@ -402,9 +402,6 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
- static const struct v4l2_subdev_core_ops adv7180_core_ops = {
- 	.g_chip_ident = adv7180_g_chip_ident,
- 	.s_std = adv7180_s_std,
--	.queryctrl = v4l2_subdev_queryctrl,
--	.g_ctrl = v4l2_subdev_g_ctrl,
--	.s_ctrl = v4l2_subdev_s_ctrl,
- };
- 
- static const struct v4l2_subdev_ops adv7180_ops = {
--- 
-1.7.11.7
+Pending his report, would it be possible to get this fixed in the
+kernel for good?
+
+Thanks,
+
+Bill
+
+/ linux / drivers / media / common / tuners / tuner-xc2028.c
+
+was commented out by someone somewhere along the way in development. Putting the
+commented code back in, the inDtube tuner works correctly, no more having to
+fudge the frequency offset in user land.
+
+Would it be possible to get this fixed for good in the kernel?
+I am using xc3028L-v36.fw firmware
+
+here is a snippet adding two comments, to remove the comments.
+
+
+/* #if 0 */
+                /*
+                 * Still need tests for XC3028L (firmware 3.2 or
+                 * upper)
+                 * So, for now, let's just comment the per-firmware
+                 * version of this change. Reports with xc3028l
+                 * working
+                 * with and without the lines bellow are welcome
+                 */
+
+                if (priv->firm_version < 0x0302) {
+                        if (priv->cur_fw.type & DTV7)
+                                offset += 500000;
+                } else {
+                        if (priv->cur_fw.type & DTV7)
+                                offset -= 300000;
+                        else if (type != ATSC) /* DVB @6MHz, DTV 8 and
+DTV 7/8 */
+                                offset += 200000;
+                }
+/* #endif */
+
+
 
