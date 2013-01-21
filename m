@@ -1,92 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56102 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220Ab3ACN3v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 08:29:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] tvp7002: use devm_kzalloc() instead of kzalloc()
-Date: Thu, 03 Jan 2013 14:31:20 +0100
-Message-ID: <1883891.1g43jikvbT@avalon>
-In-Reply-To: <1357219362-9080-4-git-send-email-prabhakar.lad@ti.com>
-References: <1357219362-9080-1-git-send-email-prabhakar.lad@ti.com> <1357219362-9080-4-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-bk0-f54.google.com ([209.85.214.54]:64412 "EHLO
+	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab3AUVZE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 16:25:04 -0500
+Received: by mail-bk0-f54.google.com with SMTP id w5so94875bku.27
+        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 13:25:01 -0800 (PST)
+Message-ID: <50FDB251.6030501@googlemail.com>
+Date: Mon, 21 Jan 2013 22:25:37 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: V4L2 spec / core questions
+References: <50FC5E87.2080902@googlemail.com> <201301210959.49780.hverkuil@xs4all.nl>
+In-Reply-To: <201301210959.49780.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Hans,
 
-Thanks for the patch.
+Am 21.01.2013 09:59, schrieb Hans Verkuil:
+> On Sun January 20 2013 22:15:51 Frank Schäfer wrote:
+>> Hi Hans,
+>>
+>> I noticed that there's code in the v4l2 core that enables/disables
+>> ioctls and checks some of the parameters depending on the device type.
+>> While reading the code an comparing it to the V4L2 API document, some
+>> more questions came up:
+>>
+>> 1) Video devices with VBI functionality:
+>> The spec says: "To address the problems of finding related video and VBI
+>> devices VBI capturing and output is also available as device function
+>> under /dev/video".
+>> Is that still valid ?
+> No, that's not valid. It really was never valid: most drivers didn't implement
+> this, and those that did likely didn't work. During one of the media summits
+> we decided not to allow this. Allowing VBI functionality in video node has a
+> number of problems:
+>
+> 1) it's confusing: why have a vbi node at all if you can do it with a video
+> node as well? 
 
-On Thursday 03 January 2013 18:52:42 Lad, Prabhakar wrote:
-> I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
-> simplifies their clean up paths.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> ---
->  drivers/media/i2c/tvp7002.c |   10 ++--------
->  1 files changed, 2 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index fb6a5b5..2d4c86e 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -1036,7 +1036,7 @@ static int tvp7002_probe(struct i2c_client *c, const
-> struct i2c_device_id *id) return -ENODEV;
->  	}
-> 
-> -	device = kzalloc(sizeof(struct tvp7002), GFP_KERNEL);
-> +	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
-> 
->  	if (!device)
->  		return -ENOMEM;
-> @@ -1088,17 +1088,12 @@ static int tvp7002_probe(struct i2c_client *c, const
-> struct i2c_device_id *id) V4L2_CID_GAIN, 0, 255, 1, 0);
->  	sd->ctrl_handler = &device->hdl;
->  	if (device->hdl.error) {
-> -		int err = device->hdl.error;
-> -
->  		v4l2_ctrl_handler_free(&device->hdl);
-> -		kfree(device);
-> -		return err;
-> +		return device->hdl.error;
+Yeah, although I think the problem described in the spec document is real.
+No idea how good applications are in finding the correct VBI device
+belonging to a specific video device node...
 
-At this point device->hdl as been freed (or rather uninitialized, as the 
-structure is not dynamically allocated by the control framework), so device-
->hdl.error is undefined. That's why you need the local err variable.
+Hmm... yeah... why have separate device nodes at all ? We could provide
+the same functionality with a single device node (e.g. /dev/multimediaX).
+I assume separation into radio / video / vbi device nodes gears towards
+typical feature sets of applications.
+Probably something to think about for V4L3... ;)
 
->  	}
->  	v4l2_ctrl_handler_setup(&device->hdl);
-> 
->  found_error:
-> -	if (error < 0)
-> -		kfree(device);
+> In fact, applications always use the vbi node for vbi data.
+>
+> 2) it breaks down when you want to read() the data: read() can handle only
+> one 'format' at a time. So if you want to read both video and vbi at the same
+> time then you need to nodes.
 
-You can remove the found_error label and return errors directly instead of 
-using goto's.
+Ouch, yes !
+Ok, so the traditional read() concept is probably the _real_ reason for
+having separate device nodes...
 
->  	return error;
+> 3) it makes drivers quite complex: separating this functionality in distinct
+> nodes makes life much easier.
 
-And this can then be turned into return 0.
+It looks like the v4l2 core has been improved a lot and now does most of
+the work for the driver, so it's probably not that complex anymore.
 
->  }
-> @@ -1120,7 +1115,6 @@ static int tvp7002_remove(struct i2c_client *c)
-> 
->  	v4l2_device_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(&device->hdl);
-> -	kfree(device);
->  	return 0;
->  }
--- 
+>> What about VBI "configuration" (e.g.
+>> VIDIOC_G/S/TRY_FMT for VBI formats) ?
+>> Looking into the v4l2 core code, it seems that the VBI buffer types
+>> (field "type" in struct v4l2_format) are only accepted, if the device is
+>> a VBI device.
+> That's correct. I've added these checks because drivers often didn't test
+> that themselves. It's also much easier to test in the v4l2 core than
+> repeating the same test in every driver.
+>
+>> 2) VIDIOC_G/S/TRY_FMT and VBI devices:
+>> The sepc says: "VBI devices must implement both the VIDIOC_G_FMT and
+>> VIDIOC_S_FMT ioctl, even if VIDIOC_S_FMT ignores all requests and always
+>> returns default parameters as VIDIOC_G_FMT does. VIDIOC_TRY_FMT is
+>> optional." What's the reason for this ? Is it still valid ?
+> This is still valid (in fact, v4l2-compliance requires the presence of
+> TRY_FMT as well as I don't think there is a good reason not to implement
+> it). The reason for this is that this simplifies applications: no need to
+> test for the presence of S_FMT.
+>
+>> 3) VIDIOC_S_TUNER: field "type" in struct v4l2_tuner
+>> Are radio tuners accessable through video devices (and the other way
+>> around) ?
+> Not anymore. This used to be possible, although because it was never
+> properly tested most drivers probably didn't implement that correctly.
+>
+> The radio API has always been a bit messy and we have been slowly cleaning
+> it up.
+
+Yeah, I think the most confusing things are input/output/routing
+(G/S_INPUT, G/S_AUDIO).
+
+>
+>> Has this field to be set by the application ?
+> No, it is filled in by the core based on the device node used. This follows
+> the spec which does not require apps to set the type.
+>
+>> If yes: driver overwrites
+>> the value or returns with an error if the type doesn't match the tuner
+>> at the requested index ?
+>> I wonder if it would make sense to check the tuner type inside the v4l
+>> core (like the fmt/buffer type check for G/S_PARM).
+>>
+>> 4) VIDIOC_DBG_G_CHIP_IDENT:
+>> Is it part of CONFIG_VIDEO_ADV_DEBUG just like VIDIOC_DBG_G/S_REGISTER ?
+> No. It just returns some chip info, it doesn't access the hardware, so there
+> is no need to put it under ADV_DEBUG.
+
+Ok. I just noticed that in most drivers it's inside the #ifdef
+CONFIG_VIDEO_ADV_DEBUG.
+It also has been renamed from VIDIOC_G_CHIP_IDENT to
+VIDIOC_DBG_G_CHIP_IDENT which somehow suggests that it's an advanced
+debug feature.
+
+>
+>> In determine_valid_ioctls(), it is placed outside the #ifdef
+>> CONFIG_VIDEO_ADV_DEBUG section.
+>> The spec says "Identify the chips on a TV card" but isn't it suitable
+>> for all device types (radio/video/vbi) ?
+> That's correct. A patch is welcome :-)
+
+To be sure that I understood you correctly:
+ VIDIOC_DBG_G_CHIP_IDENT is suitable for all device types ?
+Then no patch is needed but the spec document has to be fixed.
+
+>> determine_valid_ioctls() in
+>> v4l2-dev.c enables it for all devices.
+>>
+>> 5) The buffer ioctls (VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS,
+>> VIDIOC_PREPARE_BUF, VIDIOC_QUERYBUF, VIDIOC_QBUF, VIDIOC_DQBUF) are not
+>> applicable to radio devices, right ?
+> That's correct.
+>
+>> In function determine_valid_ioctls() in v4l2-dev.c they are enabled for
+>> all device types.
+> A patch fixing this is welcome!
+
+Coming soon.
+
+>
+>> 6) VIDIOC_G/S_AUDIO: Shouldn't it be disabled in
+>> determine_valid_ioctls() for VBI devices ?
+> No. VBI devices still allow this. Strictly speaking it isn't useful for vbi
+> devices, but allowing G/S_INPUT but not G/S_AUDIO feels inconsistent to me.
+>
+> While it isn't useful, it doesn't hurt either.
+>
+>> Btw: function determine_valid_ioctls() in v4l2-dev.c is a good summary
+>> that explains which ioctls are suitable for which device types
+>> (radio/video/vbi).
+>> Converting its content into a table would be a great
+>> extension/clarifaction of the V4L2 API spec document !
+> We played around with the idea of 'profiles' where for each type of device
+> you have a table listing what can and cannot be done. The problem is time...
+>
+> If you are interesting in pursuing this, then I am happy to help with advice
+> and pointers (v4l2-compliance is also a great source of information).
+
+I could create a simple html table with X = device type, Y = ioctl.
+
+>
+>> Thanks for your patience !
+> My pleasure!
+>
+> Regards,
+>
+> 	Hans
+
+One last question:
+I'm looking for a possibility to disable all ioctls when the device is
+unplugged.
+I think this is a common problem/task of all drivers for hotpluggable
+devices, because the disconnect callbacks can't unregister the device
+until it get's closed by the application.
+What's the best way to do this ? v4l2_disable_ioctl() has no effect
+after video_register_device() is called...
+
 Regards,
+Frank
 
-Laurent Pinchart
+
 
