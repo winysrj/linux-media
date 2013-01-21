@@ -1,55 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:46053 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391Ab3AASV4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 13:21:56 -0500
-Received: by mail-ee0-f53.google.com with SMTP id c50so6474726eek.12
-        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 10:21:55 -0800 (PST)
-Message-ID: <50E32940.80903@gmail.com>
-Date: Tue, 01 Jan 2013 19:21:52 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:36382 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752852Ab3AUMvP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 07:51:15 -0500
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, andrzej.p@samsung.com,
-	s.nawrocki@samsung.com, patches@linaro.org
-Subject: Re: [PATCH 1/2] [media] s5p-jpeg: Use spinlock_t instead of 'struct
- spinlock'
-References: <1356690044-8694-1-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1356690044-8694-1-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <50FD38D1.5020104@redhat.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	<50FD38D1.5020104@redhat.com>
+Date: Mon, 21 Jan 2013 10:51:14 -0200
+Message-ID: <CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
+Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Nieder <jrnieder@gmail.com>, emilgoode@gmail.com,
+	linux-media <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
-
-On 12/28/2012 11:20 AM, Sachin Kamat wrote:
-> Silences the following checkpatch warning:
-> WARNING: struct spinlock should be spinlock_t
+On Mon, Jan 21, 2013 at 10:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
 >
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> ---
->   drivers/media/platform/s5p-jpeg/jpeg-core.h |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
+> Thanks for the patches I'll pick up 5 - 21 and add them to
+> my tree for Mauro.
+I have sent V2 of this patches with another subject and with fixed
+commit message for two patches.
+
 >
-> diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.h b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> index 022b9b9..8a4013e 100644
-> --- a/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> +++ b/drivers/media/platform/s5p-jpeg/jpeg-core.h
-> @@ -62,7 +62,7 @@
->    */
->   struct s5p_jpeg {
->   	struct mutex		lock;
-> -	struct spinlock		slock;
-> +	spinlock_t		slock;
+> Regards,
+>
+> Hans
+>
+>
+>
+> On 01/19/2013 05:33 PM, Peter Senna Tschudin wrote:
+>>
+>> replace:
+>>   #if defined(CONFIG_VIDEO_CX88_DVB) || \
+>>       defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+>> with:
+>>   #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+>>
+>> This change was made for: CONFIG_VIDEO_CX88_DVB,
+>> CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
+>>
+>> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+>> ---
+>>   drivers/media/pci/cx88/cx88.h | 10 ++++------
+>>   1 file changed, 4 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+>> index ba0dba4..feff53c 100644
+>> --- a/drivers/media/pci/cx88/cx88.h
+>> +++ b/drivers/media/pci/cx88/cx88.h
+>> @@ -363,7 +363,7 @@ struct cx88_core {
+>>         unsigned int               tuner_formats;
+>>
+>>         /* config info -- dvb */
+>> -#if defined(CONFIG_VIDEO_CX88_DVB) ||
+>> defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+>> +#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+>>         int                        (*prev_set_voltage)(struct dvb_frontend
+>> *fe, fe_sec_voltage_t voltage);
+>>   #endif
+>>         void                       (*gate_ctrl)(struct cx88_core  *core,
+>> int open);
+>> @@ -562,8 +562,7 @@ struct cx8802_dev {
+>>
+>>         /* for blackbird only */
+>>         struct list_head           devlist;
+>> -#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
+>> -    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
+>> +#if IS_ENABLED(CONFIG_VIDEO_CX88_BLACKBIRD)
+>>         struct video_device        *mpeg_dev;
+>>         u32                        mailbox;
+>>         int                        width;
+>> @@ -574,13 +573,12 @@ struct cx8802_dev {
+>>         struct cx2341x_handler     cxhdl;
+>>   #endif
+>>
+>> -#if defined(CONFIG_VIDEO_CX88_DVB) ||
+>> defined(CONFIG_VIDEO_CX88_DVB_MODULE)
+>> +#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+>>         /* for dvb only */
+>>         struct videobuf_dvb_frontends frontends;
+>>   #endif
+>>
+>> -#if defined(CONFIG_VIDEO_CX88_VP3054) || \
+>> -    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
+>> +#if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
+>>         /* For VP3045 secondary I2C bus support */
+>>         struct vp3054_i2c_state    *vp3054;
+>>   #endif
+>>
+>
 
-Thank you for these two patches, however there are already similar ones
-applied in the media tree:
 
-http://git.linuxtv.org/media_tree.git/commit/a75831f3600c479054fc3f70cd11257ab07886e2
-http://git.linuxtv.org/media_tree.git/commit/9d193b758edaad192d05ebcb8dc4cb72711bf618
 
-You were unfortunately a bit too late ;)
-
-Regards,
-Sylwester
+--
+Peter
