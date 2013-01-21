@@ -1,71 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:39192 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752843Ab3ACL03 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 06:26:29 -0500
-Date: Thu, 3 Jan 2013 11:21:02 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Tony Prisk <linux@prisktech.co.nz>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Dan Carpenter <error27@gmail.com>,
-	Sergei Shtylyov <sshtylyov@mvista.com>,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 6/6] clk: s5p-g2d: Fix incorrect usage of
-	IS_ERR_OR_NULL
-Message-ID: <20130103112102.GM2631@n2100.arm.linux.org.uk>
-References: <1355852048-23188-1-git-send-email-linux@prisktech.co.nz> <1355852048-23188-7-git-send-email-linux@prisktech.co.nz> <50D62BC9.9010706@mvista.com> <50E32C06.5020104@gmail.com> <CA+_b7DK2zbBzbCh15ikEAeGP5h-V9gQ_YcX15O-RNvWxCk8Zfg@mail.gmail.com> <1357104713.30504.8.camel@gitbox> <20130103090520.GC7247@mwanda> <20130103100000.GJ2631@n2100.arm.linux.org.uk> <20130103111040.GD7247@mwanda>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:45821 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752380Ab3AUVZ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 16:25:59 -0500
+Received: by mail-bk0-f48.google.com with SMTP id jk14so786591bkc.21
+        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 13:25:57 -0800 (PST)
+Message-ID: <50FDB28A.20803@googlemail.com>
+Date: Mon, 21 Jan 2013 22:26:34 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130103111040.GD7247@mwanda>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patchwork / Bugzilla update
+References: <50FBEBFB.3020209@googlemail.com> <20130121115144.01e58f6a@redhat.com>
+In-Reply-To: <20130121115144.01e58f6a@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 03, 2013 at 02:10:40PM +0300, Dan Carpenter wrote:
-> Come on...  Don't say we haven't read comment.  Obviously, the first
-> thing we did was read that comment.  I've read it many times at this
-> point and I still think we should add in a bit which says:
+Am 21.01.2013 14:51, schrieb Mauro Carvalho Chehab:
+,,,
+>> The following kernel bugs can be closed as "resolved - fixed":
+>> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
+>>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
+>> "em28xx: refactor the code in em28xx_usb_disconnect()"
+>> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
+>> misconfigured"
+>>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
+>> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
+> Feel free to close them there directly.
 
-So where does it give you in that comment permission to treat NULL any
-differently to any other non-IS_ERR() return value?
+Unfortunately, I don't have the necessary rights to change bug statuses. :(
 
-It is very clear: values where IS_ERR() is true are considered errors.
-Everything else is considered valid.
+Regards,
+Frank
 
-> "NOTE:  Drivers should treat the return value as an opaque cookie
-> and not dereference it.  NULL returns don't imply an error so don't
-> use IS_ERR_OR_NULL() to check for errors."
-
-No.  The one thing I've learnt through maintaining www.arm.linux.org.uk
-is that the more of these kinds of "lets add to documentation" suggestions
-you get, the more _unclear_ the documentation becomes, and the more it is
-open to bad interpretation, and the more suggestions to add more words you
-receive.
-
-Concise documentation is the only way to go.  And what we have there today
-is concise and to the point.  It specifies it very clearly:
-
- * Returns a struct clk corresponding to the clock producer, or
- * valid IS_ERR() condition containing errno.
-
-That one sentence gives you all the information you need about it's return
-value.  It gives you two choices.  (1) a return value where IS_ERR() is
-true, which is an error, and (2) a return value where IS_ERR() is false,
-which is a valid cookie.
-
-Maybe you don't realise, but IS_ERR(NULL) is false.  Therefore, this falls
-into category (2).
-
-You can't get clearer than that, unless you don't understand the IS_ERR()
-and associated macro.
-
-Moreover, it tells you the function to use to check the return value for
-errors.  IS_ERR().  It doesn't say IS_ERR_OR_NULL(), it says IS_ERR().
-
-All it takes is for people to engage their grey cells and read the
-documentation as it stands, rather than trying to weasel their way around
-it and invent crap that it doesn't say.
