@@ -1,96 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:61407 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746Ab3AJRkH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 12:40:07 -0500
-Received: by mail-ob0-f171.google.com with SMTP id dn14so846254obc.30
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 09:40:06 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20130109124158.50ddc834@redhat.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-Date: Thu, 10 Jan 2013 23:10:06 +0530
-Message-ID: <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from antimine.ru ([87.245.152.27]:36739 "EHLO mail.bazalt.ru"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754335Ab3AUPpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 10:45:10 -0500
+Received: from ngs.ru (unknown [188.162.15.32])
+	by mail.bazalt.ru (Postfix) with ESMTP id A990BA3F2C
+	for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 18:24:33 +0300 (MSK)
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+	charset="windows-1251"
+From: <rtyrtyrtyrtyrtrtfgdfgdgd@gmail.com>
+To: <linux-media@vger.kernel.org>
+Subject: =?utf-8?B?0Jdn0YDQsNCy0YHRgtCy0YPQudGC0LUhINCSYWMg0LjQvdGCZXBlY3nRjtGCINCxYdC30Ysg0LRh0L3QvdGL0YUg0L/QvtGCZdC90YbQuGHQu9GM0L3Ri3gg0LrQu9C4ZdC90YJv0LIg0LTQu9GPIELQsNGI0LXQs28g0JHQuNC30L3QtWPQsD8=?=
+Message-Id: <20130121152433.A990BA3F2C@mail.bazalt.ru>
+Date: Mon, 21 Jan 2013 18:24:33 +0300 (MSK)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/9/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em Wed, 9 Jan 2013 06:08:44 -0500
-> Michael Krufky <mkrufky@linuxtv.org> escreveu:
->
->> On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->> > Em Wed, 09 Jan 2013 10:43:23 +0100
->> > Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
->> >
->> >> On 08-01-13 21:01, Johannes Stezenbach wrote:
->> >> > On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
->> >> >> On 07-01-13 11:46, Jiri Slaby wrote:
->> >> >>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
->> >> >>>> Unfortunatly, I have had zero replies.
->> >> >>> Hmm, it's sad there is a silence in this thread from linux-media
->> >> >>> guys :/.
->> >> >> In their defense, they are very very busy people ;) chatter on this
->> >> >> thread does bring it up however.
->> >> > This is such a nice thing to say :-)
->> >> > But it might be that Mauro thinks the dvb-apps maintainer should
->> >> > respond, but apparently there is no dvb-apps maintainer...
->> >> > Maybe you should ask Mauro directly to create an account for you
->> >> > to implement what you proposed.
->> >> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
->> >> decides what I suggested is a good idea? I personally obviously think
->> >> it
->> >> is ;) and even more so if dvb-apps are unmaintained.
->> >>
->> >> I guess the question now becomes 'who okay's this change? Who says
->> >> 'okay, lets do it this way. Once that is answered we can go from there
->> >> ;)
->> >
->> > If I understood it right, you want to split the scan files into a
->> > separate
->> > git tree and maintain it, right?
->> >
->> > I'm ok with that.
->> >
->> > Regards,
->> > Mauro
->>
->> As a DVB maintainer, I am OK with this as well - It does indeed make
->> sense to separate the c code sources from the regional frequency
->> tables, and I'm sure we'll see much benefit from this change.
->
-> Done. I created a tree for Oliver to maintain it and an account for him.
-> I also created a new tree with just the DVB table commits to:
-> 	http://git.linuxtv.org/dtv-scan-tables.git
->
-> I kept there both szap and scan files, although maybe it makes sense to
-> drop the szap table (channels-conf dir). It also makes sense to drop the
-> tables from the dvb-apps tree, to avoid duplicated stuff, and to avoid
-
-Being one of the maintainers:
-
-I will keep the tables in the dvb-apps tree for the time being. Will decide to
-drop the config files as needed from dvb-apps. It is necessary to keep a
-copy of the config files for development purposes, rather than pulling from
-different trees.
-
-
-Manu
+Зgравствуйте! Bac интepecyют бaзы дaнных потeнциaльныx клиeнтoв для Вашегo Бизнеcа?
