@@ -1,74 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:38728 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750794Ab3AHFbl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 00:31:41 -0500
-From: "Mohammed, Afzal" <afzal@ti.com>
-To: Rob Clark <robdclark@gmail.com>
-CC: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	David Airlie <airlied@linux.ie>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nori, Sekhar" <nsekhar@ti.com>
-Subject: RE: [PATCHv16 5/7] fbmon: add of_videomode helpers
-Date: Tue, 8 Jan 2013 05:31:16 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA80224@DBDE01.ent.ti.com>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
-	<1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA7FB02@DBDE01.ent.ti.com>
-	<20130107080648.GB23478@pengutronix.de>
-	<C8443D0743D26F4388EA172BF4E2A7A93EA7FBF7@DBDE01.ent.ti.com>
- <CAF6AEGuuM9_n+A4q4tq+24i4YcW97orMN_RKbJ95gFie_qoktA@mail.gmail.com>
-In-Reply-To: <CAF6AEGuuM9_n+A4q4tq+24i4YcW97orMN_RKbJ95gFie_qoktA@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:28678 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755882Ab3AURSQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 12:18:16 -0500
+Date: Mon, 21 Jan 2013 09:18:12 -0800
+From: Tony Lindgren <tony@atomide.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mike Turquette <mturquette@linaro.org>,
+	linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 0/2] OMAP3 ISP: Simplify clock usage
+Message-ID: <20130121171812.GJ15361@atomide.com>
+References: <1357652634-17668-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20130115011015.23734.75232@quantum>
+ <3133387.jv7osGsLR0@avalon>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3133387.jv7osGsLR0@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgUm9iLA0KDQpPbiBUdWUsIEphbiAwOCwgMjAxMyBhdCAwMTozNjo1MCwgUm9iIENsYXJrIHdy
-b3RlOg0KPiBPbiBNb24sIEphbiA3LCAyMDEzIGF0IDI6NDYgQU0sIE1vaGFtbWVkLCBBZnphbCA8
-YWZ6YWxAdGkuY29tPiB3cm90ZToNCj4gPiBPbiBNb24sIEphbiAwNywgMjAxMyBhdCAxMzozNjo0
-OCwgU3RlZmZlbiBUcnVtdHJhciB3cm90ZToNCg0KPiA+PiBJIGp1c3QgZGlkIGEgcXVpY2sgIm1h
-a2UgZGE4eHhfb21hcGxfZGVmY29uZmlnICYmIG1ha2UiIGFuZCBpdCBidWlsZHMganVzdCBmaW5l
-Lg0KPiA+PiBPbiB3aGF0IHZlcnNpb24gZGlkIHlvdSBhcHBseSB0aGUgc2VyaWVzPw0KPiA+PiBB
-dCB0aGUgbW9tZW50IEkgaGF2ZSB0aGUgc2VyaWVzIHNpdHRpbmcgb24gMy43LiBEaWRuJ3QgdHJ5
-IGFueSAzLjgtcmN4IHlldC4NCj4gPj4gQnV0IGZpeGluZyB0aGlzIHNob3VsZG4ndCBiZSBhIHBy
-b2JsZW0uDQoNCj4gPiBUaGUgY2hhbmdlIGFzIEkgbWVudGlvbmVkIG9yIHNvbWV0aGluZyBzaW1p
-bGFyIHdvdWxkIGJlIHJlcXVpcmVkIGFzDQo+ID4gYW55IGRyaXZlciB0aGF0IGlzIGdvaW5nIHRv
-IG1ha2UgdXNlIG9mIG9mX2dldF9mYl92aWRlb21vZGUoKSB3b3VsZA0KPiA+IGJyZWFrIGlmIENP
-TkZJR19PRl9WSURFT01PREUgb3IgQ09ORklHX0ZCX01PREVfSEVMUEVSUyBpcyBub3QgZGVmaW5l
-ZC4NCg0KPiBTaG91bGRuJ3QgdGhlIGRyaXZlciB0aGF0IGRlcGVuZHMgb24gQ09ORklHX09GX1ZJ
-REVPTU9ERSBhbmQNCj4gQ09ORklHX0ZCX01PREVfSEVMUEVSUywgZXhwbGljaXRseSBzZWxlY3Qg
-dGhlbT8gIEkgZG9uJ3QgcmVhbGx5IHNlZQ0KPiB0aGUgcG9pbnQgb2YgaGF2aW5nIHRoZSBzdGF0
-aWMtaW5saW5lIGZhbGxiYWNrcy4NCg0KQnV0IGhlcmUgZGE4eHgtZmIgZHJpdmVyIGRvZXMgbm90
-IGRlcGVuZCBvbiBfT0ZfVklERU9NT0RFIGFuZA0KX0ZCX01PREVfSEVMUEVSUywgY3VycmVudGx5
-IGl0IHdvcmtzIGFzIGEgcHVyZSBwbGF0Zm9ybSBkcml2ZXINCmZvciBEYVZpbmNpIFNvQydzIHdp
-dGhvdXQgdGhvc2UgQ09ORklHJ3MuIEl0IGlzIG9ubHkgdXBvbg0KZW5oYW5jaW5nIHRoZSBkcml2
-ZXIgdG8gbWFrZSB1c2Ugb2Ygb2ZfZ2V0X2ZiX3ZpZGVvbW9kZSgpIGZvcg0KRFQgc3VwcG9ydCB0
-aG9zZSBDT05GSUcncyBhcmUgYmVpbmcgbWFkZSB1c2Ugb2YuDQoNCkFzIHRoZSBkcml2ZXIgY2Fu
-IHdvcmsgdy9vIHRoZXNlIENPTkZJRydzIGFuZCBzbyBhcyBpdCBpcyBub3QgYQ0KZGVwZW5kZW5j
-eSBmb3IgZHJpdmVyIG9uIG5vbi1EVCBib290IChhcyBpbiB0aGUgY2FzZSBvZiBEYVZpbmNpKSwN
-CkkgZGlzYWdyZWUgaW4gc2VsZWN0aW5nIHRob3NlIG9wdGlvbnMgYWx3YXlzLCBidXQgcmF0aGVy
-IGdpdmluZw0KdXNlciBhbiBvcHRpb24gdG8gc2VsZWN0Lg0KDQpBbmQgc2VsZWN0aW5nIHRoZXNl
-IG9wdGlvbnMgYWx3YXlzIHdpbGwgYnJpbmcgaW4gc29tZSBhbW91bnQgb2YgY29kZQ0Kb250byBL
-ZXJuZWwgaW1hZ2Ugdy9vIGFueSBwdXJwb3NlIGluIHRoZSBjYXNlIG9mIERhVmluY2kgYnVpbGRz
-Lg0KDQpBbm90aGVyIG9wdGlvbiB3b3VsZCBiZSB0byBzcHJpbmtsZSBkcml2ZXIgd2l0aCBpZmRl
-ZidzIHRvIGF2b2lkDQppbmxpbmUgZmFsbGJhY2tzLCB3aGljaCBpcyBub3QgYSBnb29kIHRoaW5n
-IHRvIGRvLg0KDQpNb3Jlb3ZlciBoYXZpbmcgYSBzdGF0aWMgaW5saW5lIGZhbGxiYWNrIGlzIG1v
-cmUgaW4gbGluZSB3aXRoIG90aGVyDQpvZl8qJ3MuDQoNCj4gZndpdywgdXNpbmcgJ3NlbGVjdCcg
-aXMgd2hhdCBJIHdhcyBkb2luZyBmb3IgbGNkIHBhbmVsIHN1cHBvcnQgZm9yDQo+IGxjZGMvZGE4
-eHggZHJtIGRyaXZlciAod2hpY2ggd2FzIHVzaW5nIHRoZSBvZiB2aWRlb21vZGUgaGVscGVycywN
-Cj4gYWxiZWl0IGEgc2xpZ2h0bHkgZWFybGllciB2ZXJzaW9uIG9mIHRoZSBwYXRjaGVzKToNCg0K
-SW4geW91ciBjYXNlIGFzIGl0IGlzIGEgbmV3IGRyaXZlciAmIGlzIG1lYW50IG9ubHkgZm9yIERU
-LCB0aGF0DQppcyBmaW5lLCBidXQgaGVyZSBpdCBpcyBhbiBleGlzdGluZyBkcml2ZXIgdGhhdCB3
-b3JrcyB3L28gdGhlc2UuDQoNClJlZ2FyZHMNCkFmemFsDQoNCg==
+* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130121 05:37]:
+> Hi Mike,
+> 
+> On Monday 14 January 2013 17:10:15 Mike Turquette wrote:
+> > Quoting Laurent Pinchart (2013-01-08 05:43:52)
+> > 
+> > > Hello,
+> > > 
+> > > Now that the OMAP3 supports the common clock framework, clock rate
+> > > back-propagation is available for the ISP clocks. Instead of setting the
+> > > cam_mclk parent clock rate to control the cam_mclk clock rate, we can mark
+> > > the dpll4_m5x2_ck_3630 and cam_mclk clocks as supporting
+> > > back-propagation, and set the cam_mclk rate directly. This simplifies the
+> > > ISP clocks configuration.
+> >
+> > I'm pleased to see this feature get used on OMAP.  Plus your driver gets
+> > a negative diffstat :)
+> > 
+> > Reviewed-by: Mike Turquette <mturquette@linaro.org>
+> 
+> Thanks.
+> 
+> Would you like to take the arch/ patch in your tree, or should I push it 
+> through the linux-media tree along with the omap3isp patch ?
+
+The arch/arm/*omap* clock changes need to be queued by Paul to avoid
+potential stupid merge conflicts when the clock data gets moved to
+live under drivers/clk/omap.
+
+Regards,
+
+Tony
