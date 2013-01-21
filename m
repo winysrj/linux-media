@@ -1,49 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28797 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756159Ab3AHA0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 19:26:23 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080QNl2002985
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:26:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv9 0/4] DVB QoS statistics API
-Date: Mon,  7 Jan 2013 22:25:46 -0200
-Message-Id: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34689 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440Ab3AUKuD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 05:50:03 -0500
+Received: from avalon.ideasonboard.com (unknown [91.178.41.12])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id D0A4635A69
+	for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 11:50:02 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] uvcvideo: Implement videobuf2 .wait_prepare and .wait_finish operations
+Date: Mon, 21 Jan 2013 11:51:41 +0100
+Message-Id: <1358765501-29285-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the version 9 of the stats API. On this patchset, there are
-DocBooks, API headers, dvb-core and one driver example for the new
-API usage.
+Those optional operations are used to release and reacquire the queue
+lock when videobuf2 needs to perform operations that sleep for a long
+time, such as waiting for a buffer to be complete. Implement them to
+avoid blocking qbuf or streamoff calls when a dqbuf is in progress.
 
-Currently, the driver example is too simple: it adds just 2 QoS
-indicators, being one global (signal strength) and one per-layer.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_queue.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-It is simple like that to help others to review this patch series.
-
-Adding the code for the remaining indicators (CNR, UCB, per-layer CNR)
-is easy, coding them are a little more complex, as table lookups are
-needed to convert from MER to CNR, and from global CNR into dB.
-So, I'll code that later.
-
-Mauro Carvalho Chehab (4):
-  dvb: Add DVBv5 stats properties for Quality of Service
-  dvb: the core logic to handle the DVBv5 QoS properties
-  mb86a20s: provide signal strength via DVBv5 stats API
-  mb86a20s: add BER measure
-
- Documentation/DocBook/media/dvb/dvbproperty.xml |  97 ++++++++-
- drivers/media/dvb-core/dvb_frontend.c           |  56 ++++++
- drivers/media/dvb-core/dvb_frontend.h           |  12 ++
- drivers/media/dvb-frontends/mb86a20s.c          | 257 ++++++++++++++++++++++--
- include/uapi/linux/dvb/frontend.h               |  84 +++++++-
- 5 files changed, 484 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index 778addc..6c233a5 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -115,11 +115,27 @@ static int uvc_buffer_finish(struct vb2_buffer *vb)
+ 	return 0;
+ }
+ 
++static void uvc_wait_prepare(struct vb2_queue *vq)
++{
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
++
++	mutex_unlock(&queue->mutex);
++}
++
++static void uvc_wait_finish(struct vb2_queue *vq)
++{
++	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
++
++	mutex_lock(&queue->mutex);
++}
++
+ static struct vb2_ops uvc_queue_qops = {
+ 	.queue_setup = uvc_queue_setup,
+ 	.buf_prepare = uvc_buffer_prepare,
+ 	.buf_queue = uvc_buffer_queue,
+ 	.buf_finish = uvc_buffer_finish,
++	.wait_prepare = uvc_wait_prepare,
++	.wait_finish = uvc_wait_finish,
+ };
+ 
+ int uvc_queue_init(struct uvc_video_queue *queue, enum v4l2_buf_type type,
 -- 
-1.7.11.7
+Regards,
+
+Laurent Pinchart
 
