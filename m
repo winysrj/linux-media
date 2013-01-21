@@ -1,66 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:47766 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738Ab3AaU33 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2877 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874Ab3AUKB3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 15:29:29 -0500
-Received: by mail-wg0-f46.google.com with SMTP id fg15so2305231wgb.25
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 12:29:28 -0800 (PST)
-Message-ID: <1359664162.1976.13.camel@router7789>
-Subject: Re: af9035 test needed!
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andre Heider <a.heider@gmail.com>,
-	Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Date: Thu, 31 Jan 2013 20:29:22 +0000
-In-Reply-To: <510A78D8.7030602@iki.fi>
-References: <50F05C09.3010104@iki.fi>
-	 <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
-	 <510A78D8.7030602@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
+	Mon, 21 Jan 2013 05:01:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] media: adv7343: accept configuration through platform data
+Date: Mon, 21 Jan 2013 11:01:10 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+References: <1358236853-2467-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1358236853-2467-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Message-Id: <201301211101.10562.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-01-31 at 15:59 +0200, Antti Palosaari wrote:
-> On 01/31/2013 03:04 PM, Andre Heider wrote:
-> > Hi,
-> >
-> > On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >> Could you test that (tda18218 & mxl5007t):
-> >> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
-> >
-> > I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
-> > this series.
-> > Any chance to get this into 3.9 (I guess its too late for the USB
-> > VID/PID 'fix' for 3.8)?
+On Tue January 15 2013 09:00:53 Lad, Prabhakar wrote:
+> The current code was implemented with some default configurations,
+> this default configuration works on board and doesn't work on other.
 > 
-> Thank you for the report! There was someone else who reported it working 
-> too. Do you want to your name as tester for the changelog?
+> This patch accepts the configuration through platform data and configures
+> the encoder depending on the data set.
+
+Just one small comment...
+
 > 
-> I just yesterday got that TerraTec device too and I am going to add dual 
-> tuner support. Also, for some reason IT9135 v2 devices are not working - 
-> only v1. That is one thing I should fix before merge that stuff.
-Hi Antti,
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> ---
+>  drivers/media/i2c/adv7343.c |   36 +++++++++++++++++++++++++++++++-----
+>  include/media/adv7343.h     |   32 ++++++++++++++++++++++++++++++++
+>  2 files changed, 63 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+> index 2b5aa67..a058058 100644
+> --- a/drivers/media/i2c/adv7343.c
+> +++ b/drivers/media/i2c/adv7343.c
+> @@ -43,6 +43,7 @@ MODULE_PARM_DESC(debug, "Debug level 0-1");
+>  struct adv7343_state {
+>  	struct v4l2_subdev sd;
+>  	struct v4l2_ctrl_handler hdl;
+> +	const struct adv7343_platform_data *pdata;
+>  	u8 reg00;
+>  	u8 reg01;
+>  	u8 reg02;
+> @@ -215,12 +216,23 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+>  	/* Enable Appropriate DAC */
+>  	val = state->reg00 & 0x03;
+>  
+> -	if (output_type == ADV7343_COMPOSITE_ID)
+> -		val |= ADV7343_COMPOSITE_POWER_VALUE;
+> -	else if (output_type == ADV7343_COMPONENT_ID)
+> -		val |= ADV7343_COMPONENT_POWER_VALUE;
+> +	/* configure default configuration */
+> +	if (!state->pdata)
+> +		if (output_type == ADV7343_COMPOSITE_ID)
+> +			val |= ADV7343_COMPOSITE_POWER_VALUE;
+> +		else if (output_type == ADV7343_COMPONENT_ID)
+> +			val |= ADV7343_COMPONENT_POWER_VALUE;
+> +		else
+> +			val |= ADV7343_SVIDEO_POWER_VALUE;
+>  	else
+> -		val |= ADV7343_SVIDEO_POWER_VALUE;
+> +		val = state->pdata->mode_config.sleep_mode << 0 |
+> +		      state->pdata->mode_config.pll_control << 1 |
+> +		      state->pdata->mode_config.dac_3 << 2 |
+> +		      state->pdata->mode_config.dac_2 << 3 |
+> +		      state->pdata->mode_config.dac_1 << 4 |
+> +		      state->pdata->mode_config.dac_6 << 5 |
+> +		      state->pdata->mode_config.dac_5 << 6 |
+> +		      state->pdata->mode_config.dac_4 << 7;
+>  
+>  	err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+>  	if (err < 0)
+> @@ -238,6 +250,17 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+>  
+>  	/* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+>  	val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
+> +
+> +	if (state->pdata && state->pdata->sd_config.sd_dac_out1)
+> +		val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
+> +	else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
+> +		val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
+> +
+> +	if (state->pdata && state->pdata->sd_config.sd_dac_out2)
+> +		val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
+> +	else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
+> +		val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
+> +
+>  	err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+>  	if (err < 0)
+>  		goto setoutput_exit;
+> @@ -401,6 +424,9 @@ static int adv7343_probe(struct i2c_client *client,
+>  	if (state == NULL)
+>  		return -ENOMEM;
+>  
+> +	/* Copy board specific information here */
+> +	state->pdata = client->dev.platform_data;
+> +
+>  	state->reg00	= 0x80;
+>  	state->reg01	= 0x00;
+>  	state->reg02	= 0x20;
+> diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+> index d6f8a4e..8086e46 100644
+> --- a/include/media/adv7343.h
+> +++ b/include/media/adv7343.h
+> @@ -20,4 +20,36 @@
+>  #define ADV7343_COMPONENT_ID	(1)
+>  #define ADV7343_SVIDEO_ID	(2)
+>  
+> +struct adv7343_power_mode {
+> +	bool sleep_mode;
+> +	bool pll_control;
+> +	bool dac_1;
+> +	bool dac_2;
+> +	bool dac_3;
+> +	bool dac_4;
+> +	bool dac_5;
+> +	bool dac_6;
+> +};
 
-I am going to acknowledge this development, so you are free to copy
-any code from the it913x and it913x-fe driver to get this working.
+Can you add a short description for struct adv7343_power_mode? It's
+sufficient to point to the relevant section in the datasheet (add a url
+or something like that).
 
-My time is very limited at the moment, so I will try to do testing when
-possible.
+Regards,
 
-Once everything is stable enough the dvb-usb-it913x and it913x-fe
-modules can be removed.
+	Hans
 
-Acked-by: Malcolm Priestley <tvboxspy@gmail.com>
-
-Regards
-
-
-Malcolm
-
+> +
+> +/**
+> + * struct adv7343_sd_config - SD Only Output Configuration.
+> + * @sd_dac_out1: Configure SD DAC Output 1.
+> + * @sd_dac_out2: Configure SD DAC Output 2.
+> + */
+> +struct adv7343_sd_config {
+> +	/* SD only Output Configuration */
+> +	bool sd_dac_out1;
+> +	bool sd_dac_out2;
+> +};
+> +
+> +/**
+> + * struct adv7343_platform_data - Platform data values and access functions.
+> + * @mode_config: Configuration for power mode.
+> + * @sd_config: SD Only Configuration.
+> + */
+> +struct adv7343_platform_data {
+> +	struct adv7343_power_mode mode_config;
+> +	struct adv7343_sd_config sd_config;
+> +};
+> +
+>  #endif				/* End of #ifndef ADV7343_H */
+> 
