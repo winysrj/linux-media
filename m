@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:40683 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3ABM0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:26:54 -0500
-Received: by mail-we0-f180.google.com with SMTP id t57so6476091wey.25
-        for <linux-media@vger.kernel.org>; Wed, 02 Jan 2013 04:26:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
-References: <1351599395-16833-1-git-send-email-javier.martin@vista-silicon.com>
-	<1351599395-16833-2-git-send-email-javier.martin@vista-silicon.com>
-	<CAOMZO5C0yvvXs38B4zt46zsjphif-tg=FoEjBeoLx7iQUut62Q@mail.gmail.com>
-	<Pine.LNX.4.64.1210301327090.29432@axis700.grange>
-	<CACKLOr0r2w-=f=PUU-s7x302Jvp3urBZcRQa3pjArZYx0BSjtg@mail.gmail.com>
-	<Pine.LNX.4.64.1210301547300.29432@axis700.grange>
-	<CAOMZO5CbGz_OW6tx1gAGDrhrS4Mp4f4UrdvLVFS+sh4UVTG46A@mail.gmail.com>
-Date: Wed, 2 Jan 2013 13:18:52 +0100
-Message-ID: <CACKLOr1sn8E8qGJm1KriEEzPtFOH+2JXdpywY7o4yXe4vWQp2Q@mail.gmail.com>
-Subject: Re: [PATCH 1/4] media: mx2_camera: Remove i.mx25 support.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, fabio.estevam@freescale.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:33543 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375Ab3AUNwS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 08:52:18 -0500
+Date: Mon, 21 Jan 2013 11:51:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patchwork / Bugzilla update
+Message-ID: <20130121115144.01e58f6a@redhat.com>
+In-Reply-To: <50FBEBFB.3020209@googlemail.com>
+References: <50FBEBFB.3020209@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio, Guennadi,
-sorry for the long delay but I've been out of the office for a month
-and without internet access.
+Em Sun, 20 Jan 2013 14:07:07 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-On 27 November 2012 14:05, Fabio Estevam <festevam@gmail.com> wrote:
-> I just added the camera support to mach-mx25_3ds.c (which I will
-> submit it soon to arm kernel list) and it works fine:
->
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx2-camera imx25-camera.0: Camera driver attached to camera 0
-> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
-> i2c i2c-0: OV2640 Probed
-> mx2-camera imx25-camera.0: Camera driver detached from camera 0
-> mx2-camera imx25-camera.0: MX2 Camera (CSI) driver probed, clock
-> frequency: 22166666
->
-> Could we please keep the mx25 support?
+> Hi Mauro,
+> 
+> the patches 16225, 16231, 16232 at patchwork are superseeded:
+> 
+> pwclient update -s 'superseded' 16225
+> pwclient update -s 'superseded' 16231
+> pwclient update -s 'superseded' 16232
 
-That's great. Did you need to change anything in the mx2 camera driver
-for mx25 to work? Have you already submitted the patches?
+Updated.
 
-Regards.
+> The following kernel bugs can be closed as "resolved - fixed":
+> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
+>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
+> "em28xx: refactor the code in em28xx_usb_disconnect()"
+> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
+> misconfigured"
+>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
+> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Feel free to close them there directly.
+
+Regards,
+Mauro
