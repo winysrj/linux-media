@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:60714 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755019Ab3AMOUa (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:48477 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755040Ab3AVS4q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 09:20:30 -0500
-Received: by mail-ea0-f182.google.com with SMTP id d1so1375356eaa.41
-        for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 06:20:29 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/7] em28xx-input: remove dead code line from em28xx_get_key_em_haup()
-Date: Sun, 13 Jan 2013 15:20:39 +0100
-Message-Id: <1358086845-6989-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 22 Jan 2013 13:56:46 -0500
+Received: by mail-bk0-f46.google.com with SMTP id q16so4013063bkw.33
+        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 10:56:45 -0800 (PST)
+Message-ID: <50FEE114.8090405@googlemail.com>
+Date: Tue, 22 Jan 2013 19:57:24 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patchwork / Bugzilla update
+References: <50FBEBFB.3020209@googlemail.com> <20130121115144.01e58f6a@redhat.com> <50FDB28A.20803@googlemail.com> <20130122080829.502e8236@redhat.com>
+In-Reply-To: <20130122080829.502e8236@redhat.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Field 'old' of struct IR_i2c is used nowhere in module ir-kbd-i2c.
+Am 22.01.2013 11:08, schrieb Mauro Carvalho Chehab:
+> Em Mon, 21 Jan 2013 22:26:34 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 21.01.2013 14:51, schrieb Mauro Carvalho Chehab:
+>> ,,,
+>>>> The following kernel bugs can be closed as "resolved - fixed":
+>>>> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
+>>>>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
+>>>> "em28xx: refactor the code in em28xx_usb_disconnect()"
+>>>> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
+>>>> misconfigured"
+>>>>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
+>>>> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
+>>> Feel free to close them there directly.
+>> Unfortunately, I don't have the necessary rights to change bug statuses. :(
+> I think you should first click on "edit" at "Assigned to:" field, in order to
+> assign the bug to yourself.
+>
+> Then, you can change the status.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-input.c |    2 --
- 1 Datei geändert, 2 Zeilen entfernt(-)
+That worked, thanks for the hint !
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index 07f6030..f554a52 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -125,8 +125,6 @@ static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	if (buf[1] == 0xff)
- 		return 0;
- 
--	ir->old = buf[1];
--
- 	/*
- 	 * Rearranges bits to the right order.
- 	 * The bit order were determined experimentally by using
--- 
-1.7.10.4
+Frank
 
