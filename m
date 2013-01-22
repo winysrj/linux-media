@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:56667 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750785Ab3AGQYn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 11:24:43 -0500
-Received: by mail-oa0-f44.google.com with SMTP id n5so18106680oag.17
-        for <linux-media@vger.kernel.org>; Mon, 07 Jan 2013 08:24:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAL7owaA1b8FamRX7TtbmmaJ3ip5txGY1qSGvu9P21RG1ASQ4Gg@mail.gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<CAL7owaA1b8FamRX7TtbmmaJ3ip5txGY1qSGvu9P21RG1ASQ4Gg@mail.gmail.com>
-Date: Mon, 7 Jan 2013 21:54:43 +0530
-Message-ID: <CAHFNz9JwLUzXfGQZG3sTnskMH4DpAHGr6QWZYSNiPZDteZnkeA@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Christoph Pfister <christophpfister@gmail.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>, js@linuxtv.org,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	linux-media <linux-media@vger.kernel.org>, adq_dvb@lidskialf.net,
-	cus@fazekas.hu, mws@linuxtv.org, jmccrohan@gmail.com,
-	shaulkr@gmail.com, mkrufky@linuxtv.org, mchehab@redhat.com,
-	lubomir.carik@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:6056 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752715Ab3AVKJF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 05:09:05 -0500
+Date: Tue, 22 Jan 2013 08:08:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patchwork / Bugzilla update
+Message-ID: <20130122080829.502e8236@redhat.com>
+In-Reply-To: <50FDB28A.20803@googlemail.com>
+References: <50FBEBFB.3020209@googlemail.com>
+	<20130121115144.01e58f6a@redhat.com>
+	<50FDB28A.20803@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 7, 2013 at 6:23 PM, Christoph Pfister
-<christophpfister@gmail.com> wrote:
-> Okay guys, I think this is a good time to discuss scan file
-> maintenance [ should have taken care of it earlier, but well ...].
->
-> I've been updating the scan data for the past few years, but found
-> barely no time in the last (many!) months. This won't change in
-> future, so I've decided to step down from the task; may others do what
-> is necessary ...
+Em Mon, 21 Jan 2013 22:26:34 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Christoph, It's unfortunate that you decided to drop the ball.
-I will try to take care of it in the meanwhile..
+> Am 21.01.2013 14:51, schrieb Mauro Carvalho Chehab:
+> ,,,
+> >> The following kernel bugs can be closed as "resolved - fixed":
+> >> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
+> >>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
+> >> "em28xx: refactor the code in em28xx_usb_disconnect()"
+> >> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
+> >> misconfigured"
+> >>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
+> >> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
+> > Feel free to close them there directly.
+> 
+> Unfortunately, I don't have the necessary rights to change bug statuses. :(
+
+I think you should first click on "edit" at "Assigned to:" field, in order to
+assign the bug to yourself.
+
+Then, you can change the status.
 
 Regards,
-Manu
+Mauro
