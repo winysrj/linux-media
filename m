@@ -1,80 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:45206 "EHLO mail.atlantis.sk"
+Received: from mx1.redhat.com ([209.132.183.28]:2096 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755659Ab3ANVaR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 16:30:17 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH] saa7134: Add AverMedia Satelllite Hybrid+FM A706 (and FM radio problems)
-Date: Mon, 14 Jan 2013 22:29:58 +0100
-References: <201301122124.51767.linux@rainbow-software.org>
-In-Reply-To: <201301122124.51767.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201301142229.58923.linux@rainbow-software.org>
+	id S1752336Ab3AVLQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 06:16:09 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MBG9El006116
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 06:16:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/7] [media] mb86a20s: Split status read logic from DVB callback
+Date: Tue, 22 Jan 2013 09:15:31 -0200
+Message-Id: <1358853333-21554-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+References: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 12 January 2013 21:24:50 Ondrej Zary wrote:
-> Partially working: FM radio
-> Radio seems to be a long-standing problem with saa7134 cards using silicon
-> tuners (according to various mailing lists).
->
-> On this card, GPIO11 controls 74HC4052 MUX. It switches two things:
-> something at TDA18271 V_IFAGC pin and something that goes to SAA7131E.
-> GPIO11 is enabled for radio and disabled for TV in Windows. I did the same
-> thing in this patch.
->
-> Windows INF file says:
-> ; Setting FM radio of the Silicon tuner via SIF (GPIO 21 in use/ 5.5MHz)
-> HKR, "Audio", "FM Radio IF", 0x00010001, 0xDEEAAB
->
-> But that seems not to be true. GPIO21 does nothing and RegSpy (from
-> DScaler, modified to include 0x42c register) says that the register is
-> 0x80729555. That matches the value present in saa7134-tvaudio.c (except the
-> first 0x80).
->
-> With this value, the radio stations are off by about 4.2-4.3 MHz, e.g.:
-> station at 97.90 MHz is tuned as 102.20 MHz
-> station at 101.80 MHz is tuned as 106.0 MHz
->
-> I also tried 0xDEEAAB. With this, the offset is different, about 0.4 MHz:
-> station at 101.80 MHz is tuned as 102.2 MHz
+Split the logic that reads the status from the DVB callback. That
+helps to properly return an error code, if status read fails.
 
-The offset seems bogus, maybe affected by my TV antenna (cable).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 31 ++++++++++++++++++++++++-------
+ 1 file changed, 24 insertions(+), 7 deletions(-)
 
-For debugging, tried another card with similar chips: Pinnacle PCTV 
-40i/50i/110i. It has SAA7131E chip too, but different tuner - TDA8275A. And 
-the radio problem is the same as found first on the A706 - the tuned station 
-sound starts but then turns into noise. So it seems that the problem is not 
-in tda18271 but in tda8290 or saa7134.
-
-With tda8290.debug=1, I see this:
-tda829x 2-004b: tda8290 not locked, no signal?
-tda829x 2-004b: tda8290 not locked, no signal?
-tda829x 2-004b: tda8290 not locked, no signal?
-tda829x 2-004b: adjust gain, step 1. Agc: 193, ADC stat: 255, lock: 0
-tda829x 2-004b: adjust gain, step 2. Agc: 255, lock: 0
-tda829x 2-004b: adjust gain, step 3. Agc: 173
-
-During that, the sound is good. Then it turns into noise.
-When I increased the number of lock detections in tda8290_set_params() from 3 
-to (e.g.) 10, it works longer. And when I'm quick enough to stop the console 
-output using scroll lock, the radio remains working.
-
-> And what's worst, connecting analog TV antenna (cable TV) affects the radio
-> tuner! E.g. the radio is tuned to 106.0 MHz (real 101.80 MHz) with nice
-> clean sound. Connecting TV antenna adds strong noise to the sound, tuning
-> does not help. This problem is not present in Windows.
-
-I've found a tiny chip marked S79 near the analog tuner. It's Skyworks 
-AS179-92LF antenna switch that switches either the TV or FM antenna to the 
-TDA18271 FM_IN pin! That's why TV antenna affected the radio. The switch is 
-probably controlled by some other GPIO pin (haven't tested this yet). What's 
-the best way to expose this switch to userspace?
-
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 8f4fff1..03b74d3 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -320,16 +320,14 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	u8 val;
++	int val;
+ 
+ 	dprintk("\n");
+ 	*status = 0;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+ 	val = mb86a20s_readreg(state, 0x0a) & 0xf;
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
++	if (val < 0)
++		return val;
+ 
+ 	if (val >= 2)
+ 		*status |= FE_HAS_SIGNAL;
+@@ -635,6 +633,25 @@ error:
+ 
+ }
+ 
++static int mb86a20s_read_status_gate(struct dvb_frontend *fe,
++				     fe_status_t *status)
++{
++	int ret;
++
++	dprintk("\n");
++	*status = 0;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	ret = mb86a20s_read_status(fe, status);
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	return ret;
++}
++
+ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 			bool re_tune,
+ 			unsigned int mode_flags,
+@@ -649,7 +666,7 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 		rc = mb86a20s_set_frontend(fe);
+ 
+ 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
+-		mb86a20s_read_status(fe, status);
++		mb86a20s_read_status_gate(fe, status);
+ 
+ 	return rc;
+ }
+@@ -730,7 +747,7 @@ static struct dvb_frontend_ops mb86a20s_ops = {
+ 	.init = mb86a20s_initfe,
+ 	.set_frontend = mb86a20s_set_frontend,
+ 	.get_frontend = mb86a20s_get_frontend,
+-	.read_status = mb86a20s_read_status,
++	.read_status = mb86a20s_read_status_gate,
+ 	.read_signal_strength = mb86a20s_read_signal_strength,
+ 	.tune = mb86a20s_tune,
+ };
 -- 
-Ondrej Zary
+1.7.11.7
+
