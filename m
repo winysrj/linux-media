@@ -1,94 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3479 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754951Ab3ADVkF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 16:40:05 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r04Le15f039409
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jan 2013 22:40:03 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C61C011E00F2
-	for <linux-media@vger.kernel.org>; Fri,  4 Jan 2013 22:40:00 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130104214000.C61C011E00F2@alastor.dyndns.org>
-Date: Fri,  4 Jan 2013 22:40:00 +0100 (CET)
+Received: from mail-la0-f54.google.com ([209.85.215.54]:44542 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890Ab3AVQqs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 11:46:48 -0500
+Message-ID: <50FEC28F.3090100@gmail.com>
+Date: Tue, 22 Jan 2013 17:47:11 +0100
+From: Francesco Lavra <francescolavra.fl@gmail.com>
+MIME-Version: 1.0
+To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+CC: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device reservation
+ support
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com> <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
+In-Reply-To: <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 01/15/2013 01:34 PM, Maarten Lankhorst wrote:
+> This adds support for a generic reservations framework that can be
+> hooked up to ttm and dma-buf and allows easy sharing of reservations
+> across devices.
+> 
+> The idea is that a dma-buf and ttm object both will get a pointer
+> to a struct reservation_object, which has to be reserved before
+> anything is done with the contents of the dma-buf.
+> 
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> ---
+>  Documentation/DocBook/device-drivers.tmpl |   2 +
+>  drivers/base/Makefile                     |   2 +-
+>  drivers/base/reservation.c                | 251 ++++++++++++++++++++++++++++++
+>  include/linux/reservation.h               | 182 ++++++++++++++++++++++
+>  4 files changed, 436 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/base/reservation.c
+>  create mode 100644 include/linux/reservation.h
+[...]
+> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+> new file mode 100644
+> index 0000000..fc2349d
+> --- /dev/null
+> +++ b/include/linux/reservation.h
+> @@ -0,0 +1,182 @@
+> +/*
+> + * Header file for reservations for dma-buf and ttm
+> + *
+> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
+> + * Copyright (C) 2012 Canonical Ltd
+> + * Copyright (C) 2012 Texas Instruments
+> + *
+> + * Authors:
+> + * Rob Clark <rob.clark@linaro.org>
+> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> + * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+> + *
+> + * Based on bo.c which bears the following copyright notice,
+> + * but is dual licensed:
+> + *
+> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
+> + * All Rights Reserved.
+> + *
+> + * Permission is hereby granted, free of charge, to any person obtaining a
+> + * copy of this software and associated documentation files (the
+> + * "Software"), to deal in the Software without restriction, including
+> + * without limitation the rights to use, copy, modify, merge, publish,
+> + * distribute, sub license, and/or sell copies of the Software, and to
+> + * permit persons to whom the Software is furnished to do so, subject to
+> + * the following conditions:
+> + *
+> + * The above copyright notice and this permission notice (including the
+> + * next paragraph) shall be included in all copies or substantial portions
+> + * of the Software.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
+> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
+> + */
+> +#ifndef _LINUX_RESERVATION_H
+> +#define _LINUX_RESERVATION_H
+> +
+> +#include <linux/spinlock.h>
+> +#include <linux/mutex.h>
+> +#include <linux/fence.h>
+> +
+> +#define BUF_MAX_SHARED_FENCE 8
+> +
+> +struct fence;
+> +
+> +extern atomic_long_t reservation_counter;
+> +extern const char reservation_object_name[];
+> +extern struct lock_class_key reservation_object_class;
+> +extern const char reservation_ticket_name[];
+> +extern struct lock_class_key reservation_ticket_class;
+> +
+> +struct reservation_object {
+> +	struct ticket_mutex lock;
+> +
+> +	u32 fence_shared_count;
+> +	struct fence *fence_excl;
+> +	struct fence *fence_shared[BUF_MAX_SHARED_FENCE];
+> +};
+> +
+> +struct reservation_ticket {
+> +	unsigned long seqno;
+> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
+> +	struct lockdep_map dep_map;
+> +#endif
+> +};
+> +
+> +/**
+> + * struct reservation_entry - reservation structure for a
+> + * reservation_object
+> + * @head:	list entry
+> + * @obj_shared:	pointer to a reservation_object to reserve
+> + *
+> + * Bit 0 of obj_shared is set to bool shared, as such pointer has to be
+> + * converted back, which can be done with reservation_entry_get.
+> + */
+> +struct reservation_entry {
+> +	struct list_head head;
+> +	unsigned long obj_shared;
+> +};
+> +
+> +
+> +static inline void
+> +reservation_object_init(struct reservation_object *obj)
+> +{
+> +	obj->fence_shared_count = 0;
+> +	obj->fence_excl = NULL;
+> +
+> +	__ticket_mutex_init(&obj->lock, reservation_object_name,
+> +			    &reservation_object_class);
+> +}
+> +
+> +static inline void
+> +reservation_object_fini(struct reservation_object *obj)
+> +{
+> +	int i;
+> +
+> +	if (obj->fence_excl)
+> +		fence_put(obj->fence_excl);
+> +	for (i = 0; i < obj->fence_shared_count; ++i)
+> +		fence_put(obj->fence_shared[i]);
+> +
+> +	mutex_destroy(&obj->lock.base);
+> +}
+> +
+> +static inline void
+> +reservation_ticket_init(struct reservation_ticket *t)
+> +{
+> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
+> +	/*
+> +	 * Make sure we are not reinitializing a held ticket:
+> +	 */
+> +
+> +	debug_check_no_locks_freed((void *)t, sizeof(*t));
+> +	lockdep_init_map(&t->dep_map, reservation_ticket_name,
+> +			 &reservation_ticket_class, 0);
+> +#endif
+> +	mutex_acquire(&t->dep_map, 0, 0, _THIS_IP_);
 
-Results of the daily build of media_tree:
+If CONFIG_DEBUG_LOCK_ALLOC is not defined, t->dep_map is not there.
 
-date:        Fri Jan  4 19:00:16 CET 2013
-git hash:    8cd7085ff460ead3aba6174052a408f4ad52ac36
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+> +	do {
+> +		t->seqno = atomic_long_inc_return(&reservation_counter);
+> +	} while (unlikely(!t->seqno));
+> +}
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+Francesco
