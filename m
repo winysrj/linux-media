@@ -1,119 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:20005 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754595Ab3AWKoy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 05:44:54 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH2002ZCR0JN910@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Jan 2013 10:44:52 +0000 (GMT)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MH2001CQR6RJU40@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 Jan 2013 10:44:52 +0000 (GMT)
-Message-id: <50FFBF22.7030506@samsung.com>
-Date: Wed, 23 Jan 2013 11:44:50 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, grant.likely@secretlab.ca,
-	rob.herring@calxeda.com, thomas.abraham@linaro.org,
-	t.figa@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org
-Subject: Re: [PATCH RFC v3 02/15] [media] Add a V4L2 OF parser
-References: <1356969793-27268-3-git-send-email-s.nawrocki@samsung.com>
- <1357232962-7425-1-git-send-email-s.nawrocki@samsung.com>
- <201301211235.14450.hverkuil@xs4all.nl>
-In-reply-to: <201301211235.14450.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:47389 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755119Ab3AVQo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 11:44:59 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MGixlh008330
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 11:44:59 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [REVIEW PATCHv12 2/6] [media] dvb: the core logic to handle the DVBv5 QoS properties
+Date: Tue, 22 Jan 2013 14:44:16 -0200
+Message-Id: <1358873060-27609-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358873060-27609-1-git-send-email-mchehab@redhat.com>
+References: <1358873060-27609-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/2013 12:35 PM, Hans Verkuil wrote:
-[...]
->> +/**
->> + * v4l2_of_parse_mipi_csi2() - parse MIPI CSI-2 bus properties
->> + * @node: pointer to endpoint device_node
->> + * @endpoint: pointer to v4l2_of_endpoint data structure
->> + *
->> + * Return: 0 on success or negative error value otherwise.
->> + */
->> +int v4l2_of_parse_mipi_csi2(const struct device_node *node,
->> +			    struct v4l2_of_endpoint *endpoint)
->> +{
->> +	struct v4l2_of_mipi_csi2 *mipi_csi2 = &endpoint->mipi_csi_2;
->> +	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
->> +	struct property *prop;
->> +	const __be32 *lane = NULL;
->> +	u32 v;
->> +	int i = 0;
->> +
->> +	prop = of_find_property(node, "data-lanes", NULL);
->> +	if (!prop)
->> +		return -EINVAL;
->> +	do {
->> +		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
->> +	} while (lane && i++ < ARRAY_SIZE(data_lanes));
->> +
->> +	mipi_csi2->num_data_lanes = i;
->> +	while (i--)
->> +		mipi_csi2->data_lanes[i] = data_lanes[i];
->> +
->> +	if (!of_property_read_u32(node, "clock-lanes", &v))
->> +		mipi_csi2->clock_lane = v;
-> 
-> Hmm, the property name is 'clock-lanes', but only one lane is obtained here.
-> 
-> Why is the property name plural in that case?
+Add the logic to poll, reset counters and report the QoS stats
+to the end user.
+The idea is that the core will periodically poll the frontend for
+the stats. The frontend may return -EBUSY, if the previous collect
+didn't finish, or it may fill the cached data.
+The value returned to the end user is always the cached data.
 
-This is how we agreed it with Guennadi, the argumentation was that it is 
-more consistent with 'data-lanes'. Also I think it is better to use plural 
-form right from the beginning, rather than introducing another 'clock-lanes' 
-property along 'clock-lane' when there would be a need to handle busses 
-with more than one clock lane in the future.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+v12: identical to v11.
 
-[...]
->> +/**
->> + * v4l2_of_parse_endpoint() - parse all endpoint node properties
->> + * @node: pointer to endpoint device_node
->> + * @endpoint: pointer to v4l2_of_endpoint data structure
->> + *
->> + * All properties are optional. If none are found, we don't set any flags.
->> + * This means the port has a static configuration and no properties have
->> + * to be specified explicitly.
->> + * If any properties that identify the bus as parallel are found and
->> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
->> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
->> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
->> + * The caller should hold a reference to @node.
->> + */
->> +void v4l2_of_parse_endpoint(const struct device_node *node,
->> +			    struct v4l2_of_endpoint *endpoint)
->> +{
->> +	const struct device_node *port_node = of_get_parent(node);
->> +	bool data_lanes_present = false;
->> +
->> +	memset(endpoint, 0, sizeof(*endpoint));
->> +
->> +	endpoint->local_node = node;
->> +
->> +	/* Doesn't matter, whether the below two calls succeed */
-> 
-> 'It doesn't matter whether the two calls below succeed. If they don't
-> then the default value 0 is used.'
-> 
-> At least, that's how I understand the code.
+ drivers/media/dvb-core/dvb_frontend.c | 27 +++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvb_frontend.h |  8 ++++++++
+ 2 files changed, 35 insertions(+)
 
-Yeah, it's more precise this way. I'll amend it, thanks!
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index dd35fa9..66be7f7 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1053,6 +1053,14 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
+ 	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++
++	/* Statistics API */
++	_DTV_CMD(DTV_STAT_SIGNAL_STRENGTH, 0, 0),
++	_DTV_CMD(DTV_STAT_CNR, 0, 0),
++	_DTV_CMD(DTV_STAT_BIT_ERROR_COUNT, 0, 0),
++	_DTV_CMD(DTV_STAT_TOTAL_BITS_COUNT, 0, 0),
++	_DTV_CMD(DTV_STAT_ERROR_BLOCK_COUNT, 0, 0),
++	_DTV_CMD(DTV_STAT_TOTAL_BLOCKS_COUNT, 0, 0),
+ };
+ 
+ static void dtv_property_dump(struct dvb_frontend *fe, struct dtv_property *tvp)
+@@ -1443,6 +1451,25 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 		tvp->u.data = c->lna;
+ 		break;
+ 
++	/* Fill quality measures */
++	case DTV_STAT_SIGNAL_STRENGTH:
++		tvp->u.st = c->strength;
++		break;
++	case DTV_STAT_CNR:
++		tvp->u.st = c->cnr;
++		break;
++	case DTV_STAT_BIT_ERROR_COUNT:
++		tvp->u.st = c->bit_error;
++		break;
++	case DTV_STAT_TOTAL_BITS_COUNT:
++		tvp->u.st = c->bit_count;
++		break;
++	case DTV_STAT_ERROR_BLOCK_COUNT:
++		tvp->u.st = c->block_error;
++		break;
++	case DTV_STAT_TOTAL_BLOCKS_COUNT:
++		tvp->u.st = c->block_count;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
+index 97112cd..47952c5 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -393,6 +393,14 @@ struct dtv_frontend_properties {
+ 	u8			atscmh_sccc_code_mode_d;
+ 
+ 	u32			lna;
++
++	/* statistics data */
++	struct dtv_fe_stats	strength;
++	struct dtv_fe_stats	cnr;
++	struct dtv_fe_stats	bit_error;
++	struct dtv_fe_stats	bit_count;
++	struct dtv_fe_stats	block_error;
++	struct dtv_fe_stats	block_count;
+ };
+ 
+ struct dvb_frontend {
+-- 
+1.7.11.7
 
->> +	of_property_read_u32(port_node, "reg", &endpoint->port);
->> +	of_property_read_u32(node, "reg", &endpoint->addr);
-
---
-
-Regards,
-Sylwester
