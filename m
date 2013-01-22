@@ -1,23 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sqdf3.vserver.nimag.net ([62.220.136.226]:52457 "EHLO
-	mail.avocats-ch.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab3A2Pv5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52153 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479Ab3AVP3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 10:51:57 -0500
-Received: from [192.168.12.81] (85-218-56-182.static.citycable.ch [85.218.56.182])
-	by mail.avocats-ch.ch (Postfix) with ESMTPSA id D273E29B89EB
-	for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 16:51:55 +0100 (CET)
-Message-ID: <5107F01B.60400@romandie.com>
-Date: Tue, 29 Jan 2013 16:51:55 +0100
-From: Olivier Subilia <futilite@romandie.com>
+	Tue, 22 Jan 2013 10:29:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Adriano Martins <adrianomatosmartins@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: yavta - Broken pipe
+Date: Tue, 22 Jan 2013 16:31:04 +0100
+Message-ID: <2391937.KLGgbijk6r@avalon>
+In-Reply-To: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com>
+References: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Bug report - em28xx
-References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl> <5107EB1D.9060702@romandie.com> <5107EDD3.5060505@gmail.com>
-In-Reply-To: <5107EDD3.5060505@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks to Hans and grazie mille a Gianluca for their hints.
+Hi Adriano,
+
+On Tuesday 22 January 2013 09:31:58 Adriano Martins wrote:
+> Hello Laurent and all.
+> 
+> Can you explain me what means the message in yavta output:
+> 
+> "Unable to start streaming: Broken pipe (32)."
+
+This means that the ISP hardware pipeline hasn't been properly configured. 
+Unlike most V4L2 devices, the OMAP3 ISP requires userspace to configure the 
+hardware pipeline before starting the video stream. You can do so with the 
+media-ctl utility (available at http://git.ideasonboard.org/media-ctl.git). 
+Plenty of examples should be available online.
+
+> I'm using omap3isp driver on DM3730 processor and a ov5640 sensor. I
+> configured it as parallel mode, but I can't get data from /dev/video6
+> (OMAP3 ISP resizer output)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
