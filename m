@@ -1,94 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4539 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753387Ab3AGVi2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 16:38:28 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r07LcO8C052813
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 22:38:26 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id ED56311E00F1
-	for <linux-media@vger.kernel.org>; Mon,  7 Jan 2013 22:38:23 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130107213823.ED56311E00F1@alastor.dyndns.org>
-Date: Mon,  7 Jan 2013 22:38:23 +0100 (CET)
+Received: from bedivere.hansenpartnership.com ([66.63.167.143]:51262 "EHLO
+	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750723Ab3AVKQx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 05:16:53 -0500
+Message-ID: <1358849808.2387.13.camel@dabdike.int.hansenpartnership.com>
+Subject: Re: [Linux-c6x-dev] [PATCH 3/9] c6x: Provide dma_mmap_coherent()
+ and dma_get_sgtable()
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Salter <msalter@redhat.com>,
+	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
+	linux-arch@vger.kernel.org, linux-c6x-dev@linux-c6x.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Date: Tue, 22 Jan 2013 10:16:48 +0000
+In-Reply-To: <1358849633.2387.11.camel@dabdike.int.hansenpartnership.com>
+References: <1358073890-3610-1-git-send-email-geert@linux-m68k.org>
+	 <1358073890-3610-3-git-send-email-geert@linux-m68k.org>
+	 <1358177872.4357.53.camel@t520.localdomain> <50F4D83A.7020803@synopsys.com>
+	 <CAMuHMdWjZAY19GPpjoXKfWb3pOp2RbZXDvb4nr5pMmjEMFuB4w@mail.gmail.com>
+	 <50F56286.8070200@samsung.com>
+	 <1358269008.10591.11.camel@dabdike.int.hansenpartnership.com>
+	 <CAMuHMdXk1mdkMViYqypvnXO0_1LdjbH8S7z8FNe97yDUW6BYRA@mail.gmail.com>
+	 <1358809159.3975.63.camel@dabdike.int.hansenpartnership.com>
+	 <1358849633.2387.11.camel@dabdike.int.hansenpartnership.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+[adding Mauro and v4l since they're the only non-arm consumers]
+On Tue, 2013-01-22 at 10:13 +0000, James Bottomley wrote:
+> On Mon, 2013-01-21 at 22:59 +0000, James Bottomley wrote:
+> > On Mon, 2013-01-21 at 21:00 +0100, Geert Uytterhoeven wrote:
+> > > On Tue, Jan 15, 2013 at 5:56 PM, James Bottomley
+> > > <James.Bottomley@hansenpartnership.com> wrote:
+> > > > On Tue, 2013-01-15 at 15:07 +0100, Marek Szyprowski wrote:
+> > > >> On 1/15/2013 10:13 AM, Geert Uytterhoeven wrote:
+> > > >> > Marek?
+> > > >> >
+> > > >> > On Tue, Jan 15, 2013 at 5:16 AM, Vineet Gupta
+> > > >> > <Vineet.Gupta1@synopsys.com> wrote:
+> > > >> > > On Monday 14 January 2013 09:07 PM, Mark Salter wrote:
+> > > >> > >> On Sun, 2013-01-13 at 11:44 +0100, Geert Uytterhoeven wrote:
+> > > >> > >>> c6x/allmodconfig (assumed):
+> > > >> > >>>
+> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
+> > > >> > >>>
+> > > >> > >>> For architectures using dma_map_ops, dma_mmap_coherent() and
+> > > >> > >>> dma_get_sgtable() are provided in <asm-generic/dma-mapping-common.h>.
+> > > >> > >>>
+> > > >> > >>> C6x does not use dma_map_ops, hence it should implement them as inline
+> > > >> > >>> stubs using dma_common_mmap() and dma_common_get_sgtable().
+> > > >> > >>>
+> > > >> > >> So are dma_mmap_coherent() and dma_get_sgtable() part of the DMA API
+> > > >> > >> now? I don't them in Documentation/DMA*.txt anywhere.
+> > > >> > >>
+> > > >> > >> Why does the default dma_common_mmap() for !CONFIG_MMU return an
+> > > >> > >> error?
+> > > >> > >>
+> > > >> > >> Wouldn't it be better to provide default implementations that an arch
+> > > >> > >> could override rather than having to patch all "no dma_map_ops"
+> > > >> > >> architectures?
+> > > >> > >>
+> > > >> > > Speaking for the still-reviewed ARC Port, I completely agree with Mark.
+> > > >>
+> > > >> dma_mmap_coherent() was partially in the DMA mapping API for some time, but
+> > > >> it was available only on a few architectures (afair ARM, powerpc and avr32).
+> > > >> This caused significant problems for writing unified device drivers or some
+> > > >> device helper modules which were aimed to work on more than one
+> > > >> architecture.
+> > > >>
+> > > >> dma_get_sgtable() is an extension discussed during the Linaro meetings. It
+> > > >> is required to correctly implement buffer sharing between device driver
+> > > >> without hacks or any assumptions about memory layout in the device drivers.
+> > > >>
+> > > >> I have implemented some generic code for both of those two functions,
+> > > >> keeping
+> > > >> in mind that on some hardware architectures (like already mentioned VIVT)
+> > > >> it might be not possible to provide coherent mapping to userspace. It is
+> > > >> perfectly fine for those functions to return an error in such case.
+> > > >
+> > > > It's not possible on VIPT either.  This means that the API is unusable
+> > > > on quite a large number of architectures.  Surely, if we're starting to
+> > > > write drivers using this, we need to fix the API before more people try
+> > > > to use it.
+> > > >
+> > > > For PA-RISC (and all other VIPT, I assume) I need an API which allows me
+> > > > to remap the virtual address of the kernel component (probably using the
+> > > > kmap area) so the user space and kernel space addresses are congruent.
+> > > 
+> > > So what are we gonna do for 3.8? I'd like to get my allmodconfig build
+> > > green again ;-)
+> > > 
+> > > Change the API?
+> > 
+> > Well, if we want the API to work universally, we have to.  As I said,
+> > for VIPT systems, the only coherency mechanism we have is the virtual
+> > address ... we have to fix that in the kernel to be congruent with the
+> > userspace virtual address if we want coherency between the kernel and
+> > userspace.
+> > 
+> > However, if it only needs to work on ARM and x86, it can stay the way it
+> > is and we could just pull it out of the generic core.
+> > 
+> > Who actually wants to use this API, and what for?
+> > 
+> > > Keep the API but do a best-effort fix to unbreak the builds?
+> > >   - Apply my patches that got acks (avr32/blackfin/cris/m68k),
+> > >   - Use static inlines that return -EINVAL for the rest
+> > > (c6x/frv/mn10300/parisc/xtensa).
+> > > I still have a few m68k fixes queued for 3.8, for which I've been postponing the
+> > > pull request to get this sorted out, so I could include the above.
+> > > 
+> > > Any other solution?
+> > 
+> > If it's an API that only works on ARM and x86, there's not much point
+> > pretending it's universal, so we should remove it from the generic arch
+> > code and allow only those architectures which can use it.
+> 
+> There might be a simple solution:  just replace void *cpu_addr with void
+> **cpu_addr in the API.  This is a bit nasty since compilers think that
+> void ** to void * conversion is quite legal, so it would be hard to pick
+> up misuse of this (uint8_t ** would be better).  That way VIPT could
+> remap the kernel pages to a coherent address.  This would probably have
+> to change in the dma_mmap_attr() and dma_ops structures.
+> 
+> All consumers would have to expect cpu_addr might change, but that seems
+> doable.
 
-Results of the daily build of media_tree:
+Mauro, will this work for you and the v4l guys?  You've got a use
+embedded in 
 
-date:        Mon Jan  7 19:00:18 CET 2013
-git hash:    73ec66c000e9816806c7380ca3420f4e0638c40e
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+drivers/media/v4l2-core/videobuf2-dma-contig.c
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Which I can't tell how extensive it might be.
 
-Detailed results are available here:
+James
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
