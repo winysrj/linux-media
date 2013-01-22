@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:33373 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab3AZEh5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39326 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754529Ab3AVQhs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 23:37:57 -0500
+	Tue, 22 Jan 2013 11:37:48 -0500
+Date: Tue, 22 Jan 2013 18:37:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC] media: Rename media_entity_remote_source to
+ media_entity_remote_pad
+Message-ID: <20130122163744.GA18639@valkosipuli.retiisi.org.uk>
+References: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <5102E2F4.80604@gmail.com>
-References: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com>
- <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com> <5102E2F4.80604@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 26 Jan 2013 10:07:36 +0530
-Message-ID: <CA+V-a8vpZ_UmmsW6D2PBKqg1Nob2PJdVwRDCjdDaPinmjVz8TA@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: add support for decoder subdevs along with
- sensor and others
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Thanks, Andrzej!
 
-On Sat, Jan 26, 2013 at 1:24 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Prahakar,
->
->
-> On 01/25/2013 08:01 AM, Prabhakar Lad wrote:
->>
->> From: Manjunath Hadli<manjunath.hadli@ti.com>
->>
->> A lot of SOCs including Texas Instruments Davinci family mainly use
->> video decoders as input devices. Here the initial subdevice node
->> from where the input really comes is this decoder, for which support
->> is needed as part of the Media Controller infrastructure. This patch
->> adds an additional flag to include the decoders along with others,
->> such as the sensor and lens.
->>
->> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
->> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
->> ---
->>   include/uapi/linux/media.h |    1 +
->>   1 files changed, 1 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
->> index 0ef8833..fa44ed9 100644
->> --- a/include/uapi/linux/media.h
->> +++ b/include/uapi/linux/media.h
->> @@ -56,6 +56,7 @@ struct media_device_info {
->>   #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR        (MEDIA_ENT_T_V4L2_SUBDEV +
->> 1)
->>   #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH (MEDIA_ENT_T_V4L2_SUBDEV + 2)
->>   #define MEDIA_ENT_T_V4L2_SUBDEV_LENS  (MEDIA_ENT_T_V4L2_SUBDEV + 3)
->> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER        (MEDIA_ENT_T_V4L2_SUBDEV +
->> 4)
->
->
-> Such a new entity type needs to be documented in the media DocBook [1].
-> It probably also deserves a comment here, as DECODER isn't that obvious
-> like the other already existing entity types. I heard people referring
-> to a device that encodes analog (composite) video signal into its digital
-> representation as an ENCODER. :)
->
->
-Thanks for pointing it :), I'll document it and post a v2.
+On Tue, Jan 22, 2013 at 09:24:55AM +0100, Andrzej Hajda wrote:
+> Function media_entity_remote_source actually returns the remote pad to
+> the given one, regardless if this is the source or the sink pad.
+> Name media_entity_remote_pad is more adequate for this function.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  Documentation/media-framework.txt                |    2 +-
+>  drivers/media/media-entity.c                     |   13 ++++++-------
+>  drivers/media/platform/omap3isp/isp.c            |    6 +++---
+>  drivers/media/platform/omap3isp/ispccdc.c        |    2 +-
+>  drivers/media/platform/omap3isp/ispccp2.c        |    2 +-
+>  drivers/media/platform/omap3isp/ispcsi2.c        |    2 +-
+>  drivers/media/platform/omap3isp/ispvideo.c       |    6 +++---
+>  drivers/media/platform/s3c-camif/camif-capture.c |    2 +-
+>  drivers/media/platform/s5p-fimc/fimc-capture.c   |    8 ++++----
+>  drivers/media/platform/s5p-fimc/fimc-lite.c      |    4 ++--
+>  drivers/media/platform/s5p-fimc/fimc-mdevice.c   |    2 +-
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c  |   12 ++++++------
+>  include/media/media-entity.h                     |    2 +-
+>  13 files changed, 31 insertions(+), 32 deletions(-)
 
-Regards,
---Prabhakar Lad
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-> [1] http://hverkuil.home.xs4all.nl/spec/media.html#media-ioc-enum-entities
->
-> --
->
-> Regards,
-> Sylwester
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
