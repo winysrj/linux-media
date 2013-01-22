@@ -1,60 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1520 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019Ab3AKNWa (ORCPT
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:49967 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab3AVVmI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 08:22:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 2/3] uvcvideo: Cleanup leftovers of partial revert
-Date: Fri, 11 Jan 2013 14:22:24 +0100
-Cc: linux-media@vger.kernel.org
-References: <1357910040-27463-1-git-send-email-laurent.pinchart@ideasonboard.com> <1357910040-27463-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1357910040-27463-3-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 22 Jan 2013 16:42:08 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c41so3776824eek.41
+        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 13:42:07 -0800 (PST)
+Message-ID: <50FF07AD.5060506@gmail.com>
+Date: Tue, 22 Jan 2013 22:42:05 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/3] [media] Add header file defining standard image sizes
+References: <1358630842-12689-1-git-send-email-sylvester.nawrocki@gmail.com> <1358630842-12689-2-git-send-email-sylvester.nawrocki@gmail.com> <201301211001.55354.hverkuil@xs4all.nl>
+In-Reply-To: <201301211001.55354.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201301111422.24453.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri January 11 2013 14:13:59 Laurent Pinchart wrote:
-> Commit ba68c8530a263dc4de440fa10bb20a1c5b9d4ff5 (Partly revert "[media]
-> uvcvideo: Set error_idx properly for extended controls API failures")
-> missed two modifications. Clean them up.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 01/21/2013 10:01 AM, Hans Verkuil wrote:
+> On Sat January 19 2013 22:27:20 Sylwester Nawrocki wrote:
+>> Add common header file defining standard image sizes, so we can
+>> avoid redefining those in each driver.
+>>
+>> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+>> ---
+>>   include/media/image-sizes.h |   34 ++++++++++++++++++++++++++++++++++
+>
+> Since this is a v4l2 core header it should be renamed with a 'v4l2-' prefix.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+OK, I'll rename it. I just thought these definitions could be used outside
+v4l2 and didn't prefix it with v4l2- originally.
 
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c |    7 ++-----
->  1 files changed, 2 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index f2ee8c6..5eb8989 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -657,8 +657,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  			ret = uvc_ctrl_get(chain, ctrl);
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
-> -				ctrls->error_idx = ret == -ENOENT
-> -						 ? ctrls->count : i;
-> +				ctrls->error_idx = i;
->  				return ret;
->  			}
->  		}
-> @@ -686,9 +685,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  			ret = uvc_ctrl_set(chain, ctrl);
->  			if (ret < 0) {
->  				uvc_ctrl_rollback(handle);
-> -				ctrls->error_idx = (ret == -ENOENT &&
-> -						    cmd == VIDIOC_S_EXT_CTRLS)
-> -						 ? ctrls->count : i;
-> +				ctrls->error_idx = i;
->  				return ret;
->  			}
->  		}
-> 
+--
+
+Regards,
+Sylwester
