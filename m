@@ -1,86 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1179 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab3AFMyS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 07:54:18 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-Date: Sun, 6 Jan 2013 13:53:52 +0100
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-References: <50E726F4.7060704@samsung.com> <50E96F6D.9080206@gmail.com> <20130106104157.5ffb5f6c@redhat.com>
-In-Reply-To: <20130106104157.5ffb5f6c@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301061353.52306.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:42260 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755157Ab3AVR6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 12:58:21 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH1002VNGKXP2A0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Jan 2013 17:58:20 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MH100M0UGKYA930@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Jan 2013 17:58:20 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	arun.kk@samsung.com, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	kyungmin.park@samsung.com
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
+ <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+ <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
+ <50FE6BFB.3090102@samsung.com>
+In-reply-to: <50FE6BFB.3090102@samsung.com>
+Subject: RE: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Date: Tue, 22 Jan 2013 18:58:09 +0100
+Message-id: <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun January 6 2013 13:41:57 Mauro Carvalho Chehab wrote:
-> Em Sun, 06 Jan 2013 13:34:53 +0100
-> Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+Hi,
+> From: Sylwester Nawrocki [mailto:s.nawrocki@samsung.com]
+> Sent: Tuesday, January 22, 2013 11:38 AM
 > 
-> > On 01/06/2013 12:32 PM, Mauro Carvalho Chehab wrote:
-> > > Em Fri, 04 Jan 2013 23:39:12 +0100
-> > > Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  escreveu:
-> > >
-> > >
-> > >>> Tomasz Stanislawski (1):
-> > >>>         s5p-tv: mixer: fix handling of VIDIOC_S_FMT
-> > >
-> > > I'll drop this one for now. Devin raised a point: such changes would break
-> > > existing applications.
-> > >
-> > > So, we'll need to revisit this topic before changing the drivers.
-> > >
-> > > Btw, I failed to find the corresponding patch at patchwork:
-> > > 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
-> > >
-> > > So, its status update may be wrong after flushing your pwclient commands.
-> > 
-> > Hmm, I got this patch from Tomasz by e-mail and added it to the pull 
-> > request.
-> > I think it wasn't sent to the mailing list, but I noticed it only after
-> > sending you the pull requests, when was preparing the pwclient commands.
-> > I've just posted it now, sorry. The link is here:
-> > http://patchwork.linuxtv.org/patch/16143
-> > 
-> > Tomasz created this patch specifically for the purpose of format negotiation
-> > in video pipeline in the application we used to test various scenarios with
-> > DMABUF. I agree this patch has a potential of breaking buggy user space
-> > applications. I can't see other solution for it right now, there seems even
-> > to be no possibility to return some flag in VIDIOC_S_FMT indicating that
-> > format has been modified and is valid, when -EINVAL was returned. This 
-> > sounds
-> > ugly anyway, but could ensure backward compatibility for applications that
-> > exppect EINVAL when format has been changed. BTW, I wonder if it is only 
-> > fourcc,
-> > or other format parameters as well - like width, height, some applications
-> > expect to get EINVAL when those have changed.
+> Hi,
 > 
-> The patch makes the driver compliant to v4l-compilance, as its behavior asks
-> for such change, after some discussions we had this year in San Diego. At that
-> time, we all believed that such change were safe.
+> On 01/21/2013 03:07 PM, Kamil Debski wrote:
+> >> How about making MONOTONIC timestamps default instead, or at least
+> >> assigning all drivers something else than UNKNOWN?
+> >
+> > So why did you add the UNKNOWN flag?
+> >
+> > The way I see it - UNKNOWN is the default and the one who coded the
+> > driver will set it to either MONOTONIC or COPY if it is one of these
+> > two. It won't be changed otherwise. There are drivers, which do not
+> > fill the timestamp field at all:
+> > - drivers/media/platform/coda.c
+> > - drivers/media/platform/exynos-gsc/gsc-m2m.c
 > 
-> However, we can't do it like proposed there (and on other patches from Hans).
+> Hmm, there is already a patch queued for this driver. It was intended
+> for v3.8 but has been delayed to 3.9.
 > 
-> The fact is that tvtime and mythtv applications (maybe more) will fail 
-> if the returned format is different than the requested ones, as they 
-> don't check for the returned value.
+> http://git.linuxtv.org/media_tree.git/commitdiff/f60e160e126bdd8f0d928c
+> d8b3fce54659597394
 > 
-> As no regressions on userspace are allowed, we need to re-discuss this issue.
+> > - drivers/media/platform/m2m-deinterlace.c
+> > - drivers/media/platform/mx2_emmaprp.c
+> > - drivers/media/platform/s5p-fimc/fimc-m2m.c
+> > - drivers/media/platform/s5p-g2d.c
+> > - drivers/media/platform/s5p-jpeg/jpeg-core.c
+> >
+> > The way you did it in your patches left no room for any kind of
+> > choice. I did comment at least twice about mem-2-mem devices in your
+> > RFCs, if I remember correctly. I think Sylwester was also writing
+> > about this.
+> > Still everything got marked as MONOTONIC.
+> >
+> > If we were to assume that there were no other timestamp types then
+> > monotonic (which is not true, but this was your assumption), then
+> what
+> > was the reason to add this timestamp framework?
 > 
-> While this doesn't happen, I'll postpone such patches.
+> Hmm, we could likely leave MONOTONIC as the default timestamp type. It
+> doesn't really matter what is the default, as long as drivers are
+> provided with an API to override it.
+> 
+> The reason why the above drivers don't do anything with
+> v4l2_buffer::timestamp field is there is no clear definitions at the
+> specification for mem-to-mem devices. We are working here on a Video
+> Memory-to-memory Interface DocBook documentation.
+> 
+> I think we will need a way to tell user space that timestamps are
+> copied from OUTPUT to CAPTURE buffer queue. At least that's what seems
+> more useful for applications. i.e. copying timestamps, rather than
+> filling them with the monotonic clock value.
+> 
+> OTOH I'm not certain what's the main purpose of such copied timestamps,
+> is it to identify which CAPTURE buffer comes from which OUTPUT buffer ?
+> 
 
-This is a video output device. So this patch will never affect tvtime/mythtv/etc.
-I have no problem with this change being merged.
+Yes, indeed. This is especially useful when the CAPTURE buffers can be
+returned in an order different than the order of corresponding OUTPUT
+buffers.
 
-Regards,
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-	Hans
 
