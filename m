@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46897 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755483Ab3AWP1J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 10:27:09 -0500
-Message-ID: <5100012A.8030107@iki.fi>
-Date: Wed, 23 Jan 2013 17:26:34 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from db3ehsobe005.messaging.microsoft.com ([213.199.154.143]:7929
+	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752947Ab3AVDZ2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jan 2013 22:25:28 -0500
+Date: Tue, 22 Jan 2013 11:54:04 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <arm@kernel.org>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH 09/15] media: coda: don't build on multiplatform
+Message-ID: <20130122035402.GC29677@S2100-06.ap.freescale.net>
+References: <1358788568-11137-1-git-send-email-arnd@arndb.de>
+ <1358788568-11137-10-git-send-email-arnd@arndb.de>
 MIME-Version: 1.0
-To: didli <mediaklan@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-media] Strange behavior between Terratec Cinergy HD RTL2838
- & Alfa AWUS036h RTL2870
-References: <CAJscJ6mjUgFt4Tvo9Pa+FqhNs0=N31xFL0yJFDg_2J_sWTBwng@mail.gmail.com>
-In-Reply-To: <CAJscJ6mjUgFt4Tvo9Pa+FqhNs0=N31xFL0yJFDg_2J_sWTBwng@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <1358788568-11137-10-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/23/2013 12:16 PM, didli wrote:
-> Hi to u all !
-> I'm using Xubuntu 12.10, v4l latest media_build, with Alfa Network
-> AWUS036H (rtl2870) and a Terratec Cinergy HD (rtl2832).
-> These two cards works flawlessly, but not together : I need to
-> manually power off the Alfa Network card in order to get TV image with
-> the Terratec Cinergy HD.
-> If I use kaffeine or me-tv with AWUS036H power on, display is crappy
-> and scan with Terratec is almost impossible.
-> If I power off the AWUS036h usb card, everything with the Cinergy card
-> works as expected.
+On Mon, Jan 21, 2013 at 05:16:02PM +0000, Arnd Bergmann wrote:
+> The coda video codec driver depends on a mach-imx or mach-mxs specific
+> header file "mach/iram.h". This is not available when building for
+> multiplatform, so let us disable this driver for v3.8 when building
+> multiplatform, and hopefully find a proper fix for v3.9.
+> 
+> drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Javier Martin <javier.martin@vista-silicon.com>
+> Cc: Fabio Estevam <fabio.estevam@freescale.com>
+> Cc: Sascha Hauer <kernel@pengutronix.de>
+> Cc: Shawn Guo <shawn.guo@linaro.org>
 
-[...]
+Acked-by: Shawn Guo <shawn.guo@linaro.org>
 
-> [45981.215807] i2c i2c-2: rtl2832: i2c rd failed=-110 reg=51 len=1
-> [45982.539669] i2c i2c-2: rtl2832: i2c rd failed=-110 reg=51 len=1
-> [45983.539751] i2c i2c-2: rtl2832: i2c rd failed=-110 reg=51 len=1
-> [45985.264752] usb_urb_complete: 269 callbacks suppressed
-> [45988.455662] i2c i2c-2: rtl2832: i2c rd failed=-110 reg=51 len=1
-> [45989.011363] i2c i2c-2: rtl2832: i2c wr failed=-32 reg=01 len=1
-> [45989.013075] i2c i2c-2: e4000: i2c wr failed=-32 reg=1a len=1
-> [45989.020746] i2c i2c-2: rtl2832: i2c wr failed=-32 reg=1c len=1
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
+> ---
+>  drivers/media/platform/Kconfig |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 3dcfea6..049d2b2 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -142,7 +142,7 @@ if V4L_MEM2MEM_DRIVERS
+>  
+>  config VIDEO_CODA
+>  	tristate "Chips&Media Coda multi-standard codec IP"
+> -	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC && !ARCH_MULTIPLATFORM
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select V4L2_MEM2MEM_DEV
+>  	select IRAM_ALLOC if SOC_IMX53
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-[...]
-
-> Any idea to fix this behavior please ?
-> Thanks to u all !
-
-Sounds like USB host controller issue. What is USB controller (AMD SBxxx?)?
-
-Easiest way to work around problem is to put these devices to USB port 
-that are under different USB HCI.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
