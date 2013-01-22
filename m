@@ -1,70 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:60379 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359Ab3AILIq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 06:08:46 -0500
-Received: by mail-lb0-f176.google.com with SMTP id k6so944549lbo.21
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 03:08:44 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20130109084143.5720a1d6@redhat.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-Date: Wed, 9 Jan 2013 06:08:44 -0500
-Message-ID: <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:20265 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751805Ab3AVLQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 06:16:09 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MBG9fc026858
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 06:16:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/7] [media] mb86a20s: improve error handling at get_frontend
+Date: Tue, 22 Jan 2013 09:15:27 -0200
+Message-Id: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Wed, 09 Jan 2013 10:43:23 +0100
-> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
->
->> On 08-01-13 21:01, Johannes Stezenbach wrote:
->> > On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
->> >> On 07-01-13 11:46, Jiri Slaby wrote:
->> >>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
->> >>>> Unfortunatly, I have had zero replies.
->> >>> Hmm, it's sad there is a silence in this thread from linux-media guys :/.
->> >> In their defense, they are very very busy people ;) chatter on this
->> >> thread does bring it up however.
->> > This is such a nice thing to say :-)
->> > But it might be that Mauro thinks the dvb-apps maintainer should
->> > respond, but apparently there is no dvb-apps maintainer...
->> > Maybe you should ask Mauro directly to create an account for you
->> > to implement what you proposed.
->> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
->> decides what I suggested is a good idea? I personally obviously think it
->> is ;) and even more so if dvb-apps are unmaintained.
->>
->> I guess the question now becomes 'who okay's this change? Who says
->> 'okay, lets do it this way. Once that is answered we can go from there ;)
->
-> If I understood it right, you want to split the scan files into a separate
-> git tree and maintain it, right?
->
-> I'm ok with that.
->
-> Regards,
-> Mauro
+The read/write errors are not handled well on get_frontend. Fix it,
+by letting the frontend cached values to represent the DVB properties
+that were successfully retrieved.
+While here, use "c" for dtv_frontend_properties cache, instead of
+"p", as this is more common.
 
-As a DVB maintainer, I am OK with this as well - It does indeed make
-sense to separate the c code sources from the regional frequency
-tables, and I'm sure we'll see much benefit from this change.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 138 +++++++++++++++++++--------------
+ 1 file changed, 80 insertions(+), 58 deletions(-)
 
-Regards,
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index fade566..4ff3a0c 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -1,11 +1,9 @@
+ /*
+  *   Fujitu mb86a20s ISDB-T/ISDB-Tsb Module driver
+  *
+- *   Copyright (C) 2010 Mauro Carvalho Chehab <mchehab@redhat.com>
++ *   Copyright (C) 2010-2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+  *   Copyright (C) 2009-2010 Douglas Landgraf <dougsland@redhat.com>
+  *
+- *   FIXME: Need to port to DVB v5.2 API
+- *
+  *   This program is free software; you can redistribute it and/or
+  *   modify it under the terms of the GNU General Public License as
+  *   published by the Free Software Foundation version 2.
+@@ -360,7 +358,7 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 	/*
+ 	 * FIXME: Properly implement the set frontend properties
+ 	 */
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ #endif
+ 
+ 	dprintk("\n");
+@@ -507,93 +505,117 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+ 	return count;
+ }
+ 
++static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
++	/* Fixed parameters */
++	c->delivery_system = SYS_ISDBT;
++	c->bandwidth_hz = 6000000;
++
++	/* Initialize values that will be later autodetected */
++	c->isdbt_layer_enabled = 0;
++	c->transmission_mode = TRANSMISSION_MODE_AUTO;
++	c->guard_interval = GUARD_INTERVAL_AUTO;
++	c->isdbt_sb_mode = 0;
++	c->isdbt_sb_segment_count = 0;
++}
++
+ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int i, rc;
+ 
+-	/* Fixed parameters */
+-	p->delivery_system = SYS_ISDBT;
+-	p->bandwidth_hz = 6000000;
++	/* Reset frontend cache to default values */
++	mb86a20s_reset_frontend_cache(fe);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	/* Check for partial reception */
+ 	rc = mb86a20s_writereg(state, 0x6d, 0x85);
+-	if (rc >= 0)
+-		rc = mb86a20s_readreg(state, 0x6e);
+-	if (rc >= 0)
+-		p->isdbt_partial_reception = (rc & 0x10) ? 1 : 0;
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x6e);
++	if (rc < 0)
++		return rc;
++	c->isdbt_partial_reception = (rc & 0x10) ? 1 : 0;
+ 
+ 	/* Get per-layer data */
+-	p->isdbt_layer_enabled = 0;
++
+ 	for (i = 0; i < 3; i++) {
+ 		rc = mb86a20s_get_segment_count(state, i);
+-			if (rc >= 0 && rc < 14)
+-				p->layer[i].segment_count = rc;
+-		if (rc == 0x0f)
++		if (rc < 0)
++			goto error;
++		if (rc >= 0 && rc < 14)
++			c->layer[i].segment_count = rc;
++		else {
++			c->layer[i].segment_count = 0;
+ 			continue;
+-		p->isdbt_layer_enabled |= 1 << i;
++		}
++		c->isdbt_layer_enabled |= 1 << i;
+ 		rc = mb86a20s_get_modulation(state, i);
+-			if (rc >= 0)
+-				p->layer[i].modulation = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].modulation = rc;
+ 		rc = mb86a20s_get_fec(state, i);
+-			if (rc >= 0)
+-				p->layer[i].fec = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].fec = rc;
+ 		rc = mb86a20s_get_interleaving(state, i);
+-			if (rc >= 0)
+-				p->layer[i].interleaving = rc;
++		if (rc < 0)
++			goto error;
++		c->layer[i].interleaving = rc;
+ 	}
+ 
+-	p->isdbt_sb_mode = 0;
+ 	rc = mb86a20s_writereg(state, 0x6d, 0x84);
+-	if ((rc >= 0) && ((rc & 0x60) == 0x20)) {
+-		p->isdbt_sb_mode = 1;
++	if (rc < 0)
++		return rc;
++	if ((rc & 0x60) == 0x20) {
++		c->isdbt_sb_mode = 1;
+ 		/* At least, one segment should exist */
+-		if (!p->isdbt_sb_segment_count)
+-			p->isdbt_sb_segment_count = 1;
+-	} else
+-		p->isdbt_sb_segment_count = 0;
++		if (!c->isdbt_sb_segment_count)
++			c->isdbt_sb_segment_count = 1;
++	}
+ 
+ 	/* Get transmission mode and guard interval */
+-	p->transmission_mode = TRANSMISSION_MODE_AUTO;
+-	p->guard_interval = GUARD_INTERVAL_AUTO;
+ 	rc = mb86a20s_readreg(state, 0x07);
+-	if (rc >= 0) {
+-		if ((rc & 0x60) == 0x20) {
+-			switch (rc & 0x0c >> 2) {
+-			case 0:
+-				p->transmission_mode = TRANSMISSION_MODE_2K;
+-				break;
+-			case 1:
+-				p->transmission_mode = TRANSMISSION_MODE_4K;
+-				break;
+-			case 2:
+-				p->transmission_mode = TRANSMISSION_MODE_8K;
+-				break;
+-			}
++	if (rc < 0)
++		return rc;
++	if ((rc & 0x60) == 0x20) {
++		switch (rc & 0x0c >> 2) {
++		case 0:
++			c->transmission_mode = TRANSMISSION_MODE_2K;
++			break;
++		case 1:
++			c->transmission_mode = TRANSMISSION_MODE_4K;
++			break;
++		case 2:
++			c->transmission_mode = TRANSMISSION_MODE_8K;
++			break;
+ 		}
+-		if (!(rc & 0x10)) {
+-			switch (rc & 0x3) {
+-			case 0:
+-				p->guard_interval = GUARD_INTERVAL_1_4;
+-				break;
+-			case 1:
+-				p->guard_interval = GUARD_INTERVAL_1_8;
+-				break;
+-			case 2:
+-				p->guard_interval = GUARD_INTERVAL_1_16;
+-				break;
+-			}
++	}
++	if (!(rc & 0x10)) {
++		switch (rc & 0x3) {
++		case 0:
++			c->guard_interval = GUARD_INTERVAL_1_4;
++			break;
++		case 1:
++			c->guard_interval = GUARD_INTERVAL_1_8;
++			break;
++		case 2:
++			c->guard_interval = GUARD_INTERVAL_1_16;
++			break;
+ 		}
+ 	}
+ 
++error:
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+-	return 0;
++	return rc;
++
+ }
+ 
+ static int mb86a20s_tune(struct dvb_frontend *fe,
+-- 
+1.7.11.7
 
-Mike Krufky
