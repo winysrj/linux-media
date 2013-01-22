@@ -1,54 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4011 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756394Ab3AYNnR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 08:43:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: partial revert of "uvcvideo: set error_idx properly"
-Date: Fri, 25 Jan 2013 14:42:59 +0100
+Received: from mx1.redhat.com ([209.132.183.28]:15239 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752326Ab3AVLQJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 06:16:09 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MBG9OY018375
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 06:16:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com> <201301251140.13707.hverkuil@xs4all.nl> <51028B5D.8080607@redhat.com>
-In-Reply-To: <51028B5D.8080607@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301251442.59974.hverkuil@xs4all.nl>
+Subject: [PATCH 4/7] [media] mb86a20s: fix interleaving and FEC retrival
+Date: Tue, 22 Jan 2013 09:15:30 -0200
+Message-Id: <1358853333-21554-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+References: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri January 25 2013 14:40:45 Hans de Goede wrote:
-> Hi,
-> 
-> On 01/25/2013 11:40 AM, Hans Verkuil wrote:
-> 
-> <snip>
-> 
-> >> What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
-> >> an unsupported pixelformat is requested. IIRC we agreed that the
-> >> correct behavior in this case is to instead just change the
-> >> pixelformat to a default format, so I'll write a patch fixing
-> >> this.
-> >
-> > There are issues with that idea in the case of TV capture cards, since
-> > some important apps (tvtime and mythtv to a lesser extent) assume -EINVAL
-> > in the case of unsupported pixelformats.
-> 
-> Oh, I thought we agreed on never returning EINVAL accept for on invalid
-> buffer types in Barcelona ?
+Get the proper bits from the TMCC table registers.
 
-We did, but then it was discovered that apps like tvtime *rely* on such an
-error code.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-All TV capture drivers that do stream I/O return EINVAL for unsupported
-formats today. There are exceptions (cx18/ivtv/pvrusb2 (?)), but those
-have a read() API only.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 40c6183..8f4fff1 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -413,7 +413,7 @@ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	switch ((rc & 0x70) >> 4) {
++	switch ((rc >> 4) & 0x07) {
+ 	case 0:
+ 		return DQPSK;
+ 	case 1:
+@@ -446,7 +446,7 @@ static int mb86a20s_get_fec(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	switch (rc) {
++	switch ((rc >> 4) & 0x07) {
+ 	case 0:
+ 		return FEC_1_2;
+ 	case 1:
+@@ -481,9 +481,21 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
+ 	rc = mb86a20s_readreg(state, 0x6e);
+ 	if (rc < 0)
+ 		return rc;
+-	if (rc > 3)
+-		return -EINVAL;	/* Not used */
+-	return rc;
++
++	switch ((rc >> 4) & 0x07) {
++	case 1:
++		return GUARD_INTERVAL_1_4;
++	case 2:
++		return GUARD_INTERVAL_1_8;
++	case 3:
++		return GUARD_INTERVAL_1_16;
++	case 4:
++		return GUARD_INTERVAL_1_32;
++
++	default:
++	case 0:
++		return GUARD_INTERVAL_AUTO;
++	}
+ }
+ 
+ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+-- 
+1.7.11.7
 
-Very annoying...
-
-Regards,
-
-	Hans
