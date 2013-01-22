@@ -1,40 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:54167 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754413Ab3A2MTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 07:19:33 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:61141 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752600Ab3AVLEU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 06:04:20 -0500
+Message-id: <50FE722E.1030901@samsung.com>
+Date: Tue, 22 Jan 2013 12:04:14 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: linux-kernel@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	linux-media@vger.kernel.org
-Subject: [PATCH 1/5] [media] ttusbir: do not set led twice on resume
-Date: Tue, 29 Jan 2013 12:19:27 +0000
-Message-Id: <1359461971-27492-1-git-send-email-sean@mess.org>
+Subject: Re: [PATCH 14/33] media: Convert to devm_ioremap_resource()
+References: <1358762966-20791-1-git-send-email-thierry.reding@avionic-design.de>
+ <1358762966-20791-15-git-send-email-thierry.reding@avionic-design.de>
+In-reply-to: <1358762966-20791-15-git-send-email-thierry.reding@avionic-design.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-led_classdev_resume already sets the led.
+Hi,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ttusbir.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On 01/21/2013 11:09 AM, Thierry Reding wrote:
+> Convert all uses of devm_request_and_ioremap() to the newly introduced
+> devm_ioremap_resource() which provides more consistent error handling.
+> 
+> devm_ioremap_resource() provides its own error messages so all explicit
+> error messages can be removed from the failure code paths.
+> 
+> Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
+> ---
+>  drivers/media/platform/exynos-gsc/gsc-core.c   |  8 +++-----
+>  drivers/media/platform/mx2_emmaprp.c           |  6 +++---
+>  drivers/media/platform/s3c-camif/camif-core.c  |  8 +++-----
+>  drivers/media/platform/s5p-fimc/fimc-core.c    |  8 +++-----
+>  drivers/media/platform/s5p-fimc/fimc-lite.c    |  8 +++-----
+>  drivers/media/platform/s5p-fimc/mipi-csis.c    |  8 +++-----
+>  drivers/media/platform/s5p-g2d/g2d.c           |  8 +++-----
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c    |  8 +++-----
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c       |  8 +++-----
+>  drivers/media/platform/soc_camera/mx2_camera.c | 12 ++++++------
+>  10 files changed, 33 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-index 78be8a9..f9226b8 100644
---- a/drivers/media/rc/ttusbir.c
-+++ b/drivers/media/rc/ttusbir.c
-@@ -408,9 +408,8 @@ static int ttusbir_resume(struct usb_interface *intf)
- 	struct ttusbir *tt = usb_get_intfdata(intf);
- 	int i, rc;
- 
--	led_classdev_resume(&tt->led);
- 	tt->is_led_on = true;
--	ttusbir_set_led(tt);
-+	led_classdev_resume(&tt->led);
- 
- 	for (i = 0; i < NUM_URBS; i++) {
- 		rc = usb_submit_urb(tt->urb[i], GFP_KERNEL);
--- 
-1.8.1
+That's a nice cleanup. For exynos-gsc, s3c-camif, s5p-* drivers
 
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+--
+
+Thanks,
+Sylwester
