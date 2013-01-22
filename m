@@ -1,121 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16988 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247Ab3AUHe4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 02:34:56 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGY005EFT1VON80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Jan 2013 07:34:54 +0000 (GMT)
-Received: from AMDC1061.digital.local ([106.116.147.88])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MGY002TYT201L00@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 21 Jan 2013 07:34:54 +0000 (GMT)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC] V4L: Add underexposure metering flash controls
-Date: Mon, 21 Jan 2013 08:34:35 +0100
-Message-id: <1358753675-10784-1-git-send-email-a.hajda@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8611 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752400Ab3AVLQK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 06:16:10 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0MBG9HE026862
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 06:16:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 6/7] [media] mb86a20s: Function reorder
+Date: Tue, 22 Jan 2013 09:15:32 -0200
+Message-Id: <1358853333-21554-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+References: <1358853333-21554-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add flash controls for metering of the light conditions
-regarding the necessity of the flash firing.
+Reorder functions to have everything related to stats/status read
+close. That will make the file more organized as other stats
+routines will be added.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+No functional changes.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   25 +++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c         |    4 ++++
- include/uapi/linux/v4l2-controls.h           |    3 +++
- 3 files changed, 32 insertions(+)
+ drivers/media/dvb-frontends/mb86a20s.c | 215 +++++++++++++++++----------------
+ 1 file changed, 110 insertions(+), 105 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 9d4af8a..7496dca 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4247,6 +4247,31 @@ interface and may change in the future.</para>
-     	    after strobe during which another strobe will not be
-     	    possible. This is a read-only control.</entry>
-     	  </row>
-+    	  <row>
-+    	    <entry spanname="id"><constant>V4L2_CID_FLASH_UNDEREXPOSURE_METERING</constant></entry>
-+    	    <entry>boolean</entry>
-+    	  </row>
-+    	  <row>
-+    	    <entry spanname="descr">Enable or disable metering of the light
-+    	    conditions regarding the necessity of the flash firing.</entry>
-+    	  </row>
-+    	  <row>
-+    	    <entry spanname="id"><constant>V4L2_CID_FLASH_UNDEREXPOSURE_LEVEL</constant></entry>
-+    	    <entry>integer</entry>
-+    	  </row>
-+    	  <row>
-+    	    <entry spanname="descr">This is a read-only control that can be read
-+    	    by the application and used as a hint to determine if the flash
-+    	    should be used to obtain optimal exposure. Valid only if
-+    	    <constant>V4L2_CID_FLASH_UNDEREXPOSURE_METERING</constant>
-+    	    is enabled. Value 0 means the flash should not be used.
-+    	    Otherwise the flash should be used and the value indicates the
-+    	    optimal intensity of the flash. It should use the same units as
-+    	    <constant>V4L2_CID_FLASH_INTENSITY</constant>. In case
-+    	    <constant>V4L2_CID_FLASH_INTENSITY</constant> is not supported the
-+    	    maximum value should be 1.
-+    	    </entry>
-+    	  </row>
-     	  <row><entry></entry></row>
-     	</tbody>
-           </tgroup>
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 9cdf4b8..8a7e4f7 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -779,6 +779,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_FAULT:		return "Faults";
- 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
-+	case V4L2_CID_FLASH_UNDEREXPOSURE_METERING: return "Underexposure Metering";
-+	case V4L2_CID_FLASH_UNDEREXPOSURE_LEVEL: return "Underexposure Level";
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 03b74d3..b348f97 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -175,6 +175,10 @@ static struct regdata mb86a20s_reset_reception[] = {
+ 	{ 0x08, 0x00 },
+ };
  
- 	/* JPEG encoder controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -857,6 +859,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
-+	case V4L2_CID_FLASH_UNDEREXPOSURE_METERING:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -962,6 +965,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		break;
- 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
- 	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
-+	case V4L2_CID_FLASH_UNDEREXPOSURE_LEVEL:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 0eb1c1a..4cb493a 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -763,6 +763,9 @@ enum v4l2_flash_strobe_source {
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
- 
-+#define V4L2_CID_FLASH_UNDEREXPOSURE_METERING	(V4L2_CID_FLASH_CLASS_BASE + 13)
-+#define V4L2_CID_FLASH_UNDEREXPOSURE_LEVEL	(V4L2_CID_FLASH_CLASS_BASE + 14)
++/*
++ * I2C read/write functions and macros
++ */
 +
+ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
+ 			     u8 i2c_addr, int reg, int data)
+ {
+@@ -236,45 +240,36 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
+ 	mb86a20s_i2c_writeregdata(state, state->config->demod_address, \
+ 	regdata, ARRAY_SIZE(regdata))
  
- /* JPEG-class control IDs */
+-static int mb86a20s_initfe(struct dvb_frontend *fe)
++static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int rc;
+-	u8  regD5 = 1;
++	int val;
  
+ 	dprintk("\n");
++	*status = 0;
+ 
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
++	val = mb86a20s_readreg(state, 0x0a) & 0xf;
++	if (val < 0)
++		return val;
+ 
+-	/* Initialize the frontend */
+-	rc = mb86a20s_writeregdata(state, mb86a20s_init);
+-	if (rc < 0)
+-		goto err;
++	if (val >= 2)
++		*status |= FE_HAS_SIGNAL;
+ 
+-	if (!state->config->is_serial) {
+-		regD5 &= ~1;
++	if (val >= 4)
++		*status |= FE_HAS_CARRIER;
+ 
+-		rc = mb86a20s_writereg(state, 0x50, 0xd5);
+-		if (rc < 0)
+-			goto err;
+-		rc = mb86a20s_writereg(state, 0x51, regD5);
+-		if (rc < 0)
+-			goto err;
+-	}
++	if (val >= 5)
++		*status |= FE_HAS_VITERBI;
+ 
+-err:
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
++	if (val >= 7)
++		*status |= FE_HAS_SYNC;
+ 
+-	if (rc < 0) {
+-		state->need_init = true;
+-		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
+-	} else {
+-		state->need_init = false;
+-		dprintk("Initialization succeeded.\n");
+-	}
+-	return rc;
++	if (val >= 8)				/* Maybe 9? */
++		*status |= FE_HAS_LOCK;
++
++	dprintk("val = %d, status = 0x%02x\n", val, *status);
++
++	return 0;
+ }
+ 
+ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+@@ -317,82 +312,6 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+ 	return 0;
+ }
+ 
+-static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+-{
+-	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int val;
+-
+-	dprintk("\n");
+-	*status = 0;
+-
+-	val = mb86a20s_readreg(state, 0x0a) & 0xf;
+-	if (val < 0)
+-		return val;
+-
+-	if (val >= 2)
+-		*status |= FE_HAS_SIGNAL;
+-
+-	if (val >= 4)
+-		*status |= FE_HAS_CARRIER;
+-
+-	if (val >= 5)
+-		*status |= FE_HAS_VITERBI;
+-
+-	if (val >= 7)
+-		*status |= FE_HAS_SYNC;
+-
+-	if (val >= 8)				/* Maybe 9? */
+-		*status |= FE_HAS_LOCK;
+-
+-	dprintk("val = %d, status = 0x%02x\n", val, *status);
+-
+-	return 0;
+-}
+-
+-static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+-{
+-	struct mb86a20s_state *state = fe->demodulator_priv;
+-	int rc;
+-#if 0
+-	/*
+-	 * FIXME: Properly implement the set frontend properties
+-	 */
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-#endif
+-
+-	dprintk("\n");
+-
+-	/*
+-	 * Gate should already be opened, but it doesn't hurt to
+-	 * double-check
+-	 */
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-	dprintk("Calling tuner set parameters\n");
+-	fe->ops.tuner_ops.set_params(fe);
+-
+-	/*
+-	 * Make it more reliable: if, for some reason, the initial
+-	 * device initialization doesn't happen, initialize it when
+-	 * a SBTVD parameters are adjusted.
+-	 *
+-	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
+-	 * the agc callback logic is not called during DVB attach time,
+-	 * causing mb86a20s to not be initialized with Kworld SBTVD.
+-	 * So, this hack is needed, in order to make Kworld SBTVD to work.
+-	 */
+-	if (state->need_init)
+-		mb86a20s_initfe(fe);
+-
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 0);
+-	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
+-	if (fe->ops.i2c_gate_ctrl)
+-		fe->ops.i2c_gate_ctrl(fe, 1);
+-
+-	return rc;
+-}
+-
+ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
+ 				   unsigned layer)
+ {
+@@ -633,6 +552,92 @@ error:
+ 
+ }
+ 
++static int mb86a20s_initfe(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
++	u8  regD5 = 1;
++
++	dprintk("\n");
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	/* Initialize the frontend */
++	rc = mb86a20s_writeregdata(state, mb86a20s_init);
++	if (rc < 0)
++		goto err;
++
++	if (!state->config->is_serial) {
++		regD5 &= ~1;
++
++		rc = mb86a20s_writereg(state, 0x50, 0xd5);
++		if (rc < 0)
++			goto err;
++		rc = mb86a20s_writereg(state, 0x51, regD5);
++		if (rc < 0)
++			goto err;
++	}
++
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	if (rc < 0) {
++		state->need_init = true;
++		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
++	} else {
++		state->need_init = false;
++		dprintk("Initialization succeeded.\n");
++	}
++	return rc;
++}
++
++static int mb86a20s_set_frontend(struct dvb_frontend *fe)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
++#if 0
++	/*
++	 * FIXME: Properly implement the set frontend properties
++	 */
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++#endif
++
++	dprintk("\n");
++
++	/*
++	 * Gate should already be opened, but it doesn't hurt to
++	 * double-check
++	 */
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++	dprintk("Calling tuner set parameters\n");
++	fe->ops.tuner_ops.set_params(fe);
++
++	/*
++	 * Make it more reliable: if, for some reason, the initial
++	 * device initialization doesn't happen, initialize it when
++	 * a SBTVD parameters are adjusted.
++	 *
++	 * Unfortunately, due to a hard to track bug at tda829x/tda18271,
++	 * the agc callback logic is not called during DVB attach time,
++	 * causing mb86a20s to not be initialized with Kworld SBTVD.
++	 * So, this hack is needed, in order to make Kworld SBTVD to work.
++	 */
++	if (state->need_init)
++		mb86a20s_initfe(fe);
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	return rc;
++}
++
++
+ static int mb86a20s_read_status_gate(struct dvb_frontend *fe,
+ 				     fe_status_t *status)
+ {
 -- 
-1.7.10.4
+1.7.11.7
 
