@@ -1,78 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28027 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756360Ab3AQS7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:08 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx8iu007183
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:08 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 08/16] [media] mb86a20s: fix interleaving and FEC retrival
-Date: Thu, 17 Jan 2013 16:58:22 -0200
-Message-Id: <1358449110-11203-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-da0-f46.google.com ([209.85.210.46]:43981 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751263Ab3AVFUB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 00:20:01 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH v2] media: adv7343: accept configuration through platform data
+Date: Tue, 22 Jan 2013 10:49:50 +0530
+Message-Id: <1358831990-17616-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Get the proper bits from the TMCC table registers.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The current code was implemented with some default configurations,
+this default configuration works on board and doesn't work on other.
+
+This patch accepts the configuration through platform data and configures
+the encoder depending on the data passed.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+  Changes for v2:
+  1: Fixed review comments pointed by Hans.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index adf292c..30a864b 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -360,7 +360,7 @@ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	switch ((rc & 0x70) >> 4) {
-+	switch ((rc >> 4) & 0x07) {
- 	case 0:
- 		return DQPSK;
- 	case 1:
-@@ -393,7 +393,7 @@ static int mb86a20s_get_fec(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	switch (rc) {
-+	switch ((rc >> 4) & 0x07) {
- 	case 0:
- 		return FEC_1_2;
- 	case 1:
-@@ -428,9 +428,21 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
- 	rc = mb86a20s_readreg(state, 0x6e);
- 	if (rc < 0)
- 		return rc;
--	if (rc > 3)
--		return -EINVAL;	/* Not used */
--	return rc;
-+
-+	switch ((rc >> 4) & 0x07) {
-+	case 1:
-+		return GUARD_INTERVAL_1_4;
-+	case 2:
-+		return GUARD_INTERVAL_1_8;
-+	case 3:
-+		return GUARD_INTERVAL_1_16;
-+	case 4:
-+		return GUARD_INTERVAL_1_32;
-+
-+	default:
-+	case 0:
-+		return GUARD_INTERVAL_AUTO;
-+	}
- }
+ drivers/media/i2c/adv7343.c |   36 +++++++++++++++++++++++++----
+ include/media/adv7343.h     |   52 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 83 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 2b5aa67..a058058 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -43,6 +43,7 @@ MODULE_PARM_DESC(debug, "Debug level 0-1");
+ struct adv7343_state {
+ 	struct v4l2_subdev sd;
+ 	struct v4l2_ctrl_handler hdl;
++	const struct adv7343_platform_data *pdata;
+ 	u8 reg00;
+ 	u8 reg01;
+ 	u8 reg02;
+@@ -215,12 +216,23 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 	/* Enable Appropriate DAC */
+ 	val = state->reg00 & 0x03;
  
- static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
+-	if (output_type == ADV7343_COMPOSITE_ID)
+-		val |= ADV7343_COMPOSITE_POWER_VALUE;
+-	else if (output_type == ADV7343_COMPONENT_ID)
+-		val |= ADV7343_COMPONENT_POWER_VALUE;
++	/* configure default configuration */
++	if (!state->pdata)
++		if (output_type == ADV7343_COMPOSITE_ID)
++			val |= ADV7343_COMPOSITE_POWER_VALUE;
++		else if (output_type == ADV7343_COMPONENT_ID)
++			val |= ADV7343_COMPONENT_POWER_VALUE;
++		else
++			val |= ADV7343_SVIDEO_POWER_VALUE;
+ 	else
+-		val |= ADV7343_SVIDEO_POWER_VALUE;
++		val = state->pdata->mode_config.sleep_mode << 0 |
++		      state->pdata->mode_config.pll_control << 1 |
++		      state->pdata->mode_config.dac_3 << 2 |
++		      state->pdata->mode_config.dac_2 << 3 |
++		      state->pdata->mode_config.dac_1 << 4 |
++		      state->pdata->mode_config.dac_6 << 5 |
++		      state->pdata->mode_config.dac_5 << 6 |
++		      state->pdata->mode_config.dac_4 << 7;
+ 
+ 	err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+ 	if (err < 0)
+@@ -238,6 +250,17 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 
+ 	/* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+ 	val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
++
++	if (state->pdata && state->pdata->sd_config.sd_dac_out1)
++		val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
++		val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
++
++	if (state->pdata && state->pdata->sd_config.sd_dac_out2)
++		val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
++		val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
++
+ 	err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+ 	if (err < 0)
+ 		goto setoutput_exit;
+@@ -401,6 +424,9 @@ static int adv7343_probe(struct i2c_client *client,
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 
++	/* Copy board specific information here */
++	state->pdata = client->dev.platform_data;
++
+ 	state->reg00	= 0x80;
+ 	state->reg01	= 0x00;
+ 	state->reg02	= 0x20;
+diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+index d6f8a4e..944757b 100644
+--- a/include/media/adv7343.h
++++ b/include/media/adv7343.h
+@@ -20,4 +20,56 @@
+ #define ADV7343_COMPONENT_ID	(1)
+ #define ADV7343_SVIDEO_ID	(2)
+ 
++/**
++ * adv7343_power_mode - power mode configuration.
++ * @sleep_mode: on enable the current consumption is reduced to micro ampere
++ *		level. All DACs and the internal PLL circuit are disabled.
++ *		Registers can be read from and written in sleep mode.
++ * @pll_control: PLL and oversampling control. This control allows internal
++ *		 PLL 1 circuit to be powered down and the oversampling to be
++ *		 switched off.
++ * @dac_1: power on/off DAC 1.
++ * @dac_2: power on/off DAC 2.
++ * @dac_3: power on/off DAC 3.
++ * @dac_4: power on/off DAC 4.
++ * @dac_5: power on/off DAC 5.
++ * @dac_6: power on/off DAC 6.
++ *
++ * Power mode register (Register 0x0), for more info refer REGISTER MAP ACCESS
++ * section of datasheet[1], table 17 page no 30.
++ *
++ * [1] http://www.analog.com/static/imported-files/data_sheets/ADV7342_7343.pdf
++ */
++struct adv7343_power_mode {
++	bool sleep_mode;
++	bool pll_control;
++	bool dac_1;
++	bool dac_2;
++	bool dac_3;
++	bool dac_4;
++	bool dac_5;
++	bool dac_6;
++};
++
++/**
++ * struct adv7343_sd_config - SD Only Output Configuration.
++ * @sd_dac_out1: Configure SD DAC Output 1.
++ * @sd_dac_out2: Configure SD DAC Output 2.
++ */
++struct adv7343_sd_config {
++	/* SD only Output Configuration */
++	bool sd_dac_out1;
++	bool sd_dac_out2;
++};
++
++/**
++ * struct adv7343_platform_data - Platform data values and access functions.
++ * @mode_config: Configuration for power mode.
++ * @sd_config: SD Only Configuration.
++ */
++struct adv7343_platform_data {
++	struct adv7343_power_mode mode_config;
++	struct adv7343_sd_config sd_config;
++};
++
+ #endif				/* End of #ifndef ADV7343_H */
 -- 
-1.7.11.7
+1.7.4.1
 
