@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:38813 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753856Ab3ACWzo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 17:55:44 -0500
-Date: Thu, 3 Jan 2013 14:55:41 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: Don't include <plat/cpu.h>
-Message-ID: <20130103225541.GK25633@atomide.com>
-References: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54826 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab3AVX1Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 18:27:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Adriano Martins <adrianomatosmartins@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: yavta - Broken pipe
+Date: Wed, 23 Jan 2013 00:29:01 +0100
+Message-ID: <2582320.50e9nd63SM@avalon>
+In-Reply-To: <CAJRKTVphZiZyUTzmxaG_rU0Ba_08jRZAqADeFQNdQR+pZX1YQg@mail.gmail.com>
+References: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com> <2391937.KLGgbijk6r@avalon> <CAJRKTVphZiZyUTzmxaG_rU0Ba_08jRZAqADeFQNdQR+pZX1YQg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130103 13:24]:
-> The plat/*.h headers are not available to drivers in multiplatform
-> kernels. As the header isn't needed, just remove it.
+Hi Adriano,
 
-Please consider merging this for the -rc cycle, so I can make
-plat/cpu.h produce an error for omap2+ to prevent new drivers
-including it.
+On Tuesday 22 January 2013 13:48:40 Adriano Martins wrote:
+> 2013/1/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > On Tuesday 22 January 2013 09:31:58 Adriano Martins wrote:
+> >> Hello Laurent and all.
+> >> 
+> >> Can you explain me what means the message in yavta output:
+> >> 
+> >> "Unable to start streaming: Broken pipe (32)."
+> > 
+> > This means that the ISP hardware pipeline hasn't been properly configured.
+> 
+> well, I already configured it before, with:
+>
+> media-ctl -V '"OMAP3 ISP CCDC":2 [UYVY 640x480], "OMAP3 ISP preview":1
+> [UYVY 640x480], "OMAP3 ISP resizer":1 [UYVY 640x480]'
+> and
+> media-ctl -r -l '"ov5640 3-003c":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> CCDC":2->"OMAP3 ISP preview":0[1], "OMAP3 ISP \
+> preview":1->"OMAP3 ISP resizer":0[1], "OMAP3 ISP resizer":1->"OMAP3
+> ISP resizer output":0[1]'
+> Do you think it can be a hardware problem or wrong frame format from
+> sensor? Or media-ctl commands is wrong.
 
-Acked-by: Tony Lindgren <tony@atomide.com>
- 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/platform/omap3isp/isp.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> index 50cea08..07eea5b 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -71,8 +71,6 @@
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-device.h>
->  
-> -#include <plat/cpu.h>
-> -
->  #include "isp.h"
->  #include "ispreg.h"
->  #include "ispccdc.h"
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+The ISP doesn't support YUV formats at its input. If you sensor generates UYVY 
+640x480 you should capture video directly at the output of the CCDC. You will 
+need a recent version of the OMAP3 ISP driver (v3.6 or newer).
+
+> > Unlike most V4L2 devices, the OMAP3 ISP requires userspace to configure
+> > the hardware pipeline before starting the video stream. You can do so with
+> > the media-ctl utility (available at
+> > http://git.ideasonboard.org/media-ctl.git). Plenty of examples should be
+> > available online.
+> > 
+> >> I'm using omap3isp driver on DM3730 processor and a ov5640 sensor. I
+> >> configured it as parallel mode, but I can't get data from /dev/video6
+> >> (OMAP3 ISP resizer output)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
