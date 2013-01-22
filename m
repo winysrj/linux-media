@@ -1,120 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:52794 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757709Ab3AINmF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:42:05 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC 2/3] tvp514x: support asynchronous probing
-Date: Wed,  9 Jan 2013 19:11:26 +0530
-Message-Id: <1357738887-8701-3-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
-References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42135 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817Ab3AVIWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 03:22:11 -0500
+Date: Tue, 22 Jan 2013 09:21:58 +0100
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	arm@kernel.org, Javier Martin <javier.martin@vista-silicon.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 09/15] media: coda: don't build on multiplatform
+Message-ID: <20130122082158.GC9414@pengutronix.de>
+References: <1358788568-11137-1-git-send-email-arnd@arndb.de>
+ <1358788568-11137-10-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1358788568-11137-10-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both synchronous and asynchronous tvp514x subdevice probing is supported by
-this patch.
+On Mon, Jan 21, 2013 at 05:16:02PM +0000, Arnd Bergmann wrote:
+> The coda video codec driver depends on a mach-imx or mach-mxs specific
+> header file "mach/iram.h". This is not available when building for
+> multiplatform, so let us disable this driver for v3.8 when building
+> multiplatform, and hopefully find a proper fix for v3.9.
+> 
+> drivers/media/platform/coda.c:27:23: fatal error: mach/iram.h: No such file or directory
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/tvp514x.c |   20 ++++++++++++++------
- 1 files changed, 14 insertions(+), 6 deletions(-)
+I just sent a pull request for this with a proper fix.
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index aa94ebc..a4f0a70 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -34,6 +34,7 @@
- #include <linux/videodev2.h>
- #include <linux/module.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
-@@ -102,6 +103,7 @@ struct tvp514x_decoder {
- 	struct v4l2_ctrl_handler hdl;
- 	struct tvp514x_reg tvp514x_regs[ARRAY_SIZE(tvp514x_reg_list_default)];
- 	const struct tvp514x_platform_data *pdata;
-+	struct v4l2_async_subdev_list	asdl;
- 
- 	int ver;
- 	int streaming;
-@@ -941,22 +943,22 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	struct tvp514x_decoder *decoder;
- 	struct v4l2_subdev *sd;
-+	int ret;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
- 
--	if (!client->dev.platform_data) {
--		v4l2_err(client, "No platform data!!\n");
--		return -ENODEV;
--	}
--
- 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
- 	if (!decoder)
- 		return -ENOMEM;
- 
- 	/* Initialize the tvp514x_decoder with default configuration */
- 	*decoder = tvp514x_dev;
-+	if (!client->dev.platform_data) {
-+		v4l2_err(client, "No platform data!!\n");
-+		return -EPROBE_DEFER;
-+	}
- 	/* Copy default register configuration */
- 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
- 			sizeof(tvp514x_reg_list_default));
-@@ -980,6 +982,11 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
-+	decoder->asdl.subdev = &decoder->sd;
-+	decoder->asdl.dev = &client->dev;
-+	ret = v4l2_async_subdev_bind(&decoder->asdl);
-+	if (ret < 0)
-+		return ret;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
- 
- 	v4l2_ctrl_handler_init(&decoder->hdl, 5);
-@@ -1004,7 +1011,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 
- 	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
- 
--	return 0;
-+	return v4l2_async_subdev_bound(&decoder->asdl);
- 
- }
- 
-@@ -1020,6 +1027,7 @@ static int tvp514x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 
-+	v4l2_async_subdev_unbind(&decoder->asdl);
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&decoder->hdl);
- 	return 0;
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 3dcfea6..049d2b2 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -142,7 +142,7 @@ if V4L_MEM2MEM_DRIVERS
+>  
+>  config VIDEO_CODA
+>  	tristate "Chips&Media Coda multi-standard codec IP"
+> -	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC && !ARCH_MULTIPLATFORM
+
+This breakage is not multiplatform related at all, it won't compile
+without multiplatform support either. So depends on BROKEN would be
+more appropriate if you want to go this way.
+
+Sascha
+
+
 -- 
-1.7.4.1
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
