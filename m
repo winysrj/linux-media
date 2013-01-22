@@ -1,293 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:43184 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757862Ab3AINl6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:41:58 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC 1/3] davinci: vpif: capture: add V4L2-async support
-Date: Wed,  9 Jan 2013 19:11:25 +0530
-Message-Id: <1357738887-8701-2-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
-References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:60065 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752758Ab3AVKhx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 05:37:53 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH00053XW5GHG30@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Jan 2013 10:37:51 +0000 (GMT)
+Received: from [106.116.147.32] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MH000KPQW72JH30@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 Jan 2013 10:37:51 +0000 (GMT)
+Message-id: <50FE6BFB.3090102@samsung.com>
+Date: Tue, 22 Jan 2013 11:37:47 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Kamil Debski <k.debski@samsung.com>
+Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	arun.kk@samsung.com, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com, hans.verkuil@cisco.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
+ <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+ <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
+In-reply-to: <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for asynchronous subdevice probing, using the v4l2-async API.
-The legacy synchronous mode is still supported too, which allows to
-gradually update drivers and platforms. The selected approach adds a
-notifier for each struct soc_camera_device instance, i.e. for each video
-device node, even when there are multiple such instances registered with a
-single soc-camera host simultaneously.
+Hi,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/platform/davinci/vpif_capture.c |  171 ++++++++++++++++++-------
- drivers/media/platform/davinci/vpif_capture.h |    2 +
- include/media/davinci/vpif_types.h            |    2 +
- 3 files changed, 128 insertions(+), 47 deletions(-)
+On 01/21/2013 03:07 PM, Kamil Debski wrote:
+>> How about making MONOTONIC timestamps default instead, or at least
+>> assigning all drivers something else than UNKNOWN?
+> 
+> So why did you add the UNKNOWN flag?
+> 
+> The way I see it - UNKNOWN is the default and the one who coded the driver
+> will set it to either MONOTONIC or COPY if it is one of these two. It won't
+> be changed otherwise. There are drivers, which do not fill the timestamp
+> field
+> at all:
+> - drivers/media/platform/coda.c
+> - drivers/media/platform/exynos-gsc/gsc-m2m.c
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5892d2b..a8b6588 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -34,6 +34,8 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/slab.h>
-+
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-chip-ident.h>
-@@ -2054,6 +2056,96 @@ vpif_init_free_channel_objects:
- 	return err;
- }
- 
-+int vpif_async_bound(struct v4l2_async_notifier *notifier,
-+		    struct v4l2_async_subdev_list *asdl)
-+{
-+	int i = 0;
-+
-+	if (!asdl->subdev) {
-+		v4l2_err(vpif_dev->driver,
-+			 "%s(): Subdevice driver hasn't set subdev pointer!\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+	v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
-+			 asdl->subdev->name);
-+
-+	for (i = 0; i < vpif_obj.config->subdev_count; i++)
-+		if (!strcmp(vpif_obj.config->subdev_info[i].name,
-+			asdl->subdev->name)) {
-+			vpif_obj.sd[i] = asdl->subdev;
-+			break;
-+		}
-+
-+	if (i >= vpif_obj.config->subdev_count)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int vpif_probe_complete(void)
-+{
-+	struct common_obj *common;
-+	struct channel_obj *ch;
-+	int i, j, err, k;
-+
-+	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
-+		ch = vpif_obj.dev[j];
-+		ch->channel_id = j;
-+		common = &(ch->common[VPIF_VIDEO_INDEX]);
-+		spin_lock_init(&common->irqlock);
-+		mutex_init(&common->lock);
-+		ch->video_dev->lock = &common->lock;
-+		/* Initialize prio member of channel object */
-+		v4l2_prio_init(&ch->prio);
-+		video_set_drvdata(ch->video_dev, ch);
-+
-+		/* select input 0 */
-+		err = vpif_set_input(vpif_obj.config, ch, 0);
-+		if (err)
-+			goto probe_out;
-+
-+		err = video_register_device(ch->video_dev,
-+					    VFL_TYPE_GRABBER, (j ? 1 : 0));
-+		if (err)
-+			goto probe_out;
-+	}
-+
-+	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
-+	return 0;
-+
-+probe_out:
-+	for (k = 0; k < j; k++) {
-+		/* Get the pointer to the channel object */
-+		ch = vpif_obj.dev[k];
-+		/* Unregister video device */
-+		video_unregister_device(ch->video_dev);
-+	}
-+	kfree(vpif_obj.sd);
-+	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-+		ch = vpif_obj.dev[i];
-+		/* Note: does nothing if ch->video_dev == NULL */
-+		video_device_release(ch->video_dev);
-+	}
-+	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-+
-+	return err;
-+}
-+
-+int vpif_async_complete(struct v4l2_async_notifier *notifier)
-+{
-+	return vpif_probe_complete();
-+}
-+
-+void vpif_async_unbind(struct v4l2_async_notifier *notifier,
-+		    struct v4l2_async_subdev_list *asdl)
-+{
-+	/*FIXME: Do we need this callback ? */
-+	v4l2_info(&vpif_obj.v4l2_dev, "unregistered sub device %s\n",
-+			 asdl->subdev->name);
-+	return;
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -2064,12 +2156,10 @@ vpif_init_free_channel_objects:
- static __init int vpif_probe(struct platform_device *pdev)
- {
- 	struct vpif_subdev_info *subdevdata;
--	struct vpif_capture_config *config;
--	int i, j, k, err;
-+	int i, j, err;
- 	int res_idx = 0;
- 	struct i2c_adapter *i2c_adap;
- 	struct channel_obj *ch;
--	struct common_obj *common;
- 	struct video_device *vfd;
- 	struct resource *res;
- 	int subdev_count;
-@@ -2146,10 +2236,9 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		}
- 	}
- 
--	i2c_adap = i2c_get_adapter(1);
--	config = pdev->dev.platform_data;
-+	vpif_obj.config = pdev->dev.platform_data;
- 
--	subdev_count = config->subdev_count;
-+	subdev_count = vpif_obj.config->subdev_count;
- 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
- 				GFP_KERNEL);
- 	if (vpif_obj.sd == NULL) {
-@@ -2158,53 +2247,41 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_sd_error;
- 	}
- 
--	for (i = 0; i < subdev_count; i++) {
--		subdevdata = &config->subdev_info[i];
--		vpif_obj.sd[i] =
--			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
--						  i2c_adap,
--						  &subdevdata->board_info,
--						  NULL);
-+	if (!vpif_obj.config->asd_sizes) {
-+		i2c_adap = i2c_get_adapter(1);
-+		for (i = 0; i < subdev_count; i++) {
-+			subdevdata = &vpif_obj.config->subdev_info[i];
-+			vpif_obj.sd[i] =
-+				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-+							i2c_adap,
-+							&subdevdata->board_info,
-+							NULL);
- 
--		if (!vpif_obj.sd[i]) {
--			vpif_err("Error registering v4l2 subdevice\n");
--			goto probe_subdev_out;
-+			if (!vpif_obj.sd[i]) {
-+				vpif_err("Error registering v4l2 subdevice\n");
-+				goto probe_subdev_out;
-+			}
-+			v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
-+				subdevdata->name);
-+		}
-+		vpif_probe_complete();
-+	} else {
-+		vpif_obj.notifier.subdev = vpif_obj.config->asd;
-+		vpif_obj.notifier.subdev_num = vpif_obj.config->asd_sizes[0];
-+		vpif_obj.notifier.bound = vpif_async_bound;
-+		vpif_obj.notifier.complete = vpif_async_complete;
-+		vpif_obj.notifier.unbind = vpif_async_unbind;
-+		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
-+						   &vpif_obj.notifier);
-+		if (err) {
-+			vpif_err("Error registering async notifier\n");
-+			err = -EINVAL;
-+			goto vpif_sd_error;
- 		}
--		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
--			  subdevdata->name);
- 	}
- 
--	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
--		ch = vpif_obj.dev[j];
--		ch->channel_id = j;
--		common = &(ch->common[VPIF_VIDEO_INDEX]);
--		spin_lock_init(&common->irqlock);
--		mutex_init(&common->lock);
--		ch->video_dev->lock = &common->lock;
--		/* Initialize prio member of channel object */
--		v4l2_prio_init(&ch->prio);
--		video_set_drvdata(ch->video_dev, ch);
--
--		/* select input 0 */
--		err = vpif_set_input(config, ch, 0);
--		if (err)
--			goto probe_out;
--
--		err = video_register_device(ch->video_dev,
--					    VFL_TYPE_GRABBER, (j ? 1 : 0));
--		if (err)
--			goto probe_out;
--	}
--	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
- 	return 0;
- 
--probe_out:
--	for (k = 0; k < j; k++) {
--		/* Get the pointer to the channel object */
--		ch = vpif_obj.dev[k];
--		/* Unregister video device */
--		video_unregister_device(ch->video_dev);
--	}
- probe_subdev_out:
- 	/* free sub devices memory */
- 	kfree(vpif_obj.sd);
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 3d3c1e5..1be47ab 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -145,6 +145,8 @@ struct vpif_device {
- 	struct v4l2_device v4l2_dev;
- 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
- 	struct v4l2_subdev **sd;
-+	struct v4l2_async_notifier notifier;
-+	struct vpif_capture_config *config;
- };
- 
- struct vpif_config_params {
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3882e06..e08bcde 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -81,5 +81,7 @@ struct vpif_capture_config {
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
- 	const char *card_name;
-+	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-+	int *asd_sizes;		/* 0-terminated array of asd group sizes */
- };
- #endif /* _VPIF_TYPES_H */
--- 
-1.7.4.1
+Hmm, there is already a patch queued for this driver. It was intended
+for v3.8 but has been delayed to 3.9.
 
+http://git.linuxtv.org/media_tree.git/commitdiff/f60e160e126bdd8f0d928cd8b3fce54659597394
+
+> - drivers/media/platform/m2m-deinterlace.c
+> - drivers/media/platform/mx2_emmaprp.c
+> - drivers/media/platform/s5p-fimc/fimc-m2m.c
+> - drivers/media/platform/s5p-g2d.c
+> - drivers/media/platform/s5p-jpeg/jpeg-core.c
+>  
+> The way you did it in your patches left no room for any kind of choice. I
+> did
+> comment at least twice about mem-2-mem devices in your RFCs, if I remember
+> correctly. I think Sylwester was also writing about this. 
+> Still everything got marked as MONOTONIC. 
+> 
+> If we were to assume that there were no other timestamp types then monotonic
+> (which is not true, but this was your assumption), then what was the reason
+> to add this timestamp framework?
+
+Hmm, we could likely leave MONOTONIC as the default timestamp type. It
+doesn't really matter what is the default, as long as drivers are provided
+with an API to override it.
+
+The reason why the above drivers don't do anything with v4l2_buffer::timestamp
+field is there is no clear definitions at the specification for mem-to-mem
+devices. We are working here on a Video Memory-to-memory Interface DocBook
+documentation.
+
+I think we will need a way to tell user space that timestamps are copied
+from OUTPUT to CAPTURE buffer queue. At least that's what seems more
+useful for applications. i.e. copying timestamps, rather than filling them
+with the monotonic clock value.
+
+OTOH I'm not certain what's the main purpose of such copied timestamps, is
+it to identify which CAPTURE buffer comes from which OUTPUT buffer ?
+
+--
+
+Regards,
+Sylwester
