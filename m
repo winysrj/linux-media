@@ -1,84 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14863 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab3AFMmd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 07:42:33 -0500
-Date: Sun, 6 Jan 2013 10:41:57 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [GIT PULL FOR 3.9] Exynos SoC media drivers updates
-Message-ID: <20130106104157.5ffb5f6c@redhat.com>
-In-Reply-To: <50E96F6D.9080206@gmail.com>
-References: <50E726F4.7060704@samsung.com>
-	<50E75A10.8090906@gmail.com>
-	<20130106093246.36f959da@redhat.com>
-	<50E96F6D.9080206@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3614 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751789Ab3AVVCN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 16:02:13 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0ML29NT060653
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 22:02:11 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 576CC3060096
+	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 22:02:08 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130122210208.576CC3060096@alastor.dyndns.org>
+Date: Tue, 22 Jan 2013 22:02:08 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 06 Jan 2013 13:34:53 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On 01/06/2013 12:32 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 04 Jan 2013 23:39:12 +0100
-> > Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  escreveu:
-> >
-> >
-> >>> Tomasz Stanislawski (1):
-> >>>         s5p-tv: mixer: fix handling of VIDIOC_S_FMT
-> >
-> > I'll drop this one for now. Devin raised a point: such changes would break
-> > existing applications.
-> >
-> > So, we'll need to revisit this topic before changing the drivers.
-> >
-> > Btw, I failed to find the corresponding patch at patchwork:
-> > 	http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=VIDIOC_S_FMT
-> >
-> > So, its status update may be wrong after flushing your pwclient commands.
-> 
-> Hmm, I got this patch from Tomasz by e-mail and added it to the pull 
-> request.
-> I think it wasn't sent to the mailing list, but I noticed it only after
-> sending you the pull requests, when was preparing the pwclient commands.
-> I've just posted it now, sorry. The link is here:
-> http://patchwork.linuxtv.org/patch/16143
-> 
-> Tomasz created this patch specifically for the purpose of format negotiation
-> in video pipeline in the application we used to test various scenarios with
-> DMABUF. I agree this patch has a potential of breaking buggy user space
-> applications. I can't see other solution for it right now, there seems even
-> to be no possibility to return some flag in VIDIOC_S_FMT indicating that
-> format has been modified and is valid, when -EINVAL was returned. This 
-> sounds
-> ugly anyway, but could ensure backward compatibility for applications that
-> exppect EINVAL when format has been changed. BTW, I wonder if it is only 
-> fourcc,
-> or other format parameters as well - like width, height, some applications
-> expect to get EINVAL when those have changed.
+Results of the daily build of media_tree:
 
-The patch makes the driver compliant to v4l-compilance, as its behavior asks
-for such change, after some discussions we had this year in San Diego. At that
-time, we all believed that such change were safe.
+date:        Tue Jan 22 19:00:19 CET 2013
+git hash:    f66d81b54dac26d4e601d4d7faca53f3bdc98427
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-However, we can't do it like proposed there (and on other patches from Hans).
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: WARNINGS
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: ERRORS
+linux-3.0-i686: ERRORS
+linux-3.1-i686: ERRORS
+linux-3.2.1-i686: ERRORS
+linux-3.3-i686: ERRORS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: OK
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: ERRORS
+linux-3.0-x86_64: ERRORS
+linux-3.1-x86_64: ERRORS
+linux-3.2.1-x86_64: ERRORS
+linux-3.3-x86_64: ERRORS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-The fact is that tvtime and mythtv applications (maybe more) will fail 
-if the returned format is different than the requested ones, as they 
-don't check for the returned value.
+Detailed results are available here:
 
-As no regressions on userspace are allowed, we need to re-discuss this issue.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-While this doesn't happen, I'll postpone such patches.
+Full logs are available here:
 
-Comments/suggestions are welcome.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-Regards,
-Mauro
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
