@@ -1,93 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58437 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3ABLpO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 06:45:14 -0500
-Received: from avalon.ideasonboard.com (unknown [91.178.66.146])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 049E8359DC
-	for <linux-media@vger.kernel.org>; Wed,  2 Jan 2013 12:45:12 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] mt9p031: Add support for regulators
-Date: Wed,  2 Jan 2013 12:46:40 +0100
-Message-Id: <1357127200-7672-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39779 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752883Ab3AVSor (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jan 2013 13:44:47 -0500
+Date: Tue, 22 Jan 2013 20:44:43 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, arun.kk@samsung.com,
+	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, kyungmin.park@samsung.com
+Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Message-ID: <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
+ <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+ <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
+ <50FE6BFB.3090102@samsung.com>
+ <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable the regulators when powering the sensor up, and disable them when
-powering it down.
+Hi Kamil,
 
-The regulators are mandatory. Boards that don't allow controlling the
-sensor power lines must provide dummy regulators.
+On Tue, Jan 22, 2013 at 06:58:09PM +0100, Kamil Debski wrote:
+...
+> > OTOH I'm not certain what's the main purpose of such copied timestamps,
+> > is it to identify which CAPTURE buffer comes from which OUTPUT buffer ?
+> > 
+> 
+> Yes, indeed. This is especially useful when the CAPTURE buffers can be
+> returned in an order different than the order of corresponding OUTPUT
+> buffers.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/mt9p031.c |   24 ++++++++++++++++++++++++
- 1 files changed, 24 insertions(+), 0 deletions(-)
+How about sequence numbers then? Shouldn't that be also copied?
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e0bad59..ecf4492 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -19,6 +19,7 @@
- #include <linux/i2c.h>
- #include <linux/log2.h>
- #include <linux/pm.h>
-+#include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- 
-@@ -121,6 +122,10 @@ struct mt9p031 {
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 
-+	struct regulator *vaa;
-+	struct regulator *vdd;
-+	struct regulator *vdd_io;
-+
- 	enum mt9p031_model model;
- 	struct aptina_pll pll;
- 	int reset;
-@@ -264,6 +269,11 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 		usleep_range(1000, 2000);
- 	}
- 
-+	/* Bring up the supplies */
-+	regulator_enable(mt9p031->vdd);
-+	regulator_enable(mt9p031->vdd_io);
-+	regulator_enable(mt9p031->vaa);
-+
- 	/* Emable clock */
- 	if (mt9p031->pdata->set_xclk)
- 		mt9p031->pdata->set_xclk(&mt9p031->subdev,
-@@ -285,6 +295,10 @@ static void mt9p031_power_off(struct mt9p031 *mt9p031)
- 		usleep_range(1000, 2000);
- 	}
- 
-+	regulator_disable(mt9p031->vaa);
-+	regulator_disable(mt9p031->vdd_io);
-+	regulator_disable(mt9p031->vdd);
-+
- 	if (mt9p031->pdata->set_xclk)
- 		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
- }
-@@ -937,6 +951,16 @@ static int mt9p031_probe(struct i2c_client *client,
- 	mt9p031->model = did->driver_data;
- 	mt9p031->reset = -1;
- 
-+	mt9p031->vaa = devm_regulator_get(&client->dev, "vaa");
-+	mt9p031->vdd = devm_regulator_get(&client->dev, "vdd");
-+	mt9p031->vdd_io = devm_regulator_get(&client->dev, "vdd_io");
-+
-+	if (IS_ERR(mt9p031->vaa) || IS_ERR(mt9p031->vdd) ||
-+	    IS_ERR(mt9p031->vdd_io)) {
-+		dev_err(&client->dev, "Unable to get regulators\n");
-+		return -ENODEV;
-+	}
-+
- 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 6);
- 
- 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+If you're interested in the order alone, comparing the sequence numbers is a
+better way to figure out the order. That does require strict one-to-one
+mapping between the output and capture buffers, though, and that does not
+help in knowing when it might be a good time to display a frame, for
+instance.
+
 -- 
-1.7.8.6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
