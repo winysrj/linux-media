@@ -1,71 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:64565 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754292Ab3AZUy2 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38174 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752465Ab3AVKDI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jan 2013 15:54:28 -0500
-Message-ID: <5104427D.2050002@googlemail.com>
-Date: Sat, 26 Jan 2013 20:54:21 +0000
-From: Chris Clayton <chris2553@googlemail.com>
+	Tue, 22 Jan 2013 05:03:08 -0500
+Date: Tue, 22 Jan 2013 12:03:03 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, arun.kk@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, pawel@osciak.com
+Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Message-ID: <20130122100303.GM13641@valkosipuli.retiisi.org.uk>
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
+ <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+ <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
 MIME-Version: 1.0
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
-CC: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-pci@vger.kernel.org
-Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
-References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz>
-In-Reply-To: <510189B1.606@fold.natur.cuni.cz>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Hi Kamil,
 
-On 01/24/13 19:21, Martin Mokrejs wrote:
-> Hi Chris,
->    try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
-> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
->
+(Cc'ing Pawel and Marek as well.)
 
-Thanks for the tip. I had the pciehp driver installed, but it was a 
-module and not loaded. I didn't have acpiphp enabled at all. Building 
-them both in statically, appears to have papered over the cracks of the 
-oops :-)
+On Mon, Jan 21, 2013 at 03:07:55PM +0100, Kamil Debski wrote:
+> Hi,
+> 
+> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> > Sent: Saturday, January 19, 2013 6:43 PM
+> > Hi Kamil,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Mon, Jan 14, 2013 at 10:36:04AM +0100, Kamil Debski wrote:
+> > > Set proper timestamp type in drivers that I am sure that use either
+> > > MONOTONIC or COPY timestamps. Other drivers will correctly report
+> > > UNKNOWN timestamp type instead of assuming that all drivers use
+> > > monotonic timestamps.
+> > 
+> > What other kind of timestamps there can be? All drivers (at least those
+> > not
+> > mem-to-mem) that do obtain timestamps using system clock use monotonic
+> > ones.
+> 
+> Not set. It is not a COPY or MONOTONIC either. Any new or custom kind of
+> timestamp, maybe?
 
->    The best would if you subscribe to linux-pci, and read my recent threads
-> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
-> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
-> archives of linux-pci and see the pacthes and the discussion.
+Then new timestamp types should be defined for the purpose. Which is indeed
+what your patch is about.
 
-Those discussions are way above my level of knowledge. I guess all this 
-work will be merged into mainline in due course, so I'll watch for them 
-in 3.9 or later. Unless, of course, there is a tree I could clone and 
-help test the changes with my laptop and expresscard.
+And about "COPY" timestamps: if an application wants to use timestamps, it
+probably need to know what kind of timestamps they are. "COPY" doesn't
+provide that information as such. Only the program that sets the timestamps
+for the OUTPUT buffers does.
 
-Hotplug isn't working at all on my Fujitsu laptop, so I can only get the 
-card recognised by rebooting with the card inserted (or by writing 1 
-to/sys/bus/pci/rescan). There seem to be a few reports on this in the 
-kernel bugzilla, so I'll look through them and see what's being done.
+> > I'd think that there should no longer be any drivers using the UNKNOWN
+> > timestamp type: UNKNOWN is either from monotonic or realtime clock, and
+> > we just replaced all of them with the monotonic ones. No driver uses
+> > realtime timestamps anymore.
+> 
+> Maybe there should be no drivers using UNKNOWN. But definitely
+> there should be no driver reporting MONOTONIC when the timestamp is not
+> monotonic.
+>  
+> > How about making MONOTONIC timestamps default instead, or at least
+> > assigning all drivers something else than UNKNOWN?
+> 
+> So why did you add the UNKNOWN flag?
 
-Thanks again.
+This is for API compatibility only. Applications running on kernels prior to
+the headers of which define timestamp types will not have timestamp type set
+(i.e. is zero, which equals to UNKNOWN). There was a lengthy discussion on
+the topic back then, and the conclusion was that the kernel version itself
+isn't enough to tell what kind of timestamps are provided to the user.
 
-Chris
+Any new driver shouldn't use UNKNOWN timestamps since in this case the
+application would have to know what kind of timestamps the driver uses ---
+which is why we now specify it in the API.
 
-> Martin
->
-> Chris Clayton wrote:
->> Hi,
->>
->> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
->>
->> I have attached three files:
->>
->> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
->>
->> 2. the .config file for the kernel that oopsed.
->>
->> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
->>
->> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
->>
->> Chris
+> The way I see it - UNKNOWN is the default and the one who coded the driver
+> will set it to either MONOTONIC or COPY if it is one of these two. It won't
+> be changed otherwise. There are drivers, which do not fill the timestamp
+> field
+> at all:
+> - drivers/media/platform/coda.c
+> - drivers/media/platform/exynos-gsc/gsc-m2m.c
+> - drivers/media/platform/m2m-deinterlace.c
+> - drivers/media/platform/mx2_emmaprp.c
+> - drivers/media/platform/s5p-fimc/fimc-m2m.c
+> - drivers/media/platform/s5p-g2d.c
+> - drivers/media/platform/s5p-jpeg/jpeg-core.c
+
+Excellent point.
+
+But --- should these drivers then fill the timestamp field? Isn't it a bug
+in the driver not to do so?
+
+> The way you did it in your patches left no room for any kind of choice. I
+> did
+> comment at least twice about mem-2-mem devices in your RFCs, if I remember
+> correctly. I think Sylwester was also writing about this. 
+> Still everything got marked as MONOTONIC. 
+
+I must have missed this in the discussion back then.
+
+> If we were to assume that there were no other timestamp types then monotonic
+> (which is not true, but this was your assumption), then what was the reason
+> to add this timestamp framework?
+
+For capture devices whose video source has no native timestamps the
+timestamps are MONOTONIC, at least until it is made selectable. Other
+examples could include video decoders or encoders, but these timestamps will
+be entirely different kind, and probably doesn't end up to the timestamp
+field.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
