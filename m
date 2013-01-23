@@ -1,118 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f44.google.com ([209.85.212.44]:33660 "EHLO
-	mail-vb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755028Ab3ADVAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 16:00:05 -0500
-Received: by mail-vb0-f44.google.com with SMTP id fc26so16901779vbb.17
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 13:00:04 -0800 (PST)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:55695 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752162Ab3AWTdC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 14:33:02 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 12/15] em28xx: std fixes: don't implement in webcam mode, and fix std changes.
-Date: Fri,  4 Jan 2013 15:59:42 -0500
-Message-Id: <1357333186-8466-13-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 12/14] ARM: dts: Add FIMC and MIPI CSIS device nodes for
+ Exynos4x12
+Date: Wed, 23 Jan 2013 20:31:27 +0100
+Message-id: <1358969489-20420-13-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When in webcam mode the STD API shouldn't be implemented.
+Add common camera node and fimc nodes specific to Exynos4212 and
+Exynos4412 SoCs. fimc-is is a node for the Exynos4x12 FIMC-IS
+subsystem and fimc-lite nodes are created as its child nodes,
+among others due to FIMC-LITE device dependencies on FIMC-IS
+related clocks.
 
-When changing the standard the resolution wasn't updated, and there was no
-check against streaming-in-progress.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/exynos4x12.dtsi |   47 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 7c09b55..ae713a0 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -909,6 +909,8 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
- 	struct em28xx      *dev = fh->dev;
- 	int                rc;
+diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
+index 0293b6f..4e57e11 100644
+--- a/arch/arm/boot/dts/exynos4x12.dtsi
++++ b/arch/arm/boot/dts/exynos4x12.dtsi
+@@ -26,6 +26,8 @@
+ 		pinctrl1 = &pinctrl_1;
+ 		pinctrl2 = &pinctrl_2;
+ 		pinctrl3 = &pinctrl_3;
++		fimc-lite0 = &fimc_lite_0;
++		fimc-lite1 = &fimc_lite_1;
+ 	};
  
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
-@@ -924,6 +926,8 @@ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
- 	struct em28xx      *dev = fh->dev;
- 	int                rc;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
-@@ -940,15 +944,24 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
- 	struct v4l2_format f;
- 	int                rc;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
-+	if (*norm == dev->norm)
-+		return 0;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
- 
-+	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
-+		em28xx_errdev("%s queue busy\n", __func__);
-+		return -EBUSY;
-+	}
+ 	pd_isp: isp-power-domain@10023CA0 {
+@@ -220,4 +222,49 @@
+ 			reg = <0x10020704 0x8>;
+ 		};
+ 	};
 +
- 	dev->norm = *norm;
- 
- 	/* Adjusts width/height, if needed */
--	f.fmt.pix.width = dev->width;
--	f.fmt.pix.height = dev->height;
-+	f.fmt.pix.width = 720;
-+	f.fmt.pix.height = (*norm & V4L2_STD_525_60) ? 480 : 576;
- 	vidioc_try_fmt_vid_cap(file, priv, &f);
- 
- 	/* set new image size */
-@@ -1034,6 +1047,9 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 		i->type = V4L2_INPUT_TYPE_TUNER;
- 
- 	i->std = dev->vdev->tvnorms;
-+	/* webcams do not have the STD API */
-+	if (dev->board.is_webcam)
-+		i->capabilities = 0;
- 
- 	return 0;
- }
-@@ -2059,7 +2075,6 @@ static const struct video_device em28xx_video_template = {
- 	.ioctl_ops 		    = &video_ioctl_ops,
- 
- 	.tvnorms                    = V4L2_STD_ALL,
--	.current_norm               = V4L2_STD_PAL,
++	camera {
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_1: fimc@11810000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_2: fimc@11820000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_3: fimc@11830000 {
++			compatible = "samsung,exynos4212-fimc";
++		};
++
++		fimc_is: fimc-is@12000000 {
++			compatible = "samsung,exynos4212-fimc-is", "simple-bus";
++			reg = <0x12000000 0x260000>;
++			interrupts = <0 90 0>, <0 95 0>;
++			samsung,power-domain = <&pd_isp>;
++			status = "disabled";
++			#address-cells = <1>;
++			#size-cells = <1>;
++			ranges;
++
++			fimc_lite_0: fimc-lite@12390000 {
++				compatible = "samsung,exynos4212-fimc-lite";
++				reg = <0x12390000 0x1000>;
++				interrupts = <0 105 0>;
++				samsung,power-domain = <&pd_isp>;
++				status = "disabled";
++			};
++
++			fimc_lite_1: fimc-lite@123A0000 {
++				compatible = "samsung,exynos4212-fimc-lite";
++				reg = <0x123A0000 0x1000>;
++				interrupts = <0 106 0>;
++				samsung,power-domain = <&pd_isp>;
++				status = "disabled";
++			};
++		};
++	};
  };
- 
- static const struct v4l2_file_operations radio_fops = {
-@@ -2109,6 +2124,8 @@ static struct video_device *em28xx_vdev_init(struct em28xx *dev,
- 	vfd->debug	= video_debug;
- 	vfd->lock	= &dev->lock;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
-+	if (dev->board.is_webcam)
-+		vfd->tvnorms = 0;
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s",
- 		 dev->name, type_name);
-@@ -2127,7 +2144,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		dev->name, EM28XX_VERSION);
- 
- 	/* set default norm */
--	dev->norm = em28xx_video_template.current_norm;
-+	dev->norm = V4L2_STD_PAL;
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
- 	dev->interlaced = EM28XX_INTERLACED_DEFAULT;
- 
 -- 
 1.7.9.5
 
