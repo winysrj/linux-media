@@ -1,60 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55326 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195Ab3AAMxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 07:53:05 -0500
-Date: Tue, 1 Jan 2013 10:52:17 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Federico Vaga <federico.vaga@gmail.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@infradead.org>,
-	"'Pawel Osciak'" <pawel@osciak.com>,
-	"'Hans Verkuil'" <hans.verkuil@cisco.com>,
-	"'Giancarlo Asnaghi'" <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	"'Jonathan Corbet'" <corbet@lwn.net>,
-	sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3 2/4] videobuf2-dma-streaming: new videobuf2 memory
- allocator
-Message-ID: <20130101105217.63d7ca9c@redhat.com>
-In-Reply-To: <1419875.Bts6eHGtlv@number-5>
-References: <1348484332-8106-1-git-send-email-federico.vaga@gmail.com>
-	<1535483.0HokefWAdm@harkonnen>
-	<50D080B6.1020109@samsung.com>
-	<1419875.Bts6eHGtlv@number-5>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from impaqm4.telefonica.net ([213.4.138.20]:43814 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751388Ab3AWWeh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 17:34:37 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] Add lock to af9035 driver for dual mode
+Date: Wed, 23 Jan 2013 23:34:30 +0100
+Message-ID: <45300900.lplt0zG7i2@jar7.dominio>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Federico,
+Add lock to af9035 driver for dual mode.
 
-Em Thu, 20 Dec 2012 16:37:50 +0100
-Federico Vaga <federico.vaga@gmail.com> escreveu:
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-> > I can take a look at the dma coherent issues with that board, but I 
-> will
-> > need some help as I don't have this hardware.
-> 
-> I have the hardware, but I don't have the full knowledge of the 
-> boards. As I told before, I asked to windriver which develop the 
-> software for the whole board, but they cannot help me.
-> 
 
-After all those discussions, I'm ok on adding this new driver, but please
-add a summary of those discussions at the patch description. As I said,
-the reason why this driver is needed is not obvious. So, it needs to be
-very well described.
+diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c 
+linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+--- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000 
++0100
++++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-23 
+23:18:18.544788327 +0100
+@@ -824,6 +824,104 @@ static int af9035_get_adapter_count(stru
+ 	return state->dual_mode + 1;
+ }
+ 
++static int af9035_lock_set_frontend(struct dvb_frontend* fe)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].set_frontend(fe);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_get_frontend(struct dvb_frontend* fe)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].get_frontend(fe);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_read_status(struct dvb_frontend* fe, fe_status_t* 
+status)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].read_status(fe, status);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_read_ber(struct dvb_frontend* fe, u32* ber)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].read_ber(fe, ber);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_read_signal_strength(struct dvb_frontend* fe, u16* 
+strength)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].read_signal_strength(fe, strength);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_read_snr(struct dvb_frontend* fe, u16* snr)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].read_snr(fe, snr);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
++static int af9035_lock_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
++{
++       int result;
++       struct dvb_usb_adapter *adap = fe_to_adap(fe);
++       struct state *state = adap_to_priv(adap);
++
++       if (mutex_lock_interruptible(&state->fe_mutex))
++               return -EAGAIN;
++
++       result = state->fe_ops[adap->id].read_ucblocks(fe, ucblocks);
++       mutex_unlock(&state->fe_mutex);
++       return result;
++}
++
+ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct state *state = adap_to_priv(adap);
+@@ -862,6 +960,22 @@ static int af9035_frontend_attach(struct
+ 	adap->fe[0]->ops.i2c_gate_ctrl = NULL;
+ 	adap->fe[0]->callback = af9035_frontend_callback;
+ 
++       memcpy(&state->fe_ops[adap->id], &adap->fe[0]->ops, sizeof(struct 
+dvb_frontend_ops));
++       if (adap->fe[0]->ops.set_frontend)
++               adap->fe[0]->ops.set_frontend = af9035_lock_set_frontend;
++       if (adap->fe[0]->ops.get_frontend)
++               adap->fe[0]->ops.get_frontend = af9035_lock_get_frontend;
++       if (adap->fe[0]->ops.read_status)
++               adap->fe[0]->ops.read_status = af9035_lock_read_status;
++       if (adap->fe[0]->ops.read_ber)
++               adap->fe[0]->ops.read_ber = af9035_lock_read_ber;
++       if (adap->fe[0]->ops.read_signal_strength)
++               adap->fe[0]->ops.read_signal_strength = 
+af9035_lock_read_signal_strength;
++       if (adap->fe[0]->ops.read_snr)
++               adap->fe[0]->ops.read_snr = af9035_lock_read_snr;
++       if (adap->fe[0]->ops.read_ucblocks)
++               adap->fe[0]->ops.read_ucblocks = af9035_lock_read_ucblocks;
++
+ 	return 0;
+ 
+ err:
+@@ -1130,6 +1244,8 @@ static int af9035_init(struct dvb_usb_de
+ 			"packet_size=%02x\n", __func__,
+ 			d->udev->speed, frame_size, packet_size);
+ 
++	mutex_init(&state->fe_mutex);
++
+ 	/* init endpoints */
+ 	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+ 		ret = af9035_wr_reg_mask(d, tab[i].reg, tab[i].val,
+diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h 
+linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
+--- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07 05:45:57.000000000 
++0100
++++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-23 
+23:12:59.389532516 +0100
+@@ -55,6 +55,10 @@ struct state {
+ 	u8 seq; /* packet sequence number */
+ 	bool dual_mode;
+ 	struct af9033_config af9033_config[2];
++
++	struct dvb_frontend_ops fe_ops[2];
++
++	struct mutex fe_mutex;
+ };
+ 
+ u32 clock_lut[] = {
 
-Your new "v3 3/4" patch seems OK on my eyes (I can't test it, as I don't
-have the hardware). Yet, there was one merge conflict on it.
-
-Patch 1/4 of this series doesn't apply anymore (maybe it were already
-applied?).
-
-So, could you please send us a v4, rebased on the top of staging/for_v3.9
-branch of the media-tree?
-
-Thanks!
-Mauro
