@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51321 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752602Ab3AXH4z (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:57913 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754802Ab3AWNAG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 02:56:55 -0500
-Date: Thu, 24 Jan 2013 08:56:45 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Rob Clark <robdclark@gmail.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	David Airlie <airlied@linux.ie>,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Leela Krishna Amudala <leelakrishna.a@gmail.com>,
-	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
-Subject: Re: [PATCH v16 RESEND 0/7] of: add display helper
-Message-ID: <20130124075645.GA12862@pengutronix.de>
-References: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
- <CAF6AEGvFNA1gc_5XWqL_baEnn8DTn0R-xqui034rg3Eo-V_6Qw@mail.gmail.com>
- <20130123091202.GA11828@pengutronix.de>
- <CAPM=9txadRcm4j7_GryvxgosEhF8S3-1rGxqR_bw8UXMaoVWug@mail.gmail.com>
+	Wed, 23 Jan 2013 08:00:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH RFC v3 01/15] [media] Add common video interfaces OF bindings documentation
+Date: Wed, 23 Jan 2013 13:59:39 +0100
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com, devicetree-discuss@lists.ozlabs.org
+References: <1356969793-27268-2-git-send-email-s.nawrocki@samsung.com> <201301211131.11047.hverkuil@xs4all.nl> <50FFB9A4.1090300@samsung.com>
+In-Reply-To: <50FFB9A4.1090300@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPM=9txadRcm4j7_GryvxgosEhF8S3-1rGxqR_bw8UXMaoVWug@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301231359.39655.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 24, 2013 at 10:15:54AM +1000, Dave Airlie wrote:
-> >> > Hi!
-> >> >
-> >> > There was still no maintainer, that commented, ack'd, nack'd, apply'd the
-> >> > series. So, this is just a resend.
-> >> > The patches were tested with:
-> >> >
-> >> >         - v15 on Tegra by Thierry
-> >> >         - sh-mobile-lcdcfb by Laurent
-> >> >         - MX53QSB by Marek
-> >> >         - Exynos: smdk5250 by Leela
-> >> >         - AM335X EVM & AM335X EVM-SK by Afzal
-> >> >         - imx6q: sabrelite, sabresd by Philipp and me
-> >> >         - imx53: tqma53/mba53 by me
-> >>
-> >>
-> >> btw, you can add my tested-by for this series..  I've been using them
-> >> for the tilcdc lcd-panel output driver support.
-> >>
-> >
-> > Thanks. The more drivers the merrier ;-)
-> >
+On Wed 23 January 2013 11:21:24 Sylwester Nawrocki wrote:
+> Hi Hans,
 > 
-> I'll probably merge these via my tree for lack of anyone else doing
-> it. I just don't want to end up as the fbdev maintainer by default,
-
-\o/ very good to hear. Thanks.
-
-> maybe if we move the console stuff out of drivers/video to somewhere
-
-Okay. That confused me for a second, but it doesn't seem to be directed at
-me *phew*.
-
-> else I'd be willing to look after it, but the thought of maintaining
-> fbdev drivers would drive me to a liver transplant.
+> On 01/21/2013 11:31 AM, Hans Verkuil wrote:
+> [...]
+> >> +Required properties
+> >> +-------------------
+> >> +
+> >> +If there is more than one 'port' or more than one 'endpoint' node following
+> >> +properties are required in relevant parent node:
+> >> +
+> >> +- #address-cells : number of cells required to define port number, should be 1.
+> >> +- #size-cells    : should be zero.
+> >> +
+> >> +Optional endpoint properties
+> >> +----------------------------
+> >> +
+> >> +- remote-endpoint: phandle to an 'endpoint' subnode of the other device node.
+> >> +- slave-mode: a boolean property, run the link in slave mode. Default is master
+> >> +  mode.
+> >> +- bus-width: number of data lines, valid for parallel busses.
+> >> +- data-shift: on parallel data busses, if bus-width is used to specify the
+> >> +  number of data lines, data-shift can be used to specify which data lines are
+> >> +  used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2 are used.
+> >> +- hsync-active: active state of HSYNC signal, 0/1 for LOW/HIGH respectively.
+> >> +- vsync-active: active state of VSYNC signal, 0/1 for LOW/HIGH respectively.
+> >> +  Note, that if HSYNC and VSYNC polarities are not specified, embedded
+> >> +  synchronization may be required, where supported.
+> >> +- data-active: similar to HSYNC and VSYNC, specifies data line polarity.
+> >> +- field-even-active: field signal level during the even field data transmission.
+> >> +- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
+> >> +  signal.
+> >> +- data-lanes: an array of physical data lane indexes. Position of an entry
+> >> +  determines logical lane number, while the value of an entry indicates physical
+> >> +  lane, e.g. for 2-lane MIPI CSI-2 bus we could have "data-lanes = <1>, <2>;",
+> >> +  assuming the clock lane is on hardware lane 0. This property is valid for
+> >> +  serial busses only (e.g. MIPI CSI-2).
+> >> +- clock-lanes: a number of physical lane used as a clock lane.
+> > 
+> > This doesn't parse. Do you mean:
+> > 
+> > "a number of physical lanes used as clock lanes."?
 > 
-> Dave.
+> Not really, an index (an array of indexes?) of physical lanes(s) used as clock
+> lane (s).
 > 
+> Currently there are only use cases for one clock lane (MIPI CSI-2 bus).
+> I'm not sure what's better, to keep that in singular (clock-lane) or plural
+> form. The plural form seems more generic. So I'm inclined to define it as:
+> 
+> clock-lanes - similarly to 'data-lanes' property, an array of physical
+> clock lane indexes. For MIPI CSI-2 bus this array contains only one entry.
+> 
+> Would it be OK like this ?
+
+I'd go with this:
+
+- clock-lanes: an array of physical clock lane indexes. Position of an entry
+  determines the logical lane number, while the value of an entry indicates
+  physical lane, e.g. for a MIPI CSI-2 bus we could have "clock-lanes = <0>;",
+  which places the clock lane on hardware lane 0. This property is valid for
+  serial busses only (e.g. MIPI CSI-2). Note that for the MIPI CSI-2 bus this
+  array contains only one entry.
 
 Regards,
-Steffen
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+	Hans
