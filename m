@@ -1,81 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f176.google.com ([209.85.161.176]:32850 "EHLO
-	mail-gg0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757641Ab3ANSuO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43696 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755147Ab3AWNzT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 13:50:14 -0500
-Received: by mail-gg0-f176.google.com with SMTP id h3so707831gge.35
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 10:50:13 -0800 (PST)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH v2] uvc: Replace memcpy with struct assignment
-Date: Mon, 14 Jan 2013 15:22:55 -0300
-Message-Id: <1358187775-17592-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 23 Jan 2013 08:55:19 -0500
+Date: Wed, 23 Jan 2013 15:55:14 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, arun.kk@samsung.com,
+	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, kyungmin.park@samsung.com
+Subject: Re: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Message-ID: <20130123135514.GD18639@valkosipuli.retiisi.org.uk>
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
+ <040701cdf946$3a18c060$ae4a4120$%debski@samsung.com>
+ <201301231003.47396.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201301231003.47396.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This kind of memcpy() is error-prone. Its replacement with a struct
-assignment is prefered because it's type-safe and much easier to read.
+On Wed, Jan 23, 2013 at 10:03:47AM +0100, Hans Verkuil wrote:
+...
+> Right. And in my view there should be no default timestamp. Drivers should
+> always select MONOTONIC or COPY, and never UNKNOWN. The vb2 code should
+> check for that and issue a WARN_ON if no proper timestamp type was provided.
+> 
+> v4l2-compliance already checks for that as well.
 
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
-Changes from v1: 
- * Replaced a memcpy() in ucv_ctrl_add_info(),
-   originally missed by the coccinelle script.
+I agree with that.
 
- drivers/media/usb/uvc/uvc_ctrl.c |    2 +-
- drivers/media/usb/uvc/uvc_v4l2.c |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Speaking of non-vb2 drivers --- I guess there's no reason for a driver not
+to use vb2 these days. There are actually already multple reasons to use it
+instead.
 
-diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
-index 516a5b1..f2f6443 100644
---- a/drivers/media/usb/uvc/uvc_ctrl.c
-+++ b/drivers/media/usb/uvc/uvc_ctrl.c
-@@ -1839,7 +1839,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
- {
- 	int ret = 0;
- 
--	memcpy(&ctrl->info, info, sizeof(*info));
-+	ctrl->info = *info;
- 	INIT_LIST_HEAD(&ctrl->info.mappings);
- 
- 	/* Allocate an array to save control values (cur, def, max, etc.) */
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 8e05604..36e79ed 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -315,7 +315,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming *stream,
- 		goto done;
- 	}
- 
--	memcpy(&stream->ctrl, &probe, sizeof probe);
-+	stream->ctrl = probe;
- 	stream->cur_format = format;
- 	stream->cur_frame = frame;
- 
-@@ -387,7 +387,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
- 		return -EBUSY;
- 	}
- 
--	memcpy(&probe, &stream->ctrl, sizeof probe);
-+	probe = stream->ctrl;
- 	probe.dwFrameInterval =
- 		uvc_try_frame_interval(stream->cur_frame, interval);
- 
-@@ -398,7 +398,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
- 		return ret;
- 	}
- 
--	memcpy(&stream->ctrl, &probe, sizeof probe);
-+	stream->ctrl = probe;
- 	mutex_unlock(&stream->mutex);
- 
- 	/* Return the actual frame period. */
+So, vb2 drivers should choose the timestamps, and non-vb2 drivers... well,
+we shouldn't have more, but in case we do, they _must_ set the timestamp
+type, as there's no "default" since the relevant IOCTLs are handled by the
+driver itself rather than the V4L2 framework.
+
 -- 
-1.7.4.4
+Kind regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
