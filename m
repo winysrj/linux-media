@@ -1,79 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2969 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751735Ab3AaKZq (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:13305 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800Ab3AWOuW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 05:25:46 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Huang Shijie <shijie8@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 01/18] tlg2300: use correct device parent.
-Date: Thu, 31 Jan 2013 11:25:19 +0100
-Message-Id: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 23 Jan 2013 09:50:22 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH300KCV2HS4B70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jan 2013 14:50:20 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MH30064C2JIAQ90@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jan 2013 14:50:20 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, arun.kk@samsung.com,
+	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, kyungmin.park@samsung.com
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
+ <040701cdf946$3a18c060$ae4a4120$%debski@samsung.com>
+ <201301231003.47396.hverkuil@xs4all.nl>
+ <20130123135514.GD18639@valkosipuli.retiisi.org.uk>
+In-reply-to: <20130123135514.GD18639@valkosipuli.retiisi.org.uk>
+Subject: RE: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Date: Wed, 23 Jan 2013 15:50:04 +0100
+Message-id: <041f01cdf978$efa126c0$cee37440$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Set the correct parent for v4l2_device_register. Also remove an unnecessary
-forward reference and fix two weird looking log messages.
+> From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
+> Sent: Wednesday, January 23, 2013 2:55 PM
+> 
+> On Wed, Jan 23, 2013 at 10:03:47AM +0100, Hans Verkuil wrote:
+> ...
+> > Right. And in my view there should be no default timestamp. Drivers
+> > should always select MONOTONIC or COPY, and never UNKNOWN. The vb2
+> > code should check for that and issue a WARN_ON if no proper timestamp
+> type was provided.
+> >
+> > v4l2-compliance already checks for that as well.
+> 
+> I agree with that.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tlg2300/pd-main.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+I also agree. I will post patches that issue a WARN_ON.
 
-diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
-index 7b1f6eb..c4eb57a 100644
---- a/drivers/media/usb/tlg2300/pd-main.c
-+++ b/drivers/media/usb/tlg2300/pd-main.c
-@@ -55,7 +55,6 @@ MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
- 
- #define TLG2300_FIRMWARE "tlg2300_firmware.bin"
- static const char *firmware_name = TLG2300_FIRMWARE;
--static struct usb_driver poseidon_driver;
- static LIST_HEAD(pd_device_list);
- 
- /*
-@@ -316,7 +315,7 @@ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
- 		if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
- 			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
- 			pd->pm_resume = NULL; /*  a good guard */
--			printk(KERN_DEBUG "\n\t+ TLG2300 auto suspend +\n\n");
-+			printk(KERN_DEBUG "TLG2300 auto suspend\n");
- 		}
- 		return 0;
- 	}
-@@ -331,7 +330,7 @@ static int poseidon_resume(struct usb_interface *intf)
- 
- 	if (!pd)
- 		return 0;
--	printk(KERN_DEBUG "\n\t ++ TLG2300 resume ++\n\n");
-+	printk(KERN_DEBUG "TLG2300 resume\n");
- 
- 	if (!is_working(pd)) {
- 		if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
-@@ -439,7 +438,7 @@ static int poseidon_probe(struct usb_interface *interface,
- 		/* register v4l2 device */
- 		snprintf(pd->v4l2_dev.name, sizeof(pd->v4l2_dev.name), "%s %s",
- 			dev->driver->name, dev_name(dev));
--		ret = v4l2_device_register(NULL, &pd->v4l2_dev);
-+		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
- 
- 		/* register devices in directory /dev */
- 		ret = pd_video_init(pd);
-@@ -530,7 +529,7 @@ module_init(poseidon_init);
- module_exit(poseidon_exit);
- 
- MODULE_AUTHOR("Telegent Systems");
--MODULE_DESCRIPTION("For tlg2300-based USB device ");
-+MODULE_DESCRIPTION("For tlg2300-based USB device");
- MODULE_LICENSE("GPL");
- MODULE_VERSION("0.0.2");
- MODULE_FIRMWARE(TLG2300_FIRMWARE);
+> Speaking of non-vb2 drivers --- I guess there's no reason for a driver
+> not to use vb2 these days. There are actually already multple reasons
+> to use it instead.
+> 
+> So, vb2 drivers should choose the timestamps, and non-vb2 drivers...
+> well, we shouldn't have more, but in case we do, they _must_ set the
+> timestamp type, as there's no "default" since the relevant IOCTLs are
+> handled by the driver itself rather than the V4L2 framework.
+> 
+
+
+Best wishes,
 -- 
-1.7.10.4
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
 
