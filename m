@@ -1,122 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55095 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754801Ab3AYJCf (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:12771 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab3AWTdO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 04:02:35 -0500
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: devicetree-discuss@lists.ozlabs.org, Dave Airlie <airlied@linux.ie>
-Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
-	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Thierry Reding" <thierry.reding@avionic-design.de>,
-	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
-	"Stephen Warren" <swarren@wwwdotorg.org>,
-	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
-	"Rob Clark" <robdclark@gmail.com>,
-	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
-	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
-Subject: [PATCH v17 7/7] drm_modes: add of_videomode helpers
-Date: Fri, 25 Jan 2013 10:01:55 +0100
-Message-Id: <1359104515-8907-8-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
-References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
+	Wed, 23 Jan 2013 14:33:14 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 14/14] ARM: dts: Add camera device nodes nodes for PQ
+ board
+Date: Wed, 23 Jan 2013 20:31:29 +0100
+Message-id: <1358969489-20420-15-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add helper to get drm_display_mode from devicetree.
+This patch adds all nodes for camera devices on an example Exynos4412 SoC
+based board. This is all what's required in the board dts file to enable
+rear facing camera (S5C73M3 sensor).
 
-Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-Acked-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Thierry Reding <thierry.reding@avionic-design.de>
-Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Afzal Mohammed <Afzal@ti.com>
-Tested-by: Rob Clark <robclark@gmail.com>
-Tested-by: Leela Krishna Amudala <leelakrishna.a@gmail.com>
+The aliases node contains entries required for the camera processing
+data path entity drivers.
+
+The sensor nodes use standard port/remote-endpoint nodes convention.
+Internal SoC links between entities are not specified this way and
+are coded in the driver instead.
+
+The S5C73M3 sensor uses two control buses: I2C and SPI. There are
+two, i2c_0 and spi_1 bus controller child nodes assigned to it.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/gpu/drm/drm_modes.c |   33 +++++++++++++++++++++++++++++++++
- include/drm/drmP.h          |    4 ++++
- 2 files changed, 37 insertions(+)
 
-diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
-index 9f3f20b..04fa6f1 100644
---- a/drivers/gpu/drm/drm_modes.c
-+++ b/drivers/gpu/drm/drm_modes.c
-@@ -35,6 +35,7 @@
- #include <linux/export.h>
- #include <drm/drmP.h>
- #include <drm/drm_crtc.h>
-+#include <video/of_videomode.h>
- #include <video/videomode.h>
+This patch is intended as an example only.
+---
+ arch/arm/boot/dts/exynos4412-slp_pq.dts |  169 +++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
+
+diff --git a/arch/arm/boot/dts/exynos4412-slp_pq.dts b/arch/arm/boot/dts/exynos4412-slp_pq.dts
+index 0ae5162..731fc3d 100644
+--- a/arch/arm/boot/dts/exynos4412-slp_pq.dts
++++ b/arch/arm/boot/dts/exynos4412-slp_pq.dts
+@@ -113,6 +113,35 @@
+ 		};
+ 	};
  
- /**
-@@ -541,6 +542,38 @@ int drm_display_mode_from_videomode(const struct videomode *vm,
- EXPORT_SYMBOL_GPL(drm_display_mode_from_videomode);
- #endif
- 
-+#if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-+/**
-+ * of_get_drm_display_mode - get a drm_display_mode from devicetree
-+ * @np: device_node with the timing specification
-+ * @dmode: will be set to the return value
-+ * @index: index into the list of display timings in devicetree
-+ *
-+ * This function is expensive and should only be used, if only one mode is to be
-+ * read from DT. To get multiple modes start with of_get_display_timings and
-+ * work with that instead.
-+ */
-+int of_get_drm_display_mode(struct device_node *np,
-+			    struct drm_display_mode *dmode, int index)
-+{
-+	struct videomode vm;
-+	int ret;
++	i2c_0: i2c@13860000 {
++		samsung,i2c-sda-delay = <100>;
++		samsung,i2c-slave-addr = <0x10>;
++		samsung,i2c-max-bus-freq = <400000>;
++		pinctrl-0 = <&i2c0_bus>;
++		pinctrl-names = "default";
++		status = "okay";
 +
-+	ret = of_get_videomode(np, &vm, index);
-+	if (ret)
-+		return ret;
++		s5c73m3@3c {
++			compatible = "samsung,s5c73m3";
++			reg = <0x3c>;
++			gpios = <&gpm0 1 1>, /* ISP_STANDBY */
++				<&gpf1 3 1>; /* ISP_RESET */
++			vdd-int-supply = <&buck9_reg>;
++			vddio-cis-supply = <&ldo9_reg>;
++			vdda-supply = <&ldo17_reg>;
++			vddio-host-supply = <&ldo18_reg>;
++			vdd-af-supply = <&cam_af_reg>;
++			vdd-reg-supply = <&cam_io_reg>;
++			clock-frequency = <24000000>;
 +
-+	drm_display_mode_from_videomode(&vm, dmode);
++			port {
++				s5c73m3_ep: endpoint {
++					remote-endpoint = <&csis0_ep>;
++				};
++			};
++		};
++	};
 +
-+	pr_debug("%s: got %dx%d display mode from %s\n",
-+		of_node_full_name(np), vm.hactive, vm.vactive, np->name);
-+	drm_mode_debug_printmodeline(dmode);
+ 	i2c@13890000 {
+ 		samsung,i2c-sda-delay = <100>;
+ 		samsung,i2c-slave-addr = <0x10>;
+@@ -425,6 +454,34 @@
+ 		enable-active-high;
+ 	};
+ 
++	cam_af_reg: voltage-regulator@2 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_AF";
++		regulator-min-microvolt = <2800000>;
++		regulator-max-microvolt = <2800000>;
++		gpio = <&gpm0 4 0>;
++		enable-active-high;
++	};
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(of_get_drm_display_mode);
-+#endif
++	cam_io_reg: voltage-regulator@3 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_SENSOR_A";
++		regulator-min-microvolt = <2800000>;
++		regulator-max-microvolt = <2800000>;
++		gpio = <&gpm0 2 0>;
++		enable-active-high;
++	};
 +
- /**
-  * drm_mode_set_name - set the name on a mode
-  * @mode: name will be set in this mode
-diff --git a/include/drm/drmP.h b/include/drm/drmP.h
-index d5c06ff..fcc9d23 100644
---- a/include/drm/drmP.h
-+++ b/include/drm/drmP.h
-@@ -85,6 +85,7 @@ struct module;
- struct drm_file;
- struct drm_device;
- 
-+struct device_node;
- struct videomode;
- 
- #include <drm/drm_os_linux.h>
-@@ -1460,6 +1461,9 @@ drm_mode_create_from_cmdline_mode(struct drm_device *dev,
- 
- extern int drm_display_mode_from_videomode(const struct videomode *vm,
- 					   struct drm_display_mode *dmode);
-+extern int of_get_drm_display_mode(struct device_node *np,
-+				   struct drm_display_mode *dmode,
-+				   int index);
- 
- /* Modesetting support */
- extern void drm_vblank_pre_modeset(struct drm_device *dev, int crtc);
++	cam_isp_core_reg: voltage-regulator@4 {
++	        compatible = "regulator-fixed";
++		regulator-name = "CAM_ISP_CORE_1.2V_EN";
++		regulator-min-microvolt = <1200000>;
++		regulator-max-microvolt = <1200000>;
++		gpio = <&gpm0 3 0>;
++		enable-active-high;
++		regulator-always-on;
++	};
++
+ 	fimd0_lcd: panel {
+ 		compatible = "s6e8ax0";
+ 		reset-gpio = <&gpy4 5 0>;
+@@ -484,4 +541,116 @@
+ 		vusb_d-supply = <&ldo15_reg>;
+ 		vusb_a-supply = <&ldo12_reg>;
+ 	};
++
++	spi_1: spi@13930000 {
++		pinctrl-names = "default";
++		pinctrl-0 = <&spi1_bus>;
++		status = "okay";
++
++		s5c73m3_spi: s5c73m3 {
++			compatible = "samsung,s5c73m3";
++			spi-max-frequency = <50000000>;
++			reg = <0>;
++			controller-data {
++				cs-gpio = <&gpb 5 0>;
++				samsung,spi-feedback-delay = <2>;
++			};
++		};
++	};
++
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		status = "okay";
++
++		pinctrl-names = "default", "inactive";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++		pinctrl-1 = <&cam_port_a_clk_idle>;
++
++		fimc_0: fimc@11800000 {
++			clock-frequency = <176000000>;
++			status = "okay";
++		};
++
++		fimc_1: fimc@11810000 {
++			clock-frequency = <176000000>;
++			status = "okay";
++		};
++
++		fimc_2: fimc@11820000 {
++			clock-frequency = <176000000>;
++			status = "okay";
++		};
++
++		fimc_3: fimc@11830000 {
++			clock-frequency = <176000000>;
++			status = "okay";
++		};
++
++		csis_0: csis@11880000 {
++			status = "okay";
++			vddcore-supply = <&ldo8_reg>;
++			vddio-supply = <&ldo10_reg>;
++			clock-frequency = <160000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port {
++				reg = <3>;  /* Camera C(3) MIPI */
++				csis0_ep: endpoint {
++					remote-endpoint = <&s5c73m3_ep>;
++					data-lanes = <1>, <2>, <3>, <4>;
++					samsung,csis-hs-settle = <12>;
++				};
++			};
++		};
++
++		csis_1: csis@11890000 {
++			status = "okay";
++			vddcore-supply = <&ldo8_reg>;
++			vddio-supply = <&ldo10_reg>;
++			clock-frequency = <160000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++			port {
++				reg = <4>;  /* Camera D (4) CSIS1 */
++				csis1_ep: endpoint {
++					remote-endpoint = <&is_s5k6a3_ep>;
++					data-lanes = <1>;
++					samsung,csis-hs-settle = <18>;
++					samsung,csis-wclk;
++				};
++			};
++		};
++
++		fimc-is@12000000 {
++			status = "okay";
++
++			fimc_lite_0: fimc-lite@12390000 {
++				status = "okay";
++			};
++
++			fimc_lite_1: fimc-lite@123A0000 {
++				status = "okay";
++			};
++
++			fimc-is-i2c@0 {
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				s5k6a3@10 {
++					compatible = "samsung,s5k6a3";
++					reg = <0x10>;
++					svdda-supply = <&cam_io_reg>;
++					svddio-supply = <&ldo19_reg>;
++					clock-frequency = <24000000>;
++					gpios = <&gpm1 6 0>;
++					port {
++						is_s5k6a3_ep: endpoint {
++							remote-endpoint = <&csis1_ep>;
++							data-lanes = <1>;
++						};
++					};
++				};
++			};
++		};
++	};
+ };
 -- 
-1.7.10.4
+1.7.9.5
 
