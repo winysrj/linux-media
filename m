@@ -1,94 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4101 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755865Ab3AEViX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 16:38:23 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r05LcKs2082290
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 5 Jan 2013 22:38:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id EB8DA11E00C7
-	for <linux-media@vger.kernel.org>; Sat,  5 Jan 2013 22:38:18 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:62057 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752259Ab3AWWWU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 17:22:20 -0500
+Received: by mail-ee0-f48.google.com with SMTP id t10so4211190eei.7
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 14:22:18 -0800 (PST)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130105213818.EB8DA11E00C7@alastor.dyndns.org>
-Date: Sat,  5 Jan 2013 22:38:18 +0100 (CET)
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sylvester.nawrocki@gmail.com
+Subject: [PATCH RFC v3 4/6] V4L: Add v4l2_ctrl_subdev_subscribe_event() helper function
+Date: Wed, 23 Jan 2013 23:21:59 +0100
+Message-Id: <1358979721-17473-5-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add a v4l2 core helper function that can be used as the subdev
+.subscribe_event handler. This allows to eliminate some boilerplate
+from drivers that are only handling the control events.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |    9 +++++++++
+ include/media/v4l2-ctrls.h           |    5 +++++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-date:        Sat Jan  5 19:00:22 CET 2013
-git hash:    2c46bb119f13a3ebc62461dac498a7057f5b4a94
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 3f27571..9051ec5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -2885,6 +2885,15 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+ 
++int v4l2_ctrl_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				     struct v4l2_event_subscription *sub)
++{
++	if (!sd->ctrl_handler)
++		return -EINVAL;
++	return v4l2_ctrl_subscribe_event(fh, sub);
++}
++EXPORT_SYMBOL(v4l2_ctrl_subdev_subscribe_event);
++
+ unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct v4l2_fh *fh = file->private_data;
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 91125b6..1e84946 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -654,4 +654,9 @@ int v4l2_subdev_s_ext_ctrls(struct v4l2_subdev *sd, struct v4l2_ext_controls *cs
+ int v4l2_subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
+ int v4l2_subdev_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
+ 
++/* Can be used as a subscribe_event function that just subscribes control
++   events. */
++int v4l2_ctrl_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				     struct v4l2_event_subscription *sub);
++
+ #endif
+-- 
+1.7.4.1
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: OK
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: WARNINGS
-linux-3.0-i686: WARNINGS
-linux-3.1-i686: WARNINGS
-linux-3.2.1-i686: WARNINGS
-linux-3.3-i686: WARNINGS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: WARNINGS
-linux-3.0-x86_64: WARNINGS
-linux-3.1-x86_64: WARNINGS
-linux-3.2.1-x86_64: WARNINGS
-linux-3.3-x86_64: WARNINGS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
