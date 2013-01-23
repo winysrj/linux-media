@@ -1,179 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:44542 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753890Ab3AVQqs (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:35955 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751388Ab3AWTcv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 11:46:48 -0500
-Message-ID: <50FEC28F.3090100@gmail.com>
-Date: Tue, 22 Jan 2013 17:47:11 +0100
-From: Francesco Lavra <francescolavra.fl@gmail.com>
-MIME-Version: 1.0
-To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
-CC: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device reservation
- support
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com> <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
-In-Reply-To: <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 23 Jan 2013 14:32:51 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 10/14] ARM: dts: Add camera to node exynos4.dtsi
+Date: Wed, 23 Jan 2013 20:31:25 +0100
+Message-id: <1358969489-20420-11-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2013 01:34 PM, Maarten Lankhorst wrote:
-> This adds support for a generic reservations framework that can be
-> hooked up to ttm and dma-buf and allows easy sharing of reservations
-> across devices.
-> 
-> The idea is that a dma-buf and ttm object both will get a pointer
-> to a struct reservation_object, which has to be reserved before
-> anything is done with the contents of the dma-buf.
-> 
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> ---
->  Documentation/DocBook/device-drivers.tmpl |   2 +
->  drivers/base/Makefile                     |   2 +-
->  drivers/base/reservation.c                | 251 ++++++++++++++++++++++++++++++
->  include/linux/reservation.h               | 182 ++++++++++++++++++++++
->  4 files changed, 436 insertions(+), 1 deletion(-)
->  create mode 100644 drivers/base/reservation.c
->  create mode 100644 include/linux/reservation.h
-[...]
-> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
-> new file mode 100644
-> index 0000000..fc2349d
-> --- /dev/null
-> +++ b/include/linux/reservation.h
-> @@ -0,0 +1,182 @@
-> +/*
-> + * Header file for reservations for dma-buf and ttm
-> + *
-> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
-> + * Copyright (C) 2012 Canonical Ltd
-> + * Copyright (C) 2012 Texas Instruments
-> + *
-> + * Authors:
-> + * Rob Clark <rob.clark@linaro.org>
-> + * Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> + * Thomas Hellstrom <thellstrom-at-vmware-dot-com>
-> + *
-> + * Based on bo.c which bears the following copyright notice,
-> + * but is dual licensed:
-> + *
-> + * Copyright (c) 2006-2009 VMware, Inc., Palo Alto, CA., USA
-> + * All Rights Reserved.
-> + *
-> + * Permission is hereby granted, free of charge, to any person obtaining a
-> + * copy of this software and associated documentation files (the
-> + * "Software"), to deal in the Software without restriction, including
-> + * without limitation the rights to use, copy, modify, merge, publish,
-> + * distribute, sub license, and/or sell copies of the Software, and to
-> + * permit persons to whom the Software is furnished to do so, subject to
-> + * the following conditions:
-> + *
-> + * The above copyright notice and this permission notice (including the
-> + * next paragraph) shall be included in all copies or substantial portions
-> + * of the Software.
-> + *
-> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> + * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-> + * FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL
-> + * THE COPYRIGHT HOLDERS, AUTHORS AND/OR ITS SUPPLIERS BE LIABLE FOR ANY CLAIM,
-> + * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-> + * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
-> + * USE OR OTHER DEALINGS IN THE SOFTWARE.
-> + */
-> +#ifndef _LINUX_RESERVATION_H
-> +#define _LINUX_RESERVATION_H
-> +
-> +#include <linux/spinlock.h>
-> +#include <linux/mutex.h>
-> +#include <linux/fence.h>
-> +
-> +#define BUF_MAX_SHARED_FENCE 8
-> +
-> +struct fence;
-> +
-> +extern atomic_long_t reservation_counter;
-> +extern const char reservation_object_name[];
-> +extern struct lock_class_key reservation_object_class;
-> +extern const char reservation_ticket_name[];
-> +extern struct lock_class_key reservation_ticket_class;
-> +
-> +struct reservation_object {
-> +	struct ticket_mutex lock;
-> +
-> +	u32 fence_shared_count;
-> +	struct fence *fence_excl;
-> +	struct fence *fence_shared[BUF_MAX_SHARED_FENCE];
-> +};
-> +
-> +struct reservation_ticket {
-> +	unsigned long seqno;
-> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
-> +	struct lockdep_map dep_map;
-> +#endif
-> +};
-> +
-> +/**
-> + * struct reservation_entry - reservation structure for a
-> + * reservation_object
-> + * @head:	list entry
-> + * @obj_shared:	pointer to a reservation_object to reserve
-> + *
-> + * Bit 0 of obj_shared is set to bool shared, as such pointer has to be
-> + * converted back, which can be done with reservation_entry_get.
-> + */
-> +struct reservation_entry {
-> +	struct list_head head;
-> +	unsigned long obj_shared;
-> +};
-> +
-> +
-> +static inline void
-> +reservation_object_init(struct reservation_object *obj)
-> +{
-> +	obj->fence_shared_count = 0;
-> +	obj->fence_excl = NULL;
-> +
-> +	__ticket_mutex_init(&obj->lock, reservation_object_name,
-> +			    &reservation_object_class);
-> +}
-> +
-> +static inline void
-> +reservation_object_fini(struct reservation_object *obj)
-> +{
-> +	int i;
-> +
-> +	if (obj->fence_excl)
-> +		fence_put(obj->fence_excl);
-> +	for (i = 0; i < obj->fence_shared_count; ++i)
-> +		fence_put(obj->fence_shared[i]);
-> +
-> +	mutex_destroy(&obj->lock.base);
-> +}
-> +
-> +static inline void
-> +reservation_ticket_init(struct reservation_ticket *t)
-> +{
-> +#ifdef CONFIG_DEBUG_LOCK_ALLOC
-> +	/*
-> +	 * Make sure we are not reinitializing a held ticket:
-> +	 */
-> +
-> +	debug_check_no_locks_freed((void *)t, sizeof(*t));
-> +	lockdep_init_map(&t->dep_map, reservation_ticket_name,
-> +			 &reservation_ticket_class, 0);
-> +#endif
-> +	mutex_acquire(&t->dep_map, 0, 0, _THIS_IP_);
+This patch adds common FIMC device nodes for all Exynos4 SoCs.
 
-If CONFIG_DEBUG_LOCK_ALLOC is not defined, t->dep_map is not there.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4.dtsi |   64 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-> +	do {
-> +		t->seqno = atomic_long_inc_return(&reservation_counter);
-> +	} while (unlikely(!t->seqno));
-> +}
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 0ad4899..12b46e1 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -36,6 +36,12 @@
+ 		i2c5 = &i2c_5;
+ 		i2c6 = &i2c_6;
+ 		i2c7 = &i2c_7;
++		csis0 = &csis_0;
++		csis1 = &csis_1;
++		fimc0 = &fimc_0;
++		fimc1 = &fimc_1;
++		fimc2 = &fimc_2;
++		fimc3 = &fimc_3;
+ 	};
+ 
+ 	pd_mfc: mfc-power-domain@10023C40 {
+@@ -110,6 +116,64 @@
+ 		status = "disabled";
+ 	};
+ 
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		status = "disabled";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11800000 0x1000>;
++			interrupts = <0 84 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_1: fimc@11810000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11810000 0x1000>;
++			interrupts = <0 85 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_2: fimc@11820000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11820000 0x1000>;
++			interrupts = <0 86 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_3: fimc@11830000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11830000 0x1000>;
++			interrupts = <0 87 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_0: csis@11880000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11880000 0x4000>;
++			interrupts = <0 78 0>;
++			bus-width = <4>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_1: csis@11890000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11890000 0x4000>;
++			interrupts = <0 80 0>;
++			bus-width = <2>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++	};
++
+ 	watchdog@10060000 {
+ 		compatible = "samsung,s3c2410-wdt";
+ 		reg = <0x10060000 0x100>;
+-- 
+1.7.9.5
 
---
-Francesco
