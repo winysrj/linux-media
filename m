@@ -1,486 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55315 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab3AGKYI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:24:08 -0500
-Date: Mon, 7 Jan 2013 11:23:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice registration
-In-Reply-To: <1356544151-6313-2-git-send-email-g.liakhovetski@gmx.de>
-Message-ID: <Pine.LNX.4.64.1301071121280.23972@axis700.grange>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
- <1356544151-6313-2-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:34193 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754864Ab3AWRbw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 12:31:52 -0500
+Message-ID: <51001E60.4060102@iki.fi>
+Date: Wed, 23 Jan 2013 19:31:12 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Ondrej Zary <linux@rainbow-software.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
+References: <1358716939-2133-1-git-send-email-linux@rainbow-software.org> <201301210918.07199.linux@rainbow-software.org> <50FD04F9.5000401@iki.fi> <201301211928.06111.linux@rainbow-software.org>
+In-Reply-To: <201301211928.06111.linux@rainbow-software.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00 2001
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date: Fri, 19 Oct 2012 23:40:44 +0200
-Subject: [PATCH] media: V4L2: support asynchronous subdevice registration
+On 01/21/2013 08:28 PM, Ondrej Zary wrote:
+> On Monday 21 January 2013 10:06:01 Antti Palosaari wrote:
+>> On 01/21/2013 10:18 AM, Ondrej Zary wrote:
+>>> On Monday 21 January 2013, Antti Palosaari wrote:
+>>>> On 01/20/2013 11:22 PM, Ondrej Zary wrote:
+>>>>> Allow disabling I2C gate handling by external configuration.
+>>>>> This is required by cards that have all devices on a single I2C bus,
+>>>>> like AverMedia A706.
+>>>>
+>>>> My personal opinion is that I2C gate control should be disabled setting
+>>>> callback to NULL (same for the other unwanted callbacks too). There is
+>>>> checks for callback existence in DVB-core, it does not call callback if
+>>>> it is NULL.
+>>>
+>>> This is TDA8290 internal I2C gate which is used by tda8290 internally and
+>>> also by tda827x or tda18271.
+>>
+>> That sounds like there is some logical problems in the driver then, not
+>> split correctly?
+>>
+>> What I think, scenario is tda8290 is analog decoder, tda18271 is silicon
+>> tuner, which is connected (usually) to the tda8290 I2C bus. tda18271
+>> calls tda8290 I2C-gate control when needed. Analog or digital demod
+>> should not call its own I2C gate directly - and if it was done in some
+>> weird reason then it should call own callback conditionally, checking
+>> whether or not it is NULL.
+>
+> Something like this? It seems to work for both cases (I2C gate control
+> enabled and disabled) - tested with Pinnacle PCTV 110i and this AverMedia
+> A706.
 
-Currently bridge device drivers register devices for all subdevices
-synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
-is attached to a video bridge device, the bridge driver will create an I2C
-device and wait for the respective I2C driver to probe. This makes linking
-of devices straight forward, but this approach cannot be used with
-intrinsically asynchronous and unordered device registration systems like
-the Flattened Device Tree. To support such systems this patch adds an
-asynchronous subdevice registration framework to V4L2. To use it respective
-(e.g. I2C) subdevice drivers must request deferred probing as long as their
-bridge driver hasn't probed. The bridge driver during its probing submits a
-an arbitrary number of subdevice descriptor groups to the framework to
-manage. After that it can add callbacks to each of those groups to be
-called at various stages during subdevice probing, e.g. after completion.
-Then the bridge driver can request single groups to be probed, finish its
-own probing and continue its video subsystem configuration from its
-callbacks.
+Yes, that looks more what it should be. Main problem there is that this 
+driver access directly to the tuner and due to that it needs to call its 
+own gate control. It indicates that tuner is not split out from that 
+analog demod driver correctly. There is TDA8275 (RF-tuner) and TDA8275A 
+(RF-tuner) drivers integrated to that TDA8290 (analog demod) driver. 
+Third used RF-tuner is TDA18271, which is split correctly to own module. 
+As it is old driver, without a large interest, there is no idea to spend 
+time splitting those two tuners out. Anyhow, that patch looks good, but 
+is it too risky?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-v4: Fixed v4l2_async_notifier_register() for the case, when subdevices 
-probe successfully before the bridge, thanks to Prabhakar for reporting
+regards
+Antti
 
- drivers/media/v4l2-core/Makefile     |    3 +-
- drivers/media/v4l2-core/v4l2-async.c |  284 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h           |  113 ++++++++++++++
- 3 files changed, 399 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-async.c
- create mode 100644 include/media/v4l2-async.h
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index d065c01..b667ced 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -5,7 +5,8 @@
- tuner-objs	:=	tuner-core.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
-+			v4l2-async.o
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-new file mode 100644
-index 0000000..55c2ad0
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -0,0 +1,284 @@
-+/*
-+ * V4L2 asynchronous subdevice registration API
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/notifier.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/types.h>
-+
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	return hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
-+		hw_dev->match.i2c.adapter_id == client->adapter->nr &&
-+		hw_dev->match.i2c.address == client->addr;
-+}
-+
-+static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
-+{
-+	return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
-+		!strcmp(hw_dev->match.platform.name, dev_name(dev));
-+}
-+
-+static LIST_HEAD(subdev_list);
-+static LIST_HEAD(notifier_list);
-+static DEFINE_MUTEX(list_lock);
-+
-+static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-+						    struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_subdev *asd = NULL;
-+	bool (*match)(struct device *,
-+		      struct v4l2_async_hw_device *);
-+
-+	list_for_each_entry (asd, &notifier->waiting, list) {
-+		struct v4l2_async_hw_device *hw = &asd->hw;
-+		switch (hw->bus_type) {
-+		case V4L2_ASYNC_BUS_SPECIAL:
-+			match = hw->match.special.match;
-+			if (!match)
-+				/* Match always */
-+				return asd;
-+			break;
-+		case V4L2_ASYNC_BUS_PLATFORM:
-+			match = match_platform;
-+			break;
-+		case V4L2_ASYNC_BUS_I2C:
-+			match = match_i2c;
-+			break;
-+		default:
-+			/* Oops */
-+			match = NULL;
-+			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-+				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
-+		}
-+
-+		if (match && match(asdl->dev, hw))
-+			break;
-+	}
-+
-+	return asd;
-+}
-+
-+static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
-+	if (asd) {
-+		int ret;
-+		/* Remove from the waiting list */
-+		list_del(&asd->list);
-+		asdl->asd = asd;
-+		asdl->notifier = notifier;
-+
-+		if (notifier->bound) {
-+			ret = notifier->bound(notifier, asdl);
-+			if (ret < 0)
-+				return ret;
-+		}
-+		/* Move from the global subdevice list to notifier's done */
-+		list_move(&asdl->list, &notifier->done);
-+
-+		ret = v4l2_device_register_subdev(notifier->v4l2_dev,
-+						  asdl->subdev);
-+		if (ret < 0) {
-+			if (notifier->unbind)
-+				notifier->unbind(notifier, asdl);
-+			return ret;
-+		}
-+
-+		if (list_empty(&notifier->waiting) && notifier->complete)
-+			return notifier->complete(notifier);
-+
-+		return 0;
-+	}
-+
-+	return -EPROBE_DEFER;
-+}
-+
-+static struct device *v4l2_async_unbind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct device *dev = asdl->dev;
-+	v4l2_device_unregister_subdev(asdl->subdev);
-+	/* Subdevice driver will reprobe and put asdl back onto the list */
-+	list_del(&asdl->list);
-+	asdl->asd = NULL;
-+	/* If we handled USB devices, we'd have to lock the parent too */
-+	device_release_driver(dev);
-+	return dev;
-+}
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_async_subdev_list *asdl;
-+	int i;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+	INIT_LIST_HEAD(&notifier->waiting);
-+	INIT_LIST_HEAD(&notifier->done);
-+
-+	for (i = 0; i < notifier->subdev_num; i++)
-+		list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
-+
-+	mutex_lock(&list_lock);
-+
-+	/* Keep also completed notifiers on the list */
-+	list_add(&notifier->list, &notifier_list);
-+
-+	list_for_each_entry(asdl, &subdev_list, list) {
-+		int ret = v4l2_async_test_notify(notifier, asdl);
-+		if (ret < 0 && ret != -EPROBE_DEFER) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_async_notifier_register);
-+
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_async_subdev_list *asdl, *tmp;
-+	int i = 0;
-+	struct device **dev = kcalloc(notifier->subdev_num,
-+				      sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		dev_err(notifier->v4l2_dev->dev,
-+			"Failed to allocate device cache!\n");
-+
-+	mutex_lock(&list_lock);
-+
-+	list_del(&notifier->list);
-+
-+	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
-+		if (dev)
-+			dev[i++] = get_device(asdl->dev);
-+		v4l2_async_unbind(asdl);
-+
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, asdl);
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	if (dev) {
-+		while (i--) {
-+			if (dev[i] && device_attach(dev[i]) < 0)
-+				dev_err(dev[i], "Failed to re-probe to %s\n",
-+					dev[i]->driver ? dev[i]->driver->name : "(none)");
-+			put_device(dev[i]);
-+		}
-+		kfree(dev);
-+	}
-+	/*
-+	 * Don't care about the waiting list, it is initialised and populated
-+	 * upon notifier registration.
-+	 */
-+}
-+EXPORT_SYMBOL(v4l2_async_notifier_unregister);
-+
-+int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier;
-+	int ret = 0;
-+
-+	mutex_lock(&list_lock);
-+
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier,
-+								   asdl);
-+		/*
-+		 * Whether or not probing succeeds - this is the right hardware
-+		 * subdevice descriptor and we can provide it to the notifier
-+		 */
-+		if (asd) {
-+			asdl->asd = asd;
-+			if (notifier->bind)
-+				ret = notifier->bind(notifier, asdl);
-+			break;
-+		}
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_bind);
-+
-+int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier;
-+
-+	mutex_lock(&list_lock);
-+
-+	INIT_LIST_HEAD(&asdl->list);
-+
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		int ret = v4l2_async_test_notify(notifier, asdl);
-+		if (ret != -EPROBE_DEFER) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
-+	}
-+
-+	/* None matched, wait for hot-plugging */
-+	list_add(&asdl->list, &subdev_list);
-+
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_bound);
-+
-+void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_notifier *notifier = asdl->notifier;
-+	struct device *dev;
-+
-+	if (!asdl->asd)
-+		return;
-+
-+	mutex_lock(&list_lock);
-+
-+	dev = asdl->dev;
-+
-+	list_add(&asdl->asd->list, &notifier->waiting);
-+
-+	dev = get_device(asdl->dev);
-+
-+	v4l2_async_unbind(asdl);
-+
-+	if (notifier->unbind)
-+		notifier->unbind(notifier, asdl);
-+
-+	mutex_unlock(&list_lock);
-+
-+	/* Re-probe with lock released - avoid a deadlock */
-+	if (dev && device_attach(dev) < 0)
-+		dev_err(dev, "Failed to re-probe to %s\n",
-+			dev->driver ? dev->driver->name : "(none)");
-+
-+	put_device(dev);
-+}
-+EXPORT_SYMBOL(v4l2_async_subdev_unbind);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-new file mode 100644
-index 0000000..91d436d
---- /dev/null
-+++ b/include/media/v4l2-async.h
-@@ -0,0 +1,113 @@
-+/*
-+ * V4L2 asynchronous subdevice registration API
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef V4L2_ASYNC_H
-+#define V4L2_ASYNC_H
-+
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/notifier.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+struct device;
-+struct v4l2_device;
-+struct v4l2_async_notifier;
-+
-+enum v4l2_async_bus_type {
-+	V4L2_ASYNC_BUS_SPECIAL,
-+	V4L2_ASYNC_BUS_PLATFORM,
-+	V4L2_ASYNC_BUS_I2C,
-+};
-+
-+struct v4l2_async_hw_device {
-+	enum v4l2_async_bus_type bus_type;
-+	union {
-+		struct {
-+			const char *name;
-+		} platform;
-+		struct {
-+			int adapter_id;
-+			unsigned short address;
-+		} i2c;
-+		struct {
-+			bool (*match)(struct device *,
-+				      struct v4l2_async_hw_device *);
-+			void *priv;
-+		} special;
-+	} match;
-+};
-+
-+/**
-+ * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
-+ * @hw:		this device descriptor
-+ * @list:	member in a list of subdevices
-+ */
-+struct v4l2_async_subdev {
-+	struct v4l2_async_hw_device hw;
-+	struct list_head list;
-+};
-+
-+/**
-+ * v4l2_async_subdev_list - provided by subdevices
-+ * @list:	member in a list of subdevices
-+ * @dev:	hardware device
-+ * @subdev:	V4L2 subdevice
-+ * @asd:	pointer to respective struct v4l2_async_subdev
-+ * @notifier:	pointer to managing notifier
-+ */
-+struct v4l2_async_subdev_list {
-+	struct list_head list;
-+	struct device *dev;
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_notifier *notifier;
-+};
-+
-+/**
-+ * v4l2_async_notifier - provided by bridges
-+ * @subdev_num:	number of subdevices
-+ * @subdev:	array of pointers to subdevices
-+ * @v4l2_dev:	pointer to sruct v4l2_device
-+ * @waiting:	list of subdevices, waiting for their drivers
-+ * @done:	list of subdevices, already probed
-+ * @list:	member in a global list of notifiers
-+ * @bind:	a subdevice driver is about to probe one of your subdevices
-+ * @bound:	a subdevice driver has successfully probed one of your subdevices
-+ * @complete:	all your subdevices have been probed successfully
-+ * @unbind:	a subdevice is leaving
-+ */
-+struct v4l2_async_notifier {
-+	int subdev_num;
-+	struct v4l2_async_subdev **subdev;
-+	struct v4l2_device *v4l2_dev;
-+	struct list_head waiting;
-+	struct list_head done;
-+	struct list_head list;
-+	int (*bind)(struct v4l2_async_notifier *notifier,
-+		    struct v4l2_async_subdev_list *asdl);
-+	int (*bound)(struct v4l2_async_notifier *notifier,
-+		     struct v4l2_async_subdev_list *asdl);
-+	int (*complete)(struct v4l2_async_notifier *notifier);
-+	void (*unbind)(struct v4l2_async_notifier *notifier,
-+		       struct v4l2_async_subdev_list *asdl);
-+};
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier);
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-+/*
-+ * If subdevice probing fails any time after v4l2_async_subdev_bind(), no clean
-+ * up must be called. This function is only a message of intention.
-+ */
-+int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
-+int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
-+void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
-+#endif
+
+>
+> ---
+>   drivers/media/tuners/tda8290.c |   49 +++++++++++++++++++++++----------------
+>   drivers/media/tuners/tda8290.h |    1 +
+>   2 files changed, 30 insertions(+), 20 deletions(-)
+>
+> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+> index 8c48521..a2b7a9f 100644
+> --- a/drivers/media/tuners/tda8290.c
+> +++ b/drivers/media/tuners/tda8290.c
+> @@ -233,7 +233,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+>   	}
+>
+>
+> -	tda8290_i2c_bridge(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>   	if (fe->ops.tuner_ops.set_analog_params)
+>   		fe->ops.tuner_ops.set_analog_params(fe, params);
+> @@ -302,7 +303,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+>   		}
+>   	}
+>
+> -	tda8290_i2c_bridge(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>   	tuner_i2c_xfer_send(&priv->i2c_props, if_agc_set, 2);
+>   }
+>
+> @@ -424,7 +426,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+>   	tuner_i2c_xfer_send(&priv->i2c_props, blanking_mode, 2);
+>   	msleep(20);
+>
+> -	tda8295_i2c_bridge(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>   	if (fe->ops.tuner_ops.set_analog_params)
+>   		fe->ops.tuner_ops.set_analog_params(fe, params);
+> @@ -437,7 +440,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+>   	else
+>   		tuner_dbg("tda8295 not locked, no signal?\n");
+>
+> -	tda8295_i2c_bridge(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>   }
+>
+>   /*---------------------------------------------------------------------*/
+> @@ -465,11 +469,13 @@ static void tda8290_standby(struct dvb_frontend *fe)
+>   	unsigned char tda8290_agc_tri[] = { 0x02, 0x20 };
+>   	struct i2c_msg msg = {.addr = priv->tda827x_addr, .flags=0, .buf=cb1, .len = 2};
+>
+> -	tda8290_i2c_bridge(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>   	if (priv->ver & TDA8275A)
+>   		cb1[1] = 0x90;
+>   	i2c_transfer(priv->i2c_props.adap, &msg, 1);
+> -	tda8290_i2c_bridge(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>   	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_agc_tri, 2);
+>   	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_standby, 2);
+>   }
+> @@ -537,9 +543,11 @@ static void tda8290_init_tuner(struct dvb_frontend *fe)
+>   	if (priv->ver & TDA8275A)
+>   		msg.buf = tda8275a_init;
+>
+> -	tda8290_i2c_bridge(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>   	i2c_transfer(priv->i2c_props.adap, &msg, 1);
+> -	tda8290_i2c_bridge(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>   }
+>
+>   /*---------------------------------------------------------------------*/
+> @@ -565,19 +573,13 @@ static struct tda18271_config tda829x_tda18271_config = {
+>   static int tda829x_find_tuner(struct dvb_frontend *fe)
+>   {
+>   	struct tda8290_priv *priv = fe->analog_demod_priv;
+> -	struct analog_demod_ops *analog_ops = &fe->ops.analog_ops;
+>   	int i, ret, tuners_found;
+>   	u32 tuner_addrs;
+>   	u8 data;
+>   	struct i2c_msg msg = { .flags = I2C_M_RD, .buf = &data, .len = 1 };
+>
+> -	if (!analog_ops->i2c_gate_ctrl) {
+> -		printk(KERN_ERR "tda8290: no gate control were provided!\n");
+> -
+> -		return -EINVAL;
+> -	}
+> -
+> -	analog_ops->i2c_gate_ctrl(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>   	/* probe for tuner chip */
+>   	tuners_found = 0;
+> @@ -595,7 +597,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>   	   give a response now
+>   	 */
+>
+> -	analog_ops->i2c_gate_ctrl(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>
+>   	if (tuners_found > 1)
+>   		for (i = 0; i < tuners_found; i++) {
+> @@ -618,12 +621,14 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>   	priv->tda827x_addr = tuner_addrs;
+>   	msg.addr = tuner_addrs;
+>
+> -	analog_ops->i2c_gate_ctrl(fe, 1);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>   	ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
+>
+>   	if (ret != 1) {
+>   		tuner_warn("tuner access failed!\n");
+> -		analog_ops->i2c_gate_ctrl(fe, 0);
+> +		if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +			fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>   		return -EREMOTEIO;
+>   	}
+>
+> @@ -648,7 +653,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>   	if (fe->ops.tuner_ops.sleep)
+>   		fe->ops.tuner_ops.sleep(fe);
+>
+> -	analog_ops->i2c_gate_ctrl(fe, 0);
+> +	if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>
+>   	return 0;
+>   }
+> @@ -755,6 +761,9 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
+>   		       sizeof(struct analog_demod_ops));
+>   	}
+>
+> +	if (cfg && cfg->no_i2c_gate)
+> +		fe->ops.analog_ops.i2c_gate_ctrl = NULL;
+> +
+>   	if (!(cfg) || (TDA829X_PROBE_TUNER == cfg->probe_tuner)) {
+>   		tda8295_power(fe, 1);
+>   		if (tda829x_find_tuner(fe) < 0)
+> diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
+> index 7e288b2..9959cc8 100644
+> --- a/drivers/media/tuners/tda8290.h
+> +++ b/drivers/media/tuners/tda8290.h
+> @@ -26,6 +26,7 @@ struct tda829x_config {
+>   	unsigned int probe_tuner:1;
+>   #define TDA829X_PROBE_TUNER 0
+>   #define TDA829X_DONT_PROBE  1
+> +	unsigned int no_i2c_gate:1;
+>   };
+>
+>   #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
+>
+
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
