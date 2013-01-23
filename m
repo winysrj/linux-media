@@ -1,57 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:34854 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282Ab3AaLjV (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33723 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626Ab3AWIrO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 06:39:21 -0500
-Received: by mail-wg0-f43.google.com with SMTP id e12so1904072wge.34
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 03:39:19 -0800 (PST)
-Message-ID: <510A57E3.3050505@googlemail.com>
-Date: Thu, 31 Jan 2013 11:39:15 +0000
-From: Chris Clayton <chris2553@googlemail.com>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
-References: <51016937.1020202@googlemail.com>
-In-Reply-To: <51016937.1020202@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Wed, 23 Jan 2013 03:47:14 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH2001IWLQDL5C0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jan 2013 08:47:12 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MH200402LQJ2C90@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 Jan 2013 08:47:12 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, arun.kk@samsung.com,
+	mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, kyungmin.park@samsung.com
+References: <1358156164-11382-1-git-send-email-k.debski@samsung.com>
+ <1358156164-11382-4-git-send-email-k.debski@samsung.com>
+ <20130119174329.GL13641@valkosipuli.retiisi.org.uk>
+ <029c01cdf7e0$b64ce4c0$22e6ae40$%debski@samsung.com>
+ <50FE6BFB.3090102@samsung.com>
+ <03ad01cdf8ca$0dfcb580$29f62080$%debski@samsung.com>
+ <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
+In-reply-to: <20130122184442.GB18639@valkosipuli.retiisi.org.uk>
+Subject: RE: [PATCH 3/3] v4l: Set proper timestamp type in selected drivers
+ which use videobuf2
+Date: Wed, 23 Jan 2013 09:47:06 +0100
+Message-id: <040701cdf946$3a18c060$ae4a4120$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/24/13 17:02, Chris Clayton wrote:
-> Hi,
->
-> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and
-> got an Oops when I removed from the expresscard slot in my laptop. I
-> will quite understand if the response to this report is "don't do
-> that!", but in that case, how should one remove one of these cards?
->
-Just to close this down on the linux-media list, the problem was that I 
-was removing the card whilst the driver was running. (I expected to be 
-able to do so because Windows 7 seems to handle it.) The cx23885 driver 
-is not sufficiently robust to handle this sudden removal of the card. I 
-now make sure that the drivers are unloaded before removing the card.
+Hi,
 
-I'll report separately that scandvb finds no dvb-t channels :-(
+> From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
+> Sent: Tuesday, January 22, 2013 7:45 PM
+> 
+> Hi Kamil,
+> 
+> On Tue, Jan 22, 2013 at 06:58:09PM +0100, Kamil Debski wrote:
+> ...
+> > > OTOH I'm not certain what's the main purpose of such copied
+> > > timestamps, is it to identify which CAPTURE buffer comes from which
+> OUTPUT buffer ?
+> > >
+> >
+> > Yes, indeed. This is especially useful when the CAPTURE buffers can
+> be
+> > returned in an order different than the order of corresponding OUTPUT
+> > buffers.
+> 
+> How about sequence numbers then? Shouldn't that be also copied?
+> 
+> If you're interested in the order alone, comparing the sequence numbers
+> is a better way to figure out the order. That does require strict one-
+> to-one mapping between the output and capture buffers, though, and that
+> does not help in knowing when it might be a good time to display a
+> frame, for instance.
+> 
 
-Chris
+The idea behind copying the timestamp was that it can propagate the
+timestamp
+from the video stream. If this info is absent application can generate them
+and
+still be able to connect OUTPUT and CAPTURE frames. 
 
-> I have attached three files:
->
-> 1. the dmesg output from when I rebooted the machine after the oops. I
-> have turned debugging on in the dib700p and cx23885 modules via modules
-> options in /etc/modprobe.d/hvr1400.conf;
->
-> 2. the .config file for the kernel that oopsed.
->
-> 3. the text of the oops message. I've typed this up from a photograph of
-> the screen because the laptop was locked up and there was nothing in the
-> log files. Apologies for any typos, but I have tried to be careful.
->
-> Assuming the answer isn't don't do that, let me know if I can provide
-> any additional diagnostics, test any patches, etc. Please, however, cc
-> me as I'm not subscribed.
->
-> Chris
+While decoding MPEG4 it is possible to get a compressed frame saying
+"nothing
+to do here, move along" (which basically means that the last frame should be
+repeated).
+This is where increasing sequence number comes in handy. Even if no
+timestamp
+is set the application can detect such empty frames and display the decoded
+video
+correctly.
+
+Copying sequence numbers was already discussed in January 2012 IIRC. The
+recommendation
+was that the device keeps an internal sequence counter and assigns it to
+both OUTPUT and
+CAPTURE buffers, so they can be associated.
+
+I think that we're diverting from the main topic of this discussion. My
+patches fix a
+problem and the only thing that, we cannot agree about is what the default
+timestamp type
+should be.
+
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
