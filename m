@@ -1,103 +1,330 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39295 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753468Ab3AVQYb (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:35712 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490Ab3AWTcQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 11:24:31 -0500
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:6d9a::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 05E3E601E6
-	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 18:24:30 +0200 (EET)
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Wed, 23 Jan 2013 14:32:16 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] media: Add 64--32 bit compat ioctl handler
-Date: Tue, 22 Jan 2013 18:27:55 +0200
-Message-Id: <1358872076-5477-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20130122162343.GO13641@valkosipuli.retiisi.org.uk>
-References: <20130122162343.GO13641@valkosipuli.retiisi.org.uk>
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v3 04/14] s5p-fimc: Add device tree support for FIMC devices
+Date: Wed, 23 Jan 2013 20:31:19 +0100
+Message-id: <1358969489-20420-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Provide an ioctl handler for 32-bit binaries on 64-bit systems.
+This patch adds support for FIMC devices instantiated from devicetree
+for S5PV210 and Exynos4 SoCs. The FIMC IP features include colorspace
+conversion and scaling (mem-to-mem) and parallel/MIPI CSI2 bus video
+capture interface.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Multiple SoC revisions specific parameters are defined statically in
+the driver and are used for both dt and non-dt. The driver's static
+data is selected based on the compatible property. Previously the
+platform device name was used to match driver data and a specific
+SoC/IP version.
+
+Aliases are used to determine an index of the IP which is essential
+for linking FIMC IP with other entities, like MIPI-CSIS (the MIPI
+CSI-2 bus frontend) or FIMC-LITE and FIMC-IS ISP.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/media-devnode.c |   31 ++++++++++++++++++++++++++++---
- include/media/media-devnode.h |    1 +
- 2 files changed, 29 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 023b2a1..fb0f046 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -116,19 +116,41 @@ static unsigned int media_poll(struct file *filp,
- 	return mdev->fops->poll(filp, poll);
+Changes since v3:
+ - added optional clock-frequency property to specify local bus
+   (FIMCn_LCLK) clock frequency
+---
+ .../devicetree/bindings/media/soc/samsung-fimc.txt |   76 ++++++++++++++++
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |   93 +++++++++++++-------
+ 3 files changed, 140 insertions(+), 31 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+
+diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+new file mode 100644
+index 0000000..1d12142
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+@@ -0,0 +1,76 @@
++Samsung S5P/EXYNOS SoC Camera Subsystem (FIMC)
++----------------------------------------------
++
++The Exynos Camera subsystem comprises of multiple sub-devices that are
++represented by separate platform devices. Some of the IPs come in different
++variants accross the SoC revisions (FIMC) and some remain mostly unchanged
++(MIPI CSIS, FIMC-LITE).
++
++All those sub-subdevices are defined as parent nodes of the common device
++node, which also includes common properties of the whole subsystem not really
++specific to any single sub-device, like common camera port pins or external
++clocks for image sensors attached to the SoC.
++
++Common 'camera' node
++--------------------
++
++Required properties:
++
++- compatible	   : must be "samsung,fimc", "simple-bus"
++
++The 'camera' node must include at least one 'fimc' child node.
++
++
++'fimc' device nodes
++-------------------
++
++Required properties:
++
++- compatible : "samsung,s5pv210-fimc" for S5PV210,
++	       "samsung,exynos4210-fimc" for Exynos4210,
++	       "samsung,exynos4212-fimc" for Exynos4212/4412 SoCs;
++- reg	     : physical base address and size of the device memory mapped
++	       registers;
++- interrupts : FIMC interrupt to the CPU should be described here;
++
++For every fimc node a numbered alias should be present in the aliases node.
++Aliases are of the form fimc<n>, where <n> is an integer (0...N) specifying
++the IP's instance index.
++
++Optional properties
++
++ - clock-frequency - FIMC local clock (LCLK) frequency
++
++Example:
++
++	aliases {
++		csis0 = &csis_0;
++		fimc0 = &fimc_0;
++	};
++
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		status = "okay";
++
++		pinctrl-names = "default", "inactive";
++		pinctrl-0 = <&cam_port_a_clk_active>;
++		pinctrl-1 = <&cam_port_a_clk_idle>;
++
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11800000 0x1000>;
++			interrupts = <0 85 0>;
++			status = "okay";
++		};
++
++		csis_0: csis@11880000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11880000 0x1000>;
++			interrupts = <0 78 0>;
++			max-data-lanes = <4>;
++		};
++	};
++
++[1] Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 35998a3..7329e14 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -1893,7 +1893,7 @@ int fimc_initialize_capture_subdev(struct fimc_dev *fimc)
+ 
+ 	v4l2_subdev_init(sd, &fimc_subdev_ops);
+ 	sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->pdev->id);
++	snprintf(sd->name, sizeof(sd->name), "FIMC.%d", fimc->id);
+ 
+ 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+ 	fimc->vid_cap.sd_pads[FIMC_SD_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index a02cbf9..5a5d44b 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -21,6 +21,8 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/list.h>
+ #include <linux/io.h>
++#include <linux/of.h>
++#include <linux/of_device.h>
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <media/v4l2-ioctl.h>
+@@ -876,58 +878,74 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ 	return 0;
  }
  
--static long media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+static long
-+__media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg,
-+	      long (*ioctl_func)(struct file *filp, unsigned int cmd,
-+				 unsigned long arg))
++static const struct of_device_id fimc_of_match[];
++
+ static int fimc_probe(struct platform_device *pdev)
  {
- 	struct media_devnode *mdev = media_devnode_data(filp);
+-	const struct fimc_drvdata *drv_data = fimc_get_drvdata(pdev);
+-	struct s5p_platform_fimc *pdata;
++	struct fimc_drvdata *drv_data = NULL;
++	struct device *dev = &pdev->dev;
++	const struct of_device_id *of_id;
++	u32 lclk_freq = 0;
+ 	struct fimc_dev *fimc;
+ 	struct resource *res;
+ 	int ret = 0;
  
--	if (!mdev->fops->ioctl)
-+	if (!ioctl_func)
- 		return -ENOTTY;
+-	if (pdev->id >= drv_data->num_entities) {
+-		dev_err(&pdev->dev, "Invalid platform device id: %d\n",
+-			pdev->id);
+-		return -EINVAL;
+-	}
+-
+-	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
++	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
+ 	if (!fimc)
+ 		return -ENOMEM;
  
- 	if (!media_devnode_is_registered(mdev))
- 		return -EIO;
+-	fimc->id = pdev->id;
++	if (dev->of_node) {
++		of_id = of_match_node(fimc_of_match, dev->of_node);
++		if (of_id)
++			drv_data = (struct fimc_drvdata *)of_id->data;
++		fimc->id = of_alias_get_id(dev->of_node, "fimc");
++
++		of_property_read_u32(dev->of_node, "clock-frequency",
++							&lclk_freq);
++	} else {
++		drv_data = fimc_get_drvdata(pdev);
++		fimc->id = pdev->id;
++	}
++
++	if (!drv_data || fimc->id < 0 || fimc->id >= drv_data->num_entities) {
++		dev_err(dev, "Invalid driver data or device index (%d)\n",
++			fimc->id);
++		return -EINVAL;
++	}
  
--	return mdev->fops->ioctl(filp, cmd, arg);
-+	return ioctl_func(filp, cmd, arg);
-+}
-+
-+static long media_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
-+
-+	return __media_ioctl(filp, cmd, arg, mdev->fops->ioctl);
- }
+ 	fimc->variant = drv_data->variant[fimc->id];
+ 	fimc->pdev = pdev;
+-	pdata = pdev->dev.platform_data;
+-	fimc->pdata = pdata;
+-
+ 	init_waitqueue_head(&fimc->irq_queue);
+ 	spin_lock_init(&fimc->slock);
+ 	mutex_init(&fimc->lock);
  
-+#ifdef CONFIG_COMPAT
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
++	fimc->regs = devm_request_and_ioremap(dev, res);
+ 	if (fimc->regs == NULL) {
+-		dev_err(&pdev->dev, "Failed to obtain io memory\n");
++		dev_err(dev, "Failed to obtain io memory\n");
+ 		return -ENOENT;
+ 	}
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+ 	if (res == NULL) {
+-		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
++		dev_err(dev, "Failed to get IRQ resource\n");
+ 		return -ENXIO;
+ 	}
+ 
+ 	ret = fimc_clk_get(fimc);
+ 	if (ret)
+ 		return ret;
+-	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
 +
-+static long media_compat_ioctl(struct file *filp, unsigned int cmd,
-+			       unsigned long arg)
-+{
-+	struct media_devnode *mdev = media_devnode_data(filp);
++	if (lclk_freq == 0)
++		lclk_freq = drv_data->lclk_frequency;
 +
-+	return __media_ioctl(filp, cmd, arg, mdev->fops->compat_ioctl);
-+}
-+
-+#endif /* CONFIG_COMPAT */
-+
- /* Override for the open function */
- static int media_open(struct inode *inode, struct file *filp)
- {
-@@ -188,6 +210,9 @@ static const struct file_operations media_devnode_fops = {
- 	.write = media_write,
- 	.open = media_open,
- 	.unlocked_ioctl = media_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl = media_compat_ioctl,
-+#endif /* CONFIG_COMPAT */
- 	.release = media_release,
- 	.poll = media_poll,
- 	.llseek = no_llseek,
-diff --git a/include/media/media-devnode.h b/include/media/media-devnode.h
-index f6caafc..3446af2 100644
---- a/include/media/media-devnode.h
-+++ b/include/media/media-devnode.h
-@@ -46,6 +46,7 @@ struct media_file_operations {
- 	ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
- 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
- 	long (*ioctl) (struct file *, unsigned int, unsigned long);
-+	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
- 	int (*open) (struct file *);
- 	int (*release) (struct file *);
++	clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
+ 	clk_enable(fimc->clock[CLK_BUS]);
+ 
+-	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
+-			       0, dev_name(&pdev->dev), fimc);
++	ret = devm_request_irq(dev, res->start, fimc_irq_handler,
++			       0, dev_name(dev), fimc);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
++		dev_err(dev, "failed to install irq (%d)\n", ret);
+ 		goto err_clk;
+ 	}
+ 
+@@ -936,23 +954,23 @@ static int fimc_probe(struct platform_device *pdev)
+ 		goto err_clk;
+ 
+ 	platform_set_drvdata(pdev, fimc);
+-	pm_runtime_enable(&pdev->dev);
+-	ret = pm_runtime_get_sync(&pdev->dev);
++	pm_runtime_enable(dev);
++	ret = pm_runtime_get_sync(dev);
+ 	if (ret < 0)
+ 		goto err_sd;
+ 	/* Initialize contiguous memory allocator */
+-	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
++	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(fimc->alloc_ctx)) {
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+ 		goto err_pm;
+ 	}
+ 
+-	dev_dbg(&pdev->dev, "FIMC.%d registered successfully\n", fimc->id);
++	dev_dbg(dev, "FIMC.%d registered successfully\n", fimc->id);
+ 
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ 	return 0;
+ err_pm:
+-	pm_runtime_put(&pdev->dev);
++	pm_runtime_put(dev);
+ err_sd:
+ 	fimc_unregister_capture_subdev(fimc);
+ err_clk:
+@@ -1264,10 +1282,24 @@ static const struct platform_device_id fimc_driver_ids[] = {
+ 		.name		= "exynos4x12-fimc",
+ 		.driver_data	= (unsigned long)&fimc_drvdata_exynos4x12,
+ 	},
+-	{},
++	{ },
  };
+ MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
+ 
++static const struct of_device_id fimc_of_match[] = {
++	{
++		.compatible = "samsung,s5pv210-fimc",
++		.data = &fimc_drvdata_s5pv210,
++	}, {
++		.compatible = "samsung,exynos4210-fimc",
++		.data = &fimc_drvdata_exynos4210,
++	}, {
++		.compatible = "samsung,exynos4212-fimc",
++		.data = &fimc_drvdata_exynos4x12,
++	},
++	{ /* sentinel */ },
++};
++
+ static const struct dev_pm_ops fimc_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(fimc_suspend, fimc_resume)
+ 	SET_RUNTIME_PM_OPS(fimc_runtime_suspend, fimc_runtime_resume, NULL)
+@@ -1278,9 +1310,10 @@ static struct platform_driver fimc_driver = {
+ 	.remove		= __devexit_p(fimc_remove),
+ 	.id_table	= fimc_driver_ids,
+ 	.driver = {
+-		.name	= FIMC_MODULE_NAME,
+-		.owner	= THIS_MODULE,
+-		.pm     = &fimc_pm_ops,
++		.of_match_table = of_match_ptr(fimc_of_match),
++		.name		= FIMC_MODULE_NAME,
++		.owner		= THIS_MODULE,
++		.pm     	= &fimc_pm_ops,
+ 	}
+ };
+ 
 -- 
-1.7.10.4
+1.7.9.5
 
