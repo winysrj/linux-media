@@ -1,50 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:37237 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754309Ab3A1VqD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 16:46:03 -0500
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:41034 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab3AWWWS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 17:22:18 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c50so4212401eek.30
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 14:22:16 -0800 (PST)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ao2@amarulasolutions.com>,
-	linux-doc@vger.kernel.org,
-	Michael Trimarchi <michael@amarulasolutions.com>
-Subject: [PATCH 1/2] [media] Documentation/media-framework.txt: fix a sentence
-Date: Mon, 28 Jan 2013 22:45:31 +0100
-Message-Id: <1359409532-32088-2-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1359409532-32088-1-git-send-email-ospite@studenti.unina.it>
-References: <1359409532-32088-1-git-send-email-ospite@studenti.unina.it>
+Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	sylvester.nawrocki@gmail.com
+Subject: [PATCH RFC v3 3/6] V4L: Add v4l2_event_subdev_unsubscribe() helper function
+Date: Wed, 23 Jan 2013 23:21:58 +0100
+Message-Id: <1358979721-17473-4-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Antonio Ospite <ao2@amarulasolutions.com>
+Add a v4l2 core helper function that can be used as the subdev
+.unsubscribe_event handler. This allows to eliminate some
+boilerplate from drivers that are only handling the control events.
 
-Signed-off-by: Antonio Ospite <ao2@amarulasolutions.com>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 ---
+ drivers/media/v4l2-core/v4l2-event.c |    7 +++++++
+ include/media/v4l2-event.h           |    4 +++-
+ 2 files changed, 10 insertions(+), 1 deletions(-)
 
-Hi,
-
-Actually I am not 100% sure whether the old form was correct English
-already or not but the new one sounds better to me.
-
-Thanks,
-   Antonio
-
- Documentation/media-framework.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 8028754..77bd0a4 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -336,7 +336,7 @@ Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
- be identical for all nested calls to the function.
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index c720092..86dcb54 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -311,3 +311,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_unsubscribe);
++
++int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				  struct v4l2_event_subscription *sub)
++{
++	return v4l2_event_unsubscribe(fh, sub);
++}
++EXPORT_SYMBOL_GPL(v4l2_event_subdev_unsubscribe);
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index eff85f9..be05d01 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -64,6 +64,7 @@
+  */
  
- media_entity_pipeline_start() may return an error. In that case, it will
--clean up any the changes it did by itself.
-+clean up any of the changes it did by itself.
+ struct v4l2_fh;
++struct v4l2_subdev;
+ struct v4l2_subscribed_event;
+ struct video_device;
  
- When stopping the stream, drivers must notify the entities with
- 
+@@ -129,5 +130,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			   const struct v4l2_event_subscription *sub);
+ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
+-
++int v4l2_event_subdev_unsubscribe(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				  struct v4l2_event_subscription *sub);
+ #endif /* V4L2_EVENT_H */
 -- 
-1.7.10.4
+1.7.4.1
 
