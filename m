@@ -1,144 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:45794 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754175Ab3AOIBD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 03:01:03 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH] media: adv7343: accept configuration through platform data
-Date: Tue, 15 Jan 2013 13:30:53 +0530
-Message-Id: <1358236853-2467-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38953 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751513Ab3AWWhD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 17:37:03 -0500
+Message-ID: <510065E9.7070702@iki.fi>
+Date: Thu, 24 Jan 2013 00:36:25 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add lock to af9035 driver for dual mode
+References: <45300900.lplt0zG7i2@jar7.dominio>
+In-Reply-To: <45300900.lplt0zG7i2@jar7.dominio>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current code was implemented with some default configurations,
-this default configuration works on board and doesn't work on other.
+On 01/24/2013 12:34 AM, Jose Alberto Reguero wrote:
+> Add lock to af9035 driver for dual mode.
 
-This patch accepts the configuration through platform data and configures
-the encoder depending on the data set.
+May I ask why you do that?
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
----
- drivers/media/i2c/adv7343.c |   36 +++++++++++++++++++++++++++++++-----
- include/media/adv7343.h     |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 63 insertions(+), 5 deletions(-)
+regards
+Antti
 
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index 2b5aa67..a058058 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -43,6 +43,7 @@ MODULE_PARM_DESC(debug, "Debug level 0-1");
- struct adv7343_state {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
-+	const struct adv7343_platform_data *pdata;
- 	u8 reg00;
- 	u8 reg01;
- 	u8 reg02;
-@@ -215,12 +216,23 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
- 	/* Enable Appropriate DAC */
- 	val = state->reg00 & 0x03;
- 
--	if (output_type == ADV7343_COMPOSITE_ID)
--		val |= ADV7343_COMPOSITE_POWER_VALUE;
--	else if (output_type == ADV7343_COMPONENT_ID)
--		val |= ADV7343_COMPONENT_POWER_VALUE;
-+	/* configure default configuration */
-+	if (!state->pdata)
-+		if (output_type == ADV7343_COMPOSITE_ID)
-+			val |= ADV7343_COMPOSITE_POWER_VALUE;
-+		else if (output_type == ADV7343_COMPONENT_ID)
-+			val |= ADV7343_COMPONENT_POWER_VALUE;
-+		else
-+			val |= ADV7343_SVIDEO_POWER_VALUE;
- 	else
--		val |= ADV7343_SVIDEO_POWER_VALUE;
-+		val = state->pdata->mode_config.sleep_mode << 0 |
-+		      state->pdata->mode_config.pll_control << 1 |
-+		      state->pdata->mode_config.dac_3 << 2 |
-+		      state->pdata->mode_config.dac_2 << 3 |
-+		      state->pdata->mode_config.dac_1 << 4 |
-+		      state->pdata->mode_config.dac_6 << 5 |
-+		      state->pdata->mode_config.dac_5 << 6 |
-+		      state->pdata->mode_config.dac_4 << 7;
- 
- 	err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
- 	if (err < 0)
-@@ -238,6 +250,17 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
- 
- 	/* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
- 	val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
-+
-+	if (state->pdata && state->pdata->sd_config.sd_dac_out1)
-+		val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
-+	else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
-+		val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
-+
-+	if (state->pdata && state->pdata->sd_config.sd_dac_out2)
-+		val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
-+	else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
-+		val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
-+
- 	err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
- 	if (err < 0)
- 		goto setoutput_exit;
-@@ -401,6 +424,9 @@ static int adv7343_probe(struct i2c_client *client,
- 	if (state == NULL)
- 		return -ENOMEM;
- 
-+	/* Copy board specific information here */
-+	state->pdata = client->dev.platform_data;
-+
- 	state->reg00	= 0x80;
- 	state->reg01	= 0x00;
- 	state->reg02	= 0x20;
-diff --git a/include/media/adv7343.h b/include/media/adv7343.h
-index d6f8a4e..8086e46 100644
---- a/include/media/adv7343.h
-+++ b/include/media/adv7343.h
-@@ -20,4 +20,36 @@
- #define ADV7343_COMPONENT_ID	(1)
- #define ADV7343_SVIDEO_ID	(2)
- 
-+struct adv7343_power_mode {
-+	bool sleep_mode;
-+	bool pll_control;
-+	bool dac_1;
-+	bool dac_2;
-+	bool dac_3;
-+	bool dac_4;
-+	bool dac_5;
-+	bool dac_6;
-+};
-+
-+/**
-+ * struct adv7343_sd_config - SD Only Output Configuration.
-+ * @sd_dac_out1: Configure SD DAC Output 1.
-+ * @sd_dac_out2: Configure SD DAC Output 2.
-+ */
-+struct adv7343_sd_config {
-+	/* SD only Output Configuration */
-+	bool sd_dac_out1;
-+	bool sd_dac_out2;
-+};
-+
-+/**
-+ * struct adv7343_platform_data - Platform data values and access functions.
-+ * @mode_config: Configuration for power mode.
-+ * @sd_config: SD Only Configuration.
-+ */
-+struct adv7343_platform_data {
-+	struct adv7343_power_mode mode_config;
-+	struct adv7343_sd_config sd_config;
-+};
-+
- #endif				/* End of #ifndef ADV7343_H */
+>
+> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+>
+>
+> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000
+> +0100
+> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-23
+> 23:18:18.544788327 +0100
+> @@ -824,6 +824,104 @@ static int af9035_get_adapter_count(stru
+>   	return state->dual_mode + 1;
+>   }
+>
+> +static int af9035_lock_set_frontend(struct dvb_frontend* fe)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].set_frontend(fe);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_get_frontend(struct dvb_frontend* fe)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].get_frontend(fe);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_read_status(struct dvb_frontend* fe, fe_status_t*
+> status)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].read_status(fe, status);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_read_ber(struct dvb_frontend* fe, u32* ber)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].read_ber(fe, ber);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_read_signal_strength(struct dvb_frontend* fe, u16*
+> strength)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].read_signal_strength(fe, strength);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_read_snr(struct dvb_frontend* fe, u16* snr)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].read_snr(fe, snr);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+> +static int af9035_lock_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+> +{
+> +       int result;
+> +       struct dvb_usb_adapter *adap = fe_to_adap(fe);
+> +       struct state *state = adap_to_priv(adap);
+> +
+> +       if (mutex_lock_interruptible(&state->fe_mutex))
+> +               return -EAGAIN;
+> +
+> +       result = state->fe_ops[adap->id].read_ucblocks(fe, ucblocks);
+> +       mutex_unlock(&state->fe_mutex);
+> +       return result;
+> +}
+> +
+>   static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+>   {
+>   	struct state *state = adap_to_priv(adap);
+> @@ -862,6 +960,22 @@ static int af9035_frontend_attach(struct
+>   	adap->fe[0]->ops.i2c_gate_ctrl = NULL;
+>   	adap->fe[0]->callback = af9035_frontend_callback;
+>
+> +       memcpy(&state->fe_ops[adap->id], &adap->fe[0]->ops, sizeof(struct
+> dvb_frontend_ops));
+> +       if (adap->fe[0]->ops.set_frontend)
+> +               adap->fe[0]->ops.set_frontend = af9035_lock_set_frontend;
+> +       if (adap->fe[0]->ops.get_frontend)
+> +               adap->fe[0]->ops.get_frontend = af9035_lock_get_frontend;
+> +       if (adap->fe[0]->ops.read_status)
+> +               adap->fe[0]->ops.read_status = af9035_lock_read_status;
+> +       if (adap->fe[0]->ops.read_ber)
+> +               adap->fe[0]->ops.read_ber = af9035_lock_read_ber;
+> +       if (adap->fe[0]->ops.read_signal_strength)
+> +               adap->fe[0]->ops.read_signal_strength =
+> af9035_lock_read_signal_strength;
+> +       if (adap->fe[0]->ops.read_snr)
+> +               adap->fe[0]->ops.read_snr = af9035_lock_read_snr;
+> +       if (adap->fe[0]->ops.read_ucblocks)
+> +               adap->fe[0]->ops.read_ucblocks = af9035_lock_read_ucblocks;
+> +
+>   	return 0;
+>
+>   err:
+> @@ -1130,6 +1244,8 @@ static int af9035_init(struct dvb_usb_de
+>   			"packet_size=%02x\n", __func__,
+>   			d->udev->speed, frame_size, packet_size);
+>
+> +	mutex_init(&state->fe_mutex);
+> +
+>   	/* init endpoints */
+>   	for (i = 0; i < ARRAY_SIZE(tab); i++) {
+>   		ret = af9035_wr_reg_mask(d, tab[i].reg, tab[i].val,
+> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
+> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
+> --- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07 05:45:57.000000000
+> +0100
+> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-23
+> 23:12:59.389532516 +0100
+> @@ -55,6 +55,10 @@ struct state {
+>   	u8 seq; /* packet sequence number */
+>   	bool dual_mode;
+>   	struct af9033_config af9033_config[2];
+> +
+> +	struct dvb_frontend_ops fe_ops[2];
+> +
+> +	struct mutex fe_mutex;
+>   };
+>
+>   u32 clock_lut[] = {
+>
+
+
 -- 
-1.7.4.1
-
+http://palosaari.fi/
