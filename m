@@ -1,61 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50902 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753580Ab3ACSe3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:34:29 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 1/3] sh_vou: Don't modify const variable in sh_vou_s_crop()
-Date: Thu,  3 Jan 2013 19:35:55 +0100
-Message-Id: <1357238157-18115-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19063 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750899Ab3AWVF7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 16:05:59 -0500
+Date: Wed, 23 Jan 2013 19:05:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.8-rc5] media fixes
+Message-ID: <20130123190545.781e4468@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The crop rectangle is const, make a local copy instead of modifying it.
+Hi Linus,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/sh_vou.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 85fd312..43278de 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -937,7 +937,7 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct sh_vou_device *vou_dev = video_get_drvdata(vdev);
--	struct v4l2_rect *rect = &a->c;
-+	const struct v4l2_rect *rect = &a->c;
- 	struct v4l2_crop sd_crop = {.type = V4L2_BUF_TYPE_VIDEO_OUTPUT};
- 	struct v4l2_pix_format *pix = &vou_dev->pix;
- 	struct sh_vou_geometry geo;
-@@ -961,16 +961,16 @@ static int sh_vou_s_crop(struct file *file, void *fh, const struct v4l2_crop *a)
- 	else
- 		img_height_max = 576;
- 
--	v4l_bound_align_image(&rect->width, 0, VOU_MAX_IMAGE_WIDTH, 1,
--			      &rect->height, 0, img_height_max, 1, 0);
-+	geo.output = *rect;
-+	v4l_bound_align_image(&geo.output.width, 0, VOU_MAX_IMAGE_WIDTH, 1,
-+			      &geo.output.height, 0, img_height_max, 1, 0);
- 
--	if (rect->width + rect->left > VOU_MAX_IMAGE_WIDTH)
--		rect->left = VOU_MAX_IMAGE_WIDTH - rect->width;
-+	if (geo.output.width + geo.output.left > VOU_MAX_IMAGE_WIDTH)
-+		geo.output.left = VOU_MAX_IMAGE_WIDTH - geo.output.width;
- 
--	if (rect->height + rect->top > img_height_max)
--		rect->top = img_height_max - rect->height;
-+	if (geo.output.height + geo.output.top > img_height_max)
-+		geo.output.top = img_height_max - geo.output.height;
- 
--	geo.output = *rect;
- 	geo.in_width = pix->width;
- 	geo.in_height = pix->height;
- 
--- 
-1.7.8.6
+For some fixes:
+	- gspca: add needed delay for I2C traffic for sonixb/sonixj cameras;
+	- gspca: add one missing Kinect USB ID;
+	- usbvideo: some regression fixes;
+	- omap3isp: fix some build issues;
+	- videobuf2: fix video output handling;
+	- exynos s5p/m5mols: a few regression fixes.
+
+Thank you!
+Mauro
+
+-
+The following changes since commit 9931faca02c604c22335f5a935a501bb2ace6e20:
+
+  Linux 3.8-rc3 (2013-01-09 18:59:55 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to 68d6f84ba0c47e658beff3a4bf0c43acee4b4690:
+
+  [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures (2013-01-11 13:30:27 -0200)
+
+----------------------------------------------------------------
+Hans de Goede (2):
+      [media] gspca_sonixb: Properly wait between i2c writes
+      [media] gspca_sonixj: Add a small delay after i2c_w1
+
+Jacob Schloss (1):
+      [media] gspca_kinect: add Kinect for Windows USB id
+
+Kamil Debski (1):
+      [media] s5p-mfc: Fix interrupt error handling routine
+
+Laurent Pinchart (6):
+      [media] [FOR,v3.8] omap3isp: Don't include deleted OMAP plat/ header files
+      [media] v4l: vb2: Set data_offset to 0 for single-plane output buffers
+      [media] omap3isp: Don't include <plat/cpu.h>
+      [media] uvcvideo: Return -EACCES when trying to set a read-only control
+      [media] uvcvideo: Cleanup leftovers of partial revert
+      [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures
+
+Mauro Carvalho Chehab (1):
+      Merge tag 'v3.8-rc3' into v4l_for_linus
+
+Sylwester Nawrocki (2):
+      [media] m5mols: Fix typo in get_fmt callback
+      [media] s5p-fimc: Fix return value of __fimc_md_create_flite_source_links()
+
+ drivers/media/i2c/m5mols/m5mols_core.c         |  2 +-
+ drivers/media/platform/omap3isp/ispvideo.c     |  3 -
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c       | 88 +++++++++++---------------
+ drivers/media/usb/gspca/kinect.c               |  1 +
+ drivers/media/usb/gspca/sonixb.c               | 13 ++--
+ drivers/media/usb/gspca/sonixj.c               |  1 +
+ drivers/media/usb/uvc/uvc_ctrl.c               |  4 +-
+ drivers/media/usb/uvc/uvc_v4l2.c               |  6 +-
+ drivers/media/v4l2-core/videobuf2-core.c       |  4 +-
+ 10 files changed, 57 insertions(+), 67 deletions(-)
 
