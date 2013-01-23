@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3754 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874Ab3AUJke (ORCPT
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:47678 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755362Ab3AWOFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 04:40:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH] noon010p30: Remove unneeded v4l2 control compatibility ops
-Date: Mon, 21 Jan 2013 10:40:24 +0100
-Cc: linux-media@vger.kernel.org
-References: <1358631493-12822-1-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1358631493-12822-1-git-send-email-sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301211040.24755.hverkuil@xs4all.nl>
+	Wed, 23 Jan 2013 09:05:07 -0500
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Federico Vaga <federico.vaga@gmail.com>
+Subject: [PATCH v6 2/2] adv7180: remove {query/g_/s_}ctrl
+Date: Wed, 23 Jan 2013 15:07:07 +0100
+Message-Id: <1358950027-27419-2-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1358950027-27419-1-git-send-email-federico.vaga@gmail.com>
+References: <1358950027-27419-1-git-send-email-federico.vaga@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat January 19 2013 22:38:13 Sylwester Nawrocki wrote:
-> All host drivers using this subdev driver are already converted
-> to use the control framework so the compatibility ops can be dropped.
-> 
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+All drivers which use this subdevice use also the control framework.
+The v4l2_subdev_core_ops operations {query/g_/s_}ctrl are useless because
+device drivers will inherit controls from this subdevice.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+---
+ drivers/media/i2c/adv7180.c | 3 ---
+ 1 file modificato, 3 rimozioni(-)
 
-Regards,
+diff --git a/drivers/media/i2c/adv7180.c b/drivers/media/i2c/adv7180.c
+index 45ecf8d..43bc2b9 100644
+--- a/drivers/media/i2c/adv7180.c
++++ b/drivers/media/i2c/adv7180.c
+@@ -402,9 +402,6 @@ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+ 	.g_chip_ident = adv7180_g_chip_ident,
+ 	.s_std = adv7180_s_std,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+ };
+ 
+ static const struct v4l2_subdev_ops adv7180_ops = {
+-- 
+1.7.11.7
 
-	Hans
-
-> ---
->  drivers/media/i2c/noon010pc30.c |    7 -------
->  1 files changed, 0 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
-> index 440c129..8554b47 100644
-> --- a/drivers/media/i2c/noon010pc30.c
-> +++ b/drivers/media/i2c/noon010pc30.c
-> @@ -660,13 +660,6 @@ static const struct v4l2_ctrl_ops noon010_ctrl_ops = {
->  
->  static const struct v4l2_subdev_core_ops noon010_core_ops = {
->  	.s_power	= noon010_s_power,
-> -	.g_ctrl		= v4l2_subdev_g_ctrl,
-> -	.s_ctrl		= v4l2_subdev_s_ctrl,
-> -	.queryctrl	= v4l2_subdev_queryctrl,
-> -	.querymenu	= v4l2_subdev_querymenu,
-> -	.g_ext_ctrls	= v4l2_subdev_g_ext_ctrls,
-> -	.try_ext_ctrls	= v4l2_subdev_try_ext_ctrls,
-> -	.s_ext_ctrls	= v4l2_subdev_s_ext_ctrls,
->  	.log_status	= noon010_log_status,
->  };
->  
-> 
