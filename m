@@ -1,109 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57735 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755285Ab3AQJe0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 04:34:26 -0500
-Message-ID: <50F7C57A.6090703@iki.fi>
-Date: Thu, 17 Jan 2013 11:33:46 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-In-Reply-To: <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:12968 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750899Ab3AWTjB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 14:39:01 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH300KZ4FX0TMR0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:39:00 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MH30050KFWS1A70@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:39:00 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] s5p-fimc: Check return value of clk_enable/clk_set_rate
+Date: Wed, 23 Jan 2013 20:38:50 +0100
+Message-id: <1358969930-20615-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/17/2013 05:40 AM, Manu Abraham wrote:
-> On Thu, Jan 17, 2013 at 3:31 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em Wed, 16 Jan 2013 19:29:28 +0000
->> Simon Farnsworth <simon.farnsworth@onelan.com> escreveu:
->>
->>> On Wednesday 16 January 2013 23:56:48 Manu Abraham wrote:
->>>> On Wed, Jan 16, 2013 at 10:51 PM, Mauro Carvalho Chehab
->>> <snip>
->>>>>
->>>>> It is a common sense that the existing API is broken. If my proposal
->>>>> requires adjustments, please comment on each specific patchset, instead
->>>>> of filling this thread of destructive and useless complains.
->>>>
->>>>
->>>> No, the concept of such a generalization is broken, as each new device will
->>>> be different and trying to make more generalization is a waste of developer
->>>> time and effort. The simplest approach would be to do a coarse approach,
->>>> which is not a perfect world, but it will do some good results for all the
->>>> people who use Linux-DVB. Still, repeating myself we are not dealing with
->>>> high end professional devices. If we have such devices, then it makes sense
->>>> to start such a discussion. Anyway professional devices will need a lot of
->>>> other API extensions, so your arguments on the need for professional
->>>> devices that do not exist are pointless and not agreeable to.
->>>>
->>> Let's step back a bit. As a sophisticated API user, I want to be able to give
->>> my end-users the following information:
->>>
->>>   * Signal strength in dBm
->>>   * Signal quality as "poor", "OK" and "good".
->>>   * Ideally, "increase signal strength to improve things" or "attenuate signal
->>> to improve things"
->>>
->>> In a DVBv3 world, "poor" equates to UNC != 0, "OK" is UNC == 0, BER != 0,
->>> and "good" is UNC == BER == 0. The idea is that a user seeing "poor" knows
->>> that they will see glitches in the output; a user seeing "OK" knows that
->>> there's no glitching right now, but that the setup is marginal and may
->>> struggle if anything changes, and a user seeing "good" knows that they've got
->>> high quality signal.
->>>
->>> VDR wants even simpler - it just wants strength and quality on a 0 to 100
->>> scale, where 100 is perfect, and 0 is nothing present.
->>>
->>> In both cases, we want per-layer quality for ISDB-T, for the reasons you've
->>> already outlined.
->>>
->>> So, how do you provide such information? Is it enough to simply provide
->>> strength in dBm, and quality as 0 to 100, where anything under 33 indicates
->>> uncorrected errors, and anything under 66 indicates that quality is marginal?
->>
->> Unfortunately, not all devices can provide strength in dBm.
->
-> MB86A20 is not the only demodulator driver with the Linux DVB.
-> And not all devices can output in dB scale proposed by you, But any device
-> output can be scaled in a relative way. So I don't see any reason why
-> userspace has to deal with cumbersome controls to deal with redundant
-> statistics, which is nonsense.
+clk_set_rate(), clk_enable() functions can fail, so check the return
+values to avoid surprises. While at it use ERR_PTR() value to indicate
+invalid clock.
 
-What goes to these units in general, dB conversion is done by the driver 
-about always. It is quite hard or even impossible to find out that 
-formula unless you has adjustable test signal generator.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-core.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
-Also we could not offer always dBm as signal strength. This comes to 
-fact that only recent silicon RF-tuners are able to provide RF strength. 
-More traditionally that estimation is done by demod from IF/RF AGC, 
-which leads very, very, rough estimation.
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index 720ffee..8b54f2f 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -810,11 +810,11 @@ static void fimc_clk_put(struct fimc_dev *fimc)
+ {
+ 	int i;
+ 	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+-		if (IS_ERR_OR_NULL(fimc->clock[i]))
++		if (IS_ERR(fimc->clock[i]))
+ 			continue;
+ 		clk_unprepare(fimc->clock[i]);
+ 		clk_put(fimc->clock[i]);
+-		fimc->clock[i] = NULL;
++		fimc->clock[i] = ERR_PTR(-EINVAL);
+ 	}
+ }
 
-So at least for the signal strength it is impossible to require dBm. dB 
-for SNR is possible, but it is very hard due to lack of developers 
-knowledge and test equipment. SNR could be still forced to look like it 
-is in given dB scale. I think it is not big loss even though SNR values 
-reported are a little bit wrong.
+@@ -822,14 +822,19 @@ static int fimc_clk_get(struct fimc_dev *fimc)
+ {
+ 	int i, ret;
 
++	for (i = 0; i < MAX_FIMC_CLOCKS; i++)
++		fimc->clock[i] = ERR_PTR(-EINVAL);
++
+ 	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+ 		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
+-		if (IS_ERR(fimc->clock[i]))
++		if (IS_ERR(fimc->clock[i])) {
++			ret = PTR_ERR(fimc->clock[i]);
+ 			goto err;
++		}
+ 		ret = clk_prepare(fimc->clock[i]);
+ 		if (ret < 0) {
+ 			clk_put(fimc->clock[i]);
+-			fimc->clock[i] = NULL;
++			fimc->clock[i] = ERR_PTR(-EINVAL);
+ 			goto err;
+ 		}
+ 	}
+@@ -939,8 +944,13 @@ static int fimc_probe(struct platform_device *pdev)
+ 	if (lclk_freq == 0)
+ 		lclk_freq = drv_data->lclk_frequency;
 
-About half year ago I looked how SNR was measured every demod we has:
+-	clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
+-	clk_enable(fimc->clock[CLK_BUS]);
++	ret = clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
++	if (ret < 0)
++		return ret;
++
++	ret = clk_enable(fimc->clock[CLK_BUS]);
++	if (ret)
++		return ret;
 
-http://palosaari.fi/linux/v4l-dvb/snr_2012-05-21.txt
+ 	ret = devm_request_irq(dev, res->start, fimc_irq_handler,
+ 			       0, dev_name(dev), fimc);
+--
+1.7.9.5
 
-as we can see there is currently only two style used:
-1) 0.1 dB (very common in new drivers)
-2) unknown (== mostly just raw register values)
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
