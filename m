@@ -1,96 +1,408 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19705 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750934Ab3AGKql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 05:46:41 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG9000SQ4KF9D30@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 07 Jan 2013 10:46:39 +0000 (GMT)
-Received: from [106.116.147.88] by eusync4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTPA id <0MG900B074LR1B20@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 07 Jan 2013 10:46:39 +0000 (GMT)
-Message-id: <50EAA78E.4090904@samsung.com>
-Date: Mon, 07 Jan 2013 11:46:38 +0100
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
+Received: from mailout1.samsung.com ([203.254.224.24]:12728 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751208Ab3AWTcD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jan 2013 14:32:03 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: RFC: add parameters to V4L controls
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Cc: hverkuil@xs4all.nl, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v4 02/14] [media] Add a V4L2 OF parser
+Date: Wed, 23 Jan 2013 20:31:17 +0100
+Message-id: <1358969489-20420-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-I have included this proposition already in the post "[PATCH RFC 0/2] 
-V4L: Add auto focus area control and selection" but it left unanswered.
-I repost it again in a separate e-mail, I hope this way it will be 
-easier to attract attention.
+Add a V4L2 OF parser, implementing bindings documented in
+Documentation/devicetree/bindings/media/video-interfaces.txt.
 
-Problem description
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+[s.nawrocki@samsung.com: various corrections and improvements
+since the initial version]
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
 
-Currently V4L2 controls can have only single value (of type int, int64, 
-string). Some hardware controls require more than single int parameter, 
-for example to set auto-focus (AF) rectangle four coordinates should be 
-passed, to set auto-focus spot two coordinates should be passed.
+Changes since v3:
+ - minor corrections of the comments,
+ - replaced parent->name with parent->full_name.
+---
+ drivers/media/v4l2-core/Makefile  |    3 +
+ drivers/media/v4l2-core/v4l2-of.c |  253 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-of.h           |   79 ++++++++++++
+ 3 files changed, 335 insertions(+)
+ create mode 100644 drivers/media/v4l2-core/v4l2-of.c
+ create mode 100644 include/media/v4l2-of.h
 
-Current solution
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index c2d61d4..00f64d6 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
++ifeq ($(CONFIG_OF),y)
++  videodev-objs += v4l2-of.o
++endif
 
-In case of AF rectangle we can reuse selection API as in "[PATCH RFC 
-0/2] V4L: Add auto focus area control and selection" post.
-Pros:
-- reuse existing API,
-Cons:
-- two IOCTL's to perform one action,
-- non-atomic operation,
-- fits well only for rectangles and spots (but with unused fields width, 
-height), in case of other parameters we should find a different way.
+ obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+ obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+new file mode 100644
+index 0000000..15d4396
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -0,0 +1,253 @@
++/*
++ * V4L2 OF binding parsing library
++ *
++ * Copyright (C) 2012 Renesas Electronics Corp.
++ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ */
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/string.h>
++#include <linux/types.h>
++
++#include <media/v4l2-of.h>
++
++/**
++ * v4l2_of_parse_mipi_csi2() - parse MIPI CSI-2 bus properties
++ * @node: pointer to endpoint device_node
++ * @endpoint: pointer to v4l2_of_endpoint data structure
++ *
++ * Return: 0 on success or negative error value otherwise.
++ */
++int v4l2_of_parse_mipi_csi2(const struct device_node *node,
++			    struct v4l2_of_endpoint *endpoint)
++{
++	struct v4l2_of_mipi_csi2 *mipi_csi2 = &endpoint->mipi_csi_2;
++	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
++	struct property *prop;
++	const __be32 *lane = NULL;
++	u32 v;
++	int i = 0;
++
++	prop = of_find_property(node, "data-lanes", NULL);
++	if (!prop)
++		return -EINVAL;
++	do {
++		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
++	} while (lane && i++ < ARRAY_SIZE(data_lanes));
++
++	mipi_csi2->num_data_lanes = i;
++	while (i--)
++		mipi_csi2->data_lanes[i] = data_lanes[i];
++
++	if (!of_property_read_u32(node, "clock-lanes", &v))
++		mipi_csi2->clock_lane = v;
++
++	if (of_get_property(node, "clock-noncontinuous", &v))
++		endpoint->mbus_flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
++
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_of_parse_mipi_csi2);
++
++/**
++ * v4l2_of_parse_parallel_bus() - parse parallel bus properties
++ * @node: pointer to endpoint device_node
++ * @endpoint: pointer to v4l2_of_endpoint data structure
++ */
++void v4l2_of_parse_parallel_bus(const struct device_node *node,
++				struct v4l2_of_endpoint *endpoint)
++{
++	unsigned int flags = 0;
++	u32 v;
++
++	if (WARN_ON(!endpoint))
++		return;
++
++	if (!of_property_read_u32(node, "hsync-active", &v))
++		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
++			V4L2_MBUS_HSYNC_ACTIVE_LOW;
++
++	if (!of_property_read_u32(node, "vsync-active", &v))
++		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
++			V4L2_MBUS_VSYNC_ACTIVE_LOW;
++
++	if (!of_property_read_u32(node, "pclk-sample", &v))
++		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
++			V4L2_MBUS_PCLK_SAMPLE_FALLING;
++
++	if (!of_property_read_u32(node, "field-even-active", &v))
++		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
++			V4L2_MBUS_FIELD_EVEN_LOW;
++	if (flags)
++		endpoint->mbus_type = V4L2_MBUS_PARALLEL;
++	else
++		endpoint->mbus_type = V4L2_MBUS_BT656;
++
++	if (!of_property_read_u32(node, "data-active", &v))
++		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
++			V4L2_MBUS_DATA_ACTIVE_LOW;
++
++	if (of_get_property(node, "slave-mode", &v))
++		flags |= V4L2_MBUS_SLAVE;
++
++	if (!of_property_read_u32(node, "bus-width", &v))
++		endpoint->parallel.bus_width = v;
++
++	if (!of_property_read_u32(node, "data-shift", &v))
++		endpoint->parallel.data_shift = v;
++
++	endpoint->mbus_flags = flags;
++}
++EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
++
++/**
++ * v4l2_of_parse_endpoint() - parse all endpoint node properties
++ * @node: pointer to endpoint device_node
++ * @endpoint: pointer to v4l2_of_endpoint data structure
++ *
++ * All properties are optional. If none are found, we don't set any flags.
++ * This means the port has a static configuration and no properties have
++ * to be specified explicitly.
++ * If any properties that identify the bus as parallel are found and
++ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
++ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
++ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
++ * The caller should hold a reference to @node.
++ */
++void v4l2_of_parse_endpoint(const struct device_node *node,
++			    struct v4l2_of_endpoint *endpoint)
++{
++	const struct device_node *port_node = of_get_parent(node);
++	bool data_lanes_present = false;
++
++	memset(endpoint, 0, sizeof(*endpoint));
++
++	endpoint->local_node = node;
++	/*
++	 * It doesn't matter whether the two calls below succeed. If they
++	 * don't then the default value 0 is used.
++	 */
++	of_property_read_u32(port_node, "reg", &endpoint->port);
++	of_property_read_u32(node, "reg", &endpoint->addr);
++
++	v4l2_of_parse_parallel_bus(node, endpoint);
++
++	/* If any parallel bus properties have been found, skip serial ones. */
++	if (endpoint->parallel.bus_width || endpoint->parallel.data_shift ||
++	    endpoint->mbus_flags) {
++		/* Default parallel bus-master. */
++		if (!(endpoint->mbus_flags & V4L2_MBUS_SLAVE))
++			endpoint->mbus_flags |= V4L2_MBUS_MASTER;
++		return;
++	}
++
++	endpoint->mbus_type = V4L2_MBUS_CSI2;
++
++	if (!v4l2_of_parse_mipi_csi2(node, endpoint))
++		data_lanes_present = true;
++
++	if ((endpoint->mipi_csi_2.clock_lane || data_lanes_present) &&
++	    !(endpoint->mbus_flags & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
++		/* Default CSI-2: continuous clock. */
++		endpoint->mbus_flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
++	}
++}
++EXPORT_SYMBOL(v4l2_of_parse_endpoint);
++
++/*
++ * Return a refcounted next 'endpoint' device_node. Contrary to the common OF
++ * practice, we do not drop the reference to previous, users have to do it
++ * themselves, when they're done with the node.
++ */
++struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
++					struct device_node *previous)
++{
++	struct device_node *child, *port;
++
++	if (!parent)
++		return NULL;
++
++	if (!previous) {
++		/*
++		 * If this is the first call, we have to find a port within
++		 * this node.
++		 */
++		for_each_child_of_node(parent, port) {
++			if (!of_node_cmp(port->name, "port"))
++				break;
++		}
++		if (port) {
++			/* Found a port, get a link. */
++			child = of_get_next_child(port, NULL);
++			of_node_put(port);
++		} else {
++			child = NULL;
++		}
++		if (!child)
++			pr_err("%s(): Invalid DT: %s has no link children!\n",
++			       __func__, parent->full_name);
++	} else {
++		port = of_get_parent(previous);
++		if (!port)
++			/* Hm, has someone given us the root node?... */
++			return NULL;
++
++		/* Avoid dropping previous refcount to 0. */
++		of_node_get(previous);
++		child = of_get_next_child(port, previous);
++		if (child) {
++			of_node_put(port);
++			return child;
++		}
++
++		/* No more links under this port, try the next one. */
++		do {
++			port = of_get_next_child(parent, port);
++			if (!port)
++				return NULL;
++		} while (of_node_cmp(port->name, "port"));
++
++		/* Pick up the first link on this port. */
++		child = of_get_next_child(port, NULL);
++		of_node_put(port);
++	}
++
++	return child;
++}
++EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
++
++/**
++ * v4l2_of_get_remote_port_parent() - get remote port's parent node
++ * @node: pointer to local endpoint device_node
++ *
++ * Return: Remote device node associated with remote endpoint node linked
++ *	   to @node. Use of_node_put() on it when done.
++ */
++struct device_node *v4l2_of_get_remote_port_parent(
++			       const struct device_node *node)
++{
++	struct device_node *re, *tmp;
++
++	/* Get remote endpoint node. */
++	re = of_parse_phandle(node, "remote-endpoint", 0);
++	if (!re)
++		return NULL;
++
++	/* Remote port. */
++	tmp = of_get_parent(re);
++	of_node_put(re);
++	if (!tmp)
++		return NULL;
++
++	/* Remote device node. */
++	re = of_get_parent(tmp);
++	of_node_put(tmp);
++
++	return re;
++}
++EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
+diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+new file mode 100644
+index 0000000..1aba3b3
+--- /dev/null
++++ b/include/media/v4l2-of.h
+@@ -0,0 +1,79 @@
++/*
++ * V4L2 OF binding parsing library
++ *
++ * Copyright (C) 2012 Renesas Electronics Corp.
++ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ */
++#ifndef _V4L2_OF_H
++#define _V4L2_OF_H
++
++#include <linux/list.h>
++#include <linux/types.h>
++#include <linux/errno.h>
++
++#include <media/v4l2-mediabus.h>
++
++struct device_node;
++
++struct v4l2_of_mipi_csi2 {
++	unsigned char data_lanes[4];
++	unsigned char clock_lane;
++	unsigned short num_data_lanes;
++};
++
++struct v4l2_of_endpoint {
++	unsigned int port;
++	unsigned int addr;
++	struct list_head head;
++	const struct device_node *local_node;
++	const __be32 *remote;
++	enum v4l2_mbus_type mbus_type;
++	unsigned int mbus_flags;
++	union {
++		struct {
++			unsigned char bus_width;
++			unsigned char data_shift;
++		} parallel;
++		struct v4l2_of_mipi_csi2 mipi_csi_2;
++	};
++};
++
++#ifdef CONFIG_OF
++int v4l2_of_parse_mipi_csi2(const struct device_node *node,
++			    struct v4l2_of_endpoint *endpoint);
++void v4l2_of_parse_parallel_bus(const struct device_node *node,
++				struct v4l2_of_endpoint *endpoint);
++void v4l2_of_parse_endpoint(const struct device_node *node,
++			    struct v4l2_of_endpoint *link);
++struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
++					struct device_node *previous);
++struct device_node *v4l2_of_get_remote_port_parent(
++					const struct device_node *node);
++#else /* CONFIG_OF */
++
++static inline int v4l2_of_parse_endpoint(const struct device_node *node,
++					struct v4l2_of_endpoint *link)
++{
++	return -ENOSYS;
++}
++
++static inline struct device_node *v4l2_of_get_next_endpoint(
++					const struct device_node *parent,
++					struct device_node *previous)
++{
++	return NULL;
++}
++
++static inline struct device_node *v4l2_of_get_remote_endpoint(
++					const struct device_node *node)
++{
++	return NULL;
++}
++
++#endif /* CONFIG_OF */
++
++#endif /* _V4L2_OF_H */
+--
+1.7.9.5
 
-Proposed solution
-
-The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
-ioctls can be called with multiple controls per call.
-
-I will present it using AF area control example.
-
-There could be added four pseudo-controls, lets call them for short:
-LEFT, TOP, WIDTH, HEIGHT.
-Those controls could be passed together with V4L2_AUTO_FOCUS_AREA_RECTANGLE
-control in one ioctl as a kind of parameters.
-
-For example setting auto-focus spot would require calling VIDIOC_S_EXT_CTRLS
-with the following controls:
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-- LEFT = ...
-- RIGHT = ...
-
-Setting AF rectangle:
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-- LEFT = ...
-- TOP = ...
-- WIDTH = ...
-- HEIGHT = ...
-
-Setting  AF object detection (no parameters required):
-- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
-
-I have presented all three cases to show the advantages of this solution:
-- atomicity - control and its parameters are passed in one call,
-- flexibility - we are not limited by a fixed number of parameters,
-- no-redundancy - we can pass only required parameters
-	(no need to pass null width and height in case of spot selection),
-- extensibility - it is possible to extend parameters in the future,
-for example add parameters to V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION,
-without breaking API,
-- backward compatibility,
-- re-usability - this schema could be used in other controls,
-	pseudo-controls could be re-used in other controls as well.
-- API backward compatibility.
-
-
-Regards
-Andrzej Hajda
