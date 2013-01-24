@@ -1,38 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:42266 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751496Ab3ARKKA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jan 2013 05:10:00 -0500
-Received: by mail-vc0-f177.google.com with SMTP id fo14so3199628vcb.8
-        for <linux-media@vger.kernel.org>; Fri, 18 Jan 2013 02:09:59 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <50F91A7F.8010502@samsung.com>
-References: <7510586.84171358500177683.JavaMail.weblogic@epv6ml01>
-	<50F91A7F.8010502@samsung.com>
-Date: Fri, 18 Jan 2013 15:39:59 +0530
-Message-ID: <CALt3h79HYGT4BuT2egpuze+Fxq5sahBGNchLkMNaMe0iTqmQjQ@mail.gmail.com>
-Subject: Re: Wrong patch applied to media-tree
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	SUNIL JOSHI <joshi@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:43671 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756006Ab3AXUpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 15:45:17 -0500
+Date: Thu, 24 Jan 2013 18:45:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Jonathan Nieder <jrnieder@gmail.com>, emilgoode@gmail.com,
+	linux-media <linux-media@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
+Message-ID: <20130124184509.3a2c954f@redhat.com>
+In-Reply-To: <50FE6148.1010200@redhat.com>
+References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	<50FD38D1.5020104@redhat.com>
+	<CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
+	<50FE6148.1010200@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Em Tue, 22 Jan 2013 10:52:08 +0100
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
+> Hi,
+> 
+> On 01/21/2013 01:51 PM, Peter Senna Tschudin wrote:
+> > On Mon, Jan 21, 2013 at 10:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
+> >> Hi,
+> >>
+> >> Thanks for the patches I'll pick up 5 - 21 and add them to
+> >> my tree for Mauro.
+> > I have sent V2 of this patches with another subject and with fixed
+> > commit message for two patches.
+> 
+> Oh, those did not show up in my mailbox though, so I guess you
+> did not send V2 to the linux-media list? Can you please re-send
+> them to the linux-media list, then I'll pick up the gspca patches
+> among them.
 
->
-> Now when the patch is in Mauro's tree we can only fix it by applying
-> an incremental patch. Can you prepare it and send to LMML ? I would
-> then include it in my second pull request for v3.9.
->
+Hans,
 
-Sure I will send an incremental patch.
+Peter sent the version 2 of them on Jan, 19. Did you get them?
 
-Regards
-Arun
+Anyway, I'll tag patches 5-21 for you as under_review status.
+
+Regards,
+Mauro
