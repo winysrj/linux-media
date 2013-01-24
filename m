@@ -1,428 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:40892 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937Ab3ARPss (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jan 2013 10:48:48 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGT00FQ8VX3ZR60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 18 Jan 2013 15:48:46 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MGT007GUVX9IT00@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 18 Jan 2013 15:48:46 +0000 (GMT)
-Message-id: <50F96EDB.7090300@samsung.com>
-Date: Fri, 18 Jan 2013 16:48:43 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: laurent.pinchart@ideasonboard.com,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	grant.likely@secretlab.ca, rob.herring@calxeda.com,
-	thomas.abraham@linaro.org, t.figa@samsung.com,
-	sw0312.kim@samsung.com, kyungmin.park@samsung.com,
-	devicetree-discuss@lists.ozlabs.org
-Subject: Re: [PATCH RFC v3 02/15] [media] Add a V4L2 OF parser
-References: <1356969793-27268-3-git-send-email-s.nawrocki@samsung.com>
- <1357232962-7425-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1357232962-7425-1-git-send-email-s.nawrocki@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:15381 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753354Ab3AXQ2z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 11:28:55 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0OGStUi003115
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 11:28:55 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/5] [media] mb86a20s: add block count measures (PER/UCB)
+Date: Thu, 24 Jan 2013 14:28:47 -0200
+Message-Id: <1359044931-13058-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2013 06:09 PM, Sylwester Nawrocki wrote:
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> Add a V4L2 OF parser, implementing bindings documented in
-> Documentation/devicetree/bindings/media/video-interfaces.txt.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Add both per-layer and global block error count and block count,
+for PER and UCB measurements.
 
-Hans, Laurent, Mauro, would you have any comments on this ?
-Anything that needs to be changed/improved ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 190 +++++++++++++++++++++++++++++++--
+ 1 file changed, 180 insertions(+), 10 deletions(-)
 
-I'd like to send a pull request including this patch, together
-with an updated patch series [1] (v3) adding initial device tree
-support to the Exynos camera subsystem drivers.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 4f3e222..c5c2c49 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -111,13 +111,21 @@ static struct regdata mb86a20s_init[] = {
+ 	{ 0x50, 0xdf }, { 0x51, 0xf4 },
+ 	{ 0x50, 0xe0 }, { 0x51, 0x01 },
+ 	{ 0x50, 0xe1 }, { 0x51, 0xf4 },
+-	{ 0x50, 0xb0 }, { 0x51, 0x07 },
+-	{ 0x50, 0xb2 }, { 0x51, 0xff },
+-	{ 0x50, 0xb3 }, { 0x51, 0xff },
+-	{ 0x50, 0xb4 }, { 0x51, 0xff },
+-	{ 0x50, 0xb5 }, { 0x51, 0xff },
+-	{ 0x50, 0xb6 }, { 0x51, 0xff },
+-	{ 0x50, 0xb7 }, { 0x51, 0xff },
++
++	/*
++	 * On this demod, when the block count reaches the count below,
++	 * it collects the block error count. The block counters are initialized
++	 * to 127 here. This warrants that all of them will be quickly
++	 * calculated when device gets locked. As TMCC is parsed, the values
++	 * will be adjusted later in the driver's code.
++	 */
++	{ 0x50, 0xb0 }, { 0x51, 0x07 },		/* Enable PER */
++	{ 0x50, 0xb2 }, { 0x51, 0x00 },
++	{ 0x50, 0xb3 }, { 0x51, 0x7f },
++	{ 0x50, 0xb4 }, { 0x51, 0x00 },
++	{ 0x50, 0xb5 }, { 0x51, 0x7f },
++	{ 0x50, 0xb6 }, { 0x51, 0x00 },
++	{ 0x50, 0xb7 }, { 0x51, 0x7f },
+ 
+ 	{ 0x50, 0x50 }, { 0x51, 0x02 },		/* MER manual mode */
+ 	{ 0x50, 0x51 }, { 0x51, 0x04 },		/* MER symbol 4 */
+@@ -893,6 +901,123 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
++static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
++			    unsigned layer,
++			    u32 *error, u32 *count)
++{
++	struct mb86a20s_state *state = fe->demodulator_priv;
++	int rc;
++	u32 collect_rate;
++	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
++
++	if (layer >= 3)
++		return -EINVAL;
++
++	/* Check if the PER measures are already available */
++	rc = mb86a20s_writereg(state, 0x50, 0xb8);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++
++	/* Check if data is available for that layer */
++
++	if (!(rc & (1 << layer))) {
++		dev_dbg(&state->i2c->dev,
++			"%s: block counts for layer %c aren't available yet.\n",
++			__func__, 'A' + layer);
++		return -EBUSY;
++	}
++
++	/* Read Packet error Count */
++	rc = mb86a20s_writereg(state, 0x50, 0xb9 + layer * 2);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	*error = rc << 8;
++	rc = mb86a20s_writereg(state, 0x50, 0xba + layer * 2);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	*error |= rc;
++	dev_err(&state->i2c->dev, "%s: block error for layer %c: %d.\n",
++		__func__, 'A' + layer, *error);
++
++	/* Read Bit Count */
++	rc = mb86a20s_writereg(state, 0x50, 0xb2 + layer * 2);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	*count = rc << 8;
++	rc = mb86a20s_writereg(state, 0x50, 0xb3 + layer * 2);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_readreg(state, 0x51);
++	if (rc < 0)
++		return rc;
++	*count |= rc;
++
++	dev_dbg(&state->i2c->dev,
++		"%s: block count for layer %c: %d.\n",
++		__func__, 'A' + layer, *count);
++
++	/*
++	 * As we get TMCC data from the frontend, we can better estimate the
++	 * BER bit counters, in order to do the BER measure during a longer
++	 * time. Use those data, if available, to update the bit count
++	 * measure.
++	 */
++
++	if (!state->estimated_rate[layer])
++		goto reset_measurement;
++
++	collect_rate = state->estimated_rate[layer] / 204 / 8;
++
++	if (collect_rate < 32)
++		collect_rate = 32;
++	if (collect_rate > 65535)
++		collect_rate = 65535;
++
++	if (collect_rate != *count) {
++		dev_dbg(&state->i2c->dev,
++			"%s: updating PER counter on layer %c to %d.\n",
++			__func__, 'A' + layer, collect_rate);
++		rc = mb86a20s_writereg(state, 0x50, 0xb2 + layer * 2);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x51, collect_rate >> 8);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x50, 0xb3 + layer * 2);
++		if (rc < 0)
++			return rc;
++		rc = mb86a20s_writereg(state, 0x51, collect_rate & 0xff);
++		if (rc < 0)
++			return rc;
++	}
++
++reset_measurement:
++	/* Reset counter to collect new data */
++	rc = mb86a20s_writereg(state, 0x50, 0xb1);
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_writereg(state, 0x51, (1 << layer));
++	if (rc < 0)
++		return rc;
++	rc = mb86a20s_writereg(state, 0x51, 0x00);
++	if (rc < 0)
++		return rc;
++
++	return 0;
++}
++
+ struct linear_segments {
+ 	unsigned x, y;
+ };
+@@ -1115,7 +1240,7 @@ static int mb86a20s_get_main_CNR(struct dvb_frontend *fe)
+ 	return rc;
+ }
+ 
+-static int mb86a20s_get_per_layer_CNR(struct dvb_frontend *fe)
++static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1258,14 +1383,16 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 	int rc = 0, i;
+ 	u32 bit_error = 0, bit_count = 0;
+ 	u32 t_pre_bit_error = 0, t_pre_bit_count = 0;
+-	int active_layers = 0, ber_layers = 0;
++	u32 block_error = 0, block_count = 0;
++	u32 t_block_error = 0, t_block_count = 0;
++	int active_layers = 0, ber_layers = 0, per_layers = 0;
+ 
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+ 	mb86a20s_get_main_CNR(fe);
+ 
+ 	/* Get per-layer stats */
+-	mb86a20s_get_per_layer_CNR(fe);
++	mb86a20s_get_blk_error_layer_CNR(fe);
+ 
+ 	for (i = 0; i < 3; i++) {
+ 		if (c->isdbt_layer_enabled & (1 << i)) {
+@@ -1297,9 +1424,38 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 			if (c->block_error.stat[1 + i].scale != FE_SCALE_NOT_AVAILABLE)
+ 				ber_layers++;
+ 
++			/* Handle Block errors for PER/UCB reports */
++			rc = mb86a20s_get_blk_error(fe, i,
++						&block_error,
++						&block_count);
++			if (rc >= 0) {
++				c->block_error.stat[1 + i].scale = FE_SCALE_COUNTER;
++				c->block_error.stat[1 + i].uvalue += block_error;
++				c->block_count.stat[1 + i].scale = FE_SCALE_COUNTER;
++				c->block_count.stat[1 + i].uvalue += block_count;
++			} else if (rc != -EBUSY) {
++				/*
++					* If an I/O error happened,
++					* measures are now unavailable
++					*/
++				c->block_error.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
++				c->block_count.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
++				dev_err(&state->i2c->dev,
++					"%s: Can't get PER for layer %c (error %d).\n",
++					__func__, 'A' + i, rc);
++
++			}
++
++			if (c->block_error.stat[1 + i].scale != FE_SCALE_NOT_AVAILABLE)
++				per_layers++;
++
+ 			/* Update total BER */
+ 			t_pre_bit_error += c->pre_bit_error.stat[1 + i].uvalue;
+ 			t_pre_bit_count += c->pre_bit_count.stat[1 + i].uvalue;
++
++			/* Update total PER */
++			t_block_error += c->block_error.stat[1 + i].uvalue;
++			t_block_count += c->block_count.stat[1 + i].uvalue;
+ 		}
+ 	}
+ 
+@@ -1321,6 +1477,20 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 		c->pre_bit_count.stat[0].uvalue = t_pre_bit_count;
+ 	}
+ 
++	if (per_layers) {
++		/*
++		 * At least one per-layer UCB measure was read. We can now
++		 * calculate the total UCB
++		 *
++		 * Total block Error/Count is calculated as the sum of the
++		 * block errors on all active layers.
++		 */
++		c->block_error.stat[0].scale = FE_SCALE_COUNTER;
++		c->block_error.stat[0].uvalue = t_block_error;
++		c->block_count.stat[0].scale = FE_SCALE_COUNTER;
++		c->block_count.stat[0].uvalue = t_block_count;
++	}
++
+ 	return rc;
+ }
+ 
+-- 
+1.8.1
 
-[1] http://www.spinics.net/lists/linux-media/msg57947.html
-
-Thanks,
-Sylwester
-> ---
-> Changes since v2:
->  - added missing EXPORT_SYMBOL for v4l2_of_parse_mipi_csi2()
->    and v4l2_of_parse_parallel_bus() functions,
->  - include string.h header instead of slab.h.
-> 
->  drivers/media/v4l2-core/Makefile  |    3 +
->  drivers/media/v4l2-core/v4l2-of.c |  251 +++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           |   79 ++++++++++++
->  3 files changed, 333 insertions(+)
->  create mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  create mode 100644 include/media/v4l2-of.h
-> 
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index c2d61d4..00f64d6 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
->  ifeq ($(CONFIG_COMPAT),y)
->    videodev-objs += v4l2-compat-ioctl32.o
->  endif
-> +ifeq ($(CONFIG_OF),y)
-> +  videodev-objs += v4l2-of.o
-> +endif
-> 
->  obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
->  obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> new file mode 100644
-> index 0000000..483245c
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -0,0 +1,251 @@
-> +/*
-> + * V4L2 OF binding parsing library
-> + *
-> + * Copyright (C) 2012 Renesas Electronics Corp.
-> + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/string.h>
-> +#include <linux/types.h>
-> +
-> +#include <media/v4l2-of.h>
-> +
-> +/**
-> + * v4l2_of_parse_mipi_csi2() - parse MIPI CSI-2 bus properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + *
-> + * Return: 0 on success or negative error value otherwise.
-> + */
-> +int v4l2_of_parse_mipi_csi2(const struct device_node *node,
-> +			    struct v4l2_of_endpoint *endpoint)
-> +{
-> +	struct v4l2_of_mipi_csi2 *mipi_csi2 = &endpoint->mipi_csi_2;
-> +	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
-> +	struct property *prop;
-> +	const __be32 *lane = NULL;
-> +	u32 v;
-> +	int i = 0;
-> +
-> +	prop = of_find_property(node, "data-lanes", NULL);
-> +	if (!prop)
-> +		return -EINVAL;
-> +	do {
-> +		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-> +	} while (lane && i++ < ARRAY_SIZE(data_lanes));
-> +
-> +	mipi_csi2->num_data_lanes = i;
-> +	while (i--)
-> +		mipi_csi2->data_lanes[i] = data_lanes[i];
-> +
-> +	if (!of_property_read_u32(node, "clock-lanes", &v))
-> +		mipi_csi2->clock_lane = v;
-> +
-> +	if (of_get_property(node, "clock-noncontinuous", &v))
-> +		endpoint->mbus_flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_mipi_csi2);
-> +
-> +/**
-> + * v4l2_of_parse_parallel_bus() - parse parallel bus properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + */
-> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> +				struct v4l2_of_endpoint *endpoint)
-> +{
-> +	unsigned int flags = 0;
-> +	u32 v;
-> +
-> +	if (WARN_ON(!endpoint))
-> +		return;
-> +
-> +	if (!of_property_read_u32(node, "hsync-active", &v))
-> +		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
-> +			V4L2_MBUS_HSYNC_ACTIVE_LOW;
-> +
-> +	if (!of_property_read_u32(node, "vsync-active", &v))
-> +		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
-> +			V4L2_MBUS_VSYNC_ACTIVE_LOW;
-> +
-> +	if (!of_property_read_u32(node, "pclk-sample", &v))
-> +		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-> +			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-> +
-> +	if (!of_property_read_u32(node, "field-even-active", &v))
-> +		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
-> +			V4L2_MBUS_FIELD_EVEN_LOW;
-> +	if (flags)
-> +		endpoint->mbus_type = V4L2_MBUS_PARALLEL;
-> +	else
-> +		endpoint->mbus_type = V4L2_MBUS_BT656;
-> +
-> +	if (!of_property_read_u32(node, "data-active", &v))
-> +		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
-> +			V4L2_MBUS_DATA_ACTIVE_LOW;
-> +
-> +	if (of_get_property(node, "slave-mode", &v))
-> +		flags |= V4L2_MBUS_SLAVE;
-> +
-> +	if (!of_property_read_u32(node, "bus-width", &v))
-> +		endpoint->parallel.bus_width = v;
-> +
-> +	if (!of_property_read_u32(node, "data-shift", &v))
-> +		endpoint->parallel.data_shift = v;
-> +
-> +	endpoint->mbus_flags = flags;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
-> +
-> +/**
-> + * v4l2_of_parse_endpoint() - parse all endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> + * This means the port has a static configuration and no properties have
-> + * to be specified explicitly.
-> + * If any properties that identify the bus as parallel are found and
-> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-> + * The caller should hold a reference to @node.
-> + */
-> +void v4l2_of_parse_endpoint(const struct device_node *node,
-> +			    struct v4l2_of_endpoint *endpoint)
-> +{
-> +	const struct device_node *port_node = of_get_parent(node);
-> +	bool data_lanes_present = false;
-> +
-> +	memset(endpoint, 0, sizeof(*endpoint));
-> +
-> +	endpoint->local_node = node;
-> +
-> +	/* Doesn't matter, whether the below two calls succeed */
-> +	of_property_read_u32(port_node, "reg", &endpoint->port);
-> +	of_property_read_u32(node, "reg", &endpoint->addr);
-> +
-> +	v4l2_of_parse_parallel_bus(node, endpoint);
-> +
-> +	/* If any parallel bus properties have been found, skip serial ones */
-> +	if (endpoint->parallel.bus_width || endpoint->parallel.data_shift ||
-> +	    endpoint->mbus_flags) {
-> +		/* Default parallel bus-master */
-> +		if (!(endpoint->mbus_flags & V4L2_MBUS_SLAVE))
-> +			endpoint->mbus_flags |= V4L2_MBUS_MASTER;
-> +		return;
-> +	}
-> +
-> +	endpoint->mbus_type = V4L2_MBUS_CSI2;
-> +
-> +	if (!v4l2_of_parse_mipi_csi2(node, endpoint))
-> +		data_lanes_present = true;
-> +
-> +	if ((endpoint->mipi_csi_2.clock_lane || data_lanes_present) &&
-> +	    !(endpoint->mbus_flags & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
-> +		/* Default CSI-2: continuous clock */
-> +		endpoint->mbus_flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +	}
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> +
-> +/*
-> + * Return a refcounted next "endpoint" DT node. Contrary to the common OF
-> + * practice, we do not drop the reference to previous, users have to do it
-> + * themselves, when they're done with the node.
-> + */
-> +struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-> +					struct device_node *previous)
-> +{
-> +	struct device_node *child, *port;
-> +
-> +	if (!parent)
-> +		return NULL;
-> +
-> +	if (!previous) {
-> +		/*
-> +		 * If this is the first call, we have to find a port within this
-> +		 * node
-> +		 */
-> +		for_each_child_of_node(parent, port) {
-> +			if (!of_node_cmp(port->name, "port"))
-> +				break;
-> +		}
-> +		if (port) {
-> +			/* Found a port, get a link */
-> +			child = of_get_next_child(port, NULL);
-> +			of_node_put(port);
-> +		} else {
-> +			child = NULL;
-> +		}
-> +		if (!child)
-> +			pr_err("%s(): Invalid DT: %s has no link children!\n",
-> +			       __func__, parent->name);
-> +	} else {
-> +		port = of_get_parent(previous);
-> +		if (!port)
-> +			/* Hm, has someone given us the root node?... */
-> +			return NULL;
-> +
-> +		/* Avoid dropping previous refcount to 0 */
-> +		of_node_get(previous);
-> +		child = of_get_next_child(port, previous);
-> +		if (child) {
-> +			of_node_put(port);
-> +			return child;
-> +		}
-> +
-> +		/* No more links under this port, try the next one */
-> +		do {
-> +			port = of_get_next_child(parent, port);
-> +			if (!port)
-> +				return NULL;
-> +		} while (of_node_cmp(port->name, "port"));
-> +
-> +		/* Pick up the first link on this port */
-> +		child = of_get_next_child(port, NULL);
-> +		of_node_put(port);
-> +	}
-> +
-> +	return child;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
-> +
-> +/**
-> + * v4l2_of_get_remote_port_parent() - get remote port's parent node
-> + * @node: pointer to local endpoint device_node
-> + *
-> + * Return: Remote device node associated with remote endpoint node linked
-> + *	   to @node. Use of_node_put() on it when done.
-> + */
-> +struct device_node *v4l2_of_get_remote_port_parent(
-> +			       const struct device_node *node)
-> +{
-> +	struct device_node *re, *tmp;
-> +
-> +	/* Get remote endpoint DT node. */
-> +	re = of_parse_phandle(node, "remote-endpoint", 0);
-> +	if (!re)
-> +		return NULL;
-> +
-> +	/* Remote port. */
-> +	tmp = of_get_parent(re);
-> +	of_node_put(re);
-> +	if (!tmp)
-> +		return NULL;
-> +
-> +	/* Remote device node. */
-> +	re = of_get_parent(tmp);
-> +	of_node_put(tmp);
-> +
-> +	return re;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> new file mode 100644
-> index 0000000..1aba3b3
-> --- /dev/null
-> +++ b/include/media/v4l2-of.h
-> @@ -0,0 +1,79 @@
-> +/*
-> + * V4L2 OF binding parsing library
-> + *
-> + * Copyright (C) 2012 Renesas Electronics Corp.
-> + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef _V4L2_OF_H
-> +#define _V4L2_OF_H
-> +
-> +#include <linux/list.h>
-> +#include <linux/types.h>
-> +#include <linux/errno.h>
-> +
-> +#include <media/v4l2-mediabus.h>
-> +
-> +struct device_node;
-> +
-> +struct v4l2_of_mipi_csi2 {
-> +	unsigned char data_lanes[4];
-> +	unsigned char clock_lane;
-> +	unsigned short num_data_lanes;
-> +};
-> +
-> +struct v4l2_of_endpoint {
-> +	unsigned int port;
-> +	unsigned int addr;
-> +	struct list_head head;
-> +	const struct device_node *local_node;
-> +	const __be32 *remote;
-> +	enum v4l2_mbus_type mbus_type;
-> +	unsigned int mbus_flags;
-> +	union {
-> +		struct {
-> +			unsigned char bus_width;
-> +			unsigned char data_shift;
-> +		} parallel;
-> +		struct v4l2_of_mipi_csi2 mipi_csi_2;
-> +	};
-> +};
-> +
-> +#ifdef CONFIG_OF
-> +int v4l2_of_parse_mipi_csi2(const struct device_node *node,
-> +			    struct v4l2_of_endpoint *endpoint);
-> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> +				struct v4l2_of_endpoint *endpoint);
-> +void v4l2_of_parse_endpoint(const struct device_node *node,
-> +			    struct v4l2_of_endpoint *link);
-> +struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-> +					struct device_node *previous);
-> +struct device_node *v4l2_of_get_remote_port_parent(
-> +					const struct device_node *node);
-> +#else /* CONFIG_OF */
-> +
-> +static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-> +					struct v4l2_of_endpoint *link)
-> +{
-> +	return -ENOSYS;
-> +}
-> +
-> +static inline struct device_node *v4l2_of_get_next_endpoint(
-> +					const struct device_node *parent,
-> +					struct device_node *previous)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline struct device_node *v4l2_of_get_remote_endpoint(
-> +					const struct device_node *node)
-> +{
-> +	return NULL;
-> +}
-> +
-> +#endif /* CONFIG_OF */
-> +
-> +#endif /* _V4L2_OF_H */
-> --
-> 1.7.9.5
