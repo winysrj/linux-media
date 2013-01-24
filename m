@@ -1,116 +1,311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37899 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751152Ab3AQTLr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 14:11:47 -0500
-Message-ID: <50F84CCC.5040103@iki.fi>
-Date: Thu, 17 Jan 2013 21:11:08 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37883 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234Ab3AXKQg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 05:16:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	g.liakhovetski@gmx.de, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, grant.likely@secretlab.ca,
+	rob.herring@calxeda.com, thomas.abraham@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com,
+	sw0312.kim@samsung.com, prabhakar.lad@ti.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org
+Subject: Re: [PATCH RFC v4 01/14] [media] Add common video interfaces OF bindings documentation
+Date: Thu, 24 Jan 2013 11:16:32 +0100
+Message-ID: <1525960.fMnIjkZnjX@avalon>
+In-Reply-To: <1358969489-20420-2-git-send-email-s.nawrocki@samsung.com>
+References: <1358969489-20420-1-git-send-email-s.nawrocki@samsung.com> <1358969489-20420-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <20130117145036.55745a60@redhat.com> <50F831AA.8010708@iki.fi> <20130117161126.6b2e809d@redhat.com> <50F84276.3080909@iki.fi> <CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com> <20130117165037.6ed80366@redhat.com>
-In-Reply-To: <20130117165037.6ed80366@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/17/2013 08:50 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 18 Jan 2013 00:07:17 +0530
-> Manu Abraham <abraham.manu@gmail.com> escreveu:
->
->> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
->>
->>>
->>>
->>> Resetting counters when user tunes channel sounds the only correct option.
->>>
->>
->> This might not be correct, especially when we have true Multiple Input Streams.
->> The tune might be single, but the filter setup would be different. In
->> which case it
->> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
->> should be the responsibility of the driver.
->
-> I moved the counters reset to the driver's logic on v11. I'm posting the
-> patches in a few.
->
->> As I said in an earlier
->> post, anything
->> other than the driver handling any statistical event monitoring, such an API is
->> broken for sure, without even reading single line of code for that API for which
->>   it is written for.
->
-> Yes, driver should have full control on it.
->
->>> OK, maybe we will see in near future if that works well or not. I think that
->>> for calculating of PER it is required to start continuous polling to keep up
->>> total block counters. Maybe updating UCB counter continously needs that too,
->>> so it should work.
->>
->>
->> With multi-standard demodulators, some of them PER compute is a by-product
->> of some internal demodulator algorithmic operation. In some cases, it might
->> require a loop in the driver. As I said, again; It is very hard/wrong
->> to do basic
->> generalizations.
->
-> Agreed.
->
+Hi Sylwester,
 
-I think we will have soon kinda consensus everyone could approve! 
-Anyhow, I didn't liked that kind of PATCH RFC process. That change was 
-too big for PATCH style RFC and it was hard to keep track what going on 
-looking those patches. Maybe requirement specification RFCs first and 
-when requirements are clear => PATCH RFC for implementation.
+Thanks for the patch.
 
-What I know understand, requirements are:
+On Wednesday 23 January 2013 20:31:16 Sylwester Nawrocki wrote:
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> This patch adds a document describing common OF bindings for video
+> capture, output and video processing devices. It is curently mainly
+> focused on video capture devices, with data busses defined by
+> standards like ITU-R BT.656 or MIPI-CSI2.
+> It also documents a method of describing data links between devices.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Reviewed-by: Stephen Warren <swarren@nvidia.com>
+> Acked-by: Rob Herring <rob.herring@calxeda.com>
+> ---
+> 
+> Changes since v3:
+>  - improved clock-lanes property description,
+>  - grammar corrections of the example dts snippet description.
+> ---
+>  .../devicetree/bindings/media/video-interfaces.txt |  204 +++++++++++++++++
+>  1 file changed, 204 insertions(+)
+>  create mode 100644
+> Documentation/devicetree/bindings/media/video-interfaces.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> b/Documentation/devicetree/bindings/media/video-interfaces.txt new file
+> mode 100644
+> index 0000000..0da126f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -0,0 +1,204 @@
+> +Common bindings for video data receiver and transmitter interfaces
+> +
+> +General concept
+> +---------------
+> +
+> +Video data pipelines usually consist of external devices, e.g. camera
+> +sensors, controlled over an I2C, SPI or UART bus, and SoC internal IP
+> +blocks, including video DMA engines and video data processors.
+> +
+> +SoC internal blocks are described by DT nodes, placed similarly to other
+> +SoC blocks.  External devices are represented as child nodes of their
+> +respective bus controller nodes, e.g. I2C.
+> +
+> +Data interfaces on all video devices are described by their child 'port'
+> +nodes. Configuration of a port depends on other devices participating in
+> +the data transfer and is described by 'endpoint' subnodes.
+> +
+> +dev {
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +	port@0 {
+> +		endpoint@0 { ... };
+> +		endpoint@1 { ... };
+> +	};
+> +	port@1 { ... };
+> +};
+> +
+> +If a port can be configured to work with more than one other device on the
+> +same bus, an 'endpoint' child node must be provided for each of them.  If
+> +more than one port is present in a device node or there is more than one
+> +endpoint at a port, a common scheme, using '#address-cells', '#size-cells'
+> +and 'reg' properties is used.
 
-signal strength:
-==============
-Offer both discussed methods.
-Simple [0...n] scale and dB...
-Driver must support simple scale over dB.
+Wouldn't this cause problems if the device has both video ports and a child 
+bus ? Using #address-cells and #size-cells for the video ports would prevent 
+the child bus from being handled in the usual way.
 
-CNR (SNR)
-==============
-Offer both discussed methods.
-Simple [0...n] scale and dB...
-Driver must support simple scale over dB.
+A possible solution would be to number ports with a dash instead of a @, as 
+done in pinctrl for instance. We would then get
 
-BER
-==============
-Offer global BER and per layer BER.
-Measure is returned as two numbers, one for error bit count and one for 
-total bit count.
+	port-0 {
+		endpoint-0 { ... };
+		endpoint-1 { ... };
+	};
+	port-1 { ... };
 
-uncorrected packets/blocks
-==============
-Offer global UCB and per layer UCB.
-Measure is returned as two numbers, one for uncorrected packet count and 
-one for total packet count.
+> +Two 'endpoint' nodes are linked with each other through their
+> +'remote-endpoint' phandles.  An endpoint subnode of a device contains all
+> +properties needed for configuration of this device for data exchange with
+> +the other device.  In most cases properties at the peer 'endpoint' nodes
+> +will be identical, however they might need to be different when there is
+> +any signal modifications on the bus between two devices, e.g. there are
+> +logic signal inverters on the lines.
+> +
+> +Required properties
+> +-------------------
+> +
+> +If there is more than one 'port' or more than one 'endpoint' node following
+> +properties are required in relevant parent node:
+> +
+> +- #address-cells : number of cells required to define port number, should
+> be 1.
+> +- #size-cells    : should be zero.
 
-counter reset
-==============
-counters are reset when channel is tuned
+I wonder if we should specify whether a port is a data sink or data source. A 
+source can be connected to multiple sinks at the same time, but a sink can 
+only be connected to a single source. If we want to perform automatic sanity 
+checks in the core knowing the direction might help.
 
+> +Optional endpoint properties
+> +----------------------------
+> +
+> +- remote-endpoint: phandle to an 'endpoint' subnode of the other device
+> +  node.
+> +- slave-mode: a boolean property, run the link in slave mode.
+> +  Default is master mode.
 
+What are master and slave modes ? It might be worth it describing them.
 
-And if we end up returning "simple" values over dB values, then I think 
-driver could be simple and implement only dB and dvb-core is responsible 
-to convert dB => simple. That should quite be possible as we know which 
-dB value is good signal and which is bad signal.
+> +- bus-width: number of data lines, valid for parallel busses.
+> +- data-shift: on parallel data busses, if bus-width is used to specify the
+> +  number of data lines, data-shift can be used to specify which data lines
+> +  are used, e.g. "bus-width=<10>; data-shift=<2>;" means, that lines 9:2
+> +  are used.
+> +- hsync-active: active state of HSYNC signal, 0/1 for LOW/HIGH
+> +  respectively.
+> +- vsync-active: active state of VSYNC signal, 0/1 for LOW/HIGH
+> +  respectively. Note, that if HSYNC and VSYNC polarities are not
+> +  specified, embedded synchronization may be required, where supported.
+> +- data-active: similar to HSYNC and VSYNC, specifies data line polarity.
+> +- field-even-active: field signal level during the even field data
+> +  transmission.
+> +- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel
+> +  clock signal.
+> +- data-lanes: an array of physical data lane indexes. Position of an entry
+> +  determines the logical lane number, while the value of an entry indicates
+> +  physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
+> +  "data-lanes = <1>, <2>;", assuming the clock lane is on hardware lane 0.
+> +  This property is valid for serial busses only (e.g. MIPI CSI-2).
+> +- clock-lanes: an array of physical clock lane indexes. Position of an
+> +  entry determines the logical lane number, while the value of an entry
+> +  indicates physical lane, e.g. for a MIPI CSI-2 bus we could have
+> +  "clock-lanes = <0>;", which places the clock lane on hardware lane 0.
+> +  This property is valid for serial busses only (e.g. MIPI CSI-2). Note
+> +  that for the MIPI CSI-2 bus this array contains only one entry.
+> +- clock-noncontinuous: a boolean property to allow MIPI CSI-2
+> +  non-continuous clock mode.
+> +
+> +Example
+> +-------
+> +
+> +The example snippet below describes two data pipelines.  ov772x and imx074
+> +are camera sensors with a parallel and serial (MIPI CSI-2) video bus
+> +respectively. Both sensors are on the I2C control bus corresponding to the
+> +i2c0 controller node.  ov772x sensor is linked directly to the ceu0 video
+> +host interface. imx074 is linked to ceu0 through the MIPI CSI-2 receiver
+> +(csi2). ceu0 has a (single) DMA engine writing captured data to memory. 
+> +ceu0 node has a single 'port' node which indicates that at any time only
+> +one of the following data pipelines can be active: ov772x -> ceu0 or
+> +imx074 -> csi2 -> ceu0.
+> +
+> +	ceu0: ceu@0xfe910000 {
+> +		compatible = "renesas,sh-mobile-ceu";
+> +		reg = <0xfe910000 0xa0>;
+> +		interrupts = <0x880>;
+> +
+> +		mclk: master_clock {
+> +			compatible = "renesas,ceu-clock";
+> +			#clock-cells = <1>;
+> +			clock-frequency = <50000000>;	/* Max clock frequency */
+> +			clock-output-names = "mclk";
+> +		};
+> +
+> +		port {
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
+> +
+> +			ceu0_1: endpoint@1 {
+> +				reg = <1>;		/* Local endpoint # */
+> +				remote = <&ov772x_1_1>;	/* Remote phandle */
+> +				bus-width = <8>;	/* Used data lines */
+> +				data-shift = <0>;	/* Lines 7:0 are used */
 
+As data-shift is optional, shouldn't it be left out when equal to 0 ? It 
+would, however, be nice to have a non-zero data-shift somewhere in the 
+example.
 
-Are these requirements now in line what is spoken?
+> +
+> +				/* If hsync-active/vsync-active are missing,
+> +				   embedded bt.605 sync is used */
+> +				hsync-active = <1>;	/* Active high */
+> +				vsync-active = <1>;	/* Active high */
+> +				data-active = <1>;	/* Active high */
+> +				pclk-sample = <1>;	/* Rising */
+> +			};
+> +
+> +			ceu0_0: endpoint@0 {
+> +				reg = <0>;
+> +				remote = <&csi2_2>;
+> +				immutable;
 
-regards
-Antti
+What is the immutable property for her e?
+
+> +			};
+> +		};
+> +	};
+> +
+> +	i2c0: i2c@0xfff20000 {
+> +		...
+> +		ov772x_1: camera@0x21 {
+> +			compatible = "omnivision,ov772x";
+> +			reg = <0x21>;
+> +			vddio-supply = <&regulator1>;
+> +			vddcore-supply = <&regulator2>;
+> +
+> +			clock-frequency = <20000000>;
+> +			clocks = <&mclk 0>;
+> +			clock-names = "xclk";
+> +
+> +			port {
+> +				/* With 1 endpoint per port no need in addresses. */
+
+s/in/for/ ?
+
+> +				ov772x_1_1: endpoint {
+> +					bus-width = <8>;
+> +					remote-endpoint = <&ceu0_1>;
+> +					hsync-active = <1>;
+> +					vsync-active = <0>; /* Who came up with an
+> +							       inverter here ?... */
+> +					data-active = <1>;
+> +					pclk-sample = <1>;
+> +				};
+> +			};
+> +		};
+> +
+> +		imx074: camera@0x1a {
+> +			compatible = "sony,imx074";
+> +			reg = <0x1a>;
+> +			vddio-supply = <&regulator1>;
+> +			vddcore-supply = <&regulator2>;
+> +
+> +			clock-frequency = <30000000>;	/* Shared clock with ov772x_1 */
+> +			clocks = <&mclk 0>;
+> +			clock-names = "sysclk";		/* Assuming this is the
+> +							   name in the datasheet */
+> +			port {
+> +				imx074_1: endpoint {
+> +					clock-lanes = <0>;
+> +					data-lanes = <1>, <2>;
+> +					remote-endpoint = <&csi2_1>;
+> +				};
+> +			};
+> +		};
+> +	};
+> +
+> +	csi2: csi2@0xffc90000 {
+> +		compatible = "renesas,sh-mobile-csi2";
+> +		reg = <0xffc90000 0x1000>;
+> +		interrupts = <0x17a0>;
+> +		#address-cells = <1>;
+> +		#size-cells = <0>;
+> +
+> +		port@1 {
+> +			compatible = "renesas,csi2c";	/* One of CSI2I and CSI2C. */
+> +			reg = <1>;			/* CSI-2 PHY #1 of 2: PHY_S,
+> +							   PHY_M has port address 0,
+> +							   is unused. */
+> +			csi2_1: endpoint {
+> +				clock-lanes = <0>;
+> +				data-lanes = <2>, <1>;
+> +				remote-endpoint = <&imx074_1>;
+> +			};
+> +		};
+> +		port@2 {
+> +			reg = <2>;			/* port 2: link to the CEU */
+> +
+> +			csi2_2: endpoint {
+> +				immutable;
+> +				remote-endpoint = <&ceu0_0>;
+> +			};
+> +		};
+> +	};
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
