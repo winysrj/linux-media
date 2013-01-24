@@ -1,119 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:43417 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757171Ab3AHS7y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 13:59:54 -0500
-Message-ID: <50EC6CA5.4000808@gmail.com>
-Date: Tue, 08 Jan 2013 19:59:49 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38779 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753288Ab3AXMtj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 07:49:39 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, verkuil@xs4all.nl, m.szyprowski@samsung.com,
+	pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 2/3 v2] vb2: Add support for non monotonic timestamps
+Date: Thu, 24 Jan 2013 13:49:38 +0100
+Message-ID: <3162932.GEG4AlBAqe@avalon>
+In-Reply-To: <1359030907-9883-3-git-send-email-k.debski@samsung.com>
+References: <1359030907-9883-1-git-send-email-k.debski@samsung.com> <1359030907-9883-3-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org
-Subject: Re: [PATCH v3] media: V4L2: add temporary clock helpers
-References: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1212041136250.26918@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Kamil,
 
-Just few minor remarks below...
+Thank you for the patch.
 
-On 12/04/2012 11:42 AM, Guennadi Liakhovetski wrote:
-> +struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
-> +				   const char *dev_id,
-> +				   const char *id, void *priv)
-> +{
-> +	struct v4l2_clk *clk;
-> +	int ret;
+On Thursday 24 January 2013 13:35:06 Kamil Debski wrote:
+> Not all drivers use monotonic timestamps. This patch adds a way to set the
+> timestamp type per every queue.
+> 
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c |    8 ++++++--
+>  include/media/videobuf2-core.h           |    1 +
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 85e3c22..b816689 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -403,7 +403,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
+> struct v4l2_buffer *b) * Clear any buffer state related flags.
+>  	 */
+>  	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
+> -	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	b->flags |= q->timestamp_type;
+> 
+>  	switch (vb->state) {
+>  	case VB2_BUF_STATE_QUEUED:
+> @@ -2032,9 +2032,13 @@ int vb2_queue_init(struct vb2_queue *q)
+>  	    WARN_ON(!q->type)		  ||
+>  	    WARN_ON(!q->io_modes)	  ||
+>  	    WARN_ON(!q->ops->queue_setup) ||
+> -	    WARN_ON(!q->ops->buf_queue))
+> +	    WARN_ON(!q->ops->buf_queue)   ||
+> +	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
+>  		return -EINVAL;
+> 
+> +	/* Warn that the driver should choose an appropriate timestamp type */
+> +	WARN_ON(q->timestamp_type == V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN);
 > +
-> +	if (!ops || !dev_id)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-> +	if (!clk)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	clk->id = kstrdup(id, GFP_KERNEL);
-> +	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
-> +	if ((id&&  !clk->id) || !clk->dev_id) {
-> +		ret = -ENOMEM;
-> +		goto ealloc;
-> +	}
-> +	clk->ops = ops;
-> +	clk->priv = priv;
-> +	atomic_set(&clk->use_count, 0);
-> +	mutex_init(&clk->lock);
-> +
-> +	mutex_lock(&clk_lock);
-> +	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
-> +		mutex_unlock(&clk_lock);
-> +		ret = -EEXIST;
-> +		goto eexist;
-> +	}
-> +	list_add_tail(&clk->list,&clk_list);
-> +	mutex_unlock(&clk_lock);
-> +
-> +	return clk;
-> +
-> +eexist:
-> +ealloc:
 
-These multiple labels could be avoided by naming labels after what
-happens on next lines, rather than after the location we start from.
+This will cause all the drivers that use vb2 to issue a WARN_ON, and 
+timestamps reported as monotonic in v3.7 would then be reported as unknown 
+again.
 
-> +	kfree(clk->id);
-> +	kfree(clk->dev_id);
-> +	kfree(clk);
-> +	return ERR_PTR(ret);
-> +}
-> +EXPORT_SYMBOL(v4l2_clk_register);
-> +
-> +void v4l2_clk_unregister(struct v4l2_clk *clk)
-> +{
-> +	if (unlikely(atomic_read(&clk->use_count))) {
+I can see two options to fix this, one is to default to monotonic if the 
+timestamp type is unknown, the other is to patch all drivers that use vb2. The 
+former is probably easier.
 
-I don't think unlikely() is significant here, it doesn't seem to be really
-a fast path.
+>  	INIT_LIST_HEAD(&q->queued_list);
+>  	INIT_LIST_HEAD(&q->done_list);
+>  	spin_lock_init(&q->done_lock);
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 9cfd4ee..7ce4656 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -326,6 +326,7 @@ struct vb2_queue {
+>  	const struct vb2_mem_ops	*mem_ops;
+>  	void				*drv_priv;
+>  	unsigned int			buf_struct_size;
+> +	u32	                   	timestamp_type;
+> 
+>  /* private: internal use only */
+>  	enum v4l2_memory		memory;
 
-> +		pr_err("%s(): Unregistering ref-counted %s:%s clock!\n",
-> +		       __func__, clk->dev_id, clk->id);
-> +		BUG();
+-- 
+Regards,
 
-Hmm, I wouldn't certainly like, e.g. my phone to crash completely only
-because camera drivers are buggy. Camera clocks likely aren't essential
-resources for system operation... I would just use WARN() here and return
-without actually freeing the clock. Not sure if changing signature of
-this function and returning an error would be any useful.
+Laurent Pinchart
 
-Is it indeed such an unrecoverable error we need to resort to BUG() ?
-
-And here is Linus' opinion on how many BUG_ON()s we have in the kernel:
-https://lkml.org/lkml/2012/9/27/461
-http://permalink.gmane.org/gmane.linux.kernel/1347333
-
-:)
-
-> +	}
-> +
-> +	mutex_lock(&clk_lock);
-> +	list_del(&clk->list);
-> +	mutex_unlock(&clk_lock);
-> +
-> +	kfree(clk->id);
-> +	kfree(clk->dev_id);
-> +	kfree(clk);
-> +}
-> +EXPORT_SYMBOL(v4l2_clk_unregister);
-
---
-
-Thanks,
-Sylwester
