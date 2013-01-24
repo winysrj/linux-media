@@ -1,43 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53321 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755882Ab3AOCbg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 21:31:36 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2VaKa003049
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:36 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv10 07/15] mb86a20s: improve debug for RF level
-Date: Tue, 15 Jan 2013 00:30:53 -0200
-Message-Id: <1358217061-14982-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ia0-f176.google.com ([209.85.210.176]:34826 "EHLO
+	mail-ia0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753234Ab3AXNf7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 08:35:59 -0500
+Received: by mail-ia0-f176.google.com with SMTP id i18so4802947iac.21
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 05:35:57 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 24 Jan 2013 14:35:57 +0100
+Message-ID: <CAJvg3VFV9gYGCvzbVFCaOQvpp0Vxn++9SdLQs3H+sKyFWvGCbQ@mail.gmail.com>
+Subject: ACM/VCM/PLS Support
+From: Thierry Perdichizzi <thierry@perdichizzi.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Hello,
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 06e5d35..e069c9b 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -333,7 +333,8 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- 
- 			/* Rescale it from 2^12 (4096) to 2^16 */
- 			rf <<= (16 - 12);
--			dprintk("signal strength = %d\n", rf);
-+			dprintk("signal strength = %d (%d < RF=%d < %d)\n", rf,
-+				rf_min, rf, rf_max);
- 			return (rf);
- 		}
- 	} while (1);
--- 
-1.7.11.7
+There is a problem with the v4l and we want to know if the next
+version will support ACM / VCM / PLS ?
 
+Thanks,
+Thierry
