@@ -1,161 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1400 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478Ab3A3Oya (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:47145 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750721Ab3AXPZf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 09:54:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/6] radio-miropcm20: convert to the control framework.
-Date: Wed, 30 Jan 2013 15:54:01 +0100
-Message-Id: <cf16454a3bd6b787b011728f6a04c6fa2695bd58.1359557431.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359557644-10982-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359557644-10982-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <6fc0e0fabcd9ccf60c95ed5cd9c7a08834b43f9b.1359557431.git.hans.verkuil@cisco.com>
-References: <6fc0e0fabcd9ccf60c95ed5cd9c7a08834b43f9b.1359557431.git.hans.verkuil@cisco.com>
+	Thu, 24 Jan 2013 10:25:35 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH4007T0YU2KU70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 15:25:33 +0000 (GMT)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MH4004WSYUBPF00@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 15:25:33 +0000 (GMT)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	Marek Szyprowski <m.szyprowski@samsung.com>, pawel@osciak.com,
+	'Kyungmin Park' <kyungmin.park@samsung.com>
+References: <1359030907-9883-1-git-send-email-k.debski@samsung.com>
+ <1359030907-9883-2-git-send-email-k.debski@samsung.com>
+ <201301241351.14213.hverkuil@xs4all.nl>
+In-reply-to: <201301241351.14213.hverkuil@xs4all.nl>
+Subject: RE: [PATCH 1/3 v2] v4l: Define video buffer flag for the COPY
+ timestamp type
+Date: Thu, 24 Jan 2013 16:25:22 +0100
+Message-id: <04b701cdfa47$07de3ec0$179abc40$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/radio-miropcm20.c |   64 ++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 38 deletions(-)
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Thursday, January 24, 2013 1:51 PM
+> 
+> On Thu 24 January 2013 13:35:05 Kamil Debski wrote:
+> > Define video buffer flag for the COPY timestamp. In this case the
+> > timestamp value is copied from the OUTPUT to the corresponding
+> CAPTURE buffer.
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> >  Documentation/DocBook/media/v4l/io.xml |    6 ++++++
+> >  include/uapi/linux/videodev2.h         |    1 +
+> >  2 files changed, 7 insertions(+)
+> >
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > b/Documentation/DocBook/media/v4l/io.xml
+> > index 73f202f..fdd1822 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -1145,6 +1145,12 @@ in which case caches have not been
+> used.</entry>
+> >  	    same clock outside V4L2, use
+> >  	    <function>clock_gettime(2)</function> .</entry>
+> >  	  </row>
+> > +	  <row>
+> > +
+> <entry><constant>V4L2_BUF_FLAG_TIMESTAMP_COPY</constant></entry>
+> > +	    <entry>0x4000</entry>
+> > +	    <entry>The CAPTURE buffer timestamp has been taken from the
+> > +	    corresponding OUTPUT buffer.</entry>
+> > +	  </row>
+> 
+> I think I mentioned it before somewhere, but it is helpful if it is
+> mentioned here that this only applies to mem2mem devices.
 
-diff --git a/drivers/media/radio/radio-miropcm20.c b/drivers/media/radio/radio-miropcm20.c
-index 4b7c164..061ebcf 100644
---- a/drivers/media/radio/radio-miropcm20.c
-+++ b/drivers/media/radio/radio-miropcm20.c
-@@ -17,6 +17,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- #include <sound/aci.h>
+Ok, will do.
+
+Best wishes,
+Kamil
  
- static int radio_nr = -1;
-@@ -30,6 +31,7 @@ MODULE_PARM_DESC(mono, "Force tuner into mono mode.");
- struct pcm20 {
- 	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
-+	struct v4l2_ctrl_handler ctrl_handler;
- 	unsigned long freq;
- 	int muted;
- 	struct snd_miro_aci *aci;
-@@ -138,44 +140,16 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_queryctrl(struct file *file, void *priv,
--				struct v4l2_queryctrl *qc)
-+static int pcm20_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	switch (qc->id) {
--	case V4L2_CID_AUDIO_MUTE:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
--	}
--	return -EINVAL;
--}
--
--static int vidioc_g_ctrl(struct file *file, void *priv,
--				struct v4l2_control *ctrl)
--{
--	struct pcm20 *dev = video_drvdata(file);
-+	struct pcm20 *dev = container_of(ctrl->handler, struct pcm20, ctrl_handler);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = dev->muted;
--		break;
--	default:
--		return -EINVAL;
-+		pcm20_mute(dev, ctrl->val);
-+		return 0;
- 	}
--	return 0;
--}
--
--static int vidioc_s_ctrl(struct file *file, void *priv,
--				struct v4l2_control *ctrl)
--{
--	struct pcm20 *dev = video_drvdata(file);
--
--	switch (ctrl->id) {
--	case V4L2_CID_AUDIO_MUTE:
--		pcm20_mute(dev, ctrl->value);
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
-+	return -EINVAL;
- }
- 
- static const struct v4l2_ioctl_ops pcm20_ioctl_ops = {
-@@ -184,15 +158,17 @@ static const struct v4l2_ioctl_ops pcm20_ioctl_ops = {
- 	.vidioc_s_tuner     = vidioc_s_tuner,
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
--	.vidioc_queryctrl   = vidioc_queryctrl,
--	.vidioc_g_ctrl      = vidioc_g_ctrl,
--	.vidioc_s_ctrl      = vidioc_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_ops pcm20_ctrl_ops = {
-+	.s_ctrl = pcm20_s_ctrl,
- };
- 
- static int __init pcm20_init(void)
- {
- 	struct pcm20 *dev = &pcm20_card;
- 	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
-+	struct v4l2_ctrl_handler *hdl;
- 	int res;
- 
- 	dev->aci = snd_aci_get_aci();
-@@ -210,6 +186,16 @@ static int __init pcm20_init(void)
- 		return -EINVAL;
- 	}
- 
-+	hdl = &dev->ctrl_handler;
-+	v4l2_ctrl_handler_init(hdl, 1);
-+	v4l2_ctrl_new_std(hdl, &pcm20_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+	v4l2_dev->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		res = hdl->error;
-+		v4l2_err(v4l2_dev, "Could not register control\n");
-+		goto err_hdl;
-+	}
- 	strlcpy(dev->vdev.name, v4l2_dev->name, sizeof(dev->vdev.name));
- 	dev->vdev.v4l2_dev = v4l2_dev;
- 	dev->vdev.fops = &pcm20_fops;
-@@ -219,11 +205,12 @@ static int __init pcm20_init(void)
- 	video_set_drvdata(&dev->vdev, dev);
- 
- 	if (video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr) < 0)
--		goto fail;
-+		goto err_hdl;
- 
- 	v4l2_info(v4l2_dev, "Mirosound PCM20 Radio tuner\n");
- 	return 0;
--fail:
-+err_hdl:
-+	v4l2_ctrl_handler_free(hdl);
- 	v4l2_device_unregister(v4l2_dev);
- 	return -EINVAL;
- }
-@@ -237,6 +224,7 @@ static void __exit pcm20_cleanup(void)
- 	struct pcm20 *dev = &pcm20_card;
- 
- 	video_unregister_device(&dev->vdev);
-+	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- }
- 
--- 
-1.7.10.4
+> Regards,
+> 
+> 	Hans
+> 
+> >  	</tbody>
+> >        </tgroup>
+> >      </table>
+> > diff --git a/include/uapi/linux/videodev2.h
+> > b/include/uapi/linux/videodev2.h index 72e9921..d5a59af 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -697,6 +697,7 @@ struct v4l2_buffer {
+> >  #define V4L2_BUF_FLAG_TIMESTAMP_MASK		0xe000
+> >  #define V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN		0x0000
+> >  #define V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC	0x2000
+> > +#define V4L2_BUF_FLAG_TIMESTAMP_COPY		0x4000
+> >
+> >  /**
+> >   * struct v4l2_exportbuffer - export of video buffer as DMABUF file
+> > descriptor
+> >
+
 
