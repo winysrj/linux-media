@@ -1,80 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43238 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750796Ab3AGUJD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 15:09:03 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Julia Lawall <Julia.Lawall@lip6.fr>,
-	kernel-janitors@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/platform/soc_camera/pxa_camera.c: reposition free_irq to avoid access to invalid data
-References: <1357552816-6046-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1357552816-6046-2-git-send-email-Julia.Lawall@lip6.fr>
-	<Pine.LNX.4.64.1301071111420.23972@axis700.grange>
-Date: Mon, 07 Jan 2013 21:08:46 +0100
-In-Reply-To: <Pine.LNX.4.64.1301071111420.23972@axis700.grange> (Guennadi
-	Liakhovetski's message of "Mon, 7 Jan 2013 12:09:36 +0100 (CET)")
-Message-ID: <874nisbvsh.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail-yh0-f74.google.com ([209.85.213.74]:34072 "EHLO
+	mail-yh0-f74.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756439Ab3AXXQT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 18:16:19 -0500
+Received: by mail-yh0-f74.google.com with SMTP id z12so880454yhz.1
+        for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 15:16:18 -0800 (PST)
+From: Simon Que <sque@chromium.org>
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Cc: msb@chromium.org, posciak@chromium.org,
+	Simon Que <sque@chromium.org>
+Subject: [PATCH] media: config option for building tuners
+Date: Thu, 24 Jan 2013 14:11:56 -0800
+Message-Id: <1359065516-8222-1-git-send-email-sque@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+This patch provides a Kconfig option, MEDIA_TUNER_SUPPORT, that
+determines whether media/tuners is included in the build.  This way,
+the tuners don't have to be unconditionally included in the build.
 
-> (adding Robert to CC)
-> I don't think any data is freed by pxa_free_dma(), it only disables DMA on 
-> a certain channel. Theoretically there could be a different problem: 
-> pxa_free_dma() deactivates DMA, whereas pxa_dma_start_channels() activates 
-> it. But I think we're also protected against that: by the time 
-> pxa_camera_remove() is called, and operation on the interface has been 
-> stopped, client devices have been detached, pxa_camera_remove_device() has 
-> been called, which has also stopped the interface clock. And with clock 
-> stopped no interrupts can be generated. And the case of interrupt having 
-> been generated before clk_disabled() and only delivered to the driver so 
-> much later, that we're already unloading the module, seems really 
-> impossible to me. Robert, you agree?
+Signed-off-by: Simon Que <sque@chromium.org>
+---
+ drivers/media/Kconfig  | 9 +++++++++
+ drivers/media/Makefile | 3 ++-
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-Agreed that pxa_free_dma() doesn't free anything, that one is easy :)
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 4ef0d80..a266da2 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -73,6 +73,15 @@ config MEDIA_RC_SUPPORT
+ 
+ 	  Say Y when you have a TV or an IR device.
+ 
++config MEDIA_TUNER_SUPPORT
++	tristate
++	help
++	  This enables the tuner modules in the tuners directory.  Use this
++	  option to turn on tuners.  The individual tuner modules can then be
++	  turned on/off one-by-one.
++
++	  Say Y when you have a V4L/DVB tuner in your system.
++
+ #
+ # Media controller
+ #	Selectable only for webcam/grabbers, as other drivers don't use it
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 620f275..679db94 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -8,7 +8,8 @@ media-objs	:= media-device.o media-devnode.o media-entity.o
+ # I2C drivers should come before other drivers, otherwise they'll fail
+ # when compiled as builtin drivers
+ #
+-obj-y += i2c/ tuners/
++obj-y += i2c/
++obj-$(CONFIG_MEDIA_TUNER_SUPPORT)  += tuners/
+ obj-$(CONFIG_DVB_CORE)  += dvb-frontends/
+ 
+ #
+-- 
+1.8.1
 
-And agreed too for the second part, with a slighly different explanation :
- - pxa_camera_remove_device() has been called as you said
- - inside this function, check comment
-   "/* disable capture, disable interrupts */"
-   => this ensures no interrupt can be generated anymore
-
-So after pxa_camera_remove_device() has been called, no interrupts can be
-generated.
-
-Yet as you said, it leaves the "almost impossible" scenario :
- - a user begins a capture
- - the user closes the capture device and unloads pxa-camera.ko:
-     soc_camera_close()
-       pxa_camera_remove_device()
-         the IRQ line is asserted but doesn't trigger yet the interrupt handler
-         (yes I know, improbable)
-         meanwhile, IRQs are disabled, DMA channels are stopped
-     switch_to(rmmod)
-       => yes I know, impossible, the interrupt handler must be run before, but
-       let's continue for love of discussion ...
-     rmmod pxa-camera
-       pxa_camera_remove()
-         pxa_free_dma() * 3
-         ----> here the IRQ handler kicks in !!!
-               => pxa_camera_irq()
-                    pxa_dma_start_channels()
-         ----> it hurts !
-
-My call is that this is impossible because the switch_to() should run the IRQ
-handler before pxa_camera_remove() is called.
-
-So all this to say that I think we're safe, unless a heavy ion or a cosmic ray
-strikes the PXA :)
-
-Cheers.
-
---
-Robert
