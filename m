@@ -1,86 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3591 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752941Ab3AaKZs (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:63388 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752953Ab3AXMfT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 05:25:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 24 Jan 2013 07:35:19 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH400F85QYTPTU0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 21:35:18 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MH4006Z9QYLQC80@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 Jan 2013 21:35:17 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Huang Shijie <shijie8@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 05/18] tlg2300: embed video_device instead of allocating it.
-Date: Thu, 31 Jan 2013 11:25:23 +0100
-Message-Id: <6c7743bffce7a3cb8ea7b6c6f2ae92e79e81dcf4.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
-References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, verkuil@xs4all.nl, m.szyprowski@samsung.com,
+	pawel@osciak.com, Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 0/3 v2] Add proper timestamp types handling in videobuf2
+Date: Thu, 24 Jan 2013 13:35:04 +0100
+Message-id: <1359030907-9883-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tlg2300/pd-common.h |    2 +-
- drivers/media/usb/tlg2300/pd-radio.c  |   20 ++++++--------------
- 2 files changed, 7 insertions(+), 15 deletions(-)
+This is the second version of the patch posted earlier this month.
+After the discussion a WARN_ON was added to inform if the driver is not setting
+timestamp type when initialising the videobuf2 queue. Also the
+davinci/vpbe_display.c driver was modified to correctly report the use of
+MONOTONIC timestamp type.
 
-diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
-index 5dd73b7..3a89128 100644
---- a/drivers/media/usb/tlg2300/pd-common.h
-+++ b/drivers/media/usb/tlg2300/pd-common.h
-@@ -118,7 +118,7 @@ struct radio_data {
- 	int		users;
- 	unsigned int	is_radio_streaming;
- 	int		pre_emphasis;
--	struct video_device *fm_dev;
-+	struct video_device fm_dev;
- };
- 
- #define DVB_SBUF_NUM		4
-diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-index 4c76e089..719c3da 100644
---- a/drivers/media/usb/tlg2300/pd-radio.c
-+++ b/drivers/media/usb/tlg2300/pd-radio.c
-@@ -369,31 +369,23 @@ static struct video_device poseidon_fm_template = {
- 	.name       = "Telegent-Radio",
- 	.fops       = &poseidon_fm_fops,
- 	.minor      = -1,
--	.release    = video_device_release,
-+	.release    = video_device_release_empty,
- 	.ioctl_ops  = &poseidon_fm_ioctl_ops,
- };
- 
- int poseidon_fm_init(struct poseidon *p)
- {
--	struct video_device *fm_dev;
--	int err;
-+	struct video_device *vfd = &p->radio_data.fm_dev;
- 
--	fm_dev = vdev_init(p, &poseidon_fm_template);
--	if (fm_dev == NULL)
--		return -ENOMEM;
-+	*vfd = poseidon_fm_template;
-+	vfd->v4l2_dev	= &p->v4l2_dev;
-+	video_set_drvdata(vfd, p);
- 
--	p->radio_data.fm_dev = fm_dev;
- 	set_frequency(p, TUNER_FREQ_MIN_FM);
--	err = video_register_device(fm_dev, VFL_TYPE_RADIO, -1);
--	if (err < 0) {
--		video_device_release(fm_dev);
--		return err;
--	}
--	return 0;
-+	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
- }
- 
- int poseidon_fm_exit(struct poseidon *p)
- {
--	destroy_video_device(&p->radio_data.fm_dev);
- 	return 0;
- }
+Best wishes,
+Kamil Debski
+
+PS. Below please find the original cover letter.
+
+Hi,
+
+The recent addition of timestamp types (and monotonic timestamp) left some room
+for improvement. First of all not all drivers use monotonic timestamp. There are
+for example mem2mem drivers that copy the timestamp from the OUTPUT buffer to
+the corresponding CAPTURE buffer. Some videobuf2 drivers do not fill the
+timestamp field altogether (yeah, I can agree that a constant is monotonic, but
+still...).
+
+Hence, I propose the following change to videobuf2. After applying this patch
+the default timestamp type is UNKNOWN. It is up to the driver to set the
+timestamp type to either MONOTONIC or COPY in vb2_queue_init.
+
+This patch also adds setting proper timestamp type value in case of drivers
+where I determined that type. This list might be missing some drivers, but
+in these cases it will leave the UNKNOWN type which is a safe assumption.
+
+Best wishes,
+Kamil Debski
+
+Kamil Debski (3):
+  v4l: Define video buffer flag for the COPY timestamp type
+  vb2: Add support for non monotonic timestamps
+  v4l: Set proper timestamp type in selected drivers which use
+    videobuf2
+
+ Documentation/DocBook/media/v4l/io.xml             |    6 ++++++
+ drivers/media/platform/blackfin/bfin_capture.c     |    1 +
+ drivers/media/platform/davinci/vpbe_display.c      |    1 +
+ drivers/media/platform/davinci/vpif_capture.c      |    1 +
+ drivers/media/platform/davinci/vpif_display.c      |    1 +
+ drivers/media/platform/s3c-camif/camif-capture.c   |    1 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 ++
+ drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
+ drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
+ drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
+ drivers/media/platform/vivi.c                      |    1 +
+ drivers/media/usb/pwc/pwc-if.c                     |    1 +
+ drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
+ drivers/media/usb/uvc/uvc_queue.c                  |    1 +
+ drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++++--
+ include/media/videobuf2-core.h                     |    1 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ 20 files changed, 31 insertions(+), 2 deletions(-)
+
 -- 
-1.7.10.4
+1.7.9.5
 
