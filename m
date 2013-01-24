@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19251 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752728Ab3AQLQS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 06:16:18 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGR002XCOJVN440@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 17 Jan 2013 11:16:16 +0000 (GMT)
-Received: from [106.116.147.32] by eusync3.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MGR00HLUON4RFA0@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 17 Jan 2013 11:16:16 +0000 (GMT)
-Message-id: <50F7DD7F.5030504@samsung.com>
-Date: Thu, 17 Jan 2013 12:16:15 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH v2] s5p-g2d: Add support for G2D H/W Rev.4.1
-References: <1358395638-26086-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1358395638-26086-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:11605 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756072Ab3AXUd0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 15:33:26 -0500
+Date: Thu, 24 Jan 2013 18:33:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Manu Abraham <abraham.manu@gmail.com>, andreas.regel@gmx.de
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: Status of the patches under review at LMML (35 patches)
+Message-ID: <20130124183319.3d0390e7@redhat.com>
+In-Reply-To: <CAHFNz9JjP1ZjLM67SA-01raNKcoUjVmD8-2JfkDe=hHAB61Lig@mail.gmail.com>
+References: <20130106113455.329ad868@redhat.com>
+	<CAHFNz9JjP1ZjLM67SA-01raNKcoUjVmD8-2JfkDe=hHAB61Lig@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Manu,
 
-On 01/17/2013 05:07 AM, Sachin Kamat wrote:
-> Modified the G2D driver (which initially supported only H/W Rev.3)
-> to support H/W Rev.4.1 present on Exynos4x12 and Exynos52x0 SOCs.
+Please reply to the original thread or c/c the original author to
+let him know and answer to you.
+
+Em Tue, 15 Jan 2013 16:57:26 +0530
+Manu Abraham <abraham.manu@gmail.com> escreveu:
+
+Andreas,
+
+Please see the comment below:
+
+> > Those patches are there for a long time. I think I'll simply apply all of
+> > them, if they're not reviewed on the next couple weeks:
+> >
+> > Mar,11 2012: [2/3] stv090x: use error counter 1 for BER estimation                  http://patchwork.linuxtv.org/patch/10301  Andreas Regel <andreas.regel@gmx.de>  
 > 
-> -- Set the SRC and DST type to 'memory' instead of using reset values.
-> -- FIMG2D v4.1 H/W uses different logic for stretching(scaling).
-> -- Use CACHECTL_REG only with FIMG2D v3.
 > 
-> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Acked-by: Kamil Debski <k.debski@samsung.com>
-> ---
-> Changes since v1:
-> Moved g2d_get_drv_data() to g2d.h as suggested by
-> Sylwester Nawrocki <s.nawrocki@samsung.com>.
+> I am not at all sure on this patch. If there is a valid test result on this
+> patch, then I am all for it.
 
-I have applied this patch for 3.9, thanks. You may also need a patch
-adding DT support, since those new SoCs are in mainline DT only.
 
---
 
-Regards,
-Sylwester
+-- 
+
+Cheers,
+Mauro
