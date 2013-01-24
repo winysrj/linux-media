@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:46122 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754821Ab3AIAEJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 19:04:09 -0500
-Date: Wed, 9 Jan 2013 09:04:05 +0900
-From: Simon Horman <horms@verge.net.au>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 6/6] ARM: shmobile: convert ap4evb to asynchronously
- register camera subdevices
-Message-ID: <20130109000405.GC29821@verge.net.au>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
- <1356544151-6313-7-git-send-email-g.liakhovetski@gmx.de>
- <20130108042720.GA25895@verge.net.au>
- <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:57653 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780Ab3AXGrX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 01:47:23 -0500
+Received: by mail-vc0-f174.google.com with SMTP id n11so6445263vch.33
+        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 22:47:22 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1301082326040.8852@axis700.grange>
+In-Reply-To: <50F81933.40809@iki.fi>
+References: <CAKdnbx7Qx7z1BVxaXsDAe8mDG9jhPQeAkPbZGof++B1xK31Wsw@mail.gmail.com>
+ <50F81933.40809@iki.fi>
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Thu, 24 Jan 2013 07:47:02 +0100
+Message-ID: <CAKdnbx7Ja-aN6cWWoiFNXM4m4sSXnK7MQUOtdDO8D2r2ouMurw@mail.gmail.com>
+Subject: Re: [PATCH] Support Digivox Mini HD (rtl2832)
+To: Antti Palosaari <crope@iki.fi>, mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 08, 2013 at 11:35:21PM +0100, Guennadi Liakhovetski wrote:
-> Hi Simon
-> 
-> On Tue, 8 Jan 2013, Simon Horman wrote:
-> 
-> > On Wed, Dec 26, 2012 at 06:49:11PM +0100, Guennadi Liakhovetski wrote:
-> > > Register the imx074 camera I2C and the CSI-2 platform devices directly
-> > > in board platform data instead of letting the sh_mobile_ceu_camera driver
-> > > and the soc-camera framework register them at their run-time. This uses
-> > > the V4L2 asynchronous subdevice probing capability.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > 
-> > Hi Guennadi,
-> > 
-> > could you let me know what if any dependencies this patch has.
-> > And the status of any dependencies.
-> 
-> This patch depends on the other 5 patches in this series. Since the other 
-> patches are still in work, this patch cannot be applied either yet. Sorry, 
-> I should have marked it as RFC.
+Hi Mauro,
 
-Thanks, got it.
+Any chance this patch will be committed?
+
+On Thu, Jan 17, 2013 at 4:30 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 01/15/2013 12:21 AM, Eddi De Pieri wrote:
+>>
+>> Add support for Digivox Mini HD (rtl2832)
+>>
+>> The tuner works, but with worst performance then realtek linux driver,
+>> due to incomplete implementation of fc2580.c
+>>
+>> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+>> Tested-by: Lorenzo Dongarrą <lorenzo_64@katamail.com>
+>>
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> index b6f4849..c05ea16 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>> @@ -1368,6 +1368,8 @@ static const struct usb_device_id
+>> rtl28xxu_id_table[] = {
+>>                  &rtl2832u_props, "ASUS My Cinema-U3100Mini Plus V2",
+>> NULL) },
+>>          { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd393,
+>>                  &rtl2832u_props, "GIGABYTE U7300", NULL) },
+>> +       { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1104,
+>> +               &rtl2832u_props, "Digivox Micro Hd", NULL) },
+>>          { }
+>>   };
+>>   MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+>
+>
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+>
+> --
+> http://palosaari.fi/
