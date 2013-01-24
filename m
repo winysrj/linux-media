@@ -1,88 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31702 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757828Ab3AIOmh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jan 2013 09:42:37 -0500
-Date: Wed, 9 Jan 2013 12:41:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-Message-ID: <20130109124158.50ddc834@redhat.com>
-In-Reply-To: <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2973 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905Ab3AXVCP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 16:02:15 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0OL2Btx035667
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 22:02:14 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id B9C463060010
+	for <linux-media@vger.kernel.org>; Thu, 24 Jan 2013 22:02:11 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130124210211.B9C463060010@alastor.dyndns.org>
+Date: Thu, 24 Jan 2013 22:02:11 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Jan 2013 06:08:44 -0500
-Michael Krufky <mkrufky@linuxtv.org> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> On Wed, Jan 9, 2013 at 5:41 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em Wed, 09 Jan 2013 10:43:23 +0100
-> > Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
-> >
-> >> On 08-01-13 21:01, Johannes Stezenbach wrote:
-> >> > On Mon, Jan 07, 2013 at 01:48:29PM +0100, Oliver Schinagl wrote:
-> >> >> On 07-01-13 11:46, Jiri Slaby wrote:
-> >> >>> On 12/18/2012 11:01 PM, Oliver Schinagl wrote:
-> >> >>>> Unfortunatly, I have had zero replies.
-> >> >>> Hmm, it's sad there is a silence in this thread from linux-media guys :/.
-> >> >> In their defense, they are very very busy people ;) chatter on this
-> >> >> thread does bring it up however.
-> >> > This is such a nice thing to say :-)
-> >> > But it might be that Mauro thinks the dvb-apps maintainer should
-> >> > respond, but apparently there is no dvb-apps maintainer...
-> >> > Maybe you should ask Mauro directly to create an account for you
-> >> > to implement what you proposed.
-> >> Mauro is CC'ed and I'd ask of course for this (I kinda did) but who
-> >> decides what I suggested is a good idea? I personally obviously think it
-> >> is ;) and even more so if dvb-apps are unmaintained.
-> >>
-> >> I guess the question now becomes 'who okay's this change? Who says
-> >> 'okay, lets do it this way. Once that is answered we can go from there ;)
-> >
-> > If I understood it right, you want to split the scan files into a separate
-> > git tree and maintain it, right?
-> >
-> > I'm ok with that.
-> >
-> > Regards,
-> > Mauro
-> 
-> As a DVB maintainer, I am OK with this as well - It does indeed make
-> sense to separate the c code sources from the regional frequency
-> tables, and I'm sure we'll see much benefit from this change.
+Results of the daily build of media_tree:
 
-Done. I created a tree for Oliver to maintain it and an account for him.
-I also created a new tree with just the DVB table commits to:
-	http://git.linuxtv.org/dtv-scan-tables.git
+date:        Thu Jan 24 19:00:21 CET 2013
+git hash:    f67102c49a123b32a4469b28407feb52b37144f5
+gcc version:      i686-linux-gcc (GCC) 4.7.1
+host hardware:    x86_64
+host os:          3.4.07-marune
 
-I kept there both szap and scan files, although maybe it makes sense to
-drop the szap table (channels-conf dir). It also makes sense to drop the
-tables from the dvb-apps tree, to avoid duplicated stuff, and to avoid troubles
-on distros that may want to have both packages.
+linux-git-arm-eabi-davinci: WARNINGS
+linux-git-arm-eabi-exynos: WARNINGS
+linux-git-arm-eabi-omap: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-i686: WARNINGS
+linux-2.6.37-i686: WARNINGS
+linux-2.6.38.2-i686: WARNINGS
+linux-2.6.39.1-i686: ERRORS
+linux-3.0-i686: ERRORS
+linux-3.1-i686: ERRORS
+linux-3.2.1-i686: ERRORS
+linux-3.3-i686: ERRORS
+linux-3.4-i686: WARNINGS
+linux-3.5-i686: WARNINGS
+linux-3.6-i686: WARNINGS
+linux-3.7-i686: WARNINGS
+linux-3.8-rc1-i686: OK
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-x86_64: WARNINGS
+linux-2.6.37-x86_64: WARNINGS
+linux-2.6.38.2-x86_64: WARNINGS
+linux-2.6.39.1-x86_64: ERRORS
+linux-3.0-x86_64: ERRORS
+linux-3.1-x86_64: ERRORS
+linux-3.2.1-x86_64: ERRORS
+linux-3.3-x86_64: ERRORS
+linux-3.4-x86_64: WARNINGS
+linux-3.5-x86_64: WARNINGS
+linux-3.6-x86_64: WARNINGS
+linux-3.7-x86_64: WARNINGS
+linux-3.8-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Anyway, as Oliver has now access to both trees, I'll let him to handle
-and maintain it.
+Detailed results are available here:
 
-Christoph,
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Thank you for all the hard work over all those years!
+Full logs are available here:
 
-Happy new year,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
