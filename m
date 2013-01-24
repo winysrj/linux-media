@@ -1,131 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f181.google.com ([209.85.217.181]:64847 "EHLO
-	mail-lb0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751188Ab3AJFhO (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:42732 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752782Ab3AXKJL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 00:37:14 -0500
-Received: by mail-lb0-f181.google.com with SMTP id ge1so193529lbb.40
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 21:37:12 -0800 (PST)
+	Thu, 24 Jan 2013 05:09:11 -0500
 MIME-Version: 1.0
-In-Reply-To: <3145597.3X0nZfdYRE@avalon>
-References: <1357132642-24588-1-git-send-email-vikas.sajjan@linaro.org>
-	<67872310.6yRVsVsClR@amdc1227>
-	<CAD025yQHuW3O-Wqwjjsf79UcXjxezUZEwoY-P1J5Fqb+OB+gHA@mail.gmail.com>
-	<3145597.3X0nZfdYRE@avalon>
-Date: Thu, 10 Jan 2013 11:07:12 +0530
-Message-ID: <CAD025yRoraqb_zvxfX-oNKHXpM7v=d9S1XUfNs2PLrP8fM3wYA@mail.gmail.com>
-Subject: Re: [PATCH 2/2] [RFC] video: display: Adding frame related ops to
- MIPI DSI video source struct
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Figa <t.figa@samsung.com>, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, inki.dae@samsung.com,
-	tomi.valkeinen@ti.com, aditya.ps@samsung.com,
-	sunil joshi <joshi@samsung.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>
+In-Reply-To: <5101144B.1090600@denx.de>
+References: <1359018740-6399-1-git-send-email-prabhakar.lad@ti.com> <5101144B.1090600@denx.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 24 Jan 2013 15:38:49 +0530
+Message-ID: <CA+V-a8uq++Fi80eTTXpDmYG_mpWr0HbTJhH1vSnHPCyAbgVB3A@mail.gmail.com>
+Subject: Re: [PATCH RFC] media: tvp514x: add OF support
+To: Heiko Schocher <hs@denx.de>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LDOC <linux-doc@vger.kernel.org>,
+	devicetree-discuss@lists.ozlabs.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Heiko,
 
-On 10 January 2013 05:05, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Vikas,
+On Thu, Jan 24, 2013 at 4:30 PM, Heiko Schocher <hs@denx.de> wrote:
+> Hello Prabhakar,
 >
-> Thank you for the patch.
->
-> On Friday 04 January 2013 10:24:04 Vikas Sajjan wrote:
->> On 3 January 2013 16:29, Tomasz Figa <t.figa@samsung.com> wrote:
->> > On Wednesday 02 of January 2013 18:47:22 Vikas C Sajjan wrote:
->> >> From: Vikas Sajjan <vikas.sajjan@linaro.org>
->> >>
->> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->> >> ---
->> >>
->> >>  include/video/display.h |    6 ++++++
->> >>  1 file changed, 6 insertions(+)
->> >>
->> >> diff --git a/include/video/display.h b/include/video/display.h
->> >> index b639fd0..fb2f437 100644
->> >> --- a/include/video/display.h
->> >> +++ b/include/video/display.h
->> >> @@ -117,6 +117,12 @@ struct dsi_video_source_ops {
->> >>
->> >>       void (*enable_hs)(struct video_source *src, bool enable);
->> >>
->> >> +     /* frame related */
->> >> +     int (*get_frame_done)(struct video_source *src);
->> >> +     int (*clear_frame_done)(struct video_source *src);
->> >> +     int (*set_early_blank_mode)(struct video_source *src, int power);
->> >> +     int (*set_blank_mode)(struct video_source *src, int power);
->> >> +
->> >
->> > I'm not sure if all those extra ops are needed in any way.
->> >
->> > Looking and Exynos MIPI DSIM driver, set_blank_mode is handling only
->> > FB_BLANK_UNBLANK status, which basically equals to the already existing
->> > enable operation, while set_early_blank mode handles only
->> > FB_BLANK_POWERDOWN, being equal to disable callback.
+> On 24.01.2013 10:12, Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 >>
->> Right, exynos_mipi_dsi_blank_mode() only supports FB_BLANK_UNBLANK as
->> of now, but FB_BLANK_NORMAL will be supported in future.
->> If not for Exynos, i think it will be need for other SoCs which
->> support FB_BLANK_UNBLANK and FB_BLANK_NORMAL.
->
-> Could you please explain in a bit more details what the set_early_blank_mode
-> and set_blank_mode operations do ?
->
-
-with reference to Mr. Inki Dae's patch and discussion
-http://lkml.indiana.edu/hypermail/linux/kernel/1109.1/00413.html
-http://lkml.indiana.edu/hypermail/linux/kernel/1109.1/02247.html
-
-set_early_blank_mode:
-  - sets the framebuffer blank mode.
-  - this callback should be called prior to fb_blank() by a client
-driver only if needed
-set_blank_mode:
-  - sets framebuffer blank mode
-  -  this callback should be called after fb_blank() by a client
-driver only if needed.
-
-In case of MIPI-DSI based video mode LCD Panel, for lcd power off, the
-power off commands should be transferred to lcd panel with display and
-mipi-dsi controller enabled, because the commands is set to lcd panel
-at vsync porch period, hence set_early_blank_mode() was introduced and
-should be called prior to fb_blank() as mentioned in the above 2
-links.
-
-I think Mr. Inki Dae can throw more light on this.
-
->> > Both get_frame_done and clear_frame_done do not look at anything used at
->> > the moment and if frame done status monitoring will be ever needed, I
->> > think a better way should be implemented.
+>> add OF support for the tvp514x driver.
 >>
->> You are right, as of now Exynos MIPI DSI Panels are NOT using these
->> callbacks, but as you mentioned we will need frame done status monitoring
->> anyways, so i included these callbacks here. Will check, if we can implement
->> any better method.
+>> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> ---
+>>  This patch is on top of following patches:
+>>  1: https://patchwork.kernel.org/patch/1930941/
+>>  2: http://patchwork.linuxtv.org/patch/16193/
+>>  3: https://patchwork.kernel.org/patch/1944901/
+>>
+>>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   30 ++++++++++
+>>  drivers/media/i2c/tvp514x.c                        |   60 ++++++++++++++++++--
+>>  2 files changed, 85 insertions(+), 5 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>> new file mode 100644
+>> index 0000000..3cce323
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>> @@ -0,0 +1,30 @@
 >
-> Do you expect the entity drivers (and in particular the panel drivers) to
-> require frame done notification ? If so, could you explain your use case(s) ?
+> [...]
+>> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+>> index a4f0a70..0e2b15c 100644
+>> --- a/drivers/media/i2c/tvp514x.c
+>> +++ b/drivers/media/i2c/tvp514x.c
+>> @@ -12,6 +12,7 @@
+>>   *     Hardik Shah <hardik.shah@ti.com>
+>>   *     Manjunath Hadli <mrh@ti.com>
+>>   *     Karicheri Muralidharan <m-karicheri2@ti.com>
+>> + *     Prabhakar Lad <prabhakar.lad@ti.com>
+>>   *
+>>   * This package is free software; you can redistribute it and/or modify
+>>   * it under the terms of the GNU General Public License version 2 as
+>> @@ -930,6 +931,50 @@ static struct tvp514x_decoder tvp514x_dev = {
+>>
+>>  };
+>>
+>> +#if defined(CONFIG_OF)
+>> +static const struct of_device_id tvp514x_of_match[] = {
+>> +     {.compatible = "ti,tvp514x-decoder", },
+>> +     {},
+>> +}
 >
-In our Exynos MIPI DSIM H/W, once MIPI DSIM transfers whole image
-frame, interrupt will raised to indicate the same.
-as part of the mipi_dsim_master_ops() we have get_dsim_frame_done()
-and clear_dsim_frame_done() ops. But as of now we are also _NOT_ using
-these ops in any particular use case. So i guess as of now we can park
-it, later if we find any need for the same we can add it.
+> Missing semicolon here. Without, gcc throws here an error
+> when compiling this driver as a module.
+>
+Thanks for the catch, i had built it along with the kernel, I remember
+similar issue with one of your patch missed it to apply here :).
+I'll fix it in v2 version.
 
+Regards,
+--Prabhakar
+
+>> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
+>> +
+> [...]
+>
+> bye,
+> Heiko
 > --
-> Regards,
->
-> Laurent Pinchart
->
-
---
-Thanks and Regards
- Vikas Sajjan
- SAMSUNG Research India - Banglore.
+> DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
+> HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
