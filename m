@@ -1,191 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55067 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab3ABIAb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 03:00:31 -0500
-Date: Wed, 2 Jan 2013 09:00:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 08/15] [media] marvell-ccic: switch to resource managed
- allocation and request
-In-Reply-To: <1355565484-15791-9-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1301020851320.7829@axis700.grange>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-9-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:62480 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752385Ab3AXJMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jan 2013 04:12:35 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	<devicetree-discuss@lists.ozlabs.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH RFC] media: tvp514x: add OF support
+Date: Thu, 24 Jan 2013 14:42:20 +0530
+Message-Id: <1359018740-6399-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012, Albert Wang wrote:
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch switchs to resource managed allocation and request in mmp-driver.
-> It can remove free resource operations.
-> 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> ---
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   56 ++++++++--------------
->  1 file changed, 20 insertions(+), 36 deletions(-)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index fec7cd8..40c243e 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -315,7 +315,7 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	if (!pdata)
->  		return -ENODEV;
->  
-> -	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
-> +	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
->  	if (cam == NULL)
->  		return -ENOMEM;
->  	cam->pdev = pdev;
-> @@ -343,14 +343,12 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->  	if (res == NULL) {
->  		dev_err(&pdev->dev, "no iomem resource!\n");
-> -		ret = -ENODEV;
-> -		goto out_free;
-> +		return -ENODEV;
->  	}
-> -	mcam->regs = ioremap(res->start, resource_size(res));
-> +	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
->  	if (mcam->regs == NULL) {
->  		dev_err(&pdev->dev, "MMIO ioremap fail\n");
-> -		ret = -ENODEV;
-> -		goto out_free;
-> +		return -ENODEV;
->  	}
->  	/*
->  	 * Power/clock memory is elsewhere; get it too.  Perhaps this
-> @@ -359,14 +357,12 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
->  	if (res == NULL) {
->  		dev_err(&pdev->dev, "no power resource!\n");
-> -		ret = -ENODEV;
-> -		goto out_unmap1;
-> +		return -ENODEV;
->  	}
-> -	cam->power_regs = ioremap(res->start, resource_size(res));
-> +	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
->  	if (cam->power_regs == NULL) {
->  		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
-> -		ret = -ENODEV;
-> -		goto out_unmap1;
-> +		return -ENODEV;
->  	}
->  
->  	mcam_init_clk(mcam, pdata, 1);
-> @@ -376,25 +372,27 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	 */
->  	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
->  	if (mcam->i2c_adapter == NULL) {
-> -		ret = -ENODEV;
->  		dev_err(&pdev->dev, "No i2c adapter\n");
-> -		goto out_unmap2;
-> +		ret = -ENODEV;
-> +		goto out_uninit_clk;
+add OF support for the tvp514x driver.
 
-Looks good in principle, but it will become a bit simpler yet after you 
-change your patch 03/15 to not use mcam_init_clk() for clock 
-deinitialisation, but that's going to be just a minor modification.
-
-Thanks
-Guennadi
-
->  	}
->  	/*
->  	 * Sensor GPIO pins.
->  	 */
-> -	ret = gpio_request(pdata->sensor_power_gpio, "cam-power");
-> +	ret = devm_gpio_request(&pdev->dev, pdata->sensor_power_gpio,
-> +					"cam-power");
->  	if (ret) {
->  		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
->  				pdata->sensor_power_gpio);
-> -		goto out_unmap2;
-> +		goto out_uninit_clk;
->  	}
->  	gpio_direction_output(pdata->sensor_power_gpio, 0);
-> -	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
-> +	ret = devm_gpio_request(&pdev->dev, pdata->sensor_reset_gpio,
-> +					"cam-reset");
->  	if (ret) {
->  		dev_err(&pdev->dev, "Can't get sensor reset gpio %d",
->  				pdata->sensor_reset_gpio);
-> -		goto out_gpio;
-> +		goto out_uninit_clk;
->  	}
->  	gpio_direction_output(pdata->sensor_reset_gpio, 0);
->  
-> @@ -404,7 +402,7 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	mmpcam_power_up(mcam);
->  	ret = mccic_register(mcam);
->  	if (ret)
-> -		goto out_gpio2;
-> +		goto out_power_down;
->  	/*
->  	 * Finally, set up our IRQ now that the core is ready to
->  	 * deal with it.
-> @@ -415,8 +413,8 @@ static int mmpcam_probe(struct platform_device *pdev)
->  		goto out_unregister;
->  	}
->  	cam->irq = res->start;
-> -	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
-> -			"mmp-camera", mcam);
-> +	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
-> +					"mmp-camera", mcam);
->  	if (ret == 0) {
->  		mmpcam_add_device(cam);
->  		return 0;
-> @@ -424,18 +422,10 @@ static int mmpcam_probe(struct platform_device *pdev)
->  
->  out_unregister:
->  	mccic_shutdown(mcam);
-> -out_gpio2:
-> +out_power_down:
->  	mmpcam_power_down(mcam);
-> -	gpio_free(pdata->sensor_reset_gpio);
-> -out_gpio:
-> -	gpio_free(pdata->sensor_power_gpio);
-> -out_unmap2:
-> +out_uninit_clk:
->  	mcam_init_clk(mcam, pdata, 0);
-> -	iounmap(cam->power_regs);
-> -out_unmap1:
-> -	iounmap(mcam->regs);
-> -out_free:
-> -	kfree(cam);
->  	return ret;
->  }
->  
-> @@ -446,16 +436,10 @@ static int mmpcam_remove(struct mmp_camera *cam)
->  	struct mmp_camera_platform_data *pdata;
->  
->  	mmpcam_remove_device(cam);
-> -	free_irq(cam->irq, mcam);
->  	mccic_shutdown(mcam);
->  	mmpcam_power_down(mcam);
->  	pdata = cam->pdev->dev.platform_data;
-> -	gpio_free(pdata->sensor_reset_gpio);
-> -	gpio_free(pdata->sensor_power_gpio);
-> -	iounmap(cam->power_regs);
-> -	iounmap(mcam->regs);
->  	mcam_init_clk(mcam, pdata, 0);
-> -	kfree(cam);
->  	return 0;
->  }
->  
-> -- 
-> 1.7.9.5
-> 
-
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ This patch is on top of following patches:
+ 1: https://patchwork.kernel.org/patch/1930941/
+ 2: http://patchwork.linuxtv.org/patch/16193/
+ 3: https://patchwork.kernel.org/patch/1944901/
+
+ .../devicetree/bindings/media/i2c/tvp514x.txt      |   30 ++++++++++
+ drivers/media/i2c/tvp514x.c                        |   60 ++++++++++++++++++--
+ 2 files changed, 85 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+new file mode 100644
+index 0000000..3cce323
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+@@ -0,0 +1,30 @@
++* Texas Instruments TVP514x video decoder
++
++The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
++digital video decoder that digitizes and decodes all popular baseband analog
++video formats into digital video component. The tvp514x decoder supports analog-
++to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
++conversion and decoding of NTSC, PAL and SECAM composite and S-video into
++component YCbCr.
++
++Required Properties :
++- compatible: Must be "ti,tvp514x-decoder"
++- hsync-active: HSYNC Polarity configuration for current interface.
++- vsync-active: VSYNC Polarity configuration for current interface.
++- data-active: Clock polarity of the current interface.
++
++Example:
++
++i2c0@1c22000 {
++	...
++	...
++
++	tvp514x@5c {
++		compatible = "ti,tvp514x-decoder";
++		reg = <0x5c>;
++		hsync-active = <1>;	/* Active low (Defaults to 0) */
++		hsync-active = <1>;	/* Active low (Defaults to 0) */
++		data-active = <0>;	/* Active low (Defaults to 0) */
++	};
++	...
++};
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index a4f0a70..0e2b15c 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -12,6 +12,7 @@
+  *     Hardik Shah <hardik.shah@ti.com>
+  *     Manjunath Hadli <mrh@ti.com>
+  *     Karicheri Muralidharan <m-karicheri2@ti.com>
++ *     Prabhakar Lad <prabhakar.lad@ti.com>
+  *
+  * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -930,6 +931,50 @@ static struct tvp514x_decoder tvp514x_dev = {
+ 
+ };
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id tvp514x_of_match[] = {
++	{.compatible = "ti,tvp514x-decoder", },
++	{},
++}
++MODULE_DEVICE_TABLE(of, tvp514x_of_match);
++
++static struct tvp514x_platform_data
++	*tvp514x_get_pdata(struct i2c_client *client)
++{
++	if (!client->dev.platform_data && client->dev.of_node) {
++		struct tvp514x_platform_data *pdata;
++		u32 prop;
++
++		pdata = devm_kzalloc(&client->dev,
++				sizeof(struct tvp514x_platform_data),
++				GFP_KERNEL);
++		client->dev.platform_data = pdata;
++		if (!pdata)
++			return NULL;
++		if (!of_property_read_u32(client->dev.of_node,
++			"data-active", &prop))
++			pdata->clk_polarity = prop;
++		if (!of_property_read_u32(client->dev.of_node,
++			"hsync-active", &prop))
++			pdata->hs_polarity = prop;
++		if (!of_property_read_u32(client->dev.of_node,
++			"vsync-active", &prop))
++			pdata->vs_polarity = prop;
++
++	}
++
++	return client->dev.platform_data;
++}
++#else
++#define tvp514x_of_match NULL
++
++static struct tvp514x_platform_data
++	*tvp514x_get_pdata(struct i2c_client *client)
++{
++	return client->dev.platform_data;
++}
++#endif
++
+ /**
+  * tvp514x_probe() - decoder driver i2c probe handler
+  * @client: i2c driver client device structure
+@@ -941,6 +986,7 @@ static struct tvp514x_decoder tvp514x_dev = {
+ static int
+ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
++	struct tvp514x_platform_data *pdata;
+ 	struct tvp514x_decoder *decoder;
+ 	struct v4l2_subdev *sd;
+ 	int ret;
+@@ -949,22 +995,25 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
+ 
++	pdata = tvp514x_get_pdata(client);
++	if (!pdata) {
++		v4l2_err(client, "No platform data!!\n");
++		return -EPROBE_DEFER;
++	}
++
+ 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+ 	if (!decoder)
+ 		return -ENOMEM;
+ 
+ 	/* Initialize the tvp514x_decoder with default configuration */
+ 	*decoder = tvp514x_dev;
+-	if (!client->dev.platform_data) {
+-		v4l2_err(client, "No platform data!!\n");
+-		return -EPROBE_DEFER;
+-	}
++
+ 	/* Copy default register configuration */
+ 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+ 			sizeof(tvp514x_reg_list_default));
+ 
+ 	/* Copy board specific information here */
+-	decoder->pdata = client->dev.platform_data;
++	decoder->pdata = pdata;
+ 
+ 	/**
+ 	 * Fetch platform specific data, and configure the
+@@ -1096,6 +1145,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+ 
+ static struct i2c_driver tvp514x_driver = {
+ 	.driver = {
++		.of_match_table = tvp514x_of_match,
+ 		.owner = THIS_MODULE,
+ 		.name = TVP514X_MODULE_NAME,
+ 	},
+-- 
+1.7.4.1
+
