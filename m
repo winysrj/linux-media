@@ -1,32 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53729 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754749Ab3ADXGf (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:34210 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751087Ab3AYHB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 18:06:35 -0500
-Date: Sat, 5 Jan 2013 01:06:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Tony Lindgren <tony@atomide.com>
-Subject: Re: [PATCH] omap3isp: Don't include <plat/cpu.h>
-Message-ID: <20130104230630.GB13641@valkosipuli.retiisi.org.uk>
-References: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 25 Jan 2013 02:01:26 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 0/2] TVP7002 add support for media controller based usag
+Date: Fri, 25 Jan 2013 12:31:06 +0530
+Message-Id: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 03, 2013 at 10:23:24PM +0100, Laurent Pinchart wrote:
-> The plat/*.h headers are not available to drivers in multiplatform
-> kernels. As the header isn't needed, just remove it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+The first patch adds a entry MEDIA_ENT_T_V4L2_SUBDEV_DECODER for decoders
+and second patch adds media controller support for tvp7002 decoder.
+
+Manjunath Hadli (2):
+  media: add support for decoder subdevs along with sensor and others
+  media: tvp7002: enable TVP7002 decoder for media controller based
+    usage
+
+ drivers/media/i2c/tvp7002.c |  132 +++++++++++++++++++++++++++++++++++++++++-
+ include/media/tvp7002.h     |    2 +
+ include/uapi/linux/media.h  |    1 +
+ 3 files changed, 131 insertions(+), 4 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.4.1
+
