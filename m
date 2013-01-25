@@ -1,69 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47690 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753926Ab3ADR2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jan 2013 12:28:12 -0500
-Message-ID: <50E71107.8050907@iki.fi>
-Date: Fri, 04 Jan 2013 19:27:35 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Hans-Frieder Vogt <hfvogt@gmx.net>
-Subject: [PULL] AF9035
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:52554 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063Ab3AYHBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 02:01:54 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: [PATCH 2/2] media: tvp7002: enable TVP7002 decoder for media controller based usage
+Date: Fri, 25 Jan 2013 12:31:08 +0530
+Message-Id: <1359097268-22779-3-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com>
+References: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 16427faf28674451a7a0485ab0a929402f355ffd:
+From: Manjunath Hadli <manjunath.hadli@ti.com>
 
-   [media] tm6000: Add parameter to keep urb bufs allocated (2012-12-04 
-14:54:21 -0200)
+add pad operations support for g_mbus_fmt, enum_mbus_code,
+set_pad_format, get_pad_format and media_entity_init.
+The device supports 1 output pad and no input pads.
 
-are available in the git repository at:
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+---
+ drivers/media/i2c/tvp7002.c |  132 +++++++++++++++++++++++++++++++++++++++++-
+ include/media/tvp7002.h     |    2 +
+ 2 files changed, 130 insertions(+), 4 deletions(-)
 
-   git://linuxtv.org/anttip/media_tree.git af9035
-
-for you to fetch changes up to 3cd16213e725620cca9b6c324e7841e489b05893:
-
-   af9035: print warning when firmware is bad (2013-01-04 19:19:53 +0200)
-
-----------------------------------------------------------------
-Antti Palosaari (16):
-       af9033: add support for Fitipower FC0012 tuner
-       af9035: support for Fitipower FC0012 tuner devices
-       af9035: dual mode related changes
-       fc0012: use struct for driver config
-       fc0012: add RF loop through
-       fc0012: enable clock output on attach()
-       af9035: add support for fc0012 dual tuner configuration
-       fc0012: use config directly from the config struct
-       fc0012: rework attach() to check chip id and I/O errors
-       fc0012: use Kernel dev_foo() logging
-       fc0012: remove unused callback and correct one comment
-       af9033: update demod init sequence
-       af9033: update tua9001 init sequence
-       af9033: update fc0011 init sequence
-       af9033: update fc2580 init sequence
-       af9035: print warning when firmware is bad
-
-Jose Alberto Reguero (1):
-       af9035: dual mode support
-
-  drivers/media/dvb-frontends/af9033.c      |  18 +++++++++
-  drivers/media/dvb-frontends/af9033.h      |   1 +
-  drivers/media/dvb-frontends/af9033_priv.h | 132 
-++++++++++++++++++++++++++++++++++++++++++---------------------
-  drivers/media/tuners/fc0012-priv.h        |  13 +------
-  drivers/media/tuners/fc0012.c             | 113 
-+++++++++++++++++++++++++++++++++++++++---------------
-  drivers/media/tuners/fc0012.h             |  32 +++++++++++++---
-  drivers/media/usb/dvb-usb-v2/af9035.c     | 285 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------
-  drivers/media/usb/dvb-usb-v2/af9035.h     |   3 +-
-  drivers/media/usb/dvb-usb-v2/rtl28xxu.c   |   7 +++-
-  9 files changed, 455 insertions(+), 149 deletions(-)
-
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index fb6a5b5..312651e 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -41,9 +41,6 @@ MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
+ MODULE_AUTHOR("Santiago Nunez-Corrales <santiago.nunez@ridgerun.com>");
+ MODULE_LICENSE("GPL");
+ 
+-/* Module Name */
+-#define TVP7002_MODULE_NAME	"tvp7002"
+-
+ /* I2C retry attempts */
+ #define I2C_RETRY_COUNT		(5)
+ 
+@@ -432,6 +429,9 @@ struct tvp7002 {
+ 	int streaming;
+ 
+ 	const struct tvp7002_preset_definition *current_preset;
++	/* mc related members */
++	struct media_pad pad;
++	struct v4l2_mbus_framefmt format;
+ };
+ 
+ /*
+@@ -967,6 +967,109 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+ 	.s_ctrl = tvp7002_s_ctrl,
+ };
+ 
++/*
++ * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @code: pointer to subdev enum mbus code struct
++ *
++ * Enumerate supported digital video formats for pad.
++ */
++static int
++tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Check pad index is valid */
++	if (code->pad != 0)
++		return -EINVAL;
++
++	/* Check requested format index is within range */
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = V4L2_MBUS_FMT_YUYV10_1X20;
++
++	return 0;
++}
++
++/*
++ * tvp7002_set_pad_format() - set video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * set video format for pad.
++ */
++static int
++tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *device = to_tvp7002(sd);
++	struct v4l2_dv_enum_preset e_preset;
++	int error;
++
++	/* Check pad index is valid */
++	if (fmt->pad != 0)
++		return -EINVAL;
++
++	/* Calculate height and width based on current standard */
++	error = v4l_fill_dv_preset_info(device->current_preset->preset,
++					&e_preset);
++	if (error)
++		return error;
++
++	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++	fmt->format.width = e_preset.width;
++	fmt->format.height = e_preset.height;
++	fmt->format.field = device->current_preset->scanmode;
++	fmt->format.colorspace = device->current_preset->color_space;
++	/* store for future use */
++	device->format = fmt->format;
++
++	return 0;
++}
++
++/*
++ * tvp7002_get_pad_format() - get video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * get video format for pad.
++ */
++static int
++tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *device = to_tvp7002(sd);
++	struct v4l2_dv_enum_preset e_preset;
++	__u32 which = fmt->which;
++	int error;
++
++	/* Check pad index is valid */
++	if (fmt->pad != 0)
++		return -EINVAL;
++
++	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		fmt->format = device->format;
++		return 0;
++	}
++
++	/* Calculate height and width based on current standard */
++	error = v4l_fill_dv_preset_info(device->current_preset->preset,
++					&e_preset);
++	if (error)
++		return error;
++
++	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++	fmt->format.width = e_preset.width;
++	fmt->format.height = e_preset.height;
++	fmt->format.field = device->current_preset->scanmode;
++	fmt->format.colorspace = device->current_preset->color_space;
++
++	return 0;
++}
++
+ /* V4L2 core operation handlers */
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.g_chip_ident = tvp7002_g_chip_ident,
+@@ -1000,10 +1103,18 @@ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+ 	.enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+ };
+ 
++/* media pad related operation handlers */
++static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
++	.enum_mbus_code = tvp7002_enum_mbus_code,
++	.get_fmt = tvp7002_get_pad_format,
++	.set_fmt = tvp7002_set_pad_format,
++};
++
+ /* V4L2 top level operation handlers */
+ static const struct v4l2_subdev_ops tvp7002_ops = {
+ 	.core = &tvp7002_core_ops,
+ 	.video = &tvp7002_video_ops,
++	.pad = &tvp7002_pad_ops,
+ };
+ 
+ /*
+@@ -1047,6 +1158,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 
+ 	/* Tell v4l2 the device is ready */
+ 	v4l2_i2c_subdev_init(sd, c, &tvp7002_ops);
++	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
+ 	v4l_info(c, "tvp7002 found @ 0x%02x (%s)\n",
+ 					c->addr, c->adapter->name);
+ 
+@@ -1096,6 +1208,16 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 	}
+ 	v4l2_ctrl_handler_setup(&device->hdl);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	device->pad.flags = MEDIA_PAD_FL_SOURCE;
++	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
++	if (error < 0)
++		goto found_error;
++#endif
++
+ found_error:
+ 	if (error < 0)
+ 		kfree(device);
+@@ -1117,7 +1239,9 @@ static int tvp7002_remove(struct i2c_client *c)
+ 
+ 	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+ 				"on address 0x%x\n", c->addr);
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+ 	kfree(device);
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+index ee43534..7123048 100644
+--- a/include/media/tvp7002.h
++++ b/include/media/tvp7002.h
+@@ -26,6 +26,8 @@
+ #ifndef _TVP7002_H_
+ #define _TVP7002_H_
+ 
++#define TVP7002_MODULE_NAME "tvp7002"
++
+ /* Platform-dependent data
+  *
+  * clk_polarity:
 -- 
-http://palosaari.fi/
+1.7.4.1
+
