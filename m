@@ -1,62 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f48.google.com ([209.85.216.48]:56593 "EHLO
-	mail-qa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751939Ab3ASQfC (ORCPT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:50567 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756379Ab3AYR0k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:35:02 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
+	Fri, 25 Jan 2013 12:26:40 -0500
+Received: by mail-ee0-f44.google.com with SMTP id l10so325321eei.31
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:39 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
 To: mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, sakari.ailus@iki.fi, dhowells@redhat.com,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 24/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:26 -0200
-Message-Id: <1358613206-4274-23-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [REVIEW PATCH 01/12] em28xx: use v4l2_disable_ioctl() to disable ioctls VIDIOC_QUERYSTD, VIDIOC_G/S_STD
+Date: Fri, 25 Jan 2013 18:26:51 +0100
+Message-Id: <1359134822-4585-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_MEDIA_TUNER_TEA5761) || \
-     defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
-with:
- #if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
+Instead of checking the device type and returning -ENOTTY inside the ioctl
+functions, use v4l2_disable_ioctl() to disable the ioctls VIDIOC_QUERYSTD,
+VIDIOC_G_STD and VIDIOC_S_STD if the device is a camera.
 
-This change was made for: CONFIG_MEDIA_TUNER_TEA5761
-
-Also replaced:
-
-with:
-
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c |   13 +++++++------
+ 1 Datei geändert, 7 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 614316f..aa044f4 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -238,7 +238,7 @@ int v4l2_chip_match_host(const struct v4l2_dbg_match *match)
- }
- EXPORT_SYMBOL(v4l2_chip_match_host);
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 2eabf2a..7f1f37c 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -959,8 +959,6 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct em28xx      *dev = fh->dev;
+ 	int                rc;
  
--#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_I2C)
- int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
- {
- 	int len;
-@@ -384,7 +384,7 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_addr);
- const unsigned short *v4l2_i2c_tuner_addrs(enum v4l2_i2c_tuner_type type)
- {
- 	static const unsigned short radio_addrs[] = {
--#if defined(CONFIG_MEDIA_TUNER_TEA5761) || defined(CONFIG_MEDIA_TUNER_TEA5761_MODULE)
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_TEA5761)
- 		0x10,
- #endif
- 		0x60,
+-	if (dev->board.is_webcam)
+-		return -ENOTTY;
+ 	rc = check_dev(dev);
+ 	if (rc < 0)
+ 		return rc;
+@@ -976,8 +974,6 @@ static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct em28xx      *dev = fh->dev;
+ 	int                rc;
+ 
+-	if (dev->board.is_webcam)
+-		return -ENOTTY;
+ 	rc = check_dev(dev);
+ 	if (rc < 0)
+ 		return rc;
+@@ -994,8 +990,6 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct v4l2_format f;
+ 	int                rc;
+ 
+-	if (dev->board.is_webcam)
+-		return -ENOTTY;
+ 	if (*norm == dev->norm)
+ 		return 0;
+ 	rc = check_dev(dev);
+@@ -1899,6 +1893,13 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 	dev->vdev->queue = &dev->vb_vidq;
+ 	dev->vdev->queue->lock = &dev->vb_queue_lock;
+ 
++	/* disable inapplicable ioctls */
++	if (dev->board.is_webcam) {
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_QUERYSTD);
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_STD);
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_STD);
++	}
++
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+ 				       video_nr[dev->devno]);
 -- 
-1.7.11.7
+1.7.10.4
 
