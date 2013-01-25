@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5248 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756427Ab3AQS7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:09 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx9Rs027489
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:09 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 10/16] [media] mb86a20s: -EBUSY is expected when getting stats measures
-Date: Thu, 17 Jan 2013 16:58:24 -0200
-Message-Id: <1358449110-11203-10-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:49123 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab3AYIxP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 03:53:15 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so218147iaz.30
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 00:53:15 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 25 Jan 2013 09:53:14 +0100
+Message-ID: <CAJvg3VH6twjoFc6MkULTZoESCYnTz=s9cFDSNrLiR_7ea45o1A@mail.gmail.com>
+Subject: ACM/VCM, PLS
+From: Thierry Perdichizzi <thierry@perdichizzi.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Hello,
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index cfe65e3..710370d 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -991,12 +991,13 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 
- 		/* Get statistics */
- 		rc = mb86a20s_get_stats(fe);
--		if (rc < 0) {
-+		if (rc < 0 && rc != -EBUSY) {
- 			dev_err(&state->i2c->dev,
- 				"%s: Can't get FE QoS statistics.\n", __func__);
- 			rc = 0;
- 			goto error;
- 		}
-+		rc = 0;	/* Don't return EBUSY to userspace */
- 	}
- 	goto ok;
- 
--- 
-1.7.11.7
+I'd like to make a request for the support of the PLS and ACM/VCM for
+DVB-S2. Currently some channels use these options.
 
+PLS
+Physical Layer Scrambling or PLS is used in DVB-S2 as a way to improve
+data integrity. A number called the "scrambling sequence index" is
+used by the modulator as a master key to generate the uplink signal.
+This same number must be known by the receiver so that demodulation is
+possible.
+
+ACM/VCM
+Variable Coding and Modulation (VCM) and Adaptive Coding and
+Modulation (ACM) are techniques that are strongly associated with the
+DVB-S2 standard. VCM can be used to provide different levels of error
+protection to different components within the service. It does this by
+allowing different combinations of modulation and FEC rate to be
+applied to different parts of the data stream. ACM extends VCM by
+providing a feedback path from the receiver to the transmitter to
+allow the level of error protection to be varied dynamically in
+accordance with varying propagation conditions. Claims of performance
+improvements exceeding 100% have been made for ACM in terms of
+satellite capacity gain.
+
+Sample
+Eutelsat 5 West A 	11179.00	V	KC6	Super	DVB-S2  PLS: Root+16416	 8PSK
+ACM/VCM Stream 4
+
+is that the next version next version will support ? if yes, is that
+you could give me a date for each modules ?
+
+Thanks,
+T
