@@ -1,41 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:35161 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758484Ab3ANWVx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 17:21:53 -0500
-Received: by mail-vc0-f171.google.com with SMTP id n11so4153671vch.30
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 14:21:52 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:39075 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753944Ab3AYJtN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 04:49:13 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0P9nCWr010631
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 04:49:12 -0500
+Message-ID: <510255BD.8060605@redhat.com>
+Date: Fri, 25 Jan 2013 10:51:57 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Mon, 14 Jan 2013 23:21:32 +0100
-Message-ID: <CAKdnbx7Qx7z1BVxaXsDAe8mDG9jhPQeAkPbZGof++B1xK31Wsw@mail.gmail.com>
-Subject: [PATCH] Support Digivox Mini HD (rtl2832)
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: partial revert of "uvcvideo: set error_idx properly"
+References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com> <CA+55aFxhXE8KbnjL7Nn3y0jd_wUFsdH6ZvsQ5EL+4cV3k3S4cg@mail.gmail.com> <20121224213948.36514eca@redhat.com> <20121225025648.5208189a@redhat.com>
+In-Reply-To: <20121225025648.5208189a@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for Digivox Mini HD (rtl2832)
+<modified the CC list to be more appropriate>
 
-The tuner works, but with worst performance then realtek linux driver,
-due to incomplete implementation of fc2580.c
+Hi,
 
-Signed-off-by: Eddi De Pieri <eddi@depieri.net>
-Tested-by: Lorenzo Dongarrà <lorenzo_64@katamail.com>
+On 12/25/2012 05:56 AM, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index b6f4849..c05ea16 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1368,6 +1368,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
-                &rtl2832u_props, "ASUS My Cinema-U3100Mini Plus V2", NULL) },
-        { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd393,
-                &rtl2832u_props, "GIGABYTE U7300", NULL) },
-+       { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1104,
-+               &rtl2832u_props, "Digivox Micro Hd", NULL) },
-        { }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+> The pwc driver can currently return -ENOENT at VIDIOC_S_FMT ioctl. This
+> doesn't seem right. Instead, it should be getting the closest format to
+> the requested one and return 0, passing the selected format back to
+> userspace, just like the other drivers do. I'm c/c Hans de Goede for him
+> to take a look on it.
+
+I've been looking into this today, and the ENOENT gets returned by
+pwc_set_video_mode and through that by:
+1) Device init
+2) VIDIOC_STREAMON
+3) VIDIOC_S_PARM
+4) VIDIOC_S_FMT
+
+But only when the requested width + height + pixelformat is an
+unsupported combination, and it being a supported combination
+already gets enforced by a call to pwc_get_size in
+pwc_vidioc_try_fmt, which also gets called from pwc_s_fmt_vid_cap
+before it does anything else.
+
+So the ENOENT can only happen on some internal driver error,
+I'm open for suggestions for a better error code to return in
+this case.
+
+What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
+an unsupported pixelformat is requested. IIRC we agreed that the
+correct behavior in this case is to instead just change the
+pixelformat to a default format, so I'll write a patch fixing
+this.
+
+Regards,
+
+Hans
