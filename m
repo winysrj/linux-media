@@ -1,76 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:37099 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752287Ab3ASXmj (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:55257 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757605Ab3AYR0t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:42:39 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH V2 15/24] usb/gspca/sonixb.c: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:22 -0200
-Message-Id: <1358638891-4775-16-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+	Fri, 25 Jan 2013 12:26:49 -0500
+Received: by mail-ee0-f51.google.com with SMTP id d17so310528eek.24
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:48 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [REVIEW PATCH 04/12] em28xx: use v4l2_disable_ioctl() to disable ioctl VIDIOC_S_PARM
+Date: Fri, 25 Jan 2013 18:26:54 +0100
+Message-Id: <1359134822-4585-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+Instead of checking the device type and returning -ENOTTY inside the ioctl
+function, use v4l2_disable_ioctl() to disable the ioctl VIDIOC_S_PARM if the
+device is not a camera.
 
-This change was made for: CONFIG_INPUT
-
-Also replaced:
- #if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
-with:
- #if !IS_ENABLED(CONFIG_USB_SN9C102)
-
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Changes from V1:
-   Updated subject
-   Fixed commit message
+ drivers/media/usb/em28xx/em28xx-video.c |    5 ++---
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
 
- drivers/media/usb/gspca/sonixb.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/usb/gspca/sonixb.c b/drivers/media/usb/gspca/sonixb.c
-index 1220340..104ae25 100644
---- a/drivers/media/usb/gspca/sonixb.c
-+++ b/drivers/media/usb/gspca/sonixb.c
-@@ -1400,7 +1400,7 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 378d8a1..c76714d 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1044,9 +1044,6 @@ static int vidioc_s_parm(struct file *file, void *priv,
+ 	struct em28xx_fh   *fh  = priv;
+ 	struct em28xx      *dev = fh->dev;
  
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
- 			u8 *data,		/* interrupt packet data */
- 			int len)		/* interrupt packet length */
-@@ -1430,7 +1430,7 @@ static const struct sd_desc sd_desc = {
- 	.pkt_scan = sd_pkt_scan,
- 	.querymenu = sd_querymenu,
- 	.dq_callback = do_autogain,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.int_pkt_scan = sd_int_pkt_scan,
- #endif
- };
-@@ -1448,7 +1448,7 @@ static const struct usb_device_id device_table[] = {
- 	{USB_DEVICE(0x0c45, 0x600d), SB(PAS106, 101)},
- 	{USB_DEVICE(0x0c45, 0x6011), SB(OV6650, 101)},
- 	{USB_DEVICE(0x0c45, 0x6019), SB(OV7630, 101)},
--#if !defined CONFIG_USB_SN9C102 && !defined CONFIG_USB_SN9C102_MODULE
-+#if !IS_ENABLED(CONFIG_USB_SN9C102)
- 	{USB_DEVICE(0x0c45, 0x6024), SB(TAS5130CXX, 102)},
- 	{USB_DEVICE(0x0c45, 0x6025), SB(TAS5130CXX, 102)},
- #endif
+-	if (!dev->board.is_webcam)
+-		return -ENOTTY;
+-
+ 	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+@@ -1891,6 +1888,8 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_QUERYSTD);
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_STD);
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_STD);
++	} else {
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_PARM);
+ 	}
+ 	if (dev->tuner_type == TUNER_ABSENT) {
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_TUNER);
 -- 
-1.7.11.7
+1.7.10.4
 
