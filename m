@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56124 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682Ab3AVJ2U (ORCPT
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:60754 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755909Ab3AYKEU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 04:28:20 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH000EX8SWK3G10@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jan 2013 09:28:18 +0000 (GMT)
-Received: from AMDN910 ([106.116.147.102])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MH000G8XSYK2F60@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 22 Jan 2013 09:28:18 +0000 (GMT)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>, patches@linaro.org
-References: <1358830806-5610-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1358830806-5610-1-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH 1/1] [media] s5p-mfc: Use WARN_ON(condition) directly
-Date: Tue, 22 Jan 2013 10:27:55 +0100
-Message-id: <031301cdf882$c3ae7640$4b0b62c0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 25 Jan 2013 05:04:20 -0500
+Received: by mail-pa0-f54.google.com with SMTP id bi5so175707pad.41
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 02:04:19 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org
+Cc: k.debski@samsung.com, inki.dae@samsung.com,
+	sachin.kamat@linaro.org, ajaykumar.rs@samsung.com,
+	patches@linaro.org, s.nawrocki@samsung.com
+Subject: [PATCH 2/2] drm/exynos: Add device tree based discovery support for G2D
+Date: Fri, 25 Jan 2013 15:25:22 +0530
+Message-Id: <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, 
+From: Ajay Kumar <ajaykumar.rs@samsung.com>
 
-Thanks for the patch.
+This patch adds device tree match table for Exynos G2D controller.
 
-Best wishes,
+Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+index ddcfb5d..d24b170 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -19,6 +19,7 @@
+ #include <linux/workqueue.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/dma-attrs.h>
++#include <linux/of.h>
+ 
+ #include <drm/drmP.h>
+ #include <drm/exynos_drm.h>
+@@ -1240,6 +1241,14 @@ static int g2d_resume(struct device *dev)
+ 
+ static SIMPLE_DEV_PM_OPS(g2d_pm_ops, g2d_suspend, g2d_resume);
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id exynos_g2d_match[] = {
++	{ .compatible = "samsung,g2d-v41" },
++	{},
++};
++MODULE_DEVICE_TABLE(of, exynos_g2d_match);
++#endif
++
+ struct platform_driver g2d_driver = {
+ 	.probe		= g2d_probe,
+ 	.remove		= g2d_remove,
+@@ -1247,5 +1256,6 @@ struct platform_driver g2d_driver = {
+ 		.name	= "s5p-g2d",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &g2d_pm_ops,
++		.of_match_table = of_match_ptr(exynos_g2d_match),
+ 	},
+ };
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: Tuesday, January 22, 2013 6:00 AM
-> To: linux-media@vger.kernel.org
-> Cc: k.debski@samsung.com; s.nawrocki@samsung.com;
-> sachin.kamat@linaro.org; patches@linaro.org
-> Subject: [PATCH 1/1] [media] s5p-mfc: Use WARN_ON(condition) directly
-> 
-> Use WARN_ON(condition) directly instead of wrapping around an if
-> condition.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index b1d7f9a..37a17b8 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -596,8 +596,7 @@ static void s5p_mfc_handle_stream_complete(struct
-> s5p_mfc_ctx *ctx,
-> 
->  	clear_work_bit(ctx);
-> 
-> -	if (test_and_clear_bit(0, &dev->hw_lock) == 0)
-> -		WARN_ON(1);
-> +	WARN_ON(test_and_clear_bit(0, &dev->hw_lock) == 0);
-> 
->  	s5p_mfc_clock_off();
->  	wake_up(&ctx->queue);
-> --
-> 1.7.4.1
-
+1.7.4.1
 
