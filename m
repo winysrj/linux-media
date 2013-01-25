@@ -1,63 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:60356 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217Ab3AWWWW (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56981 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932435Ab3AYSDf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 17:22:22 -0500
-Received: by mail-ea0-f180.google.com with SMTP id c1so3585333eaa.39
-        for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 14:22:20 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Fri, 25 Jan 2013 13:03:35 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	sylvester.nawrocki@gmail.com
-Subject: [PATCH RFC v3 5/6] V4L: Add v4l2_ctrl_subdev_log_status() helper function
-Date: Wed, 23 Jan 2013 23:22:00 +0100
-Message-Id: <1358979721-17473-6-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com>
+Cc: k.debski@samsung.com, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: [PATCH 1/1] v4l: Document timestamp behaviour to correspond to reality
+Date: Fri, 25 Jan 2013 20:03:29 +0200
+Message-Id: <1359137009-23921-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a v4l2 core helper function that can be used as
-the log_status handler for subdevs that only need to log state
-of the v4l2 controls owned by the subdev's control handler.
+Document that monotonic timestamps are taken after the corresponding frame
+has been received, not when the reception has begun. This corresponds to the
+reality of current drivers: the timestamp is naturally taken when the
+hardware triggers an interrupt to tell the driver to handle the received
+frame.
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |    7 +++++++
- include/media/v4l2-ctrls.h           |    3 +++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/v4l/io.xml |   27 ++++++++++++++-------------
+ 1 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 9051ec5..6b28b58 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -2004,6 +2004,13 @@ void v4l2_ctrl_handler_log_status(struct v4l2_ctrl_handler *hdl,
- }
- EXPORT_SYMBOL(v4l2_ctrl_handler_log_status);
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2c4646d..3b8bf61 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -654,19 +654,20 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
  
-+int v4l2_ctrl_subdev_log_status(struct v4l2_subdev *sd)
-+{
-+	v4l2_ctrl_handler_log_status(sd->ctrl_handler, sd->name);
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_subdev_log_status);
-+
- /* Call s_ctrl for all controls owned by the handler */
- int v4l2_ctrl_handler_setup(struct v4l2_ctrl_handler *hdl)
- {
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 1e84946..f00d42b 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -659,4 +659,7 @@ int v4l2_subdev_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
- int v4l2_ctrl_subdev_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
- 				     struct v4l2_event_subscription *sub);
+-      <para>Nominally timestamps refer to the first data byte transmitted.
+-In practice however the wide range of hardware covered by the V4L2 API
+-limits timestamp accuracy. Often an interrupt routine will
+-sample the system clock shortly after the field or frame was stored
+-completely in memory. So applications must expect a constant
+-difference up to one field or frame period plus a small (few scan
+-lines) random error. The delay and error can be much
+-larger due to compression or transmission over an external bus when
+-the frames are not properly stamped by the sender. This is frequently
+-the case with USB cameras. Here timestamps refer to the instant the
+-field or frame was received by the driver, not the capture time. These
+-devices identify by not enumerating any video standards, see <xref
+-linkend="standard" />.</para>
++      <para>On timestamp types that are sampled from the system clock
++(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
++taken after the complete frame has been received. For other kinds of
++timestamps this may vary depending on the driver. In practice however the
++wide range of hardware covered by the V4L2 API limits timestamp accuracy.
++Often an interrupt routine will sample the system clock shortly after the
++field or frame was stored completely in memory. So applications must expect
++a constant difference up to one field or frame period plus a small (few scan
++lines) random error. The delay and error can be much larger due to
++compression or transmission over an external bus when the frames are not
++properly stamped by the sender. This is frequently the case with USB
++cameras. Here timestamps refer to the instant the field or frame was
++received by the driver, not the capture time. These devices identify by not
++enumerating any video standards, see <xref linkend="standard" />.</para>
  
-+/* Log all controls owned by subdev's control handler. */
-+int v4l2_ctrl_subdev_log_status(struct v4l2_subdev *sd);
-+
- #endif
+       <para>Similar limitations apply to output timestamps. Typically
+ the video hardware locks to a clock controlling the video timing, the
 -- 
-1.7.4.1
+1.7.2.5
 
