@@ -1,106 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30697 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757202Ab3AOPYH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 10:24:07 -0500
-Date: Tue, 15 Jan 2013 13:23:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130115132335.1383cdad@redhat.com>
-In-Reply-To: <CAHFNz9JQPVoPXhs7d4Ou_vbYWV5uUKimTnuD+FCVOmwvCDDRkA@mail.gmail.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<CAHFNz9JQPVoPXhs7d4Ou_vbYWV5uUKimTnuD+FCVOmwvCDDRkA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46032 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754710Ab3AYM2K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 07:28:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com, pawel@osciak.com
+Subject: Re: [PATCH 0/2 v3] Add proper timestamp types handling in videobuf2
+Date: Fri, 25 Jan 2013 13:28:08 +0100
+Message-ID: <2638149.FJjr4FCfB8@avalon>
+In-Reply-To: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
+References: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 15 Jan 2013 16:08:14 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
+Hi Kamil,
 
-> On Tue, Jan 15, 2013 at 8:00 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Add DVBv5 methods to retrieve QoS statistics.
-> >
-> > Those methods allow per-layer and global statistics.
-> >
-> > Implemented 2 QoS statistics on mb86a20s, one global only
-> > (signal strengh), and one per layer (BER).
-> >
-> > Tested with a modified version of dvbv5-zap, that allows monitoring
-> > those stats. Test data follows
-> >
-> > Tested with 1-segment at layer A, and 12-segment at layer B:
-> >
-> > [ 3735.973058] i2c i2c-4: mb86a20s_layer_bitrate: layer A bitrate: 440 kbps; counter = 196608 (0x030000)
-> > [ 3735.976803] i2c i2c-4: mb86a20s_layer_bitrate: layer B bitrate: 16851 kbps; counter = 8257536 (0x7e0000)
-> >
-> > a) Global stats:
-> >
-> > Signal strength:
-> >         QOS_SIGNAL_STRENGTH[0] = 4096
-> >
-> > BER (sum of BE count and bit counts for both layers):
-> >         QOS_BIT_ERROR_COUNT[0] = 1087865
-> >         QOS_TOTAL_BITS_COUNT[0] = 67043313
-> >
-> > b) Per-layer stats:
-> >
-> > Layer A BER:
-> >         QOS_BIT_ERROR_COUNT[1] = 236
-> >         QOS_TOTAL_BITS_COUNT[1] = 917490
-> >
-> > Layer B BER:
-> >         QOS_BIT_ERROR_COUNT[2] = 1087629
-> >         QOS_TOTAL_BITS_COUNT[2] = 66125823
-> >
-> > TODO:
-> >         - add more statistics at mb86a20s;
-> >         - implement support for DTV_QOS_ENUM;
-> >         - some cleanups at get_frontend logic at dvb core, to avoid
-> >           it to be called outside the DVB thread loop.
-> >
-> > All the above changes can be done a little later during this development
-> > cycle, so my plan is to merge it upstream at the beginning of the
-> > next week, to allow others to test.
-> >
+Thanks for the patches.
+
+On Friday 25 January 2013 11:29:55 Kamil Debski wrote:
+> Hi,
+> 
+> This is the third version of the patch posted earlier this month.
+> After the discussion a WARN_ON was added to inform if the driver is not
+> setting timestamp type when initialising the videobuf2 queue. Small
+> correction to the documentation was also made and two patche were squashed
+> to avoid problems with bisect.
+> 
+> Also the davinci/vpbe_display.c driver was modified to correctly report the
+> use of MONOTONIC timestamp type.
+
+For the whole series,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Best wishes,
+> Kamil Debski
+> 
+> PS. Below please find the original cover letter.
+> 
+> Hi,
+> 
+> The recent addition of timestamp types (and monotonic timestamp) left some
+> room for improvement. First of all not all drivers use monotonic timestamp.
+> There are for example mem2mem drivers that copy the timestamp from the
+> OUTPUT buffer to the corresponding CAPTURE buffer. Some videobuf2 drivers
+> do not fill the timestamp field altogether (yeah, I can agree that a
+> constant is monotonic, but still...).
+> 
+> Hence, I propose the following change to videobuf2. After applying this
+> patch the default timestamp type is UNKNOWN. It is up to the driver to set
+> the timestamp type to either MONOTONIC or COPY in vb2_queue_init.
+> 
+> This patch also adds setting proper timestamp type value in case of drivers
+> where I determined that type. This list might be missing some drivers, but
+> in these cases it will leave the UNKNOWN type which is a safe assumption.
+> 
+> Best wishes,
+> Kamil Debski
 > 
 > 
-> An API should be simple. This is far from simple. This API looks horribly
-> complex and broken, for anyone to use it in a sane way.
-
-It is not complex. See my answer to Antti with a few code snippets.
-
-> Polling from within dvb-core is not a good idea, as it can cause acquisition
-> failures. Continuous polling is known to cause issues.
-
-Polling from Kernel or from userspace has the same results. If a hardware is
-known to be broken with polling, the driver needs to handle it. With a
-Kernel polling, drivers can have more control, as it should not be hard to
-change the dvb-frontend polling time for it to be set by the driver.
-
-It could even be possible to have an interrupt-driven process to update the
-statistics, if the hardware supports it.
-
-> Adding counters to be controlled externally by a user is the most silliest
-> thing altogether.
-
-Huh? There's nothing that userspace can control. All userspace does with the
-API is to read values. Nothing more, nothing less.
-
-> All these things put together, makes it the most inconvenient thing to be used.
-> Eventually, it results in more broken applications than existing.
 > 
-> Not to forget that too much work has to be put into drivers, which aren't going
-> to make things better, but rather even more worser.
+> Kamil Debski (2):
+>   v4l: Define video buffer flag for the COPY timestamp type
+>   vb2: Add support for non monotonic timestamps
+> 
+>  Documentation/DocBook/media/v4l/io.xml             |    6 ++++++
+>  drivers/media/platform/blackfin/bfin_capture.c     |    1 +
+>  drivers/media/platform/davinci/vpbe_display.c      |    1 +
+>  drivers/media/platform/davinci/vpif_capture.c      |    1 +
+>  drivers/media/platform/davinci/vpif_display.c      |    1 +
+>  drivers/media/platform/s3c-camif/camif-capture.c   |    1 +
+>  drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
+>  drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 ++
+>  drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
+>  drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
+>  drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
+>  .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
+>  drivers/media/platform/vivi.c                      |    1 +
+>  drivers/media/usb/pwc/pwc-if.c                     |    1 +
+>  drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
+>  drivers/media/usb/uvc/uvc_queue.c                  |    1 +
+>  drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++++--
+>  include/media/videobuf2-core.h                     |    1 +
+>  include/uapi/linux/videodev2.h                     |    1 +
+>  20 files changed, 31 insertions(+), 2 deletions(-)
 
-Not necessarily drivers need to be patched, as the existing callbacks could
-be used. Still, I think it makes sense to gradually change the drivers we
-care to the new way, in order to provide a better API. Of course, the old 
-calls should still work. So, it is not getting anything worser.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
