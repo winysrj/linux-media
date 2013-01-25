@@ -1,204 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:36594 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753779Ab3ACS07 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 13:26:59 -0500
-Received: by mail-we0-f169.google.com with SMTP id t49so7686898wey.28
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 10:26:57 -0800 (PST)
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:63994 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757549Ab3AYR0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 12:26:45 -0500
+Received: by mail-ea0-f180.google.com with SMTP id c1so261009eaa.39
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:44 -0800 (PST)
 From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
 To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, saschasommer@freenet.de,
+Cc: linux-media@vger.kernel.org,
 	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 2/5] em28xx: fix two severe bugs in function em2800_i2c_recv_bytes()
-Date: Thu,  3 Jan 2013 19:27:03 +0100
-Message-Id: <1357237626-3358-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1357237626-3358-1-git-send-email-fschaefer.oss@googlemail.com>
+Subject: [REVIEW PATCH 03/12] em28xx: use v4l2_disable_ioctl() to disable ioctls VIDIOC_G_AUDIO and VIDIOC_S_AUDIO
+Date: Fri, 25 Jan 2013 18:26:53 +0100
+Message-Id: <1359134822-4585-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Function em2800_i2c_recv_bytes() has 2 severe bugs:
-1) It does not wait for the i2c read to complete before reading the received message content from the bridge registers.
-2) Reading more than 1 byte doesn't work
-
-The former can result in data corruption, the latter always does.
-
-The rewritten code also superseds the content of function
-em2800_i2c_check_for_device().
-
-Tested with device "Terratec Cinergy 200 USB".
+Instead of checking the device type and returning -EINVAL inside the ioctl
+functions, use v4l2_disable_ioctl() to disable the ioctls VIDIOC_G_AUDIO and
+VIDIOC_S_AUDIO if the device doesn't support audio.
 
 Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c |  104 ++++++++++++++++++---------------
- drivers/media/usb/em28xx/em28xx.h     |    2 +-
- 2 Dateien geändert, 58 Zeilen hinzugefügt(+), 48 Zeilen entfernt(-)
+ drivers/media/usb/em28xx/em28xx-video.c |   15 ++++++++-------
+ 1 Datei geändert, 8 Zeilen hinzugefügt(+), 7 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index b5ea231..55308bb 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -73,12 +73,14 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- 	if (len > 3)
- 		b2[0] = buf[3];
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index dd2e31c..378d8a1 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1130,9 +1130,6 @@ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ 	struct em28xx_fh   *fh    = priv;
+ 	struct em28xx      *dev   = fh->dev;
  
-+	/* trigger write */
- 	ret = dev->em28xx_write_regs(dev, 4 - len, &b2[4 - len], 2 + len);
- 	if (ret != 2 + len) {
- 		em28xx_warn("writing to i2c device failed (error=%i)\n", ret);
- 		return -EIO;
- 	}
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
-+	/* wait for completion */
-+	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
- 		if (ret == 0x80 + len - 1)
-@@ -90,66 +92,74 @@ static int em2800_i2c_send_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- }
- 
- /*
-- * em2800_i2c_check_for_device()
-- * check if there is a i2c_device at the supplied address
-+ * em2800_i2c_recv_bytes()
-+ * read up to 4 bytes from the em2800 i2c device
-  */
--static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
-+static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
- {
--	u8 msg;
-+	u8 buf2[4];
- 	int ret;
--	int write_timeout;
--	msg = addr;
--	ret = dev->em28xx_write_regs(dev, 0x04, &msg, 1);
--	if (ret < 0) {
--		em28xx_warn("setting i2c device address failed (error=%i)\n",
--			    ret);
--		return ret;
--	}
--	msg = 0x84;
--	ret = dev->em28xx_write_regs(dev, 0x05, &msg, 1);
--	if (ret < 0) {
--		em28xx_warn("preparing i2c read failed (error=%i)\n", ret);
--		return ret;
-+	int read_timeout;
-+	int i;
-+
-+	if (len < 1 || len > 4)
-+		return -EOPNOTSUPP;
-+
-+	/* trigger read */
-+	buf2[1] = 0x84 + len - 1;
-+	buf2[0] = addr;
-+	ret = dev->em28xx_write_regs(dev, 0x04, buf2, 2);
-+	if (ret != 2) {
-+		em28xx_warn("failed to trigger read from i2c address 0x%x "
-+			    "(error=%i)\n", addr, ret);
-+		return (ret < 0) ? ret : -EIO;
- 	}
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
--	     write_timeout -= 5) {
--		unsigned reg = dev->em28xx_read_reg(dev, 0x5);
- 
--		if (reg == 0x94)
-+	/* wait for completion */
-+	for (read_timeout = EM2800_I2C_XFER_TIMEOUT; read_timeout > 0;
-+	     read_timeout -= 5) {
-+		ret = dev->em28xx_read_reg(dev, 0x05);
-+		if (ret == 0x84 + len - 1) {
-+			break;
-+		} else if (ret == 0x94 + len - 1) {
- 			return -ENODEV;
--		else if (reg == 0x84)
--			return 0;
-+		} else if (ret < 0) {
-+			em28xx_warn("failed to get i2c transfer status from "
-+				    "bridge register (error=%i)\n", ret);
-+			return ret;
-+		}
- 		msleep(5);
- 	}
--	return -ENODEV;
-+	if (ret != 0x84 + len - 1)
-+		em28xx_warn("read from i2c device at 0x%x timed out\n", addr);
-+
-+	/* get the received message */
-+	ret = dev->em28xx_read_reg_req_len(dev, 0x00, 4-len, buf2, len);
-+	if (ret != len) {
-+		em28xx_warn("reading from i2c device at 0x%x failed: "
-+			    "couldn't get the received message from the bridge "
-+			    "(error=%i)\n", addr, ret);
-+		return (ret < 0) ? ret : -EIO;
-+	}
-+	for (i=0; i<len; i++)
-+		buf[i] = buf2[len-1-i];
-+
-+	return ret;
- }
- 
- /*
-- * em2800_i2c_recv_bytes()
-- * read from the i2c device
-+ * em2800_i2c_check_for_device()
-+ * check if there is an i2c device at the supplied address
-  */
--static int em2800_i2c_recv_bytes(struct em28xx *dev, u8 addr, u8 *buf, u16 len)
-+static int em2800_i2c_check_for_device(struct em28xx *dev, u8 addr)
- {
-+	u8 buf;
- 	int ret;
- 
--	if (len < 1 || len > 4)
--		return -EOPNOTSUPP;
+-	if (!dev->audio_mode.has_audio)
+-		return -EINVAL;
 -
--	/* check for the device and set i2c read address */
--	ret = em2800_i2c_check_for_device(dev, addr);
--	if (ret) {
--		em28xx_warn
--		    ("preparing read at i2c address 0x%x failed (error=%i)\n",
--		     addr, ret);
--		return ret;
--	}
--	ret = dev->em28xx_read_reg_req_len(dev, 0x0, 0x3, buf, len);
--	if (ret < 0) {
--		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)",
--			    addr, ret);
--		return ret;
--	}
--	return ret;
-+	ret = em2800_i2c_recv_bytes(dev, addr, &buf, 1);
-+	if (ret == 1)
-+		return 0;
-+	return (ret < 0) ? ret : -EIO;
- }
+ 	switch (a->index) {
+ 	case EM28XX_AMUX_VIDEO:
+ 		strcpy(a->name, "Television");
+@@ -1173,10 +1170,6 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ 	struct em28xx_fh   *fh  = priv;
+ 	struct em28xx      *dev = fh->dev;
  
- /*
-@@ -167,7 +177,7 @@ static int em28xx_i2c_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
- 	wrcount = dev->em28xx_write_regs_req(dev, stop ? 2 : 3, addr, buf, len);
+-
+-	if (!dev->audio_mode.has_audio)
+-		return -EINVAL;
+-
+ 	if (a->index >= MAX_EM28XX_INPUT)
+ 		return -EINVAL;
+ 	if (0 == INPUT(a->index)->type)
+@@ -1905,6 +1898,10 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_FREQUENCY);
+ 		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_FREQUENCY);
+ 	}
++	if (!dev->audio_mode.has_audio) {
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_AUDIO);
++		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_AUDIO);
++	}
  
- 	/* Seems to be required after a write */
--	for (write_timeout = EM2800_I2C_WRITE_TIMEOUT; write_timeout > 0;
-+	for (write_timeout = EM2800_I2C_XFER_TIMEOUT; write_timeout > 0;
- 	     write_timeout -= 5) {
- 		ret = dev->em28xx_read_reg(dev, 0x05);
- 		if (!ret)
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 7a40b92..7f83a1f 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -195,7 +195,7 @@
- */
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+@@ -1930,6 +1927,10 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_FREQUENCY);
+ 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_FREQUENCY);
+ 		}
++		if (!dev->audio_mode.has_audio) {
++			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_AUDIO);
++			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_AUDIO);
++		}
  
- /* time in msecs to wait for i2c writes to finish */
--#define EM2800_I2C_WRITE_TIMEOUT 20
-+#define EM2800_I2C_XFER_TIMEOUT		20
- 
- enum em28xx_mode {
- 	EM28XX_SUSPEND,
+ 		/* register v4l2 vbi video_device */
+ 		ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
 -- 
 1.7.10.4
 
