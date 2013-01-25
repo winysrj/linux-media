@@ -1,109 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:52103 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837Ab3ADFLy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 00:11:54 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH v2] tvp7002: use devm_kzalloc() instead of kzalloc()
-Date: Fri,  4 Jan 2013 10:41:17 +0530
-Message-Id: <1357276277-21812-3-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1357276277-21812-1-git-send-email-prabhakar.lad@ti.com>
-References: <1357276277-21812-1-git-send-email-prabhakar.lad@ti.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1824 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755243Ab3AYKk3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 05:40:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: partial revert of "uvcvideo: set error_idx properly"
+Date: Fri, 25 Jan 2013 11:40:13 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com> <20121225025648.5208189a@redhat.com> <510255BD.8060605@redhat.com>
+In-Reply-To: <510255BD.8060605@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301251140.13707.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I2C drivers can use devm_kzalloc() too in their .probe() methods. Doing so
-simplifies their clean up paths.
+On Fri January 25 2013 10:51:57 Hans de Goede wrote:
+> <modified the CC list to be more appropriate>
+> 
+> Hi,
+> 
+> On 12/25/2012 05:56 AM, Mauro Carvalho Chehab wrote:
+> 
+> > The pwc driver can currently return -ENOENT at VIDIOC_S_FMT ioctl. This
+> > doesn't seem right. Instead, it should be getting the closest format to
+> > the requested one and return 0, passing the selected format back to
+> > userspace, just like the other drivers do. I'm c/c Hans de Goede for him
+> > to take a look on it.
+> 
+> I've been looking into this today, and the ENOENT gets returned by
+> pwc_set_video_mode and through that by:
+> 1) Device init
+> 2) VIDIOC_STREAMON
+> 3) VIDIOC_S_PARM
+> 4) VIDIOC_S_FMT
+> 
+> But only when the requested width + height + pixelformat is an
+> unsupported combination, and it being a supported combination
+> already gets enforced by a call to pwc_get_size in
+> pwc_vidioc_try_fmt, which also gets called from pwc_s_fmt_vid_cap
+> before it does anything else.
+> 
+> So the ENOENT can only happen on some internal driver error,
+> I'm open for suggestions for a better error code to return in
+> this case.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- Changes for v2:
- 1: Fixed comments pointed out by Laurent.
+Perhaps returning EINVAL but adding a WARN_ON would be a good compromise.
 
- drivers/media/i2c/tvp7002.c |   18 ++++++------------
- 1 files changed, 6 insertions(+), 12 deletions(-)
+> What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
+> an unsupported pixelformat is requested. IIRC we agreed that the
+> correct behavior in this case is to instead just change the
+> pixelformat to a default format, so I'll write a patch fixing
+> this.
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index fb6a5b5..537f6b4 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1036,7 +1036,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 		return -ENODEV;
- 	}
- 
--	device = kzalloc(sizeof(struct tvp7002), GFP_KERNEL);
-+	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
- 
- 	if (!device)
- 		return -ENOMEM;
-@@ -1052,7 +1052,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 
- 	error = tvp7002_read(sd, TVP7002_CHIP_REV, &revision);
- 	if (error < 0)
--		goto found_error;
-+		return error;
- 
- 	/* Get revision number */
- 	v4l2_info(sd, "Rev. %02x detected.\n", revision);
-@@ -1063,21 +1063,21 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 	error = tvp7002_write_inittab(sd, tvp7002_init_default);
- 
- 	if (error < 0)
--		goto found_error;
-+		return error;
- 
- 	/* Set polarity information after registers have been set */
- 	polarity_a = 0x20 | device->pdata->hs_polarity << 5
- 			| device->pdata->vs_polarity << 2;
- 	error = tvp7002_write(sd, TVP7002_SYNC_CTL_1, polarity_a);
- 	if (error < 0)
--		goto found_error;
-+		return error;
- 
- 	polarity_b = 0x01  | device->pdata->fid_polarity << 2
- 			| device->pdata->sog_polarity << 1
- 			| device->pdata->clk_polarity;
- 	error = tvp7002_write(sd, TVP7002_MISC_CTL_3, polarity_b);
- 	if (error < 0)
--		goto found_error;
-+		return error;
- 
- 	/* Set registers according to default video mode */
- 	preset.preset = device->current_preset->preset;
-@@ -1091,16 +1091,11 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 		int err = device->hdl.error;
- 
- 		v4l2_ctrl_handler_free(&device->hdl);
--		kfree(device);
- 		return err;
- 	}
- 	v4l2_ctrl_handler_setup(&device->hdl);
- 
--found_error:
--	if (error < 0)
--		kfree(device);
--
--	return error;
-+	return 0;
- }
- 
- /*
-@@ -1120,7 +1115,6 @@ static int tvp7002_remove(struct i2c_client *c)
- 
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&device->hdl);
--	kfree(device);
- 	return 0;
- }
- 
--- 
-1.7.4.1
+There are issues with that idea in the case of TV capture cards, since
+some important apps (tvtime and mythtv to a lesser extent) assume -EINVAL
+in the case of unsupported pixelformats.
 
+Webcam apps can't assume that since gspca never returned -EINVAL, so I
+think it should be OK to fix this in pwc, but Mauro may disagree.
+
+Regards,
+
+	Hans
