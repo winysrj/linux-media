@@ -1,63 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2119 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205Ab3A1KL3 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55190 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753338Ab3AYJCv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 05:11:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH 5/7] saa7134: v4l2-compliance: fix g_tuner/s_tuner
-Date: Mon, 28 Jan 2013 11:11:15 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-6-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359315912-1767-6-git-send-email-linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301281111.15114.hverkuil@xs4all.nl>
+	Fri, 25 Jan 2013 04:02:51 -0500
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: devicetree-discuss@lists.ozlabs.org, Dave Airlie <airlied@linux.ie>
+Cc: Steffen Trumtrar <s.trumtrar@pengutronix.de>,
+	"Rob Herring" <robherring2@gmail.com>, linux-fbdev@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Thierry Reding" <thierry.reding@avionic-design.de>,
+	"Guennady Liakhovetski" <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	"Tomi Valkeinen" <tomi.valkeinen@ti.com>,
+	"Stephen Warren" <swarren@wwwdotorg.org>,
+	"Florian Tobias Schandinat" <FlorianSchandinat@gmx.de>,
+	"Rob Clark" <robdclark@gmail.com>,
+	"Leela Krishna Amudala" <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: [PATCH v17 1/7] viafb: rename display_timing to via_display_timing
+Date: Fri, 25 Jan 2013 10:01:49 +0100
+Message-Id: <1359104515-8907-2-git-send-email-s.trumtrar@pengutronix.de>
+In-Reply-To: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
+References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun January 27 2013 20:45:10 Ondrej Zary wrote:
-> Make saa7134 driver more V4L2 compliant: return real frequency range in
-> g_tuner and fail in s_tuner for non-zero tuner
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+The struct display_timing is specific to the via subsystem. The naming leads to
+collisions with the new struct display_timing, which is supposed to be a shared
+struct between different subsystems.
+To clean this up, prepend the existing struct with the subsystem it is specific
+to.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+---
+ drivers/video/via/hw.c              |    6 +++---
+ drivers/video/via/hw.h              |    2 +-
+ drivers/video/via/lcd.c             |    2 +-
+ drivers/video/via/share.h           |    2 +-
+ drivers/video/via/via_modesetting.c |    8 ++++----
+ drivers/video/via/via_modesetting.h |    6 +++---
+ 6 files changed, 13 insertions(+), 13 deletions(-)
 
+diff --git a/drivers/video/via/hw.c b/drivers/video/via/hw.c
+index 80233da..22450908 100644
+--- a/drivers/video/via/hw.c
++++ b/drivers/video/via/hw.c
+@@ -1467,10 +1467,10 @@ void viafb_set_vclock(u32 clk, int set_iga)
+ 	via_write_misc_reg_mask(0x0C, 0x0C); /* select external clock */
+ }
+ 
+-struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
++struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres)
+ {
+-	struct display_timing timing;
++	struct via_display_timing timing;
+ 	u16 dx = (var->xres - cxres) / 2, dy = (var->yres - cyres) / 2;
+ 
+ 	timing.hor_addr = cxres;
+@@ -1491,7 +1491,7 @@ struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres, int iga)
+ {
+-	struct display_timing crt_reg = var_to_timing(var,
++	struct via_display_timing crt_reg = var_to_timing(var,
+ 		cxres ? cxres : var->xres, cyres ? cyres : var->yres);
+ 
+ 	if (iga == IGA1)
+diff --git a/drivers/video/via/hw.h b/drivers/video/via/hw.h
+index a820575..3be073c 100644
+--- a/drivers/video/via/hw.h
++++ b/drivers/video/via/hw.h
+@@ -637,7 +637,7 @@ extern int viafb_LCD_ON;
+ extern int viafb_DVI_ON;
+ extern int viafb_hotplug;
+ 
+-struct display_timing var_to_timing(const struct fb_var_screeninfo *var,
++struct via_display_timing var_to_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres);
+ void viafb_fill_crtc_timing(const struct fb_var_screeninfo *var,
+ 	u16 cxres, u16 cyres, int iga);
+diff --git a/drivers/video/via/lcd.c b/drivers/video/via/lcd.c
+index 980ee1b..5d21ff4 100644
+--- a/drivers/video/via/lcd.c
++++ b/drivers/video/via/lcd.c
+@@ -549,7 +549,7 @@ void viafb_lcd_set_mode(const struct fb_var_screeninfo *var, u16 cxres,
+ 	int panel_hres = plvds_setting_info->lcd_panel_hres;
+ 	int panel_vres = plvds_setting_info->lcd_panel_vres;
+ 	u32 clock;
+-	struct display_timing timing;
++	struct via_display_timing timing;
+ 	struct fb_var_screeninfo panel_var;
+ 	const struct fb_videomode *mode_crt_table, *panel_crt_table;
+ 
+diff --git a/drivers/video/via/share.h b/drivers/video/via/share.h
+index 3158dfc..65c65c6 100644
+--- a/drivers/video/via/share.h
++++ b/drivers/video/via/share.h
+@@ -319,7 +319,7 @@ struct crt_mode_table {
+ 	int refresh_rate;
+ 	int h_sync_polarity;
+ 	int v_sync_polarity;
+-	struct display_timing crtc;
++	struct via_display_timing crtc;
+ };
+ 
+ struct io_reg {
+diff --git a/drivers/video/via/via_modesetting.c b/drivers/video/via/via_modesetting.c
+index 0e431ae..0b414b0 100644
+--- a/drivers/video/via/via_modesetting.c
++++ b/drivers/video/via/via_modesetting.c
+@@ -30,9 +30,9 @@
+ #include "debug.h"
+ 
+ 
+-void via_set_primary_timing(const struct display_timing *timing)
++void via_set_primary_timing(const struct via_display_timing *timing)
+ {
+-	struct display_timing raw;
++	struct via_display_timing raw;
+ 
+ 	raw.hor_total = timing->hor_total / 8 - 5;
+ 	raw.hor_addr = timing->hor_addr / 8 - 1;
+@@ -88,9 +88,9 @@ void via_set_primary_timing(const struct display_timing *timing)
+ 	via_write_reg_mask(VIACR, 0x17, 0x80, 0x80);
+ }
+ 
+-void via_set_secondary_timing(const struct display_timing *timing)
++void via_set_secondary_timing(const struct via_display_timing *timing)
+ {
+-	struct display_timing raw;
++	struct via_display_timing raw;
+ 
+ 	raw.hor_total = timing->hor_total - 1;
+ 	raw.hor_addr = timing->hor_addr - 1;
+diff --git a/drivers/video/via/via_modesetting.h b/drivers/video/via/via_modesetting.h
+index 06e09fe..f6a6503 100644
+--- a/drivers/video/via/via_modesetting.h
++++ b/drivers/video/via/via_modesetting.h
+@@ -33,7 +33,7 @@
+ #define VIA_PITCH_MAX	0x3FF8
+ 
+ 
+-struct display_timing {
++struct via_display_timing {
+ 	u16 hor_total;
+ 	u16 hor_addr;
+ 	u16 hor_blank_start;
+@@ -49,8 +49,8 @@ struct display_timing {
+ };
+ 
+ 
+-void via_set_primary_timing(const struct display_timing *timing);
+-void via_set_secondary_timing(const struct display_timing *timing);
++void via_set_primary_timing(const struct via_display_timing *timing);
++void via_set_secondary_timing(const struct via_display_timing *timing);
+ void via_set_primary_address(u32 addr);
+ void via_set_secondary_address(u32 addr);
+ void via_set_primary_pitch(u32 pitch);
+-- 
+1.7.10.4
 
-> ---
->  drivers/media/pci/saa7134/saa7134-video.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-> index 87b2b9e..0b42f0c 100644
-> --- a/drivers/media/pci/saa7134/saa7134-video.c
-> +++ b/drivers/media/pci/saa7134/saa7134-video.c
-> @@ -2011,11 +2011,11 @@ static int saa7134_g_tuner(struct file *file, void *priv,
->  	if (NULL != card_in(dev, n).name) {
->  		strcpy(t->name, "Television");
->  		t->type = V4L2_TUNER_ANALOG_TV;
-> +		saa_call_all(dev, tuner, g_tuner, t);
->  		t->capability = V4L2_TUNER_CAP_NORM |
->  			V4L2_TUNER_CAP_STEREO |
->  			V4L2_TUNER_CAP_LANG1 |
->  			V4L2_TUNER_CAP_LANG2;
-> -		t->rangehigh = 0xffffffffUL;
->  		t->rxsubchans = saa7134_tvaudio_getstereo(dev);
->  		t->audmode = saa7134_tvaudio_rx2mode(t->rxsubchans);
->  	}
-> @@ -2031,6 +2031,9 @@ static int saa7134_s_tuner(struct file *file, void *priv,
->  	struct saa7134_dev *dev = fh->dev;
->  	int rx, mode;
->  
-> +	if (0 != t->index)
-> +		return -EINVAL;
-> +
->  	mode = dev->thread.mode;
->  	if (UNSET == mode) {
->  		rx   = saa7134_tvaudio_getstereo(dev);
-> 
