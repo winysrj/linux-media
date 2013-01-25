@@ -1,170 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4157 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406Ab3AGMKC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 07:10:02 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:14681 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753352Ab3AYKaO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 05:30:14 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MH6009BGFU312U0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Jan 2013 19:30:12 +0900 (KST)
+Received: from amdc1342.digital.local ([106.116.147.39])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MH600J9PFU46M40@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 25 Jan 2013 19:30:12 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCHv1 2/2] DocBook: fix various validation errors
-Date: Mon,  7 Jan 2013 13:09:48 +0100
-Message-Id: <254e2f5655d757339bab31bc3a8ba280f34283ee.1357560529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1357560588-5263-1-git-send-email-hverkuil@xs4all.nl>
-References: <1357560588-5263-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <50256813dbb6df25776aed847787d1eac9dbc9fa.1357560529.git.hans.verkuil@cisco.com>
-References: <50256813dbb6df25776aed847787d1eac9dbc9fa.1357560529.git.hans.verkuil@cisco.com>
+Cc: jtp.park@samsung.com, arun.kk@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com, pawel@osciak.com,
+	Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH 0/2 v3] Add proper timestamp types handling in videobuf2
+Date: Fri, 25 Jan 2013 11:29:55 +0100
+Message-id: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Fixed the following errors (with exception of the SVG errors):
+This is the third version of the patch posted earlier this month.
+After the discussion a WARN_ON was added to inform if the driver is not setting
+timestamp type when initialising the videobuf2 queue. Small correction to the
+documentation was also made and two patche were squashed to avoid problems
+with bisect.
 
-  GEN     /home/hans/work/src/v4l/media-git/Documentation/DocBook//v4l2.xml
-rm -rf Documentation/DocBook/index.html; echo '<h1>Linux Kernel HTML Documentation</h1>' >> Documentation/DocBook/index.html && echo '<h2>Kernel Version: 3.8.0-rc1</h2>' >> Documentation/DocBook/index.html && cat Documentation/DocBook/media_api.html >> Documentation/DocBook/index.html
-/tmp/x.xml:883: element revremark: validity error : Element structname is not declared in revremark list of possible children
-/tmp/x.xml:883: element revremark: validity error : Element xref is not declared in revremark list of possible children
-/tmp/x.xml:1829: element footnote: validity error : Element footnote content does not follow the DTD, expecting (calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable)+, got (para para errorcode CDATA para )
-/tmp/x.xml:9580: element xref: validity error : Element xref was declared EMPTY this one has content
-/tmp/x.xml:13508: element link: validity error : Element link does not carry attribute linkend
-/tmp/x.xml:13508: element link: validity error : No declaration for attribute linked of element link
-/tmp/x.xml:16986: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-/tmp/x.xml:17003: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-/tmp/x.xml:17022: element imagedata: validity error : Value "SVG" for attribute format of imagedata is not among the enumerated set
-/tmp/x.xml:26795: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (section )
-/tmp/x.xml:26852: element refsect1: validity error : Element refsect1 content does not follow the DTD, expecting (refsect1info? , (title , subtitle? , titleabbrev?) , (((calloutlist | glosslist | itemizedlist | orderedlist | segmentedlist | simplelist | variablelist | caution | important | note | tip | warning | literallayout | programlisting | programlistingco | screen | screenco | screenshot | synopsis | cmdsynopsis | funcsynopsis | classsynopsis | fieldsynopsis | constructorsynopsis | destructorsynopsis | methodsynopsis | formalpara | para | simpara | address | blockquote | graphic | graphicco | mediaobject | mediaobjectco | informalequation | informalexample | informalfigure | informaltable | equation | example | figure | table | msgset | procedure | sidebar | qandaset | anchor | bridgehead | remark | highlights | abstract | authorblurb | epigraph | indexterm | beginpage)+ , refsect2*) | refsect2+)), got (table )
+Also the davinci/vpbe_display.c driver was modified to correctly report the use
+of MONOTONIC timestamp type.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/DocBook/media/v4l/common.xml         |    2 +-
- Documentation/DocBook/media/v4l/io.xml             |    4 +--
- .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |    2 +-
- Documentation/DocBook/media/v4l/v4l2.xml           |    5 +---
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml  |   28 +++++++++-----------
- 5 files changed, 17 insertions(+), 24 deletions(-)
+Best wishes,
+Kamil Debski
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 73c6847..ae06afb 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -609,7 +609,7 @@ to zero and the <constant>VIDIOC_G_STD</constant>,
- 	<para>Applications can make use of the <xref linkend="input-capabilities" /> and
- <xref linkend="output-capabilities"/> flags to determine whether the video standard ioctls
- are available for the device.</para>
--&ENOTTY;.
-+
- 	<para>See <xref linkend="buffer" /> for a rationale. Probably
- even USB cameras follow some well known video standard. It might have
- been better to explicitly indicate elsewhere if a device cannot live
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4646d..e6c5855 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -477,7 +477,7 @@ rest should be evident.</para>
- 
-     <note>
-       <title>Experimental</title>
--      <para>This is an <link linkend="experimental"> experimental </link>
-+      <para>This is an <link linkend="experimental">experimental</link>
-       interface and may change in the future.</para>
-     </note>
- 
-@@ -488,7 +488,7 @@ DMA buffer from userspace using a file descriptor previously exported for a
- different or the same device (known as the importer role), or both. This
- section describes the DMABUF importer role API in V4L2.</para>
- 
--    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
-+    <para>Refer to <link linkend="vidioc-expbuf">DMABUF exporting</link> for
- details about exporting V4L2 buffers as DMABUF file descriptors.</para>
- 
- <para>Input and output devices support the streaming I/O method when the
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-index c934192..29acc20 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-@@ -29,6 +29,6 @@
- 	    formats with 10 bits per color compressed to 8 bits each,
- 	    using the A-LAW algorithm. Each color component consumes 8
- 	    bits of memory. In other respects this format is similar to
--	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
-+	    <xref linkend="V4L2-PIX-FMT-SRGGB8"></xref>.</para>
- 	  </refsect1>
- 	</refentry>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 8fe2942..94ab0e1 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -143,10 +143,7 @@ applications. -->
- 	<revnumber>3.9</revnumber>
- 	<date>2012-12-03</date>
- 	<authorinitials>sa</authorinitials>
--	<revremark>Added timestamp types to
--	<structname>v4l2_buffer</structname>, see <xref
--	linkend="buffer-flags" />.
--	</revremark>
-+	<revremark>Added timestamp types to v4l2_buffer.</revremark>
-       </revision>
- 
-       <revision>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-index 72dfbd2..e287c8f 100644
---- a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -83,15 +83,14 @@ descriptor. The application may pass it to other DMABUF-aware devices. Refer to
- <link linkend="dmabuf">DMABUF importing</link> for details about importing
- DMABUF files into V4L2 nodes. It is recommended to close a DMABUF file when it
- is no longer used to allow the associated memory to be reclaimed. </para>
--
-   </refsect1>
-+
-   <refsect1>
--   <section>
--      <title>Examples</title>
-+    <title>Examples</title>
- 
--      <example>
--	<title>Exporting a buffer.</title>
--	<programlisting>
-+    <example>
-+      <title>Exporting a buffer.</title>
-+      <programlisting>
- int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
- {
- 	&v4l2-exportbuffer; expbuf;
-@@ -108,12 +107,12 @@ int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
- 
- 	return 0;
- }
--        </programlisting>
--      </example>
-+      </programlisting>
-+    </example>
- 
--      <example>
--	<title>Exporting a buffer using the multi-planar API.</title>
--	<programlisting>
-+    <example>
-+      <title>Exporting a buffer using the multi-planar API.</title>
-+      <programlisting>
- int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
- 	int dmafd[], int n_planes)
- {
-@@ -137,12 +136,9 @@ int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
- 
- 	return 0;
- }
--        </programlisting>
--      </example>
--   </section>
--  </refsect1>
-+      </programlisting>
-+    </example>
- 
--  <refsect1>
-     <table pgwide="1" frame="none" id="v4l2-exportbuffer">
-       <title>struct <structname>v4l2_exportbuffer</structname></title>
-       <tgroup cols="3">
+PS. Below please find the original cover letter.
+
+Hi,
+
+The recent addition of timestamp types (and monotonic timestamp) left some room
+for improvement. First of all not all drivers use monotonic timestamp. There are
+for example mem2mem drivers that copy the timestamp from the OUTPUT buffer to
+the corresponding CAPTURE buffer. Some videobuf2 drivers do not fill the
+timestamp field altogether (yeah, I can agree that a constant is monotonic, but
+still...).
+
+Hence, I propose the following change to videobuf2. After applying this patch
+the default timestamp type is UNKNOWN. It is up to the driver to set the
+timestamp type to either MONOTONIC or COPY in vb2_queue_init.
+
+This patch also adds setting proper timestamp type value in case of drivers
+where I determined that type. This list might be missing some drivers, but
+in these cases it will leave the UNKNOWN type which is a safe assumption.
+
+Best wishes,
+Kamil Debski
+
+
+
+Kamil Debski (2):
+  v4l: Define video buffer flag for the COPY timestamp type
+  vb2: Add support for non monotonic timestamps
+
+ Documentation/DocBook/media/v4l/io.xml             |    6 ++++++
+ drivers/media/platform/blackfin/bfin_capture.c     |    1 +
+ drivers/media/platform/davinci/vpbe_display.c      |    1 +
+ drivers/media/platform/davinci/vpif_capture.c      |    1 +
+ drivers/media/platform/davinci/vpif_display.c      |    1 +
+ drivers/media/platform/s3c-camif/camif-capture.c   |    1 +
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 ++
+ drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
+ drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
+ drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
+ drivers/media/platform/vivi.c                      |    1 +
+ drivers/media/usb/pwc/pwc-if.c                     |    1 +
+ drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
+ drivers/media/usb/uvc/uvc_queue.c                  |    1 +
+ drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++++--
+ include/media/videobuf2-core.h                     |    1 +
+ include/uapi/linux/videodev2.h                     |    1 +
+ 20 files changed, 31 insertions(+), 2 deletions(-)
+
 -- 
-1.7.10.4
+1.7.9.5
 
