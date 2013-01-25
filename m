@@ -1,88 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4876 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137Ab3AKL0V (ORCPT
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:61329 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab3AYU0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 06:26:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 2/2] DocBook: improve the error_idx field documentation.
-Date: Fri, 11 Jan 2013 12:26:03 +0100
-Message-Id: <9035cddc289cc58a41d6122a10a17e5d27c6fc0f.1357903446.git.hans.verkuil@cisco.com>
-In-Reply-To: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
-References: <1357903563-5788-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
-References: <66daf776429bc348c156f96eb36141588087783b.1357903446.git.hans.verkuil@cisco.com>
+	Fri, 25 Jan 2013 15:26:44 -0500
+Received: by mail-ea0-f180.google.com with SMTP id c1so328211eaa.11
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 12:26:43 -0800 (PST)
+Message-ID: <5102EA80.2080105@gmail.com>
+Date: Fri, 25 Jan 2013 21:26:40 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.9] OV9650 image sensor driver, v4l2-ctrl/core extensions
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro,
 
-The documentation of the error_idx field was incomplete and confusing.
-This patch improves it.
+This change set includes the Omnivision OV9650/52 sensor driver and a 
+couple
+related patches, adding v4l2 core helper functions and a header defining
+standard image sizes. Please pull.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   44 ++++++++++++++++----
- 1 file changed, 37 insertions(+), 7 deletions(-)
+The following changes since commit a32f7d1ad3744914273c6907204c2ab3b5d496a0:
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index 0a4b90f..e9f9735 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -199,13 +199,43 @@ also be zero.</entry>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>error_idx</structfield></entry>
--	    <entry>Set by the driver in case of an error. If it is equal
--to <structfield>count</structfield>, then no actual changes were made to
--controls. In other words, the error was not associated with setting a particular
--control. If it is another value, then only the controls up to <structfield>error_idx-1</structfield>
--were modified and control <structfield>error_idx</structfield> is the one that
--caused the error. The <structfield>error_idx</structfield> value is undefined
--if the ioctl returned 0 (success).</entry>
-+	    <entry><para>Set by the driver in case of an error. If the error is
-+associated with a particular control, then <structfield>error_idx</structfield>
-+is set to the index of that control. If the error is not related to a specific
-+control, or the pre-validation step failed (see below), then
-+<structfield>error_idx</structfield> is set to <structfield>count</structfield>.
-+The value is undefined if the ioctl returned 0 (success).</para>
-+
-+<para>Before controls are read from/written to hardware a pre-validation step
-+takes place: this checks if all controls in the list are all valid controls,
-+if no attempt is made to write to a read-only control or read from a write-only
-+control, and any other up-front checks that can be done without accessing the
-+hardware.</para>
-+
-+<para>This check is done to avoid leaving the hardware in an inconsistent state due
-+to easy-to-avoid problems. But it leads to another problem: the application needs to
-+know whether an error came from the pre-validation step (meaning that the hardware
-+was not touched) or from an error during the actual reading from/writing to hardware.</para>
-+
-+<para>The, in hindsight quite poor, solution for that is to set <structfield>error_idx</structfield>
-+to <structfield>count</structfield> if the pre-validation failed. This has the
-+unfortunate side-effect that it is not possible to see which control failed the
-+pre-validation. If the pre-validation was successful and the error happened while
-+accessing the hardware, then <structfield>error_idx</structfield> is less than
-+<structfield>count</structfield> and only the controls up to
-+<structfield>error_idx-1</structfield> were read or written correctly, and the
-+state of the remaining controls is undefined.</para>
-+
-+<para>Since <constant>VIDIOC_TRY_EXT_CTRLS</constant> does not access hardware
-+there is also no need to handle the pre-validation step in this special way,
-+so <structfield>error_idx</structfield> will just be set to the control that
-+failed the pre-validation step instead of to <structfield>count</structfield>.
-+This means that if <constant>VIDIOC_S_EXT_CTRLS</constant> fails with
-+<structfield>error_idx</structfield> set to <structfield>count</structfield>,
-+then you can call <constant>VIDIOC_TRY_EXT_CTRLS</constant> to try to discover
-+the actual control that failed the pre-validation step. Unfortunately, there
-+is no <constant>TRY</constant> equivalent for <constant>VIDIOC_G_EXT_CTRLS</constant>.
-+</para></entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--- 
-1.7.10.4
+   Merge branch 'v4l_for_linus' into staging/for_v3.9 (2013-01-24 
+18:49:18 -0200)
 
+are available in the git repository at:
+
+   git://linuxtv.org/snawrocki/media.git ov965x
+
+Sylwester Nawrocki (6):
+       V4L: Add header file defining standard image sizes
+       v4l2-ctrl: Add helper function for the controls range update
+       V4L: Add v4l2_event_subdev_unsubscribe() helper function
+       V4L: Add v4l2_ctrl_subdev_subscribe_event() helper function
+       V4L: Add v4l2_ctrl_subdev_log_status() helper function
+       V4L: Add driver for OV9650/52 image sensors
+
+  Documentation/DocBook/media/v4l/compat.xml         |    4 +
+  Documentation/DocBook/media/v4l/v4l2.xml           |    4 +-
+  Documentation/DocBook/media/v4l/vidioc-dqevent.xml |    6 +
+  drivers/media/i2c/Kconfig                          |    7 +
+  drivers/media/i2c/Makefile                         |    1 +
+  drivers/media/i2c/ov9650.c                         | 1562 
+++++++++++++++++++++
+  drivers/media/v4l2-core/v4l2-ctrls.c               |  159 ++-
+  drivers/media/v4l2-core/v4l2-event.c               |    7 +
+  include/media/ov9650.h                             |   27 +
+  include/media/v4l2-ctrls.h                         |   28 +
+  include/media/v4l2-event.h                         |    4 +-
+  include/media/v4l2-image-sizes.h                   |   34 +
+  include/uapi/linux/videodev2.h                     |    1 +
+  13 files changed, 1803 insertions(+), 41 deletions(-)
+  create mode 100644 drivers/media/i2c/ov9650.c
+  create mode 100644 include/media/ov9650.h
+  create mode 100644 include/media/v4l2-image-sizes.h
+
+The corresponding pwclient commands are:
+
+pwclient -s accepted 16435
+pwclient -s accepted 16436
+pwclient -s accepted 16437
+pwclient -s accepted 16438
+pwclient -s accepted 16439
+pwclient -s accepted 16440
+
+--
+
+Regards,
+Sylwester
