@@ -1,46 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6056 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752715Ab3AVKJF convert rfc822-to-8bit (ORCPT
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:48310 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750945Ab3AYTyd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 05:09:05 -0500
-Date: Tue, 22 Jan 2013 08:08:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patchwork / Bugzilla update
-Message-ID: <20130122080829.502e8236@redhat.com>
-In-Reply-To: <50FDB28A.20803@googlemail.com>
-References: <50FBEBFB.3020209@googlemail.com>
-	<20130121115144.01e58f6a@redhat.com>
-	<50FDB28A.20803@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 25 Jan 2013 14:54:33 -0500
+Message-ID: <5102E2F4.80604@gmail.com>
+Date: Fri, 25 Jan 2013 20:54:28 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: Re: [PATCH 1/2] media: add support for decoder subdevs along with
+ sensor and others
+References: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com> <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 21 Jan 2013 22:26:34 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Hi Prahakar,
 
-> Am 21.01.2013 14:51, schrieb Mauro Carvalho Chehab:
-> ,,,
-> >> The following kernel bugs can be closed as "resolved - fixed":
-> >> - bug 26572 "rmmod em28xx or unplugging em28xx tv adapter problem"
-> >>   => resolved with commit 05fe2175cf87da8a5475aed422bd636475ab0412
-> >> "em28xx: refactor the code in em28xx_usb_disconnect()"
-> >> - bug 14126 "Audio input for TV mode of Terratec Cinergy 250 is
-> >> misconfigured"
-> >>   => resolved with commit 5e8d02bb346d6240b029f1990ddc295d7d59685b
-> >> "em28xx: fix audio input for TV mode of device Terratec Cinergy 250"
-> > Feel free to close them there directly.
-> 
-> Unfortunately, I don't have the necessary rights to change bug statuses. :(
+On 01/25/2013 08:01 AM, Prabhakar Lad wrote:
+> From: Manjunath Hadli<manjunath.hadli@ti.com>
+>
+> A lot of SOCs including Texas Instruments Davinci family mainly use
+> video decoders as input devices. Here the initial subdevice node
+> from where the input really comes is this decoder, for which support
+> is needed as part of the Media Controller infrastructure. This patch
+> adds an additional flag to include the decoders along with others,
+> such as the sensor and lens.
+>
+> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
+> ---
+>   include/uapi/linux/media.h |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index 0ef8833..fa44ed9 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -56,6 +56,7 @@ struct media_device_info {
+>   #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
+>   #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
+>   #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
+> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
 
-I think you should first click on "edit" at "Assigned to:" field, in order to
-assign the bug to yourself.
+Such a new entity type needs to be documented in the media DocBook [1].
+It probably also deserves a comment here, as DECODER isn't that obvious
+like the other already existing entity types. I heard people referring
+to a device that encodes analog (composite) video signal into its digital
+representation as an ENCODER. :)
 
-Then, you can change the status.
+
+[1] http://hverkuil.home.xs4all.nl/spec/media.html#media-ioc-enum-entities
+
+--
 
 Regards,
-Mauro
+Sylwester
