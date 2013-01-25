@@ -1,104 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:42732 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752782Ab3AXKJL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55513 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756416Ab3AYMjE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 05:09:11 -0500
+	Fri, 25 Jan 2013 07:39:04 -0500
+Date: Fri, 25 Jan 2013 14:38:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
+	arun.kk@samsung.com, s.nawrocki@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	m.szyprowski@samsung.com, pawel@osciak.com
+Subject: Re: [PATCH 0/2 v3] Add proper timestamp types handling in videobuf2
+Message-ID: <20130125123858.GF18639@valkosipuli.retiisi.org.uk>
+References: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <5101144B.1090600@denx.de>
-References: <1359018740-6399-1-git-send-email-prabhakar.lad@ti.com> <5101144B.1090600@denx.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 24 Jan 2013 15:38:49 +0530
-Message-ID: <CA+V-a8uq++Fi80eTTXpDmYG_mpWr0HbTJhH1vSnHPCyAbgVB3A@mail.gmail.com>
-Subject: Re: [PATCH RFC] media: tvp514x: add OF support
-To: Heiko Schocher <hs@denx.de>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LDOC <linux-doc@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1359109797-12698-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Heiko,
+On Fri, Jan 25, 2013 at 11:29:55AM +0100, Kamil Debski wrote:
+> Hi,
+> 
+> This is the third version of the patch posted earlier this month.
+> After the discussion a WARN_ON was added to inform if the driver is not setting
+> timestamp type when initialising the videobuf2 queue. Small correction to the
+> documentation was also made and two patche were squashed to avoid problems
+> with bisect.
+> 
+> Also the davinci/vpbe_display.c driver was modified to correctly report the use
+> of MONOTONIC timestamp type.
 
-On Thu, Jan 24, 2013 at 4:30 PM, Heiko Schocher <hs@denx.de> wrote:
-> Hello Prabhakar,
->
-> On 24.01.2013 10:12, Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> add OF support for the tvp514x driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> ---
->>  This patch is on top of following patches:
->>  1: https://patchwork.kernel.org/patch/1930941/
->>  2: http://patchwork.linuxtv.org/patch/16193/
->>  3: https://patchwork.kernel.org/patch/1944901/
->>
->>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   30 ++++++++++
->>  drivers/media/i2c/tvp514x.c                        |   60 ++++++++++++++++++--
->>  2 files changed, 85 insertions(+), 5 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> new file mode 100644
->> index 0000000..3cce323
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> @@ -0,0 +1,30 @@
->
-> [...]
->> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
->> index a4f0a70..0e2b15c 100644
->> --- a/drivers/media/i2c/tvp514x.c
->> +++ b/drivers/media/i2c/tvp514x.c
->> @@ -12,6 +12,7 @@
->>   *     Hardik Shah <hardik.shah@ti.com>
->>   *     Manjunath Hadli <mrh@ti.com>
->>   *     Karicheri Muralidharan <m-karicheri2@ti.com>
->> + *     Prabhakar Lad <prabhakar.lad@ti.com>
->>   *
->>   * This package is free software; you can redistribute it and/or modify
->>   * it under the terms of the GNU General Public License version 2 as
->> @@ -930,6 +931,50 @@ static struct tvp514x_decoder tvp514x_dev = {
->>
->>  };
->>
->> +#if defined(CONFIG_OF)
->> +static const struct of_device_id tvp514x_of_match[] = {
->> +     {.compatible = "ti,tvp514x-decoder", },
->> +     {},
->> +}
->
-> Missing semicolon here. Without, gcc throws here an error
-> when compiling this driver as a module.
->
-Thanks for the catch, i had built it along with the kernel, I remember
-similar issue with one of your patch missed it to apply here :).
-I'll fix it in v2 version.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Regards,
---Prabhakar
-
->> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
->> +
-> [...]
->
-> bye,
-> Heiko
-> --
-> DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-> HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
