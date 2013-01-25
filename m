@@ -1,55 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:40540 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755664Ab3AEN7x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 08:59:53 -0500
-Received: by mail-ee0-f44.google.com with SMTP id b47so8406049eek.17
-        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 05:59:52 -0800 (PST)
-Message-ID: <50E831F2.70400@googlemail.com>
-Date: Sat, 05 Jan 2013 15:00:18 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50119 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751416Ab3AYIEn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 03:04:43 -0500
+Date: Fri, 25 Jan 2013 09:04:26 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: "Mohammed, Afzal" <afzal@ti.com>
+Cc: Leela Krishna Amudala <leelakrishna.a@gmail.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	David Airlie <airlied@linux.ie>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Rob Clark <robdclark@gmail.com>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v16 RESEND 0/7] of: add display helper
+Message-ID: <20130125080426.GA6937@pengutronix.de>
+References: <1358766482-6275-1-git-send-email-s.trumtrar@pengutronix.de>
+ <CAF6AEGvFNA1gc_5XWqL_baEnn8DTn0R-xqui034rg3Eo-V_6Qw@mail.gmail.com>
+ <20130123091202.GA11828@pengutronix.de>
+ <CAL1wa8d6wXdxgVJ=c2ma2Adm-RkF3S5ga219dSrh1fFo0L9X8w@mail.gmail.com>
+ <20130124081958.GA28406@pengutronix.de>
+ <C8443D0743D26F4388EA172BF4E2A7A93EA928F9@DBDE01.ent.ti.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: BUG: bttv does not load module ir-kbd-i2c for Hauppauge model 37284,
- rev B421
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <C8443D0743D26F4388EA172BF4E2A7A93EA928F9@DBDE01.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While we are at it ;) :
+Hi Afzal,
 
-[   15.280772] bttv: Bt8xx card found (0)
-[   15.281349] bttv: 0: Bt878 (rev 17) at 0000:01:08.0, irq: 18,
-latency: 32, mmio: 0xfdfff000
-[   15.281386] bttv: 0: detected: Hauppauge WinTV [card=10], PCI
-subsystem ID is 0070:13eb
-[   15.281391] bttv: 0: using: Hauppauge (bt878) [card=10,insmod option]
-[   15.283964] bttv: 0: Hauppauge/Voodoo msp34xx: reset line init [5]
-[   15.316043] tveeprom 4-0050: Hauppauge model 37284, rev B421, serial#
-5111944
-[   15.316049] tveeprom 4-0050: tuner model is Philips FM1216 (idx 21,
-type 5)
-[   15.316054] tveeprom 4-0050: TV standards PAL(B/G) (eeprom 0x04)
-[   15.316059] tveeprom 4-0050: audio processor is MSP3410D (idx 5)
-[   15.316063] tveeprom 4-0050: has radio
-[   15.316066] bttv: 0: Hauppauge eeprom indicates model#37284
-[   15.316071] bttv: 0: tuner type=5
-[   16.178816] bttv: 0: registered device video0
-[   16.179071] bttv: 0: registered device vbi0
-[   16.180587] bttv: 0: registered device radio0
+On Thu, Jan 24, 2013 at 08:47:02AM +0000, Mohammed, Afzal wrote:
+> Hi Steffen,
+> 
+> On Thu, Jan 24, 2013 at 13:49:58, Steffen Trumtrar wrote:
+> 
+> > Thanks. I'll use that opportunity for a v17 that is rebased onto 3.8-rc4.
+> 
+> As you are going to have a v17, if you can fold the diff[1]
+> (that I mentioned earlier) into the patch,
+> "fbmon: add of_videomode helpers", it would be helpful. 
+> 
 
-When I load module ir-kbd-i2c manually:
-
-Registered IR keymap rc-hauppauge
-input: i2c IR (Hauppauge) as /devices/virtual/rc/rc0/input6
-rc0: i2c IR (Hauppauge) as /devices/virtual/rc/rc0
-ir-kbd-i2c: i2c IR (Hauppauge) detected at i2c-4/4-0018/ir0 [bt878 #0 [sw]]
-
-Remote control works fine then.
+I thought about it and I will not include that patch. Sorry.
+In one of the previous versions of the series I had something like that and
+it was suggested to remove it. If I leave it like it is, one gets a compile
+time error like you do. And that is correct, because you shouldn't use the
+function if you do not have of_videomode enabled. You should use one of the
+underlying functions that are non-DT and called by of_get_fb_videomode.
 
 Regards,
-rank
+Steffen
 
+> Regards
+> Afzal
+> 
+> [1]
+> 
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index 58b9860..0ce30d1 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -716,9 +716,19 @@ extern void fb_destroy_modedb(struct fb_videomode *modedb);
+>  extern int fb_find_mode_cvt(struct fb_videomode *mode, int margins, int rb);
+>  extern unsigned char *fb_ddc_read(struct i2c_adapter *adapter);
+>  
+> +#if defined(CONFIG_OF_VIDEOMODE) && defined(CONFIG_FB_MODE_HELPERS)
+>  extern int of_get_fb_videomode(struct device_node *np,
+>                                struct fb_videomode *fb,
+>                                int index);
+> +#else
+> +static inline int of_get_fb_videomode(struct device_node *np,
+> +                                     struct fb_videomode *fb,
+> +                                     int index)
+> +{
+> +       return -EINVAL;
+> +}
+> +#endif
+> +
+>  extern int fb_videomode_from_videomode(const struct videomode *vm,
+>                                        struct fb_videomode *fbmode);
+> 
 
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
