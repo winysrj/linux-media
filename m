@@ -1,67 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:57717 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3ASQer (ORCPT
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:34362 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757652Ab3AYR06 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:47 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: lcostantino@gmail.com
-Cc: hdegoede@redhat.com, mchehab@redhat.com,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 19/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:21 -0200
-Message-Id: <1358613206-4274-18-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	Fri, 25 Jan 2013 12:26:58 -0500
+Received: by mail-ea0-f175.google.com with SMTP id d1so261178eab.6
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:57 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [REVIEW PATCH 08/12] em28xx: get rid of duplicate function vidioc_s_fmt_vbi_cap()
+Date: Fri, 25 Jan 2013 18:26:58 +0100
+Message-Id: <1359134822-4585-9-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+vidioc_s_fmt_vbi_cap() is a 100% duplicate of vidioc_g_fmt_vbi_cap() and
+therefore can be removed.
 
-This change was made for: CONFIG_INPUT
-
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/gspca/t613.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/em28xx/em28xx-video.c |   31 +------------------------------
+ 1 Datei geändert, 1 Zeile hinzugefügt(+), 30 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/gspca/t613.c b/drivers/media/usb/gspca/t613.c
-index b92d4ef..e2cc4e5 100644
---- a/drivers/media/usb/gspca/t613.c
-+++ b/drivers/media/usb/gspca/t613.c
-@@ -823,7 +823,7 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- 		msleep(20);
- 		reg_w(gspca_dev, 0x0309);
- 	}
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->button_pressed) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-@@ -841,7 +841,7 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	int pkt_type;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index edd29ae..af3e70a 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1480,35 +1480,6 @@ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
+ 	return 0;
+ }
  
- 	if (data[0] == 0x5a) {
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 		if (len > 20) {
- 			u8 state = (data[20] & 0x80) ? 1 : 0;
- 			if (sd->button_pressed != state) {
-@@ -1019,7 +1019,7 @@ static const struct sd_desc sd_desc = {
- 	.start = sd_start,
- 	.stopN = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
- #endif
- };
+-static int vidioc_s_fmt_vbi_cap(struct file *file, void *priv,
+-				struct v4l2_format *format)
+-{
+-	struct em28xx_fh      *fh  = priv;
+-	struct em28xx         *dev = fh->dev;
+-
+-	format->fmt.vbi.samples_per_line = dev->vbi_width;
+-	format->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
+-	format->fmt.vbi.offset = 0;
+-	format->fmt.vbi.flags = 0;
+-	format->fmt.vbi.sampling_rate = 6750000 * 4 / 2;
+-	format->fmt.vbi.count[0] = dev->vbi_height;
+-	format->fmt.vbi.count[1] = dev->vbi_height;
+-	memset(format->fmt.vbi.reserved, 0, sizeof(format->fmt.vbi.reserved));
+-
+-	/* Varies by video standard (NTSC, PAL, etc.) */
+-	if (dev->norm & V4L2_STD_525_60) {
+-		/* NTSC */
+-		format->fmt.vbi.start[0] = 10;
+-		format->fmt.vbi.start[1] = 273;
+-	} else if (dev->norm & V4L2_STD_625_50) {
+-		/* PAL */
+-		format->fmt.vbi.start[0] = 6;
+-		format->fmt.vbi.start[1] = 318;
+-	}
+-
+-	return 0;
+-}
+-
+ /* ----------------------------------------------------------- */
+ /* RADIO ESPECIFIC IOCTLS                                      */
+ /* ----------------------------------------------------------- */
+@@ -1707,7 +1678,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
+ 	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_try_fmt_vbi_cap     = vidioc_g_fmt_vbi_cap,
+-	.vidioc_s_fmt_vbi_cap       = vidioc_s_fmt_vbi_cap,
++	.vidioc_s_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
 -- 
-1.7.11.7
+1.7.10.4
 
