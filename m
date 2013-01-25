@@ -1,109 +1,319 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:39783 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756589Ab3AHRxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:53:44 -0500
-Received: by mail-la0-f51.google.com with SMTP id fj20so796906lab.10
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:53:42 -0800 (PST)
-Message-ID: <50EC5D43.6040403@googlemail.com>
-Date: Tue, 08 Jan 2013 18:54:11 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:56731 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932094Ab3AYQz1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 11:55:27 -0500
+Received: by mail-bk0-f51.google.com with SMTP id ik5so388286bkc.10
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 08:55:25 -0800 (PST)
+Message-ID: <5102B924.7030800@googlemail.com>
+Date: Fri, 25 Jan 2013 17:56:04 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx, sound problems, STV40, linux 3.7.1
-References: <20130101200225.GC26607@vicerveza.homeunix.net>
-In-Reply-To: <20130101200225.GC26607@vicerveza.homeunix.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 3/3] mt9v011: convert to the control framework.
+References: <1359013876-12443-1-git-send-email-hverkuil@xs4all.nl> <8956523f0ef5757e85f7d7061575e7b227290c7b.1359013702.git.hans.verkuil@cisco.com>
+In-Reply-To: <8956523f0ef5757e85f7d7061575e7b227290c7b.1359013702.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Am 24.01.2013 08:51, schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/i2c/mt9v011.c |  223 +++++++++++++------------------------------
+>  1 file changed, 67 insertions(+), 156 deletions(-)
+>
+> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+> index 6bf01ad..73b7688 100644
+> --- a/drivers/media/i2c/mt9v011.c
+> +++ b/drivers/media/i2c/mt9v011.c
+> @@ -13,6 +13,7 @@
+>  #include <asm/div64.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/mt9v011.h>
+>  
+>  MODULE_DESCRIPTION("Micron mt9v011 sensor driver");
+> @@ -48,68 +49,9 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+>  #define MT9V011_VERSION			0x8232
+>  #define MT9V011_REV_B_VERSION		0x8243
+>  
+> -/* supported controls */
+> -static struct v4l2_queryctrl mt9v011_qctrl[] = {
+> -	{
+> -		.id = V4L2_CID_GAIN,
+> -		.type = V4L2_CTRL_TYPE_INTEGER,
+> -		.name = "Gain",
+> -		.minimum = 0,
+> -		.maximum = (1 << 12) - 1 - 0x0020,
+> -		.step = 1,
+> -		.default_value = 0x0020,
+> -		.flags = 0,
+> -	}, {
+> -		.id = V4L2_CID_EXPOSURE,
+> -		.type = V4L2_CTRL_TYPE_INTEGER,
+> -		.name = "Exposure",
+> -		.minimum = 0,
+> -		.maximum = 2047,
+> -		.step = 1,
+> -		.default_value = 0x01fc,
+> -		.flags = 0,
+> -	}, {
+> -		.id = V4L2_CID_RED_BALANCE,
+> -		.type = V4L2_CTRL_TYPE_INTEGER,
+> -		.name = "Red Balance",
+> -		.minimum = -1 << 9,
+> -		.maximum = (1 << 9) - 1,
+> -		.step = 1,
+> -		.default_value = 0,
+> -		.flags = 0,
+> -	}, {
+> -		.id = V4L2_CID_BLUE_BALANCE,
+> -		.type = V4L2_CTRL_TYPE_INTEGER,
+> -		.name = "Blue Balance",
+> -		.minimum = -1 << 9,
+> -		.maximum = (1 << 9) - 1,
+> -		.step = 1,
+> -		.default_value = 0,
+> -		.flags = 0,
+> -	}, {
+> -		.id      = V4L2_CID_HFLIP,
+> -		.type    = V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name    = "Mirror",
+> -		.minimum = 0,
+> -		.maximum = 1,
+> -		.step    = 1,
+> -		.default_value = 0,
+> -		.flags = 0,
+> -	}, {
+> -		.id      = V4L2_CID_VFLIP,
+> -		.type    = V4L2_CTRL_TYPE_BOOLEAN,
+> -		.name    = "Vflip",
+> -		.minimum = 0,
+> -		.maximum = 1,
+> -		.step    = 1,
+> -		.default_value = 0,
+> -		.flags = 0,
+> -	}, {
+> -	}
+> -};
+> -
+>  struct mt9v011 {
+>  	struct v4l2_subdev sd;
+> +	struct v4l2_ctrl_handler ctrls;
+>  	unsigned width, height;
+>  	unsigned xtal;
+>  	unsigned hflip:1;
+> @@ -381,99 +323,6 @@ static int mt9v011_reset(struct v4l2_subdev *sd, u32 val)
+>  	set_read_mode(sd);
+>  
+>  	return 0;
+> -};
+> -
+> -static int mt9v011_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> -{
+> -	struct mt9v011 *core = to_mt9v011(sd);
+> -
+> -	v4l2_dbg(1, debug, sd, "g_ctrl called\n");
+> -
+> -	switch (ctrl->id) {
+> -	case V4L2_CID_GAIN:
+> -		ctrl->value = core->global_gain;
+> -		return 0;
+> -	case V4L2_CID_EXPOSURE:
+> -		ctrl->value = core->exposure;
+> -		return 0;
+> -	case V4L2_CID_RED_BALANCE:
+> -		ctrl->value = core->red_bal;
+> -		return 0;
+> -	case V4L2_CID_BLUE_BALANCE:
+> -		ctrl->value = core->blue_bal;
+> -		return 0;
+> -	case V4L2_CID_HFLIP:
+> -		ctrl->value = core->hflip ? 1 : 0;
+> -		return 0;
+> -	case V4L2_CID_VFLIP:
+> -		ctrl->value = core->vflip ? 1 : 0;
+> -		return 0;
+> -	}
+> -	return -EINVAL;
+> -}
+> -
+> -static int mt9v011_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+> -{
+> -	int i;
+> -
+> -	v4l2_dbg(1, debug, sd, "queryctrl called\n");
+> -
+> -	for (i = 0; i < ARRAY_SIZE(mt9v011_qctrl); i++)
+> -		if (qc->id && qc->id == mt9v011_qctrl[i].id) {
+> -			memcpy(qc, &(mt9v011_qctrl[i]),
+> -			       sizeof(*qc));
+> -			return 0;
+> -		}
+> -
+> -	return -EINVAL;
+> -}
+> -
+> -
+> -static int mt9v011_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> -{
+> -	struct mt9v011 *core = to_mt9v011(sd);
+> -	u8 i, n;
+> -	n = ARRAY_SIZE(mt9v011_qctrl);
+> -
+> -	for (i = 0; i < n; i++) {
+> -		if (ctrl->id != mt9v011_qctrl[i].id)
+> -			continue;
+> -		if (ctrl->value < mt9v011_qctrl[i].minimum ||
+> -		    ctrl->value > mt9v011_qctrl[i].maximum)
+> -			return -ERANGE;
+> -		v4l2_dbg(1, debug, sd, "s_ctrl: id=%d, value=%d\n",
+> -					ctrl->id, ctrl->value);
+> -		break;
+> -	}
+> -
+> -	switch (ctrl->id) {
+> -	case V4L2_CID_GAIN:
+> -		core->global_gain = ctrl->value;
+> -		break;
+> -	case V4L2_CID_EXPOSURE:
+> -		core->exposure = ctrl->value;
+> -		break;
+> -	case V4L2_CID_RED_BALANCE:
+> -		core->red_bal = ctrl->value;
+> -		break;
+> -	case V4L2_CID_BLUE_BALANCE:
+> -		core->blue_bal = ctrl->value;
+> -		break;
+> -	case V4L2_CID_HFLIP:
+> -		core->hflip = ctrl->value;
+> -		set_read_mode(sd);
+> -		return 0;
+> -	case V4L2_CID_VFLIP:
+> -		core->vflip = ctrl->value;
+> -		set_read_mode(sd);
+> -		return 0;
+> -	default:
+> -		return -EINVAL;
+> -	}
+> -
+> -	set_balance(sd);
+> -
+> -	return 0;
+>  }
+>  
+>  static int mt9v011_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
+> @@ -599,10 +448,46 @@ static int mt9v011_g_chip_ident(struct v4l2_subdev *sd,
+>  					  version);
+>  }
+>  
+> -static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
+> -	.queryctrl = mt9v011_queryctrl,
+> -	.g_ctrl = mt9v011_g_ctrl,
+> +static int mt9v011_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct mt9v011 *core =
+> +		container_of(ctrl->handler, struct mt9v011, ctrls);
+> +	struct v4l2_subdev *sd = &core->sd;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_GAIN:
+> +		core->global_gain = ctrl->val;
+> +		break;
+> +	case V4L2_CID_EXPOSURE:
+> +		core->exposure = ctrl->val;
+> +		break;
+> +	case V4L2_CID_RED_BALANCE:
+> +		core->red_bal = ctrl->val;
+> +		break;
+> +	case V4L2_CID_BLUE_BALANCE:
+> +		core->blue_bal = ctrl->val;
+> +		break;
+> +	case V4L2_CID_HFLIP:
+> +		core->hflip = ctrl->val;
+> +		set_read_mode(sd);
+> +		return 0;
+> +	case V4L2_CID_VFLIP:
+> +		core->vflip = ctrl->val;
+> +		set_read_mode(sd);
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +
+> +	set_balance(sd);
+> +	return 0;
+> +}
+> +
+> +static struct v4l2_ctrl_ops mt9v011_ctrl_ops = {
+>  	.s_ctrl = mt9v011_s_ctrl,
+> +};
+> +
+> +static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
+>  	.reset = mt9v011_reset,
+>  	.g_chip_ident = mt9v011_g_chip_ident,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> @@ -658,6 +543,30 @@ static int mt9v011_probe(struct i2c_client *c,
+>  		return -EINVAL;
+>  	}
+>  
+> +	v4l2_ctrl_handler_init(&core->ctrls, 5);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_GAIN, 0, (1 << 12) - 1 - 0x20, 1, 0x20);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_EXPOSURE, 0, 2047, 1, 0x01fc);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_RED_BALANCE, -(1 << 9), (1 << 9) - 1, 1, 0);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_BLUE_BALANCE, -(1 << 9), (1 << 9) - 1, 1, 0);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&core->ctrls, &mt9v011_ctrl_ops,
+> +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +
+> +	if (core->ctrls.error) {
+> +		int ret = core->ctrls.error;
+> +
+> +		v4l2_err(sd, "control initialization error %d\n", ret);
+> +		v4l2_ctrl_handler_free(&core->ctrls);
+> +		kfree(core);
+> +		return ret;
+> +	}
+> +	core->sd.ctrl_handler = &core->ctrls;
+> +
+>  	core->global_gain = 0x0024;
+>  	core->exposure = 0x01fc;
+>  	core->width  = 640;
+> @@ -681,12 +590,14 @@ static int mt9v011_probe(struct i2c_client *c,
+>  static int mt9v011_remove(struct i2c_client *c)
+>  {
+>  	struct v4l2_subdev *sd = i2c_get_clientdata(c);
+> +	struct mt9v011 *core = to_mt9v011(sd);
+>  
+>  	v4l2_dbg(1, debug, sd,
+>  		"mt9v011.c: removing mt9v011 adapter on address 0x%x\n",
+>  		c->addr << 1);
+>  
+>  	v4l2_device_unregister_subdev(sd);
+> +	v4l2_ctrl_handler_free(&core->ctrls);
+>  	kfree(to_mt9v011(sd));
+>  	return 0;
+>  }
 
-Am 01.01.2013 21:02, schrieb Lluís Batlle i Rossell:
-> Hello,
->
-> I'm testing a STV40 usb card, and I've some problems that disables me from
-> capturing audio+video. I'm on linux 3.7.1.
->
-> 1) Capturing the video with ffmpeg mutes the audio. Simply doing.
->   $ ffmpeg -f video4linux2 -i /dev/video1 out.flv
->
->   Previous to running ffmpeg, I've arecord with "-V mono", and the
->   vumeter goes to 0% once running that ffmpeg line.
->
-> 2) The card does not advertise audio controls (like mute), through
->   "v4l2-ctl --list-ctrls"
->
-> 3) The card muting and unmuting works fine using V4L2_CID_AUDIO_MUTE
->   But "v4l2-ctl -c mute=0" can't be used because 'mute' isn't advertised.
->   Once the card is muted, any call to arecord records all samples zero.
->   I mention that, because snd_em28xx_capture_open() looks like meant to
->   unmute.
->
-> 4) If something captures the sound (muted), and still capturing, I
->   unmute using V4L2_CID_AUDIO_MUTE, the samples arrive broken. I don't
->   know how to describe the noisy effect: http://viric.name/~viric/tmp/noise.wav
->   (only one channel was connected, of the stereo input)
->
-> Due to 1) and 4), trying to capture audio+video with ffmpeg results in
-> no-sound (muted), but if enabling it with a program apart while capturing using
-> V4L2_CID_AUDIO_MUTE, the sound recorded by ffmpeg is crippled.
->
-> Of course, I've no idea why the audio goes muted at video capture start.
->
-> As a final note apart, the implementation of vidioc_g_audio fills a->name
-> based on the incoming structure, instead of the later initialized a->index. I
-> think it's wrong. That's what makes "v4l2-ctl --get-audio-input" report "1
-> (Television)", while it should show "1 (Line In)".
->
-> Additionally, "v4l2-ctl --list-audio-inputs" doesn't show any input either.
->
-> As a note, here is the kernel information about the card I have:
-> [45161.345491] em28xx: New device  USB 2861 Device (SVEON STV40) @ 480 Mbps (1b80:e309, interface 0, class 0)
-> [45161.345500] em28xx: Video interface 0 found
-> [45161.345504] em28xx: DVB interface 0 found
-> [45161.345592] em28xx #0: chip ID is em2860
-> [45161.456962] em28xx #0: i2c eeprom 00: 1a eb 67 95 80 1b 09 e3 50 00 20 03 6a 3c 00 00
-> [45161.456988] em28xx #0: i2c eeprom 10: 00 00 04 57 06 02 00 00 00 00 00 00 00 00 00 00
-> [45161.457029] em28xx #0: i2c eeprom 20: 02 00 01 00 f0 00 01 00 00 00 00 00 5b 00 00 00
-> [45161.457049] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 02 01 00 00 00 00
-> [45161.457068] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457086] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457105] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 3c 03 55 00 53 00
-> [45161.457154] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 31 00 20 00 44 00
-> [45161.457173] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 20 00 28 00 53 00
-> [45161.457192] em28xx #0: i2c eeprom 90: 56 00 45 00 4f 00 4e 00 20 00 53 00 54 00 56 00
-> [45161.457210] em28xx #0: i2c eeprom a0: 34 00 30 00 29 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457229] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457247] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457265] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457283] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457302] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [45161.457327] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xa3963040
-> [45161.457332] em28xx #0: EEPROM info:
-> [45161.457335] em28xx #0:       AC97 audio (5 sample rates)
-> [45161.457338] em28xx #0:       500mA max power
-> [45161.457343] em28xx #0:       Table at 0x04, strings=0x3c6a, 0x0000, 0x0000
-> [45161.457350] em28xx #0: Identified as Easy Cap Capture DC-60 (card=64)
-> [45161.661731] saa7115 9-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-> [45162.049366] em28xx #0: Config register raw data: 0x50
-> [45162.061248] em28xx #0: AC97 vendor ID = 0x83847650
-> [45162.067100] em28xx #0: AC97 features = 0x6a90
-> [45162.067110] em28xx #0: Empia 202 AC97 audio processor detected
-> [45162.301273] em28xx #0: v4l2 driver version 0.1.3
-> [45162.822556] em28xx #0: V4L2 video device registered as video1
-> [45162.822565] em28xx #0: V4L2 VBI device registered as vbi0
->
-> Regards,
-> Lluís.
->
+Tested-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
-Thank you for reporting this issue.
-Is there any known kernel version where this has been working ?
+Fixes the em28xx regression (no image control with "Silvercrest 1.3MPix
+webcam") in the media-tree.
 
 Regards,
 Frank
-
 
