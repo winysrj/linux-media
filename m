@@ -1,123 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49304 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754754Ab3AHJ4q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 04:56:46 -0500
-Date: Tue, 8 Jan 2013 10:56:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH 1/6 v4] media: V4L2: support asynchronous subdevice
- registration
-In-Reply-To: <1917427.TMDygJ49eg@avalon>
-Message-ID: <Pine.LNX.4.64.1301081052100.1794@axis700.grange>
-References: <1356544151-6313-1-git-send-email-g.liakhovetski@gmx.de>
- <2418280.Sa45Lqe0AC@avalon> <Pine.LNX.4.64.1301081003350.1794@axis700.grange>
- <1917427.TMDygJ49eg@avalon>
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:35544 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757650Ab3AYR04 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 12:26:56 -0500
+Received: by mail-ea0-f179.google.com with SMTP id d12so260899eaa.24
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:55 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [REVIEW PATCH 07/12] em28xx: remove ioctl VIDIOC_CROPCAP
+Date: Fri, 25 Jan 2013 18:26:57 +0100
+Message-Id: <1359134822-4585-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 8 Jan 2013, Laurent Pinchart wrote:
+The em28xx driver doesn't support the VIDIOC_G_CROP and VIDIOC_S_CROP ioctls,
+so VIDIOC_CROPCAP is useless and has the potential to confuse applications,
+because it can be interpreted as indicator for cropping support.
 
-> Hi Guennadi,
-> 
-> On Tuesday 08 January 2013 10:25:15 Guennadi Liakhovetski wrote:
-> > On Tue, 8 Jan 2013, Laurent Pinchart wrote:
-> > > On Monday 07 January 2013 11:23:55 Guennadi Liakhovetski wrote:
-> > > > >From 0e1eae338ba898dc25ec60e3dba99e5581edc199 Mon Sep 17 00:00:00 2001
-
-[snip]
-
-> > > > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > > > +				 struct v4l2_async_notifier *notifier);
-> > > > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
-> > > > *notifier);
-> > > > +/*
-> > > > + * If subdevice probing fails any time after v4l2_async_subdev_bind(),
-> > > > no
-> > > > + * clean up must be called. This function is only a message of
-> > > > intention.
-> > > > + */
-> > > > +int v4l2_async_subdev_bind(struct v4l2_async_subdev_list *asdl);
-> > > > +int v4l2_async_subdev_bound(struct v4l2_async_subdev_list *asdl);
-> > > 
-> > > Could you please explain why you need both a bind notifier and a bound
-> > > notifier ? I was expecting a single v4l2_async_subdev_register() call in
-> > > subdev drivers (and, thinking about it, I would probably name it
-> > > v4l2_subdev_register()).
-> > 
-> > I think I can, yes. Because between .bind() and .bound() the subdevice
-> > driver does the actual hardware probing. So, .bind() is used to make sure
-> > the hardware can be accessed, most importantly to provide a clock to the
-> > subdevice. You can look at soc_camera_async_bind(). There I'm registering
-> > the clock for the subdevice, about to bind. Why I cannot do it before, is
-> > because I need subdevice name for clock matching. With I2C subdevices the
-> > subdevice name contains the name of the driver, adapter number and i2c
-> > address. The latter 2 I've got from host subdevice list. But not the
-> > driver name. I thought about also passing the driver name there, but that
-> > seemed too limiting to me. I also request regulators there, because before
-> > ->bound() the sensor driver, but that could be done on the first call to
-> > soc_camera_power_on(), although doing this "first call" thingie is kind of
-> > hackish too. I could add one more soc-camera-power helper like
-> > soc_camera_prepare() or similar too.
-> 
-> I think a soc_camera_power_init() function (or similar) would be a good idea, 
-> yes.
-> 
-> > So, the main problem is the clock
-> > subdevice name. Also see the comment in soc_camera.c:
-> > 
-> > 	/*
-> > 	 * It is ok to keep the clock for the whole soc_camera_device life-time,
-> > 	 * in principle it would be more logical to register the clock on icd
-> > 	 * creation, the only problem is, that at that time we don't know the
-> > 	 * driver name yet.
-> > 	 */
-> 
-> I think we should fix that problem instead of shaping the async API around a 
-> workaround :-)
-> 
-> >From the subdevice point of view, the probe function should request resources, 
-> perform whatever initialization is needed (including verifying that the 
-> hardware is functional when possible), and the register the subdev with the 
-> code if everything succeeded. Splitting registration into bind() and bound() 
-> appears a bit as a workaround to me.
-> 
-> If we need a workaround, I'd rather pass the device name in addition to the 
-> I2C adapter number and address, instead of embedding the workaround in this 
-> new API.
-
-...or we can change the I2C subdevice name format. The actual need to do
-
-	snprintf(clk_name, sizeof(clk_name), "%s %d-%04x",
-		 asdl->dev->driver->name,
-		 i2c_adapter_id(client->adapter), client->addr);
-
-in soc-camera now to exactly match the subdevice name, as created by 
-v4l2_i2c_subdev_init(), doesn't make me specifically happy either. What if 
-the latter changes at some point? Or what if one driver wishes to create 
-several subdevices for one I2C device?
-
-Thanks
-Guennadi
-
-> > > > +void v4l2_async_subdev_unbind(struct v4l2_async_subdev_list *asdl);
-> > > > +#endif
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/em28xx/em28xx-video.c |   21 ---------------------
+ 1 Datei geändert, 21 Zeilen entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 6172d59..edd29ae 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1364,26 +1364,6 @@ static int vidioc_s_register(struct file *file, void *priv,
+ #endif
+ 
+ 
+-static int vidioc_cropcap(struct file *file, void *priv,
+-					struct v4l2_cropcap *cc)
+-{
+-	struct em28xx_fh      *fh  = priv;
+-	struct em28xx         *dev = fh->dev;
+-
+-	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	cc->bounds.left = 0;
+-	cc->bounds.top = 0;
+-	cc->bounds.width = dev->width;
+-	cc->bounds.height = dev->height;
+-	cc->defrect = cc->bounds;
+-	cc->pixelaspect.numerator = 54;	/* 4:3 FIXME: remove magic numbers */
+-	cc->pixelaspect.denominator = 59;
+-
+-	return 0;
+-}
+-
+ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
+@@ -1731,7 +1711,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
+-	.vidioc_cropcap             = vidioc_cropcap,
+ 
+ 	.vidioc_reqbufs             = vb2_ioctl_reqbufs,
+ 	.vidioc_create_bufs         = vb2_ioctl_create_bufs,
+-- 
+1.7.10.4
+
