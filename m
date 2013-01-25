@@ -1,54 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:35498 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755138Ab3AHKKo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 05:10:44 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
-Date: Tue, 08 Jan 2013 11:15:28 +0100
-Message-ID: <1609748.zs7bdcvuG8@harkonnen>
-In-Reply-To: <50EBC26E.5090803@samsung.com>
-References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com> <50EBC26E.5090803@samsung.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:61121 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754620Ab3AYPkJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jan 2013 10:40:09 -0500
+Received: by mail-ob0-f174.google.com with SMTP id 16so550228obc.5
+        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 07:40:08 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAHkwNTkLhgaOsVgHeMEU-za=uG_uZhsxwjOfZj_eQ3p3tKPXvQ@mail.gmail.com>
+References: <CAHkwNTkLhgaOsVgHeMEU-za=uG_uZhsxwjOfZj_eQ3p3tKPXvQ@mail.gmail.com>
+Date: Fri, 25 Jan 2013 21:10:08 +0530
+Message-ID: <CAHkwNTkVu6OTP_Pd7ZRzo-dy-5KS1+kJUy+8Z0B9P7-5YTdoTw@mail.gmail.com>
+Subject: Fwd: Regarding Docbook
+From: Anil Nair <anilcoll90@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > @@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
-> > long size)> 
-> >   	/* align image size to PAGE_SIZE */
-> >   	size = PAGE_ALIGN(size);
-> > 
-> > -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, 
-GFP_KERNEL);
-> > +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
-> > +									
-GFP_KERNEL | conf->mem_flags);
-> 
-> I think we can add GFP_DMA flag unconditionally to the vb2_dc_contig
-> allocator.
-> It won't hurt existing clients as most of nowadays platforms doesn't
-> have DMA
-> zone (GFP_DMA is ignored in such case), but it should fix the issues
-> with some
-> older and non-standard systems.
+Hello All,
 
-I did not set GFP_DMA fixed in the allocator because I do not want to brake 
-something in the future. On x86 platform GFP_DMA allocates under 16MB and this 
-limit can be too strict. When many other drivers use GFP_DMA we can saturate 
-this tiny zone.
-As you said, this fix the issue with _older_ and _non-standard_ (like sta2x11) 
-systems. But this fix has effect on every other standard and new systems. 
-That's why I preferred to set the flag optionally.
+Wishing a happy new year to all. :)
+
+I was compiling the Docbook present in Linux Kernel version 3.8-rc4
+using the command,
+"make pdfdocs"
+
+The compilation stops with the following error,
+
+"make: *** No rule to make target `FORCE', needed by `/media_api.xml'.  Stop."
+
+Any idea how to resolve this?
 
 -- 
-Federico Vaga
+Regards,
+Anil Nair
