@@ -1,59 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33603 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751621Ab2LaUKg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 15:10:36 -0500
-Message-ID: <50E1F117.3080105@iki.fi>
-Date: Mon, 31 Dec 2012 22:09:59 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:64565 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754292Ab3AZUy2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jan 2013 15:54:28 -0500
+Message-ID: <5104427D.2050002@googlemail.com>
+Date: Sat, 26 Jan 2013 20:54:21 +0000
+From: Chris Clayton <chris2553@googlemail.com>
 MIME-Version: 1.0
-To: Renato Gallo <renatogallo@unixproducts.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi> <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com> <50CE3BA0.5030503@iki.fi> <d6185b9c5a69b273609bce494f0302b1@unixproducts.com> <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com> <50CF9290.2060403@ventoso.org> <3093cb24f3c05ac9cf62810fc918fca2@unixproducts.com>
-In-Reply-To: <3093cb24f3c05ac9cf62810fc918fca2@unixproducts.com>
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+CC: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz>
+In-Reply-To: <510189B1.606@fold.natur.cuni.cz>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-No! You will need a real antenna, not amplifier(?) like that. One of the 
-best and easily available antennas in EU are Televes DAT75 and few Triax 
-models. Compare DAT75 and your antenna, DAT75 is 19dB and your is 30dB, 
-guess which one is still 1000x better.
+Hi Martin,
 
-You will not likely need that heavy antenna like DAT75 as you still have 
-a signal. Some 10-20 euros 1m long Yagi is enough.
-
-regards
-Antti
-
-On 12/18/2012 12:32 AM, Renato Gallo wrote:
-> is there any kind of filter so that i can filter out the noise and then
-> amplify the signal ?
+On 01/24/13 19:21, Martin Mokrejs wrote:
+> Hi Chris,
+>    try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
 >
-> Il 17/12/2012 22:45 Luca Olivetti ha scritto:
->> Al 17/12/12 20:57, En/na Renato Gallo ha escrit:
->>
->>> can i amplify the signal to improve reception ?
->>
->> an amplifier will amplify the noise as well as the signal (i.e., an
->> amplifier is only useful to compensate for the losses in the cable,
->> not to improve the signal).
->>
->>> why with the bowl is better ?
->>
->> http://en.wikipedia.org/wiki/Monopole_antenna
->>
->> The bowl acts as a ground plane
->>
->> Bye
+
+Thanks for the tip. I had the pciehp driver installed, but it was a 
+module and not loaded. I didn't have acpiphp enabled at all. Building 
+them both in statically, appears to have papered over the cracks of the 
+oops :-)
+
+>    The best would if you subscribe to linux-pci, and read my recent threads
+> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+> archives of linux-pci and see the pacthes and the discussion.
+
+Those discussions are way above my level of knowledge. I guess all this 
+work will be merged into mainline in due course, so I'll watch for them 
+in 3.9 or later. Unless, of course, there is a tree I could clone and 
+help test the changes with my laptop and expresscard.
+
+Hotplug isn't working at all on my Fujitsu laptop, so I can only get the 
+card recognised by rebooting with the card inserted (or by writing 1 
+to/sys/bus/pci/rescan). There seem to be a few reports on this in the 
+kernel bugzilla, so I'll look through them and see what's being done.
+
+Thanks again.
+
+Chris
+
+> Martin
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-http://palosaari.fi/
+> Chris Clayton wrote:
+>> Hi,
+>>
+>> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
+>>
+>> I have attached three files:
+>>
+>> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
+>>
+>> 2. the .config file for the kernel that oopsed.
+>>
+>> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
+>>
+>> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
+>>
+>> Chris
