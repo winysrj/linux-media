@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46130 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750978Ab3A1XCZ (ORCPT
+Received: from fold.natur.cuni.cz ([195.113.57.32]:53272 "HELO
+	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754257Ab3AZVOu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 18:02:25 -0500
-Date: Tue, 29 Jan 2013 01:02:20 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH 1/1] v4l: Document timestamp behaviour to correspond to
- reality
-Message-ID: <20130128230220.GI18639@valkosipuli.retiisi.org.uk>
-References: <1359137009-23921-1-git-send-email-sakari.ailus@iki.fi>
- <201301281055.14085.hverkuil@xs4all.nl>
- <3003277.ZHAgxXzzuq@avalon>
+	Sat, 26 Jan 2013 16:14:50 -0500
+Message-ID: <51044746.6030503@fold.natur.cuni.cz>
+Date: Sat, 26 Jan 2013 22:14:46 +0100
+From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3003277.ZHAgxXzzuq@avalon>
+To: Chris Clayton <chris2553@googlemail.com>
+CC: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com>
+In-Reply-To: <5104427D.2050002@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Chris,
 
-On Mon, Jan 28, 2013 at 08:56:21PM +0100, Laurent Pinchart wrote:
-> On Monday 28 January 2013 10:55:14 Hans Verkuil wrote:
-> > On Fri January 25 2013 19:03:29 Sakari Ailus wrote:
-> > > Document that monotonic timestamps are taken after the corresponding frame
-> > > has been received, not when the reception has begun. This corresponds to
-> > > the reality of current drivers: the timestamp is naturally taken when the
-> > > hardware triggers an interrupt to tell the driver to handle the received
-> > > frame.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > ---
-> > > 
-> > >  Documentation/DocBook/media/v4l/io.xml |   27 ++++++++++++++-------------
-> > >  1 files changed, 14 insertions(+), 13 deletions(-)
-> > > 
-> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > > b/Documentation/DocBook/media/v4l/io.xml index 2c4646d..3b8bf61 100644
-> > > --- a/Documentation/DocBook/media/v4l/io.xml
-> > > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > > @@ -654,19 +654,20 @@ plane, are stored in struct
-> > > <structname>v4l2_plane</structname> instead.> 
-> > >  In that case, struct <structname>v4l2_buffer</structname> contains an
-> > >  array of plane structures.</para>
-> > > 
-> > > -      <para>Nominally timestamps refer to the first data byte
-> > > transmitted.
-> > > -In practice however the wide range of hardware covered by the V4L2 API
-> > > -limits timestamp accuracy. Often an interrupt routine will
-> > > -sample the system clock shortly after the field or frame was stored
-> > > -completely in memory. So applications must expect a constant
-> > > -difference up to one field or frame period plus a small (few scan
-> > > -lines) random error. The delay and error can be much
-> > > -larger due to compression or transmission over an external bus when
-> > > -the frames are not properly stamped by the sender. This is frequently
-> > > -the case with USB cameras. Here timestamps refer to the instant the
-> > > -field or frame was received by the driver, not the capture time. These
-> > > -devices identify by not enumerating any video standards, see <xref
-> > > -linkend="standard" />.</para>
-> > > +      <para>On timestamp types that are sampled from the system clock
-> > > +(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
-> > > +is taken after the complete frame has been received.
-> > 
-> > add: " (or transmitted for video output devices)"
+Chris Clayton wrote:
+> Hi Martin,
 > 
-> The uvcvideo driver currently uses monotonic timestamps corresponding to the 
-> start of the frame :-)
+> On 01/24/13 19:21, Martin Mokrejs wrote:
+>> Hi Chris,
+>>    try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
+>>
+> 
+> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
+> 
+>>    The best would if you subscribe to linux-pci, and read my recent threads
+>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+>> archives of linux-pci and see the pacthes and the discussion.
+> 
+> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
+> 
+> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
 
-Ah, I had almost forgotten this! :-) What would you think about changing it?
-:-) I guess uvc is a little special since it receives packets, not frames.
+That's what I suspected. Compile in statically acpiphp, no pciehp at all (not even as a module).
+Then it might work for you -- at least it does for me, provided I use "pcie_aspm=off".
 
--- 
-Cheers,
+Martin
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
+> Thanks again.
+> 
+> Chris
+> 
+>> Martin
+>>
+>> Chris Clayton wrote:
+>>> Hi,
+>>>
+>>> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
+>>>
+>>> I have attached three files:
+>>>
+>>> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
+>>>
+>>> 2. the .config file for the kernel that oopsed.
+>>>
+>>> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
+>>>
+>>> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
+>>>
+>>> Chris
+> 
+> 
