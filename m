@@ -1,54 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:44539 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754796Ab3AJTL4 (ORCPT
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:33373 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab3AZEh5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 14:11:56 -0500
-Received: by mail-ea0-f170.google.com with SMTP id d11so391042eaa.29
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 11:11:54 -0800 (PST)
-Message-ID: <50EF1277.4060507@gmail.com>
-Date: Thu, 10 Jan 2013 20:11:51 +0100
-From: Jiri Slaby <jirislaby@gmail.com>
+	Fri, 25 Jan 2013 23:37:57 -0500
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-References: <507FE752.6010409@schinagl.nl> <50D0E7A7.90002@schinagl.nl> <50EAA778.6000307@gmail.com> <50EAC41D.4040403@schinagl.nl> <20130108200149.GB408@linuxtv.org> <50ED3BBB.4040405@schinagl.nl> <20130109084143.5720a1d6@redhat.com> <CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com> <20130109124158.50ddc834@redhat.com> <CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com> <50EF0A4F.1000604@gmail.com> <CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com> <50EF1034.7060100@gmail.com> <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
-In-Reply-To: <CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+In-Reply-To: <5102E2F4.80604@gmail.com>
+References: <1359097268-22779-1-git-send-email-prabhakar.lad@ti.com>
+ <1359097268-22779-2-git-send-email-prabhakar.lad@ti.com> <5102E2F4.80604@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 26 Jan 2013 10:07:36 +0530
+Message-ID: <CA+V-a8vpZ_UmmsW6D2PBKqg1Nob2PJdVwRDCjdDaPinmjVz8TA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: add support for decoder subdevs along with
+ sensor and others
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2013 08:08 PM, Manu Abraham wrote:
-> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
->> On 01/10/2013 07:46 PM, Manu Abraham wrote:
->>> The scan files and config files are very specific to dvb-apps, some
->>> applications
->>> do rely on these config files. It doesn't really make sense to have
->>> split out config
->>> files for these  small applications.
+Hi Sylwester,
+
+On Sat, Jan 26, 2013 at 1:24 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Prahakar,
+>
+>
+> On 01/25/2013 08:01 AM, Prabhakar Lad wrote:
 >>
->> I don't care where they are, really. However I'm strongly against
->> duplicating them. Feel free to remove the newly created repository, I'll
->> be fine with that.
-> 
-> I haven't duplicated anything at all. It is Mauro who has duplicated stuff,
-> by creating a new tree altogether.
+>> From: Manjunath Hadli<manjunath.hadli@ti.com>
+>>
+>> A lot of SOCs including Texas Instruments Davinci family mainly use
+>> video decoders as input devices. Here the initial subdevice node
+>> from where the input really comes is this decoder, for which support
+>> is needed as part of the Media Controller infrastructure. This patch
+>> adds an additional flag to include the decoders along with others,
+>> such as the sensor and lens.
+>>
+>> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+>> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
+>> ---
+>>   include/uapi/linux/media.h |    1 +
+>>   1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index 0ef8833..fa44ed9 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -56,6 +56,7 @@ struct media_device_info {
+>>   #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR        (MEDIA_ENT_T_V4L2_SUBDEV +
+>> 1)
+>>   #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH (MEDIA_ENT_T_V4L2_SUBDEV + 2)
+>>   #define MEDIA_ENT_T_V4L2_SUBDEV_LENS  (MEDIA_ENT_T_V4L2_SUBDEV + 3)
+>> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER        (MEDIA_ENT_T_V4L2_SUBDEV +
+>> 4)
+>
+>
+> Such a new entity type needs to be documented in the media DocBook [1].
+> It probably also deserves a comment here, as DECODER isn't that obvious
+> like the other already existing entity types. I heard people referring
+> to a device that encodes analog (composite) video signal into its digital
+> representation as an ENCODER. :)
+>
+>
+Thanks for pointing it :), I'll document it and post a v2.
 
-I didn't accuse you. This was a general comment to everybody. Whatever
-the consensus is at the end, do not duplicate the data.
+Regards,
+--Prabhakar Lad
 
-> if you need the scan files to be properly maintained then you need to
-> handle it in the same repository altogether. Not by separating out the
-> configuration files of a few applications.
-
-That's up to you guys to decide. I don't mind either option.
-
--- 
-js
+> [1] http://hverkuil.home.xs4all.nl/spec/media.html#media-ioc-enum-entities
+>
+> --
+>
+> Regards,
+> Sylwester
