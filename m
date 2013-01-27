@@ -1,67 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:46426 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755665Ab3AJTQ1 (ORCPT
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:47725 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756325Ab3A0J5z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 14:16:27 -0500
-Received: by mail-ob0-f171.google.com with SMTP id dn14so952845obc.30
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 11:16:26 -0800 (PST)
+	Sun, 27 Jan 2013 04:57:55 -0500
+Message-ID: <5104FA1E.1010809@googlemail.com>
+Date: Sun, 27 Jan 2013 09:57:50 +0000
+From: Chris Clayton <chris2553@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <50EF1277.4060507@gmail.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
-	<50EF0A4F.1000604@gmail.com>
-	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
-	<50EF1034.7060100@gmail.com>
-	<CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
-	<50EF1277.4060507@gmail.com>
-Date: Fri, 11 Jan 2013 00:46:26 +0530
-Message-ID: <CAHFNz9KWxzH3QY09M14wihhe=i_SuFJYzeG_2Yvv8R1k5TRARw@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Oliver Schinagl <oliver+list@schinagl.nl>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+CC: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org, wangyijing0307@gmail.com
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <51044746.6030503@fold.natur.cuni.cz>
+In-Reply-To: <51044746.6030503@fold.natur.cuni.cz>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
-> On 01/10/2013 08:08 PM, Manu Abraham wrote:
->> On 1/11/13, Jiri Slaby <jirislaby@gmail.com> wrote:
->>> On 01/10/2013 07:46 PM, Manu Abraham wrote:
->>>> The scan files and config files are very specific to dvb-apps, some
->>>> applications
->>>> do rely on these config files. It doesn't really make sense to have
->>>> split out config
->>>> files for these  small applications.
->>>
->>> I don't care where they are, really. However I'm strongly against
->>> duplicating them. Feel free to remove the newly created repository, I'll
->>> be fine with that.
->>
->> I haven't duplicated anything at all. It is Mauro who has duplicated
->> stuff,
->> by creating a new tree altogether.
+Hi Martin,
+
+On 01/26/13 21:14, Martin Mokrejs wrote:
+> Hi Chris,
 >
-> I didn't accuse you. This was a general comment to everybody. Whatever
-> the consensus is at the end, do not duplicate the data.
+> Chris Clayton wrote:
+>> Hi Martin,
+>>
+>> On 01/24/13 19:21, Martin Mokrejs wrote:
+>>> Hi Chris,
+>>>     try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+>>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
+>>>
+>>
+>> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
+>>
+>>>     The best would if you subscribe to linux-pci, and read my recent threads
+>>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+>>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+>>> archives of linux-pci and see the pacthes and the discussion.
+>>
+>> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
+>>
+>> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
+>
+> That's what I suspected. Compile in statically acpiphp, no pciehp at all (not even as a module).
+> Then it might work for you -- at least it does for me, provided I use "pcie_aspm=off".
+>
+Thanks again for the suggestion. Unfortunately, that doesn't fix the 
+problem on my laptop.
 
-Eventually what will happen is that, as applications do get developed,
-the config files which are alongwith the applications will have proper
-compatibility with the applications while, the split out config files will
-be in a different state, providing nothing but pain for everyone.
+You may have seen the suggestion I've had from Yijing. I'm just building 
+the kernel to test that out.
 
-Manu
+Chris
+> Martin
+>
+>>
+>> Thanks again.
+>>
+>> Chris
+>>
+>>> Martin
+>>>
+>>> Chris Clayton wrote:
+>>>> Hi,
+>>>>
+>>>> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
+>>>>
+>>>> I have attached three files:
+>>>>
+>>>> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
+>>>>
+>>>> 2. the .config file for the kernel that oopsed.
+>>>>
+>>>> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
+>>>>
+>>>> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
+>>>>
+>>>> Chris
+>>
+>>
