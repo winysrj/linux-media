@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:44675 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752130Ab3AJKFA (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1131 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756325Ab3A0JnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 05:05:00 -0500
-From: Oliver Neukum <oliver@neukum.org>
-To: linux-usb@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	tom.leiming@gmail.com, linux-media@vger.kernel.org
-Cc: Oliver Neukum <oliver@neukum.org>
-Subject: [PATCH] uvc: fix race of open and suspend in error case
-Date: Thu, 10 Jan 2013 11:04:55 +0100
-Message-Id: <1357812295-21174-1-git-send-email-oliver@neukum.org>
+	Sun, 27 Jan 2013 04:43:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] videodev2.h fix and em28xx regression fixes
+Date: Sun, 27 Jan 2013 10:43:00 +0100
+Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301271043.00528.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ming Lei reported:
-IMO, there is a minor fault in the error handling path of
-uvc_status_start() inside uvc_v4l2_open(), and the 'users' count
-should have been decreased before usb_autopm_put_interface().
-In theory, the warning can be triggered when the device is
-opened just between usb_autopm_put_interface() and
-atomic_dec(&stream->dev->users).
-The fix is trivial.
+Hi Mauro,
 
-Signed-off-by:Oliver Neukum <oneukum@suse.de>
----
- drivers/media/usb/uvc/uvc_v4l2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The first patch moves the DV control IDs from videodev2.h to v4l2-controls.h.
+I noticed that they weren't moved when the controls were split off from
+videodev2.h, probably because the patch adding the DV controls and the move
+to v4l2-controls.h crossed one another.
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index f2ee8c6..74937b7 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -501,8 +501,8 @@ static int uvc_v4l2_open(struct file *file)
- 	if (atomic_inc_return(&stream->dev->users) == 1) {
- 		ret = uvc_status_start(stream->dev);
- 		if (ret < 0) {
--			usb_autopm_put_interface(stream->dev->intf);
- 			atomic_dec(&stream->dev->users);
-+			usb_autopm_put_interface(stream->dev->intf);
- 			kfree(handle);
- 			return ret;
- 		}
--- 
-1.7.10.4
+The second and third patch convert tvaudio and mt9v011 to the control framework.
+These patches were part of my original conversion of em28xx to the control
+framework, but when Devin based his em28xx work on my tree he forgot to pull
+them in.
 
+Because of that any controls created by the mt9v011 and tvaudio drivers are
+inaccessible from em28xx. By converting those drivers to the control framework
+they are seen again.
+
+Frank tested the mt9v011 conversion. I have tested the tvaudio conversion
+somewhat with a bttv card that had a tda9850, but if you have additional
+tvaudio cards (and especially an em28xx that uses the tvaudio module), then it
+would be good to do some additional tests. Other than the bttv card I have
+no other hardware to test tvaudio with.
+
+Regards,
+
+	Hans
+
+The following changes since commit 94a93e5f85040114d6a77c085457b3943b6da889:
+
+  [media] dvb_frontend: print a msg if a property doesn't exist (2013-01-23 19:10:57 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git fixes
+
+for you to fetch changes up to 7aa966b3c4135b1745a3c5ac60bdd8f79fead355:
+
+  mt9v011: convert to the control framework. (2013-01-27 10:22:27 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (3):
+      Move DV-class control IDs from videodev2.h to v4l2-controls.h
+      tvaudio: convert to the control framework.
+      mt9v011: convert to the control framework.
+
+ drivers/media/i2c/mt9v011.c        |  223 +++++++++++++++++++++++++++++++++--------------------------------------------------------------------------
+ drivers/media/i2c/tvaudio.c        |  224 ++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------
+ include/uapi/linux/v4l2-controls.h |   24 ++++++++++++
+ include/uapi/linux/videodev2.h     |   22 -----------
+ 4 files changed, 166 insertions(+), 327 deletions(-)
