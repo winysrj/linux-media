@@ -1,398 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:17536 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753446Ab3ACPpa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 10:45:30 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG2008YN3RCGY30@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:28 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MG2002B73RD7GA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:28 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 5/5] s5p-fimc: Prevent AB-BA deadlock during links
- reconfiguration
-Date: Thu, 03 Jan 2013 16:45:10 +0100
-Message-id: <1357227910-28870-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
-References: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:62173 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756581Ab3A0MSt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jan 2013 07:18:49 -0500
+Message-ID: <51051B1B.3080105@gmail.com>
+Date: Sun, 27 Jan 2013 20:18:35 +0800
+From: Yijing Wang <wangyijing0307@gmail.com>
+MIME-Version: 1.0
+To: Chris Clayton <chris2553@googlemail.com>
+CC: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <510494D6.1010000@gmail.com> <51050D43.2050703@googlemail.com>
+In-Reply-To: <51050D43.2050703@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch patch eliminates potential AB-BA deadlock when one process calls
-open(), or VIDIOC_S/TRY_FMT ioctl  on the FIMC capture video node, while
-other thread is reconfiguring media links via media device node:
+于 2013-01-27 19:19, Chris Clayton 写道:
+> Hi Yijing
+> 
+> On 01/27/13 02:45, Yijing Wang wrote:
+>> 于 2013-01-27 4:54, Chris Clayton 写道:
+>>> Hi Martin,
+>>>
+>>> On 01/24/13 19:21, Martin Mokrejs wrote:
+>>>> Hi Chris,
+>>>>     try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+>>>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
+>>>>
+>>>
+>>> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
+>>
+>> Not loaded pciehp driver? Remove the device from this slot without poweroff ?
+>>
+> 
+> That's correct. When I first encountered the oops, I did not have the pciehp driver loaded and removing the device from the slot whilst the laptop was powered on resulted in the oops.
 
-/dev/video? open()		  /dev/media? MEDIA_IOC_SETUP_LINK ioctl
+Hmm, that's unsafe and dangerous, because device now may be running.
+There are two ways to trigger pci hot-add or hot-remove in linux, after loaded pciehp or acpiphp module
+(the two modules only one can loaded into system at the same time). You can trigger hot-add/hot-remove by
+sysfs interface under /sys/bus/pci/slots/[slot-name]/power or attention button on hardware (if your laptop supports that).
 
-mutex_lock(video_lock)            mutex_lock(graph_lock)
-    fimc_pipeline_open()               fimc_md_link_notify()
-        mutex_lock(graph_lock)	          mutex_lock(video_lock)
-          ...                               ...
+>>>
+>>>>     The best would if you subscribe to linux-pci, and read my recent threads
+>>>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+>>>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+>>>> archives of linux-pci and see the pacthes and the discussion.
+>>>
+>>> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
+>>>
+>>> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
+>>
+>> Hi Chris,
+>>     What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
+>>
+>> Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
+>>
+> 
+> I wasn't sure whether or not the pciehp driver should be loaded on its own or with the acpiphp driver also loaded. So I built them both as modules and planned to try both, pciehp only and acpiphp only. However, I've found that acpiphp will not load (regardless of whether or not pciehp is already loaded). What I get is:
+> 
+> [chris:~]$ sudo modprobe acpiphp debug=1
+> modprobe: ERROR: could not insert 'acpiphp': No such device
+>
 
-The deadlock is avoided by always taking the graph mutex first in video
-node open() or an ioctl, before the video lock is acquired. Reversed
-order seems impossible, since media device driver's link_notify callback
-is called with media graph mutex already held.
+Currently, If your hardware support pciehp native hotplug, acpiphp driver will be rejected when loading it in system
+(you can force loading it by add boot parameter pcie_aspm=off as Martin said).
 
-To ensure proper locking order VIDIOC_S_FMT and VIDIOC_TRY_FMT ioctls are
-not serialized in the v4l2-core and the driver takes care of it itself.
+> and at the end of the dmesg output I see:
+> 
+> [   68.199789] acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+> [   68.199970] acpiphp_glue: Total 0 slots
+> 
+> The pciehp driver loads OK. I've attached pciehp-only which shows the dmesg and lscpi output that you asked for.
+> 
+> As I said before, the only way that I can get the card detected with rebooting the laptop is to write 1 to /sys/bus/pci/rescan. In the hope that it might help (e.g. it shows details of the expresscard I'm using), I've also attached the output from dmesg and lspci after a rescan.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |   54 ++++++++++----
- drivers/media/platform/s5p-fimc/fimc-lite.c    |    6 +-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   94 +++++++++---------------
- 3 files changed, 78 insertions(+), 76 deletions(-)
+In this case, i guess your slot maybe always power on, once you insert your pcie card, and use rescan intercace, you can find them.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index aad0850..18a70e4 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -510,8 +510,8 @@ static int fimc_capture_open(struct file *file)
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	fimc_md_graph_lock(fimc);
-+	mutex_lock(&fimc->lock);
- 
- 	if (fimc_m2m_active(fimc))
- 		goto unlock;
-@@ -546,6 +546,7 @@ static int fimc_capture_open(struct file *file)
- 	}
- unlock:
- 	mutex_unlock(&fimc->lock);
-+	fimc_md_graph_unlock(fimc);
- 	return ret;
- }
- 
-@@ -962,6 +963,10 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
- 	struct v4l2_mbus_framefmt mf;
- 	struct fimc_fmt *ffmt = NULL;
-+	int ret = 0;
-+
-+	fimc_md_graph_lock(fimc);
-+	mutex_lock(&fimc->lock);
- 
- 	if (fimc_jpeg_fourcc(pix->pixelformat)) {
- 		fimc_capture_try_format(ctx, &pix->width, &pix->height,
-@@ -973,16 +978,16 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 	ffmt = fimc_capture_try_format(ctx, &pix->width, &pix->height,
- 				       NULL, &pix->pixelformat,
- 				       FIMC_SD_PAD_SOURCE);
--	if (!ffmt)
--		return -EINVAL;
-+	if (!ffmt) {
-+		ret = -EINVAL;
-+		goto unlock;
-+	}
- 
- 	if (!fimc->vid_cap.user_subdev_api) {
- 		mf.width = pix->width;
- 		mf.height = pix->height;
- 		mf.code = ffmt->mbus_code;
--		fimc_md_graph_lock(fimc);
- 		fimc_pipeline_try_format(ctx, &mf, &ffmt, false);
--		fimc_md_graph_unlock(fimc);
- 		pix->width = mf.width;
- 		pix->height = mf.height;
- 		if (ffmt)
-@@ -994,8 +999,11 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 	if (ffmt->flags & FMT_FLAGS_COMPRESSED)
- 		fimc_get_sensor_frame_desc(fimc->pipeline.subdevs[IDX_SENSOR],
- 					pix->plane_fmt, ffmt->memplanes, true);
-+unlock:
-+	mutex_unlock(&fimc->lock);
-+	fimc_md_graph_unlock(fimc);
- 
--	return 0;
-+	return ret;
- }
- 
- static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx,
-@@ -1012,7 +1020,8 @@ static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx,
- 		clear_bit(ST_CAPT_JPEG, &ctx->fimc_dev->state);
- }
- 
--static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
-+static int __fimc_capture_set_format(struct fimc_dev *fimc,
-+				     struct v4l2_format *f)
- {
- 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
- 	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
-@@ -1047,12 +1056,10 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
- 		mf->code   = ff->fmt->mbus_code;
- 		mf->width  = pix->width;
- 		mf->height = pix->height;
--
--		fimc_md_graph_lock(fimc);
- 		ret = fimc_pipeline_try_format(ctx, mf, &s_fmt, true);
--		fimc_md_graph_unlock(fimc);
- 		if (ret)
- 			return ret;
-+
- 		pix->width  = mf->width;
- 		pix->height = mf->height;
- 	}
-@@ -1091,8 +1098,23 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
- 				 struct v4l2_format *f)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	int ret;
-+
-+	fimc_md_graph_lock(fimc);
-+	mutex_lock(&fimc->lock);
-+	/*
-+	 * The graph is walked within __fimc_capture_set_format() to set
-+	 * the format at subdevs thus the graph mutex needs to be held at
-+	 * this point and acquired before the video mutex, to avoid  AB-BA
-+	 * deadlock when fimc_md_link_notify() is called by other thread.
-+	 * Ideally the graph walking and setting format at the whole pipeline
-+	 * should be removed from this driver and handled in userspace only.
-+	 */
-+	ret = __fimc_capture_set_format(fimc, f);
- 
--	return fimc_capture_set_format(fimc, f);
-+	mutex_unlock(&fimc->lock);
-+	fimc_md_graph_unlock(fimc);
-+	return ret;
- }
- 
- static int fimc_cap_enum_input(struct file *file, void *priv,
-@@ -1727,7 +1749,7 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc)
- 		},
- 	};
- 
--	return fimc_capture_set_format(fimc, &fmt);
-+	return __fimc_capture_set_format(fimc, &fmt);
- }
- 
- /* fimc->lock must be already initialized */
-@@ -1789,6 +1811,12 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	ret = media_entity_init(&vfd->entity, 1, &vid_cap->vd_pad, 0);
- 	if (ret)
- 		goto err_ent;
-+	/*
-+	 * For proper order of acquiring/releasing the video
-+	 * and the graph mutex.
-+	 */
-+	v4l2_disable_ioctl_locking(vfd, VIDIOC_TRY_FMT);
-+	v4l2_disable_ioctl_locking(vfd, VIDIOC_S_FMT);
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
- 	if (ret)
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 765b8e4..ef31c39 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -459,11 +459,12 @@ static void fimc_lite_clear_event_counters(struct fimc_lite *fimc)
- static int fimc_lite_open(struct file *file)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
-+	struct media_entity *me = &fimc->vfd.entity;
- 	int ret;
- 
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
-+	mutex_lock(&me->parent->graph_mutex);
- 
-+	mutex_lock(&fimc->lock);
- 	if (fimc->out_path != FIMC_IO_DMA) {
- 		ret = -EBUSY;
- 		goto done;
-@@ -492,6 +493,7 @@ static int fimc_lite_open(struct file *file)
- 	}
- done:
- 	mutex_unlock(&fimc->lock);
-+	mutex_unlock(&me->parent->graph_mutex);
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index c243220..7aaa517 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -142,7 +142,7 @@ static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
-  * @me: media entity to start graph walk with
-  * @prep: true to acquire sensor (and csis) subdevs
-  *
-- * This function must be called with the graph mutex held.
-+ * Called with the graph mutex held.
-  */
- static int __fimc_pipeline_open(struct fimc_pipeline *p,
- 				struct media_entity *me, bool prep)
-@@ -162,30 +162,19 @@ static int __fimc_pipeline_open(struct fimc_pipeline *p,
- 	return fimc_pipeline_s_power(p, 1);
- }
- 
--static int fimc_pipeline_open(struct fimc_pipeline *p,
--			      struct media_entity *me, bool prep)
--{
--	int ret;
--
--	mutex_lock(&me->parent->graph_mutex);
--	ret =  __fimc_pipeline_open(p, me, prep);
--	mutex_unlock(&me->parent->graph_mutex);
--
--	return ret;
--}
--
- /**
-  * __fimc_pipeline_close - disable the sensor clock and pipeline power
-  * @fimc: fimc device terminating the pipeline
-  *
-- * Disable power of all subdevs in the pipeline and turn off the external
-- * sensor clock.
-- * Called with the graph mutex held.
-+ * Disable power of all subdevs and turn the external sensor clock off.
-  */
- static int __fimc_pipeline_close(struct fimc_pipeline *p)
- {
- 	int ret = 0;
- 
-+	if (!p || !p->subdevs[IDX_SENSOR])
-+		return -EINVAL;
-+
- 	if (p->subdevs[IDX_SENSOR]) {
- 		ret = fimc_pipeline_s_power(p, 0);
- 		fimc_md_set_camclk(p->subdevs[IDX_SENSOR], false);
-@@ -193,28 +182,12 @@ static int __fimc_pipeline_close(struct fimc_pipeline *p)
- 	return ret == -ENXIO ? 0 : ret;
- }
- 
--static int fimc_pipeline_close(struct fimc_pipeline *p)
--{
--	struct media_entity *me;
--	int ret;
--
--	if (!p || !p->subdevs[IDX_SENSOR])
--		return -EINVAL;
--
--	me = &p->subdevs[IDX_SENSOR]->entity;
--	mutex_lock(&me->parent->graph_mutex);
--	ret = __fimc_pipeline_close(p);
--	mutex_unlock(&me->parent->graph_mutex);
--
--	return ret;
--}
--
- /**
-- * fimc_pipeline_s_stream - invoke s_stream on pipeline subdevs
-+ * __fimc_pipeline_s_stream - invoke s_stream on pipeline subdevs
-  * @pipeline: video pipeline structure
-  * @on: passed as the s_stream call argument
-  */
--static int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
-+static int __fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
- {
- 	int i, ret;
- 
-@@ -236,9 +209,9 @@ static int fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
- 
- /* Media pipeline operations for the FIMC/FIMC-LITE video device driver */
- static const struct fimc_pipeline_ops fimc_pipeline_ops = {
--	.open		= fimc_pipeline_open,
--	.close		= fimc_pipeline_close,
--	.set_stream	= fimc_pipeline_s_stream,
-+	.open		= __fimc_pipeline_open,
-+	.close		= __fimc_pipeline_close,
-+	.set_stream	= __fimc_pipeline_s_stream,
- };
- 
- /*
-@@ -822,7 +795,9 @@ static int fimc_md_link_notify(struct media_pad *source,
- 	struct fimc_dev *fimc = NULL;
- 	struct fimc_pipeline *pipeline;
- 	struct v4l2_subdev *sd;
-+	struct mutex *lock;
- 	int ret = 0;
-+	int ref_count;
- 
- 	if (media_entity_type(sink->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
- 		return 0;
-@@ -832,26 +807,31 @@ static int fimc_md_link_notify(struct media_pad *source,
- 	switch (sd->grp_id) {
- 	case GRP_ID_FLITE:
- 		fimc_lite = v4l2_get_subdevdata(sd);
-+		if (WARN_ON(fimc_lite == NULL))
-+			return 0;
- 		pipeline = &fimc_lite->pipeline;
-+		lock = &fimc_lite->lock;
- 		break;
- 	case GRP_ID_FIMC:
- 		fimc = v4l2_get_subdevdata(sd);
-+		if (WARN_ON(fimc == NULL))
-+			return 0;
- 		pipeline = &fimc->pipeline;
-+		lock = &fimc->lock;
- 		break;
- 	default:
- 		return 0;
- 	}
- 
- 	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-+		int i;
-+		mutex_lock(lock);
- 		ret = __fimc_pipeline_close(pipeline);
--		pipeline->subdevs[IDX_SENSOR] = NULL;
--		pipeline->subdevs[IDX_CSIS] = NULL;
--
--		if (fimc) {
--			mutex_lock(&fimc->lock);
-+		for (i = 0; i < IDX_MAX; i++)
-+			pipeline->subdevs[i] = NULL;
-+		if (fimc)
- 			fimc_ctrls_delete(fimc->vid_cap.ctx);
--			mutex_unlock(&fimc->lock);
--		}
-+		mutex_unlock(lock);
- 		return ret;
- 	}
- 	/*
-@@ -859,23 +839,15 @@ static int fimc_md_link_notify(struct media_pad *source,
- 	 * pipeline is already in use, i.e. its video node is opened.
- 	 * Recreate the controls destroyed during the link deactivation.
- 	 */
--	if (fimc) {
--		mutex_lock(&fimc->lock);
--		if (fimc->vid_cap.refcnt > 0) {
--			ret = __fimc_pipeline_open(pipeline,
--						   source->entity, true);
--		if (!ret)
--			ret = fimc_capture_ctrls_create(fimc);
--		}
--		mutex_unlock(&fimc->lock);
--	} else {
--		mutex_lock(&fimc_lite->lock);
--		if (fimc_lite->ref_count > 0) {
--			ret = __fimc_pipeline_open(pipeline,
--						   source->entity, true);
--		}
--		mutex_unlock(&fimc_lite->lock);
--	}
-+	mutex_lock(lock);
-+
-+	ref_count = fimc ? fimc->vid_cap.refcnt : fimc_lite->ref_count;
-+	if (ref_count > 0)
-+		ret = __fimc_pipeline_open(pipeline, source->entity, true);
-+	if (!ret && fimc)
-+		ret = fimc_capture_ctrls_create(fimc);
-+
-+	mutex_unlock(lock);
- 	return ret ? -EPIPE : ret;
- }
- 
--- 
-1.7.9.5
+I checked the WinTV-HVR-1400 expressed card device's parent port device, as bellow.
+I found the powerctrl in slot cap is clear. So I doubt the hardware support pci hotplug.
+
+Chris, Can you try to add and remove device by /sys/bus/pci/slots/3/power? (use #modprobe pciehp pciehp_debug=1)
+
+
+00:1c.3 PCI bridge: Intel Corporation 6 Series/C200 Series Chipset Family PCI Express Root Port 4 (rev b5) (prog-if 00 [Normal decode])
+
+	Bus: primary=00, secondary=02, subordinate=06, sec-latency=0
+
+	Capabilities: [40] Express (v2) Root Port (Slot+), MSI 00
+		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+			ExtTag- RBE+ FLReset-
+		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+			RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop-
+			MaxPayload 128 bytes, MaxReadReq 128 bytes
+		DevSta:	CorrErr- UncorrErr- FatalErr- UnsuppReq- AuxPwr+ TransPend-
+		LnkCap:	Port #4, Speed 5GT/s, Width x1, ASPM L0s L1, Latency L0 <512ns, L1 <16us
+			ClockPM- Surprise- LLActRep+ BwNot-
+		LnkCtl:	ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive+ BWMgmt+ ABWMgmt-
+		SltCap:	AttnBtn- PwrCtrl- MRL- AttnInd- PwrInd- HotPlug+ Surprise+
+			Slot #3, PowerLimit 10.000W; Interlock- NoCompl+
+		SltCtl:	Enable: AttnBtn- PwrFlt- MRL- PresDet+ CmdCplt- HPIrq- LinkChg-
+			Control: AttnInd Unknown, PwrInd Unknown, Power- Interlock-
+		SltSta:	Status: AttnBtn- PowerFlt- MRL- CmdCplt- PresDet+ Interlock-
+			Changed: MRL- PresDet- LinkState+
+
+> 
+> Please let me know if I can provide any additional diagnostics.
+> 
+
+
 
