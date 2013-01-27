@@ -1,78 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:52880 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751856Ab3A3JPm (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2940 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755395Ab3A0UEk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 04:15:42 -0500
-Received: by mail-bk0-f45.google.com with SMTP id i18so702248bkv.18
-        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 01:15:40 -0800 (PST)
-From: Vadim Frolov <fralik@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Vadim Frolov <fralik@gmail.com>
-Subject: [PATCH 1/1] [media] saa7134: Add capture card Hawell HW-9004V1
-Date: Wed, 30 Jan 2013 13:14:59 +0400
-Message-Id: <1359537299-6534-1-git-send-email-fralik@gmail.com>
+	Sun, 27 Jan 2013 15:04:40 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0RK4bQu004986
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:04:39 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 85DC611E00AE
+	for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:04:36 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130127200436.85DC611E00AE@alastor.dyndns.org>
+Date: Sun, 27 Jan 2013 21:04:36 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds new capture board Hawell HW-9004V1. This card has 4 SAA71300 chips. In order to work it is needed to initialize its registers (gpio mask and value). The value of these registers were dumped under Windows using flytest.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Vadim Frolov <fralik@gmail.com>
----
- Documentation/video4linux/CARDLIST.saa7134 |    1 +
- drivers/media/pci/saa7134/saa7134-cards.c  |   17 +++++++++++++++++
- drivers/media/pci/saa7134/saa7134.h        |    1 +
- 3 files changed, 19 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
-index 94d9025..b3ad683 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -189,3 +189,4 @@
- 188 -> Sensoray 811/911                         [6000:0811,6000:0911]
- 189 -> Kworld PC150-U                           [17de:a134]
- 190 -> Asus My Cinema PS3-100                   [1043:48cd]
-+191 -> Hawell HW-9004V1
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index bc08f1d..dc68cf1 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -5773,6 +5773,23 @@ struct saa7134_board saa7134_boards[] = {
- 			.gpio	= 0x0000000,
- 		},
- 	},
-+	[SAA7134_BOARD_HAWELL_HW_9004V1] = {
-+		/* Hawell HW-9004V1 */
-+		/* Vadim Frolov <fralik@gmail.com> */
-+		.name         = "Hawell HW-9004V1",
-+		.audio_clock   = 0x00200000,
-+		.tuner_type    = UNSET,
-+		.radio_type    = UNSET,
-+		.tuner_addr   = ADDR_UNSET,
-+		.radio_addr   = ADDR_UNSET,
-+		.gpiomask      = 0x618E700,
-+		.inputs       = {{
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE1,
-+			.gpio = 0x6010000,
-+		} },
-+	},
- 
- };
- 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 6eae432..6d92a59 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -333,6 +333,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_SENSORAY811_911       188
- #define SAA7134_BOARD_KWORLD_PC150U         189
- #define SAA7134_BOARD_ASUSTeK_PS3_100      190
-+#define SAA7134_BOARD_HAWELL_HW_9004V1      191
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
--- 
-1.7.9.5
+date:		Sun Jan 27 19:00:16 CET 2013
+git branch:	for_v3.9
+git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.4.07-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
