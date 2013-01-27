@@ -1,165 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35642 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756180Ab3AHA0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 19:26:23 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r080QN58025784
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jan 2013 19:26:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv9 4/4] mb86a20s: add BER measure
-Date: Mon,  7 Jan 2013 22:25:50 -0200
-Message-Id: <1357604750-772-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:42227 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755276Ab3A0Cpv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jan 2013 21:45:51 -0500
+Message-ID: <510494D6.1010000@gmail.com>
+Date: Sun, 27 Jan 2013 10:45:42 +0800
+From: Yijing Wang <wangyijing0307@gmail.com>
+MIME-Version: 1.0
+To: Chris Clayton <chris2553@googlemail.com>
+CC: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com>
+In-Reply-To: <5104427D.2050002@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add per-layer BER measure. In order to provide some data for
-applications not prepared for layers support, calculate BER for
-the worse-case scenario, e. g. sums the BER values for all layers
-and provide it as a "global BER" value.
+于 2013-01-27 4:54, Chris Clayton 写道:
+> Hi Martin,
+> 
+> On 01/24/13 19:21, Martin Mokrejs wrote:
+>> Hi Chris,
+>>    try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
+>>
+> 
+> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 99 ++++++++++++++++++++++++++++++++--
- 1 file changed, 94 insertions(+), 5 deletions(-)
+Not loaded pciehp driver? Remove the device from this slot without poweroff ?
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index c2cc207..7ecee12 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -94,7 +94,7 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x04, 0x13 }, { 0x05, 0xff },
- 	{ 0x04, 0x15 }, { 0x05, 0x4e },
- 	{ 0x04, 0x16 }, { 0x05, 0x20 },
--	{ 0x52, 0x01 },
-+	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
- 	{ 0x50, 0xa7 }, { 0x51, 0xff },
- 	{ 0x50, 0xa8 }, { 0x51, 0xff },
- 	{ 0x50, 0xa9 }, { 0x51, 0xff },
-@@ -705,13 +705,76 @@ err:
- 	return rc;
- }
- 
--static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
-+					  unsigned layer,
-+					  u32 *error, u32 *count)
- {
--	int rc, i;
--	__u16 strength;
-+	struct mb86a20s_state *state = fe->demodulator_priv;
-+	u8 byte[3];
-+	int rc;
-+
-+	if (layer >= 3)
-+		return -EINVAL;
-+
-+	/* Check if it is available */
-+	rc = mb86a20s_readreg(state, 0x54);
-+	if (rc < 0)
-+		return rc;
-+	/* Check if data is available for that layer */
-+	if (!(rc & (1 << layer)))
-+		return -EBUSY;
-+
-+	/* Read Bit Error Count */
-+	rc = mb86a20s_readreg(state, 0x55 + layer);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_readreg(state, 0x56 + layer);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_readreg(state, 0x57 + layer);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
- 
-+	/* Read Bit Count */
-+	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[0] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa8 + layer);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[1] = rc;
-+	rc = mb86a20s_writereg(state, 0x50, 0xa9 + layer);
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_readreg(state, 0x51);
-+	if (rc < 0)
-+		return rc;
-+	byte[2] = rc;
-+	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
-+
-+	return rc;
-+}
-+
-+static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+{
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	int rc, i;
-+	u16 strength;
-+	u32 bit_error = 0, bit_count = 0;
-+	u32 t_bit_error = 0, t_bit_count = 0;
-+	bool has_total_ber = true;
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-@@ -732,10 +795,36 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 		if (rc > 0 && rc < 14) {
- 			/* Layer is active and has rc segments */
- 
--			/* FIXME: add a per-layer stats logic */
-+			/* Handle BER before vterbi */
-+			rc = mb86a20s_get_ber_before_vterbi(fe, i, &bit_error,
-+							    &bit_count);
-+			if (rc >= 0) {
-+				c->bit_error.stat[1 + i].scale = FE_SCALE_COUNTER;
-+				c->bit_error.stat[1 + i].uvalue = bit_error;
-+				c->bit_count.stat[1 + i].scale = FE_SCALE_COUNTER;
-+				c->bit_count.stat[1 + i].uvalue = bit_count;
-+			}
-+			if (c->bit_error.stat[1 + i].scale != FE_SCALE_COUNTER)
-+				has_total_ber = false;
-+			else {
-+				t_bit_error += c->bit_error.stat[1 + i].uvalue;
-+				t_bit_count += c->bit_count.stat[1 + i].uvalue;
-+			}
-+
- 		}
- 	}
- 
-+	if (has_total_ber) {
-+		/*
-+		 * Total Bit Error/Count is calculated as the sum of the
-+		 * bit errors on all active layers.
-+		 */
-+		c->bit_error.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_error.stat[0].uvalue = t_bit_error;
-+		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
-+		c->bit_count.stat[0].uvalue = t_bit_count;
-+	}
-+
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
--- 
-1.7.11.7
+> 
+>>    The best would if you subscribe to linux-pci, and read my recent threads
+>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+>> archives of linux-pci and see the pacthes and the discussion.
+> 
+> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
+> 
+> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
+
+Hi Chris,
+   What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
+
+Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
+
+Thanks!
+Yijing.
+
+> Thanks again.
+> 
+> Chris
+> 
+>> Martin
+>>
+>> Chris Clayton wrote:
+>>> Hi,
+>>>
+>>> I've today taken delivery of a WinTV-HVR-1400 expresscard TV Tuner and got an Oops when I removed from the expresscard slot in my laptop. I will quite understand if the response to this report is "don't do that!", but in that case, how should one remove one of these cards?
+>>>
+>>> I have attached three files:
+>>>
+>>> 1. the dmesg output from when I rebooted the machine after the oops. I have turned debugging on in the dib700p and cx23885 modules via modules options in /etc/modprobe.d/hvr1400.conf;
+>>>
+>>> 2. the .config file for the kernel that oopsed.
+>>>
+>>> 3. the text of the oops message. I've typed this up from a photograph of the screen because the laptop was locked up and there was nothing in the log files. Apologies for any typos, but I have tried to be careful.
+>>>
+>>> Assuming the answer isn't don't do that, let me know if I can provide any additional diagnostics, test any patches, etc. Please, however, cc me as I'm not subscribed.
+>>>
+>>> Chris
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
