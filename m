@@ -1,155 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56379 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751143Ab3AWWCs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 17:02:48 -0500
-Date: Wed, 23 Jan 2013 20:02:35 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130123200235.1a1e6f1a@redhat.com>
-In-Reply-To: <20130123190011.502517d7@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-	<20130117165037.6ed80366@redhat.com>
-	<50F84CCC.5040103@iki.fi>
-	<20130122101626.006d2d87@redhat.com>
-	<50FFFD0B.30701@iki.fi>
-	<20130123161801.764495e5@redhat.com>
-	<20130123165732.0e8e74bb@redhat.com>
-	<51004014.8020809@iki.fi>
-	<20130123190011.502517d7@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from fold.natur.cuni.cz ([195.113.57.32]:60032 "HELO
+	fold.natur.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755404Ab3A0O0e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jan 2013 09:26:34 -0500
+Message-ID: <51053917.6060400@fold.natur.cuni.cz>
+Date: Sun, 27 Jan 2013 15:26:31 +0100
+From: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>
+MIME-Version: 1.0
+To: Chris Clayton <chris2553@googlemail.com>
+CC: Yijing Wang <wangyijing0307@gmail.com>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-pci@vger.kernel.org
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <510494D6.1010000@gmail.com> <51050D43.2050703@googlemail.com> <51051B1B.3080105@gmail.com> <51052DB2.4090702@googlemail.com>
+In-Reply-To: <51052DB2.4090702@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 23 Jan 2013 19:00:11 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-
-> Em Wed, 23 Jan 2013 21:55:00 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
+Chris Clayton wrote:
 > 
-> > On 01/23/2013 08:57 PM, Mauro Carvalho Chehab wrote:
-> > > Em Wed, 23 Jan 2013 16:18:01 -0200
-> > > Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-> > >
-> > >> I'll soon post patches 1 and 2 after those changes. The remaining 4 patches
-> > >> don't likely need any change.
-> > >
-> > > Actually, it sounds better to just do a diff between the two versions.
-> > > Each individual patch on v13 is at:
-> > > 	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/stats_v13
-> > >
-> > > Cheers,
-> > > Mauro
-> > >
-> > > v13:
-> > > - Add post-Viterbi BER on the API
-> > > - Some documentation adjustments as suggested by Antti
-> > >
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > For all the DVB-core related statistics API changes in that patch serie:
-> > 
-> > Reviewed-by: Antti Palosaari <crope@iki.fi>
 > 
-> Thanks!
-> > 
-> > 
-> > I have still one comment about naming:
-> > DTV_STAT_PRE_BIT_ERROR_COUNT   => DTV_STAT_PRE_ERROR_BIT_COUNT
-> > DTV_STAT_PRE_TOTAL_BIT_COUNT
-> > DTV_STAT_POST_BIT_ERROR_COUNT  => DTV_STAT_POST_ERROR_BIT_COUNT
-> > DTV_STAT_POST_TOTAL_BIT_COUNT
-> > DTV_STAT_ERROR_BLOCK_COUNT
-> > DTV_STAT_TOTAL_BLOCK_COUNT
-> > 
-> > I like to change those two. Anyway, if you think current naming is 
-> > better then leave as it is.
+> On 01/27/13 12:18, Yijing Wang wrote:
+>> 于 2013-01-27 19:19, Chris Clayton 写道:
+>>> Hi Yijing
+>>>
+>>> On 01/27/13 02:45, Yijing Wang wrote:
+>>>> 于 2013-01-27 4:54, Chris Clayton 写道:
+>>>>> Hi Martin,
+>>>>>
+>>>>> On 01/24/13 19:21, Martin Mokrejs wrote:
+>>>>>> Hi Chris,
+>>>>>>      try to include in kernel only acpiphp and omit pciehp. Don't use modules but include
+>>>>>> them statically. And try, in addition, check whether "pcie_aspm=off" in grub.conf helped.
+>>>>>>
+>>>>>
+>>>>> Thanks for the tip. I had the pciehp driver installed, but it was a module and not loaded. I didn't have acpiphp enabled at all. Building them both in statically, appears to have papered over the cracks of the oops :-)
+>>>>
+>>>> Not loaded pciehp driver? Remove the device from this slot without poweroff ?
+>>>>
+>>>
+>>> That's correct. When I first encountered the oops, I did not have the pciehp driver loaded and removing the device from the slot whilst the laptop was powered on resulted in the oops.
+>>
+>> Hmm, that's unsafe and dangerous, because device now may be running.
+>> There are two ways to trigger pci hot-add or hot-remove in linux, after loaded pciehp or acpiphp module
+>> (the two modules only one can loaded into system at the same time). You can trigger hot-add/hot-remove by
+>> sysfs interface under /sys/bus/pci/slots/[slot-name]/power or attention button on hardware (if your laptop supports that).
+>>
 > 
-> Works for me.
+> OK, thanks for the advice.
+> 
+>>>>>
+>>>>>>      The best would if you subscribe to linux-pci, and read my recent threads
+>>>>>> about similar issues I had with express cards with Dell Vostro 3550. Further, there is
+>>>>>> a lot of changes to PCI hotplug done by Yingahi Liu and Rafael Wysockij, just browse the
+>>>>>> archives of linux-pci and see the pacthes and the discussion.
+>>>>>
+>>>>> Those discussions are way above my level of knowledge. I guess all this work will be merged into mainline in due course, so I'll watch for them in 3.9 or later. Unless, of course, there is a tree I could clone and help test the changes with my laptop and expresscard.
+>>>>>
+>>>>> Hotplug isn't working at all on my Fujitsu laptop, so I can only get the card recognised by rebooting with the card inserted (or by writing 1 to/sys/bus/pci/rescan). There seem to be a few reports on this in the kernel bugzilla, so I'll look through them and see what's being done.
+>>>>
+>>>> Hi Chris,
+>>>>      What about use #modprobe pciehp pciehp_debug=1 pciehp_poll_mode=1 pciehp_poll_time=1 ?
+>>>>
+>>>> Can you resend the dmesg log and "lspci -vvv" info after hotplug device from your Fujitsu laptop with above module parameters?
+>>>>
+>>>
+>>> I wasn't sure whether or not the pciehp driver should be loaded on its own or with the acpiphp driver also loaded. So I built them both as modules and planned to try both, pciehp only and acpiphp only. However, I've found that acpiphp will not load (regardless of whether or not pciehp is already loaded). What I get is:
+>>>
+>>> [chris:~]$ sudo modprobe acpiphp debug=1
+>>> modprobe: ERROR: could not insert 'acpiphp': No such device
 
-Ok, statistics patches merged at the development tree. The next step,
-on Kernelspace, is to gradually add DVBv5.10 statistics support on the
-existing frontends.
+Are you sure you had pciehp already loaded?
 
-I also merged the dvbv5-tools patches at:
-	http://git.linuxtv.org/v4l-utils.git
+>>>
+>>
+>> Currently, If your hardware support pciehp native hotplug, acpiphp driver will be rejected when loading it in system
+>> (you can force loading it by add boot parameter pcie_aspm=off as Martin said).
+>>
+> 
+> OK, thanks again for the advice. I've disabled the acpiphp driver.
 
-The new code there is currently being called only for dvbv5-zap, although
-it should be easy to make it to work with dvbv5-scan, as the statistics
-code is part of the library. 
+Pitty. For me only with acpiphp works detection of express card in the slot. With pciehp
+the PresDet is not updated properly upon removal/insertion and sometimes, probably as a result
+of the previous, PresDet on the SltSta: line of lspci is not correct. So I moved away from pciehp.
+I have a SandyBridge based laptop so I was hoping with your i5-based laptop you have also great
+chance to get rid of pciehp issues.
 
-There's also a "quality" statistics there in the library,
-calculated on userspace:
-	http://git.linuxtv.org/v4l-utils.git/commitdiff/d7237c75d9e507ebd51666248dca18feeee8d814
-
-This way, its policy can be easily changed/fixed.
-
-When time permits and after having some confidence about the quality calculus,
-My plan is to change the code at the userspace tools to only display,
-by default, DVB FE status, strength and (per layer) quality, and to add
-an extra option to allow displaying all available stats if the user wants to.
-
-I should also add the same stats code later to dvbv5-scan.
-
-It should be noticed that the quality statistics there are very experimental, 
-as I was not able to research for the quality criteria that apply to all DVB
-standards.
-
-As one may know, there are actually 3 probability density functions (p. d. f.)
-commonly used to describe how the signal to noise ratio interferes on a given 
-radio signal: Gaussian, Rician and Raileigh fading, being the last ones typically
-closer to real life. The DVB specs define channels in function of all those
-three distros. There are, of course, other stochastic models that provide 
-different values for the quality, in function of the S/N ratio.
-
-For the quality metrics on terrestrial delivery systems, I based the policy
-on both ETSI DVB and ABNT ISDB terrestrial specs, in a way that "Good" means
-a Quasi Error Free channel with Raileigh fading[1], e. g. there's no line
-of sight signal. On such channels, the S/N ratio should be bigger than on
-the other two p. d. f. 
-
-Also, for DVB, the "OK" quality is matching the minimum S/N ratio for the
-the Rician fading distribution, e. g., if there is a line of sight signal
-that it is stronger than the reflected ones, signal="OK" actually means
-a good signal. A more precise application would need to "calibrate" the
-quality statistics between Rician and Raileigh distributions, either
-if there's a direct sight signal or not.
-
-If available, if BER or PER measures are also taken into account for
-the quality statistics, e. g., the signal indicator can
-change from "good" to "OK" or "poor" if there are too much errors. 
-For now, due to the lack of time to do more research, I just did an 
-educated guess for the expected value for parameters, but I'm sure 
-that there are plenty of space for improvements.
-
-It should be said that, in practice, the signal can behave different than
-either Raileigh or Rician fading. So, the measure just give a rough idea
-about the signal quality.
-
-Anyway, patches fixing/improving it are very welcome.
-
--- 
-
-[1] http://en.wikipedia.org/wiki/Rician_fading
-
-Cheers,
-Mauro
+Martin
