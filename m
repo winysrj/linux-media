@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33650 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834Ab3AQRWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 12:22:44 -0500
-Message-ID: <50F8333E.2020904@iki.fi>
-Date: Thu, 17 Jan 2013 19:22:06 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <20130116152151.5461221c@redhat.com> <CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com> <2817386.vHx2V41lNt@f17simon> <20130116200153.3ec3ee7d@redhat.com> <CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com> <50F7C57A.6090703@iki.fi> <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com>
-In-Reply-To: <CAHFNz9LRf0aYMR0nYCgtkatkjHgbCKJKovRaUsdQ1X=UmFEOLQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:47615 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436Ab3A1Fpo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 00:45:44 -0500
+Received: by mail-pa0-f44.google.com with SMTP id hz11so1300824pad.31
+        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:45:44 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
+	l.krishna@samsung.com
+Subject: [PATCH] Adds display-timing node parsing to exynos drm fimd as per
+Date: Mon, 28 Jan 2013 11:15:35 +0530
+Message-Id: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/17/2013 07:16 PM, Manu Abraham wrote:
-> On Thu, Jan 17, 2013 at 3:03 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 01/17/2013 05:40 AM, Manu Abraham wrote:
->>> MB86A20 is not the only demodulator driver with the Linux DVB.
->>> And not all devices can output in dB scale proposed by you, But any device
->>> output can be scaled in a relative way. So I don't see any reason why
->>> userspace has to deal with cumbersome controls to deal with redundant
->>> statistics, which is nonsense.
->>
->>
->> What goes to these units in general, dB conversion is done by the driver
->> about always. It is quite hard or even impossible to find out that formula
->> unless you has adjustable test signal generator.
->>
->> Also we could not offer always dBm as signal strength. This comes to fact
->> that only recent silicon RF-tuners are able to provide RF strength. More
->> traditionally that estimation is done by demod from IF/RF AGC, which leads
->> very, very, rough estimation.
->
-> What I am saying is that, rather than sticking to a dB scale, it would be
-> better to fit it into a relative scale, ie loose dB altogether and use only the
-> relative scale. With that approach any device can be fit into that convention.
-> Even with an unknown device, it makes it pretty easy for anyone to fit
-> into that
-> scale. All you need is a few trial runs to get maxima/minima. When there
-> exists only a single convention that is simple, it makes it more easier for
-> people to stick to that convention, rather than for people to not support it.
+This patch adds display-timing node parsing to drm fimd, this depends on
+the display helper patchset at
+http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg33354.html
 
-That is true. I don't have really clear opinion whether to force all to 
-one scale, or return dBm those which could and that dummy scale for the 
-others. Maybe I will still vote for both relative and dBm.
+It also adds pinctrl support for drm fimd.
 
-Shortly there is two possibilities:
-1) support only relative scale
-2) support both dBm and relative scale (with dBm priority)
+patch is based on branch "exynos-drm-next" at
+http://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
 
-[3) support only dBm is not possible]
+It is tested on Exynos4412 board by applying dependent patches available at
+http://www.mail-archive.com/dri-devel@lists.freedesktop.org/msg33354.html
 
-regards
-Antti
+Vikas Sajjan (1):
+  video: drm: exynos: Adds display-timing node parsing using video
+    helper function
+
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35 ++++++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.7.9.5
+
