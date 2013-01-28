@@ -1,127 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20603 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757241Ab3AOCbi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 21:31:38 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0F2VbSO015436
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 21:31:38 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv10 12/15] mb86a20s: Some improvements for BER measurement
-Date: Tue, 15 Jan 2013 00:30:58 -0200
-Message-Id: <1358217061-14982-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:34078 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755742Ab3A1PzS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 10:55:18 -0500
+Received: by mail-lb0-f175.google.com with SMTP id n3so4039556lbo.20
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 07:55:16 -0800 (PST)
+Received: by mail-la0-f45.google.com with SMTP id er20so911941lab.32
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 07:55:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org>
+References: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org> <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org>
+From: Sean Paul <seanpaul@chromium.org>
+Date: Mon, 28 Jan 2013 10:54:52 -0500
+Message-ID: <CAOw6vbL0yOtMsap_xAWjK04SSuusWce7s-ybq92SVGS1Ejudsg@mail.gmail.com>
+Subject: Re: [PATCH] video: drm: exynos: Adds display-timing node parsing
+ using video helper function
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org,
+	Leelakrishna A <l.krishna@samsung.com>,
+	"kgene.kim" <kgene.kim@samsung.com>, s.trumtrar@pengutronix.de,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reduce the bit count from 2^24-1 to 2^16-1 to speedup
-BER measurement;
+On Mon, Jan 28, 2013 at 12:45 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
+> This patch adds display-timing node parsing using video helper function
+>
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35 ++++++++++++++++++++++++++++--
+>  1 file changed, 33 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index bf0d9ba..975e7f7 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+>
+>  #include <video/samsung_fimd.h>
+>  #include <drm/exynos_drm.h>
+> @@ -903,21 +904,51 @@ static int __devinit fimd_probe(struct platform_device *pdev)
+>         struct device *dev = &pdev->dev;
+>         struct fimd_context *ctx;
+>         struct exynos_drm_subdrv *subdrv;
+> -       struct exynos_drm_fimd_pdata *pdata;
+> +       struct exynos_drm_fimd_pdata *pdata = pdev->dev.platform_data;
+>         struct exynos_drm_panel_info *panel;
+> +       struct fb_videomode *fbmode;
+> +       struct device *disp_dev = &pdev->dev;
+> +       struct pinctrl *pctrl;
+>         struct resource *res;
+>         int win;
+>         int ret = -EINVAL;
+>
+>         DRM_DEBUG_KMS("%s\n", __FILE__);
+>
+> -       pdata = pdev->dev.platform_data;
+> +       if (pdev->dev.of_node) {
+> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +               if (!pdata) {
+> +                       dev_err(dev, "memory allocation for pdata failed\n");
+> +                       return -ENOMEM;
+> +               }
+> +
+> +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
+> +               if (!fbmode) {
+> +                       dev_err(dev, "memory allocation for fbmode failed\n");
 
-Do a per-layer reset, instead of waiting for data on all
-layers;
+Why dev_err instead of DRM_ERROR?
 
-Global stats now start to appear as soon as the first layer
-(e. g. the one with the biggest number of segments) start to
-have collected data.
+> +                       return -ENOMEM;
+> +               }
+> +
+> +               ret = of_get_fb_videomode(disp_dev->of_node, fbmode, -1);
+> +               if (ret) {
+> +                       dev_err(dev, "failed to get fb_videomode\n");
+> +                       return -EINVAL;
+> +               }
+> +               pdata->panel.timing = (struct fb_videomode) *fbmode;
+> +       }
+> +
+>         if (!pdata) {
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 52 +++++++++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 13 deletions(-)
+This condition is kind of weird, in that it's really checking if
+(!pdev->dev.of_node) implicitly (since you already check the
+allocation of pdata above).
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 21e7e68..0d13c87 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -86,16 +86,36 @@ static struct regdata mb86a20s_init[] = {
- 	{ 0x04, 0x13 }, { 0x05, 0xff },
- 	{ 0x04, 0x15 }, { 0x05, 0x4e },
- 	{ 0x04, 0x16 }, { 0x05, 0x20 },
-+
-+	/*
-+	 * On this demod, when the bit count reaches the count below,
-+	 * it collects the bit error count.
-+	 *
-+	 * As FE thread runs on every 3 seconds, adjust the counters to
-+	 * provide one collect before 3 seconds, at the worse case (DQPSK,
-+	 * 1/4 guard interval, 1/2 FEC, 1-seg rate is 280 Mbps, and
-+	 * 3 seconds takes 0xcdb9f bits. Rounds it down to 0xccfff
-+	 *
-+	 * It should be noticed, however, that, with QAM-64 1/32 guard interval,
-+	 * 1 segment bit rate is 1.78 Mbps, and 12-seg is about 21.5 Mbps.
-+	 * At such rate, the time to measure BER is about 40 ms.
-+	 *
-+	 * It makes sense to change the logic there to use TMCC parameters and
-+	 * adjust the counters in order to have all of them to take a little
-+	 * less than 3 seconds, in order to have a more realistic BER rate,
-+	 * instead of having short samples for 12-segs.
-+	 */
- 	{ 0x52, 0x01 },				/* Turn on BER before Viterbi */
--	{ 0x50, 0xa7 }, { 0x51, 0xff },
--	{ 0x50, 0xa8 }, { 0x51, 0xff },
-+	{ 0x50, 0xa7 }, { 0x51, 0x0c },
-+	{ 0x50, 0xa8 }, { 0x51, 0xcf },
- 	{ 0x50, 0xa9 }, { 0x51, 0xff },
--	{ 0x50, 0xaa }, { 0x51, 0xff },
--	{ 0x50, 0xab }, { 0x51, 0xff },
-+	{ 0x50, 0xaa }, { 0x51, 0x0c },
-+	{ 0x50, 0xab }, { 0x51, 0xcf },
- 	{ 0x50, 0xac }, { 0x51, 0xff },
--	{ 0x50, 0xad }, { 0x51, 0xff },
--	{ 0x50, 0xae }, { 0x51, 0xff },
-+	{ 0x50, 0xad }, { 0x51, 0x0c },
-+	{ 0x50, 0xae }, { 0x51, 0xcf },
- 	{ 0x50, 0xaf }, { 0x51, 0xff },
-+
- 	{ 0x5e, 0x07 },
- 	{ 0x50, 0xdc }, { 0x51, 0x01 },
- 	{ 0x50, 0xdd }, { 0x51, 0xf4 },
-@@ -711,6 +731,14 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 		"%s: bit count before Viterbi for layer %c: %d.\n",
- 		__func__, 'A' + layer, *count);
- 
-+	/* Reset counter to collect new data */
-+	rc = mb86a20s_writereg(state, 0x53, 0x07 & ~(1 << layer));
-+	if (rc < 0)
-+		return rc;
-+	rc = mb86a20s_writereg(state, 0x53, 0x07);
-+	if (rc < 0)
-+		return rc;
-+
- 	return 0;
- }
- 
-@@ -799,7 +827,11 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 		}
- 	}
- 
--	if (active_layers == ber_layers) {
-+	/*
-+	 * Start showing global count if at least one error count is
-+	 * available.
-+	 */
-+	if (ber_layers) {
- 		/*
- 		 * All BER values are read. We can now calculate the total BER
- 		 * And ask for another BER measure
-@@ -812,12 +844,6 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 		c->bit_count.stat[0].scale = FE_SCALE_COUNTER;
- 		c->bit_count.stat[0].uvalue += t_bit_count;
- 
--		/* Reset counters to collect new data */
--		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
--		if (rc < 0)
--			dev_err(&state->i2c->dev,
--				"%s: Can't reset VBER registers.\n", __func__);
--
- 		/* All BER measures need to be collected when ready */
- 		for (i = 0; i < 3; i++)
- 			state->read_ber[i] = true;
--- 
-1.7.11.7
+Seems like you could make this more clear and save a level of
+indentation by doing the following above:
 
+if (!pdev->dev.of_node) {
+        DRM_ERROR("Device tree node was not found\n");
+        return -EINVAL;
+}
+
+Then just get rid of this check and the one wrapping the allocations above.
+
+Sean
+
+>                 dev_err(dev, "no platform data specified\n");
+>                 return -EINVAL;
+>         }
+>
+> +       pctrl = devm_pinctrl_get_select_default(dev);
+> +       if (IS_ERR(pctrl)) {
+> +               dev_err(dev, "no pinctrl data provided.\n");
+> +               return -EINVAL;
+> +       }
+> +
+>         panel = &pdata->panel;
+> +
+>         if (!panel) {
+>                 dev_err(dev, "panel is null.\n");
+>                 return -EINVAL;
+> --
+> 1.7.9.5
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
