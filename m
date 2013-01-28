@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:63735 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab3ASN7g (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1935 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751577Ab3A1KIr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 08:59:36 -0500
-Received: by mail-ee0-f43.google.com with SMTP id c50so2139955eek.30
-        for <linux-media@vger.kernel.org>; Sat, 19 Jan 2013 05:59:35 -0800 (PST)
-Message-ID: <50FAA6C4.9020606@gmail.com>
-Date: Sat, 19 Jan 2013 14:59:32 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 28 Jan 2013 05:08:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH 2/7] saa7134: v4l2-compliance: don't report invalid audio modes for radio
+Date: Mon, 28 Jan 2013 11:08:33 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-3-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-3-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.8] Exynos/s5p driver fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201301281108.33068.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Sun January 27 2013 20:45:07 Ondrej Zary wrote:
+> Make saa7134 driver more V4L2 compliant: filter audio modes that came from
+> tuner - keep only MONO/STEREO in radio mode
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-   Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
-
-are available in the git repository at:
-   git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
-
-Kamil Debski (1):
-       s5p-mfc: end-of-stream handling in encoder bug fix
-
-Sylwester Nawrocki (2):
-       s5p-fimc: Fix fimc-lite entities deregistration
-       s5p-csis: Fix clock handling on error path in probe()
-
-  drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
-  drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
-  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
-  3 files changed, 4 insertions(+), 2 deletions(-)
-
-
-pwclient update -s accepted 16223
-pwclient update -s accepted 16206
-pwclient update -s accepted 16314
-
---
-
-Regards,
-Sylwester
+> ---
+>  drivers/media/pci/saa7134/saa7134-video.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index ce15f1f..db8da32 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -2333,6 +2333,7 @@ static int radio_g_tuner(struct file *file, void *priv,
+>  	t->type = V4L2_TUNER_RADIO;
+>  
+>  	saa_call_all(dev, tuner, g_tuner, t);
+> +	t->audmode &= V4L2_TUNER_MODE_MONO | V4L2_TUNER_MODE_STEREO;
+>  	if (dev->input->amux == TV) {
+>  		t->signal = 0xf800 - ((saa_readb(0x581) & 0x1f) << 11);
+>  		t->rxsubchans = (saa_readb(0x529) & 0x08) ?
+> 
