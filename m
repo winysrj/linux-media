@@ -1,61 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:17528 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753419Ab3ACPpY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 10:45:24 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG2008YN3RCGY30@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:23 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MG2002B73RD7GA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:22 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3416 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311Ab3A1LMa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 06:12:30 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0SBCRva072467
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 12:12:29 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 43AAA11E00B4
+	for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 12:12:22 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 2/5] s5p-fimc: Prevent potential buffer overflow
-Date: Thu, 03 Jan 2013 16:45:07 +0100
-Message-id: <1357227910-28870-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
-References: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
+Subject: Re: cron job: media_tree daily build: WARNINGS
+Date: Mon, 28 Jan 2013 12:12:21 +0100
+References: <20130128110050.41A4011E00AE@alastor.dyndns.org>
+In-Reply-To: <20130128110050.41A4011E00AE@alastor.dyndns.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301281212.21189.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the hard coded csi_sensors[] array size with a relevant
-constant to make sure we don't iterate beyond the actual array.
+On Mon January 28 2013 12:00:50 Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+OK, the daily build is back in business! I've improved my scripts substantially.
+In particular, if you download the scripts archive found here:
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 8b43f98..e77dba7 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -627,7 +627,7 @@ static int __fimc_md_create_flite_source_links(struct fimc_md *fmd)
-  */
- static int fimc_md_create_links(struct fimc_md *fmd)
- {
--	struct v4l2_subdev *csi_sensors[2] = { NULL };
-+	struct v4l2_subdev *csi_sensors[CSIS_MAX_ENTITIES] = { NULL };
- 	struct v4l2_subdev *sensor, *csis;
- 	struct s5p_fimc_isp_info *pdata;
- 	struct fimc_sensor_info *s_info;
-@@ -692,7 +692,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
- 						       pad, link_mask);
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(fmd->csis); i++) {
-+	for (i = 0; i < CSIS_MAX_ENTITIES; i++) {
- 		if (fmd->csis[i].sd == NULL)
- 			continue;
- 		source = &fmd->csis[i].sd->entity;
--- 
-1.7.9.5
+http://hverkuil.home.xs4all.nl/logs/scripts.tar.bz2
 
+and then follow the instructions in the README file you can setup your
+own daily build. Just note that for a full daily build you need 25 GB of
+harddisk space... Actually, I highly recommend putting it on an SSD instead.
+
+I also discovered that errors due to backport patches no longer applying
+cleanly didn't end up in the summary log due to a regex bug, so that should
+be easier to notice as well.
+
+Regards,
+
+	Hans
+
+> 
+> Results of the daily build of media_tree:
+> 
+> date:		Mon Jan 28 08:49:09 CET 2013
+> git branch:	for_v3.9
+> git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
+> gcc version:	i686-linux-gcc (GCC) 4.7.2
+> host hardware:	x86_64
+> host os:	3.4.07-marune
+> 
+> linux-git-arm-davinci: WARNINGS
+> linux-git-arm-exynos: WARNINGS
+> linux-git-arm-omap: WARNINGS
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: WARNINGS
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> linux-2.6.31.14-i686: WARNINGS
+> linux-2.6.32.27-i686: WARNINGS
+> linux-2.6.33.7-i686: WARNINGS
+> linux-2.6.34.7-i686: WARNINGS
+> linux-2.6.35.9-i686: WARNINGS
+> linux-2.6.36.4-i686: WARNINGS
+> linux-2.6.37.6-i686: WARNINGS
+> linux-2.6.38.8-i686: WARNINGS
+> linux-2.6.39.4-i686: WARNINGS
+> linux-3.0.60-i686: WARNINGS
+> linux-3.1.10-i686: WARNINGS
+> linux-3.2.37-i686: WARNINGS
+> linux-3.3.8-i686: WARNINGS
+> linux-3.4.27-i686: WARNINGS
+> linux-3.5.7-i686: WARNINGS
+> linux-3.6.11-i686: WARNINGS
+> linux-3.7.4-i686: WARNINGS
+> linux-3.8-rc4-i686: OK
+> linux-2.6.31.14-x86_64: WARNINGS
+> linux-2.6.32.27-x86_64: WARNINGS
+> linux-2.6.33.7-x86_64: WARNINGS
+> linux-2.6.34.7-x86_64: WARNINGS
+> linux-2.6.35.9-x86_64: WARNINGS
+> linux-2.6.36.4-x86_64: WARNINGS
+> linux-2.6.37.6-x86_64: WARNINGS
+> linux-2.6.38.8-x86_64: WARNINGS
+> linux-2.6.39.4-x86_64: WARNINGS
+> linux-3.0.60-x86_64: WARNINGS
+> linux-3.1.10-x86_64: WARNINGS
+> linux-3.2.37-x86_64: WARNINGS
+> linux-3.3.8-x86_64: WARNINGS
+> linux-3.4.27-x86_64: WARNINGS
+> linux-3.5.7-x86_64: WARNINGS
+> linux-3.6.11-x86_64: WARNINGS
+> linux-3.7.4-x86_64: WARNINGS
+> linux-3.8-rc4-x86_64: OK
+> apps: WARNINGS
+> spec-git: OK
+> sparse: ERRORS
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/media.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
