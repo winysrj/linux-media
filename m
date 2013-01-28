@@ -1,48 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:63428 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752090Ab3ABMBj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jan 2013 07:01:39 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH] davinci: dm355: Fix uninitialized variable compiler warnings
-Date: Wed,  2 Jan 2013 17:23:49 +0530
-Message-Id: <1357127630-8167-1-git-send-email-prabhakar.lad@ti.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2332 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab3A1KK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 05:10:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH 4/7] saa7134: v4l2-compliance: return real frequency
+Date: Mon, 28 Jan 2013 11:10:45 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-5-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-5-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301281110.45990.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/platform/davinci/dm355_ccdc.c:593:9: warning: ‘val1’ may be
-used uninitialized in this function [-Wuninitialized]
-drivers/media/platform/davinci/dm355_ccdc.c:560:6: note: ‘val1’ was declared here
+On Sun January 27 2013 20:45:09 Ondrej Zary wrote:
+> Make saa7134 driver more V4L2 compliant: don't cache frequency in
+> s_frequency/g_frequency but return real one instead
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-This is a false positive but the compiler has no way to know about it,
-so initialize the variable to 0.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
----
- drivers/media/platform/davinci/dm355_ccdc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
-index ce0e413..3c28aaa 100644
---- a/drivers/media/platform/davinci/dm355_ccdc.c
-+++ b/drivers/media/platform/davinci/dm355_ccdc.c
-@@ -557,7 +557,7 @@ static int ccdc_config_vdfc(struct ccdc_vertical_dft *dfc)
-  */
- static void ccdc_config_csc(struct ccdc_csc *csc)
- {
--	u32 val1, val2;
-+	u32 val1 = 0, val2;
- 	int i;
- 
- 	if (!csc->enable)
--- 
-1.7.4.1
-
+> ---
+>  drivers/media/pci/saa7134/saa7134-video.c |    6 ++++--
+>  drivers/media/pci/saa7134/saa7134.h       |    1 -
+>  2 files changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index be745c0..87b2b9e 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -2048,8 +2048,11 @@ static int saa7134_g_frequency(struct file *file, void *priv,
+>  	struct saa7134_fh *fh = priv;
+>  	struct saa7134_dev *dev = fh->dev;
+>  
+> +	if (0 != f->tuner)
+> +		return -EINVAL;
+> +
+>  	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+> -	f->frequency = dev->ctl_freq;
+> +	saa_call_all(dev, tuner, g_frequency, f);
+>  
+>  	return 0;
+>  }
+> @@ -2067,7 +2070,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
+>  	if (1 == fh->radio && V4L2_TUNER_RADIO != f->type)
+>  		return -EINVAL;
+>  	mutex_lock(&dev->lock);
+> -	dev->ctl_freq = f->frequency;
+>  
+>  	saa_call_all(dev, tuner, s_frequency, f);
+>  
+> diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+> index 2ffe069..d0ee05e 100644
+> --- a/drivers/media/pci/saa7134/saa7134.h
+> +++ b/drivers/media/pci/saa7134/saa7134.h
+> @@ -604,7 +604,6 @@ struct saa7134_dev {
+>  	int                        ctl_contrast;
+>  	int                        ctl_hue;
+>  	int                        ctl_saturation;
+> -	int                        ctl_freq;
+>  	int                        ctl_mute;             /* audio */
+>  	int                        ctl_volume;
+>  	int                        ctl_invert;           /* private */
+> 
