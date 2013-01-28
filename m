@@ -1,71 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:35710 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab3ACQjo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 11:39:44 -0500
-Received: by mail-pb0-f52.google.com with SMTP id ro2so8662082pbb.39
-        for <linux-media@vger.kernel.org>; Thu, 03 Jan 2013 08:39:43 -0800 (PST)
-Date: Thu, 3 Jan 2013 08:39:50 -0800
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Bill Pemberton <wfp5p@virginia.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 133/493] remove use of __devexit_p
-Message-ID: <20130103163950.GA2350@kroah.com>
-References: <1353349642-3677-1-git-send-email-wfp5p@virginia.edu>
- <1353349642-3677-133-git-send-email-wfp5p@virginia.edu>
- <Pine.LNX.4.64.1301031235370.17494@axis700.grange>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43050 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927Ab3A1XlR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 18:41:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH 1/1] v4l: Document timestamp behaviour to correspond to reality
+Date: Tue, 29 Jan 2013 00:41:19 +0100
+Message-ID: <1526397.gXtUumoOUz@avalon>
+In-Reply-To: <20130128230220.GI18639@valkosipuli.retiisi.org.uk>
+References: <1359137009-23921-1-git-send-email-sakari.ailus@iki.fi> <3003277.ZHAgxXzzuq@avalon> <20130128230220.GI18639@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1301031235370.17494@axis700.grange>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 03, 2013 at 12:43:10PM +0100, Guennadi Liakhovetski wrote:
-> Hi Bill
-> 
-> On Mon, 19 Nov 2012, Bill Pemberton wrote:
-> 
-> > CONFIG_HOTPLUG is going away as an option so __devexit_p is no longer
-> > needed.
-> 
-> Doesn't this also make the use of __refdata in many locations like this
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> > index 0528650..0d0344a 100644
-> > --- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> > +++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> > @@ -382,7 +382,7 @@ static __devexit int sh_csi2_remove(struct platform_device *pdev)
-> >  }
-> >  
-> >  static struct platform_driver __refdata sh_csi2_pdrv = {
-> > -	.remove	= __devexit_p(sh_csi2_remove),
-> > +	.remove	= sh_csi2_remove,
-> >  	.probe	= sh_csi2_probe,
-> >  	.driver	= {
-> >  		.name	= "sh-mobile-csi2",
-> 
-> superfluous? If so, I'm sure you'd be happy to make a couple more patches 
-> to continue this series ;-)
+Hi Sakari,
 
-Yes, it does make it superfluous.  I'm still working on getting most of
-the original patches into Linus's tree, so let's wait for that to happen
-first before cleaning up the reset of these :)
+On Tuesday 29 January 2013 01:02:20 Sakari Ailus wrote:
+> On Mon, Jan 28, 2013 at 08:56:21PM +0100, Laurent Pinchart wrote:
+> > On Monday 28 January 2013 10:55:14 Hans Verkuil wrote:
+> > > On Fri January 25 2013 19:03:29 Sakari Ailus wrote:
+> > > > Document that monotonic timestamps are taken after the corresponding
+> > > > frame has been received, not when the reception has begun. This
+> > > > corresponds to the reality of current drivers: the timestamp is
+> > > > naturally taken when the hardware triggers an interrupt to tell the
+> > > > driver to handle the received frame.
+> > > > 
+> > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > > ---
+> > > > 
+> > > >  Documentation/DocBook/media/v4l/io.xml |   27
+> > > >  ++++++++++++++-------------
+> > > >  1 files changed, 14 insertions(+), 13 deletions(-)
+> > > > 
+> > > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > > b/Documentation/DocBook/media/v4l/io.xml index 2c4646d..3b8bf61 100644
+> > > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > > > @@ -654,19 +654,20 @@ plane, are stored in struct
+> > > > <structname>v4l2_plane</structname> instead.>
+> > > > 
+> > > >  In that case, struct <structname>v4l2_buffer</structname> contains an
+> > > >  array of plane structures.</para>
+> > > > 
+> > > > -      <para>Nominally timestamps refer to the first data byte
+> > > > transmitted.
+> > > > -In practice however the wide range of hardware covered by the V4L2
+> > > > API
+> > > > -limits timestamp accuracy. Often an interrupt routine will
+> > > > -sample the system clock shortly after the field or frame was stored
+> > > > -completely in memory. So applications must expect a constant
+> > > > -difference up to one field or frame period plus a small (few scan
+> > > > -lines) random error. The delay and error can be much
+> > > > -larger due to compression or transmission over an external bus when
+> > > > -the frames are not properly stamped by the sender. This is frequently
+> > > > -the case with USB cameras. Here timestamps refer to the instant the
+> > > > -field or frame was received by the driver, not the capture time.
+> > > > These
+> > > > -devices identify by not enumerating any video standards, see <xref
+> > > > -linkend="standard" />.</para>
+> > > > +      <para>On timestamp types that are sampled from the system clock
+> > > > +(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the
+> > > > timestamp
+> > > > +is taken after the complete frame has been received.
+> > > 
+> > > add: " (or transmitted for video output devices)"
+> > 
+> > The uvcvideo driver currently uses monotonic timestamps corresponding to
+> > the start of the frame :-)
+> 
+> Ah, I had almost forgotten this! :-) What would you think about changing it?
+> :-) I guess uvc is a little special since it receives packets, not frames.
 
-thanks,
+The driver used to timestamp frames when it received the last packet. It now 
+uses the hardware timestamps, sampled by the device when the frame is 
+captured, and translates it to the monotonic clock.
 
-greg k-h
+The translation should ideally be performed in userspace, with the driver 
+exporting hardware timestamps, but until this gets implemented I don't want to 
+remove support for translating the hardware timestamps from the driver.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
