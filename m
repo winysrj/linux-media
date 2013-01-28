@@ -1,58 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:52213 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871Ab3A2Rhk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 12:37:40 -0500
-Received: by mail-ee0-f41.google.com with SMTP id c13so389757eek.28
-        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 09:37:39 -0800 (PST)
-Message-ID: <5108090D.7080804@googlemail.com>
-Date: Tue, 29 Jan 2013 18:38:21 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW PATCH 11/12] em28xx: make ioctl VIDIOC_DBG_G_CHIP_IDENT
- available for radio devices
-References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com> <1359134822-4585-12-git-send-email-fschaefer.oss@googlemail.com> <201301281100.55798.hverkuil@xs4all.nl>
-In-Reply-To: <201301281100.55798.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp209.alice.it ([82.57.200.105]:59795 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751895Ab3A1MWO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 07:22:14 -0500
+Date: Mon, 28 Jan 2013 13:22:10 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Michael Trimarchi <michael@amarulasolutions.com>,
+	linux-omap@vger.kernel.org
+Subject: On MIPI-CSI2 YUV420 formats and V4L2 Media Bus formats
+Message-Id: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.01.2013 11:00, schrieb Hans Verkuil:
-> On Fri January 25 2013 18:27:01 Frank Schäfer wrote:
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-video.c |    1 +
->>  1 Datei geändert, 1 Zeile hinzugefügt(+)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
->> index dd05cfb..e97b095 100644
->> --- a/drivers/media/usb/em28xx/em28xx-video.c
->> +++ b/drivers/media/usb/em28xx/em28xx-video.c
->> @@ -1695,6 +1695,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
->>  #ifdef CONFIG_VIDEO_ADV_DEBUG
->>  	.vidioc_g_register    = vidioc_g_register,
->>  	.vidioc_s_register    = vidioc_s_register,
->> +	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
->>  #endif
->>  };
->>  
->>
-> g_chip_ident can be moved out of ADV_DEBUG, both for video and radio devices.
+Hi,
 
-Yes it can but I wasn't sure if we really should change it.
-Anyway, with your vote for changing it, I will be glad to send a patch
-(it's an additional change and I don't need to send a V2 of the series
-then, which also makes life easier for Mauro).
+looking at the MIPI Alliance Specification for Camera Serial Interface
+2 (I'll call it MIPI-CSI2 from now on, the document I am referring to
+is mentioned at [1] and available at [2]), I see there is an YUV420 8
+bit format (MIPI Data Type 0x18) specified with interleaved components
+in the form of:
 
-Regards,
-Frank
+  YYYY...     (odd lines)
+  UYVYUYVY... (even lines)
 
-> Regards,
->
-> 	Hans
+With even lines twice the size of odd lines.
+Such format is also supported by some sensors, for instance ov5640, and
+by MIPI-CSI2 receivers like OMAP4 ISS.
 
+The doubt I have is: how should I represent those formats as media bus
+formats?
+
+I've seen that some drivers (sensors and SoC, for instance[3]) tend to
+identify the MIPI-CSI2 format above (0x18) with media bus formats like
+V4L2_MBUS_FMT_UYVY8_1_5X8 (actually the code above uses
+V4L2_MBUS_FMT_YUYV8_1_5X8 is this OK?), but from the v4l2 documentation
+[4] I understand that this format is supposed to have data in this
+configuration:
+
+  UUUU...
+  YYYY...
+  YYYY...
+  VVVV...
+  YYYY...
+  YYYY...
+
+That is with interleaved lines, but NOT interleaved components. Should
+new media bus formats be added for YYYY.../UYVYUYVY...?
+
+Another doubt I have is: how is the YYYY.../UYVYUYVY... data supposed
+to be processed in userspace? Is the MIPI Receiver (i.e, the SoC)
+expected to be able to convert it to a more usable format like YUV420P
+or NV12/NV21? Or are there applications capable of handling this data
+directly, or efficiently convert them to planar or semi-planar YUV420
+formats?
+
+In particular I am curios if the OMAP4 ISS can do the conversion to
+NV12, I understand that the formats with interleaved _lines_ can be
+produced by the resizer and handled by the OMAP ISP DMA-Engine by
+setting buffers offsets to Y and UV in order to send NV12 data to
+userspace, but I couldn't find info about how to handle the YUV420
+MIPI-CSI2 formats (interleaved components) without the resizer in the
+Developer Manual [5]; having NV12 data directly from the hardware
+without using the OMAP4 ISS/ISP Resizer can be valuable in some use
+cases (e.g. dual camera setups).
+
+Thanks,
+   Antonio
+
+[1] http://www.mipi.org/specifications/camera-interface#CSI2
+[2] http://ishare.sina.cn/dintro.php?id=20498632
+[3]
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=drivers/media/platform/soc_camera/sh_mobile_csi2.c;h=a17aba9a0104c41cbc4e5e5d277010ecac577600;hb=HEAD#l108
+[4]
+http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
+[5] http://www.ti.com/lit/ug/swpu235w/swpu235w.pdf 
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
