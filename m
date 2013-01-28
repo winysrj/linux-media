@@ -1,81 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:62239 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752514Ab3ATVPQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 16:15:16 -0500
-Received: by mail-ea0-f179.google.com with SMTP id d12so1368460eaa.10
-        for <linux-media@vger.kernel.org>; Sun, 20 Jan 2013 13:15:15 -0800 (PST)
-Message-ID: <50FC5E87.2080902@googlemail.com>
-Date: Sun, 20 Jan 2013 22:15:51 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: V4L2 spec / core questions
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from smtp209.alice.it ([82.57.200.105]:37237 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754309Ab3A1Vpk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 16:45:40 -0500
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ao2@amarulasolutions.com>,
+	linux-doc@vger.kernel.org,
+	Michael Trimarchi <michael@amarulasolutions.com>
+Subject: [PATCH 0/2] A couple documentation fixes for media stuff
+Date: Mon, 28 Jan 2013 22:45:30 +0100
+Message-Id: <1359409532-32088-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Antonio Ospite <ao2@amarulasolutions.com>
 
-I noticed that there's code in the v4l2 core that enables/disables
-ioctls and checks some of the parameters depending on the device type.
-While reading the code an comparing it to the V4L2 API document, some
-more questions came up:
+Take a look at the per-patch annotations too, please.
 
-1) Video devices with VBI functionality:
-The spec says: "To address the problems of finding related video and VBI
-devices VBI capturing and output is also available as device function
-under /dev/video".
-Is that still valid ? What about VBI "configuration" (e.g.
-VIDIOC_G/S/TRY_FMT for VBI formats) ?
-Looking into the v4l2 core code, it seems that the VBI buffer types
-(field "type" in struct v4l2_format) are only accepted, if the device is
-a VBI device.
+Thanks,
+   Antonio
 
-2) VIDIOC_G/S/TRY_FMT and VBI devices:
-The sepc says: "VBI devices must implement both the VIDIOC_G_FMT and
-VIDIOC_S_FMT ioctl, even if VIDIOC_S_FMT ignores all requests and always
-returns default parameters as VIDIOC_G_FMT does. VIDIOC_TRY_FMT is
-optional." What's the reason for this ? Is it still valid ?
+Antonio Ospite (2):
+  [media] Documentation/media-framework.txt: fix a sentence
+  [media] Documentation/DocBook/media/v4l/subdev-formats.xml: fix a
+    typo
 
-3) VIDIOC_S_TUNER: field "type" in struct v4l2_tuner
-Are radio tuners accessable through video devices (and the other way
-around) ?
-Has this field to be set by the application ? If yes: driver overwrites
-the value or returns with an error if the type doesn't match the tuner
-at the requested index ?
-I wonder if it would make sense to check the tuner type inside the v4l
-core (like the fmt/buffer type check for G/S_PARM).
+ Documentation/DocBook/media/v4l/subdev-formats.xml |    2 +-
+ Documentation/media-framework.txt                  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-4) VIDIOC_DBG_G_CHIP_IDENT:
-Is it part of CONFIG_VIDEO_ADV_DEBUG just like VIDIOC_DBG_G/S_REGISTER ?
-In determine_valid_ioctls(), it is placed outside the #ifdef
-CONFIG_VIDEO_ADV_DEBUG section.
-The spec says "Identify the chips on a TV card" but isn't it suitable
-for all device types (radio/video/vbi) ? determine_valid_ioctls() in
-v4l2-dev.c enables it for all devices.
+-- 
+Antonio Ospite
+http://ao2.it
 
-5) The buffer ioctls (VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS,
-VIDIOC_PREPARE_BUF, VIDIOC_QUERYBUF, VIDIOC_QBUF, VIDIOC_DQBUF) are not
-applicable to radio devices, right ?
-In function determine_valid_ioctls() in v4l2-dev.c they are enabled for
-all device types.
-
-6) VIDIOC_G/S_AUDIO: Shouldn't it be disabled in
-determine_valid_ioctls() for VBI devices ?
-
-Btw: function determine_valid_ioctls() in v4l2-dev.c is a good summary
-that explains which ioctls are suitable for which device types
-(radio/video/vbi).
-Converting its content into a table would be a great
-extension/clarifaction of the V4L2 API spec document !
-
-Thanks for your patience !
-
-Regards,
-Frank
-
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
