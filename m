@@ -1,142 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:64162 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757669Ab3AINmM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 08:42:12 -0500
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH RFC 3/3] ARM: da850/omap-l138: vpif capture convert to asynchronously register of subdev
-Date: Wed,  9 Jan 2013 19:11:27 +0530
-Message-Id: <1357738887-8701-4-git-send-email-prabhakar.lad@ti.com>
-In-Reply-To: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
-References: <1357738887-8701-1-git-send-email-prabhakar.lad@ti.com>
+Received: from mail-oa0-f50.google.com ([209.85.219.50]:38252 "EHLO
+	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756514Ab3A1O11 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 09:27:27 -0500
+Received: by mail-oa0-f50.google.com with SMTP id n16so2796917oag.37
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 06:27:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CALGqSbsA9fUCVcBf3F_r7O-CbLPnjj==voy5sZ8Nf8f1MLPT9w@mail.gmail.com>
+References: <CALGqSbsA9fUCVcBf3F_r7O-CbLPnjj==voy5sZ8Nf8f1MLPT9w@mail.gmail.com>
+Date: Mon, 28 Jan 2013 17:27:26 +0300
+Message-ID: <CALW4P+KS_ntnDW75Eoh979jRzpA=uRUTRH9FCWT13jgRK5bjTQ@mail.gmail.com>
+Subject: Re: HI
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Igor Stamatovski <stamatovski@gmail.com>
+Cc: linux-media@vger.kernel.org, Tobias Lorenz <tobias.lorenz@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register the tvp514x decoder devices directly in board platform
-data instead of letting the vpif capture driver register them at
-their run-time. This uses the V4L2 asynchronous subdevice probing capability.
+Hello Igor,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-davinci/board-da850-evm.c |   57 +++++++++++++++++++++++++++----
- 1 files changed, 50 insertions(+), 7 deletions(-)
+On Mon, Jan 28, 2013 at 3:14 AM, Igor Stamatovski <stamatovski@gmail.com> wrote:
+> Im trying to use ADS tech instantFM music USB card.
+>
+> dmesg reports this after machine reset (USB stays on machine)
+>
+> [    6.387624] USB radio driver for Si470x FM Radio Receivers, Version 1.0.10
+> [    6.930228] radio-si470x 1-1.2:1.2: DeviceID=0xffff ChipID=0xffff
+> [    7.172429] radio-si470x 1-1.2:1.2: software version 0, hardware version 7
+> [    7.355485] radio-si470x 1-1.2:1.2: This driver is known to work
+> with software version 7,
+> [    7.532554] radio-si470x 1-1.2:1.2: but the device has software version 0.
+> [    7.644091] radio-si470x 1-1.2:1.2: If you have some trouble using
+> this driver,
+> [    7.728735] radio-si470x 1-1.2:1.2: please report to V4L ML at
+> linux-media@vger.kernel.org
+> [    7.840415] usbcore: registered new interface driver radio-si470x
+> [    8.465398] usbcore: registered new interface driver snd-usb-audio
+>
+> i can note the deviceID and ChipID are not recognised but still some
+> modules load for the card...
+>
+> after reinsert same USB card reports this
+>
+> [  102.460158] usb 1-1.2: USB disconnect, device number 4
+> [  102.464721] radio-si470x 1-1.2:1.2: si470x_set_report:
+> usb_control_msg returned -19
+> [  106.535669] usb 1-1.2: new full-speed USB device number 6 using dwc_otg
+> [  106.638514] usb 1-1.2: New USB device found, idVendor=06e1, idProduct=a155
+> [  106.638545] usb 1-1.2: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [  106.638562] usb 1-1.2: Product: ADS InstantFM Music
+> [  106.638576] usb 1-1.2: Manufacturer: ADS TECH
+> [  106.644537] radio-si470x 1-1.2:1.2: DeviceID=0x1242 ChipID=0x0a0f
+> [  106.645257] radio-si470x 1-1.2:1.2: software version 0, hardware version 7
+> [  106.645288] radio-si470x 1-1.2:1.2: This driver is known to work
+> with software version 7,
+> [  106.645306] radio-si470x 1-1.2:1.2: but the device has software version 0.
+> [  106.645321] radio-si470x 1-1.2:1.2: If you have some trouble using
+> this driver,
+> [  106.645337] radio-si470x 1-1.2:1.2: please report to V4L ML at
+> linux-media@vger.kernel.org
+>
+> the radio can scan local radios and create config file with the radio
+> application.
+> using arecord piped to aplay does nothing.
 
-diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
-index 0299915..089c127 100644
---- a/arch/arm/mach-davinci/board-da850-evm.c
-+++ b/arch/arm/mach-davinci/board-da850-evm.c
-@@ -49,6 +49,7 @@
- 
- #include <media/tvp514x.h>
- #include <media/adv7343.h>
-+#include <media/v4l2-async.h>
- 
- #define DA850_EVM_PHY_ID		"davinci_mdio-0:00"
- #define DA850_LCD_PWR_PIN		GPIO_TO_PIN(2, 8)
-@@ -732,6 +733,12 @@ static struct pca953x_platform_data da850_evm_bb_expander_info = {
- 	.names		= da850_evm_bb_exp,
- };
- 
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+		.clk_polarity = 0,
-+		.hs_polarity  = 1,
-+		.vs_polarity  = 1,
-+};
-+
- static struct i2c_board_info __initdata da850_evm_i2c_devices[] = {
- 	{
- 		I2C_BOARD_INFO("tlv320aic3x", 0x18),
-@@ -744,6 +751,14 @@ static struct i2c_board_info __initdata da850_evm_i2c_devices[] = {
- 		I2C_BOARD_INFO("tca6416", 0x21),
- 		.platform_data = &da850_evm_bb_expander_info,
- 	},
-+	{
-+		I2C_BOARD_INFO("tvp5146", 0x5c),
-+		.platform_data = &tvp5146_pdata,
-+	},	{
-+		I2C_BOARD_INFO("tvp5146", 0x5d),
-+		.platform_data = &tvp5146_pdata,
-+	},
-+
- };
- 
- static struct davinci_i2c_platform_data da850_evm_i2c_0_pdata = {
-@@ -1170,15 +1185,10 @@ static __init int da850_evm_init_cpufreq(void) { return 0; }
- 
- #if defined(CONFIG_DA850_UI_SD_VIDEO_PORT)
- 
--#define TVP5147_CH0		"tvp514x-0"
--#define TVP5147_CH1		"tvp514x-1"
-+#define TVP5147_CH0		"tvp514x 1-005d"
-+#define TVP5147_CH1		"tvp514x 1-005c"
- 
- /* VPIF capture configuration */
--static struct tvp514x_platform_data tvp5146_pdata = {
--		.clk_polarity = 0,
--		.hs_polarity  = 1,
--		.vs_polarity  = 1,
--};
- 
- #define TVP514X_STD_ALL (V4L2_STD_NTSC | V4L2_STD_PAL)
- 
-@@ -1229,6 +1239,37 @@ static struct vpif_subdev_info da850_vpif_capture_sdev_info[] = {
- 	},
- };
- 
-+static struct v4l2_async_subdev tvp1_sd = {
-+	.hw = {
-+		.bus_type = V4L2_ASYNC_BUS_I2C,
-+		.match.i2c = {
-+			.adapter_id = 1,
-+			.address = 0x5c,
-+		},
-+	},
-+};
-+
-+static struct v4l2_async_subdev tvp2_sd = {
-+	.hw = {
-+		.bus_type = V4L2_ASYNC_BUS_I2C,
-+		.match.i2c = {
-+			.adapter_id = 1,
-+			.address = 0x5d,
-+		},
-+	},
-+};
-+
-+static struct v4l2_async_subdev *vpif_capture_async_subdevs[] = {
-+	/* Single 2-element group */
-+	&tvp1_sd,
-+	&tvp2_sd,
-+};
-+
-+static int vpif_capture_async_subdev_sizes[] = {
-+	ARRAY_SIZE(vpif_capture_async_subdevs),
-+	0,
-+};
-+
- static struct vpif_capture_config da850_vpif_capture_config = {
- 	.subdev_info = da850_vpif_capture_sdev_info,
- 	.subdev_count = ARRAY_SIZE(da850_vpif_capture_sdev_info),
-@@ -1253,6 +1294,8 @@ static struct vpif_capture_config da850_vpif_capture_config = {
- 		},
- 	},
- 	.card_name = "DA850/OMAP-L138 Video Capture",
-+	.asd = vpif_capture_async_subdevs,
-+	.asd_sizes = vpif_capture_async_subdev_sizes,
- };
- 
- /* VPIF display configuration */
+Could you please give more details here? How do you scan local radios
+and create config file? May i miss some information and this driver
+can create config file by itself.
+
+Could you please try other ways to catch sound using
+Documentation/video4linux/si470x.txt file ?
+There are also few possible ways described in this file:
+
+[quote]
+Audio Listing
+=============
+USB Audio is provided by the ALSA snd_usb_audio module. It is recommended to
+also select SND_USB_AUDIO, as this is required to get sound from the radio. For
+listing you have to redirect the sound, for example using one of the following
+commands. Please adjust the audio devices to your needs (/dev/dsp* and hw:x,x).
+
+If you just want to test audio (very poor quality):
+cat /dev/dsp1 > /dev/dsp
+
+If you use OSS try:
+sox -2 --endian little -r 96000 -t oss /dev/dsp1 -t oss /dev/dsp
+
+If you use arts try:
+arecord -D hw:1,0 -r96000 -c2 -f S16_LE | artsdsp aplay -B -
+
+If you use mplayer try:
+mplayer -radio adevice=hw=1.0:arate=96000 \
+        -rawaudio rate=96000 \
+        radio://<frequency>/capture
+
+[/quote]
+
+> i wanted to know how do i update software version 0 to software
+> version 7 and try this driver?
+
+I don't know much about such update. May be doc file can be checked
+for this also and i added Tobias (author) in c/c.
+
 -- 
-1.7.4.1
-
+Best regards, Klimov Alexey
