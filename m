@@ -1,217 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:47330 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142Ab3AFUcF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jan 2013 15:32:05 -0500
-Received: by mail-bk0-f51.google.com with SMTP id ik5so8121143bkc.10
-        for <linux-media@vger.kernel.org>; Sun, 06 Jan 2013 12:32:04 -0800 (PST)
-Message-ID: <50E9DF5F.8070802@googlemail.com>
-Date: Sun, 06 Jan 2013 21:32:31 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:47902 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753892Ab3A1RLI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 12:11:08 -0500
+Received: by mail-ve0-f180.google.com with SMTP id jx10so591651veb.39
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 09:11:07 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 6/6] ir-kbd-i2c: fix get_key_knc1()
-References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com> <1356649368-5426-7-git-send-email-fschaefer.oss@googlemail.com> <20130105003950.5463ee70@redhat.com> <50E82B6E.3090609@googlemail.com> <20130105132548.7ad6d0aa@redhat.com>
-In-Reply-To: <20130105132548.7ad6d0aa@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOw6vbL0yOtMsap_xAWjK04SSuusWce7s-ybq92SVGS1Ejudsg@mail.gmail.com>
+References: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
+ <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org> <CAOw6vbL0yOtMsap_xAWjK04SSuusWce7s-ybq92SVGS1Ejudsg@mail.gmail.com>
+From: Leela Krishna Amudala <l.krishna@samsung.com>
+Date: Mon, 28 Jan 2013 22:32:57 +0530
+Message-ID: <CAL1wa8fYYDrWi38cx1RJBsPGxRNiKbm5VR2XtycB9p6aSgCssg@mail.gmail.com>
+Subject: Re: [PATCH] video: drm: exynos: Adds display-timing node parsing
+ using video helper function
+To: Sean Paul <seanpaul@chromium.org>
+Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
+	"kgene.kim" <kgene.kim@samsung.com>, s.trumtrar@pengutronix.de,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.01.2013 16:25, schrieb Mauro Carvalho Chehab:
-> Em Sat, 05 Jan 2013 14:32:30 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+On Mon, Jan 28, 2013 at 9:24 PM, Sean Paul <seanpaul@chromium.org> wrote:
 >
->> Am 05.01.2013 03:39, schrieb Mauro Carvalho Chehab:
->>> Em Fri, 28 Dec 2012 00:02:48 +0100
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>
->>>> - return valid key code when button is hold
->>>> - debug: print key code only when a button is pressed
->>>>
->>>> Tested with device "Terratec Cinergy 200 USB" (em28xx).
->>>>
->>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>> ---
->>>>  drivers/media/i2c/ir-kbd-i2c.c |   15 +++++----------
->>>>  1 Datei geändert, 5 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
->>>>
->>>> diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
->>>> index 08ae067..2984b7d 100644
->>>> --- a/drivers/media/i2c/ir-kbd-i2c.c
->>>> +++ b/drivers/media/i2c/ir-kbd-i2c.c
->>>> @@ -184,18 +184,13 @@ static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->>>>  		return -EIO;
->>>>  	}
->>>>  
->>>> -	/* it seems that 0xFE indicates that a button is still hold
->>>> -	   down, while 0xff indicates that no button is hold
->>>> -	   down. 0xfe sequences are sometimes interrupted by 0xFF */
->>>> -
->>>> -	dprintk(2,"key %02x\n", b);
->>>> -
->>>> -	if (b == 0xff)
->>>> +	if (b == 0xff) /* no button */
->>>>  		return 0;
->>>>  
->>>> -	if (b == 0xfe)
->>>> -		/* keep old data */
->>>> -		return 1;
->>>> +	if (b == 0xfe) /* button is still hold */
->>>> +		b = ir->rc->last_scancode; /* keep old data */
->>>> +
->>>> +	dprintk(2,"key %02x\n", b);
->>>>  
->>>>  	*ir_key = b;
->>>>  	*ir_raw = b;
->>> Don't do that. This piece of code is old, and it was added there 
->>> before the em28xx driver. Originally, the ir-i2c-kbd were used by
->>> bttv and saa7134 drivers and the code there were auto-detecting the
->>> I2C IR hardware decoding chips that used to be very common on media
->>> devices. I'm almost sure that the original device that started using
->>> this code is this model:
->>>
->>> drivers/media/pci/bt8xx/bttv-cards.c:             .name           = "Typhoon TView RDS + FM Stereo / KNC1 TV Station RDS",
->>>
->>> That's why it is called as KNC1, but there are other cards that use
->>> it as well. I think I have one bttv using it. Not sure.
->>>
->>> The routine on em28xx is a fork of the original one, that was changed
->>> to work with the devices there.
->> Indeed, it's a fork, 100% identical:
->>
->>
->> static int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32
->> *ir_raw)
->> {
->>     unsigned char b;
->>
->>     /* poll IR chip */
->>     if (1 != i2c_master_recv(ir->c, &b, 1)) {
->>         i2cdprintk("read error\n");
->>         return -EIO;
->>     }
->>
->>     /* it seems that 0xFE indicates that a button is still hold
->>        down, while 0xff indicates that no button is hold
->>        down. 0xfe sequences are sometimes interrupted by 0xFF */
->>
->>     i2cdprintk("key %02x\n", b);
->>
->>     if (b == 0xff)
->>         return 0;
->>
->>     if (b == 0xfe)
->>         /* keep old data */
->>         return 1;
->>
->>     *ir_key = b;
->>     *ir_raw = b;
->>     return 1;
->> }
->>
->>
->>
->>
->> static int get_key_knc1(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->> {
->>     unsigned char b;
->>
->>     /* poll IR chip */
->>     if (1 != i2c_master_recv(ir->c, &b, 1)) {
->>         dprintk(1,"read error\n");
->>         return -EIO;
->>     }
->>
->>     /* it seems that 0xFE indicates that a button is still hold
->>        down, while 0xff indicates that no button is hold
->>        down. 0xfe sequences are sometimes interrupted by 0xFF */
->>
->>     dprintk(2,"key %02x\n", b);
->>
->>     if (b == 0xff)
->>         return 0;
->>
->>     if (b == 0xfe)
->>         /* keep old data */
->>         return 1;
->>
->>     *ir_key = b;
->>     *ir_raw = b;
->>     return 1;
->> }
->>
->>
->>
->> Why should we keep two 100% identical functions ? See patch 4/6.
->> I'm 99% sure that both devices are absolutely identical.
-> 99% sure is not enough. A simple firmware difference at the microprocessor
-> is enough to make the devices different.
-
-I agree, but that's irrelevant. What counts is that the _code_ ist 100%
-identical.
-
-> Also, this was widely discussed several years ago, when we decided to cleanup
-> the I2C code. We then invested lot of efforts to move those get_keys away
-> from ir-i2c-kbd. The only things left there are the ones we identified that
-> were needed by auto-detection mode on old devices that we don't have.
+> On Mon, Jan 28, 2013 at 12:45 AM, Vikas Sajjan <vikas.sajjan@linaro.org>
+> wrote:
+> > This patch adds display-timing node parsing using video helper function
+> >
+> > Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> > ---
+> >  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35
+> > ++++++++++++++++++++++++++++--
+> >  1 file changed, 33 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> > b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> > index bf0d9ba..975e7f7 100644
+> > --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> > +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> > @@ -19,6 +19,7 @@
+> >  #include <linux/clk.h>
+> >  #include <linux/of_device.h>
+> >  #include <linux/pm_runtime.h>
+> > +#include <linux/pinctrl/consumer.h>
+> >
+> >  #include <video/samsung_fimd.h>
+> >  #include <drm/exynos_drm.h>
+> > @@ -903,21 +904,51 @@ static int __devinit fimd_probe(struct
+> > platform_device *pdev)
+> >         struct device *dev = &pdev->dev;
+> >         struct fimd_context *ctx;
+> >         struct exynos_drm_subdrv *subdrv;
+> > -       struct exynos_drm_fimd_pdata *pdata;
+> > +       struct exynos_drm_fimd_pdata *pdata = pdev->dev.platform_data;
+> >         struct exynos_drm_panel_info *panel;
+> > +       struct fb_videomode *fbmode;
+> > +       struct device *disp_dev = &pdev->dev;
+> > +       struct pinctrl *pctrl;
+> >         struct resource *res;
+> >         int win;
+> >         int ret = -EINVAL;
+> >
+> >         DRM_DEBUG_KMS("%s\n", __FILE__);
+> >
+> > -       pdata = pdev->dev.platform_data;
+> > +       if (pdev->dev.of_node) {
+> > +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> > +               if (!pdata) {
+> > +                       dev_err(dev, "memory allocation for pdata
+> > failed\n");
+> > +                       return -ENOMEM;
+> > +               }
+> > +
+> > +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
+> > +               if (!fbmode) {
+> > +                       dev_err(dev, "memory allocation for fbmode
+> > failed\n");
 >
-> What was decided is to move everything that we know to the *-input driver,
-> keeping there only the legacy stuff.
-
-Uhm... ok.
-My assumption was, that the goal is the opposite (move as much common
-code as possible to i2c-ir-kbd).
-I'm a bit puzzled about this decision...
-
-Okay.... but then... why do we still use ir-kbd-i2c in em28xx ?
-We can easily get rid of it. Everything we need is already on board.
-
-I can send a patch if you want.
-
+> Why dev_err instead of DRM_ERROR?
 >
->> Concerning the fix I'm suggesting here:
->> First of all, I have to say that the Terratec RC works even without this
->> patch.
->> Nevertheless, I think the function should really return valid values for
->> ir_key and ir_raw when 0xfe=button hold is received. Especially because
->> the function succeeds.
->> This also allows us to make u32 ir_key, ir_raw in ir_key_poll() in
->> ir-kbd-i2c.c non-static.
->> While I agree that we should be careful, I can't see how this can cause
->> any trouble.
-> Ok, the net effect is the same, except that the current way is faster, as it
-> will skip some code that would simply put the value that it is already at
-> ir_key/ir_raw again.
 
-Faster... ok :) How much ? ;)
-I would say its ugly coding. And a potential source of a regression.
+Will change it to DRM_ERROR
 
-> As this polling code is known to cause performance loss on some machines,
-> the quickest, the best. Also, the better is to report long press events
-> on a different way, as the input core can handle those on a different way
-> (that's why there are there keyup/keydown kABI calls). A patch for better
-> handle rc=1 return code at ir-i2c-kbd is needed.
-
-Sounds good.
-
-> In any case, I don't see any need for patches 4/6 or 6/6.
+> > +                       return -ENOMEM;
+> > +               }
+> > +
+> > +               ret = of_get_fb_videomode(disp_dev->of_node, fbmode,
+> > -1);
+> > +               if (ret) {
+> > +                       dev_err(dev, "failed to get fb_videomode\n");
+> > +                       return -EINVAL;
+> > +               }
+> > +               pdata->panel.timing = (struct fb_videomode) *fbmode;
+> > +       }
+> > +
+> >         if (!pdata) {
 >
->> The second thing is the small fix for the key code debug output. Don't
->> you think it makes sense ?
-> Now that we have "ir-keycode -t", all those key/scancode printk's inside
-> the driver are pretty much useless, as both are reported as events.
+> This condition is kind of weird, in that it's really checking if
+> (!pdev->dev.of_node) implicitly (since you already check the
+> allocation of pdata above).
 >
-> In the past, when most of the RC code were written, those prints were
+Even I thought the same. But kept this check because If DT node is
+not available and driver still gets plat data from machine file then the
+if (pdev->dev.of_node){} block will be skipped and plat data should be checked.
 
-Then we should remove them.
-
-Regards,
-Frank
-
-> needed, as the scancode weren't reported to userspace.
+> Seems like you could make this more clear and save a level of
+> indentation by doing the following above:
 >
-> Regards,
-> Mauro
+> if (!pdev->dev.of_node) {
+>         DRM_ERROR("Device tree node was not found\n");
+>         return -EINVAL;
+> }
+>
+If I return -EINVAL here then this driver will become Full DT based one.
+and probe will be failed if DT node is not present.
 
+Will correct the if check and post the next version.
+
+/Leela Krishna Amudala
+> Then just get rid of this check and the one wrapping the allocations
+> above.
+>
+> Sean
+>
+> >                 dev_err(dev, "no platform data specified\n");
+> >                 return -EINVAL;
+> >         }
+> >
+> > +       pctrl = devm_pinctrl_get_select_default(dev);
+> > +       if (IS_ERR(pctrl)) {
+> > +               dev_err(dev, "no pinctrl data provided.\n");
+> > +               return -EINVAL;
+> > +       }
+> > +
+> >         panel = &pdata->panel;
+> > +
+> >         if (!panel) {
+> >                 dev_err(dev, "panel is null.\n");
+> >                 return -EINVAL;
+> > --
+> > 1.7.9.5
+> >
+> > _______________________________________________
+> > dri-devel mailing list
+> > dri-devel@lists.freedesktop.org
+> > http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
