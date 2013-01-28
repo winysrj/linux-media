@@ -1,67 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35215 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755118Ab3AOP0y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jan 2013 10:26:54 -0500
-Message-ID: <50F57519.5060402@iki.fi>
-Date: Tue, 15 Jan 2013 17:26:17 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2841 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009Ab3A1Khz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 05:37:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH 6/7] saa7134: v4l2-compliance: remove V4L2_IN_ST_NO_SYNC from enum_input
+Date: Mon, 28 Jan 2013 11:37:32 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-7-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-7-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com> <50F522AD.8000109@iki.fi> <20130115111041.6b78a935@redhat.com> <50F56C63.7010503@iki.fi>
-In-Reply-To: <50F56C63.7010503@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201301281137.32942.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2013 04:49 PM, Antti Palosaari wrote:
-> I am a little bit lazy to read all those patches, but I assume it is
-> possible:
-> * return SNR (CNR) as both dB and linear?
-> * return signal strength as both dBm and linear?
->
-> And what happens when when multiple statistics are queried, but fronted
-> cannot perform all those?
->
-> Lets say SS, SNR, BER, UCB are queried, but only SS and SNR are ready to
-> be returned, whilst rest are not possible? As I remember DVBv5 API is
-> broken by design and cannot return error code per request.
+On Sun January 27 2013 20:45:11 Ondrej Zary wrote:
+> Make saa7134 driver more V4L2 compliant: don't set bogus V4L2_IN_ST_NO_SYNC
+> flag in enum_input as it's for digital video only
 
-OK, I read that patch still. All these are OK as there is SCALE flag 
-used to inform if there is measurement or not available.
-No anymore question about these.
+I think there is a lot to be said for allowing this particular flag for analog
+as well.
 
-Issues what I still would like to raise now are:
+There are two types of flags here: flags relating the digital tuners (those
+should not be used) and flags relating to sync issues. V4L2_IN_ST_NO_SYNC
+is perfectly valid as a way to report sync problems.
 
-1) How about change unit from dB/10 to dB/100 or even dB/1000, just for 
-the sure?
+I think a better solution is to allow this flag and to reorganize the 'Input
+Status Flags' documentation:
 
-2) Counter are reset when DELIVERY SYSTEM is set, practically when 
-tuning attempt is done. There is new callback for that, but no API 
-command. Functionality is correct for my eyes, is that extra callback 
-needed?
+- rename the "Analog Video" header to "Video Sync"
+- rename the "Digital Video" header to "Digital Tuner (Deprecated)"
+- move V4L2_IN_ST_NO_SYNC to the "Video Sync" section
 
-3) Post-BER. I don't need it, but is there someone else who thinks there 
-should be both pre-BER and post-BER? IMHO, just better to leave it out 
-to keep it simple. In practice both pre-BER and post-BER are running 
-relatively, lets say if pre-BER shows number 1000 then post-BER shows 
-only 10. Or pre-BER 600, post-BER 6. Due to that, I don't see much 
-interest to return it for userspace. Of course someone would like to 
-know how much inner coder is working and fixing error bits and in that 
-case both BERs are nice...
+Basically you have a number of video sync states:
 
-4) Returning bit counts as BER and UCB means also driver should start 
-polling work in order to keep driver internal counters up to date. 
-Returning BER as rate is cheaper in that mean, as driver could make 
-decision how often to poll and in which condition (and return values 
-from cache). Keeping track of total bit counts means continuous polling!
+1) NO_POWER: the device is off
+2) NO_SIGNAL: the device is on, but there is no incoming signal
+3) NO_SYNC: there is a signal, but we can't sync at all
+4) NO_H_LOCK: there is a signal, we detect video lines, but we can't
+   get a horizontal sync
+5) NO_COLOR: there is no color signal at all
+6) COLOR_KILL: we see a color signal, but we can't lock to it.
 
+Note that not a single driver uses COLOR_KILL at the moment, but I know it
+can be used.
 
-regards
-Antti
+If you can think of a way of improving the documentation w.r.t. these sync
+status flags, then that would be great. Perhaps the table shouldn't be in
+the order of the value but in a more logical order.
 
--- 
-http://palosaari.fi/
+Regards,
+
+	Hans
+
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> ---
+>  drivers/media/pci/saa7134/saa7134-video.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index 0b42f0c..fff6735 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -1757,8 +1757,6 @@ static int saa7134_enum_input(struct file *file, void *priv,
+>  
+>  		if (0 != (v1 & 0x40))
+>  			i->status |= V4L2_IN_ST_NO_H_LOCK;
+> -		if (0 != (v2 & 0x40))
+> -			i->status |= V4L2_IN_ST_NO_SYNC;
+>  		if (0 != (v2 & 0x0e))
+>  			i->status |= V4L2_IN_ST_MACROVISION;
+>  	}
+> 
