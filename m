@@ -1,46 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1649 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769Ab3AaKcF (ORCPT
+Received: from szxga02-in.huawei.com ([119.145.14.65]:25177 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945Ab3A1LRo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 05:32:05 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Huang Shijie <shijie8@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 18/18] tlg2300: update MAINTAINERS file.
-Date: Thu, 31 Jan 2013 11:25:36 +0100
-Message-Id: <d11d12d2c03425fb24acc14b3573cf1b7c5239d3.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
-References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+	Mon, 28 Jan 2013 06:17:44 -0500
+Message-ID: <510659CD.4090400@huawei.com>
+Date: Mon, 28 Jan 2013 18:58:21 +0800
+From: Yijing Wang <wangyijing@huawei.com>
+MIME-Version: 1.0
+To: Chris Clayton <chris2553@googlemail.com>
+CC: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
+	Yijing Wang <wangyijing0307@gmail.com>,
+	<linux-media@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+	<linux-pci@vger.kernel.org>
+Subject: Re: 3.8.0-rc4+ - Oops on removing WinTV-HVR-1400 expresscard TV Tuner
+References: <51016937.1020202@googlemail.com> <510189B1.606@fold.natur.cuni.cz> <5104427D.2050002@googlemail.com> <510494D6.1010000@gmail.com> <51050D43.2050703@googlemail.com> <51051B1B.3080105@gmail.com> <51052DB2.4090702@googlemail.com> <51053917.6060400@fold.natur.cuni.cz> <5105491E.9050907@googlemail.com> <510558CE.9000600@fold.natur.cuni.cz> <5105AFDB.9000200@googlemail.com> <5105E51D.2020606@huawei.com> <51064F1A.1020909@googlemail.com>
+In-Reply-To: <51064F1A.1020909@googlemail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+>> Then use #modprobe pciehp pciehp_force=1 pciehp_debug=1 to load pciehp modules.
+>> After above actions, enter /sys/bus/pci_express/devices/ directory and /sys/bus/pci/slots/
+>> Some slots and pcie port devices should be there now.
+>>
+> Sorry, I've tried your suggestion, but the two directories are still empty.
+> 
+> I verified the test environment as follows:
+> 
+> [chris:~]$ uname -a
+> Linux laptop 3.7.4 #15 SMP PREEMPT Mon Jan 28 09:43:57 GMT 2013 i686 GNU/Linux
+> [chris:~]$ grep acpiphp /boot/System.map-3.7.4
+> [chris:~]$ modinfo acpiphp
+> modinfo: ERROR: Module acpiphp not found.
+> [chris:~]$ modinfo pciehp
+> filename:       /lib/modules/3.7.4/kernel/drivers/pci/hotplug/pciehp.ko
+> license:        GPL
+> description:    PCI Express Hot Plug Controller Driver
+> author:         Dan Zink <dan.zink@compaq.com>, Greg Kroah-Hartman <greg@kroah.com>, Dely Sy <dely.l.sy@intel.com>
+> depends:
+> intree:         Y
+> vermagic:       3.7.4 SMP preempt mod_unload CORE2
+> parm:           pciehp_detect_mode:Slot detection mode: pcie, acpi, auto
+>   pcie          - Use PCIe based slot detection
+>   acpi          - Use ACPI for slot detection
+>   auto(default) - Auto select mode. Use acpi option if duplicate
+>                   slot ids are found. Otherwise, use pcie option
+>  (charp)
+> parm:           pciehp_debug:Debugging mode enabled or not (bool)
+> parm:           pciehp_poll_mode:Using polling mechanism for hot-plug events or not (bool)
+> parm:           pciehp_poll_time:Polling mechanism frequency, in seconds (int)
+> parm:           pciehp_force:Force pciehp, even if OSHP is missing (bool)
+> [chris:~]$ cat /proc/cmdline
+> root=/dev/sda5 pciehp_ports=native ro resume=/dev/sda6
+> [chris:~]$ sudo modprobe pciehp pciehp_force=1 pciehp_debug=1
+> [chris:~]$ lsmod
+> Module                  Size  Used by
+> pciehp                 19907  0
+> [...]
+> 
+> You will notice that the kernel I have used is 3.7.4. I hope that's a suitable kernel for your tests. I've moved away from the 3.8 development kernel onto one that's stable and on which Martin has identified a solution. I see Greg KH released 3.7.5 yesterday and it includes a pciehp change. I'll upgrade to that, run the tests again and report back.
+> 
+> One question - should I include the (acpi) pci_slot driver in the kernel build or does pciehp populate the directories without pci_slot?
 
-Remove two maintainers: telegent.com no longer exists, so those email
-addresses are invalid as well.
+Hi Chris,
+   pci_slot driver is not necessary, I think empty directory under /sys/bus/pci_express/devices is the main problem,
+Because no pcie port devices found in the system, so pciehp driver can not bind any devices when loading it.
+Then no slot will created under /sys/bus/pci/devices/slots.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- MAINTAINERS |    2 --
- 1 file changed, 2 deletions(-)
+> 
+> Thanks again.
+> 
+>> /sys/bus/pci_express/devices:
+>> total 0
+>>
+>> /sys/bus/pci_express/drivers:
+>> total 0
+>> drwxr-xr-x 2 root root 0 Jan 27 13:17 pciehp/
+>>
+>>
+>> On 2013/1/28 6:53, Chris Clayton wrote:
+>>> Thanks again, Martin.
+>>>
+>>> Firstly, maybe we should remove the linux-media list from the copy list. I imagine this hotplug stuff is just noise to them.
+>>>
+>>> [snip]
+>>>> Do you have any other express card around to try if it works at all? Try that always after a cold boot.
+>>>>
+>>> Not at the moment, but I ordered at USB3 expresscard yesterday, so I will have one soon.
+>>>
+>>>> Posting a diff result of the below procedure might help:
+>>>>
+>>>> # lspci -vvvxxx > lspci.before_insertion.txt
+>>>>
+>>>> [plug your card into the slot]
+>>>>
+>>>> # lspci -vvvxxx > lspci.after_insertion.txt
+>>>>
+>>>> [ unplug your card]
+>>>>
+>>>> # lspci -vvvxxx > lspci.after_1st_removal.txt
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 975ba7c..00bb196 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6778,8 +6778,6 @@ F:	drivers/clocksource
- 
- TLG2300 VIDEO4LINUX-2 DRIVER
- M:	Huang Shijie <shijie8@gmail.com>
--M:	Kang Yong <kangyong@telegent.com>
--M:	Zhang Xiaobing <xbzhang@telegent.com>
- S:	Supported
- F:	drivers/media/usb/tlg2300
- 
+
+
 -- 
-1.7.10.4
+Thanks!
+Yijing
 
