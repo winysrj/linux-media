@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49173 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753426Ab3ACPpZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 10:45:25 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MG2001EF3RJLA20@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:24 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MG2002B73RD7GA0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 Jan 2013 00:45:24 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 3/5] s5p-fimc: Fix return value of
- __fimc_md_create_flite_source_links()
-Date: Thu, 03 Jan 2013 16:45:08 +0100
-Message-id: <1357227910-28870-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
-References: <1357227910-28870-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:49261 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755900Ab3A1OMI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 09:12:08 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 9/7] saa7134: v4l2-compliance: initialize VBI structure
+Date: Mon, 28 Jan 2013 15:11:53 +0100
+Cc: linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201301281511.53915.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure 'ret' is not used uninitialized.
+Make saa7134 driver more V4L2 compliant: clear VBI structure completely
+before assigning values to make sure any reserved space is cleared
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/saa7134/saa7134-video.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index e77dba7..41ddfee 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -594,7 +594,7 @@ static int __fimc_md_create_flite_source_links(struct fimc_md *fmd)
- {
- 	struct media_entity *source, *sink;
- 	unsigned int flags = MEDIA_LNK_FL_ENABLED;
--	int i, ret;
-+	int i, ret = 0;
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c 
+b/drivers/media/pci/saa7134/saa7134-video.c
+index 3e88041..adb83b5 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1552,6 +1552,7 @@ static int saa7134_try_get_set_fmt_vbi_cap(struct file 
+*file, void *priv,
+ 	struct saa7134_dev *dev = fh->dev;
+ 	struct saa7134_tvnorm *norm = dev->tvnorm;
  
- 	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
- 		struct fimc_lite *fimc = fmd->fimc_lite[i];
++	memset(&f->fmt.vbi, 0, sizeof(f->fmt.vbi));
+ 	f->fmt.vbi.sampling_rate = 6750000 * 4;
+ 	f->fmt.vbi.samples_per_line = 2048 /* VBI_LINE_LENGTH */;
+ 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
 -- 
-1.7.9.5
+Ondrej Zary
 
