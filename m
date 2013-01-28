@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25702 "EHLO mx1.redhat.com"
+Received: from mail-1.atlantis.sk ([80.94.52.57]:41271 "EHLO mail.atlantis.sk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750919Ab3AUUQQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 15:16:16 -0500
-Date: Mon, 21 Jan 2013 18:09:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mike Martin <mike@redtux.org.uk>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb-usb-it913x dissapeared kernel 3.7.2
-Message-ID: <20130121180932.6f6ca48b@redhat.com>
-In-Reply-To: <CAOwYNKaFPLbkJn5J5XL05+g73D1k333+JjLc1rcchFk9B599Aw@mail.gmail.com>
-References: <CAOwYNKaFPLbkJn5J5XL05+g73D1k333+JjLc1rcchFk9B599Aw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1754517Ab3A1OME (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 09:12:04 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 8/7] saa7134: v4l2-compliance: remove bogus g_parm
+Date: Mon, 28 Jan 2013 15:11:50 +0100
+Cc: linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201301281511.50411.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 21 Jan 2013 15:47:49 +0000
-Mike Martin <mike@redtux.org.uk> escreveu:
+Make saa7134 driver more V4L2 compliant: remove empty g_parm function
 
-> After updating the kernel on Fedora 18 module dvb-usb-it913x seems to
-> have dissapeared.
-> 
-> This has meant my dvb stick ( ID 1b80:e409 Afatech IT9137FN Dual DVB-T
-> [KWorld UB499-2T]) no longer works
-> 
-> Is this a Redhat only thing or is it upstream
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-See this bugzilla:
-	https://bugzilla.redhat.com/show_bug.cgi?id=895460
-
-Basically, DVB_USB_V2 wasn't selected. The kernel-3.7.2-204.fc18 should
-fix this issue.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c 
+b/drivers/media/pci/saa7134/saa7134-video.c
+index b63cdad..3e88041 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2232,12 +2232,6 @@ static int saa7134_streamoff(struct file *file, void 
+*priv,
+ 	return 0;
+ }
+ 
+-static int saa7134_g_parm(struct file *file, void *fh,
+-				struct v4l2_streamparm *parm)
+-{
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int vidioc_g_register (struct file *file, void *priv,
+ 			      struct v4l2_dbg_register *reg)
+@@ -2390,7 +2384,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_fbuf			= saa7134_g_fbuf,
+ 	.vidioc_s_fbuf			= saa7134_s_fbuf,
+ 	.vidioc_overlay			= saa7134_overlay,
+-	.vidioc_g_parm			= saa7134_g_parm,
+ 	.vidioc_g_frequency		= saa7134_g_frequency,
+ 	.vidioc_s_frequency		= saa7134_s_frequency,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
 -- 
+Ondrej Zary
 
-Cheers,
-Mauro
