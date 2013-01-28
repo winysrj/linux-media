@@ -1,31 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:38670 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752879Ab3APNfl (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2647 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009Ab3A1KiX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 08:35:41 -0500
-Date: Wed, 16 Jan 2013 16:35:45 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Volokh Konstantin <volokh84@gmail.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	mchehab@redhat.com, gregkh@linuxfoundation.org,
-	linux-kernel@vger.kernel.org, dhowells@redhat.com,
-	rdunlap@xenotime.net, hans.verkuil@cisco.com,
-	justinmattock@gmail.com
-Subject: Re: [PATCH 2/4] staging: media: go7007: firmware protection
- Protection for unfirmware load
-Message-ID: <20130116133545.GG4584@mwanda>
-References: <1358341251-10087-1-git-send-email-volokh84@gmail.com>
- <1358341251-10087-2-git-send-email-volokh84@gmail.com>
+	Mon, 28 Jan 2013 05:38:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH 7/7] saa7134: v4l2-compliance: remove bogus audio input support
+Date: Mon, 28 Jan 2013 11:38:13 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <1359315912-1767-8-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359315912-1767-8-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1358341251-10087-2-git-send-email-volokh84@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301281138.13838.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The problem is that the firmware was being unloaded on disconnect?
+On Sun January 27 2013 20:45:12 Ondrej Zary wrote:
+> Make saa7134 driver more V4L2 compliant: remove empty g_audio and s_audio
+> functions and don't set audioset in enum_input
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-regards,
-dan carpenter
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+> ---
+>  drivers/media/pci/saa7134/saa7134-video.c |   30 -----------------------------
+>  1 files changed, 0 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+> index fff6735..b63cdad 100644
+> --- a/drivers/media/pci/saa7134/saa7134-video.c
+> +++ b/drivers/media/pci/saa7134/saa7134-video.c
+> @@ -1750,7 +1750,6 @@ static int saa7134_enum_input(struct file *file, void *priv,
+>  	strcpy(i->name, card_in(dev, n).name);
+>  	if (card_in(dev, n).tv)
+>  		i->type = V4L2_INPUT_TYPE_TUNER;
+> -	i->audioset = 1;
+>  	if (n == dev->ctl_input) {
+>  		int v1 = saa_readb(SAA7134_STATUS_VIDEO1);
+>  		int v2 = saa_readb(SAA7134_STATUS_VIDEO2);
+> @@ -2079,17 +2078,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> -static int saa7134_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+> -{
+> -	strcpy(a->name, "audio");
+> -	return 0;
+> -}
+> -
+> -static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+> -{
+> -	return 0;
+> -}
+> -
+>  static int saa7134_enum_fmt_vid_cap(struct file *file, void  *priv,
+>  					struct v4l2_fmtdesc *f)
+>  {
+> @@ -2330,20 +2318,6 @@ static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
+>  	return 0;
+>  }
+>  
+> -static int radio_g_audio(struct file *file, void *priv,
+> -					struct v4l2_audio *a)
+> -{
+> -	memset(a, 0, sizeof(*a));
+> -	strcpy(a->name, "Radio");
+> -	return 0;
+> -}
+> -
+> -static int radio_s_audio(struct file *file, void *priv,
+> -					const struct v4l2_audio *a)
+> -{
+> -	return 0;
+> -}
+> -
+>  static int radio_s_input(struct file *filp, void *priv, unsigned int i)
+>  {
+>  	return 0;
+> @@ -2394,8 +2368,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+>  	.vidioc_g_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
+>  	.vidioc_try_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
+>  	.vidioc_s_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
+> -	.vidioc_g_audio			= saa7134_g_audio,
+> -	.vidioc_s_audio			= saa7134_s_audio,
+>  	.vidioc_cropcap			= saa7134_cropcap,
+>  	.vidioc_reqbufs			= saa7134_reqbufs,
+>  	.vidioc_querybuf		= saa7134_querybuf,
+> @@ -2440,9 +2412,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+>  	.vidioc_querycap	= saa7134_querycap,
+>  	.vidioc_g_tuner		= radio_g_tuner,
+>  	.vidioc_enum_input	= radio_enum_input,
+> -	.vidioc_g_audio		= radio_g_audio,
+>  	.vidioc_s_tuner		= radio_s_tuner,
+> -	.vidioc_s_audio		= radio_s_audio,
+>  	.vidioc_s_input		= radio_s_input,
+>  	.vidioc_s_std		= radio_s_std,
+>  	.vidioc_queryctrl	= radio_queryctrl,
+> 
