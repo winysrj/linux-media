@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52153 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753479Ab3AVP3T (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46130 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750978Ab3A1XCZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 10:29:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Adriano Martins <adrianomatosmartins@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: yavta - Broken pipe
-Date: Tue, 22 Jan 2013 16:31:04 +0100
-Message-ID: <2391937.KLGgbijk6r@avalon>
-In-Reply-To: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com>
-References: <CAJRKTVqnB6-8itbr3Cu-jnJo-zz3dYQeJ98sLnD-Eo9hvNS5iQ@mail.gmail.com>
+	Mon, 28 Jan 2013 18:02:25 -0500
+Date: Tue, 29 Jan 2013 01:02:20 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH 1/1] v4l: Document timestamp behaviour to correspond to
+ reality
+Message-ID: <20130128230220.GI18639@valkosipuli.retiisi.org.uk>
+References: <1359137009-23921-1-git-send-email-sakari.ailus@iki.fi>
+ <201301281055.14085.hverkuil@xs4all.nl>
+ <3003277.ZHAgxXzzuq@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3003277.ZHAgxXzzuq@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adriano,
+Hi Laurent,
 
-On Tuesday 22 January 2013 09:31:58 Adriano Martins wrote:
-> Hello Laurent and all.
+On Mon, Jan 28, 2013 at 08:56:21PM +0100, Laurent Pinchart wrote:
+> On Monday 28 January 2013 10:55:14 Hans Verkuil wrote:
+> > On Fri January 25 2013 19:03:29 Sakari Ailus wrote:
+> > > Document that monotonic timestamps are taken after the corresponding frame
+> > > has been received, not when the reception has begun. This corresponds to
+> > > the reality of current drivers: the timestamp is naturally taken when the
+> > > hardware triggers an interrupt to tell the driver to handle the received
+> > > frame.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  Documentation/DocBook/media/v4l/io.xml |   27 ++++++++++++++-------------
+> > >  1 files changed, 14 insertions(+), 13 deletions(-)
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > b/Documentation/DocBook/media/v4l/io.xml index 2c4646d..3b8bf61 100644
+> > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > > @@ -654,19 +654,20 @@ plane, are stored in struct
+> > > <structname>v4l2_plane</structname> instead.> 
+> > >  In that case, struct <structname>v4l2_buffer</structname> contains an
+> > >  array of plane structures.</para>
+> > > 
+> > > -      <para>Nominally timestamps refer to the first data byte
+> > > transmitted.
+> > > -In practice however the wide range of hardware covered by the V4L2 API
+> > > -limits timestamp accuracy. Often an interrupt routine will
+> > > -sample the system clock shortly after the field or frame was stored
+> > > -completely in memory. So applications must expect a constant
+> > > -difference up to one field or frame period plus a small (few scan
+> > > -lines) random error. The delay and error can be much
+> > > -larger due to compression or transmission over an external bus when
+> > > -the frames are not properly stamped by the sender. This is frequently
+> > > -the case with USB cameras. Here timestamps refer to the instant the
+> > > -field or frame was received by the driver, not the capture time. These
+> > > -devices identify by not enumerating any video standards, see <xref
+> > > -linkend="standard" />.</para>
+> > > +      <para>On timestamp types that are sampled from the system clock
+> > > +(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp
+> > > +is taken after the complete frame has been received.
+> > 
+> > add: " (or transmitted for video output devices)"
 > 
-> Can you explain me what means the message in yavta output:
-> 
-> "Unable to start streaming: Broken pipe (32)."
+> The uvcvideo driver currently uses monotonic timestamps corresponding to the 
+> start of the frame :-)
 
-This means that the ISP hardware pipeline hasn't been properly configured. 
-Unlike most V4L2 devices, the OMAP3 ISP requires userspace to configure the 
-hardware pipeline before starting the video stream. You can do so with the 
-media-ctl utility (available at http://git.ideasonboard.org/media-ctl.git). 
-Plenty of examples should be available online.
-
-> I'm using omap3isp driver on DM3730 processor and a ov5640 sensor. I
-> configured it as parallel mode, but I can't get data from /dev/video6
-> (OMAP3 ISP resizer output)
+Ah, I had almost forgotten this! :-) What would you think about changing it?
+:-) I guess uvc is a little special since it receives packets, not frames.
 
 -- 
-Regards,
+Cheers,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
