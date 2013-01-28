@@ -1,24 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2989 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750871Ab3A2VLY (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2934 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab3A1VLh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 16:11:24 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	Mon, 28 Jan 2013 16:11:37 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
 	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0TLBKfo063190
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0SLBX2Y095408
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:11:23 +0100 (CET)
+	for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 22:11:35 +0100 (CET)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (marune.xs4all.nl [80.101.105.217])
 	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 5BC0A11E00B8
-	for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:11:19 +0100 (CET)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 9A54511E00B7
+	for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 22:11:33 +0100 (CET)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130129211119.5BC0A11E00B8@alastor.dyndns.org>
-Date: Tue, 29 Jan 2013 22:11:19 +0100 (CET)
+Message-Id: <20130128211133.9A54511E00B7@alastor.dyndns.org>
+Date: Mon, 28 Jan 2013 22:11:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -27,7 +27,7 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Tue Jan 29 19:00:20 CET 2013
+date:		Mon Jan 28 19:00:21 CET 2013
 git branch:	for_v3.9
 git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
 gcc version:	i686-linux-gcc (GCC) 4.7.2
@@ -85,11 +85,11 @@ sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
