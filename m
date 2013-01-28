@@ -1,79 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60008 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751637Ab2LaUmR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 Dec 2012 15:42:17 -0500
-Date: Mon, 31 Dec 2012 18:41:46 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] blackfin Kconfig: select is evil; use, instead
- depends on
-Message-ID: <20121231184146.6d08156f@redhat.com>
-In-Reply-To: <CAHG8p1A2VS8iHsb3PxhVh_CV9bXoob6BXcRNUwLudTgkhPY1Pw@mail.gmail.com>
-References: <1356651129-19695-1-git-send-email-mchehab@redhat.com>
-	<CAHG8p1A2VS8iHsb3PxhVh_CV9bXoob6BXcRNUwLudTgkhPY1Pw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4627 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911Ab3A1KBO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 05:01:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [REVIEW PATCH 11/12] em28xx: make ioctl VIDIOC_DBG_G_CHIP_IDENT available for radio devices
+Date: Mon, 28 Jan 2013 11:00:55 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com> <1359134822-4585-12-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1359134822-4585-12-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201301281100.55798.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 31 Dec 2012 17:41:25 +0800
-Scott Jiang <scott.jiang.linux@gmail.com> escreveu:
-
-> 2012/12/28 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> > Select is evil as it has issues with dependencies. Better to convert
-> > it to use depends on.
-> >
-> > That fixes a breakage with out-of-tree compilation of the media
-> > tree.
-> >
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > ---
-> >  drivers/media/platform/blackfin/Kconfig | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
-> > index 519990e..cc23997 100644
-> > --- a/drivers/media/platform/blackfin/Kconfig
-> > +++ b/drivers/media/platform/blackfin/Kconfig
-> > @@ -2,7 +2,6 @@ config VIDEO_BLACKFIN_CAPTURE
-> >         tristate "Blackfin Video Capture Driver"
-> >         depends on VIDEO_V4L2 && BLACKFIN && I2C
-> >         select VIDEOBUF2_DMA_CONTIG
-> > -       select VIDEO_BLACKFIN_PPI
-> >         help
-> >           V4L2 bridge driver for Blackfin video capture device.
-> >           Choose PPI or EPPI as its interface.
-> > @@ -12,3 +11,5 @@ config VIDEO_BLACKFIN_CAPTURE
-> >
-> >  config VIDEO_BLACKFIN_PPI
-> >         tristate
-> > +       depends on VIDEO_BLACKFIN_CAPTURE
-> > +       default VIDEO_BLACKFIN_CAPTURE
-> > --
+On Fri January 25 2013 18:27:01 Frank Schäfer wrote:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-video.c |    1 +
+>  1 Datei geändert, 1 Zeile hinzugefügt(+)
 > 
-> There are other drivers select this module.
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index dd05cfb..e97b095 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -1695,6 +1695,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>  	.vidioc_g_register    = vidioc_g_register,
+>  	.vidioc_s_register    = vidioc_s_register,
+> +	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
+>  #endif
+>  };
+>  
 > 
-> config VIDEO_BLACKFIN_DISPLAY
->         tristate "Blackfin Video Display Driver"
->         depends on VIDEO_V4L2 && BLACKFIN && I2C
->         select VIDEOBUF2_DMA_CONTIG
->         select VIDEO_BLACKFIN_PPI
-> 
-> So should I move all other drivers to the depend on list?
 
-Hmm... I didn't notice.
+g_chip_ident can be moved out of ADV_DEBUG, both for video and radio devices.
 
-Yes, using depends on generally better, as it warrants that all
-dependencies are properly parsed.
+Regards,
 
-> 
-> Scott
-
-
--- 
-
-Cheers,
-Mauro
+	Hans
