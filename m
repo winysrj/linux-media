@@ -1,116 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:58210 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934032Ab3AIUyw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jan 2013 15:54:52 -0500
-Received: by mail-bk0-f49.google.com with SMTP id jm19so1188059bkc.22
-        for <linux-media@vger.kernel.org>; Wed, 09 Jan 2013 12:54:51 -0800 (PST)
-Message-ID: <50EDD939.9070202@googlemail.com>
-Date: Wed, 09 Jan 2013 21:55:21 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: mchehab@redhat.com
-CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com
-Subject: Re: [RFC PATCH] em28xx: fix analog streaming with USB bulk transfers
-References: <1357764731-4999-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1357764731-4999-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:42487 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436Ab3A1Fps (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 00:45:48 -0500
+Received: by mail-pa0-f42.google.com with SMTP id rl6so1310247pac.15
+        for <linux-media@vger.kernel.org>; Sun, 27 Jan 2013 21:45:48 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
+	l.krishna@samsung.com
+Subject: [PATCH] video: drm: exynos: Adds display-timing node parsing using video helper function
+Date: Mon, 28 Jan 2013 11:15:36 +0530
+Message-Id: <1359351936-20618-2-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1359351936-20618-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 09.01.2013 21:52, schrieb Frank Schäfer:
-> With the conversion to videobuf2, some unnecessary calls of
-> em28xx_set_alternate() have been removed. It is now called at analog streaming
-> start only.
-> This has unveiled a bug that causes USB bulk transfers to fail with all urbs
-> having status -EVOERFLOW.
-> The reason is, that for bulk transfers usb_set_interface() needs to be called
-> even if the previous alt setting was the same (side note: bulk transfers seem
-> to work only with alt=0).
-> While it seems to be NOT necessary for isoc transfers, it's reasonable to just
-> call usb_set_interface() unconditionally in em28xx_set_alternate().
-> Also add a comment that explains the issue to prevent regressions in the future.
+This patch adds display-timing node parsing using video helper function
 
-The problem is, that I would really like to understand why the old code
-was working...
-Maybe the reason is hidden somewhere in videobuf2 or it's a firmware
-issue or i'm just too tired at the moment.
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   35 ++++++++++++++++++++++++++++--
+ 1 file changed, 33 insertions(+), 2 deletions(-)
 
-Regards,
-Frank
-
-
-
->
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |   43 ++++++++++++++++----------------
->  1 Datei geändert, 22 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index 80f87bb..ce4f252 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -811,12 +811,12 @@ int em28xx_resolution_set(struct em28xx *dev)
->  /* Set USB alternate setting for analog video */
->  int em28xx_set_alternate(struct em28xx *dev)
->  {
-> -	int errCode, prev_alt = dev->alt;
-> +	int errCode;
->  	int i;
->  	unsigned int min_pkt_size = dev->width * 2 + 4;
->  
->  	/* NOTE: for isoc transfers, only alt settings > 0 are allowed
-> -		 for bulk transfers, use alt=0 as default value */
-> +		 bulk transfers seem to work only with alt=0 ! */
->  	dev->alt = 0;
->  	if ((alt > 0) && (alt < dev->num_alt)) {
->  		em28xx_coredbg("alternate forced to %d\n", dev->alt);
-> @@ -847,25 +847,26 @@ int em28xx_set_alternate(struct em28xx *dev)
->  	}
->  
->  set_alt:
-> -	if (dev->alt != prev_alt) {
-> -		if (dev->analog_xfer_bulk) {
-> -			dev->max_pkt_size = 512; /* USB 2.0 spec */
-> -			dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
-> -		} else { /* isoc */
-> -			em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
-> -				       min_pkt_size, dev->alt);
-> -			dev->max_pkt_size =
-> -					  dev->alt_max_pkt_size_isoc[dev->alt];
-> -			dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
-> -		}
-> -		em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
-> -			       dev->alt, dev->max_pkt_size);
-> -		errCode = usb_set_interface(dev->udev, 0, dev->alt);
-> -		if (errCode < 0) {
-> -			em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
-> -					dev->alt, errCode);
-> -			return errCode;
-> -		}
-> +	/* NOTE: for bulk transfers, we need to call usb_set_interface()
-> +	 * even if the previous settings were the same. Otherwise streaming
-> +	 * fails with all urbs having status = -EOVERFLOW ! */
-> +	if (dev->analog_xfer_bulk) {
-> +		dev->max_pkt_size = 512; /* USB 2.0 spec */
-> +		dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
-> +	} else { /* isoc */
-> +		em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
-> +			       min_pkt_size, dev->alt);
-> +		dev->max_pkt_size =
-> +				  dev->alt_max_pkt_size_isoc[dev->alt];
-> +		dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
-> +	}
-> +	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
-> +		       dev->alt, dev->max_pkt_size);
-> +	errCode = usb_set_interface(dev->udev, 0, dev->alt);
-> +	if (errCode < 0) {
-> +		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
-> +				dev->alt, errCode);
-> +		return errCode;
->  	}
->  	return 0;
->  }
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index bf0d9ba..975e7f7 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -19,6 +19,7 @@
+ #include <linux/clk.h>
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pinctrl/consumer.h>
+ 
+ #include <video/samsung_fimd.h>
+ #include <drm/exynos_drm.h>
+@@ -903,21 +904,51 @@ static int __devinit fimd_probe(struct platform_device *pdev)
+ 	struct device *dev = &pdev->dev;
+ 	struct fimd_context *ctx;
+ 	struct exynos_drm_subdrv *subdrv;
+-	struct exynos_drm_fimd_pdata *pdata;
++	struct exynos_drm_fimd_pdata *pdata = pdev->dev.platform_data;
+ 	struct exynos_drm_panel_info *panel;
++	struct fb_videomode *fbmode;
++	struct device *disp_dev = &pdev->dev;
++	struct pinctrl *pctrl;
+ 	struct resource *res;
+ 	int win;
+ 	int ret = -EINVAL;
+ 
+ 	DRM_DEBUG_KMS("%s\n", __FILE__);
+ 
+-	pdata = pdev->dev.platform_data;
++	if (pdev->dev.of_node) {
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			dev_err(dev, "memory allocation for pdata failed\n");
++			return -ENOMEM;
++		}
++
++		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
++		if (!fbmode) {
++			dev_err(dev, "memory allocation for fbmode failed\n");
++			return -ENOMEM;
++		}
++
++		ret = of_get_fb_videomode(disp_dev->of_node, fbmode, -1);
++		if (ret) {
++			dev_err(dev, "failed to get fb_videomode\n");
++			return -EINVAL;
++		}
++		pdata->panel.timing = (struct fb_videomode) *fbmode;
++	}
++
+ 	if (!pdata) {
+ 		dev_err(dev, "no platform data specified\n");
+ 		return -EINVAL;
+ 	}
+ 
++	pctrl = devm_pinctrl_get_select_default(dev);
++	if (IS_ERR(pctrl)) {
++		dev_err(dev, "no pinctrl data provided.\n");
++		return -EINVAL;
++	}
++
+ 	panel = &pdata->panel;
++
+ 	if (!panel) {
+ 		dev_err(dev, "panel is null.\n");
+ 		return -EINVAL;
+-- 
+1.7.9.5
 
