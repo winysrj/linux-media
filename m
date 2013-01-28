@@ -1,101 +1,407 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:36039 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755100Ab3AMNbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 08:31:01 -0500
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r0DDUvxf032498
-	for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 14:30:57 +0100
-Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r0DDUo4g019784
-	for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 14:30:51 +0100
-Message-ID: <50F2B70A.7070406@tvdr.de>
-Date: Sun, 13 Jan 2013 14:30:50 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Received: from imr-mb02.mx.aol.com ([64.12.207.163]:55581 "EHLO
+	imr-mb02.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155Ab3A1Uux (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jan 2013 15:50:53 -0500
+Message-ID: <5106E3EA.70307@netscape.net>
+Date: Mon, 28 Jan 2013 17:47:38 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties
- for Quality of Service
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <1718385.5pOCXcV7mc@f17simon> <CAGoCfiwwLwJkjZhEZP6-ek6cs6j51kNEDTC2LSmDnbimgX0KLQ@mail.gmail.com> <9912400.S8YXz1JbUM@f17simon>
-In-Reply-To: <9912400.S8YXz1JbUM@f17simon>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com>
+In-Reply-To: <20130128082354.607fae64@redhat.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09.01.2013 12:02, Simon Farnsworth wrote:
-> On Tuesday 8 January 2013 18:28:53 Devin Heitmueller wrote:
->> On Tue, Jan 8, 2013 at 6:18 PM, Simon Farnsworth
->> <simon.farnsworth@onelan.com> wrote:
->>> The wireless folk use dBm (reference point 1 milliwatt), as that's the
->>> reference point used in the 802.11 standard.
+Hi
+El 28/01/13 07:23, Mauro Carvalho Chehab escribió:
+> Em Sun, 27 Jan 2013 18:48:57 -0300
+> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
+>
+>> Hi
+>>
+>> El 27/01/13 13:16, Mauro Carvalho Chehab escribió:
+>>> Em Sun, 27 Jan 2013 12:27:21 -0300
+>>> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 >>>
->>> Perhaps we need an extra FE_SCALE constant; FE_SCALE_DECIBEL has no reference
->>> point (so suitable for carrier to noise etc, or for when the reference point
->>> is unknown), and FE_SCALE_DECIBEL_MILLIWATT for when the reference point is
->>> 1mW, so that frontends report in dBm?
+>>>> Hi all
+>>>>
+>>>> I'm trying to run the digital part of the card MyGica X8507 and I need
+>>>> help on some issues.
+>>>>
+>>>>
+>>>>
+>>>> Need data sheet of IC MB86A20S and no where to get it. Fujitsu People of
+>>>> Germany told me: "This is a very old product and not supported any
+>>>> more". Does anyone know where to get it?
+>>> I never found any public datasheet for this device.
+>> Congratulations for driver you have made
+> Thanks!
+>>>> linux-puon:/home/alfredo # modprobe cx23885 i2c_scan=1
+>>>>
+>>>> ...
+>>>>
+>>>> [ 7011.618381] cx23885[0]: scan bus 0:
+>>>>
+>>>> [ 7011.620759] cx23885[0]: i2c scan: found device @ 0x20 [???]
+>>>>
+>>>> [ 7011.625653] cx23885[0]: i2c scan: found device @ 0x66 [???]
+>>>>
+>>>> [ 7011.629702] cx23885[0]: i2c scan: found device @ 0xa0 [eeprom]
+>>>>
+>>>> [ 7011.629983] cx23885[0]: i2c scan: found device @ 0xa4 [???]
+>>>>
+>>>> [ 7011.630267] cx23885[0]: i2c scan: found device @ 0xa8 [???]
+>>>>
+>>>> [ 7011.630548] cx23885[0]: i2c scan: found device @ 0xac [???]
+>>>>
+>>>> [ 7011.636438] cx23885[0]: scan bus 1:
+>>>>
+>>>> [ 7011.650108] cx23885[0]: i2c scan: found device @ 0xc2
+>>>> [tuner/mt2131/tda8275/xc5000/xc3028]
+>>>>
+>>>> [ 7011.654460] cx23885[0]: scan bus 2:
+>>>>
+>>>> [ 7011.656434] cx23885[0]: i2c scan: found device @ 0x66 [???]
+>>>>
+>>>> [ 7011.657087] cx23885[0]: i2c scan: found device @ 0x88 [cx25837]
+>>>>
+>>>> [ 7011.657393] cx23885[0]: i2c scan: found device @ 0x98 [flatiron]
+>>>>
+>>>> ...
+>>>>
+>>>>
+>>>> In the bus 0 is demodulator mb86a20s 0x20 (0x10) and in the bus 1 the
+>>>> tuner (xc5000). I understand that would have to be cancel the mb86a20s
+>>>> i2c_gate_ctrl similarly as in the IC zl10353. If this is possible, is
+>>>> not yet implemented in the controller of mb86a20s. The IC cx23885 is
+>>>> always who controls the tuner i2c bus.
+>>> Well, if you don't add an i2c_gate_ctrl() callback, the mb86a20s won't
+>>> be calling it. So, IMO, the cleanest approach would simply to do:
 >>>
->>> Note that if the frontend internally uses a different reference point, the
->>> conversion is always going to be adding or subtracting a constant.
+>>> 	fe->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+>>>
+>>> after tuner attach, if the tuner or the bridge driver implements an i2c gate.
+>>> I don't think xc5000 does. The mb86a20s also has its own i2c gate and gpio
+>>> ports that might be used to control an external gate, but support for it is
+>>> currently not implemented, as no known device uses it.
+>> If in this way, it does not work:
 >>
->> Hi Simon,
+>>       case CX23885_BOARD_MYGICA_X8507:
+>>           i2c_bus = &dev->i2c_bus[0];
+>>           i2c_bus2 = &dev->i2c_bus[1];
+>>           fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
+>>               &mygica_x8507_mb86a20s_config,
+>>               &i2c_bus->i2c_adap);
+>>           if (fe0->dvb.frontend != NULL) {
+>>               dvb_attach(xc5000_attach,
+>>                   fe0->dvb.frontend,
+>>                   &i2c_bus2->i2c_adap,
+>>                   &mygica_x8507_xc5000_config);
+>>           fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+>> fe0->dvb.frontend->ops.tuner_ops.init(fe0->dvb.frontend);
 >>
->> Probably the biggest issue you're going to have is that very few of
->> the consumer-grade demodulators actually report data in that format.
->> And only a small subset of those actually provide the documentation in
->> their datasheet.
+>> I get:
 >>
-> <snip>
-> My specific concern is that we already see people complaining that their cable
-> system or aerial installer's meter comes up with one number, and our
-> documentation has completely different numbers. When we dig, this usually
-> turns out to be because our documentation is in dBm, while their installer is
-> using dBmV or dBµW, and no-one at the customer site knows the differences.
+>> ...dmesg
+>> ...
+>> [  964.105688] mb86a20s: mb86a20s_read_status: val = 2, status = 0x01
+>> [  964.105696] mb86a20s: mb86a20s_set_frontend:
+>> [  964.105700] mb86a20s: mb86a20s_set_frontend: Calling tuner set parameters
+> It seems that the driver is able to talk with mb86a20s and read the status
+> and version registers. If the xc5000 firmware got loaded, that means that
+> there's no issue with I2C.
 >
-> If consumer demods don't report in a dB scale at all, we should drop dB as a
-> unit; if they do report in a true dB scale, but the reference point is
-> normally not documented, we need some way to distinguish demods where the
-> reference point is unknown, and demods where someone has taken the time to
-> find the reference point (which can be done with a signal generator).
+> So, the issue is likely something else.
 >
-> This is sounding more and more like an argument for adding
-> FE_SCALE_DECIBEL_MILLIWATT - it gives those applications that care a way to
-> tell the user that the signal strength reading from the application should
-> match up to the signal strength reading on your installer's kit. Said
-> applications could even choose to do the conversions for you, giving you all
-> four commonly seen units (dBm, dBmV at 50Ω, dBmV at 75Ω, dBµW).
+>  From this:
 >
->> For that matter, even the SNR field being reported in dB isn't going
->> to allow you to reliably compare across different demodulator chips.
->> If demod X says 28.3 dB and demod Y says 29.2 dB, that doesn't
->> really mean demod Y performs better - just that it's reporting a
->> better number.  However it does allow you to compare the demod
->> against itself either across multiple frequencies or under different
->> signal conditions - which is what typical users really care about.
->
-> I'm not expecting people to compare across demods - I only care about the
-> case where a user has got in a professional installer to help with their
-> setup. The problem I want to avoid is a Linux application saying "-48 dB
-> signal strength, 15 dB CNR", and the installer's kit saying "60 dBuV signal
-> strength, 20 dB CNR", when we have enough information for the Linux
-> application to say "-48 dBm (60 dBuV at 75Ω), 15 dB CNR", cueing the
-> professional to remember that not all dB use the same reference point, and
-> from there into accepting that Linux is reporting a similar signal strength
-> and CNR to his kit.
->
-> This also has implications for things like VDR - if the scale is
-> FE_SCALE_DECIBEL but the measurement is absolute, the application probably
-> doesn't want to report the measurement as a dB measure, but as an arbitrary
-> scale; again, you don't want the application saying "50 dB", when the
-> professional installer tells you that you have "0 dBuV".
+>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+> mb86a20s_config.is_serial should be false (default).
 
-Actually VDR doesn't care about "dB", "dBuV", "dBuW" or whatever. All it wants
-to do is to display the signal strength and quality in a way that, as Devin stated
-so very appropriately, even an idiot can understand ;-)
-VDR displays a bar that goes from 0 ("no signal at all") to full extent ("perfect
-signal"). So for VDR any value range that can be linearly converted to a range
-between 0% and 100% would do just fine. The only important thing is that it is
-the *same* for all frontends! Ideally I would expect values in the range 0x0000
-thru 0xFFFF.
+static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
+     .demod_address = 0x10,
+};
 
-Klaus
+
+nothing of .is_serial
+
+>
+> Can you confirm if the XTAL at the side of mb86a20s is 32.57MHz?
+
+The exact value is 32.571MHz
+
+>
+> If the XTAL is the same and the device driver is set to parallel mode,
+> then we'll need to investigate other setups that happen during init time.
+>
+> There are a few places at the driver that you could play with.
+> For example, on this register set:
+> 	{ 0x09, 0x3e },
+>
+> You could try, instead of 0x3e, 0x1e, 0x1a or 0x3a.
+
+I tested with the three new values ​​and get nothing different
+
+>
+> However, I recommend you to sniff the PCI traffic, in order to be sure about
+> what this specific device does.
+
+For this I need a little more time to study and apply. In a few days it 
+I obtained commented
+
+>
+> When I was writing the driver for mb86a20s, I used this technique to
+> be sure about what it was needed to make one PCI card to work with it.
+> What I did then was to patch kvm to force it to emulate all DMA transfers,
+> writing a dump of all such transfers at the host kernel. Then, I ran some
+> parsing scripts to get the mb86a20s and tuner initialization. I made the
+> patches available at:
+>
+> 	http://git.linuxtv.org/v4l-utils.git/tree/HEAD:/contrib/pci_traffic
+>
+> I documented what it was needed to sniff the traffic at:
+> 	http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/pci_traffic/README
+>
+> The patches were made against the kvm version that were shipped with the
+> latest Fedora version that were available in Oct, 2010 (likely Fedora 13).
+> I'm not sure if they still apply on today's kvm.
+>
+> As you may expect, emulating all DMA transfers on a PCIe device is slow. So,
+> the VM may die or produce unexpected results. However, as the mb86a20s init
+> happens before the beginning of the video stream, you'll very likely be able
+> to get the needed dumps before the guest system crash.
+>
+> Once you get the dumps, you'll need to parse them, in order to filter just the
+> cx23885 I2C register reads/writes, and get only the data sent to mb86a20s.
+>
+> You'll find some examples of such patches at:
+> 	http://git.linuxtv.org/v4l-utils.git/tree/fd35e2fdc85fa6a9dcd45ce2dd7c322bcda6e93e:/contrib
+>
+> In the case of the PCI device I was sniffing, I used this parser:
+> 	http://git.linuxtv.org/v4l-utils.git/blob/fd35e2fdc85fa6a9dcd45ce2dd7c322bcda6e93e:/contrib/saa7134/parse_saa7134.pl
+>
+> That produces something like:
+>
+> write_i2c_addr(0x10, 3, { 0x70, 0x0f, 0x00});
+> write_i2c_addr(0x10, 3, { 0x70, 0xff, 0x00});
+> write_i2c_addr(0x10, 3, { 0x08, 0x01, 0x00});
+> write_i2c_addr(0x10, 3, { 0x09, 0x3e, 0x00});
+> write_i2c_addr(0x10, 3, { 0x50, 0xd1, 0x00});
+> write_i2c_addr(0x10, 3, { 0x51, 0x22, 0x00});
+> write_i2c_addr(0x10, 3, { 0x39, 0x01, 0x00});
+> write_i2c_addr(0x10, 3, { 0x71, 0x00, 0x00});
+> write_i2c_addr(0x10, 3, { 0x28, 0x2a, 0x00});
+> write_i2c_addr(0x10, 3, { 0x29, 0x00, 0x00});
+> write_i2c_addr(0x10, 3, { 0x2a, 0xff, 0x00});
+> write_i2c_addr(0x10, 3, { 0x2b, 0x80, 0x00});
+> write_i2c_addr(0x10, 3, { 0x28, 0x20, 0x00});
+> write_i2c_addr(0x10, 3, { 0x29, 0x33, 0x00});
+> write_i2c_addr(0x10, 3, { 0x2a, 0xdf, 0x00});
+> write_i2c_addr(0x10, 3, { 0x2b, 0xa9, 0x00});
+> write_i2c_addr(0x10, 3, { 0x3b, 0x21, 0x00});
+> write_i2c_addr(0x10, 3, { 0x3c, 0x3a, 0x00});
+> write_i2c_addr(0x10, 3, { 0x01, 0x0d, 0x00});
+> write_i2c_addr(0x10, 3, { 0x04, 0x08, 0x00});
+> write_i2c_addr(0x10, 3, { 0x05, 0x05, 0x00});
+> write_i2c_addr(0x10, 3, { 0x04, 0x0e, 0x00});
+> write_i2c_addr(0x10, 3, { 0x05, 0x00, 0x00});
+> ...
+>
+> By comparing it with the device init at mb86a20s, we can see if this
+> particular device is doing something different and improve the driver to
+> also handle your device.
+>
+>>
+>>
+>>> So, all you need is to attach both mb86a20s and xc5000 on it, and set the
+>>> proper GPIO's.
+>> I think I'm doing well
+>>
+>>       case CX23885_BOARD_MYGICA_X8506:
+>>       case CX23885_BOARD_MYGICA_X8507:
+>>       case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+>>           /* Select Digital TV */
+>>           cx23885_gpio_set(dev, GPIO_0);
+>>           break;
+>>
+>> X8508 and X8507 is the same card, just change the digital part.
+>>
+>> The driver for windows says:
+>>
+>> X8507 means X8502
+>> _________________________________________________________________________________________
+>> [X8502.AddReg]
+>>
+>> HKR,"DriverData","TunerModel",0x00010001, 0x03,0x00,0x00,0x00
+>>
+>> ;Enable TS capture and BDA filter registration
+>> HKR,"DriverData","Enable_BDA",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x02, 0x00, 0x00, 0x00
+>> HKR,"DriverData","DemodI2CAddress",0x00010001, 0x1E, 0x00, 0x00, 0x00
+>> ; this registry keys for the FixNMI option which takes care of the BSODs
+>> in the
+>> ; ICH6/7 chipsets
+>> HKR,"DriverData","FixNMIBit",0x00010001, 0x00,0x00,0x00,0x00
+>> ;IR Support
+>> HKR,"DriverData","EnableIR",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> ;NEC standard
+>> HKR,"DriverData","IRStandard",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> ; GPIO Pin values
+>> HKR,"DriverData","mode_select_gpio_bit", 0x00010001, 0x00, 0x00, 0x00, 0x00
+>> HKR,"DriverData","tuner_reset_gpio_bit", 0x00010001, 0x01, 0x00, 0x00, 0x00
+>> HKR,"DriverData","demod_reset_gpio_bit", 0x00010001, 0x02, 0x00, 0x00, 0x00
+>> HKR,"DriverData","tuner_sif_fm_gpio_bit",0x00010001, 0x03, 0x00, 0x00, 0x00
+>> HKR,"DriverData","comp_select_gpio_bit", 0x00010001, 0xff, 0x00, 0x00, 0x00
+> You need to double-check if all the above GPIO's are properly initialized.
+>
+> Again, the PCI traffic dump can help you to confirm if you should either set
+> or reset the above bits.
+>
+>> HKR,"DriverData","comp_select_panel",    0x00010001, 0xff, 0x00, 0x00, 0x00
+>>
+>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>
+>> ;BoardType Sonora353 = 0x03
+>> HKR,"DriverData","BoardType",0x00010001, 0x13, 0x00, 0x00, 0x00
+>> HKR,"DriverData","VideoStandard",0x00010001, 0x10,0x00,0x00,0x00
+>> ___________________________________________________________________________________
+>>
+>> [X8506.AddReg]
+>>
+>> HKR,"DriverData","TunerModel",0x00010001, 0x03,0x00,0x00,0x00
+>>
+>> ;Enable TS capture and BDA filter registration
+>> HKR,"DriverData","Enable_BDA",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> HKR,"DriverData","DemodI2CAddress",0x00010001, 0x1E, 0x00, 0x00, 0x00
+>> ; this registry keys for the FixNMI option which takes care of the BSODs
+>> in the
+>> ; ICH6/7 chipsets
+>> HKR,"DriverData","FixNMIBit",0x00010001, 0x00,0x00,0x00,0x00
+>> ;IR Support
+>> HKR,"DriverData","EnableIR",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> ;NEC standard
+>> HKR,"DriverData","IRStandard",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> ; GPIO Pin values
+>> HKR,"DriverData","mode_select_gpio_bit", 0x00010001, 0x00, 0x00, 0x00, 0x00
+>> HKR,"DriverData","tuner_reset_gpio_bit", 0x00010001, 0x01, 0x00, 0x00, 0x00
+>> HKR,"DriverData","demod_reset_gpio_bit", 0x00010001, 0x02, 0x00, 0x00, 0x00
+>> HKR,"DriverData","tuner_sif_fm_gpio_bit",0x00010001, 0x03, 0x00, 0x00, 0x00
+>> HKR,"DriverData","comp_select_gpio_bit", 0x00010001, 0xff, 0x00, 0x00, 0x00
+>> HKR,"DriverData","comp_select_panel",    0x00010001, 0xff, 0x00, 0x00, 0x00
+>>
+>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>
+>> ;BoardType Sonora353 = 0x03
+>> HKR,"DriverData","BoardType",0x00010001, 0x0e, 0x00, 0x00, 0x00
+>> HKR,"DriverData","VideoStandard",0x00010001, 0x10,0x00,0x00,0x00
+>> ______________________________________________________________________________________
+>>
+>>
+>> there is only change in:
+>>
+>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>
+>> and
+>>
+>> HKR,"DriverData","BoardType",0x00010001, 0x0e, 0x00, 0x00, 0x00
+> I see your point. Yeah, both devices look similar.
+>
+>>> It will call fe->ops.tuner_ops.set_params(fe) inside the set_frontend() fops
+>>> logic, in order to tune the device, but this is the same thing as
+>>> zl10353_set_parameters does.
+>> I expected something like this:
+>>
+>>   From zl10353, page 12:
+>>
+>> 3.1.2
+>>    Tuner
+>> The ZL10353 has a General Purpose Port that can be configured to provide
+>> a secondary 2-wire bus. See register
+>> GPP_CTL address 0x8C.
+>> Master control mode is selected by setting register SCAN_CTL (0x62) [b3]
+>> = 1.
+>>
+>>   From V4L driver, zl10353.c
+>>
+>> static int zl10353_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+>> {
+>>       struct zl10353_state *state = fe->demodulator_priv;
+>>       u8 val = 0x0a;
+>>
+>>       if (state->config.disable_i2c_gate_ctrl) {
+>>           /* No tuner attached to the internal I2C bus */
+>>           /* If set enable I2C bridge, the main I2C bus stopped hardly */
+>>           return 0;
+>>       }
+>>
+>>       if (enable)
+>>           val |= 0x10;
+>>
+>>       return zl10353_single_write(fe, 0x62, val);
+>>
+>>
+>> Maybe I'm misunderstanding the code.
+> Yeah, but mb86a20s driver currently doesn't have any similar logic, as
+> no devices I'm aware have the tuner connected to its I2C gate.
+>
+>> When I do notknow the pins of integrated circuits I can not measure the
+>> state of the GPIO.
+>>>> Please, could you tell me if I'm reasoning correctly?
+>>>>
+>>>>
+>>>> Using RegSpy I see the bus 0 alternately accesses to addresses 0x20 and
+>>>> 0x66under Windows 7. In Windows XP only accessed to 0x20 and when the pc
+>>>> starts to 0xa0.
+>>>>
+>>>> Bus 2 (internal) always accesse to 0x88
+>>>>
+>>>> The bus 0 and 2 (internal) access to the address 0x66 (according
+>>>> modprobe cx23885 i2c_scan), What's there?
+>>> Maybe a remote controller? Do you have a high-resolution picture of the
+>>> board?
+>> Do not know if I can be the remote, but only does so under windows7 bus
+>> 0 accesses the address 0x66.
+>> Under Windows XP does not access the bus 0 to address 0x66.
+> Please notice that we prefer to use the 7-bits notation for I2C addresses,
+> as this is the one used on the original Philips I2C datasheet. So, we call
+> it as 0x33 ;)
+
+OK.
+
+>
+> Maybe you need to call a separate program for IR handling on Windows XP.
+> At least, I've seen several WinXP setups that have a separate program to
+> handle remotes.
+Yes, but uses different software on both Windows XP and 7
+
+>> I have no photos in high resolution, but I can get a camera if it helps
+>> you to help me.
+>>
+>>
+>> Here are photos in low resolution:
+>>
+>> http://www.linuxtv.org/wiki/index.php/Geniatech/MyGica_X8507_PCI-Express_Hybrid_Card
+> I couldn't identify there the small chips on it. If this device has an
+> I2C device for IR, it is likely one small microcontroller chip.
+
+In Linux did not need any extra configuration:
+http://patchwork.linuxtv.org/patch/15412/
+
+For now I owe it, I will upload higher resolution photos when I have a 
+camera.
+With my eyes I fail to read the small chips, and that they still look okay.
+
+Thank you very much.
+
+Alfredo
