@@ -1,164 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [207.46.163.26] ([207.46.163.26]:33158 "EHLO
-	co9outboundpool.messaging.microsoft.com" rhost-flags-FAIL-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750750Ab3ARIMM (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1388 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754127Ab3A2Qdi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jan 2013 03:12:12 -0500
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<uclinux-dist-devel@blackfin.uclinux.org>
-CC: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH 2/2] [media] blackfin: add error frame support
-Date: Fri, 18 Jan 2013 16:09:48 -0500
-Message-ID: <1358543388-29451-2-git-send-email-scott.jiang.linux@gmail.com>
-In-Reply-To: <1358543388-29451-1-git-send-email-scott.jiang.linux@gmail.com>
-References: <1358543388-29451-1-git-send-email-scott.jiang.linux@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 29 Jan 2013 11:33:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 12/20] cx231xx: replace ioctl by unlocked_ioctl.
+Date: Tue, 29 Jan 2013 17:33:05 +0100
+Message-Id: <42a82a61515e6db6e450dea54d37542dc3332454.1359476777.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
+References: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark current frame as error frame when ppi error interrupt
-report fifo error. Member next_frm in struct bcap_device can
-be optimized out.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+There was already a core lock, so why wasn't ioctl already replaced by
+unlock_ioctl?
+
+This patch switches to unlocked_ioctl.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/blackfin/bfin_capture.c |   37 +++++++++++++-----------
- drivers/media/platform/blackfin/ppi.c          |   11 +++++++
- include/media/blackfin/ppi.h                   |    3 +-
- 3 files changed, 33 insertions(+), 18 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-417.c   |   15 ++++++---------
+ drivers/media/usb/cx231xx/cx231xx-video.c |    2 +-
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index aa9f846..54d8cc5 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -91,8 +91,6 @@ struct bcap_device {
- 	int num_sensor_formats;
- 	/* pointing to current video buffer */
- 	struct bcap_buffer *cur_frm;
--	/* pointing to next video buffer */
--	struct bcap_buffer *next_frm;
- 	/* buffer queue used in videobuf2 */
- 	struct vb2_queue buffer_queue;
- 	/* allocator-specific contexts for each plane */
-@@ -455,10 +453,10 @@ static int bcap_stop_streaming(struct vb2_queue *vq)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index a4091dd..15dd334 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1633,12 +1633,8 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
  
- 	/* release all active buffers */
- 	while (!list_empty(&bcap_dev->dma_queue)) {
--		bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
-+		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 						struct bcap_buffer, list);
--		list_del(&bcap_dev->next_frm->list);
--		vb2_buffer_done(&bcap_dev->next_frm->vb, VB2_BUF_STATE_ERROR);
-+		list_del(&bcap_dev->cur_frm->list);
-+		vb2_buffer_done(&bcap_dev->cur_frm->vb, VB2_BUF_STATE_ERROR);
- 	}
- 	return 0;
- }
-@@ -535,10 +533,21 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
+ 	dprintk(3, "enter vidioc_s_input() i=%d\n", i);
  
- 	spin_lock(&bcap_dev->lock);
+-	mutex_lock(&dev->lock);
+-
+ 	video_mux(dev, i);
  
--	if (bcap_dev->cur_frm != bcap_dev->next_frm) {
-+	if (!list_empty(&bcap_dev->dma_queue)) {
- 		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
--		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
--		bcap_dev->cur_frm = bcap_dev->next_frm;
-+		if (ppi->err) {
-+			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
-+			ppi->err = false;
-+		} else {
-+			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+		}
-+		bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
-+				struct bcap_buffer, list);
-+		list_del(&bcap_dev->cur_frm->list);
-+	} else {
-+		/* clear error flag, we will get a new frame */
-+		if (ppi->err)
-+			ppi->err = false;
- 	}
+-	mutex_unlock(&dev->lock);
+-
+ 	if (i >= 4)
+ 		return -EINVAL;
+ 	dev->input = i;
+@@ -1932,7 +1928,8 @@ static int mpeg_open(struct file *file)
+ 	if (dev == NULL)
+ 		return -ENODEV;
  
- 	ppi->ops->stop(ppi);
-@@ -546,13 +555,8 @@ static irqreturn_t bcap_isr(int irq, void *dev_id)
- 	if (bcap_dev->stop) {
- 		complete(&bcap_dev->comp);
- 	} else {
--		if (!list_empty(&bcap_dev->dma_queue)) {
--			bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
--						struct bcap_buffer, list);
--			list_del(&bcap_dev->next_frm->list);
--			addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->next_frm->vb, 0);
--			ppi->ops->update_addr(ppi, (unsigned long)addr);
--		}
-+		addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
-+		ppi->ops->update_addr(ppi, (unsigned long)addr);
- 		ppi->ops->start(ppi);
- 	}
+-	mutex_lock(&dev->lock);
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
  
-@@ -586,9 +590,8 @@ static int bcap_streamon(struct file *file, void *priv,
- 	}
+ 	/* allocate + initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+@@ -1948,14 +1945,14 @@ static int mpeg_open(struct file *file)
+ 	videobuf_queue_vmalloc_init(&fh->vidq, &cx231xx_qops,
+ 			    NULL, &dev->video_mode.slock,
+ 			    V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_INTERLACED,
+-			    sizeof(struct cx231xx_buffer), fh, NULL);
++			    sizeof(struct cx231xx_buffer), fh, &dev->lock);
+ /*
+ 	videobuf_queue_sg_init(&fh->vidq, &cx231xx_qops,
+ 			    &dev->udev->dev, &dev->ts1.slock,
+ 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
+ 			    V4L2_FIELD_INTERLACED,
+ 			    sizeof(struct cx231xx_buffer),
+-			    fh, NULL);
++			    fh, &dev->lock);
+ */
  
- 	/* get the next frame from the dma queue */
--	bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
-+	bcap_dev->cur_frm = list_entry(bcap_dev->dma_queue.next,
- 					struct bcap_buffer, list);
--	bcap_dev->cur_frm = bcap_dev->next_frm;
- 	/* remove buffer from the dma queue */
- 	list_del(&bcap_dev->cur_frm->list);
- 	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
-diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
-index 1e24584..01b5b50 100644
---- a/drivers/media/platform/blackfin/ppi.c
-+++ b/drivers/media/platform/blackfin/ppi.c
-@@ -59,19 +59,30 @@ static irqreturn_t ppi_irq_err(int irq, void *dev_id)
- 		 * others are W1C
- 		 */
- 		status = bfin_read16(&reg->status);
-+		if (status & 0x3000)
-+			ppi->err = true;
- 		bfin_write16(&reg->status, 0xff00);
- 		break;
- 	}
- 	case PPI_TYPE_EPPI:
- 	{
- 		struct bfin_eppi_regs *reg = info->base;
-+		unsigned short status;
-+
-+		status = bfin_read16(&reg->status);
-+		if (status & 0x2)
-+			ppi->err = true;
- 		bfin_write16(&reg->status, 0xffff);
- 		break;
- 	}
- 	case PPI_TYPE_EPPI3:
- 	{
- 		struct bfin_eppi3_regs *reg = info->base;
-+		unsigned long stat;
  
-+		stat = bfin_read32(&reg->stat);
-+		if (stat & 0x2)
-+			ppi->err = true;
- 		bfin_write32(&reg->stat, 0xc0ff);
- 		break;
- 	}
-diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
-index 65c4675..d0697f4 100644
---- a/include/media/blackfin/ppi.h
-+++ b/include/media/blackfin/ppi.h
-@@ -86,7 +86,8 @@ struct ppi_if {
- 	unsigned long ppi_control;
- 	const struct ppi_ops *ops;
- 	const struct ppi_info *info;
--	bool err_int;
-+	bool err_int; /* if we need request error interrupt */
-+	bool err; /* if ppi has fifo error */
- 	void *priv;
+@@ -2069,7 +2066,7 @@ static struct v4l2_file_operations mpeg_fops = {
+ 	.read	       = mpeg_read,
+ 	.poll          = mpeg_poll,
+ 	.mmap	       = mpeg_mmap,
+-	.ioctl	       = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
  };
  
+ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+@@ -2144,11 +2141,11 @@ static struct video_device *cx231xx_video_dev_alloc(
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template;
+-	vfd->minor = -1;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
+ 		type, cx231xx_boards[dev->model].name);
+ 
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
++	vfd->lock = &dev->lock;
+ 	vfd->release = video_device_release;
+ 
+ 	return vfd;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index da54b9b..1f0e00a 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2235,7 +2235,7 @@ static const struct v4l2_file_operations radio_fops = {
+ 	.open   = cx231xx_v4l2_open,
+ 	.release = cx231xx_v4l2_close,
+ 	.poll = v4l2_ctrl_poll,
+-	.ioctl   = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
 -- 
-1.7.0.4
-
+1.7.10.4
 
