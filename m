@@ -1,140 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:29517 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492Ab3A3Rn4 (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:55480 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab3A2NHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jan 2013 12:43:56 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHG00KPC9959400@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:43:54 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MHG00AV798RSVC0@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:43:54 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-fimc: Add missing line breaks
-Date: Wed, 30 Jan 2013 18:43:37 +0100
-Message-id: <1359567817-32231-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 29 Jan 2013 08:07:47 -0500
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH RFC v2] media: tvp514x: add OF support
+Date: Tue, 29 Jan 2013 18:37:11 +0530
+Message-Id: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing line breaks in the debug traces.
+From: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+add OF support for the tvp514x driver.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 ---
- drivers/media/platform/s5p-fimc/fimc-core.c    |    4 ++--
- drivers/media/platform/s5p-fimc/fimc-lite.c    |   12 ++++++------
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    4 ++--
- 3 files changed, 10 insertions(+), 10 deletions(-)
+ Changes for v2:
+  1: Fixed review comment pointed by Heiko.
+  2: Fixed review comment pointed by Laurent.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index 92d477c..6d5b03a 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -257,14 +257,14 @@ int fimc_set_scaler_info(struct fimc_ctx *ctx)
- 		ty = d_frame->height;
- 	}
- 	if (tx <= 0 || ty <= 0) {
--		dev_err(dev, "Invalid target size: %dx%d", tx, ty);
-+		dev_err(dev, "Invalid target size: %dx%d\n", tx, ty);
- 		return -EINVAL;
- 	}
+ This patch is on top of following patches:
+  1: https://patchwork.kernel.org/patch/1930941/
+  2: http://patchwork.linuxtv.org/patch/16193/
+  3: https://patchwork.kernel.org/patch/1944901
+
+ .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
+ drivers/media/i2c/tvp514x.c                        |   70 ++++++++++++++++++--
+ 2 files changed, 103 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+new file mode 100644
+index 0000000..55d3ffd
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+@@ -0,0 +1,38 @@
++* Texas Instruments TVP514x video decoder
++
++The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
++digital video decoder that digitizes and decodes all popular baseband analog
++video formats into digital video component. The tvp514x decoder supports analog-
++to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
++conversion and decoding of NTSC, PAL and SECAM composite and S-video into
++component YCbCr.
++
++Required Properties :
++- compatible: Must be "ti,tvp514x-decoder"
++- hsync-active: HSYNC Polarity configuration for current interface.
++- vsync-active: VSYNC Polarity configuration for current interface.
++- data-active: Clock polarity of the current interface.
++
++Example:
++
++i2c0@1c22000 {
++	...
++	...
++
++	tvp514x@5c {
++		compatible = "ti,tvp514x-decoder";
++		reg = <0x5c>;
++
++		port {
++			tvp514x_1: endpoint {
++				/* Active high (Defaults to 0) */
++				hsync-active = <1>;
++				/* Active high (Defaults to 0) */
++				hsync-active = <1>;
++				/* Active low (Defaults to 0) */
++				data-active = <0>;
++			};
++		};
++	};
++	...
++};
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index a4f0a70..24ce759 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -12,6 +12,7 @@
+  *     Hardik Shah <hardik.shah@ti.com>
+  *     Manjunath Hadli <mrh@ti.com>
+  *     Karicheri Muralidharan <m-karicheri2@ti.com>
++ *     Prabhakar Lad <prabhakar.lad@ti.com>
+  *
+  * This package is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -33,7 +34,9 @@
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
++#include <linux/of_device.h>
  
- 	sx = s_frame->width;
- 	sy = s_frame->height;
- 	if (sx <= 0 || sy <= 0) {
--		dev_err(dev, "Invalid source size: %dx%d", sx, sy);
-+		dev_err(dev, "Invalid source size: %dx%d\n", sx, sy);
- 		return -EINVAL;
- 	}
- 	sc->real_width = sx;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index ef3989f..e18babf 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -611,7 +611,7 @@ static void fimc_lite_try_crop(struct fimc_lite *fimc, struct v4l2_rect *r)
- 	r->left = round_down(r->left, fimc->variant->win_hor_offs_align);
- 	r->top  = clamp_t(u32, r->top, 0, frame->f_height - r->height);
++#include <media/v4l2-of.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+@@ -930,6 +933,58 @@ static struct tvp514x_decoder tvp514x_dev = {
  
--	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, sink fmt: %dx%d",
-+	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, sink fmt: %dx%d\n",
- 		 r->left, r->top, r->width, r->height,
- 		 frame->f_width, frame->f_height);
- }
-@@ -631,7 +631,7 @@ static void fimc_lite_try_compose(struct fimc_lite *fimc, struct v4l2_rect *r)
- 	r->left = round_down(r->left, fimc->variant->out_hor_offs_align);
- 	r->top  = clamp_t(u32, r->top, 0, fimc->out_frame.f_height - r->height);
+ };
  
--	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, source fmt: %dx%d",
-+	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, source fmt: %dx%d\n",
- 		 r->left, r->top, r->width, r->height,
- 		 frame->f_width, frame->f_height);
- }
-@@ -1011,7 +1011,7 @@ static int fimc_lite_link_setup(struct media_entity *entity,
- 	if (WARN_ON(fimc == NULL))
- 		return 0;
++#if defined(CONFIG_OF)
++static const struct of_device_id tvp514x_of_match[] = {
++	{.compatible = "ti,tvp514x-decoder", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, tvp514x_of_match);
++
++static struct tvp514x_platform_data
++	*tvp514x_get_pdata(struct i2c_client *client)
++{
++	if (!client->dev.platform_data && client->dev.of_node) {
++		struct tvp514x_platform_data *pdata;
++		struct v4l2_of_endpoint bus_cfg;
++		struct device_node *endpoint;
++
++		pdata = devm_kzalloc(&client->dev,
++				sizeof(struct tvp514x_platform_data),
++				GFP_KERNEL);
++		client->dev.platform_data = pdata;
++		if (!pdata)
++			return NULL;
++
++		endpoint = of_get_child_by_name(client->dev.of_node, "port");
++		if (endpoint)
++			endpoint = of_get_child_by_name(endpoint, "endpoint");
++
++		if (!endpoint) {
++			v4l2_info(client, "Using default data!!\n");
++		} else {
++			v4l2_of_parse_parallel_bus(endpoint, &bus_cfg);
++
++			if (bus_cfg.mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++				pdata->hs_polarity = 1;
++			if (bus_cfg.mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++				pdata->vs_polarity = 1;
++			if (bus_cfg.mbus_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++				pdata->clk_polarity = 1;
++		}
++	}
++
++	return client->dev.platform_data;
++}
++#else
++#define tvp514x_of_match NULL
++
++static struct tvp514x_platform_data
++	*tvp514x_get_pdata(struct i2c_client *client)
++{
++	return client->dev.platform_data;
++}
++#endif
++
+ /**
+  * tvp514x_probe() - decoder driver i2c probe handler
+  * @client: i2c driver client device structure
+@@ -941,6 +996,7 @@ static struct tvp514x_decoder tvp514x_dev = {
+ static int
+ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ {
++	struct tvp514x_platform_data *pdata;
+ 	struct tvp514x_decoder *decoder;
+ 	struct v4l2_subdev *sd;
+ 	int ret;
+@@ -949,22 +1005,25 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
  
--	v4l2_dbg(1, debug, sd, "%s: %s --> %s, flags: 0x%x. source_id: 0x%x",
-+	v4l2_dbg(1, debug, sd, "%s: %s --> %s, flags: 0x%x. source_id: 0x%x\n",
- 		 __func__, remote->entity->name, local->entity->name,
- 		 flags, fimc->source_subdev_grp_id);
++	pdata = tvp514x_get_pdata(client);
++	if (!pdata) {
++		v4l2_err(client, "No platform data!!\n");
++		return -EPROBE_DEFER;
++	}
++
+ 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+ 	if (!decoder)
+ 		return -ENOMEM;
  
-@@ -1120,7 +1120,7 @@ static int fimc_lite_subdev_set_fmt(struct v4l2_subdev *sd,
- 	struct flite_frame *source = &fimc->out_frame;
- 	const struct fimc_fmt *ffmt;
+ 	/* Initialize the tvp514x_decoder with default configuration */
+ 	*decoder = tvp514x_dev;
+-	if (!client->dev.platform_data) {
+-		v4l2_err(client, "No platform data!!\n");
+-		return -EPROBE_DEFER;
+-	}
++
+ 	/* Copy default register configuration */
+ 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+ 			sizeof(tvp514x_reg_list_default));
  
--	v4l2_dbg(1, debug, sd, "pad%d: code: 0x%x, %dx%d",
-+	v4l2_dbg(1, debug, sd, "pad%d: code: 0x%x, %dx%d\n",
- 		 fmt->pad, mf->code, mf->width, mf->height);
+ 	/* Copy board specific information here */
+-	decoder->pdata = client->dev.platform_data;
++	decoder->pdata = pdata;
  
- 	mf->colorspace = V4L2_COLORSPACE_JPEG;
-@@ -1196,7 +1196,7 @@ static int fimc_lite_subdev_get_selection(struct v4l2_subdev *sd,
- 	}
- 	mutex_unlock(&fimc->lock);
+ 	/**
+ 	 * Fetch platform specific data, and configure the
+@@ -1096,6 +1155,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
  
--	v4l2_dbg(1, debug, sd, "%s: (%d,%d) %dx%d, f_w: %d, f_h: %d",
-+	v4l2_dbg(1, debug, sd, "%s: (%d,%d) %dx%d, f_w: %d, f_h: %d\n",
- 		 __func__, f->rect.left, f->rect.top, f->rect.width,
- 		 f->rect.height, f->f_width, f->f_height);
- 
-@@ -1230,7 +1230,7 @@ static int fimc_lite_subdev_set_selection(struct v4l2_subdev *sd,
- 	}
- 	mutex_unlock(&fimc->lock);
- 
--	v4l2_dbg(1, debug, sd, "%s: (%d,%d) %dx%d, f_w: %d, f_h: %d",
-+	v4l2_dbg(1, debug, sd, "%s: (%d,%d) %dx%d, f_w: %d, f_h: %d\n",
- 		 __func__, f->rect.left, f->rect.top, f->rect.width,
- 		 f->rect.height, f->f_width, f->f_height);
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 27d3461..52e1aa3 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -556,7 +556,7 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
- 		if (ret)
- 			break;
- 
--		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]",
-+		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]\n",
- 			  source->name, flags ? '=' : '-', sink->name);
- 	}
- 	return 0;
-@@ -640,7 +640,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
- 			if (ret)
- 				return ret;
- 
--			v4l2_info(&fmd->v4l2_dev, "created link [%s] => [%s]",
-+			v4l2_info(&fmd->v4l2_dev, "created link [%s] => [%s]\n",
- 				  sensor->entity.name, csis->entity.name);
- 
- 			source = NULL;
+ static struct i2c_driver tvp514x_driver = {
+ 	.driver = {
++		.of_match_table = tvp514x_of_match,
+ 		.owner = THIS_MODULE,
+ 		.name = TVP514X_MODULE_NAME,
+ 	},
 -- 
-1.7.9.5
+1.7.4.1
 
