@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44756 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752295Ab3ABBFZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 20:05:25 -0500
-Message-ID: <50E387B0.6090904@iki.fi>
-Date: Wed, 02 Jan 2013 03:04:48 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: get_dvb_firmware fails for a lot of firmwares
-References: <CAFBinCA-gYcokd1jWheKhgJopD1-=+oO8_5CMrz_NqmfP+nvPg@mail.gmail.com>
-In-Reply-To: <CAFBinCA-gYcokd1jWheKhgJopD1-=+oO8_5CMrz_NqmfP+nvPg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1060 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443Ab3A2Qdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 11:33:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 11/20] cx231xx: remove current_norm usage.
+Date: Tue, 29 Jan 2013 17:33:04 +0100
+Message-Id: <7e86d66066527a2d74f0ae3b8fddf89144b6b371.1359476777.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
+References: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/01/2013 05:28 PM, Martin Blumenstingl wrote:
-> Hi,
->
-> while testing the firmware download for the drxk_terratec_htc_stick I
-> found that many other firmware downloads are broken.
-> Here is a list of failing downloads:
->
-> cx231xx: Hash of extracted file does not match!
-> drxk_hauppauge_hvr930c: Hash of extracted file does not match!
-> sp8870: File does not exist anymore (returns HTML error page)
-> http://www.softwarepatch.pl/9999ccd06a4813cb827dbb0005071c71/tt_Premium_217g.zip
-> ngene: HTTP 404 http://www.digitaldevices.de/download/ngene_15.fw
-> nxt2002: HTTP 404
-> http://www.bbti.us/download/windows/Technisat_DVB-PC_4_4_COMPACT.zip
-> nxt2004: HTTP 404
-> http://www.avermedia-usa.com/support/Drivers/AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip
-> opera1: reports "Ran out of data"
-> lme2510_lg: file LMEBDA_DVBS.sys is not being downloaded
-> lme2510c_s7395: file US2A0D.sys is not being downloaded
-> lme2510c_s7395_old: file LMEBDA_DVBS7395C.sys is not being downloaded
-> tda10045: HTTP 404 http://www.technotrend.de/new/217g/tt_budget_217g.zip
-> tda10046: server refuses connection (temporary error?)
-> http://technotrend.com.ua/download/software/219/TT_PCI_2.19h_28_11_2006.zip
-> tda10046lifeview: domain name does not resolve
-> http://www.lifeview.hk/dbimages/document/7%5Cdrv_2.11.02.zip
-> vp7041: connection reset (temporary error?)
-> http://www.twinhan.com/files/driver/USB-Ter/2.422.zip
->
-> Just in case the formatting is messed up: here is a copy of the list: [0].
->
-> It seems that the gentoo guys mirrored some of the files which are
-> getting a 404: [1].
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I encourage you to fix those what you can and then ping others for the 
-rest. Just try to find out if those files could be found from some other 
-location and fix get_dvb_firmware paths.
+The use of this field is deprecated since it will not work when multiple
+device nodes reference the same video input (the video and vbi nodes in
+this case). The norm field should be a device-global value.
 
-regards
-Antti
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c   |    1 -
+ drivers/media/usb/cx231xx/cx231xx-video.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 28688db..a4091dd 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -2115,7 +2115,6 @@ static struct video_device cx231xx_mpeg_template = {
+ 	.ioctl_ops     = &mpeg_ioctl_ops,
+ 	.minor         = -1,
+ 	.tvnorms       = CX231xx_NORMS,
+-	.current_norm  = V4L2_STD_NTSC_M,
+ };
+ 
+ void cx231xx_417_unregister(struct cx231xx *dev)
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index e9adeb6..da54b9b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -2228,7 +2228,6 @@ static const struct video_device cx231xx_video_template = {
+ 	.release      = video_device_release,
+ 	.ioctl_ops    = &video_ioctl_ops,
+ 	.tvnorms      = V4L2_STD_ALL,
+-	.current_norm = V4L2_STD_PAL,
+ };
+ 
+ static const struct v4l2_file_operations radio_fops = {
+@@ -2299,7 +2298,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 		     dev->name, CX231XX_VERSION);
+ 
+ 	/* set default norm */
+-	/*dev->norm = cx231xx_video_template.current_norm; */
++	dev->norm = V4L2_STD_PAL;
+ 	dev->width = norm_maxw(dev);
+ 	dev->height = norm_maxh(dev);
+ 	dev->interlaced = 0;
 -- 
-http://palosaari.fi/
+1.7.10.4
+
