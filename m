@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:61420 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752150Ab3AAMxg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 07:53:36 -0500
-Received: by mail-bk0-f47.google.com with SMTP id j4so5657567bkw.20
-        for <linux-media@vger.kernel.org>; Tue, 01 Jan 2013 04:53:34 -0800 (PST)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: martin.blumenstingl@googlemail.com
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] Fix firmware download for the Terratec Cinergy HTC Stick HD. The file was moved on the server.
-Date: Tue,  1 Jan 2013 13:53:26 +0100
-Message-Id: <1357044806-6867-1-git-send-email-martin.blumenstingl@googlemail.com>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:48295 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753525Ab3A2Glf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 01:41:35 -0500
+Received: by mail-pa0-f52.google.com with SMTP id kp6so200051pab.11
+        for <linux-media@vger.kernel.org>; Mon, 28 Jan 2013 22:41:34 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: sachin.kamat@linaro.org, a.hajda@samsung.com,
+	s.nawrocki@samsung.com
+Subject: [PATCH 1/1] [media] s5c73m3: Staticize some symbols
+Date: Tue, 29 Jan 2013 12:02:30 +0530
+Message-Id: <1359441150-25872-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- Documentation/dvb/get_dvb_firmware | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Fixes the following sparse warnings:
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:42:5: warning:
+symbol 'boot_from_rom' was not declared. Should it be static?
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:45:5: warning:
+symbol 'update_fw' was not declared. Should it be static?
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:298:5: warning:
+symbol 's5c73m3_isp_comm_result' was not declared. Should it be static?
 
-diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
-index 32bc56b..543054a 100755
---- a/Documentation/dvb/get_dvb_firmware
-+++ b/Documentation/dvb/get_dvb_firmware
-@@ -677,7 +677,7 @@ sub drxk_terratec_h5 {
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index 600909d..b063b4d 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -39,10 +39,10 @@
+ int s5c73m3_dbg;
+ module_param_named(debug, s5c73m3_dbg, int, 0644);
+ 
+-int boot_from_rom = 1;
++static int boot_from_rom = 1;
+ module_param(boot_from_rom, int, 0644);
+ 
+-int update_fw;
++static int update_fw;
+ module_param(update_fw, int, 0644);
+ 
+ #define S5C73M3_EMBEDDED_DATA_MAXLEN	SZ_4K
+@@ -295,7 +295,8 @@ int s5c73m3_isp_command(struct s5c73m3 *state, u16 command, u16 data)
+ 	return s5c73m3_write(state, REG_STATUS, 0x0001);
  }
  
- sub drxk_terratec_htc_stick {
--    my $url = "http://ftp.terratec.de/Receiver/Cinergy_HTC_Stick/Updates/";
-+    my $url = "http://ftp.terratec.de/Receiver/Cinergy_HTC_Stick/Updates/History/";
-     my $zipfile = "Cinergy_HTC_Stick_Drv_5.09.1202.00_XP_Vista_7.exe";
-     my $hash = "6722a2442a05423b781721fbc069ed5e";
-     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 0);
+-int s5c73m3_isp_comm_result(struct s5c73m3 *state, u16 command, u16 *data)
++static int s5c73m3_isp_comm_result(struct s5c73m3 *state, u16 command,
++				   u16 *data)
+ {
+ 	return s5c73m3_read(state, COMM_RESULT_OFFSET + command, data);
+ }
 -- 
-1.8.0.3
+1.7.4.1
 
