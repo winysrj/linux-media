@@ -1,140 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:57870 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab3AHHpE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jan 2013 02:45:04 -0500
-Received: from mailout-de.gmx.net ([10.1.76.24]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0LaIM4-1T8iRf1Mcg-00m3PB for
- <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 08:45:01 +0100
-Message-ID: <50EBCE7B.1050204@fisher-privat.net>
-Date: Tue, 08 Jan 2013 08:44:59 +0100
-From: Oleksij Rempel <bug-track@fisher-privat.net>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Peter Ross <pross@xvid.org>, linux-uvc-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [linux-uvc-devel] [PATCH 0/2] uvcvideo: Support Logitech RGB
- Bayer formats
-References: <cover.1357039246.git.pross@xvid.org> <20130102090346.GA2243@b9d1a1848204a80b27c5d574b483f38a> <50E4110B.5080905@fisher-privat.net> <2056413.0Wge1Fvauc@avalon>
-In-Reply-To: <2056413.0Wge1Fvauc@avalon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2989 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750871Ab3A2VLY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 16:11:24 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0TLBKfo063190
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:11:23 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5BC0A11E00B8
+	for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:11:19 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130129211119.5BC0A11E00B8@alastor.dyndns.org>
+Date: Tue, 29 Jan 2013 22:11:19 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 07.01.2013 23:45, schrieb Laurent Pinchart:
-> Hi Oleksij,
->
-> (CC'ing linux-media)
->
-> On Wednesday 02 January 2013 11:50:51 Oleksij Rempel wrote:
->> Am 02.01.2013 10:03, schrieb Peter Ross:
->>> On Tue, Jan 01, 2013 at 05:16:44PM +0100, Oleksij Rempel wrote:
->>>> Hi Peter,
->>>>
->>>> thank you for your work, but most of it belongs to uvcdynctrl.
->>>> You will need to add it here:
->>>> /usr/share/uvcdynctrl/data/046d/logitech.xml
->>>
->>> Using uvcdynctrl is problematic for two reasons.
->>>
->>> 1. Setting the Logitech 'disable video processing' and 'raw data bpp'
->>>     controls independently from uvcvideo causes the driver to *always* drop
->>>     frames.
->>>
->>>     uvc_video_decode_isoc() performs a sanity check on the size of incoming
->>>     uncompressed frames. It expects to receive frame sizes reported by the
->>>     8-bit yuyv 4:2:2 format description. The check fails when video
->>>     processing is disabled, because the 8-/10-bit RGB Bayer frame sizes are
->>>     always smaller.
->>>
->>> 2. Userspace applications need to distinguish the yuyv 4:2:2 format from
->>>     the the additional RGB Bayer formats.
->>>
->>>     Currently, when video processing is disabled, user applications expect
->>>     to receive yuyv 4:2:2 pixels, because thats what it and uvcvideo has
->>>     agreed to (mediate by V4L2). Instead the application receives RGB Bayer
->>>     pixels and attempts to process them as yuyv resulting in visual
->>>     garbage.
->
-> One could argue that an application that explicitly disables processing would
-> be able to handle that. However, I agree that point 1 is problematic, and
-> point 2 is definitely not clean.
->
->>> Some of this has been discussed previously, see
->>> <http://article.gmane.org/gmane.linux.drivers.uvc.devel/3061/>.
->>>
->>> The patch tries to solve both of these problems: 1) making uvcvideo aware
->>> of the Logitech controls and recalculating the expected frame sizes, and
->>> 2) presenting the RGB Bayer formats through the V4L2 interface, so user
->>> application can request them.
->>
->> If, the problem seems to be bigger.
->> We have:
->> 1. Formats provided by usb descriptor and controlled over uvc protocol.
->> 2. Formats provided by usb descriptor and controlled over XU
->
-> Do we really have devices that expose formats through the standard UVC
-> descriptors but require XU access to select them ?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-h264? Can be started over uvc, but mostly use less without XU.
-I'll bet, if you will accept this XUs, some body will ask to add XU for 
-h264.
+Results of the daily build of media_tree:
 
->
->> 3. Formats controlled over XU and provided by documentation other kind
->> of knowledge.
->>
->> Last case in not properly handled by uvcvideo.ko, but IMHO it is not good
->> way to have all possible XU in driver.
->> Both problems you described should be fixed, but not in this way. If it
->> is possible - uvcdynctl should provide/update format descriptor over
->> uvc_xu_control_query interface or some other way.
->>
->> Beside, i was working on kernel space plugin system for uvcvideo driver,
->> which was probably not the best idea. How about to do some part of it in
->> userspace? For example, uvcdynctl can provide bandwidth information too.
->> This way we can fix many buggy cams without needing to permanently
->> update kernel driver.
->> Laurent?
->
-> I'm really undecided here.
->
-> On one hand I agree with you, from a theoretical point of view the driver
-> should not know about all possible XUs. This just can't scale.
->
-> On the other hand, it's pretty clear that we don't need to scale. We only have
-> a single public dynamic controls XML file, and looking at the descriptors of
-> most devices it's pretty clear that they reuse the same XUs, as they are based
-> on only a dozen or so different chips.
->
-> The dynamic controls API brings additional complexity to the driver, and I
-> think that it was a good design decision. However, in some cases, the
-> implications of changing an XU control value go well beyond what is usually
-> expected of a control. I'm thus tempted to allow handling of XU controls in
-> the kernel when there's a good reason to do so. Of course I want the code to
-> be clean, without lots of hooks all over the place that would make the driver
-> sources impossible to read and understand :-)
->
-> Comments and thoughts will be appreciated.
+date:		Tue Jan 29 19:00:20 CET 2013
+git branch:	for_v3.9
+git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.4.07-marune
 
-I had my doubts in that because:
-- we don't know if same XU was used for some thing different in ... 
-older version of some hardware.
-- we can't guarantee anything here. This XUs are not documented and not 
-a part of sail strategy. If some thing will not work, or will brake 
-because of it - only we will be responsible.
-- In this case we will not have any win in case of bandwidth[1]. To 
-enable this stream we should ask YUV and webcam wil allocate bandwidth 
-for it.
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-- but all this is just FUD. I always happy to see, if some body goes 
-beyond it and revers undocumented XUs and brings patches to make use of 
-it for all :) Peter thx!
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-[1] - bandwidth seems to be number one in our "top 3" of always coming 
-problems :)
--- 
-Regards,
-Oleksij
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
