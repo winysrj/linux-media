@@ -1,38 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44301 "EHLO mail.kapsi.fi"
+Received: from pequod.mess.org ([46.65.169.142]:54167 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754156Ab3AKSik (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 13:38:40 -0500
-Message-ID: <50F05C09.3010104@iki.fi>
-Date: Fri, 11 Jan 2013 20:38:01 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: af9035 test needed!
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754413Ab3A2MTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 07:19:33 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/5] [media] ttusbir: do not set led twice on resume
+Date: Tue, 29 Jan 2013 12:19:27 +0000
+Message-Id: <1359461971-27492-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Jose and Gianluca
+led_classdev_resume already sets the led.
 
-Could you test that (tda18218 & mxl5007t):
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ttusbir.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-I wonder if ADC config logic still works for superheterodyne tuners 
-(tuner having IF). I changed it to adc / 2 always due to IT9135 tuner. 
-That makes me wonder it possible breaks tuners having IF, as ADC was 
-clocked just over 20MHz and if it is half then it is 10MHz. For BB that 
-is enough, but I think that having IF, which is 4MHz at least for 8MHz 
-BW it is too less.
-
-F*ck I hate to maintain driver without a hardware! Any idea where I can 
-get AF9035 device having tda18218 or mxl5007t?
-
-regards
-Antti
-
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index 78be8a9..f9226b8 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -408,9 +408,8 @@ static int ttusbir_resume(struct usb_interface *intf)
+ 	struct ttusbir *tt = usb_get_intfdata(intf);
+ 	int i, rc;
+ 
+-	led_classdev_resume(&tt->led);
+ 	tt->is_led_on = true;
+-	ttusbir_set_led(tt);
++	led_classdev_resume(&tt->led);
+ 
+ 	for (i = 0; i < NUM_URBS; i++) {
+ 		rc = usb_submit_urb(tt->urb[i], GFP_KERNEL);
 -- 
-http://palosaari.fi/
+1.8.1
+
