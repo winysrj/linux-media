@@ -1,148 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bedivere.hansenpartnership.com ([66.63.167.143]:51262 "EHLO
-	bedivere.hansenpartnership.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750723Ab3AVKQx (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:46558 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757167Ab3A2PmQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 05:16:53 -0500
-Message-ID: <1358849808.2387.13.camel@dabdike.int.hansenpartnership.com>
-Subject: Re: [Linux-c6x-dev] [PATCH 3/9] c6x: Provide dma_mmap_coherent()
- and dma_get_sgtable()
-From: James Bottomley <James.Bottomley@HansenPartnership.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Salter <msalter@redhat.com>,
-	Vineet Gupta <Vineet.Gupta1@synopsys.com>,
-	linux-arch@vger.kernel.org, linux-c6x-dev@linux-c6x.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 22 Jan 2013 10:16:48 +0000
-In-Reply-To: <1358849633.2387.11.camel@dabdike.int.hansenpartnership.com>
-References: <1358073890-3610-1-git-send-email-geert@linux-m68k.org>
-	 <1358073890-3610-3-git-send-email-geert@linux-m68k.org>
-	 <1358177872.4357.53.camel@t520.localdomain> <50F4D83A.7020803@synopsys.com>
-	 <CAMuHMdWjZAY19GPpjoXKfWb3pOp2RbZXDvb4nr5pMmjEMFuB4w@mail.gmail.com>
-	 <50F56286.8070200@samsung.com>
-	 <1358269008.10591.11.camel@dabdike.int.hansenpartnership.com>
-	 <CAMuHMdXk1mdkMViYqypvnXO0_1LdjbH8S7z8FNe97yDUW6BYRA@mail.gmail.com>
-	 <1358809159.3975.63.camel@dabdike.int.hansenpartnership.com>
-	 <1358849633.2387.11.camel@dabdike.int.hansenpartnership.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+	Tue, 29 Jan 2013 10:42:16 -0500
+Received: by mail-wi0-f177.google.com with SMTP id hm14so539475wib.10
+        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 07:42:14 -0800 (PST)
+Message-ID: <5107EDD3.5060505@gmail.com>
+Date: Tue, 29 Jan 2013 16:42:11 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: Olivier Subilia <futilite@romandie.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Bug report - em28xx
+References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl> <5107EB1D.9060702@romandie.com>
+In-Reply-To: <5107EB1D.9060702@romandie.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[adding Mauro and v4l since they're the only non-arm consumers]
-On Tue, 2013-01-22 at 10:13 +0000, James Bottomley wrote:
-> On Mon, 2013-01-21 at 22:59 +0000, James Bottomley wrote:
-> > On Mon, 2013-01-21 at 21:00 +0100, Geert Uytterhoeven wrote:
-> > > On Tue, Jan 15, 2013 at 5:56 PM, James Bottomley
-> > > <James.Bottomley@hansenpartnership.com> wrote:
-> > > > On Tue, 2013-01-15 at 15:07 +0100, Marek Szyprowski wrote:
-> > > >> On 1/15/2013 10:13 AM, Geert Uytterhoeven wrote:
-> > > >> > Marek?
-> > > >> >
-> > > >> > On Tue, Jan 15, 2013 at 5:16 AM, Vineet Gupta
-> > > >> > <Vineet.Gupta1@synopsys.com> wrote:
-> > > >> > > On Monday 14 January 2013 09:07 PM, Mark Salter wrote:
-> > > >> > >> On Sun, 2013-01-13 at 11:44 +0100, Geert Uytterhoeven wrote:
-> > > >> > >>> c6x/allmodconfig (assumed):
-> > > >> > >>>
-> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
-> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
-> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
-> > > >> > >>> drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
-> > > >> > >>>
-> > > >> > >>> For architectures using dma_map_ops, dma_mmap_coherent() and
-> > > >> > >>> dma_get_sgtable() are provided in <asm-generic/dma-mapping-common.h>.
-> > > >> > >>>
-> > > >> > >>> C6x does not use dma_map_ops, hence it should implement them as inline
-> > > >> > >>> stubs using dma_common_mmap() and dma_common_get_sgtable().
-> > > >> > >>>
-> > > >> > >> So are dma_mmap_coherent() and dma_get_sgtable() part of the DMA API
-> > > >> > >> now? I don't them in Documentation/DMA*.txt anywhere.
-> > > >> > >>
-> > > >> > >> Why does the default dma_common_mmap() for !CONFIG_MMU return an
-> > > >> > >> error?
-> > > >> > >>
-> > > >> > >> Wouldn't it be better to provide default implementations that an arch
-> > > >> > >> could override rather than having to patch all "no dma_map_ops"
-> > > >> > >> architectures?
-> > > >> > >>
-> > > >> > > Speaking for the still-reviewed ARC Port, I completely agree with Mark.
-> > > >>
-> > > >> dma_mmap_coherent() was partially in the DMA mapping API for some time, but
-> > > >> it was available only on a few architectures (afair ARM, powerpc and avr32).
-> > > >> This caused significant problems for writing unified device drivers or some
-> > > >> device helper modules which were aimed to work on more than one
-> > > >> architecture.
-> > > >>
-> > > >> dma_get_sgtable() is an extension discussed during the Linaro meetings. It
-> > > >> is required to correctly implement buffer sharing between device driver
-> > > >> without hacks or any assumptions about memory layout in the device drivers.
-> > > >>
-> > > >> I have implemented some generic code for both of those two functions,
-> > > >> keeping
-> > > >> in mind that on some hardware architectures (like already mentioned VIVT)
-> > > >> it might be not possible to provide coherent mapping to userspace. It is
-> > > >> perfectly fine for those functions to return an error in such case.
-> > > >
-> > > > It's not possible on VIPT either.  This means that the API is unusable
-> > > > on quite a large number of architectures.  Surely, if we're starting to
-> > > > write drivers using this, we need to fix the API before more people try
-> > > > to use it.
-> > > >
-> > > > For PA-RISC (and all other VIPT, I assume) I need an API which allows me
-> > > > to remap the virtual address of the kernel component (probably using the
-> > > > kmap area) so the user space and kernel space addresses are congruent.
-> > > 
-> > > So what are we gonna do for 3.8? I'd like to get my allmodconfig build
-> > > green again ;-)
-> > > 
-> > > Change the API?
-> > 
-> > Well, if we want the API to work universally, we have to.  As I said,
-> > for VIPT systems, the only coherency mechanism we have is the virtual
-> > address ... we have to fix that in the kernel to be congruent with the
-> > userspace virtual address if we want coherency between the kernel and
-> > userspace.
-> > 
-> > However, if it only needs to work on ARM and x86, it can stay the way it
-> > is and we could just pull it out of the generic core.
-> > 
-> > Who actually wants to use this API, and what for?
-> > 
-> > > Keep the API but do a best-effort fix to unbreak the builds?
-> > >   - Apply my patches that got acks (avr32/blackfin/cris/m68k),
-> > >   - Use static inlines that return -EINVAL for the rest
-> > > (c6x/frv/mn10300/parisc/xtensa).
-> > > I still have a few m68k fixes queued for 3.8, for which I've been postponing the
-> > > pull request to get this sorted out, so I could include the above.
-> > > 
-> > > Any other solution?
-> > 
-> > If it's an API that only works on ARM and x86, there's not much point
-> > pretending it's universal, so we should remove it from the generic arch
-> > code and allow only those architectures which can use it.
+Il 29/01/2013 16:30, Olivier Subilia ha scritto:
+> Thanks for help.
 > 
-> There might be a simple solution:  just replace void *cpu_addr with void
-> **cpu_addr in the API.  This is a bit nasty since compilers think that
-> void ** to void * conversion is quite legal, so it would be hard to pick
-> up misuse of this (uint8_t ** would be better).  That way VIPT could
-> remap the kernel pages to a coherent address.  This would probably have
-> to change in the dma_mmap_attr() and dma_ops structures.
+> I must confess there are so many entries in menuconfig I can't find
+> where enabling em28xx is hidden (20 minutes searching in vain :-( .
+> Could you please help me ?
 > 
-> All consumers would have to expect cpu_addr might change, but that seems
-> doable.
 
-Mauro, will this work for you and the v4l guys?  You've got a use
-embedded in 
+You can use 'make xconfig' and the Find command (ctrl-F) ;-)
 
-drivers/media/v4l2-core/videobuf2-dma-contig.c
+Regards,
+Gianluca
 
-Which I can't tell how extensive it might be.
-
-James
-
+> Le 29/01/2013 15:59, Hans Verkuil a �crit :
+>> On Tue January 29 2013 15:18:12 Olivier Subilia wrote:
+>>> Hi,
+>>>
+>>> First of all, I've no experience with this mailing list. I'm not sure
+>>> I'm sending my report to the right place. If not, please don't hesitate
+>>> to tell it to me (possibly with the right place address).
+>>>
+>>> I'm desperately trying to compile v4l drivers for a PCTV quatrostick
+>>> nano. Following this page
+>>>
+>>> http://www.linuxtv.org/wiki/index.php/PCTVSystems_QuatroStick-nano_520e
+>>>
+>>> it uses the em28xx driver.
+>>>
+>>> my configuration: `uname -r` = 3.2.0-35-generic-pae
+>>>
+>>> So I tried to compile it with
+>>>
+>>> $ git clone git://linuxtv.org/media_build.git
+>>> $ cd media_built
+>>> $ ./build >log.log (file attached)
+>>>
+>>> STDERR:
+>>>
+>>> Cloning into 'media_build'...
+>>> remote: Counting objects: 1813, done.
+>>> remote: Compressing objects: 100% (591/591), done.
+>>> remote: Total 1813 (delta 1223), reused 1751 (delta 1183)
+>>> Receiving objects: 100% (1813/1813), 423.66 KiB, done.
+>>> Resolving deltas: 100% (1223/1223), done.
+>>> multimedia@serveur:~$ cd media_build/
+>>> multimedia@serveur:~/media_build$ ./build >log.log
+>>>   From git://linuxtv.org/media_build
+>>>    * branch            master     -> FETCH_HEAD
+>>> --2013-01-29 14:52:49--
+>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
+>>> Resolving linuxtv.org (linuxtv.org)... 130.149.80.248
+>>> Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:80... connected.
+>>> HTTP request sent, awaiting response... 200 OK
+>>> Length: 93 [application/x-bzip2]
+>>> Saving to: `linux-media.tar.bz2.md5.tmp'
+>>>
+>>> 100%[=========================================================================================================================================>]
+>>>
+>>> 93          --.-K/s   in 0s
+>>>
+>>> 2013-01-29 14:52:49 (7.72 MB/s) - `linux-media.tar.bz2.md5.tmp' saved
+>>> [93/93]
+>>>
+>>> cat: linux-media.tar.bz2.md5: No such file or directory
+>>> --2013-01-29 14:52:49--
+>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
+>>> Resolving linuxtv.org (linuxtv.org)... 130.149.80.248
+>>> Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:80... connected.
+>>> HTTP request sent, awaiting response... 200 OK
+>>> Length: 4502249 (4.3M) [application/x-bzip2]
+>>> Saving to: `linux-media.tar.bz2'
+>>>
+>>> 100%[=========================================================================================================================================>]
+>>>
+>>> 4'502'249   5.47M/s   in 0.8s
+>>>
+>>> 2013-01-29 14:52:50 (5.47 MB/s) - `linux-media.tar.bz2' saved
+>>> [4502249/4502249]
+>>>
+>>> --2013-01-29 14:52:51--
+>>> http://www.linuxtv.org/downloads/firmware//dvb-firmwares.tar.bz2
+>>> Resolving www.linuxtv.org (www.linuxtv.org)... 130.149.80.248
+>>> Connecting to www.linuxtv.org (www.linuxtv.org)|130.149.80.248|:80...
+>>> connected.
+>>> HTTP request sent, awaiting response... 200 OK
+>>> Length: 649441 (634K) [application/x-bzip2]
+>>> Saving to: `dvb-firmwares.tar.bz2'
+>>>
+>>> 100%[=========================================================================================================================================>]
+>>>
+>>> 649'441     1.41M/s   in 0.4s
+>>>
+>>> 2013-01-29 14:52:51 (1.41 MB/s) - `dvb-firmwares.tar.bz2' saved
+>>> [649441/649441]
+>>>
+>>>
+>>> ln: accessing `../../linux/firmware/dabusb//*': No such file or
+>>> directory
+>>> /home/multimedia/media_build/v4l/anysee.c: In function
+>>> 'anysee_frontend_attach':
+>>> /home/multimedia/media_build/v4l/anysee.c:893:2: warning: 'ret' may be
+>>> used uninitialized in this function [-Wuninitialized]
+>>> /home/multimedia/media_build/v4l/m920x.c: In function 'm920x_probe':
+>>> /home/multimedia/media_build/v4l/m920x.c:91:6: warning: 'ret' may be
+>>> used uninitialized in this function [-Wuninitialized]
+>>> /home/multimedia/media_build/v4l/m920x.c:70:6: note: 'ret' was
+>>> declared here
+>>> /home/multimedia/media_build/v4l/mxl111sf.c:58:0: warning: "err"
+>>> redefined [enabled by default]
+>>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>>> definition
+>>> /home/multimedia/media_build/v4l/ngene-cards.c:813:2: warning:
+>>> initialization discards 'const' qualifier from pointer target type
+>>> [enabled by default]
+>>> /home/multimedia/media_build/v4l/mxl111sf-tuner.c:34:0: warning: "err"
+>>> redefined [enabled by default]
+>>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>>> definition
+>>> /home/multimedia/media_build/v4l/mxl111sf-tuner.c:34:0: warning: "err"
+>>> redefined [enabled by default]
+>>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>>> definition
+>>> WARNING: "snd_tea575x_set_freq"
+>>> [/home/multimedia/media_build/v4l/radio-shark.ko] undefined!
+>>> WARNING: modpost: Found 1 section mismatch(es).
+>>> To see full details build your kernel with:
+>>> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>>>
+>>>
+>>> No other compilation error. 524 modules founds. But if I check em28xx
+>>> family modules:
+>>>
+>>> $ ls v4l/em28xx*.ko
+>>> ls: cannot access v4l/em28xx*.ko: No such file or directory
+>>>
+>>> In other words: no module is compiled with this.
+>>> All (most ?) other modules are compiled in v4l/*.ko
+>>>
+>>> What am I doing wrong ?
+>> Nothing :-)
+>>
+>> I can reproduce this myself. It works fine for all kernels except 3.2
+>> and 3.3.
+>> One workaround is to run 'make menuconfig' in the media_build
+>> directory, turn
+>> on the em28xx modules, and run 'make' to build everything.
+>>
+>> Why it isn't automatically selected when compiling for those kernels is a
+>> mystery to me.
+>>
+>> Regards,
+>>
+>>     Hans
+>>
+>>> With kernel 2.6.32-45-generic, I have no problem to build everything
+>>> with the same commands, included em28xx*.ko.
+>>>
+>>> By the way, is it possible to rebuild just one specific module instead
+>>> of always rebuilding the whole tree ?
+>>>
+>>> Many thanks in advance for any hint
+>>>
+>>> Olivier Subilia
+>>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
