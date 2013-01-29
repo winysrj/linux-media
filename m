@@ -1,117 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21249 "EHLO mx1.redhat.com"
+Received: from pequod.mess.org ([46.65.169.142]:57769 "EHLO pequod.mess.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752291Ab3AAOJx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jan 2013 09:09:53 -0500
-Date: Tue, 1 Jan 2013 12:09:10 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Alistair Buxton <a.j.buxton@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: media-build: ./build --main-git failed
-Message-ID: <20130101120910.185eea81@redhat.com>
-In-Reply-To: <CAO-Op+E5tRN-iJ34SGZecF3HihpAEhZnADWVpQb8+QcZBYLFMg@mail.gmail.com>
-References: <CAO-Op+Es6nNRXajXdr=18jiPZTNGuZcOZ4p5UXD5ZRoN2tzobQ@mail.gmail.com>
-	<CAO-Op+E5tRN-iJ34SGZecF3HihpAEhZnADWVpQb8+QcZBYLFMg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1755478Ab3A2MTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 07:19:34 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 4/5] [media] mceusb: make transmit work on HP transceiver
+Date: Tue, 29 Jan 2013 12:19:30 +0000
+Message-Id: <1359461971-27492-4-git-send-email-sean@mess.org>
+In-Reply-To: <1359461971-27492-1-git-send-email-sean@mess.org>
+References: <1359461971-27492-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 30 Dec 2012 19:50:47 +0000
-Alistair Buxton <a.j.buxton@gmail.com> escreveu:
+This transceiver expects the set IR TX ports and IR data as seperate
+packets, like the Windows driver does. Remove unnecessary kzalloc.
 
-> Output:
-> 
-> al@al-desktop:~/Source$ git clone git://linuxtv.org/media_build.git
-> Cloning into 'media_build'...
-> remote: Counting objects: 1760, done.
-> 
-> 
-> remote: Compressing objects: 100% (560/560), done.
-> remote: Total 1760 (delta 1182), reused 1727 (delta 1161)
-> Receiving objects: 100% (1760/1760), 416.13 KiB | 676 KiB/s, done.
-> Resolving deltas: 100% (1182/1182), done.
-> 
-> 
-> al@al-desktop:~/Source/media_build$ ./build --main-git
-> Checking if the needed tools for Ubuntu 12.10 are available
-> Needed package dependencies are met.
-> ************************************************************
-> * building git://linuxtv.org/media_tree.git       git tree *
-> ************************************************************
-> ************************************************************
-> * All drivers and build system are under GPLv2 License     *
-> * Firmware files are under the license terms found at:     *
-> * http://www.linuxtv.org/downloads/firmware/               *
-> * Please abort if you don't agree with the license         *
-> ************************************************************
-> 
-> Getting the latest Kernel tree. This will take some time
-> Cloning into 'media'...
-> remote: Counting objects: 2829101, done.
-> remote: Compressing objects: 100% (428125/428125), done.
-> remote: Total 2829101 (delta 2375344), reused 2827313 (delta 2373599)
-> Receiving objects: 100% (2829101/2829101), 579.82 MiB | 787 KiB/s, done.
-> Resolving deltas: 100% (2375344/2375344), done.
-> Checking out files: 100% (41507/41507), done.
-> adding remote r_media_tree to track git://linuxtv.org/media_tree.git,
-> staging/for_v3.6
-> updating remote media_tree
-> Fetching r_media_tree
-> remote: Counting objects: 21763, done.
-> remote: Compressing objects: 100% (4889/4889), done.
-> remote: Total 19160 (delta 16679), reused 16503 (delta 14249)
-> Receiving objects: 100% (19160/19160), 3.55 MiB | 943 KiB/s, done.
-> Resolving deltas: 100% (16679/16679), completed with 1145 local objects.
-> From git://linuxtv.org/media_tree
->  * [new branch]      devel/bkl  -> r_media_tree/devel/bkl
->  * [new branch]      master     -> r_media_tree/master
->  * [new branch]      staging/for_2.6.38-rc1 ->
-> r_media_tree/staging/for_2.6.38-rc1
->  * [new branch]      staging/for_v2.6.37-rc1 ->
-> r_media_tree/staging/for_v2.6.37-rc1
->  * [new branch]      staging/for_v2.6.38 -> r_media_tree/staging/for_v2.6.38
->  * [new branch]      staging/for_v2.6.39 -> r_media_tree/staging/for_v2.6.39
->  * [new branch]      staging/for_v2.6.40 -> r_media_tree/staging/for_v2.6.40
->  * [new branch]      staging/for_v2.6.40-rc ->
-> r_media_tree/staging/for_v2.6.40-rc
->  * [new branch]      staging/for_v3.0 -> r_media_tree/staging/for_v3.0
->  * [new branch]      staging/for_v3.1 -> r_media_tree/staging/for_v3.1
->  * [new branch]      staging/for_v3.2 -> r_media_tree/staging/for_v3.2
->  * [new branch]      staging/for_v3.3 -> r_media_tree/staging/for_v3.3
->  * [new branch]      staging/for_v3.4 -> r_media_tree/staging/for_v3.4
->  * [new branch]      staging/for_v3.5 -> r_media_tree/staging/for_v3.5
->  * [new branch]      staging/for_v3.6 -> r_media_tree/staging/for_v3.6
->  * [new branch]      staging/for_v3.7 -> r_media_tree/staging/for_v3.7
->  * [new branch]      staging/for_v3.8 -> r_media_tree/staging/for_v3.8
->  * [new branch]      staging/for_v3.9 -> r_media_tree/staging/for_v3.9
->  * [new branch]      staging/leadership -> r_media_tree/staging/leadership
->  * [new branch]      staging/v2.6.35 -> r_media_tree/staging/v2.6.35
->  * [new branch]      staging/v2.6.36 -> r_media_tree/staging/v2.6.36
->  * [new branch]      staging/v2.6.37 -> r_media_tree/staging/v2.6.37
-> creating a local branch media_tree
-> Branch media_tree/staging/for_v3.6 set up to track remote branch
-> staging/for_v3.6 from r_media_tree.
-> Switched to a new branch 'media_tree/staging/for_v3.6'
-> make: Entering directory `/home/al/Source/media_build/linux'
-> rm -rf drivers firmware include sound .patches_applied .linked_dir
-> .git_log.md5 git_log kernel_version.h
-> ../media/ does not contain kernel sources
-> /bin/sh: 1: exit: Illegal number: -1
-> make: *** [dir] Error 2
-> make: Leaving directory `/home/al/Source/media_build/linux'
-> Can't link the building system to the media directory. at ./build line 414.
-> al@al-desktop:~/Source/media_build$
-> 
-> Analysis:
-> 
-> ./build, line 18: my $main_branch = "staging/for_v3.6";
-> This is the branch that gets checked out.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/mceusb.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-Updated to for_v3.9. 
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index 14fea35..bdd1ed8 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -62,7 +62,6 @@
+ #define MCE_PACKET_SIZE		4    /* Normal length of packet (without header) */
+ #define MCE_IRDATA_HEADER	0x84 /* Actual header format is 0x80 + num_bytes */
+ #define MCE_IRDATA_TRAILER	0x80 /* End of IR data */
+-#define MCE_TX_HEADER_LENGTH	3    /* # of bytes in the initializing tx header */
+ #define MCE_MAX_CHANNELS	2    /* Two transmitters, hardware dependent? */
+ #define MCE_DEFAULT_TX_MASK	0x03 /* Vals: TX1=0x01, TX2=0x02, ALL=0x03 */
+ #define MCE_PULSE_BIT		0x80 /* Pulse bit, MSB set == PULSE else SPACE */
+@@ -366,7 +365,8 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	/* Formosa Industrial Computing */
+ 	{ USB_DEVICE(VENDOR_FORMOSA, 0xe042) },
+ 	/* Fintek eHome Infrared Transceiver (HP branded) */
+-	{ USB_DEVICE(VENDOR_FINTEK, 0x5168) },
++	{ USB_DEVICE(VENDOR_FINTEK, 0x5168),
++	  .driver_info = MCE_GEN2_TX_INV },
+ 	/* Fintek eHome Infrared Transceiver */
+ 	{ USB_DEVICE(VENDOR_FINTEK, 0x0602) },
+ 	/* Fintek eHome Infrared Transceiver (in the AOpen MP45) */
+@@ -789,19 +789,19 @@ static void mce_flush_rx_buffer(struct mceusb_dev *ir, int size)
+ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ {
+ 	struct mceusb_dev *ir = dev->priv;
+-	int i, ret = 0;
++	int i, length, ret = 0;
+ 	int cmdcount = 0;
+-	unsigned char *cmdbuf; /* MCE command buffer */
+-
+-	cmdbuf = kzalloc(sizeof(unsigned) * MCE_CMDBUF_SIZE, GFP_KERNEL);
+-	if (!cmdbuf)
+-		return -ENOMEM;
++	unsigned char cmdbuf[MCE_CMDBUF_SIZE];
+ 
+ 	/* MCE tx init header */
+ 	cmdbuf[cmdcount++] = MCE_CMD_PORT_IR;
+ 	cmdbuf[cmdcount++] = MCE_CMD_SETIRTXPORTS;
+ 	cmdbuf[cmdcount++] = ir->tx_mask;
+ 
++	/* Send the set TX ports command */
++	mce_async_out(ir, cmdbuf, cmdcount);
++	cmdcount = 0;
++
+ 	/* Generate mce packet data */
+ 	for (i = 0; (i < count) && (cmdcount < MCE_CMDBUF_SIZE); i++) {
+ 		txbuf[i] = txbuf[i] / MCE_TIME_UNIT;
+@@ -810,8 +810,7 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 
+ 			/* Insert mce packet header every 4th entry */
+ 			if ((cmdcount < MCE_CMDBUF_SIZE) &&
+-			    (cmdcount - MCE_TX_HEADER_LENGTH) %
+-			     MCE_CODE_LENGTH == 0)
++			    (cmdcount % MCE_CODE_LENGTH) == 0)
+ 				cmdbuf[cmdcount++] = MCE_IRDATA_HEADER;
+ 
+ 			/* Insert mce packet data */
+@@ -830,9 +829,8 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	}
+ 
+ 	/* Fix packet length in last header */
+-	cmdbuf[cmdcount - (cmdcount - MCE_TX_HEADER_LENGTH) % MCE_CODE_LENGTH] =
+-		MCE_COMMAND_IRDATA + (cmdcount - MCE_TX_HEADER_LENGTH) %
+-		MCE_CODE_LENGTH - 1;
++	length = cmdcount % MCE_CODE_LENGTH;
++	cmdbuf[cmdcount - length] -= MCE_CODE_LENGTH - length;
+ 
+ 	/* Check if we have room for the empty packet at the end */
+ 	if (cmdcount >= MCE_CMDBUF_SIZE) {
+@@ -847,7 +845,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	mce_async_out(ir, cmdbuf, cmdcount);
+ 
+ out:
+-	kfree(cmdbuf);
+ 	return ret ? ret : count;
+ }
+ 
+-- 
+1.8.1
 
-Thanks for reporting it.
-
-Regards,
-Mauro
