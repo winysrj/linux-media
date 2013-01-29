@@ -1,89 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:53317 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884Ab3ALRvG (ORCPT
+Received: from sqdf3.vserver.nimag.net ([62.220.136.226]:50950 "EHLO
+	mail.avocats-ch.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857Ab3A2Ph6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 Jan 2013 12:51:06 -0500
-Received: by mail-ea0-f181.google.com with SMTP id k14so1100284eaa.26
-        for <linux-media@vger.kernel.org>; Sat, 12 Jan 2013 09:51:02 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: return -ENOTTY for tuner + frequency + VBI-format ioctls if the device is a webcam
-Date: Sat, 12 Jan 2013 18:51:24 +0100
-Message-Id: <1358013084-5748-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 29 Jan 2013 10:37:58 -0500
+Message-ID: <5107ECD5.1030307@romandie.com>
+Date: Tue, 29 Jan 2013 16:37:57 +0100
+From: Olivier Subilia <futilite@romandie.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Bug report - em28xx
+References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl>
+In-Reply-To: <201301291559.26481.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   14 ++++++++++++++
- 1 Datei geändert, 14 Zeilen hinzugefügt(+)
+...
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 2eabf2a..1d1ef68 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1204,6 +1204,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	struct em28xx         *dev = fh->dev;
- 	int                   rc;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
-@@ -1224,6 +1226,8 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	struct em28xx         *dev = fh->dev;
- 	int                   rc;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
-@@ -1241,6 +1245,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	struct em28xx_fh      *fh  = priv;
- 	struct em28xx         *dev = fh->dev;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	if (0 != f->tuner)
- 		return -EINVAL;
- 
-@@ -1255,6 +1261,8 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	struct em28xx         *dev = fh->dev;
- 	int                   rc;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
- 	rc = check_dev(dev);
- 	if (rc < 0)
- 		return rc;
-@@ -1499,6 +1507,9 @@ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
- 	struct em28xx_fh      *fh  = priv;
- 	struct em28xx         *dev = fh->dev;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
-+
- 	format->fmt.vbi.samples_per_line = dev->vbi_width;
- 	format->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
- 	format->fmt.vbi.offset = 0;
-@@ -1528,6 +1539,9 @@ static int vidioc_s_fmt_vbi_cap(struct file *file, void *priv,
- 	struct em28xx_fh      *fh  = priv;
- 	struct em28xx         *dev = fh->dev;
- 
-+	if (dev->board.is_webcam)
-+		return -ENOTTY;
-+
- 	format->fmt.vbi.samples_per_line = dev->vbi_width;
- 	format->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
- 	format->fmt.vbi.offset = 0;
--- 
-1.7.10.4
+Found !
+
+(I had to activate other entries to make em28xx appear).
+
+Now the compile process is ok.
+
+I have to wait this evening at home to check if the module is OK.
+
+Thank you very much for helping
+
 
