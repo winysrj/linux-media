@@ -1,173 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62609 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752338Ab3AAO4h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jan 2013 09:56:37 -0500
-Date: Tue, 1 Jan 2013 15:56:29 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 01/15] [media] marvell-ccic: use internal variable
- replace global frame stats variable
-In-Reply-To: <1355565484-15791-2-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1301011556120.31619@axis700.grange>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
- <1355565484-15791-2-git-send-email-twang13@marvell.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3485 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143Ab3A2SV6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 13:21:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH] em28xx: fix bytesperline calculation in TRY_FMT
+Date: Tue, 29 Jan 2013 19:21:50 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <201301291049.58085.hverkuil@xs4all.nl> <51080C32.40601@googlemail.com>
+In-Reply-To: <51080C32.40601@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201301291921.50844.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 15 Dec 2012, Albert Wang wrote:
-
-> From: Libin Yang <lbyang@marvell.com>
+On Tue January 29 2013 18:51:46 Frank Schäfer wrote:
+> Am 29.01.2013 10:49, schrieb Hans Verkuil:
+> > This was part of my original em28xx patch series. That particular patch
+> > combined two things: this fix and the change where TRY_FMT would no
+> > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > rejected (correctly), but we all forgot about the second part of the patch
+> > which fixed a real bug. I'm reposting just that fix.
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > The bytesperline calculation was incorrect: it used the old width instead
+> > of the provided width, and it miscalculated the bytesperline value for the
+> > depth == 12 case.
+> >
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-video.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > index 2eabf2a..070506d 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > @@ -906,7 +906,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> >  	f->fmt.pix.width = width;
+> >  	f->fmt.pix.height = height;
+> >  	f->fmt.pix.pixelformat = fmt->fourcc;
+> > -	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
+> > +	f->fmt.pix.bytesperline = width * ((fmt->depth + 7) >> 3);
+> >  	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
+> >  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> >  	if (dev->progressive)
 > 
-> This patch replaces the global frame stats variables by using
-> internal variables in mcam_camera structure.
+> Hmm... how are 12 bit pixels stored ? Are padding bits used so that 2
+> bytes per pixel are needed ?
+
+It's a planar format where the luma plane is twice as big as the two chroma
+planes combined. So that gives an effective 'depth' of 12 bits per pixel.
+The bytesperline value should be that of the largest plane.
+
+I now realize that that is still wrong in the calculation above. It should
+be this instead:
+
+	f->fmt.pix.bytesperline = width * (fmt->depth >> 3);
+  	f->fmt.pix.sizeimage = (width * height * fmt->depth) >> 3;
+
+> I wonder if V4L2_PIX_FMT_YUV411P has ever been tested (libv4lconvert
+> doesn't support it)...
 > 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
-
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++-------------
->  drivers/media/platform/marvell-ccic/mcam-core.h |    9 +++++++
->  2 files changed, 22 insertions(+), 17 deletions(-)
+> While we are at it, we should check and fix the other size calculations,
+> too.
+> For example, in em28xx-video.c we have in
 > 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index ce2b7b4..7012913f 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-> @@ -30,13 +30,6 @@
->  
->  #include "mcam-core.h"
->  
-> -/*
-> - * Basic frame stats - to be deleted shortly
-> - */
-> -static int frames;
-> -static int singles;
-> -static int delivered;
-> -
->  #ifdef MCAM_MODE_VMALLOC
->  /*
->   * Internal DMA buffer management.  Since the controller cannot do S/G I/O,
-> @@ -367,10 +360,10 @@ static void mcam_frame_tasklet(unsigned long data)
->  		if (!test_bit(bufno, &cam->flags))
->  			continue;
->  		if (list_empty(&cam->buffers)) {
-> -			singles++;
-> +			cam->frame_state.singles++;
->  			break;  /* Leave it valid, hope for better later */
->  		}
-> -		delivered++;
-> +		cam->frame_state.delivered++;
->  		clear_bit(bufno, &cam->flags);
->  		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
->  				queue);
-> @@ -452,7 +445,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
->  		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
->  				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
->  		set_bit(CF_SINGLE_BUFFER, &cam->flags);
-> -		singles++;
-> +		cam->frame_state.singles++;
->  		return;
->  	}
->  	/*
-> @@ -485,7 +478,7 @@ static void mcam_dma_contig_done(struct mcam_camera *cam, int frame)
->  	struct mcam_vb_buffer *buf = cam->vb_bufs[frame];
->  
->  	if (!test_bit(CF_SINGLE_BUFFER, &cam->flags)) {
-> -		delivered++;
-> +		cam->frame_state.delivered++;
->  		mcam_buffer_done(cam, frame, &buf->vb_buf);
->  	}
->  	mcam_set_contig_buffer(cam, frame);
-> @@ -578,13 +571,13 @@ static void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
->  	 */
->  	} else {
->  		set_bit(CF_SG_RESTART, &cam->flags);
-> -		singles++;
-> +		cam->frame_state.singles++;
->  		cam->vb_bufs[0] = NULL;
->  	}
->  	/*
->  	 * Now we can give the completed frame back to user space.
->  	 */
-> -	delivered++;
-> +	cam->frame_state.delivered++;
->  	mcam_buffer_done(cam, frame, &buf->vb_buf);
->  }
->  
-> @@ -1545,7 +1538,9 @@ static int mcam_v4l_open(struct file *filp)
->  
->  	filp->private_data = cam;
->  
-> -	frames = singles = delivered = 0;
-> +	cam->frame_state.frames = 0;
-> +	cam->frame_state.singles = 0;
-> +	cam->frame_state.delivered = 0;
->  	mutex_lock(&cam->s_mutex);
->  	if (cam->users == 0) {
->  		ret = mcam_setup_vb2(cam);
-> @@ -1566,8 +1561,9 @@ static int mcam_v4l_release(struct file *filp)
->  {
->  	struct mcam_camera *cam = filp->private_data;
->  
-> -	cam_dbg(cam, "Release, %d frames, %d singles, %d delivered\n", frames,
-> -			singles, delivered);
-> +	cam_dbg(cam, "Release, %d frames, %d singles, %d delivered\n",
-> +			cam->frame_state.frames, cam->frame_state.singles,
-> +			cam->frame_state.delivered);
->  	mutex_lock(&cam->s_mutex);
->  	(cam->users)--;
->  	if (cam->users == 0) {
-> @@ -1660,7 +1656,7 @@ static void mcam_frame_complete(struct mcam_camera *cam, int frame)
->  	clear_bit(CF_DMA_ACTIVE, &cam->flags);
->  	cam->next_buf = frame;
->  	cam->buf_seq[frame] = ++(cam->sequence);
-> -	frames++;
-> +	cam->frame_state.frames++;
->  	/*
->  	 * "This should never happen"
->  	 */
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index bd6acba..5e802c6 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -73,6 +73,14 @@ static inline int mcam_buffer_mode_supported(enum mcam_buffer_mode mode)
->  	}
->  }
->  
-> +/*
-> + * Basic frame states
-> + */
-> +struct mcam_frame_state {
-> +	unsigned int frames;
-> +	unsigned int singles;
-> +	unsigned int delivered;
-> +};
->  
->  /*
->   * A description of one of our devices.
-> @@ -108,6 +116,7 @@ struct mcam_camera {
->  	unsigned long flags;		/* Buffer status, mainly (dev_lock) */
->  	int users;			/* How many open FDs */
->  
-> +	struct mcam_frame_state frame_state;	/* Frame state counter */
->  	/*
->  	 * Subsystem structures.
->  	 */
-> -- 
-> 1.7.9.5
+> vidioc_g_fmt_vid_cap():
+> f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
 > 
+> queue_setup():
+> size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
+> 
+> buffer_prepare():
+> size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
+> 
+> em28xx_copy_video():
+> int bytesperline = dev->width << 1;
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hmm, I'll have to prepare a RFCv2.
+
+Regards,
+
+	Hans
+
+> 
+> and there are probably more places...
+> 
+> 
+> Regards,
+> Frank
+> 
+> 
