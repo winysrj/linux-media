@@ -1,115 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:39351 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340Ab3AVVlm (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:15693 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750913Ab3A2SeG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 16:41:42 -0500
-Received: by mail-ea0-f175.google.com with SMTP id d1so3086738eab.6
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 13:41:41 -0800 (PST)
-Message-ID: <50FF0789.1020101@gmail.com>
-Date: Tue, 22 Jan 2013 22:41:29 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
+	Tue, 29 Jan 2013 13:34:06 -0500
+Date: Tue, 29 Jan 2013 16:33:57 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 2/3] v4l2-ctrl: Add helper function for control range
- update
-References: <1358630842-12689-1-git-send-email-sylvester.nawrocki@gmail.com> <1358630842-12689-3-git-send-email-sylvester.nawrocki@gmail.com> <201301210925.23817.hverkuil@xs4all.nl>
-In-Reply-To: <201301210925.23817.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFC PATCH] em28xx: fix bytesperline calculation in TRY_FMT
+Message-ID: <20130129163357.4525114e@redhat.com>
+In-Reply-To: <201301291921.50844.hverkuil@xs4all.nl>
+References: <201301291049.58085.hverkuil@xs4all.nl>
+	<51080C32.40601@googlemail.com>
+	<201301291921.50844.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Tue, 29 Jan 2013 19:21:50 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 01/21/2013 09:25 AM, Hans Verkuil wrote:
-> Hi Sylwester!
->
-> On Sat January 19 2013 22:27:21 Sylwester Nawrocki wrote:
->> This patch adds a helper function that allows to modify range,
->> i.e. minimum, maximum, step and default value of a v4l2 control,
->> after the control has been created and initialized. This is helpful
->> in situations when range of a control depends on user configurable
->> parameters, e.g. camera sensor absolute exposure time depending on
->> an output image resolution and frame rate.
->>
->> v4l2_ctrl_modify_range() function allows to modify range of an
->> INTEGER, BOOL, MENU, INTEGER_MENU and BITMASK type controls.
->>
->> Based on a patch from Hans Verkuil http://patchwork.linuxtv.org/patch/8654.
->>
->> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
->
-> This is a very nice patch. I found only one small mistake:
+> On Tue January 29 2013 18:51:46 Frank Schäfer wrote:
+> > Am 29.01.2013 10:49, schrieb Hans Verkuil:
+> > > This was part of my original em28xx patch series. That particular patch
+> > > combined two things: this fix and the change where TRY_FMT would no
+> > > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > > rejected (correctly), but we all forgot about the second part of the patch
+> > > which fixed a real bug. I'm reposting just that fix.
+> > >
+> > > Regards,
+> > >
+> > > 	Hans
+> > >
+> > > The bytesperline calculation was incorrect: it used the old width instead
+> > > of the provided width, and it miscalculated the bytesperline value for the
+> > > depth == 12 case.
+> > >
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > >  drivers/media/usb/em28xx/em28xx-video.c |    2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > >
+> > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > > index 2eabf2a..070506d 100644
+> > > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > > @@ -906,7 +906,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> > >  	f->fmt.pix.width = width;
+> > >  	f->fmt.pix.height = height;
+> > >  	f->fmt.pix.pixelformat = fmt->fourcc;
+> > > -	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
+> > > +	f->fmt.pix.bytesperline = width * ((fmt->depth + 7) >> 3);
+> > >  	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
+> > >  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> > >  	if (dev->progressive)
+> > 
+> > Hmm... how are 12 bit pixels stored ? Are padding bits used so that 2
+> > bytes per pixel are needed ?
+> 
+> It's a planar format where the luma plane is twice as big as the two chroma
+> planes combined. So that gives an effective 'depth' of 12 bits per pixel.
+> The bytesperline value should be that of the largest plane.
+> 
+> I now realize that that is still wrong in the calculation above. It should
+> be this instead:
+> 
+> 	f->fmt.pix.bytesperline = width * (fmt->depth >> 3);
+>   	f->fmt.pix.sizeimage = (width * height * fmt->depth) >> 3;
 
-Thank you for the review. In fact, I didn't change a lot in the original
-patch ;) But I have to admit I had to spent some time to understand what's
-going on in this code and how to resolve all merge conflicts. :-)
+The original code adds a "+ 7" to be sure that it will truncate upper
+before dividing by 8.
 
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index f6ee201..d68fb57 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -2721,10 +2751,44 @@ int v4l2_ctrl_s_ctrl_int64(struct v4l2_ctrl *ctrl, s64 val)
->>   	/* It's a driver bug if this happens. */
->>   	WARN_ON(ctrl->type != V4L2_CTRL_TYPE_INTEGER64);
->>   	c.value64 = val;
->> -	return set_ctrl(NULL, ctrl,&c);
->> +	return set_ctrl_lock(NULL, ctrl,&c);
->>   }
->>   EXPORT_SYMBOL(v4l2_ctrl_s_ctrl_int64);
->>
->> +int v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
->> +			s32 min, s32 max, u32 step, s32 def)
->> +{
->> +	int ret = check_range(ctrl->type, min, max, step, def);
->> +	struct v4l2_ext_control c;
->> +
->> +	switch (ctrl->type) {
->> +	case V4L2_CTRL_TYPE_INTEGER:
->> +	case V4L2_CTRL_TYPE_BOOLEAN:
->> +	case V4L2_CTRL_TYPE_MENU:
->> +	case V4L2_CTRL_TYPE_BITMASK:
->
-> TYPE_INTEGER_MENU is missing here!
+> 
+> > I wonder if V4L2_PIX_FMT_YUV411P has ever been tested (libv4lconvert
+> > doesn't support it)...
+> > 
+> > While we are at it, we should check and fix the other size calculations,
+> > too.
+> > For example, in em28xx-video.c we have in
+> > 
+> > vidioc_g_fmt_vid_cap():
+> > f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > 
+> > queue_setup():
+> > size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
+> > 
+> > buffer_prepare():
+> > size = (dev->width * dev->height * dev->format->depth + 7) >> 3;
+> > 
+> > em28xx_copy_video():
+> > int bytesperline = dev->width << 1;
+> 
+> Hmm, I'll have to prepare a RFCv2.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > and there are probably more places...
+> > 
+> > 
+> > Regards,
+> > Frank
+> > 
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks, fixed.
 
->> +		if (ret)
->> +			return ret;
->> +		break;
->> +	default:
->> +		return -EINVAL;
->> +	}
->> +	v4l2_ctrl_lock(ctrl);
->> +	ctrl->minimum = min;
->> +	ctrl->maximum = max;
->> +	ctrl->step = step;
->> +	ctrl->default_value = def;
->> +	c.value = ctrl->cur.val;
->> +	if (validate_new(ctrl,&c))
->> +		c.value = def;
->> +	if (c.value != ctrl->cur.val)
->> +		ret = set_ctrl(NULL, ctrl,&c, V4L2_EVENT_CTRL_CH_RANGE);
->> +	else
->> +		send_event(NULL, ctrl, V4L2_EVENT_CTRL_CH_RANGE);
->> +	v4l2_ctrl_unlock(ctrl);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(v4l2_ctrl_modify_range);
->> +
->>   static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
->>   {
->>   	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
->
-> After correcting that missing case you can add my ack:
->
-> Acked-by: Hans Verkuil<hans.verkuil@cisco.com>
+-- 
 
-Thank you. I'll post the next version shortly.
-
---
-
-Regards,
-Sylwester
+Cheers,
+Mauro
