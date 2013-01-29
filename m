@@ -1,79 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:34211 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab3ASXly (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 18:41:54 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, jrnieder@gmail.com, peter.senna@gmail.com,
-	emilgoode@gmail.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH V2 01/24] pci/cx88/cx88.h: use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 21:41:08 -0200
-Message-Id: <1358638891-4775-2-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
-References: <1358638891-4775-1-git-send-email-peter.senna@gmail.com>
+Received: from pequod.mess.org ([46.65.169.142]:34581 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754413Ab3A2MTe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 07:19:34 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 5/5] [media] redrat3: fix transmit return value and overrun
+Date: Tue, 29 Jan 2013 12:19:31 +0000
+Message-Id: <1359461971-27492-5-git-send-email-sean@mess.org>
+In-Reply-To: <1359461971-27492-1-git-send-email-sean@mess.org>
+References: <1359461971-27492-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_VIDEO_CX88_DVB) || \
-     defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-with:
- #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
+If more than 127 different lengths are transmitted then the driver causes
+an overrun on sample_lens. Try to send as much as possible and return the
+amount sent.
 
-This change was made for: CONFIG_VIDEO_CX88_DVB,
-CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
-
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
-Changes from V1:
-   Updated subject
+ drivers/media/rc/redrat3.c | 18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
- drivers/media/pci/cx88/cx88.h | 10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
-index ba0dba4..feff53c 100644
---- a/drivers/media/pci/cx88/cx88.h
-+++ b/drivers/media/pci/cx88/cx88.h
-@@ -363,7 +363,7 @@ struct cx88_core {
- 	unsigned int               tuner_formats;
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 1800326..1b37fe2 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -195,9 +195,6 @@ struct redrat3_dev {
+ 	dma_addr_t dma_in;
+ 	dma_addr_t dma_out;
  
- 	/* config info -- dvb */
--#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
- 	int 			   (*prev_set_voltage)(struct dvb_frontend *fe, fe_sec_voltage_t voltage);
- #endif
- 	void			   (*gate_ctrl)(struct cx88_core  *core, int open);
-@@ -562,8 +562,7 @@ struct cx8802_dev {
+-	/* locks this structure */
+-	struct mutex lock;
+-
+ 	/* rx signal timeout timer */
+ 	struct timer_list rx_timeout;
+ 	u32 hw_timeout;
+@@ -922,8 +919,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 		return -EAGAIN;
+ 	}
  
- 	/* for blackbird only */
- 	struct list_head           devlist;
--#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
--    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_BLACKBIRD)
- 	struct video_device        *mpeg_dev;
- 	u32                        mailbox;
- 	int                        width;
-@@ -574,13 +573,12 @@ struct cx8802_dev {
- 	struct cx2341x_handler     cxhdl;
- #endif
+-	if (count > (RR3_DRIVER_MAXLENS * 2))
+-		return -EINVAL;
++	count = min_t(unsigned, count, RR3_MAX_SIG_SIZE - RR3_TX_TRAILER_LEN);
  
--#if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
- 	/* for dvb only */
- 	struct videobuf_dvb_frontends frontends;
- #endif
+ 	/* rr3 will disable rc detector on transmit */
+ 	rr3->det_enabled = false;
+@@ -936,24 +932,22 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 	}
  
--#if defined(CONFIG_VIDEO_CX88_VP3054) || \
--    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
-+#if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
- 	/* For VP3045 secondary I2C bus support */
- 	struct vp3054_i2c_state	   *vp3054;
- #endif
+ 	for (i = 0; i < count; i++) {
++		cur_sample_len = redrat3_us_to_len(txbuf[i]);
+ 		for (lencheck = 0; lencheck < curlencheck; lencheck++) {
+-			cur_sample_len = redrat3_us_to_len(txbuf[i]);
+ 			if (sample_lens[lencheck] == cur_sample_len)
+ 				break;
+ 		}
+ 		if (lencheck == curlencheck) {
+-			cur_sample_len = redrat3_us_to_len(txbuf[i]);
+ 			rr3_dbg(dev, "txbuf[%d]=%u, pos %d, enc %u\n",
+ 				i, txbuf[i], curlencheck, cur_sample_len);
+-			if (curlencheck < 255) {
++			if (curlencheck < RR3_DRIVER_MAXLENS) {
+ 				/* now convert the value to a proper
+ 				 * rr3 value.. */
+ 				sample_lens[curlencheck] = cur_sample_len;
+ 				curlencheck++;
+ 			} else {
+-				dev_err(dev, "signal too long\n");
+-				ret = -EINVAL;
+-				goto out;
++				count = i - 1;
++				break;
+ 			}
+ 		}
+ 	}
+@@ -1087,6 +1081,7 @@ static struct rc_dev *redrat3_init_rc_dev(struct redrat3_dev *rr3)
+ 	rc->tx_ir = redrat3_transmit_ir;
+ 	rc->s_tx_carrier = redrat3_set_tx_carrier;
+ 	rc->driver_name = DRIVER_NAME;
++	rc->rx_resolution = US_TO_NS(2);
+ 	rc->map_name = RC_MAP_HAUPPAUGE;
+ 
+ 	ret = rc_register_device(rc);
+@@ -1202,7 +1197,6 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
+ 			  (usb_complete_t)redrat3_write_bulk_callback, rr3);
+ 
+-	mutex_init(&rr3->lock);
+ 	rr3->udev = udev;
+ 
+ 	redrat3_reset(rr3);
 -- 
-1.7.11.7
+1.8.1
 
