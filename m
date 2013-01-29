@@ -1,193 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:64412 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab3AUVZE (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3478 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753814Ab3A2Qd2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 16:25:04 -0500
-Received: by mail-bk0-f54.google.com with SMTP id w5so94875bku.27
-        for <linux-media@vger.kernel.org>; Mon, 21 Jan 2013 13:25:01 -0800 (PST)
-Message-ID: <50FDB251.6030501@googlemail.com>
-Date: Mon, 21 Jan 2013 22:25:37 +0100
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: V4L2 spec / core questions
-References: <50FC5E87.2080902@googlemail.com> <201301210959.49780.hverkuil@xs4all.nl>
-In-Reply-To: <201301210959.49780.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+	Tue, 29 Jan 2013 11:33:28 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 03/20] cx231xx: clean up radio support.
+Date: Tue, 29 Jan 2013 17:32:56 +0100
+Message-Id: <3f68cc912eb50e320dcfc2b41942e59cfc3186d8.1359476777.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359477193-9768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
+References: <8a9d877c6be8a336a44c69a21b3fca449294139d.1359476776.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Am 21.01.2013 09:59, schrieb Hans Verkuil:
-> On Sun January 20 2013 22:15:51 Frank Schäfer wrote:
->> Hi Hans,
->>
->> I noticed that there's code in the v4l2 core that enables/disables
->> ioctls and checks some of the parameters depending on the device type.
->> While reading the code an comparing it to the V4L2 API document, some
->> more questions came up:
->>
->> 1) Video devices with VBI functionality:
->> The spec says: "To address the problems of finding related video and VBI
->> devices VBI capturing and output is also available as device function
->> under /dev/video".
->> Is that still valid ?
-> No, that's not valid. It really was never valid: most drivers didn't implement
-> this, and those that did likely didn't work. During one of the media summits
-> we decided not to allow this. Allowing VBI functionality in video node has a
-> number of problems:
->
-> 1) it's confusing: why have a vbi node at all if you can do it with a video
-> node as well? 
+Radio should not use video or audio inputs.
+In addition, fix a bug in radio_g_tuner where s_tuner was called in the tuner
+subdev instead of g_tuner.
 
-Yeah, although I think the problem described in the spec document is real.
-No idea how good applications are in finding the correct VBI device
-belonging to a specific video device node...
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-video.c |   79 +++++++----------------------
+ 1 file changed, 18 insertions(+), 61 deletions(-)
 
-Hmm... yeah... why have separate device nodes at all ? We could provide
-the same functionality with a single device node (e.g. /dev/multimediaX).
-I assume separation into radio / video / vbi device nodes gears towards
-typical feature sets of applications.
-Probably something to think about for V4L3... ;)
-
-> In fact, applications always use the vbi node for vbi data.
->
-> 2) it breaks down when you want to read() the data: read() can handle only
-> one 'format' at a time. So if you want to read both video and vbi at the same
-> time then you need to nodes.
-
-Ouch, yes !
-Ok, so the traditional read() concept is probably the _real_ reason for
-having separate device nodes...
-
-> 3) it makes drivers quite complex: separating this functionality in distinct
-> nodes makes life much easier.
-
-It looks like the v4l2 core has been improved a lot and now does most of
-the work for the driver, so it's probably not that complex anymore.
-
->> What about VBI "configuration" (e.g.
->> VIDIOC_G/S/TRY_FMT for VBI formats) ?
->> Looking into the v4l2 core code, it seems that the VBI buffer types
->> (field "type" in struct v4l2_format) are only accepted, if the device is
->> a VBI device.
-> That's correct. I've added these checks because drivers often didn't test
-> that themselves. It's also much easier to test in the v4l2 core than
-> repeating the same test in every driver.
->
->> 2) VIDIOC_G/S/TRY_FMT and VBI devices:
->> The sepc says: "VBI devices must implement both the VIDIOC_G_FMT and
->> VIDIOC_S_FMT ioctl, even if VIDIOC_S_FMT ignores all requests and always
->> returns default parameters as VIDIOC_G_FMT does. VIDIOC_TRY_FMT is
->> optional." What's the reason for this ? Is it still valid ?
-> This is still valid (in fact, v4l2-compliance requires the presence of
-> TRY_FMT as well as I don't think there is a good reason not to implement
-> it). The reason for this is that this simplifies applications: no need to
-> test for the presence of S_FMT.
->
->> 3) VIDIOC_S_TUNER: field "type" in struct v4l2_tuner
->> Are radio tuners accessable through video devices (and the other way
->> around) ?
-> Not anymore. This used to be possible, although because it was never
-> properly tested most drivers probably didn't implement that correctly.
->
-> The radio API has always been a bit messy and we have been slowly cleaning
-> it up.
-
-Yeah, I think the most confusing things are input/output/routing
-(G/S_INPUT, G/S_AUDIO).
-
->
->> Has this field to be set by the application ?
-> No, it is filled in by the core based on the device node used. This follows
-> the spec which does not require apps to set the type.
->
->> If yes: driver overwrites
->> the value or returns with an error if the type doesn't match the tuner
->> at the requested index ?
->> I wonder if it would make sense to check the tuner type inside the v4l
->> core (like the fmt/buffer type check for G/S_PARM).
->>
->> 4) VIDIOC_DBG_G_CHIP_IDENT:
->> Is it part of CONFIG_VIDEO_ADV_DEBUG just like VIDIOC_DBG_G/S_REGISTER ?
-> No. It just returns some chip info, it doesn't access the hardware, so there
-> is no need to put it under ADV_DEBUG.
-
-Ok. I just noticed that in most drivers it's inside the #ifdef
-CONFIG_VIDEO_ADV_DEBUG.
-It also has been renamed from VIDIOC_G_CHIP_IDENT to
-VIDIOC_DBG_G_CHIP_IDENT which somehow suggests that it's an advanced
-debug feature.
-
->
->> In determine_valid_ioctls(), it is placed outside the #ifdef
->> CONFIG_VIDEO_ADV_DEBUG section.
->> The spec says "Identify the chips on a TV card" but isn't it suitable
->> for all device types (radio/video/vbi) ?
-> That's correct. A patch is welcome :-)
-
-To be sure that I understood you correctly:
- VIDIOC_DBG_G_CHIP_IDENT is suitable for all device types ?
-Then no patch is needed but the spec document has to be fixed.
-
->> determine_valid_ioctls() in
->> v4l2-dev.c enables it for all devices.
->>
->> 5) The buffer ioctls (VIDIOC_REQBUFS, VIDIOC_CREATE_BUFS,
->> VIDIOC_PREPARE_BUF, VIDIOC_QUERYBUF, VIDIOC_QBUF, VIDIOC_DQBUF) are not
->> applicable to radio devices, right ?
-> That's correct.
->
->> In function determine_valid_ioctls() in v4l2-dev.c they are enabled for
->> all device types.
-> A patch fixing this is welcome!
-
-Coming soon.
-
->
->> 6) VIDIOC_G/S_AUDIO: Shouldn't it be disabled in
->> determine_valid_ioctls() for VBI devices ?
-> No. VBI devices still allow this. Strictly speaking it isn't useful for vbi
-> devices, but allowing G/S_INPUT but not G/S_AUDIO feels inconsistent to me.
->
-> While it isn't useful, it doesn't hurt either.
->
->> Btw: function determine_valid_ioctls() in v4l2-dev.c is a good summary
->> that explains which ioctls are suitable for which device types
->> (radio/video/vbi).
->> Converting its content into a table would be a great
->> extension/clarifaction of the V4L2 API spec document !
-> We played around with the idea of 'profiles' where for each type of device
-> you have a table listing what can and cannot be done. The problem is time...
->
-> If you are interesting in pursuing this, then I am happy to help with advice
-> and pointers (v4l2-compliance is also a great source of information).
-
-I could create a simple html table with X = device type, Y = ioctl.
-
->
->> Thanks for your patience !
-> My pleasure!
->
-> Regards,
->
-> 	Hans
-
-One last question:
-I'm looking for a possibility to disable all ioctls when the device is
-unplugged.
-I think this is a common problem/task of all drivers for hotpluggable
-devices, because the disconnect callbacks can't unregister the device
-until it get's closed by the application.
-What's the best way to do this ? v4l2_disable_ioctl() has no effect
-after video_register_device() is called...
-
-Regards,
-Frank
-
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 44bc687..666152f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1873,20 +1873,24 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	strlcpy(cap->card, cx231xx_boards[dev->model].name, sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 
+-	cap->device_caps =
+-		V4L2_CAP_AUDIO		|
+-		V4L2_CAP_READWRITE	|
+-		V4L2_CAP_STREAMING;
+-
+-	if (vdev->vfl_type == VFL_TYPE_VBI)
+-		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
+-	else
+-		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
++	if (vdev->vfl_type == VFL_TYPE_RADIO)
++		cap->device_caps = V4L2_CAP_RADIO;
++	else {
++		cap->device_caps = V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
++			V4L2_CAP_STREAMING;
++		if (vdev->vfl_type == VFL_TYPE_VBI)
++			cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
++		else
++			cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
++	}
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+ 	cap->capabilities = cap->device_caps |
+ 		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_DEVICE_CAPS;
++		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
++		V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
++	if (dev->radio_dev)
++		cap->capabilities |= V4L2_CAP_RADIO;
+ 
+ 	return 0;
+ }
+@@ -2053,53 +2057,19 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ /* RADIO ESPECIFIC IOCTLS                                      */
+ /* ----------------------------------------------------------- */
+ 
+-static int radio_querycap(struct file *file, void *priv,
+-			  struct v4l2_capability *cap)
+-{
+-	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
+-
+-	strlcpy(cap->driver, "cx231xx", sizeof(cap->driver));
+-	strlcpy(cap->card, cx231xx_boards[dev->model].name, sizeof(cap->card));
+-	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-
+-	cap->capabilities = V4L2_CAP_TUNER;
+-	return 0;
+-}
+-
+ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
+ 
+-	if (unlikely(t->index > 0))
++	if (t->index)
+ 		return -EINVAL;
+ 
+ 	strcpy(t->name, "Radio");
+-	t->type = V4L2_TUNER_RADIO;
+-
+-	call_all(dev, tuner, s_tuner, t);
+-
+-	return 0;
+-}
+ 
+-static int radio_enum_input(struct file *file, void *priv, struct v4l2_input *i)
+-{
+-	if (i->index != 0)
+-		return -EINVAL;
+-	strcpy(i->name, "Radio");
+-	i->type = V4L2_INPUT_TYPE_TUNER;
+-
+-	return 0;
+-}
+-
+-static int radio_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+-{
+-	if (unlikely(a->index))
+-		return -EINVAL;
++	call_all(dev, tuner, g_tuner, t);
+ 
+-	strcpy(a->name, "Radio");
+ 	return 0;
+ }
+-
+ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
+@@ -2112,16 +2082,6 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int radio_s_audio(struct file *file, void *fh, const struct v4l2_audio *a)
+-{
+-	return 0;
+-}
+-
+-static int radio_s_input(struct file *file, void *fh, unsigned int i)
+-{
+-	return 0;
+-}
+-
+ static int radio_queryctrl(struct file *file, void *priv,
+ 			   struct v4l2_queryctrl *c)
+ {
+@@ -2550,18 +2510,15 @@ static const struct v4l2_file_operations radio_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap    = radio_querycap,
++	.vidioc_querycap    = vidioc_querycap,
+ 	.vidioc_g_tuner     = radio_g_tuner,
+-	.vidioc_enum_input  = radio_enum_input,
+-	.vidioc_g_audio     = radio_g_audio,
+ 	.vidioc_s_tuner     = radio_s_tuner,
+-	.vidioc_s_audio     = radio_s_audio,
+-	.vidioc_s_input     = radio_s_input,
+ 	.vidioc_queryctrl   = radio_queryctrl,
+ 	.vidioc_g_ctrl      = vidioc_g_ctrl,
+ 	.vidioc_s_ctrl      = vidioc_s_ctrl,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
++	.vidioc_g_chip_ident = vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register  = vidioc_g_register,
+ 	.vidioc_s_register  = vidioc_s_register,
+-- 
+1.7.10.4
 
