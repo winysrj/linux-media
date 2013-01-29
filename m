@@ -1,104 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59390 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753047Ab3ACKod (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jan 2013 05:44:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: DT bindings for subdevices
-Date: Thu, 03 Jan 2013 11:46:01 +0100
-Message-ID: <2733366.zi1OCRLXdc@avalon>
-In-Reply-To: <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
-References: <CA+V-a8uK38_HrYa2ic5soLE=Ge0aK3=PObNCs_xMf=PAzcwBcg@mail.gmail.com> <Pine.LNX.4.64.1301021100130.7829@axis700.grange>
+Received: from sqdf3.vserver.nimag.net ([62.220.136.226]:50569 "EHLO
+	mail.avocats-ch.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756480Ab3A2Pak (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 10:30:40 -0500
+Message-ID: <5107EB1D.9060702@romandie.com>
+Date: Tue, 29 Jan 2013 16:30:37 +0100
+From: Olivier Subilia <futilite@romandie.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: Bug report - em28xx
+References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl>
+In-Reply-To: <201301291559.26481.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Thanks for help.
 
-On Wednesday 02 January 2013 11:19:04 Guennadi Liakhovetski wrote:
-> On Wed, 2 Jan 2013, Prabhakar Lad wrote:
-> > Hi,
-> > 
-> > This is my first step towards DT support for media, Question might be
-> > bit amateur :)
-> 
-> No worries, we're all doing our first steps in this direction right at the
-> moment. These two recent threads should give you an idea as to where we
-> stand atm:
-> 
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/58646
-> 
-> and (optionally, to a lesser extent)
-> 
-> http://www.spinics.net/lists/linux-media/index.html#57836
-> 
-> > In the video pipeline there will be external devices (decoders/camera)
-> > connected via i2c, spi, csi. This sub-devices take platform data. So
-> > question is moving ahead and adding DT support for this subdevices how
-> > should this platform data be passed through. Should it be different
-> > properties for different devices.
-> 
-> Mostly, yes.
-> 
-> > For example the mt9t001 sensor takes following platform data:
-> > struct mt9t001_platform_data {
-> > 
-> > 	unsigned int clk_pol:1;
-> 
-> This would presumably be the standard "pclk-sample" property from the
-> first of the above two quoted threads
-> 
-> > 	unsigned int ext_clk;
-> 
-> Is this the frequency? This should be replaced by a phandle, linking to a
-> clock device-tree node, assuming, your platform is implementing the
-> generic clock API. If it isn't yet, not a problem either:-) In either case
-> your sensor driver shall be using the v4l2_clk API to retrieve the clock
-> rate and your camera host driver should be providing a matching v4l2_clk
-> instance and implementing its methods, including retrieving the frequency.
-> 
-> > };
-> > similarly mt9p031 takes following platform data:
-> > 
-> > struct mt9p031_platform_data {
-> > 
-> > 	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
-> 
-> Not sure what the xclk is, but, presumable, this should be ported to
-> v4l2_clk too.
+I must confess there are so many entries in menuconfig I can't find 
+where enabling em28xx is hidden (20 minutes searching in vain :-( . 
+Could you please help me ?
 
-I'm porting the OMAP3 ISP driver to the common clock framework and have ported 
-the mt9p031 driver in the process. I still need to test the patches, I'll then 
-post them.
-
-> > 	int reset;
-> 
-> This is a GPIO number, used to reset the chip. You should use a property,
-> probably, calling it "reset-gpios", specifying the desired GPIO.
-> 
-> > 	int ext_freq;
-> > 	int target_freq;
-> 
-> Presumably, ext_freq should be retrieved, using v4l2_clk_get_rate() and
-> target_freq could be a proprietary property of your device.
-> 
-> Thanks
-> Guennadi
-> 
-> > };
-> > 
-> > should this all be individual properties ?
-
--- 
-Regards,
-
-Laurent Pinchart
+Le 29/01/2013 15:59, Hans Verkuil a écrit :
+> On Tue January 29 2013 15:18:12 Olivier Subilia wrote:
+>> Hi,
+>>
+>> First of all, I've no experience with this mailing list. I'm not sure
+>> I'm sending my report to the right place. If not, please don't hesitate
+>> to tell it to me (possibly with the right place address).
+>>
+>> I'm desperately trying to compile v4l drivers for a PCTV quatrostick
+>> nano. Following this page
+>>
+>> http://www.linuxtv.org/wiki/index.php/PCTVSystems_QuatroStick-nano_520e
+>>
+>> it uses the em28xx driver.
+>>
+>> my configuration: `uname -r` = 3.2.0-35-generic-pae
+>>
+>> So I tried to compile it with
+>>
+>> $ git clone git://linuxtv.org/media_build.git
+>> $ cd media_built
+>> $ ./build >log.log (file attached)
+>>
+>> STDERR:
+>>
+>> Cloning into 'media_build'...
+>> remote: Counting objects: 1813, done.
+>> remote: Compressing objects: 100% (591/591), done.
+>> remote: Total 1813 (delta 1223), reused 1751 (delta 1183)
+>> Receiving objects: 100% (1813/1813), 423.66 KiB, done.
+>> Resolving deltas: 100% (1223/1223), done.
+>> multimedia@serveur:~$ cd media_build/
+>> multimedia@serveur:~/media_build$ ./build >log.log
+>>   From git://linuxtv.org/media_build
+>>    * branch            master     -> FETCH_HEAD
+>> --2013-01-29 14:52:49--
+>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
+>> Resolving linuxtv.org (linuxtv.org)... 130.149.80.248
+>> Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:80... connected.
+>> HTTP request sent, awaiting response... 200 OK
+>> Length: 93 [application/x-bzip2]
+>> Saving to: `linux-media.tar.bz2.md5.tmp'
+>>
+>> 100%[=========================================================================================================================================>]
+>> 93          --.-K/s   in 0s
+>>
+>> 2013-01-29 14:52:49 (7.72 MB/s) - `linux-media.tar.bz2.md5.tmp' saved
+>> [93/93]
+>>
+>> cat: linux-media.tar.bz2.md5: No such file or directory
+>> --2013-01-29 14:52:49--
+>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
+>> Resolving linuxtv.org (linuxtv.org)... 130.149.80.248
+>> Connecting to linuxtv.org (linuxtv.org)|130.149.80.248|:80... connected.
+>> HTTP request sent, awaiting response... 200 OK
+>> Length: 4502249 (4.3M) [application/x-bzip2]
+>> Saving to: `linux-media.tar.bz2'
+>>
+>> 100%[=========================================================================================================================================>]
+>> 4'502'249   5.47M/s   in 0.8s
+>>
+>> 2013-01-29 14:52:50 (5.47 MB/s) - `linux-media.tar.bz2' saved
+>> [4502249/4502249]
+>>
+>> --2013-01-29 14:52:51--
+>> http://www.linuxtv.org/downloads/firmware//dvb-firmwares.tar.bz2
+>> Resolving www.linuxtv.org (www.linuxtv.org)... 130.149.80.248
+>> Connecting to www.linuxtv.org (www.linuxtv.org)|130.149.80.248|:80...
+>> connected.
+>> HTTP request sent, awaiting response... 200 OK
+>> Length: 649441 (634K) [application/x-bzip2]
+>> Saving to: `dvb-firmwares.tar.bz2'
+>>
+>> 100%[=========================================================================================================================================>]
+>> 649'441     1.41M/s   in 0.4s
+>>
+>> 2013-01-29 14:52:51 (1.41 MB/s) - `dvb-firmwares.tar.bz2' saved
+>> [649441/649441]
+>>
+>>
+>> ln: accessing `../../linux/firmware/dabusb//*': No such file or directory
+>> /home/multimedia/media_build/v4l/anysee.c: In function
+>> 'anysee_frontend_attach':
+>> /home/multimedia/media_build/v4l/anysee.c:893:2: warning: 'ret' may be
+>> used uninitialized in this function [-Wuninitialized]
+>> /home/multimedia/media_build/v4l/m920x.c: In function 'm920x_probe':
+>> /home/multimedia/media_build/v4l/m920x.c:91:6: warning: 'ret' may be
+>> used uninitialized in this function [-Wuninitialized]
+>> /home/multimedia/media_build/v4l/m920x.c:70:6: note: 'ret' was declared here
+>> /home/multimedia/media_build/v4l/mxl111sf.c:58:0: warning: "err"
+>> redefined [enabled by default]
+>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>> definition
+>> /home/multimedia/media_build/v4l/ngene-cards.c:813:2: warning:
+>> initialization discards 'const' qualifier from pointer target type
+>> [enabled by default]
+>> /home/multimedia/media_build/v4l/mxl111sf-tuner.c:34:0: warning: "err"
+>> redefined [enabled by default]
+>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>> definition
+>> /home/multimedia/media_build/v4l/mxl111sf-tuner.c:34:0: warning: "err"
+>> redefined [enabled by default]
+>> include/linux/usb.h:1655:0: note: this is the location of the previous
+>> definition
+>> WARNING: "snd_tea575x_set_freq"
+>> [/home/multimedia/media_build/v4l/radio-shark.ko] undefined!
+>> WARNING: modpost: Found 1 section mismatch(es).
+>> To see full details build your kernel with:
+>> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>>
+>>
+>> No other compilation error. 524 modules founds. But if I check em28xx
+>> family modules:
+>>
+>> $ ls v4l/em28xx*.ko
+>> ls: cannot access v4l/em28xx*.ko: No such file or directory
+>>
+>> In other words: no module is compiled with this.
+>> All (most ?) other modules are compiled in v4l/*.ko
+>>
+>> What am I doing wrong ?
+> Nothing :-)
+>
+> I can reproduce this myself. It works fine for all kernels except 3.2 and 3.3.
+> One workaround is to run 'make menuconfig' in the media_build directory, turn
+> on the em28xx modules, and run 'make' to build everything.
+>
+> Why it isn't automatically selected when compiling for those kernels is a
+> mystery to me.
+>
+> Regards,
+>
+> 	Hans
+>
+>> With kernel 2.6.32-45-generic, I have no problem to build everything
+>> with the same commands, included em28xx*.ko.
+>>
+>> By the way, is it possible to rebuild just one specific module instead
+>> of always rebuilding the whole tree ?
+>>
+>> Many thanks in advance for any hint
+>>
+>> Olivier Subilia
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
