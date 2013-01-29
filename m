@@ -1,51 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4552 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab3AGQ0W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jan 2013 11:26:22 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.7] Fix modulator regression in kernel 3.7.
-Date: Mon, 7 Jan 2013 17:26:14 +0100
-Cc: Manjunatha Halli <manjunatha_halli@ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301071726.14899.hverkuil@xs4all.nl>
+Received: from pequod.mess.org ([46.65.169.142]:56860 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754966Ab3A2MTd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jan 2013 07:19:33 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/5] [media] ttusbir: add missing endian conversion
+Date: Tue, 29 Jan 2013 12:19:28 +0000
+Message-Id: <1359461971-27492-2-git-send-email-sean@mess.org>
+In-Reply-To: <1359461971-27492-1-git-send-email-sean@mess.org>
+References: <1359461971-27492-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+spotted by sparse.
 
-This patch fixes a regression that was introduced in 3.7 and made these
-four drivers useless. It's the same problem for all: the new vfl_dir field
-wasn't set correctly for these radio modulator drivers.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ttusbir.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Tested with the radio-keene driver.
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index f9226b8..cf0d47f 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -213,19 +213,20 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 
+ 	/* find the correct alt setting */
+ 	for (i = 0; i < intf->num_altsetting && altsetting == -1; i++) {
+-		int bulk_out_endp = -1, iso_in_endp = -1;
++		int max_packet, bulk_out_endp = -1, iso_in_endp = -1;
+ 
+ 		idesc = &intf->altsetting[i].desc;
+ 
+ 		for (j = 0; j < idesc->bNumEndpoints; j++) {
+ 			desc = &intf->altsetting[i].endpoint[j].desc;
++			max_packet = le16_to_cpu(desc->wMaxPacketSize);
+ 			if (usb_endpoint_dir_in(desc) &&
+ 					usb_endpoint_xfer_isoc(desc) &&
+-					desc->wMaxPacketSize == 0x10)
++					max_packet == 0x10)
+ 				iso_in_endp = j;
+ 			else if (usb_endpoint_dir_out(desc) &&
+ 					usb_endpoint_xfer_bulk(desc) &&
+-					desc->wMaxPacketSize == 0x20)
++					max_packet == 0x20)
+ 				bulk_out_endp = j;
+ 
+ 			if (bulk_out_endp != -1 && iso_in_endp != -1) {
+-- 
+1.8.1
 
-Regards,
-
-	Hans
-
-The following changes since commit 8cd7085ff460ead3aba6174052a408f4ad52ac36:
-
-  [media] get_dvb_firmware: Fix the location of firmware for Terratec HTC (2013-01-01 11:18:26 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git modulators
-
-for you to fetch changes up to 86552330c91fff094a07c0018ca34a9f45362a64:
-
-  radio: set vfl_dir correctly to fix modulator regression. (2013-01-05 13:01:30 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      radio: set vfl_dir correctly to fix modulator regression.
-
- drivers/media/radio/radio-keene.c       |    1 +
- drivers/media/radio/radio-si4713.c      |    1 +
- drivers/media/radio/radio-wl1273.c      |    1 +
- drivers/media/radio/wl128x/fmdrv_v4l2.c |   10 ++++++++++
- 4 files changed, 13 insertions(+)
