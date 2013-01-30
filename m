@@ -1,42 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f177.google.com ([209.85.210.177]:42297 "EHLO
-	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754486Ab3ADT72 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 14:59:28 -0500
-Received: by mail-ia0-f177.google.com with SMTP id u21so13699581ial.8
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 11:59:28 -0800 (PST)
+Received: from mail-we0-f170.google.com ([74.125.82.170]:42133 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841Ab3A3NHk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 08:07:40 -0500
+Received: by mail-we0-f170.google.com with SMTP id z53so1182640wey.15
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 05:07:39 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com>
-References: <CAGoCfiyPaaE5aAkjQdPGD_e9s3K6L+sv+fwGHxeoY5K1+iBYpQ@mail.gmail.com>
-Date: Fri, 4 Jan 2013 16:59:28 -0300
-Message-ID: <CALF0-+VEKesGiX+RXwUju-fkgwBpJfSEK-t_fVO5Y9Q8WKR=uw@mail.gmail.com>
-Subject: Re: [GIT PULL FOR 3.9] em28xx videobuf2 support and v4l2-compliance fixes
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 30 Jan 2013 18:37:16 +0530
+Message-ID: <CA+V-a8sOHbseLe+rATFtLRwxdURB83QM0LvZ+5fQjfh7CDAkZQ@mail.gmail.com>
+Subject: [QUERY] V4L async api
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=e89a8f234ce3b6e42104d4813160
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 4, 2013 at 4:41 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-[snip]
-> are available in the git repository at:
->
->   git://git.kernellabs.com/dheitmueller/linuxtv.git v39staging
->
-> for you to fetch changes up to 381abfc158c2dad81a558a3d3ff924fc7f80d277:
->
->   em28xx: convert to videobuf2 (2013-01-04 14:16:24 -0500)
->
-> ----------------------------------------------------------------
-> Devin Heitmueller (1):
->       em28xx: convert to videobuf2
->
+--e89a8f234ce3b6e42104d4813160
+Content-Type: text/plain; charset=ISO-8859-1
 
-Maybe I'm wrong, but weren't **all** changes supposed to be sent as a PATCH
-to the mailing list for community review, before the PULL request was sent?
+Hi Guennadi,
 
--- 
-    Ezequiel
+I am working on adding v4l-asyn for capture and display device..
+
+Here is my hw details:--
+ 1: The capture device has two subdevs tvp514x @0x5c and tvp514x @0x5d.
+ 2: The display device has a one subdev adv7343 @0x2a.
+
+Note:- I have added  async support for all the subdevices and the
+capture and display driver too
+
+Test Case:-
+  1:   I have v4l2_async_notifier_register() for both capture and
+display driver, as of now I have built
+        the subdevices as module. when board is up, I insert the
+tvp514x  subdevices and the capture
+        driver gets intialized (/dev/video0 & /dev/video1) nodes get
+created, now I do insmod on the other
+        subdevice adv7343, the bound callback is called in capture
+driver, but whereas this should have been
+        called in the display driver.
+  2:   When I build the subdevices as part of uImage I hit a crash.
+Attached is the crash log.
+  3:   When I just build and use either the capture/display driver and
+their respective subdevices only every thing works fine.
+
+Regards,
+--Prabhakar
+
+--e89a8f234ce3b6e42104d4813160
+Content-Type: text/plain; charset=US-ASCII; name="crash.txt"
+Content-Disposition: attachment; filename="crash.txt"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_hckhdldt0
+
+VW5hYmxlIHRvIGhhbmRsZSBrZXJuZWwgcGFnaW5nIHJlcXVlc3QgYXQgdmlydHVhbCBhZGRyZXNz
+IDAwMTAwMGY0CnBnZCA9IGMwMDA0MDAwClswMDEwMDBmNF0gKnBnZD0wMDAwMDAwMApJbnRlcm5h
+bCBlcnJvcjogT29wczogNSBbIzFdIFBSRUVNUFQgQVJNCk1vZHVsZXMgbGlua2VkIGluOgpDUFU6
+IDAgICAgTm90IHRhaW50ZWQgICgzLjguMC1yYzQtMDAzNjgtZ2U1OGU0OGQtZGlydHkgIzY5KQpQ
+QyBpcyBhdCB2NGwyX2FzeW5jX2JlbG9uZ3MuY2xvbmUuMisweDUwLzB4YjQKTFIgaXMgYXQgdjRs
+Ml9hc3luY19ub3RpZmllcl9yZWdpc3RlcisweGMwLzB4MTM0CnBjIDogWzxjMDIwYmQ2Yz5dICAg
+IGxyIDogWzxjMDIwYmZlMD5dICAgIHBzcjogYTAwMDAwMTMKc3AgOiBjNzAyZGU1MCAgaXAgOiBj
+MDQ1MTlmMCAgZnAgOiAwMDAwMDAwMQpyMTA6IGMwNDUxOTcwICByOSA6IGMwNDEwNTUwICByOCA6
+IGMwNDUxOWU0CnI3IDogYzcxMjdhYTAgIHI2IDogYzcxMjdhYTggIHI1IDogYzA0NTE5ZTQgIHI0
+IDogMDAxMDAwZjQKcjMgOiBjMDQyOTM0YyAgcjIgOiBjNzAyYzAwMCAgcjEgOiBjNzEyN2FhOCAg
+cjAgOiBjMDQ1MTllNApGbGFnczogTnpDdiAgSVJRcyBvbiAgRklRcyBvbiAgTW9kZSBTVkNfMzIg
+IElTQSBBUk0gIFNlZ21lbnQga2VybmVsCkNvbnRyb2w6IDAwMDUzMTdmICBUYWJsZTogYzAwMDQw
+MDAgIERBQzogMDAwMDAwMTcKUHJvY2VzcyBzd2FwcGVyIChwaWQ6IDEsIHN0YWNrIGxpbWl0ID0g
+MHhjNzAyYzFiOCkKU3RhY2s6ICgweGM3MDJkZTUwIHRvIDB4YzcwMmUwMDApCmRlNDA6ICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGMwNDUxOWU0IGMwNDI5MzRjIGMwNDI5MzRj
+IGMwMjBiZmUwCmRlNjA6IGMwNDE0MDY4IGMwNDE0MDM4IGMwNDUxOWQ0IGMwNDUxOTcwIDAwMDAw
+MDAxIGMwM2YzNjdjIGMwMzk0YjM4IGM3MGRhODI4CmRlODA6IDAwMDAwMDAwIDAwMDAwMDAwIGMw
+NDUxOTcwIDAwMDAwMDAwIDAwMDAwMDAxIGMwNDUxMjcwIDAwMDAwMDAxIGMwNDEwNTYwCmRlYTA6
+IDAwMDAwMDAwIGMwNDJmN2YwIGMwNDAzNGIwIGMwM2RmMWZjIDAwMDAwMDAwIGMwMWQ2ZmU0IGMw
+MWQ2ZmQwIGMwMWQ1YTgwCmRlYzA6IGMwNDEwNTYwIGMwNDJmN2YwIGMwNDEwNTk0IDAwMDAwMDAw
+IDAwMDAwMDAwIGMwMWQ1ZDljIGMwNDJmN2YwIGMwMWQ1ZDEwCmRlZTA6IDAwMDAwMDAwIGMwMWQ0
+MzU0IGM3MDI3MDU4IGM3MDU4MzMwIGMwNDJmN2YwIGMwNDI3MmYwIGM3MWI2ZDIwIGMwMWQ1M2Fj
+CmRmMDA6IGMwMzc1NTY4IGMwMmRmZjBjIGMwNDJmN2YwIGMwNDJmOWMwIGM3MDJjMDAwIDAwMDAw
+MDAwIDAwMDAwMDAwIGMwNDAzNGIwCmRmMjA6IGMwM2RmMWZjIGMwMWQ2MmU0IDAwMDAwMDAwIGMw
+M2ZiYTI0IGMwNDJmOWMwIGM3MDJjMDAwIDAwMDAwMDAwIGMwM2YzMmY0CmRmNDA6IGMwM2RmMWZj
+IGMwMDA4N2Y4IDAwMDAwMDAwIGMwNTQ3NTNkIGMwNDE2NmQ4IGMwM2ZiYTIwIGMwM2ZiYTI0IDAw
+MDAwMDA2CmRmNjA6IGMwM2ZiYTA0IGMwNDJmOWMwIDAwMDAwMDUzIGMwM2RmMWZjIDAwMDAwMDAw
+IGMwM2RmOGE0IDAwMDAwMDA2IDAwMDAwMDA2CmRmODA6IGMwM2RmMWZjIGMwMDQxYjgwIDAwMDAw
+MDAwIGMwMmRlMjU0IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwCmRmYTA6IDAw
+MDAwMDAwIGMwMmRlMjVjIDAwMDAwMDAwIGMwMDA5NGIwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAw
+MDAwIDAwMDAwMDAwCmRmYzA6IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAw
+MDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwCmRmZTA6IDAwMDAwMDAwIDAwMDAwMDAw
+IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDEzIDAwMDAwMDAwIDAwZmYwMDAyIDAwMjAwMGZmCls8
+YzAyMGJkNmM+XSAodjRsMl9hc3luY19iZWxvbmdzLmNsb25lLjIrMHg1MC8weGI0KSBmcm9tIFs8
+YzAyMGJmZTA+XSAodjRsMl9hc3luY19ub3RpZmllcl9yZWdpc3RlcisweGMwLzB4MTM0KQpbPGMw
+MjBiZmUwPl0gKHY0bDJfYXN5bmNfbm90aWZpZXJfcmVnaXN0ZXIrMHhjMC8weDEzNCkgZnJvbSBb
+PGMwM2YzNjdjPl0gKHZwaWZfcHJvYmUrMHgzN2MvMHg0ZDApCls8YzAzZjM2N2M+XSAodnBpZl9w
+cm9iZSsweDM3Yy8weDRkMCkgZnJvbSBbPGMwMWQ2ZmU0Pl0gKHBsYXRmb3JtX2Rydl9wcm9iZSsw
+eDE0LzB4MTgpCls8YzAxZDZmZTQ+XSAocGxhdGZvcm1fZHJ2X3Byb2JlKzB4MTQvMHgxOCkgZnJv
+bSBbPGMwMWQ1YTgwPl0gKHJlYWxseV9wcm9iZSsweDY4LzB4MWZjKQpbPGMwMWQ1YTgwPl0gKHJl
+YWxseV9wcm9iZSsweDY4LzB4MWZjKSBmcm9tIFs8YzAxZDVkOWM+XSAoX19kcml2ZXJfYXR0YWNo
+KzB4OGMvMHg5MCkKWzxjMDFkNWQ5Yz5dIChfX2RyaXZlcl9hdHRhY2grMHg4Yy8weDkwKSBmcm9t
+IFs8YzAxZDQzNTQ+XSAoYnVzX2Zvcl9lYWNoX2RldisweDU0LzB4N2MpCls8YzAxZDQzNTQ+XSAo
+YnVzX2Zvcl9lYWNoX2RldisweDU0LzB4N2MpIGZyb20gWzxjMDFkNTNhYz5dIChidXNfYWRkX2Ry
+aXZlcisweDFkMC8weDJhMCkKWzxjMDFkNTNhYz5dIChidXNfYWRkX2RyaXZlcisweDFkMC8weDJh
+MCkgZnJvbSBbPGMwMWQ2MmU0Pl0gKGRyaXZlcl9yZWdpc3RlcisweDc4LzB4MTkwKQpbPGMwMWQ2
+MmU0Pl0gKGRyaXZlcl9yZWdpc3RlcisweDc4LzB4MTkwKSBmcm9tIFs8YzAwMDg3Zjg+XSAoZG9f
+b25lX2luaXRjYWxsKzB4MzAvMHgxNmMpCls8YzAwMDg3Zjg+XSAoZG9fb25lX2luaXRjYWxsKzB4
+MzAvMHgxNmMpIGZyb20gWzxjMDNkZjhhND5dIChrZXJuZWxfaW5pdF9mcmVlYWJsZSsweGVjLzB4
+MWI0KQpbPGMwM2RmOGE0Pl0gKGtlcm5lbF9pbml0X2ZyZWVhYmxlKzB4ZWMvMHgxYjQpIGZyb20g
+WzxjMDJkZTI1Yz5dIChrZXJuZWxfaW5pdCsweDgvMHhlNCkKWzxjMDJkZTI1Yz5dIChrZXJuZWxf
+aW5pdCsweDgvMHhlNCkgZnJvbSBbPGMwMDA5NGIwPl0gKHJldF9mcm9tX2ZvcmsrMHgxNC8weDI0
+KQpDb2RlOiBlNTk0MDAwYyBlMjQwNDAwYyBlMTU1MDAwNCAwYTAwMDAwZiAoZTU5NDIwMDApIAot
+LS1bIGVuZCB0cmFjZSAwZGU1MWZhMjAyMzg5ZGE4IF0tLS0KS2VybmVsIHBhbmljIC0gbm90IHN5
+bmNpbmc6IEF0dGVtcHRlZCB0byBraWxsIGluaXQhIGV4aXRjb2RlPTB4MDAwMDAwMGI=
+--e89a8f234ce3b6e42104d4813160--
