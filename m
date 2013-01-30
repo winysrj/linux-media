@@ -1,139 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28946 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753641Ab3AQTf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 14:35:58 -0500
-Date: Thu, 17 Jan 2013 17:35:15 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: [PATCH RFCv10 00/15] DVB QoS statistics API
-Message-ID: <20130117173515.72db398b@redhat.com>
-In-Reply-To: <50F84CCC.5040103@iki.fi>
-References: <1358217061-14982-1-git-send-email-mchehab@redhat.com>
-	<20130116152151.5461221c@redhat.com>
-	<CAHFNz9KjG-qO5WoCMzPtcdb6d-4iZk695zp_L3iSeb=ZiWKhQw@mail.gmail.com>
-	<2817386.vHx2V41lNt@f17simon>
-	<20130116200153.3ec3ee7d@redhat.com>
-	<CAHFNz9L-Dzrv=+Z01ndrfK3GmvFyxT6941W4-_63bwn1HrQBYQ@mail.gmail.com>
-	<50F7C57A.6090703@iki.fi>
-	<20130117145036.55745a60@redhat.com>
-	<50F831AA.8010708@iki.fi>
-	<20130117161126.6b2e809d@redhat.com>
-	<50F84276.3080909@iki.fi>
-	<CAHFNz9JDqYnrmNDt0_nBJMgzAymZSCXBbwY5MHR8AkMopPPQOA@mail.gmail.com>
-	<20130117165037.6ed80366@redhat.com>
-	<50F84CCC.5040103@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:52880 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751856Ab3A3JPm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 04:15:42 -0500
+Received: by mail-bk0-f45.google.com with SMTP id i18so702248bkv.18
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 01:15:40 -0800 (PST)
+From: Vadim Frolov <fralik@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Vadim Frolov <fralik@gmail.com>
+Subject: [PATCH 1/1] [media] saa7134: Add capture card Hawell HW-9004V1
+Date: Wed, 30 Jan 2013 13:14:59 +0400
+Message-Id: <1359537299-6534-1-git-send-email-fralik@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 17 Jan 2013 21:11:08 +0200
-Antti Palosaari <crope@iki.fi> escreveu:
+This patch adds new capture board Hawell HW-9004V1. This card has 4 SAA71300 chips. In order to work it is needed to initialize its registers (gpio mask and value). The value of these registers were dumped under Windows using flytest.
 
-> On 01/17/2013 08:50 PM, Mauro Carvalho Chehab wrote:
-> > Em Fri, 18 Jan 2013 00:07:17 +0530
-> > Manu Abraham <abraham.manu@gmail.com> escreveu:
-> >
-> >> On Thu, Jan 17, 2013 at 11:57 PM, Antti Palosaari <crope@iki.fi> wrote:
-> >>
-> >>>
-> >>>
-> >>> Resetting counters when user tunes channel sounds the only correct option.
-> >>>
-> >>
-> >> This might not be correct, especially when we have true Multiple Input Streams.
-> >> The tune might be single, but the filter setup would be different. In
-> >> which case it
-> >> wouldn't correct to do a reset of the counters ona tune. Resetting the counters
-> >> should be the responsibility of the driver.
-> >
-> > I moved the counters reset to the driver's logic on v11. I'm posting the
-> > patches in a few.
-> >
-> >> As I said in an earlier
-> >> post, anything
-> >> other than the driver handling any statistical event monitoring, such an API is
-> >> broken for sure, without even reading single line of code for that API for which
-> >>   it is written for.
-> >
-> > Yes, driver should have full control on it.
-> >
-> >>> OK, maybe we will see in near future if that works well or not. I think that
-> >>> for calculating of PER it is required to start continuous polling to keep up
-> >>> total block counters. Maybe updating UCB counter continously needs that too,
-> >>> so it should work.
-> >>
-> >>
-> >> With multi-standard demodulators, some of them PER compute is a by-product
-> >> of some internal demodulator algorithmic operation. In some cases, it might
-> >> require a loop in the driver. As I said, again; It is very hard/wrong
-> >> to do basic
-> >> generalizations.
-> >
-> > Agreed.
-> >
-> 
-> I think we will have soon kinda consensus everyone could approve! 
-> Anyhow, I didn't liked that kind of PATCH RFC process. That change was 
-> too big for PATCH style RFC and it was hard to keep track what going on 
-> looking those patches. Maybe requirement specification RFCs first and 
-> when requirements are clear => PATCH RFC for implementation.
+Signed-off-by: Vadim Frolov <fralik@gmail.com>
+---
+ Documentation/video4linux/CARDLIST.saa7134 |    1 +
+ drivers/media/pci/saa7134/saa7134-cards.c  |   17 +++++++++++++++++
+ drivers/media/pci/saa7134/saa7134.h        |    1 +
+ 3 files changed, 19 insertions(+)
 
-Works for me.
+diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
+index 94d9025..b3ad683 100644
+--- a/Documentation/video4linux/CARDLIST.saa7134
++++ b/Documentation/video4linux/CARDLIST.saa7134
+@@ -189,3 +189,4 @@
+ 188 -> Sensoray 811/911                         [6000:0811,6000:0911]
+ 189 -> Kworld PC150-U                           [17de:a134]
+ 190 -> Asus My Cinema PS3-100                   [1043:48cd]
++191 -> Hawell HW-9004V1
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index bc08f1d..dc68cf1 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -5773,6 +5773,23 @@ struct saa7134_board saa7134_boards[] = {
+ 			.gpio	= 0x0000000,
+ 		},
+ 	},
++	[SAA7134_BOARD_HAWELL_HW_9004V1] = {
++		/* Hawell HW-9004V1 */
++		/* Vadim Frolov <fralik@gmail.com> */
++		.name         = "Hawell HW-9004V1",
++		.audio_clock   = 0x00200000,
++		.tuner_type    = UNSET,
++		.radio_type    = UNSET,
++		.tuner_addr   = ADDR_UNSET,
++		.radio_addr   = ADDR_UNSET,
++		.gpiomask      = 0x618E700,
++		.inputs       = {{
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE1,
++			.gpio = 0x6010000,
++		} },
++	},
+ 
+ };
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 6eae432..6d92a59 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -333,6 +333,7 @@ struct saa7134_card_ir {
+ #define SAA7134_BOARD_SENSORAY811_911       188
+ #define SAA7134_BOARD_KWORLD_PC150U         189
+ #define SAA7134_BOARD_ASUSTeK_PS3_100      190
++#define SAA7134_BOARD_HAWELL_HW_9004V1      191
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+-- 
+1.7.9.5
 
-> What I know understand, requirements are:
-> 
-> signal strength:
-> ==============
-> Offer both discussed methods.
-> Simple [0...n] scale and dB...
-> Driver must support simple scale over dB.
-> 
-> CNR (SNR)
-> ==============
-> Offer both discussed methods.
-> Simple [0...n] scale and dB...
-> Driver must support simple scale over dB.
-
-Yes. 
-
-For simple scale, n = 65535 should be, as most drivers that
-use the simple scale use 0 to 65535 range. So, this range means
-less driver changes.
-
-> 
-> BER
-> ==============
-> Offer global BER and per layer BER.
-> Measure is returned as two numbers, one for error bit count and one for 
-> total bit count.
-> 
-> uncorrected packets/blocks
-> ==============
-> Offer global UCB and per layer UCB.
-> Measure is returned as two numbers, one for uncorrected packet count and 
-> one for total packet count.
-> 
-> counter reset
-> ==============
-> counters are reset when channel is tuned
-> 
-
-> And if we end up returning "simple" values over dB values, then I think 
-> driver could be simple and implement only dB and dvb-core is responsible 
-> to convert dB => simple. That should quite be possible as we know which 
-> dB value is good signal and which is bad signal.
-> 
-> 
-> Are these requirements now in line what is spoken?
-
-Yes.
-
-Regards,
-Mauro
