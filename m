@@ -1,48 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:54467 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756202Ab3ANWZl convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:54384 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754213Ab3A3Ljy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jan 2013 17:25:41 -0500
-Received: by mail-vc0-f177.google.com with SMTP id m8so4096236vcd.36
-        for <linux-media@vger.kernel.org>; Mon, 14 Jan 2013 14:25:40 -0800 (PST)
+	Wed, 30 Jan 2013 06:39:54 -0500
+Date: Wed, 30 Jan 2013 12:39:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Magnus Damm <magnus.damm@gmail.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+	Simon Horman <horms@verge.net.au>
+Subject: [PATCH] sh-mobile-ceu-camera: fix SHARPNESS control default
+Message-ID: <Pine.LNX.4.64.1301301234570.3113@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CAKdnbx7Qx7z1BVxaXsDAe8mDG9jhPQeAkPbZGof++B1xK31Wsw@mail.gmail.com>
-References: <CAKdnbx7Qx7z1BVxaXsDAe8mDG9jhPQeAkPbZGof++B1xK31Wsw@mail.gmail.com>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Mon, 14 Jan 2013 23:25:20 +0100
-Message-ID: <CAKdnbx6osRRiCsdfG7ftcFEd2Y9BkB-=GQX1YXvbAPJaN_6oMQ@mail.gmail.com>
-Subject: Re: [PATCH] Support Digivox Mini HD (rtl2832)
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-usb 1-2.2: DVB: registering adapter 1 frontend 0 (Realtek RTL2832 (DVB-T))...
-i2c i2c-4: fc2580: FCI FC2580 successfully identified
-usb 1-2.2: dvb_usb_v2: 'Digivox Micro Hd' successfully initialized and connected
+The V4L2_CID_SHARPNESS control in the sh-mobile-ceu-camera driver, if off,
+turns the CEU low-pass filter on. This is the opposite to the hardware
+default and can degrade image quality. Switch default to on to restore the
+default unfiltered mode.
 
-On Mon, Jan 14, 2013 at 11:21 PM, Eddi De Pieri <eddi@depieri.net> wrote:
-> Add support for Digivox Mini HD (rtl2832)
->
-> The tuner works, but with worst performance then realtek linux driver,
-> due to incomplete implementation of fc2580.c
->
-> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
-> Tested-by: Lorenzo Dongarrà <lorenzo_64@katamail.com>
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index b6f4849..c05ea16 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1368,6 +1368,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->                 &rtl2832u_props, "ASUS My Cinema-U3100Mini Plus V2", NULL) },
->         { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd393,
->                 &rtl2832u_props, "GIGABYTE U7300", NULL) },
-> +       { DVB_USB_DEVICE(USB_VID_DEXATEK, 0x1104,
-> +               &rtl2832u_props, "Digivox Micro Hd", NULL) },
->         { }
->  };
->  MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+
+This bug breaks RGB and NV12 capture on ecovec, I'll push it for 3.8 and, 
+possibly, to stable.
+
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index ebbc126..04a7b99 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -1064,7 +1064,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+ 
+ 		/* Add our control */
+ 		v4l2_ctrl_new_std(&icd->ctrl_handler, &sh_mobile_ceu_ctrl_ops,
+-				  V4L2_CID_SHARPNESS, 0, 1, 1, 0);
++				  V4L2_CID_SHARPNESS, 0, 1, 1, 1);
+ 		if (icd->ctrl_handler.error)
+ 			return icd->ctrl_handler.error;
+ 
+-- 
+1.7.2.5
+
