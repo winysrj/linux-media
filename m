@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from astoria.ccjclearline.com ([64.235.106.9]:54808 "EHLO
-	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751809Ab3ATLki (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3269 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755113Ab3A3R46 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jan 2013 06:40:38 -0500
-Received: from cpec03f0ed08c7f-cm001ac318e826.cpe.net.cable.rogers.com ([174.115.5.73]:54861 helo=crashcourse.ca)
-	by astoria.ccjclearline.com with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
-	(Exim 4.80)
-	(envelope-from <rpjday@crashcourse.ca>)
-	id 1TwsES-0003ob-Ay
-	for linux-media@vger.kernel.org; Sun, 20 Jan 2013 05:34:32 -0500
-Date: Sun, 20 Jan 2013 05:34:28 -0500 (EST)
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+	Wed, 30 Jan 2013 12:56:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: several media-related tracked DocBook pdf files are ignored
-Message-ID: <alpine.DEB.2.02.1301200533010.12772@oneiric>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/3] bw-qcam: zero priv field.
+Date: Wed, 30 Jan 2013 18:56:42 +0100
+Message-Id: <08f9f5df663bb92eec55c1a5bcfb26c820c2ed8a.1359568453.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359568604-27876-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359568604-27876-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-$ git ls-files -i --exclude-standard
-Documentation/DocBook/media/dvb/dvbstb.pdf
-Documentation/DocBook/media/v4l/crop.pdf
-Documentation/DocBook/media/v4l/fieldseq_bt.pdf
-Documentation/DocBook/media/v4l/fieldseq_tb.pdf
-Documentation/DocBook/media/v4l/pipeline.pdf
-Documentation/DocBook/media/v4l/vbi_525.pdf
-Documentation/DocBook/media/v4l/vbi_625.pdf
-Documentation/DocBook/media/v4l/vbi_hsync.pdf
-arch/sh/boot/compressed/vmlinux.scr
-arch/sh/boot/romimage/vmlinux.scr
-$
+Fix a v4l2-compliance problem: the priv field of v4l2_pix_format must be
+cleared by drivers.
 
-  not sure if that's the effect you were going for.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/parport/bw-qcam.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-rday
-
+diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+index 5b75a64..497b342 100644
+--- a/drivers/media/parport/bw-qcam.c
++++ b/drivers/media/parport/bw-qcam.c
+@@ -693,6 +693,7 @@ static int qcam_g_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
+ 	pix->sizeimage = pix->width * pix->height;
+ 	/* Just a guess */
+ 	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
+ 	return 0;
+ }
+ 
+@@ -718,6 +719,7 @@ static int qcam_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format
+ 	pix->sizeimage = pix->width * pix->height;
+ 	/* Just a guess */
+ 	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
+ 	return 0;
+ }
+ 
 -- 
+1.7.10.4
 
-========================================================================
-Robert P. J. Day                                 Ottawa, Ontario, CANADA
-                        http://crashcourse.ca
-
-Twitter:                                       http://twitter.com/rpjday
-LinkedIn:                               http://ca.linkedin.com/in/rpjday
-========================================================================
