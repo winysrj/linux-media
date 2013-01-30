@@ -1,78 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:52170 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab3AJVd6 (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:50163 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754396Ab3A3JuE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 16:33:58 -0500
-Received: by mail-ea0-f172.google.com with SMTP id f13so444692eaa.3
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 13:33:57 -0800 (PST)
+	Wed, 30 Jan 2013 04:50:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+Date: Wed, 30 Jan 2013 10:49:25 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <201301300901.22486.hverkuil@xs4all.nl> <20130130074030.455a1185@redhat.com>
+In-Reply-To: <20130130074030.455a1185@redhat.com>
 MIME-Version: 1.0
-Reply-To: erangaj@gmail.com
-In-Reply-To: <50EC9D71.6060406@iki.fi>
-References: <CAEmrET+1-G4vtyjD=0cFei8orfujir1EBhRsb+A9CsssrOidJg@mail.gmail.com>
-	<50EC9D71.6060406@iki.fi>
-Date: Fri, 11 Jan 2013 07:33:57 +1000
-Message-ID: <CAEmrET+UrcRaHVAJi1w+Cw0P0QWgEe16VZRxjn3tGWvAtUgM6g@mail.gmail.com>
-Subject: Re: 15a4:1001 fails. (Afatech AF9035)
-From: Eranga Jayasundera <erangaj@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301301049.25541.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It works!
+On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+> Em Wed, 30 Jan 2013 09:01:22 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > This was part of my original em28xx patch series. That particular patch
+> > combined two things: this fix and the change where TRY_FMT would no
+> > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > rejected (correctly), but we all forgot about the second part of the patch
+> > which fixed a real bug. I'm reposting just that fix.
+> > 
+> > Changes since v1:
+> > 
+> > - v1 still miscalculated the bytesperline and imagesize values (they were
+> >   too large).
+> > - G_FMT had the same calculation bug.
+> > 
+> > Tested with my em28xx.
+> > 
+> > Regards,
+> > 
+> >         Hans
+> > 
+> > The bytesperline calculation was incorrect: it used the old width instead of
+> > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+> > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+> > bytesperline value should be the bytesperline of the widest plane, which is
+> > the Y plane which has 8 bits per pixel, not 12.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+> >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > index 2eabf2a..6ced426 100644
+> > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> >  	f->fmt.pix.width = dev->width;
+> >  	f->fmt.pix.height = dev->height;
+> >  	f->fmt.pix.pixelformat = dev->format->fourcc;
+> > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+> > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+> 
+> Why did you remove the round up here?
 
-Thanks Antti.
+Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+planar format is the one with depth 12. But for the purposes of the bytesperline
+calculation only the depth of the largest plane counts, which is the luma plane
+with a depth of 8. So for a width of 720 the value of bytesperline should be:
 
+depth=8 -> bytesperline = 720
+depth=12 -> bytesperline = 720
+depth=16 -> bytesperline = 1440
 
-On Wed, Jan 9, 2013 at 8:28 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 01/08/2013 11:54 PM, Eranga Jayasundera wrote:
->>
->> Dear All,
->>
->> I wasn't able to install the driver for Afatech AF9035 (15a4:1001) on
->> my mythbuntu (kernel v3.2.0) box.
->>
->> I used the bellow commands to install the driver. It was compiled and
->> installed without errors.
->>
->> git clone git://linuxtv.org/media_build.git
->> cd media_build
->> ./build
->> sudo make install
->>
->>
->> dmesg output:
->>
->> [  138.998628] input: Afa Technologies Inc. AF9035A USB Device as
->>
->> /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.6/2-1.6.2/2-1.6.2:1.1/input/input13
->> [  138.998826] generic-usb 0003:15A4:1001.0004: input,hidraw3: USB HID
->> v1.01 Keyboard [Afa Technologies Inc. AF9035A USB Device] on
->> usb-0000:00:1d.0-1.6.2/input1
->> [  139.015499] usb 2-1.6.2: dvb_usb_v2: found a 'Afatech AF9035
->> reference design' in cold state
->> [  139.016174] usbcore: registered new interface driver dvb_usb_af9035
->> [  139.018104] usb 2-1.6.2: dvb_usb_v2: Did not find the firmware file
->> 'dvb-usb-af9035-02.fw'. Please see linux/Documentation/dvb/ for more
->> details on firmware-problems. Status -2
->> [  139.018109] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
->> design' error while loading driver (-2)
->> [  139.018116] usb 2-1.6.2: dvb_usb_v2: 'Afatech AF9035 reference
->> design' successfully deinitialized and disconnected
->> [  180.666110] usb 2-1.6.2: USB disconnect, device number 8
->>
->>
->> Any thoughts?
->
->
-> Firmware is missing. Take one from there:
-> http://palosaari.fi/linux/
-> and test. You should rename it to the dvb-usb-af9035-02.fw and install
-> location /lib/firmware/
->
-> regards
-> Antti
->
-> --
-> http://palosaari.fi/
+By rounding the bytesperline for depth = 12 would become 1440, which is wrong.
+
+> 
+> > +	f->fmt.pix.sizeimage = (dev->width * dev->height * dev->format->depth + 7) >> 3;
+> >  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> >  
+> >  	/* FIXME: TOP? NONE? BOTTOM? ALTENATE? */
+> > @@ -906,8 +906,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+> >  	f->fmt.pix.width = width;
+> >  	f->fmt.pix.height = height;
+> >  	f->fmt.pix.pixelformat = fmt->fourcc;
+> > -	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
+> > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
+> > +	f->fmt.pix.bytesperline = width * (fmt->depth >> 3);
+> 
+> Why did you remove the round up here?
+
+See above.
+
+Regards,
+
+	Hans
+
+> 
+> > +	f->fmt.pix.sizeimage = (width * height * fmt->depth + 7) >> 3;
+> >  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> >  	if (dev->progressive)
+> >  		f->fmt.pix.field = V4L2_FIELD_NONE;
+> 
+> 
+> Regards,
+> Mauro
+> 
