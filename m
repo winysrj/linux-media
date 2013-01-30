@@ -1,106 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:36382 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852Ab3AUMvP (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2442 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756619Ab3A3SF1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jan 2013 07:51:15 -0500
-MIME-Version: 1.0
-In-Reply-To: <50FD38D1.5020104@redhat.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-	<50FD38D1.5020104@redhat.com>
-Date: Mon, 21 Jan 2013 10:51:14 -0200
-Message-ID: <CA+MoWDrbaPiByV+H5xC2WyhV3XSVugjHkGg03-8H_0EeLE=1wA@mail.gmail.com>
-Subject: Re: [PATCH 01/24] use IS_ENABLED() macro
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Jonathan Nieder <jrnieder@gmail.com>, emilgoode@gmail.com,
-	linux-media <linux-media@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 30 Jan 2013 13:05:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/2] c-qcam: add enum_framesizes support.
+Date: Wed, 30 Jan 2013 19:05:18 +0100
+Message-Id: <8cfa5c3bb7b52fa29608bc6372a7015dcc6eadf6.1359568912.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359569118-28009-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359569118-28009-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <98dd6be98fa8df515dfbe41b0d4dcdfaa24655e9.1359568912.git.hans.verkuil@cisco.com>
+References: <98dd6be98fa8df515dfbe41b0d4dcdfaa24655e9.1359568912.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 21, 2013 at 10:47 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> Thanks for the patches I'll pick up 5 - 21 and add them to
-> my tree for Mauro.
-I have sent V2 of this patches with another subject and with fixed
-commit message for two patches.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->
-> Regards,
->
-> Hans
->
->
->
-> On 01/19/2013 05:33 PM, Peter Senna Tschudin wrote:
->>
->> replace:
->>   #if defined(CONFIG_VIDEO_CX88_DVB) || \
->>       defined(CONFIG_VIDEO_CX88_DVB_MODULE)
->> with:
->>   #if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
->>
->> This change was made for: CONFIG_VIDEO_CX88_DVB,
->> CONFIG_VIDEO_CX88_BLACKBIRD, CONFIG_VIDEO_CX88_VP3054
->>
->> Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
->> ---
->>   drivers/media/pci/cx88/cx88.h | 10 ++++------
->>   1 file changed, 4 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
->> index ba0dba4..feff53c 100644
->> --- a/drivers/media/pci/cx88/cx88.h
->> +++ b/drivers/media/pci/cx88/cx88.h
->> @@ -363,7 +363,7 @@ struct cx88_core {
->>         unsigned int               tuner_formats;
->>
->>         /* config info -- dvb */
->> -#if defined(CONFIG_VIDEO_CX88_DVB) ||
->> defined(CONFIG_VIDEO_CX88_DVB_MODULE)
->> +#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
->>         int                        (*prev_set_voltage)(struct dvb_frontend
->> *fe, fe_sec_voltage_t voltage);
->>   #endif
->>         void                       (*gate_ctrl)(struct cx88_core  *core,
->> int open);
->> @@ -562,8 +562,7 @@ struct cx8802_dev {
->>
->>         /* for blackbird only */
->>         struct list_head           devlist;
->> -#if defined(CONFIG_VIDEO_CX88_BLACKBIRD) || \
->> -    defined(CONFIG_VIDEO_CX88_BLACKBIRD_MODULE)
->> +#if IS_ENABLED(CONFIG_VIDEO_CX88_BLACKBIRD)
->>         struct video_device        *mpeg_dev;
->>         u32                        mailbox;
->>         int                        width;
->> @@ -574,13 +573,12 @@ struct cx8802_dev {
->>         struct cx2341x_handler     cxhdl;
->>   #endif
->>
->> -#if defined(CONFIG_VIDEO_CX88_DVB) ||
->> defined(CONFIG_VIDEO_CX88_DVB_MODULE)
->> +#if IS_ENABLED(CONFIG_VIDEO_CX88_DVB)
->>         /* for dvb only */
->>         struct videobuf_dvb_frontends frontends;
->>   #endif
->>
->> -#if defined(CONFIG_VIDEO_CX88_VP3054) || \
->> -    defined(CONFIG_VIDEO_CX88_VP3054_MODULE)
->> +#if IS_ENABLED(CONFIG_VIDEO_CX88_VP3054)
->>         /* For VP3045 secondary I2C bus support */
->>         struct vp3054_i2c_state    *vp3054;
->>   #endif
->>
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/parport/c-qcam.c |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/parport/c-qcam.c b/drivers/media/parport/c-qcam.c
+index 8de8a20..41f5d23 100644
+--- a/drivers/media/parport/c-qcam.c
++++ b/drivers/media/parport/c-qcam.c
+@@ -569,10 +569,10 @@ static int qcam_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format
+ {
+ 	struct v4l2_pix_format *pix = &fmt->fmt.pix;
+ 
+-	if (pix->height < 60 || pix->width < 80) {
++	if (pix->height <= 60 || pix->width <= 80) {
+ 		pix->height = 60;
+ 		pix->width = 80;
+-	} else if (pix->height < 120 || pix->width < 160) {
++	} else if (pix->height <= 120 || pix->width <= 160) {
+ 		pix->height = 120;
+ 		pix->width = 160;
+ 	} else {
+@@ -638,6 +638,24 @@ static int qcam_enum_fmt_vid_cap(struct file *file, void *fh, struct v4l2_fmtdes
+ 	return 0;
+ }
+ 
++static int qcam_enum_framesizes(struct file *file, void *fh,
++					 struct v4l2_frmsizeenum *fsize)
++{
++	static const struct v4l2_frmsize_discrete sizes[] = {
++		{  80,  60 },
++		{ 160, 120 },
++		{ 320, 240 },
++	};
++
++	if (fsize->index > 2)
++		return -EINVAL;
++	if (fsize->pixel_format != V4L2_PIX_FMT_RGB24)
++		return -EINVAL;
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete = sizes[fsize->index];
++	return 0;
++}
++
+ static ssize_t qcam_read(struct file *file, char __user *buf,
+ 			 size_t count, loff_t *ppos)
+ {
+@@ -702,6 +720,7 @@ static const struct v4l2_ioctl_ops qcam_ioctl_ops = {
+ 	.vidioc_g_input      		    = qcam_g_input,
+ 	.vidioc_s_input      		    = qcam_s_input,
+ 	.vidioc_enum_input   		    = qcam_enum_input,
++	.vidioc_enum_framesizes		    = qcam_enum_framesizes,
+ 	.vidioc_enum_fmt_vid_cap	    = qcam_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap 		    = qcam_g_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap  		    = qcam_s_fmt_vid_cap,
+-- 
+1.7.10.4
 
-
---
-Peter
