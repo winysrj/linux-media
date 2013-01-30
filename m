@@ -1,89 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:51264 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253Ab3APPPc (ORCPT
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:38701 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482Ab3A3Gv6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jan 2013 10:15:32 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MGQ00GNM51IWV70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 15:15:31 +0000 (GMT)
-Received: from AVDC146 ([106.116.59.211])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MGQ00LT851QBG30@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 16 Jan 2013 15:15:30 +0000 (GMT)
-From: Radoslaw Moszczynski <r.moszczynsk@samsung.com>
-To: 'Antti Palosaari' <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-References: <016601cdf3f1$9e7925e0$db6b71a0$%moszczynsk@samsung.com>
- <50F6BB14.40302@iki.fi>
-In-reply-to: <50F6BB14.40302@iki.fi>
-Subject: RE: PcTV Nanostick 290e -- DVB-C frontend only working after
- reconnecting the device
-Date: Wed, 16 Jan 2013 16:15:24 +0100
-Message-id: <016701cdf3fc$4efe28c0$ecfa7a40$%moszczynsk@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Wed, 30 Jan 2013 01:51:58 -0500
+Received: by mail-ob0-f175.google.com with SMTP id uz6so1284403obc.20
+        for <linux-media@vger.kernel.org>; Tue, 29 Jan 2013 22:51:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1359527449-5174-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1359527449-5174-1-git-send-email-vikas.sajjan@linaro.org>
+Date: Wed, 30 Jan 2013 12:21:57 +0530
+Message-ID: <CAK9yfHxEUTKDeKLXk_6B13FfD=yPuXykTW_5sGXMsyFS6s2QNA@mail.gmail.com>
+Subject: Re: [PATCH v2 0/1] Adds display-timing node parsing to exynos drm fimd
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	kgene.kim@samsung.com, s.trumtrar@pengutronix.de,
+	inki.dae@samsung.com, l.krishna@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With Ubuntu's 3.5 kernel, the DVB-C frontend is not registered at all --
-only DVB-T/T2 is available.
+Hi Vikas,
 
-I'll do some more testing with newer/older kernels over the next few days.
+Changelog mentioning differences between v1 and v2 is generally
+preferred as it will help the reviewers.
 
-Regards-
-  -Radek
-
------Original Message-----
-From: Antti Palosaari [mailto:crope@iki.fi] 
-Sent: Wednesday, January 16, 2013 3:37 PM
-To: Radoslaw Moszczynski
-Cc: linux-media@vger.kernel.org
-Subject: Re: PcTV Nanostick 290e -- DVB-C frontend only working after
-reconnecting the device
-
-On 01/16/2013 03:58 PM, Radoslaw Moszczynski wrote:
-> Hi,
+On 30 January 2013 12:00, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
+> This patch adds display-timing node parsing to drm fimd, this depends on
+> the display helper patchset at
+> http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 >
-> I'm not sure if this has been already reported, but I was playing 
-> around with Nanostick 290e today and I encountered some weird behavior 
-> with the DVB-C frontend.
+> It also adds pinctrl support for drm fimd.
 >
-> The DVB-C frontend only seems to work once after plugging in the device.
-> During subsequent uses, it fails to lock on to signal. However, you 
-> can unplug the Nanostick, plug it back in, and it is able to lock on 
-> again. But only once -- then you have to replug it again.
+> patch is based on branch "exynos-drm-next" at
+> http://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
 >
-> The exact actions that I took:
+> Is tested on Exynos5250 and Exynos4412 by applying dependent patches available
+> at http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 >
-> 1. Plug in the Nanostick.
-> 2. Run dvbstream to record a DVB-C stream -- works OK.
-> 3. Run dvbstream to record a DVB-C stream again -- fail to lock on signal.
-> 4. Unplug the Nanostick. Plug it back in.
-> 5. Run dvbstream to record a DVB-C stream -- works OK.
-> 6. Run dvbstream to record a DVB-C stream again -- fail to lock on signal.
+> Vikas Sajjan (1):
+>   video: drm: exynos: Adds display-timing node parsing using video
+>     helper function
 >
-> I'm using kernel 3.2.0 on Ubuntu x86. The DVB-T/T2 frontend doesn't 
-> display this behavior.
+>  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   38 +++++++++++++++++++++++++++---
+>  1 file changed, 35 insertions(+), 3 deletions(-)
 >
-> If anyone's interested in debugging this, I'll be happy to provide 
-> more information.
-
-Could you test first quite latest Kernel, 3.7 or even 3.8. If 3.7 behaves
-similarly, then test older Kernel 3.0.
-
-Working only on first tuning attempt sounds like it should not be common
-problem - otherwise there should be million bug reports like that.
-
-regards
-Antti
-
---
-http://palosaari.fi/
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+
+-- 
+With warm regards,
+Sachin
