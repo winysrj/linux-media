@@ -1,67 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:33238 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756231Ab3AHR7o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 12:59:44 -0500
-Received: by mail-la0-f44.google.com with SMTP id fr10so805695lab.31
-        for <linux-media@vger.kernel.org>; Tue, 08 Jan 2013 09:59:43 -0800 (PST)
-Message-ID: <50EC5EAB.9050705@googlemail.com>
-Date: Tue, 08 Jan 2013 19:00:11 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Simon Farnsworth <simon.farnsworth@onelan.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv9 1/4] dvb: Add DVBv5 stats properties for Quality
- of Service
-References: <1357604750-772-1-git-send-email-mchehab@redhat.com> <1357604750-772-2-git-send-email-mchehab@redhat.com> <10526351.JB9QcZTfut@f17simon>
-In-Reply-To: <10526351.JB9QcZTfut@f17simon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1643 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754379Ab3A3VLG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 16:11:06 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0ULB23Z009147
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 22:11:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5250C11E00B0
+	for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 22:11:03 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130130211103.5250C11E00B0@alastor.dyndns.org>
+Date: Wed, 30 Jan 2013 22:11:03 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 08.01.2013 12:45, schrieb Simon Farnsworth:
-> On Monday 7 January 2013 22:25:47 Mauro Carvalho Chehab wrote:
-> <snip>
->> +			<itemizedlist mark='bullet'>
->> +				<listitem><para><constant>FE_SCALE_NOT_AVAILABLE</constant> - If it is not possible to collect a given parameter (could be a transitory or permanent condition)</para></listitem>
->> +				<listitem><para><constant>FE_SCALE_DECIBEL</constant> - parameter is a signed value, measured in 0.1 dB</para></listitem>
->> +				<listitem><para><constant>FE_SCALE_RELATIVE</constant> - parameter is a unsigned value, where 0 means 0% and 65535 means 100%.</para></listitem>
->> +				<listitem><para><constant>FE_SCALE_COUNTER</constant> - parameter is a unsigned value that counts the occurrence of an event, like bit error, block error, or lapsed time.</para></listitem>
->> +			</itemizedlist>
-> <snip>
->> +	<section id="DTV-QOS-SIGNAL-STRENGTH">
->> +		<title><constant>DTV_QOS_SIGNAL_STRENGTH</constant></title>
->> +		<para>Indicates the signal strength level at the analog part of the tuner.</para>
->> +	</section>
-> Signal strength is traditionally an absolute field strength; there's no way in
-> this API for me to provide my reference point, so two different front ends
-> could represent the same signal strength as "0 dB" (where the reference point
-> is one microwatt), "-30 dB" (where the reference point is one milliwatt), or
-> "17 dB" (using a reference point of 1 millivolt on a 50 ohm impedance).
->
-> Could you choose a reference point for signal strength, and specify that if
-> you're using FE_SCALE_DECIBEL, you're referenced against that point?
->
-> My preference would be to reference against 1 microwatt, as (on the DVB-T and
-> ATSC cards I use) that leads to the signal measure being 0 dBµW if you've got
-> perfect signal, negative number if your signal is weak, and positive numbers
-> if your signal is strong. However, referenced against 1 milliwatt also works
-> well for me, as the conversion is trivial.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Yeah, that's one of the most popular mistakes in the technical world.
-Decibel is a relative unit. X dB says nothing about the absolute value
-without a reference value.
-Hence these reference values must be specified in the document.
-Otherwise the reported signal strengths are meaningless / not comparable.
+Results of the daily build of media_tree:
 
-It might be worth to take a look at what the wireles network people have
-done.
-IIRC, they had the same discussion about signal strength reporting a
-(longer) while ago.
+date:		Wed Jan 30 19:00:20 CET 2013
+git branch:	for_v3.9
+git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.4.07-marune
 
-Just my two cents.
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Regards,
-Frank
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
