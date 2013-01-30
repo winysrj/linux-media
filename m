@@ -1,62 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:39903 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755969Ab3AJUnG (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50681 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752364Ab3A3AXp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 15:43:06 -0500
-Received: by mail-ob0-f176.google.com with SMTP id un3so1038741obb.35
-        for <linux-media@vger.kernel.org>; Thu, 10 Jan 2013 12:43:06 -0800 (PST)
+	Tue, 29 Jan 2013 19:23:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
+	Michael Trimarchi <michael@amarulasolutions.com>,
+	linux-omap@vger.kernel.org
+Subject: Re: On MIPI-CSI2 YUV420 formats and V4L2 Media Bus formats
+Date: Wed, 30 Jan 2013 01:23:48 +0100
+Message-ID: <3106282.VAxg78mvQZ@avalon>
+In-Reply-To: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
+References: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
 MIME-Version: 1.0
-In-Reply-To: <20130110183718.735fe71d@redhat.com>
-References: <507FE752.6010409@schinagl.nl>
-	<50D0E7A7.90002@schinagl.nl>
-	<50EAA778.6000307@gmail.com>
-	<50EAC41D.4040403@schinagl.nl>
-	<20130108200149.GB408@linuxtv.org>
-	<50ED3BBB.4040405@schinagl.nl>
-	<20130109084143.5720a1d6@redhat.com>
-	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
-	<20130109124158.50ddc834@redhat.com>
-	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
-	<50EF0A4F.1000604@gmail.com>
-	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
-	<CAOcJUbwya++5nW_MKvGOGbeXCbxFgahu_AWEGBb6TLNx0Pz53A@mail.gmail.com>
-	<CAHFNz9JTGZ1MmFCGqyyP0F4oa6t4048O+EYX50zH2J-axpkGVA@mail.gmail.com>
-	<50EF2155.5060905@schinagl.nl>
-	<CAHFNz9KxaShq=F1ePVbcz1j8jTv3ourn=xHM8kMFE_wiAU5JRA@mail.gmail.com>
-	<20130110183718.735fe71d@redhat.com>
-Date: Fri, 11 Jan 2013 02:13:06 +0530
-Message-ID: <CAHFNz9JcH+J_RASnc9Rj1cZ9Ly_yk32UhTLga=ZCyi7EhXtvyw@mail.gmail.com>
-Subject: Re: [RFC] Initial scan files troubles and brainstorming
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Jiri Slaby <jirislaby@gmail.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media <linux-media@vger.kernel.org>, jmccrohan@gmail.com,
-	Christoph Pfister <christophpfister@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/11/13, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em Fri, 11 Jan 2013 01:55:34 +0530
-> Manu Abraham <abraham.manu@gmail.com> escreveu:
->
->> On 1/11/13, Oliver Schinagl <oliver+list@schinagl.nl> wrote:
->> >> they can say anything what they want, which makes no sense at all.
->> > Well there are a few apps that do use the initial scanfile tree, but do
->> > not use any of the dvb-apps.
->> >
->> > (tvheadend, kaffeine appearantly, i'm guessing VDR and MythTV aswell?)
->>
->> Only tvheadend and kaffeine AFAIK. VDR and MythTV have their own formats.
->
-> Both mplayer and vlc work with the channels-conf files.
+Hi Antonio,
 
-True. they depend upon the output from dvbscan. So when scan changes format,
-they will also need to "update formats to acquire new functionality", else they
-will be stuck with old functionality.
+On Monday 28 January 2013 13:22:10 Antonio Ospite wrote:
+> Hi,
+> 
+> looking at the MIPI Alliance Specification for Camera Serial Interface
+> 2 (I'll call it MIPI-CSI2 from now on, the document I am referring to
+> is mentioned at [1] and available at [2]), I see there is an YUV420 8
+> bit format (MIPI Data Type 0x18) specified with interleaved components
+> in the form of:
+> 
+>   YYYY...     (odd lines)
+>   UYVYUYVY... (even lines)
+> 
+> With even lines twice the size of odd lines.
+> Such format is also supported by some sensors, for instance ov5640, and
+> by MIPI-CSI2 receivers like OMAP4 ISS.
+> 
+> The doubt I have is: how should I represent those formats as media bus
+> formats?
 
-Manu
+We likely need new media bus formats to describe those.
+
+> I've seen that some drivers (sensors and SoC, for instance[3]) tend to
+> identify the MIPI-CSI2 format above (0x18) with media bus formats like
+> V4L2_MBUS_FMT_UYVY8_1_5X8 (actually the code above uses
+> V4L2_MBUS_FMT_YUYV8_1_5X8 is this OK?), but from the v4l2 documentation
+> [4] I understand that this format is supposed to have data in this
+> configuration:
+> 
+>   UUUU...
+>   YYYY...
+>   YYYY...
+>   VVVV...
+>   YYYY...
+>   YYYY...
+
+Not exactly, the UYVY8_1_5X8 is transmits Y, U and V samples as UYYVYY...
+
+> That is with interleaved lines, but NOT interleaved components. Should
+> new media bus formats be added for YYYY.../UYVYUYVY...?
+
+Yes, I think so.
+
+> Another doubt I have is: how is the YYYY.../UYVYUYVY... data supposed
+> to be processed in userspace? Is the MIPI Receiver (i.e, the SoC)
+> expected to be able to convert it to a more usable format like YUV420P
+> or NV12/NV21? Or are there applications capable of handling this data
+> directly, or efficiently convert them to planar or semi-planar YUV420
+> formats?
+
+The bridge (receiver and DMA engine) driver will expose V4L2 pixel formats 
+corresponding to the bridge capabilities. If the bridge can store the above 
+stream in memory in NV12 it will expose that to applications. If the bridge 
+stores data in memory as described above, it will just expose that format (it 
+seems to correspond to the V4L2 M420 pixel format), and applications will need 
+to handle that explicitly.
+
+> In particular I am curios if the OMAP4 ISS can do the conversion to NV12, I
+> understand that the formats with interleaved _lines_ can be produced by the
+> resizer and handled by the OMAP ISP DMA-Engine by setting buffers offsets to
+> Y and UV in order to send NV12 data to userspace, but I couldn't find info
+> about how to handle the YUV420 MIPI-CSI2 formats (interleaved components)
+> without the resizer in the Developer Manual [5]; having NV12 data directly
+> from the hardware without using the OMAP4 ISS/ISP Resizer can be valuable in
+> some use cases (e.g. dual camera setups).
+
+No idea about that, sorry.
+
+> [1] http://www.mipi.org/specifications/camera-interface#CSI2
+> [2] http://ishare.sina.cn/dintro.php?id=20498632
+> [3]
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=driver
+> s/media/platform/soc_camera/sh_mobile_csi2.c;h=a17aba9a0104c41cbc4e5e5d27701
+> 0ecac577600;hb=HEAD#l108 [4]
+> http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
+> [5] http://www.ti.com/lit/ug/swpu235w/swpu235w.pdf
+
+-- 
+Regards,
+
+Laurent Pinchart
