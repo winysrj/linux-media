@@ -1,478 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63501 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755928Ab3AQS7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jan 2013 13:59:08 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0HIx8tB027327
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 17 Jan 2013 13:59:08 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv11 09/16] [media] mb86a20s: convert it to use dev_info/dev_err/dev_dbg
-Date: Thu, 17 Jan 2013 16:58:23 -0200
-Message-Id: <1358449110-11203-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-References: <1358449110-11203-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout1.samsung.com ([203.254.224.24]:28717 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876Ab3A3RXi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 12:23:38 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHG00L4K8B3ACU0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:37 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHG00A7W8B4SV70@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:37 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/5] s5p-fimc: Avoid null pointer dereference in
+ fimc_capture_ctrls_create()
+Date: Wed, 30 Jan 2013 18:23:21 +0100
+Message-id: <1359566606-31394-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
+References: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also add some additional debug and error messages when needed.
+With presence of some faults, e.g. caused by wrong platform data or
+the device tree structure the IDX_SENSOR entry in the array may be NULL,
+so make sure it is not dereferenced then.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 156 +++++++++++++++++++++++----------
- 1 file changed, 111 insertions(+), 45 deletions(-)
+ drivers/media/platform/s5p-fimc/fimc-capture.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index 30a864b..cfe65e3 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -24,18 +24,6 @@ static int debug = 1;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
- 
--#define rc(args...)  do {						\
--	printk(KERN_ERR  "mb86a20s: " args);				\
--} while (0)
--
--#define dprintk(args...)						\
--	do {								\
--		if (debug) {						\
--			printk(KERN_DEBUG "mb86a20s: %s: ", __func__);	\
--			printk(args);					\
--		}							\
--	} while (0)
--
- struct mb86a20s_state {
- 	struct i2c_adapter *i2c;
- 	const struct mb86a20s_config *config;
-@@ -209,8 +197,9 @@ static int mb86a20s_i2c_writereg(struct mb86a20s_state *state,
- 
- 	rc = i2c_transfer(state->i2c, &msg, 1);
- 	if (rc != 1) {
--		printk("%s: writereg error (rc == %i, reg == 0x%02x,"
--			 " data == 0x%02x)\n", __func__, rc, reg, data);
-+		dev_err(&state->i2c->dev,
-+			"%s: writereg error (rc == %i, reg == 0x%02x, data == 0x%02x)\n",
-+			__func__, rc, reg, data);
- 		return rc;
- 	}
- 
-@@ -244,7 +233,8 @@ static int mb86a20s_i2c_readreg(struct mb86a20s_state *state,
- 	rc = i2c_transfer(state->i2c, msg, 2);
- 
- 	if (rc != 2) {
--		rc("%s: reg=0x%x (error=%d)\n", __func__, reg, rc);
-+		dev_err(&state->i2c->dev, "%s: reg=0x%x (error=%d)\n",
-+			__func__, reg, rc);
- 		return (rc < 0) ? rc : -EIO;
- 	}
- 
-@@ -270,7 +260,6 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	int val;
- 
--	dprintk("\n");
- 	*status = 0;
- 
- 	val = mb86a20s_readreg(state, 0x0a) & 0xf;
-@@ -292,7 +281,8 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	if (val >= 8)				/* Maybe 9? */
- 		*status |= FE_HAS_LOCK;
- 
--	dprintk("val = %d, status = 0x%02x\n", val, *status);
-+	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
-+		 __func__, *status, val);
- 
- 	return 0;
- }
-@@ -333,8 +323,9 @@ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
- 
- 			/* Rescale it from 2^12 (4096) to 2^16 */
- 			rf <<= (16 - 12);
--			dprintk("signal strength = %d (%d < RF=%d < %d)\n", rf,
--				rf_min, rf, rf_max);
-+			dev_dbg(&state->i2c->dev,
-+				"%s: signal strength = %d (%d < RF=%d < %d)\n",
-+				__func__, rf, rf_min, rf >> 4, rf_max);
- 			return rf;
- 		}
- 	} while (1);
-@@ -449,15 +440,17 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
- 				      unsigned layer)
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index df6fc6c..35998a3 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -486,6 +486,7 @@ static struct vb2_ops fimc_capture_qops = {
+ int fimc_capture_ctrls_create(struct fimc_dev *fimc)
  {
- 	int rc, count;
--
- 	static unsigned char reg[] = {
- 		[0] = 0x89,	/* Layer A */
- 		[1] = 0x8d,	/* Layer B */
- 		[2] = 0x91,	/* Layer C */
- 	};
+ 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
++	struct v4l2_subdev *sensor = fimc->pipeline.subdevs[IDX_SENSOR];
+ 	int ret;
  
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	if (layer >= ARRAY_SIZE(reg))
- 		return -EINVAL;
-+
- 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
- 	if (rc < 0)
- 		return rc;
-@@ -466,13 +459,18 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
- 		return rc;
- 	count = (rc >> 4) & 0x0f;
+ 	if (WARN_ON(vid_cap->ctx == NULL))
+@@ -494,11 +495,13 @@ int fimc_capture_ctrls_create(struct fimc_dev *fimc)
+ 		return 0;
  
-+	dev_dbg(&state->i2c->dev, "%s: segments: %d.\n", __func__, count);
+ 	ret = fimc_ctrls_create(vid_cap->ctx);
+-	if (ret || vid_cap->user_subdev_api || !vid_cap->ctx->ctrls.ready)
 +
- 	return count;
++	if (ret || vid_cap->user_subdev_api || !sensor  ||
++	    !vid_cap->ctx->ctrls.ready)
+ 		return ret;
+ 
+ 	return v4l2_ctrl_add_handler(&vid_cap->ctx->ctrls.handler,
+-		    fimc->pipeline.subdevs[IDX_SENSOR]->ctrl_handler, NULL);
++				     sensor->ctrl_handler, NULL);
  }
  
- static void mb86a20s_reset_frontend_cache(struct dvb_frontend *fe)
- {
-+	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	/* Fixed parameters */
- 	c->delivery_system = SYS_ISDBT;
- 	c->bandwidth_hz = 6000000;
-@@ -491,6 +489,8 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int i, rc;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	/* Reset frontend cache to default values */
- 	mb86a20s_reset_frontend_cache(fe);
- 
-@@ -506,9 +506,12 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 	/* Get per-layer data */
- 
- 	for (i = 0; i < 3; i++) {
-+		dev_dbg(&state->i2c->dev, "%s: getting data for layer %c.\n",
-+			__func__, 'A' + i);
-+
- 		rc = mb86a20s_get_segment_count(state, i);
- 		if (rc < 0)
--			goto error;
-+			goto noperlayer_error;
- 		if (rc >= 0 && rc < 14)
- 			c->layer[i].segment_count = rc;
- 		else {
-@@ -518,15 +521,21 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 		c->isdbt_layer_enabled |= 1 << i;
- 		rc = mb86a20s_get_modulation(state, i);
- 		if (rc < 0)
--			goto error;
-+			goto noperlayer_error;
-+		dev_dbg(&state->i2c->dev, "%s: modulation %d.\n",
-+			__func__, rc);
- 		c->layer[i].modulation = rc;
- 		rc = mb86a20s_get_fec(state, i);
- 		if (rc < 0)
--			goto error;
-+			goto noperlayer_error;
-+		dev_dbg(&state->i2c->dev, "%s: FEC %d.\n",
-+			__func__, rc);
- 		c->layer[i].fec = rc;
- 		rc = mb86a20s_get_interleaving(state, i);
- 		if (rc < 0)
--			goto error;
-+			goto noperlayer_error;
-+		dev_dbg(&state->i2c->dev, "%s: interleaving %d.\n",
-+			__func__, rc);
- 		c->layer[i].interleaving = rc;
- 	}
- 
-@@ -572,7 +581,8 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 	}
- 	return 0;
- 
--error:
-+noperlayer_error:
-+
- 	/* per-layer info is incomplete; discard all per-layer */
- 	c->isdbt_layer_enabled = 0;
- 
-@@ -585,6 +595,8 @@ static int mb86a20s_reset_counters(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int rc, val, i;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
- 
-@@ -637,7 +649,12 @@ static int mb86a20s_reset_counters(struct dvb_frontend *fe)
- 	if (rc < 0)
- 		goto err;
- 
-+	goto ok;
- err:
-+	dev_err(&state->i2c->dev,
-+		"%s: Can't reset FE QoS counters (error %d).\n",
-+		__func__, rc);
-+ok:
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
-@@ -652,6 +669,8 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 	u8 byte[3];
- 	int rc;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	if (layer >= 3)
- 		return -EINVAL;
- 
-@@ -661,8 +680,12 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 		return rc;
- 
- 	/* Check if data is available for that layer */
--	if (!(rc & (1 << layer)))
-+	if (!(rc & (1 << layer))) {
-+		dev_info(&state->i2c->dev,
-+			"%s: BER for layer %c is not available yet.\n",
-+			__func__, 'A' + layer);
- 		return -EBUSY;
-+	}
- 
- 	/* Read Bit Error Count */
- 	rc = mb86a20s_readreg(state, 0x55 + layer * 3);
-@@ -679,6 +702,10 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 	byte[2] = rc;
- 	*error = byte[0] << 16 | byte[1] << 8 | byte[2];
- 
-+	dev_err(&state->i2c->dev,
-+		"%s: bit error before Viterbi for layer %c: %d.\n",
-+		__func__, 'A' + layer, *error);
-+
- 	/* Read Bit Count */
- 	rc = mb86a20s_writereg(state, 0x50, 0xa7 + layer * 3);
- 	if (rc < 0)
-@@ -702,15 +729,21 @@ static int mb86a20s_get_ber_before_vterbi(struct dvb_frontend *fe,
- 		return rc;
- 	byte[2] = rc;
- 	*count = byte[0] << 16 | byte[1] << 8 | byte[2];
-+	dev_dbg(&state->i2c->dev,
-+		"%s: bit count before Viterbi for layer %c: %d.\n",
-+		__func__, 'A' + layer, *count);
- 
--	return rc;
-+	return 0;
- }
- 
- static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
- {
-+	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int i;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	/* Fill the length of each status counter */
- 
- 	/* Only global stats */
-@@ -746,6 +779,8 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 	u32 t_bit_error = 0, t_bit_count = 0;
- 	int active_layers = 0, ber_layers = 0;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	/* Get per-layer stats */
- 	for (i = 0; i < 3; i++) {
- 		if (c->isdbt_layer_enabled & (1 << i)) {
-@@ -771,6 +806,10 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 					 */
- 					c->bit_error.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
- 					c->bit_count.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
-+					dev_err(&state->i2c->dev,
-+						"%s: Can't get BER for layer %c (error %d).\n",
-+						__func__, 'A' + i, rc);
-+
- 				}
- 			}
- 			if (!state->read_ber[i]) {
-@@ -798,6 +837,9 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 
- 		/* Reset counters to collect new data */
- 		rc = mb86a20s_writeregdata(state, mb86a20s_vber_reset);
-+		if (rc < 0)
-+			dev_err(&state->i2c->dev,
-+				"%s: Can't reset VBER registers.\n", __func__);
- 
- 		/* All BER measures need to be collected when ready */
- 		for (i = 0; i < 3; i++)
-@@ -817,7 +859,7 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
- 	int rc;
- 	u8  regD5 = 1;
- 
--	dprintk("\n");
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-@@ -844,10 +886,11 @@ err:
- 
- 	if (rc < 0) {
- 		state->need_init = true;
--		printk(KERN_INFO "mb86a20s: Init failed. Will try again later\n");
-+		dev_info(&state->i2c->dev,
-+			 "mb86a20s: Init failed. Will try again later\n");
- 	} else {
- 		state->need_init = false;
--		dprintk("Initialization succeeded.\n");
-+		dev_dbg(&state->i2c->dev, "Initialization succeeded.\n");
- 	}
- 	return rc;
- }
-@@ -856,6 +899,9 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	int rc;
-+
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- #if 0
- 	/*
- 	 * FIXME: Properly implement the set frontend properties
-@@ -863,15 +909,12 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- #endif
- 
--	dprintk("\n");
--
- 	/*
- 	 * Gate should already be opened, but it doesn't hurt to
- 	 * double-check
- 	 */
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
--	dprintk("Calling tuner set parameters\n");
- 	fe->ops.tuner_ops.set_params(fe);
- 
- 	/*
-@@ -901,9 +944,12 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
- static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 					  fe_status_t *status)
- {
-+	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int rc;
- 
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
-+
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
- 
-@@ -913,14 +959,21 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 		mb86a20s_stats_not_ready(fe);
- 		mb86a20s_reset_frontend_cache(fe);
- 	}
--	if (rc < 0)
-+	if (rc < 0) {
-+		dev_err(&state->i2c->dev,
-+			"%s: Can't read frontend lock status\n", __func__);
- 		goto error;
-+	}
- 
- 	/* Get signal strength */
- 	rc = mb86a20s_read_signal_strength(fe);
- 	if (rc < 0) {
-+		dev_err(&state->i2c->dev,
-+			"%s: Can't reset VBER registers.\n", __func__);
- 		mb86a20s_stats_not_ready(fe);
- 		mb86a20s_reset_frontend_cache(fe);
-+
-+		rc = 0;		/* Status is OK */
- 		goto error;
- 	}
- 	/* Fill signal strength */
-@@ -929,13 +982,21 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 	if (*status & FE_HAS_LOCK) {
- 		/* Get TMCC info*/
- 		rc = mb86a20s_get_frontend(fe);
--		if (rc < 0)
-+		if (rc < 0) {
-+			dev_err(&state->i2c->dev,
-+				"%s: Can't get FE TMCC data.\n", __func__);
-+			rc = 0;		/* Status is OK */
- 			goto error;
-+		}
- 
- 		/* Get statistics */
- 		rc = mb86a20s_get_stats(fe);
--		if (rc < 0)
-+		if (rc < 0) {
-+			dev_err(&state->i2c->dev,
-+				"%s: Can't get FE QoS statistics.\n", __func__);
-+			rc = 0;
- 			goto error;
-+		}
- 	}
- 	goto ok;
- 
-@@ -967,9 +1028,10 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
- 			unsigned int *delay,
- 			fe_status_t *status)
- {
-+	struct mb86a20s_state *state = fe->demodulator_priv;
- 	int rc = 0;
- 
--	dprintk("\n");
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
- 	if (re_tune)
- 		rc = mb86a20s_set_frontend(fe);
-@@ -984,7 +1046,7 @@ static void mb86a20s_release(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 
--	dprintk("\n");
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
- 	kfree(state);
- }
-@@ -995,14 +1057,16 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
- 				    struct i2c_adapter *i2c)
- {
- 	u8	rev;
-+	struct mb86a20s_state *state;
- 
- 	/* allocate memory for the internal state */
--	struct mb86a20s_state *state =
--		kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL);
-+	state = kzalloc(sizeof(struct mb86a20s_state), GFP_KERNEL);
-+
-+	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
--	dprintk("\n");
- 	if (state == NULL) {
--		rc("Unable to kzalloc\n");
-+		dev_err(&state->i2c->dev,
-+			"%s: unable to allocate memory for state\n", __func__);
- 		goto error;
- 	}
- 
-@@ -1019,10 +1083,12 @@ struct dvb_frontend *mb86a20s_attach(const struct mb86a20s_config *config,
- 	rev = mb86a20s_readreg(state, 0);
- 
- 	if (rev == 0x13) {
--		printk(KERN_INFO "Detected a Fujitsu mb86a20s frontend\n");
-+		dev_info(&state->i2c->dev,
-+			 "Detected a Fujitsu mb86a20s frontend\n");
- 	} else {
--		printk(KERN_ERR "Frontend revision %d is unknown - aborting.\n",
--		       rev);
-+		dev_err(&state->i2c->dev,
-+			"Frontend revision %d is unknown - aborting.\n",
-+			rev);
- 		goto error;
- 	}
- 
+ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
 -- 
-1.7.11.7
+1.7.9.5
 
