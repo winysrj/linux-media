@@ -1,59 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f172.google.com ([209.85.216.172]:44555 "EHLO
-	mail-qc0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3ASQeD (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1259 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756553Ab3A3SF0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:03 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hverkuil@xs4all.nl
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 05/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:08 -0200
-Message-Id: <1358613206-4274-5-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	Wed, 30 Jan 2013 13:05:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/2] c-qcam: fix v4l2-compliance issues.
+Date: Wed, 30 Jan 2013 19:05:17 +0100
+Message-Id: <98dd6be98fa8df515dfbe41b0d4dcdfaa24655e9.1359568912.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359569118-28009-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359569118-28009-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_USB_SI470X) || \
-     defined(CONFIG_USB_SI470X_MODULE)
-with:
- #if IS_ENABLED(CONFIG_USB_SI470X)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This change was made for: CONFIG_USB_SI470X,
-CONFIG_I2C_SI470X
+- zero priv field in pix_format
+- fix poll return mask
+- correctly fill in bus_info
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/si470x/radio-si470x.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/parport/c-qcam.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
-index 2f089b4..467e955 100644
---- a/drivers/media/radio/si470x/radio-si470x.h
-+++ b/drivers/media/radio/si470x/radio-si470x.h
-@@ -163,7 +163,7 @@ struct si470x_device {
- 	struct completion completion;
- 	bool status_rssi_auto_update;	/* Does RSSI get updated automatic? */
+diff --git a/drivers/media/parport/c-qcam.c b/drivers/media/parport/c-qcam.c
+index ec51e1f..8de8a20 100644
+--- a/drivers/media/parport/c-qcam.c
++++ b/drivers/media/parport/c-qcam.c
+@@ -518,7 +518,7 @@ static int qcam_querycap(struct file *file, void  *priv,
  
--#if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
-+#if IS_ENABLED(CONFIG_USB_SI470X)
- 	/* reference to USB and video device */
- 	struct usb_device *usbdev;
- 	struct usb_interface *intf;
-@@ -179,7 +179,7 @@ struct si470x_device {
- 	unsigned char hardware_version;
- #endif
+ 	strlcpy(vcap->driver, qcam->v4l2_dev.name, sizeof(vcap->driver));
+ 	strlcpy(vcap->card, "Color Quickcam", sizeof(vcap->card));
+-	strlcpy(vcap->bus_info, "parport", sizeof(vcap->bus_info));
++	strlcpy(vcap->bus_info, qcam->pport->name, sizeof(vcap->bus_info));
+ 	vcap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE;
+ 	vcap->capabilities = vcap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+@@ -561,6 +561,7 @@ static int qcam_g_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f
+ 	pix->sizeimage = 3 * qcam->width * qcam->height;
+ 	/* Just a guess */
+ 	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
+ 	return 0;
+ }
  
--#if defined(CONFIG_I2C_SI470X) || defined(CONFIG_I2C_SI470X_MODULE)
-+#if IS_ENABLED(CONFIG_I2C_SI470X)
- 	struct i2c_client *client;
- #endif
+@@ -584,6 +585,7 @@ static int qcam_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format
+ 	pix->sizeimage = 3 * pix->width * pix->height;
+ 	/* Just a guess */
+ 	pix->colorspace = V4L2_COLORSPACE_SRGB;
++	pix->priv = 0;
+ 	return 0;
+ }
+ 
+@@ -651,6 +653,11 @@ static ssize_t qcam_read(struct file *file, char __user *buf,
+ 	return len;
+ }
+ 
++static unsigned int qcam_poll(struct file *filp, poll_table *wait)
++{
++	return v4l2_ctrl_poll(filp, wait) | POLLIN | POLLRDNORM;
++}
++
+ static int qcam_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct qcam *qcam =
+@@ -685,7 +692,7 @@ static const struct v4l2_file_operations qcam_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= v4l2_fh_open,
+ 	.release	= v4l2_fh_release,
+-	.poll		= v4l2_ctrl_poll,
++	.poll		= qcam_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+ 	.read		= qcam_read,
  };
 -- 
-1.7.11.7
+1.7.10.4
 
