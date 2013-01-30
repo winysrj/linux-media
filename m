@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:61742 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754944Ab3ADVAD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jan 2013 16:00:03 -0500
-Received: by mail-vb0-f46.google.com with SMTP id b13so16727205vby.5
-        for <linux-media@vger.kernel.org>; Fri, 04 Jan 2013 13:00:02 -0800 (PST)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 10/15] em28xx: fix broken TRY_FMT.
-Date: Fri,  4 Jan 2013 15:59:40 -0500
-Message-Id: <1357333186-8466-11-git-send-email-dheitmueller@kernellabs.com>
-In-Reply-To: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
-References: <1357333186-8466-1-git-send-email-dheitmueller@kernellabs.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:50507 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755169Ab3A3UvJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 15:51:09 -0500
+Received: by mail-ee0-f44.google.com with SMTP id l10so1117524eei.3
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 12:51:08 -0800 (PST)
+Message-ID: <510987B5.6090509@gmail.com>
+Date: Wed, 30 Jan 2013 21:51:01 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Inki Dae <inki.dae@samsung.com>
+CC: Sachin Kamat <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org, patches@linaro.org,
+	s.nawrocki@samsung.com
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org> <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org> <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+In-Reply-To: <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TRY_FMT should not return an error if a pixelformat is unsupported. Instead just
-pick a common pixelformat.
+On 01/30/2013 09:50 AM, Inki Dae wrote:
+>> +static const struct of_device_id exynos_g2d_match[] = {
+>> +       { .compatible = "samsung,g2d-v41" },
+>
+> not only Exynos5 and also Exyno4 has the g2d gpu and drm-based g2d
+> driver shoud support for all Exynos SoCs. How about using
+> "samsung,exynos5-g2d" instead and adding a new property 'version' to
+> identify ip version more surely? With this, we could know which SoC
+> and its g2d ip version. The version property could have '0x14' or
+> others. And please add descriptions to dt document.
 
-Also the bytesperline calculation was incorrect: it used the old width instead of
-the provided with, and it miscalculated the bytesperline value for the depth == 12
-case.
+Err no. Are you suggesting using "samsung,exynos5-g2d" compatible string
+for Exynos4 specific IPs ? This would not be correct, and you still can
+match the driver with multiple different revisions of the IP and associate
+any required driver's private data with each corresponding compatible
+property.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Perhaps it would make more sense to include the SoCs name in the compatible
+string, e.g. "samsung,exynos-g2d-v41", but appending revision of the IP
+seems acceptable to me. The revisions appear to be well documented and it's
+more or less clear which one corresponds to which SoC.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index a91a248..7c09b55 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -821,7 +821,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	if (!fmt) {
- 		em28xx_videodbg("Fourcc format (%08x) invalid.\n",
- 				f->fmt.pix.pixelformat);
--		return -EINVAL;
-+		fmt = format_by_fourcc(V4L2_PIX_FMT_YUYV);
- 	}
- 
- 	if (dev->board.is_em2800) {
-@@ -847,7 +847,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.width = width;
- 	f->fmt.pix.height = height;
- 	f->fmt.pix.pixelformat = fmt->fourcc;
--	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
-+	f->fmt.pix.bytesperline = width * ((fmt->depth + 7) >> 3);
- 	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
- 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	if (dev->progressive)
--- 
-1.7.9.5
+--
 
+Thanks,
+Sylwester
