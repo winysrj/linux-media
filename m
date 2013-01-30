@@ -1,95 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3614 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751789Ab3AVVCN (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:28719 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756078Ab3A3RXm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 16:02:13 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0ML29NT060653
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 22:02:11 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 576CC3060096
-	for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 22:02:08 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 30 Jan 2013 12:23:42 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHG00KEG8B49400@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:42 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHG00A7W8B4SV70@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:41 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130122210208.576CC3060096@alastor.dyndns.org>
-Date: Tue, 22 Jan 2013 22:02:08 +0100 (CET)
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/5] s5p-fimc: Fix FIMC.n subdev set_selection ioctl handler
+Date: Wed, 30 Jan 2013 18:23:23 +0100
+Message-id: <1359566606-31394-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
+References: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The V4L2_SEL_TGT_CROP_BOUNDS, V4L2_SEL_TGT_COMPOSE_BOUNDS selection
+targets are not supposed to be handled in the set_selection ioctl.
+Remove the code that doesn't do anything sensible now and make sure
+ctx->state is modified with the spinlock held.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-capture.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-date:        Tue Jan 22 19:00:19 CET 2013
-git hash:    f66d81b54dac26d4e601d4d7faca53f3bdc98427
-gcc version:      i686-linux-gcc (GCC) 4.7.1
-host hardware:    x86_64
-host os:          3.4.07-marune
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 35998a3..f822b8e 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -1688,16 +1688,6 @@ static int fimc_subdev_set_selection(struct v4l2_subdev *sd,
+ 	fimc_capture_try_selection(ctx, r, V4L2_SEL_TGT_CROP);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+-		f = &ctx->d_frame;
+-	case V4L2_SEL_TGT_CROP_BOUNDS:
+-		r->width = f->o_width;
+-		r->height = f->o_height;
+-		r->left = 0;
+-		r->top = 0;
+-		mutex_unlock(&fimc->lock);
+-		return 0;
+-
+ 	case V4L2_SEL_TGT_CROP:
+ 		try_sel = v4l2_subdev_get_try_crop(fh, sel->pad);
+ 		break;
+@@ -1716,9 +1706,9 @@ static int fimc_subdev_set_selection(struct v4l2_subdev *sd,
+ 		spin_lock_irqsave(&fimc->slock, flags);
+ 		set_frame_crop(f, r->left, r->top, r->width, r->height);
+ 		set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+-		spin_unlock_irqrestore(&fimc->slock, flags);
+ 		if (sel->target == V4L2_SEL_TGT_COMPOSE)
+ 			ctx->state |= FIMC_COMPOSE;
++		spin_unlock_irqrestore(&fimc->slock, flags);
+ 	}
+ 
+ 	dbg("target %#x: (%d,%d)/%dx%d", sel->target, r->left, r->top,
+-- 
+1.7.9.5
 
-linux-git-arm-eabi-davinci: WARNINGS
-linux-git-arm-eabi-exynos: WARNINGS
-linux-git-arm-eabi-omap: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-i686: WARNINGS
-linux-2.6.37-i686: WARNINGS
-linux-2.6.38.2-i686: WARNINGS
-linux-2.6.39.1-i686: ERRORS
-linux-3.0-i686: ERRORS
-linux-3.1-i686: ERRORS
-linux-3.2.1-i686: ERRORS
-linux-3.3-i686: ERRORS
-linux-3.4-i686: WARNINGS
-linux-3.5-i686: WARNINGS
-linux-3.6-i686: WARNINGS
-linux-3.7-i686: WARNINGS
-linux-3.8-rc1-i686: OK
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-x86_64: WARNINGS
-linux-2.6.37-x86_64: WARNINGS
-linux-2.6.38.2-x86_64: WARNINGS
-linux-2.6.39.1-x86_64: ERRORS
-linux-3.0-x86_64: ERRORS
-linux-3.1-x86_64: ERRORS
-linux-3.2.1-x86_64: ERRORS
-linux-3.3-x86_64: ERRORS
-linux-3.4-x86_64: WARNINGS
-linux-3.5-x86_64: WARNINGS
-linux-3.6-x86_64: WARNINGS
-linux-3.7-x86_64: WARNINGS
-linux-3.8-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
