@@ -1,93 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38779 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288Ab3AXMtj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 07:49:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org, jtp.park@samsung.com,
-	arun.kk@samsung.com, s.nawrocki@samsung.com, sakari.ailus@iki.fi,
-	hverkuil@xs4all.nl, verkuil@xs4all.nl, m.szyprowski@samsung.com,
-	pawel@osciak.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 2/3 v2] vb2: Add support for non monotonic timestamps
-Date: Thu, 24 Jan 2013 13:49:38 +0100
-Message-ID: <3162932.GEG4AlBAqe@avalon>
-In-Reply-To: <1359030907-9883-3-git-send-email-k.debski@samsung.com>
-References: <1359030907-9883-1-git-send-email-k.debski@samsung.com> <1359030907-9883-3-git-send-email-k.debski@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:7847 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754924Ab3A3THh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 14:07:37 -0500
+Date: Wed, 30 Jan 2013 17:07:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Frank =?UTF-8?B?U2Now6Rm?= =?UTF-8?B?ZXI=?=
+	<fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+Message-ID: <20130130170729.59d9e04d@redhat.com>
+In-Reply-To: <201301301049.25541.hverkuil@xs4all.nl>
+References: <201301300901.22486.hverkuil@xs4all.nl>
+	<20130130074030.455a1185@redhat.com>
+	<201301301049.25541.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Em Wed, 30 Jan 2013 10:49:25 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you for the patch.
-
-On Thursday 24 January 2013 13:35:06 Kamil Debski wrote:
-> Not all drivers use monotonic timestamps. This patch adds a way to set the
-> timestamp type per every queue.
+> On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+> > Em Wed, 30 Jan 2013 09:01:22 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > This was part of my original em28xx patch series. That particular patch
+> > > combined two things: this fix and the change where TRY_FMT would no
+> > > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > > rejected (correctly), but we all forgot about the second part of the patch
+> > > which fixed a real bug. I'm reposting just that fix.
+> > > 
+> > > Changes since v1:
+> > > 
+> > > - v1 still miscalculated the bytesperline and imagesize values (they were
+> > >   too large).
+> > > - G_FMT had the same calculation bug.
+> > > 
+> > > Tested with my em28xx.
+> > > 
+> > > Regards,
+> > > 
+> > >         Hans
+> > > 
+> > > The bytesperline calculation was incorrect: it used the old width instead of
+> > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+> > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+> > > bytesperline value should be the bytesperline of the widest plane, which is
+> > > the Y plane which has 8 bits per pixel, not 12.
+> > > 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+> > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > > index 2eabf2a..6ced426 100644
+> > > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> > >  	f->fmt.pix.width = dev->width;
+> > >  	f->fmt.pix.height = dev->height;
+> > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
+> > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+> > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+> > 
+> > Why did you remove the round up here?
 > 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c |    8 ++++++--
->  include/media/videobuf2-core.h           |    1 +
->  2 files changed, 7 insertions(+), 2 deletions(-)
+> Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+> planar format is the one with depth 12. But for the purposes of the bytesperline
+> calculation only the depth of the largest plane counts, which is the luma plane
+> with a depth of 8. So for a width of 720 the value of bytesperline should be:
 > 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 85e3c22..b816689 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -403,7 +403,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb,
-> struct v4l2_buffer *b) * Clear any buffer state related flags.
->  	 */
->  	b->flags &= ~V4L2_BUFFER_MASK_FLAGS;
-> -	b->flags |= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +	b->flags |= q->timestamp_type;
-> 
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_QUEUED:
-> @@ -2032,9 +2032,13 @@ int vb2_queue_init(struct vb2_queue *q)
->  	    WARN_ON(!q->type)		  ||
->  	    WARN_ON(!q->io_modes)	  ||
->  	    WARN_ON(!q->ops->queue_setup) ||
-> -	    WARN_ON(!q->ops->buf_queue))
-> +	    WARN_ON(!q->ops->buf_queue)   ||
-> +	    WARN_ON(q->timestamp_type & ~V4L2_BUF_FLAG_TIMESTAMP_MASK))
->  		return -EINVAL;
-> 
-> +	/* Warn that the driver should choose an appropriate timestamp type */
-> +	WARN_ON(q->timestamp_type == V4L2_BUF_FLAG_TIMESTAMP_UNKNOWN);
-> +
+> depth=8 -> bytesperline = 720
+> depth=12 -> bytesperline = 720
 
-This will cause all the drivers that use vb2 to issue a WARN_ON, and 
-timestamps reported as monotonic in v3.7 would then be reported as unknown 
-again.
+With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
 
-I can see two options to fix this, one is to default to monotonic if the 
-timestamp type is unknown, the other is to patch all drivers that use vb2. The 
-former is probably easier.
+> depth=16 -> bytesperline = 1440
 
->  	INIT_LIST_HEAD(&q->queued_list);
->  	INIT_LIST_HEAD(&q->done_list);
->  	spin_lock_init(&q->done_lock);
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 9cfd4ee..7ce4656 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -326,6 +326,7 @@ struct vb2_queue {
->  	const struct vb2_mem_ops	*mem_ops;
->  	void				*drv_priv;
->  	unsigned int			buf_struct_size;
-> +	u32	                   	timestamp_type;
-> 
->  /* private: internal use only */
->  	enum v4l2_memory		memory;
+Well,
 
--- 
+depth=8 -> bytesperline =  (720 * 8) + 7) / 8 = 720
+depth=12 -> bytesperline = (720 * 12) + 7) / 8 = 1080
+depth=16 -> bytesperline = (720 * 16) + 7) / 8 = 1440
+
+So, this sounds perfectly OK on my eyes:
+	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
