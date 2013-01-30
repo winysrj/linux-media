@@ -1,65 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57790 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755058Ab3AHIji (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 03:39:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Rob Clark <rob.clark@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	marcus.lorentzon@linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Luc Verhaegen <libv@skynet.be>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Tue, 08 Jan 2013 09:41:15 +0100
-Message-ID: <17866175.ucJ7h2oVAD@avalon>
-In-Reply-To: <20130106174647.GO5737@phenom.ffwll.local>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAF6AEGsirt1iVfmpfT1pUCaj0KXO+Hycer5znUoCfH+81du1vA@mail.gmail.com> <20130106174647.GO5737@phenom.ffwll.local>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-vb0-f43.google.com ([209.85.212.43]:42593 "EHLO
+	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756424Ab3A3XCc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 18:02:32 -0500
+Received: by mail-vb0-f43.google.com with SMTP id fr13so1331120vbb.16
+        for <linux-media@vger.kernel.org>; Wed, 30 Jan 2013 15:02:31 -0800 (PST)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [RFC PATCH] Add new value for V4L2_CID_MPEG_STREAM_VBI_FMT for userdata GOP
+Date: Wed, 30 Jan 2013 18:02:22 -0500
+Message-Id: <1359586942-3963-1-git-send-email-dheitmueller@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+Add a new possible value to the V4L2 API for embedded VBI data,
+which allows for embedding of CC and teletext data in the userdata
+section of the GOP.  This allows for compatibility with applications
+such as VLC which already have code to read captions out of the
+userdata area for ATSC A/53 compliant streams.
 
-On Sunday 06 January 2013 18:46:47 Daniel Vetter wrote:
-> On Thu, Dec 27, 2012 at 09:57:25AM -0600, Rob Clark wrote:
-> > On Mon, Dec 24, 2012 at 11:09 AM, Laurent Pinchart wrote:
-> > > On the topic of discussions, would anyone be interested in a
-> > > BoF/brainstorming/whatever session during the FOSDEM ?
-> > 
-> > I will be at FOSDEM.. and from http://wiki.x.org/wiki/fosdem2013 it
-> > looks like at least Daniel will be there.  If enough others are, it
-> > could be a good idea.
-> 
-> Seconded. Jesse should be there, too, and from the Helsinki guys Ville and
-> Andy should show up. Doesn't look like Jani will be able to make it. I think
-> something on Sunday (to not clash with the X devroom) would be good.
-> 
-> Should we apply for an offical BOF/Is there a process for tahat? Adding
-> Luc in case he knows ...
+This will be used by the cx18 driver to embed closed captions for NTSC
+streams.
 
->From the event website it looks like there are free rooms on Sunday, it would 
-be good if we could secure one of them.
+---
+ Documentation/DocBook/media/v4l/controls.xml       |    4 ++++
+ Documentation/DocBook/media/v4l/dev-sliced-vbi.xml |    9 +++++++++
+ include/uapi/linux/v4l2-controls.h                 |    1 +
+ 3 files changed, 14 insertions(+)
 
-Are there other X/display related topics that need to be discussed on Sunday ? 
-How much time should we set aside ?
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 9e8f854..4b41b32 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -862,6 +862,10 @@ are:</entry>
+ 		      <entry>VBI in private packets, IVTV format (documented
+ in the kernel sources in the file <filename>Documentation/video4linux/cx2341x/README.vbi</filename>)</entry>
+ 		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_STREAM_VBI_FMT_USERDATA_GOP</constant>&nbsp;</entry>
++		      <entry>VBI in user_data section of GOP for MPEG2 streams (to embed closed captions that comply with ATSC A/53)</entry>
++		    </row>
+ 		  </tbody>
+ 		</entrytbl>
+ 	      </row>
+diff --git a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
+index 548f8ea..d295252 100644
+--- a/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
++++ b/Documentation/DocBook/media/v4l/dev-sliced-vbi.xml
+@@ -696,4 +696,13 @@ Sliced VBI services</link> for a description of the line payload.</entry>
+     </table>
+ 
+   </section>
++
++  <section>
++    <title>MPEG Stream Embedded, Sliced VBI Data Format: USERDATA_GOP</title>
++    <para>The <link linkend="v4l2-mpeg-stream-vbi-fmt"><constant>
++V4L2_MPEG_STREAM_VBI_FMT_USERDATA_GOP</constant></link> embedded sliced VBI
++format injects EIA-608 closed captions or Teletext into the Userdata GOP area of the MPEG2 stream.  This format allows for caption embedding which complies with the ATSC A/53 specification (the same format used for ATSC digital television streams in the United States).</para>
++    <para>This format is not as flexible as the IVTV format as it does not allow for embedding of arbitrary sliced VBI data.  However it does have the advantage of being the same format used for ATSC digital television streams, meaning any application which can render captions for digital streams should be able to render captions for these streams as well with no additional code changes.</para>
++  </section>
++
+   </section>
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 4dc0822..ad4901e 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -166,6 +166,7 @@ enum v4l2_mpeg_stream_type {
+ enum v4l2_mpeg_stream_vbi_fmt {
+ 	V4L2_MPEG_STREAM_VBI_FMT_NONE = 0,  /* No VBI in the MPEG stream */
+ 	V4L2_MPEG_STREAM_VBI_FMT_IVTV = 1,  /* VBI in private packets, IVTV format */
++	V4L2_MPEG_STREAM_VBI_FMT_USERDATA_GOP = 2,  /* Inject VBI into user_data GOP */
+ };
+ 
+ /*  MPEG audio controls specific to multiplexed streams  */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
