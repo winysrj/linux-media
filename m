@@ -1,65 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:39660 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755384Ab3A0Tps (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 14:45:48 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/7] saa7134: v4l2-compliance: return real frequency
-Date: Sun, 27 Jan 2013 20:45:09 +0100
-Message-Id: <1359315912-1767-5-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:28712 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876Ab3A3RXh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jan 2013 12:23:37 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHG00KEG8B49400@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:35 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHG00A7W8B4SV70@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 02:23:35 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/5] s5p-fimc driver fixes/cleanups
+Date: Wed, 30 Jan 2013 18:23:20 +0100
+Message-id: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make saa7134 driver more V4L2 compliant: don't cache frequency in
-s_frequency/g_frequency but return real one instead
+This series includes s5p-fimc driver fixes, one v4l2 compliance
+fix (I'm working on converting this driver to use the selection
+API and there is more to come after that, patches 4/6 is required
+for the driver to work with v3.9 kernel and patch 5/5 is a
+prerequiste for FIMC-IS driver - as this is all I could push now
+for v3.9. without the device tree support.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/saa7134/saa7134-video.c |    6 ++++--
- drivers/media/pci/saa7134/saa7134.h       |    1 -
- 2 files changed, 4 insertions(+), 3 deletions(-)
+Sylwester Nawrocki (5):
+  s5p-fimc: Avoid null pointer dereference in
+    fimc_capture_ctrls_create()
+  s5p-fimc: Set default image format at device open()
+  s5p-fimc: Fix FIMC.n subdev set_selection ioctl handler
+  s5p-fimc: Add clk_prepare/unprepare for sclk_cam clocks
+  s5p-fimc: Redefine platform data structure for fimc-is
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index be745c0..87b2b9e 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2048,8 +2048,11 @@ static int saa7134_g_frequency(struct file *file, void *priv,
- 	struct saa7134_fh *fh = priv;
- 	struct saa7134_dev *dev = fh->dev;
- 
-+	if (0 != f->tuner)
-+		return -EINVAL;
-+
- 	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
--	f->frequency = dev->ctl_freq;
-+	saa_call_all(dev, tuner, g_frequency, f);
- 
- 	return 0;
- }
-@@ -2067,7 +2070,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
- 	if (1 == fh->radio && V4L2_TUNER_RADIO != f->type)
- 		return -EINVAL;
- 	mutex_lock(&dev->lock);
--	dev->ctl_freq = f->frequency;
- 
- 	saa_call_all(dev, tuner, s_frequency, f);
- 
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 2ffe069..d0ee05e 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -604,7 +604,6 @@ struct saa7134_dev {
- 	int                        ctl_contrast;
- 	int                        ctl_hue;
- 	int                        ctl_saturation;
--	int                        ctl_freq;
- 	int                        ctl_mute;             /* audio */
- 	int                        ctl_volume;
- 	int                        ctl_invert;           /* private */
--- 
-Ondrej Zary
+ arch/arm/mach-exynos/mach-nuri.c                |    8 +-
+ arch/arm/mach-exynos/mach-universal_c210.c      |    8 +-
+ arch/arm/mach-s5pv210/mach-goni.c               |    6 +-
+ drivers/media/platform/s5p-fimc/fimc-capture.c  |   19 ++--
+ drivers/media/platform/s5p-fimc/fimc-core.c     |   20 +---
+ drivers/media/platform/s5p-fimc/fimc-core.h     |    5 +-
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    8 +-
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.h |    4 +-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c      |  131 +++++++++++++----------
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c  |   69 +++++++-----
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h  |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-reg.c      |   34 +++---
+ drivers/media/platform/s5p-fimc/fimc-reg.h      |    6 +-
+ include/media/s5p_fimc.h                        |   49 +++++----
+ 14 files changed, 196 insertions(+), 173 deletions(-)
+
+--
+1.7.9.5
 
