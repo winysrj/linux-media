@@ -1,41 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:16445 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243Ab3AJLsc (ORCPT
+Received: from email.hudson.k12.ma.us ([71.184.227.2]:55960 "EHLO
+	email1.hudson.k12.ma.us" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754277Ab3A3RTW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jan 2013 06:48:32 -0500
-From: "Hamad Kadmany" <hkadmany@codeaurora.org>
-To: "'Antti Palosaari'" <crope@iki.fi>
-Cc: <linux-media@vger.kernel.org>
-References: <000801cdef1f$70667580$51336080$@codeaurora.org> <50EEA240.4060803@iki.fi>
-In-Reply-To: <50EEA240.4060803@iki.fi>
-Subject: RE: [dvb] Question on dvb-core re-structure
-Date: Thu, 10 Jan 2013 13:49:52 +0200
-Message-ID: <000901cdef28$9ba87050$d2f950f0$@codeaurora.org>
+	Wed, 30 Jan 2013 12:19:22 -0500
+From: Katie Rivela <krivela@hudson.k12.ma.us>
+Subject: 
+Date: Wed, 30 Jan 2013 17:13:59 +0000
+Message-ID: <7A76D02E3FA5E544B94DFC363362160960F5A4D9@JFK-EMAIL.hps.local>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: en-us
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/2013 1:13 PM, Antti Palosaari wrote:
-> I could guess that even for the SoCs there is some bus used internally. 
-> If it is not one of those already existing, then create new directly just
-like one of those existing and put it there.
-
-Thanks for the answer. I just wanted to clarify - it's integrated into the
-chip and accessed via memory mapped registers, so I'm not sure which
-category to give the new directory (parallel to pci/mms/usb). Should I just
-put the adapter's sources directory directly under media directory?
 
 
-Thanks,
 
---
-Hamad Kadmany,
-QUALCOMM ISRAEL, on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, hosted by
-The Linux Foundation
+Your two incoming mails where placed on pending status due to the recent upgrade to our database,
+In order to receive the messages Click the below link to login and wait for responds.
 
+https://docs.google.com/spreadsheet/viewform?formkey=dHhFQ1NqV1d3TFJoZzhvOGtZdk9DSVE6MQ
