@@ -1,61 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:47649 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:9355 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751451Ab3AGIrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jan 2013 03:47:08 -0500
-From: "Mohammed, Afzal" <afzal@ti.com>
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: "devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	David Airlie <airlied@linux.ie>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Rob Clark <robdclark@gmail.com>,
-	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"kernel@pengutronix.de" <kernel@pengutronix.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCHv16 5/7] fbmon: add of_videomode helpers
-Date: Mon, 7 Jan 2013 08:46:41 +0000
-Message-ID: <C8443D0743D26F4388EA172BF4E2A7A93EA7FBF7@DBDE01.ent.ti.com>
-References: <1355850256-16135-1-git-send-email-s.trumtrar@pengutronix.de>
- <1355850256-16135-6-git-send-email-s.trumtrar@pengutronix.de>
- <C8443D0743D26F4388EA172BF4E2A7A93EA7FB02@DBDE01.ent.ti.com>
- <20130107080648.GB23478@pengutronix.de>
-In-Reply-To: <20130107080648.GB23478@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	id S1753116Ab3AaKIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 05:08:14 -0500
+Date: Thu, 31 Jan 2013 08:08:07 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Frank =?UTF-8?B?U2Now6Rm?= =?UTF-8?B?ZXI=?=
+	<fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+Message-ID: <20130131080807.55e796ea@redhat.com>
+In-Reply-To: <201301310816.39891.hverkuil@xs4all.nl>
+References: <201301300901.22486.hverkuil@xs4all.nl>
+	<201301301049.25541.hverkuil@xs4all.nl>
+	<20130130170729.59d9e04d@redhat.com>
+	<201301310816.39891.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU3RlZmZlbiwNCg0KT24gTW9uLCBKYW4gMDcsIDIwMTMgYXQgMTM6MzY6NDgsIFN0ZWZmZW4g
-VHJ1bXRyYXIgd3JvdGU6DQo+IE9uIE1vbiwgSmFuIDA3LCAyMDEzIGF0IDA2OjEwOjEzQU0gKzAw
-MDAsIE1vaGFtbWVkLCBBZnphbCB3cm90ZToNCg0KPiA+IFRoaXMgYnJlYWtzIERhVmluY2kgKGRh
-OHh4X29tYXBsX2RlZmNvbmZpZyksIGZvbGxvd2luZyBjaGFuZ2Ugd2FzDQo+ID4gcmVxdWlyZWQg
-dG8gZ2V0IGl0IGJ1aWxkIGlmIE9GX1ZJREVPTU9ERSBvci9hbmQgRkJfTU9ERV9IRUxQRVJTDQo+
-ID4gaXMgbm90IGRlZmluZWQuIFRoZXJlIG1heSBiZSBiZXR0ZXIgc29sdXRpb25zLCBmb2xsb3dp
-bmcgd2FzIHRoZQ0KPiA+IG9uZSB0aGF0IHdhcyB1c2VkIGJ5IG1lIHRvIHRlc3QgdGhpcyBzZXJp
-ZXMuDQoNCj4gSSBqdXN0IGRpZCBhIHF1aWNrICJtYWtlIGRhOHh4X29tYXBsX2RlZmNvbmZpZyAm
-JiBtYWtlIiBhbmQgaXQgYnVpbGRzIGp1c3QgZmluZS4NCj4gT24gd2hhdCB2ZXJzaW9uIGRpZCB5
-b3UgYXBwbHkgdGhlIHNlcmllcz8NCj4gQXQgdGhlIG1vbWVudCBJIGhhdmUgdGhlIHNlcmllcyBz
-aXR0aW5nIG9uIDMuNy4gRGlkbid0IHRyeSBhbnkgMy44LXJjeCB5ZXQuDQo+IEJ1dCBmaXhpbmcg
-dGhpcyBzaG91bGRuJ3QgYmUgYSBwcm9ibGVtLg0KDQpZb3UgYXJlIHJpZ2h0LCBtZSBpZGlvdCwg
-ZXJyb3Igd2lsbCBoYXBwZW4gb25seSB1cG9uIHRyeSB0byBtYWtlIHVzZSBvZg0Kb2ZfZ2V0X2Zi
-X3ZpZGVvbW9kZSgpIChkZWZpbmVkIGluIHRoaXMgcGF0Y2gpIGluIHRoZSBkYTh4eC1mYiBkcml2
-ZXINCih3aXRoIGRhOHh4X29tYXBsX2RlZmNvbmZpZyksIHRvIGJlIGV4YWN0IHVwb24gYWRkaW5n
-LA0KDQoidmlkZW86IGRhOHh4LWZiOiBvYnRhaW4gZmJfdmlkZW9tb2RlIGluZm8gZnJvbSBkdCIg
-b2YgbXkgcGF0Y2ggc2VyaWVzLg0KDQpUaGUgY2hhbmdlIGFzIEkgbWVudGlvbmVkIG9yIHNvbWV0
-aGluZyBzaW1pbGFyIHdvdWxkIGJlIHJlcXVpcmVkIGFzDQphbnkgZHJpdmVyIHRoYXQgaXMgZ29p
-bmcgdG8gbWFrZSB1c2Ugb2Ygb2ZfZ2V0X2ZiX3ZpZGVvbW9kZSgpIHdvdWxkDQpicmVhayBpZiBD
-T05GSUdfT0ZfVklERU9NT0RFIG9yIENPTkZJR19GQl9NT0RFX0hFTFBFUlMgaXMgbm90IGRlZmlu
-ZWQuDQoNCkFuZCB0ZXN0aW5nIHdhcyBkb25lIG92ZXIgdjMuOC1yYzIuDQoNCj4gPiA+ICsjaWYg
-SVNfRU5BQkxFRChDT05GSUdfT0ZfVklERU9NT0RFKQ0KPiA+IA0KPiA+IEFzIF9PRl9WSURFT01P
-REUgaXMgYSBib29sIHR5cGUgQ09ORklHLCBpc24ndCwNCj4gPiANCj4gPiAjaWZkZWYgQ09ORklH
-X09GX1ZJREVPTU9ERQ0KPiA+IA0KPiA+IHN1ZmZpY2llbnQgPw0KPiA+IA0KPiANCj4gWWVzLCB0
-aGF0IGlzIHJpZ2h0LiBCdXQgSSB0aGluayBJU19FTkFCTEVEIGlzIHRoZSBwcmVmZXJyZWQgd2F5
-IHRvIGRvIGl0LCBpc24ndCBpdD8NCg0KTm93IEkgcmVhbGl6ZSBpdCBpcy4NCg0KUmVnYXJkcw0K
-QWZ6YWwNCg==
+Em Thu, 31 Jan 2013 08:16:39 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
+> > Em Wed, 30 Jan 2013 10:49:25 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+> > > > Em Wed, 30 Jan 2013 09:01:22 +0100
+> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > > 
+> > > > > This was part of my original em28xx patch series. That particular patch
+> > > > > combined two things: this fix and the change where TRY_FMT would no
+> > > > > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > > > > rejected (correctly), but we all forgot about the second part of the patch
+> > > > > which fixed a real bug. I'm reposting just that fix.
+> > > > > 
+> > > > > Changes since v1:
+> > > > > 
+> > > > > - v1 still miscalculated the bytesperline and imagesize values (they were
+> > > > >   too large).
+> > > > > - G_FMT had the same calculation bug.
+> > > > > 
+> > > > > Tested with my em28xx.
+> > > > > 
+> > > > > Regards,
+> > > > > 
+> > > > >         Hans
+> > > > > 
+> > > > > The bytesperline calculation was incorrect: it used the old width instead of
+> > > > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+> > > > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+> > > > > bytesperline value should be the bytesperline of the widest plane, which is
+> > > > > the Y plane which has 8 bits per pixel, not 12.
+> > > > > 
+> > > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > > ---
+> > > > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+> > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > index 2eabf2a..6ced426 100644
+> > > > > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> > > > >  	f->fmt.pix.width = dev->width;
+> > > > >  	f->fmt.pix.height = dev->height;
+> > > > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
+> > > > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > > > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+> > > > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+> > > > 
+> > > > Why did you remove the round up here?
+> > > 
+> > > Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+> > > planar format is the one with depth 12. But for the purposes of the bytesperline
+> > > calculation only the depth of the largest plane counts, which is the luma plane
+> > > with a depth of 8. So for a width of 720 the value of bytesperline should be:
+> > > 
+> > > depth=8 -> bytesperline = 720
+> > > depth=12 -> bytesperline = 720
+> > 
+> > With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+> 
+> No, it's not. It's a *planar* format: first the Y plane, then the two smaller
+> chroma planes. The spec says that bytesperline for planar formats refers to
+> the largest plane.
+> 
+> For this format the luma plane is one byte per pixel. Each of the two chroma
+> planes have effectively two bits per pixel (actually one byte per four pixels),
+> so you end up with 8+2+2=12 bits per pixel.
+> 
+> Hence bytesperline should be 720 for this particular format.
+
+If I understood what you just said, you're talking that the only format marked
+as depth=12 is actually depth=8, right? Then the fix would be to change depth
+in the table, and not here.
+
+Yet, I'm not sure if this is the proper fix.
+
+The only used I saw on userspace apps for this field is to allocate size for
+the memory buffer. Some userspace applications use to get bytesperline and
+multiply by the image height and get the image size, instead of relying
+on sizeimage, as some drivers didn't use to fill sizeimage properly.
+
+By using bytesperline equal to 1080 in this case warrants that the buffers
+on userspace will have enough space.
+
+Regards,
+Mauro
