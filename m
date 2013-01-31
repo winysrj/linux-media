@@ -1,85 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:35897 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752469Ab3AaOtK (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4837 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753282Ab3AaKZv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 Jan 2013 09:49:10 -0500
-Received: by mail-bk0-f53.google.com with SMTP id j10so1375194bkw.40
-        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 06:49:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAAQKjZNO0tJ3StYJ_kzLWCqz+1dv6A2PNqo1kavR7XtwfKnysQ@mail.gmail.com>
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
-	<1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com>
-	<CAAQKjZMpFin6s+-z8ei+JcxcdFrWUpFZrsCuxv7AH+8wVfTUqw@mail.gmail.com>
-	<20130131095726.GD5885@phenom.ffwll.local>
-	<CAAQKjZNO0tJ3StYJ_kzLWCqz+1dv6A2PNqo1kavR7XtwfKnysQ@mail.gmail.com>
-Date: Thu, 31 Jan 2013 15:49:09 +0100
-Message-ID: <CAKMK7uG-Fr=FB9NnHmERJj5VXzXbrpAhPWsZJTCX_OsLV0wn-A@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/7] fence: dma-buf cross-device
- synchronization (v11)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Maarten Lankhorst <m.b.lankhorst@gmail.com>,
-	linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 31 Jan 2013 05:25:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 14/18] tlg2300: implement the control framework.
+Date: Thu, 31 Jan 2013 11:25:32 +0100
+Message-Id: <36ec60bc7420a183eab3a2637f187576b9cea780.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 31, 2013 at 3:38 PM, Inki Dae <inki.dae@samsung.com> wrote:
-> I think I understand as your comment but I don't think that I
-> understand fully the dma-fence mechanism. So I wish you to give me
-> some advices for it. In our case, I'm applying the dma-fence to
-> mali(3d gpu) driver as producer and exynos drm(display controller)
-> driver as consumer.
->
-> And the sequence is as the following:
-> In case of producer,
-> 1. call fence_wait to wait for the dma access completion of others.
-> 2. And then the producer creates a fence and a new reservation entry.
-> 3. And then it sets the given dmabuf's resv(reservation_object) to the
-> new reservation entry.
-> 4. And then it adds the reservation entry to entries list.
-> 5. And then it sets the fence to all dmabufs of the entries list.
-> Actually, this work is to set the fence to the reservaion_object of
-> each dmabuf.
-> 6. And then the producer's dma start.
-> 7. Finally, when the dma start is completed, we get the entries list
-> from a 3d job command(in case of mali core, pp job) and call
-> fence_signal() with each fence of each reservation entry.
->
-> From here, is there my missing point?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yeah, more or less. Although you need to wrap everything into ticket
-reservation locking so that you can atomically update fences if you
-have support for some form of device2device singalling (i.e. without
-blocking on the cpu until all the old users completed). At least
-that's the main point of Maarten's patches (and this does work with
-prime between a few drivers by now), but ofc you can use cpu blocking
-as a fallback.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tlg2300/pd-common.h |    1 +
+ drivers/media/usb/tlg2300/pd-video.c  |  128 +++++++++++----------------------
+ 2 files changed, 41 insertions(+), 88 deletions(-)
 
-> And I thought the fence from reservation entry at step 7 means that
-> the producer wouldn't access the dmabuf attaching this fence anymore
-> so this step wakes up all processes blocked. So I understood that the
-> fence means a owner accessing the given dmabuf and we could aware of
-> whether the owner commited its own fence to the given dmabuf to read
-> or write through the fence's flags.
-
-The fence doesn't give ownership of the dma_buf object, but only
-indicates when the dma access will have completed. The relationship
-between dma_buf/reservation and the attached fences specify whether
-other hw engines can access the dma_buf, too (if the fence is
-non-exclusive).
-
-> If you give me some advices, I'd be happy.
-
-Rob and Maarten are working on some howtos and documentation with
-example code, I guess it'd be best to wait a bit until we have that.
-Or just review the existing stuff Rob just posted and reply with
-questions there.
-
-Cheers, Daniel
+diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+index 55fe66e..cb5cb0f 100644
+--- a/drivers/media/usb/tlg2300/pd-common.h
++++ b/drivers/media/usb/tlg2300/pd-common.h
+@@ -64,6 +64,7 @@ struct running_context {
+ struct video_data {
+ 	/* v4l2 video device */
+ 	struct video_device	v_dev;
++	struct v4l2_ctrl_handler ctrl_handler;
+ 
+ 	/* the working context */
+ 	struct running_context	context;
+diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+index 122f299..849c4bb 100644
+--- a/drivers/media/usb/tlg2300/pd-video.c
++++ b/drivers/media/usb/tlg2300/pd-video.c
+@@ -8,6 +8,7 @@
+ 
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #include "pd-common.h"
+ #include "vendorcmds.h"
+@@ -82,31 +83,6 @@ static const struct pd_input pd_inputs[] = {
+ };
+ static const unsigned int POSEIDON_INPUTS = ARRAY_SIZE(pd_inputs);
+ 
+-struct poseidon_control {
+-	struct v4l2_queryctrl v4l2_ctrl;
+-	enum cmd_custom_param_id vc_id;
+-};
+-
+-static struct poseidon_control controls[] = {
+-	{
+-		{ V4L2_CID_BRIGHTNESS, V4L2_CTRL_TYPE_INTEGER,
+-			"brightness", 0, 10000, 1, 100, 0, },
+-		CUST_PARM_ID_BRIGHTNESS_CTRL
+-	}, {
+-		{ V4L2_CID_CONTRAST, V4L2_CTRL_TYPE_INTEGER,
+-			"contrast", 0, 10000, 1, 100, 0, },
+-		CUST_PARM_ID_CONTRAST_CTRL,
+-	}, {
+-		{ V4L2_CID_HUE, V4L2_CTRL_TYPE_INTEGER,
+-			"hue", 0, 10000, 1, 100, 0, },
+-		CUST_PARM_ID_HUE_CTRL,
+-	}, {
+-		{ V4L2_CID_SATURATION, V4L2_CTRL_TYPE_INTEGER,
+-			"saturation", 0, 10000, 1, 100, 0, },
+-		CUST_PARM_ID_SATURATION_CTRL,
+-	},
+-};
+-
+ struct video_std_to_audio_std {
+ 	v4l2_std_id	video_std;
+ 	int 		audio_std;
+@@ -940,68 +916,28 @@ static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
+ 	return 0;
+ }
+ 
+-static struct poseidon_control *check_control_id(u32 id)
+-{
+-	struct poseidon_control *control = &controls[0];
+-	int array_size = ARRAY_SIZE(controls);
+-
+-	for (; control < &controls[array_size]; control++)
+-		if (control->v4l2_ctrl.id  == id)
+-			return control;
+-	return NULL;
+-}
+-
+-static int vidioc_queryctrl(struct file *file, void *fh,
+-			struct v4l2_queryctrl *a)
+-{
+-	struct poseidon_control *control = NULL;
+-
+-	control = check_control_id(a->id);
+-	if (!control)
+-		return -EINVAL;
+-
+-	*a = control->v4l2_ctrl;
+-	return 0;
+-}
+-
+-static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *ctrl)
+-{
+-	struct front_face *front = fh;
+-	struct poseidon *pd = front->pd;
+-	struct poseidon_control *control = NULL;
+-	struct tuner_custom_parameter_s tuner_param;
+-	s32 ret = 0, cmd_status;
+-
+-	control = check_control_id(ctrl->id);
+-	if (!control)
+-		return -EINVAL;
+-
+-	mutex_lock(&pd->lock);
+-	ret = send_get_req(pd, TUNER_CUSTOM_PARAMETER, control->vc_id,
+-			&tuner_param, &cmd_status, sizeof(tuner_param));
+-	mutex_unlock(&pd->lock);
+-
+-	if (ret || cmd_status)
+-		return -1;
+-
+-	ctrl->value = tuner_param.param_value;
+-	return 0;
+-}
+-
+-static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *a)
++static int tlg_s_ctrl(struct v4l2_ctrl *c)
+ {
++	struct poseidon *pd = container_of(c->handler, struct poseidon,
++						video_data.ctrl_handler);
+ 	struct tuner_custom_parameter_s param = {0};
+-	struct poseidon_control *control = NULL;
+-	struct front_face *front	= fh;
+-	struct poseidon *pd		= front->pd;
+ 	s32 ret = 0, cmd_status, params;
+ 
+-	control = check_control_id(a->id);
+-	if (!control)
+-		return -EINVAL;
+-
+-	param.param_value = a->value;
+-	param.param_id	= control->vc_id;
++	switch (c->id) {
++	case V4L2_CID_BRIGHTNESS:
++		param.param_id = CUST_PARM_ID_BRIGHTNESS_CTRL;
++		break;
++	case V4L2_CID_CONTRAST:
++		param.param_id = CUST_PARM_ID_CONTRAST_CTRL;
++		break;
++	case V4L2_CID_HUE:
++		param.param_id = CUST_PARM_ID_HUE_CTRL;
++		break;
++	case V4L2_CID_SATURATION:
++		param.param_id = CUST_PARM_ID_SATURATION_CTRL;
++		break;
++	}
++	param.param_value = c->val;
+ 	params = *(s32 *)&param; /* temp code */
+ 
+ 	mutex_lock(&pd->lock);
+@@ -1587,11 +1523,6 @@ static const struct v4l2_ioctl_ops pd_video_ioctl_ops = {
+ 	/* Stream on/off */
+ 	.vidioc_streamon	= vidioc_streamon,
+ 	.vidioc_streamoff	= vidioc_streamoff,
+-
+-	/* Control handling */
+-	.vidioc_queryctrl	= vidioc_queryctrl,
+-	.vidioc_g_ctrl		= vidioc_g_ctrl,
+-	.vidioc_s_ctrl		= vidioc_s_ctrl,
+ };
+ 
+ static struct video_device pd_video_template = {
+@@ -1603,6 +1534,10 @@ static struct video_device pd_video_template = {
+ 	.ioctl_ops = &pd_video_ioctl_ops,
+ };
+ 
++static const struct v4l2_ctrl_ops tlg_ctrl_ops = {
++	.s_ctrl = tlg_s_ctrl,
++};
++
+ void pd_video_exit(struct poseidon *pd)
+ {
+ 	struct video_data *video = &pd->video_data;
+@@ -1610,6 +1545,7 @@ void pd_video_exit(struct poseidon *pd)
+ 
+ 	video_unregister_device(&video->v_dev);
+ 	video_unregister_device(&vbi->v_dev);
++	v4l2_ctrl_handler_free(&video->ctrl_handler);
+ 	log();
+ }
+ 
+@@ -1617,12 +1553,27 @@ int pd_video_init(struct poseidon *pd)
+ {
+ 	struct video_data *video = &pd->video_data;
+ 	struct vbi_data *vbi	= &pd->vbi_data;
++	struct v4l2_ctrl_handler *hdl = &video->ctrl_handler;
+ 	u32 freq = TUNER_FREQ_MIN / 62500;
+ 	int ret = -ENOMEM;
+ 
++	v4l2_ctrl_handler_init(hdl, 4);
++	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_BRIGHTNESS,
++			0, 10000, 1, 100);
++	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_CONTRAST,
++			0, 10000, 1, 100);
++	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_HUE,
++			0, 10000, 1, 100);
++	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_SATURATION,
++			0, 10000, 1, 100);
++	if (hdl->error) {
++		v4l2_ctrl_handler_free(hdl);
++		return hdl->error;
++	}
+ 	set_frequency(pd, &freq);
+ 	video->v_dev = pd_video_template;
+ 	video->v_dev.v4l2_dev = &pd->v4l2_dev;
++	video->v_dev.ctrl_handler = hdl;
+ 	video_set_drvdata(&video->v_dev, pd);
+ 
+ 	ret = video_register_device(&video->v_dev, VFL_TYPE_GRABBER, -1);
+@@ -1632,6 +1583,7 @@ int pd_video_init(struct poseidon *pd)
+ 	/* VBI uses the same template as video */
+ 	vbi->v_dev = pd_video_template;
+ 	vbi->v_dev.v4l2_dev = &pd->v4l2_dev;
++	vbi->v_dev.ctrl_handler = hdl;
+ 	video_set_drvdata(&vbi->v_dev, pd);
+ 	ret = video_register_device(&vbi->v_dev, VFL_TYPE_VBI, -1);
+ 	if (ret != 0)
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.10.4
+
