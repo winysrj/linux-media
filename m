@@ -1,69 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1131 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756325Ab3A0JnI (ORCPT
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:61665 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408Ab3AaJcQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 04:43:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.9] videodev2.h fix and em28xx regression fixes
-Date: Sun, 27 Jan 2013 10:43:00 +0100
-Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
+	Thu, 31 Jan 2013 04:32:16 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201301271043.00528.hverkuil@xs4all.nl>
+In-Reply-To: <1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com>
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
+	<1358253244-11453-5-git-send-email-maarten.lankhorst@canonical.com>
+Date: Thu, 31 Jan 2013 18:32:15 +0900
+Message-ID: <CAAQKjZMpFin6s+-z8ei+JcxcdFrWUpFZrsCuxv7AH+8wVfTUqw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/7] fence: dma-buf cross-device
+ synchronization (v11)
+From: Inki Dae <inki.dae@samsung.com>
+To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-The first patch moves the DV control IDs from videodev2.h to v4l2-controls.h.
-I noticed that they weren't moved when the controls were split off from
-videodev2.h, probably because the patch adding the DV controls and the move
-to v4l2-controls.h crossed one another.
+below is my opinion.
 
-The second and third patch convert tvaudio and mt9v011 to the control framework.
-These patches were part of my original conversion of em28xx to the control
-framework, but when Devin based his em28xx work on my tree he forgot to pull
-them in.
+> +struct fence;
+> +struct fence_ops;
+> +struct fence_cb;
+> +
+> +/**
+> + * struct fence - software synchronization primitive
+> + * @refcount: refcount for this fence
+> + * @ops: fence_ops associated with this fence
+> + * @cb_list: list of all callbacks to call
+> + * @lock: spin_lock_irqsave used for locking
+> + * @priv: fence specific private data
+> + * @flags: A mask of FENCE_FLAG_* defined below
+> + *
+> + * the flags member must be manipulated and read using the appropriate
+> + * atomic ops (bit_*), so taking the spinlock will not be needed most
+> + * of the time.
+> + *
+> + * FENCE_FLAG_SIGNALED_BIT - fence is already signaled
+> + * FENCE_FLAG_ENABLE_SIGNAL_BIT - enable_signaling might have been called*
+> + * FENCE_FLAG_USER_BITS - start of the unused bits, can be used by the
+> + * implementer of the fence for its own purposes. Can be used in different
+> + * ways by different fence implementers, so do not rely on this.
+> + *
+> + * *) Since atomic bitops are used, this is not guaranteed to be the case.
+> + * Particularly, if the bit was set, but fence_signal was called right
+> + * before this bit was set, it would have been able to set the
+> + * FENCE_FLAG_SIGNALED_BIT, before enable_signaling was called.
+> + * Adding a check for FENCE_FLAG_SIGNALED_BIT after setting
+> + * FENCE_FLAG_ENABLE_SIGNAL_BIT closes this race, and makes sure that
+> + * after fence_signal was called, any enable_signaling call will have either
+> + * been completed, or never called at all.
+> + */
+> +struct fence {
+> +       struct kref refcount;
+> +       const struct fence_ops *ops;
+> +       struct list_head cb_list;
+> +       spinlock_t *lock;
+> +       unsigned context, seqno;
+> +       unsigned long flags;
+> +};
+> +
+> +enum fence_flag_bits {
+> +       FENCE_FLAG_SIGNALED_BIT,
+> +       FENCE_FLAG_ENABLE_SIGNAL_BIT,
+> +       FENCE_FLAG_USER_BITS, /* must always be last member */
+> +};
+> +
 
-Because of that any controls created by the mt9v011 and tvaudio drivers are
-inaccessible from em28xx. By converting those drivers to the control framework
-they are seen again.
+It seems like that this fence framework need to add read/write flags.
+In case of two read operations, one might wait for another one. But
+the another is just read operation so we doesn't need to wait for it.
+Shouldn't fence-wait-request be ignored? In this case, I think it's
+enough to consider just only write operation.
 
-Frank tested the mt9v011 conversion. I have tested the tvaudio conversion
-somewhat with a bttv card that had a tda9850, but if you have additional
-tvaudio cards (and especially an em28xx that uses the tvaudio module), then it
-would be good to do some additional tests. Other than the bttv card I have
-no other hardware to test tvaudio with.
+For this, you could add the following,
 
-Regards,
+enum fence_flag_bits {
+        ...
+        FENCE_FLAG_ACCESS_READ_BIT,
+        FENCE_FLAG_ACCESS_WRITE_BIT,
+        ...
+};
 
-	Hans
+And the producer could call fence_init() like below,
+__fence_init(..., FENCE_FLAG_ACCESS_WRITE_BIT,...);
 
-The following changes since commit 94a93e5f85040114d6a77c085457b3943b6da889:
+With this, fence->flags has FENCE_FLAG_ACCESS_WRITE_BIT as write
+operation and then other sides(read or write operation) would wait for
+the write operation completion.
+And also consumer calls that function with FENCE_FLAG_ACCESS_READ_BIT
+so that other consumers could ignore the fence-wait to any read
+operations.
 
-  [media] dvb_frontend: print a msg if a property doesn't exist (2013-01-23 19:10:57 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git fixes
-
-for you to fetch changes up to 7aa966b3c4135b1745a3c5ac60bdd8f79fead355:
-
-  mt9v011: convert to the control framework. (2013-01-27 10:22:27 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      Move DV-class control IDs from videodev2.h to v4l2-controls.h
-      tvaudio: convert to the control framework.
-      mt9v011: convert to the control framework.
-
- drivers/media/i2c/mt9v011.c        |  223 +++++++++++++++++++++++++++++++++--------------------------------------------------------------------------
- drivers/media/i2c/tvaudio.c        |  224 ++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------
- include/uapi/linux/v4l2-controls.h |   24 ++++++++++++
- include/uapi/linux/videodev2.h     |   22 -----------
- 4 files changed, 166 insertions(+), 327 deletions(-)
+Thanks,
+Inki Dae
