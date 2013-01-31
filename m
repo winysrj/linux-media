@@ -1,90 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4646 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753238Ab3A2HMg convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3670 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432Ab3AaKZq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jan 2013 02:12:36 -0500
+	Thu, 31 Jan 2013 05:25:46 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [RFC PATCH 0/7] saa7134: improve v4l2-compliance
-Date: Tue, 29 Jan 2013 08:12:24 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org> <201301281156.59112.hverkuil@xs4all.nl> <201301282340.59707.linux@rainbow-software.org>
-In-Reply-To: <201301282340.59707.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201301290812.24694.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/18] tlg2300: fix tuner and frequency handling of the radio device.
+Date: Thu, 31 Jan 2013 11:25:20 +0100
+Message-Id: <b4d0a04e07ad8b07837096f2601fad0f6614acb2.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon January 28 2013 23:40:59 Ondrej Zary wrote:
-> On Monday 28 January 2013 11:56:59 Hans Verkuil wrote:
-> > On Sun January 27 2013 20:45:05 Ondrej Zary wrote:
-> > > Hello,
-> > > this patch series improves v4l2-compliance of saa7134 driver. There are
-> > > still some problems. Controls require conversion to control framework
-> > > which I was unable to finish (because the driver accesses other controls
-> > > and also the file handle from within s_ctrl).
-> >
-> > To convert to the control framework this driver needs quite a bit of work:
-> > the saa6752hs driver should be done first (and moved to media/i2c as well
-> > as it really doesn't belong here).
-> >
-> > The filehandle shouldn't be a problem, I think after the prio conversion
-> > that's no longer needed at all.
-> >
-> > > Radio is now OK except for controls.
-> > > Video has problems with controls, debugging, formats and buffers:
-> > > Debug ioctls:
-> > >         test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-> > >                 fail: v4l2-test-debug.cpp(84): doioctl(node,
-> > > VIDIOC_DBG_G_CHIP_IDENT, &chip) Format ioctls:
-> > >         test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> > >                 fail: v4l2-test-formats.cpp(836): !cap->readbuffers
-> >
-> > That should be easy to fix. It's a pretty bogus field and I usually set it
-> > to the minimum number of buffers (which is 2 for this driver).
-> >
-> > >         test VIDIOC_G/S_PARM: FAIL
-> > >                 fail: v4l2-test-formats.cpp(335): !fmt.width ||
-> > > !fmt.height test VIDIOC_G_FBUF: FAIL
-> > >                 fail: v4l2-test-formats.cpp(382): !pix.colorspace
-> >
-> > That's easy enough to solve. Typically this should be set to
-> > V4L2_COLORSPACE_SMPTE170M.
-> >
-> > But after solving this you'll probably get a bunch of other issues due to
-> > a problem this driver shared with quite a few other related drivers: the
-> > format state is stored in struct saa7134_fh instead of in the top-level
-> > struct. These format states are all global and should never have been
-> > placed in this struct.
-> 
-> Got this after setting colorspace:
->                fail: v4l2-test-formats.cpp(460): win.field == V4L2_FIELD_ANY
-> 
-> I don't know what win.field is supposed to be and where the value should came 
-> from.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->From the spec:
+This driver now passes the tuner and frequency tests of v4l2-compliance.
 
-"Applications set this field to determine which video field shall be overlaid,
-typically one of V4L2_FIELD_ANY (0), V4L2_FIELD_TOP, V4L2_FIELD_BOTTOM or
-V4L2_FIELD_INTERLACED. Drivers may have to choose a different field order
-and return the actual setting here."
+It's the usual bugs: frequency wasn't clamped to the valid frequency range,
+incorrect tuner capabilities and tuner fields not filled in, missing test
+for invalid tuner index, no initial frequency and incorrect error handling.
 
-For this driver V4L2_FIELD_INTERLACED is almost certainly what should be
-returned.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tlg2300/pd-radio.c |   37 +++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 16 deletions(-)
 
-> It's now taken from fh->win which is probably all zeros because no 
-> overlay is running?
-> The same problem is with g_fbuf - what should fmt.width and fmt.height be?
+diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+index 25eeb16..90dc1d1 100644
+--- a/drivers/media/usb/tlg2300/pd-radio.c
++++ b/drivers/media/usb/tlg2300/pd-radio.c
+@@ -18,8 +18,8 @@ static int set_frequency(struct poseidon *p, __u32 frequency);
+ static int poseidon_fm_close(struct file *filp);
+ static int poseidon_fm_open(struct file *filp);
+ 
+-#define TUNER_FREQ_MIN_FM 76000000
+-#define TUNER_FREQ_MAX_FM 108000000
++#define TUNER_FREQ_MIN_FM 76000000U
++#define TUNER_FREQ_MAX_FM 108000000U
+ 
+ #define MAX_PREEMPHASIS (V4L2_PREEMPHASIS_75_uS + 1)
+ static int preemphasis[MAX_PREEMPHASIS] = {
+@@ -170,13 +170,14 @@ static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
+ 		return -EINVAL;
+ 
+ 	vt->type	= V4L2_TUNER_RADIO;
+-	vt->capability	= V4L2_TUNER_CAP_STEREO;
+-	vt->rangelow	= TUNER_FREQ_MIN_FM / 62500;
+-	vt->rangehigh	= TUNER_FREQ_MAX_FM / 62500;
++	vt->capability	= V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LOW;
++	vt->rangelow	= TUNER_FREQ_MIN_FM * 2 / 125;
++	vt->rangehigh	= TUNER_FREQ_MAX_FM * 2 / 125;
+ 	vt->rxsubchans	= V4L2_TUNER_SUB_STEREO;
+ 	vt->audmode	= V4L2_TUNER_MODE_STEREO;
+ 	vt->signal	= 0;
+ 	vt->afc 	= 0;
++	strlcpy(vt->name, "Radio", sizeof(vt->name));
+ 
+ 	mutex_lock(&p->lock);
+ 	ret = send_get_req(p, TUNER_STATUS, TLG_MODE_FM_RADIO,
+@@ -207,6 +208,8 @@ static int fm_get_freq(struct file *file, void *priv,
+ {
+ 	struct poseidon *p = file->private_data;
+ 
++	if (argp->tuner)
++		return -EINVAL;
+ 	argp->frequency = p->radio_data.fm_freq;
+ 	return 0;
+ }
+@@ -221,11 +224,8 @@ static int set_frequency(struct poseidon *p, __u32 frequency)
+ 	ret = send_set_req(p, TUNER_AUD_ANA_STD,
+ 				p->radio_data.pre_emphasis, &status);
+ 
+-	freq =  (frequency * 125) * 500 / 1000;/* kHZ */
+-	if (freq < TUNER_FREQ_MIN_FM/1000 || freq > TUNER_FREQ_MAX_FM/1000) {
+-		ret = -EINVAL;
+-		goto error;
+-	}
++	freq = (frequency * 125) / 2; /* Hz */
++	freq = clamp(freq, TUNER_FREQ_MIN_FM, TUNER_FREQ_MAX_FM);
+ 
+ 	ret = send_set_req(p, TUNE_FREQ_SELECT, freq, &status);
+ 	if (ret < 0)
+@@ -240,7 +240,7 @@ static int set_frequency(struct poseidon *p, __u32 frequency)
+ 				TLG_TUNE_PLAY_SVC_START, &status);
+ 		p->radio_data.is_radio_streaming = 1;
+ 	}
+-	p->radio_data.fm_freq = frequency;
++	p->radio_data.fm_freq = freq * 2 / 125;
+ error:
+ 	mutex_unlock(&p->lock);
+ 	return ret;
+@@ -251,7 +251,9 @@ static int fm_set_freq(struct file *file, void *priv,
+ {
+ 	struct poseidon *p = file->private_data;
+ 
+-	p->file_for_stream  = file;
++	if (argp->tuner)
++		return -EINVAL;
++	p->file_for_stream = file;
+ #ifdef CONFIG_PM
+ 	p->pm_suspend = pm_fm_suspend;
+ 	p->pm_resume  = pm_fm_resume;
+@@ -401,16 +403,19 @@ static struct video_device poseidon_fm_template = {
+ int poseidon_fm_init(struct poseidon *p)
+ {
+ 	struct video_device *fm_dev;
++	int err;
+ 
+ 	fm_dev = vdev_init(p, &poseidon_fm_template);
+ 	if (fm_dev == NULL)
+-		return -1;
++		return -ENOMEM;
+ 
+-	if (video_register_device(fm_dev, VFL_TYPE_RADIO, -1) < 0) {
++	p->radio_data.fm_dev = fm_dev;
++	set_frequency(p, TUNER_FREQ_MIN_FM);
++	err = video_register_device(fm_dev, VFL_TYPE_RADIO, -1);
++	if (err < 0) {
+ 		video_device_release(fm_dev);
+-		return -1;
++		return err;
+ 	}
+-	p->radio_data.fm_dev = fm_dev;
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
 
-The main problem here is that the win struct is in the filehandle. It should
-be in a global struct and set to default values (usually the same size as the
-current STD).
-
-Regards,
-
-	Hans
