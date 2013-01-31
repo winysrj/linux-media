@@ -1,218 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36753 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab3AXLfN (ORCPT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:35646 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751945Ab3AaR5F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jan 2013 06:35:13 -0500
+	Thu, 31 Jan 2013 12:57:05 -0500
+Received: by mail-ee0-f53.google.com with SMTP id e53so1610618eek.12
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 09:57:03 -0800 (PST)
+Message-ID: <510AB09A.1030008@googlemail.com>
+Date: Thu, 31 Jan 2013 18:57:46 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <23844927.kqVXuK0AjF@avalon>
-References: <1359018740-6399-1-git-send-email-prabhakar.lad@ti.com> <23844927.kqVXuK0AjF@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 24 Jan 2013 17:04:51 +0530
-Message-ID: <CA+V-a8vDPyb-6Q2yuUyNODB=DxSs_TJaJKxpLP24BwH+vdrG8A@mail.gmail.com>
-Subject: Re: [PATCH RFC] media: tvp514x: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	LDOC <linux-doc@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+References: <201301300901.22486.hverkuil@xs4all.nl> <201301301049.25541.hverkuil@xs4all.nl> <20130130170729.59d9e04d@redhat.com> <201301310816.39891.hverkuil@xs4all.nl> <20130131080807.55e796ea@redhat.com>
+In-Reply-To: <20130131080807.55e796ea@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Am 31.01.2013 11:08, schrieb Mauro Carvalho Chehab:
+> Em Thu, 31 Jan 2013 08:16:39 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>
+>> On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
+>>> Em Wed, 30 Jan 2013 10:49:25 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>
+>>>> On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+>>>>> Em Wed, 30 Jan 2013 09:01:22 +0100
+>>>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+>>>>>
+>>>>>> This was part of my original em28xx patch series. That particular patch
+>>>>>> combined two things: this fix and the change where TRY_FMT would no
+>>>>>> longer return -EINVAL for unsupported pixelformats. The latter change was
+>>>>>> rejected (correctly), but we all forgot about the second part of the patch
+>>>>>> which fixed a real bug. I'm reposting just that fix.
+>>>>>>
+>>>>>> Changes since v1:
+>>>>>>
+>>>>>> - v1 still miscalculated the bytesperline and imagesize values (they were
+>>>>>>   too large).
+>>>>>> - G_FMT had the same calculation bug.
+>>>>>>
+>>>>>> Tested with my em28xx.
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>>         Hans
+>>>>>>
+>>>>>> The bytesperline calculation was incorrect: it used the old width instead of
+>>>>>> the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+>>>>>> value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+>>>>>> bytesperline value should be the bytesperline of the widest plane, which is
+>>>>>> the Y plane which has 8 bits per pixel, not 12.
+>>>>>>
+>>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>> ---
+>>>>>>  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+>>>>>>  1 file changed, 4 insertions(+), 4 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+>>>>>> index 2eabf2a..6ced426 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>>>>>> @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+>>>>>>  	f->fmt.pix.width = dev->width;
+>>>>>>  	f->fmt.pix.height = dev->height;
+>>>>>>  	f->fmt.pix.pixelformat = dev->format->fourcc;
+>>>>>> -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+>>>>>> -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+>>>>>> +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+>>>>> Why did you remove the round up here?
+>>>> Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+>>>> planar format is the one with depth 12. But for the purposes of the bytesperline
+>>>> calculation only the depth of the largest plane counts, which is the luma plane
+>>>> with a depth of 8. So for a width of 720 the value of bytesperline should be:
+>>>>
+>>>> depth=8 -> bytesperline = 720
+>>>> depth=12 -> bytesperline = 720
+>>> With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+>> No, it's not. It's a *planar* format: first the Y plane, then the two smaller
+>> chroma planes. The spec says that bytesperline for planar formats refers to
+>> the largest plane.
+>>
+>> For this format the luma plane is one byte per pixel. Each of the two chroma
+>> planes have effectively two bits per pixel (actually one byte per four pixels),
+>> so you end up with 8+2+2=12 bits per pixel.
+>>
+>> Hence bytesperline should be 720 for this particular format.
+> If I understood what you just said, you're talking that the only format marked
+> as depth=12 is actually depth=8, right? Then the fix would be to change depth
+> in the table, and not here.
 
-On Thu, Jan 24, 2013 at 4:17 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch.
->
-> Sylwester and Guennadi have posted a DT bindings proposal for V4L2 devices.
-> Shouldn't you base this patch on those bindings ?
->
-Yes I'll base on it and post a v2.
+No, the depth is correct. and it is needed for image size calculation.
+
+> Yet, I'm not sure if this is the proper fix.
+
+The problem here which causes confusion is, that bytesperline actually
+isn't bytesperline for planar formats (and hence size != bytesperline *
+height) when we follow the current spec.
+I don't understand the reason for handling this different for planar and
+non-planar formats, but I'm sure there is a good one. Hans ?
+
+Given that we can't and/or don't want to change the spec, the correct
+fix would be to consider the plane size in the calculation.
+This info can be derived either from the format type (implicit) or we
+can add it to the format struct (explicit).
+
+Example (using the ratio between the size of the largest plane and the
+size of all planes together):
+
+lp_ratio = 1    (for non-planar formats)
+lp_ratio = 4/(4+1+1) = 4/6 = 2/3    (for YUV411P)
+lp_ratio = 4/(4+2+2) = 4/8 = 1/2    (for YUV422P)
+...
+
+=> bytesperline = (width * depth * lp_ratio + 7) >> 3  
+
 
 Regards,
---Prabhakar
+Frank
 
-> On Thursday 24 January 2013 14:42:20 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.lad@ti.com>
->>
->> add OF support for the tvp514x driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> ---
->>  This patch is on top of following patches:
->>  1: https://patchwork.kernel.org/patch/1930941/
->>  2: http://patchwork.linuxtv.org/patch/16193/
->>  3: https://patchwork.kernel.org/patch/1944901/
->>
->>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   30 ++++++++++
->>  drivers/media/i2c/tvp514x.c                        |   60 +++++++++++++++--
->>  2 files changed, 85 insertions(+), 5 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt new file mode
->> 100644
->> index 0000000..3cce323
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> @@ -0,0 +1,30 @@
->> +* Texas Instruments TVP514x video decoder
->> +
->> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
->> +digital video decoder that digitizes and decodes all popular baseband
->> analog +video formats into digital video component. The tvp514x decoder
->> supports analog- +to-digital (A/D) conversion of component RGB and YPbPr
->> signals as well as A/D +conversion and decoding of NTSC, PAL and SECAM
->> composite and S-video into +component YCbCr.
->> +
->> +Required Properties :
->> +- compatible: Must be "ti,tvp514x-decoder"
->> +- hsync-active: HSYNC Polarity configuration for current interface.
->> +- vsync-active: VSYNC Polarity configuration for current interface.
->> +- data-active: Clock polarity of the current interface.
->> +
->> +Example:
->> +
->> +i2c0@1c22000 {
->> +     ...
->> +     ...
->> +
->> +     tvp514x@5c {
->> +             compatible = "ti,tvp514x-decoder";
->> +             reg = <0x5c>;
->> +             hsync-active = <1>;     /* Active low (Defaults to 0) */
->> +             hsync-active = <1>;     /* Active low (Defaults to 0) */
->> +             data-active = <0>;      /* Active low (Defaults to 0) */
->> +     };
->> +     ...
->> +};
->> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
->> index a4f0a70..0e2b15c 100644
->> --- a/drivers/media/i2c/tvp514x.c
->> +++ b/drivers/media/i2c/tvp514x.c
->> @@ -12,6 +12,7 @@
->>   *     Hardik Shah <hardik.shah@ti.com>
->>   *     Manjunath Hadli <mrh@ti.com>
->>   *     Karicheri Muralidharan <m-karicheri2@ti.com>
->> + *     Prabhakar Lad <prabhakar.lad@ti.com>
->>   *
->>   * This package is free software; you can redistribute it and/or modify
->>   * it under the terms of the GNU General Public License version 2 as
->> @@ -930,6 +931,50 @@ static struct tvp514x_decoder tvp514x_dev = {
->>
->>  };
->>
->> +#if defined(CONFIG_OF)
->> +static const struct of_device_id tvp514x_of_match[] = {
->> +     {.compatible = "ti,tvp514x-decoder", },
->> +     {},
->> +}
->> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
->> +
->> +static struct tvp514x_platform_data
->> +     *tvp514x_get_pdata(struct i2c_client *client)
->> +{
->> +     if (!client->dev.platform_data && client->dev.of_node) {
->> +             struct tvp514x_platform_data *pdata;
->> +             u32 prop;
->> +
->> +             pdata = devm_kzalloc(&client->dev,
->> +                             sizeof(struct tvp514x_platform_data),
->> +                             GFP_KERNEL);
->> +             client->dev.platform_data = pdata;
->> +             if (!pdata)
->> +                     return NULL;
->> +             if (!of_property_read_u32(client->dev.of_node,
->> +                     "data-active", &prop))
->> +                     pdata->clk_polarity = prop;
->> +             if (!of_property_read_u32(client->dev.of_node,
->> +                     "hsync-active", &prop))
->> +                     pdata->hs_polarity = prop;
->> +             if (!of_property_read_u32(client->dev.of_node,
->> +                     "vsync-active", &prop))
->> +                     pdata->vs_polarity = prop;
->> +
->> +     }
->> +
->> +     return client->dev.platform_data;
->> +}
->> +#else
->> +#define tvp514x_of_match NULL
->> +
->> +static struct tvp514x_platform_data
->> +     *tvp514x_get_pdata(struct i2c_client *client)
->> +{
->> +     return client->dev.platform_data;
->> +}
->> +#endif
->> +
->>  /**
->>   * tvp514x_probe() - decoder driver i2c probe handler
->>   * @client: i2c driver client device structure
->> @@ -941,6 +986,7 @@ static struct tvp514x_decoder tvp514x_dev = {
->>  static int
->>  tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
->>  {
->> +     struct tvp514x_platform_data *pdata;
->>       struct tvp514x_decoder *decoder;
->>       struct v4l2_subdev *sd;
->>       int ret;
->> @@ -949,22 +995,25 @@ tvp514x_probe(struct i2c_client *client, const struct
->> i2c_device_id *id) if (!i2c_check_functionality(client->adapter,
->> I2C_FUNC_SMBUS_BYTE_DATA)) return -EIO;
->>
->> +     pdata = tvp514x_get_pdata(client);
->> +     if (!pdata) {
->> +             v4l2_err(client, "No platform data!!\n");
->> +             return -EPROBE_DEFER;
->> +     }
->> +
->>       decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
->>       if (!decoder)
->>               return -ENOMEM;
->>
->>       /* Initialize the tvp514x_decoder with default configuration */
->>       *decoder = tvp514x_dev;
->> -     if (!client->dev.platform_data) {
->> -             v4l2_err(client, "No platform data!!\n");
->> -             return -EPROBE_DEFER;
->> -     }
->> +
->>       /* Copy default register configuration */
->>       memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
->>                       sizeof(tvp514x_reg_list_default));
->>
->>       /* Copy board specific information here */
->> -     decoder->pdata = client->dev.platform_data;
->> +     decoder->pdata = pdata;
->>
->>       /**
->>        * Fetch platform specific data, and configure the
->> @@ -1096,6 +1145,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
->>
->>  static struct i2c_driver tvp514x_driver = {
->>       .driver = {
->> +             .of_match_table = tvp514x_of_match,
->>               .owner = THIS_MODULE,
->>               .name = TVP514X_MODULE_NAME,
->>       },
-> --
+> The only used I saw on userspace apps for this field is to allocate size for
+> the memory buffer. Some userspace applications use to get bytesperline and
+> multiply by the image height and get the image size, instead of relying
+> on sizeimage, as some drivers didn't use to fill sizeimage properly.
+>
+> By using bytesperline equal to 1080 in this case warrants that the buffers
+> on userspace will have enough space.
+>
 > Regards,
->
-> Laurent Pinchart
->
+> Mauro
+
