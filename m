@@ -1,73 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:39485 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755265Ab3AVTv2 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3329 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751657Ab3AaVLH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jan 2013 14:51:28 -0500
-Received: by mail-wg0-f51.google.com with SMTP id 8so2915040wgl.6
-        for <linux-media@vger.kernel.org>; Tue, 22 Jan 2013 11:51:27 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] v4l2-core: do not enable the buffer ioctls for radio devices
-Date: Tue, 22 Jan 2013 20:51:55 +0100
-Message-Id: <1358884315-2810-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 31 Jan 2013 16:11:07 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r0VLB3Eg015952
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 22:11:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0574B11E00AF
+	for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 22:11:01 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130131211102.0574B11E00AF@alastor.dyndns.org>
+Date: Thu, 31 Jan 2013 22:11:01 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The buffer ioctls (VIDIOC_REQBUFS, VIDIOC_QUERYBUF, VIDIOC_QBUF, VIDIOC_DQBUF,
-VIDIOC_EXPBUF, VIDIOC_CREATE_BUFS, VIDIOC_PREPARE_BUF) are not applicable for
-radio devices. Hence, they should be set valid only for non-radio devices in
-determine_valid_ioctls().
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/v4l2-core/v4l2-dev.c |   14 +++++++-------
- 1 Datei geändert, 7 Zeilen hinzugefügt(+), 7 Zeilen entfernt(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 98dcad9..51b3a77 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -568,11 +568,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	if (ops->vidioc_s_priority ||
- 			test_bit(V4L2_FL_USE_FH_PRIO, &vdev->flags))
- 		set_bit(_IOC_NR(VIDIOC_S_PRIORITY), valid_ioctls);
--	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
--	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
--	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
--	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
--	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_STREAMON, vidioc_streamon);
- 	SET_VALID_IOCTL(ops, VIDIOC_STREAMOFF, vidioc_streamoff);
- 	/* Note: the control handler can also be passed through the filehandle,
-@@ -605,8 +600,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
- 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
- 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
--	SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
--	SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
- 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
- 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
- 
-@@ -672,6 +665,13 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	}
- 	if (!is_radio) {
- 		/* ioctls valid for video or vbi */
-+		SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
-+		SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
-+		SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-+		SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
-+		SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
-+		SET_VALID_IOCTL(ops, VIDIOC_CREATE_BUFS, vidioc_create_bufs);
-+		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
- 		if (ops->vidioc_s_std)
- 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
- 		if (ops->vidioc_g_std || vdev->current_norm)
--- 
-1.7.10.4
+date:		Thu Jan 31 19:00:19 CET 2013
+git branch:	for_v3.9
+git hash:	a32f7d1ad3744914273c6907204c2ab3b5d496a0
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.4.07-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
