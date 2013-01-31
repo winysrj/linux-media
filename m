@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14160 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750813Ab3AWUsM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 15:48:12 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r0NKmCFO017895
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 23 Jan 2013 15:48:12 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] dvb_frontend: print a msg if a property doesn't exist
-Date: Wed, 23 Jan 2013 18:48:08 -0200
-Message-Id: <1358974088-10622-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:39546 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752052Ab3AaLD3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 06:03:29 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHH00I1DL63GP40@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 11:03:27 +0000 (GMT)
+Received: from AMDC1061.digital.local ([106.116.147.88])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MHH00L2SLDL5Z50@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 31 Jan 2013 11:03:27 +0000 (GMT)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH] MAINTAINERS: add s5c73m3 driver entry
+Date: Thu, 31 Jan 2013 12:03:05 +0100
+Message-id: <1359630186-14216-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If userspace calls a property that doesn't exist, it currently
-just returns -EINVAL. However, this is more likely a problem at
-the userspace application, calling it with a non-existing property.
-
-So, add a debug message to help tracking it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 3 +++
- 1 file changed, 3 insertions(+)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index f8943c2..36bee91 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1479,6 +1479,9 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 		tvp->u.st = c->block_count;
- 		break;
- 	default:
-+		dev_dbg(fe->dvb->device,
-+			"%s: FE property %d doesn't exist\n",
-+			__func__, tvp->cmd);
- 		return -EINVAL;
- 	}
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7a58a25..e3c2f09 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6545,6 +6545,13 @@ S:	Maintained
+ F:	drivers/media/platform/s3c-camif/
+ F:	include/media/s3c_camif.h
  
++SAMSUNG S5C73M3 CAMERA DRIVER
++M:	Kyungmin Park <kyungmin.park@samsung.com>
++M:	Andrzej Hajda <a.hajda@samsung.com>
++L:	linux-media@vger.kernel.org
++S:	Supported
++F:	drivers/media/i2c/s5c73m3/*
++
+ SERIAL DRIVERS
+ M:	Alan Cox <alan@linux.intel.com>
+ L:	linux-serial@vger.kernel.org
 -- 
-1.8.1
+1.7.10.4
 
