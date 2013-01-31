@@ -1,119 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bhuna.collabora.co.uk ([93.93.135.160]:33903 "EHLO
-	bhuna.collabora.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755009Ab3AKLIs (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:16122 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339Ab3AaLDj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jan 2013 06:08:48 -0500
-Message-ID: <1357902525.6914.139.camel@thor.lan>
-Subject: Re: FIMC/CAMIF V4L2 driver
-From: Sebastian =?ISO-8859-1?Q?Dr=F6ge?=
-	<sebastian.droege@collabora.co.uk>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: sylvester.nawrocki@gmail.com, LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Date: Fri, 11 Jan 2013 12:08:45 +0100
-In-Reply-To: <50EFEBF7.4080801@samsung.com>
-References: <1356685333.4296.92.camel@thor.lan>
-	 <50EFEBF7.4080801@samsung.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-iokH9KH5og0QCgxmLBHd"
-Mime-Version: 1.0
+	Thu, 31 Jan 2013 06:03:39 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+Date: Thu, 31 Jan 2013 12:02:59 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <201301300901.22486.hverkuil@xs4all.nl> <201301310816.39891.hverkuil@xs4all.nl> <20130131080807.55e796ea@redhat.com>
+In-Reply-To: <20130131080807.55e796ea@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301311202.59402.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu 31 January 2013 11:08:07 Mauro Carvalho Chehab wrote:
+> Em Thu, 31 Jan 2013 08:16:39 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
+> > > Em Wed, 30 Jan 2013 10:49:25 +0100
+> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > 
+> > > > On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+> > > > > Em Wed, 30 Jan 2013 09:01:22 +0100
+> > > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > > > 
+> > > > > > This was part of my original em28xx patch series. That particular patch
+> > > > > > combined two things: this fix and the change where TRY_FMT would no
+> > > > > > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > > > > > rejected (correctly), but we all forgot about the second part of the patch
+> > > > > > which fixed a real bug. I'm reposting just that fix.
+> > > > > > 
+> > > > > > Changes since v1:
+> > > > > > 
+> > > > > > - v1 still miscalculated the bytesperline and imagesize values (they were
+> > > > > >   too large).
+> > > > > > - G_FMT had the same calculation bug.
+> > > > > > 
+> > > > > > Tested with my em28xx.
+> > > > > > 
+> > > > > > Regards,
+> > > > > > 
+> > > > > >         Hans
+> > > > > > 
+> > > > > > The bytesperline calculation was incorrect: it used the old width instead of
+> > > > > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+> > > > > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+> > > > > > bytesperline value should be the bytesperline of the widest plane, which is
+> > > > > > the Y plane which has 8 bits per pixel, not 12.
+> > > > > > 
+> > > > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > > > ---
+> > > > > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+> > > > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > > > 
+> > > > > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > > index 2eabf2a..6ced426 100644
+> > > > > > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> > > > > >  	f->fmt.pix.width = dev->width;
+> > > > > >  	f->fmt.pix.height = dev->height;
+> > > > > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
+> > > > > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > > > > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+> > > > > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+> > > > > 
+> > > > > Why did you remove the round up here?
+> > > > 
+> > > > Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+> > > > planar format is the one with depth 12. But for the purposes of the bytesperline
+> > > > calculation only the depth of the largest plane counts, which is the luma plane
+> > > > with a depth of 8. So for a width of 720 the value of bytesperline should be:
+> > > > 
+> > > > depth=8 -> bytesperline = 720
+> > > > depth=12 -> bytesperline = 720
+> > > 
+> > > With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
+> > 
+> > No, it's not. It's a *planar* format: first the Y plane, then the two smaller
+> > chroma planes. The spec says that bytesperline for planar formats refers to
+> > the largest plane.
+> > 
+> > For this format the luma plane is one byte per pixel. Each of the two chroma
+> > planes have effectively two bits per pixel (actually one byte per four pixels),
+> > so you end up with 8+2+2=12 bits per pixel.
+> > 
+> > Hence bytesperline should be 720 for this particular format.
+> 
+> If I understood what you just said, you're talking that the only format marked
+> as depth=12 is actually depth=8, right? Then the fix would be to change depth
+> in the table, and not here.
+> 
+> Yet, I'm not sure if this is the proper fix.
+> 
+> The only used I saw on userspace apps for this field is to allocate size for
+> the memory buffer. Some userspace applications use to get bytesperline and
+> multiply by the image height and get the image size, instead of relying
+> on sizeimage, as some drivers didn't use to fill sizeimage properly.
+> 
+> By using bytesperline equal to 1080 in this case warrants that the buffers
+> on userspace will have enough space.
 
---=-iokH9KH5og0QCgxmLBHd
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I did some research into planar formats in our drivers and (of course) it's a big
+mess.
 
-On Fr, 2013-01-11 at 11:39 +0100, Sylwester Nawrocki wrote:
-> Hi Sebastian,
->=20
-> Cc: <linux-media@vger.kernel.org>
->=20
-> On 12/28/2012 10:02 AM, Sebastian Dr=C3=B6ge wrote:
-> > Hi Sylwester,
-> >=20
-> > Kamil Debski told me that you should be able to help me with any issues
-> > about the FIMC/CAMIF V4L2 driver. I'm currently using it on Exynos 4
-> > hardware and wrote a GStreamer plugin using it (and the MFC driver).
-> >=20
-> > So far everything works great but I found a bug in the driver. When
-> > configuring the CAPTURE side to use the pixel format
-> > V4L2_PIX_FMT_YUV420M the strides that are reported are wrong.
-> >=20
-> > I get them by setting a v4l2_format with VIDIOC_S_FMT and having the
-> > fmt.pix_mp.plane_fmt[X].bytesperline set to zero. The value set there
-> > after the ioctl is correct for the luma plane but has the same value fo=
-r
-> > the chroma planes while it should be the half.
-> > By using a stride that is half the value I can get valid and usable
-> > output.
-> >=20
-> > For V4L2_PIX_FMT_NV12MT and V4L2_PIX_FMT_NV12M these stride values are
-> > correct, so maybe a check for V4L2_PIX_FMT_YUV420M is missing somewhere
-> > to divide by two for the chroma planes.
->=20
-> Thank you for the bug report. And sorry for the delay..
->=20
-> The driver sets same bytesperline value for each plane, since I found
-> definition of this parameter very vague for planar formats, especially
-> the macro-block ones, e.g. [1]. So it's really a feature, not a bug ;)
->=20
-> Nevertheless, what the documentation [2] says is:
->=20
-> "\bytesperline\    Distance in bytes between the leftmost pixels in two
-> adjacent lines."
-> ...
->=20
-> "When the image format is planar the bytesperline value applies to the
-> largest plane and is divided by the same factor as the width field for
-> any smaller planes. For example the Cb and Cr planes of a YUV 4:2:0 image
-> have half as many padding bytes following each line as the Y plane. To
-> avoid ambiguities drivers must return a bytesperline value rounded up to
-> a multiple of the scale factor."
->=20
-> Then, for V4L2_PIX_FMT_NV12M format bytesperline for both planes should b=
-e
-> same, since according to the format definition chroma and luma plane widt=
-h
-> are same.
->=20
-> For V4L2_PIX_FMT_YUV420M the Cr and Cb plane is half the width and half
-> the height of the image (Y plane). I agree the bytesperline of the chroma
-> should be half of that of luma plane.
->=20
-> Please let me know if this patch helps:
-> http://patchwork.linuxtv.org/patch/16205
+I looked at drivers that support V4L2_PIX_FMT_YUV422P, which is fairly common:
 
-Thanks, especially for the long explanation of why it is like this :)
+s5p-fimc:	follows the spec
+arv:		follows the spec
+vpif_capture:	follows the spec
+vpif_display:	follows the spec
+pxa_camera:	no idea, I can't figure this out
+s3c-camif:	follows the spec
+exynos-gsc:	uses depth
+s2255:		uses depth
+usbvision:	uses depth
+saa7146:	uses depth
+saa7134:	uses depth
+bttv:		follows the spec
 
-I can't test the patch right now but it should do almost the right
-thing. IMHO for the chroma planes the bytesperline should be (width
-+1)/2, otherwise you'll miss one chroma value per line for odd widths.
+I think we should follow the spec here. In practice, nobody uses planar formats
+for consumer-type hardware as it is a very awkward format, and libv4l doesn't
+support it either. Since there is no clear common practice in our drivers, I'd
+say we stick to the spec.
 
+Regards,
 
-However I also noticed another bug. Currently S_FMT happily allows
-V4L2_PIX_FMT_BGR32, V4L2_PIX_FMT_BGR24, V4L2_PIX_FMT_RGB24 and probably
-others. But the output will be distorted and useless.
-(V4L2_PIX_FMT_RGB32 works perfectly fine)
-
-
-BR,
-Sebastian
-
---=-iokH9KH5og0QCgxmLBHd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAlDv8r0ACgkQBsBdh1vkHyE4LQCdGPzmurjeUOFqR7jIPWpIIQbd
-NxYAn1NpRlGQFsxgbgsfGONjvnL/pCO3
-=ALWH
------END PGP SIGNATURE-----
-
---=-iokH9KH5og0QCgxmLBHd--
-
+	Hans
