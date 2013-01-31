@@ -1,105 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30731 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751911Ab3A1KBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jan 2013 05:01:23 -0500
-Message-ID: <51064D17.3090502@redhat.com>
-Date: Mon, 28 Jan 2013 11:04:07 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:43464 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570Ab3AaRi2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 12:38:28 -0500
+Received: by mail-ob0-f176.google.com with SMTP id v19so3144223obq.21
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 09:38:27 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: partial revert of "uvcvideo: set error_idx properly"
-References: <CAKbGBLiOuyUUHd+eEm+z=THEu57b2LSDFtoN9frXASZ5BG7Huw@mail.gmail.com> <20121225025648.5208189a@redhat.com> <510255BD.8060605@redhat.com> <201301251140.13707.hverkuil@xs4all.nl> <20130127120629.2662ad60@redhat.com>
-In-Reply-To: <20130127120629.2662ad60@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <510A78D8.7030602@iki.fi>
+References: <50F05C09.3010104@iki.fi>
+	<CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
+	<510A78D8.7030602@iki.fi>
+Date: Thu, 31 Jan 2013 18:38:27 +0100
+Message-ID: <CAHsu+b9Nc85JwKCnV91WnBpdUi3W6udeF1xWe8u1HhHWaBM-qw@mail.gmail.com>
+Subject: Re: af9035 test needed!
+From: Andre Heider <a.heider@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 01/27/2013 03:06 PM, Mauro Carvalho Chehab wrote:
-> Em Fri, 25 Jan 2013 11:40:13 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->
->> On Fri January 25 2013 10:51:57 Hans de Goede wrote:
->>> <modified the CC list to be more appropriate>
->>>
->>> Hi,
->>>
->>> On 12/25/2012 05:56 AM, Mauro Carvalho Chehab wrote:
->>>
->>>> The pwc driver can currently return -ENOENT at VIDIOC_S_FMT ioctl. This
->>>> doesn't seem right. Instead, it should be getting the closest format to
->>>> the requested one and return 0, passing the selected format back to
->>>> userspace, just like the other drivers do. I'm c/c Hans de Goede for him
->>>> to take a look on it.
->>>
->>> I've been looking into this today, and the ENOENT gets returned by
->>> pwc_set_video_mode and through that by:
->>> 1) Device init
->>> 2) VIDIOC_STREAMON
->>> 3) VIDIOC_S_PARM
->>> 4) VIDIOC_S_FMT
->>>
->>> But only when the requested width + height + pixelformat is an
->>> unsupported combination, and it being a supported combination
->>> already gets enforced by a call to pwc_get_size in
->>> pwc_vidioc_try_fmt, which also gets called from pwc_s_fmt_vid_cap
->>> before it does anything else.
->>>
->>> So the ENOENT can only happen on some internal driver error,
->>> I'm open for suggestions for a better error code to return in
->>> this case.
->>
->> Perhaps returning EINVAL but adding a WARN_ON would be a good compromise.
->>
->>> What I did notice is that pwc_vidioc_try_fmt returns EINVAL when
->>> an unsupported pixelformat is requested. IIRC we agreed that the
->>> correct behavior in this case is to instead just change the
->>> pixelformat to a default format, so I'll write a patch fixing
->>> this.
->>
->> There are issues with that idea in the case of TV capture cards, since
->> some important apps (tvtime and mythtv to a lesser extent) assume -EINVAL
->> in the case of unsupported pixelformats.
->>
->> Webcam apps can't assume that since gspca never returned -EINVAL, so I
->> think it should be OK to fix this in pwc, but Mauro may disagree.
->
-> It is known that both MythTV and tvtime have issues.
->
-> Well, I don't think that MythTV has webcam support. So, it will likely
-> fail with pwc anyway, as it doesn't have a tuner. So, webcam drivers don't
-> need to care with breaking anything on it.
->
-> Tvtime can work with webcams, if they provide a resolution that it is
-> compatible with it and if it supports UVYV or YUYV. This is not the case
-> of pwc, that seems to support only pwc proprietary formats and yuv420.
->
-> So, neither tvtime or MythTV currently works with pwc cameras.
->
-> However, the issue is a little more complex, as we don't really know if
-> there aren't any other applications that use a code similar to tvtime
-> or MythYV.
+On Thu, Jan 31, 2013 at 2:59 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Thank you for the report! There was someone else who reported it working
+> too. Do you want to your name as tester for the changelog?
 
-I understand. A patch to change pwc to the behavior discussed in Barcelona
-(so changing the format to a supported one rather then returning -EINVAL),
-is part of my last pull-req, I'll leave it up to you whether you will take
-it or not :)
+if I didn't mess up my way of testing feel free to add
 
-If you don't take it I'll drop it from my tree, so that it does not
-show up again in my next pull-req.
+Tested-by: Andre Heider <a.heider@gmail.com>
+
+to these patches:
+af9035: merge af9035 and it9135 eeprom read routines
+af9035: USB1.1 support (== PID filters)
+af9035: constify clock tables
+af9035: [0ccd:0099] TerraTec Cinergy T Stick Dual RC (rev. 2)
+af9015: reject device TerraTec Cinergy T Stick Dual RC (rev. 2)
+af9035: fix af9033 demod sampling frequency
+af9035: add auto configuration heuristic for it9135
+af9035: add support for 1st gen it9135
+af9033: support for it913x tuners
+ITE IT913X silicon tuner driver
+
+I didn't use any media trees before, and the whole media_build.git
+shebang seems a little, well, unusual...
+So I rebased media_tree.git/staging/for_v3.9 on Linus' master and then
+cherry-picked the patches mentioned above.
+
+That gives me:
+usb 2-1.5: new high-speed USB device number 3 using ehci-pci
+usb 2-1.5: New USB device found, idVendor=0ccd, idProduct=0099
+usb 2-1.5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 2-1.5: Product: DVB-T TV Stick
+usb 2-1.5: Manufacturer: ITE Technologies, Inc.
+input: ITE Technologies, Inc. DVB-T TV Stick as
+/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.5/2-1.5:1.1/input/input20
+usb 2-1.5: af9035_identify_state: prechip_version=83 chip_version=01
+chip_type=9135
+hid-generic 0003:0CCD:0099.0007: input,hidraw4: USB HID v1.01 Keyboard
+[ITE Technologies, Inc. DVB-T TV Stick] on usb-0000:00:1d.0-1.5/input1
+usb 2-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T Stick Dual RC (rev.
+2)' in cold state
+usb 2-1.5: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9135-01.fw'
+usb 2-1.5: dvb_usb_af9035: firmware version=12.54.14.0
+usb 2-1.5: dvb_usb_v2: found a 'TerraTec Cinergy T Stick Dual RC (rev.
+2)' in warm state
+usb 2-1.5: dvb_usb_af9035: driver does not support 2nd tuner and will disable it
+usb 2-1.5: dvb_usb_v2: will pass the complete MPEG2 transport stream
+to the software demuxer
+DVB: registering new adapter (TerraTec Cinergy T Stick Dual RC (rev. 2))
+i2c i2c-18: af9033: firmware version: LINK=255.255.255.255 OFDM=2.47.14.0
+usb 2-1.5: DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
+Tuner LNA type :38
+it913x: ITE Tech IT913X attached
+usb 2-1.5: dvb_usb_v2: 'TerraTec Cinergy T Stick Dual RC (rev. 2)'
+successfully initialized and connected
+
+> I just yesterday got that TerraTec device too and I am going to add dual
+> tuner support. Also, for some reason IT9135 v2 devices are not working -
+> only v1. That is one thing I should fix before merge that stuff.
+
+Nice, feel free to CC me if you need any testing.
 
 Regards,
-
-Hans
-
-
-
->
-> Regards,
-> Mauro
->
+Andre
