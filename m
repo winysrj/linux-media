@@ -1,69 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:37632 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753133Ab3ACPTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jan 2013 10:19:17 -0500
-Message-ID: <50E5A170.7090205@schinagl.nl>
-Date: Thu, 03 Jan 2013 16:19:12 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Renato Gallo <renatogallo@unixproducts.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: cannot make this Asus my cinema-u3100miniplusv2 work under linux
-References: <8e9f16405c8583e35cb97bb7d7daef4b@unixproducts.com> <50CDDF9A.1080509@iki.fi> <cd31dc6ada9161825c7dff975a3da945@unixproducts.com> <50CE0AFA.9030308@iki.fi> <1af6a5408ee3ebccebc3885bba06fc69@unixproducts.com> <50CE3070.10309@iki.fi> <810ffd737b21a0f46e383a76dd4313a2@unixproducts.com> <50CE3BA0.5030503@iki.fi> <d6185b9c5a69b273609bce494f0302b1@unixproducts.com> <e479b93e0a2043d8a8f2987df502a49f@unixproducts.com> <50CF9290.2060403@ventoso.org> <3093cb24f3c05ac9cf62810fc918fca2@unixproducts.com> <50E1F117.3080105@iki.fi> <fa52701982997bd895d533558c53ee64@unixproducts.com>
-In-Reply-To: <fa52701982997bd895d533558c53ee64@unixproducts.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2133 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751769Ab3AaKb7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 05:31:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 17/18] tlg2300: Remove logs() macro.
+Date: Thu, 31 Jan 2013 11:25:35 +0100
+Message-Id: <31866c1c7df0f5f55ca0fcc422eb2bf2eec99cb8.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You may want to read into oscam and maybe tvheadend or the likes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 02-01-13 03:19, Renato Gallo wrote:
-> anyone can explain to me why i cannot seem to catch anything else than 
-> rai and how can i use a legally bought scart into an omnikey reader to 
-> get scrambled channels ?
->
-> Il 31/12/2012 21:09 Antti Palosaari ha scritto:
->> No! You will need a real antenna, not amplifier(?) like that. One of
->> the best and easily available antennas in EU are Televes DAT75 and few
->> Triax models. Compare DAT75 and your antenna, DAT75 is 19dB and your
->> is 30dB, guess which one is still 1000x better.
->>
->> You will not likely need that heavy antenna like DAT75 as you still
->> have a signal. Some 10-20 euros 1m long Yagi is enough.
->>
->> regards
->> Antti
->>
->> On 12/18/2012 12:32 AM, Renato Gallo wrote:
->>> is there any kind of filter so that i can filter out the noise and then
->>> amplify the signal ?
->>>
->>> Il 17/12/2012 22:45 Luca Olivetti ha scritto:
->>>> Al 17/12/12 20:57, En/na Renato Gallo ha escrit:
->>>>
->>>>> can i amplify the signal to improve reception ?
->>>>
->>>> an amplifier will amplify the noise as well as the signal (i.e., an
->>>> amplifier is only useful to compensate for the losses in the cable,
->>>> not to improve the signal).
->>>>
->>>>> why with the bowl is better ?
->>>>
->>>> http://en.wikipedia.org/wiki/Monopole_antenna
->>>>
->>>> The bowl acts as a ground plane
->>>>
->>>> Bye
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ioctl debugging can now be done through the debug parameter in sysfs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tlg2300/pd-common.h |    9 ---------
+ drivers/media/usb/tlg2300/pd-video.c  |   23 ++---------------------
+ 2 files changed, 2 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+index 3010496..9e23ad32 100644
+--- a/drivers/media/usb/tlg2300/pd-common.h
++++ b/drivers/media/usb/tlg2300/pd-common.h
+@@ -268,13 +268,4 @@ void set_debug_mode(struct video_device *vfd, int debug_mode);
+ 				log();\
+ 		} while (0)
+ 
+-#define logs(f) do { \
+-			if ((debug_mode & 0x4) && \
+-				(f)->type == V4L2_BUF_TYPE_VBI_CAPTURE) \
+-					log("type : VBI");\
+-								\
+-			if ((debug_mode & 0x8) && \
+-				(f)->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) \
+-					log("type : VIDEO");\
+-		} while (0)
+ #endif
+diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+index 834428d..dab0ca3 100644
+--- a/drivers/media/usb/tlg2300/pd-video.c
++++ b/drivers/media/usb/tlg2300/pd-video.c
+@@ -120,9 +120,6 @@ static int vidioc_querycap(struct file *file, void *fh,
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct poseidon *p = video_get_drvdata(vdev);
+-	struct front_face *front = fh;
+-
+-	logs(front);
+ 
+ 	strcpy(cap->driver, "tele-video");
+ 	strcpy(cap->card, "Telegent Poseidon");
+@@ -205,7 +202,6 @@ static void submit_frame(struct front_face *front)
+  */
+ static void end_field(struct video_data *video)
+ {
+-	/* logs(video->front); */
+ 	if (1 == video->field_count)
+ 		submit_frame(video->front);
+ 	else
+@@ -700,7 +696,6 @@ static int vidioc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct front_face *front = fh;
+ 	struct poseidon *pd = front->pd;
+ 
+-	logs(front);
+ 	f->fmt.pix = pd->video_data.context.pix;
+ 	return 0;
+ }
+@@ -763,7 +758,6 @@ static int vidioc_s_fmt(struct file *file, void *fh, struct v4l2_format *f)
+ 	struct front_face *front	= fh;
+ 	struct poseidon *pd		= front->pd;
+ 
+-	logs(front);
+ 	/* stop VBI here */
+ 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != f->type)
+ 		return -EINVAL;
+@@ -804,7 +798,6 @@ static int vidioc_g_fmt_vbi(struct file *file, void *fh,
+ 		vbi_fmt->count[1] = V4L_PAL_VBI_LINES;
+ 	}
+ 	vbi_fmt->flags = V4L2_VBI_UNSYNC;
+-	logs(front);
+ 	return 0;
+ }
+ 
+@@ -856,22 +849,20 @@ out:
+ static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+ {
+ 	struct front_face *front = fh;
+-	logs(front);
++
+ 	return set_std(front->pd, norm);
+ }
+ 
+ static int vidioc_g_std(struct file *file, void *fh, v4l2_std_id *norm)
+ {
+ 	struct front_face *front = fh;
+-	logs(front);
++
+ 	*norm = front->pd->video_data.context.tvnormid;
+ 	return 0;
+ }
+ 
+ static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
+ {
+-	struct front_face *front = fh;
+-
+ 	if (in->index >= POSEIDON_INPUTS)
+ 		return -EINVAL;
+ 	strcpy(in->name, pd_inputs[in->index].name);
+@@ -885,7 +876,6 @@ static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
+ 	in->tuner	= 0;
+ 	in->std		= V4L2_STD_ALL;
+ 	in->status	= 0;
+-	logs(front);
+ 	return 0;
+ }
+ 
+@@ -895,7 +885,6 @@ static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
+ 	struct poseidon *pd = front->pd;
+ 	struct running_context *context = &pd->video_data.context;
+ 
+-	logs(front);
+ 	*i = context->sig_index;
+ 	return 0;
+ }
+@@ -1023,7 +1012,6 @@ static int vidioc_g_tuner(struct file *file, void *fh, struct v4l2_tuner *tuner)
+ 	tuner->rxsubchans = pd_audio_modes[index].v4l2_audio_sub;
+ 	tuner->audmode = pd_audio_modes[index].v4l2_audio_mode;
+ 	tuner->afc = 0;
+-	logs(front);
+ 	return 0;
+ }
+ 
+@@ -1051,7 +1039,6 @@ static int vidioc_s_tuner(struct file *file, void *fh, struct v4l2_tuner *a)
+ 
+ 	if (0 != a->index)
+ 		return -EINVAL;
+-	logs(front);
+ 	for (index = 0; index < POSEIDON_AUDIOMODS; index++)
+ 		if (a->audmode == pd_audio_modes[index].v4l2_audio_mode)
+ 			return pd_vidioc_s_tuner(pd, index);
+@@ -1099,7 +1086,6 @@ static int vidioc_s_frequency(struct file *file, void *fh,
+ 
+ 	if (freq->tuner)
+ 		return -EINVAL;
+-	logs(front);
+ #ifdef CONFIG_PM
+ 	pd->pm_suspend = pm_video_suspend;
+ 	pd->pm_resume = pm_video_resume;
+@@ -1111,14 +1097,12 @@ static int vidioc_reqbufs(struct file *file, void *fh,
+ 				struct v4l2_requestbuffers *b)
+ {
+ 	struct front_face *front = file->private_data;
+-	logs(front);
+ 	return videobuf_reqbufs(&front->q, b);
+ }
+ 
+ static int vidioc_querybuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ {
+ 	struct front_face *front = file->private_data;
+-	logs(front);
+ 	return videobuf_querybuf(&front->q, b);
+ }
+ 
+@@ -1207,7 +1191,6 @@ static int vidioc_streamon(struct file *file, void *fh,
+ {
+ 	struct front_face *front = fh;
+ 
+-	logs(front);
+ 	if (unlikely(type != front->type))
+ 		return -EINVAL;
+ 	return videobuf_streamon(&front->q);
+@@ -1218,7 +1201,6 @@ static int vidioc_streamoff(struct file *file, void *fh,
+ {
+ 	struct front_face *front = file->private_data;
+ 
+-	logs(front);
+ 	if (unlikely(type != front->type))
+ 		return -EINVAL;
+ 	return videobuf_streamoff(&front->q);
+@@ -1416,7 +1398,6 @@ static int pd_video_release(struct file *file)
+ 	struct poseidon *pd = front->pd;
+ 	s32 cmd_status = 0;
+ 
+-	logs(front);
+ 	mutex_lock(&pd->lock);
+ 
+ 	if (front->type	== V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-- 
+1.7.10.4
 
