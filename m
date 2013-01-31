@@ -1,95 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:12968 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750899Ab3AWTjB (ORCPT
+Received: from mail-ob0-f175.google.com ([209.85.214.175]:64577 "EHLO
+	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753567Ab3AaPCy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jan 2013 14:39:01 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MH300KZ4FX0TMR0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:39:00 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MH30050KFWS1A70@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 Jan 2013 04:39:00 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-fimc: Check return value of clk_enable/clk_set_rate
-Date: Wed, 23 Jan 2013 20:38:50 +0100
-Message-id: <1358969930-20615-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 31 Jan 2013 10:02:54 -0500
+Received: by mail-ob0-f175.google.com with SMTP id uz6so2925935obc.20
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 07:02:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <510A821F.1060101@iki.fi>
+References: <CABXgeUHzMhk7rCtpoVuEz1zUYuGwUMEmxrFMKripnO8qvNX+Sg@mail.gmail.com>
+ <510A821F.1060101@iki.fi>
+From: Michael Stilmant-Rovi <stilmant.michael.rovi@gmail.com>
+Date: Thu, 31 Jan 2013 16:02:34 +0100
+Message-ID: <CABXgeUF9dRS9zeWTCOGExRYOU3ZOxJ1bPZxM0GqogQOaUF580Q@mail.gmail.com>
+Subject: Re: DVB_T2 Multistream support (PLP)
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clk_set_rate(), clk_enable() functions can fail, so check the return
-values to avoid surprises. While at it use ERR_PTR() value to indicate
-invalid clock.
+Thanks,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-core.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+Looking for a tuner supporting multiple PLP, is it conceivable to add
+to the driver the possibility to pass to the hardware that value? (I
+don't know if that need other math though) ( I will look the sources
+anyway but I don't have good knowledge)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index 720ffee..8b54f2f 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -810,11 +810,11 @@ static void fimc_clk_put(struct fimc_dev *fimc)
- {
- 	int i;
- 	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
--		if (IS_ERR_OR_NULL(fimc->clock[i]))
-+		if (IS_ERR(fimc->clock[i]))
- 			continue;
- 		clk_unprepare(fimc->clock[i]);
- 		clk_put(fimc->clock[i]);
--		fimc->clock[i] = NULL;
-+		fimc->clock[i] = ERR_PTR(-EINVAL);
- 	}
- }
+If I want to look for another USB stick how could I know if the driver
+will support that feature?
+For example is TBS5880 DVB-T2 USB TV Tuner ?
 
-@@ -822,14 +822,19 @@ static int fimc_clk_get(struct fimc_dev *fimc)
- {
- 	int i, ret;
+I understand here that the difficulties is that few people are in a
+MultiPLP DVB_T2 range. even myself.. .
 
-+	for (i = 0; i < MAX_FIMC_CLOCKS; i++)
-+		fimc->clock[i] = ERR_PTR(-EINVAL);
-+
- 	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
- 		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
--		if (IS_ERR(fimc->clock[i]))
-+		if (IS_ERR(fimc->clock[i])) {
-+			ret = PTR_ERR(fimc->clock[i]);
- 			goto err;
-+		}
- 		ret = clk_prepare(fimc->clock[i]);
- 		if (ret < 0) {
- 			clk_put(fimc->clock[i]);
--			fimc->clock[i] = NULL;
-+			fimc->clock[i] = ERR_PTR(-EINVAL);
- 			goto err;
- 		}
- 	}
-@@ -939,8 +944,13 @@ static int fimc_probe(struct platform_device *pdev)
- 	if (lclk_freq == 0)
- 		lclk_freq = drv_data->lclk_frequency;
+Regards,
 
--	clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
--	clk_enable(fimc->clock[CLK_BUS]);
-+	ret = clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = clk_enable(fimc->clock[CLK_BUS]);
-+	if (ret)
-+		return ret;
+On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
+>>
+>> Hello,
+>>
+>> I would like to know the support status of Multiple PLPs in DVB-T2.
+>> Is someone know if tests were performed in a broadcast with an
+>> effective Multistream? (PLP Id: 0 and 1 for example)
+>>
+>> I'm out of range of such multiplex but I'm trying some tunes on London
+>> DVB-T2 (CrystalPalace tower)
+>> "unfortunately" that mux seems Single PLP and everything work well :-(
+>>    ( yes tune always succeed :-D )
+>>
+>> I'm using DVB API 5.6.
+>> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
+>> 0, 1 or 15. the tune succeed.
+>>
+>> I'm not sure of the expected behavior, I was expecting if I tune with
+>> plp_id 1 that the tuner would fail somewhere finding that stream.
+>>
+>> So in short I don't understand what is the requirements to be able to
+>> use the DVB_T2 Multistream support proposed in APIs:
+>>   o I see that the DVB API 5.8(?) had some patch at that level and so
+>> it is maybe requested?
+>>   o How can I know if my driver support that feature on DVB API 5.6?
+>> (PCTV nanoStick T2 290e)?
+>>
+>> Thank you for all indications.
+>>
+>> -Michael
+>
+>
+> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
+> driver and I has only Live signal with single TS. What I think Windows
+> driver either supports that feature. It just tunes to first PLP regardless
+> of whole property and that's it.
+>
+> regards
+> Antti
+>
+> --
+> http://palosaari.fi/
 
- 	ret = devm_request_irq(dev, res->start, fimc_irq_handler,
- 			       0, dev_name(dev), fimc);
---
-1.7.9.5
-
+On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
+>>
+>> Hello,
+>>
+>> I would like to know the support status of Multiple PLPs in DVB-T2.
+>> Is someone know if tests were performed in a broadcast with an
+>> effective Multistream? (PLP Id: 0 and 1 for example)
+>>
+>> I'm out of range of such multiplex but I'm trying some tunes on London
+>> DVB-T2 (CrystalPalace tower)
+>> "unfortunately" that mux seems Single PLP and everything work well :-(
+>>    ( yes tune always succeed :-D )
+>>
+>> I'm using DVB API 5.6.
+>> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
+>> 0, 1 or 15. the tune succeed.
+>>
+>> I'm not sure of the expected behavior, I was expecting if I tune with
+>> plp_id 1 that the tuner would fail somewhere finding that stream.
+>>
+>> So in short I don't understand what is the requirements to be able to
+>> use the DVB_T2 Multistream support proposed in APIs:
+>>   o I see that the DVB API 5.8(?) had some patch at that level and so
+>> it is maybe requested?
+>>   o How can I know if my driver support that feature on DVB API 5.6?
+>> (PCTV nanoStick T2 290e)?
+>>
+>> Thank you for all indications.
+>>
+>> -Michael
+>
+>
+> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
+> driver and I has only Live signal with single TS. What I think Windows
+> driver either supports that feature. It just tunes to first PLP regardless
+> of whole property and that's it.
+>
+> regards
+> Antti
+>
+> --
+> http://palosaari.fi/
