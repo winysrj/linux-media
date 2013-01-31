@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:35544 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757650Ab3AYR04 (ORCPT
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:51012 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751339Ab3AaNqm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jan 2013 12:26:56 -0500
-Received: by mail-ea0-f179.google.com with SMTP id d12so260899eaa.24
-        for <linux-media@vger.kernel.org>; Fri, 25 Jan 2013 09:26:55 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [REVIEW PATCH 07/12] em28xx: remove ioctl VIDIOC_CROPCAP
-Date: Fri, 25 Jan 2013 18:26:57 +0100
-Message-Id: <1359134822-4585-8-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1359134822-4585-1-git-send-email-fschaefer.oss@googlemail.com>
+	Thu, 31 Jan 2013 08:46:42 -0500
+Received: by mail-lb0-f175.google.com with SMTP id n3so3321463lbo.6
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 05:46:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
+References: <50F05C09.3010104@iki.fi>
+	<CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
+Date: Thu, 31 Jan 2013 08:46:41 -0500
+Message-ID: <CAOcJUbwPVJNOKa6+-o9nUs2MMMECQWszOdB71zyUif25EQ_iXg@mail.gmail.com>
+Subject: Re: af9035 test needed!
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Andre Heider <a.heider@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The em28xx driver doesn't support the VIDIOC_G_CROP and VIDIOC_S_CROP ioctls,
-so VIDIOC_CROPCAP is useless and has the potential to confuse applications,
-because it can be interpreted as indicator for cropping support.
+Hey guys... somehow this email slipped through my filters :-(  I see
+it now, and I'll give a look over the patch this weekend.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   21 ---------------------
- 1 Datei geändert, 21 Zeilen entfernt(-)
+-Mike
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 6172d59..edd29ae 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1364,26 +1364,6 @@ static int vidioc_s_register(struct file *file, void *priv,
- #endif
- 
- 
--static int vidioc_cropcap(struct file *file, void *priv,
--					struct v4l2_cropcap *cc)
--{
--	struct em28xx_fh      *fh  = priv;
--	struct em28xx         *dev = fh->dev;
--
--	if (cc->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
--	cc->bounds.left = 0;
--	cc->bounds.top = 0;
--	cc->bounds.width = dev->width;
--	cc->bounds.height = dev->height;
--	cc->defrect = cc->bounds;
--	cc->pixelaspect.numerator = 54;	/* 4:3 FIXME: remove magic numbers */
--	cc->pixelaspect.denominator = 59;
--
--	return 0;
--}
--
- static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
-@@ -1731,7 +1711,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
- 	.vidioc_g_audio             = vidioc_g_audio,
- 	.vidioc_s_audio             = vidioc_s_audio,
--	.vidioc_cropcap             = vidioc_cropcap,
- 
- 	.vidioc_reqbufs             = vb2_ioctl_reqbufs,
- 	.vidioc_create_bufs         = vb2_ioctl_create_bufs,
--- 
-1.7.10.4
-
+On Thu, Jan 31, 2013 at 8:04 AM, Andre Heider <a.heider@gmail.com> wrote:
+> Hi,
+>
+> On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
+>> Could you test that (tda18218 & mxl5007t):
+>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+>
+> I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
+> this series.
+> Any chance to get this into 3.9 (I guess its too late for the USB
+> VID/PID 'fix' for 3.8)?
+>
+> Regards,
+> Andre
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
