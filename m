@@ -1,67 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f182.google.com ([209.85.216.182]:64691 "EHLO
-	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3ASQeV (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4110 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604Ab3AaKZq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jan 2013 11:34:21 -0500
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: hdegoede@redhat.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 09/24] use IS_ENABLED() macro
-Date: Sat, 19 Jan 2013 14:33:12 -0200
-Message-Id: <1358613206-4274-9-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
-References: <1358613206-4274-1-git-send-email-peter.senna@gmail.com>
+	Thu, 31 Jan 2013 05:25:46 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 03/18] tlg2300: switch to unlocked_ioctl.
+Date: Thu, 31 Jan 2013 11:25:21 +0100
+Message-Id: <d1b82f78da6c96ca5d0bd8608af7060192342513.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-replace:
- #if defined(CONFIG_INPUT) || \
-     defined(CONFIG_INPUT_MODULE)
-with:
- #if IS_ENABLED(CONFIG_INPUT)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This change was made for: CONFIG_INPUT
+The driver already does locking, so it is safe to switch to unlocked_ioctl.
 
-Reported-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/gspca/ov519.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/tlg2300/pd-radio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/gspca/ov519.c b/drivers/media/usb/gspca/ov519.c
-index 9aa09f8..9ad19a7 100644
---- a/drivers/media/usb/gspca/ov519.c
-+++ b/drivers/media/usb/gspca/ov519.c
-@@ -4238,7 +4238,7 @@ static void sd_stop0(struct gspca_dev *gspca_dev)
- 	if (sd->bridge == BRIDGE_W9968CF)
- 		w9968cf_stop0(sd);
- 
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	/* If the last button state is pressed, release it now! */
- 	if (sd->snapshot_pressed) {
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, 0);
-@@ -4255,7 +4255,7 @@ static void ov51x_handle_button(struct gspca_dev *gspca_dev, u8 state)
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	if (sd->snapshot_pressed != state) {
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 		input_report_key(gspca_dev->input_dev, KEY_CAMERA, state);
- 		input_sync(gspca_dev->input_dev);
- #endif
-@@ -4924,7 +4924,7 @@ static const struct sd_desc sd_desc = {
- 	.dq_callback = sd_reset_snapshot,
- 	.get_jcomp = sd_get_jcomp,
- 	.set_jcomp = sd_set_jcomp,
--#if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
-+#if IS_ENABLED(CONFIG_INPUT)
- 	.other_input = 1,
- #endif
+diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+index 90dc1d1..c4feffb 100644
+--- a/drivers/media/usb/tlg2300/pd-radio.c
++++ b/drivers/media/usb/tlg2300/pd-radio.c
+@@ -156,7 +156,7 @@ static const struct v4l2_file_operations poseidon_fm_fops = {
+ 	.owner         = THIS_MODULE,
+ 	.open          = poseidon_fm_open,
+ 	.release       = poseidon_fm_close,
+-	.ioctl	       = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
  };
+ 
+ static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
 -- 
-1.7.11.7
+1.7.10.4
 
