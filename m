@@ -1,101 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:52106 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657Ab3AENva (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jan 2013 08:51:30 -0500
-Received: by mail-ea0-f180.google.com with SMTP id f13so7011456eai.11
-        for <linux-media@vger.kernel.org>; Sat, 05 Jan 2013 05:51:29 -0800 (PST)
-Message-ID: <50E82FFB.7050301@googlemail.com>
-Date: Sat, 05 Jan 2013 14:51:55 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:48809 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751248Ab3AaI3W convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 03:29:22 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Albert Wang <twang13@marvell.com>, Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Thu, 31 Jan 2013 00:29:13 -0800
+Subject: RE: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2
+ parts for soc_camera support
+Message-ID: <477F20668A386D41ADCC57781B1F70430D14255139@SC-VEXCH1.marvell.com>
+References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
+	<1355565484-15791-11-git-send-email-twang13@marvell.com>
+	<20121216093717.4be8feff@hpe.lwn.net>
+	<477F20668A386D41ADCC57781B1F70430D13C8CCE4@SC-VEXCH1.marvell.com>
+	<20121217082832.7f363d05@lwn.net>
+	<477F20668A386D41ADCC57781B1F70430D13C8D0E3@SC-VEXCH1.marvell.com>
+ <20121218121508.7a4de314@lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/6] em28xx: make remote controls of devices with external
- IR IC working again
-References: <1356649368-5426-1-git-send-email-fschaefer.oss@googlemail.com> <1356649368-5426-4-git-send-email-fschaefer.oss@googlemail.com> <20130104191252.4aec9646@redhat.com> <50E8236C.6070702@googlemail.com> <20130105112617.79c3c57a@redhat.com>
-In-Reply-To: <20130105112617.79c3c57a@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.01.2013 14:26, schrieb Mauro Carvalho Chehab:
-> Em Sat, 05 Jan 2013 13:58:20 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 04.01.2013 22:12, schrieb Mauro Carvalho Chehab:
->>> Em Fri, 28 Dec 2012 00:02:45 +0100
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Hi, Jonathan
+
+As you know, we are working on adding B_DMA_SG support on soc_camera mode.
+
+We found there is some code we can't understand in irq handler:
+>>>>>>
+if (handled == IRQ_HANDLED) {
+	set_bit(CF_DMA_ACTIVE, &cam->flags);
+	if (cam->buffer_mode == B_DMA_sg)
+		mcam_ctlr_stop(cam);
+}
+<<<<<<
+
+The question is why we need stop ccic in irq handler when buffer mode is B_DMA_sg?
 >>>
->>>> Tested with device "Terratec Cinergy 200 USB".
->>> Sorry, but this patch is completely wrong ;)
->> Completely wrong ? That's not helpful...
->> Please elaborate a bit more on this so that I can do things right next
->> time. ;)
-> Sorry, I was too busy yesterday with the tests to elaborate it more.
+	if (cam->buffer_mode == B_DMA_sg)
+		mcam_ctlr_stop(cam);
+<<<
+
+Currently we tested B_DMA_sg mode on our platform, and this buffer mode can work only if we comment these 2 lines.
+
+Could you please help us take a look if you have time?
+
+Thank you very much for your help! :)
+
+
+Thanks
+Albert Wang
+86-21-61092656
+
+>-----Original Message-----
+>From: Albert Wang
+>Sent: Wednesday, 19 December, 2012 04:48
+>To: 'Jonathan Corbet'
+>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>Subject: RE: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2 parts for
+>soc_camera support
 >
-> In general, big patches like that to fix bug fixes are generally wrong:
-> they touch on a lot of the code and it is hard to be sure that it doesn't
-> come with regressions on it.
-
-Ok, I think you are right.
-The patch description was definitely insufficient. I should have
-explained the issues I tried to address in more details.
-Maybe I should have split this into several smaller patches, too.
-
-> In this particular case, it was:
-> 	- mixing bug fixes with some other random stuff;
-> 	- moving only one part of the IR needed data elsewhere (it were
-> 	  moving the IR tables, to the board descriptions, keeping them on
-> 	  a separate part of the code, obfuscating the code);
-> 	- putting a large amount of the code inside an if, increasing the
-> 	  driver's complexity with no need;
-> 	- initializing some data for IR that are never used, at em28xx_ir_init;
-> 	- not fixing the snapshot button.
+>Hi, Jonathan
 >
-> The bug fix was as simple as:
-> 	1) move snapshot button register to happen before IR;
-> 	2) move I2C init to happen before the em2860/2874 IR init.
-
-See the mail I've sent a few minutes ago.
-
-> ...
 >
-> Btw, I really prefer to have the RC tables for the I2C devices inside
-> em28xx-input, as:
+>>-----Original Message-----
+>>From: Jonathan Corbet [mailto:corbet@lwn.net]
+>>Sent: Wednesday, 19 December, 2012 03:15
+>>To: Albert Wang
+>>Cc: g.liakhovetski@gmx.de; linux-media@vger.kernel.org; Libin Yang
+>>Subject: Re: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2 parts for
+>>soc_camera support
+>>
+>>On Mon, 17 Dec 2012 19:04:26 -0800
+>>Albert Wang <twang13@marvell.com> wrote:
+>>
+>>> [Albert Wang] So if we add B_DMA_SG and B_VMALLOC support and OLPC XO 1.0
+>>support in soc_camera mode.
+>>> Then we can just remove the original mode and only support soc_camera mode in
+>>marvell-ccic?
+>>
+>>That is the idea, yes.  Unless there is some real value to supporting both
+>>modes (that I've not seen), I think it's far better to support just one of
+>>them.  Trying to support duplicated modes just leads to pain in the long
+>>run, in my experience.
+>>
+>[Albert Wang] OK, we will update and submit the remained patches except for the 3
+>patches related with soc_camera support as the first part.
+>Then we will submit the soc_camera support patches after we rework the patches and add
+>B_DMA_SG and B_VMALLOC support and OLPC XO 1.0 support.
 >
-> 	1) there are other board-specific platform_data that needed to
-> 	   be filled for the IR to work there;
-
-Sure.
-
-> 	2) we want to keep all those platform_data initialization together,
-> 	   to make the code simpler to maintain;
-
-platform_data initialization is kept together, no changes here.
-To me it seems to be important to keep all _board_ specific stuff
-together as much as possible.
-
-> 	3) moving all those data to em28xx cards struct is a bad idea, as
-> 	   newer em28xx won't use I2C IR's, as the new chipsets have already
-> 	   its own IR decoder. Moving those 4-5 fields to the board struct
-> 	   would increase its size for every board. So, it would be a waste
-> 	   of space.
-
-Im my opinion, having board specifc code spread all over the code is a
-desease. It makes the code bug prone.
-Actually, this was one of the reasons why the i2c rc got broken...
-Sure, it's hard to avoid, especially for the DVB stuff. But we should at
-least reduce it to a minimum.
-
-For the RC map, it's easy to do this, as the corresponding field is
-already there.
-
-Regards,
-Frank
-
+>>I can offer to *try* to find time to help with XO 1.0 testing when the
+>>time comes.
+>>
+>[Albert Wang] Thank you very much! We were worried about how to get the OLPC XO 1.0
+>HW. That would be a great help! :)
 >
-> Regards,
-> Mauro
-
+>>Thanks,
+>>
+>>jon
+>
+>
+>Thanks
+>Albert Wang
+>86-21-61092656
