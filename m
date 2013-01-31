@@ -1,117 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:38178 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754807Ab3AMOUZ (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3547 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753317Ab3AaKZv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jan 2013 09:20:25 -0500
-Received: by mail-ee0-f42.google.com with SMTP id b47so1161534eek.15
-        for <linux-media@vger.kernel.org>; Sun, 13 Jan 2013 06:20:24 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/7] em28xx: remove i2cdprintk() messages
-Date: Sun, 13 Jan 2013 15:20:40 +0100
-Message-Id: <1358086845-6989-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1358086845-6989-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1358086845-6989-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 31 Jan 2013 05:25:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Huang Shijie <shijie8@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 12/18] tlg2300: fix frequency handling.
+Date: Thu, 31 Jan 2013 11:25:30 +0100
+Message-Id: <611d9f61c71f46224c6109db314cdf9cd5d43217.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
+References: <608a45800f829b97fcc5c00b1decc64c829d71cb.1359627298.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't report any key/scan codes or errors inside the key polling functions
-for internal IR RC devices, just in the key handling fucntions.
-Do the same for external devices.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+The usual set of problems: the frequency isn't clamped to the frequency range,
+no tuner index check and the frequency isn't initialized properly on module
+load.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-input.c |   29 +++++------------------------
- 1 Datei geändert, 5 Zeilen hinzugefügt(+), 24 Zeilen entfernt(-)
+ drivers/media/usb/tlg2300/pd-common.h |    4 ++--
+ drivers/media/usb/tlg2300/pd-video.c  |   20 ++++++++++++--------
+ 2 files changed, 14 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
-index f554a52..edcd697 100644
---- a/drivers/media/usb/em28xx/em28xx-input.c
-+++ b/drivers/media/usb/em28xx/em28xx-input.c
-@@ -40,11 +40,6 @@ MODULE_PARM_DESC(ir_debug, "enable debug messages [IR]");
+diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+index 052cb0c..55fe66e 100644
+--- a/drivers/media/usb/tlg2300/pd-common.h
++++ b/drivers/media/usb/tlg2300/pd-common.h
+@@ -36,8 +36,8 @@
+ #define V4L_PAL_VBI_FRAMESIZE	(V4L_PAL_VBI_LINES * 1440 * 2)
+ #define V4L_NTSC_VBI_FRAMESIZE	(V4L_NTSC_VBI_LINES * 1440 * 2)
  
- #define MODULE_NAME "em28xx"
+-#define TUNER_FREQ_MIN		(45000000)
+-#define TUNER_FREQ_MAX		(862000000)
++#define TUNER_FREQ_MIN		(45000000U)
++#define TUNER_FREQ_MAX		(862000000U)
  
--#define i2cdprintk(fmt, arg...) \
--	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
--	}
--
- #define dprintk(fmt, arg...) \
- 	if (ir_debug) { \
- 		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
-@@ -86,17 +81,13 @@ static int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	unsigned char b;
+ struct vbi_data {
+ 	struct video_device	v_dev;
+diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+index 8ab2894..da7cbd4 100644
+--- a/drivers/media/usb/tlg2300/pd-video.c
++++ b/drivers/media/usb/tlg2300/pd-video.c
+@@ -940,7 +940,7 @@ static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
+ 	return 0;
+ }
  
- 	/* poll IR chip */
--	if (1 != i2c_master_recv(ir->c, &b, 1)) {
--		i2cdprintk("read error\n");
-+	if (1 != i2c_master_recv(ir->c, &b, 1))
- 		return -EIO;
--	}
+-static struct poseidon_control *check_control_id(__u32 id)
++static struct poseidon_control *check_control_id(u32 id)
+ {
+ 	struct poseidon_control *control = &controls[0];
+ 	int array_size = ARRAY_SIZE(controls);
+@@ -1134,21 +1134,21 @@ static int vidioc_g_frequency(struct file *file, void *fh,
+ 	return 0;
+ }
  
- 	/* it seems that 0xFE indicates that a button is still hold
- 	   down, while 0xff indicates that no button is hold
- 	   down. 0xfe sequences are sometimes interrupted by 0xFF */
+-static int set_frequency(struct poseidon *pd, __u32 frequency)
++static int set_frequency(struct poseidon *pd, u32 *frequency)
+ {
+ 	s32 ret = 0, param, cmd_status;
+ 	struct running_context *context = &pd->video_data.context;
  
--	i2cdprintk("key %02x\n", b);
--
- 	if (b == 0xff)
- 		return 0;
+-	param = frequency * 62500 / 1000;
+-	if (param < TUNER_FREQ_MIN/1000 || param > TUNER_FREQ_MAX / 1000)
+-		return -EINVAL;
++	*frequency = clamp(*frequency,
++			TUNER_FREQ_MIN / 62500, TUNER_FREQ_MAX / 62500);
++	param = (*frequency) * 62500 / 1000;
  
-@@ -147,9 +138,6 @@ static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 		 ((buf[1] & 0x40) ? 0x0200 : 0) | /* 0000 0010		  */
- 		 ((buf[1] & 0x80) ? 0x0100 : 0);  /* 0000 0001		  */
+ 	mutex_lock(&pd->lock);
+ 	ret = send_set_req(pd, TUNE_FREQ_SELECT, param, &cmd_status);
+ 	ret = send_set_req(pd, TAKE_REQUEST, 0, &cmd_status);
  
--	i2cdprintk("ir hauppauge (em2840): code=0x%02x (rcv=0x%02x%02x)\n",
--			code, buf[1], buf[0]);
--
- 	/* return key */
- 	*ir_key = code;
- 	*ir_raw = code;
-@@ -163,12 +151,9 @@ static int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
+ 	msleep(250); /* wait for a while until the hardware is ready. */
+-	context->freq = frequency;
++	context->freq = *frequency;
+ 	mutex_unlock(&pd->lock);
+ 	return ret;
+ }
+@@ -1159,12 +1159,14 @@ static int vidioc_s_frequency(struct file *file, void *fh,
+ 	struct front_face *front = fh;
+ 	struct poseidon *pd = front->pd;
  
- 	/* poll IR chip */
++	if (freq->tuner)
++		return -EINVAL;
+ 	logs(front);
+ #ifdef CONFIG_PM
+ 	pd->pm_suspend = pm_video_suspend;
+ 	pd->pm_resume = pm_video_resume;
+ #endif
+-	return set_frequency(pd, freq->frequency);
++	return set_frequency(pd, &freq->frequency);
+ }
  
--	if (3 != i2c_master_recv(ir->c, buf, 3)) {
--		i2cdprintk("read error\n");
-+	if (3 != i2c_master_recv(ir->c, buf, 3))
- 		return -EIO;
--	}
+ static int vidioc_reqbufs(struct file *file, void *fh,
+@@ -1351,7 +1353,7 @@ static int restore_v4l2_context(struct poseidon *pd,
+ 	vidioc_s_input(NULL, front, context->sig_index);
+ 	pd_vidioc_s_tuner(pd, context->audio_idx);
+ 	pd_vidioc_s_fmt(pd, &context->pix);
+-	set_frequency(pd, context->freq);
++	set_frequency(pd, &context->freq);
+ 	return 0;
+ }
  
--	i2cdprintk("key %02x\n", buf[2]&0x3f);
- 	if (buf[0] != 0x00)
- 		return 0;
+@@ -1615,8 +1617,10 @@ int pd_video_init(struct poseidon *pd)
+ {
+ 	struct video_data *video = &pd->video_data;
+ 	struct vbi_data *vbi	= &pd->vbi_data;
++	u32 freq = TUNER_FREQ_MIN / 62500;
+ 	int ret = -ENOMEM;
  
-@@ -188,19 +173,15 @@ static int em28xx_get_key_winfast_usbii_deluxe(struct IR_i2c *ir, u32 *ir_key,
- 				{ .addr = ir->c->addr, .flags = I2C_M_RD, .buf = &keydetect, .len = 1} };
- 
- 	subaddr = 0x10;
--	if (2 != i2c_transfer(ir->c->adapter, msg, 2)) {
--		i2cdprintk("read error\n");
-+	if (2 != i2c_transfer(ir->c->adapter, msg, 2))
- 		return -EIO;
--	}
- 	if (keydetect == 0x00)
- 		return 0;
- 
- 	subaddr = 0x00;
- 	msg[1].buf = &key;
--	if (2 != i2c_transfer(ir->c->adapter, msg, 2)) {
--		i2cdprintk("read error\n");
--	return -EIO;
--	}
-+	if (2 != i2c_transfer(ir->c->adapter, msg, 2))
-+		return -EIO;
- 	if (key == 0x00)
- 		return 0;
- 
++	set_frequency(pd, &freq);
+ 	video->v_dev = pd_video_template;
+ 	video->v_dev.v4l2_dev = &pd->v4l2_dev;
+ 	video_set_drvdata(&video->v_dev, pd);
 -- 
 1.7.10.4
 
