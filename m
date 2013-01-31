@@ -1,73 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31455 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753293Ab3AFNLW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jan 2013 08:11:22 -0500
-Date: Sun, 6 Jan 2013 11:10:39 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] omap3isp: Don't include <plat/cpu.h>
-Message-ID: <20130106111039.627d5dab@redhat.com>
-In-Reply-To: <20130103225541.GK25633@atomide.com>
-References: <1357248204-9863-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<20130103225541.GK25633@atomide.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:36756 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab3AaNEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 08:04:06 -0500
+Received: by mail-lb0-f177.google.com with SMTP id go11so3277775lbb.8
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 05:04:04 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <50F05C09.3010104@iki.fi>
+References: <50F05C09.3010104@iki.fi>
+Date: Thu, 31 Jan 2013 14:04:03 +0100
+Message-ID: <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
+Subject: Re: af9035 test needed!
+From: Andre Heider <a.heider@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 3 Jan 2013 14:55:41 -0800
-Tony Lindgren <tony@atomide.com> escreveu:
+Hi,
 
-> * Laurent Pinchart <laurent.pinchart@ideasonboard.com> [130103 13:24]:
-> > The plat/*.h headers are not available to drivers in multiplatform
-> > kernels. As the header isn't needed, just remove it.
-> 
-> Please consider merging this for the -rc cycle, so I can make
-> plat/cpu.h produce an error for omap2+ to prevent new drivers
-> including it.
+On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Could you test that (tda18218 & mxl5007t):
+> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
 
-Ok, I'll add it to the list of patches for 3.8.
+I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
+this series.
+Any chance to get this into 3.9 (I guess its too late for the USB
+VID/PID 'fix' for 3.8)?
 
 Regards,
-Mauro
-> 
-> Acked-by: Tony Lindgren <tony@atomide.com>
->  
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/platform/omap3isp/isp.c |    2 --
-> >  1 files changed, 0 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-> > index 50cea08..07eea5b 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -71,8 +71,6 @@
-> >  #include <media/v4l2-common.h>
-> >  #include <media/v4l2-device.h>
-> >  
-> > -#include <plat/cpu.h>
-> > -
-> >  #include "isp.h"
-> >  #include "ispreg.h"
-> >  #include "ispccdc.h"
-> > -- 
-> > Regards,
-> > 
-> > Laurent Pinchart
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
+Andre
