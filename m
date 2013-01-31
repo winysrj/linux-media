@@ -1,94 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:51763 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab3AHGxi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jan 2013 01:53:38 -0500
-Message-id: <50EBC26E.5090803@samsung.com>
-Date: Tue, 08 Jan 2013 07:53:34 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Federico Vaga <federico.vaga@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v4 1/3] videobuf2-dma-contig: user can specify GFP flags
-References: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
-In-reply-to: <1357493343-13090-1-git-send-email-federico.vaga@gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4691 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752007Ab3AaHQu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 02:16:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv2 PATCH] em28xx: fix bytesperline calculation in G/TRY_FMT
+Date: Thu, 31 Jan 2013 08:16:39 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+References: <201301300901.22486.hverkuil@xs4all.nl> <201301301049.25541.hverkuil@xs4all.nl> <20130130170729.59d9e04d@redhat.com>
+In-Reply-To: <20130130170729.59d9e04d@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201301310816.39891.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed January 30 2013 20:07:29 Mauro Carvalho Chehab wrote:
+> Em Wed, 30 Jan 2013 10:49:25 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Wed 30 January 2013 10:40:30 Mauro Carvalho Chehab wrote:
+> > > Em Wed, 30 Jan 2013 09:01:22 +0100
+> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > 
+> > > > This was part of my original em28xx patch series. That particular patch
+> > > > combined two things: this fix and the change where TRY_FMT would no
+> > > > longer return -EINVAL for unsupported pixelformats. The latter change was
+> > > > rejected (correctly), but we all forgot about the second part of the patch
+> > > > which fixed a real bug. I'm reposting just that fix.
+> > > > 
+> > > > Changes since v1:
+> > > > 
+> > > > - v1 still miscalculated the bytesperline and imagesize values (they were
+> > > >   too large).
+> > > > - G_FMT had the same calculation bug.
+> > > > 
+> > > > Tested with my em28xx.
+> > > > 
+> > > > Regards,
+> > > > 
+> > > >         Hans
+> > > > 
+> > > > The bytesperline calculation was incorrect: it used the old width instead of
+> > > > the provided width in the case of TRY_FMT, and it miscalculated the bytesperline
+> > > > value for the depth == 12 (planar YUV 4:1:1) case. For planar formats the
+> > > > bytesperline value should be the bytesperline of the widest plane, which is
+> > > > the Y plane which has 8 bits per pixel, not 12.
+> > > > 
+> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > ---
+> > > >  drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+> > > >  1 file changed, 4 insertions(+), 4 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > index 2eabf2a..6ced426 100644
+> > > > --- a/drivers/media/usb/em28xx/em28xx-video.c
+> > > > +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> > > > @@ -837,8 +837,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+> > > >  	f->fmt.pix.width = dev->width;
+> > > >  	f->fmt.pix.height = dev->height;
+> > > >  	f->fmt.pix.pixelformat = dev->format->fourcc;
+> > > > -	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> > > > -	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline  * dev->height;
+> > > > +	f->fmt.pix.bytesperline = dev->width * (dev->format->depth >> 3);
+> > > 
+> > > Why did you remove the round up here?
+> > 
+> > Because that would give the wrong result. Depth can be 8, 12 or 16. The YUV 4:1:1
+> > planar format is the one with depth 12. But for the purposes of the bytesperline
+> > calculation only the depth of the largest plane counts, which is the luma plane
+> > with a depth of 8. So for a width of 720 the value of bytesperline should be:
+> > 
+> > depth=8 -> bytesperline = 720
+> > depth=12 -> bytesperline = 720
+> 
+> With depth=12, it should be, instead, 1080, as 2 pixels need 3 bytes.
 
-On 1/6/2013 6:29 PM, Federico Vaga wrote:
-> This is useful when you need to specify specific GFP flags during memory
-> allocation (e.g. GFP_DMA).
->
-> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-contig.c | 7 ++-----
->   include/media/videobuf2-dma-contig.h           | 5 +++++
->   2 file modificati, 7 inserzioni(+), 5 rimozioni(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> index 10beaee..bb411c0 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -21,10 +21,6 @@
->   #include <media/videobuf2-dma-contig.h>
->   #include <media/videobuf2-memops.h>
->   
-> -struct vb2_dc_conf {
-> -	struct device		*dev;
-> -};
-> -
->   struct vb2_dc_buf {
->   	struct device			*dev;
->   	void				*vaddr;
-> @@ -165,7 +161,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
->   	/* align image size to PAGE_SIZE */
->   	size = PAGE_ALIGN(size);
->   
-> -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
-> +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
-> +									GFP_KERNEL | conf->mem_flags);
+No, it's not. It's a *planar* format: first the Y plane, then the two smaller
+chroma planes. The spec says that bytesperline for planar formats refers to
+the largest plane.
 
-I think we can add GFP_DMA flag unconditionally to the vb2_dc_contig 
-allocator.
-It won't hurt existing clients as most of nowadays platforms doesn't 
-have DMA
-zone (GFP_DMA is ignored in such case), but it should fix the issues 
-with some
-older and non-standard systems.
+For this format the luma plane is one byte per pixel. Each of the two chroma
+planes have effectively two bits per pixel (actually one byte per four pixels),
+so you end up with 8+2+2=12 bits per pixel.
 
->   	if (!buf->vaddr) {
->   		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
->   		kfree(buf);
-> diff --git a/include/media/videobuf2-dma-contig.h b/include/media/videobuf2-dma-contig.h
-> index 8197f87..22733f4 100644
-> --- a/include/media/videobuf2-dma-contig.h
-> +++ b/include/media/videobuf2-dma-contig.h
-> @@ -16,6 +16,11 @@
->   #include <media/videobuf2-core.h>
->   #include <linux/dma-mapping.h>
->   
-> +struct vb2_dc_conf {
-> +	struct device		*dev;
-> +	gfp_t				mem_flags;
-> +};
-> +
->   static inline dma_addr_t
->   vb2_dma_contig_plane_dma_addr(struct vb2_buffer *vb, unsigned int plane_no)
->   {
+Hence bytesperline should be 720 for this particular format.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
+	Hans
 
+> 
+> > depth=16 -> bytesperline = 1440
+> 
+> Well,
+> 
+> depth=8 -> bytesperline =  (720 * 8) + 7) / 8 = 720
+> depth=12 -> bytesperline = (720 * 12) + 7) / 8 = 1080
+> depth=16 -> bytesperline = (720 * 16) + 7) / 8 = 1440
+> 
+> So, this sounds perfectly OK on my eyes:
+> 	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+> 
+> Regards,
+> Mauro
+> 
