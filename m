@@ -1,226 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:43353 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755384Ab3A0Tpn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jan 2013 14:45:43 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/7] saa7134: v4l2-compliance: use v4l2_fh to fix priority handling
-Date: Sun, 27 Jan 2013 20:45:08 +0100
-Message-Id: <1359315912-1767-4-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
-References: <1359315912-1767-1-git-send-email-linux@rainbow-software.org>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:47766 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751738Ab3AaU33 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 Jan 2013 15:29:29 -0500
+Received: by mail-wg0-f46.google.com with SMTP id fg15so2305231wgb.25
+        for <linux-media@vger.kernel.org>; Thu, 31 Jan 2013 12:29:28 -0800 (PST)
+Message-ID: <1359664162.1976.13.camel@router7789>
+Subject: Re: af9035 test needed!
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andre Heider <a.heider@gmail.com>,
+	Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Date: Thu, 31 Jan 2013 20:29:22 +0000
+In-Reply-To: <510A78D8.7030602@iki.fi>
+References: <50F05C09.3010104@iki.fi>
+	 <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com>
+	 <510A78D8.7030602@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make saa7134 driver more V4L2 compliant: remove broken priority handling
-and use v4l2_fh instead
+On Thu, 2013-01-31 at 15:59 +0200, Antti Palosaari wrote:
+> On 01/31/2013 03:04 PM, Andre Heider wrote:
+> > Hi,
+> >
+> > On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
+> >> Could you test that (tda18218 & mxl5007t):
+> >> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tuner
+> >
+> > I got a 'TerraTec Cinergy T Stick Dual RC (rev. 2)', which is fixed by
+> > this series.
+> > Any chance to get this into 3.9 (I guess its too late for the USB
+> > VID/PID 'fix' for 3.8)?
+> 
+> Thank you for the report! There was someone else who reported it working 
+> too. Do you want to your name as tester for the changelog?
+> 
+> I just yesterday got that TerraTec device too and I am going to add dual 
+> tuner support. Also, for some reason IT9135 v2 devices are not working - 
+> only v1. That is one thing I should fix before merge that stuff.
+Hi Antti,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/saa7134/saa7134-core.c  |    3 +-
- drivers/media/pci/saa7134/saa7134-video.c |   61 +++-------------------------
- drivers/media/pci/saa7134/saa7134.h       |    4 +-
- 3 files changed, 10 insertions(+), 58 deletions(-)
+I am going to acknowledge this development, so you are free to copy
+any code from the it913x and it913x-fe driver to get this working.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 8976d0e..ba08bd6 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -805,6 +805,7 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
- 	vfd->debug   = video_debug;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
- 		 dev->name, type, saa7134_boards[dev->board].name);
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
- 	video_set_drvdata(vfd, dev);
- 	return vfd;
- }
-@@ -1028,8 +1029,6 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
- 		}
- 	}
- 
--	v4l2_prio_init(&dev->prio);
--
- 	mutex_lock(&saa7134_devlist_lock);
- 	list_for_each_entry(mops, &mops_list, next)
- 		mpeg_ops_attach(mops, dev);
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index db8da32..be745c0 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1176,14 +1176,6 @@ int saa7134_s_ctrl_internal(struct saa7134_dev *dev,  struct saa7134_fh *fh, str
- 	int restart_overlay = 0;
- 	int err;
- 
--	/* When called from the empress code fh == NULL.
--	   That needs to be fixed somehow, but for now this is
--	   good enough. */
--	if (fh) {
--		err = v4l2_prio_check(&dev->prio, fh->prio);
--		if (0 != err)
--			return err;
--	}
- 	err = -EINVAL;
- 
- 	mutex_lock(&dev->lock);
-@@ -1352,6 +1344,7 @@ static int video_open(struct file *file)
- 	if (NULL == fh)
- 		return -ENOMEM;
- 
-+	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = fh;
- 	fh->dev      = dev;
- 	fh->radio    = radio;
-@@ -1359,7 +1352,6 @@ static int video_open(struct file *file)
- 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
- 	fh->width    = 720;
- 	fh->height   = 576;
--	v4l2_prio_open(&dev->prio, &fh->prio);
- 
- 	videobuf_queue_sg_init(&fh->cap, &video_qops,
- 			    &dev->pci->dev, &dev->slock,
-@@ -1384,6 +1376,8 @@ static int video_open(struct file *file)
- 		/* switch to video/vbi mode */
- 		video_mux(dev,dev->ctl_input);
- 	}
-+	v4l2_fh_add(&fh->fh);
-+
- 	return 0;
- }
- 
-@@ -1504,7 +1498,8 @@ static int video_release(struct file *file)
- 	saa7134_pgtable_free(dev->pci,&fh->pt_cap);
- 	saa7134_pgtable_free(dev->pci,&fh->pt_vbi);
- 
--	v4l2_prio_close(&dev->prio, fh->prio);
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 	file->private_data = NULL;
- 	kfree(fh);
- 	return 0;
-@@ -1784,11 +1779,6 @@ static int saa7134_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	struct saa7134_fh *fh = priv;
- 	struct saa7134_dev *dev = fh->dev;
--	int err;
--
--	err = v4l2_prio_check(&dev->prio, fh->prio);
--	if (0 != err)
--		return err;
- 
- 	if (i >= SAA7134_INPUT_MAX)
- 		return -EINVAL;
-@@ -1853,16 +1843,8 @@ int saa7134_s_std_internal(struct saa7134_dev *dev, struct saa7134_fh *fh, v4l2_
- 	unsigned long flags;
- 	unsigned int i;
- 	v4l2_std_id fixup;
--	int err;
- 
--	/* When called from the empress code fh == NULL.
--	   That needs to be fixed somehow, but for now this is
--	   good enough. */
--	if (fh) {
--		err = v4l2_prio_check(&dev->prio, fh->prio);
--		if (0 != err)
--			return err;
--	} else if (res_locked(dev, RESOURCE_OVERLAY)) {
-+	if (!fh && res_locked(dev, RESOURCE_OVERLAY)) {
- 		/* Don't change the std from the mpeg device
- 		   if overlay is active. */
- 		return -EBUSY;
-@@ -2047,11 +2029,7 @@ static int saa7134_s_tuner(struct file *file, void *priv,
- {
- 	struct saa7134_fh *fh = priv;
- 	struct saa7134_dev *dev = fh->dev;
--	int rx, mode, err;
--
--	err = v4l2_prio_check(&dev->prio, fh->prio);
--	if (0 != err)
--		return err;
-+	int rx, mode;
- 
- 	mode = dev->thread.mode;
- 	if (UNSET == mode) {
-@@ -2081,11 +2059,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
- {
- 	struct saa7134_fh *fh = priv;
- 	struct saa7134_dev *dev = fh->dev;
--	int err;
--
--	err = v4l2_prio_check(&dev->prio, fh->prio);
--	if (0 != err)
--		return err;
- 
- 	if (0 != f->tuner)
- 		return -EINVAL;
-@@ -2114,24 +2087,6 @@ static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audi
- 	return 0;
- }
- 
--static int saa7134_g_priority(struct file *file, void *f, enum v4l2_priority *p)
--{
--	struct saa7134_fh *fh = f;
--	struct saa7134_dev *dev = fh->dev;
--
--	*p = v4l2_prio_max(&dev->prio);
--	return 0;
--}
--
--static int saa7134_s_priority(struct file *file, void *f,
--					enum v4l2_priority prio)
--{
--	struct saa7134_fh *fh = f;
--	struct saa7134_dev *dev = fh->dev;
--
--	return v4l2_prio_change(&dev->prio, &fh->prio, prio);
--}
--
- static int saa7134_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
- {
-@@ -2460,8 +2415,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_fbuf			= saa7134_g_fbuf,
- 	.vidioc_s_fbuf			= saa7134_s_fbuf,
- 	.vidioc_overlay			= saa7134_overlay,
--	.vidioc_g_priority		= saa7134_g_priority,
--	.vidioc_s_priority		= saa7134_s_priority,
- 	.vidioc_g_parm			= saa7134_g_parm,
- 	.vidioc_g_frequency		= saa7134_g_frequency,
- 	.vidioc_s_frequency		= saa7134_s_frequency,
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 9059d08..2ffe069 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -35,6 +35,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fh.h>
- #include <media/tuner.h>
- #include <media/rc-core.h>
- #include <media/ir-kbd-i2c.h>
-@@ -466,11 +467,11 @@ struct saa7134_dmaqueue {
- 
- /* video filehandle status */
- struct saa7134_fh {
-+	struct v4l2_fh             fh;
- 	struct saa7134_dev         *dev;
- 	unsigned int               radio;
- 	enum v4l2_buf_type         type;
- 	unsigned int               resources;
--	enum v4l2_priority	   prio;
- 
- 	/* video overlay */
- 	struct v4l2_window         win;
-@@ -541,7 +542,6 @@ struct saa7134_dev {
- 	struct list_head           devlist;
- 	struct mutex               lock;
- 	spinlock_t                 slock;
--	struct v4l2_prio_state     prio;
- 	struct v4l2_device         v4l2_dev;
- 	/* workstruct for loading modules */
- 	struct work_struct request_module_wk;
--- 
-Ondrej Zary
+My time is very limited at the moment, so I will try to do testing when
+possible.
+
+Once everything is stable enough the dvb-usb-it913x and it913x-fe
+modules can be removed.
+
+Acked-by: Malcolm Priestley <tvboxspy@gmail.com>
+
+Regards
+
+
+Malcolm
 
