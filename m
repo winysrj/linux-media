@@ -1,74 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:52368 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755676Ab3BEQ4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 11:56:49 -0500
-Received: by mail-la0-f47.google.com with SMTP id fj20so396177lab.20
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 08:56:47 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201302051635.08448.hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-	<201302041435.26878.hverkuil@xs4all.nl>
-	<CA+6av4kp54eQSeefAnJxY80HtOJ5iCBh+ETOZaKQHbo=m86-DQ@mail.gmail.com>
-	<201302051635.08448.hverkuil@xs4all.nl>
-Date: Tue, 5 Feb 2013 13:56:46 -0300
-Message-ID: <CALF0-+X3rwi6Dg8G8aDcv65Kz7hRM4qRhBUmMymW_JmifSFysQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Arvydas Sidorenko <asido4@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-1.atlantis.sk ([80.94.52.57]:39625 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757389Ab3BAUV5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 15:21:57 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 3/4] tuner-core: Change config from unsigned int to void *
+Date: Fri,  1 Feb 2013 21:21:26 +0100
+Message-Id: <1359750087-1155-4-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 5, 2013 at 12:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Tue February 5 2013 16:28:17 Arvydas Sidorenko wrote:
->> On Mon, Feb 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> >
->> > Hi Arvydas,
->> >
->> > Yes indeed, it would be great if you could test this!
->> >
->> > Note that the patch series is also available in my git tree:
->> >
->> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/stkwebcam
->> >
->> > Besides the normal testing that everything works as expected, it would also
->> > be great if you could run the v4l2-compliance tool. It's part of the v4l-utils
->> > repository (http://git.linuxtv.org/v4l-utils.git) and it tests whether a driver
->> > complies to the V4L2 specification.
->> >
->> > Just compile the tool from the repository (don't use a distro-provided version)
->> > and run it as 'v4l2-compliance -d /dev/videoX' and mail me the output. You will
->> > get at least one failure at the end, but I'd like to know if there are other
->> > issues remaining.
->> >
->> > Regards,
->> >
->> >         Hans
->>
->> I have tested the patches using STK-1135 webcam. Everything works well.
->>
->> $ v4l2-compliance -d /dev/video0
->> Driver Info:
->>       Driver name   : stk
->>       Card type     : stk
->>       Bus info      :
->>       Driver version: 0.0.1
->
-> This is the old version of the driver you are testing with :-)
->
+config looks like a hack that was added to tuner-core to allow some
+configuration of TDA8290 tuner (it's not used by any other driver).
+But with the new configuration options of tda8290 driver (no_i2c_gate
+and std_map), it's no longer sufficient.
 
-@Arvydas: First of all, thanks for taking the time to test Hans' patches.
+Change config to be void * instead, which allows passing tuner-dependent
+config struct to drivers.
 
-I suggest to double check the old driver
-is not loaded and then run "depmod -a" to update modules.
+Also update saa7134 driver to reflect this change (no other driver uses this).
 
-As a last resource you can always wipe out the driver from
-/lib/modules/what-ever and reinstall.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/saa7134/saa7134-cards.c |   40 ++++++++++++++--------------
+ drivers/media/pci/saa7134/saa7134.h       |    3 +-
+ drivers/media/v4l2-core/tuner-core.c      |   20 +++++---------
+ include/media/tuner.h                     |    2 +-
+ 4 files changed, 30 insertions(+), 35 deletions(-)
 
-Hope this helps!
-
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index bc08f1d..fe54f88 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -2760,7 +2760,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 0,
++		.tda829x_conf   = { .lna_cfg = 0 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = {{
+@@ -3291,7 +3291,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 1,
++		.tda829x_conf   = { .lna_cfg = 1 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x000200000,
+ 		.inputs         = {{
+@@ -3395,7 +3395,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 1,
++		.tda829x_conf   = { .lna_cfg = 1 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200100,
+ 		.inputs         = {{
+@@ -3426,7 +3426,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 3,
++		.tda829x_conf   = { .lna_cfg = 3 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.ts_type	= SAA7134_MPEG_TS_SERIAL,
+ 		.ts_force_val   = 1,
+@@ -3459,7 +3459,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 3,
++		.tda829x_conf   = { .lna_cfg = 3 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.ts_type	= SAA7134_MPEG_TS_SERIAL,
+ 		.gpiomask       = 0x0800100, /* GPIO 21 is an INPUT */
+@@ -3683,7 +3683,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = {{
+@@ -3736,7 +3736,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = {{
+@@ -3754,7 +3754,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.gpiomask	= 1 << 21,
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.inputs         = {{
+@@ -3887,7 +3887,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 0,
++		.tda829x_conf   = { .lna_cfg = 0 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.inputs = {{
+ 			.name   = name_tv, /* FIXME: analog tv untested */
+@@ -3903,7 +3903,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.gpiomask       = 0x020200000,
+ 		.inputs         = {{
+ 			.name = name_tv,
+@@ -3937,7 +3937,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type	= UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config	= 0,
++		.tda829x_conf	= { .lna_cfg = 0 },
+ 		.gpiomask	= 0x020200000,
+ 		.inputs		= {{
+ 			.name = name_tv,
+@@ -4737,7 +4737,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = {{
+@@ -4823,7 +4823,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type   = UNSET,
+ 		.tuner_addr   = ADDR_UNSET,
+ 		.radio_addr   = ADDR_UNSET,
+-		.tuner_config = 0,
++		.tda829x_conf = { .lna_cfg = 0 },
+ 		.mpeg         = SAA7134_MPEG_DVB,
+ 		.inputs       = {{
+ 			.name = name_tv,
+@@ -4847,7 +4847,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = { {
+@@ -5057,7 +5057,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.gpiomask       = 1 << 21,
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.inputs         = {{
+@@ -5087,7 +5087,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 2,
++		.tda829x_conf   = { .lna_cfg = 2 },
+ 		.gpiomask       = 1 << 21,
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.inputs         = {{
+@@ -5176,7 +5176,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.tuner_config   = 0,
++		.tda829x_conf   = { .lna_cfg = 0 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.gpiomask       = 0x0200000,
+ 		.inputs = { {
+@@ -5406,7 +5406,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+-		.tuner_config   = 0,
++		.tda829x_conf   = { .lna_cfg = 0 },
+ 		.mpeg           = SAA7134_MPEG_DVB,
+ 		.ts_type	= SAA7134_MPEG_TS_PARALLEL,
+ 		.inputs         = {{
+@@ -5629,7 +5629,7 @@ struct saa7134_board saa7134_boards[] = {
+ 		.audio_clock	= 0x00187de7,
+ 		.tuner_type	= TUNER_PHILIPS_TDA8290,
+ 		.radio_type	= UNSET,
+-		.tuner_config	= 3,
++		.tda829x_conf	= { .lna_cfg = 3 },
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+ 		.gpiomask	= 0x02050000,
+@@ -7616,7 +7616,7 @@ static void saa7134_tuner_setup(struct saa7134_dev *dev)
+ 	if ((dev->tuner_type != TUNER_ABSENT) && (dev->tuner_type != UNSET)) {
+ 		tun_setup.type = dev->tuner_type;
+ 		tun_setup.addr = dev->tuner_addr;
+-		tun_setup.config = saa7134_boards[dev->board].tuner_config;
++		tun_setup.config = &saa7134_boards[dev->board].tda829x_conf;
+ 		tun_setup.tuner_callback = saa7134_tuner_callback;
+ 
+ 		tun_setup.mode_mask = mode_mask;
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index c24b651..ce1b4b5 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -44,6 +44,7 @@
+ #if defined(CONFIG_VIDEO_SAA7134_DVB) || defined(CONFIG_VIDEO_SAA7134_DVB_MODULE)
+ #include <media/videobuf-dvb.h>
+ #endif
++#include "tda8290.h"
+ 
+ #define UNSET (-1U)
+ 
+@@ -388,7 +389,7 @@ struct saa7134_board {
+ 	unsigned char		rds_addr;
+ 
+ 	unsigned int            tda9887_conf;
+-	unsigned int            tuner_config;
++	struct tda829x_config   tda829x_conf;
+ 
+ 	/* peripheral I/O */
+ 	enum saa7134_video_out  video_out;
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index b5a819a..14ad8f4 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -132,7 +132,7 @@ struct tuner {
+ 	bool                standby;	/* Standby mode */
+ 
+ 	unsigned int        type; /* chip type id */
+-	unsigned int        config;
++	void                *config;
+ 	const char          *name;
+ };
+ 
+@@ -272,9 +272,8 @@ static struct analog_demod_ops tuner_analog_ops = {
+  * @c:			i2c_client descriptoy
+  * @type:		type of the tuner (e. g. tuner number)
+  * @new_mode_mask:	Indicates if tuner supports TV and/or Radio
+- * @new_config:		an optional parameter ranging from 0-255 used by
+-			a few tuners to adjust an internal parameter,
+-			like LNA mode
++ * @new_config:		an optional parameter used by a few tuners to adjust
++			internal parameters, like LNA mode
+  * @tuner_callback:	an optional function to be called when switching
+  *			to analog mode
+  *
+@@ -282,7 +281,7 @@ static struct analog_demod_ops tuner_analog_ops = {
+  * by tun_setup structure. It contains several per-tuner initialization "magic"
+  */
+ static void set_type(struct i2c_client *c, unsigned int type,
+-		     unsigned int new_mode_mask, unsigned int new_config,
++		     unsigned int new_mode_mask, void *new_config,
+ 		     int (*tuner_callback) (void *dev, int component, int cmd, int arg))
+ {
+ 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+@@ -297,8 +296,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 	}
+ 
+ 	t->type = type;
+-	/* prevent invalid config values */
+-	t->config = new_config < 256 ? new_config : 0;
++	t->config = new_config;
+ 	if (tuner_callback != NULL) {
+ 		tuner_dbg("defining GPIO callback\n");
+ 		t->fe.callback = tuner_callback;
+@@ -316,11 +314,8 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		break;
+ 	case TUNER_PHILIPS_TDA8290:
+ 	{
+-		struct tda829x_config cfg = {
+-			.lna_cfg        = t->config,
+-		};
+ 		if (!dvb_attach(tda829x_attach, &t->fe, t->i2c->adapter,
+-				t->i2c->addr, &cfg))
++				t->i2c->addr, t->config))
+ 			goto attach_failed;
+ 		break;
+ 	}
+@@ -409,7 +404,6 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 	case TUNER_NXP_TDA18271:
+ 	{
+ 		struct tda18271_config cfg = {
+-			.config = t->config,
+ 			.small_i2c = TDA18271_03_BYTE_CHUNK_INIT,
+ 		};
+ 
+@@ -506,7 +500,7 @@ static int tuner_s_type_addr(struct v4l2_subdev *sd,
+ 	struct tuner *t = to_tuner(sd);
+ 	struct i2c_client *c = v4l2_get_subdevdata(sd);
+ 
+-	tuner_dbg("Calling set_type_addr for type=%d, addr=0x%02x, mode=0x%02x, config=0x%02x\n",
++	tuner_dbg("Calling set_type_addr for type=%d, addr=0x%02x, mode=0x%02x, config=%p\n",
+ 			tun_setup->type,
+ 			tun_setup->addr,
+ 			tun_setup->mode_mask,
+diff --git a/include/media/tuner.h b/include/media/tuner.h
+index 926aff9..c60552b 100644
+--- a/include/media/tuner.h
++++ b/include/media/tuner.h
+@@ -188,7 +188,7 @@ struct tuner_setup {
+ 	unsigned short	addr; 	/* I2C address */
+ 	unsigned int	type;   /* Tuner type */
+ 	unsigned int	mode_mask;  /* Allowed tuner modes */
+-	unsigned int	config; /* configuraion for more complex tuners */
++	void		*config;    /* configuraion for more complex tuners */
+ 	int (*tuner_callback) (void *dev, int component, int cmd, int arg);
+ };
+ 
 -- 
-    Ezequiel
+Ondrej Zary
+
