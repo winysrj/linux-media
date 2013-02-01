@@ -1,147 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:60216 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757444Ab3BKPLP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 10:11:15 -0500
-Received: by mail-pa0-f50.google.com with SMTP id fa11so3142144pad.9
-        for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 07:11:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5119064C.8040807@redhat.com>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-	<201302111421.17226.hverkuil@xs4all.nl>
-	<5118F4F4.1070602@redhat.com>
-	<201302111451.31133.hverkuil@xs4all.nl>
-	<5119064C.8040807@redhat.com>
-Date: Mon, 11 Feb 2013 17:11:15 +0200
-Message-ID: <CAJL_dMs5SXV7ExrQnmZhhikkBa9JsMk=-wdET2tkL92j2acpfA@mail.gmail.com>
-Subject: Re: [RFCv2 PATCH 01/12] stk-webcam: the initial hflip and vflip setup
- was the wrong way around
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Arvydas Sidorenko <asido4@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-1.atlantis.sk ([80.94.52.57]:34022 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756373Ab3BAUWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 15:22:04 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
+Date: Fri,  1 Feb 2013 21:21:27 +0100
+Message-Id: <1359750087-1155-5-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I think the driver is not up to standard: look at the error messages.
-And there are a lot of "to do" because of lack of documentation.
+Add AverMedia AverTV Satellite Hybrid+FM (A706) card to saa7134 driver.
+Working: analog inputs, TV, FM radio and IR remote control.
+Untested: DVB-S.
 
-On Mon, Feb 11, 2013 at 4:55 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
->
-> On 02/11/2013 02:51 PM, Hans Verkuil wrote:
->>
->> On Mon February 11 2013 14:41:08 Hans de Goede wrote:
->>>
->>> Hi,
->>>
->>> On 02/11/2013 02:21 PM, Hans Verkuil wrote:
->>>>
->>>> On Mon February 11 2013 14:08:44 Hans de Goede wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> Subject: stk-webcam: the initial hflip and vflip setup was the wrong
->>>>> way around
->>>>>
->>>>> No it is not.
->>>>
->>>>
->>>> You are right, that patch makes no sense. It was a long day :-)
->>>>
->>>>> On 02/10/2013 06:52 PM, Hans Verkuil wrote:
->>>>>>
->>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>>>
->>>>>> This resulted in an upside-down picture.
->>>>>
->>>>>
->>>>> No it does not, the laptop having an upside down mounted camera and not
->>>>> being
->>>>> in the dmi-table is what causes an upside down picture. For a non
->>>>> upside
->>>>> down camera (so no dmi-match) hflip and vflip should be 0.
->>>>>
->>>>> The fix for the upside-down-ness Arvydas Sidorenko reported would be to
->>>>> add his laptop to the upside down table.
->>>>
->>>>
->>>> That doesn't make sense either. Arvydas, it worked fine for you before,
->>>> right?
->>>
->>>
->>> Yes, it probably worked before, but not with...
->>>
->>>> That is, if you use e.g. v3.8-rc7 then your picture is the right side
->>>> up.
->>>
->>>
->>> 3.8 will show it upside down for Arvydas
->>>
->>> The story goes likes this:
->>>
->>> 1) Once upon a time the stkwebcam driver was written
->>> 2) The webcam in question was used mostly in Asus laptop models,
->>> including
->>> the laptop of the original author of the driver, and in these models, in
->>> typical Asus fashion (see the long long list for uvc cams inside
->>> v4l-utils),
->>> they mounted the webcam-module the wrong way up. So the hflip and vflip
->>> module options were given a default value of 1 (the correct value for
->>> upside down mounted models)
->>>
->>> 3) Years later I got a bug report from a user with a laptop with
->>> stkwebcam,
->>> where the module was actually mounted the right way up, and thus showed
->>> upside
->>> down under Linux. So now I was facing the choice of 2 options:
->>> a) Add a not-upside-down list to stkwebcam, which overrules the default
->>> b) Do it like all the other drivers do, and make the default right for
->>> cams mounted the proper way and add an upside-down model list, with
->>> models
->>> where we need to flip-by-default.
->>>
->>> Despite knowing that going b) would cause a period of pain where we were
->>> building the table (ie what we're discussing now) I opted to go for
->>> option
->>> b), since a) is just too ugly, and worse different from how every other
->>> driver does it leading to confusion in the long run.
->>>
->>> IOW this is entirely my fault, and I take full responsibility for it.
->>
->>
->> Ah, OK. Now it makes sense. I wasn't aware of this history and it
->> (clearly)
->> confused me greatly.
->>
->> Can you perhaps provide me with a patch that adds some comments to the
->> source
->> explaining this. And in particular with which kernel this change took
->> place?
->
->
-> Feel free to copy my 1) - 3) From above to a comment, step 3 landed in
-> kernel 3.6
-> (you doing it seems better then me doing a patch conflicting with your
-> patchset)
->
->
->> The next time some poor sod (e.g. me) has to work on this the comments
->> should
->> explain this history.
->
->
-> Ack.
->
->
-> Regards,
->
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/i2c/ir-kbd-i2c.c              |   13 ++++++-
+ drivers/media/pci/saa7134/saa7134-cards.c   |   53 +++++++++++++++++++++++++++
+ drivers/media/pci/saa7134/saa7134-dvb.c     |   23 ++++++++++++
+ drivers/media/pci/saa7134/saa7134-i2c.c     |    1 +
+ drivers/media/pci/saa7134/saa7134-input.c   |    3 ++
+ drivers/media/pci/saa7134/saa7134-tvaudio.c |    1 +
+ drivers/media/pci/saa7134/saa7134.h         |    1 +
+ 7 files changed, 94 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
+index 08ae067..c1f6e7c 100644
+--- a/drivers/media/i2c/ir-kbd-i2c.c
++++ b/drivers/media/i2c/ir-kbd-i2c.c
+@@ -230,7 +230,7 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 		return 0;
+ 
+ 	dprintk(1, "read key 0x%02x/0x%02x\n", key, keygroup);
+-	if (keygroup < 2 || keygroup > 3) {
++	if (keygroup < 2 || keygroup > 4) {
+ 		/* Only a warning */
+ 		dprintk(1, "warning: invalid key group 0x%02x for key 0x%02x\n",
+ 								keygroup, key);
+@@ -239,6 +239,10 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 
+ 	*ir_key = key;
+ 	*ir_raw = key;
++	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
++		*ir_key |= keygroup << 8;
++		*ir_raw |= keygroup << 8;
++	}
+ 	return 1;
+ }
+ 
+@@ -332,6 +336,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 		rc_type     = RC_BIT_OTHER;
+ 		ir_codes    = RC_MAP_AVERMEDIA_CARDBUS;
+ 		break;
++	case 0x41:
++		name        = "AVerMedia EM78P153";
++		ir->get_key = get_key_avermedia_cardbus;
++		rc_type     = RC_BIT_OTHER;
++		/* RM-KV remote, seems to be same as RM-K6 */
++		ir_codes    = RC_MAP_AVERMEDIA_M733A_RM_K6;
++		break;
+ 	case 0x71:
+ 		name        = "Hauppauge/Zilog Z8";
+ 		ir->get_key = get_key_haup_xvr;
+diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
+index fe54f88..c603064 100644
+--- a/drivers/media/pci/saa7134/saa7134-cards.c
++++ b/drivers/media/pci/saa7134/saa7134-cards.c
+@@ -50,6 +50,11 @@ static char name_svideo[]  = "S-Video";
+ /* ------------------------------------------------------------------ */
+ /* board config info                                                  */
+ 
++static struct tda18271_std_map aver_a706_std_map = {
++	.fm_radio = { .if_freq = 5500, .fm_rfn = 0, .agc_mode = 3, .std = 0,
++		      .if_lvl = 0, .rfagc_top = 0x2c, },
++};
++
+ /* If radio_type !=UNSET, radio_addr should be specified
+  */
+ 
+@@ -5773,6 +5778,37 @@ struct saa7134_board saa7134_boards[] = {
+ 			.gpio	= 0x0000000,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_A706] = {
++		.name           = "AverMedia AverTV Satellite Hybrid+FM A706",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda829x_conf   = { .lna_cfg = 0, .no_i2c_gate = 1,
++				    .tda18271_std_map = &aver_a706_std_map },
++		.gpiomask       = 1 << 11,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp,
++			.vmux = 4,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++			.gpio = 0x0000800,
++		},
++	},
+ 
+ };
+ 
+@@ -7020,6 +7056,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 		.subdevice    = 0x0911,
+ 		.driver_data  = SAA7134_BOARD_SENSORAY811_911,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0x2055, /* AverTV Satellite Hybrid+FM A706 */
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_A706,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -7568,6 +7610,17 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		/* radio antenna select: tristate both as in Windows driver */
++		saa7134_set_gpio(dev, 12, 3);	/* TV antenna */
++		saa7134_set_gpio(dev, 13, 3);	/* FM antenna */
++		dev->has_remote = SAA7134_REMOTE_I2C;
++		/*
++		 * Disable CE5039 DVB-S tuner now (SLEEP pin high) to prevent
++		 * it from interfering with analog tuner detection
++		 */
++		saa7134_set_gpio(dev, 23, 1);
++		break;
+ 	case SAA7134_BOARD_VIDEOMATE_S350:
+ 		dev->has_remote = SAA7134_REMOTE_GPIO;
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
+diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
+index b209de4..547f470 100644
+--- a/drivers/media/pci/saa7134/saa7134-dvb.c
++++ b/drivers/media/pci/saa7134/saa7134-dvb.c
+@@ -1070,6 +1070,10 @@ static struct mt312_config zl10313_compro_s350_config = {
+ 	.demod_address = 0x0e,
+ };
+ 
++static struct mt312_config zl10313_avermedia_a706_config = {
++	.demod_address = 0x0e,
++};
++
+ static struct lgdt3305_config hcw_lgdt3305_config = {
+ 	.i2c_addr           = 0x0e,
+ 	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
+@@ -1817,6 +1821,25 @@ static int dvb_init(struct saa7134_dev *dev)
+ 				   &prohdtv_pro2_tda18271_config);
+ 		}
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		/* Enable all DVB-S devices now */
++		/* CE5039 DVB-S tuner SLEEP pin low */
++		saa7134_set_gpio(dev, 23, 0);
++		/* CE6313 DVB-S demod SLEEP pin low */
++		saa7134_set_gpio(dev, 9, 0);
++		/* CE6313 DVB-S demod RESET# pin high */
++		saa7134_set_gpio(dev, 25, 1);
++		msleep(1);
++		fe0->dvb.frontend = dvb_attach(mt312_attach,
++				&zl10313_avermedia_a706_config, &dev->i2c_adap);
++		if (fe0->dvb.frontend) {
++			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
++			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
++					0x60, &dev->i2c_adap) == NULL)
++				wprintk("%s: No zl10039 found!\n",
++					__func__);
++		}
++		break;
+ 	default:
+ 		wprintk("Huh? unknown DVB card?\n");
+ 		break;
+diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
+index a176ec3..c68169d 100644
+--- a/drivers/media/pci/saa7134/saa7134-i2c.c
++++ b/drivers/media/pci/saa7134/saa7134-i2c.c
+@@ -256,6 +256,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 				addr |= 1;
+ 			if (i > 0 && msgs[i].flags &
+ 			    I2C_M_RD && msgs[i].addr != 0x40 &&
++			    msgs[i].addr != 0x41 &&
+ 			    msgs[i].addr != 0x19) {
+ 				/* workaround for a saa7134 i2c bug
+ 				 * needed to talk to the mt352 demux
+diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
+index e761262..6f43126 100644
+--- a/drivers/media/pci/saa7134/saa7134-input.c
++++ b/drivers/media/pci/saa7134/saa7134-input.c
+@@ -997,6 +997,9 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+ 		info.addr = 0x40;
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_A706:
++		info.addr = 0x41;
++		break;
+ 	case SAA7134_BOARD_FLYDVB_TRIO:
+ 		dev->init_data.name = "FlyDVB Trio";
+ 		dev->init_data.get_key = get_key_flydvb_trio;
+diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+index b7a99be..0f34e09 100644
+--- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
++++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
+@@ -796,6 +796,7 @@ static int tvaudio_thread_ddep(void *data)
+ 			dprintk("FM Radio\n");
+ 			if (dev->tuner_type == TUNER_PHILIPS_TDA8290) {
+ 				norms = (0x11 << 2) | 0x01;
++				/* set IF frequency to 5.5 MHz */
+ 				saa_dsp_writel(dev, 0x42c >> 2, 0x729555);
+ 			} else {
+ 				norms = (0x0f << 2) | 0x01;
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index ce1b4b5..9059d08 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -333,6 +333,7 @@ struct saa7134_card_ir {
+ #define SAA7134_BOARD_SENSORAY811_911       188
+ #define SAA7134_BOARD_KWORLD_PC150U         189
+ #define SAA7134_BOARD_ASUSTeK_PS3_100      190
++#define SAA7134_BOARD_AVERMEDIA_A706		191
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+-- 
+Ondrej Zary
+
