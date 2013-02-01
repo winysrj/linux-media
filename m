@@ -1,64 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1976 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436Ab3BIKBI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com
-Subject: [RFCv2 PATCH 00/26] cx231xx: v4l2-compliance fixes, big-endian fixes
-Date: Sat,  9 Feb 2013 11:00:30 +0100
-Message-Id: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:46099 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756313Ab3BAJdP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 04:33:15 -0500
+Received: from epcpsbge1.samsung.com (epcpsbge1 [203.254.230.11])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHJ00CTIBUGATU0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Feb 2013 18:33:14 +0900 (KST)
+Date: Fri, 01 Feb 2013 09:33:14 +0000 (GMT)
+From: Jingoo Han <jg1.han@samsung.com>
+Subject: Re: [PATCH v17 4/7] fbmon: add videomode helpers
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+Cc: "devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	Dave Airlie <airlied@linux.ie>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"Mohammed, Afzal" <afzal@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Rob Herring <robherring2@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"kernel@pengutronix.de" <kernel@pengutronix.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Jingoo Han <jg1.han@samsung.com>
+Reply-to: jg1.han@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=euc-kr
+MIME-version: 1.0
+Message-id: <7561610.793881359711187327.JavaMail.weblogic@epml02>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+T24gRnJpZGF5LCBKYW51YXJ5IDI1LCAyMDEzIDY6MDIgUE0sIFN0ZWZmZW4gVHJ1bXRyYXIgd3Jv
+dGUNCj4gDQo+IEFkZCBhIGZ1bmN0aW9uIHRvIGNvbnZlcnQgZnJvbSB0aGUgZ2VuZXJpYyB2aWRl
+b21vZGUgdG8gYSBmYl92aWRlb21vZGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBTdGVmZmVuIFRy
+dW10cmFyIDxzLnRydW10cmFyQHBlbmd1dHJvbml4LmRlPg0KPiBSZXZpZXdlZC1ieTogVGhpZXJy
+eSBSZWRpbmcgPHRoaWVycnkucmVkaW5nQGF2aW9uaWMtZGVzaWduLmRlPg0KPiBBY2tlZC1ieTog
+VGhpZXJyeSBSZWRpbmcgPHRoaWVycnkucmVkaW5nQGF2aW9uaWMtZGVzaWduLmRlPg0KPiBUZXN0
+ZWQtYnk6IFRoaWVycnkgUmVkaW5nIDx0aGllcnJ5LnJlZGluZ0BhdmlvbmljLWRlc2lnbi5kZT4N
+Cj4gVGVzdGVkLWJ5OiBQaGlsaXBwIFphYmVsIDxwLnphYmVsQHBlbmd1dHJvbml4LmRlPg0KPiBS
+ZXZpZXdlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBpZGVhc29uYm9h
+cmQuY29tPg0KPiBBY2tlZC1ieTogTGF1cmVudCBQaW5jaGFydCA8bGF1cmVudC5waW5jaGFydEBp
+ZGVhc29uYm9hcmQuY29tPg0KPiBUZXN0ZWQtYnk6IEFmemFsIE1vaGFtbWVkIDxBZnphbEB0aS5j
+b20+DQo+IFRlc3RlZC1ieTogUm9iIENsYXJrIDxyb2JjbGFya0BnbWFpbC5jb20+DQo+IFRlc3Rl
+ZC1ieTogTGVlbGEgS3Jpc2huYSBBbXVkYWxhIDxsZWVsYWtyaXNobmEuYUBnbWFpbC5jb20+DQo+
+IC0tLQ0KPiAgZHJpdmVycy92aWRlby9mYm1vbi5jIHwgICA1MiArKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrDQo+ICBpbmNsdWRlL2xpbnV4L2ZiLmggICAg
+fCAgICA0ICsrKysNCj4gIDIgZmlsZXMgY2hhbmdlZCwgNTYgaW5zZXJ0aW9ucygrKQ0KPiANCj4g
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvdmlkZW8vZmJtb24uYyBiL2RyaXZlcnMvdmlkZW8vZmJtb24u
+Yw0KPiBpbmRleCBjZWY2NTU3Li4xN2NlMTM1IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL3ZpZGVv
+L2ZibW9uLmMNCj4gKysrIGIvZHJpdmVycy92aWRlby9mYm1vbi5jDQo+IEBAIC0zMSw2ICszMSw3
+IEBADQo+ICAjaW5jbHVkZSA8bGludXgvcGNpLmg+DQo+ICAjaW5jbHVkZSA8bGludXgvc2xhYi5o
+Pg0KPiAgI2luY2x1ZGUgPHZpZGVvL2VkaWQuaD4NCj4gKyNpbmNsdWRlIDx2aWRlby92aWRlb21v
+ZGUuaD4NCj4gICNpZmRlZiBDT05GSUdfUFBDX09GDQo+ICAjaW5jbHVkZSA8YXNtL3Byb20uaD4N
+Cj4gICNpbmNsdWRlIDxhc20vcGNpLWJyaWRnZS5oPg0KPiBAQCAtMTM3Myw2ICsxMzc0LDU3IEBA
+IGludCBmYl9nZXRfbW9kZShpbnQgZmxhZ3MsIHUzMiB2YWwsIHN0cnVjdCBmYl92YXJfc2NyZWVu
+aW5mbyAqdmFyLCBzdHJ1Y3QgZmJfaW5mDQo+ICAJa2ZyZWUodGltaW5ncyk7DQo+ICAJcmV0dXJu
+IGVycjsNCj4gIH0NCj4gKw0KPiArI2lmIElTX0VOQUJMRUQoQ09ORklHX1ZJREVPTU9ERSkNCj4g
+K2ludCBmYl92aWRlb21vZGVfZnJvbV92aWRlb21vZGUoY29uc3Qgc3RydWN0IHZpZGVvbW9kZSAq
+dm0sDQo+ICsJCQkJc3RydWN0IGZiX3ZpZGVvbW9kZSAqZmJtb2RlKQ0KPiArew0KPiArCXVuc2ln
+bmVkIGludCBodG90YWwsIHZ0b3RhbDsNCj4gKw0KPiArCWZibW9kZS0+eHJlcyA9IHZtLT5oYWN0
+aXZlOw0KPiArCWZibW9kZS0+bGVmdF9tYXJnaW4gPSB2bS0+aGJhY2tfcG9yY2g7DQo+ICsJZmJt
+b2RlLT5yaWdodF9tYXJnaW4gPSB2bS0+aGZyb250X3BvcmNoOw0KPiArCWZibW9kZS0+aHN5bmNf
+bGVuID0gdm0tPmhzeW5jX2xlbjsNCj4gKw0KPiArCWZibW9kZS0+eXJlcyA9IHZtLT52YWN0aXZl
+Ow0KPiArCWZibW9kZS0+dXBwZXJfbWFyZ2luID0gdm0tPnZiYWNrX3BvcmNoOw0KPiArCWZibW9k
+ZS0+bG93ZXJfbWFyZ2luID0gdm0tPnZmcm9udF9wb3JjaDsNCj4gKwlmYm1vZGUtPnZzeW5jX2xl
+biA9IHZtLT52c3luY19sZW47DQo+ICsNCj4gKwkvKiBwcmV2ZW50IGRpdmlzaW9uIGJ5IHplcm8g
+aW4gS0haMlBJQ09TIG1hY3JvICovDQo+ICsJZmJtb2RlLT5waXhjbG9jayA9IHZtLT5waXhlbGNs
+b2NrID8NCj4gKwkJCUtIWjJQSUNPUyh2bS0+cGl4ZWxjbG9jayAvIDEwMDApIDogMDsNCj4gKw0K
+PiArCWZibW9kZS0+c3luYyA9IDA7DQo+ICsJZmJtb2RlLT52bW9kZSA9IDA7DQo+ICsJaWYgKHZt
+LT5kbXRfZmxhZ3MgJiBWRVNBX0RNVF9IU1lOQ19ISUdIKQ0KPiArCQlmYm1vZGUtPnN5bmMgfD0g
+RkJfU1lOQ19IT1JfSElHSF9BQ1Q7DQo+ICsJaWYgKHZtLT5kbXRfZmxhZ3MgJiBWRVNBX0RNVF9I
+U1lOQ19ISUdIKQ0KDQpIaSBTdGVmZmVuIFRydW10cmFyLA0KDQpVbSwgaXQgc2VlbXMgdG8gYmUg
+YSB0eXBlLiAnSCdTWU5DIC0+ICdWJ1NZTkMNClRodXMsIGl0IHdvdWxkIGJlIGNoYW5nZWQgYXMg
+YmVsb3c6DQoNCiAgICBWRVNBX0RNVF9IU1lOQ19ISUdIIC0+IFZFU0FfRE1UX1ZTWU5DX0hJR0gN
+Cg0KDQpCZXN0IHJlZ2FyZHMsDQpKaW5nb28gSGFuDQoNCj4gKwkJZmJtb2RlLT5zeW5jIHw9IEZC
+X1NZTkNfVkVSVF9ISUdIX0FDVDsNCj4gKwlpZiAodm0tPmRhdGFfZmxhZ3MgJiBESVNQTEFZX0ZM
+QUdTX0lOVEVSTEFDRUQpDQo+ICsJCWZibW9kZS0+dm1vZGUgfD0gRkJfVk1PREVfSU5URVJMQUNF
+RDsNCj4gKwlpZiAodm0tPmRhdGFfZmxhZ3MgJiBESVNQTEFZX0ZMQUdTX0RPVUJMRVNDQU4pDQo+
+ICsJCWZibW9kZS0+dm1vZGUgfD0gRkJfVk1PREVfRE9VQkxFOw0KPiArCWZibW9kZS0+ZmxhZyA9
+IDA7DQo+ICsNCj4gKwlodG90YWwgPSB2bS0+aGFjdGl2ZSArIHZtLT5oZnJvbnRfcG9yY2ggKyB2
+bS0+aGJhY2tfcG9yY2ggKw0KPiArCQkgdm0tPmhzeW5jX2xlbjsNCj4gKwl2dG90YWwgPSB2bS0+
+dmFjdGl2ZSArIHZtLT52ZnJvbnRfcG9yY2ggKyB2bS0+dmJhY2tfcG9yY2ggKw0KPiArCQkgdm0t
+PnZzeW5jX2xlbjsNCj4gKwkvKiBwcmV2ZW50IGRpdmlzaW9uIGJ5IHplcm8gKi8NCj4gKwlpZiAo
+aHRvdGFsICYmIHZ0b3RhbCkgew0KPiArCQlmYm1vZGUtPnJlZnJlc2ggPSB2bS0+cGl4ZWxjbG9j
+ayAvIChodG90YWwgKiB2dG90YWwpOw0KPiArCS8qIGEgbW9kZSBtdXN0IGhhdmUgaHRvdGFsIGFu
+ZCB2dG90YWwgIT0gMCBvciBpdCBpcyBpbnZhbGlkICovDQo+ICsJfSBlbHNlIHsNCj4gKwkJZmJt
+b2RlLT5yZWZyZXNoID0gMDsNCj4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+ICsJfQ0KPiArDQo+ICsJ
+cmV0dXJuIDA7DQo+ICt9DQo+ICtFWFBPUlRfU1lNQk9MX0dQTChmYl92aWRlb21vZGVfZnJvbV92
+aWRlb21vZGUpOw0KPiArI2VuZGlmDQo+ICsNCj4gICNlbHNlDQo+ICBpbnQgZmJfcGFyc2VfZWRp
+ZCh1bnNpZ25lZCBjaGFyICplZGlkLCBzdHJ1Y3QgZmJfdmFyX3NjcmVlbmluZm8gKnZhcikNCj4g
+IHsNCj4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvZmIuaCBiL2luY2x1ZGUvbGludXgvZmIu
+aA0KPiBpbmRleCBjN2E5NTcxLi4xMDBhMTc2IDEwMDY0NA0KPiAtLS0gYS9pbmNsdWRlL2xpbnV4
+L2ZiLmgNCj4gKysrIGIvaW5jbHVkZS9saW51eC9mYi5oDQo+IEBAIC0xOSw2ICsxOSw3IEBAIHN0
+cnVjdCB2bV9hcmVhX3N0cnVjdDsNCj4gIHN0cnVjdCBmYl9pbmZvOw0KPiAgc3RydWN0IGRldmlj
+ZTsNCj4gIHN0cnVjdCBmaWxlOw0KPiArc3RydWN0IHZpZGVvbW9kZTsNCj4gDQo+ICAvKiBEZWZp
+bml0aW9ucyBiZWxvdyBhcmUgdXNlZCBpbiB0aGUgcGFyc2VkIG1vbml0b3Igc3BlY3MgKi8NCj4g
+ICNkZWZpbmUgRkJfRFBNU19BQ1RJVkVfT0ZGCTENCj4gQEAgLTcxNCw2ICs3MTUsOSBAQCBleHRl
+cm4gdm9pZCBmYl9kZXN0cm95X21vZGVkYihzdHJ1Y3QgZmJfdmlkZW9tb2RlICptb2RlZGIpOw0K
+PiAgZXh0ZXJuIGludCBmYl9maW5kX21vZGVfY3Z0KHN0cnVjdCBmYl92aWRlb21vZGUgKm1vZGUs
+IGludCBtYXJnaW5zLCBpbnQgcmIpOw0KPiAgZXh0ZXJuIHVuc2lnbmVkIGNoYXIgKmZiX2RkY19y
+ZWFkKHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcHRlcik7DQo+IA0KPiArZXh0ZXJuIGludCBmYl92
+aWRlb21vZGVfZnJvbV92aWRlb21vZGUoY29uc3Qgc3RydWN0IHZpZGVvbW9kZSAqdm0sDQo+ICsJ
+CQkJICAgICAgIHN0cnVjdCBmYl92aWRlb21vZGUgKmZibW9kZSk7DQo+ICsNCj4gIC8qIGRyaXZl
+cnMvdmlkZW8vbW9kZWRiLmMgKi8NCj4gICNkZWZpbmUgVkVTQV9NT0RFREJfU0laRSAzNA0KPiAg
+ZXh0ZXJuIHZvaWQgZmJfdmFyX3RvX3ZpZGVvbW9kZShzdHJ1Y3QgZmJfdmlkZW9tb2RlICptb2Rl
+LA0KPiAtLQ0KPiAxLjcuMTAuNA0KPiANCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18NCj4gZHJpLWRldmVsIG1haWxpbmcgbGlzdA0KPiBkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnDQo+IGh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9kcmktZGV2ZWwNCg==
 
-This patch series cleans up the cx231xx driver based on v4l2-compliance
-reports.
-
-I have tested this on various cx231xx devices. However, I have no hardware
-that supports the radio tuner, so that's untested.
-
-Also note that the MPEG encoder support does not seem to work. It didn't work
-before these patches are applied, and it doesn't work afterwards. At best it
-will stream for a bit and then hang the machine. While I did convert the 417
-code to have it pass the compliance tests, I did disable 417 support in the
-single card that supports it (gracefully provided by Conexant for which I
-want to thank them!) until someone can find the time to dig into it and
-figure out what is wrong. Note that that board is an evaluation board and not
-a consumer product.
-
-In addition the vbi support is flaky as well. It was flaky before this patch
-series, and it is equally flaky afterwards. I have managed to get something
-to work only on rare occasions and only for NTSC, never for PAL.
-
-Finally I have tested this on a big-endian machine so there are a bunch of
-patches fixing a lot of endianness problems.
-
-A general note regarding this driver: I've found this to be a particularly
-fragile driver. Things like changing formats/standards, unplugging at
-unexpected times and vbi support all seem very prone to errors. I have
-serious doubts about the disconnect handling: this code really should use the
-core support for handling such events (in particular the v4l2_device release
-callback).
-
-New since v1:
-
-- I reverted a bunch of bytesperline calculation changes: those aren't needed
-  for this driver (patch 06/26)
-- Some vbi fmt patches ended up in patch 07 instead of 08, moved them to the
-  right patch. No actual code was changed.
-- Patches 21-26 are new.
-
-All other patches are unchanged.
-
-If there are no comments, then I'll post a pull request for this series in a
-week.
-
-Regards,
-
-        Hans
 
