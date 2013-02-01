@@ -1,143 +1,452 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:47884 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757821Ab3B0PcT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 10:32:19 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hm6so831554wib.8
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 07:32:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <512DEC6C.60607@samsung.com>
-References: <51275DF7.4010600@gmail.com>
-	<512D2780.3020103@gmail.com>
-	<CAG17yqQ3d+3Uwpfo+_r0Jwm4TQXcSY-bcW4qRcygzjq=9qXvvA@mail.gmail.com>
-	<512DEC6C.60607@samsung.com>
-Date: Wed, 27 Feb 2013 21:02:18 +0530
-Message-ID: <CAG17yqRYF-DRDigQVfJ1nvt0x2evnX=dnNfL6FFxPWno+NGqMg@mail.gmail.com>
-Subject: Re: SMDKV210 support issue in kernel 3.8 (dma-pl330 and HDMI failed)
-From: Inderpal Singh <inderpal.singh@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Lonsn <lonsn2005@gmail.com>, linux-samsung-soc@vger.kernel.org,
-	linux-media@vger.kernel.org, Boojin Kim <boojin.kim@samsung.com>,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:55364 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755464Ab3BATJv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 14:09:51 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	swarren@wwwdotorg.org, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 01/10] s5p-csis: Add device tree support
+Date: Fri, 01 Feb 2013 20:09:22 +0100
+Message-id: <1359745771-23684-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 February 2013 16:52, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> On 02/27/2013 11:51 AM, Inderpal Singh wrote:
->> On 27 February 2013 02:52, Sylwester Nawrocki
->> <sylvester.nawrocki@gmail.com> wrote:
->>> On 02/22/2013 01:00 PM, Lonsn wrote:
->>>>
->>>> Hi,
->>>> I have tested the kernel 3.8 with a SMDKV210 like board. But I failed
->>>> with dma-pl330 and HDMI driver.
->>>> For dma-pl330, kernel print:
->>>> dma-pl330 dma-pl330.0: PERIPH_ID 0x0, PCELL_ID 0x0 !
->>>> dma-pl330: probe of dma-pl330.0 failed with error -22
->>>> dma-pl330 dma-pl330.1: PERIPH_ID 0x0, PCELL_ID 0x0 !
->>>> dma-pl330: probe of dma-pl330.1 failed with error -22
->>>
->>>
->>> Maybe there is some issue with the PL330 DMA controller clocks and the
->>> read values are all 0 because the clocks are disabled ?
->>>
->>> It seems arch/arm/mach-s5pv210/clock.c might be missing "apb_pclk" clock
->>> supply names, which I suspect may be required after commits:
->>>
->>> commit 7c71b8eb268ee38235f7e924d943ea9d90e59469
->>> Author: Inderpal Singh <inderpal.singh@linaro.org>
->>> Date:   Fri Sep 7 12:14:48 2012 +0530
->>>
->>>     DMA: PL330: Remove redundant runtime_suspend/resume functions
->>>
->>>     The driver's  runtime_suspend/resume functions just disable/enable
->>>     the clock which is already being managed at AMBA bus level
->>>     runtime_suspend/resume functions.
->>>
->>>     Hence, remove the driver's runtime_suspend/resume functions.
->>>
->>>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
->>>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
->>>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
->>>
->>> commit faf6fbc6f2ca3b34bf464a8bb079a998e571957c
->>> Author: Inderpal Singh <inderpal.singh@linaro.org>
->>> Date:   Fri Sep 7 12:14:47 2012 +0530
->>>
->>>     DMA: PL330: Remove controller clock enable/disable
->>>
->>>     The controller clock is being enabled/disabled in AMBA bus
->>>     infrastructre in probe/remove functions. Hence, its not required
->>>     at driver level probe/remove.
->>>
->>>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
->>>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
->>>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
->>>
->>> I have added people who made related changes at Cc, hopefully they
->>> can provide some help in debugging this.
->>>
->>
->> The mentioned patches just removed the redundant clock enable/disable
->> from the driver as clock is already being managed at amba bus level in
->> the same code path. As per my understanding the issue should come even
->> without these patches.
->
-> But were the clocks managed directly by the pl330 driver same as those
-> managed at amba bus level ? The first patch as above removed chunk
->
-> @@ -2887,24 +2884,17 @@ pl330_probe(struct amba_device *adev, const struct
-> amba_id *id)
->                 goto probe_err1;
->         }
->
-> -       pdmac->clk = clk_get(&adev->dev, "dma");
-> -       if (IS_ERR(pdmac->clk)) {
-> -               dev_err(&adev->dev, "Cannot get operation clock.\n");
-> -               ret = -EINVAL;
-> -               goto probe_err2;
-> -       }
-> -
->
-> which suggest the driver was enabling directly "dma" clocks, defined at
-> S5PV210 platform level as:
->
->         {
->                 .name           = "dma",
->                 .devname        = "dma-pl330.0",
->                 .parent         = &clk_hclk_psys.clk,
->                 .enable         = s5pv210_clk_ip0_ctrl,
->                 .ctrlbit        = (1 << 3),
->         }, {
->                 .name           = "dma",
->                 .devname        = "dma-pl330.1",
->                 .parent         = &clk_hclk_psys.clk,
->                 .enable         = s5pv210_clk_ip0_ctrl,
->                 .ctrlbit        = (1 << 4),
->         }, {
->
-> And amba bus was getting only dummy clocks behind "apb_pclk" clock
-> conn_id.
->
+s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
+device. This patch support for binding the driver to the MIPI-CSIS
+devices instantiated from device tree and for parsing all SoC and
+board specific properties.
 
-Ahh Yes, I had missed this point. So the changes you suggested needs
-to be done as confirmed by Lonsn.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
 
-Thanks Lonsn for bringing this up :-)
+Changes since v3:
+ - dropped 'bus-width' property, hard coded the number of supported
+   data lanes per device also in dt case, it can be derived from the
+   compatible property if required;
+ - "samsung,s5pv210-csis" renamed to "samsung,exynos3110-csis",
+   updated the bindings description.
+---
+ .../bindings/media/soc/samsung-mipi-csis.txt       |   82 +++++++++++
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |  154 +++++++++++++++-----
+ drivers/media/platform/s5p-fimc/mipi-csis.h        |    1 +
+ 3 files changed, 202 insertions(+), 35 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
 
-Regards,
-Inder
+diff --git a/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt b/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+new file mode 100644
+index 0000000..c142272
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+@@ -0,0 +1,82 @@
++Samsung S5P/EXYNOS SoC MIPI-CSI2 receiver (MIPI CSIS)
++-----------------------------------------------------
++
++Required properties:
++
++- compatible	  : "samsung,exynos3110-csis" for Exynos3110 (S5PC110, S5PV210)
++		     SoCs;
++		    "samsung,exynos4210-csis" for Exynos4210 (S5PC210, S5PV310)
++		    and later SoCs;
++- reg		  : physical base address and size of the device memory mapped
++		    registers;
++- interrupts      : should contain MIPI CSIS interrupt; the format of the
++		    interrupt specifier depends on the interrupt controller;
++- vddio-supply    : MIPI CSIS I/O and PLL voltage supply (e.g. 1.8V);
++- vddcore-supply  : MIPI CSIS Core voltage supply (e.g. 1.1V).
++
++Optional properties:
++
++- clock-frequency : The IP's main (system bus) clock frequency in Hz, default
++		    value when this property is not specified is 166 MHz;
++- samsung,csis-wclk : CSI-2 wrapper clock selection. If this property is present
++		    external clock from CMU will be used, if not bus clock will
++		    be selected.
++
++The device node should contain one 'port' child node with one child 'endpoint'
++node, as outlined in the common media bindings specification. See
++Documentation/devicetree/bindings/media/video-interfaces.txt for details.
++The following are properties specific to these nodes.
++
++port node
++---------
++
++- reg		  : (required) must be 3 for camera C input (CSIS0) or 4 for
++		    camera D input (CSIS1);
++
++endpoint node
++-------------
++
++- data-lanes	  : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++- samsung,csis-hs-settle : (optional) differential receiver (HS-RX) settle time;
++
++
++Example:
++
++	reg0: regulator@0 {
++	};
++
++	reg1: regulator@1 {
++	};
++
++/* SoC properties */
++
++	aliases {
++		csis0 = &csis_0;
++	};
++
++	csis_0: csis@11880000 {
++		compatible = "samsung,exynos4210-csis";
++		reg = <0x11880000 0x1000>;
++		interrupts = <0 78 0>;
++		#address-cells = <1>;
++		#size-cells = <0>;
++	};
++
++/* Board properties */
++
++	csis_0: csis@11880000 {
++		clock-frequency = <166000000>;
++		vddio-supply = <&reg0>;
++		vddcore-supply = <&reg1>;
++		port {
++			reg = <3>; /* 3 - CSIS0, 4 - CSIS1 */
++			csis0_ep: endpoint {
++				remote-endpoint = <...>;
++				data-lanes = <1>, <2>;
++				samsung,csis-hs-settle = <12>;
++			};
++		};
++	};
+diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
+index 0f5104c..b906bfe 100644
+--- a/drivers/media/platform/s5p-fimc/mipi-csis.c
++++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
+@@ -19,12 +19,14 @@
+ #include <linux/kernel.h>
+ #include <linux/memory.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/videodev2.h>
++#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ #include <linux/platform_data/mipi-csis.h>
+ #include "mipi-csis.h"
+@@ -113,6 +115,7 @@ static char *csi_clock_name[] = {
+ 	[CSIS_CLK_GATE] = "csis",
+ };
+ #define NUM_CSIS_CLOCKS	ARRAY_SIZE(csi_clock_name)
++#define DEFAULT_SCLK_CSIS_FREQ	166000000UL
+ 
+ static const char * const csis_supply_name[] = {
+ 	"vddcore",  /* CSIS Core (1.0V, 1.1V or 1.2V) suppply */
+@@ -167,6 +170,11 @@ struct csis_pktbuf {
+  * @clock: CSIS clocks
+  * @irq: requested s5p-mipi-csis irq number
+  * @flags: the state variable for power and streaming control
++ * @clock_frequency: device bus clock frequency
++ * @hs_settle: HS-RX settle time
++ * @num_lanes: number of MIPI-CSI data lanes used
++ * @max_num_lanes: maximum number of MIPI-CSI data lanes supported
++ * @wclk_ext: CSI wrapper clock: 0 - bus clock, 1 - external SCLK_CAM
+  * @csis_fmt: current CSIS pixel format
+  * @format: common media bus format for the source and sink pad
+  * @slock: spinlock protecting structure members below
+@@ -184,6 +192,13 @@ struct csis_state {
+ 	struct clk *clock[NUM_CSIS_CLOCKS];
+ 	int irq;
+ 	u32 flags;
++
++	u32 clk_frequency;
++	u32 hs_settle;
++	u32 num_lanes;
++	u32 max_num_lanes;
++	u8 wclk_ext;
++
+ 	const struct csis_pix_format *csis_fmt;
+ 	struct v4l2_mbus_framefmt format;
+ 
+@@ -273,7 +288,6 @@ static void s5pcsis_reset(struct csis_state *state)
+ 
+ static void s5pcsis_system_enable(struct csis_state *state, int on)
+ {
+-	struct s5p_platform_mipi_csis *pdata = state->pdev->dev.platform_data;
+ 	u32 val, mask;
+ 
+ 	val = s5pcsis_read(state, S5PCSIS_CTRL);
+@@ -286,7 +300,7 @@ static void s5pcsis_system_enable(struct csis_state *state, int on)
+ 	val = s5pcsis_read(state, S5PCSIS_DPHYCTRL);
+ 	val &= ~S5PCSIS_DPHYCTRL_ENABLE;
+ 	if (on) {
+-		mask = (1 << (pdata->lanes + 1)) - 1;
++		mask = (1 << (state->num_lanes + 1)) - 1;
+ 		val |= (mask & S5PCSIS_DPHYCTRL_ENABLE);
+ 	}
+ 	s5pcsis_write(state, S5PCSIS_DPHYCTRL, val);
+@@ -321,15 +335,14 @@ static void s5pcsis_set_hsync_settle(struct csis_state *state, int settle)
+ 
+ static void s5pcsis_set_params(struct csis_state *state)
+ {
+-	struct s5p_platform_mipi_csis *pdata = state->pdev->dev.platform_data;
+ 	u32 val;
+ 
+ 	val = s5pcsis_read(state, S5PCSIS_CONFIG);
+-	val = (val & ~S5PCSIS_CFG_NR_LANE_MASK) | (pdata->lanes - 1);
++	val = (val & ~S5PCSIS_CFG_NR_LANE_MASK) | (state->num_lanes - 1);
+ 	s5pcsis_write(state, S5PCSIS_CONFIG, val);
+ 
+ 	__s5pcsis_set_format(state);
+-	s5pcsis_set_hsync_settle(state, pdata->hs_settle);
++	s5pcsis_set_hsync_settle(state, state->hs_settle);
+ 
+ 	val = s5pcsis_read(state, S5PCSIS_CTRL);
+ 	if (state->csis_fmt->data_alignment == 32)
+@@ -338,7 +351,7 @@ static void s5pcsis_set_params(struct csis_state *state)
+ 		val &= ~S5PCSIS_CTRL_ALIGN_32BIT;
+ 
+ 	val &= ~S5PCSIS_CTRL_WCLK_EXTCLK;
+-	if (pdata->wclk_source)
++	if (state->wclk_ext)
+ 		val |= S5PCSIS_CTRL_WCLK_EXTCLK;
+ 	s5pcsis_write(state, S5PCSIS_CTRL, val);
+ 
+@@ -701,54 +714,114 @@ static irqreturn_t s5pcsis_irq_handler(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
++static int s5pcsis_get_platform_data(struct platform_device *pdev,
++				     struct csis_state *state)
++{
++	struct s5p_platform_mipi_csis *pdata = pdev->dev.platform_data;
++
++	if (pdata == NULL) {
++		dev_err(&pdev->dev, "Platform data not specified\n");
++		return -EINVAL;
++	}
++
++	state->clk_frequency = pdata->clk_rate;
++	state->num_lanes = pdata->lanes;
++	state->hs_settle = pdata->hs_settle;
++	state->index = max(0, pdev->id);
++
++	return 0;
++}
++
++#ifdef CONFIG_OF
++static int s5pcsis_parse_dt(struct platform_device *pdev,
++			    struct csis_state *state)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct v4l2_of_endpoint endpoint;
++	int ret;
++
++	state->index = of_alias_get_id(node, "csis");
++	if (state->index < 0 || state->index >= CSIS_MAX_ENTITIES)
++		return -EINVAL;
++
++	if (of_property_read_u32(node, "clock-frequency",
++				 &state->clk_frequency))
++		state->clk_frequency = DEFAULT_SCLK_CSIS_FREQ;
++	/*
++	 * Get endpoint node. We care only about first child
++	 * nodes since these are the only ones available.
++	 */
++	while ((node = of_get_next_child(node, NULL))) {
++		if (!of_node_cmp(node->name, "endpoint"))
++			break;
++		of_node_put(node);
++	};
++	if (!node)
++		return -EINVAL;
++	of_property_read_u32(node, "samsung,csis-hs-settle",
++					&state->hs_settle);
++	state->wclk_ext = of_property_read_bool(node,
++					"samsung,csis-wclk");
++	ret = v4l2_of_parse_mipi_csi2(node, &endpoint);
++	state->num_lanes = endpoint.mbus.mipi_csi2.num_data_lanes;
++
++	of_node_put(node);
++	return 0;
++}
++#else
++#define s5pcsis_parse_dt(pdev, state) (-ENOSYS)
++#endif
++
+ static int s5pcsis_probe(struct platform_device *pdev)
+ {
+-	struct s5p_platform_mipi_csis *pdata;
++	struct device *dev = &pdev->dev;
+ 	struct resource *mem_res;
+ 	struct csis_state *state;
+ 	int ret = -ENOMEM;
+ 	int i;
+ 
+-	state = devm_kzalloc(&pdev->dev, sizeof(*state), GFP_KERNEL);
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+ 	if (!state)
+ 		return -ENOMEM;
+ 
+ 	mutex_init(&state->lock);
+ 	spin_lock_init(&state->slock);
+-
+ 	state->pdev = pdev;
+-	state->index = max(0, pdev->id);
+ 
+-	pdata = pdev->dev.platform_data;
+-	if (pdata == NULL) {
+-		dev_err(&pdev->dev, "Platform data not fully specified\n");
+-		return -EINVAL;
+-	}
++	if (dev->of_node)
++		ret = s5pcsis_parse_dt(pdev, state);
++	else
++		ret = s5pcsis_get_platform_data(pdev, state);
++	if (ret < 0)
++		return ret;
++	if (state->index == 1)
++		state->max_num_lanes = CSIS1_MAX_LANES;
++	else
++		state->max_num_lanes = CSIS0_MAX_LANES;
+ 
+-	if ((state->index == 1 && pdata->lanes > CSIS1_MAX_LANES) ||
+-	    pdata->lanes > CSIS0_MAX_LANES) {
+-		dev_err(&pdev->dev, "Unsupported number of data lanes: %d\n",
+-			pdata->lanes);
++	if (state->num_lanes == 0 || state->num_lanes > state->max_num_lanes) {
++		dev_err(dev, "Unsupported number of data lanes: %d (max. %d)\n",
++			state->num_lanes, state->max_num_lanes);
+ 		return -EINVAL;
+ 	}
+ 
+ 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	state->regs = devm_request_and_ioremap(&pdev->dev, mem_res);
++	state->regs = devm_request_and_ioremap(dev, mem_res);
+ 	if (state->regs == NULL) {
+-		dev_err(&pdev->dev, "Failed to request and remap io memory\n");
++		dev_err(dev, "Failed to request and remap io memory\n");
+ 		return -ENXIO;
+ 	}
+ 
+ 	state->irq = platform_get_irq(pdev, 0);
+ 	if (state->irq < 0) {
+-		dev_err(&pdev->dev, "Failed to get irq\n");
++		dev_err(dev, "Failed to get irq\n");
+ 		return state->irq;
+ 	}
+ 
+ 	for (i = 0; i < CSIS_NUM_SUPPLIES; i++)
+ 		state->supplies[i].supply = csis_supply_name[i];
+ 
+-	ret = devm_regulator_bulk_get(&pdev->dev, CSIS_NUM_SUPPLIES,
++	ret = devm_regulator_bulk_get(dev, CSIS_NUM_SUPPLIES,
+ 				 state->supplies);
+ 	if (ret)
+ 		return ret;
+@@ -757,11 +830,11 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (pdata->clk_rate)
++	if (state->clk_frequency)
+ 		ret = clk_set_rate(state->clock[CSIS_CLK_MUX],
+-				   pdata->clk_rate);
++				   state->clk_frequency);
+ 	else
+-		dev_WARN(&pdev->dev, "No clock frequency specified!\n");
++		dev_WARN(dev, "No clock frequency specified!\n");
+ 	if (ret < 0)
+ 		goto e_clkput;
+ 
+@@ -769,16 +842,17 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto e_clkput;
+ 
+-	ret = devm_request_irq(&pdev->dev, state->irq, s5pcsis_irq_handler,
+-			       0, dev_name(&pdev->dev), state);
++	ret = devm_request_irq(dev, state->irq, s5pcsis_irq_handler,
++			       0, dev_name(dev), state);
+ 	if (ret) {
+-		dev_err(&pdev->dev, "Interrupt request failed\n");
++		dev_err(dev, "Interrupt request failed\n");
+ 		goto e_clkdis;
+ 	}
+ 
+ 	v4l2_subdev_init(&state->sd, &s5pcsis_subdev_ops);
+ 	state->sd.owner = THIS_MODULE;
+-	strlcpy(state->sd.name, dev_name(&pdev->dev), sizeof(state->sd.name));
++	snprintf(state->sd.name, sizeof(state->sd.name), "%s.%d",
++		 CSIS_SUBDEV_NAME, state->index);
+ 	state->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	state->csis_fmt = &s5pcsis_formats[0];
+ 
+@@ -798,10 +872,12 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 
+ 	/* .. and a pointer to the subdev. */
+ 	platform_set_drvdata(pdev, &state->sd);
+-
+ 	memcpy(state->events, s5pcsis_events, sizeof(state->events));
++	pm_runtime_enable(dev);
+ 
+-	pm_runtime_enable(&pdev->dev);
++	dev_info(&pdev->dev, "lanes: %d, hs_settle: %d, wclk: %d, freq: %u\n",
++		 state->num_lanes, state->hs_settle, state->wclk_ext,
++		 state->clk_frequency);
+ 	return 0;
+ 
+ e_clkdis:
+@@ -925,13 +1001,21 @@ static const struct dev_pm_ops s5pcsis_pm_ops = {
+ 	SET_SYSTEM_SLEEP_PM_OPS(s5pcsis_suspend, s5pcsis_resume)
+ };
+ 
++static const struct of_device_id s5pcsis_of_match[] __devinitconst = {
++	{ .compatible = "samsung,exynos3110-csis" },
++	{ .compatible = "samsung,exynos4210-csis" },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, s5pcsis_of_match);
++
+ static struct platform_driver s5pcsis_driver = {
+ 	.probe		= s5pcsis_probe,
+ 	.remove		= s5pcsis_remove,
+ 	.driver		= {
+-		.name	= CSIS_DRIVER_NAME,
+-		.owner	= THIS_MODULE,
+-		.pm	= &s5pcsis_pm_ops,
++		.of_match_table = s5pcsis_of_match,
++		.name		= CSIS_DRIVER_NAME,
++		.owner		= THIS_MODULE,
++		.pm		= &s5pcsis_pm_ops,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.h b/drivers/media/platform/s5p-fimc/mipi-csis.h
+index 2709286..28c11c4 100644
+--- a/drivers/media/platform/s5p-fimc/mipi-csis.h
++++ b/drivers/media/platform/s5p-fimc/mipi-csis.h
+@@ -11,6 +11,7 @@
+ #define S5P_MIPI_CSIS_H_
+ 
+ #define CSIS_DRIVER_NAME	"s5p-mipi-csis"
++#define CSIS_SUBDEV_NAME	CSIS_DRIVER_NAME
+ #define CSIS_MAX_ENTITIES	2
+ #define CSIS0_MAX_LANES		4
+ #define CSIS1_MAX_LANES		2
+-- 
+1.7.9.5
 
->> @Lonsn: Can you please test without these patches?
->
-> I suspect reverting only patch
-> DMA: PL330: Remove redundant runtime_suspend/resume functions
-> with PM_RUNTIME enabled might fix the issue.
->
-> --
->
-> Regards,
-> Sylwester
