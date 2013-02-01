@@ -1,185 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:61685 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757187Ab3BFPa4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:30:56 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so753662eei.7
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 07:30:55 -0800 (PST)
-Message-ID: <5112775D.1000501@googlemail.com>
-Date: Wed, 06 Feb 2013 16:31:41 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: fix usb alternate setting for analog and digital
- video endpoints > 0
-References: <1358529948-2260-1-git-send-email-fschaefer.oss@googlemail.com> <20130205185707.5ecb3801@redhat.com> <51117BAE.5090605@googlemail.com> <20130205200643.145178ae@redhat.com>
-In-Reply-To: <20130205200643.145178ae@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4875 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753471Ab3BAMRb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/6] tm6000: fix querycap and input/tuner compliance issues.
+Date: Fri,  1 Feb 2013 13:17:16 +0100
+Message-Id: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.02.2013 23:06, schrieb Mauro Carvalho Chehab:
-> Em Tue, 05 Feb 2013 22:37:50 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 05.02.2013 21:57, schrieb Mauro Carvalho Chehab:
->>> Em Fri, 18 Jan 2013 18:25:48 +0100
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>
->>>> While the current code handles sound interfaces with a number > 0 correctly, it
->>>> assumes that the interface number for analog + digital video is always 0 when
->>>> changing the alternate setting.
->>>>
->>>> (NOTE: the "SpeedLink VAD Laplace webcam" (EM2765) uses interface number 3 for video)
->>>>
->>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->>>> ---
->>>>  drivers/media/usb/em28xx/em28xx-audio.c |   10 +++++-----
->>>>  drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
->>>>  drivers/media/usb/em28xx/em28xx-core.c  |    2 +-
->>>>  drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
->>>>  drivers/media/usb/em28xx/em28xx.h       |    3 +--
->>>>  5 Dateien geändert, 9 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
->>>>
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
->>>> index 2fdb66e..cdbfe0a 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
->>>> @@ -283,15 +283,15 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->>>>  	}
->>>>  
->>>>  	runtime->hw = snd_em28xx_hw_capture;
->>>> -	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
->>>> -		if (dev->audio_ifnum)
->>>> +	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
->>>> +		if (dev->ifnum)
->>> Please don't merge a non-fix change (variable rename) with a fix.
->> Ok, sorry, it seems to be trivial...
->>
->>> Btw, audio_ifnum is a better name, as it avoids it to be miss-interpreted.
->> Did you read the complete patch ? ;)
->> Or do you really want the video interface number to be called audio_ifnum ?
-> There are two types of em28xx audio vendor class. In one type, the audio IF
-> is the same as the video one, but on the other one, it is different.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sure, but if I'm not misunderstanding the code, we have two device
-instances with separate device structs when audio is on a separate
-interface.
-Hence we don't need two fields for the interface number in the struct
-and that's why renamed it.
+- add device_caps support
+- fix bus_info
+- fix numerous tuner-related problems due to incorrect tests
+  and setting v4l2_tuner fields to wrong values.
+- remove (audio) input support from the radio: it doesn't belong
+  there. This also fixed a nasty issue where opening the radio
+  would set dev->input to 5 for no good reason. This was never
+  set back to a valid TV input after closing the radio device,
+  thus leaving it at 5 which is out of bounds of the vinput
+  card array.
 
-Regards,
-Frank
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c |  147 +++++++------------------------
+ 1 file changed, 31 insertions(+), 116 deletions(-)
 
-> That's why audio_ifnum were added in the first place.
->
-> See this commit:
->
-> commit 4f83e7b3ef938eb9a01eadf81a0f3b2c67d3afb6
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Fri Jun 17 15:15:12 2011 -0300
->
->     [media] em28xx: Add support for devices with a separate audio interface
->     
->     Some devices use a separate interface for the vendor audio class.
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
->>>>  			dev->alt = 1;
->>>>  		else
->>>>  			dev->alt = 7;
->>>>  
->>>>  		dprintk("changing alternate number on interface %d to %d\n",
->>>> -			dev->audio_ifnum, dev->alt);
->>>> -		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
->>>> +			dev->ifnum, dev->alt);
->>>> +		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>>>  
->>>>  		/* Sets volume, mute, etc */
->>>>  		dev->mute = 0;
->>>> @@ -642,7 +642,7 @@ static int em28xx_audio_init(struct em28xx *dev)
->>>>  	static int          devnr;
->>>>  	int                 err;
->>>>  
->>>> -	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
->>>> +	if (!dev->has_alsa_audio) {
->>>>  		/* This device does not support the extension (in this case
->>>>  		   the device is expecting the snd-usb-audio module or
->>>>  		   doesn't have analog audio support at all) */
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> index 0a5aa62..553db17 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
->>>> @@ -3376,7 +3376,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>>>  	dev->alt   = -1;
->>>>  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
->>>>  	dev->has_alsa_audio = has_audio;
->>>> -	dev->audio_ifnum = ifnum;
->>>> +	dev->ifnum = ifnum;
->>>>  
->>>>  	/* Checks if audio is provided by some interface */
->>>>  	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
->>>> index ce4f252..210859a 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-core.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->>>> @@ -862,7 +862,7 @@ set_alt:
->>>>  	}
->>>>  	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
->>>>  		       dev->alt, dev->max_pkt_size);
->>>> -	errCode = usb_set_interface(dev->udev, 0, dev->alt);
->>>> +	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>>>  	if (errCode < 0) {
->>>>  		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
->>>>  				dev->alt, errCode);
->>> This hunk doesn't apply upstream:
->>>
->>> patching file drivers/media/usb/em28xx/em28xx-core.c
->>> Hunk #1 FAILED at 862.
->>> 1 out of 1 hunk FAILED -- rejects in file drivers/media/usb/em28xx/em28xx-core.c
->> It applies after
->>
->> http://patchwork.linuxtv.org/patch/16197/
->>
->> has been applied.
->>
->> Regards,
->> Frank
->>
->>>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> index a81ec2e..dbeed6c 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->>>> @@ -196,7 +196,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
->>>>  		dvb_alt = dev->dvb_alt_isoc;
->>>>  	}
->>>>  
->>>> -	usb_set_interface(dev->udev, 0, dvb_alt);
->>>> +	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
->>>>  	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
->>>>  	if (rc < 0)
->>>>  		return rc;
->>>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
->>>> index 5f0b2c5..0dc5b73 100644
->>>> --- a/drivers/media/usb/em28xx/em28xx.h
->>>> +++ b/drivers/media/usb/em28xx/em28xx.h
->>>> @@ -487,8 +487,6 @@ struct em28xx {
->>>>  
->>>>  	unsigned char disconnected:1;	/* device has been diconnected */
->>>>  
->>>> -	int audio_ifnum;
->>>> -
->>>>  	struct v4l2_device v4l2_dev;
->>>>  	struct v4l2_ctrl_handler ctrl_handler;
->>>>  	/* provides ac97 mute and volume overrides */
->>>> @@ -597,6 +595,7 @@ struct em28xx {
->>>>  
->>>>  	/* usb transfer */
->>>>  	struct usb_device *udev;	/* the usb device */
->>>> +	int ifnum;			/* usb interface number */
->>>>  	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
->>>>  	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
->>>>  	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index e3c567c..7a653b2 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -948,16 +948,21 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *cap)
+ {
+ 	struct tm6000_core *dev = ((struct tm6000_fh *)priv)->dev;
++	struct video_device *vdev = video_devdata(file);
+ 
+ 	strlcpy(cap->driver, "tm6000", sizeof(cap->driver));
+ 	strlcpy(cap->card, "Trident TVMaster TM5600/6000/6010", sizeof(cap->card));
+-	cap->capabilities =	V4L2_CAP_VIDEO_CAPTURE |
+-				V4L2_CAP_STREAMING     |
+-				V4L2_CAP_AUDIO         |
+-				V4L2_CAP_READWRITE;
+-
++	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	if (dev->tuner_type != TUNER_ABSENT)
+-		cap->capabilities |= V4L2_CAP_TUNER;
++		cap->device_caps |= V4L2_CAP_TUNER;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE |
++				V4L2_CAP_STREAMING |
++				V4L2_CAP_READWRITE;
++	else
++		cap->device_caps |= V4L2_CAP_RADIO;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
++		V4L2_CAP_RADIO | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE;
+ 
+ 	return 0;
+ }
+@@ -965,7 +970,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+ {
+-	if (unlikely(f->index >= ARRAY_SIZE(format)))
++	if (f->index >= ARRAY_SIZE(format))
+ 		return -EINVAL;
+ 
+ 	strlcpy(f->description, format[f->index].name, sizeof(f->description));
+@@ -1301,14 +1306,14 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	struct tm6000_fh   *fh  = priv;
+ 	struct tm6000_core *dev = fh->dev;
+ 
+-	if (unlikely(UNSET == dev->tuner_type))
+-		return -EINVAL;
++	if (UNSET == dev->tuner_type)
++		return -ENOTTY;
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 
+ 	strcpy(t->name, "Television");
+ 	t->type       = V4L2_TUNER_ANALOG_TV;
+-	t->capability = V4L2_TUNER_CAP_NORM;
++	t->capability = V4L2_TUNER_CAP_NORM | V4L2_TUNER_CAP_STEREO;
+ 	t->rangehigh  = 0xffffffffUL;
+ 	t->rxsubchans = V4L2_TUNER_SUB_STEREO;
+ 
+@@ -1326,11 +1331,14 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 	struct tm6000_core *dev = fh->dev;
+ 
+ 	if (UNSET == dev->tuner_type)
+-		return -EINVAL;
++		return -ENOTTY;
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 
+-	dev->amode = t->audmode;
++	if (t->audmode > V4L2_TUNER_MODE_STEREO)
++		dev->amode = V4L2_TUNER_MODE_STEREO;
++	else
++		dev->amode = t->audmode;
+ 	dprintk(dev, 3, "audio mode: %x\n", t->audmode);
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+@@ -1344,10 +1352,11 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	struct tm6000_fh   *fh  = priv;
+ 	struct tm6000_core *dev = fh->dev;
+ 
+-	if (unlikely(UNSET == dev->tuner_type))
++	if (UNSET == dev->tuner_type)
++		return -ENOTTY;
++	if (f->tuner)
+ 		return -EINVAL;
+ 
+-	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	f->frequency = dev->freq;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, f);
+@@ -1361,13 +1370,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	struct tm6000_fh   *fh  = priv;
+ 	struct tm6000_core *dev = fh->dev;
+ 
+-	if (unlikely(UNSET == dev->tuner_type))
+-		return -EINVAL;
+-	if (unlikely(f->tuner != 0))
+-		return -EINVAL;
+-	if (0 == fh->radio && V4L2_TUNER_ANALOG_TV != f->type)
+-		return -EINVAL;
+-	if (1 == fh->radio && V4L2_TUNER_RADIO != f->type)
++	if (UNSET == dev->tuner_type)
++		return -ENOTTY;
++	if (f->tuner != 0)
+ 		return -EINVAL;
+ 
+ 	dev->freq = f->frequency;
+@@ -1376,27 +1381,6 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int radio_querycap(struct file *file, void *priv,
+-					struct v4l2_capability *cap)
+-{
+-	struct tm6000_fh *fh = file->private_data;
+-	struct tm6000_core *dev = fh->dev;
+-
+-	strcpy(cap->driver, "tm6000");
+-	strlcpy(cap->card, dev->name, sizeof(dev->name));
+-	sprintf(cap->bus_info, "USB%04x:%04x",
+-		le16_to_cpu(dev->udev->descriptor.idVendor),
+-		le16_to_cpu(dev->udev->descriptor.idProduct));
+-	cap->version = dev->dev_type;
+-	cap->capabilities = V4L2_CAP_TUNER |
+-			V4L2_CAP_AUDIO     |
+-			V4L2_CAP_RADIO     |
+-			V4L2_CAP_READWRITE |
+-			V4L2_CAP_STREAMING;
+-
+-	return 0;
+-}
+-
+ static int radio_g_tuner(struct file *file, void *priv,
+ 					struct v4l2_tuner *t)
+ {
+@@ -1409,7 +1393,9 @@ static int radio_g_tuner(struct file *file, void *priv,
+ 	memset(t, 0, sizeof(*t));
+ 	strcpy(t->name, "Radio");
+ 	t->type = V4L2_TUNER_RADIO;
++	t->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+ 	t->rxsubchans = V4L2_TUNER_SUB_STEREO;
++	t->audmode = V4L2_TUNER_MODE_STEREO;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
+ 
+@@ -1424,78 +1410,14 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 
+ 	if (0 != t->index)
+ 		return -EINVAL;
++	if (t->audmode > V4L2_TUNER_MODE_STEREO)
++		t->audmode = V4L2_TUNER_MODE_STEREO;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+ 
+ 	return 0;
+ }
+ 
+-static int radio_enum_input(struct file *file, void *priv,
+-					struct v4l2_input *i)
+-{
+-	struct tm6000_fh *fh = priv;
+-	struct tm6000_core *dev = fh->dev;
+-
+-	if (i->index != 0)
+-		return -EINVAL;
+-
+-	if (!dev->rinput.type)
+-		return -EINVAL;
+-
+-	strcpy(i->name, "Radio");
+-	i->type = V4L2_INPUT_TYPE_TUNER;
+-
+-	return 0;
+-}
+-
+-static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
+-{
+-	struct tm6000_fh *fh = priv;
+-	struct tm6000_core *dev = fh->dev;
+-
+-	if (dev->input != 5)
+-		return -EINVAL;
+-
+-	*i = dev->input - 5;
+-
+-	return 0;
+-}
+-
+-static int radio_g_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
+-{
+-	memset(a, 0, sizeof(*a));
+-	strcpy(a->name, "Radio");
+-	return 0;
+-}
+-
+-static int radio_s_audio(struct file *file, void *priv,
+-					const struct v4l2_audio *a)
+-{
+-	return 0;
+-}
+-
+-static int radio_s_input(struct file *filp, void *priv, unsigned int i)
+-{
+-	struct tm6000_fh *fh = priv;
+-	struct tm6000_core *dev = fh->dev;
+-
+-	if (i)
+-		return -EINVAL;
+-
+-	if (!dev->rinput.type)
+-		return -EINVAL;
+-
+-	dev->input = i + 5;
+-
+-	return 0;
+-}
+-
+-static int radio_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+-{
+-	return 0;
+-}
+-
+ static int radio_queryctrl(struct file *file, void *priv,
+ 					struct v4l2_queryctrl *c)
+ {
+@@ -1599,7 +1521,6 @@ static int __tm6000_open(struct file *file)
+ 				sizeof(struct tm6000_buffer), fh, &dev->lock);
+ 	} else {
+ 		dprintk(dev, V4L2_DEBUG_OPEN, "video_open: setting radio device\n");
+-		dev->input = 5;
+ 		tm6000_set_audio_rinput(dev);
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
+ 		tm6000_prepare_isoc(dev);
+@@ -1789,16 +1710,10 @@ static const struct v4l2_file_operations radio_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap	= radio_querycap,
++	.vidioc_querycap	= vidioc_querycap,
+ 	.vidioc_g_tuner		= radio_g_tuner,
+-	.vidioc_enum_input	= radio_enum_input,
+-	.vidioc_g_audio		= radio_g_audio,
+ 	.vidioc_s_tuner		= radio_s_tuner,
+-	.vidioc_s_audio		= radio_s_audio,
+-	.vidioc_s_input		= radio_s_input,
+-	.vidioc_s_std		= radio_s_std,
+ 	.vidioc_queryctrl	= radio_queryctrl,
+-	.vidioc_g_input		= radio_g_input,
+ 	.vidioc_g_ctrl		= vidioc_g_ctrl,
+ 	.vidioc_s_ctrl		= vidioc_s_ctrl,
+ 	.vidioc_g_frequency	= vidioc_g_frequency,
+-- 
+1.7.10.4
 
