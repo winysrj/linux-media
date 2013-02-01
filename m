@@ -1,108 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40994 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757267Ab3BGMGW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 07:06:22 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
-	Libin Yang <lbyang@marvell.com>
-Subject: [REVIEW PATCH V4 11/12] [media] marvell-ccic: add dma burst support for marvell-ccic driver
-Date: Thu,  7 Feb 2013 20:04:46 +0800
-Message-Id: <1360238687-15768-12-git-send-email-twang13@marvell.com>
-In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:48173 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757779Ab3BAWhc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 17:37:32 -0500
+Message-ID: <510C43A0.7090906@gmail.com>
+Date: Fri, 01 Feb 2013 23:37:20 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC v2] media: tvp514x: add OF support
+References: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the dma burst size config support for marvell-ccic.
-Developer can set the dma burst size in specified board driver.
+Hi Prabhakar,
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/marvell-ccic/mcam-core.c  |    3 ++-
- drivers/media/platform/marvell-ccic/mcam-core.h  |    8 ++++----
- drivers/media/platform/marvell-ccic/mmp-driver.c |   11 +++++++++++
- include/media/mmp-camera.h                       |    1 +
- 4 files changed, 18 insertions(+), 5 deletions(-)
+On 01/29/2013 02:07 PM, Prabhakar Lad wrote:
+[...]
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> new file mode 100644
+> index 0000000..55d3ffd
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> @@ -0,0 +1,38 @@
+> +* Texas Instruments TVP514x video decoder
+> +
+> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
+> +digital video decoder that digitizes and decodes all popular baseband analog
+> +video formats into digital video component. The tvp514x decoder supports analog-
+> +to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
+> +conversion and decoding of NTSC, PAL and SECAM composite and S-video into
+> +component YCbCr.
+> +
+> +Required Properties :
+> +- compatible: Must be "ti,tvp514x-decoder"
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 16ba045..f206e3c 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -1218,7 +1218,8 @@ static int mcam_camera_add_device(struct soc_camera_device *icd)
- 	mcam_ctlr_power_up(mcam);
- 	mcam_ctlr_stop(mcam);
- 	mcam_set_config_needed(mcam, 1);
--	mcam_reg_write(mcam, REG_CTRL1, C1_RESERVED | C1_DMAPOSTED);
-+	mcam_reg_write(mcam, REG_CTRL1,
-+				mcam->burst | C1_RESERVED | C1_DMAPOSTED);
- 	mcam_reg_write(mcam, REG_CLKCTRL,
- 				(mcam->mclk_src << 29) | mcam->mclk_div);
- 	cam_dbg(mcam, "camera: set sensor mclk = %dMHz\n", mcam->mclk_min);
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index 12af7d2..0accdbb 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -108,6 +108,7 @@ struct mcam_camera {
- 	short int use_smbus;	/* SMBUS or straight I2c? */
- 	enum mcam_buffer_mode buffer_mode;
- 
-+	u32 burst;
- 	int mclk_min;
- 	int mclk_src;
- 	int mclk_div;
-@@ -347,10 +348,9 @@ int mccic_resume(struct mcam_camera *cam);
- #define   C1_DESC_3WORD   0x00000200	/* Three-word descriptors used */
- #define	  C1_444ALPHA	  0x00f00000	/* Alpha field in RGB444 */
- #define	  C1_ALPHA_SHFT	  20
--#define	  C1_DMAB32	  0x00000000	/* 32-byte DMA burst */
--#define	  C1_DMAB16	  0x02000000	/* 16-byte DMA burst */
--#define	  C1_DMAB64	  0x04000000	/* 64-byte DMA burst */
--#define	  C1_DMAB_MASK	  0x06000000
-+#define	  C1_DMAB64	  0x00000000	/* 64-byte DMA burst */
-+#define	  C1_DMAB128	  0x02000000	/* 128-byte DMA burst */
-+#define	  C1_DMAB256	  0x04000000	/* 256-byte DMA burst */
- #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
- #define	  C1_PWRDWN	  0x10000000	/* Power down */
- #define   C1_DMAPOSTED	  0x40000000    /* DMA Posted Select */
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 3d5db24..3fd6a46 100755
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -360,6 +360,17 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	mcam->lane = pdata->lane;
- 	/* set B_DMA_CONTIG as default */
- 	mcam->buffer_mode = B_DMA_CONTIG;
-+	switch (pdata->dma_burst) {
-+	case 128:
-+		mcam->burst = C1_DMAB128;
-+		break;
-+	case 256:
-+		mcam->burst = C1_DMAB256;
-+		break;
-+	default:
-+		mcam->burst = C1_DMAB64;
-+		break;
-+	}
- 	INIT_LIST_HEAD(&mcam->buffers);
- 	/*
- 	 * Get our I/O memory.
-diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
-index 513d846..44234dd 100755
---- a/include/media/mmp-camera.h
-+++ b/include/media/mmp-camera.h
-@@ -13,6 +13,7 @@ struct mmp_camera_platform_data {
- 	int mclk_src;
- 	int mclk_div;
- 	int chip_id;
-+	u32 dma_burst;
- 	/*
- 	 * MIPI support
- 	 */
--- 
-1.7.9.5
+There are no significant differences among TVP514* devices as listed above,
+you would like to handle above ?
 
+I'm just wondering if you don't need ,for instance, two separate compatible
+properties, e.g. "ti,tvp5146-decoder" and "ti,tvp5147-decoder" ?
+
+> +- hsync-active: HSYNC Polarity configuration for current interface.
+> +- vsync-active: VSYNC Polarity configuration for current interface.
+> +- data-active: Clock polarity of the current interface.
+
+I guess you mean "pclk-sample: Clock polarity..." ?
+
+> +
+> +Example:
+> +
+> +i2c0@1c22000 {
+> +	...
+> +	...
+> +
+> +	tvp514x@5c {
+> +		compatible = "ti,tvp514x-decoder";
+> +		reg =<0x5c>;
+> +
+> +		port {
+> +			tvp514x_1: endpoint {
+> +				/* Active high (Defaults to 0) */
+> +				hsync-active =<1>;
+> +				/* Active high (Defaults to 0) */
+> +				hsync-active =<1>;
+
+Should it be vsync-active ?
+
+> +				/* Active low (Defaults to 0) */
+> +				data-active =<0>;
+
+and this pclk-sample ?
+
+> +			};
+> +		};
+> +	};
+> +	...
+> +};
+> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> index a4f0a70..24ce759 100644
+> --- a/drivers/media/i2c/tvp514x.c
+> +++ b/drivers/media/i2c/tvp514x.c
+> @@ -12,6 +12,7 @@
+>    *     Hardik Shah<hardik.shah@ti.com>
+>    *     Manjunath Hadli<mrh@ti.com>
+>    *     Karicheri Muralidharan<m-karicheri2@ti.com>
+> + *     Prabhakar Lad<prabhakar.lad@ti.com>
+>    *
+>    * This package is free software; you can redistribute it and/or modify
+>    * it under the terms of the GNU General Public License version 2 as
+> @@ -33,7 +34,9 @@
+>   #include<linux/delay.h>
+>   #include<linux/videodev2.h>
+>   #include<linux/module.h>
+> +#include<linux/of_device.h>
+>
+> +#include<media/v4l2-of.h>
+>   #include<media/v4l2-async.h>
+>   #include<media/v4l2-device.h>
+>   #include<media/v4l2-common.h>
+> @@ -930,6 +933,58 @@ static struct tvp514x_decoder tvp514x_dev = {
+>
+>   };
+>
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id tvp514x_of_match[] = {
+> +	{.compatible = "ti,tvp514x-decoder", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
+> +
+> +static struct tvp514x_platform_data
+> +	*tvp514x_get_pdata(struct i2c_client *client)
+> +{
+> +	if (!client->dev.platform_data&&  client->dev.of_node) {
+> +		struct tvp514x_platform_data *pdata;
+> +		struct v4l2_of_endpoint bus_cfg;
+> +		struct device_node *endpoint;
+> +
+> +		pdata = devm_kzalloc(&client->dev,
+> +				sizeof(struct tvp514x_platform_data),
+> +				GFP_KERNEL);
+> +		client->dev.platform_data = pdata;
+
+Do you really need to set client->dev.platform_data this way ?
+What about passing struct tvp514x_decoder pointer to this function
+and initializing struct tvp514x_decoder::pdata instead ?
+
+> +		if (!pdata)
+> +			return NULL;
+> +
+> +		endpoint = of_get_child_by_name(client->dev.of_node, "port");
+> +		if (endpoint)
+> +			endpoint = of_get_child_by_name(endpoint, "endpoint");
+
+I think you could replace these two calls above with
+
+		endpoint = v4l2_of_get_next_endpoint(client->dev.of_node);
+
+Now I see I should have modified this function to ensure it works also when
+'port' nodes are grouped in a 'ports' node.
+
+> +		if (!endpoint) {
+> +			v4l2_info(client, "Using default data!!\n");
+> +		} else {	
+> +			v4l2_of_parse_parallel_bus(endpoint,&bus_cfg);
+> +
+> +			if (bus_cfg.mbus_flags&  V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +				pdata->hs_polarity = 1;
+> +			if (bus_cfg.mbus_flags&  V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +				pdata->vs_polarity = 1;
+> +			if (bus_cfg.mbus_flags&  V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +				pdata->clk_polarity = 1;
+> +		}
+> +	}
+> +
+> +	return client->dev.platform_data;
+> +}
+> +#else
+> +#define tvp514x_of_match NULL
+> +
+> +static struct tvp514x_platform_data
+> +	*tvp514x_get_pdata(struct i2c_client *client)
+> +{
+> +	return client->dev.platform_data;
+> +}
+> +#endif
+> +
+>   /**
+>    * tvp514x_probe() - decoder driver i2c probe handler
+>    * @client: i2c driver client device structure
+> @@ -941,6 +996,7 @@ static struct tvp514x_decoder tvp514x_dev = {
+>   static int
+>   tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>   {
+> +	struct tvp514x_platform_data *pdata;
+>   	struct tvp514x_decoder *decoder;
+>   	struct v4l2_subdev *sd;
+>   	int ret;
+> @@ -949,22 +1005,25 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>   	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+>   		return -EIO;
+>
+> +	pdata = tvp514x_get_pdata(client);
+> +	if (!pdata) {
+> +		v4l2_err(client, "No platform data!!\n");
+> +		return -EPROBE_DEFER;
+> +	}
+> +
+>   	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+>   	if (!decoder)
+>   		return -ENOMEM;
+>
+>   	/* Initialize the tvp514x_decoder with default configuration */
+>   	*decoder = tvp514x_dev;
+> -	if (!client->dev.platform_data) {
+> -		v4l2_err(client, "No platform data!!\n");
+> -		return -EPROBE_DEFER;
+> -	}
+> +
+>   	/* Copy default register configuration */
+>   	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+>   			sizeof(tvp514x_reg_list_default));
+>
+>   	/* Copy board specific information here */
+> -	decoder->pdata = client->dev.platform_data;
+> +	decoder->pdata = pdata;
+>
+>   	/**
+>   	 * Fetch platform specific data, and configure the
+> @@ -1096,6 +1155,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+>
+>   static struct i2c_driver tvp514x_driver = {
+>   	.driver = {
+> +		.of_match_table = tvp514x_of_match,
+>   		.owner = THIS_MODULE,
+>   		.name = TVP514X_MODULE_NAME,
+>   	},
+
+--
+
+Regards,
+Sylwester
