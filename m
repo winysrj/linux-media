@@ -1,209 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4491 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958Ab3BPJ25 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 12/18] s5p-tv: remove the dv_preset API from hdmi.
-Date: Sat, 16 Feb 2013 10:28:15 +0100
-Message-Id: <d06f8f1c940c7a8f68f37824b31a3e42777c0066.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:53277 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246Ab3BASGa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 13:06:30 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHJ00IPMZMNTH10@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 02 Feb 2013 03:06:28 +0900 (KST)
+Received: from visitor4lab ([105.128.18.157])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHJ00FU4ZMO2T00@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 02 Feb 2013 03:06:28 +0900 (KST)
+From: Kukjin Kim <kgene.kim@samsung.com>
+To: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Sachin Kamat' <sachin.kamat@linaro.org>
+Cc: 'Inki Dae' <inki.dae@samsung.com>,
+	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org, patches@linaro.org
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+ <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+ <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+ <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com>
+ <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com>
+ <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+ <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
+ <510B9EC8.6020102@samsung.com>
+In-reply-to: 
+Subject: RE: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+Date: Fri, 01 Feb 2013 10:06:18 -0800
+Message-id: <0c6e01ce00a6$d78bd640$86a382c0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8BIT
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Kukjin Kim wrote:
+> 
+Oops, I'm re-sending due to my e-mail client problem :-(
 
-The dv_preset API is deprecated and is replaced by the much improved dv_timings
-API. Remove the dv_preset support from this driver as this will allow us to
-remove the dv_preset API altogether (s5p-tv being the last user of this code).
+> Sylwester Nawrocki wrote:
+> >
+> > On 02/01/2013 09:33 AM, Sachin Kamat wrote:
+> > > On 1 February 2013 06:57, Inki Dae <inki.dae@samsung.com> wrote:
+> > >>
+> > >> For example,
+> > >> If compatible = "samsung,g2d-3.0" is added to exynos4210.dtsi, it'd be
+> > >> reasonable. But what if that compatible string is added to exynos4.dtsi?.
+> > >> This case isn't considered for exynos4412 SoC with v4.1.
+> > >
+> > > In case of Exynos4 series the base address of G2D ip is different
+> > > across series. Hence we cannot define it in exynos4.dtsi and need to
+> > > define the nodes in exynos4xxx.dtsi or specific board files. Thus we
+> > > can use the version appended compatible string.
+> > >
+> > > However even the second option suggested by Sylwester is OK with me
+> or
+> > > to be even more specific we could go for both SoC as well as version
+> > > option something like this.
+> > >
+> > > compatible = "samsung,exynos3110-g2d-3.0" /* for Exynos3110,
+> > Exynos4210 */
+> > > compatible = "samsung,exynos4212-g2d-4.1" /* for Exynos4212,
+> > Exynos4412 */
+> > >
+> > > In any case please let me know the final preferred one so that I can
+> > > update the code send the revised patches.
+> >
+> > The version with SoC name embedded in it seems most reliable and correct
+> > to me.
+> >
+> > compatible = "samsung,exynos3110-fimg-2d" /* for Exynos3110 (S5PC110,
+> > S5PV210),
+> >                                              Exynos4210 */
+> 
+> If this convention will be used, I hope, the known name, S5PV210 can be
+> used. Why don't you use same SoC name with using in arch/arm/?
+> 
+> > compatible = "samsung,exynos4212-fimg-2d" /* for Exynos4212,
+> Exynos4412
+> > */
+> >
+> > FIMG stands for Fully Interactive Mobile Graphics, and other multimedia
+> > IPs follow this naming convention, e.g. FIMG-3D, FIMD (Display Controller),
+> > FIMC (Camera), etc.
+> >
+> How about MFC?
+> 
+> > This is just my opinion though, and it seems this is a most common scheme
+> > from greping the device tree bindings documentation.
+> >
+> IMO, you can grep '$ git grep  compatible.*samsung'...or IP name.
+> 
+> > As Stephen pointed out, and I also did in some other mail thread in the
+> > past, not only an IP revision might be required, but also its integration
+> > details, specific to an SoC type are important. This actually happens
+> > to be the case with FIMC, where same version of one instance of the IP
+> > has more data interfaces routed to other SoC subsystems on one SoC type
+> > than on other one.
+> >
+> Well, I don't think so. As you know Samsung makes many EXYNOS SoCs and
+> nowadays the EXYNOS SoCs include many Samsung own IPs such as
+> multimedia. And the IPs are reused on across Samsung SoCs, and I hope on
+> other SoC vendor's SoC. It means Samsung is no longer just SoC vendor and
+> can be called IP vendor. So let's see other IP vendors, ARM, Synopsys and so
+> on. How are their IPs implemented in kernel? Why should Samsung use the
+> SoC name for their IP? And why should we use old SoC name in futre? For
+> example, see the s3c2410-xxx for i2c, wdt, rtc, i2s and so on. Unfortunately,
+> no one didn't know Samsung should prepare some brand name or  future at
+> that time...Just I don't want to undergo trial and error again. I'm still saying
+> why Samsung own IPs cannot be used as IP vendors' ones...
+> 
+> > I think it won't be possible to use a scheme like "samsung-exynos-g2d-3.0"
+> 
+> Hmm...I think, the name, 'EXYNOS' is not a brand name for IP...
+> 
+> > for all IPs. And I would much more like to see a uniform naming convention
+> > used, rather than living with a chaotic set of compatible properties, that
+> > has a potential to become even more chaotic in the future.
+> 
+Thanks.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-tv/hdmi_drv.c |   95 +++++++-----------------------
- 1 file changed, 22 insertions(+), 73 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 716d0e4..38638b1 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -44,9 +44,6 @@ MODULE_AUTHOR("Tomasz Stanislawski, <t.stanislaws@samsung.com>");
- MODULE_DESCRIPTION("Samsung HDMI");
- MODULE_LICENSE("GPL");
- 
--/* default preset configured on probe */
--#define HDMI_DEFAULT_PRESET V4L2_DV_480P59_94
--
- struct hdmi_pulse {
- 	u32 beg;
- 	u32 end;
-@@ -92,8 +89,6 @@ struct hdmi_device {
- 	const struct hdmi_timings *cur_conf;
- 	/** flag indicating that timings are dirty */
- 	int cur_conf_dirty;
--	/** current preset */
--	u32 cur_preset;
- 	/** current timings */
- 	struct v4l2_dv_timings cur_timings;
- 	/** other resources */
-@@ -255,7 +250,6 @@ static int hdmi_conf_apply(struct hdmi_device *hdmi_dev)
- {
- 	struct device *dev = hdmi_dev->dev;
- 	const struct hdmi_timings *conf = hdmi_dev->cur_conf;
--	struct v4l2_dv_preset preset;
- 	int ret;
- 
- 	dev_dbg(dev, "%s\n", __func__);
-@@ -270,11 +264,11 @@ static int hdmi_conf_apply(struct hdmi_device *hdmi_dev)
- 	hdmi_write_mask(hdmi_dev, HDMI_PHY_RSTOUT,  0, HDMI_PHY_SW_RSTOUT);
- 	mdelay(10);
- 
--	/* configure presets */
--	preset.preset = hdmi_dev->cur_preset;
--	ret = v4l2_subdev_call(hdmi_dev->phy_sd, video, s_dv_preset, &preset);
-+	/* configure timings */
-+	ret = v4l2_subdev_call(hdmi_dev->phy_sd, video, s_dv_timings,
-+				&hdmi_dev->cur_timings);
- 	if (ret) {
--		dev_err(dev, "failed to set preset (%u)\n", preset.preset);
-+		dev_err(dev, "failed to set timings\n");
- 		return ret;
- 	}
- 
-@@ -478,35 +472,26 @@ static const struct hdmi_timings hdmi_timings_1080p50 = {
- 	.vsyn[0] = { .beg = 0 + 4, .end = 5 + 4},
- };
- 
-+/* default hdmi_timings index of the timings configured on probe */
-+#define HDMI_DEFAULT_TIMINGS_IDX (0)
-+
- static const struct {
--	u32 preset;
- 	bool reduced_fps;
- 	const struct v4l2_dv_timings dv_timings;
- 	const struct hdmi_timings *hdmi_timings;
- } hdmi_timings[] = {
--	{ V4L2_DV_480P59_94, false, V4L2_DV_BT_CEA_720X480P59_94, &hdmi_timings_480p },
--	{ V4L2_DV_576P50, false, V4L2_DV_BT_CEA_720X576P50, &hdmi_timings_576p50 },
--	{ V4L2_DV_720P50, false, V4L2_DV_BT_CEA_1280X720P50, &hdmi_timings_720p50 },
--	{ V4L2_DV_720P59_94, true, V4L2_DV_BT_CEA_1280X720P60, &hdmi_timings_720p60 },
--	{ V4L2_DV_720P60, false, V4L2_DV_BT_CEA_1280X720P60, &hdmi_timings_720p60 },
--	{ V4L2_DV_1080P24, false, V4L2_DV_BT_CEA_1920X1080P24, &hdmi_timings_1080p24 },
--	{ V4L2_DV_1080P30, false, V4L2_DV_BT_CEA_1920X1080P30, &hdmi_timings_1080p60 },
--	{ V4L2_DV_1080P50, false, V4L2_DV_BT_CEA_1920X1080P50, &hdmi_timings_1080p50 },
--	{ V4L2_DV_1080I50, false, V4L2_DV_BT_CEA_1920X1080I50, &hdmi_timings_1080i50 },
--	{ V4L2_DV_1080I60, false, V4L2_DV_BT_CEA_1920X1080I60, &hdmi_timings_1080i60 },
--	{ V4L2_DV_1080P60, false, V4L2_DV_BT_CEA_1920X1080P60, &hdmi_timings_1080p60 },
-+	{ false, V4L2_DV_BT_CEA_720X480P59_94, &hdmi_timings_480p    },
-+	{ false, V4L2_DV_BT_CEA_720X576P50,    &hdmi_timings_576p50  },
-+	{ false, V4L2_DV_BT_CEA_1280X720P50,   &hdmi_timings_720p50  },
-+	{ true,  V4L2_DV_BT_CEA_1280X720P60,   &hdmi_timings_720p60  },
-+	{ false, V4L2_DV_BT_CEA_1920X1080P24,  &hdmi_timings_1080p24 },
-+	{ false, V4L2_DV_BT_CEA_1920X1080P30,  &hdmi_timings_1080p60 },
-+	{ false, V4L2_DV_BT_CEA_1920X1080P50,  &hdmi_timings_1080p50 },
-+	{ false, V4L2_DV_BT_CEA_1920X1080I50,  &hdmi_timings_1080i50 },
-+	{ false, V4L2_DV_BT_CEA_1920X1080I60,  &hdmi_timings_1080i60 },
-+	{ false, V4L2_DV_BT_CEA_1920X1080P60,  &hdmi_timings_1080p60 },
- };
- 
--static const struct hdmi_timings *hdmi_preset2timings(u32 preset)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(hdmi_timings); ++i)
--		if (hdmi_timings[i].preset == preset)
--			return  hdmi_timings[i].hdmi_timings;
--	return NULL;
--}
--
- static int hdmi_streamon(struct hdmi_device *hdev)
- {
- 	struct device *dev = hdev->dev;
-@@ -626,32 +611,6 @@ static int hdmi_s_power(struct v4l2_subdev *sd, int on)
- 	return IS_ERR_VALUE(ret) ? ret : 0;
- }
- 
--static int hdmi_s_dv_preset(struct v4l2_subdev *sd,
--	struct v4l2_dv_preset *preset)
--{
--	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
--	struct device *dev = hdev->dev;
--	const struct hdmi_timings *conf;
--
--	conf = hdmi_preset2timings(preset->preset);
--	if (conf == NULL) {
--		dev_err(dev, "preset (%u) not supported\n", preset->preset);
--		return -EINVAL;
--	}
--	hdev->cur_conf = conf;
--	hdev->cur_conf_dirty = 1;
--	hdev->cur_preset = preset->preset;
--	return 0;
--}
--
--static int hdmi_g_dv_preset(struct v4l2_subdev *sd,
--	struct v4l2_dv_preset *preset)
--{
--	memset(preset, 0, sizeof(*preset));
--	preset->preset = sd_to_hdmi_dev(sd)->cur_preset;
--	return 0;
--}
--
- static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
- 	struct v4l2_dv_timings *timings)
- {
-@@ -705,15 +664,6 @@ static int hdmi_g_mbus_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int hdmi_enum_dv_presets(struct v4l2_subdev *sd,
--	struct v4l2_dv_enum_preset *preset)
--{
--	if (preset->index >= ARRAY_SIZE(hdmi_timings))
--		return -EINVAL;
--	return v4l_fill_dv_preset_info(hdmi_timings[preset->index].preset,
--		preset);
--}
--
- static int hdmi_enum_dv_timings(struct v4l2_subdev *sd,
- 	struct v4l2_enum_dv_timings *timings)
- {
-@@ -746,9 +696,6 @@ static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
- };
- 
- static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
--	.s_dv_preset = hdmi_s_dv_preset,
--	.g_dv_preset = hdmi_g_dv_preset,
--	.enum_dv_presets = hdmi_enum_dv_presets,
- 	.s_dv_timings = hdmi_s_dv_timings,
- 	.g_dv_timings = hdmi_g_dv_timings,
- 	.enum_dv_timings = hdmi_enum_dv_timings,
-@@ -1022,9 +969,11 @@ static int hdmi_probe(struct platform_device *pdev)
- 	sd->owner = THIS_MODULE;
- 
- 	strlcpy(sd->name, "s5p-hdmi", sizeof(sd->name));
--	hdmi_dev->cur_preset = HDMI_DEFAULT_PRESET;
--	/* FIXME: missing fail preset is not supported */
--	hdmi_dev->cur_conf = hdmi_preset2timings(hdmi_dev->cur_preset);
-+	hdmi_dev->cur_timings =
-+		hdmi_timings[HDMI_DEFAULT_TIMINGS_IDX].dv_timings;
-+	/* FIXME: missing fail timings is not supported */
-+	hdmi_dev->cur_conf =
-+		hdmi_timings[HDMI_DEFAULT_TIMINGS_IDX].hdmi_timings;
- 	hdmi_dev->cur_conf_dirty = 1;
- 
- 	/* storing subdev for call that have only access to struct device */
--- 
-1.7.10.4
+- Kukjin
 
