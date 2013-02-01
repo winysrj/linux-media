@@ -1,121 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:47441 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab3BAPgT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 10:36:19 -0500
-Received: by mail-la0-f47.google.com with SMTP id fj20so2860918lab.6
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 07:36:17 -0800 (PST)
-Received: by mail-lb0-f170.google.com with SMTP id ge1so4703486lbb.15
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 07:36:15 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44148 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757562Ab3BAWOf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 17:14:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover after a blank/unblank (or overlay disables after resuming)
+Date: Fri, 01 Feb 2013 23:14:42 +0100
+Message-ID: <1458197.Ntc9McJ8cJ@avalon>
+In-Reply-To: <6EE9CD707FBED24483D4CB0162E85467245880A0@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com> <2253226.r6AZgSrtcE@avalon> <6EE9CD707FBED24483D4CB0162E85467245880A0@AMSPRD0711MB532.eurprd07.prod.outlook.com>
 MIME-Version: 1.0
-In-Reply-To: <1359719989-29628-2-git-send-email-vikas.sajjan@linaro.org>
-References: <1359719989-29628-1-git-send-email-vikas.sajjan@linaro.org> <1359719989-29628-2-git-send-email-vikas.sajjan@linaro.org>
-From: Sean Paul <seanpaul@chromium.org>
-Date: Fri, 1 Feb 2013 10:35:54 -0500
-Message-ID: <CAOw6vbLxHFfVQ6WoWL_ZEJsb3yrW1Lv=idh3+WfaBoAi+k3UVQ@mail.gmail.com>
-Subject: Re: [PATCH v3 1/1] video: drm: exynos: Adds display-timing node
- parsing using video helper function
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org,
-	Leelakrishna A <l.krishna@samsung.com>,
-	"kgene.kim" <kgene.kim@samsung.com>, s.trumtrar@pengutronix.de,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 1, 2013 at 6:59 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> This patch adds display-timing node parsing using video helper function
->
-> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   39 +++++++++++++++++++++++++++---
->  1 file changed, 35 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index bf0d9ba..8eee13f 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
->
->  #include <video/samsung_fimd.h>
->  #include <drm/exynos_drm.h>
-> @@ -905,16 +906,46 @@ static int __devinit fimd_probe(struct platform_device *pdev)
->         struct exynos_drm_subdrv *subdrv;
->         struct exynos_drm_fimd_pdata *pdata;
->         struct exynos_drm_panel_info *panel;
-> +       struct fb_videomode *fbmode;
-> +       struct pinctrl *pctrl;
->         struct resource *res;
->         int win;
->         int ret = -EINVAL;
->
->         DRM_DEBUG_KMS("%s\n", __FILE__);
->
-> -       pdata = pdev->dev.platform_data;
-> -       if (!pdata) {
-> -               dev_err(dev, "no platform data specified\n");
-> -               return -EINVAL;
-> +       if (pdev->dev.of_node) {
-> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +               if (!pdata) {
-> +                       DRM_ERROR("memory allocation for pdata failed\n");
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-> +               if (!fbmode) {
-> +                       DRM_ERROR("memory allocation for fbmode failed\n");
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
-> +               if (ret) {
-> +                       DRM_ERROR("failed to get fb_videomode\n");
-> +                       return -EINVAL;
+Hi Florian,
 
-This should probably return ret instead of -EINVAL. It would also be
-useful to print ret in the error msg.
-
-> +               }
-> +               pdata->panel.timing = (struct fb_videomode) *fbmode;
-> +
-> +               pctrl = devm_pinctrl_get_select_default(dev);
-> +               if (IS_ERR(pctrl)) {
-> +                       DRM_ERROR("no pinctrl data provided.\n");
-> +                       return -EINVAL;
-
-I think the error message here is misleading. If there's no pinctrl
-provided, doesn't get_select_default return NULL? In which case, this
-error would never be printed?
-
-I think this behavior is actually desired since there is no pinctrl
-for exynos5 and we don't want it to break. However I think your error
-should be more along the lines of "pinctrl_get_select_default failed".
-You should also print and return PTR_RET(pctrl) instead of EINVAL.
-
-Sean
-
-> +               }
-> +
-> +       } else {
-> +               pdata = pdev->dev.platform_data;
-> +               if (!pdata) {
-> +                       DRM_ERROR("no platform data specified\n");
-> +                       return -EINVAL;
-> +               }
->         }
+On Thursday 31 January 2013 13:06:53 Florian Neuhaus wrote:
+> Hi Laurent,
+> 
+> Thank you for your help, see my notes below:
+> 
+> Laurent Pinchart wrote on 2013-01-30:
+> >> Will result in the following and the following (screen flickers and goes
+> >> black again):
+> >> [ 5293.617095] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the
+> >> overlay
+> >> [ 5293.678283] omapdss DISPC error: FIFO UNDERFLOW on vid2, disabling the
+> >> overlay
+> >> 
+> >> Output of mediactl -p while streaming:
+> >> http://pastebin.com/d9zDfKXu
+> >> 
+> >> OMAPDSS-config:
+> >> http://pastebin.com/JjF0CcCS
+> >> 
+> >> Now my questions:
+> >> Is this behaviour expected?
+> > 
+> > I don't think so. I'm not an expert on the OMAP DSS, but I wouldn't
+> > consider the above messages as normal.
+> 
+> Just as a note: This does not happen, if I disable the fb0 upon start of the
+> streamer.
+> My DSS config before the streamer start:
+> 
+> fb0 --- gfx --- lcd --- LCD
+> fb1 --- vid1 -/
+>         vid2 /
+> 
+> Description: I am using fb0 for the framebuffer-console. The fb1 is
+> connected with the overlay vid1 and used as the colorkey in your streamer
+> application. vid2 is directly used from within the streamer app for the
+> ISP-output (at least I think so ;)). Everything is connected to the
+> lcd-manager and outputted to a physical attached LCD.
+> 
+> My DSS config when streamer is running:
+> 
+> fb0     gfx --- lcd --- LCD
+> fb1 --- vid1 -/
+>         vid2 /
+> 
+> With this workaround the streamer will continue streaming after a
+> blank/unblank.
 >
->         panel = &pdata->panel;
-> --
-> 1.7.9.5
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> > As buffers will stop flowing until the screen is unblanked, the live
+> > application will exit after a short select() timeout. This is an
+> > application issue.
+> 
+> If the AF/AEWB unit is enabled, the timeout doesn't happen as the
+> H3A-unit delivers still OMAP3_ISP_EVENT_EXCEPTION events.
+
+Ah right. My live application should still be fixed not to timeout when AEWB 
+is disabled, but that's out of scope here.
+
+> > It doesn't explain the omapdss error, Tomi might be able to provide more
+> > information about that (but he is currently away until beginning of
+> > February if I'm not mistaken).
+> 
+> That would be very nice!
+
+As this seems to be mostly a DSS issue I'll let Tomi handle it :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
