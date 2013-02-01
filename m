@@ -1,38 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:33972 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752504Ab3BMGgD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Feb 2013 01:36:03 -0500
-Date: Wed, 13 Feb 2013 09:36:04 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Joe Perches <joe@perches.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	devel <devel@driverdev.osuosl.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
-Message-ID: <20130213063604.GQ4937@mwanda>
-References: <1360704036.22660.5.camel@joe-AO722>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1360704036.22660.5.camel@joe-AO722>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:46513 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757984Ab3BAXCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 18:02:35 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 8/8] saa7134: v4l2-compliance: clear reserved part of VBI structure
+Date: Sat,  2 Feb 2013 00:01:21 +0100
+Message-Id: <1359759681-27549-9-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 12, 2013 at 01:20:36PM -0800, Joe Perches wrote:
-> His email bounces and he hasn't done work on
-> these sections in a couple of years.
-> 
+Make saa7134 driver more V4L2 compliant: clear reserved space of VBI
+structure to make sure no garbage is left there
 
-I've added him to the CC list.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Can we just update MAINTAINERS with the correct email address?  It's
-been useful to CC him on stuff.
-
-regards,
-dan carpenter
-
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index eeee8b4..0b23fc8 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1552,6 +1552,7 @@ static int saa7134_try_get_set_fmt_vbi_cap(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = fh->dev;
+ 	struct saa7134_tvnorm *norm = dev->tvnorm;
+ 
++	memset(&f->fmt.vbi.reserved, 0, sizeof(f->fmt.vbi.reserved));
+ 	f->fmt.vbi.sampling_rate = 6750000 * 4;
+ 	f->fmt.vbi.samples_per_line = 2048 /* VBI_LINE_LENGTH */;
+ 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
+-- 
+Ondrej Zary
 
