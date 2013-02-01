@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog114.obsmtp.com ([207.126.144.137]:52279 "EHLO
-	eu1sys200aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1946359Ab3BHMoD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Feb 2013 07:44:03 -0500
-Message-ID: <5114F2F4.5040702@stericsson.com>
-Date: Fri, 8 Feb 2013 13:43:32 +0100
-From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
+Received: from mail-qa0-f43.google.com ([209.85.216.43]:41846 "EHLO
+	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757508Ab3BAVPl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 16:15:41 -0500
+Received: by mail-qa0-f43.google.com with SMTP id dx4so512367qab.9
+        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 13:15:38 -0800 (PST)
 MIME-Version: 1.0
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	sunil joshi <joshi@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1987992.4TmVjQaiLj@amdc1227> <50EC5283.80006@stericsson.com> <3057999.UZLp2j2DkQ@avalon> <510F8807.2020406@stericsson.com> <5114D8A2.6010806@ti.com>
-In-Reply-To: <5114D8A2.6010806@ti.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <510C2DA2.7020000@googlemail.com>
+References: <510A9A1E.9090801@googlemail.com>
+	<CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com>
+	<510ADB2F.4080901@googlemail.com>
+	<510AF800.2090607@googlemail.com>
+	<510BACD5.2070406@googlemail.com>
+	<510BCE2F.1070100@googlemail.com>
+	<CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com>
+	<510C2DA2.7020000@googlemail.com>
+Date: Fri, 1 Feb 2013 16:07:58 -0500
+Message-ID: <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
+Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Chris Clayton <chris2553@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/08/2013 11:51 AM, Tomi Valkeinen wrote:
-> On 2013-02-04 12:05, Marcus Lorentzon wrote:
+On Fri, Feb 1, 2013 at 4:03 PM, Chris Clayton <chris2553@googlemail.com> wrote:
+> Yes, I noticed that but even with the tuning timeout set at medium or
+> longest, I doesn't find any channels. However, I've been following the debug
+> messages through the code and ended up at
+> drivers/media/pci/cx23885/cx23885-i2c.c.
 >
->> As discussed at FOSDEM I will give DSI bus with full feature set a
->> try.
-> Please do, but as a reminder I want to raise the issues I see with a DSI
-> bus:
+> I've found that by amending I2C_WAIT_DELAY from 32 to 64, I get improved
+> results from scanning. With that delay doubled, scandvb now finds 49
+> channels over 3 frequencies. That's with all debugging turned off, so no
+> extra delays provided by the production of debug messages.
 >
-> - A device can be a child of only one bus. So if DSI is used only for
-> video, the device is a child of, say, i2c bus, and thus there's no DSI
-> bus. How to configure and use DSI in this case?
->
-> - If DSI is used for both control and video, we have two separate APIs
-> for the bus. What I mean here is that for the video-only case above, we
-> need a video-only-API for DSI. This API should contain all necessary
-> methods to configure DSI. But we need similar methods for the control
-> API also.
->
-> So, I hope you come up with some solution for this, but as I see it,
-> it's easily the most simple and clear option to have one video_source
-> style entity for the DSI bus itself, which is used for both control and
-> video.
->
->
-Thanks, it is not that I'm totally against the video source stuff. And I 
-share your concerns, none of the solutions are perfect. It just doesn't 
-feel right to create this dummy source "device" without investigating 
-the DSI bus route. But I will try to write up some history/problem 
-description and ask Greg KH for guidance. If he has a strong opinion 
-either way, there is not much more to discuss ;)
+> I'll play around more tomorrow and update then.
 
-/BR
-/Marcus
+It could be that the cx23885 driver doesn't properly implement I2C
+clock stretching, which is something you don't encounter on most
+tuners but is an issue when communicating with the Xceive parts.
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
