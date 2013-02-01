@@ -1,107 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from firefly.pyther.net ([50.116.37.168]:41898 "EHLO
-	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754792Ab3BPXi1 (ORCPT
+Received: from avon.wwwdotorg.org ([70.85.31.133]:32955 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752237Ab3BAC0J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 18:38:27 -0500
-Message-ID: <51201871.9050501@pyther.net>
-Date: Sat, 16 Feb 2013 18:38:25 -0500
-From: Matthew Gyurgyik <matthew@pyther.net>
+	Thu, 31 Jan 2013 21:26:09 -0500
+Message-ID: <510B27BF.6030203@wwwdotorg.org>
+Date: Thu, 31 Jan 2013 19:26:07 -0700
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?Frank_Sc?= =?ISO-8859-1?Q?h=E4fer?=
-	<fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jwilson@redhat.com>
-Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
-References: <50B5779A.9090807@pyther.net> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net> <50CE74C7.90809@iki.fi> <50CE7763.3030900@pyther.net> <50CEE6FA.4030901@iki.fi> <50CEFD29.8060009@iki.fi> <50CEFF43.1030704@pyther.net> <50CF44CD.5060707@redhat.com> <50CFDE2B.6040100@pyther.net> <50E49FA6.8010402@iki.fi> <50E4F2BA.7060407@pyther.net> <50FC01DE.3080203@pyther.net> <50FC2D8D.7080205@iki.fi>
-In-Reply-To: <50FC2D8D.7080205@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Inki Dae <inki.dae@samsung.com>
+CC: 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
+	patches@linaro.org, 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	devicetree-discuss@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org, s.nawrocki@samsung.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org> <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org> <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com> <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com> <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com> <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+In-Reply-To: <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/20/2013 12:46 PM, Antti Palosaari wrote:
-> On 01/20/2013 04:40 PM, Matthew Gyurgyik wrote:
->> On 01/02/2013 09:53 PM, Matthew Gyurgyik wrote:
->>> On 01/02/2013 03:59 PM, Antti Palosaari wrote:
->>>> On 12/18/2012 05:08 AM, Matthew Gyurgyik wrote:
->>>>> I can test patches Tue and Wed this week. Afterwards, I probably won't
->>>>> be able to test anything until Dec 28th/29th as I will be away from my
->>>>> workstation.
+On 01/31/2013 06:27 PM, Inki Dae wrote:
+> Hi Kukjin,
+> 
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Kukjin Kim
+>> Sent: Friday, February 01, 2013 9:15 AM
+>> To: 'Sylwester Nawrocki'; 'Inki Dae'
+>> Cc: 'Sachin Kamat'; linux-media@vger.kernel.org; dri-
+>> devel@lists.freedesktop.org; devicetree-discuss@lists.ozlabs.org;
+>> patches@linaro.org; s.nawrocki@samsung.com
+>> Subject: RE: [PATCH 2/2] drm/exynos: Add device tree based discovery
+>> support for G2D
+>>
+>> Sylwester Nawrocki wrote:
+>>>
+>>> Hi Inki,
+>>>
+>> Hi Sylwester and Inki,
+>>
+>>> On 01/31/2013 02:30 AM, Inki Dae wrote:
+>>>>> -----Original Message-----
+>>>>> From: Sylwester Nawrocki [mailto:sylvester.nawrocki@gmail.com]
+>>>>> Sent: Thursday, January 31, 2013 5:51 AM
+>>>>> To: Inki Dae
+>>>>> Cc: Sachin Kamat; linux-media@vger.kernel.org; dri-
+>>>>> devel@lists.freedesktop.org; devicetree-discuss@lists.ozlabs.org;
+>>>>> patches@linaro.org; s.nawrocki@samsung.com
+>>>>> Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery
+>>>>> support for G2D
 >>>>>
->>>>> In regards to my issue compiling my kernel, it helps if I include
->>>>> devtmpfs. :)
+>>>>> On 01/30/2013 09:50 AM, Inki Dae wrote:
+>>>>>>> +static const struct of_device_id exynos_g2d_match[] = {
+>>>>>>> +       { .compatible = "samsung,g2d-v41" },
+>>>>>>
+>>>>>> not only Exynos5 and also Exyno4 has the g2d gpu and drm-based g2d
+>>>>>> driver shoud support for all Exynos SoCs. How about using
+>>>>>> "samsung,exynos5-g2d" instead and adding a new property 'version' to
+>>>>>> identify ip version more surely? With this, we could know which SoC
+>>>>>> and its g2d ip version. The version property could have '0x14' or
+>>>>>> others. And please add descriptions to dt document.
+>>>>>
+>>>>> Err no. Are you suggesting using "samsung,exynos5-g2d" compatible
+>>> string
+>>>>> for Exynos4 specific IPs ? This would not be correct, and you still
+>> can
 >>>>
->>>> Matthew, test? Both remote and television.
->>>>
->>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/HU345-Q
->>>>
->>>>
->>>> regards
->>>> Antti
+>>>> I assumed the version 'v41' is the ip for Exynos5 SoC. So if this
+>> version
+>>>> means Exynos4 SoC then it should be "samsung,exynos4-g2d".
 >>>
+>>> Yes, v3.0 is implemented in the S5PC110 (Exynos3110) SoCs and
+> Exynos4210,
+>>> V4.1 can be found in Exynos4212 and Exynos4412, if I'm not mistaken.
 >>>
->>> So using the HU345-Q branch I get the following results
+>>> So we could have:
 >>>
->>> Remote:
+>>> compatible = "samsung,exynos-g2d-3.0" /* for Exynos3110, Exynos4210 */
+>>> compatible = "samsung,exynos-g2d-4.1" /* for Exynos4212, Exynos4412 */
 >>>
->>> Using evtest it looks like all the key codes register correctly. (KEY_1,
->>> KEY_YELLOW, KEY_VOLUMEUP, etc...)
->>>
->>> However, ir_keytable fails
->>>
->>> [root@tux bin]# ./ir-keytable -t
->>> Not found device rc0
->>>
->>> Tunning:
->>>
->>> I did a basic test with mplayer and tunning worked. I'll have to do more
->>> testing.
->>>
->>> Scanning:
->>>
->>> Running a scan resulted in a kernel panic.
->>>
->>> Scan command: scan -A 2 -t 1
->>> /usr/share/dvb/atsc/us-Cable-Standard-center-frequencies-QAM256 >
->>> ~/channels_msidigivox.conf
->>>
->>> Kernel Messages: http://pyther.net/a/digivox_atsc/jan02/kernel_log.txt
->>>
->>> Let me know what additional info I can provide. As always, I appreciate
->>> the help!
->>>
->>> Thanks,
->>> Matthew
->>>
+>> In my opinion, this is better than later. Because as I said, when we can
+>> use
+>> IP version to identify, it is more clear and can be used
 >>
+>> One more, how about following?
 >>
->> Antti,
+>> compatible = "samsung,g2d-3.0"
+>> compatible = "samsung,g2d-4.1"
 >>
->> Is there any follow up testing I could do? Is there any additional
->> information you need from me.
->>
->> Thanks,
->> Matthew
->
-> Matthew,
-> Thank you for testing continuously! I looked it and for my eyes it works
-> as it should (both television and remote controller as you reported).
-> All those bugs you mention has no relations to that certain device. I
-> think all are general em28xx driver bugs. There has been recently quite
-> much changes done for the em28xx driver and probably some of those
-> findings are already fixed. I am not em28xx driver expert, due to that
-> it is hard to say what is wrong. I will try to make final patch soon and
-> after your test it could be sent to the mainline.
->
-> regards
-> Antti
->
-Any update on this?
+> 
+> I think compatible string should be considered case by case.
+> 
+> For example,
+> If compatible = "samsung,g2d-3.0" is added to exynos4210.dtsi, it'd be
+> reasonable. But what if that compatible string is added to exynos4.dtsi?.
+> This case isn't considered for exynos4412 SoC with v4.1. 
 
-Thanks,
-Matthew
+You can always add the most common value for the compatible property
+into exynos4.dtsi, and then override it in exyons4210.dtsi, or other files.
+
+Still, the idea of including the SoC version in the compatible value is
+a good idea.
