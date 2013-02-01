@@ -1,84 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11077 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932605Ab3BOPjh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 10:39:37 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Revert "[media] dvb_frontend: return -ENOTTY for unimplement IOCTL"
-Date: Fri, 15 Feb 2013 13:39:31 -0200
-Message-Id: <1360942771-16213-1-git-send-email-mchehab@redhat.com>
+Received: from mail-ob0-f172.google.com ([209.85.214.172]:33315 "EHLO
+	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755331Ab3BALMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 06:12:37 -0500
+Received: by mail-ob0-f172.google.com with SMTP id tb18so3945689obb.17
+        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 03:12:36 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <510B9EC8.6020102@samsung.com>
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+	<510987B5.6090509@gmail.com>
+	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
+	<510B02AB.4080908@gmail.com>
+	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
+	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+	<CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
+	<510B9EC8.6020102@samsung.com>
+Date: Fri, 1 Feb 2013 16:42:36 +0530
+Message-ID: <CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by Klaus:
-	From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-	Subject: DVB: EOPNOTSUPP vs. ENOTTY in ioctl(FE_READ_UNCORRECTED_BLOCKS)
-	Date: Thu, 14 Feb 2013 14:12:31 +0100
+>> In any case please let me know the final preferred one so that I can
+>> update the code send the revised patches.
+>
+> The version with SoC name embedded in it seems most reliable and correct
+> to me.
+>
+> compatible = "samsung,exynos3110-fimg-2d" /* for Exynos3110 (S5PC110, S5PV210),
+>                                              Exynos4210 */
+> compatible = "samsung,exynos4212-fimg-2d" /* for Exynos4212, Exynos4412 */
+>
+Looks good to me.
 
-	In VDR I use an ioctl() call with FE_READ_UNCORRECTED_BLOCKS on a device (using stb0899).
-	After this call I check 'errno' for EOPNOTSUPP to determine whether this
-	device supports this call. This used to work just fine, until a few months
-	ago I noticed that my devices using stb0899 didn't display their signal
-	quality in VDR's OSD any more. After further investigation I found that
-	ioctl(FE_READ_UNCORRECTED_BLOCKS) no longer returns EOPNOTSUPP, but rather
-	ENOTTY. And since I stop getting the signal quality in case any unknown
-	errno value appears, this broke my signal quality query function.
+Inki, Kukjin, please let us know your opinion so that we can freeze
+this. Also please suggest the SoC name for Exynos5 (5250?).
 
-While the changes reflect what is there at:
-	http://comments.gmane.org/gmane.linux.kernel/1235728
-it does cause regression on userspace. So, revert it to stop the damage.
-
-This reverts commit 177ffe506cf8ab5d1d52e7af36871a70d8c22e90:
-	Author: Antti Palosaari <crope@iki.fi>
-	Date:   Wed Aug 15 20:28:38 2012 -0300
-
-	    [media] dvb_frontend: return -ENOTTY for unimplement IOCTL
-
-	    Earlier it was returning -EOPNOTSUPP.
-
-	    Signed-off-by: Antti Palosaari <crope@iki.fi>
-	    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Reported-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 49d9504..0223ad2 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1820,7 +1820,7 @@ static int dvb_frontend_ioctl(struct file *file,
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	int err = -ENOTTY;
-+	int err = -EOPNOTSUPP;
- 
- 	dev_dbg(fe->dvb->device, "%s: (%d)\n", __func__, _IOC_NR(cmd));
- 	if (fepriv->exit != DVB_FE_NO_EXIT)
-@@ -1938,7 +1938,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 		}
- 
- 	} else
--		err = -ENOTTY;
-+		err = -EOPNOTSUPP;
- 
- out:
- 	kfree(tvp);
-@@ -2071,7 +2071,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int err = -ENOTTY;
-+	int err = -EOPNOTSUPP;
- 
- 	switch (cmd) {
- 	case FE_GET_INFO: {
 -- 
-1.8.1.2
-
+With warm regards,
+Sachin
