@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:61431 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932530Ab3BSMKe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 07:10:34 -0500
-Received: by mail-pb0-f51.google.com with SMTP id un15so2228489pbc.10
-        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 04:10:34 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, sachin.kamat@linaro.org
-Subject: [PATCH 1/1] [media] timblogiw: Fix sparse warning
-Date: Tue, 19 Feb 2013 17:30:36 +0530
-Message-Id: <1361275236-16071-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:59767 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757984Ab3BAXC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 18:02:29 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 7/8] saa7134: v4l2-compliance: remove bogus g_parm
+Date: Sat,  2 Feb 2013 00:01:20 +0100
+Message-Id: <1359759681-27549-8-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the below warning:
-drivers/media/platform/timblogiw.c:81:31: warning:
-symbol 'timblogiw_tvnorms' was not declared. Should it be static?
+Make saa7134 driver more V4L2 compliant: remove empty g_parm function
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/platform/timblogiw.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/pci/saa7134/saa7134-video.c |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index c3a2a44..2d91eeb 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -78,7 +78,7 @@ struct timblogiw_buffer {
- 	struct timblogiw_fh	*fh;
- };
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index f7e6d5c..eeee8b4 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2237,12 +2237,6 @@ static int saa7134_streamoff(struct file *file, void *priv,
+ 	return 0;
+ }
  
--const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
-+static const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
- 	{
- 		.std			= V4L2_STD_PAL,
- 		.width			= 720,
+-static int saa7134_g_parm(struct file *file, void *fh,
+-				struct v4l2_streamparm *parm)
+-{
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int vidioc_g_register (struct file *file, void *priv,
+ 			      struct v4l2_dbg_register *reg)
+@@ -2395,7 +2389,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_fbuf			= saa7134_g_fbuf,
+ 	.vidioc_s_fbuf			= saa7134_s_fbuf,
+ 	.vidioc_overlay			= saa7134_overlay,
+-	.vidioc_g_parm			= saa7134_g_parm,
+ 	.vidioc_g_frequency		= saa7134_g_frequency,
+ 	.vidioc_s_frequency		= saa7134_s_frequency,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
 -- 
-1.7.4.1
+Ondrej Zary
 
