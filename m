@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3588 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755951Ab3BAMRe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 5/6] tm6000: add poll op for radio device node.
-Date: Fri,  1 Feb 2013 13:17:20 +0100
-Message-Id: <0dffdfc9573b75523937c617f3f51eecba379051.1359720708.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
-References: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
+Received: from mail-da0-f52.google.com ([209.85.210.52]:33534 "EHLO
+	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756059Ab3BAL75 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 06:59:57 -0500
+Received: by mail-da0-f52.google.com with SMTP id f10so1714052dak.25
+        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 03:59:56 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
+	l.krishna@samsung.com
+Subject: [PATCH v3 0/1] Adds display-timing node parsing to exynos drm fimd
+Date: Fri,  1 Feb 2013 17:29:48 +0530
+Message-Id: <1359719989-29628-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds display-timing node parsing to drm fimd, this depends on
+the display helper patchset at
+http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tm6000/tm6000-video.c |    1 +
- 1 file changed, 1 insertion(+)
+It also adds pinctrl support for drm fimd.
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index ac25885..f41dbb1 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1583,6 +1583,7 @@ static struct video_device tm6000_template = {
- static const struct v4l2_file_operations radio_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= tm6000_open,
-+	.poll		= v4l2_ctrl_poll,
- 	.release	= tm6000_release,
- 	.unlocked_ioctl	= video_ioctl2,
- };
+changes since v2:
+	- moved 'devm_pinctrl_get_select_default' function call under
+		'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
+		(reported by: Rahul Sharma <r.sh.open@gmail.com>)
+
+changes since v1:
+	- addressed comments from Sean Paul <seanpaul@chromium.org>
+
+patch is based on branch "exynos-drm-next" at
+http://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
+
+Is tested on Exynos5250 and Exynos4412 by applying dependent patches available
+at http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
+
+Vikas Sajjan (1):
+  video: drm: exynos: Adds display-timing node parsing using video
+    helper function
+
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   39 +++++++++++++++++++++++++++---
+ 1 file changed, 35 insertions(+), 4 deletions(-)
+
 -- 
-1.7.10.4
+1.7.9.5
 
