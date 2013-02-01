@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:35183 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759189Ab3BGRjk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:40 -0500
-Received: by mail-ea0-f179.google.com with SMTP id d12so1309912eaa.10
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:39 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 08/13] em28xx: get rid of duplicate function vidioc_s_fmt_vbi_cap()
-Date: Thu,  7 Feb 2013 18:39:16 +0100
-Message-Id: <1360258761-2959-9-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.samsung.com ([203.254.224.24]:24955 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775Ab3BARhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 12:37:08 -0500
+From: Kukjin Kim <kgene.kim@samsung.com>
+To: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, linux-samsung-soc@vger.kernel.org,
+	'linux-arm-kernel' <linux-arm-kernel@lists.infradead.org>
+References: <1359566606-31394-1-git-send-email-s.nawrocki@samsung.com>
+ <1359566606-31394-6-git-send-email-s.nawrocki@samsung.com>
+ <510BA174.1010602@samsung.com>
+In-reply-to: <510BA174.1010602@samsung.com>
+Subject: RE: [PATCH 5/5] s5p-fimc: Redefine platform data structure for fimc-is
+Date: Fri, 01 Feb 2013 09:36:58 -0800
+Message-id: <0c4d01ce00a2$be31cdc0$3a956940$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vidioc_s_fmt_vbi_cap() is a 100% duplicate of vidioc_g_fmt_vbi_cap() and
-therefore can be removed.
+Sylwester Nawrocki wrote:
+> 
+> On 01/30/2013 06:23 PM, Sylwester Nawrocki wrote:
+> > Newer Exynos4 SoC are equipped with a local camera ISP that
+> > controls external raw image sensor directly. Such sensors
+> > can be connected through FIMC-LITEn (and MIPI-CSISn) IPs to
+> > the ISP, which then feeds image data to the FIMCn IP. Thus
+> > there can be two busses associated with an image source
+> > (sensor). Rename struct s5p_fimc_isp_info describing external
+> > image sensor (video decoder) to struct fimc_source_info to
+> > avoid confusion. bus_type is split into fimc_bus_type and
+> > sensor_bus_type. The bus type enumeration is extended to
+> > include both FIMC Writeback input types.
+> >
+> > The bus_type enumeration and the data structure name in the
+> > board files are modified according to the above changes.
+> >
+> > Cc: Kukjin Kim <kgene.kim@samsung.com>
+> > Cc: linux-samsung-soc@vger.kernel.org
+> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> 
+> Kukjin, can I please have your ack on this patch so it can be
+> merged through the media tree ?
+> 
+Sure, why not? Please go ahead with my ack:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   31 +------------------------------
- 1 Datei geändert, 1 Zeile hinzugefügt(+), 30 Zeilen entfernt(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index edd29ae..af3e70a 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1480,35 +1480,6 @@ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_s_fmt_vbi_cap(struct file *file, void *priv,
--				struct v4l2_format *format)
--{
--	struct em28xx_fh      *fh  = priv;
--	struct em28xx         *dev = fh->dev;
--
--	format->fmt.vbi.samples_per_line = dev->vbi_width;
--	format->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
--	format->fmt.vbi.offset = 0;
--	format->fmt.vbi.flags = 0;
--	format->fmt.vbi.sampling_rate = 6750000 * 4 / 2;
--	format->fmt.vbi.count[0] = dev->vbi_height;
--	format->fmt.vbi.count[1] = dev->vbi_height;
--	memset(format->fmt.vbi.reserved, 0, sizeof(format->fmt.vbi.reserved));
--
--	/* Varies by video standard (NTSC, PAL, etc.) */
--	if (dev->norm & V4L2_STD_525_60) {
--		/* NTSC */
--		format->fmt.vbi.start[0] = 10;
--		format->fmt.vbi.start[1] = 273;
--	} else if (dev->norm & V4L2_STD_625_50) {
--		/* PAL */
--		format->fmt.vbi.start[0] = 6;
--		format->fmt.vbi.start[1] = 318;
--	}
--
--	return 0;
--}
--
- /* ----------------------------------------------------------- */
- /* RADIO ESPECIFIC IOCTLS                                      */
- /* ----------------------------------------------------------- */
-@@ -1707,7 +1678,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
- 	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
- 	.vidioc_try_fmt_vbi_cap     = vidioc_g_fmt_vbi_cap,
--	.vidioc_s_fmt_vbi_cap       = vidioc_s_fmt_vbi_cap,
-+	.vidioc_s_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
- 	.vidioc_enum_framesizes     = vidioc_enum_framesizes,
- 	.vidioc_g_audio             = vidioc_g_audio,
- 	.vidioc_s_audio             = vidioc_s_audio,
--- 
-1.7.10.4
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
