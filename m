@@ -1,55 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:52128 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539Ab3BFO0S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:26:18 -0500
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6 1/2] sta2x11_vip: convert to videobuf2, control framework, file handler
-Date: Wed, 06 Feb 2013 15:26:04 +0100
-Message-ID: <3571679.eOuhae6qJb@number-5>
-In-Reply-To: <201302061049.10879.hansverk@cisco.com>
-References: <201302041157.45340.hverkuil@xs4all.nl> <1360089277-27898-1-git-send-email-federico.vaga@gmail.com> <201302061049.10879.hansverk@cisco.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-1.atlantis.sk ([80.94.52.57]:39062 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757313Ab3BAXCO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 18:02:14 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/8] saa7134: v4l2-compliance: return real frequency
+Date: Sat,  2 Feb 2013 00:01:17 +0100
+Message-Id: <1359759681-27549-5-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Make saa7134 driver more V4L2 compliant: don't cache frequency in
+s_frequency/g_frequency but return real one instead
 
-thank you very much for your review and your patience.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |    6 ++++--
+ drivers/media/pci/saa7134/saa7134.h       |    1 -
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-> OK, I'm going to give this my Acked-by, but I really wish you would
-> have split this up into smaller changes. It's hard to review since
-> you have made so many changes in this one patch. Even though I'm
-> giving my ack, Mauro might decide against it, so if you have time
-> to spread out the changes in multiple patches, then please do so.
-
-I tried to do smaller patch but there is always some incoherent part 
-and the driver cannot work without all the patches. I should write 
-some "fake" patches to make a coherent series.
-I reduce the size of the patch since v4/5; I leaved 
-unchanged some code/comments to simplify the patch.
-
-> So, given the fact that this changes just a single driver not
-> commonly used in existing deployments, assuming that you have
-> tested the changes (you did that, right? Just checking...), that
-> these are really useful improvements, and that I reviewed the code
-> (as well as I could) and didn't see any problems, I'm giving my ack
-> anyway:
-
-Tested every time I sent a patch
-
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Thank you again
-
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index cd4959e..c8d3180 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2051,8 +2051,11 @@ static int saa7134_g_frequency(struct file *file, void *priv,
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+ 
++	if (0 != f->tuner)
++		return -EINVAL;
++
+ 	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	f->frequency = dev->ctl_freq;
++	saa_call_all(dev, tuner, g_frequency, f);
+ 
+ 	return 0;
+ }
+@@ -2070,7 +2073,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
+ 	if (1 == fh->radio && V4L2_TUNER_RADIO != f->type)
+ 		return -EINVAL;
+ 	mutex_lock(&dev->lock);
+-	dev->ctl_freq = f->frequency;
+ 
+ 	saa_call_all(dev, tuner, s_frequency, f);
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 2ffe069..d0ee05e 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -604,7 +604,6 @@ struct saa7134_dev {
+ 	int                        ctl_contrast;
+ 	int                        ctl_hue;
+ 	int                        ctl_saturation;
+-	int                        ctl_freq;
+ 	int                        ctl_mute;             /* audio */
+ 	int                        ctl_volume;
+ 	int                        ctl_invert;           /* private */
 -- 
-Federico Vaga
+Ondrej Zary
+
