@@ -1,152 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4907 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754643Ab3BJMuV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 02/19] bttv: add VIDIOC_DBG_G_CHIP_IDENT
-Date: Sun, 10 Feb 2013 13:49:57 +0100
-Message-Id: <a50b0915b14c43bd7cfb26fb79a1faeab397a877.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:54448 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756784Ab3BAUVr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 15:21:47 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/4] tda8290: Allow disabling I2C gate
+Date: Fri,  1 Feb 2013 21:21:24 +0100
+Message-Id: <1359750087-1155-2-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Allow disabling I2C gate handling by external configuration.
+This is required by cards that have all devices on a single I2C bus,
+like AverMedia A706.
 
-VIDIOC_DBG_G_CHIP_IDENT is a prerequisite for the G/S_REGISTER ioctls.
-In addition, add support to call G/S_REGISTER for supporting i2c devices.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |   40 +++++++++++++++++++++++++++++----
- drivers/media/pci/bt8xx/bttv.h        |    3 +++
- include/media/v4l2-chip-ident.h       |    8 +++++++
- 3 files changed, 47 insertions(+), 4 deletions(-)
+ drivers/media/tuners/tda8290.c |   49 +++++++++++++++++++++++----------------
+ drivers/media/tuners/tda8290.h |    1 +
+ 2 files changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index cc7f58f..b36d675 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -49,6 +49,7 @@
- #include "bttvp.h"
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-chip-ident.h>
- #include <media/tvaudio.h>
- #include <media/msp3400.h>
+diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+index 8c48521..a2b7a9f 100644
+--- a/drivers/media/tuners/tda8290.c
++++ b/drivers/media/tuners/tda8290.c
+@@ -233,7 +233,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 	}
  
-@@ -2059,6 +2060,28 @@ static int bttv_log_status(struct file *file, void *f)
- 	return 0;
+ 
+-	tda8290_i2c_bridge(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+ 
+ 	if (fe->ops.tuner_ops.set_analog_params)
+ 		fe->ops.tuner_ops.set_analog_params(fe, params);
+@@ -302,7 +303,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+ 		}
+ 	}
+ 
+-	tda8290_i2c_bridge(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ 	tuner_i2c_xfer_send(&priv->i2c_props, if_agc_set, 2);
  }
  
-+static int bttv_g_chip_ident(struct file *file, void *f, struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct bttv_fh *fh  = f;
-+	struct bttv *btv = fh->btv;
-+
-+	chip->ident = V4L2_IDENT_NONE;
-+	chip->revision = 0;
-+	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
-+		if (v4l2_chip_match_host(&chip->match)) {
-+			chip->ident = btv->id;
-+			if (chip->ident == PCI_DEVICE_ID_FUSION879)
-+				chip->ident = V4L2_IDENT_BT879;
-+		}
-+		return 0;
-+	}
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+	    chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
-+		return -EINVAL;
-+	/* TODO: is this correct? */
-+	return bttv_call_all_err(btv, core, g_chip_ident, chip);
-+}
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int bttv_g_register(struct file *file, void *f,
- 					struct v4l2_dbg_register *reg)
-@@ -2069,8 +2092,12 @@ static int bttv_g_register(struct file *file, void *f,
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+@@ -424,7 +426,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+ 	tuner_i2c_xfer_send(&priv->i2c_props, blanking_mode, 2);
+ 	msleep(20);
  
--	if (!v4l2_chip_match_host(&reg->match))
+-	tda8295_i2c_bridge(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+ 
+ 	if (fe->ops.tuner_ops.set_analog_params)
+ 		fe->ops.tuner_ops.set_analog_params(fe, params);
+@@ -437,7 +440,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+ 	else
+ 		tuner_dbg("tda8295 not locked, no signal?\n");
+ 
+-	tda8295_i2c_bridge(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ }
+ 
+ /*---------------------------------------------------------------------*/
+@@ -465,11 +469,13 @@ static void tda8290_standby(struct dvb_frontend *fe)
+ 	unsigned char tda8290_agc_tri[] = { 0x02, 0x20 };
+ 	struct i2c_msg msg = {.addr = priv->tda827x_addr, .flags=0, .buf=cb1, .len = 2};
+ 
+-	tda8290_i2c_bridge(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+ 	if (priv->ver & TDA8275A)
+ 		cb1[1] = 0x90;
+ 	i2c_transfer(priv->i2c_props.adap, &msg, 1);
+-	tda8290_i2c_bridge(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ 	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_agc_tri, 2);
+ 	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_standby, 2);
+ }
+@@ -537,9 +543,11 @@ static void tda8290_init_tuner(struct dvb_frontend *fe)
+ 	if (priv->ver & TDA8275A)
+ 		msg.buf = tda8275a_init;
+ 
+-	tda8290_i2c_bridge(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+ 	i2c_transfer(priv->i2c_props.adap, &msg, 1);
+-	tda8290_i2c_bridge(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ }
+ 
+ /*---------------------------------------------------------------------*/
+@@ -565,19 +573,13 @@ static struct tda18271_config tda829x_tda18271_config = {
+ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ {
+ 	struct tda8290_priv *priv = fe->analog_demod_priv;
+-	struct analog_demod_ops *analog_ops = &fe->ops.analog_ops;
+ 	int i, ret, tuners_found;
+ 	u32 tuner_addrs;
+ 	u8 data;
+ 	struct i2c_msg msg = { .flags = I2C_M_RD, .buf = &data, .len = 1 };
+ 
+-	if (!analog_ops->i2c_gate_ctrl) {
+-		printk(KERN_ERR "tda8290: no gate control were provided!\n");
+-
 -		return -EINVAL;
-+	if (!v4l2_chip_match_host(&reg->match)) {
-+		/* TODO: subdev errors should not be ignored, this should become a
-+		   subdev helper function. */
-+		bttv_call_all(btv, core, g_register, reg);
-+		return 0;
-+	}
+-	}
+-
+-	analog_ops->i2c_gate_ctrl(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
  
- 	/* bt848 has a 12-bit register space */
- 	reg->reg &= 0xfff;
-@@ -2089,8 +2116,12 @@ static int bttv_s_register(struct file *file, void *f,
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
+ 	/* probe for tuner chip */
+ 	tuners_found = 0;
+@@ -595,7 +597,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ 	   give a response now
+ 	 */
  
--	if (!v4l2_chip_match_host(&reg->match))
--		return -EINVAL;
-+	if (!v4l2_chip_match_host(&reg->match)) {
-+		/* TODO: subdev errors should not be ignored, this should become a
-+		   subdev helper function. */
-+		bttv_call_all(btv, core, s_register, reg);
-+		return 0;
-+	}
+-	analog_ops->i2c_gate_ctrl(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
  
- 	/* bt848 has a 12-bit register space */
- 	reg->reg &= 0xfff;
-@@ -3394,6 +3425,7 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_s_frequency             = bttv_s_frequency,
- 	.vidioc_log_status		= bttv_log_status,
- 	.vidioc_querystd		= bttv_querystd,
-+	.vidioc_g_chip_ident		= bttv_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= bttv_g_register,
- 	.vidioc_s_register		= bttv_s_register,
-diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-index 79a1124..6139ce2 100644
---- a/drivers/media/pci/bt8xx/bttv.h
-+++ b/drivers/media/pci/bt8xx/bttv.h
-@@ -359,6 +359,9 @@ void bttv_gpio_bits(struct bttv_core *core, u32 mask, u32 bits);
- #define bttv_call_all(btv, o, f, args...) \
- 	v4l2_device_call_all(&btv->c.v4l2_dev, 0, o, f, ##args)
+ 	if (tuners_found > 1)
+ 		for (i = 0; i < tuners_found; i++) {
+@@ -618,12 +621,14 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ 	priv->tda827x_addr = tuner_addrs;
+ 	msg.addr = tuner_addrs;
  
-+#define bttv_call_all_err(btv, o, f, args...) \
-+	v4l2_device_call_until_err(&btv->c.v4l2_dev, 0, o, f, ##args)
+-	analog_ops->i2c_gate_ctrl(fe, 1);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+ 	ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
+ 
+ 	if (ret != 1) {
+ 		tuner_warn("tuner access failed!\n");
+-		analog_ops->i2c_gate_ctrl(fe, 0);
++		if (fe->ops.analog_ops.i2c_gate_ctrl)
++			fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ 		return -EREMOTEIO;
+ 	}
+ 
+@@ -648,7 +653,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+ 	if (fe->ops.tuner_ops.sleep)
+ 		fe->ops.tuner_ops.sleep(fe);
+ 
+-	analog_ops->i2c_gate_ctrl(fe, 0);
++	if (fe->ops.analog_ops.i2c_gate_ctrl)
++		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	return 0;
+ }
+@@ -755,6 +761,9 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
+ 		       sizeof(struct analog_demod_ops));
+ 	}
+ 
++	if (cfg && cfg->no_i2c_gate)
++		fe->ops.analog_ops.i2c_gate_ctrl = NULL;
 +
- extern int bttv_I2CRead(struct bttv *btv, unsigned char addr, char *probe_for);
- extern int bttv_I2CWrite(struct bttv *btv, unsigned char addr, unsigned char b1,
- 			 unsigned char b2, int both);
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 4ee125b..b5996f9 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -96,12 +96,20 @@ enum {
- 	/* module au0828 */
- 	V4L2_IDENT_AU0828 = 828,
+ 	if (!(cfg) || (TDA829X_PROBE_TUNER == cfg->probe_tuner)) {
+ 		tda8295_power(fe, 1);
+ 		if (tda829x_find_tuner(fe) < 0)
+diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
+index 7e288b2..9959cc8 100644
+--- a/drivers/media/tuners/tda8290.h
++++ b/drivers/media/tuners/tda8290.h
+@@ -26,6 +26,7 @@ struct tda829x_config {
+ 	unsigned int probe_tuner:1;
+ #define TDA829X_PROBE_TUNER 0
+ #define TDA829X_DONT_PROBE  1
++	unsigned int no_i2c_gate:1;
+ };
  
-+	/* module bttv: ident 848 + 849 */
-+	V4L2_IDENT_BT848 = 848,
-+	V4L2_IDENT_BT849 = 849,
-+
- 	/* module bt856: just ident 856 */
- 	V4L2_IDENT_BT856 = 856,
- 
- 	/* module bt866: just ident 866 */
- 	V4L2_IDENT_BT866 = 866,
- 
-+	/* module bttv: ident 878 + 879 */
-+	V4L2_IDENT_BT878 = 878,
-+	V4L2_IDENT_BT879 = 879,
-+
- 	/* module ks0127: reserved range 1120-1129 */
- 	V4L2_IDENT_KS0122S = 1122,
- 	V4L2_IDENT_KS0127  = 1127,
+ #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
 -- 
-1.7.10.4
+Ondrej Zary
 
