@@ -1,96 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1264 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283Ab3BLVLH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 16:11:07 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1CLB2nD058948
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:11:05 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 5C0E911E00B9
-	for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:11:02 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130212211102.5C0E911E00B9@alastor.dyndns.org>
-Date: Tue, 12 Feb 2013 22:11:02 +0100 (CET)
+Received: from mail-1.atlantis.sk ([80.94.52.57]:46144 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757313Ab3BAXCJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 18:02:09 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 3/8] saa7134: v4l2-compliance: use v4l2_fh to fix priority handling
+Date: Sat,  2 Feb 2013 00:01:16 +0100
+Message-Id: <1359759681-27549-4-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Make saa7134 driver more V4L2 compliant: remove broken priority handling
+and use v4l2_fh instead
 
-Results of the daily build of media_tree:
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/pci/saa7134/saa7134-core.c  |    3 +-
+ drivers/media/pci/saa7134/saa7134-video.c |   61 +++-------------------------
+ drivers/media/pci/saa7134/saa7134.h       |    4 +-
+ 3 files changed, 10 insertions(+), 58 deletions(-)
 
-date:		Tue Feb 12 19:00:17 CET 2013
-git branch:	for_v3.9
-git hash:	4880f56438ef56457edd5548b257382761591998
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 8976d0e..ba08bd6 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -805,6 +805,7 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
+ 	vfd->debug   = video_debug;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
+ 		 dev->name, type, saa7134_boards[dev->board].name);
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+ 	video_set_drvdata(vfd, dev);
+ 	return vfd;
+ }
+@@ -1028,8 +1029,6 @@ static int __devinit saa7134_initdev(struct pci_dev *pci_dev,
+ 		}
+ 	}
+ 
+-	v4l2_prio_init(&dev->prio);
+-
+ 	mutex_lock(&saa7134_devlist_lock);
+ 	list_for_each_entry(mops, &mops_list, next)
+ 		mpeg_ops_attach(mops, dev);
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 62b6f6c..cd4959e 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1176,14 +1176,6 @@ int saa7134_s_ctrl_internal(struct saa7134_dev *dev,  struct saa7134_fh *fh, str
+ 	int restart_overlay = 0;
+ 	int err;
+ 
+-	/* When called from the empress code fh == NULL.
+-	   That needs to be fixed somehow, but for now this is
+-	   good enough. */
+-	if (fh) {
+-		err = v4l2_prio_check(&dev->prio, fh->prio);
+-		if (0 != err)
+-			return err;
+-	}
+ 	err = -EINVAL;
+ 
+ 	mutex_lock(&dev->lock);
+@@ -1352,6 +1344,7 @@ static int video_open(struct file *file)
+ 	if (NULL == fh)
+ 		return -ENOMEM;
+ 
++	v4l2_fh_init(&fh->fh, vdev);
+ 	file->private_data = fh;
+ 	fh->dev      = dev;
+ 	fh->radio    = radio;
+@@ -1359,7 +1352,6 @@ static int video_open(struct file *file)
+ 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
+ 	fh->width    = 720;
+ 	fh->height   = 576;
+-	v4l2_prio_open(&dev->prio, &fh->prio);
+ 
+ 	videobuf_queue_sg_init(&fh->cap, &video_qops,
+ 			    &dev->pci->dev, &dev->slock,
+@@ -1384,6 +1376,8 @@ static int video_open(struct file *file)
+ 		/* switch to video/vbi mode */
+ 		video_mux(dev,dev->ctl_input);
+ 	}
++	v4l2_fh_add(&fh->fh);
++
+ 	return 0;
+ }
+ 
+@@ -1504,7 +1498,8 @@ static int video_release(struct file *file)
+ 	saa7134_pgtable_free(dev->pci,&fh->pt_cap);
+ 	saa7134_pgtable_free(dev->pci,&fh->pt_vbi);
+ 
+-	v4l2_prio_close(&dev->prio, fh->prio);
++	v4l2_fh_del(&fh->fh);
++	v4l2_fh_exit(&fh->fh);
+ 	file->private_data = NULL;
+ 	kfree(fh);
+ 	return 0;
+@@ -1784,11 +1779,6 @@ static int saa7134_s_input(struct file *file, void *priv, unsigned int i)
+ {
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+-	int err;
+-
+-	err = v4l2_prio_check(&dev->prio, fh->prio);
+-	if (0 != err)
+-		return err;
+ 
+ 	if (i >= SAA7134_INPUT_MAX)
+ 		return -EINVAL;
+@@ -1856,16 +1846,8 @@ int saa7134_s_std_internal(struct saa7134_dev *dev, struct saa7134_fh *fh, v4l2_
+ 	unsigned long flags;
+ 	unsigned int i;
+ 	v4l2_std_id fixup;
+-	int err;
+ 
+-	/* When called from the empress code fh == NULL.
+-	   That needs to be fixed somehow, but for now this is
+-	   good enough. */
+-	if (fh) {
+-		err = v4l2_prio_check(&dev->prio, fh->prio);
+-		if (0 != err)
+-			return err;
+-	} else if (res_locked(dev, RESOURCE_OVERLAY)) {
++	if (!fh && res_locked(dev, RESOURCE_OVERLAY)) {
+ 		/* Don't change the std from the mpeg device
+ 		   if overlay is active. */
+ 		return -EBUSY;
+@@ -2050,11 +2032,7 @@ static int saa7134_s_tuner(struct file *file, void *priv,
+ {
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+-	int rx, mode, err;
+-
+-	err = v4l2_prio_check(&dev->prio, fh->prio);
+-	if (0 != err)
+-		return err;
++	int rx, mode;
+ 
+ 	mode = dev->thread.mode;
+ 	if (UNSET == mode) {
+@@ -2084,11 +2062,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
+ {
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+-	int err;
+-
+-	err = v4l2_prio_check(&dev->prio, fh->prio);
+-	if (0 != err)
+-		return err;
+ 
+ 	if (0 != f->tuner)
+ 		return -EINVAL;
+@@ -2117,24 +2090,6 @@ static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audi
+ 	return 0;
+ }
+ 
+-static int saa7134_g_priority(struct file *file, void *f, enum v4l2_priority *p)
+-{
+-	struct saa7134_fh *fh = f;
+-	struct saa7134_dev *dev = fh->dev;
+-
+-	*p = v4l2_prio_max(&dev->prio);
+-	return 0;
+-}
+-
+-static int saa7134_s_priority(struct file *file, void *f,
+-					enum v4l2_priority prio)
+-{
+-	struct saa7134_fh *fh = f;
+-	struct saa7134_dev *dev = fh->dev;
+-
+-	return v4l2_prio_change(&dev->prio, &fh->prio, prio);
+-}
+-
+ static int saa7134_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+ {
+@@ -2463,8 +2418,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_fbuf			= saa7134_g_fbuf,
+ 	.vidioc_s_fbuf			= saa7134_s_fbuf,
+ 	.vidioc_overlay			= saa7134_overlay,
+-	.vidioc_g_priority		= saa7134_g_priority,
+-	.vidioc_s_priority		= saa7134_s_priority,
+ 	.vidioc_g_parm			= saa7134_g_parm,
+ 	.vidioc_g_frequency		= saa7134_g_frequency,
+ 	.vidioc_s_frequency		= saa7134_s_frequency,
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 9059d08..2ffe069 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -35,6 +35,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fh.h>
+ #include <media/tuner.h>
+ #include <media/rc-core.h>
+ #include <media/ir-kbd-i2c.h>
+@@ -466,11 +467,11 @@ struct saa7134_dmaqueue {
+ 
+ /* video filehandle status */
+ struct saa7134_fh {
++	struct v4l2_fh             fh;
+ 	struct saa7134_dev         *dev;
+ 	unsigned int               radio;
+ 	enum v4l2_buf_type         type;
+ 	unsigned int               resources;
+-	enum v4l2_priority	   prio;
+ 
+ 	/* video overlay */
+ 	struct v4l2_window         win;
+@@ -541,7 +542,6 @@ struct saa7134_dev {
+ 	struct list_head           devlist;
+ 	struct mutex               lock;
+ 	spinlock_t                 slock;
+-	struct v4l2_prio_state     prio;
+ 	struct v4l2_device         v4l2_dev;
+ 	/* workstruct for loading modules */
+ 	struct work_struct request_module_wk;
+-- 
+Ondrej Zary
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
