@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3447 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758221Ab3BIPYN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 10:24:13 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH] media_build: add PTR_RET to compat.h
-Date: Sat, 9 Feb 2013 16:23:59 +0100
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hans.verkuil@cisco.com
-References: <1360418680-9682-1-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1360418680-9682-1-git-send-email-gennarone@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44593 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756709Ab3BAXh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 18:37:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
+Cc: Tomasz Figa <t.figa@samsung.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Philipp Zabel <p.zabel@pengutronix.de>,
+	Tom Gall <tom.gall@linaro.org>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	sunil joshi <joshi@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Bryan Wu <bryan.wu@canonical.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Sebastien Guiriec <s-guiriec@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC v2 0/5] Common Display Framework
+Date: Sat, 02 Feb 2013 00:37:34 +0100
+Message-ID: <3769008.t1iWZpc9bc@avalon>
+In-Reply-To: <50EBF10A.7080906@stericsson.com>
+References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <3584709.mPLC5exzRY@avalon> <50EBF10A.7080906@stericsson.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302091623.59942.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat February 9 2013 15:04:40 Gianluca Gennari wrote:
-> PTR_RET is used by the solo6x10 staging driver,
-> and was introduced in kernel 2.6.39.
-> Add it to compat.h for compatibility with older kernels.
+Hi Marcus,
 
-Applied, thanks!
+On Tuesday 08 January 2013 11:12:26 Marcus Lorentzon wrote:
 
+[snip]
+
+> I also looked at the video source in Tomi's git tree
+> (http://gitorious.org/linux-omap-dss2/linux/blobs/work/dss-dev-model-cdf/inc
+> lude/video/display.h). I think I would prefer a single "setup" op taking a
+> "struct dsi_config" as argument. Then each DSI formatter/encoder driver
+> could decide best way to set that up. We have something similar at
+> http://www.igloocommunity.org/gitweb/?p=kernel/igloo-kernel.git;a=blob;f=inc
+> lude/video/mcde.h;h=499ce5cfecc9ad77593e761cdcc1624502f28432;hb=HEAD#l118
+
+A single setup function indeed seems easier, but I don't have enough 
+experience with DSI to have a strong opinion on that. We'll have to compare 
+implementations if there's a disagreement on this.
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
-> ---
->  v4l/compat.h                      | 10 ++++++++++
->  v4l/scripts/make_config_compat.pl |  1 +
->  2 files changed, 11 insertions(+)
-> 
-> diff --git a/v4l/compat.h b/v4l/compat.h
-> index 1a82bb7..b27b178 100644
-> --- a/v4l/compat.h
-> +++ b/v4l/compat.h
-> @@ -1137,4 +1137,14 @@ static inline int usb_translate_errors(int error_code)
->  }
->  #endif
->  
-> +#ifdef NEED_PTR_RET
-> +static inline int __must_check PTR_RET(const void *ptr)
-> +{
-> +	if (IS_ERR(ptr))
-> +		return PTR_ERR(ptr);
-> +	else
-> +		return 0;
-> +}
-> +#endif
-> +
->  #endif /*  _COMPAT_H */
-> diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
-> index 583ef9d..51a1f5d 100644
-> --- a/v4l/scripts/make_config_compat.pl
-> +++ b/v4l/scripts/make_config_compat.pl
-> @@ -588,6 +588,7 @@ sub check_other_dependencies()
->  	check_files_for_func("config_enabled", "NEED_IS_ENABLED", "include/linux/kconfig.h");
->  	check_files_for_func("DEFINE_PCI_DEVICE_TABLE", "NEED_DEFINE_PCI_DEVICE_TABLE", "include/linux/pci.h");
->  	check_files_for_func("usb_translate_errors", "NEED_USB_TRANSLATE_ERRORS", "include/linux/usb.h");
-> +	check_files_for_func("PTR_RET", "NEED_PTR_RET", "include/linux/err.h");
->  
->  	# For tests for uapi-dependent logic
->  	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
-> 
