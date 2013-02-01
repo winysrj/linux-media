@@ -1,39 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mlbassoc.com ([65.100.170.105]:42842 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755247Ab3BFTgp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 14:36:45 -0500
-Message-ID: <5112AF1A.9050808@mlbassoc.com>
-Date: Wed, 06 Feb 2013 12:29:30 -0700
-From: Gary Thomas <gary@mlbassoc.com>
-MIME-Version: 1.0
+Received: from mailout3.samsung.com ([203.254.224.33]:55390 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757242Ab3BATKO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 14:10:14 -0500
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: media controller interface
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	swarren@wwwdotorg.org, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 07/10] ARM: dts: Add camera to node exynos4.dtsi
+Date: Fri, 01 Feb 2013 20:09:28 +0100
+Message-id: <1359745771-23684-8-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Any idea why /dev/media0 is not available to "media" users,
-in particular those in group 'video'?  On my system I see:
+This patch adds common FIMC device nodes for all Exynos4 SoCs.
 
-   $ ls -l /dev/vid*
-   crw-rw---- 1 root video 81, 0 Feb  6 18:45 /dev/video0
-   crw-rw---- 1 root video 81, 1 Feb  6 18:45 /dev/video1
-   crw-rw---- 1 root video 81, 2 Feb  6 18:45 /dev/video2
-   crw-rw---- 1 root video 81, 3 Feb  6 18:45 /dev/video3
-   $ ls -l /dev/media0
-   crw------- 1 root root 253, 0 Feb  6 18:45 /dev/media0
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/boot/dts/exynos4.dtsi |   64 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-So my actual media files are usable by my 'video' user, but
-not the media controller interface.
-
-Also, where are these devices created?  I'm running udev 182
-
-Thanks for any pointers
-
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index e1347fc..75c388b 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -36,6 +36,12 @@
+ 		i2c5 = &i2c_5;
+ 		i2c6 = &i2c_6;
+ 		i2c7 = &i2c_7;
++		csis0 = &csis_0;
++		csis1 = &csis_1;
++		fimc0 = &fimc_0;
++		fimc1 = &fimc_1;
++		fimc2 = &fimc_2;
++		fimc3 = &fimc_3;
+ 	};
+ 
+ 	pd_mfc: mfc-power-domain@10023C40 {
+@@ -82,6 +88,64 @@
+ 		reg = <0x10440000 0x1000>;
+ 	};
+ 
++	camera {
++		compatible = "samsung,fimc", "simple-bus";
++		status = "disabled";
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges;
++
++		fimc_0: fimc@11800000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11800000 0x1000>;
++			interrupts = <0 84 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_1: fimc@11810000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11810000 0x1000>;
++			interrupts = <0 85 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_2: fimc@11820000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11820000 0x1000>;
++			interrupts = <0 86 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		fimc_3: fimc@11830000 {
++			compatible = "samsung,exynos4210-fimc";
++			reg = <0x11830000 0x1000>;
++			interrupts = <0 87 0>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_0: csis@11880000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11880000 0x4000>;
++			interrupts = <0 78 0>;
++			bus-width = <4>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++
++		csis_1: csis@11890000 {
++			compatible = "samsung,exynos4210-csis";
++			reg = <0x11890000 0x4000>;
++			interrupts = <0 80 0>;
++			bus-width = <2>;
++			samsung,power-domain = <&pd_cam>;
++			status = "disabled";
++		};
++	};
++
+ 	watchdog@10060000 {
+ 		compatible = "samsung,s3c2410-wdt";
+ 		reg = <0x10060000 0x100>;
 -- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+1.7.9.5
+
