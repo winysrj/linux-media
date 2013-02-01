@@ -1,81 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:53497 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431Ab3BCTxG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 14:53:06 -0500
-Received: by mail-la0-f50.google.com with SMTP id ec20so3950832lab.23
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 11:53:04 -0800 (PST)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36490 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757724Ab3BAWZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 Feb 2013 17:25:08 -0500
+Date: Sat, 2 Feb 2013 00:25:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/1] v4l: Document timestamp behaviour to correspond to
+ reality
+Message-ID: <20130201222501.GJ18639@valkosipuli.retiisi.org.uk>
+References: <1359137009-23921-1-git-send-email-sakari.ailus@iki.fi>
+ <201301281055.14085.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <510EBC47.7040301@iki.fi>
-References: <50F05C09.3010104@iki.fi>
-	<2909559.M1IsAHpWSv@jar7.dominio>
-	<CAOcJUbyt418Cg=5JawNq_U_4bUG+ztqB_7n7iOvwWgo-zvROhg@mail.gmail.com>
-	<2616361.Xo6SKdVfQO@jar7.dominio>
-	<510E645A.80103@iki.fi>
-	<CAOcJUbxMBs=P8VJ_F50hXK+gxUuQ+kGYzD1yS9N7z48nDA-Ntw@mail.gmail.com>
-	<510EBC47.7040301@iki.fi>
-Date: Sun, 3 Feb 2013 14:53:04 -0500
-Message-ID: <CAOcJUbyYp7p9F3wQhi1uq=RcaT44i7Y2=ax6Z3eDaMCX--kgSg@mail.gmail.com>
-Subject: Re: af9035 test needed!
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201301281055.14085.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(history chopped cuz it got messy)
+Hi Hans,
 
-quoting Antti with my responses inline.
+Thanks for your comments.
 
-<<
-I agree that it should be split multiple patches.
+On Mon, Jan 28, 2013 at 10:55:14AM +0100, Hans Verkuil wrote:
+> On Fri January 25 2013 19:03:29 Sakari Ailus wrote:
+> > Document that monotonic timestamps are taken after the corresponding frame
+> > has been received, not when the reception has begun. This corresponds to the
+> > reality of current drivers: the timestamp is naturally taken when the
+> > hardware triggers an interrupt to tell the driver to handle the received
+> > frame.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  Documentation/DocBook/media/v4l/io.xml |   27 ++++++++++++++-------------
+> >  1 files changed, 14 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> > index 2c4646d..3b8bf61 100644
+> > --- a/Documentation/DocBook/media/v4l/io.xml
+> > +++ b/Documentation/DocBook/media/v4l/io.xml
+> > @@ -654,19 +654,20 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+> >  In that case, struct <structname>v4l2_buffer</structname> contains an array of
+> >  plane structures.</para>
+> >  
+> > -      <para>Nominally timestamps refer to the first data byte transmitted.
+> > -In practice however the wide range of hardware covered by the V4L2 API
+> > -limits timestamp accuracy. Often an interrupt routine will
+> > -sample the system clock shortly after the field or frame was stored
+> > -completely in memory. So applications must expect a constant
+> > -difference up to one field or frame period plus a small (few scan
+> > -lines) random error. The delay and error can be much
+> > -larger due to compression or transmission over an external bus when
+> > -the frames are not properly stamped by the sender. This is frequently
+> > -the case with USB cameras. Here timestamps refer to the instant the
+> > -field or frame was received by the driver, not the capture time. These
+> > -devices identify by not enumerating any video standards, see <xref
+> > -linkend="standard" />.</para>
+> > +      <para>On timestamp types that are sampled from the system clock
+> > +(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
+> > +taken after the complete frame has been received.
+> 
+> add: " (or transmitted for video output devices)"
 
-KRUFKY:  YES.
+Ack.
 
-1) soft reset should be moved to attach() (it could not be on init()
-nor set_parameters() as it stops clock out and loop-through in few ms
-or so causing slave tuner errors)
+> > For other kinds of
+> > +timestamps this may vary depending on the driver. In practice however the
+> > +wide range of hardware covered by the V4L2 API limits timestamp accuracy.
+> > +Often an interrupt routine will sample the system clock shortly after the
+> > +field or frame was stored completely in memory. So applications must expect
+> > +a constant difference up to one field or frame period plus a small (few scan
+> > +lines) random error. The delay and error can be much larger due to
+> > +compression or transmission over an external bus when the frames are not
+> > +properly stamped by the sender. This is frequently the case with USB
+> > +cameras. Here timestamps refer to the instant the field or frame was
+> > +received by the driver, not the capture time. These devices identify by not
+> > +enumerating any video standards, see <xref linkend="standard" />.</para>
+> 
+> I'm not sure if there is any reliable way at the moment to identify such
+> devices. At least in the past (that may not be true anymore) some webcam
+> drivers *did* implement S_STD.
 
-KRUFKY: NO.  This is not the solution.  If there is a bug in the
-driver, then we fix the bug.  Moving the soft reset to a one time only
-call during attach can cause worse problems.  If you feel strongly
-about this, then submit it in a separate patch and we can work on that
-issue separately.  The soft reset needs to be done each time the tuner
-is programmed for good reason - if we are screwing up some registers,
-then it means that there is a bug - lets fix the bug.
+via-camera, for instance, does. I can add removal to the patchset.
 
-2) clock out and loop-through must be set on attach() and not touch after that
+> There are also devices where one input is a webcam and another input is a
+> composite (TV) input (the vino driver for old SGIs is one of those).
 
-KRUFKY: NO.  attach() is called once, ever.   I admit that the current
-code may be buggy but doing this would cause unpredicable behavior
-after low-power states...  If this needs to be fixed then it needs to
-be fixed in a thorough way, not by moving the code away into the
-attach function where it will only be called once.  Clearly this issue
-is directly related to issue number 1, so I understand if these two
-items might be the focus of future discussion :-/
+True. One may well connect an TV tuner to the parallel interface of the OMAP
+3 ISP, and a camera sensor to the CSI-2 receiver.
 
-3) no_probe option should not be added unless it is really needed. If
-chip ID reading fails with some I/O error then there is two
-possibilities a) block reads like now b) add glue to AF9035 brain-dead
-I2C adapter to handle / fake such case
+> The best method I know is to check the capabilities field returned by
+> ENUMINPUT for the current input and see if any of the STD/DV_TIMINGS/PRESETS
+> caps are set. If not, then it is a camera. Of course, this assumes there are
+> no more webcam drivers that use S_STD.
 
-KRUFKY:  I agree -- this may be required in order to work around some
-questionable hardware implementations.  If the problem is really in
-the i2c adapter, then the hack belongs there, not in the tuner driver.
+I wonder if timestamp jitter is a real issue. These devices, I presume, have
+no large buffers where the data could be stored to cause jitter without
+losing frames.
 
-4) loop_thru_enable to 3 bit wide should not be done unless really
-needed. What happens if it is left as it is?
+> I would much prefer to add a proper webcam input type to ENUMINPUT, but I'm
+> afraid that would break apps.
 
-KRUFKY: Agreed.  We don't make a change just because you saw something
-in 'the windows driver'  As per the current Linux driver, the loop
-thru setting is 1 bit wide.  If this is wrong, please provide a better
-explanation of those bits.
+How much jitter is enough so that we should say the timestamps are unstable?
 
-These are the four logical changes that should be sent as own patch.
-Jose, we are waiting for you :)
->>
+> >  
+> >        <para>Similar limitations apply to output timestamps. Typically
+> >  the video hardware locks to a clock controlling the video timing, the
+> > 
+> 
+> This paragraph on output timestamps can be deleted IMHO.
 
--Mike
+Thanks for reminding me. I think it doesn't deserve to be put into a
+separate patch.
+
+> And the paragraph after that can probably be removed completely as well
+> that we no longer use gettimeofday:
+> 
+> "Apart of limitations of the video device and natural inaccuracies of
+> all clocks, it should be noted system time itself is not perfectly stable.
+> It can be affected by power saving cycles, warped to insert leap seconds,
+> or even turned back or forth by the system administrator affecting long
+> term measurements."
+> 
+> Ditto for the footnote at the end of that paragraph.
+> 
+> The timestamp field documentation is wrong as well for output types. No
+> driver uses the timestamp field as input (i.e. delaying frames until that
+> timestamp has been reached). It also says that the timestamp is the time at
+> which the first data byte was sent out, that should be the last data byte.
+
+Agreed.
+
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
