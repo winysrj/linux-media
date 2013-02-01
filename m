@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4413 "EHLO
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2681 "EHLO
 	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759355Ab3BGVFh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 16:05:37 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r17L5XWS000162
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 7 Feb 2013 22:05:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 687DF11E0113
-	for <linux-media@vger.kernel.org>; Thu,  7 Feb 2013 22:05:32 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	with ESMTP id S1755681Ab3BAMRc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130207210532.687DF11E0113@alastor.dyndns.org>
-Date: Thu,  7 Feb 2013 22:05:32 +0100 (CET)
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/6] tm6000: fix G/TRY_FMT.
+Date: Fri,  1 Feb 2013 13:17:21 +0100
+Message-Id: <800c8f9e30561618d47540698cc79bd3d3470ff2.1359720708.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
+References: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Two fixes:
 
-date:		Thu Feb  7 19:00:18 CET 2013
-git branch:	for_v3.9
-git hash:	248ac368ce4b3cd36515122d888403909d7a2500
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+- the priv field wasn't set to 0.
+- only V4L2_FIELD_INTERLACED is supported.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: ERRORS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index f41dbb1..eab2341 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -918,6 +918,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 		(f->fmt.pix.width * fh->fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+ 		f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+ }
+@@ -948,12 +949,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	field = f->fmt.pix.field;
+ 
+-	if (field == V4L2_FIELD_ANY)
+-		field = V4L2_FIELD_SEQ_TB;
+-	else if (V4L2_FIELD_INTERLACED != field) {
+-		dprintk(dev, V4L2_DEBUG_IOCTL_ARG, "Field type invalid.\n");
+-		return -EINVAL;
+-	}
++	field = V4L2_FIELD_INTERLACED;
+ 
+ 	tm6000_get_std_res(dev);
+ 
+@@ -963,6 +959,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.width &= ~0x01;
+ 
+ 	f->fmt.pix.field = field;
++	f->fmt.pix.priv = 0;
+ 
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * fmt->depth) >> 3;
+-- 
+1.7.10.4
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
