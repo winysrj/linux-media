@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23103 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756216Ab3BTTNA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 14:13:00 -0500
-Date: Wed, 20 Feb 2013 16:12:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-Message-ID: <20130220161249.27848f77@redhat.com>
-In-Reply-To: <512513FB.60105@googlemail.com>
-References: <512294CA.3050401@gmail.com>
-	<51229C2D.8060700@googlemail.com>
-	<5122ACDF.1020705@gmail.com>
-	<5123ACA0.2060503@googlemail.com>
-	<20130219153024.6f468d43@redhat.com>
-	<5123C849.6080207@googlemail.com>
-	<20130219155303.25c5077a@redhat.com>
-	<5123D651.1090108@googlemail.com>
-	<20130219170343.00b92d18@redhat.com>
-	<alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
-	<512513FB.60105@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4315 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754766Ab3BAMRc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/6] tm6000: set colorspace field.
+Date: Fri,  1 Feb 2013 13:17:19 +0100
+Message-Id: <2d82496b9bf93e0540329792d2ad0aef3c297db1.1359720708.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
+References: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Feb 2013 19:20:43 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> I personally tend to be conservative
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Please stop playing games. You're the one accusing us of being conservative.
-
-Let's just keep it as-is. I'm done with this thread.
-Mauro
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index 25202a7..ac25885 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -913,6 +913,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.height       = fh->height;
+ 	f->fmt.pix.field        = fh->vb_vidq.field;
+ 	f->fmt.pix.pixelformat  = fh->fmt->fourcc;
++	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * fh->fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+@@ -967,6 +968,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 		(f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+ 		f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
 
