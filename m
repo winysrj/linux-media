@@ -1,85 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:53635 "EHLO
-	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756686Ab3BGMH3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 07:07:29 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>
-Subject: [REVIEW PATCH V4 00/12] [media] marvell-ccic: add soc camera support in marvell-ccic driver
-Date: Thu,  7 Feb 2013 20:04:35 +0800
-Message-Id: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61402 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab3BBVCR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 16:02:17 -0500
+Date: Sat, 2 Feb 2013 22:02:14 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [QUERY] V4L async api
+In-Reply-To: <CA+V-a8sOHbseLe+rATFtLRwxdURB83QM0LvZ+5fQjfh7CDAkZQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1302022132420.8751@axis700.grange>
+References: <CA+V-a8sOHbseLe+rATFtLRwxdURB83QM0LvZ+5fQjfh7CDAkZQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patches series will add soc_camera support in marvell-ccic driver
+On Wed, 30 Jan 2013, Prabhakar Lad wrote:
 
-Patch set V4 - Change log:
-	- remove the first patch of V3 which had been queued in tree
-	- merge [PATCH 09/15-12/15] of V3 to [PATCH 10/12] of V4
-	- use soc_camera mode replace the old mode for maintain in the future
-	- correct some errors of implementation in mcam_ctlr_image()
-	- change get_mcam() function name to vq_to_mcam()
-	- use proper words replace some inaccurate wordings in description
-	- add [PATCH 08/12] to rename varablies for avoiding CamelCase warning
-	- adjust patch sequence and move [PATCH 14/15] of V3 to [PATCH 09/12] of V4
-	- change some functions implementation include spliting into 2 functions and decreasing parameters
+> Hi Guennadi,
+> 
+> I am working on adding v4l-asyn for capture and display device..
+> 
+> Here is my hw details:--
+>  1: The capture device has two subdevs tvp514x @0x5c and tvp514x @0x5d.
+>  2: The display device has a one subdev adv7343 @0x2a.
+> 
+> Note:- I have added  async support for all the subdevices and the
+> capture and display driver too
+> 
+> Test Case:-
+>   1:   I have v4l2_async_notifier_register() for both capture and
+> display driver, as of now I have built
+>         the subdevices as module. when board is up, I insert the
+> tvp514x  subdevices and the capture
+>         driver gets intialized (/dev/video0 & /dev/video1) nodes get
+> created, now I do insmod on the other
+>         subdevice adv7343, the bound callback is called in capture
+> driver, but whereas this should have been
+>         called in the display driver.
 
-Patch set V3 - Change log:
-	- correct and enhance the implementation of some functions
-	- replace most of preprocessor instruction with runtime detect
-	- use devm_clk_get and devm_gpio_request which were missed in previous version
-	- change code format in some funcions: replace if-else with switch
-	- change some confused variable names
-	- remove unnecessary functions: buf_init, buf_cleanup ...
-	- remove unnecessary keyword: inline, extern ...
-	- remove unnecessary include header file name
-	- remove duplicated and unused code
-	- remove unnecessary initialization of ret variable
-	- [PATCH 09/15] change description
+This certainly _should_ not happen. Your subdevice driver should call 
+v4l2_async_subdev_bound(), which will walk the notifier list and check, 
+which of them this subdevice matches. I'm afraid you'll have to debug your 
+set up to see why the wrong notifier matches.
 
-Patch set V2 - Change log:
-	- remove register definition patch
-	- split big patch to some small patches
-	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
-	- add mcam-core-soc.c for soc camera support
-	- split 3 frame buffers support patch into 2 patches
+>   2:   When I build the subdevices as part of uImage I hit a crash.
+> Attached is the crash log.
 
-Patch set V1 - Log:
-	- add mmp register definition
-	- add soc_camera support on mcam core and mmp driver
-	- add 3 frames buffers support in DMA_CONTIG mode
+The crash happens in v4l2_async_notifier_register() when a newly 
+registered notifier walks the list of _already_ successfully probed 
+subdevices. Then I'm not exactly sure where the actual crash happens, one 
+of the possibilities is if the match_i2c() function is called for an 
+invalid or unbound i2c device. You'll have to debug this too.
 
 Thanks
-Albert Wang
+Guennadi
 
---
-Albert Wang (7):
-  [media] marvell-ccic: reset ccic phy when stop streaming for stability
-  [media] marvell-ccic: switch to resource managed allocation and request
-  [media] marvell-ccic: rename B_DMA* to avoid CamelCase warning
-  [media] marvell-ccic: use unsigned int type replace int type
-  [media] marvell-ccic: add soc_camera support for marvell-ccic driver
-  [media] marvell-ccic: add dma burst support for marvell-ccic driver
-  [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
+>   3:   When I just build and use either the capture/display driver and
+> their respective subdevices only every thing works fine.
+> 
+> Regards,
+> --Prabhakar
+> 
 
-Libin Yang (5):
-  [media] marvell-ccic: add MIPI support for marvell-ccic driver
-  [media] marvell-ccic: add clock tree support for marvell-ccic driver
-  [media] marvell-ccic: refine mcam_set_contig_buffer function
-  [media] marvell-ccic: add new formats support for marvell-ccic driver
-  [media] marvell-ccic: add SOF/EOF pair check for marvell-ccic driver
-
- drivers/media/platform/Makefile                   |    4 +-
- drivers/media/platform/marvell-ccic/Kconfig       |    6 +-
- drivers/media/platform/marvell-ccic/cafe-driver.c |    2 +-
- drivers/media/platform/marvell-ccic/mcam-core.c   | 1362 ++++++++++-----------
- drivers/media/platform/marvell-ccic/mcam-core.h   |  102 +-
- drivers/media/platform/marvell-ccic/mmp-driver.c  |  306 +++--
- include/media/mmp-camera.h                        |   16 +
- 7 files changed, 941 insertions(+), 857 deletions(-)
-
--- 
-1.7.9.5
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
