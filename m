@@ -1,67 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4349 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757433Ab3BFP4y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:54 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1403 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753645Ab3BBJJ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 04:09:58 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 16/17] bttv: there may be multiple tvaudio/tda7432 devices.
-Date: Wed,  6 Feb 2013 16:56:34 +0100
-Message-Id: <46207ecc56e90dee9480a25cdeb59ce2a877964b.1360165855.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
-References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.9] videodev2.h fix and em28xx regression fixes
+Date: Sat, 2 Feb 2013 10:09:49 +0100
+Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+References: <201301271043.00528.hverkuil@xs4all.nl>
+In-Reply-To: <201301271043.00528.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302021009.49200.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun January 27 2013 10:43:00 Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> The first patch moves the DV control IDs from videodev2.h to v4l2-controls.h.
+> I noticed that they weren't moved when the controls were split off from
+> videodev2.h, probably because the patch adding the DV controls and the move
+> to v4l2-controls.h crossed one another.
+> 
+> The second and third patch convert tvaudio and mt9v011 to the control framework.
+> These patches were part of my original conversion of em28xx to the control
+> framework, but when Devin based his em28xx work on my tree he forgot to pull
+> them in.
+> 
+> Because of that any controls created by the mt9v011 and tvaudio drivers are
+> inaccessible from em28xx. By converting those drivers to the control framework
+> they are seen again.
+> 
+> Frank tested the mt9v011 conversion. I have tested the tvaudio conversion
+> somewhat with a bttv card that had a tda9850, but if you have additional
+> tvaudio cards (and especially an em28xx that uses the tvaudio module), then it
+> would be good to do some additional tests. Other than the bttv card I have
+> no other hardware to test tvaudio with.
 
-Probe for additional tvaudio devices, and allow tvaudio+tda7432 to
-co-exist. My STB TV PCI FM bttv card has a tda7432, a tda9850 and a
-tea6420.
+I've removed this pull request and I'll post a new one in a minute. I found
+another tvaudio fix that had to be included as well.
 
-Unfortunately, even with this patch I still don't get audio out, but
-at least all the devices are recognized.
+Regards,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-cards.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+	Hans
 
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index 682ed89..fa0faaa 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -3547,6 +3547,16 @@ void bttv_init_card2(struct bttv *btv)
- 	if (btv->sd_msp34xx)
- 		return;
- 
-+	/* Now see if we can find one of the tvaudio devices. */
-+	btv->sd_tvaudio = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
-+		&btv->c.i2c_adap, "tvaudio", 0, tvaudio_addrs());
-+	if (btv->sd_tvaudio) {
-+		/* There may be two tvaudio chips on the card, so try to
-+		   find another. */
-+		v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
-+			&btv->c.i2c_adap, "tvaudio", 0, tvaudio_addrs());
-+	}
-+
- 	/* it might also be a tda7432. */
- 	if (!bttv_tvcards[btv->c.type].no_tda7432) {
- 		static const unsigned short addrs[] = {
-@@ -3559,10 +3569,6 @@ void bttv_init_card2(struct bttv *btv)
- 		if (btv->sd_tda7432)
- 			return;
- 	}
--
--	/* Now see if we can find one of the tvaudio devices. */
--	btv->sd_tvaudio = v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
--		&btv->c.i2c_adap, "tvaudio", 0, tvaudio_addrs());
- 	if (btv->sd_tvaudio)
- 		return;
- 
--- 
-1.7.10.4
-
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 94a93e5f85040114d6a77c085457b3943b6da889:
+> 
+>   [media] dvb_frontend: print a msg if a property doesn't exist (2013-01-23 19:10:57 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git fixes
+> 
+> for you to fetch changes up to 7aa966b3c4135b1745a3c5ac60bdd8f79fead355:
+> 
+>   mt9v011: convert to the control framework. (2013-01-27 10:22:27 +0100)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (3):
+>       Move DV-class control IDs from videodev2.h to v4l2-controls.h
+>       tvaudio: convert to the control framework.
+>       mt9v011: convert to the control framework.
+> 
+>  drivers/media/i2c/mt9v011.c        |  223 +++++++++++++++++++++++++++++++++--------------------------------------------------------------------------
+>  drivers/media/i2c/tvaudio.c        |  224 ++++++++++++++++++++++++++++++++++++------------------------------------------------------------------------
+>  include/uapi/linux/v4l2-controls.h |   24 ++++++++++++
+>  include/uapi/linux/videodev2.h     |   22 -----------
+>  4 files changed, 166 insertions(+), 327 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
