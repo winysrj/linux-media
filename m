@@ -1,93 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4595 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758313Ab3BGMgc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 07:36:32 -0500
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4056 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753546Ab3BBJOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 04:14:52 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>,
-	Huang Shijie <shijie8@gmail.com>
-Subject: [RFC PATCHv2 01/18] tlg2300: use correct device parent.
-Date: Thu, 7 Feb 2013 13:36:25 +0100
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] videodev2.h fix and em28xx regression fixes
+Date: Sat, 2 Feb 2013 10:14:44 +0100
+Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302071336.25366.hverkuil@xs4all.nl>
+Message-Id: <201302021014.44793.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Set the correct parent for v4l2_device_register and don't set the name
-anymore (that's now deduced from the parent). Also remove an unnecessary
-forward reference and fix two weird looking log messages.
+Hi Mauro,
 
-Changes since v1: don't set v4l2_dev.name anymore as per Huang's suggestion.
-Huang: can you Ack this?
+This is the second version of this git pull request. While digging through
+old branches of mine I found another tvaudio fix that I want to include here
+as well. In addition, the tvaudio control framework conversion in the original
+pull request also did a fix for balance handling and I have split that fix off
+into its own patch in this pull request.
+
+So effectively the only new thing is a two liner tvaudio/tea6420 fix.
+
+The first patch moves the DV control IDs from videodev2.h to v4l2-controls.h.
+I noticed that they weren't moved when the controls were split off from
+videodev2.h, probably because the patch adding the DV controls and the move
+to v4l2-controls.h crossed one another.
+
+The second patch converts mt9v011 to the control framework. The third and
+fourth patches fix two tvaudio bugs and the final patch converts tvaudio to
+the control framework. These patches were part of my original conversion of
+em28xx to the control framework (except for the tea6420 fix), but when Devin
+based his em28xx work on my tree he forgot to pull them in.
+
+Because of that any controls created by the mt9v011 and tvaudio drivers are
+inaccessible from em28xx. By converting those drivers to the control framework
+they are seen again.
+
+Frank tested the mt9v011 conversion. I have tested the tvaudio conversion
+somewhat with a bttv card that had a tda9850 and tea6420, but if you have
+additional tvaudio cards (and especially an em28xx that uses the tvaudio module),
+then it would be good to do some additional tests. Other than the bttv card I
+have no other hardware to test tvaudio with.
 
 Regards,
 
-	Hans
+        Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tlg2300/pd-main.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+The following changes since commit 94a93e5f85040114d6a77c085457b3943b6da889:
 
-diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
-index 7b1f6eb..247d6ac 100644
---- a/drivers/media/usb/tlg2300/pd-main.c
-+++ b/drivers/media/usb/tlg2300/pd-main.c
-@@ -55,7 +55,6 @@ MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
- 
- #define TLG2300_FIRMWARE "tlg2300_firmware.bin"
- static const char *firmware_name = TLG2300_FIRMWARE;
--static struct usb_driver poseidon_driver;
- static LIST_HEAD(pd_device_list);
- 
- /*
-@@ -316,7 +315,7 @@ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
- 		if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
- 			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
- 			pd->pm_resume = NULL; /*  a good guard */
--			printk(KERN_DEBUG "\n\t+ TLG2300 auto suspend +\n\n");
-+			printk(KERN_DEBUG "TLG2300 auto suspend\n");
- 		}
- 		return 0;
- 	}
-@@ -331,7 +330,7 @@ static int poseidon_resume(struct usb_interface *intf)
- 
- 	if (!pd)
- 		return 0;
--	printk(KERN_DEBUG "\n\t ++ TLG2300 resume ++\n\n");
-+	printk(KERN_DEBUG "TLG2300 resume\n");
- 
- 	if (!is_working(pd)) {
- 		if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
-@@ -431,15 +430,11 @@ static int poseidon_probe(struct usb_interface *interface,
- 	usb_set_intfdata(interface, pd);
- 
- 	if (new_one) {
--		struct device *dev = &interface->dev;
--
- 		logpm(pd);
- 		mutex_init(&pd->lock);
- 
- 		/* register v4l2 device */
--		snprintf(pd->v4l2_dev.name, sizeof(pd->v4l2_dev.name), "%s %s",
--			dev->driver->name, dev_name(dev));
--		ret = v4l2_device_register(NULL, &pd->v4l2_dev);
-+		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
- 
- 		/* register devices in directory /dev */
- 		ret = pd_video_init(pd);
-@@ -530,7 +525,7 @@ module_init(poseidon_init);
- module_exit(poseidon_exit);
- 
- MODULE_AUTHOR("Telegent Systems");
--MODULE_DESCRIPTION("For tlg2300-based USB device ");
-+MODULE_DESCRIPTION("For tlg2300-based USB device");
- MODULE_LICENSE("GPL");
- MODULE_VERSION("0.0.2");
- MODULE_FIRMWARE(TLG2300_FIRMWARE);
--- 
-1.7.10.4
+  [media] dvb_frontend: print a msg if a property doesn't exist (2013-01-23 19:10:57 -0200)
 
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git fixes2
+
+for you to fetch changes up to 2e984336e5df76226c7ce977d2eeaecd98d625eb:
+
+  tvaudio: convert to the control framework. (2013-02-02 10:03:36 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (5):
+      Move DV-class control IDs from videodev2.h to v4l2-controls.h
+      mt9v011: convert to the control framework.
+      tvaudio: fix broken volume/balance calculations
+      tvaudio: fix two tea6420 errors.
+      tvaudio: convert to the control framework.
+
+ drivers/media/i2c/mt9v011.c        |  223 ++++++++++++++++++++---------------------------------------------
+ drivers/media/i2c/tvaudio.c        |  238 ++++++++++++++++++++++++++--------------------------------------------
+ include/uapi/linux/v4l2-controls.h |   24 +++++++
+ include/uapi/linux/videodev2.h     |   22 -------
+ 4 files changed, 179 insertions(+), 328 deletions(-)
