@@ -1,48 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3588 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657Ab3BZRf5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:35:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 04/11] s2255: add device_caps support to querycap.
-Date: Tue, 26 Feb 2013 18:35:39 +0100
-Message-Id: <b1f7028f3bdfc212550bf96b0e90c89c6ac69c7c.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:43207 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758072Ab3BBTnd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Feb 2013 14:43:33 -0500
+Message-ID: <1359834211.2831.5.camel@joe-AO722>
+Subject: Re: Question about printking
+From: Joe Perches <joe@perches.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: gregkh <gregkh@linuxfoundation.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	kernelnewbies <kernelnewbies@kernelnewbies.org>,
+	kernel-janitors@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org
+Date: Sat, 02 Feb 2013 11:43:31 -0800
+In-Reply-To: <CALF0-+V-8m1TwnM0MUbNCncnECF_r_FVcyu_Duu0tqcsPoFR5A@mail.gmail.com>
+References: <CALF0-+XX27u4rmpe8RHiy5DsbHvoYP9DWQts+rTRfEvPQG4s8Q@mail.gmail.com>
+	 <CALF0-+V-8m1TwnM0MUbNCncnECF_r_FVcyu_Duu0tqcsPoFR5A@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sat, 2013-02-02 at 16:30 -0300, Ezequiel Garcia wrote:
+> ptr = kmalloc(sizeof(foo));
+> if (!ptr) {
+>         pr_err("Cannot allocate memory for foo\n");
+>         return -ENOMEM;
+> }
+> His argue against it was that kmalloc already takes care of reporting/printking
+> a good deal of interesting information when this happens.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+> Can someone expand a bit on this whole idea? (of abuse of printing,
+> or futility of printing).
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 55c972a..9cb8325 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -821,10 +821,12 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	struct s2255_fh *fh = file->private_data;
- 	struct s2255_dev *dev = fh->dev;
-+
- 	strlcpy(cap->driver, "s2255", sizeof(cap->driver));
- 	strlcpy(cap->card, "s2255", sizeof(cap->card));
- 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
--- 
-1.7.10.4
+k.alloc() takes a GFP_ flag as an arg.
+
+One of those GFP flags is __GFP_NOWARN.
+
+For all failed allocs without GFP_NOWARN
+a message is emitted and a dump_stack is
+done.
+
+(see: mm/page_alloc.c warn_alloc_failed())
+
+So, most all of these printks after
+k.alloc()'s are not necessary.
+
 
