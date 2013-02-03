@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:60833 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759656Ab3B0LuS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 06:50:18 -0500
-Received: by mail-da0-f52.google.com with SMTP id x33so263708dad.39
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 03:50:18 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	joshi@samsung.com, inki.dae@samsung.com, l.krishna@samsung.com,
-	patches@linaro.org, linaro-dev@lists.linaro.org
-Subject: [PATCH v8 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
-Date: Wed, 27 Feb 2013 17:19:55 +0530
-Message-Id: <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from impaqm1.telefonica.net ([213.4.138.17]:20794 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753760Ab3BCWk2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 17:40:28 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: [PATH 2/2] mxl5007 move loop_thru to attach
+Date: Sun, 03 Feb 2013 23:40:24 +0100
+Message-ID: <3605279.72np2izzp3@jar7.dominio>
+In-Reply-To: <2289340.7RydykYGjZ@jar7.dominio>
+References: <2289340.7RydykYGjZ@jar7.dominio>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing the display-timing node using video helper
-function.
+This patch move the loop_thru configuration to the attach function,
+because with dual tuners until loop_tru configuration the other tuner
+don't work.
 
-The DT node parsing and pinctrl selection is done only if 'dev.of_node'
-exists and the NON-DT logic is still maintained under the 'else' part.
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..7932dc2 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -20,6 +20,7 @@
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
+diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
+--- linux/drivers/media/tuners/mxl5007t.c	2013-02-03 23:16:08.031628907 +0100
++++ linux.new/drivers/media/tuners/mxl5007t.c	2013-02-03 23:14:12.196089297 +0100
+@@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+ 	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+ 	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
  
-+#include <video/of_display_timing.h>
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
+-	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+ 	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+ 	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
  
-@@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device *pdev)
+@@ -908,6 +907,18 @@ struct dvb_frontend *mxl5007t_attach(str
+ 	if (mxl_fail(ret))
+ 		goto fail;
  
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
 +
-+		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
-+					OF_USE_NATIVE_MODE);
-+		if (ret) {
-+			DRM_ERROR("failed: of_get_fb_videomode()\n"
-+				"with return value: %d\n", ret);
-+			return ret;
-+		}
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
- 	}
++	ret = mxl5007t_write_reg(state, 0x04,
++		state->config->loop_thru_enable);
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	if (mxl_fail(ret))
++		goto fail;
++
+ 	fe->tuner_priv = state;
  
- 	panel = &pdata->panel;
--- 
-1.7.9.5
+ 	mutex_unlock(&mxl5007t_list_mutex);
 
