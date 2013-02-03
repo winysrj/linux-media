@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews03.kpnxchange.com ([213.75.39.6]:64407 "EHLO
-	cpsmtpb-ews03.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755267Ab3BENrf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Feb 2013 08:47:35 -0500
-Message-ID: <1360071741.1343.42.camel@x61.thuisdomein>
-Subject: [PATCH] [media] saa7164: silence GCC warnings
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Tue, 05 Feb 2013 14:42:21 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3829 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753736Ab3BCVLS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 16:11:18 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r13LBEBw046979
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 3 Feb 2013 22:11:17 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 48C0F11E00F0
+	for <linux-media@vger.kernel.org>; Sun,  3 Feb 2013 22:11:13 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130203211113.48C0F11E00F0@alastor.dyndns.org>
+Date: Sun,  3 Feb 2013 22:11:13 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compiling the saa7164 driver without CONFIG_VIDEO_ADV_DEBUG set triggers
-these GCC warnings:
-    drivers/media/pci/saa7164/saa7164-encoder.c:1301:12: warning: ‘saa7164_g_register’ defined but not used [-Wunused-function]
-    drivers/media/pci/saa7164/saa7164-encoder.c:1314:12: warning: ‘saa7164_s_register’ defined but not used [-Wunused-function]
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Silence these warnings by wrapping these two functions in an "#ifdef
-CONFIG_VIDEO_ADV_DEBUG" and "#endif" pair.
+Results of the daily build of media_tree:
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-0) Compile tested only.
+date:		Sun Feb  3 19:00:20 CET 2013
+git branch:	for_v3.9
+git hash:	24dec5dabfcc1d424d7bc86d393d31f57ebcc975
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.4.07-marune
 
-1) These warnings are apparently a side effect of commit
-5faf7db804e1e67ab8f78edb305d1858779a6279 ("[media] saa7164: get rid of
-warning: no previous prototype"): now that these two functions are
-static GCC can determine that they are unused in this case.
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
- drivers/media/pci/saa7164/saa7164-encoder.c | 2 ++
- 1 file changed, 2 insertions(+)
+Detailed results are available here:
 
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index 994018e..9bb0903 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -1298,6 +1298,7 @@ static int saa7164_g_chip_ident(struct file *file, void *fh,
- 	return 0;
- }
- 
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
- static int saa7164_g_register(struct file *file, void *fh,
- 			      struct v4l2_dbg_register *reg)
- {
-@@ -1323,6 +1324,7 @@ static int saa7164_s_register(struct file *file, void *fh,
- 
- 	return 0;
- }
-+#endif
- 
- static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
--- 
-1.8.1
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
