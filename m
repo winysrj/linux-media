@@ -1,62 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44553 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752462Ab3BOW5T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 17:57:19 -0500
-Message-ID: <511EBD28.9060108@iki.fi>
-Date: Sat, 16 Feb 2013 00:56:40 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:53497 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431Ab3BCTxG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 14:53:06 -0500
+Received: by mail-la0-f50.google.com with SMTP id ec20so3950832lab.23
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 11:53:04 -0800 (PST)
 MIME-Version: 1.0
-To: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
-CC: gennarone@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rtl28xxu: Add USB ID for MaxMedia HU394-T
-References: <CAA=TYk8-a2NMSsZHjCygBxijGrfvd_KRDgsGWcKMFFAWMF6ubg@mail.gmail.com>
-In-Reply-To: <CAA=TYk8-a2NMSsZHjCygBxijGrfvd_KRDgsGWcKMFFAWMF6ubg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <510EBC47.7040301@iki.fi>
+References: <50F05C09.3010104@iki.fi>
+	<2909559.M1IsAHpWSv@jar7.dominio>
+	<CAOcJUbyt418Cg=5JawNq_U_4bUG+ztqB_7n7iOvwWgo-zvROhg@mail.gmail.com>
+	<2616361.Xo6SKdVfQO@jar7.dominio>
+	<510E645A.80103@iki.fi>
+	<CAOcJUbxMBs=P8VJ_F50hXK+gxUuQ+kGYzD1yS9N7z48nDA-Ntw@mail.gmail.com>
+	<510EBC47.7040301@iki.fi>
+Date: Sun, 3 Feb 2013 14:53:04 -0500
+Message-ID: <CAOcJUbyYp7p9F3wQhi1uq=RcaT44i7Y2=ax6Z3eDaMCX--kgSg@mail.gmail.com>
+Subject: Re: af9035 test needed!
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/16/2013 12:54 AM, Fabrizio Gazzato wrote:
-> Hi,
->
-> please add USB ID for MaxMedia HU394-T USB DVB-T Multi (FM, DAB, DAB+)
-> dongle (RTL2832U+FC0012)
->
-> In Italy is branded: "DIKOM USB-DVBT HD"
->
-> lsusb:
-> ID 1b80:d394 Afatech
->
-> Regards
->
->
-> Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
+(history chopped cuz it got messy)
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+quoting Antti with my responses inline.
 
+<<
+I agree that it should be split multiple patches.
 
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
->   1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index a4c302d..fc7b7a0 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -1352,6 +1352,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
->   		&rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
->   	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
->   		&rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
-> +      { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
-> +		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
->   	{ }
->   };
->   MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
->
+KRUFKY:  YES.
 
+1) soft reset should be moved to attach() (it could not be on init()
+nor set_parameters() as it stops clock out and loop-through in few ms
+or so causing slave tuner errors)
 
+KRUFKY: NO.  This is not the solution.  If there is a bug in the
+driver, then we fix the bug.  Moving the soft reset to a one time only
+call during attach can cause worse problems.  If you feel strongly
+about this, then submit it in a separate patch and we can work on that
+issue separately.  The soft reset needs to be done each time the tuner
+is programmed for good reason - if we are screwing up some registers,
+then it means that there is a bug - lets fix the bug.
 
--- 
-http://palosaari.fi/
+2) clock out and loop-through must be set on attach() and not touch after that
+
+KRUFKY: NO.  attach() is called once, ever.   I admit that the current
+code may be buggy but doing this would cause unpredicable behavior
+after low-power states...  If this needs to be fixed then it needs to
+be fixed in a thorough way, not by moving the code away into the
+attach function where it will only be called once.  Clearly this issue
+is directly related to issue number 1, so I understand if these two
+items might be the focus of future discussion :-/
+
+3) no_probe option should not be added unless it is really needed. If
+chip ID reading fails with some I/O error then there is two
+possibilities a) block reads like now b) add glue to AF9035 brain-dead
+I2C adapter to handle / fake such case
+
+KRUFKY:  I agree -- this may be required in order to work around some
+questionable hardware implementations.  If the problem is really in
+the i2c adapter, then the hack belongs there, not in the tuner driver.
+
+4) loop_thru_enable to 3 bit wide should not be done unless really
+needed. What happens if it is left as it is?
+
+KRUFKY: Agreed.  We don't make a change just because you saw something
+in 'the windows driver'  As per the current Linux driver, the loop
+thru setting is 1 bit wide.  If this is wrong, please provide a better
+explanation of those bits.
+
+These are the four logical changes that should be sent as own patch.
+Jose, we are waiting for you :)
+>>
+
+-Mike
