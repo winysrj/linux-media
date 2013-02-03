@@ -1,129 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f43.google.com ([209.85.212.43]:57323 "EHLO
-	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932579Ab3BNT5d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 14:57:33 -0500
-Received: by mail-vb0-f43.google.com with SMTP id fs19so1712074vbb.16
-        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 11:57:32 -0800 (PST)
+Received: from mail-we0-f181.google.com ([74.125.82.181]:52439 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751664Ab3BCADm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 19:03:42 -0500
+Received: by mail-we0-f181.google.com with SMTP id t44so3882574wey.12
+        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2013 16:03:41 -0800 (PST)
+Message-ID: <510DA959.6000106@googlemail.com>
+Date: Sun, 03 Feb 2013 00:03:37 +0000
+From: Chris Clayton <chris2553@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <511D37FF.9070206@iki.fi>
-References: <511CE2BF.8020905@tvdr.de>
-	<511D085A.80009@iki.fi>
-	<CAHFNz9JN_z5xa0eyaacdOKSdTJoOqAW87+jeLW+3AnARDVX41g@mail.gmail.com>
-	<511D37FF.9070206@iki.fi>
-Date: Fri, 15 Feb 2013 01:20:49 +0530
-Message-ID: <CAHFNz9+1w2W0dc9ZrW7mewA7aB4YbuJW7QT5Pr7-m2Js9vpq8A@mail.gmail.com>
-Subject: Re: DVB: EOPNOTSUPP vs. ENOTTY in ioctl(FE_READ_UNCORRECTED_BLOCKS)
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
+References: <510A9A1E.9090801@googlemail.com> <CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com> <510ADB2F.4080901@googlemail.com> <510AF800.2090607@googlemail.com> <510BACD5.2070406@googlemail.com> <510BCE2F.1070100@googlemail.com> <CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com> <510C2DA2.7020000@googlemail.com> <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
+In-Reply-To: <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 15, 2013 at 12:46 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 02/14/2013 08:05 PM, Manu Abraham wrote:
+
+
+On 02/01/13 21:07, Devin Heitmueller wrote:
+> On Fri, Feb 1, 2013 at 4:03 PM, Chris Clayton <chris2553@googlemail.com> wrote:
+>> Yes, I noticed that but even with the tuning timeout set at medium or
+>> longest, I doesn't find any channels. However, I've been following the debug
+>> messages through the code and ended up at
+>> drivers/media/pci/cx23885/cx23885-i2c.c.
 >>
->> On Thu, Feb 14, 2013 at 9:22 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> On 02/14/2013 03:12 PM, Klaus Schmidinger wrote:
->>>>
->>>>
->>>> In VDR I use an ioctl() call with FE_READ_UNCORRECTED_BLOCKS on a device
->>>> (using stb0899).
->>>> After this call I check 'errno' for EOPNOTSUPP to determine whether this
->>>> device supports this call. This used to work just fine, until a few
->>>> months
->>>> ago I noticed that my devices using stb0899 didn't display their signal
->>>> quality in VDR's OSD any more. After further investigation I found that
->>>> ioctl(FE_READ_UNCORRECTED_BLOCKS) no longer returns EOPNOTSUPP, but
->>>> rather
->>>> ENOTTY. And since I stop getting the signal quality in case any unknown
->>>> errno value appears, this broke my signal quality query function.
->>>>
->>>> Is there a reason why this has been changed?
->>>
->>>
->>>
->>> I changed it in order to harmonize error codes. ENOTTY is correct error
->>> code
->>> for the case IOCTL is not implemented. What I think it is Kernel wide
->>> practice.
->>>
+>> I've found that by amending I2C_WAIT_DELAY from 32 to 64, I get improved
+>> results from scanning. With that delay doubled, scandvb now finds 49
+>> channels over 3 frequencies. That's with all debugging turned off, so no
+>> extra delays provided by the production of debug messages.
 >>
->> By doing so, You BROKE User Space ABI. Whatever it is, we are not allowed
->> to
->> break User ABI. https://lkml.org/lkml/2012/12/23/75
+>> I'll play around more tomorrow and update then.
 >
+> It could be that the cx23885 driver doesn't properly implement I2C
+> clock stretching, which is something you don't encounter on most
+> tuners but is an issue when communicating with the Xceive parts.
 >
-> Yes, it will change API, that's clear. But the hell, how you will get
-> anything fixed unless you change it? Introduce totally new API every-time
-> when bug is found? You should also understand that changing that single
-> error code on that place will not change all the drivers and there will be
-> still some other error statuses returned by individual drivers.
+
+Well, the action seems to be in drivers/pci/cx23885/cx23885-i2c.c.
+
+I answer to your point above, I've had to look up what I2C clock 
+stretching is and I believe that, basically, the driver would wait for 
+the hardware to give the go-ahead to continue. That's what seems to be 
+happening in i2c_wait_done(), but whether that's a good implementation I 
+cannot say.
+
+I've noticed that there is some consistency in the failure. For example, 
+if I boot the laptop, activate the dvb-t card and then run a channel 
+scan, no channels will be found. If I then turn on debugging in the 
+cx23885 driver (by writing 1 to 
+/sys/module/cx23885/parameters/i2c_debug), and then run the scan again, 
+some channels will be found. The number found varies from just a few to, 
+on one occasion, all 117 of them. Then, I can turn debugging off again 
+and channels will again be found when I run the scan and continue to be 
+found each time I run the scan. If I reboot, the cycle starts again.
+
+I've also added some printks to the cx23885-i2c.c to find out where the 
+return value of -5 (-EIO) comes from. I've found that the call to 
+i2c_wait_done in i2c_sendbytes (line 145) returns 0 and that results in 
+-EIO being returned a few lines later. My debug output also contained 
+the value of the variable cnt, which controls the enclosing for() loop. 
+cnt always has the value 3. I don't know what this might mean in terms 
+of locating the problem, but hopefully someone on the list will.
+
+Chris
+> Devin
 >
-> It is about 100% clear that ENOTTY is proper error code for unimplemented
-> IOCTL. I remember maybe more than one discussion about that unimplemented
-> IOCTL error code. It seems to be defined by POSIX [1] standard.
-
-
-It could be. But what I stated is thus:
-
-There existed commonality where all unimplemented IOCTL's returned
-EOPNOTSUPP when the corresponding callback wasn't implemented.
-So, this was kind of standardized though it was not the ideal thing,
-though it was not a big issue, it just stated "socket" additionally.
-
-You changed it to ENOTTY to make it fit for the idealistic world.
-All applications that depended for ages, on those error are now broken.
-
-
-Some drivers, have callbacks which are dummy as you state which
-return different error codes ? It would have been easier, or correct to
-fix those drivers, rather than blowing up all user applications.
-
-
-> There is a lot of drivers implementing stub callbacks and returning own
-> values. Likely much more than those which does not implement it at all.
->
->
->> How can a driver return an error code, for an IOCTL that is *not*
->> implemented ?
->> AFAICS, your statement is bogus. :-)
->
->
-> Just implementing IOCTL and returning some value! Have you looked those
-> drivers?) There is very many different errors returned, especially in cases
-> where hardware is not able to provide asked value at the time, example
-> sleeping.
-
-
-When you implement an IOCTL callback, then you have an implemented
-IOCTL. I still don't understand by what you state:
-
-"ENOTTY is correct error code for the case IOCTL is not implemented."
-
-in comparison to your above statement.
-
-As i stated just above, it would be sensible to fix the drivers, rather than
-causing even more confusion.
-
-
-> Maybe the most common status is just to return 0 as status and some random
-> numbers as data - but there has been some discussion it is bad idea too.
->
-> It is just easy to fix back these few cases by implementing missing
-> callbacks and return EOPNOTSUPP. But it will not "fix" all the drivers, only
-> those which were totally without a callback.
->
-> And I ran RFC before started harmonizing error codes. There was not too many
-> people commenting how to standardize these error codes....
-
-
-Just because no one commented, doesn't make it right to blow up userspace
-applications.
-
-Regards,
-Manu
