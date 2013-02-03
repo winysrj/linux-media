@@ -1,84 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:22212 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681Ab3BALwf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 06:52:35 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHJ00JPEIB7C311@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Feb 2013 20:52:33 +0900 (KST)
-Received: from NOINKIDAE02 ([10.90.8.52])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MHJ00DJUIBLSU20@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Feb 2013 20:52:33 +0900 (KST)
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>
-Cc: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, patches@linaro.org
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
- <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
- <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
- <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com>
- <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com>
- <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
- <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
- <510B9EC8.6020102@samsung.com>
- <CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
- <014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
- <CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
-In-reply-to: <CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
-Subject: RE: [PATCH 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-Date: Fri, 01 Feb 2013 20:52:32 +0900
-Message-id: <014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail.kapsi.fi ([217.30.184.167]:33299 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753431Ab3BCThV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Feb 2013 14:37:21 -0500
+Message-ID: <510EBC47.7040301@iki.fi>
+Date: Sun, 03 Feb 2013 21:36:39 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: Jose Alberto Reguero <jareguero@telefonica.net>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: af9035 test needed!
+References: <50F05C09.3010104@iki.fi> <2909559.M1IsAHpWSv@jar7.dominio> <CAOcJUbyt418Cg=5JawNq_U_4bUG+ztqB_7n7iOvwWgo-zvROhg@mail.gmail.com> <2616361.Xo6SKdVfQO@jar7.dominio> <510E645A.80103@iki.fi> <CAOcJUbxMBs=P8VJ_F50hXK+gxUuQ+kGYzD1yS9N7z48nDA-Ntw@mail.gmail.com>
+In-Reply-To: <CAOcJUbxMBs=P8VJ_F50hXK+gxUuQ+kGYzD1yS9N7z48nDA-Ntw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 02/03/2013 09:27 PM, Michael Krufky wrote:
+> On Sun, Feb 3, 2013 at 8:21 AM, Antti Palosaari <crope@iki.fi> wrote:
+>> On 02/03/2013 02:04 PM, Jose Alberto Reguero wrote:
+>>>
+>>> On Sábado, 2 de febrero de 2013 23:00:45 Michael Krufky escribió:
+>>>>
+>>>> On Fri, Jan 11, 2013 at 6:45 PM, Jose Alberto Reguero
+>>>>
+>>>> <jareguero@telefonica.net> wrote:
+>>>>>
+>>>>> On Viernes, 11 de enero de 2013 20:38:01 Antti Palosaari escribió:
+>>>>>>
+>>>>>> Hello Jose and Gianluca
+>>>>>>
+>>>>>> Could you test that (tda18218 & mxl5007t):
+>>>>>>
+>>>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_t
+>>>>>> une r
+>>>>>>
+>>>>>> I wonder if ADC config logic still works for superheterodyne tuners
+>>>>>> (tuner having IF). I changed it to adc / 2 always due to IT9135 tuner.
+>>>>>> That makes me wonder it possible breaks tuners having IF, as ADC was
+>>>>>> clocked just over 20MHz and if it is half then it is 10MHz. For BB that
+>>>>>> is enough, but I think that having IF, which is 4MHz at least for 8MHz
+>>>>>> BW it is too less.
+>>>>>>
+>>>>>> F*ck I hate to maintain driver without a hardware! Any idea where I can
+>>>>>> get AF9035 device having tda18218 or mxl5007t?
+>>>>>>
+>>>>>> regards
+>>>>>> Antti
+>>>>>
+>>>>>
+>>>>> Still pending the changes for  mxl5007t. Attached is a patch for that.
+>>>>>
+>>>>> Changes to make work Avermedia Twinstar with the af9035 driver.
+>>>>>
+>>>>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+>>>>>
+>>>>> Jose Alberto
+>>>>>
+>>>>> diff -upr linux/drivers/media/tuners/mxl5007t.c
+>>>>> linux.new/drivers/media/tuners/mxl5007t.c
+>>>>> --- linux/drivers/media/tuners/mxl5007t.c       2012-08-14
+>>>>> 05:45:22.000000000 +0200 +++ linux.new/drivers/media/tuners/mxl5007t.c
+>>>>> 2013-01-10 19:23:09.247556275 +0100
+>>>>> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+>>>>>
+>>>>>           mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz,
+>>>>> cfg->invert_if);
+>>>>>           mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+>>>>>
+>>>>> -       set_reg_bits(state->tab_init, 0x04, 0x01,
+>>>>> cfg->loop_thru_enable);
+>>>>>
+>>>>>           set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable
+>>>>> <<
+>>>>>           3);
+>>>>>           set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+>>>>
+>>>>
+>>>> This is a configurable option - it should not be removed, just
+>>>> configure your glue code to not use that option if you dont want
+>>>> it.... unless there's some other reason why you're removing this?
+>>>>
+>>>
+>>> I just move the code to a mxl5007t_attach because with dual tuner until
+>>> the
+>>> code is executed, the other tuner don't work. It can be left here also.
+>>>
+>>>>> @@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
+>>>>>
+>>>>>           struct reg_pair_t *init_regs;
+>>>>>           int ret;
+>>>>>
+>>>>> -       ret = mxl5007t_soft_reset(state);
+>>>>> -       if (mxl_fail(ret))
+>>>>> +       if (!state->config->no_reset) {
+>>>>> +               ret = mxl5007t_soft_reset(state);
+>>>>> +               if (mxl_fail(ret))
+>>>>>
+>>>>>                   goto fail;
+>>>>>
+>>>>> +       }
+>>>>> +
+>>>>
+>>>>
+>>>> this seems wrong to me.  why would you want to prevent the driver from
+>>>> doing a soft reset?
+>>>>
+>>>
+>>> That is because with my hardware and dual tuner, when one tuner do reset,
+>>> the
+>>> other one is perturbed, and the stream has errors.
+>>>
+>>>>>           /* calculate initialization reg array */
+>>>>>           init_regs = mxl5007t_calc_init_regs(state, mode);
+>>>>>
+>>>>> @@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
+>>>>>
+>>>>>                   if (fe->ops.i2c_gate_ctrl)
+>>>>>
+>>>>>                           fe->ops.i2c_gate_ctrl(fe, 1);
+>>>>>
+>>>>> -               ret = mxl5007t_get_chip_id(state);
+>>>>> +               if (!state->config->no_probe)
+>>>>> +                       ret = mxl5007t_get_chip_id(state);
+>>>>> +
+>>>>> +               ret = mxl5007t_write_reg(state, 0x04,
+>>>>> +                       state->config->loop_thru_enable);
+>>>>> +
+>>>>
+>>>>
+>>>> Can you explain why this change was made?  ^^
+>>>>
+>>>
+>>> mxl5007t_get_chip_id has a read, and with the hardware I have, after the
+>>> read
+>>> operation is made, communication with the chip don't work.
+>>>
+>>>>>                   if (fe->ops.i2c_gate_ctrl)
+>>>>>
+>>>>>                           fe->ops.i2c_gate_ctrl(fe, 0);
+>>>>>
+>>>>> diff -upr linux/drivers/media/tuners/mxl5007t.h
+>>>>> linux.new/drivers/media/tuners/mxl5007t.h
+>>>>> --- linux/drivers/media/tuners/mxl5007t.h       2012-08-14
+>>>>> 05:45:22.000000000 +0200 +++ linux.new/drivers/media/tuners/mxl5007t.h
+>>>>> 2013-01-10 19:19:11.204379581 +0100
+>>>>> @@ -73,8 +73,10 @@ struct mxl5007t_config {
+>>>>>
+>>>>>           enum mxl5007t_xtal_freq xtal_freq_hz;
+>>>>>           enum mxl5007t_if_freq if_freq_hz;
+>>>>>           unsigned int invert_if:1;
+>>>>>
+>>>>> -       unsigned int loop_thru_enable:1;
+>>>>> +       unsigned int loop_thru_enable:3;
+>>>>
+>>>>
+>>>> Why widen this boolean to three bits?
+>>>>
+>>>
+>>> I just use the value 3 for this option(taken from windows driver) and it
+>>> works
+>>> well.
+>>>
+>>>
+>>> Thanks for review the code.
+>>>
+>>> Jose Alberto
+>>>
+>>>>>           unsigned int clk_out_enable:1;
+>>>>>
+>>>>> +       unsigned int no_probe:1;
+>>>>> +       unsigned int no_reset:1;
+>>>>>
+>>>>>    };
+>>>>>
+>>>>>    #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
+>>>>>
+>>>>> (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
+>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c 2013-01-07
+>>>>> 05:45:57.000000000 +0100
+>>>>> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c     2013-01-12
+>>>>> 00:30:57.557310465 +0100
+>>>>> @@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
+>>>>>
+>>>>>                   .loop_thru_enable = 0,
+>>>>>                   .clk_out_enable = 0,
+>>>>>                   .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+>>>>>
+>>>>> +               .no_probe = 1,
+>>>>> +               .no_reset = 1,
+>>>>>
+>>>>>           }, {
+>>>>>
+>>>>>                   .xtal_freq_hz = MxL_XTAL_24_MHZ,
+>>>>>                   .if_freq_hz = MxL_IF_4_57_MHZ,
+>>>>>                   .invert_if = 0,
+>>>>>
+>>>>> -               .loop_thru_enable = 1,
+>>>>> +               .loop_thru_enable = 3,
+>>>>>
+>>>>>                   .clk_out_enable = 1,
+>>>>>                   .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+>>>>>
+>>>>> +               .no_probe = 1,
+>>>>> +               .no_reset = 1,
+>>>>>
+>>>>>           }
+>>>>>
+>>>>>    };
+>>>>
+>>>>
+>>>> This patch cannot be merged as-is.  I'm sorry.  If you could explain
+>>>> why each change was made, then perhaps I would be able to advise
+>>>> better how to make this work on your device without breaking others.
+>>>>
+>>>> -Mike Krufky
+>>
+>>
+>> Mike, Jose,
+>> I think there is multiple bugs - both existing and new ones added by Jose.
+>>
+>> First existing MxL5007t driver bugs, which are tried to resolve by Jose just
+>> wrongly.
+>>
+>> You configure clock output and RF loop-through only after first tune and
+>> during every tune.
+>>
+>> Control flow of mxl5007t init seems to be totally broken logically and
+>> cannot work if there is slave tuner used.
+>>
+>> Relevant control flow bug is that:
+>>
+>> mxl5007t_set_params() {
+>>    mxl5007t_tuner_init() {
+>>      mxl5007t_soft_reset()
+>>      -- configure clock output
+>>      -- configure RF loop-through
+>>    }
+>> }
+>>
+>> RF loop-through as well clock output should be configured on attach() that
+>> you could trust slave tuner is operational just after all is attached().
+>>
+>> Also, there is another bug, which likely causes disturbance to picture Jose
+>> mentioned. MxL5007t soft reset resets all registers to default state. You do
+>> that *every* time when set_params() is called. Could you guess what happens
+>> to clock output and RF loop-through slave tuner is using?
+>>
+>> I made month or two back patch series fixing similar problems of FC0012
+>> driver. See example from there. Jose's hacks are not mostly relevant after
+>> that MxL5007t driver is fixed to offer clock and loop-through correctly to
+>> the slave tuner.
+>>
+>> ************************
+>>
+>> Another issue is that register 04, which contains loop-though and some other
+>> bits. Jose changes its value from 1 to 3. Is that change really needed? What
+>> happens if you leave it just 1? You should not change options like that just
+>> for fun without need.
+>>
+>>
+>> regards
+>> Antti
+>
+>
+> Due to the complexity of the situation, I would ask that the changes
+> against mxl5007t be resubmitted as a patch series, where each patch
+> only makes a single change, and each patch description should describe
+> that change and the reason for why it is being made.  (this should be
+> the gold standard for all patches, anyway)
+>
+> I don't mean to make things complicated, its just that the patch in
+> question seems to make many changes all at once and lacks clarity for
+> the reasons why those changes are being made.
+>
+> Please break this up into a patch series of smaller changer so that we
+> can analyze each change separately, we will merge those which do not
+> cause issues with other hardware right away, leaving only the bits
+> that need further discussion unmerged.
+>
+> Consider the loop thru change from 1 to 3 NACK'd for now, until a
+> better explanation can be provided.  Please leave that off the series
+> unless it is absolutely necessary, or you can provide better
+> documentation of it.
+>
+> Best regards,
+>
+> Mike Krufky
+>
 
+I agree that it should be split multiple patches.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Sachin Kamat
-> Sent: Friday, February 01, 2013 8:40 PM
-> To: Inki Dae
-> Cc: Sylwester Nawrocki; Kukjin Kim; Sylwester Nawrocki; linux-
-> media@vger.kernel.org; dri-devel@lists.freedesktop.org; devicetree-
-> discuss@lists.ozlabs.org; patches@linaro.org
-> Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery
-> support for G2D
-> 
-> On 1 February 2013 17:02, Inki Dae <inki.dae@samsung.com> wrote:
-> >
-> > How about using like below?
-> >         Compatible = ""samsung,exynos4x12-fimg-2d" /* for Exynos4212,
-> > Exynos4412  */
-> > It looks odd to use "samsung,exynos4212-fimg-2d" saying that this ip is
-> for
-> > exynos4212 and exynos4412.
-> 
-> AFAIK, compatible strings are not supposed to have any wildcard
-characters.
-> Compatible string should suggest the first SoC that contained this IP.
-> Hence IMO 4212 is OK.
-> 
+1) soft reset should be moved to attach() (it could not be on init() nor 
+set_parameters() as it stops clock out and loop-through in few ms or so 
+causing slave tuner errors)
 
-Got it. Please post it again.
+2) clock out and loop-through must be set on attach() and not touch 
+after that
 
-> 
-> --
-> With warm regards,
-> Sachin
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+3) no_probe option should not be added unless it is really needed. If 
+chip ID reading fails with some I/O error then there is two 
+possibilities a) block reads like now b) add glue to AF9035 brain-dead 
+I2C adapter to handle / fake such case
 
+4) loop_thru_enable to 3 bit wide should not be done unless really 
+needed. What happens if it is left as it is?
+
+These are the four logical changes that should be sent as own patch. 
+Jose, we are waiting for you :)
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
