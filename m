@@ -1,60 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f171.google.com ([209.85.220.171]:45304 "EHLO
-	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650Ab3B0VW3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 16:22:29 -0500
-Received: by mail-vc0-f171.google.com with SMTP id fy7so726221vcb.30
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 13:22:28 -0800 (PST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33997 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359Ab3BCNK5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Feb 2013 08:10:57 -0500
+Message-ID: <510E61B7.6030904@ti.com>
+Date: Sun, 3 Feb 2013 18:40:15 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CAB0d6EdexHb_sLh3m_xRf36N9SUrr1axogxidyp+64-ROKDHjw@mail.gmail.com>
-References: <CAB0d6EdexHb_sLh3m_xRf36N9SUrr1axogxidyp+64-ROKDHjw@mail.gmail.com>
-Date: Wed, 27 Feb 2013 18:22:27 -0300
-Message-ID: <CAB0d6EeZJu983yP3wMwbZtniDwWgoAuxAzifZvo_RZpO4Dio8Q@mail.gmail.com>
-Subject: Re: V4L on android
-From: Rafael Coutinho <rafael.coutinho@phiinnovations.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Rob Landley <rob@landley.net>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-doc@vger.kernel.org>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-kernel@vger.kernel.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC v2] media: tvp514x: add OF support
+References: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com> <510C43A0.7090906@gmail.com> <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
+In-Reply-To: <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 2/3/2013 3:43 PM, Prabhakar Lad wrote:
+> Hi Sylwester,
+> 
+> Thanks for the review.
+> 
+> On Sat, Feb 2, 2013 at 4:07 AM, Sylwester Nawrocki
+> <sylvester.nawrocki@gmail.com> wrote:
+>> Hi Prabhakar,
+>>
+>> On 01/29/2013 02:07 PM, Prabhakar Lad wrote:
+>> [...]
+>>
+>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>>> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>>> new file mode 100644
+>>> index 0000000..55d3ffd
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+>>> @@ -0,0 +1,38 @@
+>>> +* Texas Instruments TVP514x video decoder
+>>> +
+>>> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality,
+>>> single-chip
+>>> +digital video decoder that digitizes and decodes all popular baseband
+>>> analog
+>>> +video formats into digital video component. The tvp514x decoder supports
+>>> analog-
+>>> +to-digital (A/D) conversion of component RGB and YPbPr signals as well as
+>>> A/D
+>>> +conversion and decoding of NTSC, PAL and SECAM composite and S-video into
+>>> +component YCbCr.
+>>> +
+>>> +Required Properties :
+>>> +- compatible: Must be "ti,tvp514x-decoder"
+>>
+>>
+>> There are no significant differences among TVP514* devices as listed above,
+>> you would like to handle above ?
+>>
+>> I'm just wondering if you don't need ,for instance, two separate compatible
+>> properties, e.g. "ti,tvp5146-decoder" and "ti,tvp5147-decoder" ?
+>>
+> There are few differences in init/power sequence tough, I would still
+> like to have
+> single compatible property "ti,tvp514x-decoder", If you feel we need separate
+> property I will change it please let me know on this.
 
-I'm having issues to get my video capture board to work. I see that
-when I connect it is successfully mapped with the video driver:
+Compatible properties should not use generic part numbers. See one past
+discussion here: http://en.usenet.digipedia.org/thread/18472/20788/
 
-<3>[   11.210876] em28xx #0: board has no eeprom
-<6>[   11.244746] em28xx #0: found i2c device @ 0x4a [saa7113h]
-<3>[   11.278498] em28xx #0: Your board has no unique USB ID.
-<3>[   11.278504] em28xx #0: A hint were successfully done, based on
-i2c devicelist hash.
-<3>[   11.278509] em28xx #0: This method is not 100% failproof.
-<3>[   11.278513] em28xx #0: If the board were missdetected, please
-email this log to:
-<3>[   11.278518] em28xx #0: 	V4L Mailing List  <linux-media@vger.kernel.org>
-<3>[   11.278523] em28xx #0: Board detected as EM2860/SAA711X Reference Design
-<6>[   11.370027] em28xx #0: Identified as EM2860/SAA711X Reference
-Design (card=19)
-<6>[   11.370033] em28xx #0: Registering snapshot button...
-<6>[   11.370366] input: em28xx snapshot button as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input8
-<6>[   12.020506] saa7115 15-0025: saa7113 found (1f7113d0e100000) @
-0x4a (em28xx #0)
-<6>[   13.300245] em28xx #0: Config register raw data: 0x10
-<4>[   13.340250] em28xx #0: AC97 vendor ID = 0x83847652
-<4>[   13.360249] em28xx #0: AC97 features = 0x6a90
-<6>[   13.360255] em28xx #0: Sigmatel audio processor detected(stac 9752)
-<6>[   14.120032] em28xx #0: v4l2 driver version 0.1.2
-<6>[   15.820615] em28xx #0: V4L2 video device registered as video1
-<6>[   15.820623] em28xx #0: V4L2 VBI device registered as vbi0
-<3>[   15.820678] em28xx audio device (eb1a:2861): interface 1, class 1
-<3>[   15.820704] em28xx audio device (eb1a:2861): interface 2, class 1
-<6>[   15.820953] usbcore: registered new interface driver em28xx
-<6>[   15.820960] em28xx driver loaded
-
-However when I try to use androids app for camera it gives me a blank screen...
-Do you have any suggestions on how I could debug it? I've been looking
-for any android command line programs to take snap shots but nothing
-so far. An advice is welcome.
-
-Thanks a lot.
+Thanks,
+Sekhar
