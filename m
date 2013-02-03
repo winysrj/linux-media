@@ -1,92 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:18914 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422848Ab3BAKyD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 05:54:03 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHJ00E09FKR0240@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Feb 2013 10:54:01 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MHJ00B82FM0K620@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 01 Feb 2013 10:54:01 +0000 (GMT)
-Message-id: <510B9EC8.6020102@samsung.com>
-Date: Fri, 01 Feb 2013 11:54:00 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Inki Dae <inki.dae@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, patches@linaro.org
-Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
- <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
- <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
- <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com>
- <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com>
- <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
- <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
-In-reply-to: <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53491 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753792Ab3BCWuv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Feb 2013 17:50:51 -0500
+Message-ID: <510EE9A3.5090803@iki.fi>
+Date: Mon, 04 Feb 2013 00:50:11 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Michael Krufky <mkrufky@linuxtv.org>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATH 2/2] mxl5007 move loop_thru to attach
+References: <2289340.7RydykYGjZ@jar7.dominio> <3605279.72np2izzp3@jar7.dominio>
+In-Reply-To: <3605279.72np2izzp3@jar7.dominio>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/01/2013 09:33 AM, Sachin Kamat wrote:
-> On 1 February 2013 06:57, Inki Dae <inki.dae@samsung.com> wrote:
->>
->> For example,
->> If compatible = "samsung,g2d-3.0" is added to exynos4210.dtsi, it'd be
->> reasonable. But what if that compatible string is added to exynos4.dtsi?.
->> This case isn't considered for exynos4412 SoC with v4.1.
-> 
-> In case of Exynos4 series the base address of G2D ip is different
-> across series. Hence we cannot define it in exynos4.dtsi and need to
-> define the nodes in exynos4xxx.dtsi or specific board files. Thus we
-> can use the version appended compatible string.
-> 
-> However even the second option suggested by Sylwester is OK with me or
-> to be even more specific we could go for both SoC as well as version
-> option something like this.
-> 
-> compatible = "samsung,exynos3110-g2d-3.0" /* for Exynos3110, Exynos4210 */
-> compatible = "samsung,exynos4212-g2d-4.1" /* for Exynos4212, Exynos4412 */
-> 
-> In any case please let me know the final preferred one so that I can
-> update the code send the revised patches.
+On 02/04/2013 12:40 AM, Jose Alberto Reguero wrote:
+> This patch move the loop_thru configuration to the attach function,
+> because with dual tuners until loop_tru configuration the other tuner
+> don't work.
+>
+> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-The version with SoC name embedded in it seems most reliable and correct
-to me. 
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-compatible = "samsung,exynos3110-fimg-2d" /* for Exynos3110 (S5PC110, S5PV210), 
-                                             Exynos4210 */
-compatible = "samsung,exynos4212-fimg-2d" /* for Exynos4212, Exynos4412 */
 
-FIMG stands for Fully Interactive Mobile Graphics, and other multimedia 
-IPs follow this naming convention, e.g. FIMG-3D, FIMD (Display Controller), 
-FIMC (Camera), etc.
+>
+> diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
+> --- linux/drivers/media/tuners/mxl5007t.c	2013-02-03 23:16:08.031628907 +0100
+> +++ linux.new/drivers/media/tuners/mxl5007t.c	2013-02-03 23:14:12.196089297 +0100
+> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
+>   	mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
+>   	mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
+>
+> -	set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
+>   	set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
+>   	set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+>
+> @@ -908,6 +907,18 @@ struct dvb_frontend *mxl5007t_attach(str
+>   	if (mxl_fail(ret))
+>   		goto fail;
+>
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 1);
+> +
+> +	ret = mxl5007t_write_reg(state, 0x04,
+> +		state->config->loop_thru_enable);
+> +
+> +	if (fe->ops.i2c_gate_ctrl)
+> +		fe->ops.i2c_gate_ctrl(fe, 0);
+> +
+> +	if (mxl_fail(ret))
+> +		goto fail;
+> +
+>   	fe->tuner_priv = state;
+>
+>   	mutex_unlock(&mxl5007t_list_mutex);
+>
 
-This is just my opinion though, and it seems this is a most common scheme
-from greping the device tree bindings documentation.
+Looks good for my eyes!
 
-As Stephen pointed out, and I also did in some other mail thread in the 
-past, not only an IP revision might be required, but also its integration 
-details, specific to an SoC type are important. This actually happens 
-to be the case with FIMC, where same version of one instance of the IP 
-has more data interfaces routed to other SoC subsystems on one SoC type 
-than on other one.
+Is clock output is enabled by default?
 
-I think it won't be possible to use a scheme like "samsung-exynos-g2d-3.0"
-for all IPs. And I would much more like to see a uniform naming convention
-used, rather than living with a chaotic set of compatible properties, that
-has a potential to become even more chaotic in the future.
+Are these two patches enough in order to get it working?
 
---
+regards
+Antti
 
-Thanks,
-Sylwester
+-- 
+http://palosaari.fi/
