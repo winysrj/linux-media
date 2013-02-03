@@ -1,48 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:24359 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610Ab3BGKpA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 05:45:00 -0500
-Date: Thu, 7 Feb 2013 13:44:54 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: hans.verkuil@cisco.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] tm6000: add support for control events and prio handling
-Message-ID: <20130207104454.GA466@elgon.mountain>
+Received: from impaqm2.telefonica.net ([213.4.138.18]:53955 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753380Ab3BCWat (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 17:30:49 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Michael Krufky <mkrufky@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: [PATH 1/2] mxl5007 move reset to attach
+Date: Sun, 03 Feb 2013 23:30:38 +0100
+Message-ID: <2289340.7RydykYGjZ@jar7.dominio>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans Verkuil,
+This patch move the soft reset to the attach function because with dual
+tuners, when one tuner do reset, the other one is perturbed, and the 
+stream has errors.
 
-The patch 770056c47fbb: "[media] tm6000: add support for control
-events and prio handling" from Sep 11, 2012, leads to the following
-Smatch warning:
-"drivers/media/usb/tm6000/tm6000-video.c:1462 __tm6000_poll()
-	 error: potentially dereferencing uninitialized 'buf'."
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-drivers/media/usb/tm6000/tm6000-video.c
-  1453          if (!is_res_read(fh->dev, fh)) {
-  1454                  /* streaming capture */
-  1455                  if (list_empty(&fh->vb_vidq.stream))
-  1456                          return res | POLLERR;
-  1457                  buf = list_entry(fh->vb_vidq.stream.next, struct tm6000_buffer, vb.stream);
-  1458          } else if (req_events & (POLLIN | POLLRDNORM)) {
-  1459                  /* read() capture */
-  1460                  return res | videobuf_poll_stream(file, &fh->vb_vidq, wait);
-  1461          }
-
-If we don't hit either side of the if else statement then buf is
-uninitialized.
-
-  1462          poll_wait(file, &buf->vb.done, wait);
-  1463          if (buf->vb.state == VIDEOBUF_DONE ||
-  1464              buf->vb.state == VIDEOBUF_ERROR)
-  1465                  return res | POLLIN | POLLRDNORM;
-  1466          return res;
-
-regards,
-dan carpenter
+diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
+--- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
++++ linux.new/drivers/media/tuners/mxl5007t.c	2013-02-03 23:03:03.784525410 +0100
+@@ -531,10 +531,6 @@ static int mxl5007t_tuner_init(struct mx
+ 	struct reg_pair_t *init_regs;
+ 	int ret;
+ 
+-	ret = mxl5007t_soft_reset(state);
+-	if (mxl_fail(ret))
+-		goto fail;
+-
+ 	/* calculate initialization reg array */
+ 	init_regs = mxl5007t_calc_init_regs(state, mode);
+ 
+@@ -900,7 +896,20 @@ struct dvb_frontend *mxl5007t_attach(str
+ 		/* existing tuner instance */
+ 		break;
+ 	}
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
++
++	ret = mxl5007t_soft_reset(state);
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
++	if (mxl_fail(ret))
++		goto fail;
++
+ 	fe->tuner_priv = state;
++
+ 	mutex_unlock(&mxl5007t_list_mutex);
+ 
+ 	memcpy(&fe->ops.tuner_ops, &mxl5007t_tuner_ops,
 
