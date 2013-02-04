@@ -1,134 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:36603 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932076Ab3BIApr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 19:45:47 -0500
-Message-ID: <51159C36.1060602@gmail.com>
-Date: Sat, 09 Feb 2013 01:45:42 +0100
-From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2359 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753874Ab3BDIep convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 03:34:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Huang Shijie <shijie8@gmail.com>
+Subject: Re: [RFC PATCH 04/18] tlg2300: remove ioctls that are invalid for radio devices.
+Date: Mon, 4 Feb 2013 09:34:36 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <fa815493501dbc166181e228f66319ac3398cd2c.1359627298.git.hans.verkuil@cisco.com> <510F3620.2040004@gmail.com>
+In-Reply-To: <510F3620.2040004@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
-	David Hardeman <david@hardeman.nu>,
-	Trilok Soni <tsoni@codeaurora.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Matus Ujhelyi <ujhelyi.m@gmail.com>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] media: rc: gpio-ir-recv: add support for device tree
- parsing
-References: <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com> <1360355887-19973-1-git-send-email-sebastian.hesselbarth@gmail.com> <20130208220357.198c313c@redhat.com>
-In-Reply-To: <20130208220357.198c313c@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="gb18030"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302040934.36150.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/2013 01:03 AM, Mauro Carvalho Chehab wrote:
-> Em Fri,  8 Feb 2013 21:38:07 +0100
-> Sebastian Hesselbarth<sebastian.hesselbarth@gmail.com>  escreveu:
->
->> This patch adds device tree parsing for gpio_ir_recv platform_data and
->> the mandatory binding documentation. It basically follows what we already
->> have for e.g. gpio_keys. All required device tree properties are OS
->> independent but an optional property allow linux specific support for rc
->> maps.
->>
->> There was a similar patch sent by Matus Ujhelyi but that discussion
->> died after the first reviews.
->>
->> Signed-off-by: Sebastian Hesselbarth<sebastian.hesselbarth@gmail.com>
->> ---
->> Changelog
->>
->> v1->v2:
->> - get rid of ptr returned by _get_devtree_pdata()
->> - check for of_node instead for NULL pdata
->> - remove unneccessary double check for gpios property
->> - remove unneccessary #ifdef CONFIG_OF around match table
->>
->> Cc: Grant Likely<grant.likely@secretlab.ca>
->> Cc: Rob Herring<rob.herring@calxeda.com>
->> Cc: Rob Landley<rob@landley.net>
->> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
->> Cc: Sebastian Hesselbarth<sebastian.hesselbarth@gmail.com>
->> Cc: Benoit Thebaudeau<benoit.thebaudeau@advansee.com>
->> Cc: David Hardeman<david@hardeman.nu>
->> Cc: Trilok Soni<tsoni@codeaurora.org>
->> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Cc: Matus Ujhelyi<ujhelyi.m@gmail.com>
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: linux-media@vger.kernel.org
->> ---
->>   .../devicetree/bindings/media/gpio-ir-receiver.txt |   16 ++++++
->>   drivers/media/rc/gpio-ir-recv.c                    |   57 ++++++++++++++++++++
->>   2 files changed, 73 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
->> new file mode 100644
->> index 0000000..8589f30
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
->> @@ -0,0 +1,16 @@
->> +Device-Tree bindings for GPIO IR receiver
->> +
->> +Required properties:
->> +	- compatible = "gpio-ir-receiver";
->> +	- gpios: OF device-tree gpio specification.
->> +
->> +Optional properties:
->> +	- linux,rc-map-name: Linux specific remote control map name.
->> +
->> +Example node:
->> +
->> +	ir: ir-receiver {
->> +		compatible = "gpio-ir-receiver";
->> +		gpios =<&gpio0 19 1>;
->> +		linux,rc-map-name = "rc-rc6-mce";
->
-> Please change this to:
-> 		linux,rc-map-name = RC_MAP_RC6_MCE;
->
-> (as defined at include/media/rc-map.h).
+On Mon February 4 2013 05:16:32 Huang Shijie wrote:
+> 于 2013年01月31日 05:25, Hans Verkuil 写道:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> >
+> > The input and audio ioctls are only valid for video/vbi nodes.
+> 
+> I remember that if you do not set these ioctrls, the mplayer will not works.
 
-Mauro,
+I have no problem with using mplayer for radio devices without those ioctls.
 
-this is not possible in device tree bindings. Device tree properties
-can only carry numeric or string types (and some other stuff) but no
-OS specific enumerations. So using strings is the only option here.
+Regards,
 
-> The idea of having those strings defined at the same header file is to:
+	Hans
 
-Unfortunately, device tree blobs don't know about linux header files.
-
-That leaves two options:
-- allow the user to supply a string of the map in his device tree description
-   and risk that there may be a broken map name
-- remove linux,rc-map-name from DT binding and let the user configure in
-   from user space (which is propably best choice anyway)
-
-I tried both, DT supplied map name and ir-keytable from userspace
-both work fine.
-
-Sebastian
-
-> 	- make sure that the same keyboard is spelled at the same way on
-> all places;
->
-> 	- avoid people to duplicate IR keytables, using different names;
->
-> 	- help userspace to get the right table. In the future, the
-> plan is to remove all keytables from kernelspace, keeping there just the
-> name of the keytable. The existing userspace code (ir-keytables, part
-> of v4l-utils) use the keytable name to dynamically load the right table
-> in runtime and to switch the IR core to only handle the protocol that
-> it is associated with the loaded keytable.
-
-
-
+> 
+> I can not download the mplayer in my home, so i can not test it.
+> I will test it in my office.
+> 
+> thanks
+> Huang Shijie
+> 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/usb/tlg2300/pd-radio.c |   27 ---------------------------
+> >  1 file changed, 27 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+> > index c4feffb..4c76e089 100644
+> > --- a/drivers/media/usb/tlg2300/pd-radio.c
+> > +++ b/drivers/media/usb/tlg2300/pd-radio.c
+> > @@ -350,36 +350,9 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
+> >  {
+> >  	return vt->index > 0 ? -EINVAL : 0;
+> >  }
+> > -static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *va)
+> > -{
+> > -	return (va->index != 0) ? -EINVAL : 0;
+> > -}
+> > -
+> > -static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+> > -{
+> > -	a->index    = 0;
+> > -	a->mode    = 0;
+> > -	a->capability = V4L2_AUDCAP_STEREO;
+> > -	strcpy(a->name, "Radio");
+> > -	return 0;
+> > -}
+> > -
+> > -static int vidioc_s_input(struct file *filp, void *priv, u32 i)
+> > -{
+> > -	return (i != 0) ? -EINVAL : 0;
+> > -}
+> > -
+> > -static int vidioc_g_input(struct file *filp, void *priv, u32 *i)
+> > -{
+> > -	return (*i != 0) ? -EINVAL : 0;
+> > -}
+> >  
+> >  static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
+> >  	.vidioc_querycap    = vidioc_querycap,
+> > -	.vidioc_g_audio     = vidioc_g_audio,
+> > -	.vidioc_s_audio     = vidioc_s_audio,
+> > -	.vidioc_g_input     = vidioc_g_input,
+> > -	.vidioc_s_input     = vidioc_s_input,
+> >  	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
+> >  	.vidioc_querymenu   = tlg_fm_vidioc_querymenu,
+> >  	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
+> 
