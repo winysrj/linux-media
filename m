@@ -1,94 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4351 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649Ab3BIKBY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/26] cx231xx: get rid of a bunch of unused cx231xx_fh fields.
-Date: Sat,  9 Feb 2013 11:00:43 +0100
-Message-Id: <ec0d3303adb48c9ee6132cfdcd1370a3d782a141.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:38780 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751428Ab3BDHG4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 02:06:56 -0500
+MIME-Version: 1.0
+In-Reply-To: <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
+	<1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
+Date: Mon, 4 Feb 2013 16:06:55 +0900
+Message-ID: <CAAQKjZPJX9Rt0LH0PMpwRSv3etNvoGh3MvNcmFpvCXTtJeeFqw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device reservation support
+From: Inki Dae <inki.dae@samsung.com>
+To: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+Cc: dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> +/**
+> + * ticket_commit - commit a reservation with a new fence
+> + * @ticket:    [in]    the reservation_ticket returned by
+> + * ticket_reserve
+> + * @entries:   [in]    a linked list of struct reservation_entry
+> + * @fence:     [in]    the fence that indicates completion
+> + *
+> + * This function will call reservation_ticket_fini, no need
+> + * to do it manually.
+> + *
+> + * This function should be called after a hardware command submission is
+> + * completed succesfully. The fence is used to indicate completion of
+> + * those commands.
+> + */
+> +void
+> +ticket_commit(struct reservation_ticket *ticket,
+> +                 struct list_head *entries, struct fence *fence)
+> +{
+> +       struct list_head *cur;
+> +
+> +       if (list_empty(entries))
+> +               return;
+> +
+> +       if (WARN_ON(!fence)) {
+> +               ticket_backoff(ticket, entries);
+> +               return;
+> +       }
+> +
+> +       list_for_each(cur, entries) {
+> +               struct reservation_object *bo;
+> +               bool shared;
+> +
+> +               reservation_entry_get(cur, &bo, &shared);
+> +
+> +               if (!shared) {
+> +                       int i;
+> +                       for (i = 0; i < bo->fence_shared_count; ++i) {
+> +                               fence_put(bo->fence_shared[i]);
+> +                               bo->fence_shared[i] = NULL;
+> +                       }
+> +                       bo->fence_shared_count = 0;
+> +                       if (bo->fence_excl)
+> +                               fence_put(bo->fence_excl);
+> +
+> +                       bo->fence_excl = fence;
+> +               } else {
+> +                       if (WARN_ON(bo->fence_shared_count >=
+> +                                   ARRAY_SIZE(bo->fence_shared))) {
+> +                               mutex_unreserve_unlock(&bo->lock);
+> +                               continue;
+> +                       }
+> +
+> +                       bo->fence_shared[bo->fence_shared_count++] = fence;
+> +               }
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-video.c |    6 +-----
- drivers/media/usb/cx231xx/cx231xx.h       |   18 +-----------------
- 2 files changed, 2 insertions(+), 22 deletions(-)
+Hi,
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index e3c69f7..311d106 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1620,9 +1620,6 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 	if (rc < 0)
- 		return rc;
- 
--	if ((fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
--	    (fh->type != V4L2_BUF_TYPE_VBI_CAPTURE))
--		return -EINVAL;
- 	if (type != fh->type)
- 		return -EINVAL;
- 
-@@ -1868,7 +1865,6 @@ static int cx231xx_v4l2_open(struct file *filp)
- 		return -ERESTARTSYS;
- 	}
- 	fh->dev = dev;
--	fh->radio = radio;
- 	fh->type = fh_type;
- 	filp->private_data = fh;
- 	v4l2_fh_init(&fh->fh, vdev);
-@@ -1899,7 +1895,7 @@ static int cx231xx_v4l2_open(struct file *filp)
- 		dev->video_input = dev->video_input > 2 ? 2 : dev->video_input;
- 
- 	}
--	if (fh->radio) {
-+	if (radio) {
- 		cx231xx_videodbg("video_open: setting radio device\n");
- 
- 		/* cx231xx_start_radio(dev); */
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 4c83ff5..c17889d 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -433,25 +433,9 @@ struct cx231xx_fh {
- 	struct v4l2_fh fh;
- 	struct cx231xx *dev;
- 	unsigned int stream_on:1;	/* Locks streams */
--	int radio;
--
--	struct videobuf_queue vb_vidq;
--
- 	enum v4l2_buf_type type;
- 
--
--
--/*following is copyed from cx23885.h*/
--	u32                        resources;
--
--	/* video overlay */
--	struct v4l2_window         win;
--	struct v4l2_clip           *clips;
--	unsigned int               nclips;
--
--	/* video capture */
--	struct cx23417_fmt         *fmt;
--	unsigned int               width, height;
-+	struct videobuf_queue vb_vidq;
- 
- 	/* vbi capture */
- 	struct videobuf_queue      vidq;
--- 
-1.7.10.4
+I got some questions to fence_excl and fence_shared. At the above
+code, if bo->fence_excl is not NULL then it puts bo->fence_excl and
+sets a new fence to it. This seems like that someone that committed a
+new fence, wants to access the given dmabuf exclusively even if
+someone is accessing the given dmabuf.
 
+On the other hand, in case of fence_shared, someone wants to access
+that dmabuf non-exclusively. So this case seems like that the given
+dmabuf could be accessed by two more devices. So I guess that the
+fence_excl could be used for write access(may need buffer sync like
+blocking) and read access for the fence_shared(may not need buffer
+sync). I'm not sure that I understand these two things correctly so
+could you please give me more comments for them?
+
+Thanks,
+Inki Dae
+
+> +               fence_get(fence);
+> +
+> +               mutex_unreserve_unlock(&bo->lock);
+> +       }
+> +       reservation_ticket_fini(ticket);
+> +}
+> +EXPORT_SYMBOL(ticket_commit);
