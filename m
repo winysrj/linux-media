@@ -1,184 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:54448 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756784Ab3BAUVr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Feb 2013 15:21:47 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] tda8290: Allow disabling I2C gate
-Date: Fri,  1 Feb 2013 21:21:24 +0100
-Message-Id: <1359750087-1155-2-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
-References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:54667 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753502Ab3BCPe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:34:56 -0500
+Received: by mail-pa0-f53.google.com with SMTP id bg4so2905372pad.12
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:34:55 -0800 (PST)
+Message-ID: <510F3B46.1010607@gmail.com>
+Date: Sun, 03 Feb 2013 23:38:30 -0500
+From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 09/18] tlg2300: add missing video_unregister_device.
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <b16063fd51aef975fa54b1ebf9d62d88f5c9f48b.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <b16063fd51aef975fa54b1ebf9d62d88f5c9f48b.1359627298.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow disabling I2C gate handling by external configuration.
-This is required by cards that have all devices on a single I2C bus,
-like AverMedia A706.
-
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/tuners/tda8290.c |   49 +++++++++++++++++++++++----------------
- drivers/media/tuners/tda8290.h |    1 +
- 2 files changed, 30 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-index 8c48521..a2b7a9f 100644
---- a/drivers/media/tuners/tda8290.c
-+++ b/drivers/media/tuners/tda8290.c
-@@ -233,7 +233,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 	}
- 
- 
--	tda8290_i2c_bridge(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 
- 	if (fe->ops.tuner_ops.set_analog_params)
- 		fe->ops.tuner_ops.set_analog_params(fe, params);
-@@ -302,7 +303,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
- 		}
- 	}
- 
--	tda8290_i2c_bridge(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- 	tuner_i2c_xfer_send(&priv->i2c_props, if_agc_set, 2);
- }
- 
-@@ -424,7 +426,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
- 	tuner_i2c_xfer_send(&priv->i2c_props, blanking_mode, 2);
- 	msleep(20);
- 
--	tda8295_i2c_bridge(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 
- 	if (fe->ops.tuner_ops.set_analog_params)
- 		fe->ops.tuner_ops.set_analog_params(fe, params);
-@@ -437,7 +440,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
- 	else
- 		tuner_dbg("tda8295 not locked, no signal?\n");
- 
--	tda8295_i2c_bridge(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- }
- 
- /*---------------------------------------------------------------------*/
-@@ -465,11 +469,13 @@ static void tda8290_standby(struct dvb_frontend *fe)
- 	unsigned char tda8290_agc_tri[] = { 0x02, 0x20 };
- 	struct i2c_msg msg = {.addr = priv->tda827x_addr, .flags=0, .buf=cb1, .len = 2};
- 
--	tda8290_i2c_bridge(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 	if (priv->ver & TDA8275A)
- 		cb1[1] = 0x90;
- 	i2c_transfer(priv->i2c_props.adap, &msg, 1);
--	tda8290_i2c_bridge(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- 	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_agc_tri, 2);
- 	tuner_i2c_xfer_send(&priv->i2c_props, tda8290_standby, 2);
- }
-@@ -537,9 +543,11 @@ static void tda8290_init_tuner(struct dvb_frontend *fe)
- 	if (priv->ver & TDA8275A)
- 		msg.buf = tda8275a_init;
- 
--	tda8290_i2c_bridge(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 	i2c_transfer(priv->i2c_props.adap, &msg, 1);
--	tda8290_i2c_bridge(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- }
- 
- /*---------------------------------------------------------------------*/
-@@ -565,19 +573,13 @@ static struct tda18271_config tda829x_tda18271_config = {
- static int tda829x_find_tuner(struct dvb_frontend *fe)
- {
- 	struct tda8290_priv *priv = fe->analog_demod_priv;
--	struct analog_demod_ops *analog_ops = &fe->ops.analog_ops;
- 	int i, ret, tuners_found;
- 	u32 tuner_addrs;
- 	u8 data;
- 	struct i2c_msg msg = { .flags = I2C_M_RD, .buf = &data, .len = 1 };
- 
--	if (!analog_ops->i2c_gate_ctrl) {
--		printk(KERN_ERR "tda8290: no gate control were provided!\n");
--
--		return -EINVAL;
--	}
--
--	analog_ops->i2c_gate_ctrl(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 
- 	/* probe for tuner chip */
- 	tuners_found = 0;
-@@ -595,7 +597,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
- 	   give a response now
- 	 */
- 
--	analog_ops->i2c_gate_ctrl(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- 
- 	if (tuners_found > 1)
- 		for (i = 0; i < tuners_found; i++) {
-@@ -618,12 +621,14 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
- 	priv->tda827x_addr = tuner_addrs;
- 	msg.addr = tuner_addrs;
- 
--	analog_ops->i2c_gate_ctrl(fe, 1);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
- 	ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
- 
- 	if (ret != 1) {
- 		tuner_warn("tuner access failed!\n");
--		analog_ops->i2c_gate_ctrl(fe, 0);
-+		if (fe->ops.analog_ops.i2c_gate_ctrl)
-+			fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- 		return -EREMOTEIO;
- 	}
- 
-@@ -648,7 +653,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
- 	if (fe->ops.tuner_ops.sleep)
- 		fe->ops.tuner_ops.sleep(fe);
- 
--	analog_ops->i2c_gate_ctrl(fe, 0);
-+	if (fe->ops.analog_ops.i2c_gate_ctrl)
-+		fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
- 
- 	return 0;
- }
-@@ -755,6 +761,9 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
- 		       sizeof(struct analog_demod_ops));
- 	}
- 
-+	if (cfg && cfg->no_i2c_gate)
-+		fe->ops.analog_ops.i2c_gate_ctrl = NULL;
-+
- 	if (!(cfg) || (TDA829X_PROBE_TUNER == cfg->probe_tuner)) {
- 		tda8295_power(fe, 1);
- 		if (tda829x_find_tuner(fe) < 0)
-diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
-index 7e288b2..9959cc8 100644
---- a/drivers/media/tuners/tda8290.h
-+++ b/drivers/media/tuners/tda8290.h
-@@ -26,6 +26,7 @@ struct tda829x_config {
- 	unsigned int probe_tuner:1;
- #define TDA829X_PROBE_TUNER 0
- #define TDA829X_DONT_PROBE  1
-+	unsigned int no_i2c_gate:1;
- };
- 
- #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
--- 
-Ondrej Zary
-
+于 2013年01月31日 05:25, Hans Verkuil 写道:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-radio.c |    1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+> index 80307d3..0f958f7 100644
+> --- a/drivers/media/usb/tlg2300/pd-radio.c
+> +++ b/drivers/media/usb/tlg2300/pd-radio.c
+> @@ -334,6 +334,7 @@ int poseidon_fm_init(struct poseidon *p)
+>  
+>  int poseidon_fm_exit(struct poseidon *p)
+>  {
+> +	video_unregister_device(&p->radio_data.fm_dev);
+>  	v4l2_ctrl_handler_free(&p->radio_data.ctrl_handler);
+>  	return 0;
+>  }
+Acked-by: Huang Shijie <shijie8@gmail.com>
