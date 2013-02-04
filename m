@@ -1,137 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43139 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753015Ab3BZRYG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:24:06 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: poma <pomidorabelisima@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/5] af9015: do not use buffers from stack for usb_bulk_msg()
-Date: Tue, 26 Feb 2013 19:23:03 +0200
-Message-Id: <1361899386-22946-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1361899386-22946-1-git-send-email-crope@iki.fi>
-References: <1361899386-22946-1-git-send-email-crope@iki.fi>
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:40597 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099Ab3BCPjq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:39:46 -0500
+Received: by mail-pb0-f43.google.com with SMTP id jt11so2808468pbb.30
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:39:45 -0800 (PST)
+Message-ID: <510F3C67.8020604@gmail.com>
+Date: Sun, 03 Feb 2013 23:43:19 -0500
+From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 11/18] tlg2300: fix querycap
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <1e895ca6d25da9d6af707d661eefcf73d215d569.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <1e895ca6d25da9d6af707d661eefcf73d215d569.1359627298.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-WARNING: at lib/dma-debug.c:947 check_for_stack+0xa7/0xf0()
-ehci-pci 0000:00:04.1: DMA-API: device driver maps memory fromstack
-
-Reported-by: poma <pomidorabelisima@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c | 39 +++++++++++++++++++----------------
- drivers/media/usb/dvb-usb-v2/af9015.h |  2 ++
- 2 files changed, 23 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index b86d0f2..2fa7c6e 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -30,22 +30,22 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- {
--#define BUF_LEN 63
- #define REQ_HDR_LEN 8 /* send header size */
- #define ACK_HDR_LEN 2 /* rece header size */
- 	struct af9015_state *state = d_to_priv(d);
- 	int ret, wlen, rlen;
--	u8 buf[BUF_LEN];
- 	u8 write = 1;
- 
--	buf[0] = req->cmd;
--	buf[1] = state->seq++;
--	buf[2] = req->i2c_addr;
--	buf[3] = req->addr >> 8;
--	buf[4] = req->addr & 0xff;
--	buf[5] = req->mbox;
--	buf[6] = req->addr_len;
--	buf[7] = req->data_len;
-+	mutex_lock(&d->usb_mutex);
-+
-+	state->buf[0] = req->cmd;
-+	state->buf[1] = state->seq++;
-+	state->buf[2] = req->i2c_addr;
-+	state->buf[3] = req->addr >> 8;
-+	state->buf[4] = req->addr & 0xff;
-+	state->buf[5] = req->mbox;
-+	state->buf[6] = req->addr_len;
-+	state->buf[7] = req->data_len;
- 
- 	switch (req->cmd) {
- 	case GET_CONFIG:
-@@ -55,14 +55,14 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 		break;
- 	case READ_I2C:
- 		write = 0;
--		buf[2] |= 0x01; /* set I2C direction */
-+		state->buf[2] |= 0x01; /* set I2C direction */
- 	case WRITE_I2C:
--		buf[0] = READ_WRITE_I2C;
-+		state->buf[0] = READ_WRITE_I2C;
- 		break;
- 	case WRITE_MEMORY:
- 		if (((req->addr & 0xff00) == 0xff00) ||
- 		    ((req->addr & 0xff00) == 0xae00))
--			buf[0] = WRITE_VIRTUAL_MEMORY;
-+			state->buf[0] = WRITE_VIRTUAL_MEMORY;
- 	case WRITE_VIRTUAL_MEMORY:
- 	case COPY_FIRMWARE:
- 	case DOWNLOAD_FIRMWARE:
-@@ -90,7 +90,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 	rlen = ACK_HDR_LEN;
- 	if (write) {
- 		wlen += req->data_len;
--		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
-+		memcpy(&state->buf[REQ_HDR_LEN], req->data, req->data_len);
- 	} else {
- 		rlen += req->data_len;
- 	}
-@@ -99,22 +99,25 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
- 		rlen = 0;
- 
--	ret = dvb_usbv2_generic_rw(d, buf, wlen, buf, rlen);
-+	ret = dvb_usbv2_generic_rw_locked(d,
-+			state->buf, wlen, state->buf, rlen);
- 	if (ret)
- 		goto error;
- 
- 	/* check status */
--	if (rlen && buf[1]) {
-+	if (rlen && state->buf[1]) {
- 		dev_err(&d->udev->dev, "%s: command failed=%d\n",
--				KBUILD_MODNAME, buf[1]);
-+				KBUILD_MODNAME, state->buf[1]);
- 		ret = -EIO;
- 		goto error;
- 	}
- 
- 	/* read request, copy returned data to return buf */
- 	if (!write)
--		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
-+		memcpy(req->data, &state->buf[ACK_HDR_LEN], req->data_len);
- error:
-+	mutex_unlock(&d->usb_mutex);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
-index 533637d..3a6f3ad 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.h
-@@ -115,7 +115,9 @@ enum af9015_ir_mode {
- 	AF9015_IR_MODE_POLLING, /* just guess */
- };
- 
-+#define BUF_LEN 63
- struct af9015_state {
-+	u8 buf[BUF_LEN]; /* bulk USB control message */
- 	u8 ir_mode;
- 	u8 rc_repeat;
- 	u32 rc_keycode;
--- 
-1.7.11.7
-
+于 2013年01月31日 05:25, Hans Verkuil 写道:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-video.c |   14 ++++++++++----
+>  1 file changed, 10 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+> index 312809a..8ab2894 100644
+> --- a/drivers/media/usb/tlg2300/pd-video.c
+> +++ b/drivers/media/usb/tlg2300/pd-video.c
+> @@ -142,17 +142,23 @@ static int get_audio_std(v4l2_std_id v4l2_std)
+>  static int vidioc_querycap(struct file *file, void *fh,
+>  			struct v4l2_capability *cap)
+>  {
+> +	struct video_device *vdev = video_devdata(file);
+> +	struct poseidon *p = video_get_drvdata(vdev);
+>  	struct front_face *front = fh;
+> -	struct poseidon *p = front->pd;
+>  
+>  	logs(front);
+>  
+>  	strcpy(cap->driver, "tele-video");
+>  	strcpy(cap->card, "Telegent Poseidon");
+>  	usb_make_path(p->udev, cap->bus_info, sizeof(cap->bus_info));
+> -	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
+> -				V4L2_CAP_AUDIO | V4L2_CAP_STREAMING |
+> -				V4L2_CAP_READWRITE | V4L2_CAP_VBI_CAPTURE;
+> +	cap->device_caps = V4L2_CAP_TUNER | V4L2_CAP_AUDIO |
+> +			V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+> +	if (vdev->vfl_type == VFL_TYPE_VBI)
+> +		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
+> +	else
+> +		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
+> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
+> +		V4L2_CAP_RADIO | V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE;
+>  	return 0;
+>  }
+>  
+Acked-by: Huang Shijie <shijie8@gmail.com>
