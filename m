@@ -1,69 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:38653 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab3BMCi0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 21:38:26 -0500
-Received: by mail-ee0-f43.google.com with SMTP id c50so390212eek.16
-        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 18:38:25 -0800 (PST)
-Message-ID: <511AFC9E.5060408@gmail.com>
-Date: Wed, 13 Feb 2013 03:38:22 +0100
-From: thomas schorpp <thomas.schorpp@gmail.com>
-Reply-To: thomas.schorpp@gmail.com
+Received: from mail-ia0-f179.google.com ([209.85.210.179]:41256 "EHLO
+	mail-ia0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754039Ab3BDNX5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 08:23:57 -0500
+Received: by mail-ia0-f179.google.com with SMTP id x24so7977626iak.38
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 05:23:57 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: joe@perches.com
-Subject: Re: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
-References: <1360704036.22660.5.camel@joe-AO722>
-In-Reply-To: <1360704036.22660.5.camel@joe-AO722>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+Date: Mon, 4 Feb 2013 10:23:55 -0300
+Message-ID: <CALF0-+VvLRmLJB3g=sM4nMPmR=fQS_BnS_j2UmPPwKzt-112KA@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	Arvydas Sidorenko <asido4@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.02.2013 22:20, Joe Perches wrote:
-> His email bounces and he hasn't done work on
-> these sections in a couple of years.
+Hello Hans,
+
+On Mon, Feb 4, 2013 at 9:36 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> This patch series updates this driver to the control framework, switches
+> it to unlocked_ioctl, fixes a variety of V4L2 compliance issues.
 >
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->   MAINTAINERS | 4 +---
->   1 file changed, 1 insertion(+), 3 deletions(-)
+> It compiles, but to my knowledge nobody has hardware to test this :-(
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 1d0651e..8d47b3a 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7523,7 +7523,6 @@ F:	drivers/staging/comedi/
+> If anyone has hardware to test this, please let me know!
 >
->   STAGING - CRYSTAL HD VIDEO DECODER
->   M:	Naren Sankar <nsankar@broadcom.com>
-> -M:	Jarod Wilson <jarod@wilsonet.com>
->   M:	Scott Davilla <davilla@4pi.com>
->   M:	Manu Abraham <abraham.manu@gmail.com>
->   S:	Odd Fixes
-> @@ -7557,9 +7556,8 @@ S:	Odd Fixes
->   F:	drivers/staging/iio/
 
+I've sent a patch for stk-webcam recently and Arvydas Sidorenko (in
+Cc) was kind enough to test it.
 
-Not bouncing:
+@Arvydas: If you're not too busy, we'd really appreciate a lot
+if you can test this series.
 
-  -> RCPT TO:<jarod@redhat.com>
-<-  250 2.0.0 r1D2CGt8016879 Message accepted for delivery
-  -> RCPT TO:<davilla@4pi.com>
-<-  250 OK id=1U5S5A-0001hr-O7
-  -> RCPT TO:<nsankar@broadcom.com>
-<-  250 OK - Data received
+Thanks a lot,
 
-but noreply on 5+ tries, as for
-
-amejia@debian.org (Broadcom crystalhd LGPL code repository @ Debian & Debian maintainer)
-
-No reply to confirmed critical BUG with emergency patches in tracker:
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=699470
-http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=682252
-http://bugs.debian.org/cgi-bin/pkgreport.cgi?src=crystalhd
-
-y
-tom
-
+-- 
+    Ezequiel
