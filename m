@@ -1,71 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:52439 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664Ab3BCADm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 19:03:42 -0500
-Received: by mail-we0-f181.google.com with SMTP id t44so3882574wey.12
-        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2013 16:03:41 -0800 (PST)
-Message-ID: <510DA959.6000106@googlemail.com>
-Date: Sun, 03 Feb 2013 00:03:37 +0000
-From: Chris Clayton <chris2553@googlemail.com>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:56927 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753728Ab3BDCTj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 21:19:39 -0500
+Received: by mail-lb0-f177.google.com with SMTP id go11so6113987lbb.8
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 18:19:37 -0800 (PST)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
-References: <510A9A1E.9090801@googlemail.com> <CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com> <510ADB2F.4080901@googlemail.com> <510AF800.2090607@googlemail.com> <510BACD5.2070406@googlemail.com> <510BCE2F.1070100@googlemail.com> <CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com> <510C2DA2.7020000@googlemail.com> <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
-In-Reply-To: <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1359750087-1155-2-git-send-email-linux@rainbow-software.org>
+References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+	<1359750087-1155-2-git-send-email-linux@rainbow-software.org>
+Date: Sun, 3 Feb 2013 21:19:37 -0500
+Message-ID: <CAOcJUbxoZnHgwQKTFcGsE1R6TUJzs5NzrhAJEGG+jxWFV3O=2A@mail.gmail.com>
+Subject: Re: [PATCH 1/4] tda8290: Allow disabling I2C gate
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 02/01/13 21:07, Devin Heitmueller wrote:
-> On Fri, Feb 1, 2013 at 4:03 PM, Chris Clayton <chris2553@googlemail.com> wrote:
->> Yes, I noticed that but even with the tuning timeout set at medium or
->> longest, I doesn't find any channels. However, I've been following the debug
->> messages through the code and ended up at
->> drivers/media/pci/cx23885/cx23885-i2c.c.
->>
->> I've found that by amending I2C_WAIT_DELAY from 32 to 64, I get improved
->> results from scanning. With that delay doubled, scandvb now finds 49
->> channels over 3 frequencies. That's with all debugging turned off, so no
->> extra delays provided by the production of debug messages.
->>
->> I'll play around more tomorrow and update then.
+On Fri, Feb 1, 2013 at 3:21 PM, Ondrej Zary <linux@rainbow-software.org> wrote:
+> Allow disabling I2C gate handling by external configuration.
+> This is required by cards that have all devices on a single I2C bus,
+> like AverMedia A706.
 >
-> It could be that the cx23885 driver doesn't properly implement I2C
-> clock stretching, which is something you don't encounter on most
-> tuners but is an issue when communicating with the Xceive parts.
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> ---
+>  drivers/media/tuners/tda8290.c |   49 +++++++++++++++++++++++----------------
+>  drivers/media/tuners/tda8290.h |    1 +
+>  2 files changed, 30 insertions(+), 20 deletions(-)
 >
-
-Well, the action seems to be in drivers/pci/cx23885/cx23885-i2c.c.
-
-I answer to your point above, I've had to look up what I2C clock 
-stretching is and I believe that, basically, the driver would wait for 
-the hardware to give the go-ahead to continue. That's what seems to be 
-happening in i2c_wait_done(), but whether that's a good implementation I 
-cannot say.
-
-I've noticed that there is some consistency in the failure. For example, 
-if I boot the laptop, activate the dvb-t card and then run a channel 
-scan, no channels will be found. If I then turn on debugging in the 
-cx23885 driver (by writing 1 to 
-/sys/module/cx23885/parameters/i2c_debug), and then run the scan again, 
-some channels will be found. The number found varies from just a few to, 
-on one occasion, all 117 of them. Then, I can turn debugging off again 
-and channels will again be found when I run the scan and continue to be 
-found each time I run the scan. If I reboot, the cycle starts again.
-
-I've also added some printks to the cx23885-i2c.c to find out where the 
-return value of -5 (-EIO) comes from. I've found that the call to 
-i2c_wait_done in i2c_sendbytes (line 145) returns 0 and that results in 
--EIO being returned a few lines later. My debug output also contained 
-the value of the variable cnt, which controls the enclosing for() loop. 
-cnt always has the value 3. I don't know what this might mean in terms 
-of locating the problem, but hopefully someone on the list will.
-
-Chris
-> Devin
+> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+> index 8c48521..a2b7a9f 100644
+> --- a/drivers/media/tuners/tda8290.c
+> +++ b/drivers/media/tuners/tda8290.c
+> @@ -233,7 +233,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+>         }
 >
+>
+> -       tda8290_i2c_bridge(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>         if (fe->ops.tuner_ops.set_analog_params)
+>                 fe->ops.tuner_ops.set_analog_params(fe, params);
+> @@ -302,7 +303,8 @@ static void tda8290_set_params(struct dvb_frontend *fe,
+>                 }
+>         }
+>
+> -       tda8290_i2c_bridge(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>         tuner_i2c_xfer_send(&priv->i2c_props, if_agc_set, 2);
+>  }
+>
+> @@ -424,7 +426,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+>         tuner_i2c_xfer_send(&priv->i2c_props, blanking_mode, 2);
+>         msleep(20);
+>
+> -       tda8295_i2c_bridge(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>         if (fe->ops.tuner_ops.set_analog_params)
+>                 fe->ops.tuner_ops.set_analog_params(fe, params);
+> @@ -437,7 +440,8 @@ static void tda8295_set_params(struct dvb_frontend *fe,
+>         else
+>                 tuner_dbg("tda8295 not locked, no signal?\n");
+>
+> -       tda8295_i2c_bridge(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>  }
+>
+>  /*---------------------------------------------------------------------*/
+> @@ -465,11 +469,13 @@ static void tda8290_standby(struct dvb_frontend *fe)
+>         unsigned char tda8290_agc_tri[] = { 0x02, 0x20 };
+>         struct i2c_msg msg = {.addr = priv->tda827x_addr, .flags=0, .buf=cb1, .len = 2};
+>
+> -       tda8290_i2c_bridge(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>         if (priv->ver & TDA8275A)
+>                 cb1[1] = 0x90;
+>         i2c_transfer(priv->i2c_props.adap, &msg, 1);
+> -       tda8290_i2c_bridge(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>         tuner_i2c_xfer_send(&priv->i2c_props, tda8290_agc_tri, 2);
+>         tuner_i2c_xfer_send(&priv->i2c_props, tda8290_standby, 2);
+>  }
+> @@ -537,9 +543,11 @@ static void tda8290_init_tuner(struct dvb_frontend *fe)
+>         if (priv->ver & TDA8275A)
+>                 msg.buf = tda8275a_init;
+>
+> -       tda8290_i2c_bridge(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>         i2c_transfer(priv->i2c_props.adap, &msg, 1);
+> -       tda8290_i2c_bridge(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>  }
+>
+>  /*---------------------------------------------------------------------*/
+> @@ -565,19 +573,13 @@ static struct tda18271_config tda829x_tda18271_config = {
+>  static int tda829x_find_tuner(struct dvb_frontend *fe)
+>  {
+>         struct tda8290_priv *priv = fe->analog_demod_priv;
+> -       struct analog_demod_ops *analog_ops = &fe->ops.analog_ops;
+>         int i, ret, tuners_found;
+>         u32 tuner_addrs;
+>         u8 data;
+>         struct i2c_msg msg = { .flags = I2C_M_RD, .buf = &data, .len = 1 };
+>
+> -       if (!analog_ops->i2c_gate_ctrl) {
+> -               printk(KERN_ERR "tda8290: no gate control were provided!\n");
+> -
+> -               return -EINVAL;
+> -       }
+> -
+> -       analog_ops->i2c_gate_ctrl(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>
+>         /* probe for tuner chip */
+>         tuners_found = 0;
+> @@ -595,7 +597,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>            give a response now
+>          */
+>
+> -       analog_ops->i2c_gate_ctrl(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>
+>         if (tuners_found > 1)
+>                 for (i = 0; i < tuners_found; i++) {
+> @@ -618,12 +621,14 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>         priv->tda827x_addr = tuner_addrs;
+>         msg.addr = tuner_addrs;
+>
+> -       analog_ops->i2c_gate_ctrl(fe, 1);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 1);
+>         ret = i2c_transfer(priv->i2c_props.adap, &msg, 1);
+>
+>         if (ret != 1) {
+>                 tuner_warn("tuner access failed!\n");
+> -               analog_ops->i2c_gate_ctrl(fe, 0);
+> +               if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +                       fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>                 return -EREMOTEIO;
+>         }
+>
+> @@ -648,7 +653,8 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+>         if (fe->ops.tuner_ops.sleep)
+>                 fe->ops.tuner_ops.sleep(fe);
+>
+> -       analog_ops->i2c_gate_ctrl(fe, 0);
+> +       if (fe->ops.analog_ops.i2c_gate_ctrl)
+> +               fe->ops.analog_ops.i2c_gate_ctrl(fe, 0);
+>
+>         return 0;
+>  }
+> @@ -755,6 +761,9 @@ struct dvb_frontend *tda829x_attach(struct dvb_frontend *fe,
+>                        sizeof(struct analog_demod_ops));
+>         }
+>
+> +       if (cfg && cfg->no_i2c_gate)
+> +               fe->ops.analog_ops.i2c_gate_ctrl = NULL;
+> +
+>         if (!(cfg) || (TDA829X_PROBE_TUNER == cfg->probe_tuner)) {
+>                 tda8295_power(fe, 1);
+>                 if (tda829x_find_tuner(fe) < 0)
+> diff --git a/drivers/media/tuners/tda8290.h b/drivers/media/tuners/tda8290.h
+> index 7e288b2..9959cc8 100644
+> --- a/drivers/media/tuners/tda8290.h
+> +++ b/drivers/media/tuners/tda8290.h
+> @@ -26,6 +26,7 @@ struct tda829x_config {
+>         unsigned int probe_tuner:1;
+>  #define TDA829X_PROBE_TUNER 0
+>  #define TDA829X_DONT_PROBE  1
+> +       unsigned int no_i2c_gate:1;
+>  };
+>
+>  #if defined(CONFIG_MEDIA_TUNER_TDA8290) || (defined(CONFIG_MEDIA_TUNER_TDA8290_MODULE) && defined(MODULE))
+
+
+For the most part, this patch is fine and makes good sense to me.
+However, instead of adding the option to the config structure, I think
+you should just set the pointer to i2c_gate_ctrl to NULL from within
+the bridge driver -- this is what other drivers do when they want to
+disable a single function in the _ops struct.
+
+I already pushed your patch as-is to the zary branch of my dvb tree on
+linuxtv.org.  If you want to push a new patch that incorporates my
+suggestion above, then I'll replace the patch.  Otherwise, you can
+also just provide a separate patch against that tree to just remove
+the config struct change and the NULL assignment in the attach().
+
+-Mike Kruky
