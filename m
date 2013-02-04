@@ -1,82 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:56778 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756156Ab3BQNj1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Feb 2013 08:39:27 -0500
-Received: by mail-ee0-f46.google.com with SMTP id e49so2354965eek.33
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 05:39:26 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/2] bttv: make remote controls of devices with i2c ir decoder working
-Date: Sun, 17 Feb 2013 14:40:05 +0100
-Message-Id: <1361108405-3583-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:57775 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754176Ab3BDUks (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 15:40:48 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1359834211.2831.5.camel@joe-AO722>
+References: <CALF0-+XX27u4rmpe8RHiy5DsbHvoYP9DWQts+rTRfEvPQG4s8Q@mail.gmail.com>
+	<CALF0-+V-8m1TwnM0MUbNCncnECF_r_FVcyu_Duu0tqcsPoFR5A@mail.gmail.com>
+	<1359834211.2831.5.camel@joe-AO722>
+Date: Mon, 4 Feb 2013 17:40:47 -0300
+Message-ID: <CALF0-+X_L-wJs9TSsotEDrJ-jbQ9+JBLxqyRDWBdNqgXujthOA@mail.gmail.com>
+Subject: Re: Question about printking
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Joe Perches <joe@perches.com>
+Cc: gregkh <gregkh@linuxfoundation.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	kernelnewbies <kernelnewbies@kernelnewbies.org>,
+	kernel-janitors@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Request module ir-kbd-i2c if an i2c ir decoder is detected.
+Hi Joe,
 
-Tested with device "Hauppauge WinTV Theatre" (model 37284 rev B421).
+On Sat, Feb 2, 2013 at 4:43 PM, Joe Perches <joe@perches.com> wrote:
+> On Sat, 2013-02-02 at 16:30 -0300, Ezequiel Garcia wrote:
+>> ptr = kmalloc(sizeof(foo));
+>> if (!ptr) {
+>>         pr_err("Cannot allocate memory for foo\n");
+>>         return -ENOMEM;
+>> }
+>> His argue against it was that kmalloc already takes care of reporting/printking
+>> a good deal of interesting information when this happens.
+>
+>> Can someone expand a bit on this whole idea? (of abuse of printing,
+>> or futility of printing).
+>
+> k.alloc() takes a GFP_ flag as an arg.
+>
+> One of those GFP flags is __GFP_NOWARN.
+>
+> For all failed allocs without GFP_NOWARN
+> a message is emitted and a dump_stack is
+> done.
+>
+> (see: mm/page_alloc.c warn_alloc_failed())
+>
+> So, most all of these printks after
+> k.alloc()'s are not necessary.
+>
+>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-input.c |   22 +++++++++++++---------
- 1 Datei geändert, 13 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
+Thanks for the explanation.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
-index 04207a7..01c7121 100644
---- a/drivers/media/pci/bt8xx/bttv-input.c
-+++ b/drivers/media/pci/bt8xx/bttv-input.c
-@@ -375,6 +375,7 @@ void init_bttv_i2c_ir(struct bttv *btv)
- 		I2C_CLIENT_END
- 	};
- 	struct i2c_board_info info;
-+	struct i2c_client *i2c_dev;
- 
- 	if (0 != btv->i2c_rc)
- 		return;
-@@ -390,7 +391,12 @@ void init_bttv_i2c_ir(struct bttv *btv)
- 		btv->init_data.ir_codes = RC_MAP_PV951;
- 		info.addr = 0x4b;
- 		break;
--	default:
-+	}
-+
-+	if (btv->init_data.name) {
-+		info.platform_data = &btv->init_data;
-+		i2c_dev = i2c_new_device(&btv->c.i2c_adap, &info);
-+	} else {
- 		/*
- 		 * The external IR receiver is at i2c address 0x34 (0x35 for
- 		 * reads).  Future Hauppauge cards will have an internal
-@@ -399,16 +405,14 @@ void init_bttv_i2c_ir(struct bttv *btv)
- 		 * internal.
- 		 * That's why we probe 0x1a (~0x34) first. CB
- 		 */
--
--		i2c_new_probed_device(&btv->c.i2c_adap, &info, addr_list, NULL);
--		return;
-+		i2c_dev = i2c_new_probed_device(&btv->c.i2c_adap, &info, addr_list, NULL);
- 	}
-+	if (NULL == i2c_dev)
-+		return;
- 
--	if (btv->init_data.name)
--		info.platform_data = &btv->init_data;
--	i2c_new_device(&btv->c.i2c_adap, &info);
--
--	return;
-+#if defined(CONFIG_MODULES) && defined(MODULE)
-+	request_module("ir-kbd-i2c");
-+#endif
- }
- 
- int fini_bttv_i2c(struct bttv *btv)
+BTW, I see you've made some patches to fix exactly this.
+Nice job.
+
+Regards,
+
 -- 
-1.7.10.4
-
+    Ezequiel
