@@ -1,96 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f176.google.com ([209.85.210.176]:51901 "EHLO
-	mail-ia0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750918Ab3BAICN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 03:02:13 -0500
-Received: by mail-ia0-f176.google.com with SMTP id i18so4912958iac.7
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 00:02:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201302010849.20841.hverkuil@xs4all.nl>
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl>
-	<CAMiH66HAGRuPUYhbxm8_DUOPFfbKW832eJ4n-qq+-cNDMYr+9A@mail.gmail.com>
-	<201302010849.20841.hverkuil@xs4all.nl>
-Date: Fri, 1 Feb 2013 16:02:13 +0800
-Message-ID: <CAMiH66HfrrQb9fr12ArR+OZzQBRwxzytc4CUdn+k3DZuO9gGeQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 00/18] tlg2300: various v4l2-compliance fixes
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:63679 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753893Ab3BCPXE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:23:04 -0500
+Received: by mail-pb0-f41.google.com with SMTP id ro12so2808678pbb.0
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:23:02 -0800 (PST)
+Message-ID: <510F387C.4090305@gmail.com>
+Date: Sun, 03 Feb 2013 23:26:36 -0500
 From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 05/18] tlg2300: embed video_device instead of allocating
+ it.
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <6c7743bffce7a3cb8ea7b6c6f2ae92e79e81dcf4.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <6c7743bffce7a3cb8ea7b6c6f2ae92e79e81dcf4.1359627298.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 1, 2013 at 3:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Fri February 1 2013 03:22:22 Huang Shijie wrote:
->> Hi Hans:
->>
->> On Thu, Jan 31, 2013 at 6:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > Hi all,
->> >
->> > Last year I worked on this driver to improve it and fix v4l2-compliance
->> > issues.
->>
->> I am glad to know that there are still some people use the
->> tlg2300. thanks a lot.
->>
->> >
->> > It required a lot of effort to even find a USB stick with this chipset
->> > (telegent no longer exists) and unfortunately at some point I managed
->> > to break the USB stick, so I am no longer able to work on it.
->> >
->> > This patch series represents that part of the work I've done that has
->> > been tested. I have additional patches in my tlg2300-wip branch:
->> >
->> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/tlg2300-wip
->> >
->> > but since I am no longer certain at what point in those remaining patches
->> > things broke down I've decided not to post them for upstreaming. If I or
->> > someone else ever manages to get a working tlg2300 that code might be used
->> > for further work.
->>
->> Could you tell me how did you test your patch set?
+于 2013年01月31日 05:25, Hans Verkuil 写道:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
-> I used the v4l2-compliance tool which we use to validate drivers. It's part of
-> v4l-utils.git: http://git.linuxtv.org/v4l-utils.git
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-common.h |    2 +-
+>  drivers/media/usb/tlg2300/pd-radio.c  |   20 ++++++--------------
+>  2 files changed, 7 insertions(+), 15 deletions(-)
 >
->
-
-ok.
-
->> did you test the hibernate and suspend/resume?
->
-> No, it was on my todo list but the stick broke before I had a chance to test it.
-> However, none of the patches touch on suspend/resume.
->
-Could you test the hibernate and suspend with your patch
-set (hibernate when the gmplayer is playing the tv). And if you do not
-meet any issue, please send the patch set out again.
-
-thanks a lot.
-
-thanks
-Huang Shijie
-
->> > Huang Shijie, are you still able to act as maintainer? If not, then I can
->> > put my name in. The MAINTAINER status should probably move to 'Odd Fixes'
->>
->> Yes, you can put your name in.
->
-> OK, I'll update that patch.
->
-> Regards,
->
->         Hans
->
->> I am busy some other drivers recently.
->>
->> thanks
->> Huang Shijie
->>
->> > as well.
->> >
->> > Regards,
->> >
->> >         Hans
->> >
->>
+> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+> index 5dd73b7..3a89128 100644
+> --- a/drivers/media/usb/tlg2300/pd-common.h
+> +++ b/drivers/media/usb/tlg2300/pd-common.h
+> @@ -118,7 +118,7 @@ struct radio_data {
+>  	int		users;
+>  	unsigned int	is_radio_streaming;
+>  	int		pre_emphasis;
+> -	struct video_device *fm_dev;
+> +	struct video_device fm_dev;
+>  };
+>  
+>  #define DVB_SBUF_NUM		4
+> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+> index 4c76e089..719c3da 100644
+> --- a/drivers/media/usb/tlg2300/pd-radio.c
+> +++ b/drivers/media/usb/tlg2300/pd-radio.c
+> @@ -369,31 +369,23 @@ static struct video_device poseidon_fm_template = {
+>  	.name       = "Telegent-Radio",
+>  	.fops       = &poseidon_fm_fops,
+>  	.minor      = -1,
+> -	.release    = video_device_release,
+> +	.release    = video_device_release_empty,
+>  	.ioctl_ops  = &poseidon_fm_ioctl_ops,
+>  };
+>  
+>  int poseidon_fm_init(struct poseidon *p)
+>  {
+> -	struct video_device *fm_dev;
+> -	int err;
+> +	struct video_device *vfd = &p->radio_data.fm_dev;
+>  
+> -	fm_dev = vdev_init(p, &poseidon_fm_template);
+> -	if (fm_dev == NULL)
+> -		return -ENOMEM;
+> +	*vfd = poseidon_fm_template;
+> +	vfd->v4l2_dev	= &p->v4l2_dev;
+> +	video_set_drvdata(vfd, p);
+>  
+> -	p->radio_data.fm_dev = fm_dev;
+>  	set_frequency(p, TUNER_FREQ_MIN_FM);
+> -	err = video_register_device(fm_dev, VFL_TYPE_RADIO, -1);
+> -	if (err < 0) {
+> -		video_device_release(fm_dev);
+> -		return err;
+> -	}
+> -	return 0;
+> +	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
+>  }
+>  
+>  int poseidon_fm_exit(struct poseidon *p)
+>  {
+> -	destroy_video_device(&p->radio_data.fm_dev);
+>  	return 0;
+>  }
+Acked-by: Huang Shijie <shijie8@gmail.com>
