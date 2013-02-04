@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48240 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751010Ab3BYLxx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Feb 2013 06:53:53 -0500
-Date: Mon, 25 Feb 2013 08:53:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Ron Andreasen <dlanor78@gmail.com>,
-	linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org
-Subject: Re: 3.7/3.8 kernel won't boot with Hauppauge pvr-150
-Message-ID: <20130225085305.5871e603@redhat.com>
-In-Reply-To: <201302220751.58931.hverkuil@xs4all.nl>
-References: <CADUyVi=ztr2uF8jb6urSMtJ0yKRFrLWHrCHYmgKX+-9BTRsRFQ@mail.gmail.com>
-	<ab89dced-9718-4e81-a2c9-1581e0528eb9@email.android.com>
-	<1361546262.1968.11.camel@palomino.walls.org>
-	<201302220751.58931.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1429 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753691Ab3BDIkb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 03:40:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Huang Shijie <shijie8@gmail.com>
+Subject: Re: [RFC PATCH 18/18] tlg2300: update MAINTAINERS file.
+Date: Mon, 4 Feb 2013 09:40:23 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <d11d12d2c03425fb24acc14b3573cf1b7c5239d3.1359627298.git.hans.verkuil@cisco.com> <510F3F46.2080202@gmail.com>
+In-Reply-To: <510F3F46.2080202@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="gb18030"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302040940.23947.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Feb 2013 07:51:58 -0800
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Mon February 4 2013 05:55:34 Huang Shijie wrote:
+> 于 2013年01月31日 05:25, Hans Verkuil 写道:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> >
+> > Remove two maintainers: telegent.com no longer exists, so those email
+> > addresses are invalid as well.
+> >
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  MAINTAINERS |    2 --
+> >  1 file changed, 2 deletions(-)
+> >
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index 975ba7c..00bb196 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -6778,8 +6778,6 @@ F:	drivers/clocksource
+> >  
+> >  TLG2300 VIDEO4LINUX-2 DRIVER
+> >  M:	Huang Shijie <shijie8@gmail.com>
+> > -M:	Kang Yong <kangyong@telegent.com>
+> > -M:	Zhang Xiaobing <xbzhang@telegent.com>
+> >  S:	Supported
+> >  F:	drivers/media/usb/tlg2300
+> >  
+> You can add your name here. I am glad you can maintain it or fix the bugs.
 
-> On Friday, February 22, 2013 07:17:42 Andy Walls wrote:
-> > On Thu, 2013-02-21 at 22:32 -0500, Andy Walls wrote:
-> > > Ron Andreasen <dlanor78@gmail.com> wrote:
-> > > 
-> > > >I've been having trouble getting distros that have any kernel above the
-> > > >3.5
-> > > >series to boot (only tried 64-bit). I get a black screen with a bunch
-> > > >of
-> > > >text and the boot process goes no further. I don't know if this is
-> > > >usually
-> > > >okay, but I'm posting a link to a picture I took of my monitor with my
-> > > >cell
-> > > >phone. It's a bit blurry but hopefully it's still okay:
-> > > >
-> > > >http://imgur.com/viP1kWk,3YJXKbG
-> > > >
-> > > >The distros I've had this problem in are Kubuntu (I've tried several of
-> > > >the
-> > > >daily builds) which uses the 3.8.? (can't boot far enough to see)
-> > > >kernel,
-> > > >Cinnarch which uses the 3.7.3 kernel, and openSUSE 12.3 and I don't
-> > > >remember what version of the kernel that one used.
-> 
-> Please note that any 3.8 kernel is terminally broken with ivtv/cx18 and will
-> crash during boot as long as this patch is not applied:
-> 
-> http://git.linuxtv.org/media_tree.git/commit/cfb046cb800ba306b211fbbe4ac633486e11055f
-> 
-> It can be worked around by renaming ivtv-alsa.ko, as Andy mentioned.
-> 
-> I hope to get this patch into the 3.8 stable series as soon as possible.
-> I have to wait until it is merged into mainline first, though.
-
-The patch got merged upstream yesterday:
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commit;h=cfb046cb800ba306b211fbbe4ac633486e11055f
-
-As it was tagged with:
-	 Cc: stable@vger.kernel.org # for 3.8
-
-I expect that it will be available for 3.8.1 after the end of the
-merge window.
+OK, thanks.
 
 Regards,
-Mauro
+
+	Hans
