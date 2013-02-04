@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f171.google.com ([209.85.215.171]:48220 "EHLO
-	mail-ea0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945900Ab3BGWgX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 17:36:23 -0500
-Received: by mail-ea0-f171.google.com with SMTP id c13so1404857eaa.2
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 14:36:22 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2921 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754564Ab3BDMge (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH RFC] s3c-camif: Fail on insufficient number of allocated buffers
-Date: Thu,  7 Feb 2013 23:36:12 +0100
-Message-Id: <1360276572-10890-1-git-send-email-sylvester.nawrocki@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/8] stk-webcam: remove bogus STD support.
+Date: Mon,  4 Feb 2013 13:36:14 +0100
+Message-Id: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure the driver gets always at least its minimum required
-number of buffers allocated by checking actual number of
-allocated buffers in vb2_reqbufs(). And free any partially
-allocated buffer queue with signaling an error to user space.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Without this patch applications may wait forever to dequeue
-a filled buffer, because the hardware didn't even start after
-VIDIOC_STREAMON, VIDIOC_QBUF calls, due to insufficient number
-of empty buffers.
+It's a webcam, the STD API is not applicable to webcams.
 
-Reported-by: Alexander Nestorov <alexandernst@gmail.com>
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s3c-camif/camif-capture.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/usb/stkwebcam/stk-webcam.c |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index a55793c..b8466f3 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -934,12 +934,19 @@ static int s3c_camif_reqbufs(struct file *file, void *priv,
- 		vp->owner = NULL;
-
- 	ret = vb2_reqbufs(&vp->vb_queue, rb);
--	if (!ret) {
--		vp->reqbufs_count = rb->count;
--		if (vp->owner == NULL && rb->count > 0)
--			vp->owner = priv;
-+	if (ret < 0)
-+		return ret;
-+
-+	if (rb->count && rb->count < CAMIF_REQ_BUFS_MIN) {
-+		rb->count = 0;
-+		vb2_reqbufs(&vp->vb_queue, rb);
-+		ret = -ENOMEM;
- 	}
-
-+	vp->reqbufs_count = rb->count;
-+	if (vp->owner == NULL && rb->count > 0)
-+		vp->owner = priv;
-+
- 	return ret;
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index 4cbab08..176ab4b 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -768,12 +768,6 @@ static int stk_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+ 		return 0;
  }
-
---
-1.7.4.1
+ 
+-/* from vivi.c */
+-static int stk_vidioc_s_std(struct file *filp, void *priv, v4l2_std_id *a)
+-{
+-	return 0;
+-}
+-
+ /* List of all V4Lv2 controls supported by the driver */
+ static struct v4l2_queryctrl stk_controls[] = {
+ 	{
+@@ -1225,7 +1219,6 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
+ 	.vidioc_enum_input = stk_vidioc_enum_input,
+ 	.vidioc_s_input = stk_vidioc_s_input,
+ 	.vidioc_g_input = stk_vidioc_g_input,
+-	.vidioc_s_std = stk_vidioc_s_std,
+ 	.vidioc_reqbufs = stk_vidioc_reqbufs,
+ 	.vidioc_querybuf = stk_vidioc_querybuf,
+ 	.vidioc_qbuf = stk_vidioc_qbuf,
+@@ -1251,8 +1244,6 @@ static void stk_v4l_dev_release(struct video_device *vd)
+ 
+ static struct video_device stk_v4l_data = {
+ 	.name = "stkwebcam",
+-	.tvnorms = V4L2_STD_UNKNOWN,
+-	.current_norm = V4L2_STD_UNKNOWN,
+ 	.fops = &v4l_stk_fops,
+ 	.ioctl_ops = &v4l_stk_ioctl_ops,
+ 	.release = stk_v4l_dev_release,
+-- 
+1.7.10.4
 
