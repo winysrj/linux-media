@@ -1,94 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:33149 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab3B1Cgi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 21:36:38 -0500
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MIW00DJNSL1QJI0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 28 Feb 2013 11:36:37 +0900 (KST)
-Message-id: <512EC2CC.2090605@samsung.com>
-Date: Thu, 28 Feb 2013 11:37:00 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-MIME-version: 1.0
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
-	linaro-dev@lists.linaro.org, patches@linaro.org,
-	l.krishna@samsung.com, joshi@samsung.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v8 1/2] video: drm: exynos: Add display-timing node parsing
- using video helper function
-References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
- <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
-In-reply-to: <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4497 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753691Ab3BDIkD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 03:40:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Huang Shijie <shijie8@gmail.com>
+Subject: Re: [RFC PATCH 13/18] tlg2300: fix missing audioset.
+Date: Mon, 4 Feb 2013 09:39:54 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <be96cdafc8e99572c58eeb92c14081705335aa0a.1359627298.git.hans.verkuil@cisco.com> <510F3DA4.2030209@gmail.com>
+In-Reply-To: <510F3DA4.2030209@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="gb18030"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302040939.54680.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2013 08:49 PM, Vikas Sajjan wrote:
-> Add support for parsing the display-timing node using video helper
-> function.
->
-> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
-> exists and the NON-DT logic is still maintained under the 'else' part.
->
-> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->   drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25 +++++++++++++++++++++----
->   1 file changed, 21 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index 9537761..7932dc2 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -20,6 +20,7 @@
->   #include <linux/of_device.h>
->   #include <linux/pm_runtime.h>
->   
-> +#include <video/of_display_timing.h>
->   #include <video/samsung_fimd.h>
->   #include <drm/exynos_drm.h>
->   
-> @@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device *pdev)
->   
->   	DRM_DEBUG_KMS("%s\n", __FILE__);
->   
-> -	pdata = pdev->dev.platform_data;
-> -	if (!pdata) {
-> -		dev_err(dev, "no platform data specified\n");
-> -		return -EINVAL;
-> +	if (pdev->dev.of_node) {
-> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +		if (!pdata) {
-> +			DRM_ERROR("memory allocation for pdata failed\n");
-> +			return -ENOMEM;
-> +		}
-> +
-> +		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
-> +					OF_USE_NATIVE_MODE);
-> +		if (ret) {
-> +			DRM_ERROR("failed: of_get_fb_videomode()\n"
-> +				"with return value: %d\n", ret);
+On Mon February 4 2013 05:48:36 Huang Shijie wrote:
+> 于 2013年01月31日 05:25, Hans Verkuil 写道:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> >
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/usb/tlg2300/pd-video.c |    2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
+> > index da7cbd4..122f299 100644
+> > --- a/drivers/media/usb/tlg2300/pd-video.c
+> > +++ b/drivers/media/usb/tlg2300/pd-video.c
+> > @@ -903,7 +903,7 @@ static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
+> >  	 * the audio input index mixed with this video input,
+> >  	 * Poseidon only have one audio/video, set to "0"
+> >  	 */
+> > -	in->audioset	= 0;
+> > +	in->audioset	= 1;
+> i think it should be 0. it's need to be test.
 
-Could you make this error log to one line?
+The audioset field is a bitmask, not an index. So to tell that audio input 0
+is available audioset should be set to 1 << 0 == 1.
 
-except this,
-Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+Regards,
 
-> +			return ret;
-> +		}
-> +	} else {
-> +		pdata = pdev->dev.platform_data;
-> +		if (!pdata) {
-> +			DRM_ERROR("no platform data specified\n");
-> +			return -EINVAL;
-> +		}
->   	}
->   
->   	panel = &pdata->panel;
+	Hans
 
+> 
+> thanks
+> Huang Shijie
+> >  	in->tuner	= 0;
+> >  	in->std		= V4L2_STD_ALL;
+> >  	in->status	= 0;
+> 
