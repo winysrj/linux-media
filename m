@@ -1,66 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:45266 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932600Ab3BSRBe convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 12:01:34 -0500
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: omap3isp, omap3-isp-live, mt9p031: snapshot-mode causing picture
- corruption
-Date: Tue, 19 Feb 2013 17:01:22 +0000
-Message-ID: <6EE9CD707FBED24483D4CB0162E8546724596F85@AMSPRD0711MB532.eurprd07.prod.outlook.com>
-Content-Language: de-DE
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1577 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755076Ab3BDVLK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 16:11:10 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r14LB6R0042823
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 4 Feb 2013 22:11:09 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 98E5E11E00F0
+	for <linux-media@vger.kernel.org>; Mon,  4 Feb 2013 22:11:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130204211106.98E5E11E00F0@alastor.dyndns.org>
+Date: Mon,  4 Feb 2013 22:11:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I'm still modifying your omap3-isp-live application to fit our needs.
-Now I have severe problems with the snapshot-mode.
+Results of the daily build of media_tree:
 
-When I let the "live"-app running, the picture is fine. Then I capture
-a snapshot by clicking the right mouse-button. The snapshot is taken
-(1-2 seconds) and displayed on the LCD. Now the picture is corrupted.
-Only the lower part of the picture looks good (altough it has a
-green cast):
+date:		Mon Feb  4 19:00:18 CET 2013
+git branch:	for_v3.9
+git hash:	24dec5dabfcc1d424d7bc86d393d31f57ebcc975
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-https://www.dropbox.com/s/ijk1nq8nrhlobfd/bad-snapshot.jpg
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-When I now resume the viewfinder, then a moving picture is shown, but
-also partially corrupted (not a lot - just about the last 50 lines).
-If I do the switching (viewfinder<->snapshot) several times, the
-hardware locks completely up.
+Detailed results are available here:
 
-My hardware is as usual ;)
-beagleboard-xm
-kernel 3.7
-mt9p031 running at 96Mhz (instead of 48Mhz, problem?)
-lcd 800x480
-vrfb with rotate 3
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Further testing:
-It also happens with vrfb disabled.
-If I manually load a picture from disk into the resizer-input 
-(in the function snapshot_process) while in snapshot-mode, the picture
-is displayed correctly. 
-It seems that the picture taken from the snapshot-pipeline is "dirty".
-The buffer-sizes are correct though. Furthermore the snapshot-pipeline
-looks nearly the same as the viewfinder-pipeline...
+Full logs are available here:
 
-streaming-pipeline: http://pastebin.com/7qXtqXNz
-during-snapshot-pipeline: http://pastebin.com/L5XE0h30
-display-snapshot-pipeline: http://pastebin.com/dZ0zzHyC
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-I really have to get this working... any workarounds, dirty hacks or
-ideas (or even fixes ;)) are very welcome!
+The Media Infrastructure API from this daily build is here:
 
-Regards,
-
-Florian
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
