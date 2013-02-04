@@ -1,64 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:36326 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756794Ab3BJUEm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 15:04:42 -0500
-Received: by mail-ee0-f42.google.com with SMTP id b47so2784468eek.15
-        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 12:04:40 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/4] em28xx: add function scale_to_size()
-Date: Sun, 10 Feb 2013 21:05:13 +0100
-Message-Id: <1360526714-3216-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:37720 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876Ab3BCP3z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:29:55 -0500
+Received: by mail-pb0-f52.google.com with SMTP id mc8so2048583pbc.39
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:29:55 -0800 (PST)
+Message-ID: <510F39F0.2040703@gmail.com>
+Date: Sun, 03 Feb 2013 23:32:48 -0500
+From: Huang Shijie <shijie8@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 07/18] tlg2300: switch to v4l2_fh.
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <ba65d0385e9368b1c7d1d7bb8b8855893dc170d7.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <ba65d0385e9368b1c7d1d7bb8b8855893dc170d7.1359627298.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Sch盲fer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   15 ++++++++++++---
- 1 Datei ge盲ndert, 12 Zeilen hinzugef眉gt(+), 3 Zeilen entfernt(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 197823c..f745617 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -815,6 +815,17 @@ static void size_to_scale(struct em28xx *dev,
- 		*vscale = EM28XX_HVSCALE_MAX;
- }
- 
-+static void scale_to_size(struct em28xx *dev,
-+			  unsigned int hscale, unsigned int vscale,
-+			  unsigned int *width, unsigned int *height)
-+{
-+	unsigned int          maxw = norm_maxw(dev);
-+	unsigned int          maxh = norm_maxh(dev);
-+
-+	*width = (((unsigned long)maxw) << 12) / (hscale + 4096L);
-+	*height = (((unsigned long)maxh) << 12) / (vscale + 4096L);
-+}
-+
- /* ------------------------------------------------------------------
- 	IOCTL vidioc handling
-    ------------------------------------------------------------------*/
-@@ -890,9 +901,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	}
- 
- 	size_to_scale(dev, width, height, &hscale, &vscale);
--
--	width = (((unsigned long)maxw) << 12) / (hscale + 4096L);
--	height = (((unsigned long)maxh) << 12) / (vscale + 4096L);
-+	scale_to_size(dev, hscale, hscale, &width, &height);
- 
- 	f->fmt.pix.width = width;
- 	f->fmt.pix.height = height;
--- 
-1.7.10.4
-
+于 2013年01月31日 05:25, Hans Verkuil 写道:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This switch to v4l2_fh resolves the last v4l2_compliance issues with respect
+> to control events and priority handling.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-common.h |    1 -
+>  drivers/media/usb/tlg2300/pd-main.c   |    3 ++-
+>  drivers/media/usb/tlg2300/pd-radio.c  |   35 ++++++++++++++++++---------------
+>  3 files changed, 21 insertions(+), 18 deletions(-)
+>
+> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+> index b26082a..67ad065 100644
+> --- a/drivers/media/usb/tlg2300/pd-common.h
+> +++ b/drivers/media/usb/tlg2300/pd-common.h
+> @@ -116,7 +116,6 @@ struct poseidon_audio {
+>  
+>  struct radio_data {
+>  	__u32		fm_freq;
+> -	int		users;
+>  	unsigned int	is_radio_streaming;
+>  	int		pre_emphasis;
+>  	struct video_device fm_dev;
+> diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
+> index c4eb57a..5be5a73 100644
+> --- a/drivers/media/usb/tlg2300/pd-main.c
+> +++ b/drivers/media/usb/tlg2300/pd-main.c
+> @@ -267,7 +267,8 @@ static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
+>  static inline int get_autopm_ref(struct poseidon *pd)
+>  {
+>  	return  pd->video_data.users + pd->vbi_data.users + pd->audio.users
+> -		+ atomic_read(&pd->dvb_data.users) + pd->radio_data.users;
+> +		+ atomic_read(&pd->dvb_data.users) +
+> +		!list_empty(&pd->radio_data.fm_dev.fh_list);
+>  }
+>  
+>  /* fixup something for poseidon */
+> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+> index 45b3d7a..854ffa0 100644
+> --- a/drivers/media/usb/tlg2300/pd-radio.c
+> +++ b/drivers/media/usb/tlg2300/pd-radio.c
+> @@ -9,6 +9,8 @@
+>  #include <linux/mm.h>
+>  #include <linux/mutex.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-event.h>
+> +#include <media/v4l2-fh.h>
+>  #include <linux/sched.h>
+>  
+>  #include "pd-common.h"
+> @@ -77,13 +79,9 @@ static int pm_fm_resume(struct poseidon *p)
+>  
+>  static int poseidon_fm_open(struct file *filp)
+>  {
+> -	struct video_device *vfd = video_devdata(filp);
+> -	struct poseidon *p = video_get_drvdata(vfd);
+> +	struct poseidon *p = video_drvdata(filp);
+>  	int ret = 0;
+>  
+> -	if (!p)
+> -		return -1;
+> -
+>  	mutex_lock(&p->lock);
+>  	if (p->state & POSEIDON_STATE_DISCONNECT) {
+>  		ret = -ENODEV;
+> @@ -94,9 +92,14 @@ static int poseidon_fm_open(struct file *filp)
+>  		ret = -EBUSY;
+>  		goto out;
+>  	}
+> +	ret = v4l2_fh_open(filp);
+> +	if (ret)
+> +		goto out;
+>  
+>  	usb_autopm_get_interface(p->interface);
+>  	if (0 == p->state) {
+> +		struct video_device *vfd = &p->radio_data.fm_dev;
+> +
+>  		/* default pre-emphasis */
+>  		if (p->radio_data.pre_emphasis == 0)
+>  			p->radio_data.pre_emphasis = TLG_TUNE_ASTD_FM_EUR;
+> @@ -109,9 +112,7 @@ static int poseidon_fm_open(struct file *filp)
+>  		}
+>  		p->state |= POSEIDON_STATE_FM;
+>  	}
+> -	p->radio_data.users++;
+>  	kref_get(&p->kref);
+> -	filp->private_data = p;
+>  out:
+>  	mutex_unlock(&p->lock);
+>  	return ret;
+> @@ -119,13 +120,12 @@ out:
+>  
+>  static int poseidon_fm_close(struct file *filp)
+>  {
+> -	struct poseidon *p = filp->private_data;
+> +	struct poseidon *p = video_drvdata(filp);
+>  	struct radio_data *fm = &p->radio_data;
+>  	uint32_t status;
+>  
+>  	mutex_lock(&p->lock);
+> -	fm->users--;
+> -	if (0 == fm->users)
+> +	if (v4l2_fh_is_singular_file(filp))
+>  		p->state &= ~POSEIDON_STATE_FM;
+>  
+>  	if (fm->is_radio_streaming && filp == p->file_for_stream) {
+> @@ -136,14 +136,13 @@ static int poseidon_fm_close(struct file *filp)
+>  	mutex_unlock(&p->lock);
+>  
+>  	kref_put(&p->kref, poseidon_delete);
+> -	filp->private_data = NULL;
+> -	return 0;
+> +	return v4l2_fh_release(filp);
+>  }
+>  
+>  static int vidioc_querycap(struct file *file, void *priv,
+>  			struct v4l2_capability *v)
+>  {
+> -	struct poseidon *p = file->private_data;
+> +	struct poseidon *p = video_drvdata(file);
+>  
+>  	strlcpy(v->driver, "tele-radio", sizeof(v->driver));
+>  	strlcpy(v->card, "Telegent Poseidon", sizeof(v->card));
+> @@ -156,15 +155,16 @@ static const struct v4l2_file_operations poseidon_fm_fops = {
+>  	.owner         = THIS_MODULE,
+>  	.open          = poseidon_fm_open,
+>  	.release       = poseidon_fm_close,
+> +	.poll		= v4l2_ctrl_poll,
+>  	.unlocked_ioctl = video_ioctl2,
+>  };
+>  
+>  static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
+>  				 struct v4l2_tuner *vt)
+>  {
+> +	struct poseidon *p = video_drvdata(file);
+>  	struct tuner_fm_sig_stat_s fm_stat = {};
+>  	int ret, status, count = 5;
+> -	struct poseidon *p = file->private_data;
+>  
+>  	if (vt->index != 0)
+>  		return -EINVAL;
+> @@ -206,7 +206,7 @@ static int tlg_fm_vidioc_g_tuner(struct file *file, void *priv,
+>  static int fm_get_freq(struct file *file, void *priv,
+>  		       struct v4l2_frequency *argp)
+>  {
+> -	struct poseidon *p = file->private_data;
+> +	struct poseidon *p = video_drvdata(file);
+>  
+>  	if (argp->tuner)
+>  		return -EINVAL;
+> @@ -249,7 +249,7 @@ error:
+>  static int fm_set_freq(struct file *file, void *priv,
+>  		       struct v4l2_frequency *argp)
+>  {
+> -	struct poseidon *p = file->private_data;
+> +	struct poseidon *p = video_drvdata(file);
+>  
+>  	if (argp->tuner)
+>  		return -EINVAL;
+> @@ -293,6 +293,8 @@ static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
+>  	.vidioc_g_tuner     = tlg_fm_vidioc_g_tuner,
+>  	.vidioc_g_frequency = fm_get_freq,
+>  	.vidioc_s_frequency = fm_set_freq,
+> +	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
+>  
+>  static struct video_device poseidon_fm_template = {
+> @@ -320,6 +322,7 @@ int poseidon_fm_init(struct poseidon *p)
+>  	}
+>  	vfd->v4l2_dev = &p->v4l2_dev;
+>  	vfd->ctrl_handler = hdl;
+> +	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+>  	video_set_drvdata(vfd, p);
+>  	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
+>  }
+Acked-by: Huang Shijie <shijie8@gmail.com>
