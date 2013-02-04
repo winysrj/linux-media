@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2394 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756233Ab3BJRxK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 12:53:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/12] stk-webcam: fix querycap and simplify s_input.
-Date: Sun, 10 Feb 2013 18:52:48 +0100
-Message-Id: <b1645cda4d0b4458986aca3b7efe506419119639.1360518391.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
-References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:2379 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753785Ab3BDNcc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Feb 2013 08:32:32 -0500
+Date: Mon, 4 Feb 2013 11:32:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Simon Que <sque@chromium.org>, linux-media@vger.kernel.org,
+	msb@chromium.org, posciak@chromium.org
+Subject: Re: [PATCH] media: config option for building tuners
+Message-ID: <20130204113219.484df396@redhat.com>
+In-Reply-To: <CAOcJUbxG5NYFuMJ23XMwMo-FY3PUnxRGJTaDYy6O_nQec3+o0g@mail.gmail.com>
+References: <1359065516-8222-1-git-send-email-sque@chromium.org>
+	<CAOcJUbxG5NYFuMJ23XMwMo-FY3PUnxRGJTaDYy6O_nQec3+o0g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sun, 3 Feb 2013 20:15:53 -0500
+Michael Krufky <mkrufky@linuxtv.org> escreveu:
 
-Add device_caps support to querycap, fill in bus_info correctly and
-do not set the version field (let the core handle that).
+> On Thu, Jan 24, 2013 at 5:11 PM, Simon Que <sque@chromium.org> wrote:
+> > This patch provides a Kconfig option, MEDIA_TUNER_SUPPORT, that
+> > determines whether media/tuners is included in the build.  This way,
+> > the tuners don't have to be unconditionally included in the build.
+> >
+> > Signed-off-by: Simon Que <sque@chromium.org>
+> > ---
+> >  drivers/media/Kconfig  | 9 +++++++++
+> >  drivers/media/Makefile | 3 ++-
+> >  2 files changed, 11 insertions(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> > index 4ef0d80..a266da2 100644
+> > --- a/drivers/media/Kconfig
+> > +++ b/drivers/media/Kconfig
+> > @@ -73,6 +73,15 @@ config MEDIA_RC_SUPPORT
+> >
+> >           Say Y when you have a TV or an IR device.
+> >
+> > +config MEDIA_TUNER_SUPPORT
+> > +       tristate
+> > +       help
+> > +         This enables the tuner modules in the tuners directory.  Use this
+> > +         option to turn on tuners.  The individual tuner modules can then be
+> > +         turned on/off one-by-one.
+> > +
+> > +         Say Y when you have a V4L/DVB tuner in your system.
+> > +
+> >  #
+> >  # Media controller
+> >  #      Selectable only for webcam/grabbers, as other drivers don't use it
+> > diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> > index 620f275..679db94 100644
+> > --- a/drivers/media/Makefile
+> > +++ b/drivers/media/Makefile
+> > @@ -8,7 +8,8 @@ media-objs      := media-device.o media-devnode.o media-entity.o
+> >  # I2C drivers should come before other drivers, otherwise they'll fail
+> >  # when compiled as builtin drivers
+> >  #
+> > -obj-y += i2c/ tuners/
+> > +obj-y += i2c/
+> > +obj-$(CONFIG_MEDIA_TUNER_SUPPORT)  += tuners/
+> >  obj-$(CONFIG_DVB_CORE)  += dvb-frontends/
+> >
+> >  #
+> 
+> 
+> I don't quite see the benefit of this patch.  Could you explain to us
+> what the desired effect is that you're looking to achieve?  I believe
+> that if you have no drivers selected that need tuners, that no tuner
+> drivers will be built, or at least that's how it used to work.
+> 
+> Even if you did select a driver that uses a tuner, you can enable the
+> customization options and deselect all of the tuners drivers.  I don't
+> think this patch is needed at all, if I understand your goal
+> correctly.
+> 
+> If I'm missing something, please elaborate.
 
-Also simplify the s_input ioctl.
+I'd say that this patch is likely broken, as it doesn't take
+MEDIA_SUBDRV_AUTOSELECT Kconfig option into account.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Arvydas Sidorenko <asido4@gmail.com>
----
- drivers/media/usb/stkwebcam/stk-webcam.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 272e1a2..c72a1c4 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -730,12 +730,15 @@ static int v4l_stk_mmap(struct file *fp, struct vm_area_struct *vma)
- static int stk_vidioc_querycap(struct file *filp,
- 		void *priv, struct v4l2_capability *cap)
- {
-+	struct stk_camera *dev = video_drvdata(filp);
-+
- 	strcpy(cap->driver, "stk");
- 	strcpy(cap->card, "stk");
--	cap->version = DRIVER_VERSION_NUM;
-+	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
- 
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
- 		| V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
-@@ -759,10 +762,7 @@ static int stk_vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
- 
- static int stk_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
- {
--	if (i != 0)
--		return -EINVAL;
--	else
--		return 0;
-+	return i ? -EINVAL : 0;
- }
- 
- static int stk_s_ctrl(struct v4l2_ctrl *ctrl)
--- 
-1.7.10.4
-
+Regards,
+Mauro
