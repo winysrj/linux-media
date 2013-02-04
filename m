@@ -1,289 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4875 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab3BAMRb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/6] tm6000: fix querycap and input/tuner compliance issues.
-Date: Fri,  1 Feb 2013 13:17:16 +0100
-Message-Id: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-oa0-f52.google.com ([209.85.219.52]:61103 "EHLO
+	mail-oa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754870Ab3BDME1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:04:27 -0500
+Received: by mail-oa0-f52.google.com with SMTP id k14so6335250oag.39
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 04:04:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+	<510987B5.6090509@gmail.com>
+	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
+	<510B02AB.4080908@gmail.com>
+	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
+	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+	<CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
+	<510B9EC8.6020102@samsung.com>
+	<CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
+	<014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
+	<CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
+	<014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
+	<E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
+Date: Mon, 4 Feb 2013 17:34:26 +0530
+Message-ID: <CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Inki Dae <daeinki@gmail.com>
+Cc: Inki Dae <inki.dae@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	"patches@linaro.org" <patches@linaro.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 1 February 2013 18:28, Inki Dae <daeinki@gmail.com> wrote:
+>
+>
+>
+>
+> 2013. 2. 1. 오후 8:52 Inki Dae <inki.dae@samsung.com> 작성:
+>
+>>
+>>
+>>> -----Original Message-----
+>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+>>> Sent: Friday, February 01, 2013 8:40 PM
+>>> To: Inki Dae
+>>> Cc: Sylwester Nawrocki; Kukjin Kim; Sylwester Nawrocki; linux-
+>>> media@vger.kernel.org; dri-devel@lists.freedesktop.org; devicetree-
+>>> discuss@lists.ozlabs.org; patches@linaro.org
+>>> Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery
+>>> support for G2D
+>>>
+>>> On 1 February 2013 17:02, Inki Dae <inki.dae@samsung.com> wrote:
+>>>>
+>>>> How about using like below?
+>>>>        Compatible = ""samsung,exynos4x12-fimg-2d" /* for Exynos4212,
+>>>> Exynos4412  */
+>>>> It looks odd to use "samsung,exynos4212-fimg-2d" saying that this ip is
+>>> for
+>>>> exynos4212 and exynos4412.
+>>>
+>>> AFAIK, compatible strings are not supposed to have any wildcard
+>> characters.
+>>> Compatible string should suggest the first SoC that contained this IP.
+>>> Hence IMO 4212 is OK.
+>>>
+>
+> Oops, one more thing. AFAIK Exynos4210 also has fimg-2d ip. In this case, we should use "samsung,exynos4210-fimg-2d" as comparible string and add it to exynos4210.dtsi?
 
-- add device_caps support
-- fix bus_info
-- fix numerous tuner-related problems due to incorrect tests
-  and setting v4l2_tuner fields to wrong values.
-- remove (audio) input support from the radio: it doesn't belong
-  there. This also fixed a nasty issue where opening the radio
-  would set dev->input to 5 for no good reason. This was never
-  set back to a valid TV input after closing the radio device,
-  thus leaving it at 5 which is out of bounds of the vinput
-  card array.
+Exynos4210 has same g2d IP (v3.0) as C110 or V210; so the same
+comptible string will be used for this one too.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tm6000/tm6000-video.c |  147 +++++++------------------------
- 1 file changed, 31 insertions(+), 116 deletions(-)
+> And please check if exynos4212 and 4412 SoCs have same fimg-2d ip. If it's different, we might need to add ip version property or compatible string to each dtsi file to identify the ip version.
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index e3c567c..7a653b2 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -948,16 +948,21 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 					struct v4l2_capability *cap)
- {
- 	struct tm6000_core *dev = ((struct tm6000_fh *)priv)->dev;
-+	struct video_device *vdev = video_devdata(file);
- 
- 	strlcpy(cap->driver, "tm6000", sizeof(cap->driver));
- 	strlcpy(cap->card, "Trident TVMaster TM5600/6000/6010", sizeof(cap->card));
--	cap->capabilities =	V4L2_CAP_VIDEO_CAPTURE |
--				V4L2_CAP_STREAMING     |
--				V4L2_CAP_AUDIO         |
--				V4L2_CAP_READWRITE;
--
-+	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
- 	if (dev->tuner_type != TUNER_ABSENT)
--		cap->capabilities |= V4L2_CAP_TUNER;
-+		cap->device_caps |= V4L2_CAP_TUNER;
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE |
-+				V4L2_CAP_STREAMING |
-+				V4L2_CAP_READWRITE;
-+	else
-+		cap->device_caps |= V4L2_CAP_RADIO;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
-+		V4L2_CAP_RADIO | V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE;
- 
- 	return 0;
- }
-@@ -965,7 +970,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
- static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
- {
--	if (unlikely(f->index >= ARRAY_SIZE(format)))
-+	if (f->index >= ARRAY_SIZE(format))
- 		return -EINVAL;
- 
- 	strlcpy(f->description, format[f->index].name, sizeof(f->description));
-@@ -1301,14 +1306,14 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	struct tm6000_fh   *fh  = priv;
- 	struct tm6000_core *dev = fh->dev;
- 
--	if (unlikely(UNSET == dev->tuner_type))
--		return -EINVAL;
-+	if (UNSET == dev->tuner_type)
-+		return -ENOTTY;
- 	if (0 != t->index)
- 		return -EINVAL;
- 
- 	strcpy(t->name, "Television");
- 	t->type       = V4L2_TUNER_ANALOG_TV;
--	t->capability = V4L2_TUNER_CAP_NORM;
-+	t->capability = V4L2_TUNER_CAP_NORM | V4L2_TUNER_CAP_STEREO;
- 	t->rangehigh  = 0xffffffffUL;
- 	t->rxsubchans = V4L2_TUNER_SUB_STEREO;
- 
-@@ -1326,11 +1331,14 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	struct tm6000_core *dev = fh->dev;
- 
- 	if (UNSET == dev->tuner_type)
--		return -EINVAL;
-+		return -ENOTTY;
- 	if (0 != t->index)
- 		return -EINVAL;
- 
--	dev->amode = t->audmode;
-+	if (t->audmode > V4L2_TUNER_MODE_STEREO)
-+		dev->amode = V4L2_TUNER_MODE_STEREO;
-+	else
-+		dev->amode = t->audmode;
- 	dprintk(dev, 3, "audio mode: %x\n", t->audmode);
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
-@@ -1344,10 +1352,11 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	struct tm6000_fh   *fh  = priv;
- 	struct tm6000_core *dev = fh->dev;
- 
--	if (unlikely(UNSET == dev->tuner_type))
-+	if (UNSET == dev->tuner_type)
-+		return -ENOTTY;
-+	if (f->tuner)
- 		return -EINVAL;
- 
--	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	f->frequency = dev->freq;
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, f);
-@@ -1361,13 +1370,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	struct tm6000_fh   *fh  = priv;
- 	struct tm6000_core *dev = fh->dev;
- 
--	if (unlikely(UNSET == dev->tuner_type))
--		return -EINVAL;
--	if (unlikely(f->tuner != 0))
--		return -EINVAL;
--	if (0 == fh->radio && V4L2_TUNER_ANALOG_TV != f->type)
--		return -EINVAL;
--	if (1 == fh->radio && V4L2_TUNER_RADIO != f->type)
-+	if (UNSET == dev->tuner_type)
-+		return -ENOTTY;
-+	if (f->tuner != 0)
- 		return -EINVAL;
- 
- 	dev->freq = f->frequency;
-@@ -1376,27 +1381,6 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int radio_querycap(struct file *file, void *priv,
--					struct v4l2_capability *cap)
--{
--	struct tm6000_fh *fh = file->private_data;
--	struct tm6000_core *dev = fh->dev;
--
--	strcpy(cap->driver, "tm6000");
--	strlcpy(cap->card, dev->name, sizeof(dev->name));
--	sprintf(cap->bus_info, "USB%04x:%04x",
--		le16_to_cpu(dev->udev->descriptor.idVendor),
--		le16_to_cpu(dev->udev->descriptor.idProduct));
--	cap->version = dev->dev_type;
--	cap->capabilities = V4L2_CAP_TUNER |
--			V4L2_CAP_AUDIO     |
--			V4L2_CAP_RADIO     |
--			V4L2_CAP_READWRITE |
--			V4L2_CAP_STREAMING;
--
--	return 0;
--}
--
- static int radio_g_tuner(struct file *file, void *priv,
- 					struct v4l2_tuner *t)
- {
-@@ -1409,7 +1393,9 @@ static int radio_g_tuner(struct file *file, void *priv,
- 	memset(t, 0, sizeof(*t));
- 	strcpy(t->name, "Radio");
- 	t->type = V4L2_TUNER_RADIO;
-+	t->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
- 	t->rxsubchans = V4L2_TUNER_SUB_STEREO;
-+	t->audmode = V4L2_TUNER_MODE_STEREO;
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
- 
-@@ -1424,78 +1410,14 @@ static int radio_s_tuner(struct file *file, void *priv,
- 
- 	if (0 != t->index)
- 		return -EINVAL;
-+	if (t->audmode > V4L2_TUNER_MODE_STEREO)
-+		t->audmode = V4L2_TUNER_MODE_STEREO;
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
- 
- 	return 0;
- }
- 
--static int radio_enum_input(struct file *file, void *priv,
--					struct v4l2_input *i)
--{
--	struct tm6000_fh *fh = priv;
--	struct tm6000_core *dev = fh->dev;
--
--	if (i->index != 0)
--		return -EINVAL;
--
--	if (!dev->rinput.type)
--		return -EINVAL;
--
--	strcpy(i->name, "Radio");
--	i->type = V4L2_INPUT_TYPE_TUNER;
--
--	return 0;
--}
--
--static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
--{
--	struct tm6000_fh *fh = priv;
--	struct tm6000_core *dev = fh->dev;
--
--	if (dev->input != 5)
--		return -EINVAL;
--
--	*i = dev->input - 5;
--
--	return 0;
--}
--
--static int radio_g_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
--{
--	memset(a, 0, sizeof(*a));
--	strcpy(a->name, "Radio");
--	return 0;
--}
--
--static int radio_s_audio(struct file *file, void *priv,
--					const struct v4l2_audio *a)
--{
--	return 0;
--}
--
--static int radio_s_input(struct file *filp, void *priv, unsigned int i)
--{
--	struct tm6000_fh *fh = priv;
--	struct tm6000_core *dev = fh->dev;
--
--	if (i)
--		return -EINVAL;
--
--	if (!dev->rinput.type)
--		return -EINVAL;
--
--	dev->input = i + 5;
--
--	return 0;
--}
--
--static int radio_s_std(struct file *file, void *fh, v4l2_std_id *norm)
--{
--	return 0;
--}
--
- static int radio_queryctrl(struct file *file, void *priv,
- 					struct v4l2_queryctrl *c)
- {
-@@ -1599,7 +1521,6 @@ static int __tm6000_open(struct file *file)
- 				sizeof(struct tm6000_buffer), fh, &dev->lock);
- 	} else {
- 		dprintk(dev, V4L2_DEBUG_OPEN, "video_open: setting radio device\n");
--		dev->input = 5;
- 		tm6000_set_audio_rinput(dev);
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_radio);
- 		tm6000_prepare_isoc(dev);
-@@ -1789,16 +1710,10 @@ static const struct v4l2_file_operations radio_fops = {
- };
- 
- static const struct v4l2_ioctl_ops radio_ioctl_ops = {
--	.vidioc_querycap	= radio_querycap,
-+	.vidioc_querycap	= vidioc_querycap,
- 	.vidioc_g_tuner		= radio_g_tuner,
--	.vidioc_enum_input	= radio_enum_input,
--	.vidioc_g_audio		= radio_g_audio,
- 	.vidioc_s_tuner		= radio_s_tuner,
--	.vidioc_s_audio		= radio_s_audio,
--	.vidioc_s_input		= radio_s_input,
--	.vidioc_s_std		= radio_s_std,
- 	.vidioc_queryctrl	= radio_queryctrl,
--	.vidioc_g_input		= radio_g_input,
- 	.vidioc_g_ctrl		= vidioc_g_ctrl,
- 	.vidioc_s_ctrl		= vidioc_s_ctrl,
- 	.vidioc_g_frequency	= vidioc_g_frequency,
+AFAIK, they both have the same IP (v4.1).
+
+>
+> Sorry but give me your opinions.
+>
+> Thanks,
+> Inki Dae
+>
+>
+>>
+>> Got it. Please post it again.
+>>
+>>>
+>>> --
+>>> With warm regards,
+>>> Sachin
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+
+
+
 -- 
-1.7.10.4
-
+With warm regards,
+Sachin
