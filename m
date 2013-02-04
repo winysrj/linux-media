@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2805 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751412Ab3BYLG4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Feb 2013 06:06:56 -0500
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3405 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754631Ab3BDMgs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:48 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] ISA radio fixes
-Date: Mon, 25 Feb 2013 12:06:50 +0100
-Cc: Steven Toth <stoth@kernellabs.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302251206.50181.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/8] stk-webcam: fix querycap and simplify s_input.
+Date: Mon,  4 Feb 2013 13:36:19 +0100
+Message-Id: <ad8ed42592df3b17f7683c34ad499fba9a8ed998.1359981193.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+References: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-These are two small fixes for 3.10:
+Add device_caps support to querycap and do not set the version field (let the
+core handle that).
 
-- capabilities were mixed up in radio-isa
-- fixed a mute bug in radio-rtrack2: I got hold of a radio-rtrack2 card so
-  I could finally test this driver with real hardware.
+Also simplify the s_input ioctl.
 
-Thanks to Steve Toth for helping me obtain this card!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/stkwebcam/stk-webcam.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-Regards,
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index a7882d6..a654578 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -730,12 +730,16 @@ static int v4l_stk_mmap(struct file *fp, struct vm_area_struct *vma)
+ static int stk_vidioc_querycap(struct file *filp,
+ 		void *priv, struct v4l2_capability *cap)
+ {
++	struct stk_camera *dev = video_drvdata(filp);
++
+ 	strcpy(cap->driver, "stk");
+ 	strcpy(cap->card, "stk");
+-	cap->version = DRIVER_VERSION_NUM;
++	strlcpy(cap->bus_info, dev_name(&dev->udev->dev),
++		sizeof(cap->bus_info));
+ 
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
+ 		| V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+@@ -759,10 +763,7 @@ static int stk_vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
+ 
+ static int stk_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+ {
+-	if (i != 0)
+-		return -EINVAL;
+-	else
+-		return 0;
++	return i ? -EINVAL : 0;
+ }
+ 
+ static int stk_s_ctrl(struct v4l2_ctrl *ctrl)
+-- 
+1.7.10.4
 
-	Hans
-
-The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
-
-  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git radio-isa
-
-for you to fetch changes up to 54a2b5393931a4b794b9505158a158585822e3cf:
-
-  radio-rtrack2: fix mute bug. (2013-02-25 12:00:15 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      radio-isa: fix querycap capabilities code.
-      radio-rtrack2: fix mute bug.
-
- drivers/media/radio/radio-isa.c     |    4 ++--
- drivers/media/radio/radio-rtrack2.c |    5 +++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
