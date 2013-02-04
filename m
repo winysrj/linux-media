@@ -1,98 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:48393 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895Ab3BPKT3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 05:19:29 -0500
-Received: by mail-wg0-f42.google.com with SMTP id 12so1525217wgh.3
-        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 02:19:27 -0800 (PST)
-Subject: [PATCH v2] media: i.MX27 camera: fix picture source width
-From: Christoph Fritz <chf.fritz@googlemail.com>
-To: Greg KH <gregkh@linuxfoundation.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	"Hans J. Koch" <hjk@hansjkoch.de>
-Cc: linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <20130215172452.GA27113@kroah.com>
-References: <1360948121.29406.15.camel@mars>
-	 <20130215172452.GA27113@kroah.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 16 Feb 2013 11:19:24 +0100
-Message-ID: <1361009964.5028.3.camel@mars>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:48785 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752876Ab3BCPoG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:44:06 -0500
+Received: by mail-pa0-f42.google.com with SMTP id kq12so77922pab.15
+        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:44:06 -0800 (PST)
+Message-ID: <510F3D6D.3000408@gmail.com>
+Date: Sun, 03 Feb 2013 23:47:41 -0500
+From: Huang Shijie <shijie8@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 06/18] tlg2300: add control handler for radio device
+ node.
+References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <6f3366e175ce5a8ff0dd4c959e2128f851723283.1359627298.git.hans.verkuil@cisco.com>
+In-Reply-To: <6f3366e175ce5a8ff0dd4c959e2128f851723283.1359627298.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While using a mt9m001 (monochrome) camera the final output falsely gets
-horizontally divided into two pictures.
-
-The issue was git bisected to commit f410991dcf1f
-
-  |  [media] i.MX27 camera: add support for YUV420 format
-  |
-  |  This patch uses channel 2 of the eMMa-PrP to convert
-  |  format provided by the sensor to YUV420.
-  |
-  |  This format is very useful since it is used by the
-  |  internal H.264 encoder.
-
-It sets PICTURE_X_SIZE in register PRP_SRC_FRAME_SIZE to its full width
-while before that commit it was divided by two:
-
--   writel(((bytesperline >> 1) << 16) | icd->user_height,
-+           writel((icd->user_width << 16) | icd->user_height,
-                    pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-
-i.mx27 reference manual (41.6.12 PrP Source Frame Size Register) says:
-
-    PICTURE_X_SIZE. These bits set the frame width to be
-    processed in number of pixels. In YUV 4:2:0 mode, Cb and
-    Cr widths are taken as PICTURE_X_SIZE/2 pixels.  In YUV
-    4:2:0 mode, this value should be a multiple of 8-pixels.
-    In other modes (RGB, YUV 4:2:2 and YUV 4:4:4) it should
-    be a multiple of 4 pixels.
-
-This patch reverts to PICTURE_X_SIZE/2 for channel 1.
-
-Tested on Kernel 3.4, merged to 3.8rc.
-
-Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
----
- drivers/media/platform/soc_camera/mx2_camera.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 8bda2c9..795bd3f 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -778,11 +778,11 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 
--	writel((pcdev->s_width << 16) | pcdev->s_height,
--	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 	writel(prp->cfg.src_pixel,
- 	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
- 	if (prp->cfg.channel == 1) {
-+		writel(((bytesperline >> 1) << 16) | pcdev->s_height,
-+			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
- 		writel(bytesperline,
-@@ -790,6 +790,8 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 		writel(prp->cfg.ch1_pixel,
- 			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
- 	} else { /* channel 2 */
-+		writel((pcdev->s_width << 16) | pcdev->s_height,
-+			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
- 	}
--- 
-1.7.10.4
-
-
-
+于 2013年01月31日 05:25, Hans Verkuil 写道:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-common.h |    2 +
+>  drivers/media/usb/tlg2300/pd-radio.c  |  112 ++++++++-------------------------
+>  2 files changed, 28 insertions(+), 86 deletions(-)
+>
+> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
+> index 3a89128..b26082a 100644
+> --- a/drivers/media/usb/tlg2300/pd-common.h
+> +++ b/drivers/media/usb/tlg2300/pd-common.h
+> @@ -10,6 +10,7 @@
+>  #include <linux/poll.h>
+>  #include <media/videobuf-vmalloc.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-ctrls.h>
+>  
+>  #include "dvb_frontend.h"
+>  #include "dvbdev.h"
+> @@ -119,6 +120,7 @@ struct radio_data {
+>  	unsigned int	is_radio_streaming;
+>  	int		pre_emphasis;
+>  	struct video_device fm_dev;
+> +	struct v4l2_ctrl_handler ctrl_handler;
+>  };
+>  
+>  #define DVB_SBUF_NUM		4
+> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
+> index 719c3da..45b3d7a 100644
+> --- a/drivers/media/usb/tlg2300/pd-radio.c
+> +++ b/drivers/media/usb/tlg2300/pd-radio.c
+> @@ -261,104 +261,34 @@ static int fm_set_freq(struct file *file, void *priv,
+>  	return set_frequency(p, argp->frequency);
+>  }
+>  
+> -static int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
+> -		struct v4l2_control *arg)
+> +static int tlg_fm_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+> -	return 0;
+> -}
+> -
+> -static int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
+> -				struct v4l2_ext_controls *ctrls)
+> -{
+> -	struct poseidon *p = file->private_data;
+> -	int i;
+> -
+> -	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_FM_TX)
+> -		return -EINVAL;
+> -
+> -	for (i = 0; i < ctrls->count; i++) {
+> -		struct v4l2_ext_control *ctrl = ctrls->controls + i;
+> -
+> -		if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS)
+> -			continue;
+> -
+> -		if (i < MAX_PREEMPHASIS)
+> -			ctrl->value = p->radio_data.pre_emphasis;
+> -	}
+> -	return 0;
+> -}
+> -
+> -static int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
+> -			struct v4l2_ext_controls *ctrls)
+> -{
+> -	int i;
+> -
+> -	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_FM_TX)
+> -		return -EINVAL;
+> -
+> -	for (i = 0; i < ctrls->count; i++) {
+> -		struct v4l2_ext_control *ctrl = ctrls->controls + i;
+> -
+> -		if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS)
+> -			continue;
+> -
+> -		if (ctrl->value >= 0 && ctrl->value < MAX_PREEMPHASIS) {
+> -			struct poseidon *p = file->private_data;
+> -			int pre_emphasis = preemphasis[ctrl->value];
+> -			u32 status;
+> -
+> -			send_set_req(p, TUNER_AUD_ANA_STD,
+> -						pre_emphasis, &status);
+> -			p->radio_data.pre_emphasis = pre_emphasis;
+> -		}
+> -	}
+> -	return 0;
+> -}
+> -
+> -static int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
+> -		struct v4l2_control *ctrl)
+> -{
+> -	return 0;
+> -}
+> -
+> -static int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
+> -		struct v4l2_queryctrl *ctrl)
+> -{
+> -	if (!(ctrl->id & V4L2_CTRL_FLAG_NEXT_CTRL))
+> -		return -EINVAL;
+> +	struct poseidon *p = container_of(ctrl->handler, struct poseidon,
+> +						radio_data.ctrl_handler);
+> +	int pre_emphasis;
+> +	u32 status;
+>  
+> -	ctrl->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
+> -	if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS) {
+> -		/* return the next supported control */
+> -		ctrl->id = V4L2_CID_TUNE_PREEMPHASIS;
+> -		v4l2_ctrl_query_fill(ctrl, V4L2_PREEMPHASIS_DISABLED,
+> -					V4L2_PREEMPHASIS_75_uS, 1,
+> -					V4L2_PREEMPHASIS_50_uS);
+> -		ctrl->flags = V4L2_CTRL_FLAG_UPDATE;
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_TUNE_PREEMPHASIS:
+> +		pre_emphasis = preemphasis[ctrl->val];
+> +		send_set_req(p, TUNER_AUD_ANA_STD, pre_emphasis, &status);
+> +		p->radio_data.pre_emphasis = pre_emphasis;
+>  		return 0;
+>  	}
+>  	return -EINVAL;
+>  }
+>  
+> -static int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
+> -				struct v4l2_querymenu *qmenu)
+> -{
+> -	return v4l2_ctrl_query_menu(qmenu, NULL, NULL);
+> -}
+> -
+>  static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
+>  {
+>  	return vt->index > 0 ? -EINVAL : 0;
+>  }
+>  
+> +static const struct v4l2_ctrl_ops tlg_fm_ctrl_ops = {
+> +	.s_ctrl = tlg_fm_s_ctrl,
+> +};
+> +
+>  static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
+>  	.vidioc_querycap    = vidioc_querycap,
+> -	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
+> -	.vidioc_querymenu   = tlg_fm_vidioc_querymenu,
+> -	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
+> -	.vidioc_s_ctrl      = tlg_fm_vidioc_s_ctrl,
+> -	.vidioc_s_ext_ctrls = tlg_fm_vidioc_s_exts_ctrl,
+> -	.vidioc_g_ext_ctrls = tlg_fm_vidioc_g_exts_ctrl,
+>  	.vidioc_s_tuner     = vidioc_s_tuner,
+>  	.vidioc_g_tuner     = tlg_fm_vidioc_g_tuner,
+>  	.vidioc_g_frequency = fm_get_freq,
+> @@ -376,16 +306,26 @@ static struct video_device poseidon_fm_template = {
+>  int poseidon_fm_init(struct poseidon *p)
+>  {
+>  	struct video_device *vfd = &p->radio_data.fm_dev;
+> +	struct v4l2_ctrl_handler *hdl = &p->radio_data.ctrl_handler;
+>  
+>  	*vfd = poseidon_fm_template;
+> -	vfd->v4l2_dev	= &p->v4l2_dev;
+> -	video_set_drvdata(vfd, p);
+>  
+>  	set_frequency(p, TUNER_FREQ_MIN_FM);
+> +	v4l2_ctrl_handler_init(hdl, 1);
+> +	v4l2_ctrl_new_std_menu(hdl, &tlg_fm_ctrl_ops, V4L2_CID_TUNE_PREEMPHASIS,
+> +			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
+> +	if (hdl->error) {
+> +		v4l2_ctrl_handler_free(hdl);
+> +		return hdl->error;
+> +	}
+> +	vfd->v4l2_dev = &p->v4l2_dev;
+> +	vfd->ctrl_handler = hdl;
+> +	video_set_drvdata(vfd, p);
+>  	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
+>  }
+>  
+>  int poseidon_fm_exit(struct poseidon *p)
+>  {
+> +	v4l2_ctrl_handler_free(&p->radio_data.ctrl_handler);
+>  	return 0;
+>  }
+Acked-by: Huang Shijie <shijie8@gmail.com>
