@@ -1,105 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:64576 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932757Ab3BKWck (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 17:32:40 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so3359443eei.7
-        for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 14:32:37 -0800 (PST)
-Message-ID: <51197181.6020000@gmail.com>
-Date: Mon, 11 Feb 2013 23:32:33 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, ming.lei@canonical.com,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	=?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [RFC] V4L2 events with extensible payload
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4638 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754636Ab3BDMge (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/8] stk-webcam: add support for struct v4l2_device.
+Date: Mon,  4 Feb 2013 13:36:15 +0100
+Message-Id: <cb3dcc69984e5b4c43a97fa549b8e0ece1ccbb95.1359981193.git.hans.verkuil@cisco.com>
+In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+References: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi All,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/stkwebcam/stk-webcam.c |   10 +++++++++-
+ drivers/media/usb/stkwebcam/stk-webcam.h |    2 ++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-I have run recently into a situation where it would be useful to have
-a data structure within the struct v4l2_event::u union of size greater
-than 64 bytes, which is the current size of the union.
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index 176ab4b..588304e 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -1256,7 +1256,7 @@ static int stk_register_video_device(struct stk_camera *dev)
+ 
+ 	dev->vdev = stk_v4l_data;
+ 	dev->vdev.debug = debug;
+-	dev->vdev.parent = &dev->interface->dev;
++	dev->vdev.v4l2_dev = &dev->v4l2_dev;
+ 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (err)
+ 		STK_ERROR("v4l registration failed\n");
+@@ -1285,6 +1285,12 @@ static int stk_camera_probe(struct usb_interface *interface,
+ 		STK_ERROR("Out of memory !\n");
+ 		return -ENOMEM;
+ 	}
++	err = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
++	if (err < 0) {
++		dev_err(&udev->dev, "couldn't register v4l2_device\n");
++		kfree(dev);
++		return err;
++	}
+ 
+ 	spin_lock_init(&dev->spinlock);
+ 	init_waitqueue_head(&dev->wait_frame);
+@@ -1345,6 +1351,7 @@ static int stk_camera_probe(struct usb_interface *interface,
+ 	return 0;
+ 
+ error:
++	v4l2_device_unregister(&dev->v4l2_dev);
+ 	kfree(dev);
+ 	return err;
+ }
+@@ -1362,6 +1369,7 @@ static void stk_camera_disconnect(struct usb_interface *interface)
+ 		 video_device_node_name(&dev->vdev));
+ 
+ 	video_unregister_device(&dev->vdev);
++	v4l2_device_unregister(&dev->v4l2_dev);
+ }
+ 
+ #ifdef CONFIG_PM
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
+index 9f67366..49ebe85 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.h
++++ b/drivers/media/usb/stkwebcam/stk-webcam.h
+@@ -23,6 +23,7 @@
+ #define STKWEBCAM_H
+ 
+ #include <linux/usb.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+ 
+ #define DRIVER_VERSION		"v0.0.1"
+@@ -91,6 +92,7 @@ struct regval {
+ };
+ 
+ struct stk_camera {
++	struct v4l2_device v4l2_dev;
+ 	struct video_device vdev;
+ 	struct usb_device *udev;
+ 	struct usb_interface *interface;
+-- 
+1.7.10.4
 
-Currently struct v4l2_event looks like this [1], and I have been thinking
-about extending it with a 'size' member that would be telling the actual
-size of the payload data structure and a pointer to a specific event data
-structure would be added to the union u.
-
-[1] http://lxr.linux.no/#linux+v3.7.4/include/uapi/linux/videodev2.h#L1798
-
-struct v4l2_event_ext1 {
-     __u8    data[96];
-};
-
-struct v4l2_event {
-     __u32                             type;
-     union {
-         struct v4l2_event_vsync       vsync;
-         struct v4l2_event_ctrl        ctrl;
-         struct v4l2_event_frame_sync  frame_sync;
-         struct v4l2_event_ext1        *ext1;
-         __u8                          data[64];
-     } u;
-     __u32                pending;
-     __u32                sequence;
-     struct timespec      timestamp;
-     __u32                id;
-     __u32                size;
-     __u32                reserved[7];
-};
-
-Then before VIDIOC_DQBUF ioctl an application would have allocated a
-buffer for the event and would set 'size' to the size of this buffer.
-If the size would have been to small for a next event to be dequeued
-from the kernel an ioctl would return -ENOSPC errno.
-
-Everything seemed nice and straightforward until I have discovered that
-VIDIOC_DQEVENT ioctl doesn't allow to pass anything from user space to
-the kernel, because it is defined with _IOR().
-
-And here come my questions:
-
-1. Is the event payload supposed to be relatively small and the interface
-is deliberately defined to disallow passing anything with the payload
-greater than 64 B ? In order to keep it a rather lightweight interface
-and anything that needs more data should use other/new ioctls ?
-
-2. If answer to 1. is 'no', then what would be a best way to proceed to
-make the event's payload more flexible ? Would creating a new ioctl to
-dequeue events be way to go ?
-
-I am asking mostly in context of the face detection feature in the
-Exynos4x12 SoC camera ISP. Similarly, the v4l2 event payload size was a
-limitation during development of a driver for the face detection IP block
-available in OMAP4 SoCs by Ming Lei [2]:
-
-"From the start, I hope that the event interface can be used to retrieve
-  object detection result.
-
-When I found it is difficult to fit 'struct v4l2_od_object' into 64 bytes,
-I decide to introduce two IOCTLs for the purpose."
-
-I thought it would have been better to make the event interface more
-flexible and reuse the existing infrastructure, rather than inventing new
-ioctls for the purpose and reimplementing similar set of features.
-
-
-Any suggestions, thoughts are warm welcome.
-
-
-[2] http://patchwork.linuxtv.org/patch/8814
-
---
-
-Regards,
-Sylwester
