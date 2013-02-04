@@ -1,96 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3664 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753481Ab3BQVLY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Feb 2013 16:11:24 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1HLBL0Q058635
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 22:11:23 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B902311E0113
-	for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 22:11:19 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130217211119.B902311E0113@alastor.dyndns.org>
-Date: Sun, 17 Feb 2013 22:11:19 +0100 (CET)
+Received: from mail-we0-f176.google.com ([74.125.82.176]:52092 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753188Ab3BDOtC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 09:49:02 -0500
+Received: by mail-we0-f176.google.com with SMTP id s43so4768463wey.7
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 06:49:00 -0800 (PST)
+Date: Mon, 4 Feb 2013 15:51:11 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: Inki Dae <inki.dae@samsung.com>, linaro-mm-sig@lists.linaro.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device
+ reservation support
+Message-ID: <20130204145111.GB5843@phenom.ffwll.local>
+References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
+ <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
+ <CAAQKjZPJX9Rt0LH0PMpwRSv3etNvoGh3MvNcmFpvCXTtJeeFqw@mail.gmail.com>
+ <510F8602.9080806@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <510F8602.9080806@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Feb 04, 2013 at 10:57:22AM +0100, Maarten Lankhorst wrote:
+> Op 04-02-13 08:06, Inki Dae schreef:
+> >> +/**
+> >> + * ticket_commit - commit a reservation with a new fence
+> >> + * @ticket:    [in]    the reservation_ticket returned by
+> >> + * ticket_reserve
+> >> + * @entries:   [in]    a linked list of struct reservation_entry
+> >> + * @fence:     [in]    the fence that indicates completion
+> >> + *
+> >> + * This function will call reservation_ticket_fini, no need
+> >> + * to do it manually.
+> >> + *
+> >> + * This function should be called after a hardware command submission is
+> >> + * completed succesfully. The fence is used to indicate completion of
+> >> + * those commands.
+> >> + */
+> >> +void
+> >> +ticket_commit(struct reservation_ticket *ticket,
+> >> +                 struct list_head *entries, struct fence *fence)
+> >> +{
+> >> +       struct list_head *cur;
+> >> +
+> >> +       if (list_empty(entries))
+> >> +               return;
+> >> +
+> >> +       if (WARN_ON(!fence)) {
+> >> +               ticket_backoff(ticket, entries);
+> >> +               return;
+> >> +       }
+> >> +
+> >> +       list_for_each(cur, entries) {
+> >> +               struct reservation_object *bo;
+> >> +               bool shared;
+> >> +
+> >> +               reservation_entry_get(cur, &bo, &shared);
+> >> +
+> >> +               if (!shared) {
+> >> +                       int i;
+> >> +                       for (i = 0; i < bo->fence_shared_count; ++i) {
+> >> +                               fence_put(bo->fence_shared[i]);
+> >> +                               bo->fence_shared[i] = NULL;
+> >> +                       }
+> >> +                       bo->fence_shared_count = 0;
+> >> +                       if (bo->fence_excl)
+> >> +                               fence_put(bo->fence_excl);
+> >> +
+> >> +                       bo->fence_excl = fence;
+> >> +               } else {
+> >> +                       if (WARN_ON(bo->fence_shared_count >=
+> >> +                                   ARRAY_SIZE(bo->fence_shared))) {
+> >> +                               mutex_unreserve_unlock(&bo->lock);
+> >> +                               continue;
+> >> +                       }
+> >> +
+> >> +                       bo->fence_shared[bo->fence_shared_count++] = fence;
+> >> +               }
+> > Hi,
+> >
+> > I got some questions to fence_excl and fence_shared. At the above
+> > code, if bo->fence_excl is not NULL then it puts bo->fence_excl and
+> > sets a new fence to it. This seems like that someone that committed a
+> > new fence, wants to access the given dmabuf exclusively even if
+> > someone is accessing the given dmabuf.
+> Yes, if there were shared fences, they had to issue a wait for the previous exclusive fence, so if you add
+> (possibly hardware) wait ops on those shared fences to your command stream, it follows that you also
+> waited for the previous exclusive fence implicitly.
+> 
+> If there is only an exclusive fence, you have to issue some explicit wait op  on it before you start the rest
+> of the commands.
+> > On the other hand, in case of fence_shared, someone wants to access
+> > that dmabuf non-exclusively. So this case seems like that the given
+> > dmabuf could be accessed by two more devices. So I guess that the
+> > fence_excl could be used for write access(may need buffer sync like
+> > blocking) and read access for the fence_shared(may not need buffer
+> > sync). I'm not sure that I understand these two things correctly so
+> > could you please give me more comments for them?
+> Correct, if you create a shared fence, you still have to emit a wait op for the exclusive fence.
 
-Results of the daily build of media_tree:
+Just a quick note: We limit the number of non-exclusive fences to avoid
+reallocating memory, which would be a bit a pain. Otoh if we support some
+form of fence timeline concept, the fence core code could overwrite
+redundant fences. Which would reasonable limit the total attached fence
+count. Still we'd need to thread potential -ENOMEM failures through all
+callers.
 
-date:		Sun Feb 17 19:00:19 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
-
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Do you see a use-case for more than just a few non-exclusive fences?
+-Daniel
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
