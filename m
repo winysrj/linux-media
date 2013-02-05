@@ -1,162 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:35638 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993Ab3BCEAs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 23:00:48 -0500
-Received: by mail-lb0-f169.google.com with SMTP id m4so5788686lbo.0
-        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2013 20:00:46 -0800 (PST)
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:61004 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753974Ab3BEVhG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 16:37:06 -0500
+Received: by mail-ea0-f170.google.com with SMTP id a11so286383eaa.15
+        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 13:37:04 -0800 (PST)
+Message-ID: <51117BAE.5090605@googlemail.com>
+Date: Tue, 05 Feb 2013 22:37:50 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <2909559.M1IsAHpWSv@jar7.dominio>
-References: <50F05C09.3010104@iki.fi>
-	<2909559.M1IsAHpWSv@jar7.dominio>
-Date: Sat, 2 Feb 2013 23:00:45 -0500
-Message-ID: <CAOcJUbyt418Cg=5JawNq_U_4bUG+ztqB_7n7iOvwWgo-zvROhg@mail.gmail.com>
-Subject: Re: af9035 test needed!
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx: fix usb alternate setting for analog and digital
+ video endpoints > 0
+References: <1358529948-2260-1-git-send-email-fschaefer.oss@googlemail.com> <20130205185707.5ecb3801@redhat.com>
+In-Reply-To: <20130205185707.5ecb3801@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 11, 2013 at 6:45 PM, Jose Alberto Reguero
-<jareguero@telefonica.net> wrote:
-> On Viernes, 11 de enero de 2013 20:38:01 Antti Palosaari escribi�:
->> Hello Jose and Gianluca
+Am 05.02.2013 21:57, schrieb Mauro Carvalho Chehab:
+> Em Fri, 18 Jan 2013 18:25:48 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> While the current code handles sound interfaces with a number > 0 correctly, it
+>> assumes that the interface number for analog + digital video is always 0 when
+>> changing the alternate setting.
 >>
->> Could you test that (tda18218 & mxl5007t):
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/it9135_tune
->> r
+>> (NOTE: the "SpeedLink VAD Laplace webcam" (EM2765) uses interface number 3 for video)
 >>
->> I wonder if ADC config logic still works for superheterodyne tuners
->> (tuner having IF). I changed it to adc / 2 always due to IT9135 tuner.
->> That makes me wonder it possible breaks tuners having IF, as ADC was
->> clocked just over 20MHz and if it is half then it is 10MHz. For BB that
->> is enough, but I think that having IF, which is 4MHz at least for 8MHz
->> BW it is too less.
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-audio.c |   10 +++++-----
+>>  drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
+>>  drivers/media/usb/em28xx/em28xx-core.c  |    2 +-
+>>  drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
+>>  drivers/media/usb/em28xx/em28xx.h       |    3 +--
+>>  5 Dateien geändert, 9 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
 >>
->> F*ck I hate to maintain driver without a hardware! Any idea where I can
->> get AF9035 device having tda18218 or mxl5007t?
->>
->> regards
->> Antti
+>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+>> index 2fdb66e..cdbfe0a 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+>> @@ -283,15 +283,15 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+>>  	}
+>>  
+>>  	runtime->hw = snd_em28xx_hw_capture;
+>> -	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
+>> -		if (dev->audio_ifnum)
+>> +	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
+>> +		if (dev->ifnum)
+> Please don't merge a non-fix change (variable rename) with a fix.
+
+Ok, sorry, it seems to be trivial...
+
+> Btw, audio_ifnum is a better name, as it avoids it to be miss-interpreted.
+
+Did you read the complete patch ? ;)
+Or do you really want the video interface number to be called audio_ifnum ?
+
+>>  			dev->alt = 1;
+>>  		else
+>>  			dev->alt = 7;
+>>  
+>>  		dprintk("changing alternate number on interface %d to %d\n",
+>> -			dev->audio_ifnum, dev->alt);
+>> -		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
+>> +			dev->ifnum, dev->alt);
+>> +		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>  
+>>  		/* Sets volume, mute, etc */
+>>  		dev->mute = 0;
+>> @@ -642,7 +642,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+>>  	static int          devnr;
+>>  	int                 err;
+>>  
+>> -	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
+>> +	if (!dev->has_alsa_audio) {
+>>  		/* This device does not support the extension (in this case
+>>  		   the device is expecting the snd-usb-audio module or
+>>  		   doesn't have analog audio support at all) */
+>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+>> index 0a5aa62..553db17 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>> @@ -3376,7 +3376,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>>  	dev->alt   = -1;
+>>  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
+>>  	dev->has_alsa_audio = has_audio;
+>> -	dev->audio_ifnum = ifnum;
+>> +	dev->ifnum = ifnum;
+>>  
+>>  	/* Checks if audio is provided by some interface */
+>>  	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
+>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+>> index ce4f252..210859a 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-core.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+>> @@ -862,7 +862,7 @@ set_alt:
+>>  	}
+>>  	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+>>  		       dev->alt, dev->max_pkt_size);
+>> -	errCode = usb_set_interface(dev->udev, 0, dev->alt);
+>> +	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>  	if (errCode < 0) {
+>>  		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+>>  				dev->alt, errCode);
+> This hunk doesn't apply upstream:
 >
-> Still pending the changes for  mxl5007t. Attached is a patch for that.
+> patching file drivers/media/usb/em28xx/em28xx-core.c
+> Hunk #1 FAILED at 862.
+> 1 out of 1 hunk FAILED -- rejects in file drivers/media/usb/em28xx/em28xx-core.c
+
+It applies after
+
+http://patchwork.linuxtv.org/patch/16197/
+
+has been applied.
+
+Regards,
+Frank
+
 >
-> Changes to make work Avermedia Twinstar with the af9035 driver.
->
-> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
->
-> Jose Alberto
->
-> diff -upr linux/drivers/media/tuners/mxl5007t.c
-> linux.new/drivers/media/tuners/mxl5007t.c
-> --- linux/drivers/media/tuners/mxl5007t.c       2012-08-14 05:45:22.000000000 +0200
-> +++ linux.new/drivers/media/tuners/mxl5007t.c   2013-01-10 19:23:09.247556275
-> +0100
-> @@ -374,7 +374,6 @@ static struct reg_pair_t *mxl5007t_calc_
->         mxl5007t_set_if_freq_bits(state, cfg->if_freq_hz, cfg->invert_if);
->         mxl5007t_set_xtal_freq_bits(state, cfg->xtal_freq_hz);
->
-> -       set_reg_bits(state->tab_init, 0x04, 0x01, cfg->loop_thru_enable);
->         set_reg_bits(state->tab_init, 0x03, 0x08, cfg->clk_out_enable << 3);
->         set_reg_bits(state->tab_init, 0x03, 0x07, cfg->clk_out_amp);
+>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+>> index a81ec2e..dbeed6c 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+>> @@ -196,7 +196,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+>>  		dvb_alt = dev->dvb_alt_isoc;
+>>  	}
+>>  
+>> -	usb_set_interface(dev->udev, 0, dvb_alt);
+>> +	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
+>>  	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+>>  	if (rc < 0)
+>>  		return rc;
+>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+>> index 5f0b2c5..0dc5b73 100644
+>> --- a/drivers/media/usb/em28xx/em28xx.h
+>> +++ b/drivers/media/usb/em28xx/em28xx.h
+>> @@ -487,8 +487,6 @@ struct em28xx {
+>>  
+>>  	unsigned char disconnected:1;	/* device has been diconnected */
+>>  
+>> -	int audio_ifnum;
+>> -
+>>  	struct v4l2_device v4l2_dev;
+>>  	struct v4l2_ctrl_handler ctrl_handler;
+>>  	/* provides ac97 mute and volume overrides */
+>> @@ -597,6 +595,7 @@ struct em28xx {
+>>  
+>>  	/* usb transfer */
+>>  	struct usb_device *udev;	/* the usb device */
+>> +	int ifnum;			/* usb interface number */
+>>  	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
+>>  	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
+>>  	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
 >
 
-This is a configurable option - it should not be removed, just
-configure your glue code to not use that option if you dont want
-it.... unless there's some other reason why you're removing this?
-
-> @@ -531,9 +530,12 @@ static int mxl5007t_tuner_init(struct mx
->         struct reg_pair_t *init_regs;
->         int ret;
->
-> -       ret = mxl5007t_soft_reset(state);
-> -       if (mxl_fail(ret))
-> +       if (!state->config->no_reset) {
-> +               ret = mxl5007t_soft_reset(state);
-> +               if (mxl_fail(ret))
->                 goto fail;
-> +       }
-> +
-
-this seems wrong to me.  why would you want to prevent the driver from
-doing a soft reset?
-
->
->         /* calculate initialization reg array */
->         init_regs = mxl5007t_calc_init_regs(state, mode);
-> @@ -887,7 +889,12 @@ struct dvb_frontend *mxl5007t_attach(str
->                 if (fe->ops.i2c_gate_ctrl)
->                         fe->ops.i2c_gate_ctrl(fe, 1);
->
-> -               ret = mxl5007t_get_chip_id(state);
-> +               if (!state->config->no_probe)
-> +                       ret = mxl5007t_get_chip_id(state);
-> +
-> +               ret = mxl5007t_write_reg(state, 0x04,
-> +                       state->config->loop_thru_enable);
-> +
->
-
-Can you explain why this change was made?  ^^
-
->                 if (fe->ops.i2c_gate_ctrl)
->                         fe->ops.i2c_gate_ctrl(fe, 0);
-> diff -upr linux/drivers/media/tuners/mxl5007t.h
-> linux.new/drivers/media/tuners/mxl5007t.h
-> --- linux/drivers/media/tuners/mxl5007t.h       2012-08-14 05:45:22.000000000 +0200
-> +++ linux.new/drivers/media/tuners/mxl5007t.h   2013-01-10 19:19:11.204379581
-> +0100
-> @@ -73,8 +73,10 @@ struct mxl5007t_config {
->         enum mxl5007t_xtal_freq xtal_freq_hz;
->         enum mxl5007t_if_freq if_freq_hz;
->         unsigned int invert_if:1;
-> -       unsigned int loop_thru_enable:1;
-> +       unsigned int loop_thru_enable:3;
-
-Why widen this boolean to three bits?
-
->         unsigned int clk_out_enable:1;
-> +       unsigned int no_probe:1;
-> +       unsigned int no_reset:1;
->  };
->
->  #if defined(CONFIG_MEDIA_TUNER_MXL5007T) ||
-> (defined(CONFIG_MEDIA_TUNER_MXL5007T_MODULE) && defined(MODULE))
-> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
-> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c 2013-01-07 05:45:57.000000000
-> +0100
-> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c     2013-01-12
-> 00:30:57.557310465 +0100
-> @@ -886,13 +886,17 @@ static struct mxl5007t_config af9035_mxl
->                 .loop_thru_enable = 0,
->                 .clk_out_enable = 0,
->                 .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> +               .no_probe = 1,
-> +               .no_reset = 1,
->         }, {
->                 .xtal_freq_hz = MxL_XTAL_24_MHZ,
->                 .if_freq_hz = MxL_IF_4_57_MHZ,
->                 .invert_if = 0,
-> -               .loop_thru_enable = 1,
-> +               .loop_thru_enable = 3,
->                 .clk_out_enable = 1,
->                 .clk_out_amp = MxL_CLKOUT_AMP_0_94V,
-> +               .no_probe = 1,
-> +               .no_reset = 1,
->         }
->  };
->
-
-
-
-This patch cannot be merged as-is.  I'm sorry.  If you could explain
-why each change was made, then perhaps I would be able to advise
-better how to make this work on your device without breaking others.
-
--Mike Krufky
