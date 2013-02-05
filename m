@@ -1,51 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:59767 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757984Ab3BAXC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Feb 2013 18:02:29 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 7/8] saa7134: v4l2-compliance: remove bogus g_parm
-Date: Sat,  2 Feb 2013 00:01:20 +0100
-Message-Id: <1359759681-27549-8-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
-References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2621 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756608Ab3BEVMB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 16:12:01 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r15LBvRV094377
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 5 Feb 2013 22:11:59 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id AAF7D11E0119
+	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 22:11:50 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130205211150.AAF7D11E0119@alastor.dyndns.org>
+Date: Tue,  5 Feb 2013 22:11:50 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make saa7134 driver more V4L2 compliant: remove empty g_parm function
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- drivers/media/pci/saa7134/saa7134-video.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index f7e6d5c..eeee8b4 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2237,12 +2237,6 @@ static int saa7134_streamoff(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int saa7134_g_parm(struct file *file, void *fh,
--				struct v4l2_streamparm *parm)
--{
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int vidioc_g_register (struct file *file, void *priv,
- 			      struct v4l2_dbg_register *reg)
-@@ -2395,7 +2389,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_fbuf			= saa7134_g_fbuf,
- 	.vidioc_s_fbuf			= saa7134_s_fbuf,
- 	.vidioc_overlay			= saa7134_overlay,
--	.vidioc_g_parm			= saa7134_g_parm,
- 	.vidioc_g_frequency		= saa7134_g_frequency,
- 	.vidioc_s_frequency		= saa7134_s_frequency,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
--- 
-Ondrej Zary
+date:		Tue Feb  5 19:00:24 CET 2013
+git branch:	for_v3.9
+git hash:	f1927479554bf19d2ac54c4b1a38538e54e1881b
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
