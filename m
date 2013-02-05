@@ -1,65 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1195 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757345Ab3BFP4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 05/17] bttv: remove g/s_audio since there is only one audio input.
-Date: Wed,  6 Feb 2013 16:56:23 +0100
-Message-Id: <ee3a8b7f8c259d51fa2dbdaf8c3ac810eee236ca.1360165855.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
-References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:33849 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462Ab3BEP2T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 10:28:19 -0500
+Received: by mail-wg0-f47.google.com with SMTP id dr13so223803wgb.2
+        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 07:28:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201302041435.26878.hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+	<CALF0-+VvLRmLJB3g=sM4nMPmR=fQS_BnS_j2UmPPwKzt-112KA@mail.gmail.com>
+	<201302041435.26878.hverkuil@xs4all.nl>
+Date: Tue, 5 Feb 2013 16:28:17 +0100
+Message-ID: <CA+6av4kp54eQSeefAnJxY80HtOJ5iCBh+ETOZaKQHbo=m86-DQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
+From: Arvydas Sidorenko <asido4@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Feb 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Arvydas,
+>
+> Yes indeed, it would be great if you could test this!
+>
+> Note that the patch series is also available in my git tree:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/stkwebcam
+>
+> Besides the normal testing that everything works as expected, it would also
+> be great if you could run the v4l2-compliance tool. It's part of the v4l-utils
+> repository (http://git.linuxtv.org/v4l-utils.git) and it tests whether a driver
+> complies to the V4L2 specification.
+>
+> Just compile the tool from the repository (don't use a distro-provided version)
+> and run it as 'v4l2-compliance -d /dev/videoX' and mail me the output. You will
+> get at least one failure at the end, but I'd like to know if there are other
+> issues remaining.
+>
+> Regards,
+>
+>         Hans
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+I have tested the patches using STK-1135 webcam. Everything works well.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 6e61dbd..a02c031 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -3138,23 +3138,6 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
- 	return 0;
- }
- 
--static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
--{
--	if (unlikely(a->index))
--		return -EINVAL;
--
--	strcpy(a->name, "audio");
--	return 0;
--}
--
--static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
--{
--	if (unlikely(a->index))
--		return -EINVAL;
--
--	return 0;
--}
--
- static ssize_t bttv_read(struct file *file, char __user *data,
- 			 size_t count, loff_t *ppos)
- {
-@@ -3390,8 +3373,6 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_g_fmt_vbi_cap           = bttv_g_fmt_vbi_cap,
- 	.vidioc_try_fmt_vbi_cap         = bttv_try_fmt_vbi_cap,
- 	.vidioc_s_fmt_vbi_cap           = bttv_s_fmt_vbi_cap,
--	.vidioc_g_audio                 = bttv_g_audio,
--	.vidioc_s_audio                 = bttv_s_audio,
- 	.vidioc_cropcap                 = bttv_cropcap,
- 	.vidioc_reqbufs                 = bttv_reqbufs,
- 	.vidioc_querybuf                = bttv_querybuf,
--- 
-1.7.10.4
+$ v4l2-compliance -d /dev/video0
+Driver Info:
+	Driver name   : stk
+	Card type     : stk
+	Bus info      :
+	Driver version: 0.0.1
+	Capabilities  : 0x05000001
+		Video Capture
+		Read/Write
+		Streaming
 
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+		fail: v4l2-compliance.cpp(224): string empty
+		fail: v4l2-compliance.cpp(276): check_ustring(vcap.bus_info,
+sizeof(vcap.bus_info))
+	test VIDIOC_QUERYCAP: FAIL
+
+Allow for multiple opens:
+	test second video open: OK
+		fail: v4l2-compliance.cpp(224): string empty
+		fail: v4l2-compliance.cpp(276): check_ustring(vcap.bus_info,
+sizeof(vcap.bus_info))
+	test VIDIOC_QUERYCAP: FAIL
+		fail: v4l2-compliance.cpp(334): doioctl(node, VIDIOC_G_PRIORITY, &prio)
+	test VIDIOC_G/S_PRIORITY: FAIL
+
+Debug ioctls:
+	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+		fail: v4l2-test-input-output.cpp(354): std == 0
+		fail: v4l2-test-input-output.cpp(409): invalid attributes for input 0
+	test VIDIOC_G/S/ENUMINPUT: FAIL
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+		fail: v4l2-test-controls.cpp(145): can do querymenu on a non-menu control
+		fail: v4l2-test-controls.cpp(254): invalid control 00980900
+	test VIDIOC_QUERYCTRL/MENU: FAIL
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 0 Private Controls: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+		fail: v4l2-test-formats.cpp(385): priv is non-zero!
+	test VIDIOC_TRY_FMT: FAIL
+		fail: v4l2-test-formats.cpp(719): Video Capture is valid, but no
+S_FMT was implemented
+	test VIDIOC_S_FMT: FAIL
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+		fail: v4l2-test-buffers.cpp(132): ret != -1
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+
+Total: 38, Succeeded: 30, Failed: 8, Warnings: 1
+
+
+Arvydas
