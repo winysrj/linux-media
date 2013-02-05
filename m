@@ -1,57 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f182.google.com ([209.85.213.182]:56279 "EHLO
-	mail-ye0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937Ab3B0Oot (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 09:44:49 -0500
-Received: by mail-ye0-f182.google.com with SMTP id r9so73252yen.41
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 06:44:48 -0800 (PST)
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@cisco.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 1/1] MAINTAINERS: Add maintainer entry for si4713 FM transmitter driver
-Date: Wed, 27 Feb 2013 10:37:39 -0400
-Message-Id: <1361975859-20819-1-git-send-email-edubezval@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4394 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880Ab3BEO13 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 09:27:29 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r15EROf5030587
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 5 Feb 2013 15:27:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 363B211E00AF
+	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 15:27:24 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] v4l2-compliance fixes for c-qcam
+Date: Tue, 5 Feb 2013 15:27:24 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302051527.24170.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add maintainer entry for the files composing si4713 FM transmitter driver.
+These patches fix various compliance issues for c-qcam.
+Tested on more-or-less (mostly less) working actual hardware.
 
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
----
- MAINTAINERS |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+Unchanged from the RFC patches posted a week ago.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 870ba56..fe5583e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7070,6 +7070,22 @@ F:	drivers/media/radio/si470x/radio-si470x-common.c
- F:	drivers/media/radio/si470x/radio-si470x.h
- F:	drivers/media/radio/si470x/radio-si470x-usb.c
- 
-+SI4713 FM RADIO TRANSMITTER I2C DRIVER
-+M:	Eduardo Valentin <edubezval@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/radio/si4713-i2c.?
-+
-+SI4713 FM RADIO TRANSMITTER PLATFORM DRIVER
-+M:	Eduardo Valentin <edubezval@gmail.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+W:	http://linuxtv.org
-+S:	Odd Fixes
-+F:	drivers/media/radio/radio-si4713.h
-+
- SH_VEU V4L2 MEM2MEM DRIVER
- M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
- L:	linux-media@vger.kernel.org
--- 
-1.7.7.1.488.ge8e1c
+Regards,
 
+        HansThe following changes since commit a32f7d1ad3744914273c6907204c2ab3b5d496a0:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.9 (2013-01-24 18:49:18 -0200)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/hverkuil/media_tree.git cqcam
+
+for you to fetch changes up to 8cfa5c3bb7b52fa29608bc6372a7015dcc6eadf6:
+
+  c-qcam: add enum_framesizes support. (2013-01-30 18:52:13 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      c-qcam: fix v4l2-compliance issues.
+      c-qcam: add enum_framesizes support.
+
+ drivers/media/parport/c-qcam.c |   34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
