@@ -1,97 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3947 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933289Ab3BSVLR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 16:11:17 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1JLBDaF083155
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 22:11:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C049811E0188
-	for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 22:11:13 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130219211113.C049811E0188@alastor.dyndns.org>
-Date: Tue, 19 Feb 2013 22:11:13 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:21225 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751858Ab3BEPqY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Feb 2013 10:46:24 -0500
+Date: Tue, 5 Feb 2013 13:46:18 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for 3.7-rc7] media fixes
+Message-ID: <20130205134618.66560236@redhat.com>
+In-Reply-To: <20130205133519.51713e27@redhat.com>
+References: <20130205133519.51713e27@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Tue, 5 Feb 2013 13:35:19 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-Results of the daily build of media_tree:
+Heh, obviously the subject is wrong... I meant to write "GIT PULL for 3.8-rc7" :)
 
-date:		Tue Feb 19 19:00:20 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+Regards,
+Mauro
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-Module.symvers: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+> Hi Linus,
+> 
+> Please pull from:
+> 	  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+> 
+> For a regression fix on a few radio drivers that were preventing radio TX
+> to work on those devices.
+> 
+> Regards,
+> Mauro
+> 
+> -
+> 
+> The following changes since commit 68d6f84ba0c47e658beff3a4bf0c43acee4b4690:
+> 
+>   [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures (2013-01-11 13:30:27 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+> 
+> for you to fetch changes up to ce4a3d52888a95473914bd54bcf6c566014fc03e:
+> 
+>   [media] radio: set vfl_dir correctly to fix modulator regression (2013-01-24 18:54:14 -0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>       [media] radio: set vfl_dir correctly to fix modulator regression
+> 
+>  drivers/media/radio/radio-keene.c       |  1 +
+>  drivers/media/radio/radio-si4713.c      |  1 +
+>  drivers/media/radio/radio-wl1273.c      |  1 +
+>  drivers/media/radio/wl128x/fmdrv_v4l2.c | 10 ++++++++++
+>  4 files changed, 13 insertions(+)
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+-- 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
