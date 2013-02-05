@@ -1,115 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13675 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59489 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933124Ab3BSUDx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 15:03:53 -0500
-Date: Tue, 19 Feb 2013 17:03:43 -0300
+	id S1757848Ab3BEWMn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 17:12:43 -0500
+Date: Tue, 5 Feb 2013 20:10:01 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-Message-ID: <20130219170343.00b92d18@redhat.com>
-In-Reply-To: <5123D651.1090108@googlemail.com>
-References: <512294CA.3050401@gmail.com>
-	<51229C2D.8060700@googlemail.com>
-	<5122ACDF.1020705@gmail.com>
-	<5123ACA0.2060503@googlemail.com>
-	<20130219153024.6f468d43@redhat.com>
-	<5123C849.6080207@googlemail.com>
-	<20130219155303.25c5077a@redhat.com>
-	<5123D651.1090108@googlemail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Michael Hunold <michael@mihu.de>,
+	Jonathan Nieder <jrnieder@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [media] dvb-usb: reading before start of array
+Message-ID: <20130205201001.60fe547e@redhat.com>
+In-Reply-To: <20130109073632.GD2454@elgon.mountain>
+References: <20130109073632.GD2454@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Feb 2013 20:45:21 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Em Wed, 9 Jan 2013 10:36:32 +0300
+Dan Carpenter <dan.carpenter@oracle.com> escreveu:
 
-> Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
-> > Em Tue, 19 Feb 2013 19:45:29 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >>> I don't like the idea of merging those two entries. As far as I remember
-> >>> there are devices that works out of the box with
-> >>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
-> >>> the driver for them.
-> >> As described above, there is a good chance to break devices with both
-> >> solutions.
-> >>
-> >> What's your suggestion ? ;-)
-> >>
-> > As I said, just leave it as-is (documenting at web) 
+> This is a static checker fix.  In the ttusb_process_muxpack() we do:
 > 
-> That seems to be indeed the only 100%-regression-safe solution.
-> But also _no_ solution for this device.
-> A device which works only with a special module parameter passed on
-> driver loading isn't much better than an unsupported device.
-
-That's not true. There are dozens of devices that only work with
-modprobe parameter (even ones with their own USB or PCI address). The thing
-is that crappy vendors don't provide any way for a driver to detect what's
-there, as their driver rely on some *.inf config file with those parameters
-hardcoded.
-
-We can't do any better than what's provided by the device.
-
+> 	cc = (muxpack[len - 4] << 8) | muxpack[len - 3];
 > 
-> It comes down to the following question:
-> Do we want to refuse fixing known/existing devices for the sake of
-> avoiding regression for unknown devices which even might not exist ? ;-)
-
-HUH? As I said: there are devices that work with the other board entry.
-If you remove the other entry, _then_ you'll be breaking the driver.
-
-> I have no strong and final opinion yet. Still hoping someone knows how
-> the Empia driver handles these cases...
-
-What do you mean? The original driver? The parameters are hardcoded at the
-*.inf file. Once you get the driver, the *.inf file contains all the
-parameters for it to work there. If you have two empia devices with
-different models, you can only use the second one after removing the
-install for the first one.
-
-> > or to use the AC97
-> > chip ID as a hint. This works fine for devices that don't come with
-> > Empiatech em202, but with something else, like the case of the Realtek
-> > chip found on this device. The reference design for sure uses em202.
+> That means if we pass a number less than 4 then we will either trigger a
+> checksum error message or read before the start of the array.
 > 
-> How could the AC97 chip ID help us in this situation ?
-> As far as I understand, it doesn't matter which AC97 IC is used.
-> They are all compatible and at least our driver uses the same code for
-> all of them.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> I can't test this.
+> 
+> This patch doesn't introduce any bugs, but I'm not positive this is the
+> right thing to do.  Perhaps it's better to print an error message?
 
-The em28xx Kernel driver uses a hint code to try to identify the device
-model. That hint code is not perfect, but it is the better we can do.
+I don't have any ttusb device either, but i suspect that printing an
+error message inside ttusb_process_muxpack() would be better.
 
-There are two hint codes there, currently: 
-1) device's eeprom hash, used when the device has an eeprom, but the
-   USB ID is not unique;
+>From what I understood, this code gets the URB data and groups it
+into one TS packet (188 bytes, typically). Then, it calls 
+ttusb_process_muxpack() in order to handle it.
 
-2) I2C scan bus hash: sometimes, different devices use different I2C
-addresses.
+So, the normal condition would be to always receive 188 bytes here
+(usual TS packet size), except if there's something wrong with the
+URB transfer.
+
+It seems, however, that there are other issues at the logic at
+ttusb_process_muxpack().
+
+For example, from this code snippet:
+
+        for (i = 0; i < len; i += 2)
+                csum ^= le16_to_cpup((__le16 *) (muxpack + i));
+
+an odd value for len also seems to cause troubles at this logic.
+
+so, IMHO, the better would be to print a warning if the value is
+odd or smaller than 4, and discard it.
 
 > 
-> So even if you are are right and the Empia reference design uses an EMP202,
-> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
-> AC97-ICs, too.
+> diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+> index 5b682cc..99a2fd1 100644
+> --- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+> +++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+> @@ -709,7 +709,7 @@ static void ttusb_process_frame(struct ttusb *ttusb, u8 * data, int len)
+>  			 * if length is valid and we reached the end:
+>  			 * goto next muxpack
+>  			 */
+> -				if ((ttusb->muxpack_ptr >= 2) &&
+> +				if ((ttusb->muxpack_ptr >= 4) &&
+>  				    (ttusb->muxpack_ptr ==
+>  				     ttusb->muxpack_len)) {
+>  					ttusb_process_muxpack(ttusb,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The vast majority of devices use emp202. There are very few ones using
-different models.
 
-The proposal here is to add a third hint code, that would distinguish
-the devices based on the ac97 ID.
+-- 
 
-> We should also expect manufacturers to switch between them whenever they
-> want (e.g. because of price changes).
-
-Yes, and then we'll need other entries at the hint table.
-
-Regards
+Cheers,
 Mauro
