@@ -1,145 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:44601 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755246Ab3BERId (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 12:08:33 -0500
-Received: by mail-wi0-f178.google.com with SMTP id o1so508751wic.5
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 09:08:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+X3rwi6Dg8G8aDcv65Kz7hRM4qRhBUmMymW_JmifSFysQ@mail.gmail.com>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-	<201302041435.26878.hverkuil@xs4all.nl>
-	<CA+6av4kp54eQSeefAnJxY80HtOJ5iCBh+ETOZaKQHbo=m86-DQ@mail.gmail.com>
-	<201302051635.08448.hverkuil@xs4all.nl>
-	<CALF0-+X3rwi6Dg8G8aDcv65Kz7hRM4qRhBUmMymW_JmifSFysQ@mail.gmail.com>
-Date: Tue, 5 Feb 2013 18:08:31 +0100
-Message-ID: <CA+6av4nj+Gvt2ivVm6YdaMtqF44n7JA3ZSK55CeefonFuaMjTQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
-From: Arvydas Sidorenko <asido4@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from casper.infradead.org ([85.118.1.10]:49885 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754201Ab3BEQYy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 11:24:54 -0500
+Date: Tue, 5 Feb 2013 14:24:46 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>
+Subject: Re: [PATCH] davinci: dm644x: fix enum ccdc_gama_width and enum
+ ccdc_data_size comparision warning
+Message-ID: <20130205142446.1998e92d@infradead.org>
+In-Reply-To: <1357127630-8167-2-git-send-email-prabhakar.lad@ti.com>
+References: <1357127630-8167-1-git-send-email-prabhakar.lad@ti.com>
+	<1357127630-8167-2-git-send-email-prabhakar.lad@ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 5, 2013 at 5:56 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> On Tue, Feb 5, 2013 at 12:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On Tue February 5 2013 16:28:17 Arvydas Sidorenko wrote:
->>>
->>> I have tested the patches using STK-1135 webcam. Everything works well.
->>>
->>> $ v4l2-compliance -d /dev/video0
->>> Driver Info:
->>>       Driver name   : stk
->>>       Card type     : stk
->>>       Bus info      :
->>>       Driver version: 0.0.1
->>
->> This is the old version of the driver you are testing with :-)
->>
->
-> @Arvydas: First of all, thanks for taking the time to test Hans' patches.
->
-> I suggest to double check the old driver
-> is not loaded and then run "depmod -a" to update modules.
->
-> As a last resource you can always wipe out the driver from
-> /lib/modules/what-ever and reinstall.
->
-> Hope this helps!
->
-> --
->     Ezequiel
+Em Wed,  2 Jan 2013 17:23:50 +0530
+"Lad, Prabhakar" <prabhakar.csengg@gmail.com> escreveu:
 
-Yes, I am sorry. I built the wrong branch.
+> while the effect is harmless this patch
 
-The cam works, but the view is upside down.
+I disagree that this is a harmless warning. It is here for a reason:
+you should not be relying on the enum "magic" value, since the main
+reason to use an enum is to fill/compare the enum fields only by their
+names, and not by their number.
 
-$ v4l2-compliance -d /dev/video0
-Driver Info:
-	Driver name   : stk
-	Card type     : stk
-	Bus info      : 4-8
-	Driver version: 3.1.0
-	Capabilities  : 0x85000001
-		Video Capture
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
+> fixes following build warning,
+> 
+> drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
+> drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between
+> ‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> ---
+>  drivers/media/platform/davinci/dm644x_ccdc.c |    5 ++++-
+>  1 files changed, 4 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+> index ee7942b..42b473a 100644
+> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+> @@ -228,9 +228,12 @@ static void ccdc_readregs(void)
+>  static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
+>  {
+>  	if (ccdcparam->alaw.enable) {
+> +		u32 gama_wd = ccdcparam->alaw.gama_wd;
+> +		u32 data_sz = ccdcparam->data_sz;
+> +
+>  		if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
+>  		    (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
+> -		    (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
+> +		    (gama_wd < data_sz)) {
 
-Compliance test for device /dev/video0 (not using libv4l2):
+hmm... from include/media/davinci/dm644x_ccdc.h:
+enum ccdc_gama_width {
+	CCDC_GAMMA_BITS_15_6,	// 0
+	CCDC_GAMMA_BITS_14_5,	// 1
+	CCDC_GAMMA_BITS_13_4,	// 2
+	CCDC_GAMMA_BITS_12_3,	// 3
+	CCDC_GAMMA_BITS_11_2,	// 4
+	CCDC_GAMMA_BITS_10_1,	// 5
+	CCDC_GAMMA_BITS_09_0	// 6
+};
 
-Required ioctls:
-		fail: v4l2-compliance.cpp(285): missing bus_info prefix ('4-8')
-	test VIDIOC_QUERYCAP: FAIL
+enum ccdc_data_size {
+	CCDC_DATA_16BITS,	// 0
+	CCDC_DATA_15BITS,	// 1
+	CCDC_DATA_14BITS,	// 2
+	CCDC_DATA_13BITS,	// 3
+	CCDC_DATA_12BITS,	// 4
+	CCDC_DATA_11BITS,	// 5
+	CCDC_DATA_10BITS,	// 6
+	CCDC_DATA_8BITS		// 7
+};
 
-Allow for multiple opens:
-	test second video open: OK
-		fail: v4l2-compliance.cpp(285): missing bus_info prefix ('4-8')
-	test VIDIOC_QUERYCAP: FAIL
-	test VIDIOC_G/S_PRIORITY: OK
+That doesn't seem right, as comparing the enum integer value won't
+warrant that the number of bits of gamma. For example, gamma == 6
+means 9 bits, while ccdc == 6 means 10 bits.
 
-Debug ioctls:
-	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
+In any case, the code is just crappy, as one could anytime add more
+values at the enum or reorder.
 
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
+So, a better fix would be to have an array that would convert from the
+enum "magic" number into the number of bits.
 
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
+Hmm... wait a moment: why are you using an enum here at the first place???
 
-Control ioctls:
-	test VIDIOC_QUERYCTRL/MENU: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 4 Private Controls: 0
+It seems that it would be a way better to just use 2 unsigned integers:
+ccdc_data_num_bits and ccdc_gama_num_bits, and just fill it with the
+number of bits, instead of declaring an enum for it.
 
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+Another alternative would be to merge them into just one enum, like:
 
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-		fail: v4l2-test-formats.cpp(566): Video Capture is valid, but
-TRY_FMT failed to return a format
-	test VIDIOC_TRY_FMT: FAIL
-		fail: v4l2-test-formats.cpp(719): Video Capture is valid, but no
-S_FMT was implemented
-	test VIDIOC_S_FMT: FAIL
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+enum ccdc_bits {
+	CCDC_8_BITS = 8,
+	CCDC_9_BITS = 9,
+	CCDC_10_BITS = 10,
+	CCDC_11_BITS = 11,
+	CCDC_12_BITS = 12,
+	CCDC_13_BITS = 13,
+	CCDC_14_BITS = 14,
+	CCDC_15_BITS = 15,
+	CCDC_16_BITS = 16,
+};
 
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+and replace all occurrences of ccdc_data_size and ccdc_gama_width by
+the new enum.
 
-Buffer ioctls:
-		fail: v4l2-test-buffers.cpp(132): ret != -1
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
+This way, you could trust on compare one field with the other.
 
-Total: 38, Succeeded: 33, Failed: 5, Warnings: 0
+>  			dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
+>  			return -1;
+>  		}
+
+Regards,
+Mauro
