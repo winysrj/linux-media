@@ -1,134 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1445 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752922Ab3BPJ2w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/18] s5p-tv: add dv_timings support for mixer_video.
-Date: Sat, 16 Feb 2013 10:28:11 +0100
-Message-Id: <893b2672e7bb563e82b570767869537c11b3c7aa.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40848 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750935Ab3BEJIn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 04:08:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sean V Kelley <sean.v.kelley@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Implement videobuf2 .wait_prepare and .wait_finish operations
+Date: Tue, 05 Feb 2013 10:08:52 +0100
+Message-ID: <1596838.QUSgh4fGy1@avalon>
+In-Reply-To: <CA+qSnqj25NRCGXnS4-AJ34zpa+kOCTM--RY95Qfd0mZfcrhTHQ@mail.gmail.com>
+References: <1358765501-29285-1-git-send-email-laurent.pinchart@ideasonboard.com> <CA+qSnqj25NRCGXnS4-AJ34zpa+kOCTM--RY95Qfd0mZfcrhTHQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sean,
 
-This just adds dv_timings support without modifying existing dv_preset
-support.
+On Monday 04 February 2013 12:36:47 Sean V Kelley wrote:
+> On Mon, Jan 21, 2013 at 2:51 AM, Laurent Pinchart wrote:
+> > Those optional operations are used to release and reacquire the queue
+> > lock when videobuf2 needs to perform operations that sleep for a long
+> > time, such as waiting for a buffer to be complete. Implement them to
+> > avoid blocking qbuf or streamoff calls when a dqbuf is in progress.
+> 
+> Speaking of UVC, are there plans to look into supporting UVC 1.5
+> specification?  Are you aware of any development in that area for new
+> controls?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-tv/mixer_video.c |   78 +++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+There's work in progress to implement UVC 1.5 but I'm not sure how much 
+details I can share. I should get a progress report in two weeks at the ELC in 
+San Francisco, will you happen to be there by any chance ?
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index 82142a2..cdfadba 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -559,6 +559,79 @@ static int mxr_g_dv_preset(struct file *file, void *fh,
- 	return ret ? -EINVAL : 0;
- }
- 
-+static int mxr_enum_dv_timings(struct file *file, void *fh,
-+	struct v4l2_enum_dv_timings *timings)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
-+	struct mxr_device *mdev = layer->mdev;
-+	int ret;
-+
-+	/* lock protects from changing sd_out */
-+	mutex_lock(&mdev->mutex);
-+	ret = v4l2_subdev_call(to_outsd(mdev), video, enum_dv_timings, timings);
-+	mutex_unlock(&mdev->mutex);
-+
-+	return ret ? -EINVAL : 0;
-+}
-+
-+static int mxr_s_dv_timings(struct file *file, void *fh,
-+	struct v4l2_dv_timings *timings)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
-+	struct mxr_device *mdev = layer->mdev;
-+	int ret;
-+
-+	/* lock protects from changing sd_out */
-+	mutex_lock(&mdev->mutex);
-+
-+	/* preset change cannot be done while there is an entity
-+	 * dependant on output configuration
-+	 */
-+	if (mdev->n_output > 0) {
-+		mutex_unlock(&mdev->mutex);
-+		return -EBUSY;
-+	}
-+
-+	ret = v4l2_subdev_call(to_outsd(mdev), video, s_dv_timings, timings);
-+
-+	mutex_unlock(&mdev->mutex);
-+
-+	mxr_layer_update_output(layer);
-+
-+	/* any failure should return EINVAL according to V4L2 doc */
-+	return ret ? -EINVAL : 0;
-+}
-+
-+static int mxr_g_dv_timings(struct file *file, void *fh,
-+	struct v4l2_dv_timings *timings)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
-+	struct mxr_device *mdev = layer->mdev;
-+	int ret;
-+
-+	/* lock protects from changing sd_out */
-+	mutex_lock(&mdev->mutex);
-+	ret = v4l2_subdev_call(to_outsd(mdev), video, g_dv_timings, timings);
-+	mutex_unlock(&mdev->mutex);
-+
-+	return ret ? -EINVAL : 0;
-+}
-+
-+static int mxr_dv_timings_cap(struct file *file, void *fh,
-+	struct v4l2_dv_timings_cap *cap)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
-+	struct mxr_device *mdev = layer->mdev;
-+	int ret;
-+
-+	/* lock protects from changing sd_out */
-+	mutex_lock(&mdev->mutex);
-+	ret = v4l2_subdev_call(to_outsd(mdev), video, dv_timings_cap, cap);
-+	mutex_unlock(&mdev->mutex);
-+
-+	return ret ? -EINVAL : 0;
-+}
-+
- static int mxr_s_std(struct file *file, void *fh, v4l2_std_id *norm)
- {
- 	struct mxr_layer *layer = video_drvdata(file);
-@@ -742,6 +815,11 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
- 	.vidioc_enum_dv_presets = mxr_enum_dv_presets,
- 	.vidioc_s_dv_preset = mxr_s_dv_preset,
- 	.vidioc_g_dv_preset = mxr_g_dv_preset,
-+	/* DV Timings functions */
-+	.vidioc_enum_dv_timings = mxr_enum_dv_timings,
-+	.vidioc_s_dv_timings = mxr_s_dv_timings,
-+	.vidioc_g_dv_timings = mxr_g_dv_timings,
-+	.vidioc_dv_timings_cap = mxr_dv_timings_cap,
- 	/* analog TV standard functions */
- 	.vidioc_s_std = mxr_s_std,
- 	.vidioc_g_std = mxr_g_std,
+You're the third Intel developer who contacts me about UVC in the last 3 days, 
+I assume that's not a coincidence. If you ever need consulting services on the 
+uvcvideo driver (or just if you think collaboration would be helpful) please 
+feel free to contact me.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
