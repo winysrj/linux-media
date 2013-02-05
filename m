@@ -1,96 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2053 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab3BRVLN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Feb 2013 16:11:13 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1ILB9kr053727
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 22:11:11 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4924111E017F
-	for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 22:11:04 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130218211104.4924111E017F@alastor.dyndns.org>
-Date: Mon, 18 Feb 2013 22:11:04 +0100 (CET)
+Received: from mail-la0-f47.google.com ([209.85.215.47]:52368 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755676Ab3BEQ4t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 11:56:49 -0500
+Received: by mail-la0-f47.google.com with SMTP id fj20so396177lab.20
+        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 08:56:47 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201302051635.08448.hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+	<201302041435.26878.hverkuil@xs4all.nl>
+	<CA+6av4kp54eQSeefAnJxY80HtOJ5iCBh+ETOZaKQHbo=m86-DQ@mail.gmail.com>
+	<201302051635.08448.hverkuil@xs4all.nl>
+Date: Tue, 5 Feb 2013 13:56:46 -0300
+Message-ID: <CALF0-+X3rwi6Dg8G8aDcv65Kz7hRM4qRhBUmMymW_JmifSFysQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Arvydas Sidorenko <asido4@gmail.com>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, Feb 5, 2013 at 12:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tue February 5 2013 16:28:17 Arvydas Sidorenko wrote:
+>> On Mon, Feb 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> >
+>> > Hi Arvydas,
+>> >
+>> > Yes indeed, it would be great if you could test this!
+>> >
+>> > Note that the patch series is also available in my git tree:
+>> >
+>> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/stkwebcam
+>> >
+>> > Besides the normal testing that everything works as expected, it would also
+>> > be great if you could run the v4l2-compliance tool. It's part of the v4l-utils
+>> > repository (http://git.linuxtv.org/v4l-utils.git) and it tests whether a driver
+>> > complies to the V4L2 specification.
+>> >
+>> > Just compile the tool from the repository (don't use a distro-provided version)
+>> > and run it as 'v4l2-compliance -d /dev/videoX' and mail me the output. You will
+>> > get at least one failure at the end, but I'd like to know if there are other
+>> > issues remaining.
+>> >
+>> > Regards,
+>> >
+>> >         Hans
+>>
+>> I have tested the patches using STK-1135 webcam. Everything works well.
+>>
+>> $ v4l2-compliance -d /dev/video0
+>> Driver Info:
+>>       Driver name   : stk
+>>       Card type     : stk
+>>       Bus info      :
+>>       Driver version: 0.0.1
+>
+> This is the old version of the driver you are testing with :-)
+>
 
-Results of the daily build of media_tree:
+@Arvydas: First of all, thanks for taking the time to test Hans' patches.
 
-date:		Mon Feb 18 19:00:18 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+I suggest to double check the old driver
+is not loaded and then run "depmod -a" to update modules.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+As a last resource you can always wipe out the driver from
+/lib/modules/what-ever and reinstall.
 
-Detailed results are available here:
+Hope this helps!
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+    Ezequiel
