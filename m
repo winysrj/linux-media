@@ -1,185 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3957 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920Ab3BPJ2w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 05/18] davinci: remove VPBE_ENC_DV_PRESET and rename VPBE_ENC_CUSTOM_TIMINGS
-Date: Sat, 16 Feb 2013 10:28:08 +0100
-Message-Id: <0339a6e257048b047bde48da5a87cb5ed4932c5f.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:22307 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756094Ab3BEPf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Feb 2013 10:35:28 -0500
+Date: Tue, 5 Feb 2013 13:35:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.7-rc7] media fixes
+Message-ID: <20130205133519.51713e27@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Linus,
 
-Remove VPBE_ENC_DV_PRESET (the DV_PRESET API is no longer supported) and
-VPBE_ENC_CUSTOM_TIMINGS is renamed to VPBE_ENC_DV_TIMINGS since the old
-"CUSTOM_TIMINGS" name is deprecated in favor of "DV_TIMINGS".
+Please pull from:
+	  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
----
- arch/arm/mach-davinci/board-dm644x-evm.c      |    4 ++--
- arch/arm/mach-davinci/dm644x.c                |    2 +-
- drivers/media/platform/davinci/vpbe.c         |    8 ++++----
- drivers/media/platform/davinci/vpbe_display.c |    2 +-
- drivers/media/platform/davinci/vpbe_venc.c    |    8 ++++----
- include/media/davinci/vpbe_types.h            |    3 +--
- 6 files changed, 13 insertions(+), 14 deletions(-)
+For a regression fix on a few radio drivers that were preventing radio TX
+to work on those devices.
 
-diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
-index 8e1b4ff..e8dc70b 100644
---- a/arch/arm/mach-davinci/board-dm644x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm644x-evm.c
-@@ -649,7 +649,7 @@ static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
- static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
- 	{
- 		.name		= "480p59_94",
--		.timings_type	= VPBE_ENC_CUSTOM_TIMINGS,
-+		.timings_type	= VPBE_ENC_DV_TIMINGS,
- 		.dv_timings	= V4L2_DV_BT_CEA_720X480P59_94,
- 		.interlaced	= 0,
- 		.xres		= 720,
-@@ -661,7 +661,7 @@ static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
- 	},
- 	{
- 		.name		= "576p50",
--		.timings_type	= VPBE_ENC_CUSTOM_TIMINGS,
-+		.timings_type	= VPBE_ENC_DV_TIMINGS,
- 		.dv_timings	= V4L2_DV_BT_CEA_720X576P50,
- 		.interlaced	= 0,
- 		.xres		= 720,
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index db1dd92..ee0e994 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -706,7 +706,7 @@ static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type,
- 		v |= DM644X_VPSS_DACCLKEN;
- 		writel(v, DAVINCI_SYSMOD_VIRT(SYSMOD_VPSS_CLKCTL));
- 		break;
--	case VPBE_ENC_CUSTOM_TIMINGS:
-+	case VPBE_ENC_DV_TIMINGS:
- 		if (pclock <= 27000000) {
- 			v |= DM644X_VPSS_DACCLKEN;
- 			writel(v, DAVINCI_SYSMOD_VIRT(SYSMOD_VPSS_CLKCTL));
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 4ca0f9a..2a49f00 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -344,7 +344,7 @@ static int vpbe_s_dv_timings(struct vpbe_device *vpbe_dev,
- 		return -EINVAL;
- 
- 	for (i = 0; i < output->num_modes; i++) {
--		if (output->modes[i].timings_type == VPBE_ENC_CUSTOM_TIMINGS &&
-+		if (output->modes[i].timings_type == VPBE_ENC_DV_TIMINGS &&
- 		    !memcmp(&output->modes[i].dv_timings,
- 				dv_timings, sizeof(*dv_timings)))
- 			break;
-@@ -385,7 +385,7 @@ static int vpbe_g_dv_timings(struct vpbe_device *vpbe_dev,
- 		     struct v4l2_dv_timings *dv_timings)
- {
- 	if (vpbe_dev->current_timings.timings_type &
--	  VPBE_ENC_CUSTOM_TIMINGS) {
-+	  VPBE_ENC_DV_TIMINGS) {
- 		*dv_timings = vpbe_dev->current_timings.dv_timings;
- 		return 0;
- 	}
-@@ -412,7 +412,7 @@ static int vpbe_enum_dv_timings(struct vpbe_device *vpbe_dev,
- 		return -EINVAL;
- 
- 	for (i = 0; i < output->num_modes; i++) {
--		if (output->modes[i].timings_type == VPBE_ENC_CUSTOM_TIMINGS) {
-+		if (output->modes[i].timings_type == VPBE_ENC_DV_TIMINGS) {
- 			if (j == timings->index)
- 				break;
- 			j++;
-@@ -515,7 +515,7 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
- 				return vpbe_s_std(vpbe_dev,
- 						 &preset_mode->std_id);
- 			if (preset_mode->timings_type &
--						VPBE_ENC_CUSTOM_TIMINGS) {
-+						VPBE_ENC_DV_TIMINGS) {
- 				dv_timings =
- 					preset_mode->dv_timings;
- 				return vpbe_s_dv_timings(vpbe_dev, &dv_timings);
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 5e6b0ca..1f59955 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -1202,7 +1202,7 @@ vpbe_display_g_dv_timings(struct file *file, void *priv,
- 	/* Get the given standard in the encoder */
- 
- 	if (vpbe_dev->current_timings.timings_type &
--				VPBE_ENC_CUSTOM_TIMINGS) {
-+				VPBE_ENC_DV_TIMINGS) {
- 		*dv_timings = vpbe_dev->current_timings.dv_timings;
- 	} else {
- 		return -EINVAL;
-diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-index bdbebd5..9546d26 100644
---- a/drivers/media/platform/davinci/vpbe_venc.c
-+++ b/drivers/media/platform/davinci/vpbe_venc.c
-@@ -313,7 +313,7 @@ static int venc_set_480p59_94(struct v4l2_subdev *sd)
- 		return -EINVAL;
- 
- 	/* Setup clock at VPSS & VENC for SD */
--	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 27000000) < 0)
-+	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
- 		return -EINVAL;
- 
- 	venc_enabledigitaloutput(sd, 0);
-@@ -360,7 +360,7 @@ static int venc_set_576p50(struct v4l2_subdev *sd)
- 	    venc->venc_type != VPBE_VERSION_2)
- 		return -EINVAL;
- 	/* Setup clock at VPSS & VENC for SD */
--	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 27000000) < 0)
-+	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
- 		return -EINVAL;
- 
- 	venc_enabledigitaloutput(sd, 0);
-@@ -400,7 +400,7 @@ static int venc_set_720p60_internal(struct v4l2_subdev *sd)
- 	struct venc_state *venc = to_state(sd);
- 	struct venc_platform_data *pdata = venc->pdata;
- 
--	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 74250000) < 0)
-+	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
- 		return -EINVAL;
- 
- 	venc_enabledigitaloutput(sd, 0);
-@@ -428,7 +428,7 @@ static int venc_set_1080i30_internal(struct v4l2_subdev *sd)
- 	struct venc_state *venc = to_state(sd);
- 	struct venc_platform_data *pdata = venc->pdata;
- 
--	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 74250000) < 0)
-+	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
- 		return -EINVAL;
- 
- 	venc_enabledigitaloutput(sd, 0);
-diff --git a/include/media/davinci/vpbe_types.h b/include/media/davinci/vpbe_types.h
-index 9b85396..05dbe0b 100644
---- a/include/media/davinci/vpbe_types.h
-+++ b/include/media/davinci/vpbe_types.h
-@@ -26,8 +26,7 @@ enum vpbe_version {
- /* vpbe_timing_type - Timing types used in vpbe device */
- enum vpbe_enc_timings_type {
- 	VPBE_ENC_STD = 0x1,
--	VPBE_ENC_DV_PRESET = 0x2,
--	VPBE_ENC_CUSTOM_TIMINGS = 0x4,
-+	VPBE_ENC_DV_TIMINGS = 0x4,
- 	/* Used when set timings through FB device interface */
- 	VPBE_ENC_TIMINGS_INVALID = 0x8,
- };
--- 
-1.7.10.4
+Regards,
+Mauro
+
+-
+
+The following changes since commit 68d6f84ba0c47e658beff3a4bf0c43acee4b4690:
+
+  [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures (2013-01-11 13:30:27 -0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to ce4a3d52888a95473914bd54bcf6c566014fc03e:
+
+  [media] radio: set vfl_dir correctly to fix modulator regression (2013-01-24 18:54:14 -0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      [media] radio: set vfl_dir correctly to fix modulator regression
+
+ drivers/media/radio/radio-keene.c       |  1 +
+ drivers/media/radio/radio-si4713.c      |  1 +
+ drivers/media/radio/radio-wl1273.c      |  1 +
+ drivers/media/radio/wl128x/fmdrv_v4l2.c | 10 ++++++++++
+ 4 files changed, 13 insertions(+)
 
