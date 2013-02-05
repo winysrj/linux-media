@@ -1,59 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44593 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756709Ab3BAXh0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 18:37:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
-Cc: Tomasz Figa <t.figa@samsung.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Tom Gall <tom.gall@linaro.org>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+Received: from mailout1.samsung.com ([203.254.224.24]:54371 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751177Ab3BEHzy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 02:55:54 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=EUC-KR
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHQ001Y2LQZII10@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Feb 2013 16:55:52 +0900 (KST)
+Content-transfer-encoding: 8BIT
+Received: from [10.90.8.56] by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MHQ006UMM1113N0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Feb 2013 16:55:52 +0900 (KST)
+Message-id: <5110BB13.8080803@samsung.com>
+Date: Tue, 05 Feb 2013 16:56:03 +0900
+From: =?EUC-KR?B?sei9wr/s?= <sw0312.kim@samsung.com>
+Reply-to: sw0312.kim@samsung.com
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	"patches@linaro.org" <patches@linaro.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
 	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	sunil joshi <joshi@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-Date: Sat, 02 Feb 2013 00:37:34 +0100
-Message-ID: <3769008.t1iWZpc9bc@avalon>
-In-Reply-To: <50EBF10A.7080906@stericsson.com>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <3584709.mPLC5exzRY@avalon> <50EBF10A.7080906@stericsson.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+ <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+ <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+ <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com>
+ <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com>
+ <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+ <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
+ <510B9EC8.6020102@samsung.com>
+ <CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
+ <014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
+ <CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
+ <014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
+ <E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
+ <CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
+ <CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
+In-reply-to: <CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marcus,
+Hi Inki,
 
-On Tuesday 08 January 2013 11:12:26 Marcus Lorentzon wrote:
+On 2013년 02월 05일 12:03, Inki Dae wrote:
+> 2013/2/4 Sachin Kamat <sachin.kamat@linaro.org>:
+>> On 1 February 2013 18:28, Inki Dae <daeinki@gmail.com> wrote:
+>>>
+>>>
+>>>
+>>>
+>>> 2013. 2. 1. 오후 8:52 Inki Dae <inki.dae@samsung.com> 작성:
+>>>
+>>>>
+>>>>
+>>>>> -----Original Message-----
+>>>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>>>> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+>>>>> Sent: Friday, February 01, 2013 8:40 PM
+>>>>> To: Inki Dae
+>>>>> Cc: Sylwester Nawrocki; Kukjin Kim; Sylwester Nawrocki; linux-
+>>>>> media@vger.kernel.org; dri-devel@lists.freedesktop.org; devicetree-
+>>>>> discuss@lists.ozlabs.org; patches@linaro.org
+>>>>> Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery
+>>>>> support for G2D
+>>>>>
+>>>>> On 1 February 2013 17:02, Inki Dae <inki.dae@samsung.com> wrote:
+>>>>>>
+>>>>>> How about using like below?
+>>>>>>        Compatible = ""samsung,exynos4x12-fimg-2d" /* for Exynos4212,
+>>>>>> Exynos4412  */
+>>>>>> It looks odd to use "samsung,exynos4212-fimg-2d" saying that this ip is
+>>>>> for
+>>>>>> exynos4212 and exynos4412.
+>>>>>
+>>>>> AFAIK, compatible strings are not supposed to have any wildcard
+>>>> characters.
+>>>>> Compatible string should suggest the first SoC that contained this IP.
+>>>>> Hence IMO 4212 is OK.
+>>>>>
+>>>
+>>> Oops, one more thing. AFAIK Exynos4210 also has fimg-2d ip. In this case, we should use "samsung,exynos4210-fimg-2d" as comparible string and add it to exynos4210.dtsi?
+>>
+>> Exynos4210 has same g2d IP (v3.0) as C110 or V210; so the same
+>> comptible string will be used for this one too.
+>>
+>>> And please check if exynos4212 and 4412 SoCs have same fimg-2d ip. If it's different, we might need to add ip version property or compatible string to each dtsi file to identify the ip version.
+>>
+>> AFAIK, they both have the same IP (v4.1).
+>>
+> 
+> Ok, let's use the below,
+> 
+> For exynos4210 SoC,
+> compatible = "samsung,exynos4210-g2d"
+> 
+> For exynos4x12 SoCs,
+> compatible = "samsung,exynos4212-g2d"
+> 
+> For exynos5250, 5410 (In case of Exynos5440, I'm not sure that the SoC
+> has same ip)
+> compatible = "samsung,exynos5250-g2d"
+> 
+> To other guys,
+> The device tree is used by not only v4l2 side but also drm side so we
+> should reach an arrangement. So please give me ack if you agree to my
+> opinion. Otherwise please, give me your opinions.
 
-[snip]
+This seems good to me.
 
-> I also looked at the video source in Tomi's git tree
-> (http://gitorious.org/linux-omap-dss2/linux/blobs/work/dss-dev-model-cdf/inc
-> lude/video/display.h). I think I would prefer a single "setup" op taking a
-> "struct dsi_config" as argument. Then each DSI formatter/encoder driver
-> could decide best way to set that up. We have something similar at
-> http://www.igloocommunity.org/gitweb/?p=kernel/igloo-kernel.git;a=blob;f=inc
-> lude/video/mcde.h;h=499ce5cfecc9ad77593e761cdcc1624502f28432;hb=HEAD#l118
+Best Regards,
+- Seung-Woo Kim
 
-A single setup function indeed seems easier, but I don't have enough 
-experience with DSI to have a strong opinion on that. We'll have to compare 
-implementations if there's a disagreement on this.
+> 
+> Thanks,
+> Inki Dae
+> 
+> 
+>>>
+>>> Sorry but give me your opinions.
+>>>
+>>> Thanks,
+>>> Inki Dae
+>>>
+>>>
+>>>>
+>>>> Got it. Please post it again.
+>>>>
+>>>>>
+>>>>> --
+>>>>> With warm regards,
+>>>>> Sachin
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>> _______________________________________________
+>>>> dri-devel mailing list
+>>>> dri-devel@lists.freedesktop.org
+>>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>
+>>
+>>
+>> --
+>> With warm regards,
+>> Sachin
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
 
 -- 
-Regards,
-
-Laurent Pinchart
+Seung-Woo Kim
+Samsung Software R&D Center
+--
 
