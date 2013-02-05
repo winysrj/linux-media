@@ -1,212 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57848 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335Ab3BFNs4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 08:48:56 -0500
-Message-id: <51125F44.3050603@samsung.com>
-Date: Wed, 06 Feb 2013 14:48:52 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
-	David Hardeman <david@hardeman.nu>,
-	Trilok Soni <tsoni@codeaurora.org>,
-	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH RESEND] media: rc: gpio-ir-recv: add support for device
- tree parsing
-References: <1359400023-25804-1-git-send-email-sebastian.hesselbarth@gmail.com>
- <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
-In-reply-to: <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:53789 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755710Ab3BEXXT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Feb 2013 18:23:19 -0500
+Date: Tue, 5 Feb 2013 21:23:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Petter Selasky <hselasky@c2i.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Correctly set data for USB request in case of a
+ previous failure.
+Message-ID: <20130205212308.2158a854@redhat.com>
+In-Reply-To: <201301141606.20156.hselasky@c2i.net>
+References: <201301141355.52394.hselasky@c2i.net>
+	<201301141606.20156.hselasky@c2i.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Mon, 14 Jan 2013 16:06:20 +0100
+Hans Petter Selasky <hselasky@c2i.net> escreveu:
 
-On 02/06/2013 09:03 AM, Sebastian Hesselbarth wrote:
-> This patch adds device tree parsing for gpio_ir_recv platform_data and
-> the mandatory binding documentation. It basically follows what we already
-> have for e.g. gpio_keys. All required device tree properties are OS
-> independent but optional properties allow linux specific support for rc
-> protocols and maps.
+> Improved patch follows:
+
+It would be even more improved if you send it to the right ML ;)
+
+I suspect that your original intention were to send it to
+linux-input ML, instead of linux-media :)
+
+Regards,
+Mauro
+
 > 
-> There was a similar patch sent by Matus Ujhelyi but that discussion
-> died after the first reviews.
+> --HPS
 > 
-> Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> From a88d72d2108f92f004a3f050a708d9b7f661f924 Mon Sep 17 00:00:00 2001
+> From: Hans Petter Selasky <hselasky@c2i.net>
+> Date: Mon, 14 Jan 2013 13:53:21 +0100
+> Subject: [PATCH] Correctly initialize data for USB request.
+> 
+> Found-by: Jan Beich
+> Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
 > ---
-...
-> diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
-> new file mode 100644
-> index 0000000..937760c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
-> @@ -0,0 +1,20 @@
-> +Device-Tree bindings for GPIO IR receiver
-> +
-> +Required properties:
-> +	- compatible = "gpio-ir-receiver";
-> +	- gpios: OF device-tree gpio specification.
-> +
-> +Optional properties:
-> +	- linux,allowed-rc-protocols: Linux specific u64 bitmask of allowed
-> +	    rc protocols.
-
-You likely need to specify in these bindings documentation which bit 
-corresponds to which RC protocol.
-
-I'm not very familiar with the RC internals, but why it has to be
-specified statically in the device tree, when decoding seems to be
-mostly software defined ? I might be missing something though..
-
-Couldn't this be configured at run time, with all protocols allowed
-as the default ?
-
-> +	- linux,rc-map-name: Linux specific remote control map name.
-> +
-> +Example node:
-> +
-> +	ir: ir-receiver {
-> +		compatible = "gpio-ir-receiver";
-> +		gpios = <&gpio0 19 1>;
-> +		/* allow rc protocols 1-4 */
-> +		linux,allowed-rc-protocols = <0x00000000 0x0000001e>;
-> +		linux,rc-map-name = "rc-rc6-mce";
-> +	};
-> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-> index 4f71a7d..25e09fa 100644
-> --- a/drivers/media/rc/gpio-ir-recv.c
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -16,6 +16,7 @@
->  #include <linux/interrupt.h>
->  #include <linux/gpio.h>
->  #include <linux/slab.h>
-> +#include <linux/of_gpio.h>
->  #include <linux/platform_device.h>
->  #include <linux/irq.h>
->  #include <media/rc-core.h>
-> @@ -30,6 +31,63 @@ struct gpio_rc_dev {
->  	bool active_low;
->  };
->  
-> +#ifdef CONFIG_OF
-> +/*
-> + * Translate OpenFirmware node properties into platform_data
-> + */
-> +static struct gpio_ir_recv_platform_data *
-> +gpio_ir_recv_get_devtree_pdata(struct device *dev)
-> +{
-> +	struct device_node *np = dev->of_node;
-> +	struct gpio_ir_recv_platform_data *pdata;
-> +	enum of_gpio_flags flags;
-> +	int gpio;
-> +
-> +	if (!np)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return ERR_PTR(-ENOMEM);
-> +
-> +	if (!of_find_property(np, "gpios", NULL)) {
-
-Why do you need this ? Isn't of_get_gpio_flags() sufficient ?
-
-> +		dev_err(dev, "Found gpio-ir-receiver without gpios\n");
-> +		return ERR_PTR(-EINVAL);
-> +	}
-> +
-> +	gpio = of_get_gpio_flags(np, 0, &flags);
-> +	if (gpio < 0) {
-> +		if (gpio != -EPROBE_DEFER)
-> +			dev_err(dev, "Failed to get gpio flags, error: %d\n",
-> +				gpio);
-> +		return ERR_PTR(gpio);
-> +	}
-> +
-> +	pdata->gpio_nr = gpio;
-> +	pdata->active_low = (flags & OF_GPIO_ACTIVE_LOW) ? true : false;
-> +	pdata->map_name = of_get_property(np, "linux,rc-map-name", NULL);
-> +	of_property_read_u64(np, "linux,allowed-rc-protocols",
-> +			     &pdata->allowed_protos);
-> +
-> +	return pdata;
-> +}
-> +
-> +static struct of_device_id gpio_ir_recv_of_match[] = {
-> +	{ .compatible = "gpio-ir-receiver", },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
-> +
-> +#else /* !CONFIG_OF */
-> +
-> +static inline struct gpio_ir_recv_platform_data *
-> +gpio_ir_recv_get_devtree_pdata(struct device *dev)
-> +{
-> +	return ERR_PTR(-ENODEV);
-> +}
-> +
-> +#endif
-> +
->  static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
->  {
->  	struct gpio_rc_dev *gpio_dev = dev_id;
-> @@ -66,8 +124,11 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
->  					pdev->dev.platform_data;
->  	int rc;
->  
-> -	if (!pdata)
-> -		return -EINVAL;
-> +	if (!pdata) {
-> +		pdata = gpio_ir_recv_get_devtree_pdata(&pdev->dev);
-
-Could assigning to pdev->dev.platform_data be avoided here ?
-
-platform_data is only referenced in probe(), so maybe something like
-this would be better:
-
-	const struct gpio_ir_recv_platform_data *pdata = NULL;
-
-	if (pdev->dev.of_node) {
-		ret = gpio_ir_recv_parse_dt(&pdev->dev, &pdata);
-		if (ret < 0)
-			return ret;
-	} else {
-		pdata = pdev->dev.platform_data;
-	}
-	if (!pdata)
-		return -EINVAL;
-
-> +		if (IS_ERR(pdata))
-> +			return PTR_ERR(pdata);
-> +	}
->  
->  	if (pdata->gpio_nr < 0)
->  		return -EINVAL;
-> @@ -195,6 +256,9 @@ static struct platform_driver gpio_ir_recv_driver = {
->  #ifdef CONFIG_PM
->  		.pm	= &gpio_ir_recv_pm_ops,
->  #endif
-> +#ifdef CONFIG_OF
-> +		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
-> +#endif
-
-There is not need for #ifdef here, of_match_ptr() macro was introduced
-just to allow to omit #ifdefs.
-
->  	},
->  };
->  module_platform_driver(gpio_ir_recv_driver);
+>  drivers/input/tablet/wacom.h     | 1 +
+>  drivers/input/tablet/wacom_sys.c | 8 +++++---
+>  2 files changed, 6 insertions(+), 3 deletions(-)
 > 
+> diff --git a/drivers/input/tablet/wacom.h b/drivers/input/tablet/wacom.h
+> index b79d451..d6fad87 100644
+> --- a/drivers/input/tablet/wacom.h
+> +++ b/drivers/input/tablet/wacom.h
+> @@ -89,6 +89,7 @@
+>  #include <linux/init.h>
+>  #include <linux/usb/input.h>
+>  #include <linux/power_supply.h>
+> +#include <linux/string.h>
+>  #include <asm/unaligned.h>
+>  
+>  /*
+> diff --git a/drivers/input/tablet/wacom_sys.c b/drivers/input/tablet/wacom_sys.c
+> index f92d34f..23bc71e 100644
+> --- a/drivers/input/tablet/wacom_sys.c
+> +++ b/drivers/input/tablet/wacom_sys.c
+> @@ -553,10 +553,12 @@ static int wacom_set_device_mode(struct usb_interface *intf, int report_id, int
+>  	if (!rep_data)
+>  		return error;
+>  
+> -	rep_data[0] = report_id;
+> -	rep_data[1] = mode;
+> -
+>  	do {
+> +		memset(rep_data, 0, length);
+> +
+> +		rep_data[0] = report_id;
+> +		rep_data[1] = mode;
+> +
+>  		error = wacom_set_report(intf, WAC_HID_FEATURE_REPORT,
+>  		                         report_id, rep_data, length, 1);
+>  		if (error >= 0)
 
---
 
-Thanks,
-Sylwester
+-- 
+
+Cheers,
+Mauro
