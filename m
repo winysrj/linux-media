@@ -1,226 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3492 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757426Ab3BFP4x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:53 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 14/17] bttv: fix priority handling.
-Date: Wed,  6 Feb 2013 16:56:32 +0100
-Message-Id: <23b488d195a537cf9e795966c771394e4bf1a99c.1360165855.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
-References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+Received: from mail-oa0-f51.google.com ([209.85.219.51]:38145 "EHLO
+	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093Ab3BEDDW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 22:03:22 -0500
+Received: by mail-oa0-f51.google.com with SMTP id h2so5263229oag.10
+        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 19:03:22 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
+References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
+	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
+	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
+	<510987B5.6090509@gmail.com>
+	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
+	<510B02AB.4080908@gmail.com>
+	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
+	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
+	<CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
+	<510B9EC8.6020102@samsung.com>
+	<CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
+	<014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
+	<CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
+	<014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
+	<E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
+	<CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
+Date: Tue, 5 Feb 2013 12:03:21 +0900
+Message-ID: <CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+From: Inki Dae <inki.dae@samsung.com>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kukjin Kim <kgene.kim@samsung.com>,
+	"patches@linaro.org" <patches@linaro.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2013/2/4 Sachin Kamat <sachin.kamat@linaro.org>:
+> On 1 February 2013 18:28, Inki Dae <daeinki@gmail.com> wrote:
+>>
+>>
+>>
+>>
+>> 2013. 2. 1. 오후 8:52 Inki Dae <inki.dae@samsung.com> 작성:
+>>
+>>>
+>>>
+>>>> -----Original Message-----
+>>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>>> owner@vger.kernel.org] On Behalf Of Sachin Kamat
+>>>> Sent: Friday, February 01, 2013 8:40 PM
+>>>> To: Inki Dae
+>>>> Cc: Sylwester Nawrocki; Kukjin Kim; Sylwester Nawrocki; linux-
+>>>> media@vger.kernel.org; dri-devel@lists.freedesktop.org; devicetree-
+>>>> discuss@lists.ozlabs.org; patches@linaro.org
+>>>> Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery
+>>>> support for G2D
+>>>>
+>>>> On 1 February 2013 17:02, Inki Dae <inki.dae@samsung.com> wrote:
+>>>>>
+>>>>> How about using like below?
+>>>>>        Compatible = ""samsung,exynos4x12-fimg-2d" /* for Exynos4212,
+>>>>> Exynos4412  */
+>>>>> It looks odd to use "samsung,exynos4212-fimg-2d" saying that this ip is
+>>>> for
+>>>>> exynos4212 and exynos4412.
+>>>>
+>>>> AFAIK, compatible strings are not supposed to have any wildcard
+>>> characters.
+>>>> Compatible string should suggest the first SoC that contained this IP.
+>>>> Hence IMO 4212 is OK.
+>>>>
+>>
+>> Oops, one more thing. AFAIK Exynos4210 also has fimg-2d ip. In this case, we should use "samsung,exynos4210-fimg-2d" as comparible string and add it to exynos4210.dtsi?
+>
+> Exynos4210 has same g2d IP (v3.0) as C110 or V210; so the same
+> comptible string will be used for this one too.
+>
+>> And please check if exynos4212 and 4412 SoCs have same fimg-2d ip. If it's different, we might need to add ip version property or compatible string to each dtsi file to identify the ip version.
+>
+> AFAIK, they both have the same IP (v4.1).
+>
 
-Replace the - incorrect - manual priority handling with the core priority
-implementation.
+Ok, let's use the below,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   61 ++++-----------------------------
- drivers/media/pci/bt8xx/bttvp.h       |    6 ----
- 2 files changed, 6 insertions(+), 61 deletions(-)
+For exynos4210 SoC,
+compatible = "samsung,exynos4210-g2d"
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 96aa2c9..559c1d9 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1706,11 +1706,7 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
- 	unsigned int i;
--	int err;
--
--	err = v4l2_prio_check(&btv->prio, fh->prio);
--	if (err)
--		goto err;
-+	int err = 0;
- 
- 	for (i = 0; i < BTTV_TVNORMS; i++)
- 		if (*id & bttv_tvnorms[i].v4l2_id)
-@@ -1793,11 +1789,6 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
--	int err;
--
--	err = v4l2_prio_check(&btv->prio, fh->prio);
--	if (err)
--		return err;
- 
- 	if (i >= bttv_tvcards[btv->c.type].video_inputs)
- 		return -EINVAL;
-@@ -1811,15 +1802,10 @@ static int bttv_s_tuner(struct file *file, void *priv,
- {
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
--	int err;
- 
- 	if (t->index)
- 		return -EINVAL;
- 
--	err = v4l2_prio_check(&btv->prio, fh->prio);
--	if (err)
--		return err;
--
- 	bttv_call_all(btv, tuner, s_tuner, t);
- 
- 	if (btv->audio_mode_gpio)
-@@ -1862,14 +1848,10 @@ static int bttv_s_frequency(struct file *file, void *priv,
- {
- 	struct bttv_fh *fh  = priv;
- 	struct bttv *btv = fh->btv;
--	int err;
- 
- 	if (f->tuner)
- 		return -EINVAL;
- 
--	err = v4l2_prio_check(&btv->prio, fh->prio);
--	if (err)
--		return err;
- 	bttv_set_frequency(btv, f);
- 	return 0;
- }
-@@ -2808,28 +2790,6 @@ static int bttv_g_tuner(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int bttv_g_priority(struct file *file, void *f, enum v4l2_priority *p)
--{
--	struct bttv_fh *fh = f;
--	struct bttv *btv = fh->btv;
--
--	*p = v4l2_prio_max(&btv->prio);
--
--	return 0;
--}
--
--static int bttv_s_priority(struct file *file, void *f,
--					enum v4l2_priority prio)
--{
--	struct bttv_fh *fh = f;
--	struct bttv *btv = fh->btv;
--	int	rc;
--
--	rc = v4l2_prio_change(&btv->prio, &fh->prio, prio);
--
--	return rc;
--}
--
- static int bttv_cropcap(struct file *file, void *priv,
- 				struct v4l2_cropcap *cap)
- {
-@@ -2882,11 +2842,6 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
- 	/* Make sure tvnorm, vbi_end and the current cropping
- 	   parameters remain consistent until we're done. Note
- 	   read() may change vbi_end in check_alloc_btres_lock(). */
--	retval = v4l2_prio_check(&btv->prio, fh->prio);
--	if (0 != retval) {
--		return retval;
--	}
--
- 	retval = -EBUSY;
- 
- 	if (locked_btres(fh->btv, VIDEO_RESOURCES)) {
-@@ -3068,8 +3023,6 @@ static int bttv_open(struct file *file)
- 	fh->type = type;
- 	fh->ov.setup_ok = 0;
- 
--	v4l2_prio_open(&btv->prio, &fh->prio);
--
- 	videobuf_queue_sg_init(&fh->cap, &bttv_video_qops,
- 			    &btv->c.pci->dev, &btv->s_lock,
- 			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
-@@ -3139,7 +3092,6 @@ static int bttv_release(struct file *file)
- 
- 	videobuf_mmap_free(&fh->cap);
- 	videobuf_mmap_free(&fh->vbi);
--	v4l2_prio_close(&btv->prio, fh->prio);
- 	file->private_data = NULL;
- 
- 	btv->users--;
-@@ -3207,8 +3159,6 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_g_fbuf                  = bttv_g_fbuf,
- 	.vidioc_s_fbuf                  = bttv_s_fbuf,
- 	.vidioc_overlay                 = bttv_overlay,
--	.vidioc_g_priority              = bttv_g_priority,
--	.vidioc_s_priority              = bttv_s_priority,
- 	.vidioc_g_parm                  = bttv_g_parm,
- 	.vidioc_g_frequency             = bttv_g_frequency,
- 	.vidioc_s_frequency             = bttv_s_frequency,
-@@ -3249,13 +3199,13 @@ static int radio_open(struct file *file)
- 		return -ENOMEM;
- 	file->private_data = fh;
- 	*fh = btv->init;
--
--	v4l2_prio_open(&btv->prio, &fh->prio);
-+	v4l2_fh_init(&fh->fh, vdev);
- 
- 	btv->radio_user++;
- 
- 	bttv_call_all(btv, tuner, s_radio);
- 	audio_input(btv,TVAUDIO_INPUT_RADIO);
-+	v4l2_fh_add(&fh->fh);
- 
- 	return 0;
- }
-@@ -3266,8 +3216,9 @@ static int radio_release(struct file *file)
- 	struct bttv *btv = fh->btv;
- 	struct saa6588_command cmd;
- 
--	v4l2_prio_close(&btv->prio, fh->prio);
- 	file->private_data = NULL;
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 	kfree(fh);
- 
- 	btv->radio_user--;
-@@ -3929,6 +3880,7 @@ static struct video_device *vdev_init(struct bttv *btv,
- 	vfd->v4l2_dev = &btv->c.v4l2_dev;
- 	vfd->release = video_device_release;
- 	vfd->debug   = bttv_debug;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
- 	video_set_drvdata(vfd, btv);
- 	snprintf(vfd->name, sizeof(vfd->name), "BT%d%s %s (%s)",
- 		 btv->id, (btv->id==848 && btv->revision==0x12) ? "A" : "",
-@@ -4067,7 +4019,6 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	INIT_LIST_HEAD(&btv->c.subs);
- 	INIT_LIST_HEAD(&btv->capture);
- 	INIT_LIST_HEAD(&btv->vcapture);
--	v4l2_prio_init(&btv->prio);
- 
- 	init_timer(&btv->timeout);
- 	btv->timeout.function = bttv_irq_timeout;
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index 288cfd8..12cc4eb 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -221,9 +221,6 @@ struct bttv_fh {
- 
- 	struct bttv              *btv;
- 	int resources;
--#ifdef VIDIOC_G_PRIORITY
--	enum v4l2_priority       prio;
--#endif
- 	enum v4l2_buf_type       type;
- 
- 	/* video capture */
-@@ -420,9 +417,6 @@ struct bttv {
- 	spinlock_t s_lock;
- 	struct mutex lock;
- 	int resources;
--#ifdef VIDIOC_G_PRIORITY
--	struct v4l2_prio_state prio;
--#endif
- 
- 	/* video state */
- 	unsigned int input;
--- 
-1.7.10.4
+For exynos4x12 SoCs,
+compatible = "samsung,exynos4212-g2d"
 
+For exynos5250, 5410 (In case of Exynos5440, I'm not sure that the SoC
+has same ip)
+compatible = "samsung,exynos5250-g2d"
+
+To other guys,
+The device tree is used by not only v4l2 side but also drm side so we
+should reach an arrangement. So please give me ack if you agree to my
+opinion. Otherwise please, give me your opinions.
+
+Thanks,
+Inki Dae
+
+
+>>
+>> Sorry but give me your opinions.
+>>
+>> Thanks,
+>> Inki Dae
+>>
+>>
+>>>
+>>> Got it. Please post it again.
+>>>
+>>>>
+>>>> --
+>>>> With warm regards,
+>>>> Sachin
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>> _______________________________________________
+>>> dri-devel mailing list
+>>> dri-devel@lists.freedesktop.org
+>>> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>
+>
+>
+> --
+> With warm regards,
+> Sachin
