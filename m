@@ -1,97 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1158 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827Ab3BJMuY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:24 -0500
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2927 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752459Ab3BEOYa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 09:24:30 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r15EOQ4N027008
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 5 Feb 2013 15:24:29 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0EA0611E00AF
+	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 15:24:26 +0100 (CET)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 15/19] bttv: use centralized std and implement g_std.
-Date: Sun, 10 Feb 2013 13:50:10 +0100
-Message-Id: <1ce067007cbb96ff13f7d9f9dd0a05f9b8548626.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] v4l2-compliance fixes for radio-miropcm20
+Date: Tue, 5 Feb 2013 15:24:25 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302051524.25825.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+These patches upgrade radio-miropcm20 to the latest frameworks. Tested on
+actual hardware.
 
-The 'current_norm' field cannot be used if multiple device nodes (video and
-vbi in this case) set the same std.
+Unchanged from the RFC patches posted a week ago.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   13 ++++++++++++-
- drivers/media/pci/bt8xx/bttvp.h       |    1 +
- 2 files changed, 13 insertions(+), 1 deletion(-)
+Regards,
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 559c1d9..98b8fd2 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1716,6 +1716,7 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
- 		goto err;
- 	}
- 
-+	btv->std = *id;
- 	set_tvnorm(btv, i);
- 
- err:
-@@ -1723,6 +1724,15 @@ err:
- 	return err;
- }
- 
-+static int bttv_g_std(struct file *file, void *priv, v4l2_std_id *id)
-+{
-+	struct bttv_fh *fh  = priv;
-+	struct bttv *btv = fh->btv;
-+
-+	*id = btv->std;
-+	return 0;
-+}
-+
- static int bttv_querystd(struct file *file, void *f, v4l2_std_id *id)
- {
- 	struct bttv_fh *fh = f;
-@@ -3147,6 +3157,7 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_qbuf                    = bttv_qbuf,
- 	.vidioc_dqbuf                   = bttv_dqbuf,
- 	.vidioc_s_std                   = bttv_s_std,
-+	.vidioc_g_std                   = bttv_g_std,
- 	.vidioc_enum_input              = bttv_enum_input,
- 	.vidioc_g_input                 = bttv_g_input,
- 	.vidioc_s_input                 = bttv_s_input,
-@@ -3177,7 +3188,6 @@ static struct video_device bttv_video_template = {
- 	.fops         = &bttv_fops,
- 	.ioctl_ops    = &bttv_ioctl_ops,
- 	.tvnorms      = BTTV_NORMS,
--	.current_norm = V4L2_STD_PAL,
- };
- 
- /* ----------------------------------------------------------------------- */
-@@ -4173,6 +4183,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 		bttv_set_frequency(btv, &init_freq);
- 		btv->radio_freq = 90500 * 16; /* 90.5Mhz default */
- 	}
-+	btv->std = V4L2_STD_PAL;
- 	init_irqreg(btv);
- 	v4l2_ctrl_handler_setup(hdl);
- 
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index 12cc4eb..86d67bb 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -424,6 +424,7 @@ struct bttv {
- 	unsigned int mute;
- 	unsigned long tv_freq;
- 	unsigned int tvnorm;
-+	v4l2_std_id std;
- 	int hue, contrast, bright, saturation;
- 	struct v4l2_framebuffer fbuf;
- 	unsigned int field_count;
--- 
-1.7.10.4
+	Hans
 
+The following changes since commit a32f7d1ad3744914273c6907204c2ab3b5d496a0:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.9 (2013-01-24 18:49:18 -0200)
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/hverkuil/media_tree.git miro
+
+for you to fetch changes up to 581ac0cef5a2416ccce014551f75eebeaaf16f5a:
+
+  radio-miropcm20: fix signal and stereo indication. (2013-01-30 15:27:15 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      radio-miropcm20: fix querycap.
+      radio-miropcm20: remove input/audio ioctls
+      radio-miropcm20: convert to the control framework.
+      radio-miropcm20: add prio and control event support.
+      radio-miropcm20: Fix audmode/tuner/frequency handling
+      radio-miropcm20: fix signal and stereo indication.
+
+ drivers/media/radio/radio-miropcm20.c |  173 ++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------------------------
+ 1 file changed, 72 insertions(+), 101 deletions(-)
