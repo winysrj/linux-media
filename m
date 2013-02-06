@@ -1,129 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2000 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755915Ab3BZRf6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:35:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 02/11] s2255: add V4L2_CID_JPEG_COMPRESSION_QUALITY
-Date: Tue, 26 Feb 2013 18:35:37 +0100
-Message-Id: <06ba876a67371889672922045eb18e285f1ef59b.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43452 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757237Ab3BFP7A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:59:00 -0500
+Date: Wed, 6 Feb 2013 13:58:55 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patch update notification: 2 patches updated
+Message-ID: <20130206135855.48b74ffb@redhat.com>
+In-Reply-To: <5112782A.5000706@googlemail.com>
+References: <20130205213301.13968.54926@www.linuxtv.org>
+	<51117DA2.4030703@googlemail.com>
+	<20130205200859.3ab68dd3@redhat.com>
+	<5112782A.5000706@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Wed, 06 Feb 2013 16:35:06 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-The use of the V4L2_CID_JPEG_COMPRESSION_QUALITY control is recommended over
-the G/S_JPEGCOMP ioctls.
+> Am 05.02.2013 23:08, schrieb Mauro Carvalho Chehab:
+> > Em Tue, 05 Feb 2013 22:46:10 +0100
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> Am 05.02.2013 22:33, schrieb Patchwork:
+> >>> Hello,
+> >>>
+> >>> The following patches (submitted by you) have been updated in patchwork:
+> >> ...
+> >>>  * [RFC] em28xx: fix analog streaming with USB bulk transfers
+> >>>      - http://patchwork.linuxtv.org/patch/16197/
+> >>>     was: New
+> >>>     now: RFC
+> >> What's your plan with this patch ?
+> >> We have this regression in the media-tree since a few weeks now.
+> >> Nobody replied to it or came up with a better solution...
+> > Well, you tagged it as RFC. I just marked as such at patchwork. I don't even
+> > read patches tagged as [RFC] or [REVIEW],
+> 
+> Uhm... even patches which are sent to you as the maintainer of the
+> _driver_ ?
+> Isn't commenting / reviewing patches the maintainers job ?
+> 
+> 
+> >  as those patches will be
+> > resubmitted later by the patch author, if they're ok, or a new version will
+> > be sent instead.
+> 
+> That's what I'm asking you. Is this patch ok / ready ?
+> Or can I generally conclude that patches are fine when there is no
+> reaction on them ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |   24 +++++++++++++++++-------
- 1 file changed, 17 insertions(+), 7 deletions(-)
+Frank,
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 2dcb29b..42c3afe 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -219,12 +219,13 @@ struct s2255_dev;
- struct s2255_channel {
- 	struct video_device	vdev;
- 	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl	*jpegqual_ctrl;
- 	int			resources;
- 	struct s2255_dmaqueue	vidq;
- 	struct s2255_bufferi	buffer;
- 	struct s2255_mode	mode;
- 	/* jpeg compression */
--	struct v4l2_jpegcompression jc;
-+	unsigned		jpegqual;
- 	/* capture parameters (for high quality mode full size) */
- 	struct v4l2_captureparm cap_parm;
- 	int			cur_frame;
-@@ -1015,7 +1016,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	case V4L2_PIX_FMT_MJPEG:
- 		mode.color &= ~MASK_COLOR;
- 		mode.color |= COLOR_JPG;
--		mode.color |= (channel->jc.quality << 8);
-+		mode.color |= (channel->jpegqual << 8);
- 		break;
- 	case V4L2_PIX_FMT_YUV422P:
- 		mode.color &= ~MASK_COLOR;
-@@ -1185,7 +1186,7 @@ static int s2255_set_mode(struct s2255_channel *channel,
- 		mode->color &= ~MASK_COLOR;
- 		mode->color |= COLOR_JPG;
- 		mode->color &= ~MASK_JPG_QUALITY;
--		mode->color |= (channel->jc.quality << 8);
-+		mode->color |= (channel->jpegqual << 8);
- 	}
- 	/* save the mode */
- 	channel->mode = *mode;
-@@ -1434,6 +1435,9 @@ static int s2255_s_ctrl(struct v4l2_ctrl *ctrl)
- 		mode.color &= ~MASK_INPUT_TYPE;
- 		mode.color |= !ctrl->val << 16;
- 		break;
-+	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
-+		channel->jpegqual = ctrl->val;
-+		return 0;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1451,7 +1455,9 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
- {
- 	struct s2255_fh *fh = priv;
- 	struct s2255_channel *channel = fh->channel;
--	*jc = channel->jc;
-+
-+	memset(jc, 0, sizeof(*jc));
-+	jc->quality = channel->jpegqual;
- 	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
- 	return 0;
- }
-@@ -1463,7 +1469,7 @@ static int vidioc_s_jpegcomp(struct file *file, void *priv,
- 	struct s2255_channel *channel = fh->channel;
- 	if (jc->quality < 0 || jc->quality > 100)
- 		return -EINVAL;
--	channel->jc.quality = jc->quality;
-+	v4l2_ctrl_s_ctrl(channel->jpegqual_ctrl, jc->quality);
- 	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
- 	return 0;
- }
-@@ -1864,7 +1870,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 		channel = &dev->channel[i];
- 		INIT_LIST_HEAD(&channel->vidq.active);
- 
--		v4l2_ctrl_handler_init(&channel->hdl, 5);
-+		v4l2_ctrl_handler_init(&channel->hdl, 6);
- 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
- 				V4L2_CID_BRIGHTNESS, -127, 127, 1, DEF_BRIGHT);
- 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
-@@ -1873,6 +1879,10 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 				V4L2_CID_SATURATION, 0, 255, 1, DEF_SATURATION);
- 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
- 				V4L2_CID_HUE, 0, 255, 1, DEF_HUE);
-+		channel->jpegqual_ctrl = v4l2_ctrl_new_std(&channel->hdl,
-+				&s2255_ctrl_ops,
-+				V4L2_CID_JPEG_COMPRESSION_QUALITY,
-+				0, 100, 1, S2255_DEF_JPEG_QUAL);
- 		if (dev->dsp_fw_ver >= S2255_MIN_DSP_COLORFILTER &&
- 		    (dev->pid != 0x2257 || channel->idx <= 1))
- 			v4l2_ctrl_new_custom(&channel->hdl, &color_filter_ctrl, NULL);
-@@ -2238,7 +2248,7 @@ static int s2255_board_init(struct s2255_dev *dev)
- 		channel->mode = mode_def;
- 		if (dev->pid == 0x2257 && j > 1)
- 			channel->mode.color |= (1 << 16);
--		channel->jc.quality = S2255_DEF_JPEG_QUAL;
-+		channel->jpegqual = S2255_DEF_JPEG_QUAL;
- 		channel->width = LINE_SZ_4CIFS_NTSC;
- 		channel->height = NUM_LINES_4CIFS_NTSC * 2;
- 		channel->fmt = &formats[0];
--- 
-1.7.10.4
+As you may notice, my main "job" with regards to media stuff is to be
+the media core maintainer. My work as a driver maintainer or as a
+developer is forced to go to a second plane, as my time is limited.
+So, I generally trust that driver developers are doing the right
+thing.
 
+ATM, I won't have anytime soon to test patches. So, if those patches 
+require any test from me, they'll need to be postponed to 3.10, as I'm
+finishing the handling of the patches for 3.9 today.
+
+Also, from my side, there are simply too much patches sent to me, either
+on my inbox (where I never read) and/or at linux-media ML. The last ones
+I get from patchwork. Sometimes, even before picking the patches, I tag
+everything with RFC or REVIEW on it as RFC. Then I handle the remaining
+ones. This is to reduce the load to an acceptable work queue.
+
+So, if you think that the USB patches are ok, just send it to the ML
+without tagging it, and I'll analyze and apply if I believe that they're
+ok. I'll eventually test the em28xx driver later, when I found some time.
+
+If otherwise you think they may not be ready yet, the better to wait
+for Devin to test, if it has some time, or send me a separate email asking
+for me to test the patches.
+
+Regards,
+Mauro
