@@ -1,66 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:42308 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759200Ab3BGRjZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:25 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so1618745eei.21
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:24 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 02/13] em28xx: disable tuner related ioctls for video and VBI devices without tuner
-Date: Thu,  7 Feb 2013 18:39:10 +0100
-Message-Id: <1360258761-2959-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:48942 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754590Ab3BFOuU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:50:20 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <51123A5F.9050604@ti.com>
+References: <1990856.qS9uisuiVF@avalon>
+	<51123A5F.9050604@ti.com>
+Date: Wed, 6 Feb 2013 09:44:34 -0500
+Message-ID: <CADnq5_P1GFbAwoe9kTeARq8ZLP1tOBc9Rn1h2KrRYxkoLxLXfw@mail.gmail.com>
+Subject: Re: CDF meeting @FOSDEM report
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-fbdev@vger.kernel.org, Sebastien Guiriec <s-guiriec@ti.com>,
+	dri-devel@lists.freedesktop.org,
+	Jesse Barnes <jesse.barnes@intel.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Tom Gall <tom.gall@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thierry Reding <thierry.reding@avionic-desi.gn.de>,
+	Mark Zhang <markz@nvidia.com>, linaro-mm-sig@lists.linaro.org,
+	=?ISO-8859-1?Q?St=E9phane_Marchesin?=
+	<stephane.marchesin@gmail.com>,
+	Alexandre Courbot <acourbot@nvidia.com>,
+	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Sunil Joshi <joshi@samsung.com>,
+	Maxime Ripard <maxime.ripard@free-electrons.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Disable the ioctls VIDIOC_G_TUNER, VIDIOC_S_TUNER, VIDIOC_G_FREQUENCY and
-VIDIOC_S_FREQUENCY for video and VBI devices without tuner.
+On Wed, Feb 6, 2013 at 6:11 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
+> Hi,
+>
+> On 2013-02-06 00:27, Laurent Pinchart wrote:
+>> Hello,
+>>
+>> We've hosted a CDF meeting at the FOSDEM on Sunday morning. Here's a summary
+>> of the discussions.
+>
+> Thanks for the summary. I've been on a longish leave, and just got back,
+> so I haven't read the recent CDF discussions on lists yet. I thought
+> I'll start by replying to this summary first =).
+>
+>> 0. Abbreviations
+>> ----------------
+>>
+>> DBI - Display Bus Interface, a parallel video control and data bus that
+>> transmits data using parallel data, read/write, chip select and address
+>> signals, similarly to 8051-style microcontroller parallel busses. This is a
+>> mixed video control and data bus.
+>>
+>> DPI - Display Pixel Interface, a parallel video data bus that transmits data
+>> using parallel data, h/v sync and clock signals. This is a video data bus
+>> only.
+>>
+>> DSI - Display Serial Interface, a serial video control and data bus that
+>> transmits data using one or more differential serial lines. This is a mixed
+>> video control and data bus.
+>
+> In case you'll re-use these abbrevs in later posts, I think it would be
+> good to mention that DPI is a one-way bus, whereas DBI and DSI are
+> two-way (perhaps that's implicit with control bus, though).
+>
+>> 1. Goals
+>> --------
+>>
+>> The meeting started with a brief discussion about the CDF goals.
+>>
+>> Tomi Valkeinin and Tomasz Figa have sent RFC patches to show their views of
+>> what CDF could/should be. Many others have provided very valuable feedback.
+>> Given the early development stage propositions were sometimes contradictory,
+>> and focused on different areas of interest. We have thus started the meeting
+>> with a discussion about what CDF should try to achieve, and what it shouldn't.
+>>
+>> CDF has two main purposes. The original goal was to support display panels in
+>> a platform- and subsystem-independent way. While mostly useful for embedded
+>> systems, the emergence of platforms such as Intel Medfield and ARM-based PCs
+>> that blends the embedded and PC worlds makes panel support useful for the PC
+>> world as well.
+>>
+>> The second purpose is to provide a cross-subsystem interface to support video
+>> encoders. The idea originally came from a generalisation of the original RFC
+>> that supported panels only. While encoder support is considered as lower
+>> priority than display panel support by developers focussed on display
+>> controller driver (Intel, Renesas, ST Ericsson, TI), companies that produce
+>> video encoders (Analog Devices, and likely others) don't share that point of
+>> view and would like to provide a single encoder driver that can be used in
+>> both KMS and V4L2 drivers.
+>
+> What is an encoder? Something that takes a video signal in, and lets the
+> CPU store the received data to memory? Isn't that a decoder?
+>
+> Or do you mean something that takes a video signal in, and outputs a
+> video signal in another format? (transcoder?)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |   14 ++++++++++++++
- 1 Datei geändert, 14 Zeilen hinzugefügt(+)
+In KMS parlance, we have two objects a crtc and an encoder.  A crtc
+reads data from memory and produces a data stream with display timing.
+ The encoder then takes that datastream and timing from the crtc and
+converts it some sort of physical signal (LVDS, TMDS, DP, etc.).  It's
+not always a perfect match to the hardware.  For example a lot of GPUs
+have a DVO encoder which feeds a secondary encoder like an sil164 DVO
+to TMDS encoder.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 7f1f37c..dd2e31c 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1899,6 +1899,12 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_STD);
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_STD);
- 	}
-+	if (dev->tuner_type == TUNER_ABSENT) {
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_TUNER);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_TUNER);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_FREQUENCY);
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_FREQUENCY);
-+	}
- 
- 	/* register v4l2 video video_device */
- 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
-@@ -1917,6 +1923,14 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		dev->vbi_dev->queue = &dev->vb_vbiq;
- 		dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
- 
-+		/* disable inapplicable ioctls */
-+		if (dev->tuner_type == TUNER_ABSENT) {
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_TUNER);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_TUNER);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_FREQUENCY);
-+			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_FREQUENCY);
-+		}
-+
- 		/* register v4l2 vbi video_device */
- 		ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
- 					    vbi_nr[dev->devno]);
--- 
-1.7.10.4
-
+Alex
