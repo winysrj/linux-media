@@ -1,43 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:61218 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933599Ab3BSVgl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 16:36:41 -0500
-Received: by mail-ee0-f49.google.com with SMTP id d4so3702004eek.36
-        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 13:36:40 -0800 (PST)
-Message-ID: <5123F026.8020801@gmail.com>
-Date: Tue, 19 Feb 2013 22:35:34 +0100
-From: =?UTF-8?B?R2HDq3RhbiBDYXJsaWVy?= <gcembed@gmail.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:40315 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755489Ab3BFXo5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 18:44:57 -0500
+Message-ID: <5112EAF6.1040408@wwwdotorg.org>
+Date: Wed, 06 Feb 2013 16:44:54 -0700
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-To: Robert Schwebel <r.schwebel@pengutronix.de>
-CC: linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Rob Herring <rob.herring@calxeda.com>
-Subject: Re: coda: support of decoding
-References: <5122D999.3070405@gmail.com> <20130219184749.GD30071@pengutronix.de> <5123D93E.9050602@gmail.com> <20130219213037.GF30071@pengutronix.de>
-In-Reply-To: <20130219213037.GF30071@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 06/10] s5p-fimc: Use pinctrl API for camera ports configuration
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-7-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1359745771-23684-7-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/19/2013 10:30 PM, Robert Schwebel wrote:
-> On Tue, Feb 19, 2013 at 08:57:50PM +0100, Gaëtan Carlier wrote:
->>> We have a lot of encoder + decoder patches for Coda in the queue,
->>> but unfortunately not all of that is ready-for-primetime yet.
->>
->> MX27. I have not yet tested if encoding is working or not. Where can I
->> find this set of patches? I will test it with pleasure.
->
-> Most of the work is on MX53 and MX6 recently. We will post the patches
-> here when something is ready.
-OK thanks a lot.
->
-> rsc
->
-Gaëtan Carlier.
+On 02/01/2013 12:09 PM, Sylwester Nawrocki wrote:
+> Before the camera ports can be used the pinmux needs to be configured
+> properly. This patch adds a function to set the camera ports pinctrl
+> to a default state within the media driver's probe().
+> The camera port(s) are then configured for the video bus operation.
+
+> diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+
+> +- pinctrl-names    : pinctrl names for camera port pinmux control, at least
+> +		     "default" needs to be specified.
+> +- pinctrl-0...N	   : pinctrl properties corresponding to pinctrl-names
+> +
+
+A reference to the binding document describing the pin control bindings
+would be appropriate here. Given that reference, I'm not sure if
+spelling out the property names makes sense since it feels a little like
+duplication; an alternative might be simply:
+
+The pinctrl bindings defined in ../../../pinctrl/pinctrl-bindings.txt
+must be used to define a pinctrl state named "default".
+
+However, this isn't a big deal; it's fine either way.
+
