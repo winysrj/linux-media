@@ -1,29 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:56726 "EHLO pequod.mess.org"
+Received: from co202.xi-lite.net ([149.6.83.202]:46702 "EHLO co202.xi-lite.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754512Ab3BPVZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 16:25:48 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 0/3] [media] redrat3: cleanup driver
-Date: Sat, 16 Feb 2013 21:25:42 +0000
-Message-Id: <cover.1361020108.git.sean@mess.org>
+	id S1751929Ab3BFI7X convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 03:59:23 -0500
+From: Olivier GRENIE <olivier.grenie@parrot.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Patrick BOETTCHER <patrick.boettcher@parrot.com>,
+	Nickolai Zeldovich <nickolai@csail.mit.edu>
+Date: Wed, 6 Feb 2013 09:04:39 +0000
+Subject: RE: [git:v4l-dvb/for_v3.9] [media]
+ drivers/media/usb/dvb-usb/dib0700_core.c: fix left shift
+Message-ID: <C73E570AC040D442A4DD326F39F0F00E27342E2907@SAPHIR.xi-lite.lan>
+References: <E1U2pik-000196-0O@www.linuxtv.org>
+In-Reply-To: <E1U2pik-000196-0O@www.linuxtv.org>
+Content-Language: fr-FR
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver has various minor issues and could be simpler.
+Hello Mauro,
+I do not agree with the patch. Let's take an example: adap->id = 0. Then:
+	* 1 << ~(adap->id) = 1 << ~(0) = 0
+	* ~(1 << adap->id) = ~(1 << 0) = 0xFE
 
-Sean Young (3):
-  [media] redrat3: limit periods to hardware limits
-  [media] redrat3: remove memcpys and fix unaligned memory access
-  [media] redrat3: missing endian conversions and warnings
+The correct change should be: st->channel_state |= 1 << (1 - adap->id); Indeed, the original source code was not correct.
 
- drivers/media/rc/redrat3.c |  457 +++++++++++++-------------------------------
- 1 files changed, 130 insertions(+), 327 deletions(-)
+Regards,
+Olivier
 
--- 
-1.7.2.5
+-----Message d'origine-----
+De : Mauro Carvalho Chehab [mailto:mchehab@redhat.com] 
+Envoyé : mardi 5 février 2013 22:04
+À : linuxtv-commits@linuxtv.org
+Cc : Patrick BOETTCHER; Olivier GRENIE; Nickolai Zeldovich
+Objet : [git:v4l-dvb/for_v3.9] [media] drivers/media/usb/dvb-usb/dib0700_core.c: fix left shift
 
+This is an automatic generated email to let you know that the following patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+
+Subject: [media] drivers/media/usb/dvb-usb/dib0700_core.c: fix left shift
+Author:  Nickolai Zeldovich <nickolai@csail.mit.edu>
+Date:    Sat Jan 5 15:13:05 2013 -0300
+
+Fix bug introduced in 7757ddda6f4febbc52342d82440dd4f7a7d4f14f, where instead of bit-negating the bitmask, the bit position was bit-negated instead.
+
+Signed-off-by: Nickolai Zeldovich <nickolai@csail.mit.edu>
+Cc: Olivier Grenie <olivier.grenie@dibcom.fr>
+Cc: Patrick Boettcher <patrick.boettcher@dibcom.fr>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+ drivers/media/usb/dvb-usb/dib0700_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+---
+
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=7e20f6bfc47992d93b36f4ed068782f8726b75a3
+
+diff --git a/drivers/media/usb/dvb-usb/dib0700_core.c b/drivers/media/usb/dvb-usb/dib0700_core.c
+index bf2a908..bd6a437 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_core.c
++++ b/drivers/media/usb/dvb-usb/dib0700_core.c
+@@ -584,7 +584,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 		if (onoff)
+ 			st->channel_state |=	1 << (adap->id);
+ 		else
+-			st->channel_state |=	1 << ~(adap->id);
++			st->channel_state &=  ~(1 << (adap->id));
+ 	} else {
+ 		if (onoff)
+ 			st->channel_state |=	1 << (adap->fe_adap[0].stream.props.endpoint-2);
