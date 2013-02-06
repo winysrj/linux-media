@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4863 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932895Ab3BOJTK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 04:19:10 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/9] s2255: zero priv and set colorspace.
-Date: Fri, 15 Feb 2013 10:18:51 +0100
-Message-Id: <8c9359a1be796cb55a5f3c54f63cb27352cdf2b6.1360919695.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
-References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:53656 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755163Ab3BFXke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 18:40:34 -0500
+Message-ID: <5112E9EF.8090908@wwwdotorg.org>
+Date: Wed, 06 Feb 2013 16:40:31 -0700
+From: Stephen Warren <swarren@wwwdotorg.org>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 02/10] s5p-fimc: Add device tree support for FIMC devices
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/01/2013 12:09 PM, Sylwester Nawrocki wrote:
+> This patch adds support for FIMC devices instantiated from devicetree
+> for S5PV210 and Exynos4 SoCs. The FIMC IP features include colorspace
+> conversion and scaling (mem-to-mem) and parallel/MIPI CSI2 bus video
+> capture interface.
+> 
+> Multiple SoC revisions specific parameters are defined statically in
+> the driver and are used for both dt and non-dt. The driver's static
+> data is selected based on the compatible property. Previously the
+> platform device name was used to match driver data and a specific
+> SoC/IP version.
+> 
+> Aliases are used to determine an index of the IP which is essential
+> for linking FIMC IP with other entities, like MIPI-CSIS (the MIPI
+> CSI-2 bus frontend) or FIMC-LITE and FIMC-IS ISP.
 
-Set priv field of struct v4l2_pix_format to 0 and fill in colorspace.
+> diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |    4 ++++
- 1 file changed, 4 insertions(+)
+> +Samsung S5P/EXYNOS SoC Camera Subsystem (FIMC)
+> +----------------------------------------------
+> +
+> +The Exynos Camera subsystem comprises of multiple sub-devices that are
+> +represented by separate platform devices. Some of the IPs come in different
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 88f728d..a16bc6c 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -859,6 +859,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.pixelformat = channel->fmt->fourcc;
- 	f->fmt.pix.bytesperline = f->fmt.pix.width * (channel->fmt->depth >> 3);
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	f->fmt.pix.priv = 0;
- 	return 0;
- }
- 
-@@ -954,6 +956,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.field = field;
- 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	f->fmt.pix.priv = 0;
- 	dprintk(50, "%s: set width %d height %d field %d\n", __func__,
- 		f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field);
- 	return 0;
--- 
-1.7.10.4
+"platform devices" is a rather Linux-centric term, and DT bindings
+should be OS-agnostic. Perhaps use "device tree nodes" here?
 
+> +variants across the SoC revisions (FIMC) and some remain mostly unchanged
+> +(MIPI CSIS, FIMC-LITE).
+> +
+> +All those sub-subdevices are defined as parent nodes of the common device
+
+s/parent nodes/child node/ I think?
+
+> +For every fimc node a numbered alias should be present in the aliases node.
+> +Aliases are of the form fimc<n>, where <n> is an integer (0...N) specifying
+> +the IP's instance index.
+
+Why? Isn't it up to the DT author whether they care if each fimc node is
+assigned a specific identification v.s. whether identification is
+assigned automatically?
+
+> +Optional properties
+> +
+> + - clock-frequency - maximum FIMC local clock (LCLK) frequency
+
+Again, I'd expect a clocks property here instead.
