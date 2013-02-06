@@ -1,75 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:35311 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231Ab3BFLMK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 06:12:10 -0500
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-1.cisco.com (8.14.5/8.14.5) with ESMTP id r16BC8Gx006628
-	for <linux-media@vger.kernel.org>; Wed, 6 Feb 2013 11:12:08 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1872 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756615Ab3BFTRl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 14:17:41 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r16JHcpW021489
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 6 Feb 2013 20:17:40 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id CC22811E00C9
+	for <linux-media@vger.kernel.org>; Wed,  6 Feb 2013 20:17:37 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.9] Move cx2341x, btcx-risc and tveeprom to common
-Date: Wed, 6 Feb 2013 12:11:20 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302061211.20635.hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130206191737.CC22811E00C9@alastor.dyndns.org>
+Date: Wed,  6 Feb 2013 20:17:37 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-As discussed earlier, this pull requests moves cx2341x, btcx-risc and
-tveeprom to media/common.
+Results of the daily build of media_tree:
 
-The cx2341x and btcx-risc modules should definitely be moved there as they
-have absolutely nothing to do with i2c, but I leave the decision whether
-tveeprom should be moved or not up to you.
+date:		Wed Feb  6 19:00:29 CET 2013
+git branch:	for_v3.9
+git hash:	248ac368ce4b3cd36515122d888403909d7a2500
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-Most drivers use the i2c part of tveeprom as well, and those that do not still
-use i2c to get hold of the eeprom data. So there is a strong relationship with
-i2c regardless.
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-IMHO the i2c directory is slightly more appropriate for tveeprom than the
-common directory.
+Detailed results are available here:
 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-	Hans
+Full logs are available here:
 
-The following changes since commit f85ed0ceeba78b6b15a857ce48888fdb52de28d0:
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-  Revert "[media] drivers/media/usb/dvb-usb/dib0700_core.c: fix left shift" (2013-02-06 08:31:55 -0200)
+The Media Infrastructure API from this daily build is here:
 
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git common
-
-for you to fetch changes up to 8d6e9928d56ae92fe8118a2c6aef7b219c3b1399:
-
-  tveeprom: move from media/i2c to media/common (2013-02-06 12:03:41 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      cx2341x: move from media/i2c to media/common
-      btcx-risc: move from media/i2c to media/common
-      tveeprom: move from media/i2c to media/common
-
- drivers/media/common/Kconfig              |   11 +++++++++++
- drivers/media/common/Makefile             |    3 +++
- drivers/media/{i2c => common}/btcx-risc.c |    0
- drivers/media/{i2c => common}/btcx-risc.h |    0
- drivers/media/{i2c => common}/cx2341x.c   |    0
- drivers/media/{i2c => common}/tveeprom.c  |    0
- drivers/media/i2c/Kconfig                 |   26 --------------------------
- drivers/media/i2c/Makefile                |    3 ---
- drivers/media/pci/bt8xx/Makefile          |    1 +
- drivers/media/pci/cx23885/Makefile        |    1 +
- drivers/media/pci/cx25821/Makefile        |    1 +
- drivers/media/pci/cx88/Makefile           |    1 +
- 12 files changed, 18 insertions(+), 29 deletions(-)
- rename drivers/media/{i2c => common}/btcx-risc.c (100%)
- rename drivers/media/{i2c => common}/btcx-risc.h (100%)
- rename drivers/media/{i2c => common}/cx2341x.c (100%)
- rename drivers/media/{i2c => common}/tveeprom.c (100%)
+http://www.xs4all.nl/~hverkuil/spec/media.html
