@@ -1,132 +1,634 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm2.telefonica.net ([213.4.138.18]:50921 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757215Ab3BKNs3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 08:48:29 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] block i2c tuner reads for Avermedia Twinstar in the af9035 driver
-Date: Mon, 11 Feb 2013 14:48:18 +0100
-Message-ID: <10259580.4HoW90ldVh@jar7.dominio>
-In-Reply-To: <5117FF09.8070606@iki.fi>
-References: <4261811.IXtDYhFBCx@jar7.dominio> <5117FF09.8070606@iki.fi>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:41576 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab3BFJEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 04:04:23 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v2] media: ths7353: add support for ths7353 video amplifier
+Date: Wed, 6 Feb 2013 10:03:31 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Chaithrika U S <chaithrika@ti.com>
+References: <1360092021-6535-1-git-send-email-prabhakar.lad@ti.com>
+In-Reply-To: <1360092021-6535-1-git-send-email-prabhakar.lad@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302061003.32197.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Domingo, 10 de febrero de 2013 22:11:53 Antti Palosaari escribió:
-> On 02/10/2013 09:43 PM, Jose Alberto Reguero wrote:
-> > This patch block the i2c tuner reads for Avermedia Twinstar. If it's
-> > needed other pids can be added.
-> >
-> > Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
-> >
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> > --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000 +0100
-> > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-02-08 22:55:08.304089054 +0100
-> > @@ -232,7 +232,11 @@ static int af9035_i2c_master_xfer(struct
-> >   			buf[3] = 0x00; /* reg addr MSB */
-> >   			buf[4] = 0x00; /* reg addr LSB */
-> >   			memcpy(&buf[5], msg[0].buf, msg[0].len);
-> > -			ret = af9035_ctrl_msg(d, &req);
-> > +			if (state->block_read) {
-> > +				msg[1].buf[0] = 0x3f;
-> > +				ret = 0;
-> > +			} else
-> > +				ret = af9035_ctrl_msg(d, &req);
-> >   		}
-> >   	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
-> >   		if (msg[0].len > 40) {
-> > @@ -638,6 +642,17 @@ static int af9035_read_config(struct dvb
-> >   	for (i = 0; i < ARRAY_SIZE(state->af9033_config); i++)
-> >   		state->af9033_config[i].clock = clock_lut[tmp];
-> >
-> > +	state->block_read = false;
-> > +
-> > +	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
-> > +		le16_to_cpu(d->udev->descriptor.idProduct) ==
-> > +			USB_PID_AVERMEDIA_TWINSTAR) {
-> > +		dev_dbg(&d->udev->dev,
-> > +				"%s: AverMedia Twinstar: block i2c read from tuner\n",
-> > +				__func__);
-> > +		state->block_read = true;
-> > +	}
-> > +
-> >   	return 0;
-> >
-> >   err:
-> > diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
-> > --- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07 05:45:57.000000000 +0100
-> > +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-02-08 22:52:42.293842710 +0100
-> > @@ -54,6 +54,7 @@ struct usb_req {
-> >   struct state {
-> >   	u8 seq; /* packet sequence number */
-> >   	bool dual_mode;
-> > +	bool block_read;
-> >   	struct af9033_config af9033_config[2];
-> >   };
-> >
-> >
-> >
+Hi Prabhakar,
+
+Here is my review. There are a few things that need to be fixed before I
+can Ack it.
+
+On Tue 5 February 2013 20:20:21 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.lad@ti.com>
 > 
-> Could you test if faking tuner ID during attach() is enough?
+> The patch adds support for THS7353 video amplifier.
+> The the THS7353 amplifier is very much similar to the
+> existing THS7303 video amplifier driver.
+> This patch appropriately makes changes to the existing
+> ths7303 driver and adds support for the THS7353.
+> This patch also adds V4L2_IDENT_THS7353 for the THS7353
+> chip and appropriate changes to Kconfig file for building.
 > 
-> Also, I would like to know what is returned error code from firmware 
-> when it fails. Enable debugs to see it. It should print something like that:
-> af9035_ctrl_msg: command=03 failed fw error=2
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Martin Bugge <marbugge@cisco.com>
+> Cc: Chaithrika U S <chaithrika@ti.com>
+> ---
+>  Changes for v2:
+>  1: Merged the driver in existing ths7303 driver.
+>  2: Merged the patch which adds the chip indent in same patch.
+>  
+>  drivers/media/i2c/Kconfig       |    4 +-
+>  drivers/media/i2c/ths7303.c     |  334 +++++++++++++++++++++++++++++++++------
+>  include/media/ths7303.h         |   35 ++++
+>  include/media/v4l2-chip-ident.h |    3 +
+>  4 files changed, 327 insertions(+), 49 deletions(-)
+>  create mode 100644 include/media/ths7303.h
 > 
-> 
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c 
-> b/drivers/media/usb/dvb-usb-v2/af9035.c
-> index a1e953a..5a4f28d 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-> @@ -1082,9 +1082,22 @@ static int af9035_tuner_attach(struct 
-> dvb_usb_adapter *adap)
->                          tuner_addr = 0x60 | 0x80; /* I2C bus hack */
->                  }
-> 
-> +               // fake used tuner for demod firmware / i2c adapter
-> +               if (adap->id == 0)
-> +                       ret = af9035_wr_reg(d, 0x00f641, 
-> AF9033_TUNER_FC0011);
-> +               else
-> +                       ret = af9035_wr_reg(d, 0x10f641, 
-> AF9033_TUNER_FC0011);
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 1e4b2d0..2e02916 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -563,9 +563,9 @@ comment "Miscelaneous helper chips"
+>  
+>  config VIDEO_THS7303
+>  	tristate "THS7303 Video Amplifier"
+> -	depends on I2C
+> +	depends on VIDEO_V4L2 && I2C
+>  	help
+> -	  Support for TI THS7303 video amplifier
+> +	  Support for TI THS7303/53 video amplifier
+>  
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called ths7303.
+> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+> index e747524..e7f8c59 100644
+> --- a/drivers/media/i2c/ths7303.c
+> +++ b/drivers/media/i2c/ths7303.c
+> @@ -1,7 +1,15 @@
+>  /*
+> - * ths7303- THS7303 Video Amplifier driver
+> + * ths7303/53- THS7303/53 Video Amplifier driver
+>   *
+>   * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+> + * Copyright 2013 Cisco Systems, Inc. and/or its affiliates.
+> + *
+> + * Author: Chaithrika U S <chaithrika@ti.com>
+> + *
+> + * Contributors:
+> + *     Lad, Prabhakar <prabhakar.lad@ti.com>
+> + *     Hans Verkuil <hans.verkuil@cisco.com>
+> + *     Martin Bugge <marbugge@cisco.com>
+>   *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License as
+> @@ -13,25 +21,27 @@
+>   * GNU General Public License for more details.
+>   */
+>  
+> -#include <linux/kernel.h>
+> -#include <linux/init.h>
+> -#include <linux/ctype.h>
+> -#include <linux/slab.h>
+>  #include <linux/i2c.h>
+> -#include <linux/device.h>
+> -#include <linux/delay.h>
+>  #include <linux/module.h>
+> -#include <linux/uaccess.h>
+> -#include <linux/videodev2.h>
+> +#include <linux/slab.h>
+>  
+> -#include <media/v4l2-device.h>
+> -#include <media/v4l2-subdev.h>
+> +#include <media/ths7303.h>
+>  #include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-device.h>
+>  
+>  #define THS7303_CHANNEL_1	1
+>  #define THS7303_CHANNEL_2	2
+>  #define THS7303_CHANNEL_3	3
+>  
+> +struct ths7303_state {
+> +	struct v4l2_subdev sd;
+> +	struct ths7303_platform_data pdata;
+> +	struct v4l2_dv_timings dv_timings;
+> +	int std_id;
+> +	int stream_on;
+> +	int driver_data;
+> +};
 > +
->                  /* attach tuner */
->                  fe = dvb_attach(mxl5007t_attach, adap->fe[0], &d->i2c_adap,
->                                  tuner_addr, 
-> &af9035_mxl5007t_config[adap->id]);
+>  enum ths7303_filter_mode {
+>  	THS7303_FILTER_MODE_480I_576I,
+>  	THS7303_FILTER_MODE_480P_576P,
+> @@ -48,64 +58,97 @@ static int debug;
+>  module_param(debug, int, 0644);
+>  MODULE_PARM_DESC(debug, "Debug level 0-1");
+>  
+> +static inline struct ths7303_state *to_state(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct ths7303_state, sd);
+> +}
 > +
-> +               // return correct tuner
-> +               if (adap->id == 0)
-> +                       ret = af9035_wr_reg(d, 0x00f641, 
-> AF9033_TUNER_MXL5007T);
-> +               else
-> +                       ret = af9035_wr_reg(d, 0x10f641, 
-> AF9033_TUNER_MXL5007T);
+> +static int ths7303_read(struct v4l2_subdev *sd, u8 reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
 > +
->                  break;
->          case AF9033_TUNER_TDA18218:
->                  /* attach tuner */
+> +	return i2c_smbus_read_byte_data(client, reg);
+> +}
+> +
+> +static int ths7303_write(struct v4l2_subdev *sd, u8 reg, u8 val)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int ret;
+> +	int i;
+> +
+> +	for (i = 0; i < 3; i++) {
+> +		ret = i2c_smbus_write_byte_data(client, reg, val);
+> +		if (ret == 0)
+> +			return 0;
+> +	}
+> +	return ret;
+> +}
+> +
+>  /* following function is used to set ths7303 */
+>  int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+>  {
+> -	u8 input_bias_chroma = 3;
+> -	u8 input_bias_luma = 3;
+> -	int disable = 0;
+> -	int err = 0;
+> -	u8 val = 0;
+> -	u8 temp;
+> -
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	struct ths7303_state *state = to_state(sd);
+> +	struct ths7303_platform_data *pdata = &state->pdata;
+> +	u8 val, sel = 0;
+> +	int err, disable = 0;
+>  
+>  	if (!client)
+>  		return -EINVAL;
+>  
+> +	if (!state->stream_on) {
+> +		ths7303_write(sd, THS7303_CHANNEL_1,
+> +			      (ths7303_read(sd, THS7303_CHANNEL_1) & 0xf8) |
+> +			      0x00);
+> +		ths7303_write(sd, THS7303_CHANNEL_2,
+> +			      (ths7303_read(sd, THS7303_CHANNEL_2) & 0xf8) |
+> +			      0x00);
+> +		ths7303_write(sd, THS7303_CHANNEL_3,
+> +			      (ths7303_read(sd, THS7303_CHANNEL_3) & 0xf8) |
+> +			      0x00);
+> +		return 0;
+> +	}
+> +
+>  	switch (mode) {
+>  	case THS7303_FILTER_MODE_1080P:
+> -		val = (3 << 6);
+> -		val |= (3 << 3);
+> +		sel = 0x3;	/*1080p and SXGA/UXGA */
+>  		break;
+>  	case THS7303_FILTER_MODE_720P_1080I:
+> -		val = (2 << 6);
+> -		val |= (2 << 3);
+> +		sel = 0x2;	/*720p, 1080i and SVGA/XGA */
+>  		break;
+>  	case THS7303_FILTER_MODE_480P_576P:
+> -		val = (1 << 6);
+> -		val |= (1 << 3);
+> +		sel = 0x1;	/* EDTV 480p/576p and VGA */
+>  		break;
+>  	case THS7303_FILTER_MODE_480I_576I:
+> +		sel = 0x0;	/* SDTV, S-Video, 480i/576i */
+>  		break;
+> -	case THS7303_FILTER_MODE_DISABLE:
+> -		pr_info("mode disabled\n");
+> -		/* disable all channels */
+> -		disable = 1;
+>  	default:
+>  		/* disable all channels */
+>  		disable = 1;
+>  	}
+> -	/* Setup channel 2 - Luma - Green */
+> -	temp = val;
+> +
+> +	val = (sel << 6) | (sel << 3);
+>  	if (!disable)
+> -		val |= input_bias_luma;
+> -	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_2, val);
+> +		val |= (pdata->ch_1 & 0x27);
+> +	err = ths7303_write(sd, 0x01, val);
+>  	if (err)
+>  		goto out;
+>  
+> -	/* setup two chroma channels */
+> +	val = (sel << 6) | (sel << 3);
+>  	if (!disable)
+> -		temp |= input_bias_chroma;
+> -
+> -	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_1, temp);
+> +		val |= (pdata->ch_2 & 0x27);
+> +	err = ths7303_write(sd, 0x02, val);
+>  	if (err)
+>  		goto out;
+>  
+> -	err = i2c_smbus_write_byte_data(client, THS7303_CHANNEL_3, temp);
+> +	val = (sel << 6) | (sel << 3);
+> +	if (!disable)
+> +		val |= (pdata->ch_3 & 0x27);
+> +	err = ths7303_write(sd, 0x03, val);
+>  	if (err)
+>  		goto out;
+> -	return err;
+> +
+> +	return 0;
+>  out:
+>  	pr_info("write byte data failed\n");
+>  	return err;
+> @@ -113,16 +156,47 @@ out:
+>  
+>  static int ths7303_s_std_output(struct v4l2_subdev *sd, v4l2_std_id norm)
+>  {
+> -	if (norm & (V4L2_STD_ALL & ~V4L2_STD_SECAM))
+> +	struct ths7303_state *state = to_state(sd);
+> +
+> +	if (norm & (V4L2_STD_ALL & ~V4L2_STD_SECAM)) {
+> +		state->std_id = 1;
+> +		return ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
+> +	}
+> +
+> +	return ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
+> +}
+> +
+> +static int ths7303_s_stream(struct v4l2_subdev *sd, int enable)
+> +{
+> +	struct ths7303_state *state = to_state(sd);
+> +	u32 height = state->dv_timings.bt.height;
+> +	int interlaced = state->dv_timings.bt.interlaced;
+
+Instead of storing the whole dv_timings struct, just store the relevant
+fields.
+
+> +	int res;
+> +
+> +	state->stream_on = enable;
+> +
+> +	if (state->std_id)
+>  		return ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
+> +
+> +	if (height == 1080 && !interlaced)
+
+You can't use the height as such. It is the pixelclock that determines which
+mode to use. What if I select a 1600x1200 format? That should still work!
+Cisco definitely needs this functionality.
+
+The code I mailed you earlier does this selection based on the pixelclock.
+
+> +		res = ths7303_setval(sd, THS7303_FILTER_MODE_1080P);
+> +	else if ((height == 720 && !interlaced) ||
+> +			(height == 1080 && interlaced))
+> +		res = ths7303_setval(sd, THS7303_FILTER_MODE_720P_1080I);
+> +	else if ((height == 480 || height == 576) && !interlaced)
+> +		res = ths7303_setval(sd, THS7303_FILTER_MODE_480P_576P);
+>  	else
+> -		return ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
+> +		/* disable all channels */
+> +		res = ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
+> +
+> +	return res;
+>  }
+>  
+>  /* for setting filter for HD output */
+>  static int ths7303_s_dv_timings(struct v4l2_subdev *sd,
+>  			       struct v4l2_dv_timings *dv_timings)
+>  {
+> +	struct ths7303_state *state = to_state(sd);
+>  	u32 height = dv_timings->bt.height;
+>  	int interlaced = dv_timings->bt.interlaced;
+>  	int res = 0;
+> @@ -138,6 +212,11 @@ static int ths7303_s_dv_timings(struct v4l2_subdev *sd,
+>  		/* disable all channels */
+>  		res = ths7303_setval(sd, THS7303_FILTER_MODE_DISABLE);
+>  
+> +	if (!res) {
+> +		state->dv_timings = *dv_timings;
+> +		state->std_id = 0;
+> +	}
+> +
+>  	return res;
+>  }
+>  
+> @@ -145,17 +224,160 @@ static int ths7303_g_chip_ident(struct v4l2_subdev *sd,
+>  				struct v4l2_dbg_chip_ident *chip)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	u32 indent = V4L2_IDENT_THS7303;
+> +	struct ths7303_state *state = to_state(sd);
+>  
+> -	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_THS7303, 0);
+> +	if (state->driver_data)
+> +		indent = V4L2_IDENT_THS7353;
+> +
+> +	return v4l2_chip_ident_i2c_client(client, chip, indent, 0);
+>  }
+>  
+>  static const struct v4l2_subdev_video_ops ths7303_video_ops = {
+> +	.s_stream	= ths7303_s_stream,
+>  	.s_std_output	= ths7303_s_std_output,
+> -	.s_dv_timings    = ths7303_s_dv_timings,
+> +	.s_dv_timings   = ths7303_s_dv_timings,
+> +};
+> +
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +
+> +static int ths7303_g_register(struct v4l2_subdev *sd,
+> +			      struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	reg->size = 1;
+> +	reg->val = ths7303_read(sd, reg->reg);
+> +	return 0;
+> +}
+> +
+> +static int ths7303_s_register(struct v4l2_subdev *sd,
+> +			      struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	ths7303_write(sd, reg->reg, reg->val);
+> +	return 0;
+> +}
+> +#endif
+> +
+> +struct channel_register_bit_decoder {
+> +	uint8_t stc_lpf_sel;
+> +	uint8_t in_mux_sel;
+> +	uint8_t lpf_freq_sel;
+> +	uint8_t in_bias_sel_dis_cont;
+> +};
+> +
+> +static const char *stc_lpf_sel_txt[4] = {
+
+Use static const char * const (I think checkpatch complains about that
+these days). Also do this for the static const arrays below.
+
+> +	"500-kHz Filter",
+> +	"2.5-MHz Filter",
+> +	"5-MHz Filter",
+> +	"5-MHz Filter",
+>  };
+>  
+> +static const char *in_mux_sel_txt[2] = {
+> +	"Input A Select",
+> +	"Input B Select",
+> +};
+> +
+> +static const char *lpf_freq_sel_txt[4] = {
+> +	"9-MHz LPF",
+> +	"16-MHz LPF",
+> +	"35-MHz LPF",
+> +	"Bypass LPF",
+> +};
+> +
+> +static const char *in_bias_sel_dis_cont_txt[8] = {
+> +	"Disable Channel",
+> +	"Mute Function - No Output",
+> +	"DC Bias Select",
+> +	"DC Bias + 250 mV Offset Select",
+> +	"AC Bias Select",
+> +	"Sync Tip Clamp with low bias",
+> +	"Sync Tip Clamp with mid bias",
+> +	"Sync Tip Clamp with high bias",
+> +};
+> +
+> +static void
+> +parse_channel_register(struct channel_register_bit_decoder *ch_reg, u8 val)
+> +{
+> +	ch_reg->stc_lpf_sel = (val >> 6) & 0x3;
+> +	ch_reg->in_mux_sel = (val >> 5) & 0x1;
+> +	ch_reg->lpf_freq_sel = (val >> 3) & 0x3;
+> +	ch_reg->in_bias_sel_dis_cont = (val >> 0) & 0x7;
+> +}
+
+I'd merge this function into log_channel_status. That gets rid of the
+channel_register_bit_decoder struct as well.
+
+> +
+> +static void ths7303_log_channel_status(struct v4l2_subdev *sd, u8 reg)
+> +{
+> +	struct channel_register_bit_decoder ch_reg;
+> +	u8 val = ths7303_read(sd, reg);
+> +
+> +	if ((val & 0x7) == 0) {
+> +		v4l2_info(sd, "Channel %d Off\n", reg);
+> +		return;
+> +	}
+> +
+> +	parse_channel_register(&ch_reg, val);
+> +
+> +	v4l2_info(sd, "Channel %d On\n", reg);
+> +	v4l2_info(sd, "  value 0x%x\n", val);
+> +	v4l2_info(sd, "  %s\n", stc_lpf_sel_txt[ch_reg.stc_lpf_sel]);
+> +	v4l2_info(sd, "  %s\n", in_mux_sel_txt[ch_reg.in_mux_sel]);
+> +	v4l2_info(sd, "  %s\n", lpf_freq_sel_txt[ch_reg.lpf_freq_sel]);
+> +	v4l2_info(sd, "  %s\n",
+> +		  in_bias_sel_dis_cont_txt[ch_reg.in_bias_sel_dis_cont]);
+> +}
+> +
+> +static int ths7303_log_status(struct v4l2_subdev *sd)
+> +{
+> +	struct ths7303_state *state = to_state(sd);
+> +
+> +	v4l2_info(sd, "stream %s\n", state->stream_on ? "On" : "Off");
+> +
+> +	if (state->dv_timings.type == V4L2_DV_BT_656_1120) {
+> +		struct v4l2_bt_timings *bt = bt = &state->dv_timings.bt;
+> +		u32 frame_width, frame_height;
+> +
+> +		frame_width = bt->width + bt->hfrontporch +
+> +			      bt->hsync + bt->hbackporch;
+> +		frame_height = bt->height + bt->vfrontporch +
+> +			       bt->vsync + bt->vbackporch;
+> +		v4l2_info(sd,
+> +			  "timings: %dx%d%s%d (%dx%d). Pix freq. = %d Hz. Polarities = 0x%x\n",
+> +			  bt->width, bt->height, bt->interlaced ? "i" : "p",
+> +			  (frame_height * frame_width) > 0 ?
+> +			  (int)bt->pixelclock /
+> +			  (frame_height * frame_width) : 0,
+> +			  frame_width, frame_height,
+> +			  (int)bt->pixelclock, bt->polarities);
+> +	} else {
+> +		v4l2_info(sd, "no timings set\n");
+> +	}
+> +
+> +	ths7303_log_channel_status(sd, THS7303_CHANNEL_1);
+> +	ths7303_log_channel_status(sd, THS7303_CHANNEL_2);
+> +	ths7303_log_channel_status(sd, THS7303_CHANNEL_3);
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct v4l2_subdev_core_ops ths7303_core_ops = {
+>  	.g_chip_ident = ths7303_g_chip_ident,
+> +	.log_status = ths7303_log_status,
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +	.g_register = ths7303_g_register,
+> +	.s_register = ths7303_s_register,
+> +#endif
+>  };
+>  
+>  static const struct v4l2_subdev_ops ths7303_ops = {
+> @@ -166,8 +388,9 @@ static const struct v4l2_subdev_ops ths7303_ops = {
+>  static int ths7303_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+> +	struct ths7303_platform_data *pdata = client->dev.platform_data;
+> +	struct ths7303_state *state;
+>  	struct v4l2_subdev *sd;
+> -	v4l2_std_id std_id = V4L2_STD_NTSC;
+>  
+>  	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+>  		return -ENODEV;
+> @@ -175,13 +398,29 @@ static int ths7303_probe(struct i2c_client *client,
+>  	v4l_info(client, "chip found @ 0x%x (%s)\n",
+>  			client->addr << 1, client->adapter->name);
+>  
+> -	sd = devm_kzalloc(&client->dev, sizeof(struct v4l2_subdev), GFP_KERNEL);
+> -	if (sd == NULL)
+> +	state = devm_kzalloc(&client->dev, sizeof(struct ths7303_state),
+> +			     GFP_KERNEL);
+> +	if (!state)
+>  		return -ENOMEM;
+>  
+> +	if (!pdata) {
+> +		v4l_warn(client, "No platform data, using default data!\n");
+> +		state->pdata.ch_1 = 0;
+> +		state->pdata.ch_1 = 0;
+> +		state->pdata.ch_1 = 0;
+
+Copy-and-paste error? I guess this should be ch_1, ch_2 and ch_3 :-)
+Also, since state is zeroed anyway, I'd just drop all assignments.
+
+> +		state->pdata.init_enable = 0;
+> +	} else {
+> +		state->pdata = *pdata;
+> +	}
+> +
+> +	sd = &state->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
+> +	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +
+> +	/* store the driver data to differntiate the chip */
+> +	state->driver_data = (int)id->driver_data;
+>  
+> -	return ths7303_s_std_output(sd, std_id);
+> +	return ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I);
+>  }
+>  
+>  static int ths7303_remove(struct i2c_client *client)
+> @@ -195,6 +434,7 @@ static int ths7303_remove(struct i2c_client *client)
+>  
+>  static const struct i2c_device_id ths7303_id[] = {
+>  	{"ths7303", 0},
+> +	{"ths7353", 1},
+>  	{},
+>  };
+>  
+> @@ -203,7 +443,7 @@ MODULE_DEVICE_TABLE(i2c, ths7303_id);
+>  static struct i2c_driver ths7303_driver = {
+>  	.driver = {
+>  		.owner	= THIS_MODULE,
+> -		.name	= "ths7303",
+> +		.name	= "ths73x3",
+>  	},
+>  	.probe		= ths7303_probe,
+>  	.remove		= ths7303_remove,
+> diff --git a/include/media/ths7303.h b/include/media/ths7303.h
+> new file mode 100644
+> index 0000000..818cfc3
+> --- /dev/null
+> +++ b/include/media/ths7303.h
+> @@ -0,0 +1,35 @@
+> +/*
+> + * Copyright (C) 2013 Texas Instruments Inc
+> + *
+> + * Copyright 2013 Cisco Systems, Inc. and/or its affiliates.
+> + *
+> + * Contributors:
+> + *     Lad, Prabhakar <prabhakar.lad@ti.com>
+> + *     Hans Verkuil <hans.verkuil@cisco.com>
+> + *     Martin Bugge <marbugge@cisco.com>
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+> + */
+> +
+> +#ifndef THS7353_H
+> +#define THS7353_H
+> +
+> +struct ths7303_platform_data {
+> +	u8 ch_1;
+> +	u8 ch_2;
+> +	u8 ch_3;
+> +	u8 init_enable;
+> +};
+
+This struct needs to be documented.
+
+> +
+> +#endif
+> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> index 4ee125b..84d1159 100644
+> --- a/include/media/v4l2-chip-ident.h
+> +++ b/include/media/v4l2-chip-ident.h
+> @@ -177,6 +177,9 @@ enum {
+>  	/* module ths7303: just ident 7303 */
+>  	V4L2_IDENT_THS7303 = 7303,
+>  
+> +	/* module ths7353: just ident 7353 */
+> +	V4L2_IDENT_THS7353 = 7353,
+> +
+
+This should be moved after ADV7343: this list needs to be sorted numerically.
+
+>  	/* module adv7343: just ident 7343 */
+>  	V4L2_IDENT_ADV7343 = 7343,
+>  
 > 
-> regards
-> Antti
-> 
-> 
 
-I will try with fake tuner, but I can't test unil next weekend.
-If I remember, the read operation is performed, and return good value,
-but after that, all the i2c transfers fail. Seee:
+Regards,
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg56346.html
-
-Jose Alberto
-
-
+	Hans
