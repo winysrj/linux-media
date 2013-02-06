@@ -1,693 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:42800 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549Ab3B1KZ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Feb 2013 05:25:27 -0500
-Subject: [PATCH v2 3/3] reservation: Add tests to lib/locking-selftest.c. v2
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, a.p.zijlstra@chello.nl,
-	daniel.vetter@ffwll.ch, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org
-Date: Thu, 28 Feb 2013 11:25:12 +0100
-Message-ID: <20130228102512.15191.3060.stgit@patser>
-In-Reply-To: <20130228102452.15191.22673.stgit@patser>
-References: <20130228102452.15191.22673.stgit@patser>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:59815 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884Ab3BFRjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 12:39:49 -0500
+Received: by mail-ea0-f174.google.com with SMTP id 1so776498eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 09:39:48 -0800 (PST)
+Message-ID: <51129592.7070701@googlemail.com>
+Date: Wed, 06 Feb 2013 18:40:34 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: fix usb alternate setting for analog and digital
+ video endpoints > 0
+References: <1358529948-2260-1-git-send-email-fschaefer.oss@googlemail.com> <20130205185707.5ecb3801@redhat.com> <51117BAE.5090605@googlemail.com> <20130205200643.145178ae@redhat.com> <5112775D.1000501@googlemail.com> <20130206140341.28b95d67@redhat.com>
+In-Reply-To: <20130206140341.28b95d67@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This stresses the lockdep code in some ways specifically useful to
-reservations. It adds checks for most of the common locking errors.
+Am 06.02.2013 17:03, schrieb Mauro Carvalho Chehab:
+> Em Wed, 06 Feb 2013 16:31:41 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 05.02.2013 23:06, schrieb Mauro Carvalho Chehab:
+>>> Em Tue, 05 Feb 2013 22:37:50 +0100
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> Am 05.02.2013 21:57, schrieb Mauro Carvalho Chehab:
+>>>>> Em Fri, 18 Jan 2013 18:25:48 +0100
+>>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>>>
+>>>>>> While the current code handles sound interfaces with a number > 0 correctly, it
+>>>>>> assumes that the interface number for analog + digital video is always 0 when
+>>>>>> changing the alternate setting.
+>>>>>>
+>>>>>> (NOTE: the "SpeedLink VAD Laplace webcam" (EM2765) uses interface number 3 for video)
+>>>>>>
+>>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>>>> ---
+>>>>>>  drivers/media/usb/em28xx/em28xx-audio.c |   10 +++++-----
+>>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
+>>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |    2 +-
+>>>>>>  drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
+>>>>>>  drivers/media/usb/em28xx/em28xx.h       |    3 +--
+>>>>>>  5 Dateien geändert, 9 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>>> index 2fdb66e..cdbfe0a 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
+>>>>>> @@ -283,15 +283,15 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+>>>>>>  	}
+>>>>>>  
+>>>>>>  	runtime->hw = snd_em28xx_hw_capture;
+>>>>>> -	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
+>>>>>> -		if (dev->audio_ifnum)
+>>>>>> +	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
+>>>>>> +		if (dev->ifnum)
+>>>>> Please don't merge a non-fix change (variable rename) with a fix.
+>>>> Ok, sorry, it seems to be trivial...
+>>>>
+>>>>> Btw, audio_ifnum is a better name, as it avoids it to be miss-interpreted.
+>>>> Did you read the complete patch ? ;)
+>>>> Or do you really want the video interface number to be called audio_ifnum ?
+>>> There are two types of em28xx audio vendor class. In one type, the audio IF
+>>> is the same as the video one, but on the other one, it is different.
+>> Sure, but if I'm not misunderstanding the code, we have two device
+>> instances with separate device structs when audio is on a separate
+>> interface.
+>>
+>> Hence we don't need two fields for the interface number in the struct
+>> and that's why renamed it.
+> No. The way the extension mechanism was written, the same data instance
+> is used by all modules. This is what is there at em28xx core:
+>
+> void em28xx_init_extension(struct em28xx *dev)
+> {
+> 	const struct em28xx_ops *ops = NULL;
+>
+> 	mutex_lock(&em28xx_devlist_mutex);
+> 	list_add_tail(&dev->devlist, &em28xx_devlist);
+> 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+> 		if (ops->init)
+> 			ops->init(dev);
+> 	}
+> 	mutex_unlock(&em28xx_devlist_mutex);
+> }
+>
+> The ops->init() receives the data from the main driver. It doesn't matter
+> if the USB interface is the same or not.
 
-Since the lockdep tests were originally written to stress the
-reservation code, I duplicated some of the definitions into
-lib/locking-selftest.c for now.
+Sure, but the device struct pointer "dev" passed to the module is different.
 
-This will be cleaned up later when the api for reservations is
-accepted. I don't expect the tests to change, since the discussion
-is mostly about the fence aspect of reservations.
+> If the changes at the probing code changed that, then it broke audio
+> support for several devices.
 
-Changes since v1:
- - Add tests to verify reservation_id is untouched.
- - Use L() and U() macros where possible.
+If I'm not misunderstanding the code completely, em28xx_usb_probe() is
+called for each USB interface.
+If an analog video, audio or DVB endpoint ist detected, it creates a new
+device instance (which has it's own device struct).
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- lib/locking-selftest.c |  588 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 569 insertions(+), 19 deletions(-)
+I don't know if this has ever been working differently, but at least it
+didn't change recently. I also think this is how it should be.
 
-diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
-index c3eb261..2c52c0e 100644
---- a/lib/locking-selftest.c
-+++ b/lib/locking-selftest.c
-@@ -26,6 +26,67 @@
-  */
- static unsigned int debug_locks_verbose;
- 
-+/*
-+ * These definitions are from the reservation objects patch series.
-+ * For now we have to define it ourselves here. These definitions will
-+ * be removed upon acceptance of that patch series.
-+ */
-+static const char reservation_object_name[] = "reservation_object";
-+static struct lock_class_key reservation_object_class;
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+static const char reservation_ticket_name[] = "reservation_ticket";
-+static struct lock_class_key reservation_ticket_class;
-+#endif
-+
-+struct reservation_object {
-+	struct ticket_mutex lock;
-+};
-+
-+struct reservation_ticket {
-+	unsigned long seqno;
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	struct lockdep_map dep_map;
-+#endif
-+};
-+
-+static inline void
-+reservation_object_init(struct reservation_object *obj)
-+{
-+	__ticket_mutex_init(&obj->lock, reservation_object_name,
-+			    &reservation_object_class);
-+}
-+
-+static inline void
-+reservation_object_fini(struct reservation_object *obj)
-+{
-+	mutex_destroy(&obj->lock.base);
-+}
-+
-+static inline void
-+reservation_ticket_init(struct reservation_ticket *t)
-+{
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	/*
-+	 * Make sure we are not reinitializing a held ticket:
-+	 */
-+
-+	debug_check_no_locks_freed((void *)t, sizeof(*t));
-+	lockdep_init_map(&t->dep_map, reservation_ticket_name,
-+			 &reservation_ticket_class, 0);
-+#endif
-+	mutex_acquire(&t->dep_map, 0, 0, _THIS_IP_);
-+	t->seqno = 5;
-+}
-+
-+static inline void
-+reservation_ticket_fini(struct reservation_ticket *t)
-+{
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	mutex_release(&t->dep_map, 0, _THIS_IP_);
-+	t->seqno = 0;
-+#endif
-+}
-+
- static int __init setup_debug_locks_verbose(char *str)
- {
- 	get_option(&str, &debug_locks_verbose);
-@@ -42,6 +103,7 @@ __setup("debug_locks_verbose=", setup_debug_locks_verbose);
- #define LOCKTYPE_RWLOCK	0x2
- #define LOCKTYPE_MUTEX	0x4
- #define LOCKTYPE_RWSEM	0x8
-+#define LOCKTYPE_RESERVATION	0x10
- 
- /*
-  * Normal standalone locks, for the circular and irq-context
-@@ -920,11 +982,17 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion_soft)
- static void reset_locks(void)
- {
- 	local_irq_disable();
-+	lockdep_free_key_range(&reservation_object_class, 1);
-+	lockdep_free_key_range(&reservation_ticket_class, 1);
-+
- 	I1(A); I1(B); I1(C); I1(D);
- 	I1(X1); I1(X2); I1(Y1); I1(Y2); I1(Z1); I1(Z2);
- 	lockdep_reset();
- 	I2(A); I2(B); I2(C); I2(D);
- 	init_shared_classes();
-+
-+	memset(&reservation_object_class, 0, sizeof(reservation_object_class));
-+	memset(&reservation_ticket_class, 0, sizeof(reservation_ticket_class));
- 	local_irq_enable();
- }
- 
-@@ -938,7 +1006,6 @@ static int unexpected_testcase_failures;
- static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
- {
- 	unsigned long saved_preempt_count = preempt_count();
--	int expected_failure = 0;
- 
- 	WARN_ON(irqs_disabled());
- 
-@@ -946,26 +1013,16 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
- 	/*
- 	 * Filter out expected failures:
- 	 */
-+	if (debug_locks != expected) {
- #ifndef CONFIG_PROVE_LOCKING
--	if ((lockclass_mask & LOCKTYPE_SPIN) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_RWLOCK) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_MUTEX) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_RWSEM) && debug_locks != expected)
--		expected_failure = 1;
-+		expected_testcase_failures++;
-+		printk("failed|");
-+#else
-+		unexpected_testcase_failures++;
-+		printk("FAILED|");
-+
-+		dump_stack();
- #endif
--	if (debug_locks != expected) {
--		if (expected_failure) {
--			expected_testcase_failures++;
--			printk("failed|");
--		} else {
--			unexpected_testcase_failures++;
--
--			printk("FAILED|");
--			dump_stack();
--		}
- 	} else {
- 		testcase_successes++;
- 		printk("  ok  |");
-@@ -1108,6 +1165,497 @@ static inline void print_testname(const char *testname)
- 	DO_TESTCASE_6IRW(desc, name, 312);			\
- 	DO_TESTCASE_6IRW(desc, name, 321);
- 
-+static void reservation_test_fail_reserve(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_ticket_init(&t);
-+	t.seqno++;
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+
-+	BUG_ON(!atomic_long_read(&o.lock.reservation_id));
-+
-+	/* No lockdep test, pure API */
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret != -EDEADLK);
-+
-+	t.seqno++;
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(ret);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret != -EAGAIN);
-+	mutex_unlock(&o.lock.base);
-+
-+	if (mutex_trylock(&o.lock.base))
-+		mutex_unlock(&o.lock.base);
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	else
-+		DEBUG_LOCKS_WARN_ON(1);
-+#endif
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_normal(void)
-+{
-+	struct reservation_object o;
-+	struct reservation_ticket t;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_ticket_init(&t);
-+
-+	/*
-+	 * test if reservation_id is kept identical if not
-+	 * called with any of the reserve_* locking calls
-+	 */
-+
-+	/* mutex_lock (and indirectly, mutex_lock_nested) */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	mutex_lock(&o.lock.base);
-+	mutex_unlock(&o.lock.base);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	/* mutex_lock_interruptible (and *_nested) */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	ret = mutex_lock_interruptible(&o.lock.base);
-+	if (!ret)
-+		mutex_unlock(&o.lock.base);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	/* mutex_lock_killable (and *_nested) */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	ret = mutex_lock_killable(&o.lock.base);
-+	if (!ret)
-+		mutex_unlock(&o.lock.base);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	/* trylock, succeeding */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+	if (ret)
-+		mutex_unlock(&o.lock.base);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	/* trylock, failing */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	mutex_lock(&o.lock.base);
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(ret);
-+	mutex_unlock(&o.lock.base);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	/* nest_lock */
-+	atomic_long_set(&o.lock.reservation_id, ~0UL);
-+	mutex_lock_nest_lock(&o.lock.base, &t);
-+	mutex_unlock(&o.lock.base);
-+	WARN_ON(atomic_long_read(&o.lock.reservation_id) != ~0UL);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_two_tickets(void)
-+{
-+	struct reservation_ticket t, t2;
-+
-+	reservation_ticket_init(&t);
-+	reservation_ticket_init(&t2);
-+
-+	reservation_ticket_fini(&t2);
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_ticket_unreserve_twice(void)
-+{
-+	struct reservation_ticket t;
-+
-+	reservation_ticket_init(&t);
-+	reservation_ticket_fini(&t);
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_object_unreserve_twice(void)
-+{
-+	struct reservation_object o;
-+
-+	reservation_object_init(&o);
-+	mutex_lock(&o.lock.base);
-+	mutex_unlock(&o.lock.base);
-+	mutex_unlock(&o.lock.base);
-+}
-+
-+static void reservation_test_fence_nest_unreserved(void)
-+{
-+	struct reservation_object o;
-+
-+	reservation_object_init(&o);
-+
-+	raw_spin_lock_nest_lock(&lock_A, &o.lock.base);
-+	U(A);
-+}
-+
-+static void reservation_test_mismatch_normal_reserve(void)
-+{
-+	struct reservation_object o;
-+
-+	reservation_object_init(&o);
-+
-+	mutex_lock(&o.lock.base);
-+	mutex_unreserve_unlock(&o.lock);
-+}
-+
-+static void reservation_test_mismatch_reserve_normal(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o;
-+	int ret;
-+
-+	reservation_ticket_init(&t);
-+	reservation_object_init(&o);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_unlock(&o.lock.base);
-+
-+	/*
-+	 * the second mutex_reserve_lock will detect the
-+	 * mismatch of the first one
-+	 */
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_mismatch_reserve_normal_slow(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o;
-+	int ret;
-+
-+	reservation_ticket_init(&t);
-+	reservation_object_init(&o);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_unlock(&o.lock.base);
-+
-+	/*
-+	 * the second mutex_reserve_lock will detect the
-+	 * mismatch of the first one
-+	 */
-+	mutex_reserve_lock_slow(&o.lock, &t, t.seqno);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_ticket_block(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o, o2;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_lock(&o2.lock.base);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_ticket_try(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o, o2;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+
-+	ret = mutex_trylock(&o2.lock.base);
-+	WARN_ON(!ret);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_ticket_ticket(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o, o2;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+
-+	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+
-+	mutex_unreserve_unlock(&o2.lock);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_try_block(void)
-+{
-+	struct reservation_object o, o2;
-+	bool ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+
-+	mutex_lock(&o2.lock.base);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unlock(&o.lock.base);
-+}
-+
-+static void reservation_test_try_try(void)
-+{
-+	struct reservation_object o, o2;
-+	bool ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+	ret = mutex_trylock(&o2.lock.base);
-+	WARN_ON(!ret);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unlock(&o.lock.base);
-+}
-+
-+static void reservation_test_try_ticket(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o, o2;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+
-+	mutex_unreserve_unlock(&o2.lock);
-+	mutex_unlock(&o.lock.base);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_block_block(void)
-+{
-+	struct reservation_object o, o2;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	mutex_lock(&o.lock.base);
-+	mutex_lock(&o2.lock.base);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unlock(&o.lock.base);
-+}
-+
-+static void reservation_test_block_try(void)
-+{
-+	struct reservation_object o, o2;
-+	bool ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	mutex_lock(&o.lock.base);
-+	ret = mutex_trylock(&o2.lock.base);
-+	WARN_ON(!ret);
-+	mutex_unlock(&o2.lock.base);
-+	mutex_unlock(&o.lock.base);
-+}
-+
-+static void reservation_test_block_ticket(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o, o2;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	reservation_object_init(&o2);
-+
-+	mutex_lock(&o.lock.base);
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o2.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_unreserve_unlock(&o2.lock);
-+	mutex_unlock(&o.lock.base);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_test_fence_block(void)
-+{
-+	struct reservation_object o;
-+
-+	reservation_object_init(&o);
-+	L(A);
-+	U(A);
-+
-+	mutex_lock(&o.lock.base);
-+	L(A);
-+	U(A);
-+	mutex_unlock(&o.lock.base);
-+
-+	L(A);
-+	mutex_lock(&o.lock.base);
-+	mutex_unlock(&o.lock.base);
-+	U(A);
-+}
-+
-+static void reservation_test_fence_try(void)
-+{
-+	struct reservation_object o;
-+	bool ret;
-+
-+	reservation_object_init(&o);
-+	L(A);
-+	U(A);
-+
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+	L(A);
-+	U(A);
-+	mutex_unlock(&o.lock.base);
-+
-+	L(A);
-+	ret = mutex_trylock(&o.lock.base);
-+	WARN_ON(!ret);
-+	mutex_unlock(&o.lock.base);
-+	U(A);
-+}
-+
-+static void reservation_test_fence_ticket(void)
-+{
-+	struct reservation_ticket t;
-+	struct reservation_object o;
-+	int ret;
-+
-+	reservation_object_init(&o);
-+	L(A);
-+	U(A);
-+
-+	reservation_ticket_init(&t);
-+
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	L(A);
-+	U(A);
-+	mutex_unreserve_unlock(&o.lock);
-+
-+	L(A);
-+	ret = mutex_reserve_lock(&o.lock, &t, t.seqno);
-+	WARN_ON(ret);
-+	mutex_unreserve_unlock(&o.lock);
-+	U(A);
-+
-+	reservation_ticket_fini(&t);
-+}
-+
-+static void reservation_tests(void)
-+{
-+	printk("  --------------------------------------------------------------------------\n");
-+	printk("  | Reservation tests |\n");
-+	printk("  ---------------------\n");
-+
-+	print_testname("reservation api failures");
-+	dotest(reservation_test_fail_reserve, SUCCESS, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_normal, SUCCESS, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("reserving two tickets");
-+	dotest(reservation_test_two_tickets, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("unreserve ticket twice");
-+	dotest(reservation_test_ticket_unreserve_twice, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("unreserve object twice");
-+	dotest(reservation_test_object_unreserve_twice, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("spinlock nest unreserved");
-+	dotest(reservation_test_fence_nest_unreserved, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("mutex reserve (un)lock mismatch");
-+	dotest(reservation_test_mismatch_normal_reserve, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_mismatch_reserve_normal, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_mismatch_reserve_normal_slow, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	printk("  -----------------------------------------------------\n");
-+	printk("                                 |block | try  |ticket|\n");
-+	printk("  -----------------------------------------------------\n");
-+
-+	print_testname("ticket");
-+	dotest(reservation_test_ticket_block, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_ticket_try, SUCCESS, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_ticket_ticket, SUCCESS, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("try");
-+	dotest(reservation_test_try_block, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_try_try, SUCCESS, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_try_ticket, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("block");
-+	dotest(reservation_test_block_block, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_block_try, SUCCESS, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_block_ticket, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+
-+	print_testname("spinlock");
-+	dotest(reservation_test_fence_block, FAILURE, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_fence_try, SUCCESS, LOCKTYPE_RESERVATION);
-+	dotest(reservation_test_fence_ticket, FAILURE, LOCKTYPE_RESERVATION);
-+	printk("\n");
-+}
- 
- void locking_selftest(void)
- {
-@@ -1188,6 +1736,8 @@ void locking_selftest(void)
- 	DO_TESTCASE_6x2("irq read-recursion", irq_read_recursion);
- //	DO_TESTCASE_6x2B("irq read-recursion #2", irq_read_recursion2);
- 
-+	reservation_tests();
-+
- 	if (unexpected_testcase_failures) {
- 		printk("-----------------------------------------------------------------\n");
- 		debug_locks = 0;
+Unfortunately I don't have one of these device for testing, so I don't
+know if audio is currently broken for them.
+What I can say for sure is, that devices with the isoc video/DVB
+endpoints at an interface > 0 are currently broken, which is what I'm
+trying to fix with this patch.
+
+Regards,
+Frank
+
+>
+>> Regards,
+>> Frank
+>>
+>>> That's why audio_ifnum were added in the first place.
+>>>
+>>> See this commit:
+>>>
+>>> commit 4f83e7b3ef938eb9a01eadf81a0f3b2c67d3afb6
+>>> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> Date:   Fri Jun 17 15:15:12 2011 -0300
+>>>
+>>>     [media] em28xx: Add support for devices with a separate audio interface
+>>>     
+>>>     Some devices use a separate interface for the vendor audio class.
+>>>     
+>>>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>>>>>  			dev->alt = 1;
+>>>>>>  		else
+>>>>>>  			dev->alt = 7;
+>>>>>>  
+>>>>>>  		dprintk("changing alternate number on interface %d to %d\n",
+>>>>>> -			dev->audio_ifnum, dev->alt);
+>>>>>> -		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
+>>>>>> +			dev->ifnum, dev->alt);
+>>>>>> +		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>>>>>  
+>>>>>>  		/* Sets volume, mute, etc */
+>>>>>>  		dev->mute = 0;
+>>>>>> @@ -642,7 +642,7 @@ static int em28xx_audio_init(struct em28xx *dev)
+>>>>>>  	static int          devnr;
+>>>>>>  	int                 err;
+>>>>>>  
+>>>>>> -	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
+>>>>>> +	if (!dev->has_alsa_audio) {
+>>>>>>  		/* This device does not support the extension (in this case
+>>>>>>  		   the device is expecting the snd-usb-audio module or
+>>>>>>  		   doesn't have analog audio support at all) */
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>>> index 0a5aa62..553db17 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>>>>>> @@ -3376,7 +3376,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+>>>>>>  	dev->alt   = -1;
+>>>>>>  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
+>>>>>>  	dev->has_alsa_audio = has_audio;
+>>>>>> -	dev->audio_ifnum = ifnum;
+>>>>>> +	dev->ifnum = ifnum;
+>>>>>>  
+>>>>>>  	/* Checks if audio is provided by some interface */
+>>>>>>  	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+>>>>>> index ce4f252..210859a 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx-core.c
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+>>>>>> @@ -862,7 +862,7 @@ set_alt:
+>>>>>>  	}
+>>>>>>  	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
+>>>>>>  		       dev->alt, dev->max_pkt_size);
+>>>>>> -	errCode = usb_set_interface(dev->udev, 0, dev->alt);
+>>>>>> +	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
+>>>>>>  	if (errCode < 0) {
+>>>>>>  		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
+>>>>>>  				dev->alt, errCode);
+>>>>> This hunk doesn't apply upstream:
+>>>>>
+>>>>> patching file drivers/media/usb/em28xx/em28xx-core.c
+>>>>> Hunk #1 FAILED at 862.
+>>>>> 1 out of 1 hunk FAILED -- rejects in file drivers/media/usb/em28xx/em28xx-core.c
+>>>> It applies after
+>>>>
+>>>> http://patchwork.linuxtv.org/patch/16197/
+>>>>
+>>>> has been applied.
+>>>>
+>>>> Regards,
+>>>> Frank
+>>>>
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>>> index a81ec2e..dbeed6c 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+>>>>>> @@ -196,7 +196,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+>>>>>>  		dvb_alt = dev->dvb_alt_isoc;
+>>>>>>  	}
+>>>>>>  
+>>>>>> -	usb_set_interface(dev->udev, 0, dvb_alt);
+>>>>>> +	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
+>>>>>>  	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+>>>>>>  	if (rc < 0)
+>>>>>>  		return rc;
+>>>>>> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+>>>>>> index 5f0b2c5..0dc5b73 100644
+>>>>>> --- a/drivers/media/usb/em28xx/em28xx.h
+>>>>>> +++ b/drivers/media/usb/em28xx/em28xx.h
+>>>>>> @@ -487,8 +487,6 @@ struct em28xx {
+>>>>>>  
+>>>>>>  	unsigned char disconnected:1;	/* device has been diconnected */
+>>>>>>  
+>>>>>> -	int audio_ifnum;
+>>>>>> -
+>>>>>>  	struct v4l2_device v4l2_dev;
+>>>>>>  	struct v4l2_ctrl_handler ctrl_handler;
+>>>>>>  	/* provides ac97 mute and volume overrides */
+>>>>>> @@ -597,6 +595,7 @@ struct em28xx {
+>>>>>>  
+>>>>>>  	/* usb transfer */
+>>>>>>  	struct usb_device *udev;	/* the usb device */
+>>>>>> +	int ifnum;			/* usb interface number */
+>>>>>>  	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
+>>>>>>  	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
+>>>>>>  	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
 
