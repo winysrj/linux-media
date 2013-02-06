@@ -1,46 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:51489 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759202Ab3BGRjf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:35 -0500
-Received: by mail-ea0-f178.google.com with SMTP id a14so1284850eaa.23
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:34 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 05/13] em28xx: disable ioctl VIDIOC_S_PARM for VBI devices
-Date: Thu,  7 Feb 2013 18:39:13 +0100
-Message-Id: <1360258761-2959-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2469 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755294Ab3BFX6N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 18:58:13 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r16NwASr032636
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 7 Feb 2013 00:58:12 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0ED8C11E00C7
+	for <linux-media@vger.kernel.org>; Thu,  7 Feb 2013 00:58:03 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130206235804.0ED8C11E00C7@alastor.dyndns.org>
+Date: Thu,  7 Feb 2013 00:58:03 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VIDIOC_S_PARM doesn't make sense for VBI device nodes, because we don't support
-selecting the number of read buffers to use.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    1 +
- 1 Datei geändert, 1 Zeile hinzugefügt(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index c76714d..d4dc5b2 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1920,6 +1920,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		dev->vbi_dev->queue->lock = &dev->vb_vbi_queue_lock;
- 
- 		/* disable inapplicable ioctls */
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_PARM);
- 		if (dev->tuner_type == TUNER_ABSENT) {
- 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_G_TUNER);
- 			v4l2_disable_ioctl(dev->vbi_dev, VIDIOC_S_TUNER);
--- 
-1.7.10.4
+date:		Wed Feb  6 22:29:20 CET 2013
+git branch:	for_v3.9
+git hash:	248ac368ce4b3cd36515122d888403909d7a2500
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: ERRORS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
