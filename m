@@ -1,140 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1818 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754489Ab3BDMgy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 5/8] stk-webcam: add support for control events and prio handling.
-Date: Mon,  4 Feb 2013 13:36:18 +0100
-Message-Id: <16036723ebea0acd927b7f693f7cee16d8cd3fbc.1359981193.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
-References: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:61680 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab3BFHc0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 02:32:26 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHS005YIFLPHKR0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 16:32:24 +0900 (KST)
+Received: from NOINKIDAE02 ([10.90.8.52])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHS00081FLZ1W70@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 16:32:24 +0900 (KST)
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org
+Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com, patches@linaro.org,
+	'Ajay Kumar' <ajaykumar.rs@samsung.com>
+References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+ <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
+Subject: RE: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+Date: Wed, 06 Feb 2013 16:32:23 +0900
+Message-id: <02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+> -----Original Message-----
+> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+> Sent: Wednesday, February 06, 2013 2:30 PM
+> To: linux-media@vger.kernel.org; dri-devel@lists.freedesktop.org;
+> devicetree-discuss@lists.ozlabs.org
+> Cc: k.debski@samsung.com; sachin.kamat@linaro.org; inki.dae@samsung.com;
+> s.nawrocki@samsung.com; kgene.kim@samsung.com; patches@linaro.org; Ajay
+> Kumar
+> Subject: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
+> support for G2D
+> 
+> From: Ajay Kumar <ajaykumar.rs@samsung.com>
+> 
+> This patch adds device tree match table for Exynos G2D controller.
+> 
+> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+> Patch based on exynos-drm-fixes branch of Inki Dae's tree:
+> git://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
+> 
+> Changes since v1:
+> Modified the compatible string as per the discussions at [1].
+> [1] https://patchwork1.kernel.org/patch/2045821/
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_g2d.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> index ddcfb5d..0fcfbe4 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/workqueue.h>
+>  #include <linux/dma-mapping.h>
+>  #include <linux/dma-attrs.h>
+> +#include <linux/of.h>
+> 
+>  #include <drm/drmP.h>
+>  #include <drm/exynos_drm.h>
+> @@ -1240,6 +1241,14 @@ static int g2d_resume(struct device *dev)
+> 
+>  static SIMPLE_DEV_PM_OPS(g2d_pm_ops, g2d_suspend, g2d_resume);
+> 
+> +#ifdef CONFIG_OF
+> +static const struct of_device_id exynos_g2d_match[] = {
+> +	{ .compatible = "samsung,exynos5250-g2d" },
 
-Also correct the first_init static: this should be part of the stk_camera struct.
+Looks good to me but please add document for it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/stkwebcam/stk-webcam.c |   27 +++++++++++++++++----------
- drivers/media/usb/stkwebcam/stk-webcam.h |    1 +
- 2 files changed, 18 insertions(+), 10 deletions(-)
+To other guys,
+And is there anyone who know where this document should be added to?
+I'm not sure that the g2d document should be placed in
+Documentation/devicetree/bindings/gpu, media, drm/exynos or arm/exynos. At
+least, this document should be shared with the g2d hw relevant drivers such
+as v4l2 and drm. So is ".../bindings/gpu" proper place?
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 24dc240..a7882d6 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -35,6 +35,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-event.h>
- 
- #include "stk-webcam.h"
- 
-@@ -565,20 +566,21 @@ static void stk_free_buffers(struct stk_camera *dev)
- 
- static int v4l_stk_open(struct file *fp)
- {
--	static int first_init = 1; /* webcam LED management */
- 	struct stk_camera *dev = video_drvdata(fp);
-+	int err;
- 
- 	if (dev == NULL || !is_present(dev))
- 		return -ENXIO;
- 
--	if (!first_init)
-+	if (!dev->first_init)
- 		stk_camera_write_reg(dev, 0x0, 0x24);
- 	else
--		first_init = 0;
--
--	usb_autopm_get_interface(dev->interface);
-+		dev->first_init = 0;
- 
--	return 0;
-+	err = v4l2_fh_open(fp);
-+	if (!err)
-+		usb_autopm_get_interface(dev->interface);
-+	return err;
- }
- 
- static int v4l_stk_release(struct file *fp)
-@@ -595,8 +597,7 @@ static int v4l_stk_release(struct file *fp)
- 
- 	if (is_present(dev))
- 		usb_autopm_put_interface(dev->interface);
--
--	return 0;
-+	return v4l2_fh_release(fp);
- }
- 
- static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
-@@ -663,6 +664,7 @@ static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
- static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
- {
- 	struct stk_camera *dev = video_drvdata(fp);
-+	unsigned res = v4l2_ctrl_poll(fp, wait);
- 
- 	poll_wait(fp, &dev->wait_frame, wait);
- 
-@@ -670,9 +672,9 @@ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
- 		return POLLERR;
- 
- 	if (!list_empty(&dev->sio_full))
--		return POLLIN | POLLRDNORM;
-+		return res | POLLIN | POLLRDNORM;
- 
--	return 0;
-+	return res;
- }
- 
- 
-@@ -1152,6 +1154,9 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
- 	.vidioc_streamoff = stk_vidioc_streamoff,
- 	.vidioc_g_parm = stk_vidioc_g_parm,
- 	.vidioc_enum_framesizes = stk_vidioc_enum_framesizes,
-+	.vidioc_log_status = v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static void stk_v4l_dev_release(struct video_device *vd)
-@@ -1179,6 +1184,7 @@ static int stk_register_video_device(struct stk_camera *dev)
- 	dev->vdev = stk_v4l_data;
- 	dev->vdev.debug = debug;
- 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
- 	video_set_drvdata(&dev->vdev, dev);
- 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (err)
-@@ -1232,6 +1238,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 
- 	spin_lock_init(&dev->spinlock);
- 	init_waitqueue_head(&dev->wait_frame);
-+	dev->first_init = 1; /* webcam LED management */
- 
- 	dev->udev = udev;
- 	dev->interface = interface;
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 901f0df..2156320 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -99,6 +99,7 @@ struct stk_camera {
- 	struct usb_interface *interface;
- 	int webcam_model;
- 	struct file *owner;
-+	int first_init;
- 
- 	u8 isoc_ep;
- 
--- 
-1.7.10.4
+Thanks,
+Inki Dae
+
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, exynos_g2d_match);
+> +#endif
+> +
+>  struct platform_driver g2d_driver = {
+>  	.probe		= g2d_probe,
+>  	.remove		= g2d_remove,
+> @@ -1247,5 +1256,6 @@ struct platform_driver g2d_driver = {
+>  		.name	= "s5p-g2d",
+>  		.owner	= THIS_MODULE,
+>  		.pm	= &g2d_pm_ops,
+> +		.of_match_table = of_match_ptr(exynos_g2d_match),
+>  	},
+>  };
+> --
+> 1.7.4.1
 
