@@ -1,435 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1695 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496Ab3BIKIn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:08:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 09/26] cx231xx: convert to the control framework.
-Date: Sat,  9 Feb 2013 11:00:39 +0100
-Message-Id: <d1b79c93e5d299f7358c20a104c940f43166c8c7.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from s250.sam-solutions.net ([217.21.49.219]:49798 "EHLO
+	s250.sam-solutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab3BFOzq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:55:46 -0500
+Message-ID: <511268BE.3020508@sam-solutions.net>
+Date: Wed, 6 Feb 2013 17:29:18 +0300
+From: Andrei Andreyanau <a.andreyanau@sam-solutions.net>
+Reply-To: a.andreyanau@sam-solutions.net
+MIME-Version: 1.0
+To: <linux-media@vger.kernel.org>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH] [media] mt9v022 driver: send valid HORIZONTAL_BLANKING values
+ to mt9v024 soc camera
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch fixes the issue that appears when mt9v024 camera is used with the
+mt9v022 soc camera driver. The minimum total row time is 690 columns
+(horizontal width + horizontal blanking). The minimum horizontal
+blanking is 61. Thus, when the window width is set below 627, horizontal blanking must
+be increased. For the mt9v024 camera the values above are correct and
+for the mt9v022 camera the correct values are in the existing kernel driver.
 
-This is needed to resolve the v4l2-compliance complaints about the control
-ioctls.
+Signed-off-by: Andrei Andreyanau <a.andreyanau@sam-solutions.net>
+--- linux/drivers/media/i2c/soc_camera/mt9v022.c.orig	2013-02-06 15:43:35.522079869 +0300
++++ linux/drivers/media/i2c/soc_camera/mt9v022.c	2013-02-06 14:53:44.000000000 +0300
+@@ -275,6 +275,7 @@ static int mt9v022_s_crop(struct v4l2_su
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 	struct v4l2_rect rect = a->c;
++	int min_row, min_blank;
+ 	int ret;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-audio.c |    4 -
- drivers/media/usb/cx231xx/cx231xx-cards.c |    2 -
- drivers/media/usb/cx231xx/cx231xx-video.c |  244 +++--------------------------
- drivers/media/usb/cx231xx/cx231xx.h       |   13 +-
- 4 files changed, 27 insertions(+), 236 deletions(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
-index b4c99c7..b40360b 100644
---- a/drivers/media/usb/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
-@@ -449,9 +449,6 @@ static int snd_cx231xx_capture_open(struct snd_pcm_substream *substream)
- 		return -ENODEV;
- 	}
- 
--	/* Sets volume, mute, etc */
--	dev->mute = 0;
--
- 	/* set alternate setting for audio interface */
- 	/* 1 - 48000 samples per sec */
- 	mutex_lock(&dev->lock);
-@@ -503,7 +500,6 @@ static int snd_cx231xx_pcm_close(struct snd_pcm_substream *substream)
- 		return ret;
- 	}
- 
--	dev->mute = 1;
- 	dev->adev.users--;
- 	mutex_unlock(&dev->lock);
- 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 8d52956..d6acb1e 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -846,8 +846,6 @@ void cx231xx_card_setup(struct cx231xx *dev)
- int cx231xx_config(struct cx231xx *dev)
- {
- 	/* TBD need to add cx231xx specific code */
--	dev->mute = 1;		/* maybe not the right place... */
--	dev->volume = 0x1f;
- 
- 	return 0;
- }
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index f96fbd6..e2a4330 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -100,125 +100,6 @@ static struct cx231xx_fmt format[] = {
- 	 },
- };
- 
--/* supported controls */
--/* Common to all boards */
--
--/* ------------------------------------------------------------------- */
--
--static const struct v4l2_queryctrl no_ctl = {
--	.name = "42",
--	.flags = V4L2_CTRL_FLAG_DISABLED,
--};
--
--static struct cx231xx_ctrl cx231xx_ctls[] = {
--	/* --- video --- */
--	{
--		.v = {
--			.id = V4L2_CID_BRIGHTNESS,
--			.name = "Brightness",
--			.minimum = 0x00,
--			.maximum = 0xff,
--			.step = 1,
--			.default_value = 0x7f,
--			.type = V4L2_CTRL_TYPE_INTEGER,
--		},
--		.off = 128,
--		.reg = LUMA_CTRL,
--		.mask = 0x00ff,
--		.shift = 0,
--	}, {
--		.v = {
--			.id = V4L2_CID_CONTRAST,
--			.name = "Contrast",
--			.minimum = 0,
--			.maximum = 0xff,
--			.step = 1,
--			.default_value = 0x3f,
--			.type = V4L2_CTRL_TYPE_INTEGER,
--		},
--		.off = 0,
--		.reg = LUMA_CTRL,
--		.mask = 0xff00,
--		.shift = 8,
--	}, {
--		.v = {
--			.id = V4L2_CID_HUE,
--			.name = "Hue",
--			.minimum = 0,
--			.maximum = 0xff,
--			.step = 1,
--			.default_value = 0x7f,
--			.type = V4L2_CTRL_TYPE_INTEGER,
--		},
--		.off = 128,
--		.reg = CHROMA_CTRL,
--		.mask = 0xff0000,
--		.shift = 16,
--	}, {
--	/* strictly, this only describes only U saturation.
--	* V saturation is handled specially through code.
--	*/
--		.v = {
--			.id = V4L2_CID_SATURATION,
--			.name = "Saturation",
--			.minimum = 0,
--			.maximum = 0xff,
--			.step = 1,
--			.default_value = 0x7f,
--			.type = V4L2_CTRL_TYPE_INTEGER,
--		},
--		.off = 0,
--		.reg = CHROMA_CTRL,
--		.mask = 0x00ff,
--		.shift = 0,
--	}, {
--		/* --- audio --- */
--		.v = {
--			.id = V4L2_CID_AUDIO_MUTE,
--			.name = "Mute",
--			.minimum = 0,
--			.maximum = 1,
--			.default_value = 1,
--			.type = V4L2_CTRL_TYPE_BOOLEAN,
--		},
--		.reg = PATH1_CTL1,
--		.mask = (0x1f << 24),
--		.shift = 24,
--	}, {
--		.v = {
--			.id = V4L2_CID_AUDIO_VOLUME,
--			.name = "Volume",
--			.minimum = 0,
--			.maximum = 0x3f,
--			.step = 1,
--			.default_value = 0x3f,
--			.type = V4L2_CTRL_TYPE_INTEGER,
--		},
--		.reg = PATH1_VOL_CTL,
--		.mask = 0xff,
--		.shift = 0,
--	}
--};
--static const int CX231XX_CTLS = ARRAY_SIZE(cx231xx_ctls);
--
--static const u32 cx231xx_user_ctrls[] = {
--	V4L2_CID_USER_CLASS,
--	V4L2_CID_BRIGHTNESS,
--	V4L2_CID_CONTRAST,
--	V4L2_CID_SATURATION,
--	V4L2_CID_HUE,
--	V4L2_CID_AUDIO_VOLUME,
--#if 0
--	V4L2_CID_AUDIO_BALANCE,
--#endif
--	V4L2_CID_AUDIO_MUTE,
--	0
--};
--
--static const u32 *ctrl_classes[] = {
--	cx231xx_user_ctrls,
--	NULL
--};
- 
- /* ------------------------------------------------------------------
- 	Video buffer and parser functions
-@@ -1233,78 +1114,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--static int vidioc_queryctrl(struct file *file, void *priv,
--			    struct v4l2_queryctrl *qc)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int id = qc->id;
--	int i;
--	int rc;
--
--	rc = check_dev(dev);
--	if (rc < 0)
--		return rc;
--
--	qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
--	if (unlikely(qc->id == 0))
--		return -EINVAL;
--
--	memset(qc, 0, sizeof(*qc));
--
--	qc->id = id;
--
--	if (qc->id < V4L2_CID_BASE || qc->id >= V4L2_CID_LASTP1)
--		return -EINVAL;
--
--	for (i = 0; i < CX231XX_CTLS; i++)
--		if (cx231xx_ctls[i].v.id == qc->id)
--			break;
--
--	if (i == CX231XX_CTLS) {
--		*qc = no_ctl;
--		return 0;
--	}
--	*qc = cx231xx_ctls[i].v;
--
--	call_all(dev, core, queryctrl, qc);
--
--	if (qc->type)
--		return 0;
--	else
--		return -EINVAL;
--}
--
--static int vidioc_g_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int rc;
--
--	rc = check_dev(dev);
--	if (rc < 0)
--		return rc;
--
--	call_all(dev, core, g_ctrl, ctrl);
--	return rc;
--}
--
--static int vidioc_s_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int rc;
--
--	rc = check_dev(dev);
--	if (rc < 0)
--		return rc;
--
--	call_all(dev, core, s_ctrl, ctrl);
--	return rc;
--}
--
- static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct cx231xx_fh *fh = priv;
-@@ -2011,26 +1820,6 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- 	return 0;
- }
- 
--static int radio_queryctrl(struct file *file, void *priv,
--			   struct v4l2_queryctrl *c)
--{
--	int i;
--
--	if (c->id < V4L2_CID_BASE || c->id >= V4L2_CID_LASTP1)
--		return -EINVAL;
--	if (c->id == V4L2_CID_AUDIO_MUTE) {
--		for (i = 0; i < CX231XX_CTLS; i++) {
--			if (cx231xx_ctls[i].v.id == c->id)
--				break;
--		}
--		if (i == CX231XX_CTLS)
--			return -EINVAL;
--		*c = cx231xx_ctls[i].v;
--	} else
--		*c = no_ctl;
--	return 0;
--}
--
- /*
-  * cx231xx_v4l2_open()
-  * inits the device and starts isoc transfer
-@@ -2179,6 +1968,8 @@ void cx231xx_release_analog_resources(struct cx231xx *dev)
- 			video_device_release(dev->vdev);
- 		dev->vdev = NULL;
- 	}
-+	v4l2_ctrl_handler_free(&dev->ctrl_handler);
-+	v4l2_ctrl_handler_free(&dev->radio_ctrl_handler);
- }
- 
- /*
-@@ -2401,9 +2192,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_enum_input             = vidioc_enum_input,
- 	.vidioc_g_input                = vidioc_g_input,
- 	.vidioc_s_input                = vidioc_s_input,
--	.vidioc_queryctrl              = vidioc_queryctrl,
--	.vidioc_g_ctrl                 = vidioc_g_ctrl,
--	.vidioc_s_ctrl                 = vidioc_s_ctrl,
- 	.vidioc_streamon               = vidioc_streamon,
- 	.vidioc_streamoff              = vidioc_streamoff,
- 	.vidioc_g_tuner                = vidioc_g_tuner,
-@@ -2438,9 +2226,6 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_querycap    = vidioc_querycap,
- 	.vidioc_g_tuner     = radio_g_tuner,
- 	.vidioc_s_tuner     = radio_s_tuner,
--	.vidioc_queryctrl   = radio_queryctrl,
--	.vidioc_g_ctrl      = vidioc_g_ctrl,
--	.vidioc_s_ctrl      = vidioc_s_ctrl,
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
- 	.vidioc_g_chip_ident = vidioc_g_chip_ident,
-@@ -2505,9 +2290,21 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 	/* Set the initial input */
- 	video_mux(dev, dev->video_input);
- 
--	/* Audio defaults */
--	dev->mute = 1;
--	dev->volume = 0x1f;
-+	v4l2_ctrl_handler_init(&dev->ctrl_handler, 10);
-+	v4l2_ctrl_handler_init(&dev->radio_ctrl_handler, 5);
-+
-+	if (dev->sd_cx25840) {
-+		v4l2_ctrl_add_handler(&dev->ctrl_handler,
-+				dev->sd_cx25840->ctrl_handler, NULL);
-+		v4l2_ctrl_add_handler(&dev->radio_ctrl_handler,
-+				dev->sd_cx25840->ctrl_handler,
-+				v4l2_ctrl_radio_filter);
+ 	/* Bayer format - even size lengths */
+@@ -310,13 +311,21 @@ static int mt9v022_s_crop(struct v4l2_su
+ 		ret = reg_write(client, MT9V022_COLUMN_START, rect.left);
+ 	if (!ret)
+ 		ret = reg_write(client, MT9V022_ROW_START, rect.top);
++	/*
++	 * mt9v022: min total row time is 660 columns, min blanking is 43
++	 * mt9v024: min total row time is 690 columns, min blanking is 61
++	 */
++	if (is_mt9v024(mt9v022->chip_version)) {
++		min_row = 690;
++		min_blank = 61;
++	} else {
++		min_row = 660;
++		min_blank = 43;
 +	}
-+
-+	if (dev->ctrl_handler.error)
-+		return dev->ctrl_handler.error;
-+	if (dev->radio_ctrl_handler.error)
-+		return dev->radio_ctrl_handler.error;
- 
- 	/* enable vbi capturing */
- 	/* write code here...  */
-@@ -2519,6 +2316,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 		return -ENODEV;
- 	}
- 
-+	dev->vdev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 video video_device */
- 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
- 				    video_nr[dev->devno]);
-@@ -2538,6 +2336,11 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 	/* Allocate and fill vbi video_device struct */
- 	dev->vbi_dev = cx231xx_vdev_init(dev, &cx231xx_vbi_template, "vbi");
- 
-+	if (!dev->vbi_dev) {
-+		cx231xx_errdev("cannot allocate video_device.\n");
-+		return -ENODEV;
-+	}
-+	dev->vbi_dev->ctrl_handler = &dev->ctrl_handler;
- 	/* register v4l2 vbi video_device */
- 	ret = video_register_device(dev->vbi_dev, VFL_TYPE_VBI,
- 				    vbi_nr[dev->devno]);
-@@ -2556,6 +2359,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
- 			cx231xx_errdev("cannot allocate video_device.\n");
- 			return -ENODEV;
- 		}
-+		dev->radio_dev->ctrl_handler = &dev->radio_ctrl_handler;
- 		ret = video_register_device(dev->radio_dev, VFL_TYPE_RADIO,
- 					    radio_nr[dev->devno]);
- 		if (ret < 0) {
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 3e11462..53408ce 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -33,6 +33,7 @@
- 
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/rc-core.h>
- #include <media/ir-kbd-i2c.h>
- #include <media/videobuf-dvb.h>
-@@ -516,14 +517,6 @@ struct cx231xx_tvnorm {
- 	u32		cxoformat;
- };
- 
--struct cx231xx_ctrl {
--	struct v4l2_queryctrl v;
--	u32 off;
--	u32 reg;
--	u32 mask;
--	u32 shift;
--};
--
- enum TRANSFER_TYPE {
- 	Raw_Video = 0,
- 	Audio,
-@@ -631,6 +624,8 @@ struct cx231xx {
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_subdev *sd_cx25840;
- 	struct v4l2_subdev *sd_tuner;
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl_handler radio_ctrl_handler;
- 
- 	struct work_struct wq_trigger;		/* Trigger to start/stop audio for alsa module */
- 	atomic_t	   stream_started;	/* stream should be running if true */
-@@ -653,8 +648,6 @@ struct cx231xx {
- 	v4l2_std_id norm;	/* selected tv norm */
- 	int ctl_freq;		/* selected frequency */
- 	unsigned int ctl_ainput;	/* selected audio input */
--	int mute;
--	int volume;
- 
- 	/* frame properties */
- 	int width;		/* current frame width */
--- 
-1.7.10.4
-
+ 	if (!ret)
+-		/*
+-		 * Default 94, Phytec driver says:
+-		 * "width + horizontal blank >= 660"
+-		 */
+ 		ret = v4l2_ctrl_s_ctrl(mt9v022->hblank,
+-				rect.width > 660 - 43 ? 43 : 660 - rect.width);
++				rect.width > min_row - min_blank ?
++				min_blank : min_row - rect.width);
+ 	if (!ret)
+ 		ret = v4l2_ctrl_s_ctrl(mt9v022->vblank, 45);
+ 	if (!ret)
