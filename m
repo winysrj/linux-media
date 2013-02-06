@@ -1,98 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f171.google.com ([209.85.210.171]:60194 "EHLO
-	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757Ab3BNKqh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 05:46:37 -0500
-Received: by mail-ia0-f171.google.com with SMTP id z13so2148318iaz.16
-        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 02:46:36 -0800 (PST)
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:42525 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752053Ab3BFJ5u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 04:57:50 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.9] Move cx2341x from media/i2c to media/common
+Date: Wed, 6 Feb 2013 10:57:00 +0100
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <201301290956.20849.hverkuil@xs4all.nl> <201302060846.35774.hverkuil@xs4all.nl> <20130206071604.768c77b5@redhat.com>
+In-Reply-To: <20130206071604.768c77b5@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1360633824-2563-1-git-send-email-sheu@google.com>
-References: <1360633824-2563-1-git-send-email-sheu@google.com>
-Date: Thu, 14 Feb 2013 11:46:36 +0100
-Message-ID: <CAKMK7uEEKwQDFTzv_nM8p6hXY2DiwTYpjPhQXFb2EKuR=o8=Ag@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH] CHROMIUM: dma-buf: restore args on
- failure of dma_buf_mmap
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: sheu@google.com
-Cc: sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302061057.01005.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 12, 2013 at 2:50 AM,  <sheu@google.com> wrote:
-> From: John Sheu <sheu@google.com>
->
-> Callers to dma_buf_mmap expect to fput() the vma struct's vm_file
-> themselves on failure.  Not restoring the struct's data on failure
-> causes a double-decrement of the vm_file's refcount.
->
-> Signed-off-by: John Sheu <sheu@google.com>
+On Wed 6 February 2013 10:16:04 Mauro Carvalho Chehab wrote:
+> Em Wed, 6 Feb 2013 08:46:35 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Tue February 5 2013 19:49:41 Mauro Carvalho Chehab wrote:
+> > > Hi Hans,
+> > > 
+> > > Em Tue, 29 Jan 2013 09:56:20 +0100
+> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > 
+> > > > Hi Mauro,
+> > > > 
+> > > > The cx2341x module is a helper module for conexant-based MPEG encoders.
+> > > > It isn't an i2c module at all, instead it should be in common since it is
+> > > > used by 7 pci and usb drivers to handle the MPEG setup.
+> > > >     
+> > > > It also shouldn't be visible in the config menu as it is always
+> > > > selected automatically by those drivers that need it.
+> > > 
+> > > It should be noticed that the other non-i2c helper drivers also at
+> > > the i2c directories:
+> > > 	$ grep -L i2c_client drivers/media/i2c/*.c|grep -v mod
+> > > 	drivers/media/i2c/aptina-pll.c
+> > > 	drivers/media/i2c/btcx-risc.c
+> > > 	drivers/media/i2c/cx2341x.c
+> > > 	drivers/media/i2c/smiapp-pll.c
+> > >
+> > > A closer look may even hit some weird stuff, like tveeprom. This
+> > > particular helper driver is not an I2C driver, although it
+> > > has i2c_client symbol there, in order to optionally read the data
+> > > via I2C, instead of receiving it via an API call.
+> > 
+> > At least aptina-pll.c, smiapp-pll.c and tveeprom.c all have some relationship
+> > with i2c.
+> 
+> True, but none of the three are actually i2c drivers; they're just shared
+> functions used by drivers helper code.
+> 
+> Hmm...
+> 
+> $ git grep aptina-pll.h drivers/media/
+> drivers/media/i2c/aptina-pll.c:#include "aptina-pll.h"
+> drivers/media/i2c/mt9m032.c:#include "aptina-pll.h"
+> drivers/media/i2c/mt9p031.c:#include "aptina-pll.h"
+> 
+> $ git grep smiapp-pll.h drivers/media/
+> drivers/media/i2c/smiapp-pll.c:#include "smiapp-pll.h"
+> drivers/media/i2c/smiapp-pll.h: * drivers/media/i2c/smiapp-pll.h
+> drivers/media/i2c/smiapp/smiapp.h:#include "smiapp-pll.h"
+> 
+> $ git grep smiapp.h drivers/media/
+> drivers/media/i2c/smiapp/smiapp-core.c:#include "smiapp.h"
+> drivers/media/i2c/smiapp/smiapp-limits.c:#include "smiapp.h"
+> drivers/media/i2c/smiapp/smiapp-quirk.c:#include "smiapp.h"
+> drivers/media/i2c/smiapp/smiapp-regs.c:#include "smiapp.h"
+> drivers/media/i2c/smiapp/smiapp.h: * drivers/media/i2c/smiapp/smiapp.h
+> drivers/media/i2c/smiapp/smiapp.h:#include <media/smiapp.h>
+> 
+> It could make sense to keep those two on I2c, eventually moving
+> smapp-pl to i2c/smiapp. I have conflicting opinions here :)
+> 
+> > But cx2341x.c and btcx-risc.c do not have that at all. One reason
+> > for creating this patch was that I couldn't find the cx2341x.c code until I
+> > smiapp-pll.cdid a find.
+> > 
+> > > Also, I don't think cx2341x or any of those other helper drivers
+> > > deserve each its own directory.
+> > 
+> > I thought that the cx2341x.c source in common looked a bit lonely.
+> > But if we add other sources as well, then it has company :-)
+> 
+> :)
+> 
+> > > So, IMHO, the better is to just live them at the i2c directory.
+> > 
+> > For cx2341x and btcx-risc the i2c directory is completely inappropriate.
+> > Nobody is ever going to guess that.
+> 
+> Agreed. Those are just leftovers of the tree reorg, as the final patch
+> at v4l side were to rename "video" to "i2c".
+> 
+> > > They might be moved, instead, to drivers/media/common (but without
+> > > creating subdirs there).
+> > > 
+> > > In any case, we should do the same for all those non-i2c helper
+> > > drivers. Just moving cx2341x and letting the others there will just
+> > > increase the mess.
+> > 
+> > I've no problem moving cx2341x, btcx-risc and tveeprom to common. For
+> > the two pll sources I'd like to know if the authors agree (CC-ed) before
+> > I make a patch moving them to common.
+> 
+> Fair enough.
 
-Yeah, makes sense that this little helper here cleans up any damage it
-caused when the callback fails.
+OK, I'll prepare patches today moving cx2341x, btcx-risc and tveeprom to
+common. I agree with Laurent that the pll sources are better placed in i2c,
+at least for now.
 
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->
-> ---
->  drivers/base/dma-buf.c |   21 +++++++++++++++------
->  1 files changed, 15 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index 09e6878..06c6225 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -536,6 +536,9 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
->  int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
->                  unsigned long pgoff)
->  {
-> +       struct file *oldfile;
-> +       int ret;
-> +
->         if (WARN_ON(!dmabuf || !vma))
->                 return -EINVAL;
->
-> @@ -549,15 +552,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
->                 return -EINVAL;
->
->         /* readjust the vma */
-> -       if (vma->vm_file)
-> -               fput(vma->vm_file);
-> -
-> +       get_file(dmabuf->file);
-> +       oldfile = vma->vm_file;
->         vma->vm_file = dmabuf->file;
-> -       get_file(vma->vm_file);
-> -
->         vma->vm_pgoff = pgoff;
->
-> -       return dmabuf->ops->mmap(dmabuf, vma);
-> +       ret = dmabuf->ops->mmap(dmabuf, vma);
-> +       if (ret) {
-> +               /* restore old parameters on failure */
-> +               vma->vm_file = oldfile;
-> +               fput(dmabuf->file);
-> +       } else {
-> +               if (oldfile)
-> +                       fput(oldfile);
-> +       }
-> +       return ret;
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_mmap);
->
-> --
-> 1.7.8.6
->
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+Regards,
 
-
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+	Hans
