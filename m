@@ -1,67 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2681 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755681Ab3BAMRc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:17:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:57475 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754572Ab3BFPOQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Feb 2013 10:14:16 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1U36hk-0008Bm-RL
+	for linux-media@vger.kernel.org; Wed, 06 Feb 2013 16:14:32 +0100
+Received: from 84-72-11-174.dclient.hispeed.ch ([84.72.11.174])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 16:14:32 +0100
+Received: from auslands-kv by 84-72-11-174.dclient.hispeed.ch with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 16:14:32 +0100
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/6] tm6000: fix G/TRY_FMT.
-Date: Fri,  1 Feb 2013 13:17:21 +0100
-Message-Id: <800c8f9e30561618d47540698cc79bd3d3470ff2.1359720708.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359721041-5133-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
-References: <db596a5954282c998c516d9a8ebd719df71549b3.1359720708.git.hans.verkuil@cisco.com>
+From: Neuer User <auslands-kv@gmx.de>
+Subject: Re: Replacement for vloopback?
+Date: Wed, 06 Feb 2013 16:14:05 +0100
+Message-ID: <ketrvq$r21$1@ger.gmane.org>
+References: <ketngk$dit$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <ketngk$dit$1@ger.gmane.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks everybody so far.
 
-Two fixes:
+I just found v4l2loopback and also some examples with gestreamer.
 
-- the priv field wasn't set to 0.
-- only V4L2_FIELD_INTERLACED is supported.
+I will do some testing and see if I can get my use case done with that.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/tm6000/tm6000-video.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+Kind regards
 
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index f41dbb1..eab2341 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -918,6 +918,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 		(f->fmt.pix.width * fh->fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage =
- 		f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.priv = 0;
- 
- 	return 0;
- }
-@@ -948,12 +949,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 
- 	field = f->fmt.pix.field;
- 
--	if (field == V4L2_FIELD_ANY)
--		field = V4L2_FIELD_SEQ_TB;
--	else if (V4L2_FIELD_INTERLACED != field) {
--		dprintk(dev, V4L2_DEBUG_IOCTL_ARG, "Field type invalid.\n");
--		return -EINVAL;
--	}
-+	field = V4L2_FIELD_INTERLACED;
- 
- 	tm6000_get_std_res(dev);
- 
-@@ -963,6 +959,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.width &= ~0x01;
- 
- 	f->fmt.pix.field = field;
-+	f->fmt.pix.priv = 0;
- 
- 	f->fmt.pix.bytesperline =
- 		(f->fmt.pix.width * fmt->depth) >> 3;
--- 
-1.7.10.4
+Michael
+
+Am 06.02.2013 14:57, schrieb Neuer User:
+> Hello
+> 
+> I need to have access to my webcam from two applications (one is
+> "motion", the other a video sip phone).
+> 
+> I have googled a lot, but only found vloopback as a method to access a
+> video device from two applications. However, vloopback seems to rely on
+> V4L1 which is mostly no longer compiled into the kernel by most distros.
+> Additionally, it does not seem to compile against newer kernels.
+> 
+> So, my question ist: Is vloopback the right way to go for this
+> requirement? If yes, how to get it working?
+> 
+> If not, what can I use to have two apps accessing the video stream from
+> the webcam?
+> 
+> Thanks a lot for any help
+> 
+> Michael
+> 
+
 
