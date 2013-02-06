@@ -1,93 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:32434 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752080Ab3BFIv6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 03:51:58 -0500
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHS00MH0JAH9CU0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 17:51:57 +0900 (KST)
-Received: from NOINKIDAE02 ([10.90.8.52])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MHS008SPJAKGR80@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 17:51:56 +0900 (KST)
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, k.debski@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com, patches@linaro.org,
-	'Ajay Kumar' <ajaykumar.rs@samsung.com>,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	jy0922.shim@samsung.com
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
- <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
- <02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
- <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
-In-reply-to: <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
-Subject: RE: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-Date: Wed, 06 Feb 2013 17:51:56 +0900
-Message-id: <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2229 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755596Ab3BFP4p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:45 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 02/17] bttv: fix querycap and radio v4l2-compliance issues.
+Date: Wed,  6 Feb 2013 16:56:20 +0100
+Message-Id: <030c7ffde10d634c71ce856ed3ecd8731b9396ae.1360165855.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The querycap ioctl didn't support V4L2_CAP_DEVICE_CAPS and the radio device
+implemented audio and video inputs and s_std, which are not part of the radio
+API.
 
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: Wednesday, February 06, 2013 5:03 PM
-> To: Inki Dae
-> Cc: linux-media@vger.kernel.org; dri-devel@lists.freedesktop.org;
-> devicetree-discuss@lists.ozlabs.org; k.debski@samsung.com;
-> s.nawrocki@samsung.com; kgene.kim@samsung.com; patches@linaro.org; Ajay
-> Kumar
-> Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
-> support for G2D
-> 
-> On 6 February 2013 13:02, Inki Dae <inki.dae@samsung.com> wrote:
-> >
-> > Looks good to me but please add document for it.
-> 
-> Yes. I will. I was planning to send the bindings document patch along
-> with the dt patches (adding node entries to dts files).
-> Sylwester had suggested adding this to
-> Documentation/devicetree/bindings/media/ which contains other media
-> IPs.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |  101 +++++++++------------------------
+ 1 file changed, 27 insertions(+), 74 deletions(-)
 
-I think that it's better to go to gpu than media and we can divide Exynos
-IPs into the bellow categories,
-
-Media : mfc
-GPU : g2d, g3d, fimc, gsc
-Video : fimd, hdmi, eDP, MIPI-DSI
-
-And I think that the device-tree describes hardware so possibly, all
-documents in .../bindings/drm/exynos/* should be moved to proper place also.
-Please give  me any opinions.
-
-Thanks,
-Inki Dae
-
-> 
-> >
-> > To other guys,
-> > And is there anyone who know where this document should be added to?
-> > I'm not sure that the g2d document should be placed in
-> > Documentation/devicetree/bindings/gpu, media, drm/exynos or arm/exynos.
-> At
-> > least, this document should be shared with the g2d hw relevant drivers
-> such
-> > as v4l2 and drm. So is ".../bindings/gpu" proper place?
-> >
-> 
-> 
-> --
-> With warm regards,
-> Sachin
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index ccd18e4..cc7f58f 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2630,6 +2630,7 @@ static int bttv_s_fmt_vid_overlay(struct file *file, void *priv,
+ static int bttv_querycap(struct file *file, void  *priv,
+ 				struct v4l2_capability *cap)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct bttv_fh *fh = priv;
+ 	struct bttv *btv = fh->btv;
+ 
+@@ -2642,11 +2643,15 @@ static int bttv_querycap(struct file *file, void  *priv,
+ 		 "PCI:%s", pci_name(btv->c.pci));
+ 	cap->capabilities =
+ 		V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_VBI_CAPTURE |
+ 		V4L2_CAP_READWRITE |
+-		V4L2_CAP_STREAMING;
++		V4L2_CAP_STREAMING |
++		V4L2_CAP_DEVICE_CAPS;
+ 	if (no_overlay <= 0)
+ 		cap->capabilities |= V4L2_CAP_VIDEO_OVERLAY;
++	if (btv->vbi_dev)
++		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
++	if (btv->radio_dev)
++		cap->capabilities |= V4L2_CAP_RADIO;
+ 
+ 	/*
+ 	 * No need to lock here: those vars are initialized during board
+@@ -2656,6 +2661,25 @@ static int bttv_querycap(struct file *file, void  *priv,
+ 		cap->capabilities |= V4L2_CAP_RDS_CAPTURE;
+ 	if (btv->tuner_type != TUNER_ABSENT)
+ 		cap->capabilities |= V4L2_CAP_TUNER;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps = cap->capabilities &
++			(V4L2_CAP_VIDEO_CAPTURE |
++			 V4L2_CAP_READWRITE |
++			 V4L2_CAP_STREAMING |
++			 V4L2_CAP_VIDEO_OVERLAY |
++			 V4L2_CAP_TUNER);
++	else if (vdev->vfl_type == VFL_TYPE_VBI)
++		cap->device_caps = cap->capabilities &
++			(V4L2_CAP_VBI_CAPTURE |
++			 V4L2_CAP_READWRITE |
++			 V4L2_CAP_STREAMING |
++			 V4L2_CAP_TUNER);
++	else {
++		cap->device_caps = V4L2_CAP_RADIO | V4L2_CAP_TUNER;
++		if (btv->has_saa6588)
++			cap->device_caps |= V4L2_CAP_READWRITE |
++						V4L2_CAP_RDS_CAPTURE;
++	}
+ 	return 0;
+ }
+ 
+@@ -3430,20 +3454,6 @@ static int radio_release(struct file *file)
+ 	return 0;
+ }
+ 
+-static int radio_querycap(struct file *file, void *priv,
+-					struct v4l2_capability *cap)
+-{
+-	struct bttv_fh *fh = priv;
+-	struct bttv *btv = fh->btv;
+-
+-	strcpy(cap->driver, "bttv");
+-	strlcpy(cap->card, btv->radio_dev->name, sizeof(cap->card));
+-	sprintf(cap->bus_info, "PCI:%s", pci_name(btv->c.pci));
+-	cap->capabilities = V4L2_CAP_TUNER;
+-
+-	return 0;
+-}
+-
+ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct bttv_fh *fh = priv;
+@@ -3464,29 +3474,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int radio_enum_input(struct file *file, void *priv,
+-				struct v4l2_input *i)
+-{
+-	if (i->index != 0)
+-		return -EINVAL;
+-
+-	strcpy(i->name, "Radio");
+-	i->type = V4L2_INPUT_TYPE_TUNER;
+-
+-	return 0;
+-}
+-
+-static int radio_g_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
+-{
+-	if (unlikely(a->index))
+-		return -EINVAL;
+-
+-	strcpy(a->name, "Radio");
+-
+-	return 0;
+-}
+-
+ static int radio_s_tuner(struct file *file, void *priv,
+ 					struct v4l2_tuner *t)
+ {
+@@ -3500,28 +3487,6 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int radio_s_audio(struct file *file, void *priv,
+-					const struct v4l2_audio *a)
+-{
+-	if (unlikely(a->index))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static int radio_s_input(struct file *filp, void *priv, unsigned int i)
+-{
+-	if (unlikely(i))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static int radio_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+-{
+-	return 0;
+-}
+-
+ static int radio_queryctrl(struct file *file, void *priv,
+ 					struct v4l2_queryctrl *c)
+ {
+@@ -3540,12 +3505,6 @@ static int radio_queryctrl(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
+-{
+-	*i = 0;
+-	return 0;
+-}
+-
+ static ssize_t radio_read(struct file *file, char __user *data,
+ 			 size_t count, loff_t *ppos)
+ {
+@@ -3586,16 +3545,10 @@ static const struct v4l2_file_operations radio_fops =
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap        = radio_querycap,
++	.vidioc_querycap        = bttv_querycap,
+ 	.vidioc_g_tuner         = radio_g_tuner,
+-	.vidioc_enum_input      = radio_enum_input,
+-	.vidioc_g_audio         = radio_g_audio,
+ 	.vidioc_s_tuner         = radio_s_tuner,
+-	.vidioc_s_audio         = radio_s_audio,
+-	.vidioc_s_input         = radio_s_input,
+-	.vidioc_s_std           = radio_s_std,
+ 	.vidioc_queryctrl       = radio_queryctrl,
+-	.vidioc_g_input         = radio_g_input,
+ 	.vidioc_g_ctrl          = bttv_g_ctrl,
+ 	.vidioc_s_ctrl          = bttv_s_ctrl,
+ 	.vidioc_g_frequency     = bttv_g_frequency,
+-- 
+1.7.10.4
 
