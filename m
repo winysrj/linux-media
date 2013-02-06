@@ -1,75 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:33774 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758939Ab3BGRFn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 12:05:43 -0500
-Date: Thu, 7 Feb 2013 17:13:13 +0100
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4] fc0011: fp/fa value overflow fix
-Message-ID: <20130207171313.272e9078@milhouse>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/vNXkq3u=6zfiw49iMfqQ=89"; protocol="application/pgp-signature"
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:46755 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751389Ab3BFFjK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 00:39:10 -0500
+Received: by mail-pa0-f48.google.com with SMTP id hz10so588410pad.21
+        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 21:39:10 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org
+Cc: k.debski@samsung.com, sachin.kamat@linaro.org,
+	inki.dae@samsung.com, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com, patches@linaro.org
+Subject: [PATCH v2 1/2] [media] s5p-g2d: Add DT based discovery support
+Date: Wed,  6 Feb 2013 10:59:43 +0530
+Message-Id: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/vNXkq3u=6zfiw49iMfqQ=89
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+This patch adds device tree based discovery support to G2D driver
 
-Assign the maximum instead of masking with the maximum on value overflow.
-
-Signed-off-by: Michael Buesch <m@bues.ch>
-
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
+Based on for_v3.9 branch of below tree:
+git://linuxtv.org/snawrocki/samsung.git
 
-Index: linux/drivers/media/tuners/fc0011.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/tuners/fc0011.c	2012-10-22 16:11:27.634183359 =
-+0200
-+++ linux/drivers/media/tuners/fc0011.c	2012-10-22 16:13:29.140465225 +0200
-@@ -247,8 +247,8 @@
- 		fa +=3D 8;
+Changes since v1:
+* Addressed review comments from Sylwester <s.nawrocki@samsung.com>.
+* Modified the compatible string as per the discussions at [1].
+[1] https://patchwork1.kernel.org/patch/2045821/
+---
+ drivers/media/platform/s5p-g2d/g2d.c |   31 +++++++++++++++++++++++++++++--
+ 1 files changed, 29 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 7e41529..6923be2 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -18,6 +18,7 @@
+ #include <linux/slab.h>
+ #include <linux/clk.h>
+ #include <linux/interrupt.h>
++#include <linux/of.h>
+ 
+ #include <linux/platform_device.h>
+ #include <media/v4l2-mem2mem.h>
+@@ -695,11 +696,14 @@ static struct v4l2_m2m_ops g2d_m2m_ops = {
+ 	.unlock		= g2d_unlock,
+ };
+ 
++static const struct of_device_id exynos_g2d_match[];
++
+ static int g2d_probe(struct platform_device *pdev)
+ {
+ 	struct g2d_dev *dev;
+ 	struct video_device *vfd;
+ 	struct resource *res;
++	const struct of_device_id *of_id;
+ 	int ret = 0;
+ 
+ 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+@@ -796,7 +800,17 @@ static int g2d_probe(struct platform_device *pdev)
  	}
- 	if (fp > 0x1F) {
--		fp &=3D 0x1F;
--		fa &=3D 0xF;
-+		fp =3D 0x1F;
-+		fa =3D 0xF;
- 	}
- 	if (fa >=3D fp) {
- 		dev_warn(&priv->i2c->dev,
+ 
+ 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
+-	dev->variant = g2d_get_drv_data(pdev);
++
++	if (!pdev->dev.of_node) {
++		dev->variant = g2d_get_drv_data(pdev);
++	} else {
++		of_id = of_match_node(exynos_g2d_match, pdev->dev.of_node);
++		if (!of_id) {
++			ret = -ENODEV;
++			goto unreg_video_dev;
++		}
++		dev->variant = (struct g2d_variant *)of_id->data;
++	}
+ 
+ 	return 0;
+ 
+@@ -837,13 +851,25 @@ static int g2d_remove(struct platform_device *pdev)
+ }
+ 
+ static struct g2d_variant g2d_drvdata_v3x = {
+-	.hw_rev = TYPE_G2D_3X,
++	.hw_rev = TYPE_G2D_3X, /* Revision 3.0 for S5PV210 and Exynos4210 */
+ };
+ 
+ static struct g2d_variant g2d_drvdata_v4x = {
+ 	.hw_rev = TYPE_G2D_4X, /* Revision 4.1 for Exynos4X12 and Exynos5 */
+ };
+ 
++static const struct of_device_id exynos_g2d_match[] = {
++	{
++		.compatible = "samsung,s5pv210-g2d",
++		.data = &g2d_drvdata_v3x,
++	}, {
++		.compatible = "samsung,exynos4212-g2d",
++		.data = &g2d_drvdata_v4x,
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, exynos_g2d_match);
++
+ static struct platform_device_id g2d_driver_ids[] = {
+ 	{
+ 		.name = "s5p-g2d",
+@@ -863,6 +889,7 @@ static struct platform_driver g2d_pdrv = {
+ 	.driver		= {
+ 		.name = G2D_NAME,
+ 		.owner = THIS_MODULE,
++		.of_match_table = exynos_g2d_match,
+ 	},
+ };
+ 
+-- 
+1.7.4.1
 
-
---=20
-Greetings, Michael.
-
-PGP: 908D8B0E
-
---Sig_/vNXkq3u=6zfiw49iMfqQ=89
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRE9KZAAoJEPUyvh2QjYsO2JEP+wR0hcOj0ZdW78ayDr9guq1A
-QUUGVCZLSxD4V5heze4/JgW1WhSJVJuX+9U6SG1A9z6nks1S3uk88CkXNVGLdlgG
-JkHodTZAttukQwIrCJNkBh5B65oEYNzoPxufFO8TJfjm/PthTzFhCSepGx1K+a56
-0hn7VgY1zhV9/U6aSZYXJUNKcVOf/kNES3IgVzh7Wc53QYUTLSIxbCJ7ZZIKi8dR
-8hgsSo+dUysp1e9kD2C2Sd9kyyUrxwsm/U9kPHDtuHufm5Hc36Ta6ci7XwAgIP4E
-N+KTJN5ipqb5A1+E1gJpIaRtyHx5MhY1SdxyIa4v+Iz5YSR+6FKGKCpBEWE4iqPV
-LFwsR1lmwKWwmsQP/z0S6iJ7avjdS5dJdQlnryasKDDaREjjV9xdeP4FRVyDOx9S
-xvoUJwH6qTjqKjZsKEPXt7LXWHyZY+2lRRG1eoEC0GJCFTZ81kCFZB3a0PhDaBAH
-pZ5NY1GUscAOiuziPZN/HNYeWw5QnQBYID19FxCaVQQdn6i4y0jr+jLEs/gTLEOe
-LhaIumLnfPvD1AtETAYo2oPrX38+oaKt/U4ijsH9RGQ18lYmMNqhkzUHY+m9FPVU
-9GhaUMot9O6nbzJqQ6I2Oqtqelf0T6W3tv5KATFx1CmGbSG+cDLb2JTSGCio0IX8
-Re2Pp+MX3HqIc5mc0IIW
-=A/+Y
------END PGP SIGNATURE-----
-
---Sig_/vNXkq3u=6zfiw49iMfqQ=89--
