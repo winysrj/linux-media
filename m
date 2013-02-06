@@ -1,86 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59489 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757848Ab3BEWMn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 17:12:43 -0500
-Date: Tue, 5 Feb 2013 20:10:01 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Michael Hunold <michael@mihu.de>,
-	Jonathan Nieder <jrnieder@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [media] dvb-usb: reading before start of array
-Message-ID: <20130205201001.60fe547e@redhat.com>
-In-Reply-To: <20130109073632.GD2454@elgon.mountain>
-References: <20130109073632.GD2454@elgon.mountain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:36657 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757305Ab3BFPjG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:39:06 -0500
+Received: by mail-ea0-f176.google.com with SMTP id a13so702848eaa.35
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 07:39:05 -0800 (PST)
+Message-ID: <51127947.1070602@googlemail.com>
+Date: Wed, 06 Feb 2013 16:39:51 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH] em28xx: fix bytesperline calculation in TRY_FMT
+References: <1360152887-4503-1-git-send-email-hverkuil@xs4all.nl> <0ecef7fe376d8e8f932f2d8903d54b894fa87abf.1360152758.git.hans.verkuil@cisco.com>
+In-Reply-To: <0ecef7fe376d8e8f932f2d8903d54b894fa87abf.1360152758.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 9 Jan 2013 10:36:32 +0300
-Dan Carpenter <dan.carpenter@oracle.com> escreveu:
-
-> This is a static checker fix.  In the ttusb_process_muxpack() we do:
-> 
-> 	cc = (muxpack[len - 4] << 8) | muxpack[len - 3];
-> 
-> That means if we pass a number less than 4 then we will either trigger a
-> checksum error message or read before the start of the array.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Am 06.02.2013 13:14, schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> The bytesperline calculation was incorrect: it used the old width instead of
+> the provided width. Fixed.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
-> I can't test this.
-> 
-> This patch doesn't introduce any bugs, but I'm not positive this is the
-> right thing to do.  Perhaps it's better to print an error message?
+>  drivers/media/usb/em28xx/em28xx-video.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 2eabf2a..32bd7de 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -906,7 +906,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  	f->fmt.pix.width = width;
+>  	f->fmt.pix.height = height;
+>  	f->fmt.pix.pixelformat = fmt->fourcc;
+> -	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
+> +	f->fmt.pix.bytesperline = (width * fmt->depth + 7) >> 3;
+>  	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
+>  	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+>  	if (dev->progressive)
 
-I don't have any ttusb device either, but i suspect that printing an
-error message inside ttusb_process_muxpack() would be better.
+Acked-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 
->From what I understood, this code gets the URB data and groups it
-into one TS packet (188 bytes, typically). Then, it calls 
-ttusb_process_muxpack() in order to handle it.
+Also Cc: stable@kernel.org ?
 
-So, the normal condition would be to always receive 188 bytes here
-(usual TS packet size), except if there's something wrong with the
-URB transfer.
+Regards,
+Frank
 
-It seems, however, that there are other issues at the logic at
-ttusb_process_muxpack().
-
-For example, from this code snippet:
-
-        for (i = 0; i < len; i += 2)
-                csum ^= le16_to_cpup((__le16 *) (muxpack + i));
-
-an odd value for len also seems to cause troubles at this logic.
-
-so, IMHO, the better would be to print a warning if the value is
-odd or smaller than 4, and discard it.
-
-> 
-> diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-> index 5b682cc..99a2fd1 100644
-> --- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-> +++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-> @@ -709,7 +709,7 @@ static void ttusb_process_frame(struct ttusb *ttusb, u8 * data, int len)
->  			 * if length is valid and we reached the end:
->  			 * goto next muxpack
->  			 */
-> -				if ((ttusb->muxpack_ptr >= 2) &&
-> +				if ((ttusb->muxpack_ptr >= 4) &&
->  				    (ttusb->muxpack_ptr ==
->  				     ttusb->muxpack_len)) {
->  					ttusb_process_muxpack(ttusb,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
