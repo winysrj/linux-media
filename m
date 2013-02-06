@@ -1,99 +1,505 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:31850 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754489Ab3BEJdS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 04:33:18 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHQ00BS3QIBGS40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Feb 2013 09:33:16 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MHQ002VBQJFT850@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Feb 2013 09:33:15 +0000 (GMT)
-Message-id: <5110D1DA.6000100@samsung.com>
-Date: Tue, 05 Feb 2013 10:33:14 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	"patches@linaro.org" <patches@linaro.org>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
- <1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
- <CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
- <510987B5.6090509@gmail.com> <050101cdff52$86df3a70$949daf50$%dae@samsung.com>
- <510B02AB.4080908@gmail.com> <0b7501ce0011$3df65180$b9e2f480$@samsung.com>
- <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
- <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
- <510B9EC8.6020102@samsung.com>
- <CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
- <014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
- <CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
- <014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
- <E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
- <CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
- <CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
-In-reply-to: <CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
-Content-type: text/plain; charset=EUC-KR
-Content-transfer-encoding: 7bit
+Received: from imr-db01.mx.aol.com ([205.188.91.95]:52072 "EHLO
+	imr-db01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752296Ab3BFONu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:13:50 -0500
+Message-ID: <511264CF.3010002@netscape.net>
+Date: Wed, 06 Feb 2013 11:12:31 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net>
+In-Reply-To: <5106E3EA.70307@netscape.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2013 04:03 AM, Inki Dae wrote:
-[...]
->> Exynos4210 has same g2d IP (v3.0) as C110 or V210; so the same
->> comptible string will be used for this one too.
+Hi
+
+El 28/01/13 17:47, Alfredo Jesús Delaiti escribió:
+> Hi
+> El 28/01/13 07:23, Mauro Carvalho Chehab escribió:
+>> Em Sun, 27 Jan 2013 18:48:57 -0300
+>> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 >>
->>> And please check if exynos4212 and 4412 SoCs have same fimg-2d ip. 
->>> If it's different, we might need to add ip version property or compatible
->>> string to each dtsi file to identify the ip version.
+>>> Hi
+>>>
+>>> El 27/01/13 13:16, Mauro Carvalho Chehab escribió:
+>>>> Em Sun, 27 Jan 2013 12:27:21 -0300
+>>>> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
+>>>>
+>>>>> Hi all
+>>>>>
+>>>>> I'm trying to run the digital part of the card MyGica X8507 and I 
+>>>>> need
+>>>>> help on some issues.
+>>>>>
+>>>>>
+>>>>>
+>>>>> Need data sheet of IC MB86A20S and no where to get it. Fujitsu 
+>>>>> People of
+>>>>> Germany told me: "This is a very old product and not supported any
+>>>>> more". Does anyone know where to get it?
+>>>> I never found any public datasheet for this device.
+>>> Congratulations for driver you have made
+>> Thanks!
+>>>>> linux-puon:/home/alfredo # modprobe cx23885 i2c_scan=1
+>>>>>
+>>>>> ...
+>>>>>
+>>>>> [ 7011.618381] cx23885[0]: scan bus 0:
+>>>>>
+>>>>> [ 7011.620759] cx23885[0]: i2c scan: found device @ 0x20 [???]
+>>>>>
+>>>>> [ 7011.625653] cx23885[0]: i2c scan: found device @ 0x66 [???]
+>>>>>
+>>>>> [ 7011.629702] cx23885[0]: i2c scan: found device @ 0xa0 [eeprom]
+>>>>>
+>>>>> [ 7011.629983] cx23885[0]: i2c scan: found device @ 0xa4 [???]
+>>>>>
+>>>>> [ 7011.630267] cx23885[0]: i2c scan: found device @ 0xa8 [???]
+>>>>>
+>>>>> [ 7011.630548] cx23885[0]: i2c scan: found device @ 0xac [???]
+>>>>>
+>>>>> [ 7011.636438] cx23885[0]: scan bus 1:
+>>>>>
+>>>>> [ 7011.650108] cx23885[0]: i2c scan: found device @ 0xc2
+>>>>> [tuner/mt2131/tda8275/xc5000/xc3028]
+>>>>>
+>>>>> [ 7011.654460] cx23885[0]: scan bus 2:
+>>>>>
+>>>>> [ 7011.656434] cx23885[0]: i2c scan: found device @ 0x66 [???]
+>>>>>
+>>>>> [ 7011.657087] cx23885[0]: i2c scan: found device @ 0x88 [cx25837]
+>>>>>
+>>>>> [ 7011.657393] cx23885[0]: i2c scan: found device @ 0x98 [flatiron]
+>>>>>
+>>>>> ...
+>>>>>
+>>>>>
+>>>>> In the bus 0 is demodulator mb86a20s 0x20 (0x10) and in the bus 1 the
+>>>>> tuner (xc5000). I understand that would have to be cancel the 
+>>>>> mb86a20s
+>>>>> i2c_gate_ctrl similarly as in the IC zl10353. If this is possible, is
+>>>>> not yet implemented in the controller of mb86a20s. The IC cx23885 is
+>>>>> always who controls the tuner i2c bus.
+>>>> Well, if you don't add an i2c_gate_ctrl() callback, the mb86a20s won't
+>>>> be calling it. So, IMO, the cleanest approach would simply to do:
+>>>>
+>>>>     fe->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+>>>>
+>>>> after tuner attach, if the tuner or the bridge driver implements an 
+>>>> i2c gate.
+>>>> I don't think xc5000 does. The mb86a20s also has its own i2c gate 
+>>>> and gpio
+>>>> ports that might be used to control an external gate, but support 
+>>>> for it is
+>>>> currently not implemented, as no known device uses it.
+>>> If in this way, it does not work:
+>>>
+>>>       case CX23885_BOARD_MYGICA_X8507:
+>>>           i2c_bus = &dev->i2c_bus[0];
+>>>           i2c_bus2 = &dev->i2c_bus[1];
+>>>           fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
+>>>               &mygica_x8507_mb86a20s_config,
+>>>               &i2c_bus->i2c_adap);
+>>>           if (fe0->dvb.frontend != NULL) {
+>>>               dvb_attach(xc5000_attach,
+>>>                   fe0->dvb.frontend,
+>>>                   &i2c_bus2->i2c_adap,
+>>>                   &mygica_x8507_xc5000_config);
+>>>           fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
+>>> fe0->dvb.frontend->ops.tuner_ops.init(fe0->dvb.frontend);
+>>>
+>>> I get:
+>>>
+>>> ...dmesg
+>>> ...
+>>> [  964.105688] mb86a20s: mb86a20s_read_status: val = 2, status = 0x01
+>>> [  964.105696] mb86a20s: mb86a20s_set_frontend:
+>>> [  964.105700] mb86a20s: mb86a20s_set_frontend: Calling tuner set 
+>>> parameters
+>> It seems that the driver is able to talk with mb86a20s and read the 
+>> status
+>> and version registers. If the xc5000 firmware got loaded, that means 
+>> that
+>> there's no issue with I2C.
 >>
->> AFAIK, they both have the same IP (v4.1).
+>> So, the issue is likely something else.
 >>
-> 
-> Ok, let's use the below,
-> 
-> For exynos4210 SoC,
-> compatible = "samsung,exynos4210-g2d"
+>>  From this:
+>>
+>>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+>> mb86a20s_config.is_serial should be false (default).
+>
+> static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
+>     .demod_address = 0x10,
+> };
+>
+>
+> nothing of .is_serial
+>
+>>
+>> Can you confirm if the XTAL at the side of mb86a20s is 32.57MHz?
+>
+> The exact value is 32.571MHz
+>
+>>
+>> If the XTAL is the same and the device driver is set to parallel mode,
+>> then we'll need to investigate other setups that happen during init 
+>> time.
+>>
+>> There are a few places at the driver that you could play with.
+>> For example, on this register set:
+>>     { 0x09, 0x3e },
+>>
+>> You could try, instead of 0x3e, 0x1e, 0x1a or 0x3a.
+>
+> I tested with the three new values ​​and get nothing different
+>
+>>
+>> However, I recommend you to sniff the PCI traffic, in order to be 
+>> sure about
+>> what this specific device does.
+>
+> For this I need a little more time to study and apply. In a few days 
+> it I obtained commented
+>
+>>
+>> When I was writing the driver for mb86a20s, I used this technique to
+>> be sure about what it was needed to make one PCI card to work with it.
+>> What I did then was to patch kvm to force it to emulate all DMA 
+>> transfers,
+>> writing a dump of all such transfers at the host kernel. Then, I ran 
+>> some
+>> parsing scripts to get the mb86a20s and tuner initialization. I made the
+>> patches available at:
+>>
+>>     http://git.linuxtv.org/v4l-utils.git/tree/HEAD:/contrib/pci_traffic
+>>
+>> I documented what it was needed to sniff the traffic at:
+>>     http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/pci_traffic/README 
+>>
+>>
+>> The patches were made against the kvm version that were shipped with the
+>> latest Fedora version that were available in Oct, 2010 (likely Fedora 
+>> 13).
+>> I'm not sure if they still apply on today's kvm.
+>>
+>> As you may expect, emulating all DMA transfers on a PCIe device is 
+>> slow. So,
+>> the VM may die or produce unexpected results. However, as the 
+>> mb86a20s init
+>> happens before the beginning of the video stream, you'll very likely 
+>> be able
+>> to get the needed dumps before the guest system crash.
+>>
+>> Once you get the dumps, you'll need to parse them, in order to filter 
+>> just the
+>> cx23885 I2C register reads/writes, and get only the data sent to 
+>> mb86a20s.
+>>
+>> You'll find some examples of such patches at:
+>>     http://git.linuxtv.org/v4l-utils.git/tree/fd35e2fdc85fa6a9dcd45ce2dd7c322bcda6e93e:/contrib 
+>>
+>>
+>> In the case of the PCI device I was sniffing, I used this parser:
+>>     http://git.linuxtv.org/v4l-utils.git/blob/fd35e2fdc85fa6a9dcd45ce2dd7c322bcda6e93e:/contrib/saa7134/parse_saa7134.pl 
+>>
+>>
 
-Since S5PV210 (Exynos3110 ??) seems to have same G2D IP, I guess
-something like "samsung,s5pv210-g2d" could be used for both
-S5PV210 (S5PC110) and Exynos4210 (S5PC210, S5PV310) ?
-I'm fine with using "samsung,exynos4210-g2d" for Exynos4210 though.
+I hope I have misunderstood, because otherwise I can not do it, because 
+to use qemu-kvm is required hardware that supports IOMMU and mine does 
+not support it (Phenom_1 and chipset 780G and SB700).
 
-For instance for tegra SoCs a conventions like "nvidia,tegra<chip>-<ip>",
-is used (e.g. "nvidia,tegra20-gr2d").
+  # modprobe pci_stub
+  # echo "14f1 8852" > /sys/bus/pci/drivers/pci-stub/new_id
+  # echo "0000:02:00.0" > /sys/bus/pci/devices/0000:02:00.0/driver/unbind
+  # echo "0000:02:00.0" > /sys/bus/pci/drivers/pci-stub/bind
+# qemu-kvm -name "windows-7" -M pc-1.1 -m 2048 -vga cirrus -drive 
+file=/var/lib/qemu/images/windows/hda.img -device pci-assign,host=02:00.0
+Warning: default mac address being used, creating potential for address 
+conflict
+No IOMMU found.  Unable to assign device "(null)"
+qemu-kvm: -device pci-assign,host=02:00.0: Device 'pci-assign' could not 
+be initialized
 
-> For exynos4x12 SoCs,
-> compatible = "samsung,exynos4212-g2d"
 
-I'm not sure how well exynos4212 is going to be supported in the kernel.
-As Mr Park pointed out, if it is going to be nearly not existent then we
-could perhaps go with "samsung,exynos4412-g2d" for Exynos4412 and
-"samsung,exynos4212-g2d" for Exynos4212 (as needed). Anyway, I fine
-with using "samsung,exynos4212-g2d" for both. I'd like to hear Mr Kim's
-opinion on this as well though.
+Hardware that supports IOMMU is very new and limited.
 
-> For exynos5250, 5410 (In case of Exynos5440, I'm not sure that the SoC
-> has same ip)
-> compatible = "samsung,exynos5250-g2d"
-> 
-> To other guys,
-> The device tree is used by not only v4l2 side but also drm side so we
-> should reach an arrangement. So please give me ack if you agree to my
-> opinion. Otherwise please, give me your opinions.
 
-It looks good to me, please just see the two remarks above.
+Is there any other known way to do this?
 
---
-Regards,
-Sylwester
+
+>> That produces something like:
+>>
+>> write_i2c_addr(0x10, 3, { 0x70, 0x0f, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x70, 0xff, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x08, 0x01, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x09, 0x3e, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x50, 0xd1, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x51, 0x22, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x39, 0x01, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x71, 0x00, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x28, 0x2a, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x29, 0x00, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x2a, 0xff, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x2b, 0x80, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x28, 0x20, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x29, 0x33, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x2a, 0xdf, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x2b, 0xa9, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x3b, 0x21, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x3c, 0x3a, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x01, 0x0d, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x04, 0x08, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x05, 0x05, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x04, 0x0e, 0x00});
+>> write_i2c_addr(0x10, 3, { 0x05, 0x00, 0x00});
+>> ...
+>>
+>> By comparing it with the device init at mb86a20s, we can see if this
+>> particular device is doing something different and improve the driver to
+>> also handle your device.
+>>
+>>>
+>>>
+>>>> So, all you need is to attach both mb86a20s and xc5000 on it, and 
+>>>> set the
+>>>> proper GPIO's.
+>>> I think I'm doing well
+>>>
+>>>       case CX23885_BOARD_MYGICA_X8506:
+>>>       case CX23885_BOARD_MYGICA_X8507:
+>>>       case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+>>>           /* Select Digital TV */
+>>>           cx23885_gpio_set(dev, GPIO_0);
+>>>           break;
+>>>
+>>> X8508 and X8507 is the same card, just change the digital part.
+>>>
+>>> The driver for windows says:
+>>>
+>>> X8507 means X8502
+>>> _________________________________________________________________________________________ 
+>>>
+>>> [X8502.AddReg]
+>>>
+>>> HKR,"DriverData","TunerModel",0x00010001, 0x03,0x00,0x00,0x00
+>>>
+>>> ;Enable TS capture and BDA filter registration
+>>> HKR,"DriverData","Enable_BDA",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x02, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","DemodI2CAddress",0x00010001, 0x1E, 0x00, 0x00, 0x00
+>>> ; this registry keys for the FixNMI option which takes care of the 
+>>> BSODs
+>>> in the
+>>> ; ICH6/7 chipsets
+>>> HKR,"DriverData","FixNMIBit",0x00010001, 0x00,0x00,0x00,0x00
+>>> ;IR Support
+>>> HKR,"DriverData","EnableIR",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> ;NEC standard
+>>> HKR,"DriverData","IRStandard",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> ; GPIO Pin values
+>>> HKR,"DriverData","mode_select_gpio_bit", 0x00010001, 0x00, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","tuner_reset_gpio_bit", 0x00010001, 0x01, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","demod_reset_gpio_bit", 0x00010001, 0x02, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","tuner_sif_fm_gpio_bit",0x00010001, 0x03, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","comp_select_gpio_bit", 0x00010001, 0xff, 0x00, 
+>>> 0x00, 0x00
+>> You need to double-check if all the above GPIO's are properly 
+>> initialized.
+>>
+>> Again, the PCI traffic dump can help you to confirm if you should 
+>> either set
+>> or reset the above bits.
+>>
+>>> HKR,"DriverData","comp_select_panel", 0x00010001, 0xff, 0x00, 0x00, 
+>>> 0x00
+>>>
+>>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>>
+>>> ;BoardType Sonora353 = 0x03
+>>> HKR,"DriverData","BoardType",0x00010001, 0x13, 0x00, 0x00, 0x00
+>>> HKR,"DriverData","VideoStandard",0x00010001, 0x10,0x00,0x00,0x00
+>>> ___________________________________________________________________________________ 
+>>>
+>>>
+>>> [X8506.AddReg]
+>>>
+>>> HKR,"DriverData","TunerModel",0x00010001, 0x03,0x00,0x00,0x00
+>>>
+>>> ;Enable TS capture and BDA filter registration
+>>> HKR,"DriverData","Enable_BDA",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x01, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","DemodI2CAddress",0x00010001, 0x1E, 0x00, 0x00, 0x00
+>>> ; this registry keys for the FixNMI option which takes care of the 
+>>> BSODs
+>>> in the
+>>> ; ICH6/7 chipsets
+>>> HKR,"DriverData","FixNMIBit",0x00010001, 0x00,0x00,0x00,0x00
+>>> ;IR Support
+>>> HKR,"DriverData","EnableIR",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> ;NEC standard
+>>> HKR,"DriverData","IRStandard",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>> ; GPIO Pin values
+>>> HKR,"DriverData","mode_select_gpio_bit", 0x00010001, 0x00, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","tuner_reset_gpio_bit", 0x00010001, 0x01, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","demod_reset_gpio_bit", 0x00010001, 0x02, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","tuner_sif_fm_gpio_bit",0x00010001, 0x03, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","comp_select_gpio_bit", 0x00010001, 0xff, 0x00, 
+>>> 0x00, 0x00
+>>> HKR,"DriverData","comp_select_panel",    0x00010001, 0xff, 0x00, 
+>>> 0x00, 0x00
+>>>
+>>> ;Demod Comm mode : 0x00 = Serial, 0x01 = Parallel
+>>> HKR,"DriverData","DemodTransferMode",0x00010001, 0x01, 0x00, 0x00, 0x00
+>>>
+>>> ;BoardType Sonora353 = 0x03
+>>> HKR,"DriverData","BoardType",0x00010001, 0x0e, 0x00, 0x00, 0x00
+>>> HKR,"DriverData","VideoStandard",0x00010001, 0x10,0x00,0x00,0x00
+>>> ______________________________________________________________________________________ 
+>>>
+>>>
+>>>
+>>> there is only change in:
+>>>
+>>> HKR,"DriverData","BDA_Demod_Tuner_type",0x00010001, 0x01, 0x00, 
+>>> 0x00, 0x00
+>>>
+>>> and
+>>>
+>>> HKR,"DriverData","BoardType",0x00010001, 0x0e, 0x00, 0x00, 0x00
+>> I see your point. Yeah, both devices look similar.
+>>
+>>>> It will call fe->ops.tuner_ops.set_params(fe) inside the 
+>>>> set_frontend() fops
+>>>> logic, in order to tune the device, but this is the same thing as
+>>>> zl10353_set_parameters does.
+>>> I expected something like this:
+>>>
+>>>   From zl10353, page 12:
+>>>
+>>> 3.1.2
+>>>    Tuner
+>>> The ZL10353 has a General Purpose Port that can be configured to 
+>>> provide
+>>> a secondary 2-wire bus. See register
+>>> GPP_CTL address 0x8C.
+>>> Master control mode is selected by setting register SCAN_CTL (0x62) 
+>>> [b3]
+>>> = 1.
+>>>
+>>>   From V4L driver, zl10353.c
+>>>
+>>> static int zl10353_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+>>> {
+>>>       struct zl10353_state *state = fe->demodulator_priv;
+>>>       u8 val = 0x0a;
+>>>
+>>>       if (state->config.disable_i2c_gate_ctrl) {
+>>>           /* No tuner attached to the internal I2C bus */
+>>>           /* If set enable I2C bridge, the main I2C bus stopped 
+>>> hardly */
+>>>           return 0;
+>>>       }
+>>>
+>>>       if (enable)
+>>>           val |= 0x10;
+>>>
+>>>       return zl10353_single_write(fe, 0x62, val);
+>>>
+>>>
+>>> Maybe I'm misunderstanding the code.
+>> Yeah, but mb86a20s driver currently doesn't have any similar logic, as
+>> no devices I'm aware have the tuner connected to its I2C gate.
+>>
+>>> When I do notknow the pins of integrated circuits I can not measure the
+>>> state of the GPIO.
+>>>>> Please, could you tell me if I'm reasoning correctly?
+>>>>>
+>>>>>
+>>>>> Using RegSpy I see the bus 0 alternately accesses to addresses 
+>>>>> 0x20 and
+>>>>> 0x66under Windows 7. In Windows XP only accessed to 0x20 and when 
+>>>>> the pc
+>>>>> starts to 0xa0.
+>>>>>
+>>>>> Bus 2 (internal) always accesse to 0x88
+>>>>>
+>>>>> The bus 0 and 2 (internal) access to the address 0x66 (according
+>>>>> modprobe cx23885 i2c_scan), What's there?
+>>>> Maybe a remote controller? Do you have a high-resolution picture of 
+>>>> the
+>>>> board?
+
+Here I have placed a photo in high resolution:
+
+http://linuxtv.org/wiki/index.php/File:MyGica_X8507_Hi_Resolution.jpg
+http://linuxtv.org/wiki/index.php/File:MyGica_X8507_3648x2736.JPG
+
+Again, thank you very much
+
+Alfredo
+
+
+>>> Do not know if I can be the remote, but only does so under windows7 bus
+>>> 0 accesses the address 0x66.
+>>> Under Windows XP does not access the bus 0 to address 0x66.
+>> Please notice that we prefer to use the 7-bits notation for I2C 
+>> addresses,
+>> as this is the one used on the original Philips I2C datasheet. So, we 
+>> call
+>> it as 0x33 ;)
+>
+> OK.
+>
+>>
+>> Maybe you need to call a separate program for IR handling on Windows XP.
+>> At least, I've seen several WinXP setups that have a separate program to
+>> handle remotes.
+> Yes, but uses different software on both Windows XP and 7
+>
+>>> I have no photos in high resolution, but I can get a camera if it helps
+>>> you to help me.
+>>>
+>>>
+>>> Here are photos in low resolution:
+>>>
+>>> http://www.linuxtv.org/wiki/index.php/Geniatech/MyGica_X8507_PCI-Express_Hybrid_Card 
+>>>
+>> I couldn't identify there the small chips on it. If this device has an
+>> I2C device for IR, it is likely one small microcontroller chip.
+>
+> In Linux did not need any extra configuration:
+> http://patchwork.linuxtv.org/patch/15412/
+>
+> For now I owe it, I will upload higher resolution photos when I have a 
+> camera.
+> With my eyes I fail to read the small chips, and that they still look 
+> okay.
+>
+> Thank you very much.
+>
+> Alfredo
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
