@@ -1,96 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2487 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463Ab3BXVLB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Feb 2013 16:11:01 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1OLAnd3093585
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 24 Feb 2013 22:10:53 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 1676411E01EE
-	for <linux-media@vger.kernel.org>; Sun, 24 Feb 2013 22:10:43 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130224211044.1676411E01EE@alastor.dyndns.org>
-Date: Sun, 24 Feb 2013 22:10:43 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:62234 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750756Ab3BFJQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Feb 2013 04:16:24 -0500
+Date: Wed, 6 Feb 2013 07:16:04 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [GIT PULL FOR v3.9] Move cx2341x from media/i2c to media/common
+Message-ID: <20130206071604.768c77b5@redhat.com>
+In-Reply-To: <201302060846.35774.hverkuil@xs4all.nl>
+References: <201301290956.20849.hverkuil@xs4all.nl>
+	<20130205164941.6052fd42@redhat.com>
+	<201302060846.35774.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Wed, 6 Feb 2013 08:46:35 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> On Tue February 5 2013 19:49:41 Mauro Carvalho Chehab wrote:
+> > Hi Hans,
+> > 
+> > Em Tue, 29 Jan 2013 09:56:20 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > Hi Mauro,
+> > > 
+> > > The cx2341x module is a helper module for conexant-based MPEG encoders.
+> > > It isn't an i2c module at all, instead it should be in common since it is
+> > > used by 7 pci and usb drivers to handle the MPEG setup.
+> > >     
+> > > It also shouldn't be visible in the config menu as it is always
+> > > selected automatically by those drivers that need it.
+> > 
+> > It should be noticed that the other non-i2c helper drivers also at
+> > the i2c directories:
+> > 	$ grep -L i2c_client drivers/media/i2c/*.c|grep -v mod
+> > 	drivers/media/i2c/aptina-pll.c
+> > 	drivers/media/i2c/btcx-risc.c
+> > 	drivers/media/i2c/cx2341x.c
+> > 	drivers/media/i2c/smiapp-pll.c
+> >
+> > A closer look may even hit some weird stuff, like tveeprom. This
+> > particular helper driver is not an I2C driver, although it
+> > has i2c_client symbol there, in order to optionally read the data
+> > via I2C, instead of receiving it via an API call.
+> 
+> At least aptina-pll.c, smiapp-pll.c and tveeprom.c all have some relationship
+> with i2c.
 
-date:		Sun Feb 24 19:00:21 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+True, but none of the three are actually i2c drivers; they're just shared
+functions used by drivers helper code.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Hmm...
 
-Detailed results are available here:
+$ git grep aptina-pll.h drivers/media/
+drivers/media/i2c/aptina-pll.c:#include "aptina-pll.h"
+drivers/media/i2c/mt9m032.c:#include "aptina-pll.h"
+drivers/media/i2c/mt9p031.c:#include "aptina-pll.h"
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+$ git grep smiapp-pll.h drivers/media/
+drivers/media/i2c/smiapp-pll.c:#include "smiapp-pll.h"
+drivers/media/i2c/smiapp-pll.h: * drivers/media/i2c/smiapp-pll.h
+drivers/media/i2c/smiapp/smiapp.h:#include "smiapp-pll.h"
 
-Full logs are available here:
+$ git grep smiapp.h drivers/media/
+drivers/media/i2c/smiapp/smiapp-core.c:#include "smiapp.h"
+drivers/media/i2c/smiapp/smiapp-limits.c:#include "smiapp.h"
+drivers/media/i2c/smiapp/smiapp-quirk.c:#include "smiapp.h"
+drivers/media/i2c/smiapp/smiapp-regs.c:#include "smiapp.h"
+drivers/media/i2c/smiapp/smiapp.h: * drivers/media/i2c/smiapp/smiapp.h
+drivers/media/i2c/smiapp/smiapp.h:#include <media/smiapp.h>
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+It could make sense to keep those two on I2c, eventually moving
+smapp-pl to i2c/smiapp. I have conflicting opinions here :)
 
-The Media Infrastructure API from this daily build is here:
+> But cx2341x.c and btcx-risc.c do not have that at all. One reason
+> for creating this patch was that I couldn't find the cx2341x.c code until I
+> smiapp-pll.cdid a find.
+> 
+> > Also, I don't think cx2341x or any of those other helper drivers
+> > deserve each its own directory.
+> 
+> I thought that the cx2341x.c source in common looked a bit lonely.
+> But if we add other sources as well, then it has company :-)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+:)
+
+> > So, IMHO, the better is to just live them at the i2c directory.
+> 
+> For cx2341x and btcx-risc the i2c directory is completely inappropriate.
+> Nobody is ever going to guess that.
+
+Agreed. Those are just leftovers of the tree reorg, as the final patch
+at v4l side were to rename "video" to "i2c".
+
+> > They might be moved, instead, to drivers/media/common (but without
+> > creating subdirs there).
+> > 
+> > In any case, we should do the same for all those non-i2c helper
+> > drivers. Just moving cx2341x and letting the others there will just
+> > increase the mess.
+> 
+> I've no problem moving cx2341x, btcx-risc and tveeprom to common. For
+> the two pll sources I'd like to know if the authors agree (CC-ed) before
+> I make a patch moving them to common.
+
+Fair enough.
+
+Regards,
+Mauro
