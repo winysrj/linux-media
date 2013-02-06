@@ -1,97 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2978 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758862Ab3BTVLH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 16:11:07 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1KLB3ea025348
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 22:11:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 0347B11E00B5
-	for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 22:11:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130220211102.0347B11E00B5@alastor.dyndns.org>
-Date: Wed, 20 Feb 2013 22:11:01 +0100 (CET)
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:57848 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751335Ab3BFNs4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 08:48:56 -0500
+Message-id: <51125F44.3050603@samsung.com>
+Date: Wed, 06 Feb 2013 14:48:52 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
+	David Hardeman <david@hardeman.nu>,
+	Trilok Soni <tsoni@codeaurora.org>,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RESEND] media: rc: gpio-ir-recv: add support for device
+ tree parsing
+References: <1359400023-25804-1-git-send-email-sebastian.hesselbarth@gmail.com>
+ <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
+In-reply-to: <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi,
 
-Results of the daily build of media_tree:
+On 02/06/2013 09:03 AM, Sebastian Hesselbarth wrote:
+> This patch adds device tree parsing for gpio_ir_recv platform_data and
+> the mandatory binding documentation. It basically follows what we already
+> have for e.g. gpio_keys. All required device tree properties are OS
+> independent but optional properties allow linux specific support for rc
+> protocols and maps.
+> 
+> There was a similar patch sent by Matus Ujhelyi but that discussion
+> died after the first reviews.
+> 
+> Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+> ---
+...
+> diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+> new file mode 100644
+> index 0000000..937760c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+> @@ -0,0 +1,20 @@
+> +Device-Tree bindings for GPIO IR receiver
+> +
+> +Required properties:
+> +	- compatible = "gpio-ir-receiver";
+> +	- gpios: OF device-tree gpio specification.
+> +
+> +Optional properties:
+> +	- linux,allowed-rc-protocols: Linux specific u64 bitmask of allowed
+> +	    rc protocols.
 
-date:		Wed Feb 20 19:00:22 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+You likely need to specify in these bindings documentation which bit 
+corresponds to which RC protocol.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-Module.symvers: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I'm not very familiar with the RC internals, but why it has to be
+specified statically in the device tree, when decoding seems to be
+mostly software defined ? I might be missing something though..
 
-Detailed results are available here:
+Couldn't this be configured at run time, with all protocols allowed
+as the default ?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> +	- linux,rc-map-name: Linux specific remote control map name.
+> +
+> +Example node:
+> +
+> +	ir: ir-receiver {
+> +		compatible = "gpio-ir-receiver";
+> +		gpios = <&gpio0 19 1>;
+> +		/* allow rc protocols 1-4 */
+> +		linux,allowed-rc-protocols = <0x00000000 0x0000001e>;
+> +		linux,rc-map-name = "rc-rc6-mce";
+> +	};
+> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+> index 4f71a7d..25e09fa 100644
+> --- a/drivers/media/rc/gpio-ir-recv.c
+> +++ b/drivers/media/rc/gpio-ir-recv.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/interrupt.h>
+>  #include <linux/gpio.h>
+>  #include <linux/slab.h>
+> +#include <linux/of_gpio.h>
+>  #include <linux/platform_device.h>
+>  #include <linux/irq.h>
+>  #include <media/rc-core.h>
+> @@ -30,6 +31,63 @@ struct gpio_rc_dev {
+>  	bool active_low;
+>  };
+>  
+> +#ifdef CONFIG_OF
+> +/*
+> + * Translate OpenFirmware node properties into platform_data
+> + */
+> +static struct gpio_ir_recv_platform_data *
+> +gpio_ir_recv_get_devtree_pdata(struct device *dev)
+> +{
+> +	struct device_node *np = dev->of_node;
+> +	struct gpio_ir_recv_platform_data *pdata;
+> +	enum of_gpio_flags flags;
+> +	int gpio;
+> +
+> +	if (!np)
+> +		return ERR_PTR(-ENODEV);
+> +
+> +	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	if (!of_find_property(np, "gpios", NULL)) {
 
-Full logs are available here:
+Why do you need this ? Isn't of_get_gpio_flags() sufficient ?
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> +		dev_err(dev, "Found gpio-ir-receiver without gpios\n");
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	gpio = of_get_gpio_flags(np, 0, &flags);
+> +	if (gpio < 0) {
+> +		if (gpio != -EPROBE_DEFER)
+> +			dev_err(dev, "Failed to get gpio flags, error: %d\n",
+> +				gpio);
+> +		return ERR_PTR(gpio);
+> +	}
+> +
+> +	pdata->gpio_nr = gpio;
+> +	pdata->active_low = (flags & OF_GPIO_ACTIVE_LOW) ? true : false;
+> +	pdata->map_name = of_get_property(np, "linux,rc-map-name", NULL);
+> +	of_property_read_u64(np, "linux,allowed-rc-protocols",
+> +			     &pdata->allowed_protos);
+> +
+> +	return pdata;
+> +}
+> +
+> +static struct of_device_id gpio_ir_recv_of_match[] = {
+> +	{ .compatible = "gpio-ir-receiver", },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
+> +
+> +#else /* !CONFIG_OF */
+> +
+> +static inline struct gpio_ir_recv_platform_data *
+> +gpio_ir_recv_get_devtree_pdata(struct device *dev)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +#endif
+> +
+>  static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+>  {
+>  	struct gpio_rc_dev *gpio_dev = dev_id;
+> @@ -66,8 +124,11 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+>  					pdev->dev.platform_data;
+>  	int rc;
+>  
+> -	if (!pdata)
+> -		return -EINVAL;
+> +	if (!pdata) {
+> +		pdata = gpio_ir_recv_get_devtree_pdata(&pdev->dev);
 
-The Media Infrastructure API from this daily build is here:
+Could assigning to pdev->dev.platform_data be avoided here ?
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+platform_data is only referenced in probe(), so maybe something like
+this would be better:
+
+	const struct gpio_ir_recv_platform_data *pdata = NULL;
+
+	if (pdev->dev.of_node) {
+		ret = gpio_ir_recv_parse_dt(&pdev->dev, &pdata);
+		if (ret < 0)
+			return ret;
+	} else {
+		pdata = pdev->dev.platform_data;
+	}
+	if (!pdata)
+		return -EINVAL;
+
+> +		if (IS_ERR(pdata))
+> +			return PTR_ERR(pdata);
+> +	}
+>  
+>  	if (pdata->gpio_nr < 0)
+>  		return -EINVAL;
+> @@ -195,6 +256,9 @@ static struct platform_driver gpio_ir_recv_driver = {
+>  #ifdef CONFIG_PM
+>  		.pm	= &gpio_ir_recv_pm_ops,
+>  #endif
+> +#ifdef CONFIG_OF
+> +		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
+> +#endif
+
+There is not need for #ifdef here, of_match_ptr() macro was introduced
+just to allow to omit #ifdefs.
+
+>  	},
+>  };
+>  module_platform_driver(gpio_ir_recv_driver);
+> 
+
+--
+
+Thanks,
+Sylwester
