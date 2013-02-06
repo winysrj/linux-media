@@ -1,70 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:36629 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758160Ab3B0PMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 10:12:16 -0500
-Message-ID: <512E0E2B.6020706@schinagl.nl>
-Date: Wed, 27 Feb 2013 14:46:19 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Christian Affolter <c.affolter@purplehaze.ch>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Initial tuning data for upc cablecom Berne, Switzerland
-References: <512D2C54.7010205@purplehaze.ch> <512DF217.3000305@schinagl.nl> <512E0DE4.10709@purplehaze.ch> <512E04DE.2040305@schinagl.nl>
-In-Reply-To: <512E04DE.2040305@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:49722 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab3BFKsp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 05:48:45 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHS007B0OLNYC60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 10:48:43 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MHS00BKVOP75I80@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 10:48:43 +0000 (GMT)
+Message-id: <5112350A.60906@samsung.com>
+Date: Wed, 06 Feb 2013 11:48:42 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR 3.8] Exynos/s5p driver fixes
+References: <50FAA6C4.9020606@gmail.com> <20130205184356.7e513290@redhat.com>
+In-reply-to: <20130205184356.7e513290@redhat.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-02-13 14:06, Oliver Schinagl wrote:
-> On 27-02-13 14:45, Christian Affolter wrote:
->> Hi Oliver
->>
->>>> Hi
->>>>
->>>> please find the initial tuning data for the Swiss cable provider "upc
->>>> cablecom" in Berne.
->>>>
->>>> I've added the data below to dvb-c/ch-Bern-upc-cablecom
->>>>
->>>> # upc cablecom
->>>> # Berne, Switzerland
->>>> # freq sr fec mod
->>>> C 426000000 6900000 NONE QAM64
->>> Thanks,
->>>
->>> pushed in 5493eb3f5f7801cc409596de0e2d0edb499daf70
->> Thanks a lot, but watch out for the typo within the file name [1]:
->> The companies brand is spelled 'upc cablecom' [2] not 'UPC-Capblecom'.
->>
-> I will adjust this immediatly the typo (do'h cablecom, capcom!) and 
-> the capitisation. It appeared that it was lazy capitalization from 
-> your end for that I apologize. I wrongfully assumed since UPC here in 
-> NL is in caps, it should have been there as well. I'll lower the ch one.
-Adjusted in 88b27009b76203b1a2583a6fe8d7c9d866ede808
+Hi Mauro,
 
-nl-upc has also been lowercased as that is their official branding here 
-in NL as well [1].
+On 02/05/2013 09:43 PM, Mauro Carvalho Chehab wrote:
+[..]
+>> The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
+>>
+>>    Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
+>>
+>> are available in the git repository at:
+>>    git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
+>>
+>> Kamil Debski (1):
+>>        s5p-mfc: end-of-stream handling in encoder bug fix
+>>
+>> Sylwester Nawrocki (2):
+>>        s5p-fimc: Fix fimc-lite entities deregistration
+>>        s5p-csis: Fix clock handling on error path in probe()
+>>
+>>   drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
+>>   drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
+>>   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
+>>   3 files changed, 4 insertions(+), 2 deletions(-)
+>>
+>>
+>> pwclient update -s accepted 16223
+>> pwclient update -s accepted 16206
+>> pwclient update -s accepted 16314
+> 
+> Error:
+> 
+> Importing patches from git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
+> fatal: Couldn't find remote ref v3.8-rc5-fixes
 
-[1] http://www.upc.nl
->
->> Thanks again and best regards
->> Christian
->>
->>
->> [1]
->> http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-c/ch-Bern-UPC-Capblecom 
->>
->> [2] http://www.upc-cablecom.ch/en/b2c/about/ueberuns.htm
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here is the updated pull request, after rebase onto staging/for_v3.9:
 
+
+The following changes since commit 9b4539bebb86310afdc5563653ec4475ae110088:
+
+  [media] em28xx: input: use common work_struct callback function for IR RC key
+polling (2013-02-05 20:43:16 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes-2
+
+for you to fetch changes up to 4a3dd932afe11a5edb3e5747a4d943b14062023f:
+
+  s5p-fimc: Fix fimc-lite entities deregistration (2013-02-06 11:35:34 +0100)
+
+----------------------------------------------------------------
+Kamil Debski (1):
+      s5p-mfc: end-of-stream handling in encoder bug fix
+
+Sylwester Nawrocki (2):
+      s5p-csis: Fix clock handling on error path in probe()
+      s5p-fimc: Fix fimc-lite entities deregistration
+
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c    |    7 ++++---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
+ 3 files changed, 7 insertions(+), 4 deletions(-)
+
+--
+
+Thanks,
+Sylwester
