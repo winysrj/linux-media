@@ -1,60 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4583 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752886Ab3BPJ2p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:45 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [RFC PATCH 00/18] Remove DV_PRESET API
-Date: Sat, 16 Feb 2013 10:28:03 +0100
-Message-Id: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:35395 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317Ab3BFIEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 03:04:15 -0500
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
+	David Hardeman <david@hardeman.nu>,
+	Trilok Soni <tsoni@codeaurora.org>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH RESEND] media: rc: gpio-ir-recv: add support for device tree parsing
+Date: Wed,  6 Feb 2013 09:03:52 +0100
+Message-Id: <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
+In-Reply-To: <1359400023-25804-1-git-send-email-sebastian.hesselbarth@gmail.com>
+References: <1359400023-25804-1-git-send-email-sebastian.hesselbarth@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all!
+This patch adds device tree parsing for gpio_ir_recv platform_data and
+the mandatory binding documentation. It basically follows what we already
+have for e.g. gpio_keys. All required device tree properties are OS
+independent but optional properties allow linux specific support for rc
+protocols and maps.
 
-This patch series removes the last remnants of the deprecated DV_PRESET API
-from the kernel:
+There was a similar patch sent by Matus Ujhelyi but that discussion
+died after the first reviews.
 
-- remove the dv_preset ops from the tvp7002 driver: all bridge drivers that
-  use this i2c driver have already been converted to the DV_TIMINGS API, so
-  these ops are no longer used. Prabhakar, can you test this for me?
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+---
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Cc: Benoit Thebaudeau <benoit.thebaudeau@advansee.com>
+Cc: David Hardeman <david@hardeman.nu>
+Cc: Trilok Soni <tsoni@codeaurora.org>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+---
+ .../devicetree/bindings/media/gpio-ir-receiver.txt |   20 ++++++
+ drivers/media/rc/gpio-ir-recv.c                    |   68 +++++++++++++++++++-
+ 2 files changed, 86 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
 
-- fix some remaining references to the preset API from the davinci drivers.
-  It's trivial stuff, but I would appreciate it if you can look at it, 
-  Prabhakar.
-
-- rename some CUSTOM_TIMINGS defines to DV_TIMINGS since CUSTOM_TIMINGS
-  is deprecated. It certainly shouldn't be used anymore in the kernel.
-  Trivial patches, but please look at it as well, Prabhakar and Scott.
-
-- convert the s5p-tv drivers from the DV_PRESET to the DV_TIMINGS API and
-  remove the DV_PRESET API. Tomasz or Kyungmin Park, can you test this?
-  I do not know whether removal of the DV_PRESET API is possible at this
-  stage for the s5p-tv since I do not know if any code inside Samsung
-  uses the DV_PRESET API. If the DV_PRESET API cannot be removed at this
-  time, then let me know. I would have to make some changes to allow the
-  preset and timings APIs to co-exist. I would really like to remove the
-  preset API some time this year, though, if only to prevent new drivers 
-  from attempting to use the preset API.
-
-- finally remove the remaining core DV_PRESET support.
-
-- remove the DV_PRESET API from the videodev2.h header. Note that I am not
-  at all certain if we should do this. I know that the DV_PRESET API has
-  only been used in embedded systems, so the impact should be very limited.
-  But it is probably better to wait for a year or so before actually 
-  removing it from the header. The main reason for adding this removal is
-  to verify that I haven't forgotten any driver conversions.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
+diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+new file mode 100644
+index 0000000..937760c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+@@ -0,0 +1,20 @@
++Device-Tree bindings for GPIO IR receiver
++
++Required properties:
++	- compatible = "gpio-ir-receiver";
++	- gpios: OF device-tree gpio specification.
++
++Optional properties:
++	- linux,allowed-rc-protocols: Linux specific u64 bitmask of allowed
++	    rc protocols.
++	- linux,rc-map-name: Linux specific remote control map name.
++
++Example node:
++
++	ir: ir-receiver {
++		compatible = "gpio-ir-receiver";
++		gpios = <&gpio0 19 1>;
++		/* allow rc protocols 1-4 */
++		linux,allowed-rc-protocols = <0x00000000 0x0000001e>;
++		linux,rc-map-name = "rc-rc6-mce";
++	};
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 4f71a7d..25e09fa 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -16,6 +16,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/gpio.h>
+ #include <linux/slab.h>
++#include <linux/of_gpio.h>
+ #include <linux/platform_device.h>
+ #include <linux/irq.h>
+ #include <media/rc-core.h>
+@@ -30,6 +31,63 @@ struct gpio_rc_dev {
+ 	bool active_low;
+ };
+ 
++#ifdef CONFIG_OF
++/*
++ * Translate OpenFirmware node properties into platform_data
++ */
++static struct gpio_ir_recv_platform_data *
++gpio_ir_recv_get_devtree_pdata(struct device *dev)
++{
++	struct device_node *np = dev->of_node;
++	struct gpio_ir_recv_platform_data *pdata;
++	enum of_gpio_flags flags;
++	int gpio;
++
++	if (!np)
++		return ERR_PTR(-ENODEV);
++
++	pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++	if (!pdata)
++		return ERR_PTR(-ENOMEM);
++
++	if (!of_find_property(np, "gpios", NULL)) {
++		dev_err(dev, "Found gpio-ir-receiver without gpios\n");
++		return ERR_PTR(-EINVAL);
++	}
++
++	gpio = of_get_gpio_flags(np, 0, &flags);
++	if (gpio < 0) {
++		if (gpio != -EPROBE_DEFER)
++			dev_err(dev, "Failed to get gpio flags, error: %d\n",
++				gpio);
++		return ERR_PTR(gpio);
++	}
++
++	pdata->gpio_nr = gpio;
++	pdata->active_low = (flags & OF_GPIO_ACTIVE_LOW) ? true : false;
++	pdata->map_name = of_get_property(np, "linux,rc-map-name", NULL);
++	of_property_read_u64(np, "linux,allowed-rc-protocols",
++			     &pdata->allowed_protos);
++
++	return pdata;
++}
++
++static struct of_device_id gpio_ir_recv_of_match[] = {
++	{ .compatible = "gpio-ir-receiver", },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, gpio_ir_recv_of_match);
++
++#else /* !CONFIG_OF */
++
++static inline struct gpio_ir_recv_platform_data *
++gpio_ir_recv_get_devtree_pdata(struct device *dev)
++{
++	return ERR_PTR(-ENODEV);
++}
++
++#endif
++
+ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ {
+ 	struct gpio_rc_dev *gpio_dev = dev_id;
+@@ -66,8 +124,11 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
+ 					pdev->dev.platform_data;
+ 	int rc;
+ 
+-	if (!pdata)
+-		return -EINVAL;
++	if (!pdata) {
++		pdata = gpio_ir_recv_get_devtree_pdata(&pdev->dev);
++		if (IS_ERR(pdata))
++			return PTR_ERR(pdata);
++	}
+ 
+ 	if (pdata->gpio_nr < 0)
+ 		return -EINVAL;
+@@ -195,6 +256,9 @@ static struct platform_driver gpio_ir_recv_driver = {
+ #ifdef CONFIG_PM
+ 		.pm	= &gpio_ir_recv_pm_ops,
+ #endif
++#ifdef CONFIG_OF
++		.of_match_table = of_match_ptr(gpio_ir_recv_of_match),
++#endif
+ 	},
+ };
+ module_platform_driver(gpio_ir_recv_driver);
+-- 
+1.7.10.4
 
