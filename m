@@ -1,60 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:38650 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab3BELSz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 06:18:55 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by filtteri1.pp.htv.fi (Postfix) with ESMTP id 0CF2E21B7B6
-	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 13:08:44 +0200 (EET)
-Received: from smtp5.welho.com ([213.243.153.39])
-	by localhost (filtteri1.pp.htv.fi [213.243.153.184]) (amavisd-new, port 10024)
-	with ESMTP id O9khESyo8Tjp for <linux-media@vger.kernel.org>;
-	Tue,  5 Feb 2013 13:08:43 +0200 (EET)
-Received: from cs78145022.pp.htv.fi (cs78145022.pp.htv.fi [62.78.145.22])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp5.welho.com (Postfix) with ESMTPS id 197905BC003
-	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 13:08:43 +0200 (EET)
-Received: from localhost (localhost [127.0.0.1])
-	by cs78145022.pp.htv.fi (Postfix) with ESMTP id 8838CB3A
-	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 13:08:42 +0200 (EET)
-Date: Tue, 5 Feb 2013 13:08:42 +0200 (EET)
-From: Matti Kurkela <Matti.Kurkela@iki.fi>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2468 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757451Ab3BFP4z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: ttusb2: Kconfig patch to auto-select frontends for TechnoTrend
- CT-3650
-Message-ID: <alpine.DEB.2.00.1302051252001.23479@melchior.home>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 17/17] bttv: fix g_tuner capabilities override.
+Date: Wed,  6 Feb 2013 16:56:35 +0100
+Message-Id: <4e112a3426fef3083a3c42b4de5db739238b786d.1360165855.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The ttusb2 module is already updated to recognize the TechnoTrend CT-3650 
-CI DVB C/T USB2.0 receiver in addition to the Pinnacle 400e. But if 
-MEDIA_SUBDRV_AUTOSELECT is used, the required tuner and demodulator 
-modules are not automatically selected. Here's a patch to fix that and add a 
-note of the CT-3650 to the online help of the ttusb2 module.
+The capability field of v4l2_tuner should be ORed by the various subdevs
+and by the main driver. In this case the stereo capability was dropped.
 
-This patch applies cleanly to 3.7.6 and other 3.7.x kernels.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/tvaudio.c           |    2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- drivers/media/usb/dvb-usb/Kconfig~	2013-01-21 21:45:40.000000000 +0200
-+++ drivers/media/usb/dvb-usb/Kconfig	2013-01-23 17:51:26.000000000 +0200
-@@ -202,8 +202,12 @@
-  	select DVB_TDA10086 if MEDIA_SUBDRV_AUTOSELECT
-  	select DVB_LNBP21 if MEDIA_SUBDRV_AUTOSELECT
-  	select DVB_TDA826X if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_TDA10023 if MEDIA_SUBDRV_AUTOSELECT
-+	select DVB_TDA10048 if MEDIA_SUBDRV_AUTOSELECT
-+	select MEDIA_TUNER_TDA827X if MEDIA_SUBDRV_AUTOSELECT
-  	help
--	  Say Y here to support the Pinnacle 400e DVB-S USB2.0 receiver. The
-+	  Say Y here to support the Pinnacle 400e DVB-S USB2.0 receiver and
-+	  the TechnoTrend CT-3650 CI DVB-C/T USB2.0 receiver. The
-  	  firmware protocol used by this module is similar to the one used by the
-  	  old ttusb-driver - that's why the module is called dvb-usb-ttusb2.
-
-
+diff --git a/drivers/media/i2c/tvaudio.c b/drivers/media/i2c/tvaudio.c
+index e3b33b7..4c91b35 100644
+--- a/drivers/media/i2c/tvaudio.c
++++ b/drivers/media/i2c/tvaudio.c
+@@ -1803,7 +1803,7 @@ static int tvaudio_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 
+ 	vt->audmode = chip->audmode;
+ 	vt->rxsubchans = desc->getrxsubchans(chip);
+-	vt->capability = V4L2_TUNER_CAP_STEREO |
++	vt->capability |= V4L2_TUNER_CAP_STEREO |
+ 		V4L2_TUNER_CAP_LANG1 | V4L2_TUNER_CAP_LANG2;
+ 
+ 	return 0;
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 98b8fd2..0492fff 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2787,9 +2787,9 @@ static int bttv_g_tuner(struct file *file, void *priv,
+ 		return -EINVAL;
+ 
+ 	t->rxsubchans = V4L2_TUNER_SUB_MONO;
++	t->capability = V4L2_TUNER_CAP_NORM;
+ 	bttv_call_all(btv, tuner, g_tuner, t);
+ 	strcpy(t->name, "Television");
+-	t->capability = V4L2_TUNER_CAP_NORM;
+ 	t->type       = V4L2_TUNER_ANALOG_TV;
+ 	if (btread(BT848_DSTATUS)&BT848_DSTATUS_HLOC)
+ 		t->signal = 0xffff;
 -- 
-Matti.Kurkela (at) iki.fi (tai welho.com)
-Puhelin 050 566 5564
+1.7.10.4
+
