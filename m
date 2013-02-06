@@ -1,121 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:60578 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933459Ab3BSTGt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 14:06:49 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Manu Abraham <manu@linuxtv.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] [media] stv090x: do not unlock unheld mutex in stv090x_sleep()
-Date: Tue, 19 Feb 2013 22:58:53 +0400
-Message-Id: <1361300333-9410-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mailout2.samsung.com ([203.254.224.25]:9826 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753617Ab3BFLV0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 06:21:26 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHS00GE1Q7L3A21@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 20:21:24 +0900 (KST)
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+Received: from [10.90.8.56] by mmp2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MHS00AVPQ7N1Q70@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 20:21:24 +0900 (KST)
+Message-id: <51123CC2.1020607@samsung.com>
+Date: Wed, 06 Feb 2013 20:21:38 +0900
+From: =?UTF-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
+Reply-to: sw0312.kim@samsung.com
+To: Inki Dae <inki.dae@samsung.com>
+Cc: 'Sachin Kamat' <sachin.kamat@linaro.org>, kgene.kim@samsung.com,
+	patches@linaro.org, devicetree-discuss@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org, kyungmin.park@samsung.com,
+	s.nawrocki@samsung.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	sw0312.kim@samsung.com,
+	=?UTF-8?B?J+yLrOykgOyYgSc=?= <jy0922.shim@samsung.com>
+Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+ <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
+ <02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
+ <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
+ <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
+In-reply-to: <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-goto err and goto err_gateoff before mutex_lock(&state->internal->demod_lock)
-lead to unlock of unheld mutex in stv090x_sleep().
 
-Found by Linux Driver Verification project (linuxtesting.org).
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/dvb-frontends/stv090x.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+On 2013년 02월 06일 17:51, Inki Dae wrote:
+> 
+> 
+>> -----Original Message-----
+>> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+>> Sent: Wednesday, February 06, 2013 5:03 PM
+>> To: Inki Dae
+>> Cc: linux-media@vger.kernel.org; dri-devel@lists.freedesktop.org;
+>> devicetree-discuss@lists.ozlabs.org; k.debski@samsung.com;
+>> s.nawrocki@samsung.com; kgene.kim@samsung.com; patches@linaro.org; Ajay
+>> Kumar
+>> Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
+>> support for G2D
+>>
+>> On 6 February 2013 13:02, Inki Dae <inki.dae@samsung.com> wrote:
+>>>
+>>> Looks good to me but please add document for it.
+>>
+>> Yes. I will. I was planning to send the bindings document patch along
+>> with the dt patches (adding node entries to dts files).
+>> Sylwester had suggested adding this to
+>> Documentation/devicetree/bindings/media/ which contains other media
+>> IPs.
+> 
+> I think that it's better to go to gpu than media and we can divide Exynos
+> IPs into the bellow categories,
+> 
+> Media : mfc
+> GPU : g2d, g3d, fimc, gsc
+> Video : fimd, hdmi, eDP, MIPI-DSI
 
-diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index 13caec0..4f600ac 100644
---- a/drivers/media/dvb-frontends/stv090x.c
-+++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -3906,12 +3906,12 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		reg = stv090x_read_reg(state, STV090x_TSTTNR1);
- 		STV090x_SETFIELD(reg, ADC1_PON_FIELD, 0);
- 		if (stv090x_write_reg(state, STV090x_TSTTNR1, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		/* power off DiSEqC 1 */
- 		reg = stv090x_read_reg(state, STV090x_TSTTNR2);
- 		STV090x_SETFIELD(reg, DISEQC1_PON_FIELD, 0);
- 		if (stv090x_write_reg(state, STV090x_TSTTNR2, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 
- 		/* check whether path 2 is already sleeping, that is when
- 		   ADC2 is off */
-@@ -3930,7 +3930,7 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		if (full_standby)
- 			STV090x_SETFIELD(reg, STOP_CLKFEC_FIELD, 1);
- 		if (stv090x_write_reg(state, STV090x_STOPCLK1, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		reg = stv090x_read_reg(state, STV090x_STOPCLK2);
- 		/* sampling 1 clock */
- 		STV090x_SETFIELD(reg, STOP_CLKSAMP1_FIELD, 1);
-@@ -3941,7 +3941,7 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		if (full_standby)
- 			STV090x_SETFIELD(reg, STOP_CLKTS_FIELD, 1);
- 		if (stv090x_write_reg(state, STV090x_STOPCLK2, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		break;
- 
- 	case STV090x_DEMODULATOR_1:
-@@ -3949,12 +3949,12 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		reg = stv090x_read_reg(state, STV090x_TSTTNR3);
- 		STV090x_SETFIELD(reg, ADC2_PON_FIELD, 0);
- 		if (stv090x_write_reg(state, STV090x_TSTTNR3, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		/* power off DiSEqC 2 */
- 		reg = stv090x_read_reg(state, STV090x_TSTTNR4);
- 		STV090x_SETFIELD(reg, DISEQC2_PON_FIELD, 0);
- 		if (stv090x_write_reg(state, STV090x_TSTTNR4, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 
- 		/* check whether path 1 is already sleeping, that is when
- 		   ADC1 is off */
-@@ -3973,7 +3973,7 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		if (full_standby)
- 			STV090x_SETFIELD(reg, STOP_CLKFEC_FIELD, 1);
- 		if (stv090x_write_reg(state, STV090x_STOPCLK1, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		reg = stv090x_read_reg(state, STV090x_STOPCLK2);
- 		/* sampling 2 clock */
- 		STV090x_SETFIELD(reg, STOP_CLKSAMP2_FIELD, 1);
-@@ -3984,7 +3984,7 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		if (full_standby)
- 			STV090x_SETFIELD(reg, STOP_CLKTS_FIELD, 1);
- 		if (stv090x_write_reg(state, STV090x_STOPCLK2, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 		break;
- 
- 	default:
-@@ -3997,7 +3997,7 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 		reg = stv090x_read_reg(state, STV090x_SYNTCTRL);
- 		STV090x_SETFIELD(reg, STANDBY_FIELD, 0x01);
- 		if (stv090x_write_reg(state, STV090x_SYNTCTRL, reg) < 0)
--			goto err;
-+			goto err_unlock;
- 	}
- 
- 	mutex_unlock(&state->internal->demod_lock);
-@@ -4005,8 +4005,10 @@ static int stv090x_sleep(struct dvb_frontend *fe)
- 
- err_gateoff:
- 	stv090x_i2c_gate_ctrl(state, 0);
--err:
-+	goto err;
-+err_unlock:
- 	mutex_unlock(&state->internal->demod_lock);
-+err:
- 	dprintk(FE_ERROR, 1, "I/O error");
- 	return -1;
- }
--- 
-1.7.9.5
+Hm, here is another considering point. Some device can be used as one of
+two sub-system. For example g2d can be used as V4L2 driver or DRM
+driver. And more specific case, multiple fimc/gsc deivces can be
+separately used as both drivers: two fimc devices are used as V4L2
+driver and other devices are used as DRM driver.
+Current discussion, without change of build configuration, device can be
+only used as one driver.
 
+So I want to discuss about how we can bind device and driver just with
+dts configuration.
+
+IMO, there are two options.
+
+First, driver usage is set on configurable node.
+	g2d: g2d {
+		compatible = "samsung,exynos4212-g2d";
+                ...
+                *subsystem = "v4l2"* or *subsystem = "drm"*
+	};
+Node name and type is just an example to describe.
+With this option, driver which is not matched with subsystem node should
+return with fail during its probing.
+
+Second, using dual compatible strings.
+	g2d: g2d {
+		*compatible = "samsung,exynos4212-v4l2-g2d"; or
+                compatible = "samsung,exynos4212-v4l2-g2d";*
+                ...
+	};
+String is just an example so don't mind if it is ugly. Actually, with
+this option, compatible string has non HW information. But this option
+does not need fail in probing.
+
+I'm not sure these options are fit to DT concept. Please let me know if
+anyone has idea.
+
+Best Regards,
+- Seung-Woo Kim
+
+> 
+> And I think that the device-tree describes hardware so possibly, all
+> documents in .../bindings/drm/exynos/* should be moved to proper place also.
+> Please give  me any opinions.
+> 
+> Thanks,
+> Inki Dae
+> 
+>>
+>>>
+>>> To other guys,
+>>> And is there anyone who know where this document should be added to?
+>>> I'm not sure that the g2d document should be placed in
+>>> Documentation/devicetree/bindings/gpu, media, drm/exynos or arm/exynos.
+>> At
+>>> least, this document should be shared with the g2d hw relevant drivers
+>> such
+>>> as v4l2 and drm. So is ".../bindings/gpu" proper place?
+>>>
+>>
+>>
+>> --
+>> With warm regards,
+>> Sachin
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
