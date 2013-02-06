@@ -1,95 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1872 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756615Ab3BFTRl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 14:17:41 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r16JHcpW021489
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 6 Feb 2013 20:17:40 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id CC22811E00C9
-	for <linux-media@vger.kernel.org>; Wed,  6 Feb 2013 20:17:37 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-vc0-f180.google.com ([209.85.220.180]:33946 "EHLO
+	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758547Ab3BFVBm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 16:01:42 -0500
+Received: by mail-vc0-f180.google.com with SMTP id fo13so1136596vcb.25
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 13:01:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAKdnbx4niA+UPaWf=sJCOj61iBTdtT7D0aqc7hvWFi-5biD3kg@mail.gmail.com>
+References: <CAKdnbx4niA+UPaWf=sJCOj61iBTdtT7D0aqc7hvWFi-5biD3kg@mail.gmail.com>
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Wed, 6 Feb 2013 21:54:10 +0100
+Message-ID: <CAKdnbx7jcroo-u7Z66nsn57a4L6MKcb9AgD0VYMeZSc2aVDz7Q@mail.gmail.com>
+Subject: Re: [PATCH] media_build update IS_ENABLED macro
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130206191737.CC22811E00C9@alastor.dyndns.org>
-Date: Wed,  6 Feb 2013 20:17:37 +0100 (CET)
+Cc: mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Sorry ignore my patch.. it's broken
 
-Results of the daily build of media_tree:
+Regards Eddi
 
-date:		Wed Feb  6 19:00:29 CET 2013
-git branch:	for_v3.9
-git hash:	248ac368ce4b3cd36515122d888403909d7a2500
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
-
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+On Wed, Feb 6, 2013 at 9:48 PM, Eddi De Pieri <eddi@depieri.net> wrote:
+> Fix media_build by updating IS_ENABLED macro
+>
+> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+>
+> diff --git a/v4l/compat.h b/v4l/compat.h
+> index 8ef90aa..fd0d139 100644
+> --- a/v4l/compat.h
+> +++ b/v4l/compat.h
+> @@ -1102,7 +1102,7 @@ static inline void i2c_unlock_adapter(struct
+> i2c_adapter *adapter)
+>  #define __config_enabled(arg1_or_junk) ___config_enabled(arg1_or_junk 1, 0)
+>  #define ___config_enabled(__ignored, val, ...) val
+>  #define IS_ENABLED(option) \
+> -               (config_enabled(option) || config_enabled(option##_MODULE))
+> +               (defined(__enabled_ ## option) || defined(__enabled_
+> ## option ## _MODULE))
+>  #endif
+>
+>  #ifdef NEED_USB_TRANSLATE_ERRORS
