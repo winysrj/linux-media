@@ -1,144 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f42.google.com ([209.85.128.42]:63769 "EHLO
-	mail-qe0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161Ab3BPNUv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 08:20:51 -0500
-Received: by mail-qe0-f42.google.com with SMTP id 2so1859955qeb.29
-        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 05:20:50 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <054d4fd3b99e30480c6e40d368579bfad2053e5e.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
- <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <054d4fd3b99e30480c6e40d368579bfad2053e5e.1361006882.git.hans.verkuil@cisco.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 16 Feb 2013 18:42:40 +0530
-Message-ID: <CA+V-a8t7DDkTQR-d-YBhg2hUJsea=L_ddA2rD+cMMOpzPDg2XQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 02/18] tvp7002: use dv_timings structs instead of presets.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2397 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757434Ab3BFP4y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:54 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 15/17] bttv: use centralized std and implement g_std.
+Date: Wed,  6 Feb 2013 16:56:33 +0100
+Message-Id: <f85df6c559017583623bb12be6bea8f5072f9b6c.1360165855.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sat, Feb 16, 2013 at 2:58 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> In the functions tvp7002_mbus_fmt(), tvp7002_log_status and tvp7002_probe()
-> we should use the dv_timings data structures instead of dv_preset data
-> structures and functions.
->
-> This is the second step towards removing the deprecated preset support of this
-> driver.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+The 'current_norm' field cannot be used if multiple device nodes (video and
+vbi in this case) set the same std.
 
-Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   13 ++++++++++++-
+ drivers/media/pci/bt8xx/bttvp.h       |    1 +
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-Regards,
---Prabhakar
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 559c1d9..98b8fd2 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1716,6 +1716,7 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ 		goto err;
+ 	}
+ 
++	btv->std = *id;
+ 	set_tvnorm(btv, i);
+ 
+ err:
+@@ -1723,6 +1724,15 @@ err:
+ 	return err;
+ }
+ 
++static int bttv_g_std(struct file *file, void *priv, v4l2_std_id *id)
++{
++	struct bttv_fh *fh  = priv;
++	struct bttv *btv = fh->btv;
++
++	*id = btv->std;
++	return 0;
++}
++
+ static int bttv_querystd(struct file *file, void *f, v4l2_std_id *id)
+ {
+ 	struct bttv_fh *fh = f;
+@@ -3147,6 +3157,7 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
+ 	.vidioc_qbuf                    = bttv_qbuf,
+ 	.vidioc_dqbuf                   = bttv_dqbuf,
+ 	.vidioc_s_std                   = bttv_s_std,
++	.vidioc_g_std                   = bttv_g_std,
+ 	.vidioc_enum_input              = bttv_enum_input,
+ 	.vidioc_g_input                 = bttv_g_input,
+ 	.vidioc_s_input                 = bttv_s_input,
+@@ -3177,7 +3188,6 @@ static struct video_device bttv_video_template = {
+ 	.fops         = &bttv_fops,
+ 	.ioctl_ops    = &bttv_ioctl_ops,
+ 	.tvnorms      = BTTV_NORMS,
+-	.current_norm = V4L2_STD_PAL,
+ };
+ 
+ /* ----------------------------------------------------------------------- */
+@@ -4173,6 +4183,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 		bttv_set_frequency(btv, &init_freq);
+ 		btv->radio_freq = 90500 * 16; /* 90.5Mhz default */
+ 	}
++	btv->std = V4L2_STD_PAL;
+ 	init_irqreg(btv);
+ 	v4l2_ctrl_handler_setup(hdl);
+ 
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index 12cc4eb..86d67bb 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -424,6 +424,7 @@ struct bttv {
+ 	unsigned int mute;
+ 	unsigned long tv_freq;
+ 	unsigned int tvnorm;
++	v4l2_std_id std;
+ 	int hue, contrast, bright, saturation;
+ 	struct v4l2_framebuffer fbuf;
+ 	unsigned int field_count;
+-- 
+1.7.10.4
 
-> ---
->  drivers/media/i2c/tvp7002.c |   54 ++++++++++++++-----------------------------
->  1 file changed, 17 insertions(+), 37 deletions(-)
->
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 7995eeb..d7a08bc 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -677,16 +677,10 @@ static int tvp7002_s_ctrl(struct v4l2_ctrl *ctrl)
->  static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
->  {
->         struct tvp7002 *device = to_tvp7002(sd);
-> -       struct v4l2_dv_enum_preset e_preset;
-> -       int error;
-> -
-> -       /* Calculate height and width based on current standard */
-> -       error = v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset);
-> -       if (error)
-> -               return error;
-> +       const struct v4l2_bt_timings *bt = &device->current_timings->timings.bt;
->
-> -       f->width = e_preset.width;
-> -       f->height = e_preset.height;
-> +       f->width = bt->width;
-> +       f->height = bt->height;
->         f->code = V4L2_MBUS_FMT_YUYV10_1X20;
->         f->field = device->current_timings->scanmode;
->         f->colorspace = device->current_timings->color_space;
-> @@ -896,35 +890,21 @@ static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
->   */
->  static int tvp7002_log_status(struct v4l2_subdev *sd)
->  {
-> -       const struct tvp7002_timings_definition *timings = tvp7002_timings;
->         struct tvp7002 *device = to_tvp7002(sd);
-> -       struct v4l2_dv_enum_preset e_preset;
-> -       struct v4l2_dv_preset detected;
-> -       int i;
-> +       const struct v4l2_bt_timings *bt;
-> +       int detected;
->
-> -       detected.preset = V4L2_DV_INVALID;
-> -       /* Find my current standard*/
-> -       tvp7002_query_dv_preset(sd, &detected);
-> +       /* Find my current timings */
-> +       tvp7002_query_dv(sd, &detected);
->
-> -       /* Print standard related code values */
-> -       for (i = 0; i < NUM_TIMINGS; i++, timings++)
-> -               if (timings->preset == detected.preset)
-> -                       break;
-> -
-> -       if (v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset))
-> -               return -EINVAL;
-> -
-> -       v4l2_info(sd, "Selected DV Preset: %s\n", e_preset.name);
-> -       v4l2_info(sd, "   Pixels per line: %u\n", e_preset.width);
-> -       v4l2_info(sd, "   Lines per frame: %u\n\n", e_preset.height);
-> -       if (i == NUM_TIMINGS) {
-> -               v4l2_info(sd, "Detected DV Preset: None\n");
-> +       bt = &device->current_timings->timings.bt;
-> +       v4l2_info(sd, "Selected DV Timings: %ux%u\n", bt->width, bt->height);
-> +       if (detected == NUM_TIMINGS) {
-> +               v4l2_info(sd, "Detected DV Timings: None\n");
->         } else {
-> -               if (v4l_fill_dv_preset_info(timings->preset, &e_preset))
-> -                       return -EINVAL;
-> -               v4l2_info(sd, "Detected DV Preset: %s\n", e_preset.name);
-> -               v4l2_info(sd, "  Pixels per line: %u\n", e_preset.width);
-> -               v4l2_info(sd, "  Lines per frame: %u\n\n", e_preset.height);
-> +               bt = &tvp7002_timings[detected].timings.bt;
-> +               v4l2_info(sd, "Detected DV Timings: %ux%u\n",
-> +                               bt->width, bt->height);
->         }
->         v4l2_info(sd, "Streaming enabled: %s\n",
->                                         device->streaming ? "yes" : "no");
-> @@ -1019,7 +999,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->  {
->         struct v4l2_subdev *sd;
->         struct tvp7002 *device;
-> -       struct v4l2_dv_preset preset;
-> +       struct v4l2_dv_timings timings;
->         int polarity_a;
->         int polarity_b;
->         u8 revision;
-> @@ -1080,8 +1060,8 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->                 return error;
->
->         /* Set registers according to default video mode */
-> -       preset.preset = device->current_timings->preset;
-> -       error = tvp7002_s_dv_preset(sd, &preset);
-> +       timings = device->current_timings->timings;
-> +       error = tvp7002_s_dv_timings(sd, &timings);
->
->         v4l2_ctrl_handler_init(&device->hdl, 1);
->         v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
-> --
-> 1.7.10.4
->
