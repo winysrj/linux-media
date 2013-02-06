@@ -1,142 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:33849 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754462Ab3BEP2T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 10:28:19 -0500
-Received: by mail-wg0-f47.google.com with SMTP id dr13so223803wgb.2
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 07:28:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201302041435.26878.hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-	<CALF0-+VvLRmLJB3g=sM4nMPmR=fQS_BnS_j2UmPPwKzt-112KA@mail.gmail.com>
-	<201302041435.26878.hverkuil@xs4all.nl>
-Date: Tue, 5 Feb 2013 16:28:17 +0100
-Message-ID: <CA+6av4kp54eQSeefAnJxY80HtOJ5iCBh+ETOZaKQHbo=m86-DQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
-From: Arvydas Sidorenko <asido4@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:32434 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080Ab3BFIv6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 03:51:58 -0500
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MHS00MH0JAH9CU0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 17:51:57 +0900 (KST)
+Received: from NOINKIDAE02 ([10.90.8.52])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MHS008SPJAKGR80@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Feb 2013 17:51:56 +0900 (KST)
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org, k.debski@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com, patches@linaro.org,
+	'Ajay Kumar' <ajaykumar.rs@samsung.com>,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	jy0922.shim@samsung.com
+References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+ <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
+ <02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
+ <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
+In-reply-to: <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
+Subject: RE: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
+ for G2D
+Date: Wed, 06 Feb 2013 17:51:56 +0900
+Message-id: <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Hi Arvydas,
->
-> Yes indeed, it would be great if you could test this!
->
-> Note that the patch series is also available in my git tree:
->
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/stkwebcam
->
-> Besides the normal testing that everything works as expected, it would also
-> be great if you could run the v4l2-compliance tool. It's part of the v4l-utils
-> repository (http://git.linuxtv.org/v4l-utils.git) and it tests whether a driver
-> complies to the V4L2 specification.
->
-> Just compile the tool from the repository (don't use a distro-provided version)
-> and run it as 'v4l2-compliance -d /dev/videoX' and mail me the output. You will
-> get at least one failure at the end, but I'd like to know if there are other
-> issues remaining.
->
-> Regards,
->
->         Hans
-
-I have tested the patches using STK-1135 webcam. Everything works well.
-
-$ v4l2-compliance -d /dev/video0
-Driver Info:
-	Driver name   : stk
-	Card type     : stk
-	Bus info      :
-	Driver version: 0.0.1
-	Capabilities  : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-		fail: v4l2-compliance.cpp(224): string empty
-		fail: v4l2-compliance.cpp(276): check_ustring(vcap.bus_info,
-sizeof(vcap.bus_info))
-	test VIDIOC_QUERYCAP: FAIL
-
-Allow for multiple opens:
-	test second video open: OK
-		fail: v4l2-compliance.cpp(224): string empty
-		fail: v4l2-compliance.cpp(276): check_ustring(vcap.bus_info,
-sizeof(vcap.bus_info))
-	test VIDIOC_QUERYCAP: FAIL
-		fail: v4l2-compliance.cpp(334): doioctl(node, VIDIOC_G_PRIORITY, &prio)
-	test VIDIOC_G/S_PRIORITY: FAIL
-
-Debug ioctls:
-	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-		fail: v4l2-test-input-output.cpp(354): std == 0
-		fail: v4l2-test-input-output.cpp(409): invalid attributes for input 0
-	test VIDIOC_G/S/ENUMINPUT: FAIL
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 0 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-		fail: v4l2-test-controls.cpp(145): can do querymenu on a non-menu control
-		fail: v4l2-test-controls.cpp(254): invalid control 00980900
-	test VIDIOC_QUERYCTRL/MENU: FAIL
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 0 Private Controls: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-		fail: v4l2-test-formats.cpp(385): priv is non-zero!
-	test VIDIOC_TRY_FMT: FAIL
-		fail: v4l2-test-formats.cpp(719): Video Capture is valid, but no
-S_FMT was implemented
-	test VIDIOC_S_FMT: FAIL
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-		fail: v4l2-test-buffers.cpp(132): ret != -1
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
-
-Total: 38, Succeeded: 30, Failed: 8, Warnings: 1
 
 
-Arvydas
+> -----Original Message-----
+> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+> Sent: Wednesday, February 06, 2013 5:03 PM
+> To: Inki Dae
+> Cc: linux-media@vger.kernel.org; dri-devel@lists.freedesktop.org;
+> devicetree-discuss@lists.ozlabs.org; k.debski@samsung.com;
+> s.nawrocki@samsung.com; kgene.kim@samsung.com; patches@linaro.org; Ajay
+> Kumar
+> Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
+> support for G2D
+> 
+> On 6 February 2013 13:02, Inki Dae <inki.dae@samsung.com> wrote:
+> >
+> > Looks good to me but please add document for it.
+> 
+> Yes. I will. I was planning to send the bindings document patch along
+> with the dt patches (adding node entries to dts files).
+> Sylwester had suggested adding this to
+> Documentation/devicetree/bindings/media/ which contains other media
+> IPs.
+
+I think that it's better to go to gpu than media and we can divide Exynos
+IPs into the bellow categories,
+
+Media : mfc
+GPU : g2d, g3d, fimc, gsc
+Video : fimd, hdmi, eDP, MIPI-DSI
+
+And I think that the device-tree describes hardware so possibly, all
+documents in .../bindings/drm/exynos/* should be moved to proper place also.
+Please give  me any opinions.
+
+Thanks,
+Inki Dae
+
+> 
+> >
+> > To other guys,
+> > And is there anyone who know where this document should be added to?
+> > I'm not sure that the g2d document should be placed in
+> > Documentation/devicetree/bindings/gpu, media, drm/exynos or arm/exynos.
+> At
+> > least, this document should be shared with the g2d hw relevant drivers
+> such
+> > as v4l2 and drm. So is ".../bindings/gpu" proper place?
+> >
+> 
+> 
+> --
+> With warm regards,
+> Sachin
+
