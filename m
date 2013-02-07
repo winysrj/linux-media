@@ -1,97 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:40587 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757313Ab3BAXCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Feb 2013 18:02:24 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 6/8] saa7134: v4l2-compliance: remove bogus audio input support
-Date: Sat,  2 Feb 2013 00:01:19 +0100
-Message-Id: <1359759681-27549-7-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
-References: <1359759681-27549-1-git-send-email-linux@rainbow-software.org>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4595 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758313Ab3BGMgc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 07:36:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>,
+	Huang Shijie <shijie8@gmail.com>
+Subject: [RFC PATCHv2 01/18] tlg2300: use correct device parent.
+Date: Thu, 7 Feb 2013 13:36:25 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302071336.25366.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make saa7134 driver more V4L2 compliant: remove empty g_audio and s_audio
-functions and don't set audioset in enum_input
+Set the correct parent for v4l2_device_register and don't set the name
+anymore (that's now deduced from the parent). Also remove an unnecessary
+forward reference and fix two weird looking log messages.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Changes since v1: don't set v4l2_dev.name anymore as per Huang's suggestion.
+Huang: can you Ack this?
+
+Regards,
+
+	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/saa7134/saa7134-video.c |   30 -----------------------------
- 1 files changed, 0 insertions(+), 30 deletions(-)
+ drivers/media/usb/tlg2300/pd-main.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 3274994..f7e6d5c 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1750,7 +1750,6 @@ static int saa7134_enum_input(struct file *file, void *priv,
- 	strcpy(i->name, card_in(dev, n).name);
- 	if (card_in(dev, n).tv)
- 		i->type = V4L2_INPUT_TYPE_TUNER;
--	i->audioset = 1;
- 	if (n == dev->ctl_input) {
- 		int v1 = saa_readb(SAA7134_STATUS_VIDEO1);
- 		int v2 = saa_readb(SAA7134_STATUS_VIDEO2);
-@@ -2084,17 +2083,6 @@ static int saa7134_s_frequency(struct file *file, void *priv,
- 	return 0;
- }
+diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
+index 7b1f6eb..247d6ac 100644
+--- a/drivers/media/usb/tlg2300/pd-main.c
++++ b/drivers/media/usb/tlg2300/pd-main.c
+@@ -55,7 +55,6 @@ MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
  
--static int saa7134_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
--{
--	strcpy(a->name, "audio");
--	return 0;
--}
--
--static int saa7134_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
--{
--	return 0;
--}
--
- static int saa7134_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
- {
-@@ -2335,20 +2323,6 @@ static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
- 	return 0;
- }
+ #define TLG2300_FIRMWARE "tlg2300_firmware.bin"
+ static const char *firmware_name = TLG2300_FIRMWARE;
+-static struct usb_driver poseidon_driver;
+ static LIST_HEAD(pd_device_list);
  
--static int radio_g_audio(struct file *file, void *priv,
--					struct v4l2_audio *a)
--{
--	memset(a, 0, sizeof(*a));
--	strcpy(a->name, "Radio");
--	return 0;
--}
+ /*
+@@ -316,7 +315,7 @@ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
+ 		if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
+ 			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
+ 			pd->pm_resume = NULL; /*  a good guard */
+-			printk(KERN_DEBUG "\n\t+ TLG2300 auto suspend +\n\n");
++			printk(KERN_DEBUG "TLG2300 auto suspend\n");
+ 		}
+ 		return 0;
+ 	}
+@@ -331,7 +330,7 @@ static int poseidon_resume(struct usb_interface *intf)
+ 
+ 	if (!pd)
+ 		return 0;
+-	printk(KERN_DEBUG "\n\t ++ TLG2300 resume ++\n\n");
++	printk(KERN_DEBUG "TLG2300 resume\n");
+ 
+ 	if (!is_working(pd)) {
+ 		if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
+@@ -431,15 +430,11 @@ static int poseidon_probe(struct usb_interface *interface,
+ 	usb_set_intfdata(interface, pd);
+ 
+ 	if (new_one) {
+-		struct device *dev = &interface->dev;
 -
--static int radio_s_audio(struct file *file, void *priv,
--					const struct v4l2_audio *a)
--{
--	return 0;
--}
--
- static int radio_s_input(struct file *filp, void *priv, unsigned int i)
- {
- 	return 0;
-@@ -2399,8 +2373,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
- 	.vidioc_try_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
- 	.vidioc_s_fmt_vbi_cap		= saa7134_try_get_set_fmt_vbi_cap,
--	.vidioc_g_audio			= saa7134_g_audio,
--	.vidioc_s_audio			= saa7134_s_audio,
- 	.vidioc_cropcap			= saa7134_cropcap,
- 	.vidioc_reqbufs			= saa7134_reqbufs,
- 	.vidioc_querybuf		= saa7134_querybuf,
-@@ -2445,9 +2417,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_querycap	= saa7134_querycap,
- 	.vidioc_g_tuner		= radio_g_tuner,
- 	.vidioc_enum_input	= radio_enum_input,
--	.vidioc_g_audio		= radio_g_audio,
- 	.vidioc_s_tuner		= radio_s_tuner,
--	.vidioc_s_audio		= radio_s_audio,
- 	.vidioc_s_input		= radio_s_input,
- 	.vidioc_s_std		= radio_s_std,
- 	.vidioc_queryctrl	= radio_queryctrl,
+ 		logpm(pd);
+ 		mutex_init(&pd->lock);
+ 
+ 		/* register v4l2 device */
+-		snprintf(pd->v4l2_dev.name, sizeof(pd->v4l2_dev.name), "%s %s",
+-			dev->driver->name, dev_name(dev));
+-		ret = v4l2_device_register(NULL, &pd->v4l2_dev);
++		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
+ 
+ 		/* register devices in directory /dev */
+ 		ret = pd_video_init(pd);
+@@ -530,7 +525,7 @@ module_init(poseidon_init);
+ module_exit(poseidon_exit);
+ 
+ MODULE_AUTHOR("Telegent Systems");
+-MODULE_DESCRIPTION("For tlg2300-based USB device ");
++MODULE_DESCRIPTION("For tlg2300-based USB device");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION("0.0.2");
+ MODULE_FIRMWARE(TLG2300_FIRMWARE);
 -- 
-Ondrej Zary
+1.7.10.4
 
