@@ -1,61 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:36195 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760040Ab3B0Oci (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 09:32:38 -0500
-Received: from [10.2.0.180] (unknown [10.2.0.180])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by 7of9.schinagl.nl (Postfix) with ESMTPSA id 9137C2221D
-	for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 15:32:34 +0100 (CET)
-Message-ID: <512E04DE.2040305@schinagl.nl>
-Date: Wed, 27 Feb 2013 14:06:38 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Initial tuning data for upc cablecom Berne, Switzerland
-References: <512D2C54.7010205@purplehaze.ch> <512DF217.3000305@schinagl.nl> <512E0DE4.10709@purplehaze.ch>
-In-Reply-To: <512E0DE4.10709@purplehaze.ch>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ia0-f201.google.com ([209.85.210.201]:61363 "EHLO
+	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758099Ab3BGAJm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 19:09:42 -0500
+Received: by mail-ia0-f201.google.com with SMTP id t4so388505iag.4
+        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 16:09:41 -0800 (PST)
+From: John Sheu <sheu@google.com>
+To: linux-media@vger.kernel.org
+Cc: John Sheu <sheu@chromium.org>, John Sheu <sheu@google.com>
+Subject: [PATCH 2/3] [media]: v4l2-mem2mem: drop rdy_queue on STREAMOFF
+Date: Wed,  6 Feb 2013 16:03:01 -0800
+Message-Id: <1360195382-32317-2-git-send-email-sheu@google.com>
+In-Reply-To: <1360195382-32317-1-git-send-email-sheu@google.com>
+References: <1360195382-32317-1-git-send-email-sheu@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-02-13 14:45, Christian Affolter wrote:
-> Hi Oliver
->
->>> Hi
->>>
->>> please find the initial tuning data for the Swiss cable provider "upc
->>> cablecom" in Berne.
->>>
->>> I've added the data below to dvb-c/ch-Bern-upc-cablecom
->>>
->>> # upc cablecom
->>> # Berne, Switzerland
->>> # freq sr fec mod
->>> C 426000000 6900000 NONE QAM64
->> Thanks,
->>
->> pushed in 5493eb3f5f7801cc409596de0e2d0edb499daf70
-> Thanks a lot, but watch out for the typo within the file name [1]:
-> The companies brand is spelled 'upc cablecom' [2] not 'UPC-Capblecom'.
->
-I will adjust this immediatly the typo (do'h cablecom, capcom!) and the 
-capitisation. It appeared that it was lazy capitalization from your end 
-for that I apologize. I wrongfully assumed since UPC here in NL is in 
-caps, it should have been there as well. I'll lower the ch one.
+From: John Sheu <sheu@chromium.org>
 
-> Thanks again and best regards
-> Christian
->
->
-> [1]
-> http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-c/ch-Bern-UPC-Capblecom
-> [2] http://www.upc-cablecom.ch/en/b2c/about/ueberuns.htm
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+When a v4l2-mem2mem context gets a STREAMOFF call on either its CAPTURE
+or OUTPUT queues, we should:
+* Drop the corresponding rdy_queue, since a subsequent STREAMON expects
+  an empty queue.
+* Deschedule the context, as it now has at least one empty queue and
+  cannot run.
+
+Signed-off-by: John Sheu <sheu@google.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 31 ++++++++++++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index c52a2c5..c5c9d24 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -408,10 +408,35 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_streamon);
+ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 		       enum v4l2_buf_type type)
+ {
+-	struct vb2_queue *vq;
++	struct v4l2_m2m_dev *m2m_dev;
++	struct v4l2_m2m_queue_ctx *q_ctx;
++	unsigned long flags_job, flags;
++	int ret;
+ 
+-	vq = v4l2_m2m_get_vq(m2m_ctx, type);
+-	return vb2_streamoff(vq, type);
++	q_ctx = get_queue_ctx(m2m_ctx, type);
++	ret = vb2_streamoff(&q_ctx->q, type);
++	if (ret)
++		return ret;
++
++	m2m_dev = m2m_ctx->m2m_dev;
++	spin_lock_irqsave(&m2m_dev->job_spinlock, flags_job);
++	/* We should not be scheduled anymore, since we're dropping a queue. */
++	INIT_LIST_HEAD(&m2m_ctx->queue);
++	m2m_ctx->job_flags = 0;
++
++	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
++	/* Drop queue, since streamoff returns device to the same state as after
++	 * calling reqbufs. */
++	INIT_LIST_HEAD(&q_ctx->rdy_queue);
++	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
++
++	if (m2m_dev->curr_ctx == m2m_ctx) {
++		m2m_dev->curr_ctx = NULL;
++		wake_up(&m2m_ctx->finished);
++	}
++	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
++
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_streamoff);
+ 
+-- 
+1.8.1
 
