@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58397 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753081Ab3BOJjd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 04:39:33 -0500
-Message-ID: <511E0200.6080508@iki.fi>
-Date: Fri, 15 Feb 2013 11:38:08 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Alexander List <alex@list.priv.at>
-CC: linux-media@vger.kernel.org
-Subject: Re: DMB-H USB Sticks: MagicPro ProHDTV Mini 2 USB
-References: <511D8DF9.7060508@list.priv.at>
-In-Reply-To: <511D8DF9.7060508@list.priv.at>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:32821 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758224Ab3BGMGA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Feb 2013 07:06:00 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [REVIEW PATCH V4 03/12] [media] marvell-ccic: reset ccic phy when stop streaming for stability
+Date: Thu,  7 Feb 2013 20:04:38 +0800
+Message-Id: <1360238687-15768-4-git-send-email-twang13@marvell.com>
+In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/15/2013 03:23 AM, Alexander List wrote:
-> Hi,
->
-> frustrated that I couldn't watch the Chinese New Years' Fireworks on TVB
-> Jade using my RTL2832U based DVB-T stick in Hong Kong, I just bought a
->
-> MagicPro ProHDTV Mini 2
->
-> USB stick. Given that HK is now part of China (somehow), they decided to
-> follow the mainland DTV standard, so it's DTMB (DMB-T/H) over here.
->
-> The package says it only supports Windows, but I never believe the
-> packaging, and I believe in Linux hackers :)
->
-> lsusb -v says:
->
-> Bus 001 Device 008: ID 1b80:d39f Afatech
->
-> This looks *very* similar to the RTL2832U, in fact dmesg says it's a
-> Realtek chip:
->
-> [58773.739843] usb 1-1.1: new high-speed USB device number 8 using ehci_hcd
-> [58773.835657] usb 1-1.1: New USB device found, idVendor=1b80,
-> idProduct=d39f
-> [58773.835665] usb 1-1.1: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=0
-> [58773.835670] usb 1-1.1: Product: usbtv
-> [58773.835673] usb 1-1.1: Manufacturer: realtek
->
-> Full lsusb -v output is attached.
+This patch adds the reset ccic phy operation when stop streaming.
 
-It didn't looked very similar than RTL2831U or RTL2832U USB interface. 
-Very likely different USB interface.
+Stop streaming without reset ccic phy, the next start streaming
+may be unstable.
+Also need add CCIC2 definition when PXA688/PXA2128 support dual ccics.
 
-> I checked here but it's not listed, but other (PCIe) devices from the
-> same manufacturer are:
->
-> http://linuxtv.org/wiki/index.php/DMB-T/H_PCIe_Cards
->
-> I'm more than willing to get this thing supported under Linux - just let
-> me know what I can do to help.
->
-> I have
->
-> a) the stick
-> b) the Windows driver/software CD (soon as an ISO)
->
-> What I can provide is
->
-> a) help getting more info on the hardware (taking it apart etc.)
-> b) provide remote access to a box with the stick plugged in if necessary
-> c) test new code / patches
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c  |    6 ++++++
+ drivers/media/platform/marvell-ccic/mcam-core.h  |    2 ++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   25 ++++++++++++++++++++++
+ 3 files changed, 33 insertions(+)
 
-First thing to do is identify used chips. Open the box and find out 3 
-biggest chip. There may be 1, 2 or 3 big chips depending on integration 
-level.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 7e178d8..a32df35 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1045,6 +1045,12 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+ 		return -EINVAL;
+ 	mcam_ctlr_stop_dma(cam);
+ 	/*
++	 * Reset the CCIC PHY after stopping streaming,
++	 * otherwise, the CCIC may be unstable.
++	 */
++	if (cam->ctlr_reset)
++		cam->ctlr_reset(cam);
++	/*
+ 	 * VB2 reclaims the buffers, so we need to forget
+ 	 * about them.
+ 	 */
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 2b2dc06..ec43630 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -104,6 +104,7 @@ struct mcam_camera {
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
+ 
++	int ccic_id;
+ 	enum v4l2_mbus_type bus_type;
+ 	/* MIPI support */
+ 	int *dphy;
+@@ -120,6 +121,7 @@ struct mcam_camera {
+ 	void (*plat_power_up) (struct mcam_camera *cam);
+ 	void (*plat_power_down) (struct mcam_camera *cam);
+ 	void (*calc_dphy) (struct mcam_camera *cam);
++	void (*ctlr_reset) (struct mcam_camera *cam);
+ 
+ 	/*
+ 	 * Everything below here is private to the mcam core and
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 2fe0324..818abf3 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -105,6 +105,7 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+ #define CPU_SUBSYS_PMU_BASE	0xd4282800
+ #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+ #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
++#define REG_CCIC2_CRCR		0xf4	/* CCIC2 clk reset ctrl reg	*/
+ 
+ static void mcam_clk_enable(struct mcam_camera *mcam)
+ {
+@@ -179,6 +180,28 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	mcam_clk_disable(mcam);
+ }
+ 
++void mcam_ctlr_reset(struct mcam_camera *mcam)
++{
++	unsigned long val;
++	struct mmp_camera *cam = mcam_to_cam(mcam);
++
++	if (mcam->ccic_id) {
++		/*
++		 * Using CCIC2
++		 */
++		val = ioread32(cam->power_regs + REG_CCIC2_CRCR);
++		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC2_CRCR);
++		iowrite32(val | 0x2, cam->power_regs + REG_CCIC2_CRCR);
++	} else {
++		/*
++		 * Using CCIC1
++		 */
++		val = ioread32(cam->power_regs + REG_CCIC_CRCR);
++		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC_CRCR);
++		iowrite32(val | 0x2, cam->power_regs + REG_CCIC_CRCR);
++	}
++}
++
+ /*
+  * calc the dphy register values
+  * There are three dphy registers being used.
+@@ -328,9 +351,11 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam = &cam->mcam;
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
++	mcam->ctlr_reset = mcam_ctlr_reset;
+ 	mcam->calc_dphy = mmpcam_calc_dphy;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->ccic_id = pdev->id;
+ 	mcam->bus_type = pdata->bus_type;
+ 	mcam->dphy = pdata->dphy;
+ 	/* mosetly it won't happen. dphy is an array in pdata, but in case .. */
 -- 
-http://palosaari.fi/
+1.7.9.5
+
