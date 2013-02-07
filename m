@@ -1,248 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1273 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754804Ab3BDMgg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/8] stk-webcam: convert to the control framework.
-Date: Mon,  4 Feb 2013 13:36:16 +0100
-Message-Id: <7056fb53f3d6d5b054c0c3759cc2e4193ef3ab23.1359981193.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
-References: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:43942 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758263Ab3BGMGO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Feb 2013 07:06:14 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [REVIEW PATCH V4 06/12] [media] marvell-ccic: add SOF/EOF pair check for marvell-ccic driver
+Date: Thu,  7 Feb 2013 20:04:41 +0800
+Message-Id: <1360238687-15768-7-git-send-email-twang13@marvell.com>
+In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds the SOFx/EOFx pair check for marvell-ccic.
+
+When switching format, the last EOF may not arrive when stop streamning.
+And the EOF will be detected in the next start streaming.
+
+Must ensure clear the left over frame flags before every really start streaming.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/usb/stkwebcam/stk-webcam.c |  119 ++++++++----------------------
- drivers/media/usb/stkwebcam/stk-webcam.h |    3 +-
- 2 files changed, 33 insertions(+), 89 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 588304e..ff5b461 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -768,99 +768,25 @@ static int stk_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
- 		return 0;
- }
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 0f9604e..29c68f1 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -94,6 +94,9 @@ MODULE_PARM_DESC(buffer_mode,
+ #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
+ #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
+ #define CF_SG_RESTART	 6	/* SG restart needed */
++#define CF_FRAME_SOF0	 7	/* Frame 0 started */
++#define CF_FRAME_SOF1	 8
++#define CF_FRAME_SOF2	 9
  
--/* List of all V4Lv2 controls supported by the driver */
--static struct v4l2_queryctrl stk_controls[] = {
--	{
--		.id      = V4L2_CID_BRIGHTNESS,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Brightness",
--		.minimum = 0,
--		.maximum = 0xffff,
--		.step    = 0x0100,
--		.default_value = 0x6000,
--	},
--	{
--		.id      = V4L2_CID_HFLIP,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Horizontal Flip",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
--		.default_value = 1,
--	},
--	{
--		.id      = V4L2_CID_VFLIP,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Vertical Flip",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
--		.default_value = 1,
--	},
--};
--
--static int stk_vidioc_queryctrl(struct file *filp,
--		void *priv, struct v4l2_queryctrl *c)
-+static int stk_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	int i;
--	int nbr;
--	nbr = ARRAY_SIZE(stk_controls);
--
--	for (i = 0; i < nbr; i++) {
--		if (stk_controls[i].id == c->id) {
--			memcpy(c, &stk_controls[i],
--				sizeof(struct v4l2_queryctrl));
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--
--static int stk_vidioc_g_ctrl(struct file *filp,
--		void *priv, struct v4l2_control *c)
--{
--	struct stk_camera *dev = priv;
--	switch (c->id) {
--	case V4L2_CID_BRIGHTNESS:
--		c->value = dev->vsettings.brightness;
--		break;
--	case V4L2_CID_HFLIP:
--		if (dmi_check_system(stk_upside_down_dmi_table))
--			c->value = !dev->vsettings.hflip;
--		else
--			c->value = dev->vsettings.hflip;
--		break;
--	case V4L2_CID_VFLIP:
--		if (dmi_check_system(stk_upside_down_dmi_table))
--			c->value = !dev->vsettings.vflip;
--		else
--			c->value = dev->vsettings.vflip;
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
-+	struct stk_camera *dev =
-+		container_of(ctrl->handler, struct stk_camera, hdl);
+ #define sensor_call(cam, o, f, args...) \
+ 	v4l2_subdev_call(cam->sensor, o, f, ##args)
+@@ -260,8 +263,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
+ 	int i;
  
--static int stk_vidioc_s_ctrl(struct file *filp,
--		void *priv, struct v4l2_control *c)
--{
--	struct stk_camera *dev = priv;
--	switch (c->id) {
-+	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		dev->vsettings.brightness = c->value;
--		return stk_sensor_set_brightness(dev, c->value >> 8);
-+		return stk_sensor_set_brightness(dev, ctrl->val);
- 	case V4L2_CID_HFLIP:
- 		if (dmi_check_system(stk_upside_down_dmi_table))
--			dev->vsettings.hflip = !c->value;
-+			dev->vsettings.hflip = !ctrl->val;
- 		else
--			dev->vsettings.hflip = c->value;
-+			dev->vsettings.hflip = ctrl->val;
- 		return 0;
- 	case V4L2_CID_VFLIP:
- 		if (dmi_check_system(stk_upside_down_dmi_table))
--			dev->vsettings.vflip = !c->value;
-+			dev->vsettings.vflip = !ctrl->val;
- 		else
--			dev->vsettings.vflip = c->value;
-+			dev->vsettings.vflip = ctrl->val;
- 		return 0;
- 	default:
- 		return -EINVAL;
-@@ -1200,6 +1126,10 @@ static int stk_vidioc_enum_framesizes(struct file *filp,
- 	}
- }
- 
-+static const struct v4l2_ctrl_ops stk_ctrl_ops = {
-+	.s_ctrl = stk_s_ctrl,
-+};
-+
- static struct v4l2_file_operations v4l_stk_fops = {
- 	.owner = THIS_MODULE,
- 	.open = v4l_stk_open,
-@@ -1225,9 +1155,6 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
- 	.vidioc_dqbuf = stk_vidioc_dqbuf,
- 	.vidioc_streamon = stk_vidioc_streamon,
- 	.vidioc_streamoff = stk_vidioc_streamoff,
--	.vidioc_queryctrl = stk_vidioc_queryctrl,
--	.vidioc_g_ctrl = stk_vidioc_g_ctrl,
--	.vidioc_s_ctrl = stk_vidioc_s_ctrl,
- 	.vidioc_g_parm = stk_vidioc_g_parm,
- 	.vidioc_enum_framesizes = stk_vidioc_enum_framesizes,
- };
-@@ -1272,8 +1199,9 @@ static int stk_register_video_device(struct stk_camera *dev)
- static int stk_camera_probe(struct usb_interface *interface,
- 		const struct usb_device_id *id)
- {
--	int i;
-+	struct v4l2_ctrl_handler *hdl;
- 	int err = 0;
-+	int i;
- 
- 	struct stk_camera *dev = NULL;
- 	struct usb_device *udev = interface_to_usbdev(interface);
-@@ -1291,6 +1219,20 @@ static int stk_camera_probe(struct usb_interface *interface,
- 		kfree(dev);
- 		return err;
- 	}
-+	hdl = &dev->hdl;
-+	v4l2_ctrl_handler_init(hdl, 3);
-+	v4l2_ctrl_new_std(hdl, &stk_ctrl_ops,
-+			  V4L2_CID_BRIGHTNESS, 0, 0xff, 0x1, 0x60);
-+	v4l2_ctrl_new_std(hdl, &stk_ctrl_ops,
-+			  V4L2_CID_HFLIP, 0, 1, 1, 1);
-+	v4l2_ctrl_new_std(hdl, &stk_ctrl_ops,
-+			  V4L2_CID_VFLIP, 0, 1, 1, 1);
-+	if (hdl->error) {
-+		err = hdl->error;
-+		dev_err(&udev->dev, "couldn't register control\n");
-+		goto error;
+ 	cam->next_buf = -1;
+-	for (i = 0; i < cam->nbufs; i++)
++	for (i = 0; i < cam->nbufs; i++) {
+ 		clear_bit(i, &cam->flags);
++		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
 +	}
-+	dev->v4l2_dev.ctrl_handler = hdl;
- 
- 	spin_lock_init(&dev->spinlock);
- 	init_waitqueue_head(&dev->wait_frame);
-@@ -1334,7 +1276,6 @@ static int stk_camera_probe(struct usb_interface *interface,
- 		err = -ENODEV;
- 		goto error;
- 	}
--	dev->vsettings.brightness = 0x7fff;
- 	dev->vsettings.palette = V4L2_PIX_FMT_RGB565;
- 	dev->vsettings.mode = MODE_VGA;
- 	dev->frame_size = 640 * 480 * 2;
-@@ -1351,6 +1292,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 	return 0;
- 
- error:
-+	v4l2_ctrl_handler_free(hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	kfree(dev);
- 	return err;
-@@ -1369,6 +1311,7 @@ static void stk_camera_disconnect(struct usb_interface *interface)
- 		 video_device_node_name(&dev->vdev));
- 
- 	video_unregister_device(&dev->vdev);
-+	v4l2_ctrl_handler_free(&dev->hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
  }
  
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 49ebe85..901f0df 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -24,6 +24,7 @@
+ static inline int mcam_needs_config(struct mcam_camera *cam)
+@@ -1125,6 +1130,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
+ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
++	unsigned int frame;
  
- #include <linux/usb.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-common.h>
+ 	if (cam->state != S_IDLE) {
+ 		INIT_LIST_HEAD(&cam->buffers);
+@@ -1142,6 +1148,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		cam->state = S_BUFWAIT;
+ 		return 0;
+ 	}
++
++	/*
++	 * Ensure clear the left over frame flags
++	 * before every really start streaming
++	 */
++	for (frame = 0; frame < cam->nbufs; frame++)
++		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++
+ 	return mcam_read_setup(cam);
+ }
  
- #define DRIVER_VERSION		"v0.0.1"
-@@ -60,7 +61,6 @@ enum stk_mode {MODE_VGA, MODE_SXGA, MODE_CIF, MODE_QVGA, MODE_QCIF};
- 
- struct stk_video {
- 	enum stk_mode mode;
--	int brightness;
- 	__u32 palette;
- 	int hflip;
- 	int vflip;
-@@ -93,6 +93,7 @@ struct regval {
- 
- struct stk_camera {
- 	struct v4l2_device v4l2_dev;
-+	struct v4l2_ctrl_handler hdl;
- 	struct video_device vdev;
- 	struct usb_device *udev;
- 	struct usb_interface *interface;
+@@ -1883,9 +1897,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * each time.
+ 	 */
+ 	for (frame = 0; frame < cam->nbufs; frame++)
+-		if (irqs & (IRQ_EOF0 << frame)) {
++		if (irqs & (IRQ_EOF0 << frame) &&
++			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
+ 			mcam_frame_complete(cam, frame);
+ 			handled = 1;
++			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+ 			if (cam->buffer_mode == B_DMA_sg)
+ 				break;
+ 		}
+@@ -1894,9 +1910,15 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * code assumes that we won't get multiple frame interrupts
+ 	 * at once; may want to rethink that.
+ 	 */
+-	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
++	for (frame = 0; frame < cam->nbufs; frame++) {
++		if (irqs & (IRQ_SOF0 << frame)) {
++			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++			handled = IRQ_HANDLED;
++		}
++	}
++
++	if (handled == IRQ_HANDLED) {
+ 		set_bit(CF_DMA_ACTIVE, &cam->flags);
+-		handled = 1;
+ 		if (cam->buffer_mode == B_DMA_sg)
+ 			mcam_ctlr_stop(cam);
+ 	}
 -- 
-1.7.10.4
+1.7.9.5
 
