@@ -1,725 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:62560 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758479Ab3BSQvM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 11:51:12 -0500
-Received: by mail-la0-f42.google.com with SMTP id fe20so6766061lab.29
-        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 08:51:10 -0800 (PST)
-Message-ID: <5123AD7A.9020604@gmail.com>
-Date: Tue, 19 Feb 2013 17:51:06 +0100
-From: Mr Goldcove <goldcove@gmail.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123A217.7030206@googlemail.com>
-In-Reply-To: <5123A217.7030206@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from bues.ch ([80.190.117.144]:33775 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759047Ab3BGRFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Feb 2013 12:05:44 -0500
+Date: Thu, 7 Feb 2013 17:16:55 +0100
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH 2/4] fc0011: Fix xin value clamping
+Message-ID: <20130207171655.4243e21f@milhouse>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/RodfLT/pvpedfWvL_kd=b/Y"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19. feb. 2013 17:02, Frank Schäfer wrote:
-> Am 18.02.2013 23:36, schrieb Mr Goldcove:
->> > I've only tried composite video input.
->> > The video/ audio output is good.
->> >  
->> > It has the following input:
->> > RCA stereo sound
->> > RCA video
->> > S-video
->> >
->> > It has no push button but has a green led which illuminates when the
->> > device is in use.
-> Ok, could you please post the output of "lsusb -v -d eb1a:2861" ?
->
-> Regards,
-> Frank
->
+--Sig_/RodfLT/pvpedfWvL_kd=b/Y
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Bus 002 Device 004: ID eb1a:2861 eMPIA Technology, Inc.
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0xeb1a eMPIA Technology, Inc.
-  idProduct          0x2861
-  bcdDevice            1.00
-  iManufacturer           0
-  iProduct                0
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          555
-    bNumInterfaces          3
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0ad4  2x 724 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0c00  2x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1300  3x 768 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x135c  3x 860 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       6
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x13c4  3x 964 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       7
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0
-      bInterfaceProtocol    255
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      1 Control Device
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdADC               1.00
-        wTotalLength           39
-        bInCollection           1
-        baInterfaceNr( 0)       2
-      AudioControl Interface Descriptor:
-        bLength                12
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0603 Line Connector
-        bAssocTerminal          0
-        bNrChannels             2
-        wChannelConfig     0x0003
-          Left Front (L)
-          Right Front (R)
-        iChannelNames           0
-        iTerminal               0
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      6 (FEATURE_UNIT)
-        bUnitID                 2
-        bSourceID               1
-        bControlSize            1
-        bmaControls( 0)      0x03
-          Mute Control
-          Volume Control
-        bmaControls( 1)      0x00
-        iFeature                0
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             3
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               2
-        iTerminal               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]            0
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        48000
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        44100
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00b4  1x 180 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        32000
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0084  1x 132 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]        16000
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0044  1x 68 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0
-      iInterface              0
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]         8000
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0024  1x 36 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+Fix the xin value clamping and use clamp_t().
+
+Signed-off-by: Michael Buesch <m@bues.ch>
+
+---
+
+Index: linux/drivers/media/tuners/fc0011.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/media/tuners/fc0011.c	2012-10-22 16:13:29.140465225 =
++0200
++++ linux/drivers/media/tuners/fc0011.c	2012-10-22 16:15:46.915056243 +0200
+@@ -183,8 +183,7 @@
+ 	unsigned int i, vco_retries;
+ 	u32 freq =3D p->frequency / 1000;
+ 	u32 bandwidth =3D p->bandwidth_hz / 1000;
+-	u32 fvco, xin, xdiv, xdivr;
+-	u16 frac;
++	u32 fvco, xin, frac, xdiv, xdivr;
+ 	u8 fa, fp, vco_sel, vco_cal;
+ 	u8 regs[FC11_NR_REGS] =3D { };
+=20
+@@ -227,12 +226,8 @@
+ 		frac +=3D 32786;
+ 	if (!frac)
+ 		xin =3D 0;
+-	else if (frac < 511)
+-		xin =3D 512;
+-	else if (frac < 65026)
+-		xin =3D frac;
+ 	else
+-		xin =3D 65024;
++		xin =3D clamp_t(u32, frac, 512, 65024);
+ 	regs[FC11_REG_XINHI] =3D xin >> 8;
+ 	regs[FC11_REG_XINLO] =3D xin;
+=20
+
+
+--=20
+Greetings, Michael.
+
+PGP: 908D8B0E
+
+--Sig_/RodfLT/pvpedfWvL_kd=b/Y
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRE9N3AAoJEPUyvh2QjYsOKTwP/01gc6smTIvMKw3eCvpA4InU
+HQKeeE2Yt0c6JA3wpqyfHQ30MXEfzBcun3tFPMCqTtggxzPB0rXFg4QTDtWGhukN
+FXpV9RC6ttQCMyWNWOY1ASZUI6NVzySWvT4XjysTCt9EB9nXUyK5zVxgN6CUwoMF
+cJz/7o+2AWHnjwJktv1VXiGYZPo+b5GHYpNa9LpYLeLNxNJ5RJ81Xz0YOCrcnSO5
+s7ukQKkC0aoZgNqAt/AJphLhjlFsGCXEdccG7yl7P26QseZM42uwHlHc//ia9JIo
+CYSp6yz7sE4tjvO3HCCeNwDILiUwUZqOpK+6Zs8GGOuvt0E4ugEe7znnhT7cH1fK
+p5GELI34oepIFSwJc9pCPfxXnGacrmLpapnbgyDdWnEsu3GCs0e8YNraQzeAmtw6
+Ok0+ClaIngxcEIkzGtfBW04Ia1yjujl3jU/4IrKSwKWttlek6YV85uhP7pPeYkM5
+kDpZqDEHB3+0CX92mwe3mDCWmFETpJY9s4DVKbeDQYdmRZ5wWFhv0G/fwxKzYDqT
+r/xaJJx0UQnbqIczZHZ55Suiflc7+b6pH7mI7KA26Eh2+sxTi7ZEDehvWBIkKxLA
+mauUXqnViFa+d78erdMFip8nkVPSrBvzhDy7TDAKDdKYreunrDnRiKKt4VmQ5R4e
+tEL2wmHQyySAqOwYXZLE
+=Y11w
+-----END PGP SIGNATURE-----
+
+--Sig_/RodfLT/pvpedfWvL_kd=b/Y--
