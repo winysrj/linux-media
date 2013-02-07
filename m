@@ -1,79 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4056 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753546Ab3BBJOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 04:14:52 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.9] videodev2.h fix and em28xx regression fixes
-Date: Sat, 2 Feb 2013 10:14:44 +0100
-Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
+Received: from adelie.canonical.com ([91.189.90.139]:50663 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755656Ab3BGQDE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 11:03:04 -0500
+Subject: [PATCH 1/3] arch: make __mutex_fastpath_lock_retval return whether
+ fastpath succeeded or not.
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, a.p.zijlstra@chello.nl,
+	daniel.vetter@ffwll.ch, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org
+Date: Thu, 07 Feb 2013 16:18:31 +0100
+Message-ID: <20130207151831.2868.5146.stgit@patser.local>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302021014.44793.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This will allow me to call functions that have multiple arguments if fastpath fails.
+This is required to support ticket mutexes, because they need to be able to pass an
+extra argument to the fail function.
 
-This is the second version of this git pull request. While digging through
-old branches of mine I found another tvaudio fix that I want to include here
-as well. In addition, the tvaudio control framework conversion in the original
-pull request also did a fix for balance handling and I have split that fix off
-into its own patch in this pull request.
+Originally I duplicated the functions, by adding __mutex_fastpath_lock_retval_arg.
+This ended up being just a duplication of the existing function, so a way to test
+if fastpath was called ended up being better.
 
-So effectively the only new thing is a two liner tvaudio/tea6420 fix.
+This also cleaned up the reservation mutex patch some by being able to call an
+atomic_set instead of atomic_xchg, and making it easier to detect if the wrong
+unlock function was previously used.
 
-The first patch moves the DV control IDs from videodev2.h to v4l2-controls.h.
-I noticed that they weren't moved when the controls were split off from
-videodev2.h, probably because the patch adding the DV controls and the move
-to v4l2-controls.h crossed one another.
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ arch/ia64/include/asm/mutex.h    |   10 ++++------
+ arch/powerpc/include/asm/mutex.h |   10 ++++------
+ arch/sh/include/asm/mutex-llsc.h |    4 ++--
+ arch/x86/include/asm/mutex_32.h  |   11 ++++-------
+ arch/x86/include/asm/mutex_64.h  |   11 ++++-------
+ include/asm-generic/mutex-dec.h  |   10 ++++------
+ include/asm-generic/mutex-null.h |    2 +-
+ include/asm-generic/mutex-xchg.h |   10 ++++------
+ kernel/mutex.c                   |   32 ++++++++++++++------------------
+ 9 files changed, 41 insertions(+), 59 deletions(-)
 
-The second patch converts mt9v011 to the control framework. The third and
-fourth patches fix two tvaudio bugs and the final patch converts tvaudio to
-the control framework. These patches were part of my original conversion of
-em28xx to the control framework (except for the tea6420 fix), but when Devin
-based his em28xx work on my tree he forgot to pull them in.
+diff --git a/arch/ia64/include/asm/mutex.h b/arch/ia64/include/asm/mutex.h
+index bed73a6..f41e66d 100644
+--- a/arch/ia64/include/asm/mutex.h
++++ b/arch/ia64/include/asm/mutex.h
+@@ -29,17 +29,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(ia64_fetchadd4_acq(count, -1) != 1))
+-		return fail_fn(count);
++		return -1;
+ 	return 0;
+ }
+ 
+diff --git a/arch/powerpc/include/asm/mutex.h b/arch/powerpc/include/asm/mutex.h
+index 5399f7e..127ab23 100644
+--- a/arch/powerpc/include/asm/mutex.h
++++ b/arch/powerpc/include/asm/mutex.h
+@@ -82,17 +82,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(__mutex_dec_return_lock(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	return 0;
+ }
+ 
+diff --git a/arch/sh/include/asm/mutex-llsc.h b/arch/sh/include/asm/mutex-llsc.h
+index 090358a..dad29b6 100644
+--- a/arch/sh/include/asm/mutex-llsc.h
++++ b/arch/sh/include/asm/mutex-llsc.h
+@@ -37,7 +37,7 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ }
+ 
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	int __done, __res;
+ 
+@@ -51,7 +51,7 @@ __mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
+ 		: "t");
+ 
+ 	if (unlikely(!__done || __res != 0))
+-		__res = fail_fn(count);
++		__res = -1;
+ 
+ 	return __res;
+ }
+diff --git a/arch/x86/include/asm/mutex_32.h b/arch/x86/include/asm/mutex_32.h
+index 03f90c8..b7f6b34 100644
+--- a/arch/x86/include/asm/mutex_32.h
++++ b/arch/x86/include/asm/mutex_32.h
+@@ -42,17 +42,14 @@ do {								\
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
+- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or 1 otherwise.
+  */
+-static inline int __mutex_fastpath_lock_retval(atomic_t *count,
+-					       int (*fail_fn)(atomic_t *))
++static inline int __mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	else
+ 		return 0;
+ }
+diff --git a/arch/x86/include/asm/mutex_64.h b/arch/x86/include/asm/mutex_64.h
+index 68a87b0..2c543ff 100644
+--- a/arch/x86/include/asm/mutex_64.h
++++ b/arch/x86/include/asm/mutex_64.h
+@@ -37,17 +37,14 @@ do {								\
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+-static inline int __mutex_fastpath_lock_retval(atomic_t *count,
+-					       int (*fail_fn)(atomic_t *))
++static inline int __mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	else
+ 		return 0;
+ }
+diff --git a/include/asm-generic/mutex-dec.h b/include/asm-generic/mutex-dec.h
+index f104af7..d4f9fb4 100644
+--- a/include/asm-generic/mutex-dec.h
++++ b/include/asm-generic/mutex-dec.h
+@@ -28,17 +28,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	return 0;
+ }
+ 
+diff --git a/include/asm-generic/mutex-null.h b/include/asm-generic/mutex-null.h
+index e1bbbc7..efd6206 100644
+--- a/include/asm-generic/mutex-null.h
++++ b/include/asm-generic/mutex-null.h
+@@ -11,7 +11,7 @@
+ #define _ASM_GENERIC_MUTEX_NULL_H
+ 
+ #define __mutex_fastpath_lock(count, fail_fn)		fail_fn(count)
+-#define __mutex_fastpath_lock_retval(count, fail_fn)	fail_fn(count)
++#define __mutex_fastpath_lock_retval(count, fail_fn)	(-1)
+ #define __mutex_fastpath_unlock(count, fail_fn)		fail_fn(count)
+ #define __mutex_fastpath_trylock(count, fail_fn)	fail_fn(count)
+ #define __mutex_slowpath_needs_to_unlock()		1
+diff --git a/include/asm-generic/mutex-xchg.h b/include/asm-generic/mutex-xchg.h
+index c04e0db..f169ec0 100644
+--- a/include/asm-generic/mutex-xchg.h
++++ b/include/asm-generic/mutex-xchg.h
+@@ -39,18 +39,16 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
+- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_xchg(count, 0) != 1))
+ 		if (likely(atomic_xchg(count, -1) != 1))
+-			return fail_fn(count);
++			return -1;
+ 	return 0;
+ }
+ 
+diff --git a/kernel/mutex.c b/kernel/mutex.c
+index a307cc9..5ac4522 100644
+--- a/kernel/mutex.c
++++ b/kernel/mutex.c
+@@ -350,10 +350,10 @@ __mutex_unlock_slowpath(atomic_t *lock_count)
+  * mutex_lock_interruptible() and mutex_trylock().
+  */
+ static noinline int __sched
+-__mutex_lock_killable_slowpath(atomic_t *lock_count);
++__mutex_lock_killable_slowpath(struct mutex *lock);
+ 
+ static noinline int __sched
+-__mutex_lock_interruptible_slowpath(atomic_t *lock_count);
++__mutex_lock_interruptible_slowpath(struct mutex *lock);
+ 
+ /**
+  * mutex_lock_interruptible - acquire the mutex, interruptible
+@@ -371,12 +371,12 @@ int __sched mutex_lock_interruptible(struct mutex *lock)
+ 	int ret;
+ 
+ 	might_sleep();
+-	ret =  __mutex_fastpath_lock_retval
+-			(&lock->count, __mutex_lock_interruptible_slowpath);
+-	if (!ret)
++	ret =  __mutex_fastpath_lock_retval(&lock->count);
++	if (likely(!ret)) {
+ 		mutex_set_owner(lock);
+-
+-	return ret;
++		return 0;
++	} else
++		return __mutex_lock_interruptible_slowpath(lock);
+ }
+ 
+ EXPORT_SYMBOL(mutex_lock_interruptible);
+@@ -386,12 +386,12 @@ int __sched mutex_lock_killable(struct mutex *lock)
+ 	int ret;
+ 
+ 	might_sleep();
+-	ret = __mutex_fastpath_lock_retval
+-			(&lock->count, __mutex_lock_killable_slowpath);
+-	if (!ret)
++	ret = __mutex_fastpath_lock_retval(&lock->count);
++	if (likely(!ret)) {
+ 		mutex_set_owner(lock);
+-
+-	return ret;
++		return 0;
++	} else
++		return __mutex_lock_killable_slowpath(lock);
+ }
+ EXPORT_SYMBOL(mutex_lock_killable);
+ 
+@@ -404,18 +404,14 @@ __mutex_lock_slowpath(atomic_t *lock_count)
+ }
+ 
+ static noinline int __sched
+-__mutex_lock_killable_slowpath(atomic_t *lock_count)
++__mutex_lock_killable_slowpath(struct mutex *lock)
+ {
+-	struct mutex *lock = container_of(lock_count, struct mutex, count);
+-
+ 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, NULL, _RET_IP_);
+ }
+ 
+ static noinline int __sched
+-__mutex_lock_interruptible_slowpath(atomic_t *lock_count)
++__mutex_lock_interruptible_slowpath(struct mutex *lock)
+ {
+-	struct mutex *lock = container_of(lock_count, struct mutex, count);
+-
+ 	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, NULL, _RET_IP_);
+ }
+ #endif
 
-Because of that any controls created by the mt9v011 and tvaudio drivers are
-inaccessible from em28xx. By converting those drivers to the control framework
-they are seen again.
-
-Frank tested the mt9v011 conversion. I have tested the tvaudio conversion
-somewhat with a bttv card that had a tda9850 and tea6420, but if you have
-additional tvaudio cards (and especially an em28xx that uses the tvaudio module),
-then it would be good to do some additional tests. Other than the bttv card I
-have no other hardware to test tvaudio with.
-
-Regards,
-
-        Hans
-
-The following changes since commit 94a93e5f85040114d6a77c085457b3943b6da889:
-
-  [media] dvb_frontend: print a msg if a property doesn't exist (2013-01-23 19:10:57 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git fixes2
-
-for you to fetch changes up to 2e984336e5df76226c7ce977d2eeaecd98d625eb:
-
-  tvaudio: convert to the control framework. (2013-02-02 10:03:36 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (5):
-      Move DV-class control IDs from videodev2.h to v4l2-controls.h
-      mt9v011: convert to the control framework.
-      tvaudio: fix broken volume/balance calculations
-      tvaudio: fix two tea6420 errors.
-      tvaudio: convert to the control framework.
-
- drivers/media/i2c/mt9v011.c        |  223 ++++++++++++++++++++---------------------------------------------
- drivers/media/i2c/tvaudio.c        |  238 ++++++++++++++++++++++++++--------------------------------------------
- include/uapi/linux/v4l2-controls.h |   24 +++++++
- include/uapi/linux/videodev2.h     |   22 -------
- 4 files changed, 179 insertions(+), 328 deletions(-)
