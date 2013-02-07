@@ -1,40 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from webmail.easynet.ro ([217.156.85.39]:45644 "EHLO
-	mail2.idilis.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751248Ab3BBWF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 17:05:59 -0500
-Received: from [127.0.0.1] (helo=easynet.ro)
-	by mail2.idilis.net with esmtp (Idilis Mail 5.3)
-	(envelope-from <piky@easynet.ro>)
-	id 1U1ktk-0003sy-EV
-	for linux-media@vger.kernel.org; Sat, 02 Feb 2013 23:45:20 +0200
-From: "Bardocz Sandor" <piky@easynet.ro>
-To: linux-media@vger.kernel.org
-Subject: SDVR 407 S
-Date: Sat, 2 Feb 2013 23:45:19 +0200
-Message-Id: <20130202213352.M87698@easynet.ro>
+Received: from userp1040.oracle.com ([156.151.31.81]:24359 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753610Ab3BGKpA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 05:45:00 -0500
+Date: Thu, 7 Feb 2013 13:44:54 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] tm6000: add support for control events and prio handling
+Message-ID: <20130207104454.GA466@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset=iso-8859-2
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- SDVR 407 S is a single Bt878 chip 16 ch. video, 4ch audio input dvr card.
+Hello Hans Verkuil,
 
-id: 600a:763d
-board name: SDVR 407 S  
-card=150
-Seems to be a Geovision GV-600 clone, video inputs works with card=150 insmod
-option.
+The patch 770056c47fbb: "[media] tm6000: add support for control
+events and prio handling" from Sep 11, 2012, leads to the following
+Smatch warning:
+"drivers/media/usb/tm6000/tm6000-video.c:1462 __tm6000_poll()
+	 error: potentially dereferencing uninitialized 'buf'."
 
-Thanks for your work!
+drivers/media/usb/tm6000/tm6000-video.c
+  1453          if (!is_res_read(fh->dev, fh)) {
+  1454                  /* streaming capture */
+  1455                  if (list_empty(&fh->vb_vidq.stream))
+  1456                          return res | POLLERR;
+  1457                  buf = list_entry(fh->vb_vidq.stream.next, struct tm6000_buffer, vb.stream);
+  1458          } else if (req_events & (POLLIN | POLLRDNORM)) {
+  1459                  /* read() capture */
+  1460                  return res | videobuf_poll_stream(file, &fh->vb_vidq, wait);
+  1461          }
 
+If we don't hit either side of the if else statement then buf is
+uninitialized.
 
---------------------------------------------------
+  1462          poll_wait(file, &buf->vb.done, wait);
+  1463          if (buf->vb.state == VIDEOBUF_DONE ||
+  1464              buf->vb.state == VIDEOBUF_ERROR)
+  1465                  return res | POLLIN | POLLRDNORM;
+  1466          return res;
 
-easynet.ro - Best free webmail service hosted by Idilis
-.........................................................
-Idilis - Internet Provider :: www.idilis.net
-Inchiriem conexiuni radio si in zone neracordate la coloana - Broadband Wireless Idilis -
-
+regards,
+dan carpenter
 
