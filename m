@@ -1,119 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58087 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751571Ab3B1C4u (ORCPT
+Received: from na3sys009aog112.obsmtp.com ([74.125.149.207]:53635 "EHLO
+	na3sys009aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756686Ab3BGMH3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 21:56:50 -0500
-Received: by mail-wg0-f44.google.com with SMTP id dr12so1031057wgb.23
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 18:56:49 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <512EC64F.7080602@samsung.com>
-References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
-	<1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
-	<512EC2CC.2090605@samsung.com>
-	<CAD025yS8H-3d2AXi-=XBZFztCjffOVSMUOgegNM-paqDjxBf0g@mail.gmail.com>
-	<512EC64F.7080602@samsung.com>
-Date: Thu, 28 Feb 2013 08:26:49 +0530
-Message-ID: <CAGm_ybjDHkX4Rei5oViG3fsUD7qZi3yXYdXZ=D1H1tTGp=1V0Q@mail.gmail.com>
-Subject: Re: [PATCH v8 1/2] video: drm: exynos: Add display-timing node
- parsing using video helper function
-From: Vikas Sajjan <sajjan.linux@gmail.com>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
-	dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
-	linaro-dev@lists.linaro.org, patches@linaro.org,
-	l.krishna@samsung.com, joshi@samsung.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 7 Feb 2013 07:07:29 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>
+Subject: [REVIEW PATCH V4 00/12] [media] marvell-ccic: add soc camera support in marvell-ccic driver
+Date: Thu,  7 Feb 2013 20:04:35 +0800
+Message-Id: <1360238687-15768-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 28, 2013 at 8:21 AM, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
-> On 02/28/2013 11:45 AM, Vikas Sajjan wrote:
->>
->> Hi,
->>
->> On 28 February 2013 08:07, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
->>>
->>> On 02/27/2013 08:49 PM, Vikas Sajjan wrote:
->>>>
->>>> Add support for parsing the display-timing node using video helper
->>>> function.
->>>>
->>>> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
->>>> exists and the NON-DT logic is still maintained under the 'else' part.
->>>>
->>>> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
->>>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->>>> ---
->>>>    drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25
->>>> +++++++++++++++++++++----
->>>>    1 file changed, 21 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> index 9537761..7932dc2 100644
->>>> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> @@ -20,6 +20,7 @@
->>>>    #include <linux/of_device.h>
->>>>    #include <linux/pm_runtime.h>
->>>>    +#include <video/of_display_timing.h>
->>>>    #include <video/samsung_fimd.h>
->>>>    #include <drm/exynos_drm.h>
->>>>    @@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device
->>>> *pdev)
->>>>          DRM_DEBUG_KMS("%s\n", __FILE__);
->>>>    -     pdata = pdev->dev.platform_data;
->>>> -       if (!pdata) {
->>>> -               dev_err(dev, "no platform data specified\n");
->>>> -               return -EINVAL;
->>>> +       if (pdev->dev.of_node) {
->>>> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
->>>> +               if (!pdata) {
->>>> +                       DRM_ERROR("memory allocation for pdata
->>>> failed\n");
->>>> +                       return -ENOMEM;
->>>> +               }
->>>> +
->>>> +               ret = of_get_fb_videomode(dev->of_node,
->>>> &pdata->panel.timing,
->>>> +                                       OF_USE_NATIVE_MODE);
->>>> +               if (ret) {
->>>> +                       DRM_ERROR("failed: of_get_fb_videomode()\n"
->>>> +                               "with return value: %d\n", ret);
->>>
->>>
->>> Could you make this error log to one line?
->>>
->> The Line was going beyond 80 line marks, hence I had to split it.
->
->
-> So remove or contract some log messages, e.g. "with return value"
-> I think that is unnecessary.
->
-Will do and resend.
->
->>> except this,
->>> Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
->>>
->>>
->>>> +                       return ret;
->>>> +               }
->>>> +       } else {
->>>> +               pdata = pdev->dev.platform_data;
->>>> +               if (!pdata) {
->>>> +                       DRM_ERROR("no platform data specified\n");
->>>> +                       return -EINVAL;
->>>> +               }
->>>>          }
->>>>          panel = &pdata->panel;
->>>
->>>
->>
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The following patches series will add soc_camera support in marvell-ccic driver
+
+Patch set V4 - Change log:
+	- remove the first patch of V3 which had been queued in tree
+	- merge [PATCH 09/15-12/15] of V3 to [PATCH 10/12] of V4
+	- use soc_camera mode replace the old mode for maintain in the future
+	- correct some errors of implementation in mcam_ctlr_image()
+	- change get_mcam() function name to vq_to_mcam()
+	- use proper words replace some inaccurate wordings in description
+	- add [PATCH 08/12] to rename varablies for avoiding CamelCase warning
+	- adjust patch sequence and move [PATCH 14/15] of V3 to [PATCH 09/12] of V4
+	- change some functions implementation include spliting into 2 functions and decreasing parameters
+
+Patch set V3 - Change log:
+	- correct and enhance the implementation of some functions
+	- replace most of preprocessor instruction with runtime detect
+	- use devm_clk_get and devm_gpio_request which were missed in previous version
+	- change code format in some funcions: replace if-else with switch
+	- change some confused variable names
+	- remove unnecessary functions: buf_init, buf_cleanup ...
+	- remove unnecessary keyword: inline, extern ...
+	- remove unnecessary include header file name
+	- remove duplicated and unused code
+	- remove unnecessary initialization of ret variable
+	- [PATCH 09/15] change description
+
+Patch set V2 - Change log:
+	- remove register definition patch
+	- split big patch to some small patches
+	- split mcam-core.c to mcam-core.c and mcam-core-standard.c
+	- add mcam-core-soc.c for soc camera support
+	- split 3 frame buffers support patch into 2 patches
+
+Patch set V1 - Log:
+	- add mmp register definition
+	- add soc_camera support on mcam core and mmp driver
+	- add 3 frames buffers support in DMA_CONTIG mode
+
+Thanks
+Albert Wang
+
+--
+Albert Wang (7):
+  [media] marvell-ccic: reset ccic phy when stop streaming for stability
+  [media] marvell-ccic: switch to resource managed allocation and request
+  [media] marvell-ccic: rename B_DMA* to avoid CamelCase warning
+  [media] marvell-ccic: use unsigned int type replace int type
+  [media] marvell-ccic: add soc_camera support for marvell-ccic driver
+  [media] marvell-ccic: add dma burst support for marvell-ccic driver
+  [media] marvell-ccic: add 3 frame buffers support in DMA_CONTIG mode
+
+Libin Yang (5):
+  [media] marvell-ccic: add MIPI support for marvell-ccic driver
+  [media] marvell-ccic: add clock tree support for marvell-ccic driver
+  [media] marvell-ccic: refine mcam_set_contig_buffer function
+  [media] marvell-ccic: add new formats support for marvell-ccic driver
+  [media] marvell-ccic: add SOF/EOF pair check for marvell-ccic driver
+
+ drivers/media/platform/Makefile                   |    4 +-
+ drivers/media/platform/marvell-ccic/Kconfig       |    6 +-
+ drivers/media/platform/marvell-ccic/cafe-driver.c |    2 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c   | 1362 ++++++++++-----------
+ drivers/media/platform/marvell-ccic/mcam-core.h   |  102 +-
+ drivers/media/platform/marvell-ccic/mmp-driver.c  |  306 +++--
+ include/media/mmp-camera.h                        |   16 +
+ 7 files changed, 941 insertions(+), 857 deletions(-)
+
+-- 
+1.7.9.5
+
