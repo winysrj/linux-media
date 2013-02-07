@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:54402 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758113Ab3BZT22 (ORCPT
+Received: from na3sys009aog126.obsmtp.com ([74.125.149.155]:49408 "EHLO
+	na3sys009aog126.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758220Ab3BGMGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 14:28:28 -0500
-Received: by mail-pa0-f44.google.com with SMTP id kp1so2653935pab.3
-        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 11:28:28 -0800 (PST)
-From: Syam Sidhardhan <syamsidhardh@gmail.com>
-To: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Cc: syamsidhardh@gmail.com, awalls@md.metrocast.net, mchehab@redhat.com
-Subject: [PATCH] media: ivtv: Remove redundant NULL check before kfree
-Date: Wed, 27 Feb 2013 00:58:15 +0530
-Message-Id: <1361906895-2687-1-git-send-email-s.syam@samsung.com>
+	Thu, 7 Feb 2013 07:06:09 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [REVIEW PATCH V4 04/12] [media] marvell-ccic: refine mcam_set_contig_buffer function
+Date: Thu,  7 Feb 2013 20:04:39 +0800
+Message-Id: <1360238687-15768-5-git-send-email-twang13@marvell.com>
+In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kfree on NULL pointer is a no-op.
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Syam Sidhardhan <s.syam@samsung.com>
+This patch refines mcam_set_contig_buffer() in mcam core.
+It can remove redundant code line and enhance readability.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 ---
- drivers/media/pci/ivtv/ivtvfb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/pci/ivtv/ivtvfb.c b/drivers/media/pci/ivtv/ivtvfb.c
-index 05b94aa..9ff1230 100644
---- a/drivers/media/pci/ivtv/ivtvfb.c
-+++ b/drivers/media/pci/ivtv/ivtvfb.c
-@@ -1171,8 +1171,7 @@ static void ivtvfb_release_buffers (struct ivtv *itv)
- 		fb_dealloc_cmap(&oi->ivtvfb_info.cmap);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index a32df35..f89fce7 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -475,22 +475,21 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	 */
+ 	if (list_empty(&cam->buffers)) {
+ 		buf = cam->vb_bufs[frame ^ 0x1];
+-		cam->vb_bufs[frame] = buf;
+-		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 		cam->frame_state.singles++;
+-		return;
++	} else {
++		/*
++		 * OK, we have a buffer we can use.
++		 */
++		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
++					queue);
++		list_del_init(&buf->queue);
++		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 	}
+-	/*
+-	 * OK, we have a buffer we can use.
+-	 */
+-	buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+-	list_del_init(&buf->queue);
++
++	cam->vb_bufs[frame] = buf;
+ 	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+ 			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+-	cam->vb_bufs[frame] = buf;
+-	clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ }
  
- 	/* Release pseudo palette */
--	if (oi->ivtvfb_info.pseudo_palette)
--		kfree(oi->ivtvfb_info.pseudo_palette);
-+	kfree(oi->ivtvfb_info.pseudo_palette);
- 
- #ifdef CONFIG_MTRR
- 	if (oi->fb_end_aligned_physaddr) {
+ /*
 -- 
 1.7.9.5
 
