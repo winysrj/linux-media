@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38904 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755357Ab3BESaR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 13:30:17 -0500
-Date: Tue, 5 Feb 2013 19:29:53 +0100
-From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: devicetree-discuss@lists.ozlabs.org,
-	'Dave Airlie' <airlied@linux.ie>, linux-fbdev@vger.kernel.org,
-	"'Mohammed, Afzal'" <afzal@ti.com>,
-	'Stephen Warren' <swarren@wwwdotorg.org>,
-	'Florian Tobias Schandinat' <FlorianSchandinat@gmx.de>,
-	dri-devel@lists.freedesktop.org,
-	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
-	'Rob Herring' <robherring2@gmail.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	kernel@pengutronix.de,
-	'Guennady Liakhovetski' <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v17 4/7] fbmon: add videomode helpers
-Message-ID: <20130205182953.GC27438@pengutronix.de>
-References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
- <1359104515-8907-5-git-send-email-s.trumtrar@pengutronix.de>
- <003401ce005e$af665c50$0e3314f0$%han@samsung.com>
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:61092 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030198Ab3BGRjx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:53 -0500
+Received: by mail-ea0-f182.google.com with SMTP id a12so1268344eaa.27
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:52 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 13/13] em28xx: do not claim VBI support if the device is a camera
+Date: Thu,  7 Feb 2013 18:39:21 +0100
+Message-Id: <1360258761-2959-14-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <003401ce005e$af665c50$0e3314f0$%han@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Avoids registering a VBI device and streaming in VBI-mode if the device is a
+camera.
 
-On Fri, Feb 01, 2013 at 06:29:50PM +0900, Jingoo Han wrote:
-> On Friday, January 25, 2013 6:02 PM, Steffen Trumtrar wrote
-> > 
-> > +	fbmode->sync = 0;
-> > +	fbmode->vmode = 0;
-> > +	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
-> > +		fbmode->sync |= FB_SYNC_HOR_HIGH_ACT;
-> > +	if (vm->dmt_flags & VESA_DMT_HSYNC_HIGH)
-> 
-> Um, it seems to be a type. 'H'SYNC -> 'V'SYNC
-> Thus, it would be changed as below:
-> 
->     VESA_DMT_HSYNC_HIGH -> VESA_DMT_VSYNC_HIGH
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |    5 +++++
+ 1 Datei geändert, 5 Zeilen hinzugefügt(+)
 
-Damn. You are right, that is a typo. But I guess some maintainer (Dave) really,
-really wants to take the series now and this can wait for an -rc. No?!  ;-)
-
-Thanks,
-Steffen
-
-> 
-> > +		fbmode->sync |= FB_SYNC_VERT_HIGH_ACT;
-> > +	if (vm->data_flags & DISPLAY_FLAGS_INTERLACED)
-> > +		fbmode->vmode |= FB_VMODE_INTERLACED;
-> > +	if (vm->data_flags & DISPLAY_FLAGS_DOUBLESCAN)
-> > +		fbmode->vmode |= FB_VMODE_DOUBLE;
-> > +	fbmode->flag = 0;
-> > +
-
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 3905570..a6e88db 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -681,6 +681,11 @@ int em28xx_vbi_supported(struct em28xx *dev)
+ 	if (disable_vbi == 1)
+ 		return 0;
+ 
++	if (dev->board.is_webcam)
++		return 0;
++
++	/* FIXME: check subdevices for VBI support */
++
+ 	if (dev->chip_id == CHIP_ID_EM2860 ||
+ 	    dev->chip_id == CHIP_ID_EM2883)
+ 		return 1;
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.10.4
+
