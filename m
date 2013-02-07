@@ -1,74 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-out.inet.fi ([195.156.147.13]:56713 "EHLO kirsi1.inet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759876Ab3BZJUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 04:20:33 -0500
-Date: Tue, 26 Feb 2013 11:20:22 +0200
-From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2] Media: remove incorrect __init/__exit markups
-Message-ID: <20130226092022.GA14209@itanic.dhcp.inet.fi>
-References: <20130226071726.GA11322@core.coreip.homeip.net>
+Received: from aserp1040.oracle.com ([141.146.126.69]:38105 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752617Ab3BGIY7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 03:24:59 -0500
+Date: Thu, 7 Feb 2013 11:24:49 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch v2] dvb-usb: check for invalid length in
+ ttusb_process_muxpack()
+Message-ID: <20130207082449.GA18610@elgon.mountain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20130226071726.GA11322@core.coreip.homeip.net>
+In-Reply-To: <20130205201001.60fe547e@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.25 2013 23:17:27, Dmitry Torokhov wrote:
-> Even if bus is not hot-pluggable, the devices can be unbound from the
-> driver via sysfs, so we should not be using __exit annotations on
-> remove() methods. The only exception is drivers registered with
-> platform_driver_probe() which specifically disables sysfs bind/unbind
-> attributes.
-> 
-> Similarly probe() methods should not be marked __init unless
-> platform_driver_probe() is used.
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
-> 
-> v1->v2: removed __init markup on omap1_cam_probe() that was pointed out
-> 	by Guennadi Liakhovetski.
-> 
->  drivers/media/i2c/adp1653.c                      | 4 ++--
->  drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
->  drivers/media/platform/soc_camera/omap1_camera.c | 6 +++---
->  drivers/media/radio/radio-si4713.c               | 4 ++--
->  drivers/media/rc/ir-rx51.c                       | 4 ++--
->  5 files changed, 11 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 8ead492..31b955b 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -464,14 +464,14 @@ static int lirc_rx51_probe(struct platform_device *dev)
->  	return 0;
->  }
->  
-> -static int __exit lirc_rx51_remove(struct platform_device *dev)
-> +static int lirc_rx51_remove(struct platform_device *dev)
->  {
->  	return lirc_unregister_driver(lirc_rx51_driver.minor);
->  }
->  
->  struct platform_driver lirc_rx51_platform_driver = {
->  	.probe		= lirc_rx51_probe,
-> -	.remove		= __exit_p(lirc_rx51_remove),
-> +	.remove		= lirc_rx51_remove,
->  	.suspend	= lirc_rx51_suspend,
->  	.resume		= lirc_rx51_resume,
->  	.driver		= {
+This patch is driven by a static checker warning.
 
-For ir-rx51:
+The ttusb_process_muxpack() function is only called from
+ttusb_process_frame().  Before calling, it verifies that len >= 2.  The
+problem is that len == 2 is not valid and would lead to an array
+underflow.
 
-Acked-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+Odd number values for len are also invalid and would lead to reading
+past the end of the array.
 
-Thanks!
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+v2: Moved the check from the caller into the function.  Added a check
+for odd values.  Added an error message.  Increment the numinvalid
+counter.
 
--Timo
+diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+index 5b682cc..e407185 100644
+--- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
+@@ -561,6 +561,13 @@ static void ttusb_process_muxpack(struct ttusb *ttusb, const u8 * muxpack,
+ {
+ 	u16 csum = 0, cc;
+ 	int i;
++
++	if (len < 4 || len & 0x1) {
++		pr_warn("%s: muxpack has invalid len %d\n", __func__, len);
++		numinvalid++;
++		return;
++	}
++
+ 	for (i = 0; i < len; i += 2)
+ 		csum ^= le16_to_cpup((__le16 *) (muxpack + i));
+ 	if (csum) {
