@@ -1,198 +1,339 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2668 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754866Ab3BJMu1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 13/19] bttv: add support for control events.
-Date: Sun, 10 Feb 2013 13:50:08 +0100
-Message-Id: <251a81146f0dc45fece00fc6ed229ced4b072fce.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:21670 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757344Ab3BGLy3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:54:29 -0500
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH v2 5/5] alsa/soc: add hdmi audio card using cdf based hdmi
+ codec
+Date: Thu, 07 Feb 2013 07:12:12 -0500
+Message-id: <1360239132-15557-3-git-send-email-rahul.sharma@samsung.com>
+In-reply-to: <1360239132-15557-1-git-send-email-rahul.sharma@samsung.com>
+References: <1360239132-15557-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+It registers hdmi-audio card to ALSA framework which associates i2s dai and
+cdf based hdmi audio codec.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |   48 ++++++++++++++++++++++++---------
- drivers/media/pci/bt8xx/bttvp.h       |    4 +++
- 2 files changed, 39 insertions(+), 13 deletions(-)
+ sound/soc/samsung/Kconfig  |   8 ++
+ sound/soc/samsung/Makefile |   2 +
+ sound/soc/samsung/hdmi.c   | 260 +++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 270 insertions(+)
+ create mode 100644 sound/soc/samsung/hdmi.c
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 09f58f3..96aa2c9 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -49,6 +49,7 @@
- #include "bttvp.h"
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-event.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/tvaudio.h>
- #include <media/msp3400.h>
-@@ -2982,34 +2983,43 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
- 	struct bttv_fh *fh = file->private_data;
- 	struct bttv_buffer *buf;
- 	enum v4l2_field field;
--	unsigned int rc = POLLERR;
-+	unsigned int rc = 0;
-+	unsigned long req_events = poll_requested_events(wait);
+diff --git a/sound/soc/samsung/Kconfig b/sound/soc/samsung/Kconfig
+index 90e7e66..d5b92ab 100644
+--- a/sound/soc/samsung/Kconfig
++++ b/sound/soc/samsung/Kconfig
+@@ -185,6 +185,14 @@ config SND_SOC_SMDK_WM8994_PCM
+ 	help
+ 	  Say Y if you want to add support for SoC audio on the SMDK
+ 
++config SND_SOC_EXYNOS_HDMI_AUDIO
++	tristate "SoC I2S Audio support for HDMI"
++	depends on SND_SOC_SAMSUNG && DRM_EXYNOS_HDMI_CDF
++	select SND_SAMSUNG_I2S
++	select SND_SOC_EXYNOS_HDMI_CODEC
++	help
++		Say Y if you want to add support for hdmi audio on the Exynos.
 +
-+	if (v4l2_event_pending(&fh->fh))
-+		rc = POLLPRI;
-+	else if (req_events & POLLPRI)
-+		poll_wait(file, &fh->fh.wait, wait);
+ config SND_SOC_SPEYSIDE
+ 	tristate "Audio support for Wolfson Speyside"
+ 	depends on SND_SOC_SAMSUNG && MACH_WLF_CRAGG_6410
+diff --git a/sound/soc/samsung/Makefile b/sound/soc/samsung/Makefile
+index 709f605..ab1c151 100644
+--- a/sound/soc/samsung/Makefile
++++ b/sound/soc/samsung/Makefile
+@@ -8,6 +8,7 @@ snd-soc-s3c-i2s-v2-objs := s3c-i2s-v2.o
+ snd-soc-samsung-spdif-objs := spdif.o
+ snd-soc-pcm-objs := pcm.o
+ snd-soc-i2s-objs := i2s.o
++snd-soc-hdmi-objs := hdmi.o
+ 
+ obj-$(CONFIG_SND_SOC_SAMSUNG) += snd-soc-s3c24xx.o
+ obj-$(CONFIG_SND_S3C24XX_I2S) += snd-soc-s3c24xx-i2s.o
+@@ -18,6 +19,7 @@ obj-$(CONFIG_SND_SAMSUNG_SPDIF) += snd-soc-samsung-spdif.o
+ obj-$(CONFIG_SND_SAMSUNG_PCM) += snd-soc-pcm.o
+ obj-$(CONFIG_SND_SAMSUNG_I2S) += snd-soc-i2s.o
+ obj-$(CONFIG_SND_SAMSUNG_I2S) += snd-soc-idma.o
++obj-$(CONFIG_SND_SOC_EXYNOS_HDMI_AUDIO) += snd-soc-hdmi.o
+ 
+ # S3C24XX Machine Support
+ snd-soc-jive-wm8750-objs := jive_wm8750.o
+diff --git a/sound/soc/samsung/hdmi.c b/sound/soc/samsung/hdmi.c
+new file mode 100644
+index 0000000..a600a84
+--- /dev/null
++++ b/sound/soc/samsung/hdmi.c
+@@ -0,0 +1,260 @@
++/*
++ * ALSA SoC Card driver for HDMI audio on Samsung Exynos processors.
++ * Copyright (C) 2013 Samsung corp.
++ * Author: Rahul Sharma <rahul.sharma@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
 +
-+	if (!(req_events & (POLLIN | POLLRDNORM)))
-+		return rc;
- 
- 	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
- 		if (!check_alloc_btres_lock(fh->btv,fh,RESOURCE_VBI))
--			return POLLERR;
--		return videobuf_poll_stream(file, &fh->vbi, wait);
-+			return rc | POLLERR;
-+		return rc | videobuf_poll_stream(file, &fh->vbi, wait);
- 	}
- 
- 	if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
- 		/* streaming capture */
- 		if (list_empty(&fh->cap.stream))
--			goto err;
-+			return rc | POLLERR;
- 		buf = list_entry(fh->cap.stream.next,struct bttv_buffer,vb.stream);
- 	} else {
- 		/* read() capture */
- 		if (NULL == fh->cap.read_buf) {
- 			/* need to capture a new frame */
- 			if (locked_btres(fh->btv,RESOURCE_VIDEO_STREAM))
--				goto err;
-+				return rc | POLLERR;
- 			fh->cap.read_buf = videobuf_sg_alloc(fh->cap.msize);
- 			if (NULL == fh->cap.read_buf)
--				goto err;
-+				return rc | POLLERR;
- 			fh->cap.read_buf->memory = V4L2_MEMORY_USERPTR;
- 			field = videobuf_next_field(&fh->cap);
- 			if (0 != fh->cap.ops->buf_prepare(&fh->cap,fh->cap.read_buf,field)) {
- 				kfree (fh->cap.read_buf);
- 				fh->cap.read_buf = NULL;
--				goto err;
-+				return rc | POLLERR;
- 			}
- 			fh->cap.ops->buf_queue(&fh->cap,fh->cap.read_buf);
- 			fh->cap.read_off = 0;
-@@ -3020,10 +3030,7 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
- 	poll_wait(file, &buf->vb.done, wait);
- 	if (buf->vb.state == VIDEOBUF_DONE ||
- 	    buf->vb.state == VIDEOBUF_ERROR)
--		rc =  POLLIN|POLLRDNORM;
--	else
--		rc = 0;
--err:
-+		rc = rc | POLLIN|POLLRDNORM;
- 	return rc;
- }
- 
-@@ -3056,6 +3063,7 @@ static int bttv_open(struct file *file)
- 	file->private_data = fh;
- 
- 	*fh = btv->init;
-+	v4l2_fh_init(&fh->fh, vdev);
- 
- 	fh->type = type;
- 	fh->ov.setup_ok = 0;
-@@ -3095,6 +3103,7 @@ static int bttv_open(struct file *file)
- 	bttv_vbi_fmt_reset(&fh->vbi_fmt, btv->tvnorm);
- 
- 	bttv_field_count(btv);
-+	v4l2_fh_add(&fh->fh);
- 	return 0;
- }
- 
-@@ -3132,7 +3141,6 @@ static int bttv_release(struct file *file)
- 	videobuf_mmap_free(&fh->vbi);
- 	v4l2_prio_close(&btv->prio, fh->prio);
- 	file->private_data = NULL;
--	kfree(fh);
- 
- 	btv->users--;
- 	bttv_field_count(btv);
-@@ -3140,6 +3148,9 @@ static int bttv_release(struct file *file)
- 	if (!btv->users)
- 		audio_mute(btv, btv->mute);
- 
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
-+	kfree(fh);
- 	return 0;
- }
- 
-@@ -3203,6 +3214,8 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_s_frequency             = bttv_s_frequency,
- 	.vidioc_log_status		= bttv_log_status,
- 	.vidioc_querystd		= bttv_querystd,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- 	.vidioc_g_chip_ident		= bttv_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= bttv_g_register,
-@@ -3315,10 +3328,17 @@ static unsigned int radio_poll(struct file *file, poll_table *wait)
- {
- 	struct bttv_fh *fh = file->private_data;
- 	struct bttv *btv = fh->btv;
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct saa6588_command cmd;
-+	unsigned int res = 0;
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/clk.h>
 +
-+	if (v4l2_event_pending(&fh->fh))
-+		res = POLLPRI;
-+	else if (req_events & POLLPRI)
-+		poll_wait(file, &fh->fh.wait, wait);
- 	cmd.instance = file;
- 	cmd.event_list = wait;
--	cmd.result = -ENODEV;
-+	cmd.result = res;
- 	bttv_call_all(btv, core, ioctl, SAA6588_CMD_POLL, &cmd);
- 
- 	return cmd.result;
-@@ -3341,6 +3361,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner         = radio_s_tuner,
- 	.vidioc_g_frequency     = bttv_g_frequency,
- 	.vidioc_s_frequency     = bttv_s_frequency,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static struct video_device radio_template = {
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index c3882ef..288cfd8 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -37,6 +37,7 @@
- #include <asm/io.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-fh.h>
- #include <media/videobuf-dma-sg.h>
- #include <media/tveeprom.h>
- #include <media/rc-core.h>
-@@ -215,6 +216,9 @@ struct bttv_crop {
- };
- 
- struct bttv_fh {
-+	/* This must be the first field in this struct */
-+	struct v4l2_fh		 fh;
++#include <sound/pcm_params.h>
++#include <sound/soc.h>
 +
- 	struct bttv              *btv;
- 	int resources;
- #ifdef VIDIOC_G_PRIORITY
++#include "i2s.h"
++
++/* platform device pointer for eynos hdmi audio device. */
++static struct platform_device *exynos_hdmi_audio_pdev;
++
++static int set_epll_rate(unsigned long rate)
++{
++	int ret;
++	struct clk *fout_epll;
++
++	fout_epll = clk_get(NULL, "fout_epll");
++
++	if (IS_ERR(fout_epll))
++		return PTR_ERR(fout_epll);
++
++	if (rate == clk_get_rate(fout_epll))
++		goto out;
++
++	ret = clk_set_rate(fout_epll, rate);
++	if (ret < 0)
++		goto out;
++
++out:
++	clk_put(fout_epll);
++
++	return 0;
++}
++
++static int hdmi_hw_params(struct snd_pcm_substream *substream,
++	struct snd_pcm_hw_params *params)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
++	int bfs, psr, rfs, ret;
++	unsigned long rclk;
++	unsigned long xtal;
++	struct clk *xtal_clk;
++
++	dev_dbg(rtd->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_U24:
++	case SNDRV_PCM_FORMAT_S24:
++		bfs = 48;
++		break;
++	case SNDRV_PCM_FORMAT_U16_LE:
++	case SNDRV_PCM_FORMAT_S16_LE:
++		bfs = 32;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	switch (params_rate(params)) {
++	case 16000:
++	case 22050:
++	case 24000:
++	case 32000:
++	case 44100:
++	case 48000:
++	case 88200:
++	case 96000:
++		if (bfs == 48)
++			rfs = 384;
++		else
++			rfs = 256;
++		break;
++	case 64000:
++		rfs = 384;
++		break;
++	case 8000:
++	case 11025:
++	case 12000:
++		if (bfs == 48)
++			rfs = 768;
++		else
++			rfs = 512;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	rclk = params_rate(params) * rfs;
++
++	switch (rclk) {
++	case 4096000:
++	case 5644800:
++	case 6144000:
++	case 8467200:
++	case 9216000:
++		psr = 8;
++		break;
++	case 8192000:
++	case 11289600:
++	case 12288000:
++	case 16934400:
++	case 18432000:
++		psr = 4;
++		break;
++	case 22579200:
++	case 24576000:
++	case 33868800:
++	case 36864000:
++		psr = 2;
++		break;
++	case 67737600:
++	case 73728000:
++		psr = 1;
++		break;
++	default:
++		dev_err(rtd->dev, "rclk = %lu is not yet supported!\n", rclk);
++		return -EINVAL;
++	}
++
++	ret = set_epll_rate(rclk * psr);
++	if (ret < 0)
++		return ret;
++
++	ret = snd_soc_dai_set_fmt(cpu_dai, SND_SOC_DAIFMT_I2S |
++					   SND_SOC_DAIFMT_NB_NF |
++					   SND_SOC_DAIFMT_CBS_CFS);
++	if (ret < 0)
++		return ret;
++
++	xtal_clk = clk_get(NULL, "xtal"); /*xtal clk is input to codec MCLK1*/
++	if (IS_ERR(xtal_clk)) {
++		dev_err(rtd->dev, "%s: failed to get xtal clock\n", __func__);
++		return PTR_ERR(xtal_clk);
++	}
++
++	xtal = clk_get_rate(xtal_clk);
++	clk_put(xtal_clk);
++
++	ret = snd_soc_dai_set_sysclk(cpu_dai, SAMSUNG_I2S_CDCLK,
++					0, SND_SOC_CLOCK_OUT);
++	if (ret < 0)
++		return ret;
++
++	ret = snd_soc_dai_set_clkdiv(cpu_dai, SAMSUNG_I2S_DIV_BCLK, bfs);
++	if (ret < 0)
++		return ret;
++
++	return 0;
++}
++
++/*
++ * HDMI DAI operations.
++ */
++static struct snd_soc_ops hdmi_ops = {
++	.hw_params = hdmi_hw_params,
++};
++
++static struct snd_soc_dai_link hdmi_dai[] = {
++	{ /* HDMI Playback i/f */
++		.name = "HDMI Playback",
++		.stream_name = "i2s_Dai",
++		.cpu_dai_name = "samsung-i2s.0",
++		.codec_dai_name = "exynos-hdmi-audio-dai",
++		.platform_name = "samsung-i2s.0",
++		.codec_name = "exynos-hdmi-audio-codec",
++		.ops = &hdmi_ops,
++	},
++};
++
++static struct snd_soc_card hdmi = {
++	.name = "HDMI-AUDIO",
++	.owner = THIS_MODULE,
++	.dai_link = hdmi_dai,
++	.num_links = ARRAY_SIZE(hdmi_dai),
++};
++
++static int hdmi_audio_probe(struct platform_device *pdev)
++{
++	int ret;
++	struct snd_soc_card *card = &hdmi;
++
++	card->dev = &pdev->dev;
++	dev_dbg(&pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	ret = snd_soc_register_card(card);
++	if (ret)
++		dev_err(&pdev->dev, "snd_soc_register_card() failed:%d\n", ret);
++
++	return ret;
++}
++
++static int hdmi_audio_remove(struct platform_device *pdev)
++{
++	struct snd_soc_card *card = platform_get_drvdata(pdev);
++
++	snd_soc_unregister_card(card);
++
++	return 0;
++}
++
++static struct platform_driver hdmi_audio_driver = {
++	.driver		= {
++		.name	= "exynos-hdmi-audio",
++		.owner	= THIS_MODULE,
++		.pm	= &snd_soc_pm_ops,
++	},
++	.probe		= hdmi_audio_probe,
++	.remove		= hdmi_audio_remove,
++};
++
++static int __init hdmi_audio_init(void)
++{
++	int ret;
++
++	ret = platform_driver_register(&hdmi_audio_driver);
++	if (ret < 0)
++		return -EINVAL;
++
++	exynos_hdmi_audio_pdev = platform_device_register_simple
++		("exynos-hdmi-audio", -1, NULL, 0);
++	if (IS_ERR_OR_NULL(exynos_hdmi_audio_pdev)) {
++		ret = PTR_ERR(exynos_hdmi_audio_pdev);
++		platform_driver_unregister(&hdmi_audio_driver);
++		return ret;
++	}
++
++	return 0;
++}
++
++static void __exit hdmi_audio_exit(void)
++{
++	platform_driver_unregister(&hdmi_audio_driver);
++	platform_device_unregister(exynos_hdmi_audio_pdev);
++}
++
++module_init(hdmi_audio_init);
++module_exit(hdmi_audio_exit);
++
++MODULE_AUTHOR("Rahul Sharma <rahul.sharma@samsung.com>");
++MODULE_DESCRIPTION("ALSA SoC HDMI AUDIO Card");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:hdmi-audio");
 -- 
-1.7.10.4
+1.8.0
 
