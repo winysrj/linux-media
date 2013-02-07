@@ -1,122 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35257 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756808Ab3BJUMe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 15:12:34 -0500
-Message-ID: <5117FF09.8070606@iki.fi>
-Date: Sun, 10 Feb 2013 22:11:53 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] block i2c tuner reads for Avermedia Twinstar in the af9035
- driver
-References: <4261811.IXtDYhFBCx@jar7.dominio>
-In-Reply-To: <4261811.IXtDYhFBCx@jar7.dominio>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:40994 "EHLO
+	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757267Ab3BGMGW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Feb 2013 07:06:22 -0500
+From: Albert Wang <twang13@marvell.com>
+To: corbet@lwn.net, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [REVIEW PATCH V4 11/12] [media] marvell-ccic: add dma burst support for marvell-ccic driver
+Date: Thu,  7 Feb 2013 20:04:46 +0800
+Message-Id: <1360238687-15768-12-git-send-email-twang13@marvell.com>
+In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2013 09:43 PM, Jose Alberto Reguero wrote:
-> This patch block the i2c tuner reads for Avermedia Twinstar. If it's
-> needed other pids can be added.
->
-> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
->
-> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c linux.new/drivers/media/usb/dvb-usb-v2/af9035.c
-> --- linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07 05:45:57.000000000 +0100
-> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-02-08 22:55:08.304089054 +0100
-> @@ -232,7 +232,11 @@ static int af9035_i2c_master_xfer(struct
->   			buf[3] = 0x00; /* reg addr MSB */
->   			buf[4] = 0x00; /* reg addr LSB */
->   			memcpy(&buf[5], msg[0].buf, msg[0].len);
-> -			ret = af9035_ctrl_msg(d, &req);
-> +			if (state->block_read) {
-> +				msg[1].buf[0] = 0x3f;
-> +				ret = 0;
-> +			} else
-> +				ret = af9035_ctrl_msg(d, &req);
->   		}
->   	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
->   		if (msg[0].len > 40) {
-> @@ -638,6 +642,17 @@ static int af9035_read_config(struct dvb
->   	for (i = 0; i < ARRAY_SIZE(state->af9033_config); i++)
->   		state->af9033_config[i].clock = clock_lut[tmp];
->
-> +	state->block_read = false;
-> +
-> +	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
-> +		le16_to_cpu(d->udev->descriptor.idProduct) ==
-> +			USB_PID_AVERMEDIA_TWINSTAR) {
-> +		dev_dbg(&d->udev->dev,
-> +				"%s: AverMedia Twinstar: block i2c read from tuner\n",
-> +				__func__);
-> +		state->block_read = true;
-> +	}
-> +
->   	return 0;
->
->   err:
-> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h linux.new/drivers/media/usb/dvb-usb-v2/af9035.h
-> --- linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07 05:45:57.000000000 +0100
-> +++ linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-02-08 22:52:42.293842710 +0100
-> @@ -54,6 +54,7 @@ struct usb_req {
->   struct state {
->   	u8 seq; /* packet sequence number */
->   	bool dual_mode;
-> +	bool block_read;
->   	struct af9033_config af9033_config[2];
->   };
->
->
->
+This patch adds the dma burst size config support for marvell-ccic.
+Developer can set the dma burst size in specified board driver.
 
-Could you test if faking tuner ID during attach() is enough?
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c  |    3 ++-
+ drivers/media/platform/marvell-ccic/mcam-core.h  |    8 ++++----
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   11 +++++++++++
+ include/media/mmp-camera.h                       |    1 +
+ 4 files changed, 18 insertions(+), 5 deletions(-)
 
-Also, I would like to know what is returned error code from firmware 
-when it fails. Enable debugs to see it. It should print something like that:
-af9035_ctrl_msg: command=03 failed fw error=2
-
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c 
-b/drivers/media/usb/dvb-usb-v2/af9035.c
-index a1e953a..5a4f28d 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1082,9 +1082,22 @@ static int af9035_tuner_attach(struct 
-dvb_usb_adapter *adap)
-                         tuner_addr = 0x60 | 0x80; /* I2C bus hack */
-                 }
-
-+               // fake used tuner for demod firmware / i2c adapter
-+               if (adap->id == 0)
-+                       ret = af9035_wr_reg(d, 0x00f641, 
-AF9033_TUNER_FC0011);
-+               else
-+                       ret = af9035_wr_reg(d, 0x10f641, 
-AF9033_TUNER_FC0011);
-+
-                 /* attach tuner */
-                 fe = dvb_attach(mxl5007t_attach, adap->fe[0], &d->i2c_adap,
-                                 tuner_addr, 
-&af9035_mxl5007t_config[adap->id]);
-+
-+               // return correct tuner
-+               if (adap->id == 0)
-+                       ret = af9035_wr_reg(d, 0x00f641, 
-AF9033_TUNER_MXL5007T);
-+               else
-+                       ret = af9035_wr_reg(d, 0x10f641, 
-AF9033_TUNER_MXL5007T);
-+
-                 break;
-         case AF9033_TUNER_TDA18218:
-                 /* attach tuner */
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 16ba045..f206e3c 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1218,7 +1218,8 @@ static int mcam_camera_add_device(struct soc_camera_device *icd)
+ 	mcam_ctlr_power_up(mcam);
+ 	mcam_ctlr_stop(mcam);
+ 	mcam_set_config_needed(mcam, 1);
+-	mcam_reg_write(mcam, REG_CTRL1, C1_RESERVED | C1_DMAPOSTED);
++	mcam_reg_write(mcam, REG_CTRL1,
++				mcam->burst | C1_RESERVED | C1_DMAPOSTED);
+ 	mcam_reg_write(mcam, REG_CLKCTRL,
+ 				(mcam->mclk_src << 29) | mcam->mclk_div);
+ 	cam_dbg(mcam, "camera: set sensor mclk = %dMHz\n", mcam->mclk_min);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 12af7d2..0accdbb 100755
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -108,6 +108,7 @@ struct mcam_camera {
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
+ 
++	u32 burst;
+ 	int mclk_min;
+ 	int mclk_src;
+ 	int mclk_div;
+@@ -347,10 +348,9 @@ int mccic_resume(struct mcam_camera *cam);
+ #define   C1_DESC_3WORD   0x00000200	/* Three-word descriptors used */
+ #define	  C1_444ALPHA	  0x00f00000	/* Alpha field in RGB444 */
+ #define	  C1_ALPHA_SHFT	  20
+-#define	  C1_DMAB32	  0x00000000	/* 32-byte DMA burst */
+-#define	  C1_DMAB16	  0x02000000	/* 16-byte DMA burst */
+-#define	  C1_DMAB64	  0x04000000	/* 64-byte DMA burst */
+-#define	  C1_DMAB_MASK	  0x06000000
++#define	  C1_DMAB64	  0x00000000	/* 64-byte DMA burst */
++#define	  C1_DMAB128	  0x02000000	/* 128-byte DMA burst */
++#define	  C1_DMAB256	  0x04000000	/* 256-byte DMA burst */
+ #define	  C1_TWOBUFS	  0x08000000	/* Use only two DMA buffers */
+ #define	  C1_PWRDWN	  0x10000000	/* Power down */
+ #define   C1_DMAPOSTED	  0x40000000    /* DMA Posted Select */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 3d5db24..3fd6a46 100755
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -360,6 +360,17 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->lane = pdata->lane;
+ 	/* set B_DMA_CONTIG as default */
+ 	mcam->buffer_mode = B_DMA_CONTIG;
++	switch (pdata->dma_burst) {
++	case 128:
++		mcam->burst = C1_DMAB128;
++		break;
++	case 256:
++		mcam->burst = C1_DMAB256;
++		break;
++	default:
++		mcam->burst = C1_DMAB64;
++		break;
++	}
+ 	INIT_LIST_HEAD(&mcam->buffers);
+ 	/*
+ 	 * Get our I/O memory.
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 513d846..44234dd 100755
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -13,6 +13,7 @@ struct mmp_camera_platform_data {
+ 	int mclk_src;
+ 	int mclk_div;
+ 	int chip_id;
++	u32 dma_burst;
+ 	/*
+ 	 * MIPI support
+ 	 */
 -- 
-http://palosaari.fi/
+1.7.9.5
+
