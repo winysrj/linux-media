@@ -1,248 +1,499 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:34022 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756373Ab3BAUWE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Feb 2013 15:22:04 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
-Date: Fri,  1 Feb 2013 21:21:27 +0100
-Message-Id: <1359750087-1155-5-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
-References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+Received: from mailout2.samsung.com ([203.254.224.25]:10348 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757845Ab3BGLx2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:53:28 -0500
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH v2 4/5] alsa/soc: add hdmi audio codec based on cdf
+Date: Thu, 07 Feb 2013 07:12:11 -0500
+Message-id: <1360239132-15557-2-git-send-email-rahul.sharma@samsung.com>
+In-reply-to: <1360239132-15557-1-git-send-email-rahul.sharma@samsung.com>
+References: <1360239132-15557-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add AverMedia AverTV Satellite Hybrid+FM (A706) card to saa7134 driver.
-Working: analog inputs, TV, FM radio and IR remote control.
-Untested: DVB-S.
+V2:
+- DAPM and JACK control to hdmi codec.
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+This patch registers hdmi-audio codec to the ALSA framework. This is the second
+client to the hdmi panel. Once notified by the CDF Core it proceeds towards
+audio setting and audio control. It also subscribes for hpd notification to
+implement hpd related audio requirements.
+
+Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
 ---
- drivers/media/i2c/ir-kbd-i2c.c              |   13 ++++++-
- drivers/media/pci/saa7134/saa7134-cards.c   |   53 +++++++++++++++++++++++++++
- drivers/media/pci/saa7134/saa7134-dvb.c     |   23 ++++++++++++
- drivers/media/pci/saa7134/saa7134-i2c.c     |    1 +
- drivers/media/pci/saa7134/saa7134-input.c   |    3 ++
- drivers/media/pci/saa7134/saa7134-tvaudio.c |    1 +
- drivers/media/pci/saa7134/saa7134.h         |    1 +
- 7 files changed, 94 insertions(+), 1 deletions(-)
+ sound/soc/codecs/Kconfig             |   3 +
+ sound/soc/codecs/Makefile            |   2 +
+ sound/soc/codecs/exynos_hdmi_audio.c | 424 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 429 insertions(+)
+ create mode 100644 sound/soc/codecs/exynos_hdmi_audio.c
 
-diff --git a/drivers/media/i2c/ir-kbd-i2c.c b/drivers/media/i2c/ir-kbd-i2c.c
-index 08ae067..c1f6e7c 100644
---- a/drivers/media/i2c/ir-kbd-i2c.c
-+++ b/drivers/media/i2c/ir-kbd-i2c.c
-@@ -230,7 +230,7 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
- 		return 0;
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 3a84782..d3e0874 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -512,3 +512,6 @@ config SND_SOC_ML26124
  
- 	dprintk(1, "read key 0x%02x/0x%02x\n", key, keygroup);
--	if (keygroup < 2 || keygroup > 3) {
-+	if (keygroup < 2 || keygroup > 4) {
- 		/* Only a warning */
- 		dprintk(1, "warning: invalid key group 0x%02x for key 0x%02x\n",
- 								keygroup, key);
-@@ -239,6 +239,10 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ config SND_SOC_TPA6130A2
+ 	tristate
++
++config SND_SOC_EXYNOS_HDMI_CODEC
++	tristate
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index f6e8e36..388da28 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -115,6 +115,7 @@ snd-soc-wm9705-objs := wm9705.o
+ snd-soc-wm9712-objs := wm9712.o
+ snd-soc-wm9713-objs := wm9713.o
+ snd-soc-wm-hubs-objs := wm_hubs.o
++snd-soc-exynos-hdmi-audio-objs := exynos_hdmi_audio.o
  
- 	*ir_key = key;
- 	*ir_raw = key;
-+	if (!strcmp(ir->ir_codes, RC_MAP_AVERMEDIA_M733A_RM_K6)) {
-+		*ir_key |= keygroup << 8;
-+		*ir_raw |= keygroup << 8;
+ # Amp
+ snd-soc-max9877-objs := max9877.o
+@@ -236,6 +237,7 @@ obj-$(CONFIG_SND_SOC_WM9712)	+= snd-soc-wm9712.o
+ obj-$(CONFIG_SND_SOC_WM9713)	+= snd-soc-wm9713.o
+ obj-$(CONFIG_SND_SOC_WM_ADSP)	+= snd-soc-wm-adsp.o
+ obj-$(CONFIG_SND_SOC_WM_HUBS)	+= snd-soc-wm-hubs.o
++obj-$(CONFIG_SND_SOC_EXYNOS_HDMI_CODEC)	+= snd-soc-exynos-hdmi-audio.o
+ 
+ # Amp
+ obj-$(CONFIG_SND_SOC_MAX9877)	+= snd-soc-max9877.o
+diff --git a/sound/soc/codecs/exynos_hdmi_audio.c b/sound/soc/codecs/exynos_hdmi_audio.c
+new file mode 100644
+index 0000000..e2cf94c
+--- /dev/null
++++ b/sound/soc/codecs/exynos_hdmi_audio.c
+@@ -0,0 +1,424 @@
++/*
++ * ALSA SoC codec driver for HDMI audio on Samsung Exynos processors.
++ * Copyright (C) 2013 Samsung corp.
++ * Author: Rahul Sharma <rahul.sharma@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ */
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++
++#include <sound/soc.h>
++#include <sound/jack.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++
++#include <video/display.h>
++#include <video/exynos_hdmi.h>
++
++#define get_ctx(dev) ((struct hdmi_audio_context *)platform_get_drvdata\
++			(to_platform_device((struct device *)dev)))
++
++/* platform device pointer for eynos hdmi audio codec device. */
++static struct platform_device *exynos_hdmi_codec_pdev;
++
++struct hdmi_audio_context {
++	struct platform_device		*pdev;
++	atomic_t			plugged;
++	atomic_t			enabled;
++	struct workqueue_struct		*event_wq;
++	struct delayed_work			hotplug_work;
++	struct display_entity_audio_params	audio_params;
++	struct display_entity		*entity;
++	struct display_entity_notifier	notf;
++	struct display_event_subscriber	subscriber;
++	struct snd_soc_jack			hdmi_jack;
++};
++
++static int exynos_hdmi_audio_hw_params(struct snd_pcm_substream *substream,
++		struct snd_pcm_hw_params *params,
++		struct snd_soc_dai *dai)
++{
++	struct snd_soc_codec *codec = dai->codec;
++	struct hdmi_audio_context *ctx = snd_soc_codec_get_drvdata(codec);
++	int ret;
++
++	dev_dbg(codec->dev, "[%d] %s\n", __LINE__, __func__);
++
++	/* report failure if hdmi sink is unplugged. */
++	if (!atomic_read(&ctx->plugged))
++		return -ENODEV;
++
++	ctx->audio_params.type = DISPLAY_ENTITY_AUDIO_I2S;
++
++	switch (params_channels(params)) {
++	case 6:
++	case 4:
++	case 2:
++	case 1:
++		ctx->audio_params.channels = params_channels(params);
++		break;
++	default:
++		dev_err(codec->dev, "%d channels not supported\n",
++				params_channels(params));
++		return -EINVAL;
 +	}
- 	return 1;
- }
- 
-@@ -332,6 +336,13 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		rc_type     = RC_BIT_OTHER;
- 		ir_codes    = RC_MAP_AVERMEDIA_CARDBUS;
- 		break;
-+	case 0x41:
-+		name        = "AVerMedia EM78P153";
-+		ir->get_key = get_key_avermedia_cardbus;
-+		rc_type     = RC_BIT_OTHER;
-+		/* RM-KV remote, seems to be same as RM-K6 */
-+		ir_codes    = RC_MAP_AVERMEDIA_M733A_RM_K6;
-+		break;
- 	case 0x71:
- 		name        = "Hauppauge/Zilog Z8";
- 		ir->get_key = get_key_haup_xvr;
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index fe54f88..c603064 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -50,6 +50,11 @@ static char name_svideo[]  = "S-Video";
- /* ------------------------------------------------------------------ */
- /* board config info                                                  */
- 
-+static struct tda18271_std_map aver_a706_std_map = {
-+	.fm_radio = { .if_freq = 5500, .fm_rfn = 0, .agc_mode = 3, .std = 0,
-+		      .if_lvl = 0, .rfagc_top = 0x2c, },
-+};
 +
- /* If radio_type !=UNSET, radio_addr should be specified
-  */
- 
-@@ -5773,6 +5778,37 @@ struct saa7134_board saa7134_boards[] = {
- 			.gpio	= 0x0000000,
- 		},
- 	},
-+	[SAA7134_BOARD_AVERMEDIA_A706] = {
-+		.name           = "AverMedia AverTV Satellite Hybrid+FM A706",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.tda829x_conf   = { .lna_cfg = 0, .no_i2c_gate = 1,
-+				    .tda18271_std_map = &aver_a706_std_map },
-+		.gpiomask       = 1 << 11,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp,
-+			.vmux = 4,
-+			.amux = LINE1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE1,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+			.gpio = 0x0000800,
-+		},
-+	},
- 
- };
- 
-@@ -7020,6 +7056,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.subdevice    = 0x0911,
- 		.driver_data  = SAA7134_BOARD_SENSORAY811_911,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0x2055, /* AverTV Satellite Hybrid+FM A706 */
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_A706,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7568,6 +7610,17 @@ int saa7134_board_init1(struct saa7134_dev *dev)
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x80040100, 0x00040100);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		/* radio antenna select: tristate both as in Windows driver */
-+		saa7134_set_gpio(dev, 12, 3);	/* TV antenna */
-+		saa7134_set_gpio(dev, 13, 3);	/* FM antenna */
-+		dev->has_remote = SAA7134_REMOTE_I2C;
-+		/*
-+		 * Disable CE5039 DVB-S tuner now (SLEEP pin high) to prevent
-+		 * it from interfering with analog tuner detection
-+		 */
-+		saa7134_set_gpio(dev, 23, 1);
++	switch (params_format(params)) {
++	case SNDRV_PCM_FORMAT_S8:
++		ctx->audio_params.bits_per_sample = 8;
 +		break;
- 	case SAA7134_BOARD_VIDEOMATE_S350:
- 		dev->has_remote = SAA7134_REMOTE_GPIO;
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
-diff --git a/drivers/media/pci/saa7134/saa7134-dvb.c b/drivers/media/pci/saa7134/saa7134-dvb.c
-index b209de4..547f470 100644
---- a/drivers/media/pci/saa7134/saa7134-dvb.c
-+++ b/drivers/media/pci/saa7134/saa7134-dvb.c
-@@ -1070,6 +1070,10 @@ static struct mt312_config zl10313_compro_s350_config = {
- 	.demod_address = 0x0e,
- };
- 
-+static struct mt312_config zl10313_avermedia_a706_config = {
-+	.demod_address = 0x0e,
-+};
++	case SNDRV_PCM_FORMAT_S16_LE:
++		ctx->audio_params.bits_per_sample = 12;
++		break;
++	case SNDRV_PCM_FORMAT_S24_LE:
++		ctx->audio_params.bits_per_sample = 16;
++		break;
++	default:
++		dev_err(codec->dev, "Format(%d) not supported\n",
++				params_format(params));
++		return -EINVAL;
++	}
 +
- static struct lgdt3305_config hcw_lgdt3305_config = {
- 	.i2c_addr           = 0x0e,
- 	.mpeg_mode          = LGDT3305_MPEG_SERIAL,
-@@ -1817,6 +1821,25 @@ static int dvb_init(struct saa7134_dev *dev)
- 				   &prohdtv_pro2_tda18271_config);
- 		}
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		/* Enable all DVB-S devices now */
-+		/* CE5039 DVB-S tuner SLEEP pin low */
-+		saa7134_set_gpio(dev, 23, 0);
-+		/* CE6313 DVB-S demod SLEEP pin low */
-+		saa7134_set_gpio(dev, 9, 0);
-+		/* CE6313 DVB-S demod RESET# pin high */
-+		saa7134_set_gpio(dev, 25, 1);
-+		msleep(1);
-+		fe0->dvb.frontend = dvb_attach(mt312_attach,
-+				&zl10313_avermedia_a706_config, &dev->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			fe0->dvb.frontend->ops.i2c_gate_ctrl = NULL;
-+			if (dvb_attach(zl10039_attach, fe0->dvb.frontend,
-+					0x60, &dev->i2c_adap) == NULL)
-+				wprintk("%s: No zl10039 found!\n",
-+					__func__);
++	switch (params_rate(params)) {
++	case 32000:
++	case 44100:
++	case 88200:
++	case 176400:
++	case 48000:
++	case 96000:
++	case 192000:
++		ctx->audio_params.sf = params_rate(params);
++		break;
++	default:
++		dev_err(codec->dev, "%d Rate supported\n",
++				params_rate(params));
++		return -EINVAL;
++	}
++
++	ret =
++	display_entity_hdmi_init_audio(ctx->entity, &ctx->audio_params);
++	if (ret)
++		dev_err(codec->dev, "initaudio failed ret %d\n", ret);
++	return ret;
++}
++
++static int exynos_hdmi_audio_trigger(struct snd_pcm_substream *substream,
++			int cmd, struct snd_soc_dai *dai)
++{
++	struct snd_soc_codec *codec = dai->codec;
++	struct hdmi_audio_context *ctx = snd_soc_codec_get_drvdata(codec);
++	int ret;
++
++	dev_dbg(codec->dev, "[%d] %s\n", __LINE__, __func__);
++
++	/* report failure if hdmi sink is unplugged. */
++	if (!atomic_read(&ctx->plugged))
++		return -EINVAL;
++
++	switch (cmd) {
++	case SNDRV_PCM_TRIGGER_START:
++		/* Don't start if hdmi audio is disabled. return Success. */
++		if (!atomic_read(&ctx->enabled))
++			return 0;
++
++		ret = display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_ON);
++		if (ret) {
++			dev_err(codec->dev, "audio enable failed.\n");
++			return -EINVAL;
 +		}
 +		break;
- 	default:
- 		wprintk("Huh? unknown DVB card?\n");
- 		break;
-diff --git a/drivers/media/pci/saa7134/saa7134-i2c.c b/drivers/media/pci/saa7134/saa7134-i2c.c
-index a176ec3..c68169d 100644
---- a/drivers/media/pci/saa7134/saa7134-i2c.c
-+++ b/drivers/media/pci/saa7134/saa7134-i2c.c
-@@ -256,6 +256,7 @@ static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				addr |= 1;
- 			if (i > 0 && msgs[i].flags &
- 			    I2C_M_RD && msgs[i].addr != 0x40 &&
-+			    msgs[i].addr != 0x41 &&
- 			    msgs[i].addr != 0x19) {
- 				/* workaround for a saa7134 i2c bug
- 				 * needed to talk to the mt352 demux
-diff --git a/drivers/media/pci/saa7134/saa7134-input.c b/drivers/media/pci/saa7134/saa7134-input.c
-index e761262..6f43126 100644
---- a/drivers/media/pci/saa7134/saa7134-input.c
-+++ b/drivers/media/pci/saa7134/saa7134-input.c
-@@ -997,6 +997,9 @@ void saa7134_probe_i2c_ir(struct saa7134_dev *dev)
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 		info.addr = 0x40;
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_A706:
-+		info.addr = 0x41;
++	case SNDRV_PCM_TRIGGER_STOP:
++		ret = display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_OFF);
 +		break;
- 	case SAA7134_BOARD_FLYDVB_TRIO:
- 		dev->init_data.name = "FlyDVB Trio";
- 		dev->init_data.get_key = get_key_flydvb_trio;
-diff --git a/drivers/media/pci/saa7134/saa7134-tvaudio.c b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-index b7a99be..0f34e09 100644
---- a/drivers/media/pci/saa7134/saa7134-tvaudio.c
-+++ b/drivers/media/pci/saa7134/saa7134-tvaudio.c
-@@ -796,6 +796,7 @@ static int tvaudio_thread_ddep(void *data)
- 			dprintk("FM Radio\n");
- 			if (dev->tuner_type == TUNER_PHILIPS_TDA8290) {
- 				norms = (0x11 << 2) | 0x01;
-+				/* set IF frequency to 5.5 MHz */
- 				saa_dsp_writel(dev, 0x42c >> 2, 0x729555);
- 			} else {
- 				norms = (0x0f << 2) | 0x01;
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index ce1b4b5..9059d08 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -333,6 +333,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_SENSORAY811_911       188
- #define SAA7134_BOARD_KWORLD_PC150U         189
- #define SAA7134_BOARD_ASUSTeK_PS3_100      190
-+#define SAA7134_BOARD_AVERMEDIA_A706		191
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	return ret;
++}
++
++static const struct snd_soc_dai_ops exynos_hdmi_audio_dai_ops = {
++	.hw_params = exynos_hdmi_audio_hw_params,
++	.trigger = exynos_hdmi_audio_trigger,
++};
++
++static struct snd_soc_dai_driver hdmi_codec_dai = {
++	.name = "exynos-hdmi-audio-dai",
++	.playback = {
++		.channels_min = 2,
++		.channels_max = 8,
++		.rates = SNDRV_PCM_RATE_32000 |
++			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000 |
++			SNDRV_PCM_RATE_88200 | SNDRV_PCM_RATE_96000 |
++			SNDRV_PCM_RATE_176400 | SNDRV_PCM_RATE_192000,
++		.formats = SNDRV_PCM_FMTBIT_S16_LE |
++			SNDRV_PCM_FMTBIT_S24_LE,
++	},
++	.ops = &exynos_hdmi_audio_dai_ops,
++};
++
++void hdmi_audio_event_notify(struct display_entity *entity,
++		enum display_entity_event_type type,
++		unsigned int value, void *context)
++{
++	struct hdmi_audio_context *ctx = (struct hdmi_audio_context *)context;
++
++	if (type == DISPLAY_ENTITY_HDMI_HOTPLUG) {
++		dev_dbg(&ctx->pdev->dev, "[%d][%s] hpd(%d)\n", __LINE__,
++			__func__, value);
++		atomic_set(&ctx->plugged, !!value);
++
++		/* should set audio regs after ip, phy got stable. 5ms suff */
++		queue_delayed_work(ctx->event_wq, &ctx->hotplug_work,
++				msecs_to_jiffies(5));
++	}
++}
++
++static void hotplug_event_handler(struct work_struct *work)
++{
++	struct hdmi_audio_context *ctx = container_of(work,
++		struct hdmi_audio_context, hotplug_work.work);
++
++	if (atomic_read(&ctx->plugged)) {
++		display_entity_hdmi_init_audio(ctx->entity,
++			&ctx->audio_params);
++
++		if (atomic_read(&ctx->enabled))
++			display_entity_hdmi_set_audiostate(ctx->entity,
++				DISPLAY_ENTITY_AUDIOSTATE_ON);
++		else
++			display_entity_hdmi_set_audiostate(ctx->entity,
++				DISPLAY_ENTITY_AUDIOSTATE_OFF);
++	}
++
++	snd_soc_jack_report(&ctx->hdmi_jack,
++			    atomic_read(&ctx->plugged) ? SND_JACK_AVOUT
++			    : 0, SND_JACK_AVOUT);
++}
++
++int exynos_hdmi_audio_notification(struct display_entity_notifier *notf,
++		struct display_entity *entity, int status)
++{
++	struct hdmi_audio_context *ctx = container_of(notf,
++		struct hdmi_audio_context, notf);
++	struct exynos_hdmi_control_ops *exynos_ops =
++		(struct exynos_hdmi_control_ops *)entity->private;
++	int hpd;
++
++	if (status != DISPLAY_ENTITY_NOTIFIER_CONNECT && entity)
++		return -EINVAL;
++
++	dev_dbg(&ctx->pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	ctx->entity = entity;
++
++	ctx->subscriber.context = ctx;
++	ctx->subscriber.notify = hdmi_audio_event_notify;
++
++	display_entity_subscribe_event(entity, &ctx->subscriber);
++
++	exynos_ops->get_hpdstate(entity, &hpd);
++	atomic_set(&ctx->plugged, !!hpd);
++
++	return 0;
++}
++
++static int get_hdmi(struct snd_kcontrol *kcontrol,
++				 struct snd_ctl_elem_value *ucontrol)
++{
++	struct hdmi_audio_context *ctx = get_ctx(kcontrol->private_value);
++
++	if (!ctx) {
++		dev_err(&ctx->pdev->dev, "invalid context.\n");
++		return 0;
++	}
++
++	ucontrol->value.integer.value[0] = atomic_read(&ctx->enabled);
++	return 1;
++}
++
++static int put_hdmi(struct snd_kcontrol *kcontrol,
++				  struct snd_ctl_elem_value *ucontrol)
++{
++	struct hdmi_audio_context *ctx = get_ctx(kcontrol->private_value);
++	int enable = (int)ucontrol->value.integer.value[0];
++
++	if (!ctx) {
++		dev_err(&ctx->pdev->dev, "invalid context.\n");
++		return 0;
++	}
++
++	atomic_set(&ctx->enabled, !!enable);
++
++	if (!atomic_read(&ctx->plugged))
++		return 1;
++	else if (enable)
++		display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_ON);
++	else
++		display_entity_hdmi_set_audiostate(ctx->entity,
++			DISPLAY_ENTITY_AUDIOSTATE_OFF);
++
++	return 1;
++}
++
++static struct snd_kcontrol_new hdmi_dapm_controls[] = {
++	SOC_SINGLE_BOOL_EXT("HDMI Playback Switch", 0, get_hdmi, put_hdmi),
++};
++
++static int hdmi_codec_init(struct snd_soc_codec *codec)
++{
++	struct hdmi_audio_context *ctx = get_ctx(codec->dev);
++	int ret;
++
++	ret = snd_soc_jack_new(codec, "HDMI Jack",
++			 SND_JACK_AVOUT, &ctx->hdmi_jack);
++	if (ret) {
++		dev_err(codec->dev, "audio enable failed.\n");
++		return ret;
++	}
++
++	hdmi_dapm_controls[0].private_value = (unsigned long)codec->dev;
++	return 0;
++}
++
++static struct snd_soc_codec_driver hdmi_codec = {
++	.probe	= hdmi_codec_init,
++	.controls = hdmi_dapm_controls,
++	.num_controls = ARRAY_SIZE(hdmi_dapm_controls),
++};
++
++static int hdmi_codec_probe(struct platform_device *pdev)
++{
++	struct hdmi_audio_context *ctx;
++	struct device_node *dev_node;
++	struct platform_device *disp_pdev;
++	int ret;
++
++	dev_dbg(&pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++
++	ret = snd_soc_register_codec(&pdev->dev, &hdmi_codec,
++			&hdmi_codec_dai, 1);
++	if (ret) {
++		dev_err(&pdev->dev, "register_codec failed (%d)\n", ret);
++		return ret;
++	}
++
++	ctx = devm_kzalloc(&pdev->dev, sizeof(struct hdmi_audio_context),
++				GFP_KERNEL);
++	if (ctx == NULL)
++		return -ENOMEM;
++
++	ctx->pdev = pdev;
++	atomic_set(&ctx->enabled, 1);
++	platform_set_drvdata(pdev, ctx);
++
++	/* create workqueue and hotplug work */
++	ctx->event_wq = alloc_workqueue("hdmi-audio-event",
++			WQ_UNBOUND | WQ_NON_REENTRANT, 1);
++	if (ctx->event_wq == NULL) {
++		dev_err(&pdev->dev, "failed to create workqueue\n");
++		ret = -ENOMEM;
++	}
++	INIT_DELAYED_WORK(&ctx->hotplug_work, hotplug_event_handler);
++
++	dev_node = of_find_compatible_node(NULL, NULL,
++			"samsung,exynos5-hdmi");
++	if (!dev_node) {
++		dev_err(&pdev->dev, "[%d][%s] dt node not found.\n",
++				__LINE__, __func__);
++		return -EINVAL;
++	}
++
++	disp_pdev = of_find_device_by_node(dev_node);
++	if (!disp_pdev) {
++		dev_err(&pdev->dev, "[ERROR][%d][%s] No pdev\n",
++				__LINE__, __func__);
++		return -EINVAL;
++	}
++
++	ctx->notf.dev = &disp_pdev->dev;
++	ctx->notf.notify = exynos_hdmi_audio_notification;
++
++	ret = display_entity_register_notifier(&ctx->notf);
++	if (ret) {
++		dev_err(&pdev->dev, "[%d][%s] entity registe failed.\n",
++			__LINE__, __func__);
++		ret = -EINVAL;
++		goto err_workq;
++	}
++
++	return 0;
++
++err_workq:
++	destroy_workqueue(ctx->event_wq);
++	return ret;
++}
++
++static int hdmi_codec_remove(struct platform_device *pdev)
++{
++	struct hdmi_audio_context *ctx = get_ctx(&pdev->dev);
++	dev_dbg(&pdev->dev, "[%d][%s]\n", __LINE__, __func__);
++	mdelay(1000);
++
++	display_entity_register_notifier(&ctx->notf);
++	snd_soc_unregister_codec(&pdev->dev);
++	destroy_workqueue(ctx->event_wq);
++	return 0;
++}
++
++static struct platform_driver hdmi_codec_driver = {
++	.driver		= {
++		.name	= "exynos-hdmi-audio-codec",
++		.owner	= THIS_MODULE,
++	},
++
++	.probe		= hdmi_codec_probe,
++	.remove		= hdmi_codec_remove,
++};
++
++static int __init hdmi_audio_codec_init(void)
++{
++	int ret;
++
++	ret = platform_driver_register(&hdmi_codec_driver);
++	if (ret < 0)
++		return -EINVAL;
++
++	exynos_hdmi_codec_pdev = platform_device_register_simple
++		("exynos-hdmi-audio-codec", -1, NULL, 0);
++	if (IS_ERR_OR_NULL(exynos_hdmi_codec_pdev)) {
++		ret = PTR_ERR(exynos_hdmi_codec_pdev);
++		platform_driver_unregister(&hdmi_codec_driver);
++		return ret;
++	}
++
++	return 0;
++}
++static void __exit hdmi_audio_codec_exit(void)
++{
++	platform_driver_unregister(&hdmi_codec_driver);
++	platform_device_unregister(exynos_hdmi_codec_pdev);
++}
++
++module_init(hdmi_audio_codec_init);
++module_exit(hdmi_audio_codec_exit);
++
++MODULE_AUTHOR("Rahul Sharma <rahul.sharma@samsung.com>");
++MODULE_DESCRIPTION("ASoC EXYNOS HDMI codec driver");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:exynos-hdmi-codec");
 -- 
-Ondrej Zary
+1.8.0
 
