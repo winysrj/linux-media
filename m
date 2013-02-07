@@ -1,96 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4217 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754505Ab3BPVLG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 16:11:06 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1GLB1HR045827
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 22:11:04 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 081D511E00C9
-	for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 22:11:01 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130216211102.081D511E00C9@alastor.dyndns.org>
-Date: Sat, 16 Feb 2013 22:11:01 +0100 (CET)
+Received: from mailout3.samsung.com ([203.254.224.33]:48526 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757636Ab3BGLj6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:39:58 -0500
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH v2 0/5] exynos-hdmi to CDF compliant display driver
+Date: Thu, 07 Feb 2013 06:59:32 -0500
+Message-id: <1360238377-14806-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+V2:
+1) Adding hdmi sound card using cdf based hdmi audio codec.
+2) DAPM and JACK control to hdmi codec.
+3) Offload event handler by adding work queue.
+4) Rework based on v1 comments.
 
-Results of the daily build of media_tree:
+Tested for:
+1) Mode setting and switching using modetest.
+2) Video with HPD and Power related scenarios.
+3) Audio playback with Hotplug-Scenarios.
+4) DAPM control for hdmi playback.
 
-date:		Sat Feb 16 19:00:20 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+Pending:
+1) Not moved exynos_hdmi to driver/video/display since it will make it
+difficult to analyze the code changes.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+V1:
+This patch set is a proposal to change Exynos Drm Hdmi driver to a CDF
+complaint panel driver. This migration serves 2 purposes. One is to eliminate
+duplication due to v4l and drm hdmi drivers. Second is to add support for Hdmi
+audio ALSA codec which is not possible with drm/v4l hdmi driver (specially for
+exynos as hdmi audio and hdmi core registers are intermixed.).
 
-Detailed results are available here:
+This patch series is based on the Second RFC of CDF from Laurent Pinchart,
+(http://lists.freedesktop.org/archives/dri-devel/2012-November/030888.html)
+applied to 'for-next' branch at
+git.kernel.org/pub/scm/linux/kernel/git/kgene/linux-samsung.git.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+[PATCH 1/4] video: display: add event handling, set mode and hdmi ops to cdf
+core
 
-Full logs are available here:
+This patch adds:
+1) Event Notification to CDF Core:
+	Adds simple event notification mechanism supports multiple
+	subscribers. This is used for hot-plug notification to the clients
+	of hdmi display i.e. exynos-drm and alsa-codec. CDF Core maintains
+	multiple subscriber list. When entity reports a event Core will
+	route it to all of them. Un-subscription is not implemented which
+	can be done if notification callback is Null.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+2) set_mode to generic ops:
+	It is meaningful for a panel like hdmi which supports multiple
+	resolutions.
 
-The Media Infrastructure API from this daily build is here:
+	HDMI needs conversion of Display Modes to Standard Display Timings.
+	Though, it can be done within the driver but seems more meaningful
+	if set_mode is called with Timing Details provided by CDF Core.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+3) Provision for platform specific interfaces through void *private in display
+entity:
+
+	It has added void *private to display entity which can be used to
+	expose interfaces which are very much specific to a particular platform.
+
+	In exynos, hpd is connected to the soc via gpio bus. During initial
+	hdmi poweron, hpd interrupt is not raised as there is no change in the
+	gpio status. This is solved by providing a platform specific interface
+	which is queried by the drm to get the hpd state. This interface may
+	not be required by all platforms.
+
+4) hdmi ops:
+	get_edid: to query raw EDID data and length from the panel.
+	check_mode: To check if a given mode is supported by exynos HDMI IP
+			"AND" Connected HDMI Sink (tv/monitor).
+	init_audio: Configure hdmi audio registers for Audio interface type
+	(i2s/ spdif), SF, Audio Channels, BPS.
+	set_audiostate: enable disable audio.
+
+[PATCH 2/4] drm/edid: temporarily exposing generic edid-read interface from drm
+
+It exposes generic interface from drm_edid.c to get the edid data and length
+by any display entity. Once I get clear idea about edid handling in CDF, I need
+to revert these temporary changes.
+
+[PATCH 3/4] drm/exynos: moved drm hdmi driver to cdf framework
+
+This patch implements exynos_hdmi_cdf.c which is a glue component between
+exynos DRM and hdmi cdf panel. It is a platform driver register through
+exynos_drm_drv.c. Exynos_hdmi.c is modified to register hdmi as display panel.
+exynos_hdmi_cdf.c registers for exynos hdmi display entity and if successful,
+proceeds for mode setting.
+
+[PATCH 4/4] alsa/soc: add hdmi audio codec based on cdf
+
+It registers hdmi-audio codec to the ALSA framework. This is the second client
+to the hdmi panel. Once notified by the CDF Core it proceeds towards audio
+setting and audio control. It also subscribes for hpd notification to implement
+hpd related audio requirements.
+
+Rahul Sharma (5):
+  video: display: add event handling, set mode and hdmi ops to cdf core
+  drm/edid: temporarily exposing generic edid-read interface from drm
+  drm/exynos: moved drm hdmi driver to cdf framework
+  alsa/soc: add hdmi audio codec based on cdf
+  alsa/soc: add hdmi audio card using cdf based hdmi codec
+
+ drivers/gpu/drm/drm_edid.c               |  88 ++++++
+ drivers/gpu/drm/exynos/Kconfig           |   6 +
+ drivers/gpu/drm/exynos/Makefile          |   1 +
+ drivers/gpu/drm/exynos/exynos_drm_drv.c  |  24 ++
+ drivers/gpu/drm/exynos/exynos_drm_drv.h  |   1 +
+ drivers/gpu/drm/exynos/exynos_hdmi.c     | 445 ++++++++++++++++---------------
+ drivers/gpu/drm/exynos/exynos_hdmi_cdf.c | 370 +++++++++++++++++++++++++
+ drivers/video/display/display-core.c     |  85 ++++++
+ include/video/display.h                  | 111 +++++++-
+ include/video/exynos_hdmi.h              |  25 ++
+ sound/soc/codecs/Kconfig                 |   3 +
+ sound/soc/codecs/Makefile                |   2 +
+ sound/soc/codecs/exynos_hdmi_audio.c     | 424 +++++++++++++++++++++++++++++
+ sound/soc/samsung/Kconfig                |   8 +
+ sound/soc/samsung/Makefile               |   2 +
+ sound/soc/samsung/hdmi.c                 | 260 ++++++++++++++++++
+ 16 files changed, 1638 insertions(+), 217 deletions(-)
+ create mode 100644 drivers/gpu/drm/exynos/exynos_hdmi_cdf.c
+ create mode 100644 include/video/exynos_hdmi.h
+ create mode 100644 sound/soc/codecs/exynos_hdmi_audio.c
+ create mode 100644 sound/soc/samsung/hdmi.c
+
+-- 
+1.8.0
+
