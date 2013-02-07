@@ -1,152 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f53.google.com ([209.85.210.53]:55069 "EHLO
-	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932072Ab3B0GHh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 01:07:37 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: mchehab@redhat.com
-Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, sam@ravnborg.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v7 7/9] v4l2: Add documentation for the FM RX controls
-Date: Tue, 26 Feb 2013 22:06:51 -0800
-Message-Id: <1361945213-4280-8-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:63909 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962Ab3BGLBc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:01:32 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [media] tm6000: add support for control events and prio handling
+Date: Thu, 7 Feb 2013 12:01:29 +0100
+Cc: hans.verkuil@cisco.com, linux-media@vger.kernel.org
+References: <20130207104454.GA466@elgon.mountain>
+In-Reply-To: <20130207104454.GA466@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302071201.29331.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add appropriate documentation for all the newly added standard
-controls.
+On Thu 7 February 2013 11:44:54 Dan Carpenter wrote:
+> Hello Hans Verkuil,
+> 
+> The patch 770056c47fbb: "[media] tm6000: add support for control
+> events and prio handling" from Sep 11, 2012, leads to the following
+> Smatch warning:
+> "drivers/media/usb/tm6000/tm6000-video.c:1462 __tm6000_poll()
+> 	 error: potentially dereferencing uninitialized 'buf'."
+> 
+> drivers/media/usb/tm6000/tm6000-video.c
+>   1453          if (!is_res_read(fh->dev, fh)) {
+>   1454                  /* streaming capture */
+>   1455                  if (list_empty(&fh->vb_vidq.stream))
+>   1456                          return res | POLLERR;
+>   1457                  buf = list_entry(fh->vb_vidq.stream.next, struct tm6000_buffer, vb.stream);
+>   1458          } else if (req_events & (POLLIN | POLLRDNORM)) {
+>   1459                  /* read() capture */
+>   1460                  return res | videobuf_poll_stream(file, &fh->vb_vidq, wait);
+>   1461          }
+> 
+> If we don't hit either side of the if else statement then buf is
+> uninitialized.
 
-Based on the patch by Manjunatha Halli [1]
+Oops! Thanks for catching this. I'll post a patch immediately.
 
-[1] http://lists-archives.com/linux-kernel/27641303-media-update-docs-for-v4l2-fm-new-features.html
+Regards,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- Documentation/DocBook/media/v4l/compat.xml         |    3 +
- Documentation/DocBook/media/v4l/controls.xml       |   72 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +++
- 3 files changed, 84 insertions(+)
+	Hans
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 104a1a2..f418bc3 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2310,6 +2310,9 @@ more information.</para>
- 	<listitem>
- 	  <para>Added FM Modulator (FM TX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
- 	</listitem>
-+<listitem>
-+	  <para>Added FM Receiver (FM RX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
-+	</listitem>
- 	<listitem>
- 	  <para>Added Remote Controller chapter, describing the default Remote Controller mapping for media devices.</para>
- 	</listitem>
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 1ad20cc..6aa647a 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4687,4 +4687,76 @@ interface and may change in the future.</para>
-       </table>
- 
-     </section>
-+
-+    <section id="fm-rx-controls">
-+      <title>FM Receiver Control Reference</title>
-+
-+      <para>The FM Receiver (FM_RX) class includes controls for common features of
-+      FM Reception capable devices.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-rx-control-id">
-+      <title>FM_RX Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
-+            <entry>class</entry>
-+          </row><row><entry spanname="descr">The FM_RX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+          </row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_RDS_RECEPTION</constant>&nbsp;</entry>
-+            <entry>boolean</entry>
-+          </row><row><entry spanname="descr">Enables/disables RDS
-+	  reception by the radio tuner</entry>
-+          </row>
-+          <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>enum v4l2_deemphasis</entry>
-+	  </row>
-+	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the de-emphasis value for reception.
-+A de-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_deemphasis
-+defines possible values for de-emphasis. Here they are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No de-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A de-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A de-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+          <row><entry></entry></row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index 4e16112..b3bb957 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -319,6 +319,15 @@ These controls are described in <xref
- 	    processing controls. These controls are described in <xref
- 	    linkend="image-process-controls" />.</entry>
- 	  </row>
-+
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
-+	    <entry>0xa10000</entry>
-+	    <entry>The class containing FM Receiver (FM RX) controls.
-+These controls are described in <xref
-+		linkend="fm-rx-controls" />.</entry>
-+	  </row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
--- 
-1.7.10.4
-
+> 
+>   1462          poll_wait(file, &buf->vb.done, wait);
+>   1463          if (buf->vb.state == VIDEOBUF_DONE ||
+>   1464              buf->vb.state == VIDEOBUF_ERROR)
+>   1465                  return res | POLLIN | POLLRDNORM;
+>   1466          return res;
+> 
+> regards,
+> dan carpenter
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
