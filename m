@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:39219 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756804Ab3BJUEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 15:04:44 -0500
-Received: by mail-ea0-f174.google.com with SMTP id 1so2408710eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 12:04:42 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 4/4] em28xx: VIDIOC_ENUM_FRAMESIZES: consider the scaler limits when calculating the minimum frame size
-Date: Sun, 10 Feb 2013 21:05:14 +0100
-Message-Id: <1360526714-3216-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:62987 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759179Ab3BGRZP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:25:15 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr12so2218799wgb.35
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:25:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <8504007.0jva5VQ4En@avalon>
+References: <CAJRKTVo279P0dqTxqoQLLpyRQYn8HNDpE6=csk1pV46E7hQp4g@mail.gmail.com>
+ <8504007.0jva5VQ4En@avalon>
+From: Adriano Martins <adrianomatosmartins@gmail.com>
+Date: Thu, 7 Feb 2013 15:24:46 -0200
+Message-ID: <CAJRKTVo74CMSSL6Yd578z6pHXiPUF5cMwJp6wNFE3SCxGfxe9A@mail.gmail.com>
+Subject: Re: omap3isp - set_xclk dont work
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Output resolutions <=20% of the input resolution exceed the capabilities of the
-scaler.
+Hi Laurent,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    8 ++++++--
- 1 Datei geändert, 6 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+2013/2/7 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Adriano,
+>
+> On Wednesday 06 February 2013 11:26:43 Adriano Martins wrote:
+>> Hi,
+>>
+>> I have 2 boards with DM3730 processor, a beagleboard  and a custom board.
+>> The omap3isp is working in both boards, any error is seen. On beagleboard I
+>> can see the xclka, then the sensor is detected and the driver is load
+>> correctly. But, in the custom board, every seem work, there are no errors
+>> too. But I can't see the xclka signal.
+>>
+>> The hardware is ok. Because, I load another driver that uses the camera bus.
+>> The xclka is working.
+>>
+>> it is the same processor, same kernel version, same driver. Why, it work in
+>> one, and not another.
+>>
+>> Someone can help me? please.
+>
+> The XCLK clocks currently require special handling in board code, with the
+> sensor calling back to board code when it wants to turn the clock on/off, and
+> board code calling the set_xclk isp operation. Does your board code perform
+> that operation ?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index f745617..86fd907 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1405,8 +1405,12 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
- 
- 	/* Report a continuous range */
- 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
--	fsize->stepwise.min_width = 48;
--	fsize->stepwise.min_height = 32;
-+	scale_to_size(dev, EM28XX_HVSCALE_MAX, EM28XX_HVSCALE_MAX,
-+		      &fsize->stepwise.min_width, &fsize->stepwise.min_height);
-+	if (fsize->stepwise.min_width < 48)
-+		fsize->stepwise.min_width = 48;
-+	if (fsize->stepwise.min_height < 38)
-+		fsize->stepwise.min_height = 38;
- 	fsize->stepwise.max_width = maxw;
- 	fsize->stepwise.max_height = maxh;
- 	fsize->stepwise.step_width = 1;
--- 
-1.7.10.4
+Yes, my board code has implemented the function.
 
+I do a stupid mistake. My board code have not the mux settings in
+these pins, including the XCLKA.
+Now, I can see the clock.
+
+Sorry for spend your time.
+
+Thank you.
+
+Regards
+Adriano Martins
