@@ -1,65 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:55080 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932474Ab3BNTSB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 14:18:01 -0500
-Received: by mail-we0-f181.google.com with SMTP id t44so2256714wey.40
-        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 11:18:00 -0800 (PST)
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1589 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945894Ab3BGW5M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 17:57:12 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [RFC PATCH] ivtv-alsa: regression fix: remove __init from ivtv_alsa_load
+Date: Thu, 7 Feb 2013 23:57:03 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201302071807.47221.hverkuil@xs4all.nl> <b5588d09-bb0a-4571-a580-78e34042f4e3@email.android.com>
+In-Reply-To: <b5588d09-bb0a-4571-a580-78e34042f4e3@email.android.com>
 MIME-Version: 1.0
-In-Reply-To: <CAJRKTVpcBfyYfbdC-+DL2UgtDR=KNRO87a+Uch583sU=8h70CQ@mail.gmail.com>
-References: <CAJRKTVoKYyJqP1mE=HTmm2jq9uoSkX9kf0HcMxz7F9wZnD1Y5w@mail.gmail.com>
- <CAJRKTVrDdwG=Am6KV0F5d3_ncRO_VcEkkYrBh3sGLrHCZuUvYw@mail.gmail.com>
- <CAJRKTVryjuZwXc8CRLAK0Tb+LcSo82RYhCFgGAQoT2S-2OHJqQ@mail.gmail.com> <CAJRKTVpcBfyYfbdC-+DL2UgtDR=KNRO87a+Uch583sU=8h70CQ@mail.gmail.com>
-From: Adriano Martins <adrianomatosmartins@gmail.com>
-Date: Thu, 14 Feb 2013 17:17:40 -0200
-Message-ID: <CAJRKTVruizr6AZJk6i8nbG0VE_9iCtNg8y5XCDvJPTnEq9uhAQ@mail.gmail.com>
-Subject: Re: omap3isp IRQs
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302072357.03659.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/2/13 Adriano Martins <adrianomatosmartins@gmail.com>:
-> Hi Laurent,
->
-> I think my messages are not sent to linux-media.
-> can you help?
->
-> 2013/2/13 Adriano Martins <adrianomatosmartins@gmail.com>:
->> Hi,
->>
->> Please, help me :-)
->>
->> I trying capture frames from my new sensor, ov5640. I already capture
->> images from a mt9p031 camera, but I have some problems with ov5640.
->>
->> Someone can explain me what are the CCDC_VD0_IRQ and CCDC_VD1_IRQ?
->>
->> In the mt9p031 sensor, I get all interrupts (including HS_VS_IRQ) and
->> I can capture frames.
->>
->> In other sensor, I can't capture any frame. I get many HS_VS_IRQ only,
->> then yavta app hangs and I need stop it. Then I get CCDC stop timeout!
->> Is it necessary get CCDC_VD0_IRQ and CCDC_VD1_IRQ ever to capture a frame?
->>
->> I think all signal from ov5640 sensor are ok. A question about it:
->> vsync may be in high level until the frame is transmitted? On my case
->> I see just a pulse of vsync before hsync pulses. Is it correct?
->
-> I can capture frames now, and get all interrupts.
-> But, The image has only green color.
+On Thu February 7 2013 22:58:53 Andy Walls wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> >Andy,
+> >
+> >Please review this patch. This fix probably should be fast-tracked to
+> >3.8 and
+> >queued for stable 3.7.
+> >
+> >ivtv-alsa kept crashing my machine every time I loaded it, and this is
+> >the
+> >cause.
+> >
+> >Regards,
+> >
+> >	Hans
+> >
+> >This function is called after initialization, so it should never be
+> >marked
+> >__init!
+> >
+> >Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >---
+> > drivers/media/pci/ivtv/ivtv-alsa-main.c |    2 +-
+> > 1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> >diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> >b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> >index 4a221c6..e970cfa 100644
+> >--- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> >+++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
+> >@@ -205,7 +205,7 @@ err_exit:
+> > 	return ret;
+> > }
+> > 
+> >-static int __init ivtv_alsa_load(struct ivtv *itv)
+> >+static int ivtv_alsa_load(struct ivtv *itv)
+> > {
+> > 	struct v4l2_device *v4l2_dev = &itv->v4l2_dev;
+> > 	struct ivtv_stream *s;
+> 
+> Hans,
+> 
+> I concur.  Now I have to check cx18 for the same problem.
 
-I solved my problem. The .data_lane_shift and yuv sequence were wrong.
+Hmm, there is the same problem in cx18 as well:
 
-> I have configured the CCDC module as V4L2_MBUS_FMT_UYVY8_2X8, and the sensor
-> output format is configured as YUV422 with sequence UYVY.
->
-> somebody has any idea?
->
+static int __init cx18_alsa_load(struct cx18 *cx)
 
-Thanks
+Checking some more I saw that this __init annotation was added only in 3.8,
+both for ivtv and cx18 (so 3.7 is fine).
 
- Regards
- Adriano Martins
+Ah, I see that Mauro added __init accidentally when fixing some compiler
+warnings in ivtv and cx18.
+
+I'll make a pull request tomorrow morning removing the __init from ivtv_alsa_load
+and cx18_alsa_load and ask Mauro to fast-track this regression.
+
+I assume I have your SoB for this?
+
+Regards,
+
+	Hans
+
+> 
+> Your patch looks good.
+> 
+> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+> 
+> Regards,
+> Andy  
+> 
