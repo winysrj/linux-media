@@ -1,85 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:45905 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758627Ab3BZGjR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 01:39:17 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: andrew.smirnov@gmail.com
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v5 0/8] Driver for Si476x series of chips
-Date: Mon, 25 Feb 2013 22:38:46 -0800
-Message-Id: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:39922 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757936Ab3BGMiC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 07:38:02 -0500
+MIME-Version: 1.0
+In-Reply-To: <5113948A.5070209@samsung.com>
+References: <1359373843-15956-1-git-send-email-prabhakar.lad@ti.com> <5113948A.5070209@samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 7 Feb 2013 18:07:40 +0530
+Message-ID: <CA+V-a8uwV2mZvdqcVuGePre1zoF2D-JuVCS5f_yTacM6EVs2vw@mail.gmail.com>
+Subject: Re: [PATCH v2] media: add support for decoder as one of media entity types
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	LDOC <linux-doc@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
+	Rob Landley <rob@landley.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a fourth version of the patchset originaly posted here:
-https://lkml.org/lkml/2012/9/13/590
+Hi Sylwester,
 
-Second version of the patch was posted here:
-https://lkml.org/lkml/2012/10/5/598
+On Thu, Feb 7, 2013 at 5:18 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> Hi Prabhakar,
+>
+> On 01/28/2013 12:50 PM, Prabhakar Lad wrote:
+>> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+>> index 0ef8833..dac06d7 100644
+>> --- a/include/uapi/linux/media.h
+>> +++ b/include/uapi/linux/media.h
+>> @@ -56,6 +56,8 @@ struct media_device_info {
+>>  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR       (MEDIA_ENT_T_V4L2_SUBDEV + 1)
+>>  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH        (MEDIA_ENT_T_V4L2_SUBDEV + 2)
+>>  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS (MEDIA_ENT_T_V4L2_SUBDEV + 3)
+>> +/* DECODER: Converts analogue video to digital */
+>
+> The patch looks good to me, I would just change this comment to
+> something like:
+>
+> /* A converter of analogue video to its digital representation. */
+>
+> But that's really a nitpicking.
+>
+OK will fix it and post a v3.
 
-Third version of the patch was posted here:
-https://lkml.org/lkml/2012/10/23/510
+Regards,
+--Prabhakar
 
-Fourth version of the patch was posted here:
-https://lkml.org/lkml/2013/2/18/572
-
-To save everyone's time I'll repost the original description of it:
-
-This patchset contains a driver for a Silicon Laboratories 476x series
-of radio tuners. The driver itself is implemented as an MFD devices
-comprised of three parts: 
- 1. Core device that provides all the other devices with basic
-functionality and locking scheme.
- 2. Radio device that translates between V4L2 subsystem requests into
-Core device commands.
- 3. Codec device that does similar to the earlier described task, but
-for ALSA SoC subsystem.
-
-v5 of this driver has following changes:
-- Generic controls are converted to standard ones
-- Custom controls use a differend offest as base
-- Added documentation with controls description
-
-
-Andrey Smirnov (8):
-  mfd: Add header files and Kbuild plumbing for SI476x MFD core
-  mfd: Add commands abstraction layer for SI476X MFD
-  mfd: Add the main bulk of core driver for SI476x code
-  mfd: Add chip properties handling code for SI476X MFD
-  v4l2: Add standard controls for FM receivers
-  v4l2: Add documentation for the FM RX controls
-  v4l2: Add private controls base for SI476X
-  v4l2: Add a V4L2 driver for SI476X MFD
-
- Documentation/DocBook/media/v4l/compat.xml         |    3 +
- Documentation/DocBook/media/v4l/controls.xml       |   72 +
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   11 +-
- Documentation/video4linux/si476x.txt               |  187 +++
- drivers/media/radio/Kconfig                        |   17 +
- drivers/media/radio/Makefile                       |    1 +
- drivers/media/radio/radio-si476x.c                 | 1581 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c               |   14 +-
- drivers/mfd/Kconfig                                |   13 +
- drivers/mfd/Makefile                               |    4 +
- drivers/mfd/si476x-cmd.c                           | 1553 +++++++++++++++++++
- drivers/mfd/si476x-i2c.c                           |  878 +++++++++++
- drivers/mfd/si476x-prop.c                          |  234 +++
- include/linux/mfd/si476x-core.h                    |  525 +++++++
- include/media/si476x.h                             |  426 ++++++
- include/uapi/linux/v4l2-controls.h                 |   17 +-
- 16 files changed, 5531 insertions(+), 5 deletions(-)
- create mode 100644 Documentation/video4linux/si476x.txt
- create mode 100644 drivers/media/radio/radio-si476x.c
- create mode 100644 drivers/mfd/si476x-cmd.c
- create mode 100644 drivers/mfd/si476x-i2c.c
- create mode 100644 drivers/mfd/si476x-prop.c
- create mode 100644 include/linux/mfd/si476x-core.h
- create mode 100644 include/media/si476x.h
-
--- 
-1.7.10.4
-
+>> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER      (MEDIA_ENT_T_V4L2_SUBDEV + 4)
+>>
+>>  #define MEDIA_ENT_FL_DEFAULT         (1 << 0)
+>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>
+> --
+>
+> Thanks,
+> Sylwester
