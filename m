@@ -1,268 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3635 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161451Ab3BOMzb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 07:55:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 01/10] au8522_decoder: convert to the control framework.
-Date: Fri, 15 Feb 2013 13:55:04 +0100
-Message-Id: <ee88bd549bcb37235d975b6799fbcf6501e98f0c.1360932644.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:21179 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752159Ab3BGLtX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:49:23 -0500
+From: Rahul Sharma <rahul.sharma@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org
+Cc: tomi.valkeinen@ti.com, laurent.pinchart@ideasonboard.com,
+	broonie@opensource.wolfsonmicro.com, inki.dae@samsung.com,
+	kyungmin.park@samsung.com, r.sh.open@gmail.com, joshi@samsung.com
+Subject: [RFC PATCH v2 2/5] drm/edid: temporarily exposing generic edid-read
+ interface from drm
+Date: Thu, 07 Feb 2013 07:09:11 -0500
+Message-id: <1360238951-7022-1-git-send-email-rahul.sharma@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+It exposes generic interface from drm_edid.c to get the edid data and length
+by any display entity. Once I get clear idea about edid handling in CDF, I need
+to revert these temporary changes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Rahul Sharma <rahul.sharma@samsung.com>
 ---
- drivers/media/dvb-frontends/au8522_decoder.c |  130 +++++++++-----------------
- drivers/media/dvb-frontends/au8522_priv.h    |    6 +-
- 2 files changed, 46 insertions(+), 90 deletions(-)
+ drivers/gpu/drm/drm_edid.c | 88 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 5243ba6..be2c802 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -229,15 +229,11 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
- 	/* Provide reasonable defaults for picture tuning values */
- 	au8522_writereg(state, AU8522_TVDEC_SHARPNESSREG009H, 0x07);
- 	au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH, 0xed);
--	state->brightness = 0xed - 128;
- 	au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH, 0x79);
--	state->contrast = 0x79;
- 	au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH, 0x80);
- 	au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH, 0x80);
--	state->saturation = 0x80;
- 	au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH, 0x00);
- 	au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH, 0x00);
--	state->hue = 0x00;
- 
- 	/* Other decoder registers */
- 	au8522_writereg(state, AU8522_TVDEC_INT_MASK_REG010H, 0x00);
-@@ -489,75 +485,32 @@ static void set_audio_input(struct au8522_state *state, int aud_input)
- 
- /* ----------------------------------------------------------------------- */
- 
--static int au8522_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct au8522_state *state = to_state(sd);
-+	struct au8522_state *state =
-+		container_of(ctrl->handler, struct au8522_state, hdl);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		state->brightness = ctrl->value;
- 		au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH,
--				ctrl->value - 128);
-+				ctrl->val - 128);
- 		break;
- 	case V4L2_CID_CONTRAST:
--		state->contrast = ctrl->value;
- 		au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH,
--				ctrl->value);
-+				ctrl->val);
- 		break;
- 	case V4L2_CID_SATURATION:
--		state->saturation = ctrl->value;
- 		au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH,
--				ctrl->value);
-+				ctrl->val);
- 		au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH,
--				ctrl->value);
-+				ctrl->val);
- 		break;
- 	case V4L2_CID_HUE:
--		state->hue = ctrl->value;
- 		au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH,
--				ctrl->value >> 8);
-+				ctrl->val >> 8);
- 		au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH,
--				ctrl->value & 0xFF);
--		break;
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_MUTE:
--		/* Not yet implemented */
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int au8522_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct au8522_state *state = to_state(sd);
--
--	/* Note that we are using values cached in the state structure instead
--	   of reading the registers due to issues with i2c reads not working
--	   properly/consistently yet on the HVR-950q */
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = state->brightness;
--		break;
--	case V4L2_CID_CONTRAST:
--		ctrl->value = state->contrast;
--		break;
--	case V4L2_CID_SATURATION:
--		ctrl->value = state->saturation;
--		break;
--	case V4L2_CID_HUE:
--		ctrl->value = state->hue;
-+				ctrl->val & 0xFF);
- 		break;
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_MUTE:
--		/* Not yet supported */
- 	default:
- 		return -EINVAL;
- 	}
-@@ -616,26 +569,6 @@ static int au8522_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index 5a3770f..567a565 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -31,6 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
++#include <video/display.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_edid.h>
+ #include "drm_edid_modes.h"
+@@ -386,6 +387,93 @@ out:
+ 	return NULL;
  }
  
--static int au8522_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	switch (qc->id) {
--	case V4L2_CID_CONTRAST:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1,
--					    AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
--	case V4L2_CID_BRIGHTNESS:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 109);
--	case V4L2_CID_SATURATION:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
--	case V4L2_CID_HUE:
--		return v4l2_ctrl_query_fill(qc, -32768, 32768, 1, 0);
--	default:
--		break;
--	}
--
--	qc->type = 0;
--	return -EINVAL;
--}
--
- static int au8522_reset(struct v4l2_subdev *sd, u32 val)
- {
- 	struct au8522_state *state = to_state(sd);
-@@ -712,20 +645,18 @@ static int au8522_g_chip_ident(struct v4l2_subdev *sd,
- 	return v4l2_chip_ident_i2c_client(client, chip, state->id, state->rev);
- }
- 
--static int au8522_log_status(struct v4l2_subdev *sd)
--{
--	/* FIXME: Add some status info here */
--	return 0;
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops au8522_core_ops = {
--	.log_status = au8522_log_status,
-+	.log_status = v4l2_ctrl_subdev_log_status,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- 	.g_chip_ident = au8522_g_chip_ident,
--	.g_ctrl = au8522_g_ctrl,
--	.s_ctrl = au8522_s_ctrl,
--	.queryctrl = au8522_queryctrl,
- 	.reset = au8522_reset,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = au8522_g_register,
-@@ -753,12 +684,17 @@ static const struct v4l2_subdev_ops au8522_ops = {
- 	.video = &au8522_video_ops,
- };
- 
-+static const struct v4l2_ctrl_ops au8522_ctrl_ops = {
-+	.s_ctrl = au8522_s_ctrl,
-+};
++int generic_drm_do_get_edid(struct i2c_adapter *adapter,
++	struct display_entity_edid *edid)
++{
++	int i, j = 0, valid_extensions = 0;
++	u8 *block, *new;
++	bool print_bad_edid = 0;
 +
- /* ----------------------------------------------------------------------- */
- 
- static int au8522_probe(struct i2c_client *client,
- 			const struct i2c_device_id *did)
- {
- 	struct au8522_state *state;
-+	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
- 	int instance;
- 	struct au8522_config *demod_config;
-@@ -799,6 +735,27 @@ static int au8522_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &au8522_ops);
- 
-+	hdl = &state->hdl;
-+	v4l2_ctrl_handler_init(hdl, 4);
-+	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 109);
-+	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 255, 1,
-+			AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
-+	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
-+			V4L2_CID_HUE, -32768, 32767, 1, 0);
-+	sd->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		int err = hdl->error;
++	block = kmalloc(EDID_LENGTH, GFP_KERNEL);
++	if (!block)
++		return -ENOMEM;
 +
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(demod_config);
-+		kfree(state);
-+		return err;
++	/* base block fetch */
++	for (i = 0; i < 4; i++) {
++		if (drm_do_probe_ddc_edid(adapter, block, 0, EDID_LENGTH))
++			goto out;
++		if (drm_edid_block_valid(block, 0, print_bad_edid))
++			break;
++		if (i == 0 && drm_edid_is_zero(block, EDID_LENGTH))
++			goto carp;
++	}
++	if (i == 4)
++		goto carp;
++
++	/* if there's no extensions, we're done */
++	if (block[0x7e] == 0) {
++		edid->edid = block;
++		edid->len = EDID_LENGTH;
++		return 0;
 +	}
 +
- 	state->c = client;
- 	state->vid_input = AU8522_COMPOSITE_CH1;
- 	state->aud_input = AU8522_AUDIO_NONE;
-@@ -815,6 +772,7 @@ static int au8522_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	au8522_release_state(to_state(sd));
- 	return 0;
- }
-diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
-index 0529699..aa0f16d 100644
---- a/drivers/media/dvb-frontends/au8522_priv.h
-+++ b/drivers/media/dvb-frontends/au8522_priv.h
-@@ -29,6 +29,7 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <linux/i2c.h>
- #include "dvb_frontend.h"
- #include "au8522.h"
-@@ -65,10 +66,7 @@ struct au8522_state {
- 	int aud_input;
- 	u32 id;
- 	u32 rev;
--	u8 brightness;
--	u8 contrast;
--	u8 saturation;
--	s16 hue;
-+	struct v4l2_ctrl_handler hdl;
- };
- 
- /* These are routines shared by both the VSB/QAM demodulator and the analog
++	new = krealloc(block, (block[0x7e] + 1) * EDID_LENGTH, GFP_KERNEL);
++	if (!new)
++		goto out;
++	block = new;
++	edid->len = (block[0x7e] + 1) * EDID_LENGTH;
++
++	for (j = 1; j <= block[0x7e]; j++) {
++		for (i = 0; i < 4; i++) {
++			if (drm_do_probe_ddc_edid(adapter,
++				  block + (valid_extensions + 1) * EDID_LENGTH,
++				  j, EDID_LENGTH))
++				goto out;
++			if (drm_edid_block_valid(block + (valid_extensions + 1)*
++				EDID_LENGTH, j, print_bad_edid)) {
++				valid_extensions++;
++				break;
++			}
++		}
++		if (i == 4)
++			DRM_DEBUG_KMS("Ignoring inv lock %d.\n", j);
++	}
++
++	if (valid_extensions != block[0x7e]) {
++		block[EDID_LENGTH-1] += block[0x7e] - valid_extensions;
++		block[0x7e] = valid_extensions;
++		new = krealloc(block, (valid_extensions + 1)*
++			EDID_LENGTH, GFP_KERNEL);
++		if (!new)
++			goto out;
++		block = new;
++		edid->len = (valid_extensions + 1) * EDID_LENGTH;
++	}
++
++	edid->edid = block;
++	return 0;
++
++carp:
++	if (print_bad_edid)
++		DRM_DEBUG_KMS("[ERROR]: EDID block %d invalid.\n", j);
++
++out:
++	kfree(block);
++	return -ENOMEM;
++}
++
++
++int generic_drm_get_edid(struct i2c_adapter *adapter,
++	struct display_entity_edid *edid)
++{
++	int ret = -EINVAL;
++	if (drm_probe_ddc(adapter))
++		ret = generic_drm_do_get_edid(adapter, edid);
++
++	return ret;
++}
++EXPORT_SYMBOL(generic_drm_get_edid);
++
+ /**
+  * Probe DDC presence.
+  *
 -- 
-1.7.10.4
+1.8.0
 
