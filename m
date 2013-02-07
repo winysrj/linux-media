@@ -1,75 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sqdf3.vserver.nimag.net ([62.220.136.226]:57590 "EHLO
-	mail.avocats-ch.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757287Ab3BBNiH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 08:38:07 -0500
-Received: from [192.168.1.101] (84-74-24-62.dclient.hispeed.ch [84.74.24.62])
-	by mail.avocats-ch.ch (Postfix) with ESMTPSA id B5C4E29B89EF
-	for <linux-media@vger.kernel.org>; Sat,  2 Feb 2013 14:38:04 +0100 (CET)
-Message-ID: <510D16B7.9000304@romandie.com>
-Date: Sat, 02 Feb 2013 14:37:59 +0100
-From: Futilite <futilite@romandie.com>
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:38851 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030198Ab3BGRju (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:50 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c41so1626794eek.13
+        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:48 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 12/13] em28xx: make ioctl VIDIOC_DBG_G_CHIP_IDENT available for radio devices
+Date: Thu,  7 Feb 2013 18:39:20 +0100
+Message-Id: <1360258761-2959-13-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Bug report - em28xx NEW
-References: <CD2D9525.98B4%philschweizer@bluewin.ch> <5107DA24.5050303@romandie.com> <201301291559.26481.hverkuil@xs4all.nl> <5107EB1D.9060702@romandie.com> <5107EDD3.5060505@gmail.com> <5107F01B.60400@romandie.com> <510BB68E.6070009@romandie.com>
-In-Reply-To: <510BB68E.6070009@romandie.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I tried again with the same machine, but this time with a 
-3.2.0-29-generik-pae 64bits, instead of previous 32 bits kernel. Same 
-errors when inserting the device.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |    1 +
+ 1 Datei geändert, 1 Zeile hinzugefügt(+)
 
-Olivier
-
-Le 01. 02. 13 13:35, Futilite a écrit :
-> Well. Compilation is done since last time. But module produced is 
-> unusable.
->
-> I cloned last version of git repository.
->
-> run ./build once -> no compilation of em28xx
-> make menuconfig ->select emxx ->make
-> result: compilation of em28xx*.ko
-> I attached the result of stderr and stdout.
->
-> But when I try to modprobe the new modules (or unplug/replug my pctv 
-> quatrostick nano (520e), I obtain the following errors:
->
-> root@mediacenter:~# modprobe em28xx
-> WARNING: Error inserting media 
-> (/lib/modules/3.2.0-36-generic-pae/kernel/drivers/media/media.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting videodev 
-> (/lib/modules/3.2.0-36-generic-pae/kernel/drivers/media/v4l2-core/videodev.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting v4l2_common 
-> (/lib/modules/3.2.0-36-generic-pae/kernel/drivers/media/v4l2-core/v4l2-common.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> WARNING: Error inserting videobuf2_core 
-> (/lib/modules/3.2.0-36-generic-pae/kernel/drivers/media/v4l2-core/videobuf2-core.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
-> FATAL: Error inserting em28xx 
-> (/lib/modules/3.2.0-36-generic-pae/kernel/drivers/media/usb/em28xx/em28xx.ko): 
-> Unknown symbol in module, or unknown parameter (see dmesg)
->
->
-> Some hardware precision: I'm (obviously) trying to make a nice 
-> mediacenter with two usb tv decoders. These compiled fine with another 
-> computer with kernel 3.2.0-xx-generic-pae. But I need them with my 
-> mediacenter, not with my desktop computer...
->
-> Hardware configuration of my mediacenter: Intel(R) Atom(TM) CPU D525   
-> @ 1.80GHz
->
-> output of uname -r: 3.2.0-36-generic-pae
->
-> Any help would be appreciated.
->
-> Best regards
->
-> Olivier
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 2020faa..5e360e0 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1691,6 +1691,7 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
+-- 
+1.7.10.4
 
