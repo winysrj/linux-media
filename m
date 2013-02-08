@@ -1,523 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44886 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756548Ab3BATKH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 14:10:07 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	swarren@wwwdotorg.org, rob.herring@calxeda.com,
-	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4 05/10] s5p-fimc: Add device tree based sensors registration
-Date: Fri, 01 Feb 2013 20:09:26 +0100
-Message-id: <1359745771-23684-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
-References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:33661 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946843Ab3BHSMb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 13:12:31 -0500
+MIME-Version: 1.0
+In-Reply-To: <20130208155707.65a0fbab@redhat.com>
+References: <1359400023-25804-1-git-send-email-sebastian.hesselbarth@gmail.com>
+	<1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com>
+	<51125F44.3050603@samsung.com>
+	<5112905E.3020400@gmail.com>
+	<20130208155707.65a0fbab@redhat.com>
+Date: Fri, 8 Feb 2013 19:12:31 +0100
+Message-ID: <CABJ1b_TSH+Cz_aScW7bX7=cMW0Yr-Pe7p_BUbeb0DSUBJA_BdA@mail.gmail.com>
+Subject: Re: [PATCH RESEND] media: rc: gpio-ir-recv: add support for device
+ tree parsing
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
+	David Hardeman <david@hardeman.nu>,
+	Trilok Soni <tsoni@codeaurora.org>,
+	devicetree-discuss@lists.ozlabs.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sensor (I2C and/or SPI client) devices are instantiated by their
-corresponding control bus drivers. Since the I2C client's master clock
-is often provided by a video bus receiver (host interface) or other
-than I2C/SPI controller device, the drivers of those client devices
-are not accessing hardware in their driver's probe() callback. Instead,
-after enabling clock, the host driver calls back into a sub-device
-when it wants to activate them. This pattern is used by some in-tree
-drivers and this patch also uses it for DT case. This patch is intended
-as a first step for adding device tree support to the S5P/Exynos SoC
-camera drivers. The second one is adding support for asynchronous
-sub-devices registration and clock control from sub-device driver
-level. The bindings shall not change when asynchronous probing support
-is added.
+On Fri, Feb 8, 2013 at 6:57 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Wed, 06 Feb 2013 18:18:22 +0100
+> Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com> escreveu:
+>> On 02/06/2013 02:48 PM, Sylwester Nawrocki wrote:
+>> > On 02/06/2013 09:03 AM, Sebastian Hesselbarth wrote:
+>> >> This patch adds device tree parsing for gpio_ir_recv platform_data and
+>> >> the mandatory binding documentation. It basically follows what we already
+>> >> have for e.g. gpio_keys. All required device tree properties are OS
+>> >> independent but optional properties allow linux specific support for rc
+>> >> protocols and maps.
+>> >>
+>> >> There was a similar patch sent by Matus Ujhelyi but that discussion
+>> >> died after the first reviews.
+>> >>
+>> >> Signed-off-by: Sebastian Hesselbarth<sebastian.hesselbarth@gmail.com>
+>> >> ---
+>> > ...
+>> >> diff --git a/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+>> >> new file mode 100644
+>> >> index 0000000..937760c
+>> >> --- /dev/null
+>> >> +++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+>> >> @@ -0,0 +1,20 @@
+>> >> +Device-Tree bindings for GPIO IR receiver
+>> >> +
+>> >> +Required properties:
+>> >> +  - compatible = "gpio-ir-receiver";
+>> >> +  - gpios: OF device-tree gpio specification.
+>> >> +
+>> >> +Optional properties:
+>> >> +  - linux,allowed-rc-protocols: Linux specific u64 bitmask of allowed
+>> >> +      rc protocols.
+>> >
+>> > You likely need to specify in these bindings documentation which bit
+>> > corresponds to which RC protocol.
+>> >
+>> > I'm not very familiar with the RC internals, but why it has to be
+>> > specified statically in the device tree, when decoding seems to be
+>> > mostly software defined ? I might be missing something though..
+>>
+>> Sylwester,
+>>
+>> I am not familiar with RC internals either. Maybe somebody with more
+>> insight in media/rc can clarify the specific needs for the rc subsystem.
+>> I was just transferring the DT support approach taken by gpio_keys to
+>> gpio_ir_recv as I will be using it on mach-dove/cubox soon.
+>
+> The allowed rc protocol field are there for devices with hardware IR
+> support, where only a limited set of remote protocols can be decoded.
+>
+> For software decoders RC_BIT_ALL is the proper setup. Users of course
+> can change it via sysfs at runtime, or a software decoder may be
+> disabled at compilation time by not selecting its CONFIG_* var.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../devicetree/bindings/media/soc/samsung-fimc.txt |   89 ++++++++
- drivers/media/platform/s5p-fimc/fimc-mdevice.c     |  231 +++++++++++++++++---
- include/media/s5p_fimc.h                           |   16 ++
- 3 files changed, 311 insertions(+), 25 deletions(-)
+Mauro,
 
-diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-index 2b932f2..6b81ad1 100644
---- a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-+++ b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
-@@ -56,6 +56,29 @@ For every fimc-lite node a numbered alias should be present in the aliases
- node. Aliases are in form of fimc-lite<n>, where <n> is an integer (0...N)
- specifying the IP's instance index.
- 
-+
-+'parallel-ports' node
-+---------------------
-+
-+This node should contain child 'port' nodes specifying active parallel video
-+input ports. It includes camera A and camera B inputs. 'reg' property in the
-+port nodes specifies data input - 0, 1 indicates input A, B respectively.
-+
-+Optional properties
-+
-+- samsung,camclk-out	 : specifies clock output for remote sensor,
-+			   0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
-+
-+Image sensor nodes
-+------------------
-+
-+The sensor device nodes should be added as their control bus controller
-+(e.g. I2C0) child nodes and linked to a port node in the csis or parallel-ports
-+node, using common the common video interfaces bindings, i.e. port/endpoint
-+node pairs. The implementation of this binding requires clock-frequency
-+property to be present in the sensor device nodes.
-+
-+
- Example:
- 
- 	aliases {
-@@ -63,12 +86,68 @@ Example:
- 		fimc0 = &fimc_0;
- 	};
- 
-+	/* Parallel bus IF sensor */
-+	i2c_0: i2c@13860000 {
-+		s5k6aa: sensor@3c {
-+			compatible = "samsung,s5k6aafx";
-+			reg = <0x3c>;
-+			vddio-supply = <...>;
-+
-+			clock-frequency = <24000000>;
-+			clocks = <...>;
-+			clock-names = "mclk";
-+
-+			port {
-+				s5k6aa_ep: endpoint {
-+					remote-endpoint = <&fimc0_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					hsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+	};
-+
-+	/* MIPI CSI-2 bus IF sensor */
-+	s5c73m3: sensor@0x1a {
-+		compatible = "samsung,s5c73m3";
-+		reg = <0x1a>;
-+		vddio-supply = <...>;
-+
-+		clock-frequency = <24000000>;
-+		clocks = <...>;
-+		clock-names = "mclk";
-+
-+		port {
-+			s5c73m3_1: endpoint {
-+				data-lanes = <1>, <2>, <3>, <4>;
-+				remote-endpoint = <&csis0_ep>;
-+			};
-+		};
-+	};
-+
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		status = "okay";
- 
-+		/* parallel camera ports */
-+		parallel-ports {
-+			/* camera A input */
-+			port@0 {
-+				reg = <1>;
-+				fimc0_ep: endpoint {
-+					remote-endpoint = <&s5k6aa_ep>;
-+					bus-width = <8>;
-+					hsync-active = <0>;
-+					hsync-active = <1>;
-+					pclk-sample = <1>;
-+				};
-+			};
-+		};
-+
- 		fimc_0: fimc@11800000 {
- 			compatible = "samsung,exynos4210-fimc";
- 			reg = <0x11800000 0x1000>;
-@@ -81,6 +160,16 @@ Example:
- 			reg = <0x11880000 0x1000>;
- 			interrupts = <0 78 0>;
- 			max-data-lanes = <4>;
-+			/* camera C input */
-+			port {
-+				reg = <3>;
-+				csis0_ep: endpoint {
-+					remote-endpoint = <&s5c73m3_ep>;
-+					data-lanes = <1>, <2>, <3>, <4>;
-+					samsung,csis-hs-settle = <12>;
-+					samsung,camclk-out = <0>;
-+				};
-+			};
- 		};
- 	};
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index c113734..2bb501f 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -19,11 +19,14 @@
- #include <linux/module.h>
- #include <linux/of.h>
- #include <linux/of_platform.h>
-+#include <linux/of_device.h>
-+#include <linux/of_i2c.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- #include <media/media-device.h>
- #include <media/s5p_fimc.h>
- 
-@@ -248,7 +251,7 @@ static struct v4l2_subdev *fimc_md_register_sensor(struct fimc_md *fmd,
- 	sd->grp_id = GRP_ID_SENSOR;
- 
- 	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice %s\n",
--		  s_info->pdata.board_info->type);
-+		  sd->name);
- 	return sd;
- }
- 
-@@ -260,17 +263,185 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
- 	if (!client)
- 		return;
- 	v4l2_device_unregister_subdev(sd);
--	adapter = client->adapter;
--	i2c_unregister_device(client);
--	if (adapter)
--		i2c_put_adapter(adapter);
-+
-+	if (!client->dev.of_node) {
-+		adapter = client->adapter;
-+		i2c_unregister_device(client);
-+		if (adapter)
-+			i2c_put_adapter(adapter);
-+	}
-+}
-+
-+#ifdef CONFIG_OF
-+/* Register I2C client subdev associated with @node. */
-+static int fimc_md_of_add_sensor(struct fimc_md *fmd,
-+				 struct device_node *node, int index)
-+{
-+	struct fimc_sensor_info *si;
-+	struct i2c_client *client;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	if (WARN_ON(index >= ARRAY_SIZE(fmd->sensor)))
-+		return -EINVAL;
-+	si = &fmd->sensor[index];
-+
-+	client = of_find_i2c_device_by_node(node);
-+	if (!client)
-+		return -EPROBE_DEFER;
-+
-+	device_lock(&client->dev);
-+
-+	if (!client->driver ||
-+	    !try_module_get(client->driver->driver.owner)) {
-+		ret = -EPROBE_DEFER;
-+		goto dev_put;
-+	}
-+
-+	/* Enable sensor's master clock */
-+	ret = __fimc_md_set_camclk(fmd, si, true);
-+	if (ret < 0)
-+		goto mod_put;
-+	sd = i2c_get_clientdata(client);
-+
-+	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
-+	__fimc_md_set_camclk(fmd, si, false);
-+	if (ret < 0)
-+		goto mod_put;
-+
-+	v4l2_set_subdev_hostdata(sd, si);
-+	sd->grp_id = GRP_ID_SENSOR;
-+	si->subdev = sd;
-+	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
-+		  sd->name, fmd->num_sensors);
-+	fmd->num_sensors++;
-+
-+mod_put:
-+	module_put(client->driver->driver.owner);
-+dev_put:
-+	device_unlock(&client->dev);
-+	put_device(&client->dev);
-+	return ret;
- }
- 
-+/* Parse port node and register as a sub-device any sensor specified there. */
-+static int fimc_md_parse_port_node(struct fimc_md *fmd,
-+				   struct device_node *port,
-+				   unsigned int index)
-+{
-+	struct device_node *rem, *endpoint;
-+	struct fimc_source_info *pd;
-+	struct v4l2_of_endpoint bus_cfg;
-+	u32 tmp, reg = 0;
-+	int ret;
-+
-+	if (WARN_ON(of_property_read_u32(port, "reg", &reg) ||
-+	    reg >= FIMC_MAX_SENSORS))
-+		return -EINVAL;
-+
-+	pd = &fmd->sensor[index].pdata;
-+	pd->mux_id = (reg - 1) & 0x1;
-+
-+	/* Assume here a port node can have only one endpoint node. */
-+	endpoint = of_get_next_child(port, NULL);
-+	if (!endpoint)
-+		return 0;
-+
-+	rem = v4l2_of_get_remote_port_parent(endpoint);
-+	of_node_put(endpoint);
-+	if (rem == NULL) {
-+		v4l2_info(&fmd->v4l2_dev, "Remote device at %s not found\n",
-+			  endpoint->full_name);
-+		return 0;
-+	}
-+	if (!of_property_read_u32(rem, "samsung,camclk-out", &tmp))
-+		pd->clk_id = tmp;
-+
-+	if (!of_property_read_u32(rem, "clock-frequency", &tmp))
-+		pd->clk_frequency = tmp;
-+
-+	if (pd->clk_frequency == 0) {
-+		v4l2_err(&fmd->v4l2_dev, "Wrong clock frequency at node %s\n",
-+			 rem->full_name);
-+		of_node_put(rem);
-+		return -EINVAL;
-+	}
-+
-+	if (fimc_input_is_parallel(reg)) {
-+		v4l2_of_parse_parallel_bus(endpoint, &bus_cfg);
-+		if (bus_cfg.mbus.type == V4L2_MBUS_PARALLEL)
-+			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_601;
-+		else
-+			pd->sensor_bus_type = FIMC_BUS_TYPE_ITU_656;
-+		pd->flags = bus_cfg.mbus.flags;
-+	} else if (fimc_input_is_mipi_csi(reg)) {
-+		/*
-+		 * MIPI CSI-2: only input mux selection
-+		 * and sensor's clock frequency is needed.
-+		 */
-+		pd->sensor_bus_type = FIMC_BUS_TYPE_MIPI_CSI2;
-+	} else {
-+		v4l2_err(&fmd->v4l2_dev, "Wrong port id (%u) at node %s\n",
-+			 reg, rem->full_name);
-+	}
-+
-+	ret = fimc_md_of_add_sensor(fmd, rem, index);
-+	of_node_put(rem);
-+
-+	return ret;
-+}
-+
-+/* Register all SoC external sub-devices */
-+static int fimc_md_of_sensors_register(struct fimc_md *fmd,
-+				       struct device_node *np)
-+{
-+	struct device_node *parent = fmd->pdev->dev.of_node;
-+	struct device_node *node, *ports;
-+	int index = 0;
-+	int ret;
-+
-+	/* Attach sensors linked to MIPI CSI-2 receivers */
-+	for_each_available_child_of_node(parent, node) {
-+		struct device_node *port;
-+
-+		if (of_node_cmp(node->name, "csis"))
-+			continue;
-+		/* The csis node can have only port subnode. */
-+		port = of_get_next_child(node, NULL);
-+		if (!port)
-+			continue;
-+
-+		ret = fimc_md_parse_port_node(fmd, port, index);
-+		if (ret < 0)
-+			return ret;
-+		index++;
-+	}
-+
-+	/* Attach sensors listed in the parallel-ports node */
-+	ports = of_get_child_by_name(parent, "parallel-ports");
-+	if (!ports)
-+		return 0;
-+
-+	for_each_child_of_node(ports, node) {
-+		ret = fimc_md_parse_port_node(fmd, node, index);
-+		if (ret < 0)
-+			break;
-+		index++;
-+	}
-+
-+	return 0;
-+}
-+#else
-+#define fimc_md_of_sensors_register(fmd, np) (-ENOSYS)
-+#endif
-+
- static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- {
- 	struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
-+	struct device_node *of_node = fmd->pdev->dev.of_node;
- 	struct fimc_dev *fd = NULL;
--	int num_clients, ret, i;
-+	int num_clients = 0;
-+	int ret, i;
- 
- 	/*
- 	 * Runtime resume one of the FIMC entities to make sure
-@@ -281,34 +452,42 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- 			fd = fmd->fimc[i];
- 	if (!fd)
- 		return -ENXIO;
-+
- 	ret = pm_runtime_get_sync(&fd->pdev->dev);
- 	if (ret < 0)
- 		return ret;
- 
--	WARN_ON(pdata->num_clients > ARRAY_SIZE(fmd->sensor));
--	num_clients = min_t(u32, pdata->num_clients, ARRAY_SIZE(fmd->sensor));
-+	if (of_node) {
-+		fmd->num_sensors = 0;
-+		ret = fimc_md_of_sensors_register(fmd, of_node);
-+	} else if (pdata) {
-+		WARN_ON(pdata->num_clients > ARRAY_SIZE(fmd->sensor));
-+		num_clients = min_t(u32, pdata->num_clients,
-+				    ARRAY_SIZE(fmd->sensor));
-+		fmd->num_sensors = num_clients;
- 
- 	fmd->num_sensors = num_clients;
- 	for (i = 0; i < num_clients; i++) {
- 		struct v4l2_subdev *sd;
- 
--		fmd->sensor[i].pdata = pdata->source_info[i];
--		ret = __fimc_md_set_camclk(fmd, &fmd->sensor[i], true);
--		if (ret)
--			break;
--		sd = fimc_md_register_sensor(fmd, &fmd->sensor[i]);
--		ret = __fimc_md_set_camclk(fmd, &fmd->sensor[i], false);
-+			fmd->sensor[i].pdata = pdata->source_info[i];
-+			ret = __fimc_md_set_camclk(fmd, &fmd->sensor[i], true);
-+			if (ret)
-+				break;
-+			sd = fimc_md_register_sensor(fmd, &fmd->sensor[i]);
-+			ret = __fimc_md_set_camclk(fmd, &fmd->sensor[i], false);
- 
--		if (!IS_ERR(sd)) {
-+			if (IS_ERR(sd)) {
-+				fmd->sensor[i].subdev = NULL;
-+				ret = PTR_ERR(sd);
-+				break;
-+			}
- 			fmd->sensor[i].subdev = sd;
--		} else {
--			fmd->sensor[i].subdev = NULL;
--			ret = PTR_ERR(sd);
--			break;
-+			if (ret)
-+				break;
- 		}
--		if (ret)
--			break;
- 	}
-+
- 	pm_runtime_put(&fd->pdev->dev);
- 	return ret;
- }
-@@ -976,11 +1155,12 @@ static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
- 
- static int fimc_md_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct v4l2_device *v4l2_dev;
- 	struct fimc_md *fmd;
- 	int ret;
- 
--	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
-+	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
- 	if (!fmd)
- 		return -ENOMEM;
- 
-@@ -990,7 +1170,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
- 	fmd->media_dev.link_notify = fimc_md_link_notify;
--	fmd->media_dev.dev = &pdev->dev;
-+	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
- 	v4l2_dev->mdev = &fmd->media_dev;
-@@ -998,7 +1178,7 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
- 
- 
--	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
-+	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
- 		return ret;
-@@ -1025,11 +1205,12 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_unlock;
- 
--	if (pdev->dev.platform_data) {
-+	if (dev->platform_data || dev->of_node) {
- 		ret = fimc_md_register_sensor_entities(fmd);
- 		if (ret)
- 			goto err_unlock;
- 	}
-+
- 	ret = fimc_md_create_links(fmd);
- 	if (ret)
- 		goto err_unlock;
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index 17fd2fa..e2434bb 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -15,6 +15,19 @@
- #include <media/media-entity.h>
- 
- /*
-+ * Enumeration of data inputs to the camera subsystem.
-+ */
-+enum fimc_input {
-+	FIMC_INPUT_PARALLEL_0	= 1,
-+	FIMC_INPUT_PARALLEL_1,
-+	FIMC_INPUT_MIPI_CSI2_0	= 3,
-+	FIMC_INPUT_MIPI_CSI2_1,
-+	FIMC_INPUT_WRITEBACK_A	= 5,
-+	FIMC_INPUT_WRITEBACK_B,
-+	FIMC_INPUT_WRITEBACK_ISP = 5,
-+};
-+
-+/*
-  * Enumeration of the FIMC data bus types.
-  */
- enum fimc_bus_type {
-@@ -32,6 +45,9 @@ enum fimc_bus_type {
- 	FIMC_BUS_TYPE_ISP_WRITEBACK = FIMC_BUS_TYPE_LCD_WRITEBACK_B,
- };
- 
-+#define fimc_input_is_parallel(x) ((x) == 1 || (x) == 2)
-+#define fimc_input_is_mipi_csi(x) ((x) == 3 || (x) == 4)
-+
- struct i2c_board_info;
- 
- /**
--- 
-1.7.9.5
+thanks for the clarification! So for v2 of the patch, you all agree on removing
+linux,allowed-rc-protocols from device node properties?
 
+>> > Couldn't this be configured at run time, with all protocols allowed
+>> > as the default ?
+>>
+>> Actually, this is how the internal rc code works. If there is nothing
+>> defined for allowed_protocols it assumes that all protocols are supported.
+>> That is why above node properties are optional.
+>>
+>> About the binding documentation of allowed_protocols, rc_map, or the
+>> default behavior of current linux code, I don't think they will stay
+>> in-sync for long.
+>
+> Why not? The rc_map name is used either by Kernelspace or by Userspace,
+> in order to provide the IR keycode name that matches a given keytable.
+>
+> There's no plans to change it, even in the long term.
+
+Actually, I wasn't referring to changing names or bitmasks but updating
+the binding documentation with new allowed protocols or supported map
+names.
+
+For linux,rc-map-name property it should be enough to just write that it
+relates to linux rc subsystem rc_map name - how to actually
+set it to a useful name is documented in rc subsystem. And if the
+property is not set at all, DT parsing in gpio_ir_recv assumes the
+subsystem (or gpio_ir_recv platform) default, IIRC "rc-none".
+
+I'll respin a v2 without allowed-protocols property soon.
+
+Sebastian
