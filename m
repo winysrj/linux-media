@@ -1,55 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f174.google.com ([209.85.210.174]:53312 "EHLO
-	mail-ia0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513Ab3B1X45 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Feb 2013 18:56:57 -0500
-Received: by mail-ia0-f174.google.com with SMTP id u20so2115144iag.33
-        for <linux-media@vger.kernel.org>; Thu, 28 Feb 2013 15:56:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <512EB830.5030808@samsung.com>
-References: <1360910587-25548-1-git-send-email-vikas.sajjan@linaro.org>
-	<1360910587-25548-2-git-send-email-vikas.sajjan@linaro.org>
-	<5125C4D4.5040804@samsung.com>
-	<CAD025yR8u79VHg0oACTWTFQxiEBzzw6hHA6c=+CA9VP__fRJuA@mail.gmail.com>
-	<5125CA44.10506@samsung.com>
-	<512EB830.5030808@samsung.com>
-Date: Fri, 1 Mar 2013 00:56:56 +0100
-Message-ID: <CACRpkdbxM1pnOAKnnkjAdCcLHRnapf+OCW1iUE4h7s2_KJfTyw@mail.gmail.com>
-Subject: Re: [PATCH v6 1/1] video: drm: exynos: Add display-timing node
- parsing using video helper function
-From: Linus Walleij <linus.walleij@linaro.org>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: Vikas Sajjan <vikas.sajjan@linaro.org>, kgene.kim@samsung.com,
-	patches@linaro.org, l.krishna@samsung.com,
-	sunil joshi <joshi@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:60256 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946041Ab3BHPRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Feb 2013 10:17:50 -0500
+Date: Fri, 8 Feb 2013 13:17:42 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+Cc: linux-media@vger.kernel.org
+Subject: Re: terratec h5 rev. 3?
+Message-ID: <20130208131742.32ab0750@redhat.com>
+In-Reply-To: <510668E3.8060603@hispeed.ch>
+References: <50D3F5A8.5010903@hispeed.ch>
+	<510668E3.8060603@hispeed.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 28, 2013 at 2:51 AM, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
+Em Mon, 28 Jan 2013 13:02:43 +0100
+Roland Scheidegger <rscheidegger_lists@hispeed.ch> escreveu:
 
-> My mistake. If CONFIG_PINCTRL is disabled, devm_pinctrl_get_select_default
-> can return NULL.
+> From: Roland Scheidegger <rscheidegger_lists@hispeed.ch>
+> To: linux-media@vger.kernel.org
+> Subject: Re: terratec h5 rev. 3?
+> Date: Mon, 28 Jan 2013 13:02:43 +0100
+> Sender: linux-media-owner@vger.kernel.org
+> User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:17.0) Gecko/20130105 Thunderbird/17.0.2
+> 
+> Am 21.12.2012 06:38, schrieb linux-media-owner@vger.kernel.org:
+> > Hi,
+> > 
+> > I've recently got a terratec h5 for dvb-c and thought it would be
+> > supported but it looks like it's a newer revision not recognized by em28xx.
+> > After using the new_id hack it gets recognized and using various htc
+> > cards (notably h5 or cinergy htc stick, cards 79 and 82 respectively) it
+> > seems to _nearly_ work but not quite (I was using h5 firmware for the
+> > older version). Tuning, channel scan works however tv (or dvb radio)
+> > does not, since it appears the error rate is going through the roof
+> > (with some imagination it is possible to see some parts of the picture
+> > sometimes and hear some audio pieces).  
+> 
+> Ok I have received a replacement now and I can confirm this stick in
+> fact just works like the same as the older versions (I guess maybe the
+> first one had bad solder point?). I can't judge signal sensitivity or
+> anything like that (the snr values are rather humorous) but it's
+> definitely good enough now with no reception issues. The IR receiver is
+> another matter and I was unsuccesful in making it work for now (I guess
+> noone got it working with the old versions neither as it lacks the ir
+> entries).
+> So could this card be added? I've added the trivial patch.
 
-Yes, and that is perfectly legal and *NOT* an error.
+Could you please add your Signed-of-by: to the patch?
 
-> devm_pinctrl_get_select() and pinctrl_get_select() also need IS_ERR_OR_NULL
-> instead of IS_ERR?
+Thanks,
+Mauro
+> 
+> Roland
+> 
+> 
+> 
+> [h5rev3.diff  text/x-patch (549 bytes)] 
 
-No.
+-- 
 
-In fact, IS_ERR_OR_NULL() shall not be used at all.
-
-Check the LKML mailinglist for Russells recent struggle to
-purge it from the kernel.
-
-> And many drivers using above functions don't check NULL, right?
-
-No, and they should not. Stub pinctrl handles, just like stub
-clocks and stub regulators, are perfectly legal, just that they have
-no effect.
-
-Yours,
-Linus Walleij
+Cheers,
+Mauro
