@@ -1,105 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:45621 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759148Ab3BGRcJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:32:09 -0500
-Received: by mail-ee0-f50.google.com with SMTP id e51so1565646eek.23
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:32:07 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: fix analog streaming with USB bulk transfers
-Date: Thu,  7 Feb 2013 18:32:46 +0100
-Message-Id: <1360258366-2804-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from avon.wwwdotorg.org ([70.85.31.133]:48843 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757638Ab3BHX1e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 18:27:34 -0500
+Message-ID: <511589E2.9030308@wwwdotorg.org>
+Date: Fri, 08 Feb 2013 16:27:30 -0700
+From: Stephen Warren <swarren@wwwdotorg.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 01/10] s5p-csis: Add device tree support
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-2-git-send-email-s.nawrocki@samsung.com> <5112E907.4080100@wwwdotorg.org> <51157C36.6030505@gmail.com>
+In-Reply-To: <51157C36.6030505@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the conversion to videobuf2, some unnecessary calls of
-em28xx_set_alternate() have been removed. It is now called at analog streaming
-start only.
-This has unveiled a bug that causes USB bulk transfers to fail with all urbs
-having status -EVOERFLOW.
-The reason is, that for bulk transfers usb_set_interface() needs to be called
-even if the previous alt setting was the same (side note: bulk transfers seem
-to work only with alt=0).
-While it seems to be NOT necessary for isoc transfers, it's reasonable to just
-call usb_set_interface() unconditionally in em28xx_set_alternate().
-Also add a comment that explains the issue to prevent regressions in the future.
+On 02/08/2013 03:29 PM, Sylwester Nawrocki wrote:
+> On 02/07/2013 12:36 AM, Stephen Warren wrote:
+>> On 02/01/2013 12:09 PM, Sylwester Nawrocki wrote:
+>>> s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
+>>> device. This patch support for binding the driver to the MIPI-CSIS
+>>> devices instantiated from device tree and for parsing all SoC and
+>>> board specific properties.
+>>
+>>> diff --git
+>>> a/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+>> b/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+>>
+>>> +Optional properties:
+>>> +
+>>> +- clock-frequency : The IP's main (system bus) clock frequency in
+>>> Hz, default
+>>> +            value when this property is not specified is 166 MHz;
+>>
+>> Shouldn't this be a "clocks" property, so that the driver can call
+>> clk_get(), clk_prepare_enable(), clk_get_rate(), etc. on it?
+> 
+> Hi Stephen,
+> 
+> Thanks for your review!
+> 
+> I also use "clocks" and "clock-names" property, but didn't specify
+> it here, because the Exynos SoCs clocks driver is not in the mainline yet.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |   43 ++++++++++++++++----------------
- 1 Datei geändert, 22 Zeilen hinzugefügt(+), 21 Zeilen entfernt(-)
+I'm a bit sympathetic to this, since I've been trying to push Tegra
+towards the common clock framework and describing clock connectivity in
+DT, before adding new drivers that need clocks, specifically to avoid
+this kind of situation.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 80f87bb..3905570 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -811,12 +811,12 @@ int em28xx_resolution_set(struct em28xx *dev)
- /* Set USB alternate setting for analog video */
- int em28xx_set_alternate(struct em28xx *dev)
- {
--	int errCode, prev_alt = dev->alt;
-+	int errCode;
- 	int i;
- 	unsigned int min_pkt_size = dev->width * 2 + 4;
- 
- 	/* NOTE: for isoc transfers, only alt settings > 0 are allowed
--		 for bulk transfers, use alt=0 as default value */
-+		 bulk transfers seem to work only with alt=0 ! */
- 	dev->alt = 0;
- 	if ((alt > 0) && (alt < dev->num_alt)) {
- 		em28xx_coredbg("alternate forced to %d\n", dev->alt);
-@@ -847,25 +847,26 @@ int em28xx_set_alternate(struct em28xx *dev)
- 	}
- 
- set_alt:
--	if (dev->alt != prev_alt) {
--		if (dev->analog_xfer_bulk) {
--			dev->max_pkt_size = 512; /* USB 2.0 spec */
--			dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
--		} else { /* isoc */
--			em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
--				       min_pkt_size, dev->alt);
--			dev->max_pkt_size =
--					  dev->alt_max_pkt_size_isoc[dev->alt];
--			dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
--		}
--		em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
--			       dev->alt, dev->max_pkt_size);
--		errCode = usb_set_interface(dev->udev, 0, dev->alt);
--		if (errCode < 0) {
--			em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
--					dev->alt, errCode);
--			return errCode;
--		}
-+	/* NOTE: for bulk transfers, we need to call usb_set_interface()
-+	 * even if the previous settings were the same. Otherwise streaming
-+	 * fails with all urbs having status = -EOVERFLOW ! */
-+	if (dev->analog_xfer_bulk) {
-+		dev->max_pkt_size = 512; /* USB 2.0 spec */
-+		dev->packet_multiplier = EM28XX_BULK_PACKET_MULTIPLIER;
-+	} else { /* isoc */
-+		em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
-+			       min_pkt_size, dev->alt);
-+		dev->max_pkt_size =
-+				  dev->alt_max_pkt_size_isoc[dev->alt];
-+		dev->packet_multiplier = EM28XX_NUM_ISOC_PACKETS;
-+	}
-+	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
-+		       dev->alt, dev->max_pkt_size);
-+	errCode = usb_set_interface(dev->udev, 0, dev->alt);
-+	if (errCode < 0) {
-+		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
-+			      dev->alt, errCode);
-+		return errCode;
- 	}
- 	return 0;
- }
--- 
-1.7.10.4
+The problem here is that if this gets merged now, then the clock driver
+comes along later, you'll have to change this binding definition to
+account for it, and DT bindings aren't supposed to be changed...
 
+Do you have any clock driver at all upstream yet? Or, could you add a
+dummy clock driver to satisfy the driver's clkl_get() needs? If you do,
+you can always set up some AUXDATA so that clk_get() works for your
+driver right now, and then remove that once the complete clock driver is
+in place with full device tree support. That's how we've ended up
+handling this for Tegra drivers.
+
+Anyway, this is all mainly food-for-thought rather than an objection to
+the patch; I'd leave that to Grant/Rob if applicable.
