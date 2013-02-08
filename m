@@ -1,49 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.unixsol.org ([193.110.159.2]:58165 "EHLO ns.unixsol.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932333Ab3BOOkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 09:40:07 -0500
-Message-ID: <511E4797.5000306@unixsol.org>
-Date: Fri, 15 Feb 2013 16:35:03 +0200
-From: Georgi Chorbadzhiyski <gf@unixsol.org>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:45368 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757385Ab3BHXQc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 18:16:32 -0500
+Message-ID: <5115874A.6050406@gmail.com>
+Date: Sat, 09 Feb 2013 00:16:26 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: Oliver Schinagl <oliver+list@schinagl.nl>,
-	Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: ddbridge v0.8
-References: <CAAKANDV1QWHeuA3XG7+HK2Fc8rLBpkVWGWcJ0Bdc_3A_yAEVLA@mail.gmail.com> <511C0385.2060308@schinagl.nl> <20766.15478.535523.4665@morden.metzler>
-In-Reply-To: <20766.15478.535523.4665@morden.metzler>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Stephen Warren <swarren@wwwdotorg.org>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 02/10] s5p-fimc: Add device tree support for FIMC devices
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com> <5112E9EF.8090908@wwwdotorg.org>
+In-Reply-To: <5112E9EF.8090908@wwwdotorg.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Around 02/15/2013 03:47 PM, Ralph Metzler scribbled:
-> Oliver Schinagl writes:
->  > On 02/11/13 23:20, Martin Vidovic wrote:
->  > > Is there any plan to include ddbridge driver version 0.8 in mainline kernel
->  > > (currently it's 0.5). I really see no reason it's in the vacuum like now
->  > > for almost a year. No sign of pushing it into mainline. Why is that so?
->  > > It's a good driver.
->  > You should ask Ralph Metzler (added to CC) as he wrote the driver I 
->  > think or atleast maintains it.
-> 
-> I wrote the driver but I never submitted it to the kernel myself. I got frustrated
-> with that process years ago. Oliver Endriss took care of it and necessary coding style
-> adjustments etc. in the last few years. (Many thanks again!) 
-> But now he also stopped to pass it into the kernel due to some complications
-> with other changes upstream.
-> 
-> I usually distribute a package with own versions of dvb-core, frontend and 
-> ddbridge drivers now. When the next major restructuring due to the DVB-C modulator
-> card and the stand-alone hardware network streamer (octopus net) support is done, 
-> I will make it publically available. The current driver is version 0.9.7.
-> It should be up to kernel coding style and can be easily copied over into
-> a current kernel. But I am not about to take it apart into little patches.
+On 02/07/2013 12:40 AM, Stephen Warren wrote:
+>> diff --git a/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/media/soc/samsung-fimc.txt
+>
+>> +Samsung S5P/EXYNOS SoC Camera Subsystem (FIMC)
+>> +----------------------------------------------
+>> +
+>> +The Exynos Camera subsystem comprises of multiple sub-devices that are
+>> +represented by separate platform devices. Some of the IPs come in different
+>
+> "platform devices" is a rather Linux-centric term, and DT bindings
+> should be OS-agnostic. Perhaps use "device tree nodes" here?
 
-We have more than 30 cards that use ddbridge drivers and the fact that the driver
-in mainline is out of date is big PITA.
+Indeed, thank you for the suggestion, I'll change it.
 
--- 
-Georgi Chorbadzhiyski
-http://georgi.unixsol.org/
+>> +variants across the SoC revisions (FIMC) and some remain mostly unchanged
+>> +(MIPI CSIS, FIMC-LITE).
+>> +
+>> +All those sub-subdevices are defined as parent nodes of the common device
+>
+> s/parent nodes/child node/ I think?
+
+Yeah, 'parent nodes' doesn't really make sense. Thanks for catching it.
+
+>> +For every fimc node a numbered alias should be present in the aliases node.
+>> +Aliases are of the form fimc<n>, where<n>  is an integer (0...N) specifying
+>> +the IP's instance index.
+>
+> Why? Isn't it up to the DT author whether they care if each fimc node is
+> assigned a specific identification v.s. whether identification is
+> assigned automatically?
+
+There are at least three different kinds of IPs that come in multiple
+instances in an SoC. To activate data links between them each instance
+needs to be clearly identified. There are also differences between
+instances of same device. Hence it's important these aliases don't have
+random values.
+
+Some more details about the SoC can be found at [1]. The aliases are
+also already used in the Exynos5 GScaler bindings [2] in a similar way.
+
+>> +Optional properties
+>> +
+>> + - clock-frequency - maximum FIMC local clock (LCLK) frequency
+>
+> Again, I'd expect a clocks property here instead.
+
+Please see my comment to patch 01/10. Analogously, I needed this clock
+frequency to ensure reliable video data pipeline operation.
+
+[1] http://tinyurl.com/anw9udm
+[2] http://www.spinics.net/lists/arm-kernel/msg200036.html
