@@ -1,45 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49911 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758795Ab3BSVal (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 16:30:41 -0500
-Date: Tue, 19 Feb 2013 22:30:37 +0100
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: =?iso-8859-15?Q?Ga=EBtan?= Carlier <gcembed@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>,
-	Rob Herring <rob.herring@calxeda.com>
-Subject: Re: coda: support of decoding
-Message-ID: <20130219213037.GF30071@pengutronix.de>
-References: <5122D999.3070405@gmail.com>
- <20130219184749.GD30071@pengutronix.de>
- <5123D93E.9050602@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33289 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1946899Ab3BHTkv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Feb 2013 14:40:51 -0500
+Message-ID: <5115549B.80106@iki.fi>
+Date: Fri, 08 Feb 2013 21:40:11 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5123D93E.9050602@gmail.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
+	Jose Alberto Reguero <jareguero@telefonica.net>
+Subject: Re: [git:v4l-dvb/for_v3.9] [media] [PATH, 1/2] mxl5007 move reset
+ to attach
+References: <E1U3sYh-0001KV-Eo@www.linuxtv.org> <CAOcJUbyOQKFvaGfBFb9w3nZeg-428EeYGw2gvAfDAdhRswtonQ@mail.gmail.com>
+In-Reply-To: <CAOcJUbyOQKFvaGfBFb9w3nZeg-428EeYGw2gvAfDAdhRswtonQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 19, 2013 at 08:57:50PM +0100, Gaëtan Carlier wrote:
-> > We have a lot of encoder + decoder patches for Coda in the queue,
-> > but unfortunately not all of that is ready-for-primetime yet.
+Could you explain what is wrong with that patch?
+
+Antti
+
+On 02/08/2013 09:23 PM, Michael Krufky wrote:
+> Mauro,
 >
-> MX27. I have not yet tested if encoding is working or not. Where can I
-> find this set of patches? I will test it with pleasure.
+> This isn't ready for merge yet.  Please revert it.  This needs more
+> work as I explained on the mailing list.
+>
+> -Mike Krufky
+>
+> On Fri, Feb 8, 2013 at 12:37 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> This is an automatic generated email to let you know that the following patch were queued at the
+>> http://git.linuxtv.org/media_tree.git tree:
+>>
+>> Subject: [media] [PATH,1/2] mxl5007 move reset to attach
+>> Author:  Jose Alberto Reguero <jareguero@telefonica.net>
+>> Date:    Sun Feb 3 18:30:38 2013 -0300
+>>
+>> This patch move the soft reset to the attach function because with dual
+>> tuners, when one tuner do reset, the other one is perturbed, and the
+>> stream has errors.
+>>
+>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+>> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>>   drivers/media/tuners/mxl5007t.c |   17 +++++++++++++----
+>>   1 files changed, 13 insertions(+), 4 deletions(-)
+>>
+>> ---
+>>
+>> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=0a3237704dec476be3cdfbe8fc9df9cc65b14442
+>>
+>> diff --git a/drivers/media/tuners/mxl5007t.c b/drivers/media/tuners/mxl5007t.c
+>> index 69e453e..eb61304 100644
+>> --- a/drivers/media/tuners/mxl5007t.c
+>> +++ b/drivers/media/tuners/mxl5007t.c
+>> @@ -531,10 +531,6 @@ static int mxl5007t_tuner_init(struct mxl5007t_state *state,
+>>          struct reg_pair_t *init_regs;
+>>          int ret;
+>>
+>> -       ret = mxl5007t_soft_reset(state);
+>> -       if (mxl_fail(ret))
+>> -               goto fail;
+>> -
+>>          /* calculate initialization reg array */
+>>          init_regs = mxl5007t_calc_init_regs(state, mode);
+>>
+>> @@ -900,7 +896,20 @@ struct dvb_frontend *mxl5007t_attach(struct dvb_frontend *fe,
+>>                  /* existing tuner instance */
+>>                  break;
+>>          }
+>> +
+>> +       if (fe->ops.i2c_gate_ctrl)
+>> +               fe->ops.i2c_gate_ctrl(fe, 1);
+>> +
+>> +       ret = mxl5007t_soft_reset(state);
+>> +
+>> +       if (fe->ops.i2c_gate_ctrl)
+>> +               fe->ops.i2c_gate_ctrl(fe, 0);
+>> +
+>> +       if (mxl_fail(ret))
+>> +               goto fail;
+>> +
+>>          fe->tuner_priv = state;
+>> +
+>>          mutex_unlock(&mxl5007t_list_mutex);
+>>
+>>          memcpy(&fe->ops.tuner_ops, &mxl5007t_tuner_ops,
+>>
+>> _______________________________________________
+>> linuxtv-commits mailing list
+>> linuxtv-commits@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
 
-Most of the work is on MX53 and MX6 recently. We will post the patches
-here when something is ready.
 
-rsc
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://palosaari.fi/
