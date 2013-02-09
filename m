@@ -1,114 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4932 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553Ab3BZRf5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:35:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 03/11] s2255: add support for control events and prio handling.
-Date: Tue, 26 Feb 2013 18:35:38 +0100
-Message-Id: <54571ca84296bb510ac25114619a32a1e50af0ba.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:63169 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760812Ab3BISlz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 13:41:55 -0500
+Message-ID: <5116986D.9000206@gmail.com>
+Date: Sat, 09 Feb 2013 19:41:49 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Alexander Nestorov <alexandernst@gmail.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Juergen Beisert <jbe@pengutronix.de>,
+	oselas@community.pengutronix.de,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Andrey Gusakov <dron0gus@gmail.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [oselas] Audio support on Mini6410 board
+References: <CACuz9s2w28eVG8qS9FXkUYAggXn7y2deHi2fPGizcURu_Bp4wg@mail.gmail.com> <50F09720.7000102@gmail.com> <CACuz9s2fQYw-2pbE6dyNY7MiUSQxGiWArmXARxdwn1ULuDwm_Q@mail.gmail.com> <201301151030.11851.jbe@pengutronix.de> <CACuz9s0bZa0yKKkghKqFhSQ5YDX5YdwmmpXhmb3m9yKApWqPzQ@mail.gmail.com> <CACuz9s0kscbt5Z87mOX6C=9vKg2wrU-T69RS6NQmeSRqP_8K4w@mail.gmail.com> <511693AC.5010604@gmail.com>
+In-Reply-To: <511693AC.5010604@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: LMML
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 42c3afe..55c972a 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -43,13 +43,14 @@
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- #include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/usb.h>
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
--#include <linux/vmalloc.h>
--#include <linux/usb.h>
-+#include <media/v4l2-event.h>
- 
- #define S2255_VERSION		"1.22.1"
- #define FIRMWARE_FILE_NAME "f2255usb.bin"
-@@ -295,6 +296,8 @@ struct s2255_buffer {
- };
- 
- struct s2255_fh {
-+	/* this must be the first field in this struct */
-+	struct v4l2_fh		fh;
- 	struct s2255_dev	*dev;
- 	struct videobuf_queue	vb_vidq;
- 	enum v4l2_buf_type	type;
-@@ -1666,7 +1669,9 @@ static int __s2255_open(struct file *file)
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (NULL == fh)
- 		return -ENOMEM;
--	file->private_data = fh;
-+	v4l2_fh_init(&fh->fh, vdev);
-+	v4l2_fh_add(&fh->fh);
-+	file->private_data = &fh->fh;
- 	fh->dev = dev;
- 	fh->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	fh->channel = channel;
-@@ -1709,12 +1714,13 @@ static unsigned int s2255_poll(struct file *file,
- {
- 	struct s2255_fh *fh = file->private_data;
- 	struct s2255_dev *dev = fh->dev;
--	int rc;
-+	int rc = v4l2_ctrl_poll(file, wait);
-+
- 	dprintk(100, "%s\n", __func__);
- 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
- 		return POLLERR;
- 	mutex_lock(&dev->lock);
--	rc = videobuf_poll_stream(file, &fh->vb_vidq, wait);
-+	rc |= videobuf_poll_stream(file, &fh->vb_vidq, wait);
- 	mutex_unlock(&dev->lock);
- 	return rc;
- }
-@@ -1761,6 +1767,8 @@ static int s2255_release(struct file *file)
- 	videobuf_mmap_free(&fh->vb_vidq);
- 	mutex_unlock(&dev->lock);
- 	dprintk(1, "%s (dev=%s)\n", __func__, video_device_node_name(vdev));
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 	kfree(fh);
- 	return 0;
- }
-@@ -1815,6 +1823,9 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
- 	.vidioc_s_parm = vidioc_s_parm,
- 	.vidioc_g_parm = vidioc_g_parm,
- 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-+	.vidioc_log_status  = v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static void s2255_video_device_release(struct video_device *vdev)
-@@ -1898,6 +1909,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 		channel->vdev.ctrl_handler = &channel->hdl;
- 		channel->vdev.lock = &dev->lock;
- 		channel->vdev.v4l2_dev = &dev->v4l2_dev;
-+		set_bit(V4L2_FL_USE_FH_PRIO, &channel->vdev.flags);
- 		video_set_drvdata(&channel->vdev, channel);
- 		if (video_nr == -1)
- 			ret = video_register_device(&channel->vdev,
--- 
-1.7.10.4
-
+On 02/09/2013 07:21 PM, Sylwester Nawrocki wrote:
+> Hi,
+>
+> On 01/20/2013 09:46 PM, Alexander Nestorov wrote:
+>> I have been playing for a week with the board. Both audio and video
+>> work correctly, but I haven't
+>> been able to set the mic settings in alsamixer (so I can't test the mic).
+>> The touchscreen isn't working, so I'll try to make it working and send
+>> you some patches.
+>>
+>> Anyways, now there's another question/problem that I have. Video
+>> playback is really slow because
+>> I'm not using the device's cpu-decoder but rather doing everything in
+>> software mode.
+>>
+>> Is there support for hardware acceleration in the kernel for this
+>> device? Also, after talking with
+>
+> No, there is still no video codec (MFC) driver for s3c6410 upstream.
+> Now, when there is support for the hardware video codec available in
+> newer SoC (Exynos4/5) and some V4L2 infrastructure added together with
+> the s5p-mfc driver, it should be much easier to write a driver for the
+> s3c64xx MFC. Still it is relatively huge task and I didn't see any
+> volunteers willing to add support upstream for the s3c64xx MFC, except
+> Andrey who replied in this thread. I could provide some help, but
+> I will likely won't find time to do any development work or testing.
+>
+> Also please note there is no support for the mem-to-mem features (color
+> space conversion, scaling, rotation/flip) in the s3c-camif driver.
+> It should be relatively simple to add it though. I'm not really sure
+> if it is needed to run the codec on s3c64xx, but the plugin [1] uses
+> FIMC (CAMIF) as a video post-processor. This plugin sets up processing
+> pipeline like:
+>
+> memory (compressed data) -> MFC -> (YCbCr tiled) memory -> FIMC ->
+> memory (display)
+>
+>> some people from #gstreamer they pointed me to a component[1] in
+>> gstreamer, but I'm not really
+>> sure how to I use it. Any ideas/experience with that?
+>
+> This component uses multi-planar V4L2 API [2], which also use the s5p-mfc
+> and s5p-fimc driver. The s3c-camif driver uses the single-planar API
+> at the camera capture video node. So if this existing plugin was to be
+> used with the s3c64xx hardware, the drivers for it would have to
+> support the multi-planar API, which I believe is not needed on s3c64xx
+> hardware.
+> The best is probably to make the drivers only single-plane API aware
+> and adapt the plugin. The required changes at the plugin wouldn't be
+> significant.
+>
+> Anyway, a real problem here is lack of the s3c64xx MFC driver. So
+> first we need the codec driver, which could be tested with modified
+> test application [3], or directly with modified plugin [1].
+>
+>> Regards!
+>>
+>> [1] http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/tree/sys/mfc
+>
+> [2] http://linuxtv.org/downloads/v4l-dvb-apis/planar-apis.html
+> [3]
+> http://git.infradead.org/users/kmpark/public-apps/tree/9c057b001e8873861a70f7025214003837a0860b
+>
+>
+> --
+>
+> Regards,
+> Sylwester
