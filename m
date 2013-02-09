@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:40086 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896Ab3B0Xq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 18:46:59 -0500
-Message-ID: <512E9B36.2030002@schinagl.nl>
-Date: Thu, 28 Feb 2013 00:48:06 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:40496 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1947344Ab3BIAbI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 19:31:08 -0500
+Message-ID: <511598C7.6040704@gmail.com>
+Date: Sat, 09 Feb 2013 01:31:03 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Christian Affolter <c.affolter@purplehaze.ch>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Initial tuning data for upc cablecom Berne, Switzerland
-References: <512D2C54.7010205@purplehaze.ch> <512DF217.3000305@schinagl.nl> <512E0DE4.10709@purplehaze.ch> <512E04DE.2040305@schinagl.nl> <512E0E2B.6020706@schinagl.nl> <512E278E.5040901@purplehaze.ch>
-In-Reply-To: <512E278E.5040901@purplehaze.ch>
+To: Stephen Warren <swarren@wwwdotorg.org>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 01/10] s5p-csis: Add device tree support
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-2-git-send-email-s.nawrocki@samsung.com> <5112E907.4080100@wwwdotorg.org> <51157C36.6030505@gmail.com> <511589E2.9030308@wwwdotorg.org>
+In-Reply-To: <511589E2.9030308@wwwdotorg.org>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/13 16:34, Christian Affolter wrote:
-> Hi Oliver
->
->>>>>> please find the initial tuning data for the Swiss cable provider "upc
->>>>>> cablecom" in Berne.
->>>>>>
->>>>>> I've added the data below to dvb-c/ch-Bern-upc-cablecom
->>>>>>
->>>>>> # upc cablecom
->>>>>> # Berne, Switzerland
->>>>>> # freq sr fec mod
->>>>>> C 426000000 6900000 NONE QAM64
->>>>> Thanks,
->>>>>
->>>>> pushed in 5493eb3f5f7801cc409596de0e2d0edb499daf70
->>>> Thanks a lot, but watch out for the typo within the file name [1]:
->>>> The companies brand is spelled 'upc cablecom' [2] not 'UPC-Capblecom'.
->>>>
->>> I will adjust this immediatly the typo (do'h cablecom, capcom!) and
->>> the capitisation. It appeared that it was lazy capitalization from
->>> your end for that I apologize. I wrongfully assumed since UPC here in
->>> NL is in caps, it should have been there as well. I'll lower the ch one.
->> Adjusted in 88b27009b76203b1a2583a6fe8d7c9d866ede808
->
-> Thanks a lot for applying, though I can still see the old files in HEAD...
->
->
->> nl-upc has also been lowercased as that is their official branding here
->> in NL as well [1].
->
-> While you're in the renaming mood, 'ch-Zuerich-cablecom' could also be
-> renamed to 'ch-Zuerich-upc-cablecom' with the following content
-> (according to the cablcom's website, the tuning data still seems to be
-> correct):
-> # upc cablecom
-> # Zurich, Switzerland
-> # freq sr fec mod
-> C 410000000 6900000 NONE QAM64
-Applied and corrected in 3c5fe8488340f23aab289a4f08ed517cacb84b0d
->
-> So, and now I stop bothering you ;)
-No bother at all. Correct scanfiles is best for all.
-
->
-> Cheers and thanks again for your work!
-> Christian
->
->>
->> [1] http://www.upc.nl
+On 02/09/2013 12:27 AM, Stephen Warren wrote:
+> On 02/08/2013 03:29 PM, Sylwester Nawrocki wrote:
+>> On 02/07/2013 12:36 AM, Stephen Warren wrote:
+>>> On 02/01/2013 12:09 PM, Sylwester Nawrocki wrote:
+>>>> s5p-csis is platform device driver for MIPI-CSI frontend to the FIMC
+>>>> device. This patch support for binding the driver to the MIPI-CSIS
+>>>> devices instantiated from device tree and for parsing all SoC and
+>>>> board specific properties.
 >>>
->>>> Thanks again and best regards
->>>> Christian
->>>>
->>>>
->>>> [1]
->>>> http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-c/ch-Bern-UPC-Capblecom
->>>>
->>>> [2] http://www.upc-cablecom.ch/en/b2c/about/ueberuns.htm
+>>>> diff --git
+>>>> a/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+>>> b/Documentation/devicetree/bindings/media/soc/samsung-mipi-csis.txt
+>>>
+>>>> +Optional properties:
+>>>> +
+>>>> +- clock-frequency : The IP's main (system bus) clock frequency in
+>>>> Hz, default
+>>>> +            value when this property is not specified is 166 MHz;
+>>>
+>>> Shouldn't this be a "clocks" property, so that the driver can call
+>>> clk_get(), clk_prepare_enable(), clk_get_rate(), etc. on it?
+>>
+>> Hi Stephen,
+>>
+>> Thanks for your review!
+>>
+>> I also use "clocks" and "clock-names" property, but didn't specify
+>> it here, because the Exynos SoCs clocks driver is not in the mainline yet.
+>
+> I'm a bit sympathetic to this, since I've been trying to push Tegra
+> towards the common clock framework and describing clock connectivity in
+> DT, before adding new drivers that need clocks, specifically to avoid
+> this kind of situation.
+>
+> The problem here is that if this gets merged now, then the clock driver
+> comes along later, you'll have to change this binding definition to
+> account for it, and DT bindings aren't supposed to be changed...
+
+Yes, I wasn't quite sure if this is a really serious problem or not. There
+is already quite a few drivers for the Exynos SoC IPs that have DT support
+and their bindings will need to be changed when the new clocks driver
+gets upstreamed...
+
+> Do you have any clock driver at all upstream yet? Or, could you add a
+> dummy clock driver to satisfy the driver's clkl_get() needs? If you do,
+> you can always set up some AUXDATA so that clk_get() works for your
+> driver right now, and then remove that once the complete clock driver is
+> in place with full device tree support. That's how we've ended up
+> handling this for Tegra drivers.
+
+Yes, there is the clocks support upstream, only not using the common clock
+API. And I used indeed AUXDATA in v3 of these patches.
+
+The Exynos common clock API based driver was supposed to be merged in v3.9,
+but it seems it won't happen. These patches also won't make it to 3.9.
+Then hopefully both appear in 3.10 together.
+
+I will add the clock properties to relevant nodes, assuming the new clocks
+driver is available.
+
+> Anyway, this is all mainly food-for-thought rather than an objection to
+> the patch; I'd leave that to Grant/Rob if applicable.
+
+:-) OK, thanks for the suggestions.
 
