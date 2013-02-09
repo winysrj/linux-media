@@ -1,85 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from db3ehsobe001.messaging.microsoft.com ([213.199.154.139]:15969
-	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756814Ab3BNJbC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 04:31:02 -0500
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover
- after a blank/unblank (or overlay disables after resuming)
-Date: Thu, 14 Feb 2013 09:30:55 +0000
-Message-ID: <6EE9CD707FBED24483D4CB0162E8546724593AEC@AMSPRD0711MB532.eurprd07.prod.outlook.com>
-References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com>
- <51138BCA.4010701@ti.com>
-In-Reply-To: <51138BCA.4010701@ti.com>
-Content-Language: de-DE
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2890 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752557Ab3BIKBO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:14 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 04/26] cx231xx: remove broken audio input support from the driver.
+Date: Sat,  9 Feb 2013 11:00:34 +0100
+Message-Id: <0306a951f747a45d7a6b67406e58793d2f712228.1360403309.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tomi Valkeinen wrote on 2013-02-07:
+The audio selection code is broken. Audio and video indices were
+mixed up and s_audio would reject changing the audio input to
+something else anyway, so what's the point?
 
-> FIFO underflow means that the DSS hardware wasn't able to fetch enough 
-> pixel data in time to output them to the panel. Sometimes this happens 
-> because of plain misconfiguration, but usually it happens because of 
-> the hardware just can't do things fast enough with the configuration 
-> the user has set.
-> 
-> In this case I see that you are using VRFB rotation on fb0, and the 
-> rotation is
-> 270 degrees. Rotating the fb is heavy, especially 90 and 270 degrees. 
-> It may be that when the DSS is resumed, there's a peak in the mem 
-> usage as DSS suddenly needs to fetch lots of data.
-> 
-> Another issue that could be involved is power management. After the 
-> DSS is suspended, parts of OMAP may be put to sleep. When the DSS is 
-> resumed, these parts need to be woken up, and it may be that there's a 
-> higher mem latency for a short period of time right after resume. 
-> Which could again cause DSS not getting enough pixel data.
-> 
-> You say the issue doesn't happen if you disable fb0. What happens if 
-> you disable fb0, blank the screen, then unblank the screen, and after 
-> that enable fb0 again?
+All the audio input code has been removed.
 
-By "disable fb0" do you mean disconnect fb0 from ovl0 or disable ovl0?
-I have done both:
-http://pastebin.com/Bxm1Z2RY
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-video.c |   52 +++++------------------------
+ 1 file changed, 8 insertions(+), 44 deletions(-)
 
-This works as expected.
-
-Further tests I have done:
-
-Enable fb1/ovl1 and hit some keys on the keyboard to let fb0/ovl0 update in the
-background causes a fifo underflow too:
-http://pastebin.com/f3JnMLsV
-
-This happens only, if I enable the vrfb (rotate=3). So the whole thing
-seems to be a rotation issue. Do you have some hints to trace down
-the problem?
-
-> How about if you disable VRFB rotation, either totally, or set the 
-> rotation to 0 or 180 degrees?
-
-Disable rotation is not an option for me, as we have a "wrong" oriented
-portrait display with 480x800 which we must use in landscape mode...
-
-> And you can also tune the PM so that deeper sleep states are prevented.
-> I don't remember right away how this is done, though.
-> 
->  Tomi
-
-Regards,
-Florian
-
-P.S.
-@Laurent: Do you use your streamer on a headless device? What is your DSS-config?
-Do you have a framebuffer-console on fb0?
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 0436b12..f4243c6 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1231,44 +1231,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
+-static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+-{
+-	struct cx231xx_fh *fh = priv;
+-	struct cx231xx *dev = fh->dev;
+-
+-	switch (a->index) {
+-	case CX231XX_AMUX_VIDEO:
+-		strcpy(a->name, "Television");
+-		break;
+-	case CX231XX_AMUX_LINE_IN:
+-		strcpy(a->name, "Line In");
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	a->index = dev->ctl_ainput;
+-	a->capability = V4L2_AUDCAP_STEREO;
+-
+-	return 0;
+-}
+-
+-static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+-{
+-	struct cx231xx_fh *fh = priv;
+-	struct cx231xx *dev = fh->dev;
+-	int status = 0;
+-
+-	/* Doesn't allow manual routing */
+-	if (a->index != dev->ctl_ainput)
+-		return -EINVAL;
+-
+-	dev->ctl_ainput = INPUT(a->index)->amux;
+-	status = cx231xx_set_audio_input(dev, dev->ctl_ainput);
+-
+-	return status;
+-}
+-
+ static int vidioc_queryctrl(struct file *file, void *priv,
+ 			    struct v4l2_queryctrl *qc)
+ {
+@@ -1877,8 +1839,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO)
+ 		cap->device_caps = V4L2_CAP_RADIO;
+ 	else {
+-		cap->device_caps = V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
+-			V4L2_CAP_STREAMING;
++		cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+ 		if (vdev->vfl_type == VFL_TYPE_VBI)
+ 			cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
+ 		else
+@@ -1886,9 +1847,8 @@ static int vidioc_querycap(struct file *file, void *priv,
+ 	}
+ 	if (dev->tuner_type != TUNER_ABSENT)
+ 		cap->device_caps |= V4L2_CAP_TUNER;
+-	cap->capabilities = cap->device_caps |
++	cap->capabilities = cap->device_caps | V4L2_CAP_READWRITE |
+ 		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
+ 		V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
+ 	if (dev->radio_dev)
+ 		cap->capabilities |= V4L2_CAP_RADIO;
+@@ -2463,8 +2423,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_g_fmt_vbi_cap          = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_try_fmt_vbi_cap        = vidioc_try_fmt_vbi_cap,
+ 	.vidioc_s_fmt_vbi_cap          = vidioc_try_fmt_vbi_cap,
+-	.vidioc_g_audio                =  vidioc_g_audio,
+-	.vidioc_s_audio                = vidioc_s_audio,
+ 	.vidioc_cropcap                = vidioc_cropcap,
+ 	.vidioc_g_fmt_sliced_vbi_cap   = vidioc_g_fmt_sliced_vbi_cap,
+ 	.vidioc_try_fmt_sliced_vbi_cap = vidioc_try_set_sliced_vbi_cap,
+@@ -2553,6 +2511,12 @@ static struct video_device *cx231xx_vdev_init(struct cx231xx *dev,
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s", dev->name, type_name);
+ 
+ 	video_set_drvdata(vfd, dev);
++	if (dev->tuner_type == TUNER_ABSENT) {
++		v4l2_disable_ioctl(vfd, VIDIOC_G_FREQUENCY);
++		v4l2_disable_ioctl(vfd, VIDIOC_S_FREQUENCY);
++		v4l2_disable_ioctl(vfd, VIDIOC_G_TUNER);
++		v4l2_disable_ioctl(vfd, VIDIOC_S_TUNER);
++	}
+ 	return vfd;
+ }
+ 
+-- 
+1.7.10.4
 
