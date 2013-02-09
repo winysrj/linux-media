@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:65308 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab3BMGyf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Feb 2013 01:54:35 -0500
-Received: by mail-ea0-f176.google.com with SMTP id a13so382391eaa.35
-        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:54:34 -0800 (PST)
-Message-ID: <511B38A6.3060001@gmail.com>
-Date: Wed, 13 Feb 2013 07:54:30 +0100
-From: thomas schorpp <thomas.schorpp@gmail.com>
-Reply-To: thomas.schorpp@gmail.com
-MIME-Version: 1.0
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2469 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752695Ab3BIKB1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
-References: <1360704036.22660.5.camel@joe-AO722> <511AFC9E.5060408@gmail.com> <1360723757.2220.1.camel@joe-AO722> <CAA7C2qhQ74EbafCXnn0Rz_J70KoT+th61FF1hbotPXv7RszmKg@mail.gmail.com> <511B2F96.9020305@gmail.com>
-In-Reply-To: <511B2F96.9020305@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 24/26] cx231xx: don't use port 3 on the Conexant video grabber.
+Date: Sat,  9 Feb 2013 11:00:54 +0100
+Message-Id: <3c2ec6202c9b303da000432ec35df9e7501eee88.1360403310.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.02.2013 07:15, thomas schorpp wrote:
-> On 13.02.2013 06:15, VDR User wrote:
->> You can also try Jarod Wilson on freenode irc in #lirc. He is usually there.
->>
->
-> What for? Bothering him with issues from blocklisting mailhosters' RFC violations?
->
-> y
-> tom
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Unbelievable, this blocklist bullshit .org https://www.senderscore.org/senderscore/
+It's not working reliably if port 3 is enabled.
 
-claims the reputation to teach others about "reputation" and blocking internet mailers
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-but their own crap mailserver cannot even handle TLS:
-
-
-$ swaks -tls -t postmaster@senderscore.org -h xxxxxxxxxx -f xxxxxxxxxxxx
-=== Trying smtp.returnpath.net:25...
-=== Connected to smtp.returnpath.net.
-<-  220 smtp.returnpath.net ESMTP Postfix
-  -> EHLO xxxxxxxxx
-<-  250-smtp.returnpath.net
-...
-*** Host did not advertise STARTTLS
-  -> QUIT
-<-  221 2.0.0 Bye
-=== Connection closed with remote host.
-
-Bah!
-
-y
-tom
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 7094451..62d104b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -263,6 +263,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_PAL,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
++		.dont_use_port_3 = 1,
+ 		/* Actually, it has a 417, but it isn't working correctly.
+ 		 * So set to 0 for now until someone can manage to get this
+ 		 * to work reliably. */
+-- 
+1.7.10.4
 
