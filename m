@@ -1,162 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog110.obsmtp.com ([74.125.149.203]:42902 "EHLO
-	na3sys009aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757924Ab3BGMGS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 07:06:18 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>,
-	Libin Yang <lbyang@marvell.com>
-Subject: [REVIEW PATCH V4 09/12] [media] marvell-ccic: use unsigned int type replace int type
-Date: Thu,  7 Feb 2013 20:04:44 +0800
-Message-Id: <1360238687-15768-10-git-send-email-twang13@marvell.com>
-In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1902 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1947421Ab3BIAdu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Feb 2013 19:33:50 -0500
+Date: Fri, 8 Feb 2013 22:33:44 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [GIT PULL FOR v3.8] Regression fix: cx18/ivtv: remove __init
+ from a non-init function.
+Message-ID: <20130208223344.38009a5c@redhat.com>
+In-Reply-To: <201302080940.27735.hverkuil@xs4all.nl>
+References: <201302080940.27735.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch uses unsigned int type replace int type in marvell-ccic.
-These variables: frame number, buf number, irq... should be unsigned.
+Em Fri, 8 Feb 2013 09:40:27 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/marvell-ccic/mcam-core.c  |   22 +++++++++++-----------
- drivers/media/platform/marvell-ccic/mcam-core.h  |    2 +-
- drivers/media/platform/marvell-ccic/mmp-driver.c |    2 +-
- 3 files changed, 13 insertions(+), 13 deletions(-)
+> Mauro,
+> 
+> Please fast-track this for 3.8. Yesterday I discovered that commits made earlier
+> for 3.8 kill ivtv and cx18 (as in: unable to boot, instant crash) since a
+> function was made __init that was actually called *after* initialization.
+> 
+> We are already at rc6 and this *must* make it for 3.8. Without this patch
+> anyone with a cx18/ivtv will crash immediately as soon as they upgrade to 3.8.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 248ac368ce4b3cd36515122d888403909d7a2500:
+> 
+>   [media] s5p-fimc: Fix fimc-lite entities deregistration (2013-02-06 09:42:19 -0200)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git ivtv
+> 
+> for you to fetch changes up to ddf276062e68607323fca363b99bdf426dddad9b:
+> 
+>   cx18/ivtv: fix regression: remove __init from a non-init function. (2013-02-08 09:30:11 +0100)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>       cx18/ivtv: fix regression: remove __init from a non-init function.
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 939c430..b668f2b 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -233,7 +233,7 @@ static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
- /*
-  * Hand a completed buffer back to user space.
-  */
--static void mcam_buffer_done(struct mcam_camera *cam, int frame,
-+static void mcam_buffer_done(struct mcam_camera *cam, unsigned int frame,
- 		struct vb2_buffer *vbuf)
- {
- 	vbuf->v4l2_buf.bytesused = cam->pix_format.sizeimage;
-@@ -260,7 +260,7 @@ static void mcam_buffer_done(struct mcam_camera *cam, int frame,
-  */
- static void mcam_reset_buffers(struct mcam_camera *cam)
- {
--	int i;
-+	unsigned int i;
- 
- 	cam->next_buf = -1;
- 	for (i = 0; i < cam->nbufs; i++) {
-@@ -344,7 +344,7 @@ static int mcam_config_mipi(struct mcam_camera *mcam, int enable)
-  */
- static int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
- {
--	int i;
-+	unsigned int i;
- 
- 	mcam_set_config_needed(cam, 1);
- 	if (loadtime)
-@@ -385,7 +385,7 @@ static int mcam_alloc_dma_bufs(struct mcam_camera *cam, int loadtime)
- 
- static void mcam_free_dma_bufs(struct mcam_camera *cam)
- {
--	int i;
-+	unsigned int i;
- 
- 	for (i = 0; i < cam->nbufs; i++) {
- 		dma_free_coherent(cam->dev, cam->dma_buf_size,
-@@ -424,7 +424,7 @@ static void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam)
- static void mcam_frame_tasklet(unsigned long data)
- {
- 	struct mcam_camera *cam = (struct mcam_camera *) data;
--	int i;
-+	unsigned int i;
- 	unsigned long flags;
- 	struct mcam_vb_buffer *buf;
- 
-@@ -472,7 +472,7 @@ static int mcam_check_dma_buffers(struct mcam_camera *cam)
- 	return 0;
- }
- 
--static void mcam_vmalloc_done(struct mcam_camera *cam, int frame)
-+static void mcam_vmalloc_done(struct mcam_camera *cam, unsigned int frame)
- {
- 	tasklet_schedule(&cam->s_tasklet);
- }
-@@ -521,7 +521,7 @@ static bool mcam_fmt_is_planar(__u32 pfmt)
-  * space.  In this way, we always have a buffer to DMA to and don't
-  * have to try to play games stopping and restarting the controller.
-  */
--static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
-+static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
- {
- 	struct mcam_vb_buffer *buf;
- 	struct v4l2_pix_format *fmt = &cam->pix_format;
-@@ -567,7 +567,7 @@ static void mcam_ctlr_dma_contig(struct mcam_camera *cam)
- /*
-  * Frame completion handling.
-  */
--static void mcam_dma_contig_done(struct mcam_camera *cam, int frame)
-+static void mcam_dma_contig_done(struct mcam_camera *cam, unsigned int frame)
- {
- 	struct mcam_vb_buffer *buf = cam->vb_bufs[frame];
- 
-@@ -643,7 +643,7 @@ static void mcam_ctlr_dma_sg(struct mcam_camera *cam)
-  * safely change the DMA descriptor array here and restart things
-  * (assuming there's another buffer waiting to go).
-  */
--static void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
-+static void mcam_dma_sg_done(struct mcam_camera *cam, unsigned int frame)
- {
- 	struct mcam_vb_buffer *buf = cam->vb_bufs[0];
- 
-@@ -1051,7 +1051,7 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
- 		void *alloc_ctxs[])
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
--	int minbufs = (cam->buffer_mode == B_DMA_CONTIG) ? 3 : 2;
-+	unsigned int minbufs = (cam->buffer_mode == B_DMA_CONTIG) ? 3 : 2;
- 
- 	sizes[0] = cam->pix_format.sizeimage;
- 	*num_planes = 1; /* Someday we have to support planar formats... */
-@@ -1855,7 +1855,7 @@ static struct video_device mcam_v4l_template = {
- /*
-  * Interrupt handler stuff
-  */
--static void mcam_frame_complete(struct mcam_camera *cam, int frame)
-+static void mcam_frame_complete(struct mcam_camera *cam, unsigned int frame)
- {
- 	/*
- 	 * Basic frame housekeeping.
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index 263767e..4cb68e0 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -163,7 +163,7 @@ struct mcam_camera {
- 
- 	/* Mode-specific ops, set at open time */
- 	void (*dma_setup)(struct mcam_camera *cam);
--	void (*frame_complete)(struct mcam_camera *cam, int frame);
-+	void (*frame_complete)(struct mcam_camera *cam, unsigned int frame);
- 
- 	/* Current operating parameters */
- 	u32 sensor_type;		/* Currently ov7670 only */
-diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-index 89dd078..732af16 100755
---- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-@@ -42,7 +42,7 @@ struct mmp_camera {
- 	struct platform_device *pdev;
- 	struct mcam_camera mcam;
- 	struct list_head devlist;
--	int irq;
-+	unsigned int irq;
- };
- 
- static inline struct mmp_camera *mcam_to_cam(struct mcam_camera *mcam)
+Hmm... the patch seems to be broken/incomplete:
+
+
+WARNING: drivers/media/pci/cx18/cx18-alsa.o(.text+0x449): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+The function cx18_alsa_load() references
+the function __init snd_cx18_pcm_create().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_pcm_create is wrong.
+
+WARNING: drivers/media/pci/cx18/built-in.o(.text+0x1be69): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+The function cx18_alsa_load() references
+the function __init snd_cx18_pcm_create().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_pcm_create is wrong.
+
+WARNING: drivers/media/pci/ivtv/ivtv-alsa.o(.text+0x454): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+The function ivtv_alsa_load() references
+the function __init snd_ivtv_pcm_create().
+This is often because ivtv_alsa_load lacks a __init 
+annotation or the annotation of snd_ivtv_pcm_create is wrong.
+
+WARNING: drivers/media/pci/ivtv/built-in.o(.text+0x20790): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+The function ivtv_alsa_load() references
+the function __init snd_ivtv_pcm_create().
+This is often because ivtv_alsa_load lacks a __init 
+annotation or the annotation of snd_ivtv_pcm_create is wrong.
+
+WARNING: drivers/media/pci/built-in.o(.text+0x6b958): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+The function ivtv_alsa_load() references
+the function __init snd_ivtv_pcm_create().
+This is often because ivtv_alsa_load lacks a __init 
+annotation or the annotation of snd_ivtv_pcm_create is wrong.
+
+WARNING: drivers/media/pci/built-in.o(.text+0x9fc21): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+The function cx18_alsa_load() references
+the function __init snd_cx18_pcm_create().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_pcm_create is wrong.
+
+WARNING: drivers/media/built-in.o(.text+0x289f48): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+The function ivtv_alsa_load() references
+the function __init snd_ivtv_pcm_create().
+This is often because ivtv_alsa_load lacks a __init 
+annotation or the annotation of snd_ivtv_pcm_create is wrong.
+
+WARNING: drivers/media/built-in.o(.text+0x2be211): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+The function cx18_alsa_load() references
+the function __init snd_cx18_pcm_create().
+This is often because cx18_alsa_load lacks a __init 
+annotation or the annotation of snd_cx18_pcm_create is wrong.
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
