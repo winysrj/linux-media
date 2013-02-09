@@ -1,79 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:47728 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753416Ab3BCPsj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:48:39 -0500
-Received: by mail-da0-f52.google.com with SMTP id f10so2310175dak.25
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:48:39 -0800 (PST)
-Message-ID: <510F3E6E.2060505@gmail.com>
-Date: Sun, 03 Feb 2013 23:51:58 -0500
-From: Huang Shijie <shijie8@gmail.com>
+Received: from mailout06.t-online.de ([194.25.134.19]:56469 "EHLO
+	mailout06.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932504Ab3BIT4f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 14:56:35 -0500
+Message-ID: <5116A9E7.9050009@t-online.de>
+Date: Sat, 09 Feb 2013 20:56:23 +0100
+From: Christoph Nuscheler <christoph.nuscheler@t-online.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 15/18] tlg2300: remove empty vidioc_try_fmt_vid_cap,
- add missing g_std.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <2e32299585af78c94bfb4c8df2d61d790935cefb.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <2e32299585af78c94bfb4c8df2d61d790935cefb.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: [PATCH] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff)
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-video.c |   16 +++++++++-------
->  1 file changed, 9 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-> index 849c4bb..4c045b3 100644
-> --- a/drivers/media/usb/tlg2300/pd-video.c
-> +++ b/drivers/media/usb/tlg2300/pd-video.c
-> @@ -705,12 +705,6 @@ static int vidioc_g_fmt(struct file *file, void *fh, struct v4l2_format *f)
->  	return 0;
->  }
->  
-> -static int vidioc_try_fmt(struct file *file, void *fh,
-> -		struct v4l2_format *f)
-> -{
-> -	return 0;
-> -}
-> -
->  /*
->   * VLC calls VIDIOC_S_STD before VIDIOC_S_FMT, while
->   * Mplayer calls them in the reverse order.
-> @@ -866,6 +860,14 @@ static int vidioc_s_std(struct file *file, void *fh, v4l2_std_id *norm)
->  	return set_std(front->pd, norm);
->  }
->  
-> +static int vidioc_g_std(struct file *file, void *fh, v4l2_std_id *norm)
-> +{
-> +	struct front_face *front = fh;
-> +	logs(front);
-> +	*norm = front->pd->video_data.context.tvnormid;
-> +	return 0;
-> +}
-> +
->  static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *in)
->  {
->  	struct front_face *front = fh;
-> @@ -1495,7 +1497,6 @@ static const struct v4l2_ioctl_ops pd_video_ioctl_ops = {
->  	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt,
->  	.vidioc_s_fmt_vid_cap	= vidioc_s_fmt,
->  	.vidioc_g_fmt_vbi_cap	= vidioc_g_fmt_vbi, /* VBI */
-> -	.vidioc_try_fmt_vid_cap = vidioc_try_fmt,
->  
->  	/* Input */
->  	.vidioc_g_input		= vidioc_g_input,
-> @@ -1510,6 +1511,7 @@ static const struct v4l2_ioctl_ops pd_video_ioctl_ops = {
->  	/* Tuner ioctls */
->  	.vidioc_g_tuner		= vidioc_g_tuner,
->  	.vidioc_s_tuner		= vidioc_s_tuner,
-> +	.vidioc_g_std		= vidioc_g_std,
->  	.vidioc_s_std		= vidioc_s_std,
->  	.vidioc_g_frequency	= vidioc_g_frequency,
->  	.vidioc_s_frequency	= vidioc_s_frequency,
-Acked-by: Huang Shijie <shijie8@gmail.com>
+Sorry about the mess in my last message; this time diff output should be 
+formatted correctly.
+
+The "Technisat SkyStar USB plus" is a TT-connect S-2400 clone, which the 
+V4L-DVB drivers already support. However, some of these devices (like 
+mine) come with a different USB PID 0x3009 instead of 0x3006.
+
+There have already been patches simply overwriting the USB PID in 
+dvb-usb-ids.h. Of course these patches were rejected because they would 
+have disabled the 0x3006 PID.
+
+This new patch adds the 0x3009 PID to dvb-usb-ids.h, and adds references 
+to it within the ttusb2.c driver. PID 0x3006 devices will continue to work.
+
+The only difference between the two hardware models seems to be the 
+EEPROM chip. In fact, Windows BDA driver names the 0x3009 device with a 
+"(8 kB EEPROM)" suffix. In spite of that, the 0x3009 device works 
+absolutely flawlessly using the existing ttusb2 driver.
+
+Signed-off-by: Christoph Nuscheler <christoph.nuscheler@t-online.de>
+
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h 
+b/drivers/media/dvb-core/dvb-usb-ids.h
+index 7e1597d..399e104 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -242,6 +242,7 @@
+  #define USB_PID_AVERMEDIA_A867				0xa867
+  #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
+  #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
++#define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+  #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
+  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2	0x0081
+diff --git a/drivers/media/usb/dvb-usb/ttusb2.c 
+b/drivers/media/usb/dvb-usb/ttusb2.c
+index bcdac22..07d4994 100644
+--- a/drivers/media/usb/dvb-usb/ttusb2.c
++++ b/drivers/media/usb/dvb-usb/ttusb2.c
+@@ -619,6 +619,8 @@ static struct usb_device_id ttusb2_table [] = {
+  	{ USB_DEVICE(USB_VID_TECHNOTREND,
+  		USB_PID_TECHNOTREND_CONNECT_S2400) },
+  	{ USB_DEVICE(USB_VID_TECHNOTREND,
++		USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM) },
++	{ USB_DEVICE(USB_VID_TECHNOTREND,
+  		USB_PID_TECHNOTREND_CONNECT_CT3650) },
+  	{}		/* Terminating entry */
+  };
+@@ -721,12 +723,16 @@ static struct dvb_usb_device_properties 
+ttusb2_properties_s2400 = {
+
+  	.generic_bulk_ctrl_endpoint = 0x01,
+
+-	.num_device_descs = 1,
++	.num_device_descs = 2,
+  	.devices = {
+  		{   "Technotrend TT-connect S-2400",
+  			{ &ttusb2_table[2], NULL },
+  			{ NULL },
+  		},
++		{   "Technotrend TT-connect S-2400 (8kB EEPROM)",
++			{&ttusb2_table[3], NULL },
++			{ NULL },
++		},
+  	}
+  };
+
+@@ -800,7 +806,7 @@ static struct dvb_usb_device_properties 
+ttusb2_properties_ct3650 = {
+  	.num_device_descs = 1,
+  	.devices = {
+  		{   "Technotrend TT-connect CT-3650",
+-			.warm_ids = { &ttusb2_table[3], NULL },
++			.warm_ids = { &ttusb2_table[4], NULL },
+  		},
+  	}
+  };
+
