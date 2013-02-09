@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:37892 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757463Ab3BAVDe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 16:03:34 -0500
-Received: by mail-we0-f171.google.com with SMTP id u54so3381121wey.30
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 13:03:32 -0800 (PST)
-Message-ID: <510C2DA2.7020000@googlemail.com>
-Date: Fri, 01 Feb 2013 21:03:30 +0000
-From: Chris Clayton <chris2553@googlemail.com>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:51680 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757982Ab3BIWwI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 17:52:08 -0500
+Message-ID: <5116D313.8000603@gmail.com>
+Date: Sat, 09 Feb 2013 23:52:03 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
-References: <510A9A1E.9090801@googlemail.com> <CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com> <510ADB2F.4080901@googlemail.com> <510AF800.2090607@googlemail.com> <510BACD5.2070406@googlemail.com> <510BCE2F.1070100@googlemail.com> <CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com>
-In-Reply-To: <CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com>
+To: Stephen Warren <swarren@wwwdotorg.org>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, rob.herring@calxeda.com,
+	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v4 02/10] s5p-fimc: Add device tree support for FIMC devices
+References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com> <5112E9EF.8090908@wwwdotorg.org> <5115874A.6050406@gmail.com> <51158873.3060508@wwwdotorg.org> <511592B4.5050406@gmail.com> <5115991E.7050009@wwwdotorg.org> <5116CDBB.4080807@gmail.com>
+In-Reply-To: <5116CDBB.4080807@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
-
-On 02/01/13 14:19, Devin Heitmueller wrote:
-> On Fri, Feb 1, 2013 at 9:16 AM, Chris Clayton <chris2553@googlemail.com> wrote:
->> I've got some more diagnostics. I tuned on the 12c debugging in the cx23885
->> driver and ran the scan again. Surprisingly, the scan found 22 channels on a
->> single frequency (that carries the BBC channels). I've attached two files -
->> the output from dvbscan and the kernel log covering the loading of the
->> drivers and running the scan.
->>
->> I'm no kernel guru, but is it possible that the root cause of the scan
->> failures is a timing problem which is being partially offset by the time
->> taken to produce all the debug output?
+On 02/09/2013 11:29 PM, Sylwester Nawrocki wrote:
 >
-> w_scan does have some arguments that let you increase the timeout for
-> tuning.  You may wish to see if that has any effect.  Maybe the w_scan
-> timeout is just too short for that device.
->
+>> After all, what happens in some later SoC where you have two different
+>> types of module that feed into the common module, such that type A
+>> sources have IDs 0..3 in the common module, and type B sources have IDs
+>> 4..7 in the common module - you wouldn't want to require alias ISs 4..7
+>> for the type B DT nodes.
 
-Yes, I noticed that but even with the tuning timeout set at medium or 
-longest, I doesn't find any channels. However, I've been following the 
-debug messages through the code and ended up at 
-drivers/media/pci/cx23885/cx23885-i2c.c.
-
-I've found that by amending I2C_WAIT_DELAY from 32 to 64, I get improved 
-results from scanning. With that delay doubled, scandvb now finds 49 
-channels over 3 frequencies. That's with all debugging turned off, so no 
-extra delays provided by the production of debug messages.
-
-I'll play around more tomorrow and update then.
-
-Chris
-
-> Devin
->
+I forgot to add, any ID remapping could happen in the common module, if
+it requires it. Type A and type B sources could have indexes 0...3 and
+the common module could derive its configuration from the source ID *and*
+the source type. The idea behind aliases was to identify each instance,
+rather than providing an exact configuration data that the common module
+could use.
