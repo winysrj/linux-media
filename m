@@ -1,107 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:37037 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab3BFEOy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 23:14:54 -0500
-Received: by mail-oa0-f41.google.com with SMTP id i10so1070782oag.28
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 20:14:53 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5110D1DA.6000100@samsung.com>
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
-	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
-	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
-	<510987B5.6090509@gmail.com>
-	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
-	<510B02AB.4080908@gmail.com>
-	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
-	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
-	<CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
-	<510B9EC8.6020102@samsung.com>
-	<CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
-	<014401ce006f$c7dd1dd0$57975970$%dae@samsung.com>
-	<CAK9yfHyEdd_nr5eqT9WZ4+J9LHczL4U5VAUEwzzjbH1H0xgjUQ@mail.gmail.com>
-	<014501ce0072$9eca1a80$dc5e4f80$%dae@samsung.com>
-	<E382E0B5-2695-4293-B264-FB4C54FE4F9D@gmail.com>
-	<CAK9yfHx7FOE1xTqDH=1L5r+hZFY7U-W=Q49qErgjs-i1HU4j4w@mail.gmail.com>
-	<CAAQKjZNLTZSJ8Y0tt2aZPKFESbLGxQ1Z92zkhV_u8nvSXekgtw@mail.gmail.com>
-	<5110D1DA.6000100@samsung.com>
-Date: Wed, 6 Feb 2013 09:44:53 +0530
-Message-ID: <CAK9yfHxZZLkXOf78QUOAC1hiXpR9fDuvaXjebtkmkrZW8uD9Vw@mail.gmail.com>
-Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>,
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:41703 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760818Ab3BISws (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 13:52:48 -0500
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Alexander Nestorov <alexandernst@gmail.com>,
+	Juergen Beisert <jbe@pengutronix.de>,
+	oselas@community.pengutronix.de,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
+	Andrey Gusakov <dron0gus@gmail.com>,
 	Kukjin Kim <kgene.kim@samsung.com>,
-	"patches@linaro.org" <patches@linaro.org>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [oselas] Audio support on Mini6410 board
+Date: Sat, 09 Feb 2013 19:52:43 +0100
+Message-ID: <9072709.Au7dcGPusH@flatron>
+In-Reply-To: <511693AC.5010604@gmail.com>
+References: <CACuz9s2w28eVG8qS9FXkUYAggXn7y2deHi2fPGizcURu_Bp4wg@mail.gmail.com> <CACuz9s0kscbt5Z87mOX6C=9vKg2wrU-T69RS6NQmeSRqP_8K4w@mail.gmail.com> <511693AC.5010604@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5 February 2013 15:03, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> On 02/05/2013 04:03 AM, Inki Dae wrote:
-> [...]
->>> Exynos4210 has same g2d IP (v3.0) as C110 or V210; so the same
->>> comptible string will be used for this one too.
->>>
->>>> And please check if exynos4212 and 4412 SoCs have same fimg-2d ip.
->>>> If it's different, we might need to add ip version property or compatible
->>>> string to each dtsi file to identify the ip version.
->>>
->>> AFAIK, they both have the same IP (v4.1).
->>>
->>
->> Ok, let's use the below,
->>
->> For exynos4210 SoC,
->> compatible = "samsung,exynos4210-g2d"
->
-> Since S5PV210 (Exynos3110 ??) seems to have same G2D IP, I guess
-> something like "samsung,s5pv210-g2d" could be used for both
-> S5PV210 (S5PC110) and Exynos4210 (S5PC210, S5PV310) ?
-> I'm fine with using "samsung,exynos4210-g2d" for Exynos4210 though.
+Hi,
 
-Since S5PV210 is the first SoC with the g2d IP as used on exynos4210,
-I am inclined to use
-"samsung,s5pv210-g2d" for exynos4210. This was suggested by Kukjin Kim as well.
+On Saturday 09 of February 2013 19:21:32 Sylwester Nawrocki wrote:
+> Hi,
+> 
+> On 01/20/2013 09:46 PM, Alexander Nestorov wrote:
+> > I have been playing for a week with the board. Both audio and video
+> > work correctly, but I haven't
+> > been able to set the mic settings in alsamixer (so I can't test the
+> > mic). The touchscreen isn't working, so I'll try to make it working
+> > and send you some patches.
+> > 
+> > Anyways, now there's another question/problem that I have. Video
+> > playback is really slow because
+> > I'm not using the device's cpu-decoder but rather doing everything in
+> > software mode.
+> > 
+> > Is there support for hardware acceleration in the kernel for this
+> > device? Also, after talking with
+> 
+> No, there is still no video codec (MFC) driver for s3c6410 upstream.
+> Now, when there is support for the hardware video codec available in
+> newer SoC (Exynos4/5) and some V4L2 infrastructure added together with
+> the s5p-mfc driver, it should be much easier to write a driver for the
+> s3c64xx MFC. Still it is relatively huge task and I didn't see any
+> volunteers willing to add support upstream for the s3c64xx MFC, except
+> Andrey who replied in this thread. I could provide some help, but
+> I will likely won't find time to do any development work or testing.
+> 
+> Also please note there is no support for the mem-to-mem features (color
+> space conversion, scaling, rotation/flip) in the s3c-camif driver.
+> It should be relatively simple to add it though. I'm not really sure
+> if it is needed to run the codec on s3c64xx, but the plugin [1] uses
+> FIMC (CAMIF) as a video post-processor. This plugin sets up processing
+> pipeline like:
+> 
+> memory (compressed data) -> MFC -> (YCbCr tiled) memory -> FIMC ->
+> memory (display)
 
-> For instance for tegra SoCs a conventions like "nvidia,tegra<chip>-<ip>",
-> is used (e.g. "nvidia,tegra20-gr2d").
->
->> For exynos4x12 SoCs,
->> compatible = "samsung,exynos4212-g2d"
->
-> I'm not sure how well exynos4212 is going to be supported in the kernel.
-> As Mr Park pointed out, if it is going to be nearly not existent then we
-> could perhaps go with "samsung,exynos4412-g2d" for Exynos4412 and
-> "samsung,exynos4212-g2d" for Exynos4212 (as needed). Anyway, I fine
-> with using "samsung,exynos4212-g2d" for both. I'd like to hear Mr Kim's
-> opinion on this as well though.
+AFAIK the MFC (like rest of the media processing peripherals) on S3C6410 
+does not support tiled buffers. It uses the standard planar Y + Cb + Cr 
+format.
 
-I will use "samsung,exynos4212-g2d" for now as it has dtsi reference,
-although there is no exclusive board support based on this SoC.
+In addition, the MFC of S3C6410 supports built-in rotation and mirroring 
+of decoded video.
 
->
->> For exynos5250, 5410 (In case of Exynos5440, I'm not sure that the SoC
->> has same ip)
->> compatible = "samsung,exynos5250-g2d"
->>
->> To other guys,
->> The device tree is used by not only v4l2 side but also drm side so we
->> should reach an arrangement. So please give me ack if you agree to my
->> opinion. Otherwise please, give me your opinions.
->
-> It looks good to me, please just see the two remarks above.
->
-Ok, i will use the above string for 5250.
+For scaling, there is a video post-processor block. There is no upstreamed 
+driver for it, but the hardware is reasonably simple, so it wouldn't be 
+too hard to write a driver for it. (I might be able to do it, although 
+don't count on me, as I have also much other work to do, part of which is 
+also related to S3C64xx).
 
-I will resend the patches with above changes and other comments addressed.
+Best regards,
+Tomasz
 
--- 
-With warm regards,
-Sachin
+> > some people from #gstreamer they pointed me to a component[1] in
+> > gstreamer, but I'm not really
+> > sure how to I use it. Any ideas/experience with that?
+> 
+> This component uses multi-planar V4L2 API [2], which also use the
+> s5p-mfc and s5p-fimc driver. The s3c-camif driver uses the
+> single-planar API at the camera capture video node. So if this existing
+> plugin was to be used with the s3c64xx hardware, the drivers for it
+> would have to support the multi-planar API, which I believe is not
+> needed on s3c64xx hardware.
+> The best is probably to make the drivers only single-plane API aware
+> and adapt the plugin. The required changes at the plugin wouldn't be
+> significant.
+> 
+> Anyway, a real problem here is lack of the s3c64xx MFC driver. So
+> first we need the codec driver, which could be tested with modified
+> test application [3], or directly with modified plugin [1].
+> 
+> > Regards!
+> > 
+> > [1] http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/tree/sys/mfc
+> 
+> [2] http://linuxtv.org/downloads/v4l-dvb-apis/planar-apis.html
+> [3]
+> http://git.infradead.org/users/kmpark/public-apps/tree/9c057b001e8873861
+> a70f7025214003837a0860b
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-samsung-soc" in the body of a message to
+> majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
