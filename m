@@ -1,133 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2263 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756103Ab3BJRxI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 12:53:08 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2916 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752640Ab3BIKBX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:23 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 09/12] stk-webcam: enable core-locking.
-Date: Sun, 10 Feb 2013 18:52:50 +0100
-Message-Id: <5073f62fa1df3ab133e940e27c0235ffba063f15.1360518391.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
-References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 19/26] cx231xx-417: share ioctls with cx231xx-video.
+Date: Sat,  9 Feb 2013 11:00:49 +0100
+Message-Id: <e63085641221f36f3bc54414874725f859b95b64.1360403310.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This makes it possible to switch to unlocked_ioctl.
+Share tuner, frequency, debug and input ioctls with cx231xx-video.
+These are all shared resources, so no need to implement them again.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Arvydas Sidorenko <asido4@gmail.com>
 ---
- drivers/media/usb/stkwebcam/stk-webcam.c |   24 ++++++++++++++++++++++--
- drivers/media/usb/stkwebcam/stk-webcam.h |    1 +
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-417.c   |  113 +++++++----------------------
+ drivers/media/usb/cx231xx/cx231xx-video.c |   52 ++++++-------
+ drivers/media/usb/cx231xx/cx231xx.h       |   15 ++++
+ 3 files changed, 67 insertions(+), 113 deletions(-)
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index ce802f7..f3fabda 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -572,6 +572,8 @@ static int v4l_stk_open(struct file *fp)
- 	if (dev == NULL || !is_present(dev))
- 		return -ENXIO;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index 2c05c8f..567d7ab 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -35,6 +35,7 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/cx2341x.h>
++#include <media/tuner.h>
+ #include <linux/usb.h>
  
-+	if (mutex_lock_interruptible(&dev->lock))
-+		return -ERESTARTSYS;
- 	if (!dev->first_init)
- 		stk_camera_write_reg(dev, 0x0, 0x24);
- 	else
-@@ -580,6 +582,7 @@ static int v4l_stk_open(struct file *fp)
- 	err = v4l2_fh_open(fp);
- 	if (!err)
- 		usb_autopm_get_interface(dev->interface);
-+	mutex_unlock(&dev->lock);
- 	return err;
+ #include "cx231xx.h"
+@@ -1551,68 +1552,6 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	return 0;
  }
  
-@@ -587,6 +590,7 @@ static int v4l_stk_release(struct file *fp)
+-static const char * const iname[] = {
+-	[CX231XX_VMUX_COMPOSITE1] = "Composite1",
+-	[CX231XX_VMUX_SVIDEO]     = "S-Video",
+-	[CX231XX_VMUX_TELEVISION] = "Television",
+-	[CX231XX_VMUX_CABLE]      = "Cable TV",
+-	[CX231XX_VMUX_DVB]        = "DVB",
+-	[CX231XX_VMUX_DEBUG]      = "for debug only",
+-};
+-
+-static int vidioc_enum_input(struct file *file, void *priv,
+-				struct v4l2_input *i)
+-{
+-	struct cx231xx_fh  *fh  = file->private_data;
+-	struct cx231xx *dev = fh->dev;
+-	struct cx231xx_input *input;
+-	int n;
+-	dprintk(3, "enter vidioc_enum_input()i->index=%d\n", i->index);
+-
+-	if (i->index >= 4)
+-		return -EINVAL;
+-
+-	input = &cx231xx_boards[dev->model].input[i->index];
+-
+-	if (input->type == 0)
+-		return -EINVAL;
+-
+-	/* FIXME
+-	 * strcpy(i->name, input->name); */
+-
+-	n = i->index;
+-	strcpy(i->name, iname[INPUT(n)->type]);
+-
+-	if (input->type == CX231XX_VMUX_TELEVISION ||
+-	    input->type == CX231XX_VMUX_CABLE)
+-		i->type = V4L2_INPUT_TYPE_TUNER;
+-	else
+-		i->type  = V4L2_INPUT_TYPE_CAMERA;
+-	return 0;
+-}
+-
+-static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
+-{
+-	*i = 0;
+-	return  0;
+-}
+-
+-static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+-{
+-	struct cx231xx_fh  *fh  = file->private_data;
+-	struct cx231xx *dev = fh->dev;
+-
+-	dprintk(3, "enter vidioc_s_input() i=%d\n", i);
+-
+-	video_mux(dev, i);
+-
+-	if (i >= 4)
+-		return -EINVAL;
+-	dev->input = i;
+-	dprintk(3, "exit vidioc_s_input()\n");
+-	return 0;
+-}
+-
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctl)
  {
- 	struct stk_camera *dev = video_drvdata(fp);
+@@ -1831,22 +1770,12 @@ static int vidioc_queryctrl(struct file *file, void *priv,
  
-+	mutex_lock(&dev->lock);
- 	if (dev->owner == fp) {
- 		stk_stop_stream(dev);
- 		stk_free_buffers(dev);
-@@ -597,10 +601,11 @@ static int v4l_stk_release(struct file *fp)
- 
- 	if (is_present(dev))
- 		usb_autopm_put_interface(dev->interface);
-+	mutex_unlock(&dev->lock);
- 	return v4l2_fh_release(fp);
- }
- 
--static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
-+static ssize_t stk_read(struct file *fp, char __user *buf,
- 		size_t count, loff_t *f_pos)
+ static int mpeg_open(struct file *file)
  {
- 	int i;
-@@ -661,6 +666,19 @@ static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
- 	return count;
- }
+-	int minor = video_devdata(file)->minor;
+-	struct cx231xx *h, *dev = NULL;
+-	/*struct list_head *list;*/
++	struct video_device *vdev = video_devdata(file);
++	struct cx231xx *dev = video_drvdata(file);
+ 	struct cx231xx_fh *fh;
+-	/*u32 value = 0;*/
  
-+static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
-+		size_t count, loff_t *f_pos)
-+{
-+	struct stk_camera *dev = video_drvdata(fp);
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&dev->lock))
-+		return -ERESTARTSYS;
-+	ret = stk_read(fp, buf, count, f_pos);
-+	mutex_unlock(&dev->lock);
-+	return ret;
-+}
-+
- static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
- {
- 	struct stk_camera *dev = video_drvdata(fp);
-@@ -1145,7 +1163,7 @@ static struct v4l2_file_operations v4l_stk_fops = {
- 	.read = v4l_stk_read,
- 	.poll = v4l_stk_poll,
- 	.mmap = v4l_stk_mmap,
--	.ioctl = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
+ 	dprintk(2, "%s()\n", __func__);
+ 
+-	list_for_each_entry(h, &cx231xx_devlist, devlist) {
+-		if (h->v4l_device->minor == minor)
+-			dev = h;
+-	}
+-
+-	if (dev == NULL)
+-		return -ENODEV;
+-
+ 	if (mutex_lock_interruptible(&dev->lock))
+ 		return -ERESTARTSYS;
+ 
+@@ -1858,7 +1787,8 @@ static int mpeg_open(struct file *file)
+ 	}
+ 
+ 	file->private_data = fh;
+-	fh->dev      = dev;
++	v4l2_fh_init(&fh->fh, vdev);
++	fh->dev = dev;
+ 
+ 
+ 	videobuf_queue_vmalloc_init(&fh->vidq, &cx231xx_qops,
+@@ -1880,6 +1810,7 @@ static int mpeg_open(struct file *file)
+ 	cx231xx_initialize_codec(dev);
+ 
+ 	mutex_unlock(&dev->lock);
++	v4l2_fh_add(&fh->fh);
+ 	cx231xx_start_TS1(dev);
+ 
+ 	return 0;
+@@ -1892,11 +1823,6 @@ static int mpeg_release(struct file *file)
+ 
+ 	dprintk(3, "mpeg_release()! dev=0x%p\n", dev);
+ 
+-	if (!dev) {
+-		dprintk(3, "abort!!!\n");
+-		return 0;
+-	}
+-
+ 	mutex_lock(&dev->lock);
+ 
+ 	cx231xx_stop_TS1(dev);
+@@ -1930,7 +1856,8 @@ static int mpeg_release(struct file *file)
+ 		videobuf_read_stop(&fh->vidq);
+ 
+ 	videobuf_mmap_free(&fh->vidq);
+-	file->private_data = NULL;
++	v4l2_fh_del(&fh->fh);
++	v4l2_fh_exit(&fh->fh);
+ 	kfree(fh);
+ 	mutex_unlock(&dev->lock);
+ 	return 0;
+@@ -1986,9 +1913,13 @@ static struct v4l2_file_operations mpeg_fops = {
+ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_s_std		 = vidioc_s_std,
+ 	.vidioc_g_std		 = vidioc_g_std,
+-	.vidioc_enum_input	 = vidioc_enum_input,
+-	.vidioc_g_input		 = vidioc_g_input,
+-	.vidioc_s_input		 = vidioc_s_input,
++	.vidioc_g_tuner          = cx231xx_g_tuner,
++	.vidioc_s_tuner          = cx231xx_s_tuner,
++	.vidioc_g_frequency      = cx231xx_g_frequency,
++	.vidioc_s_frequency      = cx231xx_s_frequency,
++	.vidioc_enum_input	 = cx231xx_enum_input,
++	.vidioc_g_input		 = cx231xx_g_input,
++	.vidioc_s_input		 = cx231xx_s_input,
+ 	.vidioc_s_ctrl		 = vidioc_s_ctrl,
+ 	.vidioc_querycap	 = cx231xx_querycap,
+ 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+@@ -2007,10 +1938,10 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_log_status	 = vidioc_log_status,
+ 	.vidioc_querymenu	 = vidioc_querymenu,
+ 	.vidioc_queryctrl	 = vidioc_queryctrl,
+-/*	.vidioc_g_chip_ident	 = cx231xx_g_chip_ident,*/
++	.vidioc_g_chip_ident	 = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-/*	.vidioc_g_register	 = cx231xx_g_register,*/
+-/*	.vidioc_s_register	 = cx231xx_s_register,*/
++	.vidioc_g_register	 = cx231xx_g_register,
++	.vidioc_s_register	 = cx231xx_s_register,
+ #endif
  };
  
- static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
-@@ -1193,6 +1211,7 @@ static int stk_register_video_device(struct stk_camera *dev)
- 	int err;
+@@ -2055,6 +1986,14 @@ static struct video_device *cx231xx_video_dev_alloc(
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 	vfd->lock = &dev->lock;
+ 	vfd->release = video_device_release;
++	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
++	video_set_drvdata(vfd, dev);
++	if (dev->tuner_type == TUNER_ABSENT) {
++		v4l2_disable_ioctl(vfd, VIDIOC_G_FREQUENCY);
++		v4l2_disable_ioctl(vfd, VIDIOC_S_FREQUENCY);
++		v4l2_disable_ioctl(vfd, VIDIOC_G_TUNER);
++		v4l2_disable_ioctl(vfd, VIDIOC_S_TUNER);
++	}
  
- 	dev->vdev = stk_v4l_data;
-+	dev->vdev.lock = &dev->lock;
- 	dev->vdev.debug = debug;
- 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
-@@ -1248,6 +1267,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 	dev->v4l2_dev.ctrl_handler = hdl;
+ 	return vfd;
  
- 	spin_lock_init(&dev->spinlock);
-+	mutex_init(&dev->lock);
- 	init_waitqueue_head(&dev->wait_frame);
- 	dev->first_init = 1; /* webcam LED management */
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 60a7b3ee..dc799de 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1036,7 +1036,7 @@ static const char *iname[] = {
+ 	[CX231XX_VMUX_DEBUG]      = "for debug only",
+ };
  
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 2156320..03550cf 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -99,6 +99,7 @@ struct stk_camera {
- 	struct usb_interface *interface;
- 	int webcam_model;
- 	struct file *owner;
-+	struct mutex lock;
- 	int first_init;
+-static int vidioc_enum_input(struct file *file, void *priv,
++int cx231xx_enum_input(struct file *file, void *priv,
+ 			     struct v4l2_input *i)
+ {
+ 	struct cx231xx_fh *fh = priv;
+@@ -1076,7 +1076,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	return 0;
+ }
  
- 	u8 isoc_ep;
+-static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
++int cx231xx_g_input(struct file *file, void *priv, unsigned int *i)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+@@ -1086,7 +1086,7 @@ static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
++int cx231xx_s_input(struct file *file, void *priv, unsigned int i)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+@@ -1115,7 +1115,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
+-static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
++int cx231xx_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+@@ -1139,7 +1139,7 @@ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
++int cx231xx_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+@@ -1157,7 +1157,7 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int vidioc_g_frequency(struct file *file, void *priv,
++int cx231xx_g_frequency(struct file *file, void *priv,
+ 			      struct v4l2_frequency *f)
+ {
+ 	struct cx231xx_fh *fh = priv;
+@@ -1171,7 +1171,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_s_frequency(struct file *file, void *priv,
++int cx231xx_s_frequency(struct file *file, void *priv,
+ 			      struct v4l2_frequency *f)
+ {
+ 	struct cx231xx_fh *fh = priv;
+@@ -1227,7 +1227,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	return rc;
+ }
+ 
+-static int vidioc_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_ident *chip)
++int cx231xx_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_ident *chip)
+ {
+ 	chip->ident = V4L2_IDENT_NONE;
+ 	chip->revision = 0;
+@@ -1254,7 +1254,7 @@ static int vidioc_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip
+   if type == i2caddr, then <chip> is the 7-bit I2C address
+ */
+ 
+-static int vidioc_g_register(struct file *file, void *priv,
++int cx231xx_g_register(struct file *file, void *priv,
+ 			     struct v4l2_dbg_register *reg)
+ {
+ 	struct cx231xx_fh *fh = priv;
+@@ -1401,7 +1401,7 @@ static int vidioc_g_register(struct file *file, void *priv,
+ 	return ret;
+ }
+ 
+-static int vidioc_s_register(struct file *file, void *priv,
++int cx231xx_s_register(struct file *file, void *priv,
+ 			     struct v4l2_dbg_register *reg)
+ {
+ 	struct cx231xx_fh *fh = priv;
+@@ -1810,7 +1810,7 @@ static int radio_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct cx231xx *dev = ((struct cx231xx_fh *)priv)->dev;
+ 
+-	if (0 != t->index)
++	if (t->index)
+ 		return -EINVAL;
+ 
+ 	call_all(dev, tuner, s_tuner, t);
+@@ -2200,19 +2200,19 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_dqbuf                  = vidioc_dqbuf,
+ 	.vidioc_s_std                  = vidioc_s_std,
+ 	.vidioc_g_std                  = vidioc_g_std,
+-	.vidioc_enum_input             = vidioc_enum_input,
+-	.vidioc_g_input                = vidioc_g_input,
+-	.vidioc_s_input                = vidioc_s_input,
++	.vidioc_enum_input             = cx231xx_enum_input,
++	.vidioc_g_input                = cx231xx_g_input,
++	.vidioc_s_input                = cx231xx_s_input,
+ 	.vidioc_streamon               = vidioc_streamon,
+ 	.vidioc_streamoff              = vidioc_streamoff,
+-	.vidioc_g_tuner                = vidioc_g_tuner,
+-	.vidioc_s_tuner                = vidioc_s_tuner,
+-	.vidioc_g_frequency            = vidioc_g_frequency,
+-	.vidioc_s_frequency            = vidioc_s_frequency,
+-	.vidioc_g_chip_ident           = vidioc_g_chip_ident,
++	.vidioc_g_tuner                = cx231xx_g_tuner,
++	.vidioc_s_tuner                = cx231xx_s_tuner,
++	.vidioc_g_frequency            = cx231xx_g_frequency,
++	.vidioc_s_frequency            = cx231xx_s_frequency,
++	.vidioc_g_chip_ident           = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.vidioc_g_register             = vidioc_g_register,
+-	.vidioc_s_register             = vidioc_s_register,
++	.vidioc_g_register             = cx231xx_g_register,
++	.vidioc_s_register             = cx231xx_s_register,
+ #endif
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+@@ -2239,12 +2239,12 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_querycap    = cx231xx_querycap,
+ 	.vidioc_g_tuner     = radio_g_tuner,
+ 	.vidioc_s_tuner     = radio_s_tuner,
+-	.vidioc_g_frequency = vidioc_g_frequency,
+-	.vidioc_s_frequency = vidioc_s_frequency,
+-	.vidioc_g_chip_ident = vidioc_g_chip_ident,
++	.vidioc_g_frequency = cx231xx_g_frequency,
++	.vidioc_s_frequency = cx231xx_s_frequency,
++	.vidioc_g_chip_ident = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.vidioc_g_register  = vidioc_g_register,
+-	.vidioc_s_register  = vidioc_s_register,
++	.vidioc_g_register  = cx231xx_g_register,
++	.vidioc_s_register  = cx231xx_s_register,
+ #endif
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index efc0d1c..6130e4f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -936,6 +936,21 @@ void cx231xx_init_extension(struct cx231xx *dev);
+ void cx231xx_close_extension(struct cx231xx *dev);
+ int cx231xx_querycap(struct file *file, void *priv,
+ 			   struct v4l2_capability *cap);
++int cx231xx_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t);
++int cx231xx_s_tuner(struct file *file, void *priv, struct v4l2_tuner *t);
++int cx231xx_g_frequency(struct file *file, void *priv,
++			      struct v4l2_frequency *f);
++int cx231xx_s_frequency(struct file *file, void *priv,
++			      struct v4l2_frequency *f);
++int cx231xx_enum_input(struct file *file, void *priv,
++			     struct v4l2_input *i);
++int cx231xx_g_input(struct file *file, void *priv, unsigned int *i);
++int cx231xx_s_input(struct file *file, void *priv, unsigned int i);
++int cx231xx_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_ident *chip);
++int cx231xx_g_register(struct file *file, void *priv,
++			     struct v4l2_dbg_register *reg);
++int cx231xx_s_register(struct file *file, void *priv,
++			     struct v4l2_dbg_register *reg);
+ 
+ /* Provided by cx231xx-cards.c */
+ extern void cx231xx_pre_card_setup(struct cx231xx *dev);
 -- 
 1.7.10.4
 
