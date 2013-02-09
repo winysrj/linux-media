@@ -1,41 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2689 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473Ab3BJMuX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 09/19] bttv: fill in fb->flags for VIDIOC_G_FBUF
-Date: Sun, 10 Feb 2013 13:50:04 +0100
-Message-Id: <ebd98b7519e0dad743ac84a8c6bac5d28ec93aa8.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:33430 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757261Ab3BIOEu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 09:04:50 -0500
+Received: by mail-ee0-f47.google.com with SMTP id e52so2453231eek.20
+        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2013 06:04:49 -0800 (PST)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: add PTR_RET to compat.h
+Date: Sat,  9 Feb 2013 15:04:40 +0100
+Message-Id: <1360418680-9682-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+PTR_RET is used by the solo6x10 staging driver,
+and was introduced in kernel 2.6.39.
+Add it to compat.h for compatibility with older kernels.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |    1 +
- 1 file changed, 1 insertion(+)
+ v4l/compat.h                      | 10 ++++++++++
+ v4l/scripts/make_config_compat.pl |  1 +
+ 2 files changed, 11 insertions(+)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 70878e6..81886e1 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2769,6 +2769,7 @@ static int bttv_g_fbuf(struct file *file, void *f,
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 1a82bb7..b27b178 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -1137,4 +1137,14 @@ static inline int usb_translate_errors(int error_code)
+ }
+ #endif
  
- 	*fb = btv->fbuf;
- 	fb->capability = V4L2_FBUF_CAP_LIST_CLIPPING;
-+	fb->flags = V4L2_FBUF_FLAG_PRIMARY;
- 	if (fh->ovfmt)
- 		fb->fmt.pixelformat  = fh->ovfmt->fourcc;
- 	return 0;
++#ifdef NEED_PTR_RET
++static inline int __must_check PTR_RET(const void *ptr)
++{
++	if (IS_ERR(ptr))
++		return PTR_ERR(ptr);
++	else
++		return 0;
++}
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index 583ef9d..51a1f5d 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -588,6 +588,7 @@ sub check_other_dependencies()
+ 	check_files_for_func("config_enabled", "NEED_IS_ENABLED", "include/linux/kconfig.h");
+ 	check_files_for_func("DEFINE_PCI_DEVICE_TABLE", "NEED_DEFINE_PCI_DEVICE_TABLE", "include/linux/pci.h");
+ 	check_files_for_func("usb_translate_errors", "NEED_USB_TRANSLATE_ERRORS", "include/linux/usb.h");
++	check_files_for_func("PTR_RET", "NEED_PTR_RET", "include/linux/err.h");
+ 
+ 	# For tests for uapi-dependent logic
+ 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
 -- 
-1.7.10.4
+1.8.1.1
 
