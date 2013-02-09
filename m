@@ -1,207 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:50923 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754634Ab3BPVZt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 16:25:49 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 3/3] [media] redrat3: missing endian conversions and warnings
-Date: Sat, 16 Feb 2013 21:25:45 +0000
-Message-Id: <d7dc737be5c894cc03e616d63485a856e6436786.1361020108.git.sean@mess.org>
-In-Reply-To: <cover.1361020108.git.sean@mess.org>
-References: <cover.1361020108.git.sean@mess.org>
-In-Reply-To: <cover.1361020108.git.sean@mess.org>
-References: <cover.1361020108.git.sean@mess.org>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:59844 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753889Ab3BIORz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 09:17:55 -0500
+Received: by mail-ea0-f181.google.com with SMTP id i13so2034899eaa.26
+        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2013 06:17:53 -0800 (PST)
+Message-ID: <51165A8E.10805@gmail.com>
+Date: Sat, 09 Feb 2013 15:17:50 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Andre Heider <a.heider@gmail.com>,
+	Jose Alberto Reguero <jareguero@telefonica.net>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: af9035 test needed!
+References: <50F05C09.3010104@iki.fi> <CAHsu+b8UAh5VD_V4Ub6g7z_5LC=NH1zuY77Yv5nBefnrEwUHMw@mail.gmail.com> <510A78D8.7030602@iki.fi> <CAHsu+b-TdcBaM_JzsON40k+4sifL27xM-AV8M6bdMt9L3ZCpeA@mail.gmail.com> <510ABD7F.6030200@iki.fi>
+In-Reply-To: <510ABD7F.6030200@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Spotted by sparse.
+Il 31/01/2013 19:52, Antti Palosaari ha scritto:
+> Jose, Gianluca,
+> 
+> On 01/31/2013 08:40 PM, Andre Heider wrote:
+>> Hey,
+>>
+>> On Thu, Jan 31, 2013 at 2:59 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>> On Fri, Jan 11, 2013 at 7:38 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>>>
+>>>>> Could you test that (tda18218 & mxl5007t):
+>>
+>> only now I see you mentioned mxl5007t too, and with the same tree as I
+>> used for my 'TerraTec Cinergy T Stick Dual RC (rev. 2)', a 'AVerMedia
+>> HD Volar (A867)' with a mxl5007t (and an unkown rev) works too:
+>>
+>> usb 3-3.1.4: new high-speed USB device number 7 using xhci_hcd
+>> usb 3-3.1.4: New USB device found, idVendor=07ca, idProduct=1867
+>> usb 3-3.1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+>> usb 3-3.1.4: Product: A867
+>> usb 3-3.1.4: Manufacturer: AVerMedia TECHNOLOGIES, Inc
+>> usb 3-3.1.4: SerialNumber: 0305770200261
+>> usb 3-3.1.4: af9035_identify_state: prechip_version=00 chip_version=03
+>> chip_type=3802
+> 
+> Who one as able to test with non-working AF9035 + MxL5007T combination.
+> Does it report different chip versions? Same firmware used?
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c |   71 +++++++------------------------------------
- 1 files changed, 12 insertions(+), 59 deletions(-)
+Hi Antti,
+I finally found a friend with the Avermedia A867 (AF9035 + MxL5007T) non
+working revision (A867-DP7):
+http://forum.ubuntu-it.org/viewtopic.php?f=9&t=516182&start=60#p4301226
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index ec655b8..12167a6 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -54,7 +54,6 @@
- #include <media/rc-core.h>
- 
- /* Driver Information */
--#define DRIVER_VERSION "0.70"
- #define DRIVER_AUTHOR "Jarod Wilson <jarod@redhat.com>"
- #define DRIVER_AUTHOR2 "The Dweller, Stephen Cox"
- #define DRIVER_DESC "RedRat3 USB IR Transceiver Driver"
-@@ -199,14 +198,9 @@ struct redrat3_dev {
- 
- 	/* the send endpoint */
- 	struct usb_endpoint_descriptor *ep_out;
--	/* the buffer to send data */
--	unsigned char *bulk_out_buf;
--	/* the urb used to send data */
--	struct urb *write_urb;
- 
- 	/* usb dma */
- 	dma_addr_t dma_in;
--	dma_addr_t dma_out;
- 
- 	/* rx signal timeout timer */
- 	struct timer_list rx_timeout;
-@@ -239,7 +233,6 @@ static void redrat3_issue_async(struct redrat3_dev *rr3)
- 
- 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
- 
--	memset(rr3->bulk_in_buf, 0, rr3->ep_in->wMaxPacketSize);
- 	res = usb_submit_urb(rr3->read_urb, GFP_ATOMIC);
- 	if (res)
- 		rr3_dbg(rr3->dev, "%s: receive request FAILED! "
-@@ -368,7 +361,7 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- {
- 	DEFINE_IR_RAW_EVENT(rawir);
- 	struct device *dev;
--	int i, trailer = 0;
-+	unsigned i, trailer = 0;
- 	unsigned sig_size, single_len, offset, val;
- 	unsigned long delay;
- 	u32 mod_freq;
-@@ -510,15 +503,11 @@ static inline void redrat3_delete(struct redrat3_dev *rr3,
- {
- 	rr3_ftr(rr3->dev, "%s cleaning up\n", __func__);
- 	usb_kill_urb(rr3->read_urb);
--	usb_kill_urb(rr3->write_urb);
- 
- 	usb_free_urb(rr3->read_urb);
--	usb_free_urb(rr3->write_urb);
- 
--	usb_free_coherent(udev, rr3->ep_in->wMaxPacketSize,
-+	usb_free_coherent(udev, le16_to_cpu(rr3->ep_in->wMaxPacketSize),
- 			  rr3->bulk_in_buf, rr3->dma_in);
--	usb_free_coherent(udev, rr3->ep_out->wMaxPacketSize,
--			  rr3->bulk_out_buf, rr3->dma_out);
- 
- 	kfree(rr3);
- }
-@@ -566,7 +555,7 @@ static void redrat3_reset(struct redrat3_dev *rr3)
- 	rxpipe = usb_rcvctrlpipe(udev, 0);
- 	txpipe = usb_sndctrlpipe(udev, 0);
- 
--	val = kzalloc(len, GFP_KERNEL);
-+	val = kmalloc(len, GFP_KERNEL);
- 	if (!val) {
- 		dev_err(dev, "Memory allocation failure\n");
- 		return;
-@@ -620,7 +609,7 @@ static void redrat3_get_firmware_rev(struct redrat3_dev *rr3)
- 	rr3_ftr(rr3->dev, "Exiting %s\n", __func__);
- }
- 
--static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
-+static void redrat3_read_packet_start(struct redrat3_dev *rr3, unsigned len)
- {
- 	struct redrat3_header *header = rr3->bulk_in_buf;
- 	unsigned pktlen, pkttype;
-@@ -659,7 +648,7 @@ static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
- 	}
- }
- 
--static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
-+static void redrat3_read_packet_continue(struct redrat3_dev *rr3, unsigned len)
- {
- 	void *irdata = &rr3->irdata;
- 
-@@ -679,7 +668,7 @@ static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
- }
- 
- /* gather IR data from incoming urb, process it when we have enough */
--static int redrat3_get_ir_data(struct redrat3_dev *rr3, int len)
-+static int redrat3_get_ir_data(struct redrat3_dev *rr3, unsigned len)
- {
- 	struct device *dev = rr3->dev;
- 	unsigned pkttype;
-@@ -755,22 +744,6 @@ static void redrat3_handle_async(struct urb *urb)
- 	}
- }
- 
--static void redrat3_write_bulk_callback(struct urb *urb)
--{
--	struct redrat3_dev *rr3;
--	int len;
--
--	if (!urb)
--		return;
--
--	rr3 = urb->context;
--	if (rr3) {
--		len = urb->actual_length;
--		rr3_ftr(rr3->dev, "%s: called (status=%d len=%d)\n",
--			__func__, urb->status, len);
--	}
--}
--
- static u16 mod_freq_to_val(unsigned int mod_freq)
- {
- 	int mult = 6000000;
-@@ -799,11 +772,11 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 	struct redrat3_dev *rr3 = rcdev->priv;
- 	struct device *dev = rr3->dev;
- 	struct redrat3_irdata *irdata = NULL;
--	int i, ret, ret_len;
-+	int ret, ret_len;
- 	int lencheck, cur_sample_len, pipe;
- 	int *sample_lens = NULL;
- 	u8 curlencheck = 0;
--	int sendbuf_len;
-+	unsigned i, sendbuf_len;
- 
- 	rr3_ftr(dev, "Entering %s\n", __func__);
- 
-@@ -1015,38 +988,18 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	}
- 
- 	rr3->ep_in = ep_in;
--	rr3->bulk_in_buf = usb_alloc_coherent(udev, ep_in->wMaxPacketSize,
--					      GFP_ATOMIC, &rr3->dma_in);
-+	rr3->bulk_in_buf = usb_alloc_coherent(udev,
-+		le16_to_cpu(ep_in->wMaxPacketSize), GFP_ATOMIC, &rr3->dma_in);
- 	if (!rr3->bulk_in_buf) {
- 		dev_err(dev, "Read buffer allocation failure\n");
- 		goto error;
- 	}
- 
- 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
--	usb_fill_bulk_urb(rr3->read_urb, udev, pipe,
--			  rr3->bulk_in_buf, ep_in->wMaxPacketSize,
--			  redrat3_handle_async, rr3);
--
--	/* set up bulk-out endpoint*/
--	rr3->write_urb = usb_alloc_urb(0, GFP_KERNEL);
--	if (!rr3->write_urb) {
--		dev_err(dev, "Write urb allocation failure\n");
--		goto error;
--	}
-+	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
-+		le16_to_cpu(ep_in->wMaxPacketSize), redrat3_handle_async, rr3);
- 
- 	rr3->ep_out = ep_out;
--	rr3->bulk_out_buf = usb_alloc_coherent(udev, ep_out->wMaxPacketSize,
--					       GFP_ATOMIC, &rr3->dma_out);
--	if (!rr3->bulk_out_buf) {
--		dev_err(dev, "Write buffer allocation failure\n");
--		goto error;
--	}
--
--	pipe = usb_sndbulkpipe(udev, ep_out->bEndpointAddress);
--	usb_fill_bulk_urb(rr3->write_urb, udev, pipe,
--			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
--			  redrat3_write_bulk_callback, rr3);
--
- 	rr3->udev = udev;
- 
- 	redrat3_reset(rr3);
--- 
-1.7.2.5
+Apparently, there is no difference in the log file about the chip version:
+
+[   90.047319] usb 1-1.3: New USB device found, idVendor=07ca,
+idProduct=a867
+[   90.047325] usb 1-1.3: New USB device strings: Mfr=1, Product=2,
+SerialNumber=3
+[   90.047330] usb 1-1.3: Product: A867
+[   90.047334] usb 1-1.3: Manufacturer: AVerMedia TECHNOLOGIES, Inc
+[   90.047337] usb 1-1.3: SerialNumber: 5037944035440
+[   90.142796] usbcore: registered new interface driver dvb_usb_af9035
+[   90.143779] usb 1-1.3: af9035_identify_state: prechip_version=00
+chip_version=03 chip_type=3802
+[   90.144178] usb 1-1.3: dvb_usb_v2: found a 'AVerMedia HD Volar
+(A867)' in cold state
+[   90.170437] usb 1-1.3: dvb_usb_v2: downloading firmware from file
+'dvb-usb-af9035-02.fw'
+[   90.495461] usb 1-1.3: dvb_usb_af9035: firmware version=12.13.15.0
+[   90.495483] usb 1-1.3: dvb_usb_v2: found a 'AVerMedia HD Volar
+(A867)' in warm state
+[   90.498004] usb 1-1.3: dvb_usb_v2: will pass the complete MPEG2
+transport stream to the software demuxer
+[   90.498046] DVB: registering new adapter (AVerMedia HD Volar (A867))
+[   90.498401] DVB: register adapter0/demux0 @ minor: 0 (0x00)
+[   90.498476] DVB: register adapter0/dvr0 @ minor: 1 (0x01)
+[   90.498543] DVB: register adapter0/net0 @ minor: 2 (0x02)
+[   90.549788] i2c i2c-8: af9033: firmware version: LINK=12.13.15.0
+OFDM=6.20.15.0
+[   90.549798] usb 1-1.3: DVB: registering adapter 0 frontend 0 (Afatech
+AF9033 (DVB-T))...
+[   90.549903] DVB: register adapter0/frontend0 @ minor: 3 (0x03)
+[   90.913945] mxl5007t 8-0060: creating new instance
+[   90.929824] Registered IR keymap rc-empty
+[   90.929937] input: AVerMedia HD Volar (A867) as
+/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0/input13
+[   90.930019] rc0: AVerMedia HD Volar (A867) as
+/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/rc/rc0
+[   90.930027] usb 1-1.3: dvb_usb_v2: schedule remote query interval to
+500 msecs
+[   90.930032] usb 1-1.3: dvb_usb_v2: 'AVerMedia HD Volar (A867)'
+successfully initialized and connected
+
+
+Also, the stick works fine with Jose's patch, independently from the
+firmware file used.
+
+Regards,
+Gianluca
+
+> 
+> 
+>> usb 3-3.1.4: dvb_usb_v2: found a 'AVerMedia HD Volar (A867)' in cold
+>> state
+>> usb 3-3.1.4: dvb_usb_v2: downloading firmware from file
+>> 'dvb-usb-af9035-02.fw'
+>> usb 3-3.1.4: dvb_usb_af9035: firmware version=11.5.9.0
+>> usb 3-3.1.4: dvb_usb_v2: found a 'AVerMedia HD Volar (A867)' in warm
+>> state
+>> usb 3-3.1.4: dvb_usb_v2: will pass the complete MPEG2 transport stream
+>> to the software demuxer
+>> DVB: registering new adapter (AVerMedia HD Volar (A867))
+>> i2c i2c-19: af9033: firmware version: LINK=11.5.9.0 OFDM=5.17.9.1
+>> usb 3-3.1.4: DVB: registering adapter 1 frontend 0 (Afatech AF9033
+>> (DVB-T))...
+>> mxl5007t 19-0060: creating new instance
+>> mxl5007t_get_chip_id: unknown rev (3f)
+>> mxl5007t_get_chip_id: MxL5007T detected @ 19-0060
+>> Registered IR keymap rc-empty
+>> input: AVerMedia HD Volar (A867) as
+>> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3.1/3-3.1.4/rc/rc5/input29
+>> rc5: AVerMedia HD Volar (A867) as
+>> /devices/pci0000:00/0000:00:14.0/usb3/3-3/3-3.1/3-3.1.4/rc/rc5
+>> usb 3-3.1.4: dvb_usb_v2: schedule remote query interval to 500 msecs
+>> usb 3-3.1.4: dvb_usb_v2: 'AVerMedia HD Volar (A867)' successfully
+>> initialized and connected
+> 
+> regards
+> Antti
+> 
 
