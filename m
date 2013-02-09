@@ -1,51 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f48.google.com ([209.85.210.48]:48935 "EHLO
-	mail-da0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951Ab3BFLlO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 06:41:14 -0500
-Received: by mail-da0-f48.google.com with SMTP id v40so610961dad.21
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 03:41:13 -0800 (PST)
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:39925 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901Ab3BILWO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 06:22:14 -0500
+Received: by mail-wg0-f54.google.com with SMTP id fm10so3488120wgb.33
+        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2013 03:22:12 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <51123D34.5020404@samsung.com>
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
-	<1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
-	<02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
-	<CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
-	<02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
-	<51123D34.5020404@samsung.com>
-Date: Wed, 6 Feb 2013 17:11:13 +0530
-Message-ID: <CAK9yfHzUje9tyyZB8-p1hX_tX-U4hzxTNb275nu77rgDZknN1Q@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
- support for G2D
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, k.debski@samsung.com,
-	kgene.kim@samsung.com, patches@linaro.org,
-	Ajay Kumar <ajaykumar.rs@samsung.com>,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	jy0922.shim@samsung.com
+In-Reply-To: <201302081020.49754.hverkuil@xs4all.nl>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
+	<201302060832.46736.hverkuil@xs4all.nl>
+	<CA+6av4nWfjBh4jzWRoz9Hvj=QhL5V1CzDb=kKRiANtGCp0Ff1Q@mail.gmail.com>
+	<201302081020.49754.hverkuil@xs4all.nl>
+Date: Sat, 9 Feb 2013 12:22:12 +0100
+Message-ID: <CA+6av4m5OoVB6aXxfi5GFX6uAY7MJnSgiRG22Navag1t3h8z9A@mail.gmail.com>
+Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
+From: Arvydas Sidorenko <asido4@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6 February 2013 16:53, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> On 02/06/2013 09:51 AM, Inki Dae wrote:
-> [...]
-
-> So I propose following classification, which seems less inaccurate:
+On Fri, Feb 8, 2013 at 10:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 >
-> GPU:   g2d, g3d
-> Media: mfc, fimc, fimc-lite, fimc-is, mipi-csis, gsc
-> Video: fimd, hdmi, eDP, mipi-dsim
+> Thanks for the testing! I've pushed some more improvements to my git branch.
+> Hopefully the compliance tests are now running OK. Please check the dmesg
+> output as well.
+>
+> In addition I've added an 'upside down' message to the kernel log that tells
+> me whether the driver is aware that your sensor is upside down or not.
+>
+> Which laptop do you have? Asus G1?
+>
+> Regards,
+>
+>         Hans
 
-Thanks Inki and Sylwester for your inputs.
-We need to figure out some sensible location for these drivers'
-documentation though I liked what you have proposed for now.
-I will add g2d document to gpu directory as both of you suggest the same.
-If there are better opinions will move it later.
+Now it looks better, but clearly there is an issue with the upside down thing.
+I have ASUS F3Jc laptop.
 
--- 
-With warm regards,
-Sachin
+Although a commit '6f89814d3d' introduced a problem.
+> if (rb->count == 0)
+>     dev->owner = NULL;
+Now 'v4l_stk_release' doesn't release the resources because 'dev->owner != fp'.
+
+$ dmesg | grep upside
+[    4.933507] upside down: 0
+
+$ v4l2-compliance -d /dev/video0
+Driver Info:
+	Driver name   : stk
+	Card type     : stk
+	Bus info      : usb-0000:00:1d.7-8
+	Driver version: 3.1.0
+	Capabilities  : 0x85000001
+		Video Capture
+		Read/Write
+		Streaming
+		Device Capabilities
+	Device Caps   : 0x05000001
+		Video Capture
+		Read/Write
+		Streaming
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+	test VIDIOC_QUERYCTRL/MENU: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 4 Private Controls: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+		warn: v4l2-test-formats.cpp(565): TRY_FMT cannot handle an invalid
+pixelformat. This may or may not be a problem.
+See http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+for more information.
+	test VIDIOC_TRY_FMT: OK
+		warn: v4l2-test-formats.cpp(723): S_FMT cannot handle an invalid
+pixelformat. This may or may not be a problem.
+See http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
+for more information.
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+		warn: v4l2-test-buffers.cpp(175): VIDIOC_CREATE_BUFS not supported
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+
+Total: 38, Succeeded: 38, Failed: 0, Warnings: 3
+
+
+Arvydas
