@@ -1,117 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3340 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab3BPJ24 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 13/18] s5p-tv: remove the dv_preset API from hdmiphy.
-Date: Sat, 16 Feb 2013 10:28:16 +0100
-Message-Id: <832a64fc85101db95ce8bb9c88e5150a5dd095e0.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:58208 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760759Ab3BIRGE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 12:06:04 -0500
+Message-ID: <511681F6.4010102@gmail.com>
+Date: Sat, 09 Feb 2013 18:05:58 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	Benoit Thebaudeau <benoit.thebaudeau@advansee.com>,
+	David Hardeman <david@hardeman.nu>,
+	Trilok Soni <tsoni@codeaurora.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Matus Ujhelyi <ujhelyi.m@gmail.com>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] media: rc: gpio-ir-recv: add support for device tree
+ parsing
+References: <1360137832-13086-1-git-send-email-sebastian.hesselbarth@gmail.com> <1360355887-19973-1-git-send-email-sebastian.hesselbarth@gmail.com> <20130208220357.198c313c@redhat.com> <51159C36.1060602@gmail.com>
+In-Reply-To: <51159C36.1060602@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/09/2013 01:45 AM, Sebastian Hesselbarth wrote:
+>>> new file mode 100644
+>>> index 0000000..8589f30
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/gpio-ir-receiver.txt
+>>> @@ -0,0 +1,16 @@
+>>> +Device-Tree bindings for GPIO IR receiver
+>>> +
+>>> +Required properties:
+>>> + - compatible = "gpio-ir-receiver";
+>>> + - gpios: OF device-tree gpio specification.
+>>> +
+>>> +Optional properties:
+>>> + - linux,rc-map-name: Linux specific remote control map name.
+>>> +
+>>> +Example node:
+>>> +
+>>> + ir: ir-receiver {
+>>> + compatible = "gpio-ir-receiver";
+>>> + gpios =<&gpio0 19 1>;
+>>> + linux,rc-map-name = "rc-rc6-mce";
+>>
+>> Please change this to:
+>> linux,rc-map-name = RC_MAP_RC6_MCE;
+>>
+>> (as defined at include/media/rc-map.h).
+>
+> Mauro,
+>
+> this is not possible in device tree bindings. Device tree properties
+> can only carry numeric or string types (and some other stuff) but no
+> OS specific enumerations. So using strings is the only option here.
+>
+>> The idea of having those strings defined at the same header file is to:
+>
+> Unfortunately, device tree blobs don't know about linux header files.
 
-The dv_preset API is deprecated and is replaced by the much improved dv_timings
-API. Remove the dv_preset support from this driver as this will allow us to
-remove the dv_preset API altogether (s5p-tv being the last user of this code).
+I suppose this will change when it will be possible to run C pre-processor
+on *.dts files. This is still under discussion though [1] and for the
+device tree there will likely be separate copies of the header files
+needed. Thus I guess explicit string names for now need to be used.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-tv/hdmiphy_drv.c |   53 ---------------------------
- 1 file changed, 53 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-index 85b4211..da97124 100644
---- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
-@@ -176,27 +176,6 @@ static inline struct hdmiphy_ctx *sd_to_ctx(struct v4l2_subdev *sd)
- 	return container_of(sd, struct hdmiphy_ctx, sd);
- }
- 
--static unsigned long hdmiphy_preset_to_pixclk(u32 preset)
--{
--	static const unsigned long pixclk[] = {
--		[V4L2_DV_480P59_94] =  27000000,
--		[V4L2_DV_576P50]    =  27000000,
--		[V4L2_DV_720P59_94] =  74176000,
--		[V4L2_DV_720P50]    =  74250000,
--		[V4L2_DV_720P60]    =  74250000,
--		[V4L2_DV_1080P24]   =  74250000,
--		[V4L2_DV_1080P30]   =  74250000,
--		[V4L2_DV_1080I50]   =  74250000,
--		[V4L2_DV_1080I60]   =  74250000,
--		[V4L2_DV_1080P50]   = 148500000,
--		[V4L2_DV_1080P60]   = 148500000,
--	};
--	if (preset < ARRAY_SIZE(pixclk))
--		return pixclk[preset];
--	else
--		return 0;
--}
--
- static const u8 *hdmiphy_find_conf(unsigned long pixclk,
- 		const struct hdmiphy_conf *conf)
- {
-@@ -212,37 +191,6 @@ static int hdmiphy_s_power(struct v4l2_subdev *sd, int on)
- 	return 0;
- }
- 
--static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
--	struct v4l2_dv_preset *preset)
--{
--	const u8 *data = NULL;
--	u8 buffer[32];
--	int ret;
--	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	unsigned long pixclk;
--	struct device *dev = &client->dev;
--
--	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
--
--	pixclk = hdmiphy_preset_to_pixclk(preset->preset);
--	data = hdmiphy_find_conf(pixclk, ctx->conf_tab);
--	if (!data) {
--		dev_err(dev, "format not supported\n");
--		return -EINVAL;
--	}
--
--	/* storing configuration to the device */
--	memcpy(buffer, data, 32);
--	ret = i2c_master_send(client, buffer, 32);
--	if (ret != 32) {
--		dev_err(dev, "failed to configure HDMIPHY via I2C\n");
--		return -EIO;
--	}
--
--	return 0;
--}
--
- static int hdmiphy_s_dv_timings(struct v4l2_subdev *sd,
- 	struct v4l2_dv_timings *timings)
- {
-@@ -299,7 +247,6 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
- };
- 
- static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
--	.s_dv_preset = hdmiphy_s_dv_preset,
- 	.s_dv_timings = hdmiphy_s_dv_timings,
- 	.s_stream =  hdmiphy_s_stream,
- };
--- 
-1.7.10.4
+[1] http://www.spinics.net/lists/kernel/msg1458360.html
 
