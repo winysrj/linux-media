@@ -1,78 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4030 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750789Ab3BSFFi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 00:05:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: Re: [PATCH v4 0/7] Driver for Si476x series of chips
-Date: Mon, 18 Feb 2013 21:05:19 -0800
-Cc: broonie@opensource.wolfsonmicro.com, mchehab@redhat.com,
-	sameo@linux.intel.com, perex@perex.cz, tiwai@suse.de,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+Received: from mailout04.t-online.de ([194.25.134.18]:60414 "EHLO
+	mailout04.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758494Ab3BIT3H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 14:29:07 -0500
+Message-ID: <51169FA7.8020200@t-online.de>
+Date: Sat, 09 Feb 2013 20:12:39 +0100
+From: Christoph Nuscheler <christoph.nuscheler@t-online.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+Subject: [PATCH] media: Add 0x3009 USB PID to ttusb2 driver
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302182105.20090.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, February 18, 2013 19:59:28 Andrey Smirnov wrote:
-> This is a fourth version of the patchset originaly posted here:
-> https://lkml.org/lkml/2012/9/13/590
-> 
-> Second version of the patch was posted here:
-> https://lkml.org/lkml/2012/10/5/598
-> 
-> Third version of the patch was posted here:
-> https://lkml.org/lkml/2012/10/23/510
-> 
-> To save everyone's time I'll repost the original description of it:
-> 
-> This patchset contains a driver for a Silicon Laboratories 476x series
-> of radio tuners. The driver itself is implemented as an MFD devices
-> comprised of three parts: 
->  1. Core device that provides all the other devices with basic
-> functionality and locking scheme.
->  2. Radio device that translates between V4L2 subsystem requests into
-> Core device commands.
->  3. Codec device that does similar to the earlier described task, but
-> for ALSA SoC subsystem.
-> 
-> v4 of this driver has following changes:
->  - All of the adjustable timeouts(expose via sysfs) are gone
->  - Names of the controls are changes as was requested
->  - Added documentation for exposed debugfs files 
->  - Minor fix in si476x_radio_fops_poll
->  - DBG_BUFFER is removed
->  - Tested for compilation w/o debugfs enabled
-> 
-> This version still has all the radio controls being private. The
-> reason for that is because I am not sure how that should be handled.
-> 
-> Hans, do you want me to move all the controls to be standard, that is
-> exted V4L's with the needed controls? Should I pick up the parts of
-> http://lists-archives.com/linux-kernel/27641304-radio-fixes-and-new-features-for-fm.html and take relevants bits and pieces of it?
+The "Technisat SkyStar USB plus" is a TT-connect S-2400 clone, which the 
+V4L-DVB drivers already support. However, some of these devices (like 
+mine) come with a different USB PID 0x3009 instead of 0x3006.
 
-Yes, please do that. It's too bad that never made it into the kernel, so let's
-do it now.
+There have already been patches simply overwriting the USB PID in 
+dvb-usb-ids.h. Of course these patches were rejected because they would 
+have disabled the 0x3006 PID.
 
-So take the controls that you can use from that patch and leave out those that
-do not apply to your driver. From the remaining controls not covered by that
-patch you will have to decide which are truly chip-specific and which are
-valid for any advanced radio receiver.
+This new patch adds the 0x3009 PID to dvb-usb-ids.h, and adds references 
+to it within the ttusb2.c driver. PID 0x3006 devices will continue to work.
 
-The really chip(set) specific controls should be put in their own header,
-but add the base control ID to v4l2-controls.h (see for example the way that
-is done for the MEYE controls).
+The only difference between the two hardware models seems to be the 
+EEPROM chip. In fact, Windows BDA driver names the 0x3009 device with a 
+"(8 kB EEPROM)" suffix. In spite of that, the 0x3009 device works 
+absolutely flawlessly using the existing ttusb2 driver.
 
-If you can do that quickly and post a v5, then I will do my best to review
-it this week or Monday at the latest. Let's finish this driver asap.
+Signed-off-by: Christoph Nuscheler <christoph.nuscheler@t-online.de>
 
-Regards,
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h 
+b/drivers/media/dvb-core/dvb-usb-ids.h
+index 7e1597d..399e104 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -242,6 +242,7 @@
+  #define USB_PID_AVERMEDIA_A867				0xa867
+  #define USB_PID_AVERMEDIA_TWINSTAR			0x0825
+  #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
++#define USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM	0x3009
+  #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
+  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY_2	0x0081
+diff --git a/drivers/media/usb/dvb-usb/ttusb2.c 
+b/drivers/media/usb/dvb-usb/ttusb2.c
+index bcdac22..07d4994 100644
+--- a/drivers/media/usb/dvb-usb/ttusb2.c
++++ b/drivers/media/usb/dvb-usb/ttusb2.c
+@@ -619,6 +619,8 @@ static struct usb_device_id ttusb2_table [] = {
+  	{ USB_DEVICE(USB_VID_TECHNOTREND,
+  		USB_PID_TECHNOTREND_CONNECT_S2400) },
+  	{ USB_DEVICE(USB_VID_TECHNOTREND,
++		USB_PID_TECHNOTREND_CONNECT_S2400_8KEEPROM) },
++	{ USB_DEVICE(USB_VID_TECHNOTREND,
+  		USB_PID_TECHNOTREND_CONNECT_CT3650) },
+  	{}		/* Terminating entry */
+  };
+@@ -721,12 +723,16 @@ static struct dvb_usb_device_properties 
+ttusb2_properties_s2400 = {
+   	.generic_bulk_ctrl_endpoint = 0x01,
+  -	.num_device_descs = 1,
++	.num_device_descs = 2,
+  	.devices = {
+  		{   "Technotrend TT-connect S-2400",
+  			{ &ttusb2_table[2], NULL },
+  			{ NULL },
+  		},
++		{   "Technotrend TT-connect S-2400 (8kB EEPROM)",
++			{&ttusb2_table[3], NULL },
++			{ NULL },
++		},
+  	}
+  };
+  @@ -800,7 +806,7 @@ static struct dvb_usb_device_properties 
+ttusb2_properties_ct3650 = {
+  	.num_device_descs = 1,
+  	.devices = {
+  		{   "Technotrend TT-connect CT-3650",
+-			.warm_ids = { &ttusb2_table[3], NULL },
++			.warm_ids = { &ttusb2_table[4], NULL },
+  		},
+  	}
+  };
 
-	Hans
