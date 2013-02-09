@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:36158 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619Ab3BPQeh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 11:34:37 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so2159731eek.11
-        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 08:34:36 -0800 (PST)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1395 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752672Ab3BIKBZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>
-Subject: [PATCH 8/9] s5p-fimc: fix s5pv210 build
-Date: Sat, 16 Feb 2013 17:34:27 +0100
-Message-Id: <1361032467-9705-1-git-send-email-sylvester.nawrocki@gmail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 22/26] cx231xx: disable 417 support from the Conexant video grabber
+Date: Sat,  9 Feb 2013 11:00:52 +0100
+Message-Id: <c4275fe7f490f1aa9a35e8fab2bad70508130ad1.1360403310.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-56bc911 "[media] s5p-fimc: Redefine platform data structure for fimc-is"
-changed the bus_type member of struct fimc_source_info treewide, but
-got one instance wrong in mach-s5pv210, which was evidently not
-even build tested.
+The 417 support doesn't work. Until someone can dig into this driver to
+figure out why it isn't working the 417 support is disabled.
 
-This adds the missing change to get s5pv210_defconfig to build again.
-Applies on the Mauro's media tree.
+Sometimes you can actually stream a bit, but very soon the whole machine
+crashes, so something is seriously wrong.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>
+For the record, this was not introduced by my recent changes to this driver,
+it was broken before that.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Resending to include this patch in the linuxtv.org patchwork.
+ drivers/media/usb/cx231xx/cx231xx-cards.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- arch/arm/mach-s5pv210/mach-goni.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 423f6b6..868751d 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -846,7 +846,7 @@ static struct fimc_source_info goni_camera_sensors[] = {
- 		.mux_id		= 0,
- 		.flags		= V4L2_MBUS_PCLK_SAMPLE_FALLING |
- 				  V4L2_MBUS_VSYNC_ACTIVE_LOW,
--		.bus_type	= FIMC_BUS_TYPE_ITU_601,
-+		.fimc_bus_type	= FIMC_BUS_TYPE_ITU_601,
- 		.board_info	= &noon010pc30_board_info,
- 		.i2c_bus_num	= 0,
- 		.clk_frequency	= 16000000UL,
---
-1.7.4.1
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index d6acb1e..7094451 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -263,7 +263,10 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.norm = V4L2_STD_PAL,
+ 		.no_alt_vanc = 1,
+ 		.external_av = 1,
+-		.has_417 = 1,
++		/* Actually, it has a 417, but it isn't working correctly.
++		 * So set to 0 for now until someone can manage to get this
++		 * to work reliably. */
++		.has_417 = 0,
+ 
+ 		.input = {{
+ 				.type = CX231XX_VMUX_COMPOSITE1,
+-- 
+1.7.10.4
 
