@@ -1,140 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:46134 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342Ab3BCPui (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:50:38 -0500
-Received: by mail-pb0-f52.google.com with SMTP id mc8so2037891pbc.11
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:50:38 -0800 (PST)
-Message-ID: <510F3EEF.4090700@gmail.com>
-Date: Sun, 03 Feb 2013 23:54:07 -0500
-From: Huang Shijie <shijie8@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 16/18] tlg2300: allow multiple opens.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <b4fbf6957c11847887cc13bb62281ef43fe8249d.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <b4fbf6957c11847887cc13bb62281ef43fe8249d.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2702 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab3BIKBY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 16/26] cx231xx-417: use one querycap for all device nodes.
+Date: Sat,  9 Feb 2013 11:00:46 +0100
+Message-Id: <563da8543392ad7a21db515e8c3e192391ef6439.1360403310.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Due to a poor administration of the driver state it wasn't possible to open
-> a video or vbi device multiple times.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-common.h |    1 -
->  drivers/media/usb/tlg2300/pd-video.c  |   40 +++++++++++++--------------------
->  2 files changed, 15 insertions(+), 26 deletions(-)
->
-> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
-> index cb5cb0f..3010496 100644
-> --- a/drivers/media/usb/tlg2300/pd-common.h
-> +++ b/drivers/media/usb/tlg2300/pd-common.h
-> @@ -26,7 +26,6 @@
->  #define POSEIDON_STATE_ANALOG		(0x0001)
->  #define POSEIDON_STATE_FM		(0x0002)
->  #define POSEIDON_STATE_DVBT		(0x0004)
-> -#define POSEIDON_STATE_VBI		(0x0008)
->  #define POSEIDON_STATE_DISCONNECT	(0x0080)
->  
->  #define PM_SUSPEND_DELAY	3
-> diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-> index 4c045b3..834428d 100644
-> --- a/drivers/media/usb/tlg2300/pd-video.c
-> +++ b/drivers/media/usb/tlg2300/pd-video.c
-> @@ -1352,12 +1352,14 @@ static int pd_video_open(struct file *file)
->  	mutex_lock(&pd->lock);
->  	usb_autopm_get_interface(pd->interface);
->  
-> -	if (vfd->vfl_type == VFL_TYPE_GRABBER
-> -		&& !(pd->state & POSEIDON_STATE_ANALOG)) {
-> -		front = kzalloc(sizeof(struct front_face), GFP_KERNEL);
-> -		if (!front)
-> -			goto out;
-> -
-> +	if (pd->state && !(pd->state & POSEIDON_STATE_ANALOG)) {
-> +		ret = -EBUSY;
-> +		goto out;
-> +	}
-> +	front = kzalloc(sizeof(struct front_face), GFP_KERNEL);
-> +	if (!front)
-> +		goto out;
-> +	if (vfd->vfl_type == VFL_TYPE_GRABBER) {
->  		pd->cur_transfer_mode	= usb_transfer_mode;/* bulk or iso */
->  		init_video_context(&pd->video_data.context);
->  
-> @@ -1368,7 +1370,6 @@ static int pd_video_open(struct file *file)
->  			goto out;
->  		}
->  
-> -		pd->state		|= POSEIDON_STATE_ANALOG;
->  		front->type		= V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  		pd->video_data.users++;
->  		set_debug_mode(vfd, debug_mode);
-> @@ -1379,13 +1380,7 @@ static int pd_video_open(struct file *file)
->  				V4L2_FIELD_INTERLACED,/* video is interlacd */
->  				sizeof(struct videobuf_buffer),/*it's enough*/
->  				front, NULL);
-> -	} else if (vfd->vfl_type == VFL_TYPE_VBI
-> -		&& !(pd->state & POSEIDON_STATE_VBI)) {
-> -		front = kzalloc(sizeof(struct front_face), GFP_KERNEL);
-> -		if (!front)
-> -			goto out;
-> -
-> -		pd->state	|= POSEIDON_STATE_VBI;
-> +	} else {
->  		front->type	= V4L2_BUF_TYPE_VBI_CAPTURE;
->  		pd->vbi_data.front = front;
->  		pd->vbi_data.users++;
-> @@ -1396,19 +1391,15 @@ static int pd_video_open(struct file *file)
->  				V4L2_FIELD_NONE, /* vbi is NONE mode */
->  				sizeof(struct videobuf_buffer),
->  				front, NULL);
-> -	} else {
-> -		/* maybe add FM support here */
-> -		log("other ");
-> -		ret = -EINVAL;
-> -		goto out;
->  	}
->  
-> -	front->pd		= pd;
-> -	front->curr_frame	= NULL;
-> +	pd->state |= POSEIDON_STATE_ANALOG;
-> +	front->pd = pd;
-> +	front->curr_frame = NULL;
->  	INIT_LIST_HEAD(&front->active);
->  	spin_lock_init(&front->queue_lock);
->  
-> -	file->private_data	= front;
-> +	file->private_data = front;
->  	kref_get(&pd->kref);
->  
->  	mutex_unlock(&pd->lock);
-> @@ -1429,8 +1420,6 @@ static int pd_video_release(struct file *file)
->  	mutex_lock(&pd->lock);
->  
->  	if (front->type	== V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-> -		pd->state &= ~POSEIDON_STATE_ANALOG;
-> -
->  		/* stop the device, and free the URBs */
->  		usb_transfer_stop(&pd->video_data);
->  		free_all_urb(&pd->video_data);
-> @@ -1442,10 +1431,11 @@ static int pd_video_release(struct file *file)
->  		pd->file_for_stream = NULL;
->  		pd->video_data.users--;
->  	} else if (front->type	== V4L2_BUF_TYPE_VBI_CAPTURE) {
-> -		pd->state &= ~POSEIDON_STATE_VBI;
->  		pd->vbi_data.front = NULL;
->  		pd->vbi_data.users--;
->  	}
-> +	if (!pd->vbi_data.users && !pd->video_data.users)
-> +		pd->state &= ~POSEIDON_STATE_ANALOG;
->  	videobuf_stop(&front->q);
->  	videobuf_mmap_free(&front->q);
->  
-Acked-by: Huang Shijie <shijie8@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c   |   20 +-------------------
+ drivers/media/usb/cx231xx/cx231xx-video.c |    6 +++---
+ drivers/media/usb/cx231xx/cx231xx.h       |    2 ++
+ 3 files changed, 6 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index ac15a55..be8f7481 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1626,24 +1626,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	dprintk(3, "exit vidioc_s_ctrl()\n");
+ 	return 0;
+ }
+-static struct v4l2_capability pvr_capability = {
+-	.driver         = "cx231xx",
+-	.card           = "VideoGrabber",
+-	.bus_info       = "usb",
+-	.version        = 1,
+-	.capabilities   = (V4L2_CAP_VIDEO_CAPTURE |
+-			   V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
+-			 V4L2_CAP_STREAMING | V4L2_CAP_READWRITE),
+-};
+-static int vidioc_querycap(struct file *file, void  *priv,
+-				struct v4l2_capability *cap)
+-{
+-
+-
+-
+-		memcpy(cap, &pvr_capability, sizeof(struct v4l2_capability));
+-	return 0;
+-}
+ 
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *f)
+@@ -2016,7 +1998,7 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_g_input		 = vidioc_g_input,
+ 	.vidioc_s_input		 = vidioc_s_input,
+ 	.vidioc_s_ctrl		 = vidioc_s_ctrl,
+-	.vidioc_querycap	 = vidioc_querycap,
++	.vidioc_querycap	 = cx231xx_querycap,
+ 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap	 = vidioc_g_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap	 = vidioc_try_fmt_vid_cap,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index 208926f..60a7b3ee 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -1631,7 +1631,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_querycap(struct file *file, void *priv,
++int cx231xx_querycap(struct file *file, void *priv,
+ 			   struct v4l2_capability *cap)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+@@ -2185,7 +2185,7 @@ static const struct v4l2_file_operations cx231xx_v4l_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+-	.vidioc_querycap               = vidioc_querycap,
++	.vidioc_querycap               = cx231xx_querycap,
+ 	.vidioc_enum_fmt_vid_cap       = vidioc_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap          = vidioc_g_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap        = vidioc_try_fmt_vid_cap,
+@@ -2236,7 +2236,7 @@ static const struct v4l2_file_operations radio_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap    = vidioc_querycap,
++	.vidioc_querycap    = cx231xx_querycap,
+ 	.vidioc_g_tuner     = radio_g_tuner,
+ 	.vidioc_s_tuner     = radio_s_tuner,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index c17889d..efc0d1c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -934,6 +934,8 @@ int cx231xx_register_extension(struct cx231xx_ops *dev);
+ void cx231xx_unregister_extension(struct cx231xx_ops *dev);
+ void cx231xx_init_extension(struct cx231xx *dev);
+ void cx231xx_close_extension(struct cx231xx *dev);
++int cx231xx_querycap(struct file *file, void *priv,
++			   struct v4l2_capability *cap);
+ 
+ /* Provided by cx231xx-cards.c */
+ extern void cx231xx_pre_card_setup(struct cx231xx *dev);
+-- 
+1.7.10.4
+
