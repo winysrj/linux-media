@@ -1,76 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:54258
-	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757221Ab3BXUqf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Feb 2013 15:46:35 -0500
-From: Kevin Baradon <kevin.baradon@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kevin Baradon <kevin.baradon@gmail.com>
-Subject: [PATCH 2/2] media/rc/imon.c: avoid flooding syslog with "unknown keypress" when keypad is pressed
-Date: Sun, 24 Feb 2013 21:19:30 +0100
-Message-Id: <1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
-In-Reply-To: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
-References: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4749 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3BIIps (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 03:45:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.8] Regression fix: cx18/ivtv: remove __init from a non-init function.
+Date: Sat, 9 Feb 2013 09:45:34 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+References: <201302080940.27735.hverkuil@xs4all.nl> <20130208223344.38009a5c@redhat.com>
+In-Reply-To: <20130208223344.38009a5c@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302090945.34653.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My 15c2:0036 device floods syslog when a keypad key is pressed:
+On Sat February 9 2013 01:33:44 Mauro Carvalho Chehab wrote:
+> Em Fri, 8 Feb 2013 09:40:27 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Mauro,
+> > 
+> > Please fast-track this for 3.8. Yesterday I discovered that commits made earlier
+> > for 3.8 kill ivtv and cx18 (as in: unable to boot, instant crash) since a
+> > function was made __init that was actually called *after* initialization.
+> > 
+> > We are already at rc6 and this *must* make it for 3.8. Without this patch
+> > anyone with a cx18/ivtv will crash immediately as soon as they upgrade to 3.8.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 248ac368ce4b3cd36515122d888403909d7a2500:
+> > 
+> >   [media] s5p-fimc: Fix fimc-lite entities deregistration (2013-02-06 09:42:19 -0200)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git ivtv
+> > 
+> > for you to fetch changes up to ddf276062e68607323fca363b99bdf426dddad9b:
+> > 
+> >   cx18/ivtv: fix regression: remove __init from a non-init function. (2013-02-08 09:30:11 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Hans Verkuil (1):
+> >       cx18/ivtv: fix regression: remove __init from a non-init function.
+> 
+> Hmm... the patch seems to be broken/incomplete:
 
-Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fef2
-Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
+It turned out that the cx18/ivtv-alsa-pcm.h header had an __init annotation,
+although the corresponding function in the c source didn't. And
+CONFIG_DEBUG_SECTION_MISMATCH was turned off, so I didn't see the full warning
+message (now corrected). The fact that __init wasn't present in the C source
+is the reason why the fix worked.
 
-This patch lowers severity of this message when key appears to be coming from keypad.
+I'll post a new pull request fixing the headers as well.
 
-Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
----
- drivers/media/rc/imon.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+Regards,
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index a3e66a0..bca03d4 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1499,7 +1499,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	int i;
- 	u64 scancode;
- 	int press_type = 0;
--	int msec;
-+	int msec, is_pad_key = 0;
- 	struct timeval t;
- 	static struct timeval prev_time = { 0, 0 };
- 	u8 ktype;
-@@ -1562,6 +1562,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	    ((len == 8) && (buf[0] & 0x40) &&
- 	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
- 		len = 8;
-+		is_pad_key = 1;
- 		imon_pad_to_keys(ictx, buf);
- 	}
- 
-@@ -1625,8 +1626,16 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 
- unknown_key:
- 	spin_unlock_irqrestore(&ictx->kc_lock, flags);
--	dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
--		 (long long)scancode);
-+	/*
-+	 * On some devices syslog is flooded with unknown keypresses when keypad
-+	 * is pressed. Lower message severity in that case.
-+	 */
-+	if (!is_pad_key)
-+		dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
-+			 (long long)scancode);
-+	else
-+		dev_dbg(dev, "%s: unknown keypad keypress, code 0x%llx\n",
-+			__func__, (long long)scancode);
- 	return;
- 
- not_input_data:
--- 
-1.7.10.4
+	Hans
 
+
+
+> 
+> 
+> WARNING: drivers/media/pci/cx18/cx18-alsa.o(.text+0x449): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_pcm_create().
+> This is often because cx18_alsa_load lacks a __init 
+> annotation or the annotation of snd_cx18_pcm_create is wrong.
+> 
+> WARNING: drivers/media/pci/cx18/built-in.o(.text+0x1be69): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_pcm_create().
+> This is often because cx18_alsa_load lacks a __init 
+> annotation or the annotation of snd_cx18_pcm_create is wrong.
+> 
+> WARNING: drivers/media/pci/ivtv/ivtv-alsa.o(.text+0x454): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+> The function ivtv_alsa_load() references
+> the function __init snd_ivtv_pcm_create().
+> This is often because ivtv_alsa_load lacks a __init 
+> annotation or the annotation of snd_ivtv_pcm_create is wrong.
+> 
+> WARNING: drivers/media/pci/ivtv/built-in.o(.text+0x20790): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+> The function ivtv_alsa_load() references
+> the function __init snd_ivtv_pcm_create().
+> This is often because ivtv_alsa_load lacks a __init 
+> annotation or the annotation of snd_ivtv_pcm_create is wrong.
+> 
+> WARNING: drivers/media/pci/built-in.o(.text+0x6b958): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+> The function ivtv_alsa_load() references
+> the function __init snd_ivtv_pcm_create().
+> This is often because ivtv_alsa_load lacks a __init 
+> annotation or the annotation of snd_ivtv_pcm_create is wrong.
+> 
+> WARNING: drivers/media/pci/built-in.o(.text+0x9fc21): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_pcm_create().
+> This is often because cx18_alsa_load lacks a __init 
+> annotation or the annotation of snd_cx18_pcm_create is wrong.
+> 
+> WARNING: drivers/media/built-in.o(.text+0x289f48): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
+> The function ivtv_alsa_load() references
+> the function __init snd_ivtv_pcm_create().
+> This is often because ivtv_alsa_load lacks a __init 
+> annotation or the annotation of snd_ivtv_pcm_create is wrong.
+> 
+> WARNING: drivers/media/built-in.o(.text+0x2be211): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
+> The function cx18_alsa_load() references
+> the function __init snd_cx18_pcm_create().
+> This is often because cx18_alsa_load lacks a __init 
+> annotation or the annotation of snd_cx18_pcm_create is wrong.
+> 
