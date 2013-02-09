@@ -1,61 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zose-mta11.web4all.fr ([178.33.204.87]:33360 "EHLO
-	zose-mta11.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759696Ab3BZSkm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 13:40:42 -0500
-From: =?UTF-8?q?Beno=C3=AEt=20Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>
-Cc: =?UTF-8?q?Beno=C3=AEt=20Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	=?UTF-8?q?Micka=C3=ABl=20Guivarc=27h?=
-	<mickael.guivarch@advansee.com>, <linux-media@vger.kernel.org>
-Subject: [PATCH] soc-camera: mt9m111: Fix auto-exposure control
-Date: Tue, 26 Feb 2013 19:32:49 +0100
-Message-Id: <1361903569-30244-1-git-send-email-benoit.thebaudeau@advansee.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4330 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752633Ab3BIKBW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:22 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
+	Palash.Bandyopadhyay@conexant.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 17/26] cx231xx-417: fix g/try_fmt compliance problems
+Date: Sat,  9 Feb 2013 11:00:47 +0100
+Message-Id: <2a330dc65cf904221683d1aa2727fc6693190dc8.1360403310.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f9bd5843658e18a7097fc7258c60fb840109eaa8 changed V4L2_CID_EXPOSURE_AUTO
-from boolean to enum, and commit af8425c54beb3c32cbb503a379132b3975535289
-changed the creation of this control into a menu for the mt9m111. However,
-mt9m111_set_autoexposure() is still interpreting the value set for this control
-as a boolean, which also conflicts with the default value of this control set to
-V4L2_EXPOSURE_AUTO (0).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch makes mt9m111_set_autoexposure() interpret the value set for
-V4L2_CID_EXPOSURE_AUTO as defined by enum v4l2_exposure_auto_type.
+Colorspace, field and priv were not set, and sizeimage was calculated
+using the wrong values (dev->ts1.ts_packet_size and dev->ts1.ts_packet_count
+can be 0 at module load).
 
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mickaël Guivarc'h <mickael.guivarch@advansee.com>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/soc_camera/mt9m111.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/usb/cx231xx/cx231xx-417.c |   34 +++++++++++++++++--------------
+ 1 file changed, 19 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index bbc4ff9..0b0ebaa 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -701,11 +701,11 @@ static int mt9m111_set_global_gain(struct mt9m111 *mt9m111, int gain)
- 	return reg_write(GLOBAL_GAIN, val);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index be8f7481..cbdc141 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1223,6 +1223,7 @@ static int bb_buf_setup(struct videobuf_queue *q,
+ 
+ 	return 0;
  }
- 
--static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int on)
-+static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int val)
++
+ static void free_buffer(struct videobuf_queue *vq, struct cx231xx_buffer *buf)
  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
- 
--	if (on)
-+	if (val == V4L2_EXPOSURE_AUTO)
- 		return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
- 	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+ 	struct cx231xx_fh *fh = vq->priv_data;
+@@ -1645,17 +1646,18 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	struct cx231xx_fh  *fh  = file->private_data;
+ 	struct cx231xx *dev = fh->dev;
++
+ 	dprintk(3, "enter vidioc_g_fmt_vid_cap()\n");
+-	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_MPEG;
+ 	f->fmt.pix.bytesperline = 0;
+-	f->fmt.pix.sizeimage    =
+-		dev->ts1.ts_packet_size * dev->ts1.ts_packet_count;
+-	f->fmt.pix.colorspace   = 0;
+-	f->fmt.pix.width        = dev->ts1.width;
+-	f->fmt.pix.height       = dev->ts1.height;
+-	f->fmt.pix.field        = fh->vidq.field;
+-	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
+-		dev->ts1.width, dev->ts1.height, fh->vidq.field);
++	f->fmt.pix.sizeimage = mpeglines * mpeglinesize;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.width = dev->ts1.width;
++	f->fmt.pix.height = dev->ts1.height;
++	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	f->fmt.pix.priv = 0;
++	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d\n",
++		dev->ts1.width, dev->ts1.height);
+ 	dprintk(3, "exit vidioc_g_fmt_vid_cap()\n");
+ 	return 0;
+ }
+@@ -1665,14 +1667,16 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ {
+ 	struct cx231xx_fh  *fh  = file->private_data;
+ 	struct cx231xx *dev = fh->dev;
++
+ 	dprintk(3, "enter vidioc_try_fmt_vid_cap()\n");
+-	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
++	f->fmt.pix.pixelformat = V4L2_PIX_FMT_MPEG;
+ 	f->fmt.pix.bytesperline = 0;
+-	f->fmt.pix.sizeimage    =
+-		dev->ts1.ts_packet_size * dev->ts1.ts_packet_count;
+-	f->fmt.pix.colorspace   = 0;
+-	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
+-		dev->ts1.width, dev->ts1.height, fh->vidq.field);
++	f->fmt.pix.sizeimage = mpeglines * mpeglinesize;
++	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
++	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d\n",
++		dev->ts1.width, dev->ts1.height);
+ 	dprintk(3, "exit vidioc_try_fmt_vid_cap()\n");
+ 	return 0;
  }
 -- 
 1.7.10.4
