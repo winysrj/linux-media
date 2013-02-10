@@ -1,48 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:54510 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab3BFOmN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Feb 2013 09:42:13 -0500
-To: Neuer User <auslands-kv@gmx.de>
-Subject: Re: Replacement for =?UTF-8?Q?vloopback=3F?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Wed, 06 Feb 2013 15:31:43 +0100
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: <linux-media@vger.kernel.org>
-In-Reply-To: <ketngk$dit$1@ger.gmane.org>
-References: <ketngk$dit$1@ger.gmane.org>
-Message-ID: <a1d8611ac577065a5433d4ed74c87111@chewa.net>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4948 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754473Ab3BJMuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 07:50:21 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 03/19] bttv: fix ENUM_INPUT and S_INPUT
+Date: Sun, 10 Feb 2013 13:49:58 +0100
+Message-Id: <d50824ee405739ff8c7c7ecfd7a0298f2ea79bac.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 06 Feb 2013 14:57:43 +0100, Neuer User <auslands-kv@gmx.de> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> So, my question ist: Is vloopback the right way to go for this
+- Fix ENUM_INPUT audioset.
+- Fix incorrect input check in s_input.
 
-> requirement? If yes, how to get it working?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
 
-
-
-No. Video loopback is just a way for an application to expose a virtual
-
-camera, for another application to use. It is not a way to share a camera
-
-within two applications.
-
-
-
-Sharing a camera is fundamentally impossible due to the limitation of the
-
-hardware, which cannot capture in two different formats and sets of buffers
-
-simultaneously. Live with it.
-
-
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index b36d675..6e61dbd 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1923,7 +1923,7 @@ static int bttv_enum_input(struct file *file, void *priv,
+ 	}
+ 
+ 	i->type     = V4L2_INPUT_TYPE_CAMERA;
+-	i->audioset = 1;
++	i->audioset = 0;
+ 
+ 	if (btv->tuner_type != TUNER_ABSENT && i->index == 0) {
+ 		sprintf(i->name, "Television");
+@@ -1964,21 +1964,16 @@ static int bttv_s_input(struct file *file, void *priv, unsigned int i)
+ {
+ 	struct bttv_fh *fh  = priv;
+ 	struct bttv *btv = fh->btv;
+-
+ 	int err;
+ 
+ 	err = v4l2_prio_check(&btv->prio, fh->prio);
+-	if (unlikely(err))
+-		goto err;
++	if (err)
++		return err;
+ 
+-	if (i > bttv_tvcards[btv->c.type].video_inputs) {
+-		err = -EINVAL;
+-		goto err;
+-	}
++	if (i >= bttv_tvcards[btv->c.type].video_inputs)
++		return -EINVAL;
+ 
+ 	set_input(btv, i, btv->tvnorm);
+-
+-err:
+ 	return 0;
+ }
+ 
 -- 
+1.7.10.4
 
-Rémi Denis-Courmont
-
-Sent from my collocated server
