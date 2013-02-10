@@ -1,67 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:40575 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884Ab3BROJc (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2689 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754473Ab3BJMuX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Feb 2013 09:09:32 -0500
-Message-ID: <51223615.4090709@iki.fi>
-Date: Mon, 18 Feb 2013 16:09:25 +0200
-From: Tomi Valkeinen <tomba@iki.fi>
-MIME-Version: 1.0
-To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
-CC: devicetree-discuss@lists.ozlabs.org,
-	Dave Airlie <airlied@linux.ie>,
-	Rob Herring <robherring2@gmail.com>,
-	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Rob Clark <robdclark@gmail.com>,
-	Leela Krishna Amudala <leelakrishna.a@gmail.com>,
-	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
-Subject: Re: [PATCH v17 2/7] video: add display_timing and videomode
-References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de> <1359104515-8907-3-git-send-email-s.trumtrar@pengutronix.de>
-In-Reply-To: <1359104515-8907-3-git-send-email-s.trumtrar@pengutronix.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Sun, 10 Feb 2013 07:50:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 09/19] bttv: fill in fb->flags for VIDIOC_G_FBUF
+Date: Sun, 10 Feb 2013 13:50:04 +0100
+Message-Id: <ebd98b7519e0dad743ac84a8c6bac5d28ec93aa8.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steffen,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 2013-01-25 11:01, Steffen Trumtrar wrote:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-> +/* VESA display monitor timing parameters */
-> +#define VESA_DMT_HSYNC_LOW		BIT(0)
-> +#define VESA_DMT_HSYNC_HIGH		BIT(1)
-> +#define VESA_DMT_VSYNC_LOW		BIT(2)
-> +#define VESA_DMT_VSYNC_HIGH		BIT(3)
-> +
-> +/* display specific flags */
-> +#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
-> +#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
-> +#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. edge */
-> +#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. edge */
-> +#define DISPLAY_FLAGS_INTERLACED	BIT(4)
-> +#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
-
-<snip>
-
-> +	unsigned int dmt_flags;	/* VESA DMT flags */
-> +	unsigned int data_flags; /* video data flags */
-
-Why did you go for this approach? To be able to represent
-true/false/not-specified?
-
-Would it be simpler to just have "flags" field? What does it give us to
-have those two separately?
-
-Should the above say raising edge/falling edge instead of positive
-edge/negative edge?
-
- Tomi
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 70878e6..81886e1 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2769,6 +2769,7 @@ static int bttv_g_fbuf(struct file *file, void *f,
+ 
+ 	*fb = btv->fbuf;
+ 	fb->capability = V4L2_FBUF_CAP_LIST_CLIPPING;
++	fb->flags = V4L2_FBUF_FLAG_PRIMARY;
+ 	if (fh->ovfmt)
+ 		fb->fmt.pixelformat  = fh->ovfmt->fourcc;
+ 	return 0;
+-- 
+1.7.10.4
 
