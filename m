@@ -1,46 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4730 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757246Ab3BEWJE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 17:09:04 -0500
-Date: Tue, 5 Feb 2013 20:08:59 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patch update notification: 2 patches updated
-Message-ID: <20130205200859.3ab68dd3@redhat.com>
-In-Reply-To: <51117DA2.4030703@googlemail.com>
-References: <20130205213301.13968.54926@www.linuxtv.org>
-	<51117DA2.4030703@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:41752 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761111Ab3BJUV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 15:21:58 -0500
+Received: by mail-ee0-f53.google.com with SMTP id e53so2813750eek.26
+        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 12:21:54 -0800 (PST)
+Message-ID: <51180191.4070100@googlemail.com>
+Date: Sun, 10 Feb 2013 21:22:41 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEWv2 PATCH 04/19] bttv: remove g/s_audio since there is
+ only one audio input.
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl> <0681941b222b6cc9c0bb288f81019d4f90c9d683.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <0681941b222b6cc9c0bb288f81019d4f90c9d683.1360500224.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 05 Feb 2013 22:46:10 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-> Am 05.02.2013 22:33, schrieb Patchwork:
-> > Hello,
-> >
-> > The following patches (submitted by you) have been updated in patchwork:
-> ...
-> >  * [RFC] em28xx: fix analog streaming with USB bulk transfers
-> >      - http://patchwork.linuxtv.org/patch/16197/
-> >     was: New
-> >     now: RFC
-> 
-> What's your plan with this patch ?
-> We have this regression in the media-tree since a few weeks now.
-> Nobody replied to it or came up with a better solution...
+Hmm... G/S_AUDIO is also used to query/set the capabilities and the mode
+of an input, which IMHO makes sense even if the input is the only one
+the device has ?
+Don't you think that it's also somehow inconsistent, because for the
+video inputs (G/S_INPUT) the spec says:
+"This ioctl will fail only when there are no video inputs, returning
+EINVAL." ?
 
-Well, you tagged it as RFC. I just marked as such at patchwork. I don't even
-read patches tagged as [RFC] or [REVIEW], as those patches will be
-resubmitted later by the patch author, if they're ok, or a new version will
-be sent instead.
 
--- 
+Regards,
+Frank
 
-Cheers,
-Mauro
+
+
+Am 10.02.2013 13:49, schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |   19 -------------------
+>  1 file changed, 19 deletions(-)
+>
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index 6e61dbd..a02c031 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -3138,23 +3138,6 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
+>  	return 0;
+>  }
+>  
+> -static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+> -{
+> -	if (unlikely(a->index))
+> -		return -EINVAL;
+> -
+> -	strcpy(a->name, "audio");
+> -	return 0;
+> -}
+> -
+> -static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+> -{
+> -	if (unlikely(a->index))
+> -		return -EINVAL;
+> -
+> -	return 0;
+> -}
+> -
+>  static ssize_t bttv_read(struct file *file, char __user *data,
+>  			 size_t count, loff_t *ppos)
+>  {
+> @@ -3390,8 +3373,6 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
+>  	.vidioc_g_fmt_vbi_cap           = bttv_g_fmt_vbi_cap,
+>  	.vidioc_try_fmt_vbi_cap         = bttv_try_fmt_vbi_cap,
+>  	.vidioc_s_fmt_vbi_cap           = bttv_s_fmt_vbi_cap,
+> -	.vidioc_g_audio                 = bttv_g_audio,
+> -	.vidioc_s_audio                 = bttv_s_audio,
+>  	.vidioc_cropcap                 = bttv_cropcap,
+>  	.vidioc_reqbufs                 = bttv_reqbufs,
+>  	.vidioc_querybuf                = bttv_querybuf,
+
