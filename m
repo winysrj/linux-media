@@ -1,75 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:38333 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718Ab3BOFHO (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2263 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756103Ab3BJRxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 00:07:14 -0500
-MIME-Version: 1.0
-In-Reply-To: <1360882071-4072668-10-git-send-email-arnd@arndb.de>
-References: <1360882071-4072668-1-git-send-email-arnd@arndb.de> <1360882071-4072668-10-git-send-email-arnd@arndb.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 15 Feb 2013 10:36:53 +0530
-Message-ID: <CA+V-a8twXpuy3+ScdR26pwYn0LriKVqnwR5Qgyv_vtf4dgEyGQ@mail.gmail.com>
-Subject: Re: [PATCH 9/9] [media] davinci: do not include mach/hardware.h
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Tony Lindgren <tony@atomide.com>, linux-kernel@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>, arm@kernel.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 10 Feb 2013 12:53:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 09/12] stk-webcam: enable core-locking.
+Date: Sun, 10 Feb 2013 18:52:50 +0100
+Message-Id: <5073f62fa1df3ab133e940e27c0235ffba063f15.1360518391.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch.
+This makes it possible to switch to unlocked_ioctl.
 
-On Fri, Feb 15, 2013 at 4:17 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> It is now possible to build the davinci vpss code
-> on multiplatform kernels, which causes a problem
-> since the driver tries to incude the davinci
-> platform specific mach/hardware.h file. Fortunately
-> that file is not required at all in the driver,
-> so we can simply remove the #include statement.
->
-> Without this patch, building allyesconfig results in:
->
-> drivers/media/platform/davinci/vpss.c:28:27: fatal error: mach/hardware.h: No such file or directory
-> compilation terminated.
->
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: "Lad, Prabhakar" <prabhakar.lad@ti.com>
-> Cc: Tony Lindgren <tony@atomide.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Arvydas Sidorenko <asido4@gmail.com>
+---
+ drivers/media/usb/stkwebcam/stk-webcam.c |   24 ++++++++++++++++++++++--
+ drivers/media/usb/stkwebcam/stk-webcam.h |    1 +
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index ce802f7..f3fabda 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -572,6 +572,8 @@ static int v4l_stk_open(struct file *fp)
+ 	if (dev == NULL || !is_present(dev))
+ 		return -ENXIO;
+ 
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
+ 	if (!dev->first_init)
+ 		stk_camera_write_reg(dev, 0x0, 0x24);
+ 	else
+@@ -580,6 +582,7 @@ static int v4l_stk_open(struct file *fp)
+ 	err = v4l2_fh_open(fp);
+ 	if (!err)
+ 		usb_autopm_get_interface(dev->interface);
++	mutex_unlock(&dev->lock);
+ 	return err;
+ }
+ 
+@@ -587,6 +590,7 @@ static int v4l_stk_release(struct file *fp)
+ {
+ 	struct stk_camera *dev = video_drvdata(fp);
+ 
++	mutex_lock(&dev->lock);
+ 	if (dev->owner == fp) {
+ 		stk_stop_stream(dev);
+ 		stk_free_buffers(dev);
+@@ -597,10 +601,11 @@ static int v4l_stk_release(struct file *fp)
+ 
+ 	if (is_present(dev))
+ 		usb_autopm_put_interface(dev->interface);
++	mutex_unlock(&dev->lock);
+ 	return v4l2_fh_release(fp);
+ }
+ 
+-static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
++static ssize_t stk_read(struct file *fp, char __user *buf,
+ 		size_t count, loff_t *f_pos)
+ {
+ 	int i;
+@@ -661,6 +666,19 @@ static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
+ 	return count;
+ }
+ 
++static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
++		size_t count, loff_t *f_pos)
++{
++	struct stk_camera *dev = video_drvdata(fp);
++	int ret;
++
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
++	ret = stk_read(fp, buf, count, f_pos);
++	mutex_unlock(&dev->lock);
++	return ret;
++}
++
+ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
+ {
+ 	struct stk_camera *dev = video_drvdata(fp);
+@@ -1145,7 +1163,7 @@ static struct v4l2_file_operations v4l_stk_fops = {
+ 	.read = v4l_stk_read,
+ 	.poll = v4l_stk_poll,
+ 	.mmap = v4l_stk_mmap,
+-	.ioctl = video_ioctl2,
++	.unlocked_ioctl = video_ioctl2,
+ };
+ 
+ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
+@@ -1193,6 +1211,7 @@ static int stk_register_video_device(struct stk_camera *dev)
+ 	int err;
+ 
+ 	dev->vdev = stk_v4l_data;
++	dev->vdev.lock = &dev->lock;
+ 	dev->vdev.debug = debug;
+ 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
+@@ -1248,6 +1267,7 @@ static int stk_camera_probe(struct usb_interface *interface,
+ 	dev->v4l2_dev.ctrl_handler = hdl;
+ 
+ 	spin_lock_init(&dev->spinlock);
++	mutex_init(&dev->lock);
+ 	init_waitqueue_head(&dev->wait_frame);
+ 	dev->first_init = 1; /* webcam LED management */
+ 
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
+index 2156320..03550cf 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.h
++++ b/drivers/media/usb/stkwebcam/stk-webcam.h
+@@ -99,6 +99,7 @@ struct stk_camera {
+ 	struct usb_interface *interface;
+ 	int webcam_model;
+ 	struct file *owner;
++	struct mutex lock;
+ 	int first_init;
+ 
+ 	u8 isoc_ep;
+-- 
+1.7.10.4
 
-Regards,
---Prabhakar
-
-> ---
->  drivers/media/platform/davinci/vpss.c | 1 -
->  1 file changed, 1 deletion(-)
->
-> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-> index 494d322..a19c552 100644
-> --- a/drivers/media/platform/davinci/vpss.c
-> +++ b/drivers/media/platform/davinci/vpss.c
-> @@ -25,7 +25,6 @@
->  #include <linux/spinlock.h>
->  #include <linux/compiler.h>
->  #include <linux/io.h>
-> -#include <mach/hardware.h>
->  #include <media/davinci/vpss.h>
->
->  MODULE_LICENSE("GPL");
-> --
-> 1.8.1.2
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
