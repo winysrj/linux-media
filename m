@@ -1,53 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2355 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752917Ab3BPJ2v (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2873 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754645Ab3BJMuW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:51 -0500
+	Sun, 10 Feb 2013 07:50:22 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 06/18] davinci: replace V4L2_OUT_CAP_CUSTOM_TIMINGS by V4L2_OUT_CAP_DV_TIMINGS
-Date: Sat, 16 Feb 2013 10:28:09 +0100
-Message-Id: <697f2939eac3755e4b5d74433d160d44672ab7ca.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 01/19] bttv: fix querycap and radio v4l2-compliance issues.
+Date: Sun, 10 Feb 2013 13:49:56 +0100
+Message-Id: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The use of V4L2_OUT_CAP_CUSTOM_TIMINGS is deprecated, use DV_TIMINGS instead.
-Note that V4L2_OUT_CAP_CUSTOM_TIMINGS is just a #define for
-V4L2_OUT_CAP_DV_TIMINGS.
-
-At some point in the future these CUSTOM_TIMINGS defines might be removed.
+The querycap ioctl didn't support V4L2_CAP_DEVICE_CAPS and the radio device
+implemented audio and video inputs and s_std, which are not part of the radio
+API.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 ---
- arch/arm/mach-davinci/board-dm646x-evm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/pci/bt8xx/bttv-driver.c |  101 +++++++++------------------------
+ 1 file changed, 27 insertions(+), 74 deletions(-)
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index 6e2f163..43f35d6 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -514,7 +514,7 @@ static const struct vpif_output dm6467_ch0_outputs[] = {
- 			.index = 1,
- 			.name = "Component",
- 			.type = V4L2_OUTPUT_TYPE_ANALOG,
--			.capabilities = V4L2_OUT_CAP_CUSTOM_TIMINGS,
-+			.capabilities = V4L2_OUT_CAP_DV_TIMINGS,
- 		},
- 		.subdev_name = "adv7343",
- 		.output_route = ADV7343_COMPONENT_ID,
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index ccd18e4..cc7f58f 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2630,6 +2630,7 @@ static int bttv_s_fmt_vid_overlay(struct file *file, void *priv,
+ static int bttv_querycap(struct file *file, void  *priv,
+ 				struct v4l2_capability *cap)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct bttv_fh *fh = priv;
+ 	struct bttv *btv = fh->btv;
+ 
+@@ -2642,11 +2643,15 @@ static int bttv_querycap(struct file *file, void  *priv,
+ 		 "PCI:%s", pci_name(btv->c.pci));
+ 	cap->capabilities =
+ 		V4L2_CAP_VIDEO_CAPTURE |
+-		V4L2_CAP_VBI_CAPTURE |
+ 		V4L2_CAP_READWRITE |
+-		V4L2_CAP_STREAMING;
++		V4L2_CAP_STREAMING |
++		V4L2_CAP_DEVICE_CAPS;
+ 	if (no_overlay <= 0)
+ 		cap->capabilities |= V4L2_CAP_VIDEO_OVERLAY;
++	if (btv->vbi_dev)
++		cap->capabilities |= V4L2_CAP_VBI_CAPTURE;
++	if (btv->radio_dev)
++		cap->capabilities |= V4L2_CAP_RADIO;
+ 
+ 	/*
+ 	 * No need to lock here: those vars are initialized during board
+@@ -2656,6 +2661,25 @@ static int bttv_querycap(struct file *file, void  *priv,
+ 		cap->capabilities |= V4L2_CAP_RDS_CAPTURE;
+ 	if (btv->tuner_type != TUNER_ABSENT)
+ 		cap->capabilities |= V4L2_CAP_TUNER;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps = cap->capabilities &
++			(V4L2_CAP_VIDEO_CAPTURE |
++			 V4L2_CAP_READWRITE |
++			 V4L2_CAP_STREAMING |
++			 V4L2_CAP_VIDEO_OVERLAY |
++			 V4L2_CAP_TUNER);
++	else if (vdev->vfl_type == VFL_TYPE_VBI)
++		cap->device_caps = cap->capabilities &
++			(V4L2_CAP_VBI_CAPTURE |
++			 V4L2_CAP_READWRITE |
++			 V4L2_CAP_STREAMING |
++			 V4L2_CAP_TUNER);
++	else {
++		cap->device_caps = V4L2_CAP_RADIO | V4L2_CAP_TUNER;
++		if (btv->has_saa6588)
++			cap->device_caps |= V4L2_CAP_READWRITE |
++						V4L2_CAP_RDS_CAPTURE;
++	}
+ 	return 0;
+ }
+ 
+@@ -3430,20 +3454,6 @@ static int radio_release(struct file *file)
+ 	return 0;
+ }
+ 
+-static int radio_querycap(struct file *file, void *priv,
+-					struct v4l2_capability *cap)
+-{
+-	struct bttv_fh *fh = priv;
+-	struct bttv *btv = fh->btv;
+-
+-	strcpy(cap->driver, "bttv");
+-	strlcpy(cap->card, btv->radio_dev->name, sizeof(cap->card));
+-	sprintf(cap->bus_info, "PCI:%s", pci_name(btv->c.pci));
+-	cap->capabilities = V4L2_CAP_TUNER;
+-
+-	return 0;
+-}
+-
+ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ {
+ 	struct bttv_fh *fh = priv;
+@@ -3464,29 +3474,6 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 	return 0;
+ }
+ 
+-static int radio_enum_input(struct file *file, void *priv,
+-				struct v4l2_input *i)
+-{
+-	if (i->index != 0)
+-		return -EINVAL;
+-
+-	strcpy(i->name, "Radio");
+-	i->type = V4L2_INPUT_TYPE_TUNER;
+-
+-	return 0;
+-}
+-
+-static int radio_g_audio(struct file *file, void *priv,
+-					struct v4l2_audio *a)
+-{
+-	if (unlikely(a->index))
+-		return -EINVAL;
+-
+-	strcpy(a->name, "Radio");
+-
+-	return 0;
+-}
+-
+ static int radio_s_tuner(struct file *file, void *priv,
+ 					struct v4l2_tuner *t)
+ {
+@@ -3500,28 +3487,6 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int radio_s_audio(struct file *file, void *priv,
+-					const struct v4l2_audio *a)
+-{
+-	if (unlikely(a->index))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static int radio_s_input(struct file *filp, void *priv, unsigned int i)
+-{
+-	if (unlikely(i))
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-static int radio_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+-{
+-	return 0;
+-}
+-
+ static int radio_queryctrl(struct file *file, void *priv,
+ 					struct v4l2_queryctrl *c)
+ {
+@@ -3540,12 +3505,6 @@ static int radio_queryctrl(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int radio_g_input(struct file *filp, void *priv, unsigned int *i)
+-{
+-	*i = 0;
+-	return 0;
+-}
+-
+ static ssize_t radio_read(struct file *file, char __user *data,
+ 			 size_t count, loff_t *ppos)
+ {
+@@ -3586,16 +3545,10 @@ static const struct v4l2_file_operations radio_fops =
+ };
+ 
+ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+-	.vidioc_querycap        = radio_querycap,
++	.vidioc_querycap        = bttv_querycap,
+ 	.vidioc_g_tuner         = radio_g_tuner,
+-	.vidioc_enum_input      = radio_enum_input,
+-	.vidioc_g_audio         = radio_g_audio,
+ 	.vidioc_s_tuner         = radio_s_tuner,
+-	.vidioc_s_audio         = radio_s_audio,
+-	.vidioc_s_input         = radio_s_input,
+-	.vidioc_s_std           = radio_s_std,
+ 	.vidioc_queryctrl       = radio_queryctrl,
+-	.vidioc_g_input         = radio_g_input,
+ 	.vidioc_g_ctrl          = bttv_g_ctrl,
+ 	.vidioc_s_ctrl          = bttv_s_ctrl,
+ 	.vidioc_g_frequency     = bttv_g_frequency,
 -- 
 1.7.10.4
 
