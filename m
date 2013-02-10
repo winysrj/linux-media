@@ -1,55 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31939 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756874Ab3BEUoB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Feb 2013 15:44:01 -0500
-Date: Tue, 5 Feb 2013 18:43:56 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.8] Exynos/s5p driver fixes
-Message-ID: <20130205184356.7e513290@redhat.com>
-In-Reply-To: <50FAA6C4.9020606@gmail.com>
-References: <50FAA6C4.9020606@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:33346 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755395Ab3BJR1R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 12:27:17 -0500
+Received: by mail-wi0-f172.google.com with SMTP id ez12so2423030wid.17
+        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 09:27:16 -0800 (PST)
+Message-ID: <5117D871.7010500@gmail.com>
+Date: Sun, 10 Feb 2013 17:27:13 +0000
+From: Emile Joubert <emile.joubert@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: bt878: radio frequency stuck
+References: <51170DC3.8070302@gmail.com> <201302100939.21660.hverkuil@xs4all.nl> <201302101351.39230.hverkuil@xs4all.nl>
+In-Reply-To: <201302101351.39230.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 19 Jan 2013 14:59:32 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+On 10/02/13 12:51, Hans Verkuil wrote:
+> I'm pretty sure this will work. I have the same model and I can confirm lots
+> of problems in the current driver, but after my fixes it all works again.
 
-> Hi Mauro,
-> 
-> The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
-> 
->    Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
-> 
-> are available in the git repository at:
->    git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
-> 
-> Kamil Debski (1):
->        s5p-mfc: end-of-stream handling in encoder bug fix
-> 
-> Sylwester Nawrocki (2):
->        s5p-fimc: Fix fimc-lite entities deregistration
->        s5p-csis: Fix clock handling on error path in probe()
-> 
->   drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
->   drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
->   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
->   3 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> 
-> pwclient update -s accepted 16223
-> pwclient update -s accepted 16206
-> pwclient update -s accepted 16314
+I can confirm that on that branch the tuner works for me too.
+Thanks!
 
-Error:
 
-Importing patches from git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
-fatal: Couldn't find remote ref v3.8-rc5-fixes
+-Emile
 
-Regards,
-Mauro
+
+
+
+
