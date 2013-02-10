@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:54496 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753620Ab3BPQkS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 11:40:18 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v2 0/4] saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
-Date: Sat, 16 Feb 2013 17:39:49 +0100
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:39219 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756804Ab3BJUEo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 15:04:44 -0500
+Received: by mail-ea0-f174.google.com with SMTP id 1so2408710eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 12:04:42 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
-	"Michael Krufky =?utf-8?q?=19?=" <mkrufky@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 4/4] em28xx: VIDIOC_ENUM_FRAMESIZES: consider the scaler limits when calculating the minimum frame size
+Date: Sun, 10 Feb 2013 21:05:14 +0100
+Message-Id: <1360526714-3216-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201302161739.49850.linux@rainbow-software.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 01 February 2013 21:21:23 Ondrej Zary wrote:
-> Add AverMedia AverTV Satellite Hybrid+FM (A706) card to saa7134 driver.
->
-> This requires some changes to tda8290 - disabling I2C gate control and
-> passing custom std_map to tda18271.
-> Also tuner-core needs to be changed because there's currently no way to
-> pass any complex configuration to analog tuners.
+Output resolutions <=20% of the input resolution exceed the capabilities of the
+scaler.
 
-What's the status of this patch series?
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |    8 ++++++--
+ 1 Datei geändert, 6 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
 
-The two tda8290 patches are in Michael's dvb tree.
-I've sent an additional clean-up patch (on Mauro's suggestion) for the 
-tuner-core change.
-I guess that the final AverMedia A706 patch would be easily merged once the 
-tda8290 and tuner-core changess are done.
-
-Should I resend something?
-
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index f745617..86fd907 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1405,8 +1405,12 @@ static int vidioc_enum_framesizes(struct file *file, void *priv,
+ 
+ 	/* Report a continuous range */
+ 	fsize->type = V4L2_FRMSIZE_TYPE_STEPWISE;
+-	fsize->stepwise.min_width = 48;
+-	fsize->stepwise.min_height = 32;
++	scale_to_size(dev, EM28XX_HVSCALE_MAX, EM28XX_HVSCALE_MAX,
++		      &fsize->stepwise.min_width, &fsize->stepwise.min_height);
++	if (fsize->stepwise.min_width < 48)
++		fsize->stepwise.min_width = 48;
++	if (fsize->stepwise.min_height < 38)
++		fsize->stepwise.min_height = 38;
+ 	fsize->stepwise.max_width = maxw;
+ 	fsize->stepwise.max_height = maxh;
+ 	fsize->stepwise.step_width = 1;
 -- 
-Ondrej Zary
+1.7.10.4
+
