@@ -1,114 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:37206 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758327Ab3BLIt0 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1158 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754827Ab3BJMuY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 03:49:26 -0500
-Received: by mail-oa0-f51.google.com with SMTP id h2so7363525oag.24
-        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 00:49:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAO_48GFp=L-xT4MxBRGAzjM5M4wP-=ra6Qzp7kA4yoD=Vds6CQ@mail.gmail.com>
-References: <1360633824-2563-1-git-send-email-sheu@google.com> <CAO_48GFp=L-xT4MxBRGAzjM5M4wP-=ra6Qzp7kA4yoD=Vds6CQ@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Tue, 12 Feb 2013 14:19:06 +0530
-Message-ID: <CAO_48GFTULwiA1TeUeDLU-CJ5VUjhBdW8Jh+7rArB_k-yegukA@mail.gmail.com>
-Subject: Re: [PATCH] CHROMIUM: dma-buf: restore args on failure of dma_buf_mmap
-To: sheu <sheu@google.com>
-Cc: linux-media@vger.kernel.org,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sun, 10 Feb 2013 07:50:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 15/19] bttv: use centralized std and implement g_std.
+Date: Sun, 10 Feb 2013 13:50:10 +0100
+Message-Id: <1ce067007cbb96ff13f7d9f9dd0a05f9b8548626.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+dri-devel ML
->
->
-> On 12 February 2013 07:20, <sheu@google.com> wrote:
->>
->> From: John Sheu <sheu@google.com>
->>
->> Callers to dma_buf_mmap expect to fput() the vma struct's vm_file
->> themselves on failure.  Not restoring the struct's data on failure
->> causes a double-decrement of the vm_file's refcount.
->>
->> Signed-off-by: John Sheu <sheu@google.com>
->>
->> ---
->>  drivers/base/dma-buf.c |   21 +++++++++++++++------
->>  1 files changed, 15 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index 09e6878..06c6225 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->> @@ -536,6 +536,9 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
->>  int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
->>                  unsigned long pgoff)
->>  {
->> +       struct file *oldfile;
->> +       int ret;
->> +
->>         if (WARN_ON(!dmabuf || !vma))
->>                 return -EINVAL;
->>
->> @@ -549,15 +552,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct
->> vm_area_struct *vma,
->>                 return -EINVAL;
->>
->>         /* readjust the vma */
->> -       if (vma->vm_file)
->> -               fput(vma->vm_file);
->> -
->> +       get_file(dmabuf->file);
->> +       oldfile = vma->vm_file;
->>         vma->vm_file = dmabuf->file;
->> -       get_file(vma->vm_file);
->> -
->>         vma->vm_pgoff = pgoff;
->>
->> -       return dmabuf->ops->mmap(dmabuf, vma);
->> +       ret = dmabuf->ops->mmap(dmabuf, vma);
->> +       if (ret) {
->> +               /* restore old parameters on failure */
->> +               vma->vm_file = oldfile;
->> +               fput(dmabuf->file);
->> +       } else {
->> +               if (oldfile)
->> +                       fput(oldfile);
->> +       }
->> +       return ret;
->>  }
->>  EXPORT_SYMBOL_GPL(dma_buf_mmap);
->>
->> --
->> 1.7.8.6
->>
->
->
->
-> --
->
-> Thanks and regards,
->
-> Sumit Semwal
->
-> Linaro Kernel Engineer - Graphics working group
->
-> Linaro.org │ Open source software for ARM SoCs
->
-> Follow Linaro: Facebook | Twitter | Blog
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The 'current_norm' field cannot be used if multiple device nodes (video and
+vbi in this case) set the same std.
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   13 ++++++++++++-
+ drivers/media/pci/bt8xx/bttvp.h       |    1 +
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 559c1d9..98b8fd2 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1716,6 +1716,7 @@ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ 		goto err;
+ 	}
+ 
++	btv->std = *id;
+ 	set_tvnorm(btv, i);
+ 
+ err:
+@@ -1723,6 +1724,15 @@ err:
+ 	return err;
+ }
+ 
++static int bttv_g_std(struct file *file, void *priv, v4l2_std_id *id)
++{
++	struct bttv_fh *fh  = priv;
++	struct bttv *btv = fh->btv;
++
++	*id = btv->std;
++	return 0;
++}
++
+ static int bttv_querystd(struct file *file, void *f, v4l2_std_id *id)
+ {
+ 	struct bttv_fh *fh = f;
+@@ -3147,6 +3157,7 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
+ 	.vidioc_qbuf                    = bttv_qbuf,
+ 	.vidioc_dqbuf                   = bttv_dqbuf,
+ 	.vidioc_s_std                   = bttv_s_std,
++	.vidioc_g_std                   = bttv_g_std,
+ 	.vidioc_enum_input              = bttv_enum_input,
+ 	.vidioc_g_input                 = bttv_g_input,
+ 	.vidioc_s_input                 = bttv_s_input,
+@@ -3177,7 +3188,6 @@ static struct video_device bttv_video_template = {
+ 	.fops         = &bttv_fops,
+ 	.ioctl_ops    = &bttv_ioctl_ops,
+ 	.tvnorms      = BTTV_NORMS,
+-	.current_norm = V4L2_STD_PAL,
+ };
+ 
+ /* ----------------------------------------------------------------------- */
+@@ -4173,6 +4183,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 		bttv_set_frequency(btv, &init_freq);
+ 		btv->radio_freq = 90500 * 16; /* 90.5Mhz default */
+ 	}
++	btv->std = V4L2_STD_PAL;
+ 	init_irqreg(btv);
+ 	v4l2_ctrl_handler_setup(hdl);
+ 
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index 12cc4eb..86d67bb 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -424,6 +424,7 @@ struct bttv {
+ 	unsigned int mute;
+ 	unsigned long tv_freq;
+ 	unsigned int tvnorm;
++	v4l2_std_id std;
+ 	int hue, contrast, bright, saturation;
+ 	struct v4l2_framebuffer fbuf;
+ 	unsigned int field_count;
 -- 
-Thanks and regards,
+1.7.10.4
 
-Sumit Semwal
-
-Linaro Kernel Engineer - Graphics working group
-
-Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
