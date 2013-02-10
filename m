@@ -1,129 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1641 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758129Ab3BZRgB (ORCPT
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:62787 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756794Ab3BJUEk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:36:01 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 09/11] s2255: Add ENUM_FRAMESIZES support.
-Date: Tue, 26 Feb 2013 18:35:44 +0100
-Message-Id: <9b76c632f89246912598367d1879c924724851a3.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+	Sun, 10 Feb 2013 15:04:40 -0500
+Received: by mail-ee0-f42.google.com with SMTP id b47so2786290eek.1
+        for <linux-media@vger.kernel.org>; Sun, 10 Feb 2013 12:04:39 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/4] em28xx: introduce #define for maximum supported scaling values (register 0x30-0x33)
+Date: Sun, 10 Feb 2013 21:05:11 +0100
+Message-Id: <1360526714-3216-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The maximum supported scaling value for registers 0x30+0x31 (horizontal scaling)
+and 0x32+0x33 (vertical scaling) is 0x3fff, which corresponds to 20% of the
+input frame size.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/s2255/s2255drv.c |   73 +++++++++++++++++++++++++-----------
- 1 file changed, 51 insertions(+), 22 deletions(-)
+ drivers/media/usb/em28xx/em28xx-reg.h   |    2 ++
+ drivers/media/usb/em28xx/em28xx-video.c |    8 ++++----
+ 2 Dateien geändert, 6 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index eaae9d1..59d40e6 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1545,36 +1545,64 @@ static int vidioc_s_parm(struct file *file, void *priv,
- 	return 0;
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 885089e..0a3cb04 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -152,6 +152,8 @@
+ #define EM28XX_R31_HSCALEHIGH	0x31
+ #define EM28XX_R32_VSCALELOW	0x32
+ #define EM28XX_R33_VSCALEHIGH	0x33
++#define   EM28XX_HVSCALE_MAX	0x3fff /* => 20% */
++
+ #define EM28XX_R34_VBI_START_H	0x34
+ #define EM28XX_R35_VBI_START_V	0x35
+ #define EM28XX_R36_VBI_WIDTH	0x36
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 6d26123..9451e1e 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -807,12 +807,12 @@ static void get_scale(struct em28xx *dev,
+ 	unsigned int          maxh = norm_maxh(dev);
+ 
+ 	*hscale = (((unsigned long)maxw) << 12) / width - 4096L;
+-	if (*hscale >= 0x4000)
+-		*hscale = 0x3fff;
++	if (*hscale > EM28XX_HVSCALE_MAX)
++		*hscale = EM28XX_HVSCALE_MAX;
+ 
+ 	*vscale = (((unsigned long)maxh) << 12) / height - 4096L;
+-	if (*vscale >= 0x4000)
+-		*vscale = 0x3fff;
++	if (*vscale > EM28XX_HVSCALE_MAX)
++		*vscale = EM28XX_HVSCALE_MAX;
  }
  
-+#define NUM_SIZE_ENUMS 3
-+static const struct v4l2_frmsize_discrete ntsc_sizes[] = {
-+	{ 640, 480 },
-+	{ 640, 240 },
-+	{ 320, 240 },
-+};
-+static const struct v4l2_frmsize_discrete pal_sizes[] = {
-+	{ 704, 576 },
-+	{ 704, 288 },
-+	{ 352, 288 },
-+};
-+
-+static int vidioc_enum_framesizes(struct file *file, void *priv,
-+			    struct v4l2_frmsizeenum *fe)
-+{
-+	struct s2255_fh *fh = priv;
-+	struct s2255_channel *channel = fh->channel;
-+	int is_ntsc = channel->std & V4L2_STD_525_60;
-+	const struct s2255_fmt *fmt;
-+
-+	if (fe->index >= NUM_SIZE_ENUMS)
-+		return -EINVAL;
-+
-+	fmt = format_by_fourcc(fe->pixel_format);
-+	if (fmt == NULL)
-+		return -EINVAL;
-+	fe->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+	fe->discrete = is_ntsc ?  ntsc_sizes[fe->index] : pal_sizes[fe->index];
-+	return 0;
-+}
-+
- static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 			    struct v4l2_frmivalenum *fe)
- {
--	int is_ntsc = 0;
-+	struct s2255_fh *fh = priv;
-+	struct s2255_channel *channel = fh->channel;
-+	const struct s2255_fmt *fmt;
-+	const struct v4l2_frmsize_discrete *sizes;
-+	int is_ntsc = channel->std & V4L2_STD_525_60;
- #define NUM_FRAME_ENUMS 4
- 	int frm_dec[NUM_FRAME_ENUMS] = {1, 2, 3, 5};
-+	int i;
-+
- 	if (fe->index >= NUM_FRAME_ENUMS)
- 		return -EINVAL;
--	switch (fe->width) {
--	case 640:
--		if (fe->height != 240 && fe->height != 480)
--			return -EINVAL;
--		is_ntsc = 1;
--		break;
--	case 320:
--		if (fe->height != 240)
--			return -EINVAL;
--		is_ntsc = 1;
--		break;
--	case 704:
--		if (fe->height != 288 && fe->height != 576)
--			return -EINVAL;
--		break;
--	case 352:
--		if (fe->height != 288)
--			return -EINVAL;
--		break;
--	default:
-+
-+	fmt = format_by_fourcc(fe->pixel_format);
-+	if (fmt == NULL)
- 		return -EINVAL;
--	}
-+
-+	sizes = is_ntsc ? ntsc_sizes : pal_sizes;
-+	for (i = 0; i < NUM_SIZE_ENUMS; i++, sizes++)
-+		if (fe->width == sizes->width &&
-+		    fe->height == sizes->height)
-+			break;
-+	if (i == NUM_SIZE_ENUMS)
-+		return -EINVAL;
-+
- 	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
- 	fe->discrete.denominator = is_ntsc ? 30000 : 25000;
- 	fe->discrete.numerator = (is_ntsc ? 1001 : 1000) * frm_dec[fe->index];
-@@ -1813,6 +1841,7 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
- 	.vidioc_g_jpegcomp = vidioc_g_jpegcomp,
- 	.vidioc_s_parm = vidioc_s_parm,
- 	.vidioc_g_parm = vidioc_g_parm,
-+	.vidioc_enum_framesizes = vidioc_enum_framesizes,
- 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
- 	.vidioc_log_status  = v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ /* ------------------------------------------------------------------
 -- 
 1.7.10.4
 
