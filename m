@@ -1,171 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:50175 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758350Ab3BFWjH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Feb 2013 17:39:07 -0500
-Date: Wed, 6 Feb 2013 23:33:47 +0100
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>,
-	Michael Trimarchi <michael@amarulasolutions.com>,
-	linux-omap@vger.kernel.org
-Subject: Re: On MIPI-CSI2 YUV420 formats and V4L2 Media Bus formats
-Message-Id: <20130206233347.aa2f12b45f487677b7c2cd5d@studenti.unina.it>
-In-Reply-To: <3106282.VAxg78mvQZ@avalon>
-References: <20130128132210.433568c8c28fe1b7f0e70085@studenti.unina.it>
-	<3106282.VAxg78mvQZ@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4077 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754776Ab3BJMuX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 07:50:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 10/19] bttv: fix field handling inside TRY_FMT.
+Date: Sun, 10 Feb 2013 13:50:05 +0100
+Message-Id: <a51e71991c5356cc9a5562b7c520b81d621f6344.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 30 Jan 2013 01:23:48 +0100
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi Antonio,
->
+- don't return -EINVAL for invalid field types, handle those as if it
+  was FIELD_ANY.
+- the handling of FIELD_SEQ_BT/TB was wrong as well: if such field formats
+  aren't supported, then fall back to FIELD_ANY instead of returning an error.
 
-Sorry for the delay Laurent and thanks for your reply, some more
-questions below.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   28 ++++++++++++----------------
+ 1 file changed, 12 insertions(+), 16 deletions(-)
 
-> On Monday 28 January 2013 13:22:10 Antonio Ospite wrote:
-> > Hi,
-> > 
-> > looking at the MIPI Alliance Specification for Camera Serial Interface
-> > 2 (I'll call it MIPI-CSI2 from now on, the document I am referring to
-> > is mentioned at [1] and available at [2]), I see there is an YUV420 8
-> > bit format (MIPI Data Type 0x18) specified with interleaved components
-> > in the form of:
-> > 
-> >   YYYY...     (odd lines)
-> >   UYVYUYVY... (even lines)
-> > 
-> > With even lines twice the size of odd lines.
-> > Such format is also supported by some sensors, for instance ov5640, and
-> > by MIPI-CSI2 receivers like OMAP4 ISS.
-> > 
-> > The doubt I have is: how should I represent those formats as media bus
-> > formats?
-> 
-> We likely need new media bus formats to describe those.
-
-OK, I'll think to some names if I am going to actually use them.
-
-> > I've seen that some drivers (sensors and SoC, for instance[3]) tend to
-> > identify the MIPI-CSI2 format above (0x18) with media bus formats like
-> > V4L2_MBUS_FMT_UYVY8_1_5X8 (actually the code above uses
-> > V4L2_MBUS_FMT_YUYV8_1_5X8 is this OK?), but from the v4l2 documentation
-> > [4] I understand that this format is supposed to have data in this
-> > configuration:
-> > 
-> >   UUUU...
-> >   YYYY...
-> >   YYYY...
-> >   VVVV...
-> >   YYYY...
-> >   YYYY...
-> 
-> Not exactly, the UYVY8_1_5X8 is transmits Y, U and V samples as UYYVYY...
->
-
-Wait, am I misunderstanding the documentation at
-http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
-? From the tables there it looks like that in UYVY8_1_5X8 the
-components are not interleaved on the same line, only the lines are.
-
-And that's why I was believing the code in [3] which maps 
-YUYV8_1_5X8 (line interleaved, according to my interpretation of the v4l
-doc) to the MIPI-CSI2 0x18 format (components interleaved), was
-inaccurate (in the sense that I would have expected another [new] media
-bus format).
-
-> > That is with interleaved lines, but NOT interleaved components. Should
-> > new media bus formats be added for YYYY.../UYVYUYVY...?
-> 
-> Yes, I think so.
->
-> > Another doubt I have is: how is the YYYY.../UYVYUYVY... data supposed
-> > to be processed in userspace? Is the MIPI Receiver (i.e, the SoC)
-> > expected to be able to convert it to a more usable format like YUV420P
-> > or NV12/NV21? Or are there applications capable of handling this data
-> > directly, or efficiently convert them to planar or semi-planar YUV420
-> > formats?
-> 
-> The bridge (receiver and DMA engine) driver will expose V4L2 pixel formats 
-> corresponding to the bridge capabilities. If the bridge can store the above 
-> stream in memory in NV12 it will expose that to applications. If the bridge 
-> stores data in memory as described above, it will just expose that format (it 
-> seems to correspond to the V4L2 M420 pixel format), and applications will need 
-> to handle that explicitly.
->
-
-I see, so what I can get in userspace obviously depends on the hardware
-_and_ the driver (i.e. how complete it is in exposing the hardware
-capabilities), but that means that if a bridge can transparently pass
-the data it gets from the sensor (in a given mediabus format) we could
-have as many pixelformats as we have media bus formats, I know these
-latter won't be added in practice, but is my reasoning right in
-principle? Each mediabus format is a possible candidate for a new
-pixelformat. Maybe I am asking the obvious but I am trying to complete
-my understanding about the relationship between media bus formats and
-pixelformats.
-
-BTW that M420 format you mention is a bit different, from what I can
-see[6] it is something like a "line interleaved NV12":
-
-  YYYY...
-  YYYY...
-  UVUV...
-  YYYY...
-  YYYY...
-  UVUV...
-  ....
-
-[6]
-http://www.linuxtv.org/downloads/v4l-dvb-apis/V4L2-PIX-FMT-M420.html
-
-So still another variation  on the theme :) Or am I still reading the
-documentation the wrong way?
-
-> > In particular I am curios if the OMAP4 ISS can do the conversion to NV12, I
-> > understand that the formats with interleaved _lines_ can be produced by the
-> > resizer and handled by the OMAP ISP DMA-Engine by setting buffers offsets to
-> > Y and UV in order to send NV12 data to userspace, but I couldn't find info
-> > about how to handle the YUV420 MIPI-CSI2 formats (interleaved components)
-> > without the resizer in the Developer Manual [5]; having NV12 data directly
-> > from the hardware without using the OMAP4 ISS/ISP Resizer can be valuable in
-> > some use cases (e.g. dual camera setups).
-> 
-> No idea about that, sorry.
->
-
-Not at all. I was hoping Sergio would step up here.
-
-Thanks again,
-   Antonio
-
-> > [1] http://www.mipi.org/specifications/camera-interface#CSI2
-> > [2] http://ishare.sina.cn/dintro.php?id=20498632
-> > [3]
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=driver
-> > s/media/platform/soc_camera/sh_mobile_csi2.c;h=a17aba9a0104c41cbc4e5e5d27701
-> > 0ecac577600;hb=HEAD#l108 [4]
-> > http://kernel.org/doc/htmldocs/media/subdev.html#v4l2-mbus-pixelcode-yuv8
-> > [5] http://www.ti.com/lit/ug/swpu235w/swpu235w.pdf
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 81886e1..21b38ee 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -2530,6 +2530,7 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct bttv *btv = fh->btv;
+ 	enum v4l2_field field;
+ 	__s32 width, height;
++	__s32 height2;
+ 	int rc;
+ 
+ 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+@@ -2538,30 +2539,25 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	field = f->fmt.pix.field;
+ 
+-	if (V4L2_FIELD_ANY == field) {
+-		__s32 height2;
+-
+-		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
+-		field = (f->fmt.pix.height > height2)
+-			? V4L2_FIELD_INTERLACED
+-			: V4L2_FIELD_BOTTOM;
+-	}
+-
+-	if (V4L2_FIELD_SEQ_BT == field)
+-		field = V4L2_FIELD_SEQ_TB;
+-
+ 	switch (field) {
+ 	case V4L2_FIELD_TOP:
+ 	case V4L2_FIELD_BOTTOM:
+ 	case V4L2_FIELD_ALTERNATE:
+ 	case V4L2_FIELD_INTERLACED:
+ 		break;
++	case V4L2_FIELD_SEQ_BT:
+ 	case V4L2_FIELD_SEQ_TB:
+-		if (fmt->flags & FORMAT_FLAGS_PLANAR)
+-			return -EINVAL;
++		if (!(fmt->flags & FORMAT_FLAGS_PLANAR)) {
++			field = V4L2_FIELD_SEQ_TB;
++			break;
++		}
++		/* fall through */
++	default: /* FIELD_ANY case */
++		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
++		field = (f->fmt.pix.height > height2)
++			? V4L2_FIELD_INTERLACED
++			: V4L2_FIELD_BOTTOM;
+ 		break;
+-	default:
+-		return -EINVAL;
+ 	}
+ 
+ 	width = f->fmt.pix.width;
 -- 
-Antonio Ospite
-http://ao2.it
+1.7.10.4
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
