@@ -1,94 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3336 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755936Ab3BJRxF (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3767 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754866Ab3BJMud (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 12:53:05 -0500
+	Sun, 10 Feb 2013 07:50:33 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/12] stk-webcam: add support for struct v4l2_device.
-Date: Sun, 10 Feb 2013 18:52:44 +0100
-Message-Id: <49da1b338bd8e3b18ca20ac9c06cbc29102d7efd.1360518391.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
-References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 19/19] bttv: do not switch to the radio tuner unless it is accessed.
+Date: Sun, 10 Feb 2013 13:50:14 +0100
+Message-Id: <cbbacac9fcfbed4615a832f5c11ae2f11d645878.1360500224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Arvydas Sidorenko <asido4@gmail.com>
----
- drivers/media/usb/stkwebcam/stk-webcam.c |   10 +++++++++-
- drivers/media/usb/stkwebcam/stk-webcam.h |    2 ++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+Just opening the radio tuner should not cause a switch to the radio tuner.
+Only after calling g/s_tuner or g/s_frequency should this happen.
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 3b874e4..f21ba43 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -1256,7 +1256,7 @@ static int stk_register_video_device(struct stk_camera *dev)
+This prevents audio being unmuted as soon as the driver is loaded because
+some process opens /dev/radioX just to see what sort of node it is, which
+switches on the radio tuner and unmutes audio.
+
+This code can be improved further by actually keeping track of who owns the
+tuner and returning -EBUSY if switching tuner modes will cause problems.
+
+But for now just fix the annoying case where on boot the radio turns on
+automatically.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |   23 ++++++++++++++++++++---
+ drivers/media/pci/bt8xx/bttvp.h       |    1 +
+ 2 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 6518a61..8610b6a 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1004,7 +1004,7 @@ audio_mux(struct bttv *btv, int input, int mute)
  
- 	dev->vdev = stk_v4l_data;
- 	dev->vdev.debug = debug;
--	dev->vdev.parent = &dev->interface->dev;
-+	dev->vdev.v4l2_dev = &dev->v4l2_dev;
- 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
- 	if (err)
- 		STK_ERROR("v4l registration failed\n");
-@@ -1285,6 +1285,12 @@ static int stk_camera_probe(struct usb_interface *interface,
- 		STK_ERROR("Out of memory !\n");
- 		return -ENOMEM;
- 	}
-+	err = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
-+	if (err < 0) {
-+		dev_err(&udev->dev, "couldn't register v4l2_device\n");
-+		kfree(dev);
-+		return err;
-+	}
+ 	/* automute */
+ 	mute = mute || (btv->opt_automute && (!signal || !btv->users)
+-				&& !btv->radio_user);
++				&& !btv->has_radio_tuner);
  
- 	spin_lock_init(&dev->spinlock);
- 	init_waitqueue_head(&dev->wait_frame);
-@@ -1345,6 +1351,7 @@ static int stk_camera_probe(struct usb_interface *interface,
- 	return 0;
- 
- error:
-+	v4l2_device_unregister(&dev->v4l2_dev);
- 	kfree(dev);
- 	return err;
- }
-@@ -1362,6 +1369,7 @@ static void stk_camera_disconnect(struct usb_interface *interface)
- 		 video_device_node_name(&dev->vdev));
- 
- 	video_unregister_device(&dev->vdev);
-+	v4l2_device_unregister(&dev->v4l2_dev);
- }
- 
- #ifdef CONFIG_PM
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
-index 9f67366..49ebe85 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.h
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.h
-@@ -23,6 +23,7 @@
- #define STKWEBCAM_H
- 
- #include <linux/usb.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- 
- #define DRIVER_VERSION		"v0.0.1"
-@@ -91,6 +92,7 @@ struct regval {
+ 	if (mute)
+ 		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
+@@ -1701,6 +1701,16 @@ static struct videobuf_queue_ops bttv_video_qops = {
+ 	.buf_release  = buffer_release,
  };
  
- struct stk_camera {
-+	struct v4l2_device v4l2_dev;
- 	struct video_device vdev;
- 	struct usb_device *udev;
- 	struct usb_interface *interface;
++static void radio_enable(struct bttv *btv)
++{
++	/* Switch to the radio tuner */
++	if (!btv->has_radio_tuner) {
++		btv->has_radio_tuner = 1;
++		bttv_call_all(btv, tuner, s_radio);
++		audio_input(btv, TVAUDIO_INPUT_RADIO);
++	}
++}
++
+ static int bttv_s_std(struct file *file, void *priv, v4l2_std_id *id)
+ {
+ 	struct bttv_fh *fh  = priv;
+@@ -1832,6 +1842,8 @@ static int bttv_g_frequency(struct file *file, void *priv,
+ 	if (f->tuner)
+ 		return -EINVAL;
+ 
++	if (f->type == V4L2_TUNER_RADIO)
++		radio_enable(btv);
+ 	f->frequency = f->type == V4L2_TUNER_RADIO ?
+ 				btv->radio_freq : btv->tv_freq;
+ 
+@@ -1845,6 +1857,7 @@ static void bttv_set_frequency(struct bttv *btv, struct v4l2_frequency *f)
+ 	   frequency before assigning radio/tv_freq. */
+ 	bttv_call_all(btv, tuner, g_frequency, f);
+ 	if (f->type == V4L2_TUNER_RADIO) {
++		radio_enable(btv);
+ 		btv->radio_freq = f->frequency;
+ 		if (btv->has_matchbox)
+ 			tea5757_set_freq(btv, btv->radio_freq);
+@@ -3216,8 +3229,6 @@ static int radio_open(struct file *file)
+ 
+ 	btv->radio_user++;
+ 
+-	bttv_call_all(btv, tuner, s_radio);
+-	audio_input(btv,TVAUDIO_INPUT_RADIO);
+ 	v4l2_fh_add(&fh->fh);
+ 
+ 	return 0;
+@@ -3238,6 +3249,8 @@ static int radio_release(struct file *file)
+ 
+ 	bttv_call_all(btv, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
+ 
++	if (btv->radio_user == 0)
++		btv->has_radio_tuner = 0;
+ 	return 0;
+ }
+ 
+@@ -3250,6 +3263,7 @@ static int radio_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 		return -EINVAL;
+ 	strcpy(t->name, "Radio");
+ 	t->type = V4L2_TUNER_RADIO;
++	radio_enable(btv);
+ 
+ 	bttv_call_all(btv, tuner, g_tuner, t);
+ 
+@@ -3268,6 +3282,7 @@ static int radio_s_tuner(struct file *file, void *priv,
+ 	if (0 != t->index)
+ 		return -EINVAL;
+ 
++	radio_enable(btv);
+ 	bttv_call_all(btv, tuner, s_tuner, t);
+ 	return 0;
+ }
+@@ -3282,6 +3297,7 @@ static ssize_t radio_read(struct file *file, char __user *data,
+ 	cmd.buffer = data;
+ 	cmd.instance = file;
+ 	cmd.result = -ENODEV;
++	radio_enable(btv);
+ 
+ 	bttv_call_all(btv, core, ioctl, SAA6588_CMD_READ, &cmd);
+ 
+@@ -3300,6 +3316,7 @@ static unsigned int radio_poll(struct file *file, poll_table *wait)
+ 		res = POLLPRI;
+ 	else if (req_events & POLLPRI)
+ 		poll_wait(file, &fh->fh.wait, wait);
++	radio_enable(btv);
+ 	cmd.instance = file;
+ 	cmd.event_list = wait;
+ 	cmd.result = res;
+diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+index 86d67bb..eb13be7 100644
+--- a/drivers/media/pci/bt8xx/bttvp.h
++++ b/drivers/media/pci/bt8xx/bttvp.h
+@@ -437,6 +437,7 @@ struct bttv {
+ 
+ 	/* radio data/state */
+ 	int has_radio;
++	int has_radio_tuner;
+ 	int radio_user;
+ 	int radio_uses_msp_demodulator;
+ 	unsigned long radio_freq;
 -- 
 1.7.10.4
 
