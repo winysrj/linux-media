@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3924 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752459Ab3BEO0M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 09:26:12 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r15EQ7JS098938
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 5 Feb 2013 15:26:10 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4A68C11E00AF
-	for <linux-media@vger.kernel.org>; Tue,  5 Feb 2013 15:26:07 +0100 (CET)
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1311 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756178Ab3BJRxJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 12:53:09 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.9] v4l2-compliance fixes for bw-qcam
-Date: Tue, 5 Feb 2013 15:26:07 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302051526.07226.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 12/12] stk-webcam: implement support for count == 0 when calling REQBUFS.
+Date: Sun, 10 Feb 2013 18:52:53 +0100
+Message-Id: <b3ffc78282cdb3930ee22f8bc39c58f3b0b5ba90.1360518391.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These patches upgrade bw-qcam to vb2 and fix various compliance issues.
-Tested on actual hardware.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Unchanged from the RFC patches posted a week ago.
+The spec specifies that setting count to 0 in v4l2_requestbuffers
+should result in releasing any streaming resources and the stream
+ownership. Implement this.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Arvydas Sidorenko <asido4@gmail.com>
+---
+ drivers/media/usb/stkwebcam/stk-webcam.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-        Hans
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index 0b25448..5aeef83 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -1008,6 +1008,13 @@ static int stk_vidioc_reqbufs(struct file *filp,
+ 	if (is_streaming(dev)
+ 		|| (dev->owner && dev->owner != filp))
+ 		return -EBUSY;
++	stk_free_buffers(dev);
++	if (rb->count == 0) {
++		stk_camera_write_reg(dev, 0x0, 0x49); /* turn off the LED */
++		unset_initialised(dev);
++		dev->owner = NULL;
++		return 0;
++	}
+ 	dev->owner = filp;
+ 
+ 	/*FIXME If they ask for zero, we must stop streaming and free */
+-- 
+1.7.10.4
 
-The following changes since commit a32f7d1ad3744914273c6907204c2ab3b5d496a0:
-
-  Merge branch 'v4l_for_linus' into staging/for_v3.9 (2013-01-24 18:49:18 -0200)
-
-are available in the git repository at:
-
-
-  git://linuxtv.org/hverkuil/media_tree.git bw-qcam
-
-for you to fetch changes up to ca047286f23c0764a990ae19ce7306e3025ac410:
-
-  videobuf2: don't return POLLERR when only polling for events. (2013-01-30 18:15:00 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      bw-qcam: zero priv field.
-      bw-qcam: convert to videobuf2.
-      bw-qcam: remove unnecessary qc_reset and qc_setscanmode calls.
-      videobuf2: don't return POLLERR when only polling for events.
-
- drivers/media/parport/Kconfig            |    1 +
- drivers/media/parport/bw-qcam.c          |  165 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------
- drivers/media/v4l2-core/videobuf2-core.c |    5 ++++
- 3 files changed, 120 insertions(+), 51 deletions(-)
