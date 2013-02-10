@@ -1,58 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:50019 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759202Ab3BGRja (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:30 -0500
-Received: by mail-ea0-f176.google.com with SMTP id a13so1323074eaa.21
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:29 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 04/13] em28xx: use v4l2_disable_ioctl() to disable ioctl VIDIOC_S_PARM
-Date: Thu,  7 Feb 2013 18:39:12 +0100
-Message-Id: <1360258761-2959-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4621 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756119Ab3BJRxH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 12:53:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 06/12] stk-webcam: add support for control events and prio handling.
+Date: Sun, 10 Feb 2013 18:52:47 +0100
+Message-Id: <3fecfbda3c462bf6c427ea30fe4e832aaf9d6f47.1360518391.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of checking the device type and returning -ENOTTY inside the ioctl
-function, use v4l2_disable_ioctl() to disable the ioctl VIDIOC_S_PARM if the
-device is not a camera.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Also correct the first_init static: this should be part of the stk_camera struct.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Arvydas Sidorenko <asido4@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |    5 ++---
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+ drivers/media/usb/stkwebcam/stk-webcam.c |   27 +++++++++++++++++----------
+ drivers/media/usb/stkwebcam/stk-webcam.h |    1 +
+ 2 files changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 378d8a1..c76714d 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1044,9 +1044,6 @@ static int vidioc_s_parm(struct file *file, void *priv,
- 	struct em28xx_fh   *fh  = priv;
- 	struct em28xx      *dev = fh->dev;
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
+index 05fb48a..272e1a2 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.c
++++ b/drivers/media/usb/stkwebcam/stk-webcam.c
+@@ -35,6 +35,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
  
--	if (!dev->board.is_webcam)
--		return -ENOTTY;
+ #include "stk-webcam.h"
+ 
+@@ -565,20 +566,21 @@ static void stk_free_buffers(struct stk_camera *dev)
+ 
+ static int v4l_stk_open(struct file *fp)
+ {
+-	static int first_init = 1; /* webcam LED management */
+ 	struct stk_camera *dev = video_drvdata(fp);
++	int err;
+ 
+ 	if (dev == NULL || !is_present(dev))
+ 		return -ENXIO;
+ 
+-	if (!first_init)
++	if (!dev->first_init)
+ 		stk_camera_write_reg(dev, 0x0, 0x24);
+ 	else
+-		first_init = 0;
 -
- 	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
+-	usb_autopm_get_interface(dev->interface);
++		dev->first_init = 0;
  
-@@ -1891,6 +1888,8 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_QUERYSTD);
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_STD);
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_STD);
-+	} else {
-+		v4l2_disable_ioctl(dev->vdev, VIDIOC_S_PARM);
- 	}
- 	if (dev->tuner_type == TUNER_ABSENT) {
- 		v4l2_disable_ioctl(dev->vdev, VIDIOC_G_TUNER);
+-	return 0;
++	err = v4l2_fh_open(fp);
++	if (!err)
++		usb_autopm_get_interface(dev->interface);
++	return err;
+ }
+ 
+ static int v4l_stk_release(struct file *fp)
+@@ -595,8 +597,7 @@ static int v4l_stk_release(struct file *fp)
+ 
+ 	if (is_present(dev))
+ 		usb_autopm_put_interface(dev->interface);
+-
+-	return 0;
++	return v4l2_fh_release(fp);
+ }
+ 
+ static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
+@@ -663,6 +664,7 @@ static ssize_t v4l_stk_read(struct file *fp, char __user *buf,
+ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
+ {
+ 	struct stk_camera *dev = video_drvdata(fp);
++	unsigned res = v4l2_ctrl_poll(fp, wait);
+ 
+ 	poll_wait(fp, &dev->wait_frame, wait);
+ 
+@@ -670,9 +672,9 @@ static unsigned int v4l_stk_poll(struct file *fp, poll_table *wait)
+ 		return POLLERR;
+ 
+ 	if (!list_empty(&dev->sio_full))
+-		return POLLIN | POLLRDNORM;
++		return res | POLLIN | POLLRDNORM;
+ 
+-	return 0;
++	return res;
+ }
+ 
+ 
+@@ -1152,6 +1154,9 @@ static const struct v4l2_ioctl_ops v4l_stk_ioctl_ops = {
+ 	.vidioc_streamoff = stk_vidioc_streamoff,
+ 	.vidioc_g_parm = stk_vidioc_g_parm,
+ 	.vidioc_enum_framesizes = stk_vidioc_enum_framesizes,
++	.vidioc_log_status = v4l2_ctrl_log_status,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ static void stk_v4l_dev_release(struct video_device *vd)
+@@ -1179,6 +1184,7 @@ static int stk_register_video_device(struct stk_camera *dev)
+ 	dev->vdev = stk_v4l_data;
+ 	dev->vdev.debug = debug;
+ 	dev->vdev.v4l2_dev = &dev->v4l2_dev;
++	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
+ 	video_set_drvdata(&dev->vdev, dev);
+ 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (err)
+@@ -1232,6 +1238,7 @@ static int stk_camera_probe(struct usb_interface *interface,
+ 
+ 	spin_lock_init(&dev->spinlock);
+ 	init_waitqueue_head(&dev->wait_frame);
++	dev->first_init = 1; /* webcam LED management */
+ 
+ 	dev->udev = udev;
+ 	dev->interface = interface;
+diff --git a/drivers/media/usb/stkwebcam/stk-webcam.h b/drivers/media/usb/stkwebcam/stk-webcam.h
+index 901f0df..2156320 100644
+--- a/drivers/media/usb/stkwebcam/stk-webcam.h
++++ b/drivers/media/usb/stkwebcam/stk-webcam.h
+@@ -99,6 +99,7 @@ struct stk_camera {
+ 	struct usb_interface *interface;
+ 	int webcam_model;
+ 	struct file *owner;
++	int first_init;
+ 
+ 	u8 isoc_ep;
+ 
 -- 
 1.7.10.4
 
