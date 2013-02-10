@@ -1,89 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:38373 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754960Ab3BGKY5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 05:24:57 -0500
-Received: by mail-oa0-f45.google.com with SMTP id o6so2562827oag.4
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 02:24:57 -0800 (PST)
-Message-ID: <511380F4.2070806@linaro.org>
-Date: Thu, 07 Feb 2013 15:54:52 +0530
-From: Sumit Semwal <sumit.semwal@linaro.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3947 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755719Ab3BJRa1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Feb 2013 12:30:27 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Arvydas Sidorenko <asido4@gmail.com>
+Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
+Date: Sun, 10 Feb 2013 18:30:07 +0100
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl> <201302101602.43651.hverkuil@xs4all.nl> <CA+6av4m3iwimsYX46fjDjAvOG=QD3P1NgPVvoRg=i+2BnpPf7Q@mail.gmail.com>
+In-Reply-To: <CA+6av4m3iwimsYX46fjDjAvOG=QD3P1NgPVvoRg=i+2BnpPf7Q@mail.gmail.com>
 MIME-Version: 1.0
-To: John Sheu <sheu@google.com>
-CC: linux-media@vger.kernel.org, John Sheu <sheu@chromium.org>
-Subject: Re: [PATCH 3/3] dma-buf: restore args on failure of dma_buf_mmap
-References: <1360195382-32317-1-git-send-email-sheu@google.com> <1360195382-32317-3-git-send-email-sheu@google.com>
-In-Reply-To: <1360195382-32317-3-git-send-email-sheu@google.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201302101830.07581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
+On Sun February 10 2013 17:16:30 Arvydas Sidorenko wrote:
+> On Sun, Feb 10, 2013 at 3:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > Thanks, I found the bug. It's my fault: I made a logic error w.r.t. setting up
+> > the initial hflip/vflip values. I've read over it dozens of times without
+> > actually catching the - rather obvious - bug :-)
 
-On Thursday 07 February 2013 05:33 AM, John Sheu wrote:
-> From: John Sheu <sheu@chromium.org>
->
-> Callers to dma_buf_mmap expect to fput() the vma struct's vm_file
-> themselves on failure.  Not restoring the struct's data on failure
-> causes a double-decrement of the vm_file's refcount.
-Thanks for your patch; could you please re-send it to the correct, 
-relevant lists and me (as the maintainer of dma-buf) rather than just to 
-linux-media ml?
+After rechecking I discovered that I didn't introduce this after all. It was
+recently introduced in a patch for the 3.9 kernel. Luckily that patch isn't
+in the upcoming 3.8 kernel.
 
-I just chanced to see this patch, otherwise it could easily have slipped 
-past me (and other interested parties).
+> > Get the latest code, try again and if everything works fine for you then I'll
+> > clean up my patches and post the final version.
+> >
+> 
+> Looks good. Thanks for you effort!
 
-You could run scripts/get_maintainer.pl on your patch to find out the 
-right lists / email IDs to CC.
+No problem, nice to have another driver pass the compliance test.
 
-Thanks and best regards,
-~Sumit.
->
-> Signed-off-by: John Sheu <sheu@google.com>
-> ---
->   drivers/base/dma-buf.c | 18 ++++++++++++++----
->   1 file changed, 14 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index a3f79c4..01daf9c 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -446,6 +446,9 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
->   int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
->   		 unsigned long pgoff)
->   {
-> +	struct file *oldfile;
-> +	int ret;
-> +
->   	if (WARN_ON(!dmabuf || !vma))
->   		return -EINVAL;
->
-> @@ -459,14 +462,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
->   		return -EINVAL;
->
->   	/* readjust the vma */
-> -	if (vma->vm_file)
-> -		fput(vma->vm_file);
-> -
-> +	oldfile = vma->vm_file;
->   	vma->vm_file = get_file(dmabuf->file);
->
->   	vma->vm_pgoff = pgoff;
->
-> -	return dmabuf->ops->mmap(dmabuf, vma);
-> +	ret = dmabuf->ops->mmap(dmabuf, vma);
-> +	if (ret) {
-> +		/* restore old parameters on failure */
-> +		vma->vm_file = oldfile;
-> +		fput(dmabuf->file);
-> +	} else {
-> +		if (oldfile)
-> +			fput(oldfile);
-> +	}
-> +	return ret;
->   }
->   EXPORT_SYMBOL_GPL(dma_buf_mmap);
->
->
+Regards,
 
+	Hans
