@@ -1,115 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2702 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752650Ab3BIKBY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 16/26] cx231xx-417: use one querycap for all device nodes.
-Date: Sat,  9 Feb 2013 11:00:46 +0100
-Message-Id: <563da8543392ad7a21db515e8c3e192391ef6439.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:55050 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758777Ab3BKSiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 13:38:07 -0500
+Message-ID: <1360607885.2028.39.camel@joe-AO722>
+Subject: [PATCH] staging: media: Remove unnecessary OOM messages
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, LKML <linux-kernel@vger.kernel.org>
+Date: Mon, 11 Feb 2013 10:38:05 -0800
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+alloc failures already get standardized OOM
+messages and a dump_stack.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-417.c   |   20 +-------------------
- drivers/media/usb/cx231xx/cx231xx-video.c |    6 +++---
- drivers/media/usb/cx231xx/cx231xx.h       |    2 ++
- 3 files changed, 6 insertions(+), 22 deletions(-)
+ drivers/staging/media/as102/as102_usb_drv.c |  4 +---
+ drivers/staging/media/go7007/go7007-fw.c    | 24 +++++++-----------------
+ drivers/staging/media/go7007/s2250-loader.c |  5 ++---
+ drivers/staging/media/lirc/lirc_imon.c      |  3 ---
+ drivers/staging/media/lirc/lirc_sasem.c     |  6 ------
+ 5 files changed, 10 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index ac15a55..be8f7481 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1626,24 +1626,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 	dprintk(3, "exit vidioc_s_ctrl()\n");
- 	return 0;
- }
--static struct v4l2_capability pvr_capability = {
--	.driver         = "cx231xx",
--	.card           = "VideoGrabber",
--	.bus_info       = "usb",
--	.version        = 1,
--	.capabilities   = (V4L2_CAP_VIDEO_CAPTURE |
--			   V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_RADIO |
--			 V4L2_CAP_STREAMING | V4L2_CAP_READWRITE),
--};
--static int vidioc_querycap(struct file *file, void  *priv,
--				struct v4l2_capability *cap)
--{
--
--
--
--		memcpy(cap, &pvr_capability, sizeof(struct v4l2_capability));
--	return 0;
--}
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index aaf1bc2..9f275f0 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -374,10 +374,8 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 	}
  
- static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 					struct v4l2_fmtdesc *f)
-@@ -2016,7 +1998,7 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
- 	.vidioc_s_ctrl		 = vidioc_s_ctrl,
--	.vidioc_querycap	 = vidioc_querycap,
-+	.vidioc_querycap	 = cx231xx_querycap,
- 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap	 = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap	 = vidioc_try_fmt_vid_cap,
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 208926f..60a7b3ee 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1631,7 +1631,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 	return 0;
- }
+ 	as102_dev = kzalloc(sizeof(struct as102_dev_t), GFP_KERNEL);
+-	if (as102_dev == NULL) {
+-		dev_err(&intf->dev, "%s: kzalloc failed\n", __func__);
++	if (as102_dev == NULL)
+ 		return -ENOMEM;
+-	}
  
--static int vidioc_querycap(struct file *file, void *priv,
-+int cx231xx_querycap(struct file *file, void *priv,
- 			   struct v4l2_capability *cap)
- {
- 	struct video_device *vdev = video_devdata(file);
-@@ -2185,7 +2185,7 @@ static const struct v4l2_file_operations cx231xx_v4l_fops = {
- };
+ 	/* Assign the user-friendly device name */
+ 	for (i = 0; i < ARRAY_SIZE(as102_usb_id_table); i++) {
+diff --git a/drivers/staging/media/go7007/go7007-fw.c b/drivers/staging/media/go7007/go7007-fw.c
+index f99c05b..a5ede1c 100644
+--- a/drivers/staging/media/go7007/go7007-fw.c
++++ b/drivers/staging/media/go7007/go7007-fw.c
+@@ -381,11 +381,8 @@ static int gen_mjpeghdr_to_package(struct go7007 *go, __le16 *code, int space)
+ 	int size = 0, i, off = 0, chunk;
  
- static const struct v4l2_ioctl_ops video_ioctl_ops = {
--	.vidioc_querycap               = vidioc_querycap,
-+	.vidioc_querycap               = cx231xx_querycap,
- 	.vidioc_enum_fmt_vid_cap       = vidioc_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap          = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap        = vidioc_try_fmt_vid_cap,
-@@ -2236,7 +2236,7 @@ static const struct v4l2_file_operations radio_fops = {
- };
+ 	buf = kzalloc(4096, GFP_KERNEL);
+-	if (buf == NULL) {
+-		dev_err(go->dev,
+-			"unable to allocate 4096 bytes for firmware construction\n");
++	if (buf == NULL)
+ 		return -1;
+-	}
  
- static const struct v4l2_ioctl_ops radio_ioctl_ops = {
--	.vidioc_querycap    = vidioc_querycap,
-+	.vidioc_querycap    = cx231xx_querycap,
- 	.vidioc_g_tuner     = radio_g_tuner,
- 	.vidioc_s_tuner     = radio_s_tuner,
- 	.vidioc_g_frequency = vidioc_g_frequency,
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index c17889d..efc0d1c 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -934,6 +934,8 @@ int cx231xx_register_extension(struct cx231xx_ops *dev);
- void cx231xx_unregister_extension(struct cx231xx_ops *dev);
- void cx231xx_init_extension(struct cx231xx *dev);
- void cx231xx_close_extension(struct cx231xx *dev);
-+int cx231xx_querycap(struct file *file, void *priv,
-+			   struct v4l2_capability *cap);
+ 	for (i = 1; i < 32; ++i) {
+ 		mjpeg_frame_header(go, buf + size, i);
+@@ -651,11 +648,9 @@ static int gen_mpeg1hdr_to_package(struct go7007 *go,
+ 	int i, off = 0, chunk;
  
- /* Provided by cx231xx-cards.c */
- extern void cx231xx_pre_card_setup(struct cx231xx *dev);
--- 
-1.7.10.4
+ 	buf = kzalloc(5120, GFP_KERNEL);
+-	if (buf == NULL) {
+-		dev_err(go->dev,
+-			"unable to allocate 5120 bytes for firmware construction\n");
++	if (buf == NULL)
+ 		return -1;
+-	}
++
+ 	framelen[0] = mpeg1_frame_header(go, buf, 0, 1, PFRAME);
+ 	if (go->interlace_coding)
+ 		framelen[0] += mpeg1_frame_header(go, buf + framelen[0] / 8,
+@@ -838,11 +833,9 @@ static int gen_mpeg4hdr_to_package(struct go7007 *go,
+ 	int i, off = 0, chunk;
+ 
+ 	buf = kzalloc(5120, GFP_KERNEL);
+-	if (buf == NULL) {
+-		dev_err(go->dev,
+-			"unable to allocate 5120 bytes for firmware construction\n");
++	if (buf == NULL)
+ 		return -1;
+-	}
++
+ 	framelen[0] = mpeg4_frame_header(go, buf, 0, PFRAME);
+ 	i = 368;
+ 	framelen[1] = mpeg4_frame_header(go, buf + i, 0, BFRAME_PRE);
+@@ -1582,12 +1575,9 @@ int go7007_construct_fw_image(struct go7007 *go, u8 **fw, int *fwlen)
+ 		return -1;
+ 	}
+ 	code = kzalloc(codespace * 2, GFP_KERNEL);
+-	if (code == NULL) {
+-		dev_err(go->dev,
+-			"unable to allocate %d bytes for firmware construction\n",
+-			codespace * 2);
++	if (code == NULL)
+ 		goto fw_failed;
+-	}
++
+ 	src = (__le16 *)fw_entry->data;
+ 	srclen = fw_entry->size / 2;
+ 	while (srclen >= 2) {
+diff --git a/drivers/staging/media/go7007/s2250-loader.c b/drivers/staging/media/go7007/s2250-loader.c
+index f57eb3b..72e5175 100644
+--- a/drivers/staging/media/go7007/s2250-loader.c
++++ b/drivers/staging/media/go7007/s2250-loader.c
+@@ -81,10 +81,9 @@ static int s2250loader_probe(struct usb_interface *interface,
+ 
+ 	/* Allocate dev data structure */
+ 	s = kmalloc(sizeof(device_extension_t), GFP_KERNEL);
+-	if (s == NULL) {
+-		dev_err(&interface->dev, "Out of memory\n");
++	if (s == NULL)
+ 		goto failed;
+-	}
++
+ 	s2250_dev_table[minor] = s;
+ 
+ 	dev_info(&interface->dev,
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 343c622..0a2c45d 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -744,7 +744,6 @@ static int imon_probe(struct usb_interface *interface,
+ 
+ 	context = kzalloc(sizeof(struct imon_context), GFP_KERNEL);
+ 	if (!context) {
+-		dev_err(dev, "%s: kzalloc failed for context\n", __func__);
+ 		alloc_status = 1;
+ 		goto alloc_status_switch;
+ 	}
+@@ -826,13 +825,11 @@ static int imon_probe(struct usb_interface *interface,
+ 
+ 	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
+ 	if (!driver) {
+-		dev_err(dev, "%s: kzalloc failed for lirc_driver\n", __func__);
+ 		alloc_status = 2;
+ 		goto alloc_status_switch;
+ 	}
+ 	rbuf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+ 	if (!rbuf) {
+-		dev_err(dev, "%s: kmalloc failed for lirc_buffer\n", __func__);
+ 		alloc_status = 3;
+ 		goto alloc_status_switch;
+ 	}
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index b3fe21e..68acca7 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -759,22 +759,16 @@ static int sasem_probe(struct usb_interface *interface,
+ 
+ 	context = kzalloc(sizeof(struct sasem_context), GFP_KERNEL);
+ 	if (!context) {
+-		dev_err(&interface->dev,
+-			"%s: kzalloc failed for context\n", __func__);
+ 		alloc_status = 1;
+ 		goto alloc_status_switch;
+ 	}
+ 	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
+ 	if (!driver) {
+-		dev_err(&interface->dev,
+-			"%s: kzalloc failed for lirc_driver\n", __func__);
+ 		alloc_status = 2;
+ 		goto alloc_status_switch;
+ 	}
+ 	rbuf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
+ 	if (!rbuf) {
+-		dev_err(&interface->dev,
+-			"%s: kmalloc failed for lirc_buffer\n", __func__);
+ 		alloc_status = 3;
+ 		goto alloc_status_switch;
+ 	}
+
 
