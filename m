@@ -1,53 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:55609 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001Ab3BOWyz (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2482 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757282Ab3BKNvl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 17:54:55 -0500
-Received: by mail-we0-f169.google.com with SMTP id t11so3342552wey.14
-        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 14:54:54 -0800 (PST)
+	Mon, 11 Feb 2013 08:51:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFCv2 PATCH 01/12] stk-webcam: the initial hflip and vflip setup was the wrong way around
+Date: Mon, 11 Feb 2013 14:51:31 +0100
+Cc: Arvydas Sidorenko <asido4@gmail.com>, linux-media@vger.kernel.org
+References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl> <201302111421.17226.hverkuil@xs4all.nl> <5118F4F4.1070602@redhat.com>
+In-Reply-To: <5118F4F4.1070602@redhat.com>
 MIME-Version: 1.0
-Date: Fri, 15 Feb 2013 23:54:54 +0100
-Message-ID: <CAA=TYk8-a2NMSsZHjCygBxijGrfvd_KRDgsGWcKMFFAWMF6ubg@mail.gmail.com>
-Subject: [PATCH] [media] rtl28xxu: Add USB ID for MaxMedia HU394-T
-From: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: gennarone@gmail.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302111451.31133.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon February 11 2013 14:41:08 Hans de Goede wrote:
+> Hi,
+> 
+> On 02/11/2013 02:21 PM, Hans Verkuil wrote:
+> > On Mon February 11 2013 14:08:44 Hans de Goede wrote:
+> >> Hi,
+> >>
+> >> Subject: stk-webcam: the initial hflip and vflip setup was the wrong way around
+> >>
+> >> No it is not.
+> >
+> > You are right, that patch makes no sense. It was a long day :-)
+> >
+> >> On 02/10/2013 06:52 PM, Hans Verkuil wrote:
+> >>> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>
+> >>> This resulted in an upside-down picture.
+> >>
+> >> No it does not, the laptop having an upside down mounted camera and not being
+> >> in the dmi-table is what causes an upside down picture. For a non upside
+> >> down camera (so no dmi-match) hflip and vflip should be 0.
+> >>
+> >> The fix for the upside-down-ness Arvydas Sidorenko reported would be to
+> >> add his laptop to the upside down table.
+> >
+> > That doesn't make sense either. Arvydas, it worked fine for you before, right?
+> 
+> Yes, it probably worked before, but not with...
+> 
+> > That is, if you use e.g. v3.8-rc7 then your picture is the right side up.
+> 
+> 3.8 will show it upside down for Arvydas
+> 
+> The story goes likes this:
+> 
+> 1) Once upon a time the stkwebcam driver was written
+> 2) The webcam in question was used mostly in Asus laptop models, including
+> the laptop of the original author of the driver, and in these models, in
+> typical Asus fashion (see the long long list for uvc cams inside v4l-utils),
+> they mounted the webcam-module the wrong way up. So the hflip and vflip
+> module options were given a default value of 1 (the correct value for
+> upside down mounted models)
+> 
+> 3) Years later I got a bug report from a user with a laptop with stkwebcam,
+> where the module was actually mounted the right way up, and thus showed upside
+> down under Linux. So now I was facing the choice of 2 options:
+> a) Add a not-upside-down list to stkwebcam, which overrules the default
+> b) Do it like all the other drivers do, and make the default right for
+> cams mounted the proper way and add an upside-down model list, with models
+> where we need to flip-by-default.
+> 
+> Despite knowing that going b) would cause a period of pain where we were
+> building the table (ie what we're discussing now) I opted to go for option
+> b), since a) is just too ugly, and worse different from how every other
+> driver does it leading to confusion in the long run.
+> 
+> IOW this is entirely my fault, and I take full responsibility for it.
 
-please add USB ID for MaxMedia HU394-T USB DVB-T Multi (FM, DAB, DAB+)
-dongle (RTL2832U+FC0012)
+Ah, OK. Now it makes sense. I wasn't aware of this history and it (clearly)
+confused me greatly.
 
-In Italy is branded: "DIKOM USB-DVBT HD"
+Can you perhaps provide me with a patch that adds some comments to the source
+explaining this. And in particular with which kernel this change took place?
 
-lsusb:
-ID 1b80:d394 Afatech
+The next time some poor sod (e.g. me) has to work on this the comments should
+explain this history.
 
-Regards
+> 
+> Arvydas, can you please run "sudo dmidecode > dmi.log", and send me or
+> Hans V. the generated dmi.log file? Then we can add your laptop to the
+> upside-down model list.
 
+When I have this information I'll update my patch series and ask Arvydas
+to test again.
 
-Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
- 1 file changed, 2 insertions(+)
+Regards,
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index a4c302d..fc7b7a0 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1352,6 +1352,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
- 		&rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
-+      { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
-+		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
--- 
-1.7.9.5
+	Hans
