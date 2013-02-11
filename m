@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:35049 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757287Ab3BBOIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 09:08:25 -0500
-Received: by mail-bk0-f47.google.com with SMTP id jc3so2165326bkc.6
-        for <linux-media@vger.kernel.org>; Sat, 02 Feb 2013 06:08:24 -0800 (PST)
-Message-ID: <510D1DD4.3060302@googlemail.com>
-Date: Sat, 02 Feb 2013 15:08:20 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39803 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757101Ab3BKNFt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 08:05:49 -0500
+Message-ID: <5118ED5C.2080801@redhat.com>
+Date: Mon, 11 Feb 2013 14:08:44 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Riku Voipio <riku.voipio@linaro.org>
-CC: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] v4l-utils: use openat when available
-References: <1358872642-30843-1-git-send-email-riku.voipio@linaro.org>
-In-Reply-To: <1358872642-30843-1-git-send-email-riku.voipio@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 01/12] stk-webcam: the initial hflip and vflip setup
+ was the wrong way around
+References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl> <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-On 1/22/13 5:37 PM, Riku Voipio wrote:
-> New architectures such as 64-Bit arm build kernels without legacy
-> system calls - Such as the the no-at system calls. Thus, use
-> SYS_openat whenever it is available.
+Subject: stk-webcam: the initial hflip and vflip setup was the wrong way around
 
-> +#ifdef SYS_openat
-> +#define SYS_OPEN(file, oflag, mode) \
-> +	syscall(SYS_openat, AT_FDCWD, (const char *)(file), (int)(oflag), (mode_t)(mode))
-> +#else
->  #define SYS_OPEN(file, oflag, mode) \
->  	syscall(SYS_open, (const char *)(file), (int)(oflag), (mode_t)(mode))
-> +#endif
+No it is not.
 
-This would reduce compatibility to Linux >= 2.6.16 where openat was
-introduced. How about testing for absence of SYS_open instead? Or fall
-back to SYS_open if SYS_openat is not implemented?
+On 02/10/2013 06:52 PM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This resulted in an upside-down picture.
 
-Thanks,
-Gregor
+No it does not, the laptop having an upside down mounted camera and not being
+in the dmi-table is what causes an upside down picture. For a non upside
+down camera (so no dmi-match) hflip and vflip should be 0.
 
+The fix for the upside-down-ness Arvydas Sidorenko reported would be to
+add his laptop to the upside down table.
+
+Regards,
+
+Hans
