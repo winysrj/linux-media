@@ -1,84 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:25398 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849Ab3BFLXg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 06:23:36 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHS003L8Q4KSC50@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 11:23:34 +0000 (GMT)
-Received: from [106.116.147.32] by eusync2.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MHS009NBQB96Y40@eusync2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 11:23:34 +0000 (GMT)
-Message-id: <51123D34.5020404@samsung.com>
-Date: Wed, 06 Feb 2013 12:23:32 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, k.debski@samsung.com,
-	kgene.kim@samsung.com, patches@linaro.org,
-	'Ajay Kumar' <ajaykumar.rs@samsung.com>,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	jy0922.shim@samsung.com
-Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
- <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
- <02a301ce043c$1b12d150$513873f0$%dae@samsung.com>
- <CAK9yfHyZrwdJV-Ct8Fby0uX1htHpAmJvCnX3VRYJSsey=L5HFA@mail.gmail.com>
- <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
-In-reply-to: <02af01ce0447$37c26940$a7473bc0$%dae@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1606 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756660Ab3BKOXK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 09:23:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-15?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [REVIEWv2 PATCH 04/19] bttv: remove g/s_audio since there is only one audio input.
+Date: Mon, 11 Feb 2013 15:22:56 +0100
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl> <0681941b222b6cc9c0bb288f81019d4f90c9d683.1360500224.git.hans.verkuil@cisco.com> <51180191.4070100@googlemail.com>
+In-Reply-To: <51180191.4070100@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302111522.56234.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/2013 09:51 AM, Inki Dae wrote:
-[...]
-> I think that it's better to go to gpu than media and we can divide Exynos
-> IPs into the bellow categories,
+On Sun February 10 2013 21:22:41 Frank Schäfer wrote:
 > 
-> Media : mfc
-> GPU : g2d, g3d, fimc, gsc
+> Hmm... G/S_AUDIO is also used to query/set the capabilities and the mode
+> of an input, which IMHO makes sense even if the input is the only one
+> the device has ?
 
-Heh, nice try! :) GPU and FIMC ? FIMC is a camera subsystem (hence 'C' 
-in the acronym), so what it has really to do with GPU ? All right, this IP 
-has really two functions: camera capture and video post-processing 
-(colorspace conversion, scaling), but the main feature is camera capture 
-(fimc-lite is a camera capture interface IP only).
+You are right, but there are problems with the implementation in this driver.
+First of all, there is no ENUMAUDIO ioctl implemented, so applications were
+never able to enumerate the audio inputs.
 
-Also, Exynos5 GScaler is used as a DMA engine for camera capture data
-pipelines, so it will be used by a camera capture driver as well. It
-really belongs to "Media" and "GPU", as this is a multifunctional 
-device (similarly to FIMC).
+Now, it is possible to add this (and I have done this in this tree:
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv2).
+However, the card definitions are unreliable with respect to the number of
+audio inputs. So you may end up with a driver reporting incorrect information.
 
-So I propose following classification, which seems less inaccurate:
+I tried it in the bttv2 branch and frankly it became rather messy.
 
-GPU:   g2d, g3d
-Media: mfc, fimc, fimc-lite, fimc-is, mipi-csis, gsc
-Video: fimd, hdmi, eDP, mipi-dsim
+Given the fact that there was never an ENUMAUDIO ioctl in the first place
+I decided that it was better not to have these ioctls at all. Also, the
+V4L2_CAP_AUDIO was never set, and they are incorrect anyway for boards that
+do not have an audio input at all (common for surveillance boards).
 
-I have already a DT bindings description prepared for fimc [1].
-(probably it needs to be rephrased a bit not to refer to the linux
-device model). I put it in Documentation/devicetree/bindings/media/soc, 
-but likely there is no need for the 'soc' subdirectory...
+There are other drivers as well that do not implement this, so applications
+cannot rely on this ioctl being present.
 
-> Video : fimd, hdmi, eDP, MIPI-DSI
+I will update the commit message before I do the pull request, though. It
+should be extended with the information above.
+
+Regards,
+
+	Hans
+
+> Don't you think that it's also somehow inconsistent, because for the
+> video inputs (G/S_INPUT) the spec says:
+> "This ioctl will fail only when there are no video inputs, returning
+> EINVAL." ?
 > 
-> And I think that the device-tree describes hardware so possibly, all
-> documents in .../bindings/drm/exynos/* should be moved to proper place also.
-> Please give  me any opinions.
-
-Yes, I agree. If possible, it would be nice to have some Linux API
-agnostic locations.
-
-[1] goo.gl/eTGOl
-
---
-
-Thanks,
-Sylwester
+> 
+> Regards,
+> Frank
+> 
+> 
+> 
+> Am 10.02.2013 13:49, schrieb Hans Verkuil:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> >
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/pci/bt8xx/bttv-driver.c |   19 -------------------
+> >  1 file changed, 19 deletions(-)
+> >
+> > diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> > index 6e61dbd..a02c031 100644
+> > --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> > +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> > @@ -3138,23 +3138,6 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
+> >  	return 0;
+> >  }
+> >  
+> > -static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+> > -{
+> > -	if (unlikely(a->index))
+> > -		return -EINVAL;
+> > -
+> > -	strcpy(a->name, "audio");
+> > -	return 0;
+> > -}
+> > -
+> > -static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+> > -{
+> > -	if (unlikely(a->index))
+> > -		return -EINVAL;
+> > -
+> > -	return 0;
+> > -}
+> > -
+> >  static ssize_t bttv_read(struct file *file, char __user *data,
+> >  			 size_t count, loff_t *ppos)
+> >  {
+> > @@ -3390,8 +3373,6 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
+> >  	.vidioc_g_fmt_vbi_cap           = bttv_g_fmt_vbi_cap,
+> >  	.vidioc_try_fmt_vbi_cap         = bttv_try_fmt_vbi_cap,
+> >  	.vidioc_s_fmt_vbi_cap           = bttv_s_fmt_vbi_cap,
+> > -	.vidioc_g_audio                 = bttv_g_audio,
+> > -	.vidioc_s_audio                 = bttv_s_audio,
+> >  	.vidioc_cropcap                 = bttv_cropcap,
+> >  	.vidioc_reqbufs                 = bttv_reqbufs,
+> >  	.vidioc_querybuf                = bttv_querybuf,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
