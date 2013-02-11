@@ -1,114 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3117 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932900Ab3BOJTI (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:53048 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219Ab3BKIjA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 04:19:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/9] s2255: add support for control events and prio handling.
-Date: Fri, 15 Feb 2013 10:18:48 +0100
-Message-Id: <009845c8188efb8cd573576ddcb12f9951d380f9.1360919695.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
-References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+	Mon, 11 Feb 2013 03:39:00 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id B282640B98
+	for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 09:38:58 +0100 (CET)
+Date: Mon, 11 Feb 2013 09:38:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL 3.9] soc-camera + sh-vou
+Message-ID: <Pine.LNX.4.64.1302110934420.30282@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Here go a couple of improvements for 3.9.
+
+The following changes since commit a32f7d1ad3744914273c6907204c2ab3b5d496a0:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.9 (2013-01-24 18:49:18 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.9-set_2
+
+Julia Lawall (1):
+      drivers/media/platform/soc_camera/pxa_camera.c: use devm_ functions
+
+Laurent Pinchart (2):
+      sh_vou: Use video_drvdata()
+      sh_vou: Use vou_dev instead of vou_file wherever possible
+
+ drivers/media/platform/sh_vou.c                |  114 +++++++++++-------------
+ drivers/media/platform/soc_camera/pxa_camera.c |   65 +++----------
+ 2 files changed, 67 insertions(+), 112 deletions(-)
+
+Thanks
+Guennadi
 ---
- drivers/media/usb/s2255/s2255drv.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 42c3afe..55c972a 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -43,13 +43,14 @@
- #include <linux/slab.h>
- #include <linux/videodev2.h>
- #include <linux/mm.h>
-+#include <linux/vmalloc.h>
-+#include <linux/usb.h>
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
--#include <linux/vmalloc.h>
--#include <linux/usb.h>
-+#include <media/v4l2-event.h>
- 
- #define S2255_VERSION		"1.22.1"
- #define FIRMWARE_FILE_NAME "f2255usb.bin"
-@@ -295,6 +296,8 @@ struct s2255_buffer {
- };
- 
- struct s2255_fh {
-+	/* this must be the first field in this struct */
-+	struct v4l2_fh		fh;
- 	struct s2255_dev	*dev;
- 	struct videobuf_queue	vb_vidq;
- 	enum v4l2_buf_type	type;
-@@ -1666,7 +1669,9 @@ static int __s2255_open(struct file *file)
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (NULL == fh)
- 		return -ENOMEM;
--	file->private_data = fh;
-+	v4l2_fh_init(&fh->fh, vdev);
-+	v4l2_fh_add(&fh->fh);
-+	file->private_data = &fh->fh;
- 	fh->dev = dev;
- 	fh->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	fh->channel = channel;
-@@ -1709,12 +1714,13 @@ static unsigned int s2255_poll(struct file *file,
- {
- 	struct s2255_fh *fh = file->private_data;
- 	struct s2255_dev *dev = fh->dev;
--	int rc;
-+	int rc = v4l2_ctrl_poll(file, wait);
-+
- 	dprintk(100, "%s\n", __func__);
- 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
- 		return POLLERR;
- 	mutex_lock(&dev->lock);
--	rc = videobuf_poll_stream(file, &fh->vb_vidq, wait);
-+	rc |= videobuf_poll_stream(file, &fh->vb_vidq, wait);
- 	mutex_unlock(&dev->lock);
- 	return rc;
- }
-@@ -1761,6 +1767,8 @@ static int s2255_release(struct file *file)
- 	videobuf_mmap_free(&fh->vb_vidq);
- 	mutex_unlock(&dev->lock);
- 	dprintk(1, "%s (dev=%s)\n", __func__, video_device_node_name(vdev));
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 	kfree(fh);
- 	return 0;
- }
-@@ -1815,6 +1823,9 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
- 	.vidioc_s_parm = vidioc_s_parm,
- 	.vidioc_g_parm = vidioc_g_parm,
- 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
-+	.vidioc_log_status  = v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static void s2255_video_device_release(struct video_device *vdev)
-@@ -1898,6 +1909,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 		channel->vdev.ctrl_handler = &channel->hdl;
- 		channel->vdev.lock = &dev->lock;
- 		channel->vdev.v4l2_dev = &dev->v4l2_dev;
-+		set_bit(V4L2_FL_USE_FH_PRIO, &channel->vdev.flags);
- 		video_set_drvdata(&channel->vdev, channel);
- 		if (video_nr == -1)
- 			ret = video_register_device(&channel->vdev,
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
