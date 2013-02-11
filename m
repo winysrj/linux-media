@@ -1,115 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:35524 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053Ab3BZWVY (ORCPT
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:61588 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757893Ab3BKQxC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 17:21:24 -0500
-Received: by mail-ee0-f47.google.com with SMTP id e52so2755052eek.20
-        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 14:21:23 -0800 (PST)
-Message-ID: <512D355F.2010309@gmail.com>
-Date: Tue, 26 Feb 2013 23:21:19 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 11 Feb 2013 11:53:02 -0500
+Received: by mail-ee0-f48.google.com with SMTP id t10so3433458eei.35
+        for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 08:53:00 -0800 (PST)
+Message-ID: <5119221B.4090608@googlemail.com>
+Date: Mon, 11 Feb 2013 17:53:47 +0100
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 01/11] s2255: convert to the control framework.
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl> <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Hans Verkuil <hans.verkuil@cisco.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [REVIEWv2 PATCH 04/19] bttv: remove g/s_audio since there is
+ only one audio input.
+References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl> <0681941b222b6cc9c0bb288f81019d4f90c9d683.1360500224.git.hans.verkuil@cisco.com> <51180191.4070100@googlemail.com> <201302111522.56234.hverkuil@xs4all.nl>
+In-Reply-To: <201302111522.56234.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am 11.02.2013 15:22, schrieb Hans Verkuil:
+> On Sun February 10 2013 21:22:41 Frank Schäfer wrote:
+>> Hmm... G/S_AUDIO is also used to query/set the capabilities and the mode
+>> of an input, which IMHO makes sense even if the input is the only one
+>> the device has ?
+> You are right, but there are problems with the implementation in this driver.
+> First of all, there is no ENUMAUDIO ioctl implemented, so applications were
+> never able to enumerate the audio inputs.
 
-On 02/26/2013 06:35 PM, Hans Verkuil wrote:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index dcd6374..f6ba2fc 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -146,6 +146,10 @@ enum v4l2_colorfx {
->    * of controls. We reserve 16 controls for this driver. */
->   #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
+Argh, ok.
 
-I couldn't find a patch adding this hunk in my e-mail archive so I'm
-commenting here. Shouldn't V4L2_CID_USER_MEYE_BASE start at a higher value,
-e.g. (V4L2_CID_USER_BASE + 0x1010) to account for drivers that already
-use private controls ? There is couple of them with a few control IDs
-starting at V4L2_CID_USER_BASE.
+> Now, it is possible to add this (and I have done this in this tree:
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv2).
+> However, the card definitions are unreliable with respect to the number of
+> audio inputs. So you may end up with a driver reporting incorrect information.
+>
+> I tried it in the bttv2 branch and frankly it became rather messy.
+>
+> Given the fact that there was never an ENUMAUDIO ioctl in the first place
+> I decided that it was better not to have these ioctls at all. Also, the
+> V4L2_CAP_AUDIO was never set, and they are incorrect anyway for boards that
+> do not have an audio input at all (common for surveillance boards).
 
-$ git grep V4L2_CID_USER_BASE
+I checked your bttv2 branch and it's looking not that bad !
+If I'm understanding correctly, your main concern is, that the board
+information isn't reliable/correct ?
+Hmm... it seems that (although commented out) nearly all boards have the
+.audio_inputs field set, which leaves rooms for hope...
 
-drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_AUTO 
-(V4L2_CID_USER_BASE | 0x1002)
-drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_TARGET_LEVEL 
-(V4L2_CID_USER_BASE | 0x1003)
-drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_ANALOG_OFFSET 
-(V4L2_CID_USER_BASE | 0x1004)
-drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_DIGITAL_OFFSET 
-(V4L2_CID_USER_BASE | 0x1005)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_TEST_PATTERN_COLOR 
-(V4L2_CID_USER_BASE | 0x1001)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_AUTO 
-(V4L2_CID_USER_BASE | 0x1002)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_OFFSET 
-(V4L2_CID_USER_BASE | 0x1003)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_CALIBRATE 
-(V4L2_CID_USER_BASE | 0x1004)
-drivers/media/i2c/mt9v032.c:#define V4L2_CID_TEST_PATTERN_COLOR 
-(V4L2_CID_USER_BASE | 0x1001)
-drivers/media/platform/mem2mem_testdev.c:#define 
-V4L2_CID_TRANS_TIME_MSEC       (V4L2_CID_USER_BASE + 0x1000)
-drivers/media/platform/mem2mem_testdev.c:#define V4L2_CID_TRANS_NUM_BUFS 
-                (V4L2_CID_USER_BASE + 0x1001)
-drivers/media/platform/vivi.c:#define VIVI_CID_CUSTOM_BASE 
-(V4L2_CID_USER_BASE | 0xf000)
-drivers/media/usb/cpia2/cpia2_v4l.c:#define CPIA2_CID_USB_ALT 
-(V4L2_CID_USER_BASE | 0xf000)
-drivers/media/usb/pwc/pwc-v4l.c:#define PWC_CID_CUSTOM(ctrl) 
-((V4L2_CID_USER_BASE | 0xf000) + custom_ ## ctrl)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_ISIF_CID_CRGAIN             (V4L2_CID_USER_BASE | 0xa001)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_ISIF_CID_CGRGAIN            (V4L2_CID_USER_BASE | 0xa002)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_ISIF_CID_CGBGAIN            (V4L2_CID_USER_BASE | 0xa003)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_ISIF_CID_CBGAIN             (V4L2_CID_USER_BASE | 0xa004)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_ISIF_CID_GAIN_OFFSET        (V4L2_CID_USER_BASE | 0xa005)
-drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
-VPFE_CID_DPCM_PREDICTOR          (V4L2_CID_USER_BASE | 0xa006)
-include/uapi/linux/v4l2-controls.h:#define V4L2_CID_USER_BASE 
-V4L2_CID_BASE
-include/uapi/linux/v4l2-controls.h:#define V4L2_CID_USER_MEYE_BASE 
-                 (V4L2_CID_USER_BASE + 0x1000)
+OTOH, even if the board info about the audio inputs is wrong, this
+wouldn't have any consequences for the video input, right ?
+The additional audio inputs just won't work. And that's something we can
+fix step by step (if anybody cares ;) ).
 
-And also
+So there is no risk of regressions and a good chance to get a missing
+functionality work.
+In that case I would vote for adding ENUM/G/S_AUDIO.
 
-$ git grep V4L2_CTRL_CLASS_CAMERA
+>
+> There are other drivers as well that do not implement this, so applications
+> cannot rely on this ioctl being present.
 
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_RED 
-(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_GREEN_RED 
-(V4L2_CTRL_CLASS_CAMERA | 0x1002)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_GREEN_BLUE 
-(V4L2_CTRL_CLASS_CAMERA | 0x1003)
-drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_BLUE 
-(V4L2_CTRL_CLASS_CAMERA | 0x1004)
-drivers/media/i2c/s5k6aa.c:#define V4L2_CID_RED_GAIN 
-(V4L2_CTRL_CLASS_CAMERA | 0x1001)
-drivers/media/i2c/s5k6aa.c:#define V4L2_CID_GREEN_GAIN 
-(V4L2_CTRL_CLASS_CAMERA | 0x1002)
-drivers/media/i2c/s5k6aa.c:#define V4L2_CID_BLUE_GAIN 
-(V4L2_CTRL_CLASS_CAMERA | 0x1003)
+Sure, they _shouldn't_.
 
-> +/* The base for the s2255 driver controls.
-> + * We reserve 8 controls for this driver. */
-> +#define V4L2_CID_USER_S2255_BASE		(V4L2_CID_USER_BASE + 0x1010)
-> +
+> I will update the commit message before I do the pull request, though. It
+> should be extended with the information above.
 
---
+That's probably the best solution for 3.9.
 
 Regards,
-Sylwester
+Frank
+
+>
+> Regards,
+>
+> 	Hans
+>
+>> Don't you think that it's also somehow inconsistent, because for the
+>> video inputs (G/S_INPUT) the spec says:
+>> "This ioctl will fail only when there are no video inputs, returning
+>> EINVAL." ?
+>>
+>>
+>> Regards,
+>> Frank
+>>
+>>
+>>
+>> Am 10.02.2013 13:49, schrieb Hans Verkuil:
+>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>
+>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>> ---
+>>>  drivers/media/pci/bt8xx/bttv-driver.c |   19 -------------------
+>>>  1 file changed, 19 deletions(-)
+>>>
+>>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>>> index 6e61dbd..a02c031 100644
+>>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>>> @@ -3138,23 +3138,6 @@ static int bttv_s_crop(struct file *file, void *f, const struct v4l2_crop *crop)
+>>>  	return 0;
+>>>  }
+>>>  
+>>> -static int bttv_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+>>> -{
+>>> -	if (unlikely(a->index))
+>>> -		return -EINVAL;
+>>> -
+>>> -	strcpy(a->name, "audio");
+>>> -	return 0;
+>>> -}
+>>> -
+>>> -static int bttv_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
+>>> -{
+>>> -	if (unlikely(a->index))
+>>> -		return -EINVAL;
+>>> -
+>>> -	return 0;
+>>> -}
+>>> -
+>>>  static ssize_t bttv_read(struct file *file, char __user *data,
+>>>  			 size_t count, loff_t *ppos)
+>>>  {
+>>> @@ -3390,8 +3373,6 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
+>>>  	.vidioc_g_fmt_vbi_cap           = bttv_g_fmt_vbi_cap,
+>>>  	.vidioc_try_fmt_vbi_cap         = bttv_try_fmt_vbi_cap,
+>>>  	.vidioc_s_fmt_vbi_cap           = bttv_s_fmt_vbi_cap,
+>>> -	.vidioc_g_audio                 = bttv_g_audio,
+>>> -	.vidioc_s_audio                 = bttv_s_audio,
+>>>  	.vidioc_cropcap                 = bttv_cropcap,
+>>>  	.vidioc_reqbufs                 = bttv_reqbufs,
+>>>  	.vidioc_querybuf                = bttv_querybuf,
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+
