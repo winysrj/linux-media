@@ -1,61 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm2.telefonica.net ([213.4.138.18]:53955 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753380Ab3BCWat (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 17:30:49 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Michael Krufky <mkrufky@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: [PATH 1/2] mxl5007 move reset to attach
-Date: Sun, 03 Feb 2013 23:30:38 +0100
-Message-ID: <2289340.7RydykYGjZ@jar7.dominio>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3963 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759807Ab3BKVLD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 16:11:03 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1BLAu0n079434
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 22:11:01 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4E81011E00D6
+	for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 22:10:55 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130211211055.4E81011E00D6@alastor.dyndns.org>
+Date: Mon, 11 Feb 2013 22:10:55 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch move the soft reset to the attach function because with dual
-tuners, when one tuner do reset, the other one is perturbed, and the 
-stream has errors.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+Results of the daily build of media_tree:
 
-diff -upr linux/drivers/media/tuners/mxl5007t.c linux.new/drivers/media/tuners/mxl5007t.c
---- linux/drivers/media/tuners/mxl5007t.c	2012-08-14 05:45:22.000000000 +0200
-+++ linux.new/drivers/media/tuners/mxl5007t.c	2013-02-03 23:03:03.784525410 +0100
-@@ -531,10 +531,6 @@ static int mxl5007t_tuner_init(struct mx
- 	struct reg_pair_t *init_regs;
- 	int ret;
- 
--	ret = mxl5007t_soft_reset(state);
--	if (mxl_fail(ret))
--		goto fail;
--
- 	/* calculate initialization reg array */
- 	init_regs = mxl5007t_calc_init_regs(state, mode);
- 
-@@ -900,7 +896,20 @@ struct dvb_frontend *mxl5007t_attach(str
- 		/* existing tuner instance */
- 		break;
- 	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	ret = mxl5007t_soft_reset(state);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	if (mxl_fail(ret))
-+		goto fail;
-+
- 	fe->tuner_priv = state;
-+
- 	mutex_unlock(&mxl5007t_list_mutex);
- 
- 	memcpy(&fe->ops.tuner_ops, &mxl5007t_tuner_ops,
+date:		Mon Feb 11 19:00:17 CET 2013
+git branch:	for_v3.9
+git hash:	4880f56438ef56457edd5548b257382761591998
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
