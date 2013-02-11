@@ -1,118 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62234 "EHLO mx1.redhat.com"
+Received: from bues.ch ([80.190.117.144]:35396 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750756Ab3BFJQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Feb 2013 04:16:24 -0500
-Date: Wed, 6 Feb 2013 07:16:04 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [GIT PULL FOR v3.9] Move cx2341x from media/i2c to media/common
-Message-ID: <20130206071604.768c77b5@redhat.com>
-In-Reply-To: <201302060846.35774.hverkuil@xs4all.nl>
-References: <201301290956.20849.hverkuil@xs4all.nl>
-	<20130205164941.6052fd42@redhat.com>
-	<201302060846.35774.hverkuil@xs4all.nl>
+	id S932078Ab3BKU7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 15:59:38 -0500
+Date: Mon, 11 Feb 2013 21:59:19 +0100
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Subject: Re: [git:v4l-dvb/for_v3.9] [media] fc0011: Return early, if the
+ frequency is already tuned
+Message-ID: <20130211215919.344d30ee@milhouse>
+In-Reply-To: <E1U3tzD-0007O1-4M@www.linuxtv.org>
+References: <E1U3tzD-0007O1-4M@www.linuxtv.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/Hg=JqvqIVp=qJby.7Nec=kO"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 6 Feb 2013 08:46:35 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+--Sig_/Hg=JqvqIVp=qJby.7Nec=kO
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> On Tue February 5 2013 19:49:41 Mauro Carvalho Chehab wrote:
-> > Hi Hans,
-> > 
-> > Em Tue, 29 Jan 2013 09:56:20 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > Hi Mauro,
-> > > 
-> > > The cx2341x module is a helper module for conexant-based MPEG encoders.
-> > > It isn't an i2c module at all, instead it should be in common since it is
-> > > used by 7 pci and usb drivers to handle the MPEG setup.
-> > >     
-> > > It also shouldn't be visible in the config menu as it is always
-> > > selected automatically by those drivers that need it.
-> > 
-> > It should be noticed that the other non-i2c helper drivers also at
-> > the i2c directories:
-> > 	$ grep -L i2c_client drivers/media/i2c/*.c|grep -v mod
-> > 	drivers/media/i2c/aptina-pll.c
-> > 	drivers/media/i2c/btcx-risc.c
-> > 	drivers/media/i2c/cx2341x.c
-> > 	drivers/media/i2c/smiapp-pll.c
-> >
-> > A closer look may even hit some weird stuff, like tveeprom. This
-> > particular helper driver is not an I2C driver, although it
-> > has i2c_client symbol there, in order to optionally read the data
-> > via I2C, instead of receiving it via an API call.
-> 
-> At least aptina-pll.c, smiapp-pll.c and tveeprom.c all have some relationship
-> with i2c.
+Can you please revert this one again? It might cause issues if the dvb devi=
+ce
+is reset/reinitialized.
 
-True, but none of the three are actually i2c drivers; they're just shared
-functions used by drivers helper code.
 
-Hmm...
+On Fri, 08 Feb 2013 20:51:36 +0100
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-$ git grep aptina-pll.h drivers/media/
-drivers/media/i2c/aptina-pll.c:#include "aptina-pll.h"
-drivers/media/i2c/mt9m032.c:#include "aptina-pll.h"
-drivers/media/i2c/mt9p031.c:#include "aptina-pll.h"
+> This is an automatic generated email to let you know that the following p=
+atch were queued at the=20
+> http://git.linuxtv.org/media_tree.git tree:
+>=20
+> Subject: [media] fc0011: Return early, if the frequency is already tuned
+> Author:  Michael B=C3=83=C2=BCsch <m@bues.ch>
+> Date:    Thu Feb 7 12:21:06 2013 -0300
+>=20
+> Return early, if we already tuned to a frequency.
+>=20
+> Signed-off-by: Michael Buesch <m@bues.ch>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>=20
+>  drivers/media/tuners/fc0011.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>=20
+> ---
+>=20
+> http://git.linuxtv.org/media_tree.git?a=3Dcommitdiff;h=3Da92591a7112042f9=
+2b609be42bc332d989776e9b
+>=20
+> diff --git a/drivers/media/tuners/fc0011.c b/drivers/media/tuners/fc0011.c
+> index 3932aa8..18caab1 100644
+> --- a/drivers/media/tuners/fc0011.c
+> +++ b/drivers/media/tuners/fc0011.c
+> @@ -187,6 +187,9 @@ static int fc0011_set_params(struct dvb_frontend *fe)
+>  	u8 fa, fp, vco_sel, vco_cal;
+>  	u8 regs[FC11_NR_REGS] =3D { };
+> =20
+> +	if (priv->frequency =3D=3D p->frequency)
+> +		return 0;
+> +
+>  	regs[FC11_REG_7] =3D 0x0F;
+>  	regs[FC11_REG_8] =3D 0x3E;
+>  	regs[FC11_REG_10] =3D 0xB8;
+>=20
 
-$ git grep smiapp-pll.h drivers/media/
-drivers/media/i2c/smiapp-pll.c:#include "smiapp-pll.h"
-drivers/media/i2c/smiapp-pll.h: * drivers/media/i2c/smiapp-pll.h
-drivers/media/i2c/smiapp/smiapp.h:#include "smiapp-pll.h"
 
-$ git grep smiapp.h drivers/media/
-drivers/media/i2c/smiapp/smiapp-core.c:#include "smiapp.h"
-drivers/media/i2c/smiapp/smiapp-limits.c:#include "smiapp.h"
-drivers/media/i2c/smiapp/smiapp-quirk.c:#include "smiapp.h"
-drivers/media/i2c/smiapp/smiapp-regs.c:#include "smiapp.h"
-drivers/media/i2c/smiapp/smiapp.h: * drivers/media/i2c/smiapp/smiapp.h
-drivers/media/i2c/smiapp/smiapp.h:#include <media/smiapp.h>
 
-It could make sense to keep those two on I2c, eventually moving
-smapp-pl to i2c/smiapp. I have conflicting opinions here :)
+--=20
+Greetings, Michael.
 
-> But cx2341x.c and btcx-risc.c do not have that at all. One reason
-> for creating this patch was that I couldn't find the cx2341x.c code until I
-> smiapp-pll.cdid a find.
-> 
-> > Also, I don't think cx2341x or any of those other helper drivers
-> > deserve each its own directory.
-> 
-> I thought that the cx2341x.c source in common looked a bit lonely.
-> But if we add other sources as well, then it has company :-)
+PGP: 908D8B0E
 
-:)
+--Sig_/Hg=JqvqIVp=qJby.7Nec=kO
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-> > So, IMHO, the better is to just live them at the i2c directory.
-> 
-> For cx2341x and btcx-risc the i2c directory is completely inappropriate.
-> Nobody is ever going to guess that.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Agreed. Those are just leftovers of the tree reorg, as the final patch
-at v4l side were to rename "video" to "i2c".
+iQIcBAEBAgAGBQJRGVunAAoJEPUyvh2QjYsO4QIP/3/ZUiZsaRJGE6rOfpJVhhS2
+aPbQwj2cvXRADb3D9XuTO87MOQ7jdfb0Jr6600r8Ht7okt8s58jh9bTjf4r7X18d
+0t53i68wbo4r3LuPLNkh6i9Wk21oVgA9FW7IOigkWauAQCOUrGk8Oz/EepFGd/id
+GpDyDyjaHoLQnSKnAfmZ88f48JcIGooBu1TcjomyTN8281sflCek20Afj5LiHGek
+N7jimb6T2Npi0hUjoXbj1xKA7SxWV3DKP6ldb5BM+sj1aHO0o7Trv9Q5ApRFqCtS
+fK5fn+KK3qZdj2CLfXJRwKWYua49TFpgnEIHdt6BdCPUCuyQX9pA0LUClkGAvBdD
+8PGn2MowHtUiuftVx/BzXnAeLLPjeURAtMMtCfnACEvd4W99mnzdw3X6NHhO4ARm
+va36dD3yl0AkGc3gaMymcinXRyQPymn6trFKTywnZo6KmV/NpdJGgxBPbI5ythNo
+6894gTboSGt79GoPqse9Kai65ycNyMEo7aWDi0uUtVtqj1LrhXg2dm1trX2+TkuF
+tldzK5Hpz/5oci3cUyVUnI6S4sBAImIDwdqNpFQSVJdEwa6FN10ECZVa8+u24yxY
+A7cLuuk+w9xwfjOaSa8jIFt2oR4wsMaGMbq0WPmZSfWaFQgmjjYEeE6ejc4iyArm
+lPnvbgTZfYRRmns9J9N6
+=MV8D
+-----END PGP SIGNATURE-----
 
-> > They might be moved, instead, to drivers/media/common (but without
-> > creating subdirs there).
-> > 
-> > In any case, we should do the same for all those non-i2c helper
-> > drivers. Just moving cx2341x and letting the others there will just
-> > increase the mess.
-> 
-> I've no problem moving cx2341x, btcx-risc and tveeprom to common. For
-> the two pll sources I'd like to know if the authors agree (CC-ed) before
-> I make a patch moving them to common.
-
-Fair enough.
-
-Regards,
-Mauro
+--Sig_/Hg=JqvqIVp=qJby.7Nec=kO--
