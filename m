@@ -1,66 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:54257
-	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755634Ab3BXUqc (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1264 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752283Ab3BLVLH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Feb 2013 15:46:32 -0500
-From: Kevin Baradon <kevin.baradon@gmail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Kevin Baradon <kevin.baradon@gmail.com>
-Subject: [PATCH 1/2] media/rc/imon.c: make send_packet() delay configurable
-Date: Sun, 24 Feb 2013 21:19:29 +0100
-Message-Id: <1361737170-4687-2-git-send-email-kevin.baradon@gmail.com>
-In-Reply-To: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
-References: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
+	Tue, 12 Feb 2013 16:11:07 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1CLB2nD058948
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:11:05 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5C0E911E00B9
+	for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:11:02 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130212211102.5C0E911E00B9@alastor.dyndns.org>
+Date: Tue, 12 Feb 2013 22:11:02 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some imon devices (like 15c2:0036) need a higher delay between send_packet calls.
-Default value is still 5ms to avoid regressions on already working hardware.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Also use interruptible wait to avoid load average going too high (and let caller handle signals).
+Results of the daily build of media_tree:
 
-Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
----
- drivers/media/rc/imon.c |   14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+date:		Tue Feb 12 19:00:17 CET 2013
+git branch:	for_v3.9
+git hash:	4880f56438ef56457edd5548b257382761591998
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 78d109b..a3e66a0 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -347,6 +347,11 @@ module_param(pad_stabilize, int, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(pad_stabilize, "Apply stabilization algorithm to iMON PAD "
- 		 "presses in arrow key mode. 0=disable, 1=enable (default).");
- 
-+static unsigned int send_packet_delay = 5;
-+module_param(send_packet_delay, uint, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(send_packet_delay, "Minimum delay between send_packet() calls "
-+		 "(default 5ms)");
-+
- /*
-  * In certain use cases, mouse mode isn't really helpful, and could actually
-  * cause confusion, so allow disabling it when the IR device is open.
-@@ -535,12 +540,15 @@ static int send_packet(struct imon_context *ictx)
- 	kfree(control_req);
- 
- 	/*
--	 * Induce a mandatory 5ms delay before returning, as otherwise,
-+	 * Induce a mandatory delay before returning, as otherwise,
- 	 * send_packet can get called so rapidly as to overwhelm the device,
- 	 * particularly on faster systems and/or those with quirky usb.
-+	 * Do not use TASK_UNINTERRUPTIBLE as this routine is called quite often
-+	 * and doing so will increase load average slightly. Caller will handle
-+	 * signals itself.
- 	 */
--	timeout = msecs_to_jiffies(5);
--	set_current_state(TASK_UNINTERRUPTIBLE);
-+	timeout = msecs_to_jiffies(send_packet_delay);
-+	set_current_state(TASK_INTERRUPTIBLE);
- 	schedule_timeout(timeout);
- 
- 	return retval;
--- 
-1.7.10.4
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
