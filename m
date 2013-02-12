@@ -1,52 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:33315 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755331Ab3BALMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 06:12:37 -0500
-Received: by mail-ob0-f172.google.com with SMTP id tb18so3945689obb.17
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 03:12:36 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <510B9EC8.6020102@samsung.com>
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
-	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
-	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
-	<510987B5.6090509@gmail.com>
-	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
-	<510B02AB.4080908@gmail.com>
-	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
-	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
-	<CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
-	<510B9EC8.6020102@samsung.com>
-Date: Fri, 1 Feb 2013 16:42:36 +0530
-Message-ID: <CAK9yfHw+aTgiLwGVJt=J9-ie4-2JAaF4Nh3n4tjcHp6w2JHamg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:53319 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933044Ab3BLNbu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Feb 2013 08:31:50 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MI40025G06WAO60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Feb 2013 13:31:47 +0000 (GMT)
+Received: from [106.116.147.32] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MI400CLG08YHO30@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 12 Feb 2013 13:31:47 +0000 (GMT)
+Message-id: <511A4442.6000402@samsung.com>
+Date: Tue, 12 Feb 2013 14:31:46 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Inki Dae <inki.dae@samsung.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	patches@linaro.org, Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
  for G2D
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Inki Dae <inki.dae@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+ <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
+ <CAAQKjZNmUVZnDcy3fbWkairnneOK7dooJT2gn=9++tzS=uhhzA@mail.gmail.com>
+In-reply-to: <CAAQKjZNmUVZnDcy3fbWkairnneOK7dooJT2gn=9++tzS=uhhzA@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> In any case please let me know the final preferred one so that I can
->> update the code send the revised patches.
->
-> The version with SoC name embedded in it seems most reliable and correct
-> to me.
->
-> compatible = "samsung,exynos3110-fimg-2d" /* for Exynos3110 (S5PC110, S5PV210),
->                                              Exynos4210 */
-> compatible = "samsung,exynos4212-fimg-2d" /* for Exynos4212, Exynos4412 */
->
-Looks good to me.
+On 02/12/2013 02:17 PM, Inki Dae wrote:
+> Applied and will go to -next.
+> And please post the document(in
+> Documentation/devicetree/bindings/gpu/) for it later.
 
-Inki, Kukjin, please let us know your opinion so that we can freeze
-this. Also please suggest the SoC name for Exynos5 (5250?).
+There is already some old patch applied in the devicetree/next tree:
 
--- 
-With warm regards,
-Sachin
+http://git.secretlab.ca/?p=linux.git;a=commitdiff;h=09495dda6a62c74b13412a63528093910ef80edd
+
+I guess there is now an incremental patch needed for this.
+
+
+Regards,
+Sylwester
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
