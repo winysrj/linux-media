@@ -1,64 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s250.sam-solutions.net ([217.21.49.219]:49798 "EHLO
-	s250.sam-solutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294Ab3BFOzq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:55:46 -0500
-Message-ID: <511268BE.3020508@sam-solutions.net>
-Date: Wed, 6 Feb 2013 17:29:18 +0300
-From: Andrei Andreyanau <a.andreyanau@sam-solutions.net>
-Reply-To: a.andreyanau@sam-solutions.net
-MIME-Version: 1.0
-To: <linux-media@vger.kernel.org>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH] [media] mt9v022 driver: send valid HORIZONTAL_BLANKING values
- to mt9v024 soc camera
-Content-Type: text/plain; charset="UTF-8"
+Received: from plane.gmane.org ([80.91.229.3]:41727 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759109Ab3BLNot (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Feb 2013 08:44:49 -0500
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1U5GAS-0007At-Du
+	for linux-media@vger.kernel.org; Tue, 12 Feb 2013 14:45:04 +0100
+Received: from ip-213-166-50-130.dialup.pt.lu ([213.166.50.130])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 14:45:04 +0100
+Received: from stilmant.michael.rovi by ip-213-166-50-130.dialup.pt.lu with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 14:45:04 +0100
+To: linux-media@vger.kernel.org
+From: Michael Stilmant <stilmant.michael.rovi@gmail.com>
+Subject: Re: ACM/VCM, PLS
+Date: Tue, 12 Feb 2013 13:39:21 +0000 (UTC)
+Message-ID: <loom.20130212T143443-400@post.gmane.org>
+References: <CAJvg3VH6twjoFc6MkULTZoESCYnTz=s9cFDSNrLiR_7ea45o1A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the issue that appears when mt9v024 camera is used with the
-mt9v022 soc camera driver. The minimum total row time is 690 columns
-(horizontal width + horizontal blanking). The minimum horizontal
-blanking is 61. Thus, when the window width is set below 627, horizontal blanking must
-be increased. For the mt9v024 camera the values above are correct and
-for the mt9v022 camera the correct values are in the existing kernel driver.
+Thierry Perdichizzi <thierry <at> perdichizzi.net> writes:
 
-Signed-off-by: Andrei Andreyanau <a.andreyanau@sam-solutions.net>
---- linux/drivers/media/i2c/soc_camera/mt9v022.c.orig	2013-02-06 15:43:35.522079869 +0300
-+++ linux/drivers/media/i2c/soc_camera/mt9v022.c	2013-02-06 14:53:44.000000000 +0300
-@@ -275,6 +275,7 @@ static int mt9v022_s_crop(struct v4l2_su
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct mt9v022 *mt9v022 = to_mt9v022(client);
- 	struct v4l2_rect rect = a->c;
-+	int min_row, min_blank;
- 	int ret;
+> 
+> Hello,
+> 
+> I'd like to make a request for the support of the PLS and ACM/VCM for
+> DVB-S2. Currently some channels use these options.
+> 
 
- 	/* Bayer format - even size lengths */
-@@ -310,13 +311,21 @@ static int mt9v022_s_crop(struct v4l2_su
- 		ret = reg_write(client, MT9V022_COLUMN_START, rect.left);
- 	if (!ret)
- 		ret = reg_write(client, MT9V022_ROW_START, rect.top);
-+	/*
-+	 * mt9v022: min total row time is 660 columns, min blanking is 43
-+	 * mt9v024: min total row time is 690 columns, min blanking is 61
-+	 */
-+	if (is_mt9v024(mt9v022->chip_version)) {
-+		min_row = 690;
-+		min_blank = 61;
-+	} else {
-+		min_row = 660;
-+		min_blank = 43;
-+	}
- 	if (!ret)
--		/*
--		 * Default 94, Phytec driver says:
--		 * "width + horizontal blank >= 660"
--		 */
- 		ret = v4l2_ctrl_s_ctrl(mt9v022->hblank,
--				rect.width > 660 - 43 ? 43 : 660 - rect.width);
-+				rect.width > min_row - min_blank ?
-+				min_blank : min_row - rect.width);
- 	if (!ret)
- 		ret = v4l2_ctrl_s_ctrl(mt9v022->vblank, 45);
- 	if (!ret)
+I'm interested in that feature too.
+Thierry, did you succeed to collect more info?  
+
+Thanks
+
+Regards,
+
+Michael
+
+
