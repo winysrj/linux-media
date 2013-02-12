@@ -1,88 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59873 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755700Ab3BSNGW convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2186 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757989Ab3BLIO5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 08:06:22 -0500
-Date: Tue, 19 Feb 2013 10:06:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-Message-ID: <20130219100614.508af9e2@redhat.com>
-In-Reply-To: <51229C2D.8060700@googlemail.com>
-References: <512294CA.3050401@gmail.com>
-	<51229C2D.8060700@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 12 Feb 2013 03:14:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: RFC: add parameters to V4L controls
+Date: Tue, 12 Feb 2013 09:14:35 +0100
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	linux-media@vger.kernel.org
+References: <50EAA78E.4090904@samsung.com> <510EB23E.6070100@gmail.com> <20130206202632.GA22278@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20130206202632.GA22278@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302120914.35607.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 18 Feb 2013 22:25:01 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-
-> Am 18.02.2013 21:53, schrieb Mr Goldcove:
-> > "Easy Cap DC-60++"
-> > Wrongly identified as card 19 "EM2860/SAA711X Reference Design",
-> > resulting in no audio.
-> > Works perfectly when using card 64 "Easy Cap Capture DC-60"
+On Wed February 6 2013 21:26:32 Sakari Ailus wrote:
+> Hi Sylwester,
 > 
-> Video inputs work fine, right ?
-> Does this device has any buttons / LEDs ?
+> On Sun, Feb 03, 2013 at 07:53:50PM +0100, Sylwester Nawrocki wrote:
+> > Hi Laurent,
+> > 
+> > On 02/01/2013 11:17 PM, Laurent Pinchart wrote:
+> > [...]
+> > >>>>There could be added four pseudo-controls, lets call them for short:
+> > >>>>LEFT, TOP, WIDTH, HEIGHT. Those controls could be passed together with
+> > >>>>V4L2_AUTO_FOCUS_AREA_RECTANGLE control in one ioctl as a kind of
+> > >>>>parameters.
+> > >>>>
+> > >>>>For example setting auto-focus spot would require calling
+> > >>>>VIDIOC_S_EXT_CTRLS with the following controls:
+> > >>>>- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+> > >>>>- LEFT = ...
+> > >>>>- RIGHT = ...
+> > >>>>
+> > >>>>Setting AF rectangle:
+> > >>>>- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
+> > >>>>- LEFT = ...
+> > >>>>- TOP = ...
+> > >>>>- WIDTH = ...
+> > >>>>- HEIGHT = ...
+> > >>>>
+> > >>>>Setting  AF object detection (no parameters required):
+> > >>>>- V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
+> > >>>
+> > >>>If you want to do this, then you have to make LEFT/TOP/WIDTH/HEIGHT real
+> > >>>controls. There is no such thing as a pseudo control. So you need five
+> > >>>new controls in total:
+> > >>>
+> > >>>V4L2_CID_AUTO_FOCUS_AREA
+> > >>>V4L2_CID_AUTO_FOCUS_LEFT
+> > >>>V4L2_CID_AUTO_FOCUS_RIGHT
+> > >>>V4L2_CID_AUTO_FOCUS_WIDTH
+> > >>>V4L2_CID_AUTO_FOCUS_HEIGHT
+> > >>>
+> > >>>I have no problem with this from the point of view of the control API, but
+> > >>>whether this is the best solution for implementing auto-focus is a
+> > >>>different issue and input from sensor specialists is needed as well
+> > >>>(added Laurent and Sakari to the CC list).
+> > >>>
+> > >>>The primary concern I have is that this does not scale to multiple focus
+> > >>>rectangles. This might not be relevant to auto focus, though.
+> > >>
+> > >>I think for more advanced hardware/configurations there is a need to
+> > >>associate more information with the rectangles anyway. So the selections
+> > >>API seems too limited. Probably a new IOCTL would be needed for that,
+> > >>either standard or private.
+> > >>
+> > >>We've discussed it here with Andrzej and using such 4 controls to specify
+> > >>the AF rectangle looks sufficient from our POV.
+> > >>
+> > >>I would just probably rename LEFT/RIGHT to POS_X/POS_Y or something,
+> > >>as these 2 controls could be used in a focus mode where only spot
+> > >>position needs to be specified.
+> > >
+> > >If position and size are sufficient, could we use the selection API instead ?
+> > >An alternative would be to introduce rectangle controls. I'm a bit
+> > >uncomfortable with using 4 controls here, as this could quickly grow out of
+> > >control.
+> > 
+> > Yes, the selection API could be used as well. I actually have tested this
+> > in the past with the s5c73m3 camera and its spot auto focus mode.
+> > 
+> > I just wanted to be sure there is no better alternatives, as it looked
+> > a bit unusual to handle single feature with a mix of the controls and
+> > the selection API calls. Although it works, such an interface looks a bit
+> > clumsy to me, especially in cases where all we need is to pass just (x,y)
+> > coordinates.
 > 
-> The driver doesn't handle devices with generic IDs very well.
-> In this case we can conclude from the USB PID that the device has audio
-> support (which is actually the only difference to board
-> EM2860_BOARD_SAA711X_REFERENCE_DESIGN).
-> But I would like to think twice about it, because this kind of changes
-> has very a high potential to cause regressions for other boards...
-
-While em28xx driver tries to do its best to detect, devices without
-EEPROM will always have issues, as there are lots of similar devices
-with small differences on how they were wired up.
-
-That's why em28xx has the "card" modprobe parameter.
-
-Ok, it likely makes sense to add an additional hint based on has_audio.
-
+> Selections are essentially controls but for rectangles.
 > 
-> Regards,
-> Frank
+> The original use case was to support configuring scaling, cropping etc. on
+> subdevs but they're not really bound to image processing configuration.
 > 
-> >
-> > **Interim solution**
-> > load module (before inserting the EasyCap. I'm having trouble if the
-> > module is loaded/unloaded with different cards...)
-> > modprobe em28xx card=64
-> >   or
-> > add "options em28xx card=64" to /etc/modprobe.d/local.conf
+> Controls have been more generic to begin with.
+> 
+> > I have quickly added support for rectangle controls type [1] to see how
+> > big changes it would require and what would be missing without significant
+> > changes in the controls API.
+> > 
+> > So the main issues there are: the min/max/step/default value cannot
+> > be queried (VIDIOC_QUERYCTRL) and it is troublesome to handle them in
+> > the kernel, the control value change events wouldn't really work.
+> > 
+> > I learnt VIDIOC_QUERYCTRL is not supported for V4L2_CTRL_TYPE_INTEGER64
+> > control type, then maybe we could have similarly some features not
+> > available for V4L2_CTRL_TYPE_RECTANGLE ? Until there are further
+> > extensions that address this;)
+> > 
+> > [1] http://git.linuxtv.org/snawrocki/media.git/ov965x-2-rect-type-ctrl
+> 
+> Hmm. Had you proposed this two years ago, selections could well look
+> entirely different.
+> 
+> We still have them now. There would be use cases for pad specific controls,
+> too; pixel rate for instance should be one. For this reason I don't see
+> selections really much different from controls.
+> 
+> The selections are the same on subdevs and video nodes. Unifying them (with
+> some compat code for either of the current interfaces) and providing a new
+> IOCTL to access both was what I thought could be one solution to the
+> problem.
+> 
+> Or --- we could add "selection controls" which would be just like selections
+> but with the control interface. What's relevant in struct v4l2_ext_control
+> would be the ID field, while the "value" field in struct v4l2_ext_control
+> would be a pointer to a struct describing the selection control. Half of the
+> reserved field could be used for the pad (they're 16-bit ints). No control
+> ID clashes with the selection IDs, so this could even work with the existing
+> selection targets.
 
-That is the right thing to do. It makes sense to have it documented at the
-Wiki, in order to help others with similar boards.
+As I have stated before: I am opposed to adding compound controls to the
+control API. Each control should map to one value and one value only.
+Always remember that the control API is meant not just to pass values but
+to be shown in a generic GUI (control panel like). If you start adding
+compound values, then that becomes very hard for GUI apps to set up, not
+to mention that you will open the door to a zoo of different control types.
+
+So any solution that adds compound types to the control API will be NACKed
+by me.
+
+I just thought I'd state this clearly to prevent people going down the wrong
+trail.
 
 Regards,
-Mauro
 
-> >
-> > **hw info**
-> > Bus 002 Device 005: ID eb1a:2861 eMPIA Technology, Inc.
-> >
-> > Chips:
-> > Empia EM2860 P7JY8-011 201023-01AG
-> > NXP SAA7113H
-> > RMC ALC653 89G06K1 G909A
+	Hans
 
-The driver could be detecting if Realtek alc653 is found, in order to
-hint it as "EasyCap":
-
-[ 5568.813055] em28xx #0: AC97 vendor ID = 0x414c4761
-
-If I'm not mistaken, someone wrote at the ML that "EasyCap" is actually 
-just a generic name used by some Chinese companies to indicate a video
-capture USB device. The fact is that there are EasyCap devices using 
-even completely different chipsets.
-
-Cheers,
-Mauro
+> Either solution would avoid creating another rectangle type with an ID that
+> would be separate from selections.
+> 
+> Thoughts, comments?
+> 
+> 
