@@ -1,44 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:47025 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753371Ab3BZMJI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 07:09:08 -0500
-Message-ID: <512C91BC.4010306@schinagl.nl>
-Date: Tue, 26 Feb 2013 11:43:08 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-ve0-f201.google.com ([209.85.128.201]:62294 "EHLO
+	mail-ve0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932873Ab3BLB4l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Feb 2013 20:56:41 -0500
+Received: by mail-ve0-f201.google.com with SMTP id 14so670404vea.0
+        for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 17:56:39 -0800 (PST)
+From: sheu@google.com
+To: sumit.semwal@linaro.org
+Cc: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	John Sheu <sheu@google.com>
+Subject: [PATCH] CHROMIUM: dma-buf: restore args on failure of dma_buf_mmap
+Date: Mon, 11 Feb 2013 17:50:24 -0800
+Message-Id: <1360633824-2563-1-git-send-email-sheu@google.com>
 MIME-Version: 1.0
-To: Geert Hedde Bosman <geert.hedde.bosman@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Please update DVB-T frequency list 'dvb-t/nl-All'
-References: <512BD285.9010802@gmail.com>
-In-Reply-To: <512BD285.9010802@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25-02-13 22:07, Geert Hedde Bosman wrote:
-> Hello,
-> in summer 2012 in the Netherlands major frequency changes took place 
-> in DVB-t broadcast. Some new frequencies were added as well. Therefore 
-> the frequency-file dvb/dvb-t/nl-All is no longer actual. Could someone 
-> (i believe Cristoph P. is one of the maintainers) please update this 
-> file? The website http://radio-tv-nederland.nl/ provides an up to date 
-> frequency list.
-> As an example: i had to add the following line to the file 'nl-All' to 
-> get the FTA tv-stations in the north of the Netherlands as it was 
-> missing:
-> T 674000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
-I'll go over the list and update all the frequencies. For me in the 
-south, the list seems to be still accurate ;)
+From: John Sheu <sheu@google.com>
 
-Expect a patch + push today/tomorrow.
->
-> regards
-> GHB
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Callers to dma_buf_mmap expect to fput() the vma struct's vm_file
+themselves on failure.  Not restoring the struct's data on failure
+causes a double-decrement of the vm_file's refcount.
+
+Signed-off-by: John Sheu <sheu@google.com>
+
+---
+ drivers/base/dma-buf.c |   21 +++++++++++++++------
+ 1 files changed, 15 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 09e6878..06c6225 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -536,6 +536,9 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
+ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+ 		 unsigned long pgoff)
+ {
++	struct file *oldfile;
++	int ret;
++
+ 	if (WARN_ON(!dmabuf || !vma))
+ 		return -EINVAL;
+ 
+@@ -549,15 +552,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+ 		return -EINVAL;
+ 
+ 	/* readjust the vma */
+-	if (vma->vm_file)
+-		fput(vma->vm_file);
+-
++	get_file(dmabuf->file);
++	oldfile = vma->vm_file;
+ 	vma->vm_file = dmabuf->file;
+-	get_file(vma->vm_file);
+-
+ 	vma->vm_pgoff = pgoff;
+ 
+-	return dmabuf->ops->mmap(dmabuf, vma);
++	ret = dmabuf->ops->mmap(dmabuf, vma);
++	if (ret) {
++		/* restore old parameters on failure */
++		vma->vm_file = oldfile;
++		fput(dmabuf->file);
++	} else {
++		if (oldfile)
++			fput(oldfile);
++	}
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(dma_buf_mmap);
+ 
+-- 
+1.7.8.6
 
