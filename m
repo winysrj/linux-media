@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1764 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753015Ab3BZRg5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:36:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: Re: [PATCH v6 0/9] Driver for Si476x series of chips
-Date: Tue, 26 Feb 2013 18:36:39 +0100
-Cc: mchehab@redhat.com, sameo@linux.intel.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from perches-mx.perches.com ([206.117.179.246]:50405 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752499Ab3BLVUj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Feb 2013 16:20:39 -0500
+Message-ID: <1360704036.22660.5.camel@joe-AO722>
+Subject: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
+From: Joe Perches <joe@perches.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	devel <devel@driverdev.osuosl.org>, linux-media@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Date: Tue, 12 Feb 2013 13:20:36 -0800
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302261836.39517.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue February 26 2013 17:31:26 Andrey Smirnov wrote:
-> This is a fourth version of the patchset originaly posted here:
-> https://lkml.org/lkml/2012/9/13/590
-> 
-> Second version of the patch was posted here:
-> https://lkml.org/lkml/2012/10/5/598
-> 
-> Third version of the patch was posted here:
-> https://lkml.org/lkml/2012/10/23/510
-> 
-> Fourth version of the patch was posted here:
-> https://lkml.org/lkml/2013/2/18/572
-> 
-> Fifth version of the patch was posted here:
-> https://lkml.org/lkml/2013/2/26/45
-> 
-> To save everyone's time I'll repost the original description of it:
-> 
-> This patchset contains a driver for a Silicon Laboratories 476x series
-> of radio tuners. The driver itself is implemented as an MFD devices
-> comprised of three parts: 
->  1. Core device that provides all the other devices with basic
-> functionality and locking scheme.
->  2. Radio device that translates between V4L2 subsystem requests into
-> Core device commands.
->  3. Codec device that does similar to the earlier described task, but
-> for ALSA SoC subsystem.
-> 
-> v6 of this driver has following changes:
->    - Minor corrections
+His email bounces and he hasn't done work on
+these sections in a couple of years.
 
-For this patch series:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ MAINTAINERS | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 1d0651e..8d47b3a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7523,7 +7523,6 @@ F:	drivers/staging/comedi/
+ 
+ STAGING - CRYSTAL HD VIDEO DECODER
+ M:	Naren Sankar <nsankar@broadcom.com>
+-M:	Jarod Wilson <jarod@wilsonet.com>
+ M:	Scott Davilla <davilla@4pi.com>
+ M:	Manu Abraham <abraham.manu@gmail.com>
+ S:	Odd Fixes
+@@ -7557,9 +7556,8 @@ S:	Odd Fixes
+ F:	drivers/staging/iio/
+ 
+ STAGING - LIRC (LINUX INFRARED REMOTE CONTROL) DRIVERS
+-M:	Jarod Wilson <jarod@wilsonet.com>
+ W:	http://www.lirc.org/
+-S:	Odd Fixes
++S:	Orphan
+ F:	drivers/staging/media/lirc/
+ 
+ STAGING - NVIDIA COMPLIANT EMBEDDED CONTROLLER INTERFACE (nvec)
 
-Thank you very much for your work on this!
 
-Regards,
-
-	Hans
