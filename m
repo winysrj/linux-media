@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f182.google.com ([209.85.210.182]:48212 "EHLO
-	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506Ab3BVGcK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Feb 2013 01:32:10 -0500
-Received: by mail-ia0-f182.google.com with SMTP id k38so273366iah.13
-        for <linux-media@vger.kernel.org>; Thu, 21 Feb 2013 22:32:08 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:41756 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755265Ab3BMJWg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Feb 2013 04:22:36 -0500
+Message-ID: <511B5B34.9060208@iki.fi>
+Date: Wed, 13 Feb 2013 11:21:56 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1361487238-4921-1-git-send-email-ismael.luceno@corp.bluecherry.net>
-References: <1361487238-4921-1-git-send-email-ismael.luceno@corp.bluecherry.net>
-Date: Fri, 22 Feb 2013 03:32:08 -0300
-Message-ID: <CALF0-+VBUW-YrC2eKgb1XSahZOS9cTde=vivk7q24PD8oNhzcA@mail.gmail.com>
-Subject: Re: [PATCH] solo6x10: Maintainer change
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Ismael Luceno <ismael.luceno@gmail.com>
-Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Alistair Buxton <a.j.buxton@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] rtl28xxu: Add USB IDs for Compro VideoMate U620F.
+References: <1360720727-22212-1-git-send-email-a.j.buxton@gmail.com>
+In-Reply-To: <1360720727-22212-1-git-send-email-a.j.buxton@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ismael,
+On 02/13/2013 03:58 AM, Alistair Buxton wrote:
+> Signed-off-by: Alistair Buxton <a.j.buxton@gmail.com>
 
-On Thu, Feb 21, 2013 at 7:53 PM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
-> Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Acked-by: Antti Palosaari <crope@iki.fi>
+
+
 > ---
->  MAINTAINERS | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+>   1 file changed, 2 insertions(+)
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 3b95564..eb277c9 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -7315,8 +7315,8 @@ S:        Odd Fixes
->  F:     drivers/staging/sm7xxfb/
->
->  STAGING - SOFTLOGIC 6x10 MPEG CODEC
-> -M:     Ben Collins <bcollins@bluecherry.net>
-> -S:     Odd Fixes
-> +M:     Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-> +S:     Supported
->  F:     drivers/staging/media/solo6x10/
+> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> index a4c302d..d8a8a88 100644
+> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+> @@ -1352,6 +1352,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+>   		&rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
+>   		&rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
+> +	{ DVB_USB_DEVICE(USB_VID_COMPRO, 0x0620,
+> +		&rtl2832u_props, "Compro VideoMate U620F", NULL) },
+>   	{ }
+>   };
+>   MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
 >
 
-It's great to see that you're going to maintain this!
-
-FYI, Greg has nothing to do with drivers/staging/media, so you don't
-need to put him in Cc.
-The media maintainer is Mauro, and you don't need to Cc him, just send
-your patches to linux-media ML.
 
 -- 
-    Ezequiel
+http://palosaari.fi/
