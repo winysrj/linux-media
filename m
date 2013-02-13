@@ -1,95 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35931 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772Ab3BFJwx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Feb 2013 04:52:53 -0500
-Message-ID: <511227C2.8060808@ti.com>
-Date: Wed, 6 Feb 2013 15:22:02 +0530
-From: Archit Taneja <archit@ti.com>
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:57007 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760376Ab3BMV4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Feb 2013 16:56:32 -0500
+Received: by mail-ea0-f182.google.com with SMTP id a12so642064eaa.27
+        for <linux-media@vger.kernel.org>; Wed, 13 Feb 2013 13:56:31 -0800 (PST)
+Message-ID: <511C0C0C.3090403@gmail.com>
+Date: Wed, 13 Feb 2013 22:56:28 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Bryan Wu <bryan.wu@canonical.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	sunil joshi <joshi@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com> <1987992.4TmVjQaiLj@amdc1227> <50EC5283.80006@stericsson.com> <3057999.UZLp2j2DkQ@avalon> <510F8807.2020406@stericsson.com>
-In-Reply-To: <510F8807.2020406@stericsson.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] Timestamp API update for mem-to-mem devices
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 04 February 2013 03:35 PM, Marcus Lorentzon wrote:
-> On 02/02/2013 12:35 AM, Laurent Pinchart wrote:
->> Hi Marcus,
->>
->> On Tuesday 08 January 2013 18:08:19 Marcus Lorentzon wrote:
->>> On 01/08/2013 05:36 PM, Tomasz Figa wrote:
->>>> On Tuesday 08 of January 2013 11:12:26 Marcus Lorentzon wrote:
-> [...]
->>>>> But it is not perfect. After a couple of products we realized that
->>>>> most
->>>>> panel drivers want an easy way to send a bunch of init commands in one
->>>>> go. So I think it should be an op for sending an array of commands at
->>>>> once. Something like
->>>>>
->>>>> struct dsi_cmd {
->>>>>        enum mipi_pkt_type type; /* MIPI DSI, DCS, SetPacketLen, ... */
->>>>>        u8 cmd;
->>>>>        int dataLen;
->>>>>        u8 *data;
->>>>> }
->>>>>
->>>>> struct dsi_ops {
->>>>>        int dsi_write(source, int num_cmds, struct dsi_cmd *cmds);
->>>>>        ...
->>>>> }
->> Do you have DSI IP(s) that can handle a list of commands ? Or would
->> all DSI
->> transmitter drivers need to iterate over the commands manually ? In
->> the later
->> case a lower-level API might be easier to implement in DSI transmitter
->> drivers. Helper functions could provide the higher-level API you
->> proposed.
->
-> The HW has a FIFO, so it can handle a few. Currently we use the low
-> level type of call with one call per command. But we have found DSI
-> command mode panels that don't accept any commands during the "update"
-> (write start+continues). And so we must use a mutex/state machine to
-> exclude any async calls to send DSI commands during update. But if you
-> need to send more than one command per frame this will be hard (like
-> CABC and backlight commands). It will be a ping pong between update and
-> command calls. One option is to expose the mutex to the caller so it can
-> make many calls before the next update grabs the mutex again.
-> So maybe we could create a helper that handle the op for list of
-> commands and another op for single command that you actually have to
-> implement.
+Hi Mauro,
 
-fyi, the DSI IP on OMAP3+ SoCs also has a FIFO. It can provide 
-interrupts after each command is pushed out, and also when the FIFO gets 
-empty(all commands are pushed). The only thing to take care is to not 
-overflow FIFO.
+This change set includes a two patches I missed out in my last pull request
+which introduce V4L2_BUF_FLAG_TIMESTAMP_COPY buffer flag to indicate the
+timestamps are, in case of the mem-to-mem devices, copied from output to
+capture buffer queue.
 
-DSI video mode panels generally have a few dozen internal registers 
-which need to be configured via DSI commands. It's more fast(and 
-convenient) to configure a handful of internal registers in one shot, 
-and then perform a single BTA to know from the panel whether the 
-commands were received correctly.
+The other two patches is a fix for s3c-camif driver and a patch adding 
+device
+tree support to the s5p-g2d driver.
 
-Regards,
-Archit
+Please pull for 3.9 if still possible. There are already some patches queued
+for 3.9 improving the timestamps handling and it would be especially useful
+to have the below two patches from Kamil together in same kernel release.
 
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+
+   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) 
+(2013-02-13 18:05:29 -0200)
+
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git for_v3.9_2
+
+Kamil Debski (2):
+       v4l: Define video buffer flag for the COPY timestamp type
+       vb2: Add support for non monotonic timestamps
+
+Sachin Kamat (1):
+       s5p-g2d: Add DT based discovery support
+
+Sylwester Nawrocki (1):
+       s3c-camif: Fail on insufficient number of allocated buffers
+
+  Documentation/DocBook/media/v4l/io.xml             |    6 ++++
+  drivers/media/platform/blackfin/bfin_capture.c     |    1 +
+  drivers/media/platform/davinci/vpbe_display.c      |    1 +
+  drivers/media/platform/davinci/vpif_capture.c      |    1 +
+  drivers/media/platform/davinci/vpif_display.c      |    1 +
+  drivers/media/platform/s3c-camif/camif-capture.c   |   16 +++++++--
+  drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
+  drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
+  drivers/media/platform/s5p-g2d/g2d.c               |   31 
+++++++++++++++++++-
+  drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 +
+  drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
+  drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
+  drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
+  .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
+  drivers/media/platform/vivi.c                      |    1 +
+  drivers/media/usb/pwc/pwc-if.c                     |    1 +
+  drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
+  drivers/media/usb/uvc/uvc_queue.c                  |    1 +
+  drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++-
+  include/media/videobuf2-core.h                     |    1 +
+  include/uapi/linux/videodev2.h                     |    1 +
+  21 files changed, 71 insertions(+), 8 deletions(-)
+
+The corresponding pwclient commands:
+
+pwclient update -s accepted 16650
+pwclient update -s accepted 16470
+pwclient update -s accepted 16471
+pwclient update -s accepted 16733
+pwclient update -s superseded 16247
+pwclient update -s superseded 16248
+pwclient update -s superseded 16246
+pwclient update -s superseded 16447
+pwclient update -s superseded 16448
+pwclient update -s superseded 16449
+
+---
+
+Thanks,
+Sylwester
