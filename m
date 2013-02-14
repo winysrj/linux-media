@@ -1,151 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48929 "EHLO mx1.redhat.com"
+Received: from racoon.tvdr.de ([188.40.50.18]:50948 "EHLO racoon.tvdr.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933211Ab3BSWmR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 17:42:17 -0500
-Date: Tue, 19 Feb 2013 19:42:08 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-Message-ID: <20130219194208.18210419@redhat.com>
-In-Reply-To: <5123F94E.4090107@googlemail.com>
-References: <512294CA.3050401@gmail.com>
-	<51229C2D.8060700@googlemail.com>
-	<5122ACDF.1020705@gmail.com>
-	<5123ACA0.2060503@googlemail.com>
-	<20130219153024.6f468d43@redhat.com>
-	<5123C849.6080207@googlemail.com>
-	<20130219155303.25c5077a@redhat.com>
-	<5123D651.1090108@googlemail.com>
-	<20130219170343.00b92d18@redhat.com>
-	<5123F94E.4090107@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1755632Ab3BNNMj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 08:12:39 -0500
+Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
+	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r1EDCb60025518
+	for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 14:12:37 +0100
+Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
+	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r1EDCVXg017551
+	for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 14:12:31 +0100
+Message-ID: <511CE2BF.8020905@tvdr.de>
+Date: Thu, 14 Feb 2013 14:12:31 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: DVB: EOPNOTSUPP vs. ENOTTY in ioctl(FE_READ_UNCORRECTED_BLOCKS)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Feb 2013 23:14:38 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+In VDR I use an ioctl() call with FE_READ_UNCORRECTED_BLOCKS on a device (using stb0899).
+After this call I check 'errno' for EOPNOTSUPP to determine whether this
+device supports this call. This used to work just fine, until a few months
+ago I noticed that my devices using stb0899 didn't display their signal
+quality in VDR's OSD any more. After further investigation I found that
+ioctl(FE_READ_UNCORRECTED_BLOCKS) no longer returns EOPNOTSUPP, but rather
+ENOTTY. And since I stop getting the signal quality in case any unknown
+errno value appears, this broke my signal quality query function.
 
-> Am 19.02.2013 21:03, schrieb Mauro Carvalho Chehab:
-> > Em Tue, 19 Feb 2013 20:45:21 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
-> >>> Em Tue, 19 Feb 2013 19:45:29 +0100
-> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>
-> >>>>> I don't like the idea of merging those two entries. As far as I remember
-> >>>>> there are devices that works out of the box with
-> >>>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
-> >>>>> the driver for them.
-> >>>> As described above, there is a good chance to break devices with both
-> >>>> solutions.
-> >>>>
-> >>>> What's your suggestion ? ;-)
-> >>>>
-> >>> As I said, just leave it as-is (documenting at web) 
-> >> That seems to be indeed the only 100%-regression-safe solution.
-> >> But also _no_ solution for this device.
-> >> A device which works only with a special module parameter passed on
-> >> driver loading isn't much better than an unsupported device.
-> > That's not true. There are dozens of devices that only work with
-> > modprobe parameter (even ones with their own USB or PCI address).
-> 
-> So the fact that we handle plenty devices this way makes the situation
-> for the user better ? ;-)
-> Not really !
-> 
-> >  The thing
-> > is that crappy vendors don't provide any way for a driver to detect what's
-> > there, as their driver rely on some *.inf config file with those parameters
-> > hardcoded.
-> >
-> > We can't do any better than what's provided by the device.
-> >
-> >> It comes down to the following question:
-> >> Do we want to refuse fixing known/existing devices for the sake of
-> >> avoiding regression for unknown devices which even might not exist ? ;-)
-> > HUH? As I said: there are devices that work with the other board entry.
-> > If you remove the other entry, _then_ you'll be breaking the driver.
-> 
-> Which devices _with_audio_support_ are working with
-> EM2860_BOARD_SAA711X_REFERENCE_DESIGN ?
-> 
-> AFAIK, the existence of such a device is pure theory at the moment.
-> But the Easycap DC-60 is reality !
+Is there a reason why this has been changed?
 
-See the mailing lists archives. This driver is older than linux-media ML,
-and it used to have a separate em28xx mailing list in the past. Not sure
-if are there any mirror preserving the old logs for the em28xx ML, as this
-weren't hosted here.
+Should a caller check against both EOPNOTSUPP *and* ENOTTY?
 
-Please, don't pretend that you know all supported em28xx devices.
+I searched through linux/drivers/media and found that both values are
+used (EOPNOTSUPP 57 times and ENOTTY 71 times in the version I have in use).
+While ENOTTY seems to apply here (at least from its description, not from
+its name)
 
-> >> I have no strong and final opinion yet. Still hoping someone knows how
-> >> the Empia driver handles these cases...
-> > What do you mean? The original driver? The parameters are hardcoded at the
-> > *.inf file. Once you get the driver, the *.inf file contains all the
-> > parameters for it to work there. If you have two empia devices with
-> > different models, you can only use the second one after removing the
-> > install for the first one.
-> 
-> Are you sure about that ? That's the worst case.
+ENOTTY      "Inappropriate ioctl for device" (originally "Not a typewriter")
 
-Yes, I'm pretty sure about that.
+and I can see why this would be a reason for changing this, EOPNOTSUPP doesn't
+really seem to apply, since there is, I assume, no "socket"
+involved here:
 
-> >>> or to use the AC97
-> >>> chip ID as a hint. This works fine for devices that don't come with
-> >>> Empiatech em202, but with something else, like the case of the Realtek
-> >>> chip found on this device. The reference design for sure uses em202.
-> >> How could the AC97 chip ID help us in this situation ?
-> >> As far as I understand, it doesn't matter which AC97 IC is used.
-> >> They are all compatible and at least our driver uses the same code for
-> >> all of them.
-> > The em28xx Kernel driver uses a hint code to try to identify the device
-> > model. That hint code is not perfect, but it is the better we can do.
-> >
-> > There are two hint codes there, currently: 
-> > 1) device's eeprom hash, used when the device has an eeprom, but the
-> >    USB ID is not unique;
-> >
-> > 2) I2C scan bus hash: sometimes, different devices use different I2C
-> > addresses.
-> 
-> ???
-> 
-> Again, how can the AC97 chip ID help us in this situation ?
-> You just described the current board hint mechanism which clearly fails
-> in this case.
-> 
-> >
-> >> So even if you are are right and the Empia reference design uses an EMP202,
-> >> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
-> >> AC97-ICs, too.
-> > The vast majority of devices use emp202. There are very few ones using
-> > different models.
-> >
-> > The proposal here is to add a third hint code, that would distinguish
-> > the devices based on the ac97 ID.
-> 
-> I already explained why this is a potential source for regressions, too.
+EOPNOTSUPP  "Operation not supported on socket"
 
-Yes, that may mean that other devices will need other entries, if are out
-there any device that looks like the reference design.
+The value I would actually expect to be used in case an operation is
+not supported by a device is
 
-Yet, such device IS NOT the reference design, as it is very doubtful 
-that Empia would be shipping their reference design with an AC97
-chip manufactured by another vendor.
+ENOTSUP     "Operation not supported"
 
-There are, however, lots of device that just gets the Empia reference
-design as-is (the same applies to other vendors) and only "designs" a box with
-their logo. This is specially true for simpler devices like capture boards,
-where there are just a very few set of components on it.
+Interestingly the driver source uses ENOTSUPP (note the double 'P') 8 times,
+but that name is not defined according to man errno(3).
 
-Cheers,
-Mauro
+So the bottom line is that there appears to be some confusion as to which errno
+value to return in case an operation is not supported.
+Maybe all these return values should be set to ENOTSUP (with a single 'P' at the end)?
+
+Klaus
