@@ -1,44 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f180.google.com ([209.85.220.180]:33946 "EHLO
-	mail-vc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758547Ab3BFVBm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 16:01:42 -0500
-Received: by mail-vc0-f180.google.com with SMTP id fo13so1136596vcb.25
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 13:01:41 -0800 (PST)
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:60194 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752757Ab3BNKqh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 05:46:37 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so2148318iaz.16
+        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 02:46:36 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAKdnbx4niA+UPaWf=sJCOj61iBTdtT7D0aqc7hvWFi-5biD3kg@mail.gmail.com>
-References: <CAKdnbx4niA+UPaWf=sJCOj61iBTdtT7D0aqc7hvWFi-5biD3kg@mail.gmail.com>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Wed, 6 Feb 2013 21:54:10 +0100
-Message-ID: <CAKdnbx7jcroo-u7Z66nsn57a4L6MKcb9AgD0VYMeZSc2aVDz7Q@mail.gmail.com>
-Subject: Re: [PATCH] media_build update IS_ENABLED macro
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
+In-Reply-To: <1360633824-2563-1-git-send-email-sheu@google.com>
+References: <1360633824-2563-1-git-send-email-sheu@google.com>
+Date: Thu, 14 Feb 2013 11:46:36 +0100
+Message-ID: <CAKMK7uEEKwQDFTzv_nM8p6hXY2DiwTYpjPhQXFb2EKuR=o8=Ag@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] CHROMIUM: dma-buf: restore args on
+ failure of dma_buf_mmap
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: sheu@google.com
+Cc: sumit.semwal@linaro.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry ignore my patch.. it's broken
+On Tue, Feb 12, 2013 at 2:50 AM,  <sheu@google.com> wrote:
+> From: John Sheu <sheu@google.com>
+>
+> Callers to dma_buf_mmap expect to fput() the vma struct's vm_file
+> themselves on failure.  Not restoring the struct's data on failure
+> causes a double-decrement of the vm_file's refcount.
+>
+> Signed-off-by: John Sheu <sheu@google.com>
 
-Regards Eddi
+Yeah, makes sense that this little helper here cleans up any damage it
+caused when the callback fails.
 
-On Wed, Feb 6, 2013 at 9:48 PM, Eddi De Pieri <eddi@depieri.net> wrote:
-> Fix media_build by updating IS_ENABLED macro
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 >
-> Signed-off-by: Eddi De Pieri <eddi@depieri.net>
+> ---
+>  drivers/base/dma-buf.c |   21 +++++++++++++++------
+>  1 files changed, 15 insertions(+), 6 deletions(-)
 >
-> diff --git a/v4l/compat.h b/v4l/compat.h
-> index 8ef90aa..fd0d139 100644
-> --- a/v4l/compat.h
-> +++ b/v4l/compat.h
-> @@ -1102,7 +1102,7 @@ static inline void i2c_unlock_adapter(struct
-> i2c_adapter *adapter)
->  #define __config_enabled(arg1_or_junk) ___config_enabled(arg1_or_junk 1, 0)
->  #define ___config_enabled(__ignored, val, ...) val
->  #define IS_ENABLED(option) \
-> -               (config_enabled(option) || config_enabled(option##_MODULE))
-> +               (defined(__enabled_ ## option) || defined(__enabled_
-> ## option ## _MODULE))
->  #endif
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index 09e6878..06c6225 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -536,6 +536,9 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
+>  int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+>                  unsigned long pgoff)
+>  {
+> +       struct file *oldfile;
+> +       int ret;
+> +
+>         if (WARN_ON(!dmabuf || !vma))
+>                 return -EINVAL;
 >
->  #ifdef NEED_USB_TRANSLATE_ERRORS
+> @@ -549,15 +552,21 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+>                 return -EINVAL;
+>
+>         /* readjust the vma */
+> -       if (vma->vm_file)
+> -               fput(vma->vm_file);
+> -
+> +       get_file(dmabuf->file);
+> +       oldfile = vma->vm_file;
+>         vma->vm_file = dmabuf->file;
+> -       get_file(vma->vm_file);
+> -
+>         vma->vm_pgoff = pgoff;
+>
+> -       return dmabuf->ops->mmap(dmabuf, vma);
+> +       ret = dmabuf->ops->mmap(dmabuf, vma);
+> +       if (ret) {
+> +               /* restore old parameters on failure */
+> +               vma->vm_file = oldfile;
+> +               fput(dmabuf->file);
+> +       } else {
+> +               if (oldfile)
+> +                       fput(oldfile);
+> +       }
+> +       return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_mmap);
+>
+> --
+> 1.7.8.6
+>
+>
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
+
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
