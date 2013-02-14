@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4651 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab3BZRgA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 12:36:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 08/11] s2255: don't zero struct v4l2_streamparm
-Date: Tue, 26 Feb 2013 18:35:43 +0100
-Message-Id: <81909fd798e35d06599fe41a106c94edb5b55c1f.1361900043.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
-References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+Received: from db3ehsobe001.messaging.microsoft.com ([213.199.154.139]:15969
+	"EHLO db3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756814Ab3BNJbC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 04:31:02 -0500
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover
+ after a blank/unblank (or overlay disables after resuming)
+Date: Thu, 14 Feb 2013 09:30:55 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546724593AEC@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+ <51138BCA.4010701@ti.com>
+In-Reply-To: <51138BCA.4010701@ti.com>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Tomi,
 
-All fields after 'type' are already zeroed by the core framework.
-Clearing the full struct also clears 'type', which causes a wrong
-type value to be returned.
+Tomi Valkeinen wrote on 2013-02-07:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |    1 -
- 1 file changed, 1 deletion(-)
+> FIFO underflow means that the DSS hardware wasn't able to fetch enough 
+> pixel data in time to output them to the panel. Sometimes this happens 
+> because of plain misconfiguration, but usually it happens because of 
+> the hardware just can't do things fast enough with the configuration 
+> the user has set.
+> 
+> In this case I see that you are using VRFB rotation on fb0, and the 
+> rotation is
+> 270 degrees. Rotating the fb is heavy, especially 90 and 270 degrees. 
+> It may be that when the DSS is resumed, there's a peak in the mem 
+> usage as DSS suddenly needs to fetch lots of data.
+> 
+> Another issue that could be involved is power management. After the 
+> DSS is suspended, parts of OMAP may be put to sleep. When the DSS is 
+> resumed, these parts need to be woken up, and it may be that there's a 
+> higher mem latency for a short period of time right after resume. 
+> Which could again cause DSS not getting enough pixel data.
+> 
+> You say the issue doesn't happen if you disable fb0. What happens if 
+> you disable fb0, blank the screen, then unblank the screen, and after 
+> that enable fb0 again?
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 9693eb9..eaae9d1 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -1476,7 +1476,6 @@ static int vidioc_g_parm(struct file *file, void *priv,
- 	struct s2255_channel *channel = fh->channel;
- 	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
--	memset(sp, 0, sizeof(struct v4l2_streamparm));
- 	sp->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
- 	sp->parm.capture.capturemode = channel->cap_parm.capturemode;
- 	def_num = (channel->mode.format == FORMAT_NTSC) ? 1001 : 1000;
--- 
-1.7.10.4
+By "disable fb0" do you mean disconnect fb0 from ovl0 or disable ovl0?
+I have done both:
+http://pastebin.com/Bxm1Z2RY
+
+This works as expected.
+
+Further tests I have done:
+
+Enable fb1/ovl1 and hit some keys on the keyboard to let fb0/ovl0 update in the
+background causes a fifo underflow too:
+http://pastebin.com/f3JnMLsV
+
+This happens only, if I enable the vrfb (rotate=3). So the whole thing
+seems to be a rotation issue. Do you have some hints to trace down
+the problem?
+
+> How about if you disable VRFB rotation, either totally, or set the 
+> rotation to 0 or 180 degrees?
+
+Disable rotation is not an option for me, as we have a "wrong" oriented
+portrait display with 480x800 which we must use in landscape mode...
+
+> And you can also tune the PM so that deeper sleep states are prevented.
+> I don't remember right away how this is done, though.
+> 
+>  Tomi
+
+Regards,
+Florian
+
+P.S.
+@Laurent: Do you use your streamer on a headless device? What is your DSS-config?
+Do you have a framebuffer-console on fb0?
+
 
