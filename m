@@ -1,118 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:46755 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389Ab3BFFjK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 00:39:10 -0500
-Received: by mail-pa0-f48.google.com with SMTP id hz10so588410pad.21
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 21:39:10 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: k.debski@samsung.com, sachin.kamat@linaro.org,
-	inki.dae@samsung.com, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com, patches@linaro.org
-Subject: [PATCH v2 1/2] [media] s5p-g2d: Add DT based discovery support
-Date: Wed,  6 Feb 2013 10:59:43 +0530
-Message-Id: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:51500 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755992Ab3BNHym (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 02:54:42 -0500
+Message-ID: <511C980E.40305@schinagl.nl>
+Date: Thu, 14 Feb 2013 08:53:50 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Michael Stilmant <michael.stilmant@gmail.com>
+Subject: Re: [DTV-TABLE] lu-all
+References: <CA+YD7UG8RApCsqA4adKEOZ7_8a69RhszzWrTBmr_gBoc3pGqxw@mail.gmail.com>
+In-Reply-To: <CA+YD7UG8RApCsqA4adKEOZ7_8a69RhszzWrTBmr_gBoc3pGqxw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds device tree based discovery support to G2D driver
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
-Based on for_v3.9 branch of below tree:
-git://linuxtv.org/snawrocki/samsung.git
-
-Changes since v1:
-* Addressed review comments from Sylwester <s.nawrocki@samsung.com>.
-* Modified the compatible string as per the discussions at [1].
-[1] https://patchwork1.kernel.org/patch/2045821/
----
- drivers/media/platform/s5p-g2d/g2d.c |   31 +++++++++++++++++++++++++++++--
- 1 files changed, 29 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
-index 7e41529..6923be2 100644
---- a/drivers/media/platform/s5p-g2d/g2d.c
-+++ b/drivers/media/platform/s5p-g2d/g2d.c
-@@ -18,6 +18,7 @@
- #include <linux/slab.h>
- #include <linux/clk.h>
- #include <linux/interrupt.h>
-+#include <linux/of.h>
- 
- #include <linux/platform_device.h>
- #include <media/v4l2-mem2mem.h>
-@@ -695,11 +696,14 @@ static struct v4l2_m2m_ops g2d_m2m_ops = {
- 	.unlock		= g2d_unlock,
- };
- 
-+static const struct of_device_id exynos_g2d_match[];
-+
- static int g2d_probe(struct platform_device *pdev)
- {
- 	struct g2d_dev *dev;
- 	struct video_device *vfd;
- 	struct resource *res;
-+	const struct of_device_id *of_id;
- 	int ret = 0;
- 
- 	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
-@@ -796,7 +800,17 @@ static int g2d_probe(struct platform_device *pdev)
- 	}
- 
- 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
--	dev->variant = g2d_get_drv_data(pdev);
-+
-+	if (!pdev->dev.of_node) {
-+		dev->variant = g2d_get_drv_data(pdev);
-+	} else {
-+		of_id = of_match_node(exynos_g2d_match, pdev->dev.of_node);
-+		if (!of_id) {
-+			ret = -ENODEV;
-+			goto unreg_video_dev;
-+		}
-+		dev->variant = (struct g2d_variant *)of_id->data;
-+	}
- 
- 	return 0;
- 
-@@ -837,13 +851,25 @@ static int g2d_remove(struct platform_device *pdev)
- }
- 
- static struct g2d_variant g2d_drvdata_v3x = {
--	.hw_rev = TYPE_G2D_3X,
-+	.hw_rev = TYPE_G2D_3X, /* Revision 3.0 for S5PV210 and Exynos4210 */
- };
- 
- static struct g2d_variant g2d_drvdata_v4x = {
- 	.hw_rev = TYPE_G2D_4X, /* Revision 4.1 for Exynos4X12 and Exynos5 */
- };
- 
-+static const struct of_device_id exynos_g2d_match[] = {
-+	{
-+		.compatible = "samsung,s5pv210-g2d",
-+		.data = &g2d_drvdata_v3x,
-+	}, {
-+		.compatible = "samsung,exynos4212-g2d",
-+		.data = &g2d_drvdata_v4x,
-+	},
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_g2d_match);
-+
- static struct platform_device_id g2d_driver_ids[] = {
- 	{
- 		.name = "s5p-g2d",
-@@ -863,6 +889,7 @@ static struct platform_driver g2d_pdrv = {
- 	.driver		= {
- 		.name = G2D_NAME,
- 		.owner = THIS_MODULE,
-+		.of_match_table = exynos_g2d_match,
- 	},
- };
- 
--- 
-1.7.4.1
+On 13-02-13 14:56, Michael Stilmant wrote:
+> Hello,
+>
+> On Mon, Jan 28, 2013 at 4:12 PM, Oliver Schinagl
+> <oliver+list@schinagl.nl> wrote:
+>> "send a git-patch to the mailing list"
+> In attachment what I think is a patch for Luxembourg DVB-T initial
+> scan ("git diff origin master > lux-all.diff")
+> "Adding Channel 21 broadcasting 'Air' since 28/02/2011"
+Applied in c57839aad2260306e6adecc0058fb683a8b34bc4
+> I'm not sure if it is the diff format you expect.
+> I used "git://linuxtv.org/dtv-scan-tables.git" but I can't do a push
+> or I don't know how to do.
+If everybody could push to the repo, it would become a huge mess ;) If a 
+scanfile would needed to be updated on a regular basis (very unlikely) 
+someone could maintain it of course. For now it is based on user 
+contributions.
+>
+> isn't expected/easier that I would push the change to some branch and you would
+> commit on master if accepted? or similar?
+You can always do this to your local clone and have a pull request to 
+your branch. But it's much easier to review on the mailing list using a 
+patch. btw, git send-email or git format-patch help greatly in that regard.
+>
+>>> Indeed in dvb-apps scan /util/scan/dvb-t folder there is still a  fr-Bordeaux files.
+>>> In July 2011 Christoph Pfister removed all France regional initial scan files.
+>>> http://linuxtv.org/hg/dvb-apps/rev/0b1e26f79698
+>>> with commit message: "remove outdated scan files fr-* submitted by mossroy
+>>> free.fr use auto-Default or auto-With167kHzOffsets instead"
+>>>
+>>> I don't know why but Bordeaux escaped from the genocide.
+>> IF you have accurate details of fr-Bordeaux (most have those values online,
+>> check some of the scanfiles, like nl-All for here in the NL) you'll see that they
+>> where actually hand-made from the available resources.
+> I don't have accurate scan for Bordeaux, I believe fr-Bordeaux should
+> been deleted like
+> all region was deleted in July 2011 in one batch by Christoph Pfister.
+>
+> this if all region should have been deleted.. it is strange that
+> decision was made.
+> it is like initial scan files are not needed in fact. (why not needed
+> for france?)
+I have no clue what the current situation is in France and why certain 
+decisions where made. If anybody has accurate information to fix things, 
+we can happily fix things.
+>
+> best regards,
+>
+> Michael
 
