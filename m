@@ -1,80 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:43867 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592Ab3B1ENA (ORCPT
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:56018 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756870Ab3BNLTA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 23:13:00 -0500
-Received: by mail-pa0-f52.google.com with SMTP id fb1so877130pad.39
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 20:12:59 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com, patches@linaro.org,
-	linaro-dev@lists.linaro.org, joshi@samsung.com,
-	jy0922.shim@samsung.com
-Subject: [PATCH v9 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
-Date: Thu, 28 Feb 2013 09:42:41 +0530
-Message-Id: <1362024762-28406-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org>
+	Thu, 14 Feb 2013 06:19:00 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so2184114iaz.30
+        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 03:19:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201302141022.00297.arnd@arndb.de>
+References: <20130207151831.2868.5146.stgit@patser.local>
+	<20130207151838.2868.69610.stgit@patser.local>
+	<201302141022.00297.arnd@arndb.de>
+Date: Thu, 14 Feb 2013 12:18:59 +0100
+Message-ID: <CAKMK7uG_gJ6+9vZ+MDStUgE-M-bDHM+Sk3cTDdVBxGCjhY6TLg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 2/3] mutex: add support for reservation
+ style locks
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linaro-mm-sig@lists.linaro.org, linux-arch@vger.kernel.org,
+	a.p.zijlstra@chello.nl, x86@kernel.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing the display-timing node using video helper
-function.
+On Thu, Feb 14, 2013 at 11:22 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>
+>>   These functions will return -EDEADLK instead of -EAGAIN if
+>>   reservation_id is the same as the reservation_id that's attempted to
+>>   lock the mutex with, since in that case you presumably attempted to
+>>   lock the same lock twice.
+>
+> Since the user always has to check the return value, would it be
+> possible to provide only the interruptible kind of this function
+> but not the non-interruptible one? In general, interruptible locks
+> are obviously harder to use, but they are much user friendlier when
+> something goes wrong.
 
-The DT node parsing is done only if 'dev.of_node'
-exists and the NON-DT logic is still maintained under the 'else' part.
+At least in drm/i915 we only use _interruptible locking on the
+command-submission ioctls for all locks which could be held while
+waiting for the gpu. We need unwind paths and ioctl restarting anyway
+to bail out on catastrophic events like gpu hangs, so signal interrupt
+handling comes for free.
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+Otoh in the modeset code we generally don't bother with that, since
+unwinding a modeset sequence mid-way is something you don't want to do
+really if your sanity is dear to you. But we also never need
+mutli-object reservations in the modeset code, neither can I imagine a
+future need for it.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..e323cf9 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -20,6 +20,7 @@
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
- 
-+#include <video/of_display_timing.h>
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
- 
-@@ -883,10 +884,25 @@ static int fimd_probe(struct platform_device *pdev)
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
-+					OF_USE_NATIVE_MODE);
-+		if (ret) {
-+			DRM_ERROR("failed: of_get_fb_videomode() : %d\n", ret);
-+			return ret;
-+		}
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
- 	}
- 
- 	panel = &pdata->panel;
+So from my side we could drop the non-interruptible interface. But I
+have not checked whether dropping this would complicate the ttm
+conversion.
+
+>> mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow:
+>>   Similar to mutex_reserve_lock, except it won't backoff with -EAGAIN.
+>>   This is useful when mutex_reserve_lock failed with -EAGAIN, and you
+>>   unreserved all buffers so no deadlock can occur.
+>
+> Are these meant to be used a lot? If not, maybe prefix them with __mutex_
+> instead of mutex_.
+
+If you detect an inversion in a multi-buffer reservation you have to
+drop all locks and call these functions on the buffer which failed
+(that's the contention point, hence it's the right lock to sleep on).
+So every place using ticket locks will also call the above slowpath
+functions by necessity.
+-Daniel
 -- 
-1.7.9.5
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
