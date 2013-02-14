@@ -1,148 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:42006 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934230Ab3BNMGH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 07:06:07 -0500
-Message-ID: <511CD0E1.9010003@stevekerrison.com>
-Date: Thu, 14 Feb 2013 11:56:17 +0000
-From: Steve Kerrison <steve@stevekerrison.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35030 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757537Ab3BNMKa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 07:10:30 -0500
+Message-ID: <511CD40B.5030208@ti.com>
+Date: Thu, 14 Feb 2013 17:39:47 +0530
+From: Archit Taneja <archit@ti.com>
 MIME-Version: 1.0
-To: Michael Stilmant-Rovi <stilmant.michael.rovi@gmail.com>
-CC: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
-Subject: Re: DVB_T2 Multistream support (PLP)
-References: <CABXgeUHzMhk7rCtpoVuEz1zUYuGwUMEmxrFMKripnO8qvNX+Sg@mail.gmail.com> <510A821F.1060101@iki.fi> <CABXgeUF9dRS9zeWTCOGExRYOU3ZOxJ1bPZxM0GqogQOaUF580Q@mail.gmail.com>
-In-Reply-To: <CABXgeUF9dRS9zeWTCOGExRYOU3ZOxJ1bPZxM0GqogQOaUF580Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+CC: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover
+ after a blank/unblank (or overlay disables after resuming)
+References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com> <51138BCA.4010701@ti.com> <6EE9CD707FBED24483D4CB0162E8546724593AEC@AMSPRD0711MB532.eurprd07.prod.outlook.com> <511CB792.1020608@ti.com>
+In-Reply-To: <511CB792.1020608@ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
-
-In terms of Linux support I think you will struggle. The 290e is the 
-only DVB-T2 device with (open) driver support in Linux. I haven't tried 
-a TBS5880 myself but the linuxtv Wiki page doesn't look promising 
-http://www.linuxtv.org/wiki/index.php/TBS5880_USB_DVB-T2/T/C_CI_hybrid_TV_Box
-
-In any case, that device will have the same demod (CXD2820R), and if 
-what Antti says about the Windows driver not supporting multi-PLP either 
-(if I've read his remarks correctly), you're probably out of luck.
-
-As far as I know the CXD2820R is the only T2 demod that's made it into 
-any USB/PCI receivers so there are no other options. There might be a 
-datasheet somewhere that would hint at how to provide PLP selection and 
-then it would need implementing. The question is where to find it and 
-how much effort would be required.
-
-Regards,
-Steve.
-
-On 31/01/13 15:02, Michael Stilmant-Rovi wrote:
-> Thanks,
+On Thursday 14 February 2013 03:38 PM, Tomi Valkeinen wrote:
+> On 2013-02-14 11:30, Florian Neuhaus wrote:
+>> Hi Tomi,
+>>
+>> Tomi Valkeinen wrote on 2013-02-07:
+>>
+>>> FIFO underflow means that the DSS hardware wasn't able to fetch enough
+>>> pixel data in time to output them to the panel. Sometimes this happens
+>>> because of plain misconfiguration, but usually it happens because of
+>>> the hardware just can't do things fast enough with the configuration
+>>> the user has set.
+>>>
+>>> In this case I see that you are using VRFB rotation on fb0, and the
+>>> rotation is
+>>> 270 degrees. Rotating the fb is heavy, especially 90 and 270 degrees.
+>>> It may be that when the DSS is resumed, there's a peak in the mem
+>>> usage as DSS suddenly needs to fetch lots of data.
+>>>
+>>> Another issue that could be involved is power management. After the
+>>> DSS is suspended, parts of OMAP may be put to sleep. When the DSS is
+>>> resumed, these parts need to be woken up, and it may be that there's a
+>>> higher mem latency for a short period of time right after resume.
+>>> Which could again cause DSS not getting enough pixel data.
+>>>
+>>> You say the issue doesn't happen if you disable fb0. What happens if
+>>> you disable fb0, blank the screen, then unblank the screen, and after
+>>> that enable fb0 again?
+>>
+>> By "disable fb0" do you mean disconnect fb0 from ovl0 or disable ovl0?
+>> I have done both:
+>> http://pastebin.com/Bxm1Z2RY
+>>
+>> This works as expected.
 >
-> Looking for a tuner supporting multiple PLP, is it conceivable to add
-> to the driver the possibility to pass to the hardware that value? (I
-> don't know if that need other math though) ( I will look the sources
-> anyway but I don't have good knowledge)
+> I think both disconnecting fb0 and ovl0, and disabling ovl0 end up doing
+> the same, which is disabling ovl0. Which is what I meant.
 >
-> If I want to look for another USB stick how could I know if the driver
-> will support that feature?
-> For example is TBS5880 DVB-T2 USB TV Tuner ?
+> So, if I understand correctly, this only happens at unblank, and can be
+> circumvented by temporarily keeping ovl0 disabled during the unblank,
+> and enabling ovl0 afterwards works fine.
 >
-> I understand here that the difficulties is that few people are in a
-> MultiPLP DVB_T2 range. even myself.. .
+> So for some reason the time of unblank is "extra heavy" for the memory bus.
 >
-> Regards,
->
-> On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
->>> Hello,
->>>
->>> I would like to know the support status of Multiple PLPs in DVB-T2.
->>> Is someone know if tests were performed in a broadcast with an
->>> effective Multistream? (PLP Id: 0 and 1 for example)
->>>
->>> I'm out of range of such multiplex but I'm trying some tunes on London
->>> DVB-T2 (CrystalPalace tower)
->>> "unfortunately" that mux seems Single PLP and everything work well :-(
->>>     ( yes tune always succeed :-D )
->>>
->>> I'm using DVB API 5.6.
->>> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
->>> 0, 1 or 15. the tune succeed.
->>>
->>> I'm not sure of the expected behavior, I was expecting if I tune with
->>> plp_id 1 that the tuner would fail somewhere finding that stream.
->>>
->>> So in short I don't understand what is the requirements to be able to
->>> use the DVB_T2 Multistream support proposed in APIs:
->>>    o I see that the DVB API 5.8(?) had some patch at that level and so
->>> it is maybe requested?
->>>    o How can I know if my driver support that feature on DVB API 5.6?
->>> (PCTV nanoStick T2 290e)?
->>>
->>> Thank you for all indications.
->>>
->>> -Michael
->>
->> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
->> driver and I has only Live signal with single TS. What I think Windows
->> driver either supports that feature. It just tunes to first PLP regardless
->> of whole property and that's it.
->>
->> regards
->> Antti
->>
->> --
->> http://palosaari.fi/
-> On Thu, Jan 31, 2013 at 3:39 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 01/31/2013 04:27 PM, Michael Stilmant-Rovi wrote:
->>> Hello,
->>>
->>> I would like to know the support status of Multiple PLPs in DVB-T2.
->>> Is someone know if tests were performed in a broadcast with an
->>> effective Multistream? (PLP Id: 0 and 1 for example)
->>>
->>> I'm out of range of such multiplex but I'm trying some tunes on London
->>> DVB-T2 (CrystalPalace tower)
->>> "unfortunately" that mux seems Single PLP and everything work well :-(
->>>     ( yes tune always succeed :-D )
->>>
->>> I'm using DVB API 5.6.
->>> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
->>> 0, 1 or 15. the tune succeed.
->>>
->>> I'm not sure of the expected behavior, I was expecting if I tune with
->>> plp_id 1 that the tuner would fail somewhere finding that stream.
->>>
->>> So in short I don't understand what is the requirements to be able to
->>> use the DVB_T2 Multistream support proposed in APIs:
->>>    o I see that the DVB API 5.8(?) had some patch at that level and so
->>> it is maybe requested?
->>>    o How can I know if my driver support that feature on DVB API 5.6?
->>> (PCTV nanoStick T2 290e)?
->>>
->>> Thank you for all indications.
->>>
->>> -Michael
->>
->> nanoStick T2 290e Linux driver does not support multiple PLPs. I did that
->> driver and I has only Live signal with single TS. What I think Windows
->> driver either supports that feature. It just tunes to first PLP regardless
->> of whole property and that's it.
->>
->> regards
->> Antti
->>
->> --
->> http://palosaari.fi/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Archit, I have a feeling that enabling the LCD is heavier on the memory
+> bus than what happens at VBLANK, even if both start fetching the pixels
+> for a fresh frame. You've been twiddling with the FIFO stuff, am I right
+> there?
 
--- 
-Steve Kerrison MEng Hons.
-http://www.stevekerrison.com/
+I don't think it's heavier in terms of memory bandwidth when you enable 
+the LCD compared to the fetch of new frame content on a VBLANK. In both 
+cases, the DSS tries to preload a few set of lines.
 
+In terms of responsiveness from the interconnect, it's possible that DSS 
+has a lower priority(in the round robin queue of initiators) compared to 
+when it was active.
+
+I don't know if LCD enable vs VBLANK has some sort of difference with VRFB.
+
+>
+>> Further tests I have done:
+>>
+>> Enable fb1/ovl1 and hit some keys on the keyboard to let fb0/ovl0 update in the
+>> background causes a fifo underflow too:
+>> http://pastebin.com/f3JnMLsV
+>>
+>> This happens only, if I enable the vrfb (rotate=3). So the whole thing
+>> seems to be a rotation issue. Do you have some hints to trace down
+>> the problem?
+>
+> Not rotation issue as such, but memory bandwidth issue.
+>
+>>> How about if you disable VRFB rotation, either totally, or set the
+>>> rotation to 0 or 180 degrees?
+>>
+>> Disable rotation is not an option for me, as we have a "wrong" oriented
+>> portrait display with 480x800 which we must use in landscape mode...
+>
+> I understand, I only meant that for testing purposes. VRFB rotation with
+> 0 and 180 cause a slight impact on the mem bus, whereas 90 and 270
+> rotation cause a large impact. Also, as I mentioned earlier, the PM may
+> also affect this, as things may have been shut down in the OMAP. So
+> disabling PM related features could also "fix" the problem.
+>
+> In many cases underflows are rather hard to debug and solve. There are
+> things in the DSS hardware like FIFO thresholds and prefetch, and VRFB
+> tile sizes, which can be changed (although unfortunately only by
+> modifying the drivers). How they should be changed if a difficult
+> question, though, and whether it'll help is also a question mark.
+
+One thing which might help to debug this is to comment out the underflow 
+error handling, and see if it continues to happen, this will tell if it 
+was just a temporary bandwidth issue, or it's some consistent PM related 
+thing
+
+Archit
