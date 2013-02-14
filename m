@@ -1,42 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:57490 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757904Ab3BZQcG (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:62409 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757283Ab3BNKWQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 11:32:06 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: andrew.smirnov@gmail.com
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v6 5/9] v4l2: Fix the type of V4L2_CID_TUNE_PREEMPHASIS in the documentation
-Date: Tue, 26 Feb 2013 08:31:31 -0800
-Message-Id: <1361896295-26138-6-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
+	Thu, 14 Feb 2013 05:22:16 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [PATCH 2/3] mutex: add support for reservation style locks
+Date: Thu, 14 Feb 2013 10:22:00 +0000
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	a.p.zijlstra@chello.nl, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, robclark@gmail.com,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
+References: <20130207151831.2868.5146.stgit@patser.local> <20130207151838.2868.69610.stgit@patser.local>
+In-Reply-To: <20130207151838.2868.69610.stgit@patser.local>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302141022.00297.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the type of V4L2_CID_TUNE_PREEMPHASIS from 'integer' to 'enum
-v4l2_preemphasis'
+On Thursday 07 February 2013, Maarten Lankhorst wrote:
 
-Singed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Maarten,
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 9e8f854..1ad20cc 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3848,7 +3848,7 @@ in Hz. The range and step are driver-specific.</entry>
- 	  </row>
- 	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_TUNE_PREEMPHASIS</constant>&nbsp;</entry>
--	    <entry>integer</entry>
-+	    <entry>enum v4l2_preemphasis</entry>
- 	  </row>
- 	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
- A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
--- 
-1.7.10.4
+I cannot help a lot on this patch set, but there are a few things that
+I noticed when reading it.
 
+> Functions:
+> ----------
+> 
+> mutex_reserve_lock, and mutex_reserve_lock_interruptible:
+>   Lock a buffer with a reservation_id set. reservation_id must not be
+>   set to 0, since this is a special value that means no reservation_id.
+
+I think the entire description should go into a file in the Documentation
+directory, to make it easier to find without looking up the git history.
+
+For the purpose of documenting this, it feels a little strange to
+talk about "buffers" here. Obviously this is what you are using the
+locks for, but it sounds like that is not the only possible use
+case.
+
+>   These functions will return -EDEADLK instead of -EAGAIN if
+>   reservation_id is the same as the reservation_id that's attempted to
+>   lock the mutex with, since in that case you presumably attempted to
+>   lock the same lock twice.
+
+Since the user always has to check the return value, would it be
+possible to provide only the interruptible kind of this function
+but not the non-interruptible one? In general, interruptible locks
+are obviously harder to use, but they are much user friendlier when
+something goes wrong.
+
+> mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow:
+>   Similar to mutex_reserve_lock, except it won't backoff with -EAGAIN.
+>   This is useful when mutex_reserve_lock failed with -EAGAIN, and you
+>   unreserved all buffers so no deadlock can occur.
+
+Are these meant to be used a lot? If not, maybe prefix them with __mutex_
+instead of mutex_.
+
+> diff --git a/include/linux/mutex.h b/include/linux/mutex.h
+> index 9121595..602c247 100644
+> --- a/include/linux/mutex.h
+> +++ b/include/linux/mutex.h
+> @@ -62,6 +62,11 @@ struct mutex {
+>  #endif
+>  };
+>  
+> +struct ticket_mutex {
+> +	struct mutex base;
+> +	atomic_long_t reservation_id;
+> +};
+
+Have you considered changing the meaning of the "count" member
+of the mutex in the case where a ticket mutex is used? That would
+let you use an unmodified structure.
+
+	Arnd
