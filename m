@@ -1,39 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:51680 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757982Ab3BIWwI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 17:52:08 -0500
-Message-ID: <5116D313.8000603@gmail.com>
-Date: Sat, 09 Feb 2013 23:52:03 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:51096 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759993Ab3BNSFx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 13:05:53 -0500
+Received: by mail-ve0-f171.google.com with SMTP id b10so2386355vea.2
+        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 10:05:52 -0800 (PST)
 MIME-Version: 1.0
-To: Stephen Warren <swarren@wwwdotorg.org>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, rob.herring@calxeda.com,
-	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v4 02/10] s5p-fimc: Add device tree support for FIMC devices
-References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com> <5112E9EF.8090908@wwwdotorg.org> <5115874A.6050406@gmail.com> <51158873.3060508@wwwdotorg.org> <511592B4.5050406@gmail.com> <5115991E.7050009@wwwdotorg.org> <5116CDBB.4080807@gmail.com>
-In-Reply-To: <5116CDBB.4080807@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <511D085A.80009@iki.fi>
+References: <511CE2BF.8020905@tvdr.de>
+	<511D085A.80009@iki.fi>
+Date: Thu, 14 Feb 2013 23:35:48 +0530
+Message-ID: <CAHFNz9JN_z5xa0eyaacdOKSdTJoOqAW87+jeLW+3AnARDVX41g@mail.gmail.com>
+Subject: Re: DVB: EOPNOTSUPP vs. ENOTTY in ioctl(FE_READ_UNCORRECTED_BLOCKS)
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/2013 11:29 PM, Sylwester Nawrocki wrote:
+On Thu, Feb 14, 2013 at 9:22 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 02/14/2013 03:12 PM, Klaus Schmidinger wrote:
+>>
+>> In VDR I use an ioctl() call with FE_READ_UNCORRECTED_BLOCKS on a device
+>> (using stb0899).
+>> After this call I check 'errno' for EOPNOTSUPP to determine whether this
+>> device supports this call. This used to work just fine, until a few months
+>> ago I noticed that my devices using stb0899 didn't display their signal
+>> quality in VDR's OSD any more. After further investigation I found that
+>> ioctl(FE_READ_UNCORRECTED_BLOCKS) no longer returns EOPNOTSUPP, but rather
+>> ENOTTY. And since I stop getting the signal quality in case any unknown
+>> errno value appears, this broke my signal quality query function.
+>>
+>> Is there a reason why this has been changed?
 >
->> After all, what happens in some later SoC where you have two different
->> types of module that feed into the common module, such that type A
->> sources have IDs 0..3 in the common module, and type B sources have IDs
->> 4..7 in the common module - you wouldn't want to require alias ISs 4..7
->> for the type B DT nodes.
+>
+> I changed it in order to harmonize error codes. ENOTTY is correct error code
+> for the case IOCTL is not implemented. What I think it is Kernel wide
+> practice.
+>
 
-I forgot to add, any ID remapping could happen in the common module, if
-it requires it. Type A and type B sources could have indexes 0...3 and
-the common module could derive its configuration from the source ID *and*
-the source type. The idea behind aliases was to identify each instance,
-rather than providing an exact configuration data that the common module
-could use.
+By doing so, You BROKE User Space ABI. Whatever it is, we are not allowed to
+break User ABI. https://lkml.org/lkml/2012/12/23/75
+
+>
+>> Should a caller check against both EOPNOTSUPP *and* ENOTTY?
+>
+>
+> Current situation is a big mess. All the drivers are returning what error
+> codes they wish. You simply cannot trust any error code.
+
+
+As you stated above, If a device doesn't have an IOCTL implemented, it
+was returning EOPNOTSUPP for *any* driver that doesn't implement that
+IOCTL. By changing it to ENOTTY, you broke existing applications.
+
+How can a driver return an error code, for an IOCTL that is *not* implemented ?
+AFAICS, your statement is bogus. :-)
+
+
+Regards,
+Manu
