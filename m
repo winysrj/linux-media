@@ -1,44 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.stepping-stone.ch ([194.176.109.206]:53002 "EHLO
-	mail.stepping-stone.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab3BZVwL (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1534 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755884Ab3BNHO5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 16:52:11 -0500
-Received: from localhost (janitor-01.int.stepping-stone.ch [10.17.98.12])
-	by mta-01.int.stepping-stone.ch (Postfix) with ESMTP id 01719A0D81
-	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:42:47 +0100 (CET)
-Received: from mta-01.int.stepping-stone.ch ([10.17.98.30])
-	by localhost (janitor-01.int.stepping-stone.ch [10.17.98.12]) (amavisd-new, port 10026)
-	with LMTP id Rv7BOrxGJUAE for <linux-media@vger.kernel.org>;
-	Tue, 26 Feb 2013 22:42:45 +0100 (CET)
-Received: from [192.168.1.194] (84-75-186-212.dclient.hispeed.ch [84.75.186.212])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by smtp.stepping-stone.ch (Postfix) with ESMTPSA id F3573A0D80
-	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:42:44 +0100 (CET)
-Message-ID: <512D2C54.7010205@purplehaze.ch>
-Date: Tue, 26 Feb 2013 22:42:44 +0100
-From: Christian Affolter <c.affolter@purplehaze.ch>
+	Thu, 14 Feb 2013 02:14:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Huang Shijie <shijie8@gmail.com>
+Subject: Re: [RFC PATCHv2 01/18] tlg2300: use correct device parent.
+Date: Thu, 14 Feb 2013 09:14:49 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201302071336.25366.hverkuil@xs4all.nl>
+In-Reply-To: <201302071336.25366.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Initial tuning data for upc cablecom Berne, Switzerland
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201302140914.49920.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On Thu February 7 2013 13:36:25 Hans Verkuil wrote:
+> Set the correct parent for v4l2_device_register and don't set the name
+> anymore (that's now deduced from the parent). Also remove an unnecessary
+> forward reference and fix two weird looking log messages.
+> 
+> Changes since v1: don't set v4l2_dev.name anymore as per Huang's suggestion.
+> Huang: can you Ack this?
 
-please find the initial tuning data for the Swiss cable provider "upc 
-cablecom" in Berne.
+Huang Shijie, can you please Ack this patch and the
+"[RFC PATCHv2 18/18] tlg2300: update MAINTAINERS file." patch I posted?
 
-I've added the data below to dvb-c/ch-Bern-upc-cablecom
+I'd like to do a post a pull request for this tomorrow and it would be nice
+if these two patches had your Acked-by as well.
 
-# upc cablecom
-# Berne, Switzerland
-# freq sr fec mod
-C 426000000 6900000 NONE QAM64
+Thanks!
 
+	Hans
 
-regards
-Christian
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-main.c |   13 ++++---------
+>  1 file changed, 4 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
+> index 7b1f6eb..247d6ac 100644
+> --- a/drivers/media/usb/tlg2300/pd-main.c
+> +++ b/drivers/media/usb/tlg2300/pd-main.c
+> @@ -55,7 +55,6 @@ MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+>  
+>  #define TLG2300_FIRMWARE "tlg2300_firmware.bin"
+>  static const char *firmware_name = TLG2300_FIRMWARE;
+> -static struct usb_driver poseidon_driver;
+>  static LIST_HEAD(pd_device_list);
+>  
+>  /*
+> @@ -316,7 +315,7 @@ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
+>  		if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
+>  			pd->msg.event = PM_EVENT_AUTO_SUSPEND;
+>  			pd->pm_resume = NULL; /*  a good guard */
+> -			printk(KERN_DEBUG "\n\t+ TLG2300 auto suspend +\n\n");
+> +			printk(KERN_DEBUG "TLG2300 auto suspend\n");
+>  		}
+>  		return 0;
+>  	}
+> @@ -331,7 +330,7 @@ static int poseidon_resume(struct usb_interface *intf)
+>  
+>  	if (!pd)
+>  		return 0;
+> -	printk(KERN_DEBUG "\n\t ++ TLG2300 resume ++\n\n");
+> +	printk(KERN_DEBUG "TLG2300 resume\n");
+>  
+>  	if (!is_working(pd)) {
+>  		if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
+> @@ -431,15 +430,11 @@ static int poseidon_probe(struct usb_interface *interface,
+>  	usb_set_intfdata(interface, pd);
+>  
+>  	if (new_one) {
+> -		struct device *dev = &interface->dev;
+> -
+>  		logpm(pd);
+>  		mutex_init(&pd->lock);
+>  
+>  		/* register v4l2 device */
+> -		snprintf(pd->v4l2_dev.name, sizeof(pd->v4l2_dev.name), "%s %s",
+> -			dev->driver->name, dev_name(dev));
+> -		ret = v4l2_device_register(NULL, &pd->v4l2_dev);
+> +		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
+>  
+>  		/* register devices in directory /dev */
+>  		ret = pd_video_init(pd);
+> @@ -530,7 +525,7 @@ module_init(poseidon_init);
+>  module_exit(poseidon_exit);
+>  
+>  MODULE_AUTHOR("Telegent Systems");
+> -MODULE_DESCRIPTION("For tlg2300-based USB device ");
+> +MODULE_DESCRIPTION("For tlg2300-based USB device");
+>  MODULE_LICENSE("GPL");
+>  MODULE_VERSION("0.0.2");
+>  MODULE_FIRMWARE(TLG2300_FIRMWARE);
+> 
