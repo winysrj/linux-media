@@ -1,88 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4077 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754776Ab3BJMuX (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50125 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934107Ab3BNLHF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 10/19] bttv: fix field handling inside TRY_FMT.
-Date: Sun, 10 Feb 2013 13:50:05 +0100
-Message-Id: <a51e71991c5356cc9a5562b7c520b81d621f6344.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+	Thu, 14 Feb 2013 06:07:05 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>,
+	"Taneja, Archit" <archit@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover after a blank/unblank (or overlay disables after resuming)
+Date: Thu, 14 Feb 2013 12:07:06 +0100
+Message-ID: <4202523.mOtkCksGpI@avalon>
+In-Reply-To: <511CB792.1020608@ti.com>
+References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com> <6EE9CD707FBED24483D4CB0162E8546724593AEC@AMSPRD0711MB532.eurprd07.prod.outlook.com> <511CB792.1020608@ti.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart4241777.QaAKqilz6p"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-- don't return -EINVAL for invalid field types, handle those as if it
-  was FIELD_ANY.
-- the handling of FIELD_SEQ_BT/TB was wrong as well: if such field formats
-  aren't supported, then fall back to FIELD_ANY instead of returning an error.
+--nextPart4241777.QaAKqilz6p
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   28 ++++++++++++----------------
- 1 file changed, 12 insertions(+), 16 deletions(-)
+Hi Tomi,
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 81886e1..21b38ee 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2530,6 +2530,7 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
- 	struct bttv *btv = fh->btv;
- 	enum v4l2_field field;
- 	__s32 width, height;
-+	__s32 height2;
- 	int rc;
- 
- 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
-@@ -2538,30 +2539,25 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
- 
- 	field = f->fmt.pix.field;
- 
--	if (V4L2_FIELD_ANY == field) {
--		__s32 height2;
--
--		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
--		field = (f->fmt.pix.height > height2)
--			? V4L2_FIELD_INTERLACED
--			: V4L2_FIELD_BOTTOM;
--	}
--
--	if (V4L2_FIELD_SEQ_BT == field)
--		field = V4L2_FIELD_SEQ_TB;
--
- 	switch (field) {
- 	case V4L2_FIELD_TOP:
- 	case V4L2_FIELD_BOTTOM:
- 	case V4L2_FIELD_ALTERNATE:
- 	case V4L2_FIELD_INTERLACED:
- 		break;
-+	case V4L2_FIELD_SEQ_BT:
- 	case V4L2_FIELD_SEQ_TB:
--		if (fmt->flags & FORMAT_FLAGS_PLANAR)
--			return -EINVAL;
-+		if (!(fmt->flags & FORMAT_FLAGS_PLANAR)) {
-+			field = V4L2_FIELD_SEQ_TB;
-+			break;
-+		}
-+		/* fall through */
-+	default: /* FIELD_ANY case */
-+		height2 = btv->crop[!!fh->do_crop].rect.height >> 1;
-+		field = (f->fmt.pix.height > height2)
-+			? V4L2_FIELD_INTERLACED
-+			: V4L2_FIELD_BOTTOM;
- 		break;
--	default:
--		return -EINVAL;
- 	}
- 
- 	width = f->fmt.pix.width;
+On Thursday 14 February 2013 12:08:18 Tomi Valkeinen wrote:
+> On 2013-02-14 11:30, Florian Neuhaus wrote:
+> > Tomi Valkeinen wrote on 2013-02-07:
+> >> FIFO underflow means that the DSS hardware wasn't able to fetch enough
+> >> pixel data in time to output them to the panel. Sometimes this happens
+> >> because of plain misconfiguration, but usually it happens because of
+> >> the hardware just can't do things fast enough with the configuration
+> >> the user has set.
+> >> 
+> >> In this case I see that you are using VRFB rotation on fb0, and the
+> >> rotation is
+> >> 270 degrees. Rotating the fb is heavy, especially 90 and 270 degrees.
+> >> It may be that when the DSS is resumed, there's a peak in the mem
+> >> usage as DSS suddenly needs to fetch lots of data.
+> >> 
+> >> Another issue that could be involved is power management. After the
+> >> DSS is suspended, parts of OMAP may be put to sleep. When the DSS is
+> >> resumed, these parts need to be woken up, and it may be that there's a
+> >> higher mem latency for a short period of time right after resume.
+> >> Which could again cause DSS not getting enough pixel data.
+> >> 
+> >> You say the issue doesn't happen if you disable fb0. What happens if
+> >> you disable fb0, blank the screen, then unblank the screen, and after
+> >> that enable fb0 again?
+> > 
+> > By "disable fb0" do you mean disconnect fb0 from ovl0 or disable ovl0?
+> > I have done both:
+> > http://pastebin.com/Bxm1Z2RY
+> > 
+> > This works as expected.
+> 
+> I think both disconnecting fb0 and ovl0, and disabling ovl0 end up doing
+> the same, which is disabling ovl0. Which is what I meant.
+> 
+> So, if I understand correctly, this only happens at unblank, and can be
+> circumvented by temporarily keeping ovl0 disabled during the unblank,
+> and enabling ovl0 afterwards works fine.
+> 
+> So for some reason the time of unblank is "extra heavy" for the memory bus.
+> 
+> Archit, I have a feeling that enabling the LCD is heavier on the memory
+> bus than what happens at VBLANK, even if both start fetching the pixels
+> for a fresh frame. You've been twiddling with the FIFO stuff, am I right
+> there?
+> 
+> > Further tests I have done:
+> > 
+> > Enable fb1/ovl1 and hit some keys on the keyboard to let fb0/ovl0 update
+> > in the background causes a fifo underflow too:
+> > http://pastebin.com/f3JnMLsV
+> > 
+> > This happens only, if I enable the vrfb (rotate=3). So the whole thing
+> > seems to be a rotation issue. Do you have some hints to trace down
+> > the problem?
+> 
+> Not rotation issue as such, but memory bandwidth issue.
+> 
+> >> How about if you disable VRFB rotation, either totally, or set the
+> >> rotation to 0 or 180 degrees?
+> > 
+> > Disable rotation is not an option for me, as we have a "wrong" oriented
+> > portrait display with 480x800 which we must use in landscape mode...
+> 
+> I understand, I only meant that for testing purposes. VRFB rotation with
+> 0 and 180 cause a slight impact on the mem bus, whereas 90 and 270
+> rotation cause a large impact. Also, as I mentioned earlier, the PM may
+> also affect this, as things may have been shut down in the OMAP. So
+> disabling PM related features could also "fix" the problem.
+> 
+> In many cases underflows are rather hard to debug and solve. There are
+> things in the DSS hardware like FIFO thresholds and prefetch, and VRFB
+> tile sizes, which can be changed (although unfortunately only by
+> modifying the drivers). How they should be changed if a difficult
+> question, though, and whether it'll help is also a question mark.
+
+Naive question here, instead of killing the overlay completely when an 
+underflow happens, couldn't the DSS driver somehow recover from that condition 
+by restarting whatever needs to be restarted ?
+
+> If you want to tweak those, I suggest you study them from the TRM.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
+
+--nextPart4241777.QaAKqilz6p
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAABAgAGBQJRHMVaAAoJEIkPb2GL7hl1YDgH/jgtpMiDt8wmevtNjYCTt9Ze
+6FXhcQtmo6aWV7uoS9gdgMjjOWoR8dMjwJCFzuy79oS0HXzCo9Cf0AIbt9da3H7V
+OQnuaCjVQiUChxpX0ebP0cd19dyLe/5roi//omz5/NZwN/98/CCGLuRiUuqeSfNG
+7eZhDjlpFf9W2n4g4JEBth2sHdH0/5/Km8b/BlmNo2e7KVZs+zF+F4fcEEEiua9i
+zW9h5Qi5elUtdC4L6pyrWqmSqtQ70eG2ACeJwFBAKefOt6CKbJqdrg8c2AAbCeIa
+L4x9Eqaw7o87pUCKjB2xyvmF+sf+YGOJV1X3ocYaPaaJ9KrYvKQ+5VJgRXV6whA=
+=4s05
+-----END PGP SIGNATURE-----
+
+--nextPart4241777.QaAKqilz6p--
 
