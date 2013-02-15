@@ -1,57 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:37472 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab3BAIde (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 03:33:34 -0500
-Received: by mail-ob0-f171.google.com with SMTP id lz20so3823076obb.16
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 00:33:33 -0800 (PST)
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:57686 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932322Ab3BODU0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Feb 2013 22:20:26 -0500
+Received: by mail-wg0-f52.google.com with SMTP id 12so2374402wgh.31
+        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 19:20:25 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
-References: <1359107722-9974-1-git-send-email-sachin.kamat@linaro.org>
-	<1359107722-9974-2-git-send-email-sachin.kamat@linaro.org>
-	<CAAQKjZNc0xFaoaqtKsLC=Evn60XA5UChtoMLAcgsWqyLNa7ejQ@mail.gmail.com>
-	<510987B5.6090509@gmail.com>
-	<050101cdff52$86df3a70$949daf50$%dae@samsung.com>
-	<510B02AB.4080908@gmail.com>
-	<0b7501ce0011$3df65180$b9e2f480$@samsung.com>
-	<00fd01ce001b$5215a3f0$f640ebd0$%dae@samsung.com>
-Date: Fri, 1 Feb 2013 14:03:33 +0530
-Message-ID: <CAK9yfHxqqumg-oqH_Ku8Zkf8biWVknF91Su0VkWJJXjvWQ3Jhw@mail.gmail.com>
-Subject: Re: [PATCH 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Kukjin Kim <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, patches@linaro.org,
-	s.nawrocki@samsung.com
+In-Reply-To: <1360124655-22902-2-git-send-email-vikas.sajjan@linaro.org>
+References: <1360124655-22902-1-git-send-email-vikas.sajjan@linaro.org>
+	<1360124655-22902-2-git-send-email-vikas.sajjan@linaro.org>
+Date: Fri, 15 Feb 2013 12:20:24 +0900
+Message-ID: <CAAQKjZNoY2cXXc2b3AUiU0mmUKqgOd4MA_CjUe+tr0H4WN1htg@mail.gmail.com>
+Subject: Re: [PATCH v5 1/1] video: drm: exynos: Add display-timing node
+ parsing using video helper function
+From: Inki Dae <inki.dae@samsung.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, l.krishna@samsung.com,
+	kgene.kim@samsung.com, paulepanter@users.sourceforge.net,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1 February 2013 06:57, Inki Dae <inki.dae@samsung.com> wrote:
+2013/2/6 Vikas Sajjan <vikas.sajjan@linaro.org>:
+> Add support for parsing the display-timing node using video helper
+> function.
 >
-> For example,
-> If compatible = "samsung,g2d-3.0" is added to exynos4210.dtsi, it'd be
-> reasonable. But what if that compatible string is added to exynos4.dtsi?.
-> This case isn't considered for exynos4412 SoC with v4.1.
+> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+> exists and the NON-DT logic is still maintained under the 'else' part.
+>
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   41 +++++++++++++++++++++++++++---
+>  1 file changed, 37 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index bf0d9ba..978e866 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+>
+>  #include <video/samsung_fimd.h>
+>  #include <drm/exynos_drm.h>
+> @@ -905,16 +906,48 @@ static int __devinit fimd_probe(struct platform_device *pdev)
+>         struct exynos_drm_subdrv *subdrv;
+>         struct exynos_drm_fimd_pdata *pdata;
+>         struct exynos_drm_panel_info *panel;
+> +       struct fb_videomode *fbmode;
+> +       struct pinctrl *pctrl;
+>         struct resource *res;
+>         int win;
+>         int ret = -EINVAL;
+>
+>         DRM_DEBUG_KMS("%s\n", __FILE__);
+>
+> -       pdata = pdev->dev.platform_data;
+> -       if (!pdata) {
+> -               dev_err(dev, "no platform data specified\n");
+> -               return -EINVAL;
+> +       if (pdev->dev.of_node) {
+> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +               if (!pdata) {
+> +                       DRM_ERROR("memory allocation for pdata failed\n");
+> +                       return -ENOMEM;
+> +               }
+> +
+> +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
+> +               if (!fbmode) {
+> +                       DRM_ERROR("memory allocation for fbmode failed\n");
+> +                       return -ENOMEM;
+> +               }
 
-In case of Exynos4 series the base address of G2D ip is different
-across series. Hence we cannot define it in exynos4.dtsi and need to
-define the nodes in exynos4xxx.dtsi or specific board files. Thus we
-can use the version appended compatible string.
+It doesn't need to allocate fbmode.
 
-However even the second option suggested by Sylwester is OK with me or
-to be even more specific we could go for both SoC as well as version
-option something like this.
+> +
+> +               ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
 
-compatible = "samsung,exynos3110-g2d-3.0" /* for Exynos3110, Exynos4210 */
-compatible = "samsung,exynos4212-g2d-4.1" /* for Exynos4212, Exynos4412 */
+What is -1? use OF_USE_NATIVE_MODE instead including
+"of_display_timing.h" and just change the above code like below,
 
-In any case please let me know the final preferred one so that I can
-update the code send the revised patches.
+                   fbmode = &pdata->panel.timing;
+                   ret = of_get_fb_videomode(dev->of_node, fbmode,
+OF_USE_NATIVE_MODE);
 
--- 
-With warm regards,
-Sachin
+> +               if (ret) {
+> +                       DRM_ERROR("failed: of_get_fb_videomode()\n"
+> +                               "with return value: %d\n", ret);
+> +                       return ret;
+> +               }
+> +               pdata->panel.timing = (struct fb_videomode) *fbmode;
+
+remove the above line.
+
+> +
+> +               pctrl = devm_pinctrl_get_select_default(dev);
+> +               if (IS_ERR_OR_NULL(pctrl)) {
+> +                       DRM_ERROR("failed: devm_pinctrl_get_select_default()\n"
+> +                               "with return value: %d\n", PTR_RET(pctrl));
+> +                       return PTR_RET(pctrl);
+> +               }
+> +
+> +       } else {
+> +               pdata = pdev->dev.platform_data;
+> +               if (!pdata) {
+> +                       DRM_ERROR("no platform data specified\n");
+> +                       return -EINVAL;
+> +               }
+>         }
+>
+>         panel = &pdata->panel;
+> --
+> 1.7.9.5
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
