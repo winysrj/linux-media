@@ -1,95 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2983 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946902Ab3BHUZA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 15:25:00 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r18KOuVg069917
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 8 Feb 2013 21:24:59 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C8BDF11E00BA
-	for <linux-media@vger.kernel.org>; Fri,  8 Feb 2013 21:24:55 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2111 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935616Ab3BOKPa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 05:15:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130208202455.C8BDF11E00BA@alastor.dyndns.org>
-Date: Fri,  8 Feb 2013 21:24:55 +0100 (CET)
+Subject: [GIT PULL FOR v3.9] bttv: v4l2-compliance fixes
+Date: Fri, 15 Feb 2013 11:15:23 +0100
+Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302151115.24037.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This pull request is identical to the REVIEWv2 patch series I posted earlier:
 
-Results of the daily build of media_tree:
+http://www.spinics.net/lists/linux-media/msg59944.html
 
-date:		Fri Feb  8 19:00:25 CET 2013
-git branch:	for_v3.9
-git hash:	47ebe3f93250fce6f4eaa16309ae5eee9d4099b3
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+The only change (besides rebasing) is that patch 04/19 was moved to the end
+of the patch series. More about that patch below.
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-rc4-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-rc4-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+This patch series updates bttv and tda7432 (a prerequisite of bttv) to the
+latest v4l2 frameworks, except for vb2 (as usual). Conversion to vb2 is
+something for the future.
 
-Detailed results are available here:
+This patch series has been tested with the following bttv cards:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Simple gpio-audio-based bttv card types:
 
-Full logs are available here:
+39, 77, 41, 33
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+msp34xx based card types:
 
-The Media Infrastructure API from this daily build is here:
+10 (with msp3410d)
+1 (with msp3410c)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+tvaudio based card types:
+
+40 (with tda7432, tea6420 and tda9850)
+
+The last one is now finally working. I doubt audio has worked at all in the
+last few years for that card. I'm pretty pleased about this to be honest :-)
+
+It turns out that the frequency handling in the current driver is partially
+broken (see this thread:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg58548.html). This
+is now fixed as a consequence of these compliancy patches. It's something
+v4l2-compliance found immediately, so this once again shows the importance of
+using v4l2-compliance to test fixes.
+
+While most patches are pretty standard for such conversions the last patch
+needs some more background:
+
+The current driver does not implement enumaudio (so apps cannot tell that
+audio inputs are present), it does not set V4L2_CAP_AUDIO, nor does it set
+audioset when calling ENUM_INPUT. And G_AUDIO doesn't set the stereo flag
+either. So these g/s_audio ioctls are quite pointless and misleading.
+Especially since some surveillance boards do not have audio at all.
+
+So I decided to remove them. But after a question about this from Frank
+Schäfer I investigated what would be needed to correctly implement
+s/g/enumaudio. So I made a second bttv branch which is identical to this
+one, except that the last patch is replaced by two new patches adding
+proper s/g/enumaudio support:
+
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv-audio
+
+However, this patch relies on the audio_inputs field (currently commented out)
+of the card definition, and I have serious doubts about the reliability of
+that field. A wrong number is not a problem in itself as audio will remain
+working, it is just that ENUMAUDIO will give wrong results.
+
+So there are three options:
+
+1) keep the current situation: i.e. apply just the first 18 patches and skip
+   the last. I'm not in favor of this myself.
+
+2) remove the g/s_audio ioctls. At least this makes the driver consistent
+   with the V4L2 API. And adding the enumaudio support can always be done
+   later.
+
+3) use the bttv-audio branch and implement proper enumaudio support and just
+   accept that enumaudio can return incorrect results if the card definition
+   is wrong.
+
+I am undecided which of options 2 or 3 is better. I'm leaning slightly towards
+option 2, but there is much to be said for 3 as well. So I am leaving it to
+you, Mauro, since you are the bttv maintainer anyway :-)
+
+Regards,
+
+        Hans
+
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+
+  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git bttv
+
+for you to fetch changes up to b26d6e39030e6ca2812bc8a818645169e6783ec9:
+
+  bttv: remove g/s_audio since there is only one audio input. (2013-02-15 10:56:48 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (19):
+      bttv: fix querycap and radio v4l2-compliance issues.
+      bttv: add VIDIOC_DBG_G_CHIP_IDENT
+      bttv: fix ENUM_INPUT and S_INPUT
+      bttv: disable g/s_tuner and g/s_freq when no tuner present, fix return codes.
+      bttv: set initial tv/radio frequencies
+      bttv: G_PARM: set readbuffers.
+      bttv: fill in colorspace.
+      bttv: fill in fb->flags for VIDIOC_G_FBUF
+      bttv: fix field handling inside TRY_FMT.
+      tda7432: convert to the control framework
+      bttv: convert to the control framework.
+      bttv: add support for control events.
+      bttv: fix priority handling.
+      bttv: use centralized std and implement g_std.
+      bttv: there may be multiple tvaudio/tda7432 devices.
+      bttv: fix g_tuner capabilities override.
+      bttv: fix try_fmt_vid_overlay and setup initial overlay size.
+      bttv: do not switch to the radio tuner unless it is accessed.
+      bttv: remove g/s_audio since there is only one audio input.
+
+ drivers/media/i2c/tda7432.c           |  276 +++++++---------
+ drivers/media/i2c/tvaudio.c           |    2 +-
+ drivers/media/pci/bt8xx/bttv-cards.c  |   19 +-
+ drivers/media/pci/bt8xx/bttv-driver.c | 1144 ++++++++++++++++++++++++++++---------------------------------------
+ drivers/media/pci/bt8xx/bttv.h        |    3 +
+ drivers/media/pci/bt8xx/bttvp.h       |   31 +-
+ include/media/v4l2-chip-ident.h       |    8 +
+ include/uapi/linux/v4l2-controls.h    |    5 +
+ 8 files changed, 632 insertions(+), 856 deletions(-)
