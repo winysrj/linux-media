@@ -1,95 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:48961 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750849Ab3BEFc5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 00:32:57 -0500
-Received: by mail-pa0-f53.google.com with SMTP id bg4so3787674pad.12
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 21:32:57 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com
-Subject: [PATCH v4 1/1] video: drm: exynos: Adds display-timing node parsing using video helper function
-Date: Tue,  5 Feb 2013 11:02:47 +0530
-Message-Id: <1360042367-16397-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1360042367-16397-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1360042367-16397-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:56517 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755122Ab3BOOYE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 09:24:04 -0500
+Date: Fri, 15 Feb 2013 12:10:06 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-media] Re: DVB: EOPNOTSUPP vs. ENOTTY in
+ ioctl(FE_READ_UNCORRECTED_BLOCKS)
+Message-ID: <20130215121006.504a64b6@redhat.com>
+In-Reply-To: <511D5834.2030002@tvdr.de>
+References: <511CE2BF.8020905@tvdr.de>
+	<511D085A.80009@iki.fi>
+	<CAHFNz9JN_z5xa0eyaacdOKSdTJoOqAW87+jeLW+3AnARDVX41g@mail.gmail.com>
+	<511D37FF.9070206@iki.fi>
+	<CAHFNz9+1w2W0dc9ZrW7mewA7aB4YbuJW7QT5Pr7-m2Js9vpq8A@mail.gmail.com>
+	<511D5834.2030002@tvdr.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing using video helper function
+Em Thu, 14 Feb 2013 22:33:40 +0100
+Klaus Schmidinger <Klaus.Schmidinger@tvdr.de> escreveu:
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   41 +++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 4 deletions(-)
+> On 14.02.2013 20:50, Manu Abraham wrote:
+> > On Fri, Feb 15, 2013 at 12:46 AM, Antti Palosaari <crope@iki.fi> wrote:
+> >> On 02/14/2013 08:05 PM, Manu Abraham wrote:
+> >>>
+> >>> On Thu, Feb 14, 2013 at 9:22 PM, Antti Palosaari <crope@iki.fi> wrote:
+> >>>>
+> >>>> On 02/14/2013 03:12 PM, Klaus Schmidinger wrote:
+> >>>>>
+> >>>>>
+> >>>>> In VDR I use an ioctl() call with FE_READ_UNCORRECTED_BLOCKS on a device
+> >>>>> (using stb0899).
+> >>>>> After this call I check 'errno' for EOPNOTSUPP to determine whether this
+> >>>>> device supports this call. This used to work just fine, until a few
+> >>>>> months
+> >>>>> ago I noticed that my devices using stb0899 didn't display their signal
+> >>>>> quality in VDR's OSD any more. After further investigation I found that
+> >>>>> ioctl(FE_READ_UNCORRECTED_BLOCKS) no longer returns EOPNOTSUPP, but
+> >>>>> rather
+> >>>>> ENOTTY. And since I stop getting the signal quality in case any unknown
+> >>>>> errno value appears, this broke my signal quality query function.
+> >>>>>
+> >>>>> Is there a reason why this has been changed?
+> >>>>
+> >>>>
+> >>>>
+> >>>> I changed it in order to harmonize error codes. ENOTTY is correct error
+> >>>> code
+> >>>> for the case IOCTL is not implemented. What I think it is Kernel wide
+> >>>> practice.
+> >>>>
+> >>>
+> >>> By doing so, You BROKE User Space ABI. Whatever it is, we are not allowed
+> >>> to
+> >>> break User ABI. https://lkml.org/lkml/2012/12/23/75
+> >>
+> >>
+> >> Yes, it will change API, that's clear. But the hell, how you will get
+> >> anything fixed unless you change it? Introduce totally new API every-time
+> >> when bug is found? You should also understand that changing that single
+> >> error code on that place will not change all the drivers and there will be
+> >> still some other error statuses returned by individual drivers.
+> >>
+> >> It is about 100% clear that ENOTTY is proper error code for unimplemented
+> >> IOCTL. I remember maybe more than one discussion about that unimplemented
+> >> IOCTL error code. It seems to be defined by POSIX [1] standard.
+> >
+> >
+> > It could be. But what I stated is thus:
+> >
+> > There existed commonality where all unimplemented IOCTL's returned
+> > EOPNOTSUPP when the corresponding callback wasn't implemented.
+> > So, this was kind of standardized though it was not the ideal thing,
+> > though it was not a big issue, it just stated "socket" additionally.
+> >
+> > You changed it to ENOTTY to make it fit for the idealistic world.
+> > All applications that depended for ages, on those error are now broken.
+> 
+> I'm sorry I stirred up this topic again. I wasn't aware that *this* was
+> the reason for https://lkml.org/lkml/2012/12/23/75.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index bf0d9ba..978e866 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
-@@ -905,16 +906,48 @@ static int __devinit fimd_probe(struct platform_device *pdev)
- 	struct exynos_drm_subdrv *subdrv;
- 	struct exynos_drm_fimd_pdata *pdata;
- 	struct exynos_drm_panel_info *panel;
-+	struct fb_videomode *fbmode;
-+	struct pinctrl *pctrl;
- 	struct resource *res;
- 	int win;
- 	int ret = -EINVAL;
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-+		if (!fbmode) {
-+			DRM_ERROR("memory allocation for fbmode failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
-+		if (ret) {
-+			DRM_ERROR("failed: of_get_fb_videomode() :"
-+				"return value: %d\n", ret);
-+			return ret;
-+		}
-+		pdata->panel.timing = (struct fb_videomode) *fbmode;
-+
-+		pctrl = devm_pinctrl_get_select_default(dev);
-+		if (IS_ERR_OR_NULL(pctrl)) {
-+			DRM_ERROR("failed: devm_pinctrl_get_select_default()"
-+				"return value: %d\n", PTR_RET(pctrl));
-+			return PTR_RET(pctrl);
-+		}
-+
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
- 	}
- 
- 	panel = &pdata->panel;
--- 
-1.7.9.5
+You should also take a look on this one:
+	[1] http://permalink.gmane.org/gmane.linux.kernel/1235728
+and:
+	[2] http://permalink.gmane.org/gmane.linux.kernel/1349845
 
+So, yes, ENOTTY should be the proper error code for it.
+
+> 
+> As an application developer myself I don't mind if bugs in drivers are
+> fixed, I just wanted to understand the rationale. So now I've learned
+> that bugs in drivers can't be fixed, because some software might rely
+> on the bug. Oh well...
+
+Unfortunately, yes: fixing driver bugs that break application that
+rely on it is a problem. As Linus said on [1]:
+
+	"We may have to revert it if things get too nasty, 
+	 but we should have done this years and years ago, so let's hope not."
+
+I think we should revert Antti patch, until we're sure that all applications
+are capable of working fine with ENOTTY. Only after that, we can remove the
+bad usage of EOPNOTSUPP.
+
+> In this particular function of VDR I have now changed things to no longer
+> check for any particular "not supported" errno value, just EINTR. I hope
+> that one is standardized enough...
+
+Regards,
+Mauro
