@@ -1,100 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:48552 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab3BRVYN (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2231 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161389Ab3BOMzb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Feb 2013 16:24:13 -0500
-Received: by mail-ee0-f51.google.com with SMTP id d17so2989445eek.38
-        for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 13:24:12 -0800 (PST)
-Message-ID: <51229C2D.8060700@googlemail.com>
-Date: Mon, 18 Feb 2013 22:25:01 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mr Goldcove <goldcove@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-References: <512294CA.3050401@gmail.com>
-In-Reply-To: <512294CA.3050401@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 15 Feb 2013 07:55:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 07/10] au0828: add prio, control event and log_status support
+Date: Fri, 15 Feb 2013 13:55:10 +0100
+Message-Id: <84d8e82f2cb46d3761cbde8b98ff46fed614317d.1360932644.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ee88bd549bcb37235d975b6799fbcf6501e98f0c.1360932644.git.hans.verkuil@cisco.com>
+References: <ee88bd549bcb37235d975b6799fbcf6501e98f0c.1360932644.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.02.2013 21:53, schrieb Mr Goldcove:
-> "Easy Cap DC-60++"
-> Wrongly identified as card 19 "EM2860/SAA711X Reference Design",
-> resulting in no audio.
-> Works perfectly when using card 64 "Easy Cap Capture DC-60"
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Video inputs work fine, right ?
-Does this device has any buttons / LEDs ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/au0828/au0828-video.c |   42 ++++++++++++++++++++++++-------
+ drivers/media/usb/au0828/au0828.h       |    4 +++
+ 2 files changed, 37 insertions(+), 9 deletions(-)
 
-The driver doesn't handle devices with generic IDs very well.
-In this case we can conclude from the USB PID that the device has audio
-support (which is actually the only difference to board
-EM2860_BOARD_SAA711X_REFERENCE_DESIGN).
-But I would like to think twice about it, because this kind of changes
-has very a high potential to cause regressions for other boards...
-
-Regards,
-Frank
-
->
-> **Interim solution**
-> load module (before inserting the EasyCap. I'm having trouble if the
-> module is loaded/unloaded with different cards...)
-> modprobe em28xx card=64
->   or
-> add "options em28xx card=64" to /etc/modprobe.d/local.conf
->
-> **hw info**
-> Bus 002 Device 005: ID eb1a:2861 eMPIA Technology, Inc.
->
-> Chips:
-> Empia EM2860 P7JY8-011 201023-01AG
-> NXP SAA7113H
-> RMC ALC653 89G06K1 G909A
->
-> **logs**
-> [ 5567.367883] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0,
-> class 0)
-> [ 5567.367985] em28xx #0: chip ID is em2860
-> [ 5567.380645] IR MCE Keyboard/mouse protocol handler initialized
-> [ 5567.384202] lirc_dev: IR Remote Control driver registered, major 249
-> [ 5567.385468] IR LIRC bridge handler initialized
-> [ 5567.460386] em28xx #0: board has no eeprom
-> [ 5567.534612] em28xx #0: found i2c device @ 0x4a [saa7113h]
-> [ 5567.568303] em28xx #0: Your board has no unique USB ID.
-> [ 5567.568308] em28xx #0: A hint were successfully done, based on i2c
-> devicelist hash.
-> [ 5567.568312] em28xx #0: This method is not 100% failproof.
-> [ 5567.568314] em28xx #0: If the board were missdetected, please email
-> this log to:
-> [ 5567.568317] em28xx #0:     V4L Mailing List 
-> <linux-media@vger.kernel.org>
-> [ 5567.568321] em28xx #0: Board detected as EM2860/SAA711X Reference Design
-> [ 5567.647433] em28xx #0: Identified as EM2860/SAA711X Reference Design
-> (card=19)
-> [ 5567.647438] em28xx #0: Registering snapshot button...
-> [ 5567.647531] input: em28xx snapshot button as
-> /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.4/input/input11
-> [ 5568.019310] saa7115 15-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-> (em28xx #0)
-> [ 5568.789385] em28xx #0: Config register raw data: 0x10
-> [ 5568.813055] em28xx #0: AC97 vendor ID = 0x414c4761
-> [ 5568.825074] em28xx #0: AC97 features = 0x0000
-> [ 5568.825078] em28xx #0: Unknown AC97 audio processor detected!
-> [ 5569.284137] em28xx #0: v4l2 driver version 0.1.3
-> [ 5570.305831] em28xx #0: V4L2 video device registered as video1
-> [ 5570.305835] em28xx #0: V4L2 VBI device registered as vbi0
-> [ 5570.305862] em28xx audio device (eb1a:2861): interface 1, class 1
-> [ 5570.305877] em28xx audio device (eb1a:2861): interface 2, class 1
-> [ 5570.305906] usbcore: registered new interface driver em28xx
-> [ 5570.305909] em28xx driver loaded
-> [ 5570.392917] usbcore: registered new interface driver snd-usb-audio
-> [ 7903.785365] em28xx #0: vidioc_s_fmt_vid_cap queue busy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index 7d762c0..07287ef 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -35,6 +35,7 @@
+ #include <linux/suspend.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/tuner.h>
+ #include "au0828.h"
+@@ -988,6 +989,7 @@ static int au0828_v4l2_open(struct file *filp)
+ 
+ 	fh->type = type;
+ 	fh->dev = dev;
++	v4l2_fh_init(&fh->fh, vdev);
+ 	filp->private_data = fh;
+ 
+ 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
+@@ -1031,6 +1033,7 @@ static int au0828_v4l2_open(struct file *filp)
+ 				    V4L2_FIELD_SEQ_TB,
+ 				    sizeof(struct au0828_buffer), fh,
+ 				    &dev->lock);
++	v4l2_fh_add(&fh->fh);
+ 	return ret;
+ }
+ 
+@@ -1040,6 +1043,8 @@ static int au0828_v4l2_close(struct file *filp)
+ 	struct au0828_fh *fh = filp->private_data;
+ 	struct au0828_dev *dev = fh->dev;
+ 
++	v4l2_fh_del(&fh->fh);
++	v4l2_fh_exit(&fh->fh);
+ 	if (res_check(fh, AU0828_RESOURCE_VIDEO)) {
+ 		/* Cancel timeout thread in case they didn't call streamoff */
+ 		dev->vid_timeout_running = 0;
+@@ -1061,6 +1066,7 @@ static int au0828_v4l2_close(struct file *filp)
+ 	if (dev->users == 1) {
+ 		if (dev->dev_state & DEV_DISCONNECTED) {
+ 			au0828_analog_unregister(dev);
++			kfree(fh);
+ 			kfree(dev);
+ 			return 0;
+ 		}
+@@ -1128,23 +1134,27 @@ static unsigned int au0828_v4l2_poll(struct file *filp, poll_table *wait)
+ {
+ 	struct au0828_fh *fh = filp->private_data;
+ 	struct au0828_dev *dev = fh->dev;
+-	int rc;
++	unsigned long req_events = poll_requested_events(wait);
++	unsigned int res;
+ 
+-	rc = check_dev(dev);
+-	if (rc < 0)
+-		return rc;
++	if (check_dev(dev) < 0)
++		return POLLERR;
++
++	res = v4l2_ctrl_poll(filp, wait);
++	if (!(req_events & (POLLIN | POLLRDNORM)))
++		return res;
+ 
+ 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		if (!res_get(fh, AU0828_RESOURCE_VIDEO))
+ 			return POLLERR;
+-		return videobuf_poll_stream(filp, &fh->vb_vidq, wait);
+-	} else if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
++		return res | videobuf_poll_stream(filp, &fh->vb_vidq, wait);
++	}
++	if (fh->type == V4L2_BUF_TYPE_VBI_CAPTURE) {
+ 		if (!res_get(fh, AU0828_RESOURCE_VBI))
+ 			return POLLERR;
+-		return videobuf_poll_stream(filp, &fh->vb_vbiq, wait);
+-	} else {
+-		return POLLERR;
++		return res | videobuf_poll_stream(filp, &fh->vb_vbiq, wait);
+ 	}
++	return POLLERR;
+ }
+ 
+ static int au0828_v4l2_mmap(struct file *filp, struct vm_area_struct *vma)
+@@ -1760,6 +1770,15 @@ static int vidioc_s_register(struct file *file, void *priv,
+ }
+ #endif
+ 
++static int vidioc_log_status(struct file *file, void *fh)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	v4l2_ctrl_log_status(file, fh);
++	v4l2_device_call_all(vdev->v4l2_dev, 0, core, log_status);
++	return 0;
++}
++
+ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			  struct v4l2_requestbuffers *rb)
+ {
+@@ -1883,6 +1902,9 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_register          = vidioc_s_register,
+ #endif
+ 	.vidioc_g_chip_ident        = vidioc_g_chip_ident,
++	.vidioc_log_status	    = vidioc_log_status,
++	.vidioc_subscribe_event     = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event   = v4l2_event_unsubscribe,
+ };
+ 
+ static const struct video_device au0828_video_template = {
+@@ -1979,12 +2001,14 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	*dev->vdev = au0828_video_template;
+ 	dev->vdev->v4l2_dev = &dev->v4l2_dev;
+ 	dev->vdev->lock = &dev->lock;
++	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev->flags);
+ 	strcpy(dev->vdev->name, "au0828a video");
+ 
+ 	/* Setup the VBI device */
+ 	*dev->vbi_dev = au0828_video_template;
+ 	dev->vbi_dev->v4l2_dev = &dev->v4l2_dev;
+ 	dev->vbi_dev->lock = &dev->lock;
++	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vbi_dev->flags);
+ 	strcpy(dev->vbi_dev->name, "au0828a vbi");
+ 
+ 	/* Register the v4l2 device */
+diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
+index 803af10..ad40048 100644
+--- a/drivers/media/usb/au0828/au0828.h
++++ b/drivers/media/usb/au0828/au0828.h
+@@ -29,6 +29,7 @@
+ #include <media/videobuf-vmalloc.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-fh.h>
+ 
+ /* DVB */
+ #include "demux.h"
+@@ -119,6 +120,9 @@ enum au0828_dev_state {
+ };
+ 
+ struct au0828_fh {
++	/* must be the first field of this struct! */
++	struct v4l2_fh fh;
++
+ 	struct au0828_dev *dev;
+ 	unsigned int  resources;
+ 
+-- 
+1.7.10.4
 
