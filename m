@@ -1,66 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f48.google.com ([209.85.210.48]:51069 "EHLO
-	mail-da0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759656Ab3B0LuX (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:8964 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161506Ab3BONri (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 06:50:23 -0500
-Received: by mail-da0-f48.google.com with SMTP id w4so263784dam.7
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 03:50:22 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	joshi@samsung.com, inki.dae@samsung.com, l.krishna@samsung.com,
-	patches@linaro.org, linaro-dev@lists.linaro.org
-Subject: [PATCH v8 2/2] video: drm: exynos: Add pinctrl support to fimd
-Date: Wed, 27 Feb 2013 17:19:56 +0530
-Message-Id: <1361965796-16117-3-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
+	Fri, 15 Feb 2013 08:47:38 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <20766.15478.535523.4665@morden.metzler>
+Date: Fri, 15 Feb 2013 14:47:34 +0100
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: ddbridge v0.8
+In-Reply-To: <511C0385.2060308@schinagl.nl>
+References: <CAAKANDV1QWHeuA3XG7+HK2Fc8rLBpkVWGWcJ0Bdc_3A_yAEVLA@mail.gmail.com>
+	<511C0385.2060308@schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds support for pinctrl to drm fimd
+Oliver Schinagl writes:
+ > On 02/11/13 23:20, Martin Vidovic wrote:
+ > > Hi,
+ > >
+ > > Is there any plan to include ddbridge driver version 0.8 in mainline kernel
+ > > (currently it's 0.5). I really see no reason it's in the vacuum like now
+ > > for almost a year. No sign of pushing it into mainline. Why is that so?
+ > > It's a good driver.
+ > You should ask Ralph Metzler (added to CC) as he wrote the driver I 
+ > think or atleast maintains it.
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+I wrote the driver but I never submitted it to the kernel myself. I got frustrated
+with that process years ago. Oliver Endriss took care of it and necessary coding style
+adjustments etc. in the last few years. (Many thanks again!) 
+But now he also stopped to pass it into the kernel due to some complications
+with other changes upstream.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 7932dc2..7d93475 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/of_display_timing.h>
- #include <video/samsung_fimd.h>
-@@ -879,6 +880,7 @@ static int fimd_probe(struct platform_device *pdev)
- 	struct exynos_drm_fimd_pdata *pdata;
- 	struct exynos_drm_panel_info *panel;
- 	struct resource *res;
-+	struct pinctrl *pctrl;
- 	int win;
- 	int ret = -EINVAL;
- 
-@@ -898,6 +900,13 @@ static int fimd_probe(struct platform_device *pdev)
- 				"with return value: %d\n", ret);
- 			return ret;
- 		}
-+		pctrl = devm_pinctrl_get_select_default(dev);
-+		if (IS_ERR(pctrl)) {
-+			DRM_ERROR("failed: devm_pinctrl_get_select_default()\n"
-+				"with return value: %d\n", PTR_RET(pctrl));
-+			return PTR_ERR(pctrl);
-+		}
-+
- 	} else {
- 		pdata = pdev->dev.platform_data;
- 		if (!pdata) {
--- 
-1.7.9.5
+I usually distribute a package with own versions of dvb-core, frontend and 
+ddbridge drivers now. When the next major restructuring due to the DVB-C modulator
+card and the stand-alone hardware network streamer (octopus net) support is done, 
+I will make it publically available. The current driver is version 0.9.7.
+It should be up to kernel coding style and can be easily copied over into
+a current kernel. But I am not about to take it apart into little patches.
 
+Regards,
+Ralph
