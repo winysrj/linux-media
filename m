@@ -1,141 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2111 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935616Ab3BOKPa convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1189 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932895Ab3BOJTH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 05:15:30 -0500
+	Fri, 15 Feb 2013 04:19:07 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.9] bttv: v4l2-compliance fixes
-Date: Fri, 15 Feb 2013 11:15:23 +0100
-Cc: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201302151115.24037.hverkuil@xs4all.nl>
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/9] s2255: add V4L2_CID_JPEG_COMPRESSION_QUALITY
+Date: Fri, 15 Feb 2013 10:18:47 +0100
+Message-Id: <670519c87b8a474a0447b445bfee0718f2a454e0.1360919695.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request is identical to the REVIEWv2 patch series I posted earlier:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-http://www.spinics.net/lists/linux-media/msg59944.html
+The use of the V4L2_CID_JPEG_COMPRESSION_QUALITY control is recommended over
+the G/S_JPEGCOMP ioctls.
 
-The only change (besides rebasing) is that patch 04/19 was moved to the end
-of the patch series. More about that patch below.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |   24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-This patch series updates bttv and tda7432 (a prerequisite of bttv) to the
-latest v4l2 frameworks, except for vb2 (as usual). Conversion to vb2 is
-something for the future.
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 2dcb29b..42c3afe 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -219,12 +219,13 @@ struct s2255_dev;
+ struct s2255_channel {
+ 	struct video_device	vdev;
+ 	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl	*jpegqual_ctrl;
+ 	int			resources;
+ 	struct s2255_dmaqueue	vidq;
+ 	struct s2255_bufferi	buffer;
+ 	struct s2255_mode	mode;
+ 	/* jpeg compression */
+-	struct v4l2_jpegcompression jc;
++	unsigned		jpegqual;
+ 	/* capture parameters (for high quality mode full size) */
+ 	struct v4l2_captureparm cap_parm;
+ 	int			cur_frame;
+@@ -1015,7 +1016,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	case V4L2_PIX_FMT_MJPEG:
+ 		mode.color &= ~MASK_COLOR;
+ 		mode.color |= COLOR_JPG;
+-		mode.color |= (channel->jc.quality << 8);
++		mode.color |= (channel->jpegqual << 8);
+ 		break;
+ 	case V4L2_PIX_FMT_YUV422P:
+ 		mode.color &= ~MASK_COLOR;
+@@ -1185,7 +1186,7 @@ static int s2255_set_mode(struct s2255_channel *channel,
+ 		mode->color &= ~MASK_COLOR;
+ 		mode->color |= COLOR_JPG;
+ 		mode->color &= ~MASK_JPG_QUALITY;
+-		mode->color |= (channel->jc.quality << 8);
++		mode->color |= (channel->jpegqual << 8);
+ 	}
+ 	/* save the mode */
+ 	channel->mode = *mode;
+@@ -1434,6 +1435,9 @@ static int s2255_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		mode.color &= ~MASK_INPUT_TYPE;
+ 		mode.color |= !ctrl->val << 16;
+ 		break;
++	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
++		channel->jpegqual = ctrl->val;
++		return 0;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1451,7 +1455,9 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
+ {
+ 	struct s2255_fh *fh = priv;
+ 	struct s2255_channel *channel = fh->channel;
+-	*jc = channel->jc;
++
++	memset(jc, 0, sizeof(*jc));
++	jc->quality = channel->jpegqual;
+ 	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
+ 	return 0;
+ }
+@@ -1463,7 +1469,7 @@ static int vidioc_s_jpegcomp(struct file *file, void *priv,
+ 	struct s2255_channel *channel = fh->channel;
+ 	if (jc->quality < 0 || jc->quality > 100)
+ 		return -EINVAL;
+-	channel->jc.quality = jc->quality;
++	v4l2_ctrl_s_ctrl(channel->jpegqual_ctrl, jc->quality);
+ 	dprintk(2, "%s: quality %d\n", __func__, jc->quality);
+ 	return 0;
+ }
+@@ -1864,7 +1870,7 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
+ 		channel = &dev->channel[i];
+ 		INIT_LIST_HEAD(&channel->vidq.active);
+ 
+-		v4l2_ctrl_handler_init(&channel->hdl, 5);
++		v4l2_ctrl_handler_init(&channel->hdl, 6);
+ 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
+ 				V4L2_CID_BRIGHTNESS, -127, 127, 1, DEF_BRIGHT);
+ 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
+@@ -1873,6 +1879,10 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
+ 				V4L2_CID_SATURATION, 0, 255, 1, DEF_SATURATION);
+ 		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
+ 				V4L2_CID_HUE, 0, 255, 1, DEF_HUE);
++		channel->jpegqual_ctrl = v4l2_ctrl_new_std(&channel->hdl,
++				&s2255_ctrl_ops,
++				V4L2_CID_JPEG_COMPRESSION_QUALITY,
++				0, 100, 1, S2255_DEF_JPEG_QUAL);
+ 		if (dev->dsp_fw_ver >= S2255_MIN_DSP_COLORFILTER &&
+ 		    (dev->pid != 0x2257 || channel->idx <= 1))
+ 			v4l2_ctrl_new_custom(&channel->hdl, &color_filter_ctrl, NULL);
+@@ -2238,7 +2248,7 @@ static int s2255_board_init(struct s2255_dev *dev)
+ 		channel->mode = mode_def;
+ 		if (dev->pid == 0x2257 && j > 1)
+ 			channel->mode.color |= (1 << 16);
+-		channel->jc.quality = S2255_DEF_JPEG_QUAL;
++		channel->jpegqual = S2255_DEF_JPEG_QUAL;
+ 		channel->width = LINE_SZ_4CIFS_NTSC;
+ 		channel->height = NUM_LINES_4CIFS_NTSC * 2;
+ 		channel->fmt = &formats[0];
+-- 
+1.7.10.4
 
-This patch series has been tested with the following bttv cards:
-
-Simple gpio-audio-based bttv card types:
-
-39, 77, 41, 33
-
-msp34xx based card types:
-
-10 (with msp3410d)
-1 (with msp3410c)
-
-tvaudio based card types:
-
-40 (with tda7432, tea6420 and tda9850)
-
-The last one is now finally working. I doubt audio has worked at all in the
-last few years for that card. I'm pretty pleased about this to be honest :-)
-
-It turns out that the frequency handling in the current driver is partially
-broken (see this thread:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg58548.html). This
-is now fixed as a consequence of these compliancy patches. It's something
-v4l2-compliance found immediately, so this once again shows the importance of
-using v4l2-compliance to test fixes.
-
-While most patches are pretty standard for such conversions the last patch
-needs some more background:
-
-The current driver does not implement enumaudio (so apps cannot tell that
-audio inputs are present), it does not set V4L2_CAP_AUDIO, nor does it set
-audioset when calling ENUM_INPUT. And G_AUDIO doesn't set the stereo flag
-either. So these g/s_audio ioctls are quite pointless and misleading.
-Especially since some surveillance boards do not have audio at all.
-
-So I decided to remove them. But after a question about this from Frank
-Schäfer I investigated what would be needed to correctly implement
-s/g/enumaudio. So I made a second bttv branch which is identical to this
-one, except that the last patch is replaced by two new patches adding
-proper s/g/enumaudio support:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv-audio
-
-However, this patch relies on the audio_inputs field (currently commented out)
-of the card definition, and I have serious doubts about the reliability of
-that field. A wrong number is not a problem in itself as audio will remain
-working, it is just that ENUMAUDIO will give wrong results.
-
-So there are three options:
-
-1) keep the current situation: i.e. apply just the first 18 patches and skip
-   the last. I'm not in favor of this myself.
-
-2) remove the g/s_audio ioctls. At least this makes the driver consistent
-   with the V4L2 API. And adding the enumaudio support can always be done
-   later.
-
-3) use the bttv-audio branch and implement proper enumaudio support and just
-   accept that enumaudio can return incorrect results if the card definition
-   is wrong.
-
-I am undecided which of options 2 or 3 is better. I'm leaning slightly towards
-option 2, but there is much to be said for 3 as well. So I am leaving it to
-you, Mauro, since you are the bttv maintainer anyway :-)
-
-Regards,
-
-        Hans
-
-The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
-
-  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git bttv
-
-for you to fetch changes up to b26d6e39030e6ca2812bc8a818645169e6783ec9:
-
-  bttv: remove g/s_audio since there is only one audio input. (2013-02-15 10:56:48 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (19):
-      bttv: fix querycap and radio v4l2-compliance issues.
-      bttv: add VIDIOC_DBG_G_CHIP_IDENT
-      bttv: fix ENUM_INPUT and S_INPUT
-      bttv: disable g/s_tuner and g/s_freq when no tuner present, fix return codes.
-      bttv: set initial tv/radio frequencies
-      bttv: G_PARM: set readbuffers.
-      bttv: fill in colorspace.
-      bttv: fill in fb->flags for VIDIOC_G_FBUF
-      bttv: fix field handling inside TRY_FMT.
-      tda7432: convert to the control framework
-      bttv: convert to the control framework.
-      bttv: add support for control events.
-      bttv: fix priority handling.
-      bttv: use centralized std and implement g_std.
-      bttv: there may be multiple tvaudio/tda7432 devices.
-      bttv: fix g_tuner capabilities override.
-      bttv: fix try_fmt_vid_overlay and setup initial overlay size.
-      bttv: do not switch to the radio tuner unless it is accessed.
-      bttv: remove g/s_audio since there is only one audio input.
-
- drivers/media/i2c/tda7432.c           |  276 +++++++---------
- drivers/media/i2c/tvaudio.c           |    2 +-
- drivers/media/pci/bt8xx/bttv-cards.c  |   19 +-
- drivers/media/pci/bt8xx/bttv-driver.c | 1144 ++++++++++++++++++++++++++++---------------------------------------
- drivers/media/pci/bt8xx/bttv.h        |    3 +
- drivers/media/pci/bt8xx/bttvp.h       |   31 +-
- include/media/v4l2-chip-ident.h       |    8 +
- include/uapi/linux/v4l2-controls.h    |    5 +
- 8 files changed, 632 insertions(+), 856 deletions(-)
