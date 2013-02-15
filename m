@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:37103 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718Ab3BQWZg (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1448 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932905Ab3BOJTJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Feb 2013 17:25:36 -0500
-Received: by mail-wg0-f54.google.com with SMTP id fm10so4048221wgb.33
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 14:25:34 -0800 (PST)
-MIME-Version: 1.0
-Date: Sun, 17 Feb 2013 23:25:34 +0100
-Message-ID: <CAA=TYk_Mc552Gx98aeaB6t9_t7pfK_w5Ka==g76hez2c0ufXMg@mail.gmail.com>
-Subject: [PATCH] af9035: add ID [0ccd:00aa] TerraTec Cinergy T Stick (rev. 2)
-From: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, gennarone@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 15 Feb 2013 04:19:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/9] s2255: add device_caps support to querycap.
+Date: Fri, 15 Feb 2013 10:18:49 +0100
+Message-Id: <08023b889999bcdc7f60bac7c4b4c0c3303ae40c.1360919695.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds USB ID for alternative "Terratec Cinergy T Stick".
-Tested by a friend: works similarly to 0ccd:0093 version (af9035+tua9001)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Please delete the previous patch
-
-Regards
-
-
-Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/usb/s2255/s2255drv.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
-b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 61ae7f9..c3cd6be 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -1133,6 +1133,8 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "AVerMedia Twinstar (A825)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
- 		&af9035_props, "Asus U3100Mini Plus", NULL) },
-+        { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
-+		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, af9035_id_table);
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 55c972a..9cb8325 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -821,10 +821,12 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	struct s2255_fh *fh = file->private_data;
+ 	struct s2255_dev *dev = fh->dev;
++
+ 	strlcpy(cap->driver, "s2255", sizeof(cap->driver));
+ 	strlcpy(cap->card, "s2255", sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
 -- 
-1.7.9.5
+1.7.10.4
+
