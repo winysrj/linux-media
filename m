@@ -1,189 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:38064 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754576Ab3BPVZt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 16:25:49 -0500
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 1/3] [media] redrat3: limit periods to hardware limits
-Date: Sat, 16 Feb 2013 21:25:43 +0000
-Message-Id: <931ef7a1cb55bf99e035ffd9847a8cb0d38e71bc.1361020108.git.sean@mess.org>
-In-Reply-To: <cover.1361020108.git.sean@mess.org>
-References: <cover.1361020108.git.sean@mess.org>
-In-Reply-To: <cover.1361020108.git.sean@mess.org>
-References: <cover.1361020108.git.sean@mess.org>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2088 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244Ab3BOVjH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 16:39:07 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [GIT PULL FOR v3.9] bttv: v4l2-compliance fixes
+Date: Fri, 15 Feb 2013 22:38:59 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201302151115.24037.hverkuil@xs4all.nl> <511EA3F7.6010508@googlemail.com>
+In-Reply-To: <511EA3F7.6010508@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302152238.59841.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The redrat hardware cannot handle periods of larger than 32767us,
-limit appropriately. Also fix memory leak in redrat3_get_timeout.
+On Fri February 15 2013 22:09:11 Frank Schäfer wrote:
+> Am 15.02.2013 11:15, schrieb Hans Verkuil:
+> > This pull request is identical to the REVIEWv2 patch series I posted earlier:
+> >
+> > http://www.spinics.net/lists/linux-media/msg59944.html
+> >
+> > The only change (besides rebasing) is that patch 04/19 was moved to the end
+> > of the patch series. More about that patch below.
+> >
+> > This patch series updates bttv and tda7432 (a prerequisite of bttv) to the
+> > latest v4l2 frameworks, except for vb2 (as usual). Conversion to vb2 is
+> > something for the future.
+> >
+> > This patch series has been tested with the following bttv cards:
+> >
+> > Simple gpio-audio-based bttv card types:
+> >
+> > 39, 77, 41, 33
+> >
+> > msp34xx based card types:
+> >
+> > 10 (with msp3410d)
+> > 1 (with msp3410c)
+> >
+> > tvaudio based card types:
+> >
+> > 40 (with tda7432, tea6420 and tda9850)
+> >
+> > The last one is now finally working. I doubt audio has worked at all in the
+> > last few years for that card. I'm pretty pleased about this to be honest :-)
+> >
+> > It turns out that the frequency handling in the current driver is partially
+> > broken (see this thread:
+> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg58548.html). This
+> > is now fixed as a consequence of these compliancy patches. It's something
+> > v4l2-compliance found immediately, so this once again shows the importance of
+> > using v4l2-compliance to test fixes.
+> >
+> > While most patches are pretty standard for such conversions the last patch
+> > needs some more background:
+> >
+> > The current driver does not implement enumaudio (so apps cannot tell that
+> > audio inputs are present), it does not set V4L2_CAP_AUDIO, nor does it set
+> > audioset when calling ENUM_INPUT. And G_AUDIO doesn't set the stereo flag
+> > either. So these g/s_audio ioctls are quite pointless and misleading.
+> > Especially since some surveillance boards do not have audio at all.
+> >
+> > So I decided to remove them. But after a question about this from Frank
+> > Schäfer I investigated what would be needed to correctly implement
+> > s/g/enumaudio. So I made a second bttv branch which is identical to this
+> > one, except that the last patch is replaced by two new patches adding
+> > proper s/g/enumaudio support:
+> >
+> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv-audio
+> >
+> > However, this patch relies on the audio_inputs field (currently commented out)
+> > of the card definition, and I have serious doubts about the reliability of
+> > that field. A wrong number is not a problem in itself as audio will remain
+> > working, it is just that ENUMAUDIO will give wrong results.
+> >
+> > So there are three options:
+> >
+> > 1) keep the current situation: i.e. apply just the first 18 patches and skip
+> >    the last. I'm not in favor of this myself.
+> >
+> > 2) remove the g/s_audio ioctls. At least this makes the driver consistent
+> >    with the V4L2 API. And adding the enumaudio support can always be done
+> >    later.
+> >
+> > 3) use the bttv-audio branch and implement proper enumaudio support and just
+> >    accept that enumaudio can return incorrect results if the card definition
+> >    is wrong.
+> >
+> > I am undecided which of options 2 or 3 is better. I'm leaning slightly towards
+> > option 2, but there is much to be said for 3 as well. So I am leaving it to
+> > you, Mauro, since you are the bttv maintainer anyway :-)
+> >
+> > Regards,
+> >
+> >         Hans
+> 
+> Hi Hans,
+> 
+> I have tested the bttv-audio patches a few minutes ago with the
+> Hauppauge WinTV Theatre (card 10) and g/s_audio works as expected.
+> Audio line-in works fine, but I noticed that it also works fine with
+> kernel 3.7.8 ?!
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/redrat3.c |   53 ++++++++++++++++++++------------------------
- 1 files changed, 24 insertions(+), 29 deletions(-)
+Why wouldn't it?
 
-diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
-index 1b37fe2..842bdcd 100644
---- a/drivers/media/rc/redrat3.c
-+++ b/drivers/media/rc/redrat3.c
-@@ -209,9 +209,6 @@ struct redrat3_dev {
- 	u16 pktlen;
- 	u16 pkttype;
- 	u16 bytes_read;
--	/* indicate whether we are going to reprocess
--	 * the USB callback with a bigger buffer */
--	int buftoosmall;
- 	char *datap;
- 
- 	u32 carrier;
-@@ -396,7 +393,6 @@ static u32 redrat3_us_to_len(u32 microsec)
- 
- 	/* don't allow zero lengths to go back, breaks lirc */
- 	return result ? result : 1;
--
- }
- 
- /* timer callback to send reset event */
-@@ -515,8 +511,6 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
- 
- 	rr3_dbg(dev, "calling ir_raw_event_handle\n");
- 	ir_raw_event_handle(rr3->rc);
--
--	return;
- }
- 
- /* Util fn to send rr3 cmds */
-@@ -613,7 +607,7 @@ static inline void redrat3_delete(struct redrat3_dev *rr3,
- 
- static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
- {
--	u32 *tmp;
-+	__be32 *tmp;
- 	u32 timeout = MS_TO_US(150); /* a sane default, if things go haywire */
- 	int len, ret, pipe;
- 
-@@ -628,14 +622,16 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
- 	ret = usb_control_msg(rr3->udev, pipe, RR3_GET_IR_PARAM,
- 			      USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
- 			      RR3_IR_IO_SIG_TIMEOUT, 0, tmp, len, HZ * 5);
--	if (ret != len) {
-+	if (ret != len)
- 		dev_warn(rr3->dev, "Failed to read timeout from hardware\n");
--		return timeout;
-+	else {
-+		timeout = redrat3_len_to_us(be32_to_cpup(tmp));
-+
-+		rr3_dbg(rr3->dev, "Got timeout of %d ms\n", timeout / 1000);
- 	}
- 
--	timeout = redrat3_len_to_us(be32_to_cpu(*tmp));
-+	kfree(tmp);
- 
--	rr3_dbg(rr3->dev, "Got timeout of %d ms\n", timeout / 1000);
- 	return timeout;
- }
- 
-@@ -755,7 +751,6 @@ static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
- 
- static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
- {
--
- 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
- 
- 	memcpy(rr3->datap, (unsigned char *)rr3->bulk_in_buf, len);
-@@ -815,7 +810,7 @@ out:
- }
- 
- /* callback function from USB when async USB request has completed */
--static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
-+static void redrat3_handle_async(struct urb *urb)
- {
- 	struct redrat3_dev *rr3;
- 	int ret;
-@@ -857,7 +852,7 @@ static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
- 	}
- }
- 
--static void redrat3_write_bulk_callback(struct urb *urb, struct pt_regs *regs)
-+static void redrat3_write_bulk_callback(struct urb *urb)
- {
- 	struct redrat3_dev *rr3;
- 	int len;
-@@ -901,7 +896,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 	struct redrat3_dev *rr3 = rcdev->priv;
- 	struct device *dev = rr3->dev;
- 	struct redrat3_signal_header header;
--	int i, j, ret, ret_len, offset;
-+	int i, ret, ret_len, offset;
- 	int lencheck, cur_sample_len, pipe;
- 	char *buffer = NULL, *sigdata = NULL;
- 	int *sample_lens = NULL;
-@@ -931,8 +926,19 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 		goto out;
- 	}
- 
-+	sigdata = kzalloc((count + RR3_TX_TRAILER_LEN), GFP_KERNEL);
-+	if (!sigdata) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
- 	for (i = 0; i < count; i++) {
- 		cur_sample_len = redrat3_us_to_len(txbuf[i]);
-+		if (cur_sample_len > 0xffff) {
-+			dev_warn(dev, "transmit period of %uus truncated to %uus\n",
-+					txbuf[i], redrat3_len_to_us(0xffff));
-+			cur_sample_len = 0xffff;
-+		}
- 		for (lencheck = 0; lencheck < curlencheck; lencheck++) {
- 			if (sample_lens[lencheck] == cur_sample_len)
- 				break;
-@@ -950,22 +956,11 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
- 				break;
- 			}
- 		}
--	}
--
--	sigdata = kzalloc((count + RR3_TX_TRAILER_LEN), GFP_KERNEL);
--	if (!sigdata) {
--		ret = -ENOMEM;
--		goto out;
-+		sigdata[i] = lencheck;
- 	}
- 
- 	sigdata[count] = RR3_END_OF_SIGNAL;
- 	sigdata[count + 1] = RR3_END_OF_SIGNAL;
--	for (i = 0; i < count; i++) {
--		for (j = 0; j < curlencheck; j++) {
--			if (sample_lens[j] == redrat3_us_to_len(txbuf[i]))
--				sigdata[i] = j;
--		}
--	}
- 
- 	offset = RR3_TX_HEADER_OFFSET;
- 	sendbuf_len = RR3_HEADER_LENGTH + (sizeof(u16) * RR3_DRIVER_MAXLENS)
-@@ -1175,7 +1170,7 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
- 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe,
- 			  rr3->bulk_in_buf, ep_in->wMaxPacketSize,
--			  (usb_complete_t)redrat3_handle_async, rr3);
-+			  redrat3_handle_async, rr3);
- 
- 	/* set up bulk-out endpoint*/
- 	rr3->write_urb = usb_alloc_urb(0, GFP_KERNEL);
-@@ -1195,7 +1190,7 @@ static int redrat3_dev_probe(struct usb_interface *intf,
- 	pipe = usb_sndbulkpipe(udev, ep_out->bEndpointAddress);
- 	usb_fill_bulk_urb(rr3->write_urb, udev, pipe,
- 			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
--			  (usb_complete_t)redrat3_write_bulk_callback, rr3);
-+			  redrat3_write_bulk_callback, rr3);
- 
- 	rr3->udev = udev;
- 
--- 
-1.7.2.5
+> I also noticed that audio balance (msp34xx control) doesn't work for the
+> the left side and the sound is always mono (also for radio),
+> but I assume the problem is my self-made
+> mini-DIN-to-lini-in-Adapter-cable (this card has surround sound)...
 
+I've tested it with my WinTv Theatre and the balance works fine with a proper
+cable :-)
+
+> Some things that need to be fixed for this card (mute on stop/close,
+> colokiller control, BE video formats, ...),
+
+Can you elaborate on the mute and BE video formats? Colorkiller doesn't work,
+I've noticed the same thing.
+
+> but these are separate
+> issues not related to this patch series.
+> So feel free to add "Tested-by" (if anybody cares).
+
+Thanks!
+
+	Hans
+
+> 
+> Regards,
+> Frank
+> 
+> 
+> 
+> 
+> >
+> > The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+> >
+> >   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+> >
+> > are available in the git repository at:
+> >
+> >   git://linuxtv.org/hverkuil/media_tree.git bttv
+> >
+> > for you to fetch changes up to b26d6e39030e6ca2812bc8a818645169e6783ec9:
+> >
+> >   bttv: remove g/s_audio since there is only one audio input. (2013-02-15 10:56:48 +0100)
+> >
+> > ----------------------------------------------------------------
+> > Hans Verkuil (19):
+> >       bttv: fix querycap and radio v4l2-compliance issues.
+> >       bttv: add VIDIOC_DBG_G_CHIP_IDENT
+> >       bttv: fix ENUM_INPUT and S_INPUT
+> >       bttv: disable g/s_tuner and g/s_freq when no tuner present, fix return codes.
+> >       bttv: set initial tv/radio frequencies
+> >       bttv: G_PARM: set readbuffers.
+> >       bttv: fill in colorspace.
+> >       bttv: fill in fb->flags for VIDIOC_G_FBUF
+> >       bttv: fix field handling inside TRY_FMT.
+> >       tda7432: convert to the control framework
+> >       bttv: convert to the control framework.
+> >       bttv: add support for control events.
+> >       bttv: fix priority handling.
+> >       bttv: use centralized std and implement g_std.
+> >       bttv: there may be multiple tvaudio/tda7432 devices.
+> >       bttv: fix g_tuner capabilities override.
+> >       bttv: fix try_fmt_vid_overlay and setup initial overlay size.
+> >       bttv: do not switch to the radio tuner unless it is accessed.
+> >       bttv: remove g/s_audio since there is only one audio input.
+> >
+> >  drivers/media/i2c/tda7432.c           |  276 +++++++---------
+> >  drivers/media/i2c/tvaudio.c           |    2 +-
+> >  drivers/media/pci/bt8xx/bttv-cards.c  |   19 +-
+> >  drivers/media/pci/bt8xx/bttv-driver.c | 1144 ++++++++++++++++++++++++++++---------------------------------------
+> >  drivers/media/pci/bt8xx/bttv.h        |    3 +
+> >  drivers/media/pci/bt8xx/bttvp.h       |   31 +-
+> >  include/media/v4l2-chip-ident.h       |    8 +
+> >  include/uapi/linux/v4l2-controls.h    |    5 +
+> >  8 files changed, 632 insertions(+), 856 deletions(-)
+> 
