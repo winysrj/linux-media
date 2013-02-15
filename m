@@ -1,79 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55701 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753271Ab3BCNN6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 08:13:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC v2] media: tvp514x: add OF support
-Date: Sun, 03 Feb 2013 14:14 +0100
-Message-ID: <1832736.hCOhBbmy4r@avalon>
-In-Reply-To: <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
-References: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com> <510C43A0.7090906@gmail.com> <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4863 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932895Ab3BOJTK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 04:19:10 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/9] s2255: zero priv and set colorspace.
+Date: Fri, 15 Feb 2013 10:18:51 +0100
+Message-Id: <8c9359a1be796cb55a5f3c54f63cb27352cdf2b6.1360919695.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sunday 03 February 2013 15:43:49 Prabhakar Lad wrote:
-> On Sat, Feb 2, 2013 at 4:07 AM, Sylwester Nawrocki wrote:
-> > On 01/29/2013 02:07 PM, Prabhakar Lad wrote:
-> > [...]
-> > 
-> >> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> >> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> >> new file mode 100644
-> >> index 0000000..55d3ffd
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> >> @@ -0,0 +1,38 @@
-> >> +* Texas Instruments TVP514x video decoder
-> >> +
-> >> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality,
-> >> +single-chip digital video decoder that digitizes and decodes all popular
-> >> +baseband analog video formats into digital video component. The tvp514x
-> >> +decoder supports analog-to-digital (A/D) conversion of component RGB and
-> >> +YPbPr signals as well as A/D conversion and decoding of NTSC, PAL and
-> >> +SECAM composite and S-video into component YCbCr.
-> >> +
-> >> +Required Properties :
-> >> +- compatible: Must be "ti,tvp514x-decoder"
-> > 
-> > There are no significant differences among TVP514* devices as listed
-> > above, you would like to handle above ?
-> > 
-> > I'm just wondering if you don't need, for instance, two separate
-> > compatible properties, e.g. "ti,tvp5146-decoder" and "ti,tvp5147-decoder"
-> > ?
-> 
-> There are few differences in init/power sequence tough, I would still
-> like to have single compatible property "ti,tvp514x-decoder", If you feel we
-> need separate property I will change it please let me know on this.
+Set priv field of struct v4l2_pix_format to 0 and fill in colorspace.
 
-If there's any difference between the chips that need to be handled in the 
-driver, using two compatible properties is a good practice. Your driver will 
-then be able to easily differentiate between the two chips, and there's no 
-real drawback in doing so.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 88f728d..a16bc6c 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -859,6 +859,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.pixelformat = channel->fmt->fourcc;
+ 	f->fmt.pix.bytesperline = f->fmt.pix.width * (channel->fmt->depth >> 3);
+ 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
+ 	return 0;
+ }
+ 
+@@ -954,6 +956,8 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	f->fmt.pix.field = field;
+ 	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
+ 	dprintk(50, "%s: set width %d height %d field %d\n", __func__,
+ 		f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field);
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
