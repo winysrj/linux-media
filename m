@@ -1,88 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:35752 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933044Ab3BLOFI (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:49564 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965083Ab3BOGnS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 09:05:08 -0500
-Received: by mail-wg0-f53.google.com with SMTP id fn15so86761wgb.32
-        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 06:05:07 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <511A4442.6000402@samsung.com>
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
-	<1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
-	<CAAQKjZNmUVZnDcy3fbWkairnneOK7dooJT2gn=9++tzS=uhhzA@mail.gmail.com>
-	<511A4442.6000402@samsung.com>
-Date: Tue, 12 Feb 2013 22:57:41 +0900
-Message-ID: <CAAQKjZMcmhb7djsSgRHFvVujq6TDTwDgkH=SzVVYOdegKa-tMQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery
- support for G2D
-From: Inki Dae <inki.dae@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sachin Kamat <sachin.kamat@linaro.org>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	kgene.kim@samsung.com, patches@linaro.org,
-	devicetree-discuss@lists.ozlabs.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 15 Feb 2013 01:43:18 -0500
+Received: by mail-pa0-f47.google.com with SMTP id bj3so1613150pad.20
+        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 22:43:18 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com, patches@linaro.org
+Subject: [PATCH v6 0/1] Add display-timing node parsing to exynos drm fimd
+Date: Fri, 15 Feb 2013 12:13:06 +0530
+Message-Id: <1360910587-25548-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/2/12 Sylwester Nawrocki <s.nawrocki@samsung.com>:
-> On 02/12/2013 02:17 PM, Inki Dae wrote:
->> Applied and will go to -next.
->> And please post the document(in
->> Documentation/devicetree/bindings/gpu/) for it later.
->
-> There is already some old patch applied in the devicetree/next tree:
->
-> http://git.secretlab.ca/?p=linux.git;a=commitdiff;h=09495dda6a62c74b13412a63528093910ef80edd
->
-> I guess there is now an incremental patch needed for this.
->
+Add display-timing node parsing to drm fimd and depends on
+the display helper patchset at
+http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 
-I think that this patch should be reverted because the compatible
-string of this document isn't generic and also the document file
-should be moved into proper place(.../bindings/gpu/).
+It also adds pinctrl support for drm fimd.
 
-So Mr. Grant, could you please revert the below patch?
-        "of/exynos_g2d: Add Bindings for exynos G2D driver"
-        commit: 09495dda6a62c74b13412a63528093910ef80edd
+changes since v5:
+	- addressed comments from Inki Dae <inki.dae@samsung.com>,
+	to remove the allocation of 'fbmode' and replaced
+	'-1'in "of_get_fb_videomode(dev->of_node, fbmode, -1)" with
+	OF_USE_NATIVE_MODE.
 
-This document should be modifed correctly and re-posted. For this, we
-have already reached an arrangement with other Exynos maintainters.
+changes since v4:
+	- addressed comments from Paul Menzel 
+	<paulepanter@users.sourceforge.net>, to modify the commit message
 
-Thanks,
-Inki Dae
+changes since v3:
+	- addressed comments from Sean Paul <seanpaul@chromium.org>, to modify
+	the return values and print messages.
 
->
-> Regards,
-> Sylwester
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+changes since v2:
+	- moved 'devm_pinctrl_get_select_default' function call under
+		'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
+		(reported by: Rahul Sharma <r.sh.open@gmail.com>)
+
+changes since v1:
+	- addressed comments from Sean Paul <seanpaul@chromium.org>
+
+Vikas Sajjan (1):
+  video: drm: exynos: Add display-timing node parsing using video
+    helper function
+
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   37 ++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
+
+-- 
+1.7.9.5
+
