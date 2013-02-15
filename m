@@ -1,61 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49513 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755648Ab3BTRLo (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1254 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932943Ab3BOJTL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 12:11:44 -0500
-Date: Wed, 20 Feb 2013 17:11:43 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 7/7] sound/soc/codecs: Cosmetic changes to SI476X
- codec driver
-Message-ID: <20130220171142.GQ2726@opensource.wolfsonmicro.com>
-References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
- <1361246375-8848-8-git-send-email-andrew.smirnov@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="XG0jWBK27HhJN4nS"
-Content-Disposition: inline
-In-Reply-To: <1361246375-8848-8-git-send-email-andrew.smirnov@gmail.com>
+	Fri, 15 Feb 2013 04:19:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 8/9] s2255: don't zero struct v4l2_streamparm
+Date: Fri, 15 Feb 2013 10:18:53 +0100
+Message-Id: <b7482c3c033c711c7baaefb5ec108693f82dc445.1360919695.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---XG0jWBK27HhJN4nS
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+All fields after 'type' are already zeroed by the core framework.
+Clearing the full struct also clears 'type', which causes a wrong
+type value to be returned.
 
-On Mon, Feb 18, 2013 at 07:59:35PM -0800, Andrey Smirnov wrote:
-> - Add appropriate license header
-> - Change email address in MODULE_AUTHOR
-> - Remove trailing whitespaces
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-Applied, thanks.  Always use subject lines appropriate for the subsystem
-you're submitting against.
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 9693eb9..eaae9d1 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1476,7 +1476,6 @@ static int vidioc_g_parm(struct file *file, void *priv,
+ 	struct s2255_channel *channel = fh->channel;
+ 	if (sp->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+-	memset(sp, 0, sizeof(struct v4l2_streamparm));
+ 	sp->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+ 	sp->parm.capture.capturemode = channel->cap_parm.capturemode;
+ 	def_num = (channel->mode.format == FORMAT_NTSC) ? 1001 : 1000;
+-- 
+1.7.10.4
 
---XG0jWBK27HhJN4nS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRJQPHAAoJELSic+t+oim9jPIQAJCExBxoGC5mQUEVLhDhVi2B
-0k7z81NECa/a4KBjUJTq52R/NnAO+eO5jDHVclQgghAzKmB/UGmd5382AqtCPmUe
-wUYFTKVeFsFAGDjOz/nWzrxcxR+iofBcNad/hbu2VwkH/Ln2GNjreNue84wXNOx2
-N9aDvXI+T85o6Azh1M4KY1d7Ewk1JwhcqED3JmzZNkP1vW7JYOl9KizvS1lFXlr3
-7DpNQ/sXHP6a/UkSzF3bgYO+G4hyta921jFXMODim7JfXDUAz6pmf11Yb6zIddOP
-SYKePl0tTfBb4Oowt2PT9hLhXbmwsDVlEVKNtVpYALCqSOwJf6KDk0NDFQZMEFse
-KxG1nNZG/RVTkZcbFOJb6tUrq3IlmGD7BpAyP2Ku6oYvKtIcC3/5pt0Pvk8y0nnI
-ht0j1OF4WLN5UPcZdc2paNBz0WLx1MuO0i/m+zapp2/nEzhYaJfBOOTCJFx0rBDN
-iEU7yf9ZfbVfXLg7TthLo7GjUc0wbGF40wewRX0Ci/zeVdQRfTAV4mjmFCBgaM7V
-yhqiWbahPO4RwGhuPVlsDIX7jf0NAUueZniLeUaZstlujTPehDukA1yN02KpBQtt
-qzV6a6sIJVDh9fq7oJfEwewP3MSRlvt/qJluiBd+t14tTudNZnfAjVLGca0O9ndB
-Jn4rDOxWhWhPFxLu+Msp
-=7DA3
------END PGP SIGNATURE-----
-
---XG0jWBK27HhJN4nS--
