@@ -1,232 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34469 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933883Ab3BTKtt (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1806 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161386Ab3BOMzd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 05:49:49 -0500
-References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com> <5123C849.6080207@googlemail.com> <20130219155303.25c5077a@redhat.com> <5123D651.1090108@googlemail.com> <20130219170343.00b92d18@redhat.com> <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Wrongly identified easycap em28xx
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Wed, 20 Feb 2013 05:49:44 -0500
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <a109b427-0ac5-4afd-b2e4-184b6b452c6e@email.android.com>
+	Fri, 15 Feb 2013 07:55:33 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 05/10] au0828: fix audio input handling.
+Date: Fri, 15 Feb 2013 13:55:08 +0100
+Message-Id: <7ee355a4f15344d9711b3360c2039c224f3732ca.1360932644.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360932913-3548-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ee88bd549bcb37235d975b6799fbcf6501e98f0c.1360932644.git.hans.verkuil@cisco.com>
+References: <ee88bd549bcb37235d975b6799fbcf6501e98f0c.1360932644.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->
->
->On Tue, 19 Feb 2013, Mauro Carvalho Chehab wrote:
->
->> Em Tue, 19 Feb 2013 20:45:21 +0100
->> Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
->> 
->> > Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
->> > > Em Tue, 19 Feb 2013 19:45:29 +0100
->> > > Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
->> > >
->> > >>> I don't like the idea of merging those two entries. As far as I
->remember
->> > >>> there are devices that works out of the box with
->> > >>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can
->break
->> > >>> the driver for them.
->> > >> As described above, there is a good chance to break devices with
->both
->> > >> solutions.
->> > >>
->> > >> What's your suggestion ? ;-)
->> > >>
->> > > As I said, just leave it as-is (documenting at web) 
->> > 
->> > That seems to be indeed the only 100%-regression-safe solution.
->> > But also _no_ solution for this device.
->> > A device which works only with a special module parameter passed on
->> > driver loading isn't much better than an unsupported device.
->> 
->> That's not true. There are dozens of devices that only work with
->> modprobe parameter (even ones with their own USB or PCI address). The
->thing
->> is that crappy vendors don't provide any way for a driver to detect
->what's
->> there, as their driver rely on some *.inf config file with those
->parameters
->> hardcoded.
->> 
->> We can't do any better than what's provided by the device.
->> 
->> > 
->> > It comes down to the following question:
->> > Do we want to refuse fixing known/existing devices for the sake of
->> > avoiding regression for unknown devices which even might not exist
->? ;-)
->> 
->> HUH? As I said: there are devices that work with the other board
->entry.
->> If you remove the other entry, _then_ you'll be breaking the driver.
->> 
->> > I have no strong and final opinion yet. Still hoping someone knows
->how
->> > the Empia driver handles these cases...
->> 
->> What do you mean? The original driver? The parameters are hardcoded
->at the
->> *.inf file. Once you get the driver, the *.inf file contains all the
->> parameters for it to work there. If you have two empia devices with
->> different models, you can only use the second one after removing the
->> install for the first one.
->> 
->> > > or to use the AC97
->> > > chip ID as a hint. This works fine for devices that don't come
->with
->> > > Empiatech em202, but with something else, like the case of the
->Realtek
->> > > chip found on this device. The reference design for sure uses
->em202.
->> > 
->> > How could the AC97 chip ID help us in this situation ?
->> > As far as I understand, it doesn't matter which AC97 IC is used.
->> > They are all compatible and at least our driver uses the same code
->for
->> > all of them.
->> 
->> The em28xx Kernel driver uses a hint code to try to identify the
->device
->> model. That hint code is not perfect, but it is the better we can do.
->> 
->> There are two hint codes there, currently: 
->> 1) device's eeprom hash, used when the device has an eeprom, but the
->>    USB ID is not unique;
->> 
->> 2) I2C scan bus hash: sometimes, different devices use different I2C
->> addresses.
->> 
->> > 
->> > So even if you are are right and the Empia reference design uses an
->EMP202,
->> > EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with
->other
->> > AC97-ICs, too.
->> 
->> The vast majority of devices use emp202. There are very few ones
->using
->> different models.
->> 
->> The proposal here is to add a third hint code, that would distinguish
->> the devices based on the ac97 ID.
->> 
->> > We should also expect manufacturers to switch between them whenever
->they
->> > want (e.g. because of price changes).
->> 
->> Yes, and then we'll need other entries at the hint table.
->> 
->> Regards
->> Mauro
->
->I see the dilemma. Devices which are not uniquely identifiable. Mauro
->is 
->right in pinpointing the problem, and he is also right that one can not
->
->expect the manufacturers to pay any attention. Mauro is also absolutely
->
->right that it is not good to break what works already for some people, 
->hoping to please some others who are presently unhappy. A better
->solution 
->needs to be found.
->
->Could I make a suggestion?
->
->Sometimes it is possible to find some undocumented way to identify 
->uniquely which one of two devices you have. As an example, look in 
->mr97310a.c, where there is a detection routine for several devices
->which 
->all have the same USB vendor:product code but are different inside. 
->
->Indeed, back when lots of those mr97310a cameras were on the market,
->the 
->"manufacturers" were supposed to be sending out the cameras with the 
->"right" windows driver. Except the situation was actually so bad that 
->quite often some of the manufacturers were grabbing the wrong driver CD
->
->off the shelf and putting it with the wrong cameras! You can do a
->Google 
->search for the Windows driver for some of those cameras and find web
->pages 
->full of complaints from disgruntled users who got the wrong CD in the 
->package with the camera, frantically looking for the right driver CD.
->It 
->was that bad. Now to top that off, think of some poor guy having a
->Windows 
->computer and wanting to have two cameras of the same brand and make,
->with 
->identical cases on the outside, but which needed different versions of
->the 
->driver CD. And whichever driver is installed one of the two cameras
->will 
->not work. Proof, BTW, that neither of those Windows drivers contains
->any 
->detection routine.
->
->The gspca_mr97310a module for Linux is the only support for those
->cameras 
->for any operating system that I know of, which actually can tell one of
->
->those cameras from the other and apply the right initialiation to it
->when 
->it is hooked up -- unless somebody has copied us since then.
->
->The situation here looks to me similar. What someone needs to do is to 
->find some kind of "read" command or sequence of commands (probably to
->the 
->sensor, not to the controller) which will report a distinct answer for 
->each of the various different cameras. Almost certainly, it will not be
->
->documented, but it almost certainly has to exist -- if for no other 
->reason, because something is obviously different about the two pieces
->of 
->hardware. So in my opinion the thing to do is to try to find that magic
->
->command. By a combination of educated guessing and trial and error.
->This 
->needs for someone to have both cameras, or for two or more people who
->have 
->the different cameras to cooperate together and hunt for the right
->command 
->which unlocks the mystery.
->
->I am out of this one because I don't have one of the cameras currently
->in 
->question. But I did have a big pile of mr97310a cameras, and that is 
->exactly what I did. Started sending various commands and checking
->whether 
->or not I got different results until I found what works.
->
->So, good luck. The answer is probably there if one looks for it.
->
->My two cents,
->
->Theodore Kilgore
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- V4L2_CAP_AUDIO was set, but enumaudio was not implemented.
+- audioset was never filled by enum_input
+- ctrl_ainput was never updated when switching the video input
+- g_audio was broken due to faulty logic: g_audio should set the
+  index, it doesn't receive it from the user.
 
-Adding another example to Theodore's suggestion:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/au0828/au0828-video.c |   35 +++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-cx25840-core.c:cx25840_probe() has to go through a register inspection hueristic to distinguish between CX25843 cores used in the CX2388[578] chips, due to a useless ID register.
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index e3d8a3c..e4a24fa 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1373,10 +1373,13 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	input->index = tmp;
+ 	strcpy(input->name, inames[AUVI_INPUT(tmp).type]);
+ 	if ((AUVI_INPUT(tmp).type == AU0828_VMUX_TELEVISION) ||
+-	    (AUVI_INPUT(tmp).type == AU0828_VMUX_CABLE))
++	    (AUVI_INPUT(tmp).type == AU0828_VMUX_CABLE)) {
+ 		input->type |= V4L2_INPUT_TYPE_TUNER;
+-	else
++		input->audioset = 1;
++	} else {
+ 		input->type |= V4L2_INPUT_TYPE_CAMERA;
++		input->audioset = 2;
++	}
+ 
+ 	input->std = dev->vdev->tvnorms;
+ 
+@@ -1408,12 +1411,15 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 	switch (AUVI_INPUT(index).type) {
+ 	case AU0828_VMUX_SVIDEO:
+ 		dev->input_type = AU0828_VMUX_SVIDEO;
++		dev->ctrl_ainput = 1;
+ 		break;
+ 	case AU0828_VMUX_COMPOSITE:
+ 		dev->input_type = AU0828_VMUX_COMPOSITE;
++		dev->ctrl_ainput = 1;
+ 		break;
+ 	case AU0828_VMUX_TELEVISION:
+ 		dev->input_type = AU0828_VMUX_TELEVISION;
++		dev->ctrl_ainput = 0;
+ 		break;
+ 	default:
+ 		dprintk(1, "VIDIOC_S_INPUT unknown input type set [%d]\n",
+@@ -1450,23 +1456,32 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 	return 0;
+ }
+ 
++static int vidioc_enumaudio(struct file *file, void *priv, struct v4l2_audio *a)
++{
++	if (a->index > 1)
++		return -EINVAL;
++
++	if (a->index == 0)
++		strcpy(a->name, "Television");
++	else
++		strcpy(a->name, "Line in");
++
++	a->capability = V4L2_AUDCAP_STEREO;
++	return 0;
++}
++
+ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ {
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
+-	unsigned int index = a->index;
+ 
+-	if (a->index > 1)
+-		return -EINVAL;
+-
+-	index = dev->ctrl_ainput;
+-	if (index == 0)
++	a->index = dev->ctrl_ainput;
++	if (a->index == 0)
+ 		strcpy(a->name, "Television");
+ 	else
+ 		strcpy(a->name, "Line in");
+ 
+ 	a->capability = V4L2_AUDCAP_STEREO;
+-	a->index = index;
+ 	return 0;
+ }
+ 
+@@ -1474,6 +1489,7 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ {
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
++
+ 	if (a->index != dev->ctrl_ainput)
+ 		return -EINVAL;
+ 	return 0;
+@@ -1876,6 +1892,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
+ 	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_s_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
++	.vidioc_enumaudio           = vidioc_enumaudio,
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
+ 	.vidioc_cropcap             = vidioc_cropcap,
+-- 
+1.7.10.4
 
-Regards,
-Andy
