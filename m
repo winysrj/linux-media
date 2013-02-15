@@ -1,69 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3405 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754631Ab3BDMgs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 07:36:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/8] stk-webcam: fix querycap and simplify s_input.
-Date: Mon,  4 Feb 2013 13:36:19 +0100
-Message-Id: <ad8ed42592df3b17f7683c34ad499fba9a8ed998.1359981193.git.hans.verkuil@cisco.com>
-In-Reply-To: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
-References: <2d4b37cad1af7790d44cc541b4a5519716e6a98c.1359981193.git.hans.verkuil@cisco.com>
+Received: from mail-we0-f169.google.com ([74.125.82.169]:55609 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752001Ab3BOWyz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 17:54:55 -0500
+Received: by mail-we0-f169.google.com with SMTP id t11so3342552wey.14
+        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 14:54:54 -0800 (PST)
+MIME-Version: 1.0
+Date: Fri, 15 Feb 2013 23:54:54 +0100
+Message-ID: <CAA=TYk8-a2NMSsZHjCygBxijGrfvd_KRDgsGWcKMFFAWMF6ubg@mail.gmail.com>
+Subject: [PATCH] [media] rtl28xxu: Add USB ID for MaxMedia HU394-T
+From: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: gennarone@gmail.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Add device_caps support to querycap and do not set the version field (let the
-core handle that).
+please add USB ID for MaxMedia HU394-T USB DVB-T Multi (FM, DAB, DAB+)
+dongle (RTL2832U+FC0012)
 
-Also simplify the s_input ioctl.
+In Italy is branded: "DIKOM USB-DVBT HD"
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+lsusb:
+ID 1b80:d394 Afatech
+
+Regards
+
+
+Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
 ---
- drivers/media/usb/stkwebcam/stk-webcam.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index a7882d6..a654578 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -730,12 +730,16 @@ static int v4l_stk_mmap(struct file *fp, struct vm_area_struct *vma)
- static int stk_vidioc_querycap(struct file *filp,
- 		void *priv, struct v4l2_capability *cap)
- {
-+	struct stk_camera *dev = video_drvdata(filp);
-+
- 	strcpy(cap->driver, "stk");
- 	strcpy(cap->card, "stk");
--	cap->version = DRIVER_VERSION_NUM;
-+	strlcpy(cap->bus_info, dev_name(&dev->udev->dev),
-+		sizeof(cap->bus_info));
- 
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
- 		| V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
-@@ -759,10 +763,7 @@ static int stk_vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
- 
- static int stk_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
- {
--	if (i != 0)
--		return -EINVAL;
--	else
--		return 0;
-+	return i ? -EINVAL : 0;
- }
- 
- static int stk_s_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index a4c302d..fc7b7a0 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1352,6 +1352,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Dexatek DK mini DVB-T Dongle", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00d7,
+ 		&rtl2832u_props, "TerraTec Cinergy T Stick+", NULL) },
++      { DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
++		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
 -- 
-1.7.10.4
-
+1.7.9.5
