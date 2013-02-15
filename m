@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2559 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752585Ab3BIKB2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 23/26] cx231xx: don't reset width/height on first open.
-Date: Sat,  9 Feb 2013 11:00:53 +0100
-Message-Id: <ca35873947efc13a2a7d690ca70451e3ebb8d653.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39090 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750881Ab3BOVS6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 16:18:58 -0500
+Date: Fri, 15 Feb 2013 16:18:37 -0500
+From: Jarod Wilson <jarod@redhat.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joe Perches <joe@perches.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	devel <devel@driverdev.osuosl.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
+Message-ID: <20130215211837.GB11859@redhat.com>
+References: <1360704036.22660.5.camel@joe-AO722>
+ <20130213063604.GQ4937@mwanda>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130213063604.GQ4937@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Feb 13, 2013 at 09:36:04AM +0300, Dan Carpenter wrote:
+> On Tue, Feb 12, 2013 at 01:20:36PM -0800, Joe Perches wrote:
+> > His email bounces and he hasn't done work on
+> > these sections in a couple of years.
+> > 
+> 
+> I've added him to the CC list.
+> 
+> Can we just update MAINTAINERS with the correct email address?  It's
+> been useful to CC him on stuff.
 
-The last set width/height must be preserved as per the spec.
+Domain reg lapsed, never saw the notice, but its all better now. Yes, I've
+been inactive on this stuff of late, lots going on in my personal life
+that has reduced free time for upstream work to nearly nil. I hope to get
+back into it once things settle down, which should be happening relativley
+soon...
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-video.c |    3 ---
- 1 file changed, 3 deletions(-)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index dc799de..0254bd6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1870,9 +1870,6 @@ static int cx231xx_v4l2_open(struct file *filp)
- 	v4l2_fh_init(&fh->fh, vdev);
- 
- 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
--		dev->width = norm_maxw(dev);
--		dev->height = norm_maxh(dev);
--
- 		/* Power up in Analog TV mode */
- 		if (dev->board.external_av)
- 			cx231xx_set_power_mode(dev,
 -- 
-1.7.10.4
+Jarod Wilson
+jarod@redhat.com
 
