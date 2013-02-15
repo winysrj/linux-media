@@ -1,50 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52057 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549Ab3B1W0q (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3466 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab3BOVC7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Feb 2013 17:26:46 -0500
-Date: Thu, 28 Feb 2013 22:26:12 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Vikas Sajjan <vikas.sajjan@linaro.org>, kgene.kim@samsung.com,
-	linaro-dev@lists.linaro.org, jy0922.shim@samsung.com,
-	patches@linaro.org, l.krishna@samsung.com, joshi@samsung.com,
-	dri-devel@lists.freedesktop.org, inki.dae@samsung.com,
-	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v9 2/2] video: drm: exynos: Add pinctrl support to fimd
-Message-ID: <20130228222612.GE17833@n2100.arm.linux.org.uk>
-References: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org> <1362024762-28406-3-git-send-email-vikas.sajjan@linaro.org> <512FD44D.1070408@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <512FD44D.1070408@gmail.com>
+	Fri, 15 Feb 2013 16:02:59 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1FL2tRH076862
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 22:02:57 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2C84E11E00BE
+	for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 22:02:55 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130215210255.2C84E11E00BE@alastor.dyndns.org>
+Date: Fri, 15 Feb 2013 22:02:55 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 28, 2013 at 11:03:57PM +0100, Sylwester Nawrocki wrote:
-> Please just use IS_ERR(), let's stop this IS_ERR_OR_NULL() insanity.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Yes, indeed.
+Results of the daily build of media_tree:
 
-On that topic (and off-topic for this thread, sorry) I've committed
-a set of patches to remove most users of IS_ERR_OR_NULL() from arch/arm.
-These are the last remaining ones there - and I don't want to see any
-more appearing:
+date:		Fri Feb 15 19:00:20 CET 2013
+git branch:	for_v3.9
+git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk))
-arch/arm/plat-samsung/clock.c:	if (!IS_ERR_OR_NULL(clk) && clk->ops && clk->ops->round_rate)
-arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk))
-arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk) || IS_ERR_OR_NULL(parent))
-arch/arm/mach-imx/devices/platform-ipu-core.c:	if (IS_ERR_OR_NULL(imx_ipu_coredev))
-arch/arm/mach-imx/devices/platform-ipu-core.c:	if (IS_ERR_OR_NULL(imx_ipu_coredev))
-arch/arm/kernel/smp_twd.c:		 * We use IS_ERR_OR_NULL() here, because if the clock stubs
-arch/arm/kernel/smp_twd.c:		if (!IS_ERR_OR_NULL(twd_clk))
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-They currently all legal uses of it - though I'm sure that the samsung
-clock uses can be reduced to just IS_ERR().  The IMX use looks "valid"
-in that imx_ipu_coredev really can be an error pointer (on failure) or
-NULL if the platform device hasn't yet been created.  The TWD one is
-explained in the comments in the code (if people had to write explanations
-for using IS_ERR_OR_NULL(), we'd probably have it used correctly!)
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
