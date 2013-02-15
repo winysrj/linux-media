@@ -1,94 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:49722 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab3BFKsp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 05:48:45 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MHS007B0OLNYC60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 10:48:43 +0000 (GMT)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MHS00BKVOP75I80@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 06 Feb 2013 10:48:43 +0000 (GMT)
-Message-id: <5112350A.60906@samsung.com>
-Date: Wed, 06 Feb 2013 11:48:42 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.8] Exynos/s5p driver fixes
-References: <50FAA6C4.9020606@gmail.com> <20130205184356.7e513290@redhat.com>
-In-reply-to: <20130205184356.7e513290@redhat.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1428 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932942Ab3BOJTL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Feb 2013 04:19:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/9] s2255: fixes in the way standards are handled.
+Date: Fri, 15 Feb 2013 10:18:50 +0100
+Message-Id: <3dd861c1eaeff5db4519d14afea44ee27f2b70d7.1360919695.git.hans.verkuil@cisco.com>
+In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
+References: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 02/05/2013 09:43 PM, Mauro Carvalho Chehab wrote:
-[..]
->> The following changes since commit 7d1f9aeff1ee4a20b1aeb377dd0f579fe9647619:
->>
->>    Linux 3.8-rc4 (2013-01-17 19:25:45 -0800)
->>
->> are available in the git repository at:
->>    git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
->>
->> Kamil Debski (1):
->>        s5p-mfc: end-of-stream handling in encoder bug fix
->>
->> Sylwester Nawrocki (2):
->>        s5p-fimc: Fix fimc-lite entities deregistration
->>        s5p-csis: Fix clock handling on error path in probe()
->>
->>   drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
->>   drivers/media/platform/s5p-fimc/mipi-csis.c    |    2 +-
->>   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
->>   3 files changed, 4 insertions(+), 2 deletions(-)
->>
->>
->> pwclient update -s accepted 16223
->> pwclient update -s accepted 16206
->> pwclient update -s accepted 16314
-> 
-> Error:
-> 
-> Importing patches from git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes
-> fatal: Couldn't find remote ref v3.8-rc5-fixes
+Instead of comparing against STD_NTSC and STD_PAL compare against 60 and
+50 Hz formats. That's what you really want.
 
-Here is the updated pull request, after rebase onto staging/for_v3.9:
+When the standard is changed, make sure the width and height of the format
+are also updated to reflect the current standard.
 
+Also replace the deprecated current_norm by the g_std ioctl.
 
-The following changes since commit 9b4539bebb86310afdc5563653ec4475ae110088:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |   61 +++++++++++++++++++++++-------------
+ 1 file changed, 39 insertions(+), 22 deletions(-)
 
-  [media] em28xx: input: use common work_struct callback function for IR RC key
-polling (2013-02-05 20:43:16 -0200)
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 9cb8325..88f728d 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -225,6 +225,7 @@ struct s2255_channel {
+ 	struct s2255_dmaqueue	vidq;
+ 	struct s2255_bufferi	buffer;
+ 	struct s2255_mode	mode;
++	v4l2_std_id		std;
+ 	/* jpeg compression */
+ 	unsigned		jpegqual;
+ 	/* capture parameters (for high quality mode full size) */
+@@ -312,7 +313,7 @@ struct s2255_fh {
+ /* Need DSP version 5+ for video status feature */
+ #define S2255_MIN_DSP_STATUS      5
+ #define S2255_MIN_DSP_COLORFILTER 8
+-#define S2255_NORMS		(V4L2_STD_PAL | V4L2_STD_NTSC)
++#define S2255_NORMS		(V4L2_STD_ALL)
+ 
+ /* private V4L2 controls */
+ 
+@@ -443,27 +444,27 @@ static const struct s2255_fmt formats[] = {
+ 	}
+ };
+ 
+-static int norm_maxw(struct video_device *vdev)
++static int norm_maxw(struct s2255_channel *channel)
+ {
+-	return (vdev->current_norm & V4L2_STD_NTSC) ?
++	return (channel->std & V4L2_STD_525_60) ?
+ 	    LINE_SZ_4CIFS_NTSC : LINE_SZ_4CIFS_PAL;
+ }
+ 
+-static int norm_maxh(struct video_device *vdev)
++static int norm_maxh(struct s2255_channel *channel)
+ {
+-	return (vdev->current_norm & V4L2_STD_NTSC) ?
++	return (channel->std & V4L2_STD_525_60) ?
+ 	    (NUM_LINES_1CIFS_NTSC * 2) : (NUM_LINES_1CIFS_PAL * 2);
+ }
+ 
+-static int norm_minw(struct video_device *vdev)
++static int norm_minw(struct s2255_channel *channel)
+ {
+-	return (vdev->current_norm & V4L2_STD_NTSC) ?
++	return (channel->std & V4L2_STD_525_60) ?
+ 	    LINE_SZ_1CIFS_NTSC : LINE_SZ_1CIFS_PAL;
+ }
+ 
+-static int norm_minh(struct video_device *vdev)
++static int norm_minh(struct s2255_channel *channel)
+ {
+-	return (vdev->current_norm & V4L2_STD_NTSC) ?
++	return (channel->std & V4L2_STD_525_60) ?
+ 	    (NUM_LINES_1CIFS_NTSC) : (NUM_LINES_1CIFS_PAL);
+ }
+ 
+@@ -725,10 +726,10 @@ static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 	if (channel->fmt == NULL)
+ 		return -EINVAL;
+ 
+-	if ((w < norm_minw(&channel->vdev)) ||
+-	    (w > norm_maxw(&channel->vdev)) ||
+-	    (h < norm_minh(&channel->vdev)) ||
+-	    (h > norm_maxh(&channel->vdev))) {
++	if ((w < norm_minw(channel)) ||
++	    (w > norm_maxw(channel)) ||
++	    (h < norm_minh(channel)) ||
++	    (h > norm_maxh(channel))) {
+ 		dprintk(4, "invalid buffer prepare\n");
+ 		return -EINVAL;
+ 	}
+@@ -870,8 +871,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct s2255_fh *fh = priv;
+ 	struct s2255_channel *channel = fh->channel;
+ 	int is_ntsc;
+-	is_ntsc =
+-		(channel->vdev.current_norm & V4L2_STD_NTSC) ? 1 : 0;
++	is_ntsc = (channel->std & V4L2_STD_525_60) ? 1 : 0;
+ 
+ 	fmt = format_by_fourcc(f->fmt.pix.pixelformat);
+ 
+@@ -998,8 +998,8 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	channel->height = f->fmt.pix.height;
+ 	fh->vb_vidq.field = f->fmt.pix.field;
+ 	fh->type = f->type;
+-	if (channel->width > norm_minw(&channel->vdev)) {
+-		if (channel->height > norm_minh(&channel->vdev)) {
++	if (channel->width > norm_minw(channel)) {
++		if (channel->height > norm_minh(channel)) {
+ 			if (channel->cap_parm.capturemode &
+ 			    V4L2_MODE_HIGHQUALITY)
+ 				mode.scale = SCALE_4CIFSI;
+@@ -1323,7 +1323,9 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
+ 	struct s2255_fh *fh = priv;
+ 	struct s2255_mode mode;
+ 	struct videobuf_queue *q = &fh->vb_vidq;
++	struct s2255_channel *channel = fh->channel;
+ 	int ret = 0;
++
+ 	mutex_lock(&q->vb_lock);
+ 	if (videobuf_queue_is_busy(q)) {
+ 		dprintk(1, "queue busy\n");
+@@ -1336,24 +1338,30 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
+ 		goto out_s_std;
+ 	}
+ 	mode = fh->channel->mode;
+-	if (*i & V4L2_STD_NTSC) {
+-		dprintk(4, "%s NTSC\n", __func__);
++	if (*i & V4L2_STD_525_60) {
++		dprintk(4, "%s 60 Hz\n", __func__);
+ 		/* if changing format, reset frame decimation/intervals */
+ 		if (mode.format != FORMAT_NTSC) {
+ 			mode.restart = 1;
+ 			mode.format = FORMAT_NTSC;
+ 			mode.fdec = FDEC_1;
++			channel->width = LINE_SZ_4CIFS_NTSC;
++			channel->height = NUM_LINES_4CIFS_NTSC * 2;
+ 		}
+-	} else if (*i & V4L2_STD_PAL) {
+-		dprintk(4, "%s PAL\n", __func__);
++	} else if (*i & V4L2_STD_625_50) {
++		dprintk(4, "%s 50 Hz\n", __func__);
+ 		if (mode.format != FORMAT_PAL) {
+ 			mode.restart = 1;
+ 			mode.format = FORMAT_PAL;
+ 			mode.fdec = FDEC_1;
++			channel->width = LINE_SZ_4CIFS_PAL;
++			channel->height = NUM_LINES_4CIFS_PAL * 2;
+ 		}
+ 	} else {
+ 		ret = -EINVAL;
++		goto out_s_std;
+ 	}
++	fh->channel->std = *i;
+ 	if (mode.restart)
+ 		s2255_set_mode(fh->channel, &mode);
+ out_s_std:
+@@ -1361,6 +1369,14 @@ out_s_std:
+ 	return ret;
+ }
+ 
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *i)
++{
++	struct s2255_fh *fh = priv;
++
++	*i = fh->channel->std;
++	return 0;
++}
++
+ /* Sensoray 2255 is a multiple channel capture device.
+    It does not have a "crossbar" of inputs.
+    We use one V4L device per channel. The user must
+@@ -1815,6 +1831,7 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
+ 	.vidioc_s_std = vidioc_s_std,
++	.vidioc_g_std = vidioc_g_std,
+ 	.vidioc_enum_input = vidioc_enum_input,
+ 	.vidioc_g_input = vidioc_g_input,
+ 	.vidioc_s_input = vidioc_s_input,
+@@ -1851,7 +1868,6 @@ static struct video_device template = {
+ 	.ioctl_ops = &s2255_ioctl_ops,
+ 	.release = s2255_video_device_release,
+ 	.tvnorms = S2255_NORMS,
+-	.current_norm = V4L2_STD_NTSC_M,
+ };
+ 
+ static const struct v4l2_ctrl_ops s2255_ctrl_ops = {
+@@ -2265,6 +2281,7 @@ static int s2255_board_init(struct s2255_dev *dev)
+ 		channel->jpegqual = S2255_DEF_JPEG_QUAL;
+ 		channel->width = LINE_SZ_4CIFS_NTSC;
+ 		channel->height = NUM_LINES_4CIFS_NTSC * 2;
++		channel->std = V4L2_STD_NTSC_M;
+ 		channel->fmt = &formats[0];
+ 		channel->mode.restart = 1;
+ 		channel->req_image_size = get_transfer_size(&mode_def);
+-- 
+1.7.10.4
 
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git v3.8-rc5-fixes-2
-
-for you to fetch changes up to 4a3dd932afe11a5edb3e5747a4d943b14062023f:
-
-  s5p-fimc: Fix fimc-lite entities deregistration (2013-02-06 11:35:34 +0100)
-
-----------------------------------------------------------------
-Kamil Debski (1):
-      s5p-mfc: end-of-stream handling in encoder bug fix
-
-Sylwester Nawrocki (2):
-      s5p-csis: Fix clock handling on error path in probe()
-      s5p-fimc: Fix fimc-lite entities deregistration
-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |    2 +-
- drivers/media/platform/s5p-fimc/mipi-csis.c    |    7 ++++---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c   |    2 ++
- 3 files changed, 7 insertions(+), 4 deletions(-)
-
---
-
-Thanks,
-Sylwester
