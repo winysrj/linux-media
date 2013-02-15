@@ -1,47 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:8964 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161506Ab3BONri (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:61402 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754117Ab3BOLNn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 08:47:38 -0500
-From: Ralph Metzler <rjkm@metzlerbros.de>
+	Fri, 15 Feb 2013 06:13:43 -0500
+Received: by mail-wi0-f178.google.com with SMTP id o1so992362wic.11
+        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 03:13:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-ID: <20766.15478.535523.4665@morden.metzler>
-Date: Fri, 15 Feb 2013 14:47:34 +0100
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Cc: Martin Vidovic <xtronom@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: ddbridge v0.8
-In-Reply-To: <511C0385.2060308@schinagl.nl>
-References: <CAAKANDV1QWHeuA3XG7+HK2Fc8rLBpkVWGWcJ0Bdc_3A_yAEVLA@mail.gmail.com>
-	<511C0385.2060308@schinagl.nl>
+In-Reply-To: <20130214214953.GB24184@valkosipuli.retiisi.org.uk>
+References: <CAJRKTVq-dgT2yMViBY=ZCbTHmV7m_9KN+mGXfCeqf1myL5tsWg@mail.gmail.com>
+ <20130214214953.GB24184@valkosipuli.retiisi.org.uk>
+From: Adriano Martins <adrianomatosmartins@gmail.com>
+Date: Fri, 15 Feb 2013 09:13:22 -0200
+Message-ID: <CAJRKTVqb7ZnNifS5rHruqXqh+5Y8z8PzffmuudoNfk=Sk+MrZA@mail.gmail.com>
+Subject: Re: omap3isp omap3isp: CCDC stop timeout!
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oliver Schinagl writes:
- > On 02/11/13 23:20, Martin Vidovic wrote:
- > > Hi,
- > >
- > > Is there any plan to include ddbridge driver version 0.8 in mainline kernel
- > > (currently it's 0.5). I really see no reason it's in the vacuum like now
- > > for almost a year. No sign of pushing it into mainline. Why is that so?
- > > It's a good driver.
- > You should ask Ralph Metzler (added to CC) as he wrote the driver I 
- > think or atleast maintains it.
+Hi Sakari,
 
-I wrote the driver but I never submitted it to the kernel myself. I got frustrated
-with that process years ago. Oliver Endriss took care of it and necessary coding style
-adjustments etc. in the last few years. (Many thanks again!) 
-But now he also stopped to pass it into the kernel due to some complications
-with other changes upstream.
+2013/2/14 Sakari Ailus <sakari.ailus@iki.fi>:
+> On Thu, Jan 31, 2013 at 05:40:38PM -0200, Adriano Martins wrote:
+>> Hi all,
+>>
+>> I'm trying capture images from an ov5640 sensor on parallel mode. The
+>> sensor output format is UYVY8_2X8.
+>> And the CCDC input is configured as  UYVY8_2X8 too. I can do it, after
+>> I applied the Laurent's patches:
+>> "[PATCH 0/6] YUV input support for the OMAP3 ISP".
+>>
+>> I have my sensor configured:
+>> {
+>> .subdevs = cm-t35_ov5640_primary_subdevs,
+>> .interface = ISP_INTERFACE_PARALLEL,
+>> .bus = {
+>>      .parallel = {
+>>      .data_lane_shift = 2,
+>>      .clk_pol = 0,
+>>      .hs_pol = 1,
+>>      .vs_pol = 1,
+>>      .data_pol = 1,
+>> },
+>> },
+>>
+>> I defined ISP_ISR_DEBUG and DEBUG in the isp.c
+>> Then, I configure the media-controller pipeline and try to capture:
+>>
+>> media-ctl -v -r -l '"ov5640 3-003c":0->"OMAP3 ISP CCDC":0[1]'
+>> media-ctl -v  -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+>> media-ctl -v -V '"ov5640 3-003c":0 [UYVY2X8 640x480]'
+>> media-ctl -v -V '"OMAP3 ISP CCDC":0 [UYVY2X8 640x480]'
+>> yavta -f UYVY -s 640x480 --capture=5 --file=image# /dev/video2
+>>
+>> In this point, it hangs, and I need hit ctrol-c.
+>> I get this message:
+>> [ 1640.308807] omap3isp omap3isp: CCDC stop timeout!
+>
+> The CCDC needs to receive a complete frames before it can stop.
+>
+>> I have observed that I don't get any interrupt messages. However, the
+>
+> This suggests that the ISP doesn't receive any data from the sensor. You
+> should see at least the HS_VS interrupt.
+>
+> Do you see any ISP interrupts in /proc/interrupts?
 
-I usually distribute a package with own versions of dvb-core, frontend and 
-ddbridge drivers now. When the next major restructuring due to the DVB-C modulator
-card and the stand-alone hardware network streamer (octopus net) support is done, 
-I will make it publically available. The current driver is version 0.9.7.
-It should be up to kernel coding style and can be easily copied over into
-a current kernel. But I am not about to take it apart into little patches.
+I solved my problem. I couldn't see any interrups because I didn't the
+mux settings in the pins camera.
+Now, I can capture frames from ov5640.
 
-Regards,
-Ralph
+>> DATA0:7, PCLK, HSYNC and VSYNC is working fine, I guess.
+>>
+>> NOTE: the sensor has externel 24 MHz oscillator, and the signals never
+>> stop into CCDC:
+>
+
+Thanks
+
+Regards
+Adriano Martins
