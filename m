@@ -1,318 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f171.google.com ([209.85.216.171]:48755 "EHLO
-	mail-qc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab3BPNM1 (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4975 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752027Ab3BPJfL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 08:12:27 -0500
-Received: by mail-qc0-f171.google.com with SMTP id d1so1546787qca.30
-        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 05:12:24 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 16 Feb 2013 18:42:03 +0530
-Message-ID: <CA+V-a8sMStpPkNSDFchvnWKWDYWFZSPWqU9LTzG9064_kXJvog@mail.gmail.com>
-Subject: Re: [RFC PATCH 01/18] tvp7002: replace 'preset' by 'timings' in
- various structs/variables.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
+	Sat, 16 Feb 2013 04:35:11 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
 	Tomasz Stanislawski <t.stanislaws@samsung.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	Scott Jiang <scott.jiang.linux@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [RFC PATCH 16/18] v4l2 core: remove the obsolete dv_preset support.
+Date: Sat, 16 Feb 2013 10:28:19 +0100
+Message-Id: <f395089d9dbe8c8e5b890de813a9d2f38b5a9628.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sat, Feb 16, 2013 at 2:58 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This is the first step towards removing the deprecated preset support of this
-> driver.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+These ioctls are no longer used by any drivers, so remove them.
 
-Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    4 ----
+ drivers/media/v4l2-core/v4l2-dev.c            |    4 ----
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   27 ++-----------------------
+ include/media/v4l2-ioctl.h                    |    9 ---------
+ 4 files changed, 2 insertions(+), 42 deletions(-)
 
-Regards,
---Prabhakar
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 7157af3..f129551 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1076,10 +1076,6 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_DBG_G_REGISTER:
+ 	case VIDIOC_DBG_G_CHIP_IDENT:
+ 	case VIDIOC_S_HW_FREQ_SEEK:
+-	case VIDIOC_ENUM_DV_PRESETS:
+-	case VIDIOC_S_DV_PRESET:
+-	case VIDIOC_G_DV_PRESET:
+-	case VIDIOC_QUERY_DV_PRESET:
+ 	case VIDIOC_S_DV_TIMINGS:
+ 	case VIDIOC_G_DV_TIMINGS:
+ 	case VIDIOC_DQEVENT:
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 51b3a77..a4201ff 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -685,7 +685,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 			SET_VALID_IOCTL(ops, VIDIOC_ENUMAUDIO, vidioc_enumaudio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_G_AUDIO, vidioc_g_audio);
+ 			SET_VALID_IOCTL(ops, VIDIOC_S_AUDIO, vidioc_s_audio);
+-			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset);
+ 			SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+ 		}
+ 		if (is_tx) {
+@@ -708,9 +707,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 					(ops->vidioc_g_std || vdev->current_norm)))
+ 			set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
+-		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_PRESETS, vidioc_enum_dv_presets);
+-		SET_VALID_IOCTL(ops, VIDIOC_S_DV_PRESET, vidioc_s_dv_preset);
+-		SET_VALID_IOCTL(ops, VIDIOC_G_DV_PRESET, vidioc_g_dv_preset);
+ 		SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
+ 		SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index aa6e7c7..3f24902 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -643,21 +643,6 @@ static void v4l_print_dbg_register(const void *arg, bool write_only)
+ 			p->reg, p->val);
+ }
+ 
+-static void v4l_print_dv_enum_presets(const void *arg, bool write_only)
+-{
+-	const struct v4l2_dv_enum_preset *p = arg;
+-
+-	pr_cont("index=%u, preset=%u, name=%s, width=%u, height=%u\n",
+-			p->index, p->preset, p->name, p->width, p->height);
+-}
+-
+-static void v4l_print_dv_preset(const void *arg, bool write_only)
+-{
+-	const struct v4l2_dv_preset *p = arg;
+-
+-	pr_cont("preset=%u\n", p->preset);
+-}
+-
+ static void v4l_print_dv_timings(const void *arg, bool write_only)
+ {
+ 	const struct v4l2_dv_timings *p = arg;
+@@ -1000,15 +985,13 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_input *p = arg;
+ 
+ 	/*
+-	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
++	 * We set the flags for CAP_DV_TIMINGS &
+ 	 * CAP_STD here based on ioctl handler provided by the
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific input, it must override these flags.
+ 	 */
+ 	if (ops->vidioc_s_std)
+ 		p->capabilities |= V4L2_IN_CAP_STD;
+-	if (ops->vidioc_s_dv_preset)
+-		p->capabilities |= V4L2_IN_CAP_PRESETS;
+ 	if (ops->vidioc_s_dv_timings)
+ 		p->capabilities |= V4L2_IN_CAP_DV_TIMINGS;
+ 
+@@ -1021,15 +1004,13 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_output *p = arg;
+ 
+ 	/*
+-	 * We set the flags for CAP_PRESETS, CAP_DV_TIMINGS &
++	 * We set the flags for CAP_DV_TIMINGS &
+ 	 * CAP_STD here based on ioctl handler provided by the
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific output, it must override these flags.
+ 	 */
+ 	if (ops->vidioc_s_std)
+ 		p->capabilities |= V4L2_OUT_CAP_STD;
+-	if (ops->vidioc_s_dv_preset)
+-		p->capabilities |= V4L2_OUT_CAP_PRESETS;
+ 	if (ops->vidioc_s_dv_timings)
+ 		p->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
+ 
+@@ -2028,10 +2009,6 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_IDENT, v4l_dbg_g_chip_ident, v4l_print_dbg_chip_ident, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_ENUM_DV_PRESETS, vidioc_enum_dv_presets, v4l_print_dv_enum_presets, 0),
+-	IOCTL_INFO_STD(VIDIOC_S_DV_PRESET, vidioc_s_dv_preset, v4l_print_dv_preset, INFO_FL_PRIO),
+-	IOCTL_INFO_STD(VIDIOC_G_DV_PRESET, vidioc_g_dv_preset, v4l_print_dv_preset, 0),
+-	IOCTL_INFO_STD(VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset, v4l_print_dv_preset, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings, v4l_print_dv_timings, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings, v4l_print_dv_timings, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DQEVENT, v4l_dqevent, v4l_print_event, 0),
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 4118ad1..daa0065 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -254,15 +254,6 @@ struct v4l2_ioctl_ops {
+ 					   struct v4l2_frmivalenum *fival);
+ 
+ 	/* DV Timings IOCTLs */
+-	int (*vidioc_enum_dv_presets) (struct file *file, void *fh,
+-				       struct v4l2_dv_enum_preset *preset);
+-
+-	int (*vidioc_s_dv_preset) (struct file *file, void *fh,
+-				   struct v4l2_dv_preset *preset);
+-	int (*vidioc_g_dv_preset) (struct file *file, void *fh,
+-				   struct v4l2_dv_preset *preset);
+-	int (*vidioc_query_dv_preset) (struct file *file, void *fh,
+-					struct v4l2_dv_preset *qpreset);
+ 	int (*vidioc_s_dv_timings) (struct file *file, void *fh,
+ 				    struct v4l2_dv_timings *timings);
+ 	int (*vidioc_g_dv_timings) (struct file *file, void *fh,
+-- 
+1.7.10.4
 
-> ---
->  drivers/media/i2c/tvp7002.c |   90 +++++++++++++++++++++----------------------
->  1 file changed, 45 insertions(+), 45 deletions(-)
->
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 537f6b4..7995eeb 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -326,8 +326,8 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
->         { TVP7002_EOR, 0xff, TVP7002_RESERVED }
->  };
->
-> -/* Preset definition for handling device operation */
-> -struct tvp7002_preset_definition {
-> +/* Timings definition for handling device operation */
-> +struct tvp7002_timings_definition {
->         u32 preset;
->         struct v4l2_dv_timings timings;
->         const struct i2c_reg_value *p_settings;
-> @@ -339,8 +339,8 @@ struct tvp7002_preset_definition {
->         u16 cpl_max;
->  };
->
-> -/* Struct list for digital video presets */
-> -static const struct tvp7002_preset_definition tvp7002_presets[] = {
-> +/* Struct list for digital video timings */
-> +static const struct tvp7002_timings_definition tvp7002_timings[] = {
->         {
->                 V4L2_DV_720P60,
->                 V4L2_DV_BT_CEA_1280X720P60,
-> @@ -420,7 +420,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
->         }
->  };
->
-> -#define NUM_PRESETS    ARRAY_SIZE(tvp7002_presets)
-> +#define NUM_TIMINGS ARRAY_SIZE(tvp7002_timings)
->
->  /* Device definition */
->  struct tvp7002 {
-> @@ -431,7 +431,7 @@ struct tvp7002 {
->         int ver;
->         int streaming;
->
-> -       const struct tvp7002_preset_definition *current_preset;
-> +       const struct tvp7002_timings_definition *current_timings;
->  };
->
->  /*
-> @@ -603,11 +603,11 @@ static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
->         u32 preset;
->         int i;
->
-> -       for (i = 0; i < NUM_PRESETS; i++) {
-> -               preset = tvp7002_presets[i].preset;
-> +       for (i = 0; i < NUM_TIMINGS; i++) {
-> +               preset = tvp7002_timings[i].preset;
->                 if (preset == dv_preset->preset) {
-> -                       device->current_preset = &tvp7002_presets[i];
-> -                       return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
-> +                       device->current_timings = &tvp7002_timings[i];
-> +                       return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
->                 }
->         }
->
-> @@ -623,12 +623,12 @@ static int tvp7002_s_dv_timings(struct v4l2_subdev *sd,
->
->         if (dv_timings->type != V4L2_DV_BT_656_1120)
->                 return -EINVAL;
-> -       for (i = 0; i < NUM_PRESETS; i++) {
-> -               const struct v4l2_bt_timings *t = &tvp7002_presets[i].timings.bt;
-> +       for (i = 0; i < NUM_TIMINGS; i++) {
-> +               const struct v4l2_bt_timings *t = &tvp7002_timings[i].timings.bt;
->
->                 if (!memcmp(bt, t, &bt->standards - &bt->width)) {
-> -                       device->current_preset = &tvp7002_presets[i];
-> -                       return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
-> +                       device->current_timings = &tvp7002_timings[i];
-> +                       return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
->                 }
->         }
->         return -EINVAL;
-> @@ -639,7 +639,7 @@ static int tvp7002_g_dv_timings(struct v4l2_subdev *sd,
->  {
->         struct tvp7002 *device = to_tvp7002(sd);
->
-> -       *dv_timings = device->current_preset->timings;
-> +       *dv_timings = device->current_timings->timings;
->         return 0;
->  }
->
-> @@ -681,15 +681,15 @@ static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f
->         int error;
->
->         /* Calculate height and width based on current standard */
-> -       error = v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset);
-> +       error = v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset);
->         if (error)
->                 return error;
->
->         f->width = e_preset.width;
->         f->height = e_preset.height;
->         f->code = V4L2_MBUS_FMT_YUYV10_1X20;
-> -       f->field = device->current_preset->scanmode;
-> -       f->colorspace = device->current_preset->color_space;
-> +       f->field = device->current_timings->scanmode;
-> +       f->colorspace = device->current_timings->color_space;
->
->         v4l2_dbg(1, debug, sd, "MBUS_FMT: Width - %d, Height - %d",
->                         f->width, f->height);
-> @@ -697,16 +697,16 @@ static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f
->  }
->
->  /*
-> - * tvp7002_query_dv_preset() - query DV preset
-> + * tvp7002_query_dv() - query DV timings
->   * @sd: pointer to standard V4L2 sub-device structure
-> - * @qpreset: standard V4L2 v4l2_dv_preset structure
-> + * @index: index into the tvp7002_timings array
->   *
-> - * Returns the current DV preset by TVP7002. If no active input is
-> + * Returns the current DV timings detected by TVP7002. If no active input is
->   * detected, returns -EINVAL
->   */
->  static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
->  {
-> -       const struct tvp7002_preset_definition *presets = tvp7002_presets;
-> +       const struct tvp7002_timings_definition *timings = tvp7002_timings;
->         u8 progressive;
->         u32 lpfr;
->         u32 cpln;
-> @@ -717,7 +717,7 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
->         u8 cpl_msb;
->
->         /* Return invalid index if no active input is detected */
-> -       *index = NUM_PRESETS;
-> +       *index = NUM_TIMINGS;
->
->         /* Read standards from device registers */
->         tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_LSBS, &lpf_lsb, &error);
-> @@ -738,23 +738,23 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
->         progressive = (lpf_msb & TVP7002_INPR_MASK) >> TVP7002_IP_SHIFT;
->
->         /* Do checking of video modes */
-> -       for (*index = 0; *index < NUM_PRESETS; (*index)++, presets++)
-> -               if (lpfr == presets->lines_per_frame &&
-> -                       progressive == presets->progressive) {
-> -                       if (presets->cpl_min == 0xffff)
-> +       for (*index = 0; *index < NUM_TIMINGS; (*index)++, timings++)
-> +               if (lpfr == timings->lines_per_frame &&
-> +                       progressive == timings->progressive) {
-> +                       if (timings->cpl_min == 0xffff)
->                                 break;
-> -                       if (cpln >= presets->cpl_min && cpln <= presets->cpl_max)
-> +                       if (cpln >= timings->cpl_min && cpln <= timings->cpl_max)
->                                 break;
->                 }
->
-> -       if (*index == NUM_PRESETS) {
-> +       if (*index == NUM_TIMINGS) {
->                 v4l2_dbg(1, debug, sd, "detection failed: lpf = %x, cpl = %x\n",
->                                                                 lpfr, cpln);
->                 return -ENOLINK;
->         }
->
->         /* Update lines per frame and clocks per line info */
-> -       v4l2_dbg(1, debug, sd, "detected preset: %d\n", *index);
-> +       v4l2_dbg(1, debug, sd, "detected timings: %d\n", *index);
->         return 0;
->  }
->
-> @@ -764,13 +764,13 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
->         int index;
->         int err = tvp7002_query_dv(sd, &index);
->
-> -       if (err || index == NUM_PRESETS) {
-> +       if (err || index == NUM_TIMINGS) {
->                 qpreset->preset = V4L2_DV_INVALID;
->                 if (err == -ENOLINK)
->                         err = 0;
->                 return err;
->         }
-> -       qpreset->preset = tvp7002_presets[index].preset;
-> +       qpreset->preset = tvp7002_timings[index].preset;
->         return 0;
->  }
->
-> @@ -782,7 +782,7 @@ static int tvp7002_query_dv_timings(struct v4l2_subdev *sd,
->
->         if (err)
->                 return err;
-> -       *timings = tvp7002_presets[index].timings;
-> +       *timings = tvp7002_timings[index].timings;
->         return 0;
->  }
->
-> @@ -896,7 +896,7 @@ static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
->   */
->  static int tvp7002_log_status(struct v4l2_subdev *sd)
->  {
-> -       const struct tvp7002_preset_definition *presets = tvp7002_presets;
-> +       const struct tvp7002_timings_definition *timings = tvp7002_timings;
->         struct tvp7002 *device = to_tvp7002(sd);
->         struct v4l2_dv_enum_preset e_preset;
->         struct v4l2_dv_preset detected;
-> @@ -907,20 +907,20 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
->         tvp7002_query_dv_preset(sd, &detected);
->
->         /* Print standard related code values */
-> -       for (i = 0; i < NUM_PRESETS; i++, presets++)
-> -               if (presets->preset == detected.preset)
-> +       for (i = 0; i < NUM_TIMINGS; i++, timings++)
-> +               if (timings->preset == detected.preset)
->                         break;
->
-> -       if (v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset))
-> +       if (v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset))
->                 return -EINVAL;
->
->         v4l2_info(sd, "Selected DV Preset: %s\n", e_preset.name);
->         v4l2_info(sd, "   Pixels per line: %u\n", e_preset.width);
->         v4l2_info(sd, "   Lines per frame: %u\n\n", e_preset.height);
-> -       if (i == NUM_PRESETS) {
-> +       if (i == NUM_TIMINGS) {
->                 v4l2_info(sd, "Detected DV Preset: None\n");
->         } else {
-> -               if (v4l_fill_dv_preset_info(presets->preset, &e_preset))
-> +               if (v4l_fill_dv_preset_info(timings->preset, &e_preset))
->                         return -EINVAL;
->                 v4l2_info(sd, "Detected DV Preset: %s\n", e_preset.name);
->                 v4l2_info(sd, "  Pixels per line: %u\n", e_preset.width);
-> @@ -946,20 +946,20 @@ static int tvp7002_enum_dv_presets(struct v4l2_subdev *sd,
->                 struct v4l2_dv_enum_preset *preset)
->  {
->         /* Check requested format index is within range */
-> -       if (preset->index >= NUM_PRESETS)
-> +       if (preset->index >= NUM_TIMINGS)
->                 return -EINVAL;
->
-> -       return v4l_fill_dv_preset_info(tvp7002_presets[preset->index].preset, preset);
-> +       return v4l_fill_dv_preset_info(tvp7002_timings[preset->index].preset, preset);
->  }
->
->  static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
->                 struct v4l2_enum_dv_timings *timings)
->  {
->         /* Check requested format index is within range */
-> -       if (timings->index >= NUM_PRESETS)
-> +       if (timings->index >= NUM_TIMINGS)
->                 return -EINVAL;
->
-> -       timings->timings = tvp7002_presets[timings->index].timings;
-> +       timings->timings = tvp7002_timings[timings->index].timings;
->         return 0;
->  }
->
-> @@ -1043,7 +1043,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->
->         sd = &device->sd;
->         device->pdata = c->dev.platform_data;
-> -       device->current_preset = tvp7002_presets;
-> +       device->current_timings = tvp7002_timings;
->
->         /* Tell v4l2 the device is ready */
->         v4l2_i2c_subdev_init(sd, c, &tvp7002_ops);
-> @@ -1080,7 +1080,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->                 return error;
->
->         /* Set registers according to default video mode */
-> -       preset.preset = device->current_preset->preset;
-> +       preset.preset = device->current_timings->preset;
->         error = tvp7002_s_dv_preset(sd, &preset);
->
->         v4l2_ctrl_handler_init(&device->hdl, 1);
-> --
-> 1.7.10.4
->
