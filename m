@@ -1,76 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:64698 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751389Ab3BFFjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 00:39:15 -0500
-Received: by mail-pa0-f41.google.com with SMTP id fb11so597897pad.0
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 21:39:14 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: k.debski@samsung.com, sachin.kamat@linaro.org,
-	inki.dae@samsung.com, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com, patches@linaro.org,
-	Ajay Kumar <ajaykumar.rs@samsung.com>
-Subject: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support for G2D
-Date: Wed,  6 Feb 2013 10:59:44 +0530
-Message-Id: <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:48066 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753068Ab3BPM61 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 07:58:27 -0500
+Received: by mail-qa0-f53.google.com with SMTP id z4so683233qan.5
+        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 04:58:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <697f2939eac3755e4b5d74433d160d44672ab7ca.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+ <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <697f2939eac3755e4b5d74433d160d44672ab7ca.1361006882.git.hans.verkuil@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Feb 2013 18:28:06 +0530
+Message-ID: <CA+V-a8tH8GLKz50i216S4TFkNjPpn1D1tNaRkuLfvDE_JO9N5g@mail.gmail.com>
+Subject: Re: [RFC PATCH 06/18] davinci: replace V4L2_OUT_CAP_CUSTOM_TIMINGS by V4L2_OUT_CAP_DV_TIMINGS
+To: Hans Verkuil <hverkuil@xs4all.nl>, Sekhar Nori <nsekhar@ti.com>
+Cc: linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ajay Kumar <ajaykumar.rs@samsung.com>
+Cc'ed Sekhar, DLOS, LAK.
 
-This patch adds device tree match table for Exynos G2D controller.
+Sekhar Can you Ack this patch ? Or maybe you can take this patch through
+your tree ?
 
-Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
-Patch based on exynos-drm-fixes branch of Inki Dae's tree:
-git://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
+On Sat, Feb 16, 2013 at 2:58 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> The use of V4L2_OUT_CAP_CUSTOM_TIMINGS is deprecated, use DV_TIMINGS instead.
+> Note that V4L2_OUT_CAP_CUSTOM_TIMINGS is just a #define for
+> V4L2_OUT_CAP_DV_TIMINGS.
+>
+> At some point in the future these CUSTOM_TIMINGS defines might be removed.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 
-Changes since v1:
-Modified the compatible string as per the discussions at [1].
-[1] https://patchwork1.kernel.org/patch/2045821/
----
- drivers/gpu/drm/exynos/exynos_drm_g2d.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-index ddcfb5d..0fcfbe4 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
-@@ -19,6 +19,7 @@
- #include <linux/workqueue.h>
- #include <linux/dma-mapping.h>
- #include <linux/dma-attrs.h>
-+#include <linux/of.h>
- 
- #include <drm/drmP.h>
- #include <drm/exynos_drm.h>
-@@ -1240,6 +1241,14 @@ static int g2d_resume(struct device *dev)
- 
- static SIMPLE_DEV_PM_OPS(g2d_pm_ops, g2d_suspend, g2d_resume);
- 
-+#ifdef CONFIG_OF
-+static const struct of_device_id exynos_g2d_match[] = {
-+	{ .compatible = "samsung,exynos5250-g2d" },
-+	{},
-+};
-+MODULE_DEVICE_TABLE(of, exynos_g2d_match);
-+#endif
-+
- struct platform_driver g2d_driver = {
- 	.probe		= g2d_probe,
- 	.remove		= g2d_remove,
-@@ -1247,5 +1256,6 @@ struct platform_driver g2d_driver = {
- 		.name	= "s5p-g2d",
- 		.owner	= THIS_MODULE,
- 		.pm	= &g2d_pm_ops,
-+		.of_match_table = of_match_ptr(exynos_g2d_match),
- 	},
- };
--- 
-1.7.4.1
+Regards,
+--Prabhakar
 
+> ---
+>  arch/arm/mach-davinci/board-dm646x-evm.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
+> index 6e2f163..43f35d6 100644
+> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+> @@ -514,7 +514,7 @@ static const struct vpif_output dm6467_ch0_outputs[] = {
+>                         .index = 1,
+>                         .name = "Component",
+>                         .type = V4L2_OUTPUT_TYPE_ANALOG,
+> -                       .capabilities = V4L2_OUT_CAP_CUSTOM_TIMINGS,
+> +                       .capabilities = V4L2_OUT_CAP_DV_TIMINGS,
+>                 },
+>                 .subdev_name = "adv7343",
+>                 .output_route = ADV7343_COMPONENT_ID,
+> --
+> 1.7.10.4
+>
