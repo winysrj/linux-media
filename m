@@ -1,241 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:52858 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab3BCPnf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:43:35 -0500
-Received: by mail-pb0-f46.google.com with SMTP id mc17so2800955pbc.5
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:43:35 -0800 (PST)
-Message-ID: <510F3D3D.1010304@gmail.com>
-Date: Sun, 03 Feb 2013 23:46:53 -0500
-From: Huang Shijie <shijie8@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 14/18] tlg2300: implement the control framework.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <36ec60bc7420a183eab3a2637f187576b9cea780.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <36ec60bc7420a183eab3a2637f187576b9cea780.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1133 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752969Ab3BPJ26 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 04:28:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 11/18] s5p-tv: remove dv_preset support from mixer_video.
+Date: Sat, 16 Feb 2013 10:28:14 +0100
+Message-Id: <686e9074fa10f883d236767e2b33f07728aaf8f7.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-common.h |    1 +
->  drivers/media/usb/tlg2300/pd-video.c  |  128 +++++++++++----------------------
->  2 files changed, 41 insertions(+), 88 deletions(-)
->
-> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
-> index 55fe66e..cb5cb0f 100644
-> --- a/drivers/media/usb/tlg2300/pd-common.h
-> +++ b/drivers/media/usb/tlg2300/pd-common.h
-> @@ -64,6 +64,7 @@ struct running_context {
->  struct video_data {
->  	/* v4l2 video device */
->  	struct video_device	v_dev;
-> +	struct v4l2_ctrl_handler ctrl_handler;
->  
->  	/* the working context */
->  	struct running_context	context;
-> diff --git a/drivers/media/usb/tlg2300/pd-video.c b/drivers/media/usb/tlg2300/pd-video.c
-> index 122f299..849c4bb 100644
-> --- a/drivers/media/usb/tlg2300/pd-video.c
-> +++ b/drivers/media/usb/tlg2300/pd-video.c
-> @@ -8,6 +8,7 @@
->  
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-dev.h>
-> +#include <media/v4l2-ctrls.h>
->  
->  #include "pd-common.h"
->  #include "vendorcmds.h"
-> @@ -82,31 +83,6 @@ static const struct pd_input pd_inputs[] = {
->  };
->  static const unsigned int POSEIDON_INPUTS = ARRAY_SIZE(pd_inputs);
->  
-> -struct poseidon_control {
-> -	struct v4l2_queryctrl v4l2_ctrl;
-> -	enum cmd_custom_param_id vc_id;
-> -};
-> -
-> -static struct poseidon_control controls[] = {
-> -	{
-> -		{ V4L2_CID_BRIGHTNESS, V4L2_CTRL_TYPE_INTEGER,
-> -			"brightness", 0, 10000, 1, 100, 0, },
-> -		CUST_PARM_ID_BRIGHTNESS_CTRL
-> -	}, {
-> -		{ V4L2_CID_CONTRAST, V4L2_CTRL_TYPE_INTEGER,
-> -			"contrast", 0, 10000, 1, 100, 0, },
-> -		CUST_PARM_ID_CONTRAST_CTRL,
-> -	}, {
-> -		{ V4L2_CID_HUE, V4L2_CTRL_TYPE_INTEGER,
-> -			"hue", 0, 10000, 1, 100, 0, },
-> -		CUST_PARM_ID_HUE_CTRL,
-> -	}, {
-> -		{ V4L2_CID_SATURATION, V4L2_CTRL_TYPE_INTEGER,
-> -			"saturation", 0, 10000, 1, 100, 0, },
-> -		CUST_PARM_ID_SATURATION_CTRL,
-> -	},
-> -};
-> -
->  struct video_std_to_audio_std {
->  	v4l2_std_id	video_std;
->  	int 		audio_std;
-> @@ -940,68 +916,28 @@ static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
->  	return 0;
->  }
->  
-> -static struct poseidon_control *check_control_id(u32 id)
-> -{
-> -	struct poseidon_control *control = &controls[0];
-> -	int array_size = ARRAY_SIZE(controls);
-> -
-> -	for (; control < &controls[array_size]; control++)
-> -		if (control->v4l2_ctrl.id  == id)
-> -			return control;
-> -	return NULL;
-> -}
-> -
-> -static int vidioc_queryctrl(struct file *file, void *fh,
-> -			struct v4l2_queryctrl *a)
-> -{
-> -	struct poseidon_control *control = NULL;
-> -
-> -	control = check_control_id(a->id);
-> -	if (!control)
-> -		return -EINVAL;
-> -
-> -	*a = control->v4l2_ctrl;
-> -	return 0;
-> -}
-> -
-> -static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *ctrl)
-> -{
-> -	struct front_face *front = fh;
-> -	struct poseidon *pd = front->pd;
-> -	struct poseidon_control *control = NULL;
-> -	struct tuner_custom_parameter_s tuner_param;
-> -	s32 ret = 0, cmd_status;
-> -
-> -	control = check_control_id(ctrl->id);
-> -	if (!control)
-> -		return -EINVAL;
-> -
-> -	mutex_lock(&pd->lock);
-> -	ret = send_get_req(pd, TUNER_CUSTOM_PARAMETER, control->vc_id,
-> -			&tuner_param, &cmd_status, sizeof(tuner_param));
-> -	mutex_unlock(&pd->lock);
-> -
-> -	if (ret || cmd_status)
-> -		return -1;
-> -
-> -	ctrl->value = tuner_param.param_value;
-> -	return 0;
-> -}
-> -
-> -static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *a)
-> +static int tlg_s_ctrl(struct v4l2_ctrl *c)
->  {
-> +	struct poseidon *pd = container_of(c->handler, struct poseidon,
-> +						video_data.ctrl_handler);
->  	struct tuner_custom_parameter_s param = {0};
-> -	struct poseidon_control *control = NULL;
-> -	struct front_face *front	= fh;
-> -	struct poseidon *pd		= front->pd;
->  	s32 ret = 0, cmd_status, params;
->  
-> -	control = check_control_id(a->id);
-> -	if (!control)
-> -		return -EINVAL;
-> -
-> -	param.param_value = a->value;
-> -	param.param_id	= control->vc_id;
-> +	switch (c->id) {
-> +	case V4L2_CID_BRIGHTNESS:
-> +		param.param_id = CUST_PARM_ID_BRIGHTNESS_CTRL;
-> +		break;
-> +	case V4L2_CID_CONTRAST:
-> +		param.param_id = CUST_PARM_ID_CONTRAST_CTRL;
-> +		break;
-> +	case V4L2_CID_HUE:
-> +		param.param_id = CUST_PARM_ID_HUE_CTRL;
-> +		break;
-> +	case V4L2_CID_SATURATION:
-> +		param.param_id = CUST_PARM_ID_SATURATION_CTRL;
-> +		break;
-> +	}
-> +	param.param_value = c->val;
->  	params = *(s32 *)&param; /* temp code */
->  
->  	mutex_lock(&pd->lock);
-> @@ -1587,11 +1523,6 @@ static const struct v4l2_ioctl_ops pd_video_ioctl_ops = {
->  	/* Stream on/off */
->  	.vidioc_streamon	= vidioc_streamon,
->  	.vidioc_streamoff	= vidioc_streamoff,
-> -
-> -	/* Control handling */
-> -	.vidioc_queryctrl	= vidioc_queryctrl,
-> -	.vidioc_g_ctrl		= vidioc_g_ctrl,
-> -	.vidioc_s_ctrl		= vidioc_s_ctrl,
->  };
->  
->  static struct video_device pd_video_template = {
-> @@ -1603,6 +1534,10 @@ static struct video_device pd_video_template = {
->  	.ioctl_ops = &pd_video_ioctl_ops,
->  };
->  
-> +static const struct v4l2_ctrl_ops tlg_ctrl_ops = {
-> +	.s_ctrl = tlg_s_ctrl,
-> +};
-> +
->  void pd_video_exit(struct poseidon *pd)
->  {
->  	struct video_data *video = &pd->video_data;
-> @@ -1610,6 +1545,7 @@ void pd_video_exit(struct poseidon *pd)
->  
->  	video_unregister_device(&video->v_dev);
->  	video_unregister_device(&vbi->v_dev);
-> +	v4l2_ctrl_handler_free(&video->ctrl_handler);
->  	log();
->  }
->  
-> @@ -1617,12 +1553,27 @@ int pd_video_init(struct poseidon *pd)
->  {
->  	struct video_data *video = &pd->video_data;
->  	struct vbi_data *vbi	= &pd->vbi_data;
-> +	struct v4l2_ctrl_handler *hdl = &video->ctrl_handler;
->  	u32 freq = TUNER_FREQ_MIN / 62500;
->  	int ret = -ENOMEM;
->  
-> +	v4l2_ctrl_handler_init(hdl, 4);
-> +	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_BRIGHTNESS,
-> +			0, 10000, 1, 100);
-> +	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_CONTRAST,
-> +			0, 10000, 1, 100);
-> +	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_HUE,
-> +			0, 10000, 1, 100);
-> +	v4l2_ctrl_new_std(hdl, &tlg_ctrl_ops, V4L2_CID_SATURATION,
-> +			0, 10000, 1, 100);
-> +	if (hdl->error) {
-> +		v4l2_ctrl_handler_free(hdl);
-> +		return hdl->error;
-> +	}
->  	set_frequency(pd, &freq);
->  	video->v_dev = pd_video_template;
->  	video->v_dev.v4l2_dev = &pd->v4l2_dev;
-> +	video->v_dev.ctrl_handler = hdl;
->  	video_set_drvdata(&video->v_dev, pd);
->  
->  	ret = video_register_device(&video->v_dev, VFL_TYPE_GRABBER, -1);
-> @@ -1632,6 +1583,7 @@ int pd_video_init(struct poseidon *pd)
->  	/* VBI uses the same template as video */
->  	vbi->v_dev = pd_video_template;
->  	vbi->v_dev.v4l2_dev = &pd->v4l2_dev;
-> +	vbi->v_dev.ctrl_handler = hdl;
->  	video_set_drvdata(&vbi->v_dev, pd);
->  	ret = video_register_device(&vbi->v_dev, VFL_TYPE_VBI, -1);
->  	if (ret != 0)
-Acked-by: Huang Shijie <shijie8@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+The dv_preset API is deprecated and is replaced by the much improved dv_timings
+API. Remove the dv_preset support from this driver as this will allow us to
+remove the dv_preset API altogether (s5p-tv being the last user of this code).
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |   68 ++-------------------------
+ 1 file changed, 3 insertions(+), 65 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index cdfadba..9961e13 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -501,64 +501,6 @@ fail:
+ 	return -ERANGE;
+ }
+ 
+-static int mxr_enum_dv_presets(struct file *file, void *fh,
+-	struct v4l2_dv_enum_preset *preset)
+-{
+-	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_device *mdev = layer->mdev;
+-	int ret;
+-
+-	/* lock protects from changing sd_out */
+-	mutex_lock(&mdev->mutex);
+-	ret = v4l2_subdev_call(to_outsd(mdev), video, enum_dv_presets, preset);
+-	mutex_unlock(&mdev->mutex);
+-
+-	return ret ? -EINVAL : 0;
+-}
+-
+-static int mxr_s_dv_preset(struct file *file, void *fh,
+-	struct v4l2_dv_preset *preset)
+-{
+-	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_device *mdev = layer->mdev;
+-	int ret;
+-
+-	/* lock protects from changing sd_out */
+-	mutex_lock(&mdev->mutex);
+-
+-	/* preset change cannot be done while there is an entity
+-	 * dependant on output configuration
+-	 */
+-	if (mdev->n_output > 0) {
+-		mutex_unlock(&mdev->mutex);
+-		return -EBUSY;
+-	}
+-
+-	ret = v4l2_subdev_call(to_outsd(mdev), video, s_dv_preset, preset);
+-
+-	mutex_unlock(&mdev->mutex);
+-
+-	mxr_layer_update_output(layer);
+-
+-	/* any failure should return EINVAL according to V4L2 doc */
+-	return ret ? -EINVAL : 0;
+-}
+-
+-static int mxr_g_dv_preset(struct file *file, void *fh,
+-	struct v4l2_dv_preset *preset)
+-{
+-	struct mxr_layer *layer = video_drvdata(file);
+-	struct mxr_device *mdev = layer->mdev;
+-	int ret;
+-
+-	/* lock protects from changing sd_out */
+-	mutex_lock(&mdev->mutex);
+-	ret = v4l2_subdev_call(to_outsd(mdev), video, g_dv_preset, preset);
+-	mutex_unlock(&mdev->mutex);
+-
+-	return ret ? -EINVAL : 0;
+-}
+-
+ static int mxr_enum_dv_timings(struct file *file, void *fh,
+ 	struct v4l2_enum_dv_timings *timings)
+ {
+@@ -584,7 +526,7 @@ static int mxr_s_dv_timings(struct file *file, void *fh,
+ 	/* lock protects from changing sd_out */
+ 	mutex_lock(&mdev->mutex);
+ 
+-	/* preset change cannot be done while there is an entity
++	/* timings change cannot be done while there is an entity
+ 	 * dependant on output configuration
+ 	 */
+ 	if (mdev->n_output > 0) {
+@@ -689,8 +631,8 @@ static int mxr_enum_output(struct file *file, void *fh, struct v4l2_output *a)
+ 	/* try to obtain supported tv norms */
+ 	v4l2_subdev_call(sd, video, g_tvnorms_output, &a->std);
+ 	a->capabilities = 0;
+-	if (sd->ops->video && sd->ops->video->s_dv_preset)
+-		a->capabilities |= V4L2_OUT_CAP_PRESETS;
++	if (sd->ops->video && sd->ops->video->s_dv_timings)
++		a->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
+ 	if (sd->ops->video && sd->ops->video->s_std_output)
+ 		a->capabilities |= V4L2_OUT_CAP_STD;
+ 	a->type = V4L2_OUTPUT_TYPE_ANALOG;
+@@ -811,10 +753,6 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
+-	/* Preset functions */
+-	.vidioc_enum_dv_presets = mxr_enum_dv_presets,
+-	.vidioc_s_dv_preset = mxr_s_dv_preset,
+-	.vidioc_g_dv_preset = mxr_g_dv_preset,
+ 	/* DV Timings functions */
+ 	.vidioc_enum_dv_timings = mxr_enum_dv_timings,
+ 	.vidioc_s_dv_timings = mxr_s_dv_timings,
+-- 
+1.7.10.4
+
