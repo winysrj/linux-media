@@ -1,128 +1,304 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:62462 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868Ab3B0GHg (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4757 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752892Ab3BPJ2t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 01:07:36 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: mchehab@redhat.com
-Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, sam@ravnborg.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v7 6/9] v4l2: Add standard controls for FM receivers
-Date: Tue, 26 Feb 2013 22:06:50 -0800
-Message-Id: <1361945213-4280-7-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
+	Sat, 16 Feb 2013 04:28:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 01/18] tvp7002: replace 'preset' by 'timings' in various structs/variables.
+Date: Sat, 16 Feb 2013 10:28:04 +0100
+Message-Id: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit introduces new class of standard controls
-V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
-pertaining to FM receiver chips. Also, two controls belonging to said
-class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
-V4L2_CID_RDS_RECEPTION.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch is based on the code found in the patch by Manjunatha Halli [1]
+This is the first step towards removing the deprecated preset support of this
+driver.
 
-[1] http://lists-archives.com/linux-kernel/27641307-new-control-class-and-features-for-fm-rx.html
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
- include/uapi/linux/v4l2-controls.h   |   13 +++++++++++++
- 2 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/media/i2c/tvp7002.c |   90 +++++++++++++++++++++----------------------
+ 1 file changed, 45 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6b28b58..8b89fb8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Text",
- 		NULL
- 	};
--	static const char * const tune_preemphasis[] = {
--		"No Preemphasis",
-+	static const char * const tune_emphasis[] = {
-+		"None",
- 		"50 Microseconds",
- 		"75 Microseconds",
- 		NULL,
-@@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_SCENE_MODE:
- 		return scene_mode;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
--		return tune_preemphasis;
-+		return tune_emphasis;
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		return tune_emphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
- 		return flash_led_mode;
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-@@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
- 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 537f6b4..7995eeb 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -326,8 +326,8 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
+ 	{ TVP7002_EOR, 0xff, TVP7002_RESERVED }
+ };
  
-+	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-+	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-+	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
- 	default:
- 		return NULL;
+-/* Preset definition for handling device operation */
+-struct tvp7002_preset_definition {
++/* Timings definition for handling device operation */
++struct tvp7002_timings_definition {
+ 	u32 preset;
+ 	struct v4l2_dv_timings timings;
+ 	const struct i2c_reg_value *p_settings;
+@@ -339,8 +339,8 @@ struct tvp7002_preset_definition {
+ 	u16 cpl_max;
+ };
+ 
+-/* Struct list for digital video presets */
+-static const struct tvp7002_preset_definition tvp7002_presets[] = {
++/* Struct list for digital video timings */
++static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 	{
+ 		V4L2_DV_720P60,
+ 		V4L2_DV_BT_CEA_1280X720P60,
+@@ -420,7 +420,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
  	}
-@@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
-+	case V4L2_CID_RDS_RECEPTION:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 	case V4L2_CID_TEST_PATTERN:
-+	case V4L2_CID_TUNE_DEEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
-+	case V4L2_CID_FM_RX_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index dcd6374..3e985be 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -59,6 +59,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
-+#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
+ };
  
- /* User-class control IDs */
+-#define NUM_PRESETS	ARRAY_SIZE(tvp7002_presets)
++#define NUM_TIMINGS ARRAY_SIZE(tvp7002_timings)
  
-@@ -825,4 +826,16 @@ enum v4l2_dv_rgb_range {
- #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
- #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
+ /* Device definition */
+ struct tvp7002 {
+@@ -431,7 +431,7 @@ struct tvp7002 {
+ 	int ver;
+ 	int streaming;
  
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-+
-+#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
-+enum v4l2_deemphasis {
-+	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
-+	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
-+	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
-+};
-+
-+#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
-+
- #endif
+-	const struct tvp7002_preset_definition *current_preset;
++	const struct tvp7002_timings_definition *current_timings;
+ };
+ 
+ /*
+@@ -603,11 +603,11 @@ static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
+ 	u32 preset;
+ 	int i;
+ 
+-	for (i = 0; i < NUM_PRESETS; i++) {
+-		preset = tvp7002_presets[i].preset;
++	for (i = 0; i < NUM_TIMINGS; i++) {
++		preset = tvp7002_timings[i].preset;
+ 		if (preset == dv_preset->preset) {
+-			device->current_preset = &tvp7002_presets[i];
+-			return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
++			device->current_timings = &tvp7002_timings[i];
++			return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
+ 		}
+ 	}
+ 
+@@ -623,12 +623,12 @@ static int tvp7002_s_dv_timings(struct v4l2_subdev *sd,
+ 
+ 	if (dv_timings->type != V4L2_DV_BT_656_1120)
+ 		return -EINVAL;
+-	for (i = 0; i < NUM_PRESETS; i++) {
+-		const struct v4l2_bt_timings *t = &tvp7002_presets[i].timings.bt;
++	for (i = 0; i < NUM_TIMINGS; i++) {
++		const struct v4l2_bt_timings *t = &tvp7002_timings[i].timings.bt;
+ 
+ 		if (!memcmp(bt, t, &bt->standards - &bt->width)) {
+-			device->current_preset = &tvp7002_presets[i];
+-			return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
++			device->current_timings = &tvp7002_timings[i];
++			return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
+ 		}
+ 	}
+ 	return -EINVAL;
+@@ -639,7 +639,7 @@ static int tvp7002_g_dv_timings(struct v4l2_subdev *sd,
+ {
+ 	struct tvp7002 *device = to_tvp7002(sd);
+ 
+-	*dv_timings = device->current_preset->timings;
++	*dv_timings = device->current_timings->timings;
+ 	return 0;
+ }
+ 
+@@ -681,15 +681,15 @@ static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f
+ 	int error;
+ 
+ 	/* Calculate height and width based on current standard */
+-	error = v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset);
++	error = v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset);
+ 	if (error)
+ 		return error;
+ 
+ 	f->width = e_preset.width;
+ 	f->height = e_preset.height;
+ 	f->code = V4L2_MBUS_FMT_YUYV10_1X20;
+-	f->field = device->current_preset->scanmode;
+-	f->colorspace = device->current_preset->color_space;
++	f->field = device->current_timings->scanmode;
++	f->colorspace = device->current_timings->color_space;
+ 
+ 	v4l2_dbg(1, debug, sd, "MBUS_FMT: Width - %d, Height - %d",
+ 			f->width, f->height);
+@@ -697,16 +697,16 @@ static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f
+ }
+ 
+ /*
+- * tvp7002_query_dv_preset() - query DV preset
++ * tvp7002_query_dv() - query DV timings
+  * @sd: pointer to standard V4L2 sub-device structure
+- * @qpreset: standard V4L2 v4l2_dv_preset structure
++ * @index: index into the tvp7002_timings array
+  *
+- * Returns the current DV preset by TVP7002. If no active input is
++ * Returns the current DV timings detected by TVP7002. If no active input is
+  * detected, returns -EINVAL
+  */
+ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+ {
+-	const struct tvp7002_preset_definition *presets = tvp7002_presets;
++	const struct tvp7002_timings_definition *timings = tvp7002_timings;
+ 	u8 progressive;
+ 	u32 lpfr;
+ 	u32 cpln;
+@@ -717,7 +717,7 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+ 	u8 cpl_msb;
+ 
+ 	/* Return invalid index if no active input is detected */
+-	*index = NUM_PRESETS;
++	*index = NUM_TIMINGS;
+ 
+ 	/* Read standards from device registers */
+ 	tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_LSBS, &lpf_lsb, &error);
+@@ -738,23 +738,23 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+ 	progressive = (lpf_msb & TVP7002_INPR_MASK) >> TVP7002_IP_SHIFT;
+ 
+ 	/* Do checking of video modes */
+-	for (*index = 0; *index < NUM_PRESETS; (*index)++, presets++)
+-		if (lpfr == presets->lines_per_frame &&
+-			progressive == presets->progressive) {
+-			if (presets->cpl_min == 0xffff)
++	for (*index = 0; *index < NUM_TIMINGS; (*index)++, timings++)
++		if (lpfr == timings->lines_per_frame &&
++			progressive == timings->progressive) {
++			if (timings->cpl_min == 0xffff)
+ 				break;
+-			if (cpln >= presets->cpl_min && cpln <= presets->cpl_max)
++			if (cpln >= timings->cpl_min && cpln <= timings->cpl_max)
+ 				break;
+ 		}
+ 
+-	if (*index == NUM_PRESETS) {
++	if (*index == NUM_TIMINGS) {
+ 		v4l2_dbg(1, debug, sd, "detection failed: lpf = %x, cpl = %x\n",
+ 								lpfr, cpln);
+ 		return -ENOLINK;
+ 	}
+ 
+ 	/* Update lines per frame and clocks per line info */
+-	v4l2_dbg(1, debug, sd, "detected preset: %d\n", *index);
++	v4l2_dbg(1, debug, sd, "detected timings: %d\n", *index);
+ 	return 0;
+ }
+ 
+@@ -764,13 +764,13 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	int index;
+ 	int err = tvp7002_query_dv(sd, &index);
+ 
+-	if (err || index == NUM_PRESETS) {
++	if (err || index == NUM_TIMINGS) {
+ 		qpreset->preset = V4L2_DV_INVALID;
+ 		if (err == -ENOLINK)
+ 			err = 0;
+ 		return err;
+ 	}
+-	qpreset->preset = tvp7002_presets[index].preset;
++	qpreset->preset = tvp7002_timings[index].preset;
+ 	return 0;
+ }
+ 
+@@ -782,7 +782,7 @@ static int tvp7002_query_dv_timings(struct v4l2_subdev *sd,
+ 
+ 	if (err)
+ 		return err;
+-	*timings = tvp7002_presets[index].timings;
++	*timings = tvp7002_timings[index].timings;
+ 	return 0;
+ }
+ 
+@@ -896,7 +896,7 @@ static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
+  */
+ static int tvp7002_log_status(struct v4l2_subdev *sd)
+ {
+-	const struct tvp7002_preset_definition *presets = tvp7002_presets;
++	const struct tvp7002_timings_definition *timings = tvp7002_timings;
+ 	struct tvp7002 *device = to_tvp7002(sd);
+ 	struct v4l2_dv_enum_preset e_preset;
+ 	struct v4l2_dv_preset detected;
+@@ -907,20 +907,20 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
+ 	tvp7002_query_dv_preset(sd, &detected);
+ 
+ 	/* Print standard related code values */
+-	for (i = 0; i < NUM_PRESETS; i++, presets++)
+-		if (presets->preset == detected.preset)
++	for (i = 0; i < NUM_TIMINGS; i++, timings++)
++		if (timings->preset == detected.preset)
+ 			break;
+ 
+-	if (v4l_fill_dv_preset_info(device->current_preset->preset, &e_preset))
++	if (v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset))
+ 		return -EINVAL;
+ 
+ 	v4l2_info(sd, "Selected DV Preset: %s\n", e_preset.name);
+ 	v4l2_info(sd, "   Pixels per line: %u\n", e_preset.width);
+ 	v4l2_info(sd, "   Lines per frame: %u\n\n", e_preset.height);
+-	if (i == NUM_PRESETS) {
++	if (i == NUM_TIMINGS) {
+ 		v4l2_info(sd, "Detected DV Preset: None\n");
+ 	} else {
+-		if (v4l_fill_dv_preset_info(presets->preset, &e_preset))
++		if (v4l_fill_dv_preset_info(timings->preset, &e_preset))
+ 			return -EINVAL;
+ 		v4l2_info(sd, "Detected DV Preset: %s\n", e_preset.name);
+ 		v4l2_info(sd, "  Pixels per line: %u\n", e_preset.width);
+@@ -946,20 +946,20 @@ static int tvp7002_enum_dv_presets(struct v4l2_subdev *sd,
+ 		struct v4l2_dv_enum_preset *preset)
+ {
+ 	/* Check requested format index is within range */
+-	if (preset->index >= NUM_PRESETS)
++	if (preset->index >= NUM_TIMINGS)
+ 		return -EINVAL;
+ 
+-	return v4l_fill_dv_preset_info(tvp7002_presets[preset->index].preset, preset);
++	return v4l_fill_dv_preset_info(tvp7002_timings[preset->index].preset, preset);
+ }
+ 
+ static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
+ 		struct v4l2_enum_dv_timings *timings)
+ {
+ 	/* Check requested format index is within range */
+-	if (timings->index >= NUM_PRESETS)
++	if (timings->index >= NUM_TIMINGS)
+ 		return -EINVAL;
+ 
+-	timings->timings = tvp7002_presets[timings->index].timings;
++	timings->timings = tvp7002_timings[timings->index].timings;
+ 	return 0;
+ }
+ 
+@@ -1043,7 +1043,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 
+ 	sd = &device->sd;
+ 	device->pdata = c->dev.platform_data;
+-	device->current_preset = tvp7002_presets;
++	device->current_timings = tvp7002_timings;
+ 
+ 	/* Tell v4l2 the device is ready */
+ 	v4l2_i2c_subdev_init(sd, c, &tvp7002_ops);
+@@ -1080,7 +1080,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 		return error;
+ 
+ 	/* Set registers according to default video mode */
+-	preset.preset = device->current_preset->preset;
++	preset.preset = device->current_timings->preset;
+ 	error = tvp7002_s_dv_preset(sd, &preset);
+ 
+ 	v4l2_ctrl_handler_init(&device->hdl, 1);
 -- 
 1.7.10.4
 
