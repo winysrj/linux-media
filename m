@@ -1,118 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:52092 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753188Ab3BDOtC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 09:49:02 -0500
-Received: by mail-we0-f176.google.com with SMTP id s43so4768463wey.7
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 06:49:00 -0800 (PST)
-Date: Mon, 4 Feb 2013 15:51:11 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Inki Dae <inki.dae@samsung.com>, linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH 6/7] reservation: cross-device
- reservation support
-Message-ID: <20130204145111.GB5843@phenom.ffwll.local>
-References: <1358253244-11453-1-git-send-email-maarten.lankhorst@canonical.com>
- <1358253244-11453-7-git-send-email-maarten.lankhorst@canonical.com>
- <CAAQKjZPJX9Rt0LH0PMpwRSv3etNvoGh3MvNcmFpvCXTtJeeFqw@mail.gmail.com>
- <510F8602.9080806@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <510F8602.9080806@canonical.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3957 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752920Ab3BPJ2w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 04:28:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 05/18] davinci: remove VPBE_ENC_DV_PRESET and rename VPBE_ENC_CUSTOM_TIMINGS
+Date: Sat, 16 Feb 2013 10:28:08 +0100
+Message-Id: <0339a6e257048b047bde48da5a87cb5ed4932c5f.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 04, 2013 at 10:57:22AM +0100, Maarten Lankhorst wrote:
-> Op 04-02-13 08:06, Inki Dae schreef:
-> >> +/**
-> >> + * ticket_commit - commit a reservation with a new fence
-> >> + * @ticket:    [in]    the reservation_ticket returned by
-> >> + * ticket_reserve
-> >> + * @entries:   [in]    a linked list of struct reservation_entry
-> >> + * @fence:     [in]    the fence that indicates completion
-> >> + *
-> >> + * This function will call reservation_ticket_fini, no need
-> >> + * to do it manually.
-> >> + *
-> >> + * This function should be called after a hardware command submission is
-> >> + * completed succesfully. The fence is used to indicate completion of
-> >> + * those commands.
-> >> + */
-> >> +void
-> >> +ticket_commit(struct reservation_ticket *ticket,
-> >> +                 struct list_head *entries, struct fence *fence)
-> >> +{
-> >> +       struct list_head *cur;
-> >> +
-> >> +       if (list_empty(entries))
-> >> +               return;
-> >> +
-> >> +       if (WARN_ON(!fence)) {
-> >> +               ticket_backoff(ticket, entries);
-> >> +               return;
-> >> +       }
-> >> +
-> >> +       list_for_each(cur, entries) {
-> >> +               struct reservation_object *bo;
-> >> +               bool shared;
-> >> +
-> >> +               reservation_entry_get(cur, &bo, &shared);
-> >> +
-> >> +               if (!shared) {
-> >> +                       int i;
-> >> +                       for (i = 0; i < bo->fence_shared_count; ++i) {
-> >> +                               fence_put(bo->fence_shared[i]);
-> >> +                               bo->fence_shared[i] = NULL;
-> >> +                       }
-> >> +                       bo->fence_shared_count = 0;
-> >> +                       if (bo->fence_excl)
-> >> +                               fence_put(bo->fence_excl);
-> >> +
-> >> +                       bo->fence_excl = fence;
-> >> +               } else {
-> >> +                       if (WARN_ON(bo->fence_shared_count >=
-> >> +                                   ARRAY_SIZE(bo->fence_shared))) {
-> >> +                               mutex_unreserve_unlock(&bo->lock);
-> >> +                               continue;
-> >> +                       }
-> >> +
-> >> +                       bo->fence_shared[bo->fence_shared_count++] = fence;
-> >> +               }
-> > Hi,
-> >
-> > I got some questions to fence_excl and fence_shared. At the above
-> > code, if bo->fence_excl is not NULL then it puts bo->fence_excl and
-> > sets a new fence to it. This seems like that someone that committed a
-> > new fence, wants to access the given dmabuf exclusively even if
-> > someone is accessing the given dmabuf.
-> Yes, if there were shared fences, they had to issue a wait for the previous exclusive fence, so if you add
-> (possibly hardware) wait ops on those shared fences to your command stream, it follows that you also
-> waited for the previous exclusive fence implicitly.
-> 
-> If there is only an exclusive fence, you have to issue some explicit wait op  on it before you start the rest
-> of the commands.
-> > On the other hand, in case of fence_shared, someone wants to access
-> > that dmabuf non-exclusively. So this case seems like that the given
-> > dmabuf could be accessed by two more devices. So I guess that the
-> > fence_excl could be used for write access(may need buffer sync like
-> > blocking) and read access for the fence_shared(may not need buffer
-> > sync). I'm not sure that I understand these two things correctly so
-> > could you please give me more comments for them?
-> Correct, if you create a shared fence, you still have to emit a wait op for the exclusive fence.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Just a quick note: We limit the number of non-exclusive fences to avoid
-reallocating memory, which would be a bit a pain. Otoh if we support some
-form of fence timeline concept, the fence core code could overwrite
-redundant fences. Which would reasonable limit the total attached fence
-count. Still we'd need to thread potential -ENOMEM failures through all
-callers.
+Remove VPBE_ENC_DV_PRESET (the DV_PRESET API is no longer supported) and
+VPBE_ENC_CUSTOM_TIMINGS is renamed to VPBE_ENC_DV_TIMINGS since the old
+"CUSTOM_TIMINGS" name is deprecated in favor of "DV_TIMINGS".
 
-Do you see a use-case for more than just a few non-exclusive fences?
--Daniel
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+---
+ arch/arm/mach-davinci/board-dm644x-evm.c      |    4 ++--
+ arch/arm/mach-davinci/dm644x.c                |    2 +-
+ drivers/media/platform/davinci/vpbe.c         |    8 ++++----
+ drivers/media/platform/davinci/vpbe_display.c |    2 +-
+ drivers/media/platform/davinci/vpbe_venc.c    |    8 ++++----
+ include/media/davinci/vpbe_types.h            |    3 +--
+ 6 files changed, 13 insertions(+), 14 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 8e1b4ff..e8dc70b 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -649,7 +649,7 @@ static struct vpbe_enc_mode_info dm644xevm_enc_std_timing[] = {
+ static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
+ 	{
+ 		.name		= "480p59_94",
+-		.timings_type	= VPBE_ENC_CUSTOM_TIMINGS,
++		.timings_type	= VPBE_ENC_DV_TIMINGS,
+ 		.dv_timings	= V4L2_DV_BT_CEA_720X480P59_94,
+ 		.interlaced	= 0,
+ 		.xres		= 720,
+@@ -661,7 +661,7 @@ static struct vpbe_enc_mode_info dm644xevm_enc_preset_timing[] = {
+ 	},
+ 	{
+ 		.name		= "576p50",
+-		.timings_type	= VPBE_ENC_CUSTOM_TIMINGS,
++		.timings_type	= VPBE_ENC_DV_TIMINGS,
+ 		.dv_timings	= V4L2_DV_BT_CEA_720X576P50,
+ 		.interlaced	= 0,
+ 		.xres		= 720,
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index db1dd92..ee0e994 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -706,7 +706,7 @@ static int dm644x_venc_setup_clock(enum vpbe_enc_timings_type type,
+ 		v |= DM644X_VPSS_DACCLKEN;
+ 		writel(v, DAVINCI_SYSMOD_VIRT(SYSMOD_VPSS_CLKCTL));
+ 		break;
+-	case VPBE_ENC_CUSTOM_TIMINGS:
++	case VPBE_ENC_DV_TIMINGS:
+ 		if (pclock <= 27000000) {
+ 			v |= DM644X_VPSS_DACCLKEN;
+ 			writel(v, DAVINCI_SYSMOD_VIRT(SYSMOD_VPSS_CLKCTL));
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 4ca0f9a..2a49f00 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -344,7 +344,7 @@ static int vpbe_s_dv_timings(struct vpbe_device *vpbe_dev,
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < output->num_modes; i++) {
+-		if (output->modes[i].timings_type == VPBE_ENC_CUSTOM_TIMINGS &&
++		if (output->modes[i].timings_type == VPBE_ENC_DV_TIMINGS &&
+ 		    !memcmp(&output->modes[i].dv_timings,
+ 				dv_timings, sizeof(*dv_timings)))
+ 			break;
+@@ -385,7 +385,7 @@ static int vpbe_g_dv_timings(struct vpbe_device *vpbe_dev,
+ 		     struct v4l2_dv_timings *dv_timings)
+ {
+ 	if (vpbe_dev->current_timings.timings_type &
+-	  VPBE_ENC_CUSTOM_TIMINGS) {
++	  VPBE_ENC_DV_TIMINGS) {
+ 		*dv_timings = vpbe_dev->current_timings.dv_timings;
+ 		return 0;
+ 	}
+@@ -412,7 +412,7 @@ static int vpbe_enum_dv_timings(struct vpbe_device *vpbe_dev,
+ 		return -EINVAL;
+ 
+ 	for (i = 0; i < output->num_modes; i++) {
+-		if (output->modes[i].timings_type == VPBE_ENC_CUSTOM_TIMINGS) {
++		if (output->modes[i].timings_type == VPBE_ENC_DV_TIMINGS) {
+ 			if (j == timings->index)
+ 				break;
+ 			j++;
+@@ -515,7 +515,7 @@ static int vpbe_set_mode(struct vpbe_device *vpbe_dev,
+ 				return vpbe_s_std(vpbe_dev,
+ 						 &preset_mode->std_id);
+ 			if (preset_mode->timings_type &
+-						VPBE_ENC_CUSTOM_TIMINGS) {
++						VPBE_ENC_DV_TIMINGS) {
+ 				dv_timings =
+ 					preset_mode->dv_timings;
+ 				return vpbe_s_dv_timings(vpbe_dev, &dv_timings);
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 5e6b0ca..1f59955 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1202,7 +1202,7 @@ vpbe_display_g_dv_timings(struct file *file, void *priv,
+ 	/* Get the given standard in the encoder */
+ 
+ 	if (vpbe_dev->current_timings.timings_type &
+-				VPBE_ENC_CUSTOM_TIMINGS) {
++				VPBE_ENC_DV_TIMINGS) {
+ 		*dv_timings = vpbe_dev->current_timings.dv_timings;
+ 	} else {
+ 		return -EINVAL;
+diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
+index bdbebd5..9546d26 100644
+--- a/drivers/media/platform/davinci/vpbe_venc.c
++++ b/drivers/media/platform/davinci/vpbe_venc.c
+@@ -313,7 +313,7 @@ static int venc_set_480p59_94(struct v4l2_subdev *sd)
+ 		return -EINVAL;
+ 
+ 	/* Setup clock at VPSS & VENC for SD */
+-	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 27000000) < 0)
++	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
+ 		return -EINVAL;
+ 
+ 	venc_enabledigitaloutput(sd, 0);
+@@ -360,7 +360,7 @@ static int venc_set_576p50(struct v4l2_subdev *sd)
+ 	    venc->venc_type != VPBE_VERSION_2)
+ 		return -EINVAL;
+ 	/* Setup clock at VPSS & VENC for SD */
+-	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 27000000) < 0)
++	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
+ 		return -EINVAL;
+ 
+ 	venc_enabledigitaloutput(sd, 0);
+@@ -400,7 +400,7 @@ static int venc_set_720p60_internal(struct v4l2_subdev *sd)
+ 	struct venc_state *venc = to_state(sd);
+ 	struct venc_platform_data *pdata = venc->pdata;
+ 
+-	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 74250000) < 0)
++	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
+ 		return -EINVAL;
+ 
+ 	venc_enabledigitaloutput(sd, 0);
+@@ -428,7 +428,7 @@ static int venc_set_1080i30_internal(struct v4l2_subdev *sd)
+ 	struct venc_state *venc = to_state(sd);
+ 	struct venc_platform_data *pdata = venc->pdata;
+ 
+-	if (pdata->setup_clock(VPBE_ENC_CUSTOM_TIMINGS, 74250000) < 0)
++	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
+ 		return -EINVAL;
+ 
+ 	venc_enabledigitaloutput(sd, 0);
+diff --git a/include/media/davinci/vpbe_types.h b/include/media/davinci/vpbe_types.h
+index 9b85396..05dbe0b 100644
+--- a/include/media/davinci/vpbe_types.h
++++ b/include/media/davinci/vpbe_types.h
+@@ -26,8 +26,7 @@ enum vpbe_version {
+ /* vpbe_timing_type - Timing types used in vpbe device */
+ enum vpbe_enc_timings_type {
+ 	VPBE_ENC_STD = 0x1,
+-	VPBE_ENC_DV_PRESET = 0x2,
+-	VPBE_ENC_CUSTOM_TIMINGS = 0x4,
++	VPBE_ENC_DV_TIMINGS = 0x4,
+ 	/* Used when set timings through FB device interface */
+ 	VPBE_ENC_TIMINGS_INVALID = 0x8,
+ };
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.10.4
+
