@@ -1,113 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:62234 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932823Ab3BSSol (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Feb 2013 13:44:41 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so3543733eek.11
-        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 10:44:40 -0800 (PST)
-Message-ID: <5123C849.6080207@googlemail.com>
-Date: Tue, 19 Feb 2013 19:45:29 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com>
-In-Reply-To: <20130219153024.6f468d43@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from pequod.mess.org ([46.65.169.142]:50923 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754634Ab3BPVZt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 16:25:49 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/3] [media] redrat3: missing endian conversions and warnings
+Date: Sat, 16 Feb 2013 21:25:45 +0000
+Message-Id: <d7dc737be5c894cc03e616d63485a856e6436786.1361020108.git.sean@mess.org>
+In-Reply-To: <cover.1361020108.git.sean@mess.org>
+References: <cover.1361020108.git.sean@mess.org>
+In-Reply-To: <cover.1361020108.git.sean@mess.org>
+References: <cover.1361020108.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.02.2013 19:30, schrieb Mauro Carvalho Chehab:
-> Em Tue, 19 Feb 2013 17:47:28 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 18.02.2013 23:36, schrieb Mr Goldcove:
->>> I've only tried composite video input.
->>> The video/ audio output is good.
->>>  
->>> It has the following input:
->>> RCA stereo sound
->>> RCA video
->>> S-video
->>>
->>> It has no push button but has a green led which illuminates when the
->>> device is in use.
->>>
->>>
->>> On 18. feb. 2013 22:25, Frank Schäfer wrote:
->>>> Am 18.02.2013 21:53, schrieb Mr Goldcove:
->>>>> "Easy Cap DC-60++"
->>>>> Wrongly identified as card 19 "EM2860/SAA711X Reference Design",
->>>>> resulting in no audio.
->>>>> Works perfectly when using card 64 "Easy Cap Capture DC-60"
->>>> Video inputs work fine, right ?
->>>> Does this device has any buttons / LEDs ?
->>>>
->>>> The driver doesn't handle devices with generic IDs very well.
->>>> In this case we can conclude from the USB PID that the device has audio
->>>> support (which is actually the only difference to board
->>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN).
->>>> But I would like to think twice about it, because this kind of changes
->>>> has very a high potential to cause regressions for other boards...
->>>>
->>>> Regards,
->>>> Frank
->> After thinking about this for some minutes:
->> The easiest soulution would be, to add .amux = EM28XX_AMUX_LINE_IN lines
->> to input definitions of board EM2860_BOARD_SAA711X_REFERENCE_DESIGN.
->> No additional code lines (check for audio support etc.) would be needed
->> and (as side effect) board EM2860_BOARD_EASYCAP would become obsolete.
->>
->> The last modification of board EM2860_BOARD_SAA711X_REFERENCE_DESIGN was
->> commit 3ed58baf5db4eab553803916a990a3dbca4dc611 from Devin.
->> The commit message says
->>
->> "The device provides the audio through a pass-thru cable, so we don't need
->>  an actual audio capture profile (neither the K-World device nor the
->> Pointnix
->>  have an onboard audio decoder)"
->>
->> Changing the .amux settings doesn't cause any trouble for devices
->> without audio support
->> (there is actually no way to define _no_ amux, without this line in the
->> input definition .amux is 0 = EM28XX_AMUX_VIDEO).
->>
->> BUT: as we are talking about devices with generic USB IDs, we don't (and
->> will never) know about all other existing devices.
->> There _might_ be some unknown devices with audio support, which are
->> working silently with the current audio settings for board
->> EM2860_BOARD_SAA711X_REFERENCE_DESIGN.
->>
->> OTOH: if we keep the two separate boards and switch from board
->> EM2860_BOARD_SAA711X_REFERENCE_DESIGN to board EM2860_BOARD_EASYCAP when
->> the device has audio support,
->> the same shit can happen.
->>
->> Thoughts ?
->>
->> Does anyone know how the Empia-driver handles devices with generic IDs ?
->> Do you think we can assume their driver uses a single reference board
->> design for the detected combination of USB-ID and subdevices ?
->>
-> I don't like the idea of merging those two entries. As far as I remember
-> there are devices that works out of the box with
-> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
-> the driver for them.
+Spotted by sparse.
 
-As described above, there is a good chance to break devices with both
-solutions.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/redrat3.c |   71 +++++++------------------------------------
+ 1 files changed, 12 insertions(+), 59 deletions(-)
 
-What's your suggestion ? ;-)
-
-Regards,
-Frank
-
-
-> Regards,
-> Mauro
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index ec655b8..12167a6 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -54,7 +54,6 @@
+ #include <media/rc-core.h>
+ 
+ /* Driver Information */
+-#define DRIVER_VERSION "0.70"
+ #define DRIVER_AUTHOR "Jarod Wilson <jarod@redhat.com>"
+ #define DRIVER_AUTHOR2 "The Dweller, Stephen Cox"
+ #define DRIVER_DESC "RedRat3 USB IR Transceiver Driver"
+@@ -199,14 +198,9 @@ struct redrat3_dev {
+ 
+ 	/* the send endpoint */
+ 	struct usb_endpoint_descriptor *ep_out;
+-	/* the buffer to send data */
+-	unsigned char *bulk_out_buf;
+-	/* the urb used to send data */
+-	struct urb *write_urb;
+ 
+ 	/* usb dma */
+ 	dma_addr_t dma_in;
+-	dma_addr_t dma_out;
+ 
+ 	/* rx signal timeout timer */
+ 	struct timer_list rx_timeout;
+@@ -239,7 +233,6 @@ static void redrat3_issue_async(struct redrat3_dev *rr3)
+ 
+ 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
+ 
+-	memset(rr3->bulk_in_buf, 0, rr3->ep_in->wMaxPacketSize);
+ 	res = usb_submit_urb(rr3->read_urb, GFP_ATOMIC);
+ 	if (res)
+ 		rr3_dbg(rr3->dev, "%s: receive request FAILED! "
+@@ -368,7 +361,7 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
+ {
+ 	DEFINE_IR_RAW_EVENT(rawir);
+ 	struct device *dev;
+-	int i, trailer = 0;
++	unsigned i, trailer = 0;
+ 	unsigned sig_size, single_len, offset, val;
+ 	unsigned long delay;
+ 	u32 mod_freq;
+@@ -510,15 +503,11 @@ static inline void redrat3_delete(struct redrat3_dev *rr3,
+ {
+ 	rr3_ftr(rr3->dev, "%s cleaning up\n", __func__);
+ 	usb_kill_urb(rr3->read_urb);
+-	usb_kill_urb(rr3->write_urb);
+ 
+ 	usb_free_urb(rr3->read_urb);
+-	usb_free_urb(rr3->write_urb);
+ 
+-	usb_free_coherent(udev, rr3->ep_in->wMaxPacketSize,
++	usb_free_coherent(udev, le16_to_cpu(rr3->ep_in->wMaxPacketSize),
+ 			  rr3->bulk_in_buf, rr3->dma_in);
+-	usb_free_coherent(udev, rr3->ep_out->wMaxPacketSize,
+-			  rr3->bulk_out_buf, rr3->dma_out);
+ 
+ 	kfree(rr3);
+ }
+@@ -566,7 +555,7 @@ static void redrat3_reset(struct redrat3_dev *rr3)
+ 	rxpipe = usb_rcvctrlpipe(udev, 0);
+ 	txpipe = usb_sndctrlpipe(udev, 0);
+ 
+-	val = kzalloc(len, GFP_KERNEL);
++	val = kmalloc(len, GFP_KERNEL);
+ 	if (!val) {
+ 		dev_err(dev, "Memory allocation failure\n");
+ 		return;
+@@ -620,7 +609,7 @@ static void redrat3_get_firmware_rev(struct redrat3_dev *rr3)
+ 	rr3_ftr(rr3->dev, "Exiting %s\n", __func__);
+ }
+ 
+-static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
++static void redrat3_read_packet_start(struct redrat3_dev *rr3, unsigned len)
+ {
+ 	struct redrat3_header *header = rr3->bulk_in_buf;
+ 	unsigned pktlen, pkttype;
+@@ -659,7 +648,7 @@ static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
+ 	}
+ }
+ 
+-static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
++static void redrat3_read_packet_continue(struct redrat3_dev *rr3, unsigned len)
+ {
+ 	void *irdata = &rr3->irdata;
+ 
+@@ -679,7 +668,7 @@ static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
+ }
+ 
+ /* gather IR data from incoming urb, process it when we have enough */
+-static int redrat3_get_ir_data(struct redrat3_dev *rr3, int len)
++static int redrat3_get_ir_data(struct redrat3_dev *rr3, unsigned len)
+ {
+ 	struct device *dev = rr3->dev;
+ 	unsigned pkttype;
+@@ -755,22 +744,6 @@ static void redrat3_handle_async(struct urb *urb)
+ 	}
+ }
+ 
+-static void redrat3_write_bulk_callback(struct urb *urb)
+-{
+-	struct redrat3_dev *rr3;
+-	int len;
+-
+-	if (!urb)
+-		return;
+-
+-	rr3 = urb->context;
+-	if (rr3) {
+-		len = urb->actual_length;
+-		rr3_ftr(rr3->dev, "%s: called (status=%d len=%d)\n",
+-			__func__, urb->status, len);
+-	}
+-}
+-
+ static u16 mod_freq_to_val(unsigned int mod_freq)
+ {
+ 	int mult = 6000000;
+@@ -799,11 +772,11 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 	struct redrat3_dev *rr3 = rcdev->priv;
+ 	struct device *dev = rr3->dev;
+ 	struct redrat3_irdata *irdata = NULL;
+-	int i, ret, ret_len;
++	int ret, ret_len;
+ 	int lencheck, cur_sample_len, pipe;
+ 	int *sample_lens = NULL;
+ 	u8 curlencheck = 0;
+-	int sendbuf_len;
++	unsigned i, sendbuf_len;
+ 
+ 	rr3_ftr(dev, "Entering %s\n", __func__);
+ 
+@@ -1015,38 +988,18 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 	}
+ 
+ 	rr3->ep_in = ep_in;
+-	rr3->bulk_in_buf = usb_alloc_coherent(udev, ep_in->wMaxPacketSize,
+-					      GFP_ATOMIC, &rr3->dma_in);
++	rr3->bulk_in_buf = usb_alloc_coherent(udev,
++		le16_to_cpu(ep_in->wMaxPacketSize), GFP_ATOMIC, &rr3->dma_in);
+ 	if (!rr3->bulk_in_buf) {
+ 		dev_err(dev, "Read buffer allocation failure\n");
+ 		goto error;
+ 	}
+ 
+ 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
+-	usb_fill_bulk_urb(rr3->read_urb, udev, pipe,
+-			  rr3->bulk_in_buf, ep_in->wMaxPacketSize,
+-			  redrat3_handle_async, rr3);
+-
+-	/* set up bulk-out endpoint*/
+-	rr3->write_urb = usb_alloc_urb(0, GFP_KERNEL);
+-	if (!rr3->write_urb) {
+-		dev_err(dev, "Write urb allocation failure\n");
+-		goto error;
+-	}
++	usb_fill_bulk_urb(rr3->read_urb, udev, pipe, rr3->bulk_in_buf,
++		le16_to_cpu(ep_in->wMaxPacketSize), redrat3_handle_async, rr3);
+ 
+ 	rr3->ep_out = ep_out;
+-	rr3->bulk_out_buf = usb_alloc_coherent(udev, ep_out->wMaxPacketSize,
+-					       GFP_ATOMIC, &rr3->dma_out);
+-	if (!rr3->bulk_out_buf) {
+-		dev_err(dev, "Write buffer allocation failure\n");
+-		goto error;
+-	}
+-
+-	pipe = usb_sndbulkpipe(udev, ep_out->bEndpointAddress);
+-	usb_fill_bulk_urb(rr3->write_urb, udev, pipe,
+-			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
+-			  redrat3_write_bulk_callback, rr3);
+-
+ 	rr3->udev = udev;
+ 
+ 	redrat3_reset(rr3);
+-- 
+1.7.2.5
 
