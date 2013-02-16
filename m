@@ -1,158 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:61808 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750785Ab3BOSiE (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3340 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940Ab3BPJ24 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 13:38:04 -0500
-Received: by mail-ee0-f44.google.com with SMTP id l10so1950762eei.17
-        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 10:38:03 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 4/4] em28xx: add image quality bridge controls
-Date: Fri, 15 Feb 2013 19:38:32 +0100
-Message-Id: <1360953512-4133-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360953512-4133-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360953512-4133-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 16 Feb 2013 04:28:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 13/18] s5p-tv: remove the dv_preset API from hdmiphy.
+Date: Sat, 16 Feb 2013 10:28:16 +0100
+Message-Id: <832a64fc85101db95ce8bb9c88e5150a5dd095e0.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the image quality bridge controls contrast, brightness, saturation,
-blue balance, red balance and sharpness.
-These controls are enabled only if no subdevice provides them.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Tested with the following devices:
-"Terratec Cinergy 200 USB"
-"Hauppauge HVR-900"
-"SilverCrest 1.3MPix webcam"
-"Hauppauge WinTV USB2"
-"Speedlink VAD Laplace webcam"
+The dv_preset API is deprecated and is replaced by the much improved dv_timings
+API. Remove the dv_preset support from this driver as this will allow us to
+remove the dv_preset API altogether (s5p-tv being the last user of this code).
 
-
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |    7 +---
- drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++++++++++++++++--
- 2 Dateien geändert, 57 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c |   53 ---------------------------
+ 1 file changed, 53 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 0a5aa62..96de831 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3089,7 +3089,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		return retval;
- 	}
- 
--	v4l2_ctrl_handler_init(hdl, 4);
-+	v4l2_ctrl_handler_init(hdl, 8);
- 	dev->v4l2_dev.ctrl_handler = hdl;
- 
- 	/* register i2c bus */
-@@ -3158,11 +3158,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		msleep(3);
- 	}
- 
--	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
--	retval = dev->ctrl_handler.error;
--	if (retval)
--		goto fail;
--
- 	retval = em28xx_register_analog_devices(dev);
- 	if (retval < 0) {
- 		goto fail;
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 86fd907..48b937d 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -782,17 +782,38 @@ void em28xx_ctrl_notify(struct v4l2_ctrl *ctrl, void *priv)
- static int em28xx_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct em28xx *dev = container_of(ctrl->handler, struct em28xx, ctrl_handler);
-+	int ret = -EINVAL;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 		dev->mute = ctrl->val;
-+		ret = em28xx_audio_analog_set(dev);
- 		break;
- 	case V4L2_CID_AUDIO_VOLUME:
- 		dev->volume = ctrl->val;
-+		ret = em28xx_audio_analog_set(dev);
-+		break;
-+	case V4L2_CID_CONTRAST:
-+		ret = em28xx_write_reg(dev, EM28XX_R20_YGAIN, ctrl->val);
-+		break;
-+	case V4L2_CID_BRIGHTNESS:
-+		ret = em28xx_write_reg(dev, EM28XX_R21_YOFFSET, ctrl->val);
-+		break;
-+	case V4L2_CID_SATURATION:
-+		ret = em28xx_write_reg(dev, EM28XX_R22_UVGAIN, ctrl->val);
-+		break;
-+	case V4L2_CID_BLUE_BALANCE:
-+		ret = em28xx_write_reg(dev, EM28XX_R23_UOFFSET, ctrl->val);
-+		break;
-+	case V4L2_CID_RED_BALANCE:
-+		ret = em28xx_write_reg(dev, EM28XX_R24_VOFFSET, ctrl->val);
-+		break;
-+	case V4L2_CID_SHARPNESS:
-+		ret = em28xx_write_reg(dev, EM28XX_R25_SHARPNESS, ctrl->val);
- 		break;
- 	}
- 
--	return em28xx_audio_analog_set(dev);
-+	return (ret < 0) ? ret : 0;
+diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+index 85b4211..da97124 100644
+--- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+@@ -176,27 +176,6 @@ static inline struct hdmiphy_ctx *sd_to_ctx(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct hdmiphy_ctx, sd);
  }
  
- const struct v4l2_ctrl_ops em28xx_ctrl_ops = {
-@@ -1784,9 +1805,42 @@ int em28xx_register_analog_devices(struct em28xx *dev)
- 			 (EM28XX_XCLK_AUDIO_UNMUTE | val));
+-static unsigned long hdmiphy_preset_to_pixclk(u32 preset)
+-{
+-	static const unsigned long pixclk[] = {
+-		[V4L2_DV_480P59_94] =  27000000,
+-		[V4L2_DV_576P50]    =  27000000,
+-		[V4L2_DV_720P59_94] =  74176000,
+-		[V4L2_DV_720P50]    =  74250000,
+-		[V4L2_DV_720P60]    =  74250000,
+-		[V4L2_DV_1080P24]   =  74250000,
+-		[V4L2_DV_1080P30]   =  74250000,
+-		[V4L2_DV_1080I50]   =  74250000,
+-		[V4L2_DV_1080I60]   =  74250000,
+-		[V4L2_DV_1080P50]   = 148500000,
+-		[V4L2_DV_1080P60]   = 148500000,
+-	};
+-	if (preset < ARRAY_SIZE(pixclk))
+-		return pixclk[preset];
+-	else
+-		return 0;
+-}
+-
+ static const u8 *hdmiphy_find_conf(unsigned long pixclk,
+ 		const struct hdmiphy_conf *conf)
+ {
+@@ -212,37 +191,6 @@ static int hdmiphy_s_power(struct v4l2_subdev *sd, int on)
+ 	return 0;
+ }
  
- 	em28xx_set_outfmt(dev);
--	em28xx_colorlevels_set_default(dev);
- 	em28xx_compression_disable(dev);
+-static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
+-	struct v4l2_dv_preset *preset)
+-{
+-	const u8 *data = NULL;
+-	u8 buffer[32];
+-	int ret;
+-	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	unsigned long pixclk;
+-	struct device *dev = &client->dev;
+-
+-	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
+-
+-	pixclk = hdmiphy_preset_to_pixclk(preset->preset);
+-	data = hdmiphy_find_conf(pixclk, ctx->conf_tab);
+-	if (!data) {
+-		dev_err(dev, "format not supported\n");
+-		return -EINVAL;
+-	}
+-
+-	/* storing configuration to the device */
+-	memcpy(buffer, data, 32);
+-	ret = i2c_master_send(client, buffer, 32);
+-	if (ret != 32) {
+-		dev_err(dev, "failed to configure HDMIPHY via I2C\n");
+-		return -EIO;
+-	}
+-
+-	return 0;
+-}
+-
+ static int hdmiphy_s_dv_timings(struct v4l2_subdev *sd,
+ 	struct v4l2_dv_timings *timings)
+ {
+@@ -299,7 +247,6 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
+ };
  
-+	/* Add image controls */
-+	/* NOTE: at this point, the subdevices are already registered, so bridge
-+	 * controls are only added/enabled when no subdevice provides them */
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_CONTRAST))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_CONTRAST,
-+				  0, 0x1f, 1, CONTRAST_DEFAULT);
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_BRIGHTNESS))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_BRIGHTNESS,
-+				  -0x80, 0x7f, 1, BRIGHTNESS_DEFAULT);
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_SATURATION))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_SATURATION,
-+				  0, 0x1f, 1, SATURATION_DEFAULT);
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_BLUE_BALANCE))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_BLUE_BALANCE,
-+				  -0x30, 0x30, 1, BLUE_BALANCE_DEFAULT);
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_RED_BALANCE))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_RED_BALANCE,
-+				  -0x30, 0x30, 1, RED_BALANCE_DEFAULT);
-+	if (NULL == v4l2_ctrl_find(&dev->ctrl_handler, V4L2_CID_SHARPNESS))
-+		v4l2_ctrl_new_std(&dev->ctrl_handler, &em28xx_ctrl_ops,
-+				  V4L2_CID_SHARPNESS,
-+				  0, 0x0f, 1, SHARPNESS_DEFAULT);
-+
-+	/* Reset image controls */
-+	em28xx_colorlevels_set_default(dev);
-+	v4l2_ctrl_handler_setup(&dev->ctrl_handler);
-+	if (dev->ctrl_handler.error)
-+		return dev->ctrl_handler.error;
-+
- 	/* allocate and fill video video_device struct */
- 	dev->vdev = em28xx_vdev_init(dev, &em28xx_video_template, "video");
- 	if (!dev->vdev) {
+ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
+-	.s_dv_preset = hdmiphy_s_dv_preset,
+ 	.s_dv_timings = hdmiphy_s_dv_timings,
+ 	.s_stream =  hdmiphy_s_stream,
+ };
 -- 
 1.7.10.4
 
