@@ -1,216 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2936 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010Ab3BPKSr (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4217 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754505Ab3BPVLG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 05:18:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 16 Feb 2013 16:11:06 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1GLB1HR045827
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 22:11:04 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 081D511E00C9
+	for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 22:11:01 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Anatolij Gustschin <agust@denx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/5] fsl-viu: convert to the control framework.
-Date: Sat, 16 Feb 2013 11:18:23 +0100
-Message-Id: <77816a8ba6f0fe685a83a012371cf07b1ab505da.1361009701.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130216211102.081D511E00C9@alastor.dyndns.org>
+Date: Sat, 16 Feb 2013 22:11:01 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Interestingly enough, the existing control handling code basically did
-nothing. At least the new code will inherit the controls from the
-saa7115 driver.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/fsl-viu.c |  110 +++++---------------------------------
- 1 file changed, 14 insertions(+), 96 deletions(-)
+date:		Sat Feb 16 19:00:20 CET 2013
+git branch:	for_v3.9
+git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 5f7db3f..4a46819 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -26,6 +26,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/videobuf-dma-contig.h>
- 
- #define DRV_NAME		"fsl_viu"
-@@ -38,49 +39,6 @@
- /* I2C address of video decoder chip is 0x4A */
- #define VIU_VIDEO_DECODER_ADDR	0x25
- 
--/* supported controls */
--static struct v4l2_queryctrl viu_qctrl[] = {
--	{
--		.id            = V4L2_CID_BRIGHTNESS,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Brightness",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 1,
--		.default_value = 127,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_CONTRAST,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Contrast",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 0x1,
--		.default_value = 0x10,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_SATURATION,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Saturation",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 0x1,
--		.default_value = 127,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_HUE,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Hue",
--		.minimum       = -128,
--		.maximum       = 127,
--		.step          = 0x1,
--		.default_value = 0,
--		.flags         = 0,
--	}
--};
--
--static int qctl_regs[ARRAY_SIZE(viu_qctrl)];
--
- static int info_level;
- 
- #define dprintk(level, fmt, arg...)					\
-@@ -154,6 +112,7 @@ struct viu_reg {
- 
- struct viu_dev {
- 	struct v4l2_device	v4l2_dev;
-+	struct v4l2_ctrl_handler hdl;
- 	struct mutex		lock;
- 	spinlock_t		slock;
- 	int			users;
-@@ -1006,51 +965,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--/* Controls */
--static int vidioc_queryctrl(struct file *file, void *priv,
--				struct v4l2_queryctrl *qc)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(viu_qctrl); i++) {
--		if (qc->id && qc->id == viu_qctrl[i].id) {
--			memcpy(qc, &(viu_qctrl[i]), sizeof(*qc));
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--
--static int vidioc_g_ctrl(struct file *file, void *priv,
--				struct v4l2_control *ctrl)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(viu_qctrl); i++) {
--		if (ctrl->id == viu_qctrl[i].id) {
--			ctrl->value = qctl_regs[i];
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--static int vidioc_s_ctrl(struct file *file, void *priv,
--				struct v4l2_control *ctrl)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(viu_qctrl); i++) {
--		if (ctrl->id == viu_qctrl[i].id) {
--			if (ctrl->value < viu_qctrl[i].minimum
--				|| ctrl->value > viu_qctrl[i].maximum)
--					return -ERANGE;
--			qctl_regs[i] = ctrl->value;
--			return 0;
--		}
--	}
--	return -EINVAL;
--}
--
- inline void viu_activate_next_buf(struct viu_dev *dev,
- 				struct viu_dmaqueue *viuq)
- {
-@@ -1262,7 +1176,6 @@ static int viu_open(struct file *file)
- 	struct viu_reg *vr;
- 	int minor = vdev->minor;
- 	u32 status_cfg;
--	int i;
- 
- 	dprintk(1, "viu: open (minor=%d)\n", minor);
- 
-@@ -1300,10 +1213,6 @@ static int viu_open(struct file *file)
- 	dev->crop_current.width  = fh->width;
- 	dev->crop_current.height = fh->height;
- 
--	/* Put all controls at a sane state */
--	for (i = 0; i < ARRAY_SIZE(viu_qctrl); i++)
--		qctl_regs[i] = viu_qctrl[i].default_value;
--
- 	dprintk(1, "Open: fh=0x%08lx, dev=0x%08lx, dev->vidq=0x%08lx\n",
- 		(unsigned long)fh, (unsigned long)dev,
- 		(unsigned long)&dev->vidq);
-@@ -1460,9 +1369,6 @@ static const struct v4l2_ioctl_ops viu_ioctl_ops = {
- 	.vidioc_enum_input    = vidioc_enum_input,
- 	.vidioc_g_input       = vidioc_g_input,
- 	.vidioc_s_input       = vidioc_s_input,
--	.vidioc_queryctrl     = vidioc_queryctrl,
--	.vidioc_g_ctrl        = vidioc_g_ctrl,
--	.vidioc_s_ctrl        = vidioc_s_ctrl,
- 	.vidioc_streamon      = vidioc_streamon,
- 	.vidioc_streamoff     = vidioc_streamoff,
- };
-@@ -1540,6 +1446,16 @@ static int viu_of_probe(struct platform_device *op)
- 	}
- 
- 	ad = i2c_get_adapter(0);
-+
-+	v4l2_ctrl_handler_init(&viu_dev->hdl, 5);
-+	if (viu_dev->hdl.error) {
-+		ret = viu_dev->hdl.error;
-+		dev_err(&op->dev, "couldn't register control\n");
-+		goto err_vdev;
-+	}
-+	/* This control handler will inherit the control(s) from the
-+	   sub-device(s). */
-+	viu_dev->v4l2_dev.ctrl_handler = &viu_dev->hdl;
- 	viu_dev->decoder = v4l2_i2c_new_subdev(&viu_dev->v4l2_dev, ad,
- 			"saa7113", VIU_VIDEO_DECODER_ADDR, NULL);
- 
-@@ -1607,6 +1523,7 @@ err_irq:
- err_clk:
- 	video_unregister_device(viu_dev->vdev);
- err_vdev:
-+	v4l2_ctrl_handler_free(&viu_dev->hdl);
- 	mutex_unlock(&viu_dev->lock);
- 	i2c_put_adapter(ad);
- 	v4l2_device_unregister(&viu_dev->v4l2_dev);
-@@ -1629,6 +1546,7 @@ static int viu_of_remove(struct platform_device *op)
- 	clk_disable(dev->clk);
- 	clk_put(dev->clk);
- 
-+	v4l2_ctrl_handler_free(&dev->hdl);
- 	video_unregister_device(dev->vdev);
- 	i2c_put_adapter(client->adapter);
- 	v4l2_device_unregister(&dev->v4l2_dev);
--- 
-1.7.10.4
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
