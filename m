@@ -1,56 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:49717 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294Ab3BGLsa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 06:48:30 -0500
-Message-id: <5113948A.5070209@samsung.com>
-Date: Thu, 07 Feb 2013 12:48:26 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Rob Landley <rob@landley.net>
-Subject: Re: [PATCH v2] media: add support for decoder as one of media entity
- types
-References: <1359373843-15956-1-git-send-email-prabhakar.lad@ti.com>
-In-reply-to: <1359373843-15956-1-git-send-email-prabhakar.lad@ti.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1419 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887Ab3BPJ2q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 04:28:46 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 04/18] davinci_vpfe: fix copy-paste errors in several comments.
+Date: Sat, 16 Feb 2013 10:28:07 +0100
+Message-Id: <435f6000435782780f3eb57633664517306a8e29.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 01/28/2013 12:50 PM, Prabhakar Lad wrote:
-> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
-> index 0ef8833..dac06d7 100644
-> --- a/include/uapi/linux/media.h
-> +++ b/include/uapi/linux/media.h
-> @@ -56,6 +56,8 @@ struct media_device_info {
->  #define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	(MEDIA_ENT_T_V4L2_SUBDEV + 1)
->  #define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	(MEDIA_ENT_T_V4L2_SUBDEV + 2)
->  #define MEDIA_ENT_T_V4L2_SUBDEV_LENS	(MEDIA_ENT_T_V4L2_SUBDEV + 3)
-> +/* DECODER: Converts analogue video to digital */
+This removes some incorrect dv_preset references left over from copy-and-paste
+errors.
 
-The patch looks good to me, I would just change this comment to
-something like:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+---
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-/* A converter of analogue video to its digital representation. */
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 99ccbeb..19dc5b0 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1016,12 +1016,12 @@ vpfe_query_dv_timings(struct file *file, void *fh,
+ }
+ 
+ /*
+- * vpfe_s_dv_timings() - set dv_preset on external subdev
++ * vpfe_s_dv_timings() - set dv_timings on external subdev
+  * @file: file pointer
+  * @priv: void pointer
+  * @timings: pointer to v4l2_dv_timings structure
+  *
+- * set dv_timings pointed by preset on external subdev through
++ * set dv_timings pointed by timings on external subdev through
+  * v4l2_device_call_until_err, this configures amplifier also
+  *
+  * Return 0 on success, error code otherwise
+@@ -1042,12 +1042,12 @@ vpfe_s_dv_timings(struct file *file, void *fh,
+ }
+ 
+ /*
+- * vpfe_g_dv_timings() - get dv_preset which is set on external subdev
++ * vpfe_g_dv_timings() - get dv_timings which is set on external subdev
+  * @file: file pointer
+  * @priv: void pointer
+  * @timings: pointer to v4l2_dv_timings structure
+  *
+- * get dv_preset which is set on external subdev through
++ * get dv_timings which is set on external subdev through
+  * v4l2_subdev_call
+  *
+  * Return 0 on success, error code otherwise
+@@ -1423,7 +1423,7 @@ static int vpfe_dqbuf(struct file *file, void *priv,
+ }
+ 
+ /*
+- * vpfe_streamon() - get dv_preset which is set on external subdev
++ * vpfe_streamon() - start streaming
+  * @file: file pointer
+  * @priv: void pointer
+  * @buf_type: enum v4l2_buf_type
+@@ -1472,7 +1472,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+ }
+ 
+ /*
+- * vpfe_streamoff() - get dv_preset which is set on external subdev
++ * vpfe_streamoff() - stop streaming
+  * @file: file pointer
+  * @priv: void pointer
+  * @buf_type: enum v4l2_buf_type
+-- 
+1.7.10.4
 
-But that's really a nitpicking.
-
-> +#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	(MEDIA_ENT_T_V4L2_SUBDEV + 4)
->  
->  #define MEDIA_ENT_FL_DEFAULT		(1 << 0)
-
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
---
-
-Thanks,
-Sylwester
