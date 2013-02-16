@@ -1,49 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44896 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757242Ab3BATKS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 14:10:18 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	swarren@wwwdotorg.org, rob.herring@calxeda.com,
-	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4 08/10] ARM: dts: Add ISP power domain node for Exynos4x12
-Date: Fri, 01 Feb 2013 20:09:29 +0100
-Message-id: <1359745771-23684-9-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
-References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
+Received: from pequod.mess.org ([46.65.169.142]:56726 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754512Ab3BPVZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 16:25:48 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 0/3] [media] redrat3: cleanup driver
+Date: Sat, 16 Feb 2013 21:25:42 +0000
+Message-Id: <cover.1361020108.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISP power domain is a common power domain for fimc-lite
-and fimc-is (ISP) devices.
+This driver has various minor issues and could be simpler.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4x12.dtsi |    5 +++++
- 1 file changed, 5 insertions(+)
+Sean Young (3):
+  [media] redrat3: limit periods to hardware limits
+  [media] redrat3: remove memcpys and fix unaligned memory access
+  [media] redrat3: missing endian conversions and warnings
 
-diff --git a/arch/arm/boot/dts/exynos4x12.dtsi b/arch/arm/boot/dts/exynos4x12.dtsi
-index 179a62e..9c809b72 100644
---- a/arch/arm/boot/dts/exynos4x12.dtsi
-+++ b/arch/arm/boot/dts/exynos4x12.dtsi
-@@ -28,6 +28,11 @@
- 		pinctrl3 = &pinctrl_3;
- 	};
- 
-+	pd_isp: isp-power-domain@10023CA0 {
-+		compatible = "samsung,exynos4210-pd";
-+		reg = <0x10023CA0 0x20>;
-+	};
-+
- 	combiner:interrupt-controller@10440000 {
- 		interrupts = <0 0 0>, <0 1 0>, <0 2 0>, <0 3 0>,
- 			     <0 4 0>, <0 5 0>, <0 6 0>, <0 7 0>,
+ drivers/media/rc/redrat3.c |  457 +++++++++++++-------------------------------
+ 1 files changed, 130 insertions(+), 327 deletions(-)
+
 -- 
-1.7.9.5
+1.7.2.5
 
