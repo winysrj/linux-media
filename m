@@ -1,118 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:43942 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758263Ab3BGMGO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 07:06:14 -0500
-From: Albert Wang <twang13@marvell.com>
-To: corbet@lwn.net, g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org, Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [REVIEW PATCH V4 06/12] [media] marvell-ccic: add SOF/EOF pair check for marvell-ccic driver
-Date: Thu,  7 Feb 2013 20:04:41 +0800
-Message-Id: <1360238687-15768-7-git-send-email-twang13@marvell.com>
-In-Reply-To: <1360238687-15768-1-git-send-email-twang13@marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+Received: from pequod.mess.org ([46.65.169.142]:38064 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754576Ab3BPVZt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 16:25:49 -0500
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/3] [media] redrat3: limit periods to hardware limits
+Date: Sat, 16 Feb 2013 21:25:43 +0000
+Message-Id: <931ef7a1cb55bf99e035ffd9847a8cb0d38e71bc.1361020108.git.sean@mess.org>
+In-Reply-To: <cover.1361020108.git.sean@mess.org>
+References: <cover.1361020108.git.sean@mess.org>
+In-Reply-To: <cover.1361020108.git.sean@mess.org>
+References: <cover.1361020108.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Libin Yang <lbyang@marvell.com>
+The redrat hardware cannot handle periods of larger than 32767us,
+limit appropriately. Also fix memory leak in redrat3_get_timeout.
 
-This patch adds the SOFx/EOFx pair check for marvell-ccic.
-
-When switching format, the last EOF may not arrive when stop streamning.
-And the EOF will be detected in the next start streaming.
-
-Must ensure clear the left over frame flags before every really start streaming.
-
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 4 deletions(-)
+ drivers/media/rc/redrat3.c |   53 ++++++++++++++++++++------------------------
+ 1 files changed, 24 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 0f9604e..29c68f1 100755
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -94,6 +94,9 @@ MODULE_PARM_DESC(buffer_mode,
- #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
- #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
- #define CF_SG_RESTART	 6	/* SG restart needed */
-+#define CF_FRAME_SOF0	 7	/* Frame 0 started */
-+#define CF_FRAME_SOF1	 8
-+#define CF_FRAME_SOF2	 9
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 1b37fe2..842bdcd 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -209,9 +209,6 @@ struct redrat3_dev {
+ 	u16 pktlen;
+ 	u16 pkttype;
+ 	u16 bytes_read;
+-	/* indicate whether we are going to reprocess
+-	 * the USB callback with a bigger buffer */
+-	int buftoosmall;
+ 	char *datap;
  
- #define sensor_call(cam, o, f, args...) \
- 	v4l2_subdev_call(cam->sensor, o, f, ##args)
-@@ -260,8 +263,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
- 	int i;
+ 	u32 carrier;
+@@ -396,7 +393,6 @@ static u32 redrat3_us_to_len(u32 microsec)
  
- 	cam->next_buf = -1;
--	for (i = 0; i < cam->nbufs; i++)
-+	for (i = 0; i < cam->nbufs; i++) {
- 		clear_bit(i, &cam->flags);
-+		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
-+	}
+ 	/* don't allow zero lengths to go back, breaks lirc */
+ 	return result ? result : 1;
+-
  }
  
- static inline int mcam_needs_config(struct mcam_camera *cam)
-@@ -1125,6 +1130,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
- static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ /* timer callback to send reset event */
+@@ -515,8 +511,6 @@ static void redrat3_process_ir_data(struct redrat3_dev *rr3)
+ 
+ 	rr3_dbg(dev, "calling ir_raw_event_handle\n");
+ 	ir_raw_event_handle(rr3->rc);
+-
+-	return;
+ }
+ 
+ /* Util fn to send rr3 cmds */
+@@ -613,7 +607,7 @@ static inline void redrat3_delete(struct redrat3_dev *rr3,
+ 
+ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
  {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-+	unsigned int frame;
+-	u32 *tmp;
++	__be32 *tmp;
+ 	u32 timeout = MS_TO_US(150); /* a sane default, if things go haywire */
+ 	int len, ret, pipe;
  
- 	if (cam->state != S_IDLE) {
- 		INIT_LIST_HEAD(&cam->buffers);
-@@ -1142,6 +1148,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		cam->state = S_BUFWAIT;
- 		return 0;
+@@ -628,14 +622,16 @@ static u32 redrat3_get_timeout(struct redrat3_dev *rr3)
+ 	ret = usb_control_msg(rr3->udev, pipe, RR3_GET_IR_PARAM,
+ 			      USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
+ 			      RR3_IR_IO_SIG_TIMEOUT, 0, tmp, len, HZ * 5);
+-	if (ret != len) {
++	if (ret != len)
+ 		dev_warn(rr3->dev, "Failed to read timeout from hardware\n");
+-		return timeout;
++	else {
++		timeout = redrat3_len_to_us(be32_to_cpup(tmp));
++
++		rr3_dbg(rr3->dev, "Got timeout of %d ms\n", timeout / 1000);
  	}
-+
-+	/*
-+	 * Ensure clear the left over frame flags
-+	 * before every really start streaming
-+	 */
-+	for (frame = 0; frame < cam->nbufs; frame++)
-+		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-+
- 	return mcam_read_setup(cam);
+ 
+-	timeout = redrat3_len_to_us(be32_to_cpu(*tmp));
++	kfree(tmp);
+ 
+-	rr3_dbg(rr3->dev, "Got timeout of %d ms\n", timeout / 1000);
+ 	return timeout;
  }
  
-@@ -1883,9 +1897,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
- 	 * each time.
- 	 */
- 	for (frame = 0; frame < cam->nbufs; frame++)
--		if (irqs & (IRQ_EOF0 << frame)) {
-+		if (irqs & (IRQ_EOF0 << frame) &&
-+			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
- 			mcam_frame_complete(cam, frame);
- 			handled = 1;
-+			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
- 			if (cam->buffer_mode == B_DMA_sg)
- 				break;
- 		}
-@@ -1894,9 +1910,15 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
- 	 * code assumes that we won't get multiple frame interrupts
- 	 * at once; may want to rethink that.
- 	 */
--	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
-+	for (frame = 0; frame < cam->nbufs; frame++) {
-+		if (irqs & (IRQ_SOF0 << frame)) {
-+			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-+			handled = IRQ_HANDLED;
-+		}
+@@ -755,7 +751,6 @@ static void redrat3_read_packet_start(struct redrat3_dev *rr3, int len)
+ 
+ static void redrat3_read_packet_continue(struct redrat3_dev *rr3, int len)
+ {
+-
+ 	rr3_ftr(rr3->dev, "Entering %s\n", __func__);
+ 
+ 	memcpy(rr3->datap, (unsigned char *)rr3->bulk_in_buf, len);
+@@ -815,7 +810,7 @@ out:
+ }
+ 
+ /* callback function from USB when async USB request has completed */
+-static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
++static void redrat3_handle_async(struct urb *urb)
+ {
+ 	struct redrat3_dev *rr3;
+ 	int ret;
+@@ -857,7 +852,7 @@ static void redrat3_handle_async(struct urb *urb, struct pt_regs *regs)
+ 	}
+ }
+ 
+-static void redrat3_write_bulk_callback(struct urb *urb, struct pt_regs *regs)
++static void redrat3_write_bulk_callback(struct urb *urb)
+ {
+ 	struct redrat3_dev *rr3;
+ 	int len;
+@@ -901,7 +896,7 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 	struct redrat3_dev *rr3 = rcdev->priv;
+ 	struct device *dev = rr3->dev;
+ 	struct redrat3_signal_header header;
+-	int i, j, ret, ret_len, offset;
++	int i, ret, ret_len, offset;
+ 	int lencheck, cur_sample_len, pipe;
+ 	char *buffer = NULL, *sigdata = NULL;
+ 	int *sample_lens = NULL;
+@@ -931,8 +926,19 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 		goto out;
+ 	}
+ 
++	sigdata = kzalloc((count + RR3_TX_TRAILER_LEN), GFP_KERNEL);
++	if (!sigdata) {
++		ret = -ENOMEM;
++		goto out;
 +	}
 +
-+	if (handled == IRQ_HANDLED) {
- 		set_bit(CF_DMA_ACTIVE, &cam->flags);
--		handled = 1;
- 		if (cam->buffer_mode == B_DMA_sg)
- 			mcam_ctlr_stop(cam);
+ 	for (i = 0; i < count; i++) {
+ 		cur_sample_len = redrat3_us_to_len(txbuf[i]);
++		if (cur_sample_len > 0xffff) {
++			dev_warn(dev, "transmit period of %uus truncated to %uus\n",
++					txbuf[i], redrat3_len_to_us(0xffff));
++			cur_sample_len = 0xffff;
++		}
+ 		for (lencheck = 0; lencheck < curlencheck; lencheck++) {
+ 			if (sample_lens[lencheck] == cur_sample_len)
+ 				break;
+@@ -950,22 +956,11 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 				break;
+ 			}
+ 		}
+-	}
+-
+-	sigdata = kzalloc((count + RR3_TX_TRAILER_LEN), GFP_KERNEL);
+-	if (!sigdata) {
+-		ret = -ENOMEM;
+-		goto out;
++		sigdata[i] = lencheck;
  	}
+ 
+ 	sigdata[count] = RR3_END_OF_SIGNAL;
+ 	sigdata[count + 1] = RR3_END_OF_SIGNAL;
+-	for (i = 0; i < count; i++) {
+-		for (j = 0; j < curlencheck; j++) {
+-			if (sample_lens[j] == redrat3_us_to_len(txbuf[i]))
+-				sigdata[i] = j;
+-		}
+-	}
+ 
+ 	offset = RR3_TX_HEADER_OFFSET;
+ 	sendbuf_len = RR3_HEADER_LENGTH + (sizeof(u16) * RR3_DRIVER_MAXLENS)
+@@ -1175,7 +1170,7 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 	pipe = usb_rcvbulkpipe(udev, ep_in->bEndpointAddress);
+ 	usb_fill_bulk_urb(rr3->read_urb, udev, pipe,
+ 			  rr3->bulk_in_buf, ep_in->wMaxPacketSize,
+-			  (usb_complete_t)redrat3_handle_async, rr3);
++			  redrat3_handle_async, rr3);
+ 
+ 	/* set up bulk-out endpoint*/
+ 	rr3->write_urb = usb_alloc_urb(0, GFP_KERNEL);
+@@ -1195,7 +1190,7 @@ static int redrat3_dev_probe(struct usb_interface *intf,
+ 	pipe = usb_sndbulkpipe(udev, ep_out->bEndpointAddress);
+ 	usb_fill_bulk_urb(rr3->write_urb, udev, pipe,
+ 			  rr3->bulk_out_buf, ep_out->wMaxPacketSize,
+-			  (usb_complete_t)redrat3_write_bulk_callback, rr3);
++			  redrat3_write_bulk_callback, rr3);
+ 
+ 	rr3->udev = udev;
+ 
 -- 
-1.7.9.5
+1.7.2.5
 
