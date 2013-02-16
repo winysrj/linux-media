@@ -1,93 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:57007 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760376Ab3BMV4c (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1853 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753174Ab3BPNpN convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Feb 2013 16:56:32 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a12so642064eaa.27
-        for <linux-media@vger.kernel.org>; Wed, 13 Feb 2013 13:56:31 -0800 (PST)
-Message-ID: <511C0C0C.3090403@gmail.com>
-Date: Wed, 13 Feb 2013 22:56:28 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Sat, 16 Feb 2013 08:45:13 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [GIT PULL FOR v3.9] bttv: v4l2-compliance fixes
+Date: Sat, 16 Feb 2013 14:45:07 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201302151115.24037.hverkuil@xs4all.nl> <201302152238.59841.hverkuil@xs4all.nl> <511F8B11.7070600@googlemail.com>
+In-Reply-To: <511F8B11.7070600@googlemail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL] Timestamp API update for mem-to-mem devices
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201302161445.07943.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Sat February 16 2013 14:35:13 Frank Schäfer wrote:
+> Am 15.02.2013 22:38, schrieb Hans Verkuil:
+> > On Fri February 15 2013 22:09:11 Frank Schäfer wrote:
+> >> Am 15.02.2013 11:15, schrieb Hans Verkuil:
+> >>> This pull request is identical to the REVIEWv2 patch series I posted earlier:
+> >>>
+> >>> http://www.spinics.net/lists/linux-media/msg59944.html
+> >>>
+> >>> The only change (besides rebasing) is that patch 04/19 was moved to the end
+> >>> of the patch series. More about that patch below.
+> >>>
+> >>> This patch series updates bttv and tda7432 (a prerequisite of bttv) to the
+> >>> latest v4l2 frameworks, except for vb2 (as usual). Conversion to vb2 is
+> >>> something for the future.
+> >>>
+> >>> This patch series has been tested with the following bttv cards:
+> >>>
+> >>> Simple gpio-audio-based bttv card types:
+> >>>
+> >>> 39, 77, 41, 33
+> >>>
+> >>> msp34xx based card types:
+> >>>
+> >>> 10 (with msp3410d)
+> >>> 1 (with msp3410c)
+> >>>
+> >>> tvaudio based card types:
+> >>>
+> >>> 40 (with tda7432, tea6420 and tda9850)
+> >>>
+> >>> The last one is now finally working. I doubt audio has worked at all in the
+> >>> last few years for that card. I'm pretty pleased about this to be honest :-)
+> >>>
+> >>> It turns out that the frequency handling in the current driver is partially
+> >>> broken (see this thread:
+> >>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg58548.html). This
+> >>> is now fixed as a consequence of these compliancy patches. It's something
+> >>> v4l2-compliance found immediately, so this once again shows the importance of
+> >>> using v4l2-compliance to test fixes.
+> >>>
+> >>> While most patches are pretty standard for such conversions the last patch
+> >>> needs some more background:
+> >>>
+> >>> The current driver does not implement enumaudio (so apps cannot tell that
+> >>> audio inputs are present), it does not set V4L2_CAP_AUDIO, nor does it set
+> >>> audioset when calling ENUM_INPUT. And G_AUDIO doesn't set the stereo flag
+> >>> either. So these g/s_audio ioctls are quite pointless and misleading.
+> >>> Especially since some surveillance boards do not have audio at all.
+> >>>
+> >>> So I decided to remove them. But after a question about this from Frank
+> >>> Schäfer I investigated what would be needed to correctly implement
+> >>> s/g/enumaudio. So I made a second bttv branch which is identical to this
+> >>> one, except that the last patch is replaced by two new patches adding
+> >>> proper s/g/enumaudio support:
+> >>>
+> >>> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bttv-audio
+> >>>
+> >>> However, this patch relies on the audio_inputs field (currently commented out)
+> >>> of the card definition, and I have serious doubts about the reliability of
+> >>> that field. A wrong number is not a problem in itself as audio will remain
+> >>> working, it is just that ENUMAUDIO will give wrong results.
+> >>>
+> >>> So there are three options:
+> >>>
+> >>> 1) keep the current situation: i.e. apply just the first 18 patches and skip
+> >>>    the last. I'm not in favor of this myself.
+> >>>
+> >>> 2) remove the g/s_audio ioctls. At least this makes the driver consistent
+> >>>    with the V4L2 API. And adding the enumaudio support can always be done
+> >>>    later.
+> >>>
+> >>> 3) use the bttv-audio branch and implement proper enumaudio support and just
+> >>>    accept that enumaudio can return incorrect results if the card definition
+> >>>    is wrong.
+> >>>
+> >>> I am undecided which of options 2 or 3 is better. I'm leaning slightly towards
+> >>> option 2, but there is much to be said for 3 as well. So I am leaving it to
+> >>> you, Mauro, since you are the bttv maintainer anyway :-)
+> >>>
+> >>> Regards,
+> >>>
+> >>>         Hans
+> >> Hi Hans,
+> >>
+> >> I have tested the bttv-audio patches a few minutes ago with the
+> >> Hauppauge WinTV Theatre (card 10) and g/s_audio works as expected.
+> >> Audio line-in works fine, but I noticed that it also works fine with
+> >> kernel 3.7.8 ?!
+> > Why wouldn't it?
+> 
+> Sorry, my fault... too many devices ;).
+> I tested a saa7134 device (AverMedia 303P) a few weeks ago and the audio
+> line-in didn't work for THIS device....
+> 
+> >
+> >> I also noticed that audio balance (msp34xx control) doesn't work for the
+> >> the left side and the sound is always mono (also for radio),
+> >> but I assume the problem is my self-made
+> >> mini-DIN-to-lini-in-Adapter-cable (this card has surround sound)...
+> > I've tested it with my WinTv Theatre and the balance works fine with a proper
+> > cable :-)
+> 
+> Ok... :-)
+> I used the following description to built my adapter cable:
+> http://www.vdr-wiki.de/wiki/index.php/Kabelpeitsche
+> 
+> But it seems the WinTV Theatre uses a slightly different pin assignment
+> and I'm using both right channels...
+> Hmm... if you find a free minute, could you check which pins of the
+> mini-DIN-connector of your cable are used for left and right audio (I
+> don't care about the others) ?
 
-This change set includes a two patches I missed out in my last pull request
-which introduce V4L2_BUF_FLAG_TIMESTAMP_COPY buffer flag to indicate the
-timestamps are, in case of the mem-to-mem devices, copied from output to
-capture buffer queue.
+I don't have access to the cable at the moment (travelling), but ping me
+again in 10 days or so to remind me.
 
-The other two patches is a fix for s3c-camif driver and a patch adding 
-device
-tree support to the s5p-g2d driver.
+> 
+> >
+> >> Some things that need to be fixed for this card (mute on stop/close,
+> >> colokiller control, BE video formats, ...),
+> > Can you elaborate on the mute and BE video formats? Colorkiller doesn't work,
+> > I've noticed the same thing.
+> 
+> As far as I understand, audio should be muted when capturing is stopped
+> / the device is closed.
 
-Please pull for 3.9 if still possible. There are already some patches queued
-for 3.9 improving the timestamps handling and it would be especially useful
-to have the below two patches from Kamil together in same kernel release.
+True, unless it is the radio node.
 
-The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+> (I assume shutting down the tuner would be even better, but no idea if
+> it is possible).
+> Otherwise users can still hear the last radio or TV channel.
+> Btw: it's not clear to me how "auto mute" is supposed to work. All I
+> noticed is, that it mutes audio when switching between the (video)
+> inputs (without activating the "mute" checkbox ?!).
 
-   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) 
-(2013-02-13 18:05:29 -0200)
+I think the idea is that it mutes when there is no signal detected
+to prevent white noise.
 
-are available in the git repository at:
-   git://linuxtv.org/snawrocki/samsung.git for_v3.9_2
+> What I forgot to mention is, that the audio controls (bass, trebble,
+> volume, balance) seem to have no effect on "Line-In".
 
-Kamil Debski (2):
-       v4l: Define video buffer flag for the COPY timestamp type
-       vb2: Add support for non monotonic timestamps
+That wouldn't surprise me at all. See the comment regarding msp3400
+routing in audio_mux().
 
-Sachin Kamat (1):
-       s5p-g2d: Add DT based discovery support
+> 
+> 
+> Concerning the BE formats: I tested with qv4l2 in raw mode only, but
+> with the formats
+> 
+> RGBQ - 15 bpp RGB, be
+> RGBR - 16 bpp RGB, be
+> RGB4 - 32 bpp RGB, be
+> 
+> the picture looks like this:
+> http://imageshack.us/photo/my-images/24/rgbq.png/
+> http://imageshack.us/photo/my-images/805/rgbr.png/
+> http://imageshack.us/photo/my-images/6/rgb4n.png/
 
-Sylwester Nawrocki (1):
-       s3c-camif: Fail on insufficient number of allocated buffers
+I think those are actually bugs in libv4lconvert. I have patches for that
+that I still need to clean up and post. There is basically no big-endian
+support in libv4lconvert at the moment.
 
-  Documentation/DocBook/media/v4l/io.xml             |    6 ++++
-  drivers/media/platform/blackfin/bfin_capture.c     |    1 +
-  drivers/media/platform/davinci/vpbe_display.c      |    1 +
-  drivers/media/platform/davinci/vpif_capture.c      |    1 +
-  drivers/media/platform/davinci/vpif_display.c      |    1 +
-  drivers/media/platform/s3c-camif/camif-capture.c   |   16 +++++++--
-  drivers/media/platform/s5p-fimc/fimc-capture.c     |    1 +
-  drivers/media/platform/s5p-fimc/fimc-lite.c        |    1 +
-  drivers/media/platform/s5p-g2d/g2d.c               |   31 
-++++++++++++++++++-
-  drivers/media/platform/s5p-mfc/s5p_mfc.c           |    2 +
-  drivers/media/platform/soc_camera/atmel-isi.c      |    1 +
-  drivers/media/platform/soc_camera/mx2_camera.c     |    1 +
-  drivers/media/platform/soc_camera/mx3_camera.c     |    1 +
-  .../platform/soc_camera/sh_mobile_ceu_camera.c     |    1 +
-  drivers/media/platform/vivi.c                      |    1 +
-  drivers/media/usb/pwc/pwc-if.c                     |    1 +
-  drivers/media/usb/stk1160/stk1160-v4l.c            |    1 +
-  drivers/media/usb/uvc/uvc_queue.c                  |    1 +
-  drivers/media/v4l2-core/videobuf2-core.c           |    8 ++++-
-  include/media/videobuf2-core.h                     |    1 +
-  include/uapi/linux/videodev2.h                     |    1 +
-  21 files changed, 71 insertions(+), 8 deletions(-)
+Regards,
 
-The corresponding pwclient commands:
+	Hans
 
-pwclient update -s accepted 16650
-pwclient update -s accepted 16470
-pwclient update -s accepted 16471
-pwclient update -s accepted 16733
-pwclient update -s superseded 16247
-pwclient update -s superseded 16248
-pwclient update -s superseded 16246
-pwclient update -s superseded 16447
-pwclient update -s superseded 16448
-pwclient update -s superseded 16449
-
----
-
-Thanks,
-Sylwester
+> 
+> 
+> Anyway - these are no regressions, so there is no reason to delay your
+> patches.
+> 
+> Regards,
+> Frank
+> 
+> >> but these are separate
+> >> issues not related to this patch series.
+> >> So feel free to add "Tested-by" (if anybody cares).
+> > Thanks!
+> >
+> > 	Hans
+> >
+> >> Regards,
+> >> Frank
+> >>
+> >>
+> >>
+> >>
+> >>> The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+> >>>
+> >>>   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+> >>>
+> >>> are available in the git repository at:
+> >>>
+> >>>   git://linuxtv.org/hverkuil/media_tree.git bttv
+> >>>
+> >>> for you to fetch changes up to b26d6e39030e6ca2812bc8a818645169e6783ec9:
+> >>>
+> >>>   bttv: remove g/s_audio since there is only one audio input. (2013-02-15 10:56:48 +0100)
+> >>>
+> >>> ----------------------------------------------------------------
+> >>> Hans Verkuil (19):
+> >>>       bttv: fix querycap and radio v4l2-compliance issues.
+> >>>       bttv: add VIDIOC_DBG_G_CHIP_IDENT
+> >>>       bttv: fix ENUM_INPUT and S_INPUT
+> >>>       bttv: disable g/s_tuner and g/s_freq when no tuner present, fix return codes.
+> >>>       bttv: set initial tv/radio frequencies
+> >>>       bttv: G_PARM: set readbuffers.
+> >>>       bttv: fill in colorspace.
+> >>>       bttv: fill in fb->flags for VIDIOC_G_FBUF
+> >>>       bttv: fix field handling inside TRY_FMT.
+> >>>       tda7432: convert to the control framework
+> >>>       bttv: convert to the control framework.
+> >>>       bttv: add support for control events.
+> >>>       bttv: fix priority handling.
+> >>>       bttv: use centralized std and implement g_std.
+> >>>       bttv: there may be multiple tvaudio/tda7432 devices.
+> >>>       bttv: fix g_tuner capabilities override.
+> >>>       bttv: fix try_fmt_vid_overlay and setup initial overlay size.
+> >>>       bttv: do not switch to the radio tuner unless it is accessed.
+> >>>       bttv: remove g/s_audio since there is only one audio input.
+> >>>
+> >>>  drivers/media/i2c/tda7432.c           |  276 +++++++---------
+> >>>  drivers/media/i2c/tvaudio.c           |    2 +-
+> >>>  drivers/media/pci/bt8xx/bttv-cards.c  |   19 +-
+> >>>  drivers/media/pci/bt8xx/bttv-driver.c | 1144 ++++++++++++++++++++++++++++---------------------------------------
+> >>>  drivers/media/pci/bt8xx/bttv.h        |    3 +
+> >>>  drivers/media/pci/bt8xx/bttvp.h       |   31 +-
+> >>>  include/media/v4l2-chip-ident.h       |    8 +
+> >>>  include/uapi/linux/v4l2-controls.h    |    5 +
+> >>>  8 files changed, 632 insertions(+), 856 deletions(-)
+> 
