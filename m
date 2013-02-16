@@ -1,161 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:61004 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab3BEVhG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 16:37:06 -0500
-Received: by mail-ea0-f170.google.com with SMTP id a11so286383eaa.15
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 13:37:04 -0800 (PST)
-Message-ID: <51117BAE.5090605@googlemail.com>
-Date: Tue, 05 Feb 2013 22:37:50 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from firefly.pyther.net ([50.116.37.168]:41898 "EHLO
+	firefly.pyther.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754792Ab3BPXi1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 18:38:27 -0500
+Message-ID: <51201871.9050501@pyther.net>
+Date: Sat, 16 Feb 2013 18:38:25 -0500
+From: Matthew Gyurgyik <matthew@pyther.net>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: fix usb alternate setting for analog and digital
- video endpoints > 0
-References: <1358529948-2260-1-git-send-email-fschaefer.oss@googlemail.com> <20130205185707.5ecb3801@redhat.com>
-In-Reply-To: <20130205185707.5ecb3801@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?ISO-8859-1?Q?Frank_Sc?= =?ISO-8859-1?Q?h=E4fer?=
+	<fschaefer.oss@googlemail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jwilson@redhat.com>
+Subject: Re: em28xx: msi Digivox ATSC board id [0db0:8810]
+References: <50B5779A.9090807@pyther.net> <50C60772.2010904@googlemail.com> <CAGoCfizmchN0Lg1E=YmcoPjW3PXUsChb3JtDF20MrocvwV6+BQ@mail.gmail.com> <50C6226C.8090302@iki! .fi> <50C636E7.8060003@googlemail.com> <50C64AB0.7020407@iki.fi> <50C79CD6.4060501@googlemail.com> <50C79E9A.3050301@iki.fi> <20121213182336.2cca9da6@redhat.! com> <50CB46CE.60407@googlemail.com> <20121214173950.79bb963e@redhat.com> <20121214222631.1f191d6e@redhat.co! m> <50CBCAB9.602@iki.fi> <20121214235412.2598c91c@redhat.com> <50CC76FC.5030208@googlemail.com> <50CC7D3F.9020108@iki.fi> <50CCA39F.5000309@googlemail.co m> <50CCAAA4.4030808@iki.fi> <50CE70E0.2070809@pyther.net> <50CE74C7.90809@iki.fi> <50CE7763.3030900@pyther.net> <50CEE6FA.4030901@iki.fi> <50CEFD29.8060009@iki.fi> <50CEFF43.1030704@pyther.net> <50CF44CD.5060707@redhat.com> <50CFDE2B.6040100@pyther.net> <50E49FA6.8010402@iki.fi> <50E4F2BA.7060407@pyther.net> <50FC01DE.3080203@pyther.net> <50FC2D8D.7080205@iki.fi>
+In-Reply-To: <50FC2D8D.7080205@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.02.2013 21:57, schrieb Mauro Carvalho Chehab:
-> Em Fri, 18 Jan 2013 18:25:48 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> While the current code handles sound interfaces with a number > 0 correctly, it
->> assumes that the interface number for analog + digital video is always 0 when
->> changing the alternate setting.
+On 01/20/2013 12:46 PM, Antti Palosaari wrote:
+> On 01/20/2013 04:40 PM, Matthew Gyurgyik wrote:
+>> On 01/02/2013 09:53 PM, Matthew Gyurgyik wrote:
+>>> On 01/02/2013 03:59 PM, Antti Palosaari wrote:
+>>>> On 12/18/2012 05:08 AM, Matthew Gyurgyik wrote:
+>>>>> I can test patches Tue and Wed this week. Afterwards, I probably won't
+>>>>> be able to test anything until Dec 28th/29th as I will be away from my
+>>>>> workstation.
+>>>>>
+>>>>> In regards to my issue compiling my kernel, it helps if I include
+>>>>> devtmpfs. :)
+>>>>
+>>>> Matthew, test? Both remote and television.
+>>>>
+>>>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/HU345-Q
+>>>>
+>>>>
+>>>> regards
+>>>> Antti
+>>>
+>>>
+>>> So using the HU345-Q branch I get the following results
+>>>
+>>> Remote:
+>>>
+>>> Using evtest it looks like all the key codes register correctly. (KEY_1,
+>>> KEY_YELLOW, KEY_VOLUMEUP, etc...)
+>>>
+>>> However, ir_keytable fails
+>>>
+>>> [root@tux bin]# ./ir-keytable -t
+>>> Not found device rc0
+>>>
+>>> Tunning:
+>>>
+>>> I did a basic test with mplayer and tunning worked. I'll have to do more
+>>> testing.
+>>>
+>>> Scanning:
+>>>
+>>> Running a scan resulted in a kernel panic.
+>>>
+>>> Scan command: scan -A 2 -t 1
+>>> /usr/share/dvb/atsc/us-Cable-Standard-center-frequencies-QAM256 >
+>>> ~/channels_msidigivox.conf
+>>>
+>>> Kernel Messages: http://pyther.net/a/digivox_atsc/jan02/kernel_log.txt
+>>>
+>>> Let me know what additional info I can provide. As always, I appreciate
+>>> the help!
+>>>
+>>> Thanks,
+>>> Matthew
+>>>
 >>
->> (NOTE: the "SpeedLink VAD Laplace webcam" (EM2765) uses interface number 3 for video)
 >>
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-audio.c |   10 +++++-----
->>  drivers/media/usb/em28xx/em28xx-cards.c |    2 +-
->>  drivers/media/usb/em28xx/em28xx-core.c  |    2 +-
->>  drivers/media/usb/em28xx/em28xx-dvb.c   |    2 +-
->>  drivers/media/usb/em28xx/em28xx.h       |    3 +--
->>  5 Dateien geändert, 9 Zeilen hinzugefügt(+), 10 Zeilen entfernt(-)
+>> Antti,
 >>
->> diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
->> index 2fdb66e..cdbfe0a 100644
->> --- a/drivers/media/usb/em28xx/em28xx-audio.c
->> +++ b/drivers/media/usb/em28xx/em28xx-audio.c
->> @@ -283,15 +283,15 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
->>  	}
->>  
->>  	runtime->hw = snd_em28xx_hw_capture;
->> -	if ((dev->alt == 0 || dev->audio_ifnum) && dev->adev.users == 0) {
->> -		if (dev->audio_ifnum)
->> +	if ((dev->alt == 0 || dev->ifnum) && dev->adev.users == 0) {
->> +		if (dev->ifnum)
-> Please don't merge a non-fix change (variable rename) with a fix.
-
-Ok, sorry, it seems to be trivial...
-
-> Btw, audio_ifnum is a better name, as it avoids it to be miss-interpreted.
-
-Did you read the complete patch ? ;)
-Or do you really want the video interface number to be called audio_ifnum ?
-
->>  			dev->alt = 1;
->>  		else
->>  			dev->alt = 7;
->>  
->>  		dprintk("changing alternate number on interface %d to %d\n",
->> -			dev->audio_ifnum, dev->alt);
->> -		usb_set_interface(dev->udev, dev->audio_ifnum, dev->alt);
->> +			dev->ifnum, dev->alt);
->> +		usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>  
->>  		/* Sets volume, mute, etc */
->>  		dev->mute = 0;
->> @@ -642,7 +642,7 @@ static int em28xx_audio_init(struct em28xx *dev)
->>  	static int          devnr;
->>  	int                 err;
->>  
->> -	if (!dev->has_alsa_audio || dev->audio_ifnum < 0) {
->> +	if (!dev->has_alsa_audio) {
->>  		/* This device does not support the extension (in this case
->>  		   the device is expecting the snd-usb-audio module or
->>  		   doesn't have analog audio support at all) */
->> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
->> index 0a5aa62..553db17 100644
->> --- a/drivers/media/usb/em28xx/em28xx-cards.c
->> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
->> @@ -3376,7 +3376,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->>  	dev->alt   = -1;
->>  	dev->is_audio_only = has_audio && !(has_video || has_dvb);
->>  	dev->has_alsa_audio = has_audio;
->> -	dev->audio_ifnum = ifnum;
->> +	dev->ifnum = ifnum;
->>  
->>  	/* Checks if audio is provided by some interface */
->>  	for (i = 0; i < udev->config->desc.bNumInterfaces; i++) {
->> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
->> index ce4f252..210859a 100644
->> --- a/drivers/media/usb/em28xx/em28xx-core.c
->> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->> @@ -862,7 +862,7 @@ set_alt:
->>  	}
->>  	em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
->>  		       dev->alt, dev->max_pkt_size);
->> -	errCode = usb_set_interface(dev->udev, 0, dev->alt);
->> +	errCode = usb_set_interface(dev->udev, dev->ifnum, dev->alt);
->>  	if (errCode < 0) {
->>  		em28xx_errdev("cannot change alternate number to %d (error=%i)\n",
->>  				dev->alt, errCode);
-> This hunk doesn't apply upstream:
+>> Is there any follow up testing I could do? Is there any additional
+>> information you need from me.
+>>
+>> Thanks,
+>> Matthew
 >
-> patching file drivers/media/usb/em28xx/em28xx-core.c
-> Hunk #1 FAILED at 862.
-> 1 out of 1 hunk FAILED -- rejects in file drivers/media/usb/em28xx/em28xx-core.c
-
-It applies after
-
-http://patchwork.linuxtv.org/patch/16197/
-
-has been applied.
-
-Regards,
-Frank
-
+> Matthew,
+> Thank you for testing continuously! I looked it and for my eyes it works
+> as it should (both television and remote controller as you reported).
+> All those bugs you mention has no relations to that certain device. I
+> think all are general em28xx driver bugs. There has been recently quite
+> much changes done for the em28xx driver and probably some of those
+> findings are already fixed. I am not em28xx driver expert, due to that
+> it is hard to say what is wrong. I will try to make final patch soon and
+> after your test it could be sent to the mainline.
 >
->> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
->> index a81ec2e..dbeed6c 100644
->> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
->> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
->> @@ -196,7 +196,7 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
->>  		dvb_alt = dev->dvb_alt_isoc;
->>  	}
->>  
->> -	usb_set_interface(dev->udev, 0, dvb_alt);
->> +	usb_set_interface(dev->udev, dev->ifnum, dvb_alt);
->>  	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
->>  	if (rc < 0)
->>  		return rc;
->> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
->> index 5f0b2c5..0dc5b73 100644
->> --- a/drivers/media/usb/em28xx/em28xx.h
->> +++ b/drivers/media/usb/em28xx/em28xx.h
->> @@ -487,8 +487,6 @@ struct em28xx {
->>  
->>  	unsigned char disconnected:1;	/* device has been diconnected */
->>  
->> -	int audio_ifnum;
->> -
->>  	struct v4l2_device v4l2_dev;
->>  	struct v4l2_ctrl_handler ctrl_handler;
->>  	/* provides ac97 mute and volume overrides */
->> @@ -597,6 +595,7 @@ struct em28xx {
->>  
->>  	/* usb transfer */
->>  	struct usb_device *udev;	/* the usb device */
->> +	int ifnum;			/* usb interface number */
->>  	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
->>  	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
->>  	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
+> regards
+> Antti
 >
+Any update on this?
 
+Thanks,
+Matthew
