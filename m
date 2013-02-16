@@ -1,75 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63699 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754895Ab3BYHt2 (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:48393 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752895Ab3BPKT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Feb 2013 02:49:28 -0500
-Date: Mon, 25 Feb 2013 08:49:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Media: remove incorrect __exit markups
-In-Reply-To: <20130225032215.GA9352@core.coreip.homeip.net>
-Message-ID: <Pine.LNX.4.64.1302250847540.3030@axis700.grange>
-References: <20130225032215.GA9352@core.coreip.homeip.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 16 Feb 2013 05:19:29 -0500
+Received: by mail-wg0-f42.google.com with SMTP id 12so1525217wgh.3
+        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 02:19:27 -0800 (PST)
+Subject: [PATCH v2] media: i.MX27 camera: fix picture source width
+From: Christoph Fritz <chf.fritz@googlemail.com>
+To: Greg KH <gregkh@linuxfoundation.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	"Hans J. Koch" <hjk@hansjkoch.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <20130215172452.GA27113@kroah.com>
+References: <1360948121.29406.15.camel@mars>
+	 <20130215172452.GA27113@kroah.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 16 Feb 2013 11:19:24 +0100
+Message-ID: <1361009964.5028.3.camel@mars>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry
+While using a mt9m001 (monochrome) camera the final output falsely gets
+horizontally divided into two pictures.
 
-On Sun, 24 Feb 2013, Dmitry Torokhov wrote:
+The issue was git bisected to commit f410991dcf1f
 
-> Even if bus is not hot-pluggable, the devices can be unbound from the
-> driver via sysfs, so we should not be using __exit annotations on
-> remove() methods. The only exception is drivers registered with
-> platform_driver_probe() which specifically disables sysfs bind/unbind
-> attributes.
-> 
-> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> ---
->  drivers/media/i2c/adp1653.c                      | 4 ++--
->  drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
->  drivers/media/platform/soc_camera/omap1_camera.c | 4 ++--
->  drivers/media/radio/radio-si4713.c               | 4 ++--
->  drivers/media/rc/ir-rx51.c                       | 4 ++--
->  5 files changed, 10 insertions(+), 10 deletions(-)
+  |  [media] i.MX27 camera: add support for YUV420 format
+  |
+  |  This patch uses channel 2 of the eMMa-PrP to convert
+  |  format provided by the sensor to YUV420.
+  |
+  |  This format is very useful since it is used by the
+  |  internal H.264 encoder.
 
-[snip]
+It sets PICTURE_X_SIZE in register PRP_SRC_FRAME_SIZE to its full width
+while before that commit it was divided by two:
 
-> diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-> index 39a77f0..5f548ac 100644
-> --- a/drivers/media/platform/soc_camera/omap1_camera.c
-> +++ b/drivers/media/platform/soc_camera/omap1_camera.c
-> @@ -1677,7 +1677,7 @@ exit:
->  	return err;
->  }
->  
-> -static int __exit omap1_cam_remove(struct platform_device *pdev)
-> +static int omap1_cam_remove(struct platform_device *pdev)
->  {
->  	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
->  	struct omap1_cam_dev *pcdev = container_of(soc_host,
-> @@ -1709,7 +1709,7 @@ static struct platform_driver omap1_cam_driver = {
->  		.name	= DRIVER_NAME,
->  	},
->  	.probe		= omap1_cam_probe,
-> -	.remove		= __exit_p(omap1_cam_remove),
-> +	.remove		= omap1_cam_remove,
->  };
->  
->  module_platform_driver(omap1_cam_driver);
+-   writel(((bytesperline >> 1) << 16) | icd->user_height,
++           writel((icd->user_width << 16) | icd->user_height,
+                    pcdev->base_emma + PRP_SRC_FRAME_SIZE);
 
-This looks correct, but don't we also have to remove __init from 
-omap1_cam_probe()? Or would that be a separate patch?
+i.mx27 reference manual (41.6.12 PrP Source Frame Size Register) says:
 
-Thanks
-Guennadi
+    PICTURE_X_SIZE. These bits set the frame width to be
+    processed in number of pixels. In YUV 4:2:0 mode, Cb and
+    Cr widths are taken as PICTURE_X_SIZE/2 pixels.  In YUV
+    4:2:0 mode, this value should be a multiple of 8-pixels.
+    In other modes (RGB, YUV 4:2:2 and YUV 4:4:4) it should
+    be a multiple of 4 pixels.
+
+This patch reverts to PICTURE_X_SIZE/2 for channel 1.
+
+Tested on Kernel 3.4, merged to 3.8rc.
+
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/soc_camera/mx2_camera.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index 8bda2c9..795bd3f 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -778,11 +778,11 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 
+-	writel((pcdev->s_width << 16) | pcdev->s_height,
+-	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 	writel(prp->cfg.src_pixel,
+ 	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+ 	if (prp->cfg.channel == 1) {
++		writel(((bytesperline >> 1) << 16) | pcdev->s_height,
++			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+ 		writel(bytesperline,
+@@ -790,6 +790,8 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 		writel(prp->cfg.ch1_pixel,
+ 			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
+ 	} else { /* channel 2 */
++		writel((pcdev->s_width << 16) | pcdev->s_height,
++			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
+ 	}
+-- 
+1.7.10.4
+
+
+
