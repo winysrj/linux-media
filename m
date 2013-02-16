@@ -1,110 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1554 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756565Ab3BLIam (ORCPT
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:33097 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161Ab3BPMkd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 03:30:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFCv2 PATCH 01/12] stk-webcam: the initial hflip and vflip setup was the wrong way around
-Date: Tue, 12 Feb 2013 09:30:33 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl> <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
-In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+	Sat, 16 Feb 2013 07:40:33 -0500
+Received: by mail-qc0-f173.google.com with SMTP id b12so1534032qca.32
+        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 04:40:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302120930.33402.hverkuil@xs4all.nl>
+In-Reply-To: <435f6000435782780f3eb57633664517306a8e29.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+ <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <435f6000435782780f3eb57633664517306a8e29.1361006882.git.hans.verkuil@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Feb 2013 18:10:11 +0530
+Message-ID: <CA+V-a8t-DqF9U-PCxOXf0tTHhy5M46gwrqgK=WY11PzVyvObuQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 04/18] davinci_vpfe: fix copy-paste errors in several comments.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun February 10 2013 18:52:42 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This resulted in an upside-down picture.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Tested-by: Arvydas Sidorenko <asido4@gmail.com>
+Hi Hans,
 
-As mentioned in this thread, this patch was wrong. It's now replaced by the
-version below which includes the background information given by Hans de Goede.
+Thanks for the patch.
+
+On Sat, Feb 16, 2013 at 2:58 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This removes some incorrect dv_preset references left over from copy-and-paste
+> errors.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
 Regards,
+--Prabhakar
 
-	Hans
-
-[PATCH 01/12] stk-webcam: add ASUS F3JC to upside-down list.
-
-And add an extensive comment relating the history of the upside-down
-handling in this driver.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Thanks-to: Hans de Goede <hdegoede@redhat.com>
-Thanks-to: Arvydas Sidorenko <asido4@gmail.com>
----
- drivers/media/usb/stkwebcam/stk-webcam.c |   40 +++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 4cbab08..b2a5ee4 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -63,7 +63,39 @@ static struct usb_device_id stkwebcam_table[] = {
- };
- MODULE_DEVICE_TABLE(usb, stkwebcam_table);
- 
--/* The stk webcam laptop module is mounted upside down in some laptops :( */
-+/*
-+ * The stk webcam laptop module is mounted upside down in some laptops :(
-+ *
-+ * Some background information (thanks to Hans de Goede for providing this):
-+ *
-+ * 1) Once upon a time the stkwebcam driver was written
-+ *
-+ * 2) The webcam in question was used mostly in Asus laptop models, including
-+ * the laptop of the original author of the driver, and in these models, in
-+ * typical Asus fashion (see the long long list for uvc cams inside v4l-utils),
-+ * they mounted the webcam-module the wrong way up. So the hflip and vflip
-+ * module options were given a default value of 1 (the correct value for
-+ * upside down mounted models)
-+ *
-+ * 3) Years later I got a bug report from a user with a laptop with stkwebcam,
-+ * where the module was actually mounted the right way up, and thus showed
-+ * upside down under Linux. So now I was facing the choice of 2 options:
-+ *
-+ * a) Add a not-upside-down list to stkwebcam, which overrules the default.
-+ *
-+ * b) Do it like all the other drivers do, and make the default right for
-+ *    cams mounted the proper way and add an upside-down model list, with
-+ *    models where we need to flip-by-default.
-+ *
-+ * Despite knowing that going b) would cause a period of pain where we were
-+ * building the table I opted to go for option b), since a) is just too ugly,
-+ * and worse different from how every other driver does it leading to
-+ * confusion in the long run. This change was made in kernel 3.6.
-+ *
-+ * So for any user report about upside-down images since kernel 3.6 ask them
-+ * to provide the output of 'sudo dmidecode' so the laptop can be added in
-+ * the table below.
-+ */
- static const struct dmi_system_id stk_upside_down_dmi_table[] = {
- 	{
- 		.ident = "ASUS G1",
-@@ -71,6 +103,12 @@ static const struct dmi_system_id stk_upside_down_dmi_table[] = {
- 			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
- 			DMI_MATCH(DMI_PRODUCT_NAME, "G1")
- 		}
-+	}, {
-+		.ident = "ASUS F3JC",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK Computer Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "F3JC")
-+		}
- 	},
- 	{}
- };
--- 
-1.7.10.4
-
+> ---
+>  drivers/staging/media/davinci_vpfe/vpfe_video.c |   12 ++++++------
+>  1 file changed, 6 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 99ccbeb..19dc5b0 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -1016,12 +1016,12 @@ vpfe_query_dv_timings(struct file *file, void *fh,
+>  }
+>
+>  /*
+> - * vpfe_s_dv_timings() - set dv_preset on external subdev
+> + * vpfe_s_dv_timings() - set dv_timings on external subdev
+>   * @file: file pointer
+>   * @priv: void pointer
+>   * @timings: pointer to v4l2_dv_timings structure
+>   *
+> - * set dv_timings pointed by preset on external subdev through
+> + * set dv_timings pointed by timings on external subdev through
+>   * v4l2_device_call_until_err, this configures amplifier also
+>   *
+>   * Return 0 on success, error code otherwise
+> @@ -1042,12 +1042,12 @@ vpfe_s_dv_timings(struct file *file, void *fh,
+>  }
+>
+>  /*
+> - * vpfe_g_dv_timings() - get dv_preset which is set on external subdev
+> + * vpfe_g_dv_timings() - get dv_timings which is set on external subdev
+>   * @file: file pointer
+>   * @priv: void pointer
+>   * @timings: pointer to v4l2_dv_timings structure
+>   *
+> - * get dv_preset which is set on external subdev through
+> + * get dv_timings which is set on external subdev through
+>   * v4l2_subdev_call
+>   *
+>   * Return 0 on success, error code otherwise
+> @@ -1423,7 +1423,7 @@ static int vpfe_dqbuf(struct file *file, void *priv,
+>  }
+>
+>  /*
+> - * vpfe_streamon() - get dv_preset which is set on external subdev
+> + * vpfe_streamon() - start streaming
+>   * @file: file pointer
+>   * @priv: void pointer
+>   * @buf_type: enum v4l2_buf_type
+> @@ -1472,7 +1472,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+>  }
+>
+>  /*
+> - * vpfe_streamoff() - get dv_preset which is set on external subdev
+> + * vpfe_streamoff() - stop streaming
+>   * @file: file pointer
+>   * @priv: void pointer
+>   * @buf_type: enum v4l2_buf_type
+> --
+> 1.7.10.4
+>
