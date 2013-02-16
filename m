@@ -1,243 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:52246 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759744Ab3BZQDW (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1947 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab3BPJ24 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 11:03:22 -0500
-MIME-Version: 1.0
-In-Reply-To: <201302260925.48450.hverkuil@xs4all.nl>
-References: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com>
-	<1361860734-21666-9-git-send-email-andrew.smirnov@gmail.com>
-	<201302260925.48450.hverkuil@xs4all.nl>
-Date: Tue, 26 Feb 2013 08:03:20 -0800
-Message-ID: <CAHQ1cqGSOHMbgz_n+47wHar0sKOL4iBeEJOR41KqDKZoFXYWfQ@mail.gmail.com>
-Subject: Re: [PATCH v5 8/8] v4l2: Add a V4L2 driver for SI476X MFD
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
-	tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 16 Feb 2013 04:28:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/18] s5p-tv: add dv_timings support for hdmiphy.
+Date: Sat, 16 Feb 2013 10:28:13 +0100
+Message-Id: <c1ace44350055629138909c9a16a566f36add130.1361006882.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<snip>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->> +
->> +enum phase_diversity_modes_idx {
->> +     SI476X_IDX_PHDIV_DISABLED,
->> +     SI476X_IDX_PHDIV_PRIMARY_COMBINING,
->> +     SI476X_IDX_PHDIV_PRIMARY_ANTENNA,
->> +     SI476X_IDX_PHDIV_SECONDARY_ANTENNA,
->> +     SI476X_IDX_PHDIV_SECONDARY_COMBINING,
->> +};
->> +
->> +static const char * const phase_diversity_modes[] = {
->> +     [SI476X_IDX_PHDIV_DISABLED]             = "Disabled",
->
-> Question: what does it mean if this is disabled? That none of the antennas
-> are working? That would imply that you get no reception at all.
+This just adds dv_timings support without modifying existing dv_preset
+support, although I had to refactor a little bit in order to share
+hdmiphy_find_conf() between the preset and timings code.
 
-I am not an expert on these chips and, unfortunately, never had anyone
-from SiLabs  to talk to all the time I worked on this driver. But from
-my understanding from working with the chip/reading of the datasheet,
-when working in diversity mode two chips are connected to two
-different antennas and interconnected between each other so that
-secondary tuner can pass semi-processed signal to the primary one. So
-to the best of my understanding those sttings cause the following mode
-of operation:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-tv/hdmiphy_drv.c |   48 ++++++++++++++++++++++-----
+ 1 file changed, 39 insertions(+), 9 deletions(-)
 
-* Disabled -- no link is established, tuner acts no differently than
-if other tuner didn't exist.
-* Primary combinig -- link is established, tuner is configured to be a
-primary tuner using signal from both itself and a secondary one
-* Primary antenna -- link is established, tuner is configured to be a
-primary tuner using signal from its own antenna
-* Secondary antenna -- link is established, tuner is configured to be
-a primary tuner using signal from secondary tuner's antenna
-* Secondary -- link is established, tuner is configured to be a
-secondary tuner feeding the signal from its antenna to the primary one
+diff --git a/drivers/media/platform/s5p-tv/hdmiphy_drv.c b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+index 80717ce..85b4211 100644
+--- a/drivers/media/platform/s5p-tv/hdmiphy_drv.c
++++ b/drivers/media/platform/s5p-tv/hdmiphy_drv.c
+@@ -197,14 +197,9 @@ static unsigned long hdmiphy_preset_to_pixclk(u32 preset)
+ 		return 0;
+ }
+ 
+-static const u8 *hdmiphy_find_conf(u32 preset, const struct hdmiphy_conf *conf)
++static const u8 *hdmiphy_find_conf(unsigned long pixclk,
++		const struct hdmiphy_conf *conf)
+ {
+-	unsigned long pixclk;
+-
+-	pixclk = hdmiphy_preset_to_pixclk(preset);
+-	if (!pixclk)
+-		return NULL;
+-
+ 	for (; conf->pixclk; ++conf)
+ 		if (conf->pixclk == pixclk)
+ 			return conf->data;
+@@ -220,15 +215,49 @@ static int hdmiphy_s_power(struct v4l2_subdev *sd, int on)
+ static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
+ 	struct v4l2_dv_preset *preset)
+ {
+-	const u8 *data;
++	const u8 *data = NULL;
+ 	u8 buffer[32];
+ 	int ret;
+ 	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	unsigned long pixclk;
+ 	struct device *dev = &client->dev;
+ 
+ 	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
+-	data = hdmiphy_find_conf(preset->preset, ctx->conf_tab);
++
++	pixclk = hdmiphy_preset_to_pixclk(preset->preset);
++	data = hdmiphy_find_conf(pixclk, ctx->conf_tab);
++	if (!data) {
++		dev_err(dev, "format not supported\n");
++		return -EINVAL;
++	}
++
++	/* storing configuration to the device */
++	memcpy(buffer, data, 32);
++	ret = i2c_master_send(client, buffer, 32);
++	if (ret != 32) {
++		dev_err(dev, "failed to configure HDMIPHY via I2C\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int hdmiphy_s_dv_timings(struct v4l2_subdev *sd,
++	struct v4l2_dv_timings *timings)
++{
++	const u8 *data;
++	u8 buffer[32];
++	int ret;
++	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	struct device *dev = &client->dev;
++	unsigned long pixclk = timings->bt.pixelclock;
++
++	dev_info(dev, "s_dv_timings\n");
++	if ((timings->bt.flags & V4L2_DV_FL_REDUCED_FPS) && pixclk == 74250000)
++		pixclk = 74176000;
++	data = hdmiphy_find_conf(pixclk, ctx->conf_tab);
+ 	if (!data) {
+ 		dev_err(dev, "format not supported\n");
+ 		return -EINVAL;
+@@ -271,6 +300,7 @@ static const struct v4l2_subdev_core_ops hdmiphy_core_ops = {
+ 
+ static const struct v4l2_subdev_video_ops hdmiphy_video_ops = {
+ 	.s_dv_preset = hdmiphy_s_dv_preset,
++	.s_dv_timings = hdmiphy_s_dv_timings,
+ 	.s_stream =  hdmiphy_s_stream,
+ };
+ 
+-- 
+1.7.10.4
 
-It seems that "Disabled" setting is the setting one would want to use
-if the chip is used in a non diversity-mode enabled system.
-
->
->> +     [SI476X_IDX_PHDIV_PRIMARY_COMBINING]    = "Primary W/Secondary",
->
-> Just write in full: "Primary with Secondary"
->
->> +     [SI476X_IDX_PHDIV_PRIMARY_ANTENNA]      = "Primary(Primary Antenna)",
->
-> This becomes: "Primary Antenna"
->
->> +     [SI476X_IDX_PHDIV_SECONDARY_ANTENNA]    = "Primary(Seconadary Antenna)",
->
-> "Secondary Antenna"
->
->> +     [SI476X_IDX_PHDIV_SECONDARY_COMBINING]  = "Secondary W/Primary",
->
-> "Secondary with Primary"
->
->> +};
->> +
->> +static inline enum phase_diversity_modes_idx
->> +si476x_phase_diversity_mode_to_idx(enum si476x_phase_diversity_mode mode)
->> +{
->> +     switch (mode) {
->> +     default:                /* FALLTHROUGH */
->> +     case SI476X_PHDIV_DISABLED:
->> +             return SI476X_IDX_PHDIV_DISABLED;
->> +     case SI476X_PHDIV_PRIMARY_COMBINING:
->> +             return SI476X_IDX_PHDIV_PRIMARY_COMBINING;
->> +     case SI476X_PHDIV_PRIMARY_ANTENNA:
->> +             return SI476X_IDX_PHDIV_PRIMARY_ANTENNA;
->> +     case SI476X_PHDIV_SECONDARY_ANTENNA:
->> +             return SI476X_IDX_PHDIV_SECONDARY_ANTENNA;
->> +     case SI476X_PHDIV_SECONDARY_COMBINING:
->> +             return SI476X_IDX_PHDIV_SECONDARY_COMBINING;
->> +     }
->> +}
->> +
->> +static inline enum si476x_phase_diversity_mode
->> +si476x_phase_diversity_idx_to_mode(enum phase_diversity_modes_idx idx)
->> +{
->> +     static const int idx_to_value[] = {
->> +             [SI476X_IDX_PHDIV_DISABLED]             = SI476X_PHDIV_DISABLED,
->> +             [SI476X_IDX_PHDIV_PRIMARY_COMBINING]    = SI476X_PHDIV_PRIMARY_COMBINING,
->> +             [SI476X_IDX_PHDIV_PRIMARY_ANTENNA]      = SI476X_PHDIV_PRIMARY_ANTENNA,
->> +             [SI476X_IDX_PHDIV_SECONDARY_ANTENNA]    = SI476X_PHDIV_SECONDARY_ANTENNA,
->> +             [SI476X_IDX_PHDIV_SECONDARY_COMBINING]  = SI476X_PHDIV_SECONDARY_COMBINING,
->> +     };
->> +
->> +     return idx_to_value[idx];
->> +}
->> +
->> +static const struct v4l2_ctrl_ops si476x_ctrl_ops = {
->> +     .g_volatile_ctrl        = si476x_radio_g_volatile_ctrl,
->> +     .s_ctrl                 = si476x_radio_s_ctrl,
->> +};
->> +
->> +
->> +enum si476x_ctrl_idx {
->> +     SI476X_IDX_RSSI_THRESHOLD,
->> +     SI476X_IDX_SNR_THRESHOLD,
->> +     SI476X_IDX_MAX_TUNE_ERROR,
->> +     SI476X_IDX_HARMONICS_COUNT,
->> +     SI476X_IDX_DIVERSITY_MODE,
->> +     SI476X_IDX_INTERCHIP_LINK,
->> +};
->> +static struct v4l2_ctrl_config si476x_ctrls[] = {
->> +
->> +     /**
->> +      * SI476X during its station seeking(or tuning) process uses several
->> +      * parameters to detrmine if "the station" is valid:
->> +      *
->> +      *      - Signal's SNR(in dBuV) must be lower than
->> +      *      #V4L2_CID_SI476X_SNR_THRESHOLD
->> +      *      - Signal's RSSI(in dBuV) must be greater than
->> +      *      #V4L2_CID_SI476X_RSSI_THRESHOLD
->> +      *      - Signal's frequency deviation(in units of 2ppm) must not be
->> +      *      more than #V4L2_CID_SI476X_MAX_TUNE_ERROR
->> +      */
->> +     [SI476X_IDX_RSSI_THRESHOLD] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_RSSI_THRESHOLD,
->> +             .name   = "Valid RSSI Threshold",
->> +             .type   = V4L2_CTRL_TYPE_INTEGER,
->> +             .min    = -128,
->> +             .max    = 127,
->> +             .step   = 1,
->> +     },
->> +     [SI476X_IDX_SNR_THRESHOLD] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_SNR_THRESHOLD,
->> +             .type   = V4L2_CTRL_TYPE_INTEGER,
->> +             .name   = "Valid SNR Threshold",
->> +             .min    = -128,
->> +             .max    = 127,
->> +             .step   = 1,
->> +     },
->> +     [SI476X_IDX_MAX_TUNE_ERROR] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_MAX_TUNE_ERROR,
->> +             .type   = V4L2_CTRL_TYPE_INTEGER,
->> +             .name   = "Max Tune Errors",
->> +             .min    = 0,
->> +             .max    = 126 * 2,
->> +             .step   = 2,
->> +     },
->> +
->> +     /**
->> +      * #V4L2_CID_SI476X_HARMONICS_COUNT -- number of harmonics
->> +      * built-in power-line noise supression filter is to reject
->> +      * during AM-mode operation.
->> +      */
->> +     [SI476X_IDX_HARMONICS_COUNT] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_HARMONICS_COUNT,
->> +             .type   = V4L2_CTRL_TYPE_INTEGER,
->> +
->> +             .name   = "Count Of Harmonics To Reject",
->
-> Use lower case "of" and "to". Don't blame me, blame the style guides
-> w.r.t. titles :-)
->
->> +             .min    = 0,
->> +             .max    = 20,
->> +             .step   = 1,
->> +     },
->> +
->> +     /**
->> +      * #V4L2_CID_SI476X_DIVERSITY_MODE -- configuration which
->> +      * two tuners working in diversity mode are to work in.
->> +      *
->> +      *  - #SI476X_IDX_PHDIV_DISABLED diversity mode disabled
->> +      *  - #SI476X_IDX_PHDIV_PRIMARY_COMBINING diversity mode is
->> +      *  on, primary tuner's antenna is the main one.
->> +      *  - #SI476X_IDX_PHDIV_PRIMARY_ANTENNA diversity mode is
->> +      *  off, primary tuner's antenna is the main one.
->> +      *  - #SI476X_IDX_PHDIV_SECONDARY_ANTENNA diversity mode is
->> +      *  off, secondary tuner's antenna is the main one.
->> +      *  - #SI476X_IDX_PHDIV_SECONDARY_COMBINING diversity mode is
->> +      *  on, secondary tuner's antenna is the main one.
->> +      */
->> +     [SI476X_IDX_DIVERSITY_MODE] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_DIVERSITY_MODE,
->> +             .type   = V4L2_CTRL_TYPE_MENU,
->> +             .name   = "Phase Diversity Mode",
->> +             .qmenu  = phase_diversity_modes,
->> +             .min    = 0,
->> +             .max    = ARRAY_SIZE(phase_diversity_modes) - 1,
->> +     },
->> +
->> +     /**
->> +      * #V4L2_CID_SI476X_INTERCHIP_LINK -- inter-chip link in
->> +      * diversity mode indicator. Allows user to detrmine if two
->
-> Typo: 'determine'
->
->> +      * chips working in diversity mode have established a link
->> +      * between each other and if the system as awhole uses
->
-> "a whole"
->
->> +      * signals from both antennas to receive FM radio.
->> +      */
->> +     [SI476X_IDX_INTERCHIP_LINK] = {
->> +             .ops    = &si476x_ctrl_ops,
->> +             .id     = V4L2_CID_SI476X_INTERCHIP_LINK,
->> +             .type   = V4L2_CTRL_TYPE_BOOLEAN,
->> +             .flags  = V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_VOLATILE,
->> +             .name   = "Inter-Chip Link",
->> +             .min    = 0,
->> +             .max    = 1,
->> +             .step   = 1,
->> +     },
->> +};
->
-> <snip>
->
-> Regards,
->
->         Hans
