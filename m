@@ -1,82 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f41.google.com ([209.85.210.41]:58678 "EHLO
-	mail-da0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754413Ab3BCPNH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:13:07 -0500
-Received: by mail-da0-f41.google.com with SMTP id e20so2310894dak.14
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:13:06 -0800 (PST)
-Message-ID: <510F3620.2040004@gmail.com>
-Date: Sun, 03 Feb 2013 23:16:32 -0500
-From: Huang Shijie <shijie8@gmail.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:54496 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753620Ab3BPQkS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 11:40:18 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH v2 0/4] saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
+Date: Sat, 16 Feb 2013 17:39:49 +0100
+Cc: linux-media@vger.kernel.org,
+	"Michael Krufky =?utf-8?q?=19?=" <mkrufky@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1359750087-1155-1-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 04/18] tlg2300: remove ioctls that are invalid for
- radio devices.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <fa815493501dbc166181e228f66319ac3398cd2c.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <fa815493501dbc166181e228f66319ac3398cd2c.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201302161739.49850.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Friday 01 February 2013 21:21:23 Ondrej Zary wrote:
+> Add AverMedia AverTV Satellite Hybrid+FM (A706) card to saa7134 driver.
 >
-> The input and audio ioctls are only valid for video/vbi nodes.
+> This requires some changes to tda8290 - disabling I2C gate control and
+> passing custom std_map to tda18271.
+> Also tuner-core needs to be changed because there's currently no way to
+> pass any complex configuration to analog tuners.
 
-I remember that if you do not set these ioctrls, the mplayer will not works.
+What's the status of this patch series?
 
-I can not download the mplayer in my home, so i can not test it.
-I will test it in my office.
+The two tda8290 patches are in Michael's dvb tree.
+I've sent an additional clean-up patch (on Mauro's suggestion) for the 
+tuner-core change.
+I guess that the final AverMedia A706 patch would be easily merged once the 
+tda8290 and tuner-core changess are done.
 
-thanks
-Huang Shijie
+Should I resend something?
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-radio.c |   27 ---------------------------
->  1 file changed, 27 deletions(-)
->
-> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-> index c4feffb..4c76e089 100644
-> --- a/drivers/media/usb/tlg2300/pd-radio.c
-> +++ b/drivers/media/usb/tlg2300/pd-radio.c
-> @@ -350,36 +350,9 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
->  {
->  	return vt->index > 0 ? -EINVAL : 0;
->  }
-> -static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *va)
-> -{
-> -	return (va->index != 0) ? -EINVAL : 0;
-> -}
-> -
-> -static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
-> -{
-> -	a->index    = 0;
-> -	a->mode    = 0;
-> -	a->capability = V4L2_AUDCAP_STEREO;
-> -	strcpy(a->name, "Radio");
-> -	return 0;
-> -}
-> -
-> -static int vidioc_s_input(struct file *filp, void *priv, u32 i)
-> -{
-> -	return (i != 0) ? -EINVAL : 0;
-> -}
-> -
-> -static int vidioc_g_input(struct file *filp, void *priv, u32 *i)
-> -{
-> -	return (*i != 0) ? -EINVAL : 0;
-> -}
->  
->  static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
->  	.vidioc_querycap    = vidioc_querycap,
-> -	.vidioc_g_audio     = vidioc_g_audio,
-> -	.vidioc_s_audio     = vidioc_s_audio,
-> -	.vidioc_g_input     = vidioc_g_input,
-> -	.vidioc_s_input     = vidioc_s_input,
->  	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
->  	.vidioc_querymenu   = tlg_fm_vidioc_querymenu,
->  	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
-
+-- 
+Ondrej Zary
