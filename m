@@ -1,93 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44148 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757562Ab3BAWOf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 17:14:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: AW: omapdss/omap3isp/omapfb: Picture from omap3isp can't recover after a blank/unblank (or overlay disables after resuming)
-Date: Fri, 01 Feb 2013 23:14:42 +0100
-Message-ID: <1458197.Ntc9McJ8cJ@avalon>
-In-Reply-To: <6EE9CD707FBED24483D4CB0162E85467245880A0@AMSPRD0711MB532.eurprd07.prod.outlook.com>
-References: <6EE9CD707FBED24483D4CB0162E85467245822C8@AMSPRD0711MB532.eurprd07.prod.outlook.com> <2253226.r6AZgSrtcE@avalon> <6EE9CD707FBED24483D4CB0162E85467245880A0@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+Received: from mail-qc0-f182.google.com ([209.85.216.182]:59472 "EHLO
+	mail-qc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161Ab3BPNNt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Feb 2013 08:13:49 -0500
+Received: by mail-qc0-f182.google.com with SMTP id k19so1541339qcs.13
+        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 05:13:48 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <25a774ed1c2d3de234079b1a17f1579661fe0e2d.1361006882.git.hans.verkuil@cisco.com>
+References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+ <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <25a774ed1c2d3de234079b1a17f1579661fe0e2d.1361006882.git.hans.verkuil@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Feb 2013 18:43:28 +0530
+Message-ID: <CA+V-a8v8SmGN9eUT-aFVu2rjSb6sCKu8Xwf=d0BDap79bBDRFg@mail.gmail.com>
+Subject: Re: [RFC PATCH 03/18] tvp7002: remove dv_preset support.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+Hi Hans,
 
-On Thursday 31 January 2013 13:06:53 Florian Neuhaus wrote:
-> Hi Laurent,
-> 
-> Thank you for your help, see my notes below:
-> 
-> Laurent Pinchart wrote on 2013-01-30:
-> >> Will result in the following and the following (screen flickers and goes
-> >> black again):
-> >> [ 5293.617095] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the
-> >> overlay
-> >> [ 5293.678283] omapdss DISPC error: FIFO UNDERFLOW on vid2, disabling the
-> >> overlay
-> >> 
-> >> Output of mediactl -p while streaming:
-> >> http://pastebin.com/d9zDfKXu
-> >> 
-> >> OMAPDSS-config:
-> >> http://pastebin.com/JjF0CcCS
-> >> 
-> >> Now my questions:
-> >> Is this behaviour expected?
-> > 
-> > I don't think so. I'm not an expert on the OMAP DSS, but I wouldn't
-> > consider the above messages as normal.
-> 
-> Just as a note: This does not happen, if I disable the fb0 upon start of the
-> streamer.
-> My DSS config before the streamer start:
-> 
-> fb0 --- gfx --- lcd --- LCD
-> fb1 --- vid1 -/
->         vid2 /
-> 
-> Description: I am using fb0 for the framebuffer-console. The fb1 is
-> connected with the overlay vid1 and used as the colorkey in your streamer
-> application. vid2 is directly used from within the streamer app for the
-> ISP-output (at least I think so ;)). Everything is connected to the
-> lcd-manager and outputted to a physical attached LCD.
-> 
-> My DSS config when streamer is running:
-> 
-> fb0     gfx --- lcd --- LCD
-> fb1 --- vid1 -/
->         vid2 /
-> 
-> With this workaround the streamer will continue streaming after a
-> blank/unblank.
+On Sat, Feb 16, 2013 at 2:58 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
-> > As buffers will stop flowing until the screen is unblanked, the live
-> > application will exit after a short select() timeout. This is an
-> > application issue.
-> 
-> If the AF/AEWB unit is enabled, the timeout doesn't happen as the
-> H3A-unit delivers still OMAP3_ISP_EVENT_EXCEPTION events.
+> Finally remove the dv_preset support from this driver. Note that dv_preset
+> support was already removed from any bridge drivers that use this i2c
+> driver, so the dv_preset ops were no longer called and can be removed
+> safely.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
 
-Ah right. My live application should still be fixed not to timeout when AEWB 
-is disabled, but that's out of scope here.
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
-> > It doesn't explain the omapdss error, Tomi might be able to provide more
-> > information about that (but he is currently away until beginning of
-> > February if I'm not mistaken).
-> 
-> That would be very nice!
-
-As this seems to be mostly a DSS issue I'll let Tomi handle it :-)
-
--- 
 Regards,
+--Prabhakar
 
-Laurent Pinchart
-
+> ---
+>  drivers/media/i2c/tvp7002.c |   70 -------------------------------------------
+>  1 file changed, 70 deletions(-)
+>
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index d7a08bc..7406de9 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -328,7 +328,6 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
+>
+>  /* Timings definition for handling device operation */
+>  struct tvp7002_timings_definition {
+> -       u32 preset;
+>         struct v4l2_dv_timings timings;
+>         const struct i2c_reg_value *p_settings;
+>         enum v4l2_colorspace color_space;
+> @@ -342,7 +341,6 @@ struct tvp7002_timings_definition {
+>  /* Struct list for digital video timings */
+>  static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>         {
+> -               V4L2_DV_720P60,
+>                 V4L2_DV_BT_CEA_1280X720P60,
+>                 tvp7002_parms_720P60,
+>                 V4L2_COLORSPACE_REC709,
+> @@ -353,7 +351,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 153
+>         },
+>         {
+> -               V4L2_DV_1080I60,
+>                 V4L2_DV_BT_CEA_1920X1080I60,
+>                 tvp7002_parms_1080I60,
+>                 V4L2_COLORSPACE_REC709,
+> @@ -364,7 +361,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 205
+>         },
+>         {
+> -               V4L2_DV_1080I50,
+>                 V4L2_DV_BT_CEA_1920X1080I50,
+>                 tvp7002_parms_1080I50,
+>                 V4L2_COLORSPACE_REC709,
+> @@ -375,7 +371,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 245
+>         },
+>         {
+> -               V4L2_DV_720P50,
+>                 V4L2_DV_BT_CEA_1280X720P50,
+>                 tvp7002_parms_720P50,
+>                 V4L2_COLORSPACE_REC709,
+> @@ -386,7 +381,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 183
+>         },
+>         {
+> -               V4L2_DV_1080P60,
+>                 V4L2_DV_BT_CEA_1920X1080P60,
+>                 tvp7002_parms_1080P60,
+>                 V4L2_COLORSPACE_REC709,
+> @@ -397,7 +391,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 102
+>         },
+>         {
+> -               V4L2_DV_480P59_94,
+>                 V4L2_DV_BT_CEA_720X480P59_94,
+>                 tvp7002_parms_480P,
+>                 V4L2_COLORSPACE_SMPTE170M,
+> @@ -408,7 +401,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+>                 0xffff
+>         },
+>         {
+> -               V4L2_DV_576P50,
+>                 V4L2_DV_BT_CEA_720X576P50,
+>                 tvp7002_parms_576P,
+>                 V4L2_COLORSPACE_SMPTE170M,
+> @@ -588,32 +580,6 @@ static int tvp7002_write_inittab(struct v4l2_subdev *sd,
+>         return error;
+>  }
+>
+> -/*
+> - * tvp7002_s_dv_preset() - Set digital video preset
+> - * @sd: ptr to v4l2_subdev struct
+> - * @dv_preset: ptr to v4l2_dv_preset struct
+> - *
+> - * Set the digital video preset for a TVP7002 decoder device.
+> - * Returns zero when successful or -EINVAL if register access fails.
+> - */
+> -static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
+> -                                       struct v4l2_dv_preset *dv_preset)
+> -{
+> -       struct tvp7002 *device = to_tvp7002(sd);
+> -       u32 preset;
+> -       int i;
+> -
+> -       for (i = 0; i < NUM_TIMINGS; i++) {
+> -               preset = tvp7002_timings[i].preset;
+> -               if (preset == dv_preset->preset) {
+> -                       device->current_timings = &tvp7002_timings[i];
+> -                       return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
+> -               }
+> -       }
+> -
+> -       return -EINVAL;
+> -}
+> -
+>  static int tvp7002_s_dv_timings(struct v4l2_subdev *sd,
+>                                         struct v4l2_dv_timings *dv_timings)
+>  {
+> @@ -752,22 +718,6 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+>         return 0;
+>  }
+>
+> -static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+> -                                       struct v4l2_dv_preset *qpreset)
+> -{
+> -       int index;
+> -       int err = tvp7002_query_dv(sd, &index);
+> -
+> -       if (err || index == NUM_TIMINGS) {
+> -               qpreset->preset = V4L2_DV_INVALID;
+> -               if (err == -ENOLINK)
+> -                       err = 0;
+> -               return err;
+> -       }
+> -       qpreset->preset = tvp7002_timings[index].preset;
+> -       return 0;
+> -}
+> -
+>  static int tvp7002_query_dv_timings(struct v4l2_subdev *sd,
+>                                         struct v4l2_dv_timings *timings)
+>  {
+> @@ -915,23 +865,6 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
+>         return 0;
+>  }
+>
+> -/*
+> - * tvp7002_enum_dv_presets() - Enum supported digital video formats
+> - * @sd: pointer to standard V4L2 sub-device structure
+> - * @preset: pointer to format struct
+> - *
+> - * Enumerate supported digital video formats.
+> - */
+> -static int tvp7002_enum_dv_presets(struct v4l2_subdev *sd,
+> -               struct v4l2_dv_enum_preset *preset)
+> -{
+> -       /* Check requested format index is within range */
+> -       if (preset->index >= NUM_TIMINGS)
+> -               return -EINVAL;
+> -
+> -       return v4l_fill_dv_preset_info(tvp7002_timings[preset->index].preset, preset);
+> -}
+> -
+>  static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
+>                 struct v4l2_enum_dv_timings *timings)
+>  {
+> @@ -966,9 +899,6 @@ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+>
+>  /* Specific video subsystem operation handlers */
+>  static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+> -       .enum_dv_presets = tvp7002_enum_dv_presets,
+> -       .s_dv_preset = tvp7002_s_dv_preset,
+> -       .query_dv_preset = tvp7002_query_dv_preset,
+>         .g_dv_timings = tvp7002_g_dv_timings,
+>         .s_dv_timings = tvp7002_s_dv_timings,
+>         .enum_dv_timings = tvp7002_enum_dv_timings,
+> --
+> 1.7.10.4
+>
