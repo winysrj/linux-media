@@ -1,99 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:35396 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932078Ab3BKU7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 15:59:38 -0500
-Date: Mon, 11 Feb 2013 21:59:19 +0100
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Subject: Re: [git:v4l-dvb/for_v3.9] [media] fc0011: Return early, if the
- frequency is already tuned
-Message-ID: <20130211215919.344d30ee@milhouse>
-In-Reply-To: <E1U3tzD-0007O1-4M@www.linuxtv.org>
-References: <E1U3tzD-0007O1-4M@www.linuxtv.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/Hg=JqvqIVp=qJby.7Nec=kO"; protocol="application/pgp-signature"
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:38753 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755814Ab3BQMbI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 07:31:08 -0500
+Received: by mail-ee0-f47.google.com with SMTP id e52so2335491eek.20
+        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 04:31:06 -0800 (PST)
+Message-ID: <5120CDBB.4020908@googlemail.com>
+Date: Sun, 17 Feb 2013 13:31:55 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.9] bttv: v4l2-compliance fixes
+References: <201302151115.24037.hverkuil@xs4all.nl> <201302152238.59841.hverkuil@xs4all.nl> <511F8B11.7070600@googlemail.com> <201302161445.07943.hverkuil@xs4all.nl>
+In-Reply-To: <201302161445.07943.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/Hg=JqvqIVp=qJby.7Nec=kO
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+<snip>
 
-Can you please revert this one again? It might cause issues if the dvb devi=
-ce
-is reset/reinitialized.
+Am 16.02.2013 14:45, schrieb Hans Verkuil:
+> On Sat February 16 2013 14:35:13 Frank Schäfer wrote:
+>> Am 15.02.2013 22:38, schrieb Hans Verkuil:
+>>> On Fri February 15 2013 22:09:11 Frank Schäfer wrote:
+>>>> I also noticed that audio balance (msp34xx control) doesn't work for the
+>>>> the left side and the sound is always mono (also for radio),
+>>>> but I assume the problem is my self-made
+>>>> mini-DIN-to-lini-in-Adapter-cable (this card has surround sound)...
+>>> I've tested it with my WinTv Theatre and the balance works fine with a proper
+>>> cable :-)
+>> Ok... :-)
+>> I used the following description to built my adapter cable:
+>> http://www.vdr-wiki.de/wiki/index.php/Kabelpeitsche
+>>
+>> But it seems the WinTV Theatre uses a slightly different pin assignment
+>> and I'm using both right channels...
+>> Hmm... if you find a free minute, could you check which pins of the
+>> mini-DIN-connector of your cable are used for left and right audio (I
+>> don't care about the others) ?
+> I don't have access to the cable at the moment (travelling), but ping me
+> again in 10 days or so to remind me.
+
+No problem.
+Now, all I need is someone who reminds _me_... ;-)
+
+>>>> Some things that need to be fixed for this card (mute on stop/close,
+>>>> colokiller control, BE video formats, ...),
+>>> Can you elaborate on the mute and BE video formats? Colorkiller doesn't work,
+>>> I've noticed the same thing.
+>> As far as I understand, audio should be muted when capturing is stopped
+>> / the device is closed.
+> True, unless it is the radio node.
+
+Hmm...ok... why are radio devices handled diffrently ?
+
+>
+>> (I assume shutting down the tuner would be even better, but no idea if
+>> it is possible).
+>> Otherwise users can still hear the last radio or TV channel.
+>> Btw: it's not clear to me how "auto mute" is supposed to work. All I
+>> noticed is, that it mutes audio when switching between the (video)
+>> inputs (without activating the "mute" checkbox ?!).
+> I think the idea is that it mutes when there is no signal detected
+> to prevent white noise.
+
+Sounds plausible and matches the behavior I observed.
+
+>> What I forgot to mention is, that the audio controls (bass, trebble,
+>> volume, balance) seem to have no effect on "Line-In".
+> That wouldn't surprise me at all. See the comment regarding msp3400
+> routing in audio_mux().
+>
+>> Concerning the BE formats: I tested with qv4l2 in raw mode only, but
+>> with the formats
+>>
+>> RGBQ - 15 bpp RGB, be
+>> RGBR - 16 bpp RGB, be
+>> RGB4 - 32 bpp RGB, be
+>>
+>> the picture looks like this:
+>> http://imageshack.us/photo/my-images/24/rgbq.png/
+>> http://imageshack.us/photo/my-images/805/rgbr.png/
+>> http://imageshack.us/photo/my-images/6/rgb4n.png/
+> I think those are actually bugs in libv4lconvert.
+
+That was my second theory. :D
+
+> I have patches for that that I still need to clean up and post.
+
+Great !
+
+> There is basically no big-endian
+> support in libv4lconvert at the moment.
+
+But why does it try to convert formats it doesn't support ?
 
 
-On Fri, 08 Feb 2013 20:51:36 +0100
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Regards,
+Frank
 
-> This is an automatic generated email to let you know that the following p=
-atch were queued at the=20
-> http://git.linuxtv.org/media_tree.git tree:
->=20
-> Subject: [media] fc0011: Return early, if the frequency is already tuned
-> Author:  Michael B=C3=83=C2=BCsch <m@bues.ch>
-> Date:    Thu Feb 7 12:21:06 2013 -0300
->=20
-> Return early, if we already tuned to a frequency.
->=20
-> Signed-off-by: Michael Buesch <m@bues.ch>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->=20
->  drivers/media/tuners/fc0011.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
->=20
-> ---
->=20
-> http://git.linuxtv.org/media_tree.git?a=3Dcommitdiff;h=3Da92591a7112042f9=
-2b609be42bc332d989776e9b
->=20
-> diff --git a/drivers/media/tuners/fc0011.c b/drivers/media/tuners/fc0011.c
-> index 3932aa8..18caab1 100644
-> --- a/drivers/media/tuners/fc0011.c
-> +++ b/drivers/media/tuners/fc0011.c
-> @@ -187,6 +187,9 @@ static int fc0011_set_params(struct dvb_frontend *fe)
->  	u8 fa, fp, vco_sel, vco_cal;
->  	u8 regs[FC11_NR_REGS] =3D { };
-> =20
-> +	if (priv->frequency =3D=3D p->frequency)
-> +		return 0;
-> +
->  	regs[FC11_REG_7] =3D 0x0F;
->  	regs[FC11_REG_8] =3D 0x3E;
->  	regs[FC11_REG_10] =3D 0xB8;
->=20
+> Regards,
+>
+> 	Hans
+>
+>> Anyway - these are no regressions, so there is no reason to delay your
+>> patches.
+>>
+>> Regards,
+>> Frank
+>>
+>>>> but these are separate
+>>>> issues not related to this patch series.
+>>>> So feel free to add "Tested-by" (if anybody cares).
+>>> Thanks!
+>>>
+>>> 	Hans
+>>>
+>>>> Regards,
+>>>> Frank
+>>>>
+>>>>
+>>>>
+>>>>
+>>>>> The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+>>>>>
+>>>>>   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+>>>>>
+>>>>> are available in the git repository at:
+>>>>>
+>>>>>   git://linuxtv.org/hverkuil/media_tree.git bttv
+>>>>>
+>>>>> for you to fetch changes up to b26d6e39030e6ca2812bc8a818645169e6783ec9:
+>>>>>
+>>>>>   bttv: remove g/s_audio since there is only one audio input. (2013-02-15 10:56:48 +0100)
+>>>>>
+>>>>> ----------------------------------------------------------------
+>>>>> Hans Verkuil (19):
+>>>>>       bttv: fix querycap and radio v4l2-compliance issues.
+>>>>>       bttv: add VIDIOC_DBG_G_CHIP_IDENT
+>>>>>       bttv: fix ENUM_INPUT and S_INPUT
+>>>>>       bttv: disable g/s_tuner and g/s_freq when no tuner present, fix return codes.
+>>>>>       bttv: set initial tv/radio frequencies
+>>>>>       bttv: G_PARM: set readbuffers.
+>>>>>       bttv: fill in colorspace.
+>>>>>       bttv: fill in fb->flags for VIDIOC_G_FBUF
+>>>>>       bttv: fix field handling inside TRY_FMT.
+>>>>>       tda7432: convert to the control framework
+>>>>>       bttv: convert to the control framework.
+>>>>>       bttv: add support for control events.
+>>>>>       bttv: fix priority handling.
+>>>>>       bttv: use centralized std and implement g_std.
+>>>>>       bttv: there may be multiple tvaudio/tda7432 devices.
+>>>>>       bttv: fix g_tuner capabilities override.
+>>>>>       bttv: fix try_fmt_vid_overlay and setup initial overlay size.
+>>>>>       bttv: do not switch to the radio tuner unless it is accessed.
+>>>>>       bttv: remove g/s_audio since there is only one audio input.
+>>>>>
+>>>>>  drivers/media/i2c/tda7432.c           |  276 +++++++---------
+>>>>>  drivers/media/i2c/tvaudio.c           |    2 +-
+>>>>>  drivers/media/pci/bt8xx/bttv-cards.c  |   19 +-
+>>>>>  drivers/media/pci/bt8xx/bttv-driver.c | 1144 ++++++++++++++++++++++++++++---------------------------------------
+>>>>>  drivers/media/pci/bt8xx/bttv.h        |    3 +
+>>>>>  drivers/media/pci/bt8xx/bttvp.h       |   31 +-
+>>>>>  include/media/v4l2-chip-ident.h       |    8 +
+>>>>>  include/uapi/linux/v4l2-controls.h    |    5 +
+>>>>>  8 files changed, 632 insertions(+), 856 deletions(-)
 
-
-
---=20
-Greetings, Michael.
-
-PGP: 908D8B0E
-
---Sig_/Hg=JqvqIVp=qJby.7Nec=kO
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRGVunAAoJEPUyvh2QjYsO4QIP/3/ZUiZsaRJGE6rOfpJVhhS2
-aPbQwj2cvXRADb3D9XuTO87MOQ7jdfb0Jr6600r8Ht7okt8s58jh9bTjf4r7X18d
-0t53i68wbo4r3LuPLNkh6i9Wk21oVgA9FW7IOigkWauAQCOUrGk8Oz/EepFGd/id
-GpDyDyjaHoLQnSKnAfmZ88f48JcIGooBu1TcjomyTN8281sflCek20Afj5LiHGek
-N7jimb6T2Npi0hUjoXbj1xKA7SxWV3DKP6ldb5BM+sj1aHO0o7Trv9Q5ApRFqCtS
-fK5fn+KK3qZdj2CLfXJRwKWYua49TFpgnEIHdt6BdCPUCuyQX9pA0LUClkGAvBdD
-8PGn2MowHtUiuftVx/BzXnAeLLPjeURAtMMtCfnACEvd4W99mnzdw3X6NHhO4ARm
-va36dD3yl0AkGc3gaMymcinXRyQPymn6trFKTywnZo6KmV/NpdJGgxBPbI5ythNo
-6894gTboSGt79GoPqse9Kai65ycNyMEo7aWDi0uUtVtqj1LrhXg2dm1trX2+TkuF
-tldzK5Hpz/5oci3cUyVUnI6S4sBAImIDwdqNpFQSVJdEwa6FN10ECZVa8+u24yxY
-A7cLuuk+w9xwfjOaSa8jIFt2oR4wsMaGMbq0WPmZSfWaFQgmjjYEeE6ejc4iyArm
-lPnvbgTZfYRRmns9J9N6
-=MV8D
------END PGP SIGNATURE-----
-
---Sig_/Hg=JqvqIVp=qJby.7Nec=kO--
