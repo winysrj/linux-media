@@ -1,78 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f201.google.com ([209.85.210.201]:61363 "EHLO
-	mail-ia0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758099Ab3BGAJm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 19:09:42 -0500
-Received: by mail-ia0-f201.google.com with SMTP id t4so388505iag.4
-        for <linux-media@vger.kernel.org>; Wed, 06 Feb 2013 16:09:41 -0800 (PST)
-From: John Sheu <sheu@google.com>
-To: linux-media@vger.kernel.org
-Cc: John Sheu <sheu@chromium.org>, John Sheu <sheu@google.com>
-Subject: [PATCH 2/3] [media]: v4l2-mem2mem: drop rdy_queue on STREAMOFF
-Date: Wed,  6 Feb 2013 16:03:01 -0800
-Message-Id: <1360195382-32317-2-git-send-email-sheu@google.com>
-In-Reply-To: <1360195382-32317-1-git-send-email-sheu@google.com>
-References: <1360195382-32317-1-git-send-email-sheu@google.com>
+Received: from mail-ia0-f180.google.com ([209.85.210.180]:37416 "EHLO
+	mail-ia0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438Ab3BQGTf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 01:19:35 -0500
+Received: by mail-ia0-f180.google.com with SMTP id f27so4322790iae.39
+        for <linux-media@vger.kernel.org>; Sat, 16 Feb 2013 22:19:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201302071336.25366.hverkuil@xs4all.nl>
+References: <201302071336.25366.hverkuil@xs4all.nl>
+Date: Sun, 17 Feb 2013 14:19:34 +0800
+Message-ID: <CAMiH66Hy5mP-8Y0xek4L-7XRLXUnRP4taqNLegUE_Z=GHeMhiQ@mail.gmail.com>
+Subject: Re: [RFC PATCHv2 01/18] tlg2300: use correct device parent.
+From: Huang Shijie <shijie8@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: John Sheu <sheu@chromium.org>
+On Thu, Feb 7, 2013 at 8:36 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Set the correct parent for v4l2_device_register and don't set the name
+> anymore (that's now deduced from the parent). Also remove an unnecessary
+> forward reference and fix two weird looking log messages.
+>
+> Changes since v1: don't set v4l2_dev.name anymore as per Huang's suggestion.
+> Huang: can you Ack this?
+>
+> Regards,
+>
+>         Hans
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/usb/tlg2300/pd-main.c |   13 ++++---------
+>  1 file changed, 4 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
+> index 7b1f6eb..247d6ac 100644
+> --- a/drivers/media/usb/tlg2300/pd-main.c
+> +++ b/drivers/media/usb/tlg2300/pd-main.c
+> @@ -55,7 +55,6 @@ MODULE_PARM_DESC(debug_mode, "0 = disable, 1 = enable, 2 = verbose");
+>
+>  #define TLG2300_FIRMWARE "tlg2300_firmware.bin"
+>  static const char *firmware_name = TLG2300_FIRMWARE;
+> -static struct usb_driver poseidon_driver;
+>  static LIST_HEAD(pd_device_list);
+>
+>  /*
+> @@ -316,7 +315,7 @@ static int poseidon_suspend(struct usb_interface *intf, pm_message_t msg)
+>                 if (get_pm_count(pd) <= 0 && !in_hibernation(pd)) {
+>                         pd->msg.event = PM_EVENT_AUTO_SUSPEND;
+>                         pd->pm_resume = NULL; /*  a good guard */
+> -                       printk(KERN_DEBUG "\n\t+ TLG2300 auto suspend +\n\n");
+> +                       printk(KERN_DEBUG "TLG2300 auto suspend\n");
+>                 }
+>                 return 0;
+>         }
+> @@ -331,7 +330,7 @@ static int poseidon_resume(struct usb_interface *intf)
+>
+>         if (!pd)
+>                 return 0;
+> -       printk(KERN_DEBUG "\n\t ++ TLG2300 resume ++\n\n");
+> +       printk(KERN_DEBUG "TLG2300 resume\n");
+>
+>         if (!is_working(pd)) {
+>                 if (PM_EVENT_AUTO_SUSPEND == pd->msg.event)
+> @@ -431,15 +430,11 @@ static int poseidon_probe(struct usb_interface *interface,
+>         usb_set_intfdata(interface, pd);
+>
+>         if (new_one) {
+> -               struct device *dev = &interface->dev;
+> -
+>                 logpm(pd);
+>                 mutex_init(&pd->lock);
+>
+>                 /* register v4l2 device */
+> -               snprintf(pd->v4l2_dev.name, sizeof(pd->v4l2_dev.name), "%s %s",
+> -                       dev->driver->name, dev_name(dev));
+> -               ret = v4l2_device_register(NULL, &pd->v4l2_dev);
+> +               ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
+>
+>                 /* register devices in directory /dev */
+>                 ret = pd_video_init(pd);
+> @@ -530,7 +525,7 @@ module_init(poseidon_init);
+>  module_exit(poseidon_exit);
+>
+>  MODULE_AUTHOR("Telegent Systems");
+> -MODULE_DESCRIPTION("For tlg2300-based USB device ");
+> +MODULE_DESCRIPTION("For tlg2300-based USB device");
+>  MODULE_LICENSE("GPL");
+>  MODULE_VERSION("0.0.2");
+>  MODULE_FIRMWARE(TLG2300_FIRMWARE);
+> --
+> 1.7.10.4
+>
+sorry for the later reply. I was on vacation.
 
-When a v4l2-mem2mem context gets a STREAMOFF call on either its CAPTURE
-or OUTPUT queues, we should:
-* Drop the corresponding rdy_queue, since a subsequent STREAMON expects
-  an empty queue.
-* Deschedule the context, as it now has at least one empty queue and
-  cannot run.
-
-Signed-off-by: John Sheu <sheu@google.com>
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index c52a2c5..c5c9d24 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -408,10 +408,35 @@ EXPORT_SYMBOL_GPL(v4l2_m2m_streamon);
- int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 		       enum v4l2_buf_type type)
- {
--	struct vb2_queue *vq;
-+	struct v4l2_m2m_dev *m2m_dev;
-+	struct v4l2_m2m_queue_ctx *q_ctx;
-+	unsigned long flags_job, flags;
-+	int ret;
- 
--	vq = v4l2_m2m_get_vq(m2m_ctx, type);
--	return vb2_streamoff(vq, type);
-+	q_ctx = get_queue_ctx(m2m_ctx, type);
-+	ret = vb2_streamoff(&q_ctx->q, type);
-+	if (ret)
-+		return ret;
-+
-+	m2m_dev = m2m_ctx->m2m_dev;
-+	spin_lock_irqsave(&m2m_dev->job_spinlock, flags_job);
-+	/* We should not be scheduled anymore, since we're dropping a queue. */
-+	INIT_LIST_HEAD(&m2m_ctx->queue);
-+	m2m_ctx->job_flags = 0;
-+
-+	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
-+	/* Drop queue, since streamoff returns device to the same state as after
-+	 * calling reqbufs. */
-+	INIT_LIST_HEAD(&q_ctx->rdy_queue);
-+	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-+
-+	if (m2m_dev->curr_ctx == m2m_ctx) {
-+		m2m_dev->curr_ctx = NULL;
-+		wake_up(&m2m_ctx->finished);
-+	}
-+	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_m2m_streamoff);
- 
--- 
-1.8.1
-
+Acked-by: Huang Shijie <shijie8@gmail.com>
