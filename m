@@ -1,100 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:53774 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756179Ab3BFEYZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 23:24:25 -0500
-Received: by mail-pa0-f43.google.com with SMTP id bh2so564800pad.30
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 20:24:25 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com,
-	paulepanter@users.sourceforge.net
-Subject: [PATCH v5 1/1] video: drm: exynos: Add display-timing node parsing using video helper function
-Date: Wed,  6 Feb 2013 09:54:15 +0530
-Message-Id: <1360124655-22902-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1360124655-22902-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1360124655-22902-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:55165 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753112Ab3BQW1a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 17:27:30 -0500
+Message-ID: <5121592C.8050103@iki.fi>
+Date: Mon, 18 Feb 2013 00:26:52 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
+CC: linux-media@vger.kernel.org, gennarone@gmail.com
+Subject: Re: [PATCH] af9035: add ID [0ccd:00aa] TerraTec Cinergy T Stick (rev.
+ 2)
+References: <CAA=TYk_Mc552Gx98aeaB6t9_t7pfK_w5Ka==g76hez2c0ufXMg@mail.gmail.com>
+In-Reply-To: <CAA=TYk_Mc552Gx98aeaB6t9_t7pfK_w5Ka==g76hez2c0ufXMg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing the display-timing node using video helper
-function.
+On 02/18/2013 12:25 AM, Fabrizio Gazzato wrote:
+> This patch adds USB ID for alternative "Terratec Cinergy T Stick".
+> Tested by a friend: works similarly to 0ccd:0093 version (af9035+tua9001)
+>
+> Please delete the previous patch
+>
+> Regards
+>
+>
+> Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
 
-The DT node parsing and pinctrl selection is done only if 'dev.of_node'
-exists and the NON-DT logic is still maintained under the 'else' part.
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   41 +++++++++++++++++++++++++++---
- 1 file changed, 37 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index bf0d9ba..978e866 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
-@@ -905,16 +906,48 @@ static int __devinit fimd_probe(struct platform_device *pdev)
- 	struct exynos_drm_subdrv *subdrv;
- 	struct exynos_drm_fimd_pdata *pdata;
- 	struct exynos_drm_panel_info *panel;
-+	struct fb_videomode *fbmode;
-+	struct pinctrl *pctrl;
- 	struct resource *res;
- 	int win;
- 	int ret = -EINVAL;
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-+		if (!fbmode) {
-+			DRM_ERROR("memory allocation for fbmode failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
-+		if (ret) {
-+			DRM_ERROR("failed: of_get_fb_videomode()\n"
-+				"with return value: %d\n", ret);
-+			return ret;
-+		}
-+		pdata->panel.timing = (struct fb_videomode) *fbmode;
-+
-+		pctrl = devm_pinctrl_get_select_default(dev);
-+		if (IS_ERR_OR_NULL(pctrl)) {
-+			DRM_ERROR("failed: devm_pinctrl_get_select_default()\n"
-+				"with return value: %d\n", PTR_RET(pctrl));
-+			return PTR_RET(pctrl);
-+		}
-+
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
- 	}
- 
- 	panel = &pdata->panel;
+> ---
+>   drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+> b/drivers/media/usb/dvb-usb-v2/af9035.c
+> index 61ae7f9..c3cd6be 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> @@ -1133,6 +1133,8 @@ static const struct usb_device_id af9035_id_table[] = {
+>   		&af9035_props, "AVerMedia Twinstar (A825)", NULL) },
+>   	{ DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
+>   		&af9035_props, "Asus U3100Mini Plus", NULL) },
+> +        { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+> +		&af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL) },
+>   	{ }
+>   };
+>   MODULE_DEVICE_TABLE(usb, af9035_id_table);
+>
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
