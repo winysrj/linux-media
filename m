@@ -1,48 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:41734 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758656Ab3BGN2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 08:28:51 -0500
-Received: by mail-ie0-f178.google.com with SMTP id c13so3397377ieb.37
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 05:28:49 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:56778 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756156Ab3BQNj1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 08:39:27 -0500
+Received: by mail-ee0-f46.google.com with SMTP id e49so2354965eek.33
+        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 05:39:26 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/2] bttv: make remote controls of devices with i2c ir decoder working
+Date: Sun, 17 Feb 2013 14:40:05 +0100
+Message-Id: <1361108405-3583-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1360238951-7022-1-git-send-email-rahul.sharma@samsung.com>
-References: <1360238951-7022-1-git-send-email-rahul.sharma@samsung.com>
-Date: Thu, 7 Feb 2013 14:28:48 +0100
-Message-ID: <CAKMK7uFQg8Wsibz8T0VBB8yJf3P=yTbRhhH3pTTGGxiYZo8dfA@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 2/5] drm/edid: temporarily exposing generic
- edid-read interface from drm
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rahul Sharma <rahul.sharma@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	alsa-devel@alsa-project.org, linux-fbdev@vger.kernel.org,
-	broonie@opensource.wolfsonmicro.com, joshi@samsung.com,
-	kyungmin.park@samsung.com, tomi.valkeinen@ti.com,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 7, 2013 at 1:09 PM, Rahul Sharma <rahul.sharma@samsung.com> wrote:
-> It exposes generic interface from drm_edid.c to get the edid data and length
-> by any display entity. Once I get clear idea about edid handling in CDF, I need
-> to revert these temporary changes.
+Request module ir-kbd-i2c if an i2c ir decoder is detected.
 
-Just a quick reply about edid reading: One of the key results (at
-least imo) of the fosdem cdf discussion was that we need to split up
-the different parts of it clearly (i.e. abstract panel interface, dsi
-support, discovery/dev matching, ...) to have more flexibility. One
-idea is also to not use the panel interface for e.g. hdmi transcoders,
-but only use the bus support (like dsi), since transcoders which
-connect to external devices like hdmi need to expose _much_ more
-features to the master driver and so it's better to have tighter
-integration. Some of the things which need close cooperation between
-drivers are e.g. edid reading, hotplug handling,
-bpp/colorspace/restricted range stuff, ... I didn't read through the
-patch which requires the exported drm edid stuff, but maybe this helps
-a bit.
--Daniel
+Tested with device "Hauppauge WinTV Theatre" (model 37284 rev B421).
+
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/pci/bt8xx/bttv-input.c |   22 +++++++++++++---------
+ 1 Datei geändert, 13 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
+index 04207a7..01c7121 100644
+--- a/drivers/media/pci/bt8xx/bttv-input.c
++++ b/drivers/media/pci/bt8xx/bttv-input.c
+@@ -375,6 +375,7 @@ void init_bttv_i2c_ir(struct bttv *btv)
+ 		I2C_CLIENT_END
+ 	};
+ 	struct i2c_board_info info;
++	struct i2c_client *i2c_dev;
+ 
+ 	if (0 != btv->i2c_rc)
+ 		return;
+@@ -390,7 +391,12 @@ void init_bttv_i2c_ir(struct bttv *btv)
+ 		btv->init_data.ir_codes = RC_MAP_PV951;
+ 		info.addr = 0x4b;
+ 		break;
+-	default:
++	}
++
++	if (btv->init_data.name) {
++		info.platform_data = &btv->init_data;
++		i2c_dev = i2c_new_device(&btv->c.i2c_adap, &info);
++	} else {
+ 		/*
+ 		 * The external IR receiver is at i2c address 0x34 (0x35 for
+ 		 * reads).  Future Hauppauge cards will have an internal
+@@ -399,16 +405,14 @@ void init_bttv_i2c_ir(struct bttv *btv)
+ 		 * internal.
+ 		 * That's why we probe 0x1a (~0x34) first. CB
+ 		 */
+-
+-		i2c_new_probed_device(&btv->c.i2c_adap, &info, addr_list, NULL);
+-		return;
++		i2c_dev = i2c_new_probed_device(&btv->c.i2c_adap, &info, addr_list, NULL);
+ 	}
++	if (NULL == i2c_dev)
++		return;
+ 
+-	if (btv->init_data.name)
+-		info.platform_data = &btv->init_data;
+-	i2c_new_device(&btv->c.i2c_adap, &info);
+-
+-	return;
++#if defined(CONFIG_MODULES) && defined(MODULE)
++	request_module("ir-kbd-i2c");
++#endif
+ }
+ 
+ int fini_bttv_i2c(struct bttv *btv)
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+1.7.10.4
+
