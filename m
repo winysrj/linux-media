@@ -1,132 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4100 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901Ab3BPJ2t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:49 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 02/18] tvp7002: use dv_timings structs instead of presets.
-Date: Sat, 16 Feb 2013 10:28:05 +0100
-Message-Id: <054d4fd3b99e30480c6e40d368579bfad2053e5e.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:60702 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753185Ab3BQV5j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 16:57:39 -0500
+Message-ID: <5121522D.7040508@iki.fi>
+Date: Sun, 17 Feb 2013 23:57:01 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9035: add ID [0bda:00aa] TerraTec Cinergy T Stick (rev.
+ 2)
+References: <CAA=TYk98hQuu09bkBhrE_C0a-b1wb-i6Tc=Ds_AAEvHgZ=ZJAQ@mail.gmail.com> <5121505F.2070700@iki.fi> <CAA=TYk_JNt_Mr8xwqYb6JBepKYoh4SSM85uSLmfcN_cUsL=jsQ@mail.gmail.com>
+In-Reply-To: <CAA=TYk_JNt_Mr8xwqYb6JBepKYoh4SSM85uSLmfcN_cUsL=jsQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Could you just sent new patch? I see it is only mistake in patch name, 
+but still it is better to send new patch that I or Mauro are not needed 
+to edit patch.
 
-In the functions tvp7002_mbus_fmt(), tvp7002_log_status and tvp7002_probe()
-we should use the dv_timings data structures instead of dv_preset data
-structures and functions.
+regards
+Antti
 
-This is the second step towards removing the deprecated preset support of this
-driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
----
- drivers/media/i2c/tvp7002.c |   54 ++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 7995eeb..d7a08bc 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -677,16 +677,10 @@ static int tvp7002_s_ctrl(struct v4l2_ctrl *ctrl)
- static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
- {
- 	struct tvp7002 *device = to_tvp7002(sd);
--	struct v4l2_dv_enum_preset e_preset;
--	int error;
--
--	/* Calculate height and width based on current standard */
--	error = v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset);
--	if (error)
--		return error;
-+	const struct v4l2_bt_timings *bt = &device->current_timings->timings.bt;
- 
--	f->width = e_preset.width;
--	f->height = e_preset.height;
-+	f->width = bt->width;
-+	f->height = bt->height;
- 	f->code = V4L2_MBUS_FMT_YUYV10_1X20;
- 	f->field = device->current_timings->scanmode;
- 	f->colorspace = device->current_timings->color_space;
-@@ -896,35 +890,21 @@ static int tvp7002_s_stream(struct v4l2_subdev *sd, int enable)
-  */
- static int tvp7002_log_status(struct v4l2_subdev *sd)
- {
--	const struct tvp7002_timings_definition *timings = tvp7002_timings;
- 	struct tvp7002 *device = to_tvp7002(sd);
--	struct v4l2_dv_enum_preset e_preset;
--	struct v4l2_dv_preset detected;
--	int i;
-+	const struct v4l2_bt_timings *bt;
-+	int detected;
- 
--	detected.preset = V4L2_DV_INVALID;
--	/* Find my current standard*/
--	tvp7002_query_dv_preset(sd, &detected);
-+	/* Find my current timings */
-+	tvp7002_query_dv(sd, &detected);
- 
--	/* Print standard related code values */
--	for (i = 0; i < NUM_TIMINGS; i++, timings++)
--		if (timings->preset == detected.preset)
--			break;
--
--	if (v4l_fill_dv_preset_info(device->current_timings->preset, &e_preset))
--		return -EINVAL;
--
--	v4l2_info(sd, "Selected DV Preset: %s\n", e_preset.name);
--	v4l2_info(sd, "   Pixels per line: %u\n", e_preset.width);
--	v4l2_info(sd, "   Lines per frame: %u\n\n", e_preset.height);
--	if (i == NUM_TIMINGS) {
--		v4l2_info(sd, "Detected DV Preset: None\n");
-+	bt = &device->current_timings->timings.bt;
-+	v4l2_info(sd, "Selected DV Timings: %ux%u\n", bt->width, bt->height);
-+	if (detected == NUM_TIMINGS) {
-+		v4l2_info(sd, "Detected DV Timings: None\n");
- 	} else {
--		if (v4l_fill_dv_preset_info(timings->preset, &e_preset))
--			return -EINVAL;
--		v4l2_info(sd, "Detected DV Preset: %s\n", e_preset.name);
--		v4l2_info(sd, "  Pixels per line: %u\n", e_preset.width);
--		v4l2_info(sd, "  Lines per frame: %u\n\n", e_preset.height);
-+		bt = &tvp7002_timings[detected].timings.bt;
-+		v4l2_info(sd, "Detected DV Timings: %ux%u\n",
-+				bt->width, bt->height);
- 	}
- 	v4l2_info(sd, "Streaming enabled: %s\n",
- 					device->streaming ? "yes" : "no");
-@@ -1019,7 +999,7 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- {
- 	struct v4l2_subdev *sd;
- 	struct tvp7002 *device;
--	struct v4l2_dv_preset preset;
-+	struct v4l2_dv_timings timings;
- 	int polarity_a;
- 	int polarity_b;
- 	u8 revision;
-@@ -1080,8 +1060,8 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 		return error;
- 
- 	/* Set registers according to default video mode */
--	preset.preset = device->current_timings->preset;
--	error = tvp7002_s_dv_preset(sd, &preset);
-+	timings = device->current_timings->timings;
-+	error = tvp7002_s_dv_timings(sd, &timings);
- 
- 	v4l2_ctrl_handler_init(&device->hdl, 1);
- 	v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
+On 02/17/2013 11:53 PM, Fabrizio Gazzato wrote:
+> Errata corrige: USB ID is  [0ccd:00aa]
+>
+> Sorry
+>
+> Fabrizio
+>
+> 2013/2/17 Antti Palosaari <crope@iki.fi>:
+>> On 02/17/2013 11:48 PM, Fabrizio Gazzato wrote:
+>>>
+>>> Hi Antti,
+>>>
+>>> this patch adds USB ID for alternative "Terratec Cinergy T Stick".
+>>> Tested by a friend: works similarly to 0ccd:0093 version (af9035+tua9001)
+>>>
+>>> Regards
+>>>
+>>>
+>>> Signed-off-by: Fabrizio Gazzato <fabrizio.gazzato@gmail.com>
+>>
+>>
+>> Acked-by: Antti Palosaari <crope@iki.fi>
+>>
+>>
+>>> ---
+>>>    drivers/media/usb/dvb-usb-v2/af9035.c |    2 ++
+>>>    1 file changed, 2 insertions(+)
+>>>
+>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> index 61ae7f9..c3cd6be 100644
+>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>> @@ -1133,6 +1133,8 @@ static const struct usb_device_id af9035_id_table[]
+>>> = {
+>>>                  &af9035_props, "AVerMedia Twinstar (A825)", NULL) },
+>>>          { DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
+>>>                  &af9035_props, "Asus U3100Mini Plus", NULL) },
+>>> +        { DVB_USB_DEVICE(USB_VID_TERRATEC, 0x00aa,
+>>> +               &af9035_props, "TerraTec Cinergy T Stick (rev. 2)", NULL)
+>>> },
+>>>          { }
+>>>    };
+>>>    MODULE_DEVICE_TABLE(usb, af9035_id_table);
+>>>
+>>
+>>
+>> --
+>> http://palosaari.fi/
+
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
