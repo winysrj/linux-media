@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:33534 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756059Ab3BAL75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 06:59:57 -0500
-Received: by mail-da0-f52.google.com with SMTP id f10so1714052dak.25
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 03:59:56 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
-	l.krishna@samsung.com
-Subject: [PATCH v3 0/1] Adds display-timing node parsing to exynos drm fimd
-Date: Fri,  1 Feb 2013 17:29:48 +0530
-Message-Id: <1359719989-29628-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from infernal.debian.net ([176.28.9.132]:44722 "EHLO
+	infernal.debian.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756164Ab3BRAvR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Feb 2013 19:51:17 -0500
+Date: Mon, 18 Feb 2013 01:12:44 +0100
+From: Andreas Bombe <aeb@debian.org>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [media-ctl PATCH] Add missing stdlib.h and ctype.h includes
+Message-ID: <20130218001244.GA7932@amos.fritz.box>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing to drm fimd, this depends on
-the display helper patchset at
-http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
+src/mediactl.c needs ctype.h for its use of isspace().
 
-It also adds pinctrl support for drm fimd.
+src/v4l2subdev.c needs stdlib.h for strtoul() and ctype.h for isspace()
+and isupper().
 
-changes since v2:
-	- moved 'devm_pinctrl_get_select_default' function call under
-		'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
-		(reported by: Rahul Sharma <r.sh.open@gmail.com>)
+Signed-off-by: Andreas Bombe <aeb@debian.org>
+---
+ src/mediactl.c   |    1 +
+ src/v4l2subdev.c |    2 ++
+ 2 files changed, 3 insertions(+)
 
-changes since v1:
-	- addressed comments from Sean Paul <seanpaul@chromium.org>
-
-patch is based on branch "exynos-drm-next" at
-http://git.kernel.org/pub/scm/linux/kernel/git/daeinki/drm-exynos.git
-
-Is tested on Exynos5250 and Exynos4412 by applying dependent patches available
-at http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
-
-Vikas Sajjan (1):
-  video: drm: exynos: Adds display-timing node parsing using video
-    helper function
-
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   39 +++++++++++++++++++++++++++---
- 1 file changed, 35 insertions(+), 4 deletions(-)
-
+diff --git a/src/mediactl.c b/src/mediactl.c
+index 46562de..c2f985a 100644
+--- a/src/mediactl.c
++++ b/src/mediactl.c
+@@ -29,6 +29,7 @@
+ #include <stdbool.h>
+ #include <stdio.h>
+ #include <stdlib.h>
++#include <ctype.h>
+ #include <string.h>
+ #include <fcntl.h>
+ #include <errno.h>
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index d0c37f3..87d7eb7 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -26,6 +26,8 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <stdbool.h>
++#include <stdlib.h>
++#include <ctype.h>
+ #include <stdio.h>
+ #include <string.h>
+ #include <unistd.h>
 -- 
-1.7.9.5
-
+1.7.10.4
