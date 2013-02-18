@@ -1,42 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:54667 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502Ab3BCPe4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:34:56 -0500
-Received: by mail-pa0-f53.google.com with SMTP id bg4so2905372pad.12
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:34:55 -0800 (PST)
-Message-ID: <510F3B46.1010607@gmail.com>
-Date: Sun, 03 Feb 2013 23:38:30 -0500
-From: Huang Shijie <shijie8@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 09/18] tlg2300: add missing video_unregister_device.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <b16063fd51aef975fa54b1ebf9d62d88f5c9f48b.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <b16063fd51aef975fa54b1ebf9d62d88f5c9f48b.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2053 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754508Ab3BRVLN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Feb 2013 16:11:13 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1ILB9kr053727
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 22:11:11 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4924111E017F
+	for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 22:11:04 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130218211104.4924111E017F@alastor.dyndns.org>
+Date: Mon, 18 Feb 2013 22:11:04 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-radio.c |    1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-> index 80307d3..0f958f7 100644
-> --- a/drivers/media/usb/tlg2300/pd-radio.c
-> +++ b/drivers/media/usb/tlg2300/pd-radio.c
-> @@ -334,6 +334,7 @@ int poseidon_fm_init(struct poseidon *p)
->  
->  int poseidon_fm_exit(struct poseidon *p)
->  {
-> +	video_unregister_device(&p->radio_data.fm_dev);
->  	v4l2_ctrl_handler_free(&p->radio_data.ctrl_handler);
->  	return 0;
->  }
-Acked-by: Huang Shijie <shijie8@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:		Mon Feb 18 19:00:18 CET 2013
+git branch:	for_v3.9
+git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
+
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-rc4-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-rc4-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
