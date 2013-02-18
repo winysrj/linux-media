@@ -1,204 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:48785 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752876Ab3BCPoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 10:44:06 -0500
-Received: by mail-pa0-f42.google.com with SMTP id kq12so77922pab.15
-        for <linux-media@vger.kernel.org>; Sun, 03 Feb 2013 07:44:06 -0800 (PST)
-Message-ID: <510F3D6D.3000408@gmail.com>
-Date: Sun, 03 Feb 2013 23:47:41 -0500
-From: Huang Shijie <shijie8@gmail.com>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:48552 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753666Ab3BRVYN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Feb 2013 16:24:13 -0500
+Received: by mail-ee0-f51.google.com with SMTP id d17so2989445eek.38
+        for <linux-media@vger.kernel.org>; Mon, 18 Feb 2013 13:24:12 -0800 (PST)
+Message-ID: <51229C2D.8060700@googlemail.com>
+Date: Mon, 18 Feb 2013 22:25:01 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 06/18] tlg2300: add control handler for radio device
- node.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <6f3366e175ce5a8ff0dd4c959e2128f851723283.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <6f3366e175ce5a8ff0dd4c959e2128f851723283.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+To: Mr Goldcove <goldcove@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Wrongly identified easycap em28xx
+References: <512294CA.3050401@gmail.com>
+In-Reply-To: <512294CA.3050401@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 18.02.2013 21:53, schrieb Mr Goldcove:
+> "Easy Cap DC-60++"
+> Wrongly identified as card 19 "EM2860/SAA711X Reference Design",
+> resulting in no audio.
+> Works perfectly when using card 64 "Easy Cap Capture DC-60"
+
+Video inputs work fine, right ?
+Does this device has any buttons / LEDs ?
+
+The driver doesn't handle devices with generic IDs very well.
+In this case we can conclude from the USB PID that the device has audio
+support (which is actually the only difference to board
+EM2860_BOARD_SAA711X_REFERENCE_DESIGN).
+But I would like to think twice about it, because this kind of changes
+has very a high potential to cause regressions for other boards...
+
+Regards,
+Frank
+
 >
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-common.h |    2 +
->  drivers/media/usb/tlg2300/pd-radio.c  |  112 ++++++++-------------------------
->  2 files changed, 28 insertions(+), 86 deletions(-)
+> **Interim solution**
+> load module (before inserting the EasyCap. I'm having trouble if the
+> module is loaded/unloaded with different cards...)
+> modprobe em28xx card=64
+>   or
+> add "options em28xx card=64" to /etc/modprobe.d/local.conf
 >
-> diff --git a/drivers/media/usb/tlg2300/pd-common.h b/drivers/media/usb/tlg2300/pd-common.h
-> index 3a89128..b26082a 100644
-> --- a/drivers/media/usb/tlg2300/pd-common.h
-> +++ b/drivers/media/usb/tlg2300/pd-common.h
-> @@ -10,6 +10,7 @@
->  #include <linux/poll.h>
->  #include <media/videobuf-vmalloc.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-ctrls.h>
->  
->  #include "dvb_frontend.h"
->  #include "dvbdev.h"
-> @@ -119,6 +120,7 @@ struct radio_data {
->  	unsigned int	is_radio_streaming;
->  	int		pre_emphasis;
->  	struct video_device fm_dev;
-> +	struct v4l2_ctrl_handler ctrl_handler;
->  };
->  
->  #define DVB_SBUF_NUM		4
-> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-> index 719c3da..45b3d7a 100644
-> --- a/drivers/media/usb/tlg2300/pd-radio.c
-> +++ b/drivers/media/usb/tlg2300/pd-radio.c
-> @@ -261,104 +261,34 @@ static int fm_set_freq(struct file *file, void *priv,
->  	return set_frequency(p, argp->frequency);
->  }
->  
-> -static int tlg_fm_vidioc_g_ctrl(struct file *file, void *priv,
-> -		struct v4l2_control *arg)
-> +static int tlg_fm_s_ctrl(struct v4l2_ctrl *ctrl)
->  {
-> -	return 0;
-> -}
-> -
-> -static int tlg_fm_vidioc_g_exts_ctrl(struct file *file, void *fh,
-> -				struct v4l2_ext_controls *ctrls)
-> -{
-> -	struct poseidon *p = file->private_data;
-> -	int i;
-> -
-> -	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_FM_TX)
-> -		return -EINVAL;
-> -
-> -	for (i = 0; i < ctrls->count; i++) {
-> -		struct v4l2_ext_control *ctrl = ctrls->controls + i;
-> -
-> -		if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS)
-> -			continue;
-> -
-> -		if (i < MAX_PREEMPHASIS)
-> -			ctrl->value = p->radio_data.pre_emphasis;
-> -	}
-> -	return 0;
-> -}
-> -
-> -static int tlg_fm_vidioc_s_exts_ctrl(struct file *file, void *fh,
-> -			struct v4l2_ext_controls *ctrls)
-> -{
-> -	int i;
-> -
-> -	if (ctrls->ctrl_class != V4L2_CTRL_CLASS_FM_TX)
-> -		return -EINVAL;
-> -
-> -	for (i = 0; i < ctrls->count; i++) {
-> -		struct v4l2_ext_control *ctrl = ctrls->controls + i;
-> -
-> -		if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS)
-> -			continue;
-> -
-> -		if (ctrl->value >= 0 && ctrl->value < MAX_PREEMPHASIS) {
-> -			struct poseidon *p = file->private_data;
-> -			int pre_emphasis = preemphasis[ctrl->value];
-> -			u32 status;
-> -
-> -			send_set_req(p, TUNER_AUD_ANA_STD,
-> -						pre_emphasis, &status);
-> -			p->radio_data.pre_emphasis = pre_emphasis;
-> -		}
-> -	}
-> -	return 0;
-> -}
-> -
-> -static int tlg_fm_vidioc_s_ctrl(struct file *file, void *priv,
-> -		struct v4l2_control *ctrl)
-> -{
-> -	return 0;
-> -}
-> -
-> -static int tlg_fm_vidioc_queryctrl(struct file *file, void *priv,
-> -		struct v4l2_queryctrl *ctrl)
-> -{
-> -	if (!(ctrl->id & V4L2_CTRL_FLAG_NEXT_CTRL))
-> -		return -EINVAL;
-> +	struct poseidon *p = container_of(ctrl->handler, struct poseidon,
-> +						radio_data.ctrl_handler);
-> +	int pre_emphasis;
-> +	u32 status;
->  
-> -	ctrl->id &= ~V4L2_CTRL_FLAG_NEXT_CTRL;
-> -	if (ctrl->id != V4L2_CID_TUNE_PREEMPHASIS) {
-> -		/* return the next supported control */
-> -		ctrl->id = V4L2_CID_TUNE_PREEMPHASIS;
-> -		v4l2_ctrl_query_fill(ctrl, V4L2_PREEMPHASIS_DISABLED,
-> -					V4L2_PREEMPHASIS_75_uS, 1,
-> -					V4L2_PREEMPHASIS_50_uS);
-> -		ctrl->flags = V4L2_CTRL_FLAG_UPDATE;
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_TUNE_PREEMPHASIS:
-> +		pre_emphasis = preemphasis[ctrl->val];
-> +		send_set_req(p, TUNER_AUD_ANA_STD, pre_emphasis, &status);
-> +		p->radio_data.pre_emphasis = pre_emphasis;
->  		return 0;
->  	}
->  	return -EINVAL;
->  }
->  
-> -static int tlg_fm_vidioc_querymenu(struct file *file, void *fh,
-> -				struct v4l2_querymenu *qmenu)
-> -{
-> -	return v4l2_ctrl_query_menu(qmenu, NULL, NULL);
-> -}
-> -
->  static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
->  {
->  	return vt->index > 0 ? -EINVAL : 0;
->  }
->  
-> +static const struct v4l2_ctrl_ops tlg_fm_ctrl_ops = {
-> +	.s_ctrl = tlg_fm_s_ctrl,
-> +};
-> +
->  static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
->  	.vidioc_querycap    = vidioc_querycap,
-> -	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
-> -	.vidioc_querymenu   = tlg_fm_vidioc_querymenu,
-> -	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
-> -	.vidioc_s_ctrl      = tlg_fm_vidioc_s_ctrl,
-> -	.vidioc_s_ext_ctrls = tlg_fm_vidioc_s_exts_ctrl,
-> -	.vidioc_g_ext_ctrls = tlg_fm_vidioc_g_exts_ctrl,
->  	.vidioc_s_tuner     = vidioc_s_tuner,
->  	.vidioc_g_tuner     = tlg_fm_vidioc_g_tuner,
->  	.vidioc_g_frequency = fm_get_freq,
-> @@ -376,16 +306,26 @@ static struct video_device poseidon_fm_template = {
->  int poseidon_fm_init(struct poseidon *p)
->  {
->  	struct video_device *vfd = &p->radio_data.fm_dev;
-> +	struct v4l2_ctrl_handler *hdl = &p->radio_data.ctrl_handler;
->  
->  	*vfd = poseidon_fm_template;
-> -	vfd->v4l2_dev	= &p->v4l2_dev;
-> -	video_set_drvdata(vfd, p);
->  
->  	set_frequency(p, TUNER_FREQ_MIN_FM);
-> +	v4l2_ctrl_handler_init(hdl, 1);
-> +	v4l2_ctrl_new_std_menu(hdl, &tlg_fm_ctrl_ops, V4L2_CID_TUNE_PREEMPHASIS,
-> +			V4L2_PREEMPHASIS_75_uS, 0, V4L2_PREEMPHASIS_50_uS);
-> +	if (hdl->error) {
-> +		v4l2_ctrl_handler_free(hdl);
-> +		return hdl->error;
-> +	}
-> +	vfd->v4l2_dev = &p->v4l2_dev;
-> +	vfd->ctrl_handler = hdl;
-> +	video_set_drvdata(vfd, p);
->  	return video_register_device(vfd, VFL_TYPE_RADIO, -1);
->  }
->  
->  int poseidon_fm_exit(struct poseidon *p)
->  {
-> +	v4l2_ctrl_handler_free(&p->radio_data.ctrl_handler);
->  	return 0;
->  }
-Acked-by: Huang Shijie <shijie8@gmail.com>
+> **hw info**
+> Bus 002 Device 005: ID eb1a:2861 eMPIA Technology, Inc.
+>
+> Chips:
+> Empia EM2860 P7JY8-011 201023-01AG
+> NXP SAA7113H
+> RMC ALC653 89G06K1 G909A
+>
+> **logs**
+> [ 5567.367883] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0,
+> class 0)
+> [ 5567.367985] em28xx #0: chip ID is em2860
+> [ 5567.380645] IR MCE Keyboard/mouse protocol handler initialized
+> [ 5567.384202] lirc_dev: IR Remote Control driver registered, major 249
+> [ 5567.385468] IR LIRC bridge handler initialized
+> [ 5567.460386] em28xx #0: board has no eeprom
+> [ 5567.534612] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> [ 5567.568303] em28xx #0: Your board has no unique USB ID.
+> [ 5567.568308] em28xx #0: A hint were successfully done, based on i2c
+> devicelist hash.
+> [ 5567.568312] em28xx #0: This method is not 100% failproof.
+> [ 5567.568314] em28xx #0: If the board were missdetected, please email
+> this log to:
+> [ 5567.568317] em28xx #0:     V4L Mailing List 
+> <linux-media@vger.kernel.org>
+> [ 5567.568321] em28xx #0: Board detected as EM2860/SAA711X Reference Design
+> [ 5567.647433] em28xx #0: Identified as EM2860/SAA711X Reference Design
+> (card=19)
+> [ 5567.647438] em28xx #0: Registering snapshot button...
+> [ 5567.647531] input: em28xx snapshot button as
+> /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.4/input/input11
+> [ 5568.019310] saa7115 15-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+> (em28xx #0)
+> [ 5568.789385] em28xx #0: Config register raw data: 0x10
+> [ 5568.813055] em28xx #0: AC97 vendor ID = 0x414c4761
+> [ 5568.825074] em28xx #0: AC97 features = 0x0000
+> [ 5568.825078] em28xx #0: Unknown AC97 audio processor detected!
+> [ 5569.284137] em28xx #0: v4l2 driver version 0.1.3
+> [ 5570.305831] em28xx #0: V4L2 video device registered as video1
+> [ 5570.305835] em28xx #0: V4L2 VBI device registered as vbi0
+> [ 5570.305862] em28xx audio device (eb1a:2861): interface 1, class 1
+> [ 5570.305877] em28xx audio device (eb1a:2861): interface 2, class 1
+> [ 5570.305906] usbcore: registered new interface driver em28xx
+> [ 5570.305909] em28xx driver loaded
+> [ 5570.392917] usbcore: registered new interface driver snd-usb-audio
+> [ 7903.785365] em28xx #0: vidioc_s_fmt_vid_cap queue busy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
