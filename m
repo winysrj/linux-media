@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:49444 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758275Ab3BKRsB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 12:48:01 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a12so2939402eaa.13
-        for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 09:48:00 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/4] em28xx: remove unused ac97 v4l2_ctrl_handler
-Date: Mon, 11 Feb 2013 18:48:34 +0100
-Message-Id: <1360604916-3048-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360604916-3048-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360604916-3048-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from eu3sys201aog104.obsmtp.com ([207.126.148.94]:50658 "HELO
+	eu3sys201aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756642Ab3BSMr3 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Feb 2013 07:47:29 -0500
+From: Camera.Geomatics@leica-geosystems.com
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: MT9P031 manual BLC
+Message-ID: <OF2E977037.5AC0B23B-ONC1257B17.0044DC11-C1257B17.00450C1A@leica-geosystems.com>
+Date: Tue, 19 Feb 2013 13:34:11 +0100
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx.h |    2 --
- 1 Datei geändert, 2 Zeilen entfernt(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 6a9e3e1..7dc27b5 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -491,8 +491,6 @@ struct em28xx {
- 
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_ctrl_handler ctrl_handler;
--	/* provides ac97 mute and volume overrides */
--	struct v4l2_ctrl_handler ac97_ctrl_handler;
- 	struct em28xx_board board;
- 
- 	/* Webcam specific fields */
--- 
-1.7.10.4
+Hi,
+I am looking for advise on the MT9P031 manual black level calibration. I 
+can see that the MT9P031 driver on the mainline kernel supports manual BLC 
+with the V4L2_CID_BLC_* controls.
+Even though I use an older version of the MT9P031 driver, controlling of 
+black level calibration is handled the same way with the same registers 
+and bits as on mainline revision. compared to my version. When I try to 
+use manual BLC instead of automatic black level calibration I get kind of 
+a strange vertical interlaced pattern. I was able to adjust black level 
+with 
+MT9P031_ROW_BLACK_DEF_OFFSET
+MT9P031_GREEN1_OFFSET
+MT9P031_GREEN2_OFFSET
+MT9P031_RED_OFFSET
+MT9P031_BLUE_OFFSET
+but haven?t get rid of that vertical line interference. As soon as I 
+switch back to automatic BLC, the pattern is gone. Has anyone already 
+experienced such a behavior?
+The documentation about register MT9P031_BLACK_LEVEL_CALIBRATION (0x62) 
+seems to be removed on newer datasheets. Are there any known issues with 
+manual BLC which caused Aptina to remove the description of this register?
+Regards,
+Daniel Blaser
 
