@@ -1,113 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44166 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757877Ab3BAWRr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 17:17:47 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: RFC: add parameters to V4L controls
-Date: Fri, 01 Feb 2013 23:17:54 +0100
-Message-ID: <1409971.Bs77k1Sp6U@avalon>
-In-Reply-To: <510AA736.5060803@samsung.com>
-References: <50EAA78E.4090904@samsung.com> <201301071310.54428.hverkuil@xs4all.nl> <510AA736.5060803@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:35458 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932235Ab3BSEAG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Feb 2013 23:00:06 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: andrew.smirnov@gmail.com
+Cc: hverkuil@xs4all.nl, broonie@opensource.wolfsonmicro.com,
+	mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
+	tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v4 4/7] mfd: Add chip properties handling code for SI476X MFD
+Date: Mon, 18 Feb 2013 19:59:32 -0800
+Message-Id: <1361246375-8848-5-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Andrey Smirnov <andreysm@charmander.(none)>
 
-On Thursday 31 January 2013 18:17:42 Sylwester Nawrocki wrote:
-> On 01/07/2013 01:10 PM, Hans Verkuil wrote:
-> > On Mon January 7 2013 11:46:38 Andrzej Hajda wrote:
-> [...]
-> 
-> >> Currently V4L2 controls can have only single value (of type int, int64,
-> >> string). Some hardware controls require more than single int parameter,
-> >> for example to set auto-focus (AF) rectangle four coordinates should be
-> >> passed, to set auto-focus spot two coordinates should be passed.
-> >> 
-> >> Current solution
-> >> 
-> >> In case of AF rectangle we can reuse selection API as in "[PATCH RFC
-> >> 0/2] V4L: Add auto focus area control and selection" post.
-> >> Pros:
-> >> - reuse existing API,
-> >> Cons:
-> >> - two IOCTL's to perform one action,
-> >> - non-atomic operation,
-> >> - fits well only for rectangles and spots (but with unused fields width,
-> >> height), in case of other parameters we should find a different way.
-> >> 
-> >> Proposed solution
-> >> 
-> >> The solution takes an advantage of the fact VIDIOC_(G/S/TRY)_EXT_CTRLS
-> >> ioctls can be called with multiple controls per call.
-> >> 
-> >> I will present it using AF area control example.
-> >> 
-> >> There could be added four pseudo-controls, lets call them for short:
-> >> LEFT, TOP, WIDTH, HEIGHT. Those controls could be passed together with
-> >> V4L2_AUTO_FOCUS_AREA_RECTANGLE control in one ioctl as a kind of
-> >> parameters.
-> >> 
-> >> For example setting auto-focus spot would require calling
-> >> VIDIOC_S_EXT_CTRLS with the following controls:
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> >> - LEFT = ...
-> >> - RIGHT = ...
-> >> 
-> >> Setting AF rectangle:
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_RECTANGLE
-> >> - LEFT = ...
-> >> - TOP = ...
-> >> - WIDTH = ...
-> >> - HEIGHT = ...
-> >> 
-> >> Setting  AF object detection (no parameters required):
-> >> - V4L2_CID_AUTO_FOCUS_AREA = V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION
-> > 
-> > If you want to do this, then you have to make LEFT/TOP/WIDTH/HEIGHT real
-> > controls. There is no such thing as a pseudo control. So you need five
-> > new controls in total:
-> > 
-> > V4L2_CID_AUTO_FOCUS_AREA
-> > V4L2_CID_AUTO_FOCUS_LEFT
-> > V4L2_CID_AUTO_FOCUS_RIGHT
-> > V4L2_CID_AUTO_FOCUS_WIDTH
-> > V4L2_CID_AUTO_FOCUS_HEIGHT
-> > 
-> > I have no problem with this from the point of view of the control API, but
-> > whether this is the best solution for implementing auto-focus is a
-> > different issue and input from sensor specialists is needed as well
-> > (added Laurent and Sakari to the CC list).
-> > 
-> > The primary concern I have is that this does not scale to multiple focus
-> > rectangles. This might not be relevant to auto focus, though.
-> 
-> I think for more advanced hardware/configurations there is a need to
-> associate more information with the rectangles anyway. So the selections
-> API seems too limited. Probably a new IOCTL would be needed for that,
-> either standard or private.
-> 
-> We've discussed it here with Andrzej and using such 4 controls to specify
-> the AF rectangle looks sufficient from our POV.
-> 
-> I would just probably rename LEFT/RIGHT to POS_X/POS_Y or something,
-> as these 2 controls could be used in a focus mode where only spot
-> position needs to be specified.
+This patch adds code related to manipulation of the properties of
+SI476X chips.
 
-If position and size are sufficient, could we use the selection API instead ? 
-An alternative would be to introduce rectangle controls. I'm a bit 
-uncomfortable with using 4 controls here, as this could quickly grow out of 
-control.
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+---
+ drivers/mfd/si476x-prop.c |  234 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 234 insertions(+)
+ create mode 100644 drivers/mfd/si476x-prop.c
 
+diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
+new file mode 100644
+index 0000000..d2b5cc0
+--- /dev/null
++++ b/drivers/mfd/si476x-prop.c
+@@ -0,0 +1,234 @@
++/*
++ * drivers/mfd/si476x-prop.c -- Subroutines to manipulate with
++ * properties of si476x chips
++ *
++ * Copyright (C) 2012 Innovative Converged Devices(ICD)
++ * Copyright (C) 2013 Andrey Smirnov
++ *
++ * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/module.h>
++
++#include <media/si476x.h>
++#include <linux/mfd/si476x-core.h>
++
++struct si476x_property_range {
++	u16 low, high;
++};
++
++static bool si476x_core_element_is_in_array(u16 element, const u16 array[], size_t size)
++{
++	int i;
++
++	for (i = 0; i < size; i++)
++		if (element == array[i])
++			return true;
++
++	return false;
++}
++
++static bool si476x_core_element_is_in_range(u16 element,
++					    const struct si476x_property_range range[],
++					    size_t size)
++{
++	int i;
++
++	for (i = 0; i < size; i++)
++		if (element <= range[i].high && element >= range[i].low)
++			return true;
++
++	return false;
++}
++
++static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x0000,
++		0x0500, 0x0501,
++		0x0600,
++		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
++		0x0718,
++		0x1207, 0x1208,
++		0x2007,
++		0x2300,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x0200, 0x0203 },
++		{ 0x0300, 0x0303 },
++		{ 0x0400, 0x0404 },
++		{ 0x0700, 0x0707 },
++		{ 0x1100, 0x1102 },
++		{ 0x1200, 0x1204 },
++		{ 0x1300, 0x1306 },
++		{ 0x2000, 0x2005 },
++		{ 0x2100, 0x2104 },
++		{ 0x2106, 0x2106 },
++		{ 0x2200, 0x220E },
++		{ 0x3100, 0x3104 },
++		{ 0x3207, 0x320F },
++		{ 0x3300, 0x3304 },
++		{ 0x3500, 0x3517 },
++		{ 0x3600, 0x3617 },
++		{ 0x3700, 0x3717 },
++		{ 0x4000, 0x4003 },
++	};
++
++	return	si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges)) ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x071B,
++		0x1006,
++		0x2210,
++		0x3401,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x2215, 0x2219 },
++	};
++
++	return	si476x_core_is_valid_property_a10(core, property) ||
++		si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges))  ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x071C, 0x071D,
++		0x1007, 0x1008,
++		0x220F, 0x2214,
++		0x2301,
++		0x3105, 0x3106,
++		0x3402,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x0405, 0x0411 },
++		{ 0x2008, 0x200B },
++		{ 0x2220, 0x2223 },
++		{ 0x3100, 0x3106 },
++	};
++
++	return	si476x_core_is_valid_property_a20(core, property) ||
++		si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges)) ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
++
++static bool si476x_core_is_valid_property(struct si476x_core *core, u16 property)
++{
++	static const valid_property_pred_t is_valid_property[] = {
++		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
++		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
++		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
++	};
++
++	BUG_ON(core->revision > SI476X_REVISION_A30 ||
++	       core->revision == -1);
++	return is_valid_property[core->revision](core, property);
++}
++
++
++static bool si476x_core_is_readonly_property(struct si476x_core *core, u16 property)
++{
++	BUG_ON(core->revision > SI476X_REVISION_A30 ||
++	       core->revision == -1);
++
++	switch (core->revision) {
++	case SI476X_REVISION_A10:
++		return (property == 0x3200);
++	case SI476X_REVISION_A20:
++		return (property == 0x1006 ||
++			property == 0x2210 ||
++			property == 0x3200);
++	case SI476X_REVISION_A30:
++		return false;
++	}
++
++	return false;
++}
++
++static bool si476x_core_regmap_readable_register(struct device *dev, unsigned int reg)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct si476x_core *core = i2c_get_clientdata(client);
++
++	return si476x_core_is_valid_property(core, (u16) reg);
++
++}
++
++static bool si476x_core_regmap_writable_register(struct device *dev, unsigned int reg)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct si476x_core *core = i2c_get_clientdata(client);
++
++	return si476x_core_is_valid_property(core, (u16) reg) &&
++		!si476x_core_is_readonly_property(core, (u16) reg);
++}
++
++
++static int si476x_core_regmap_write(void *context, unsigned int reg, unsigned int val)
++{
++	return si476x_core_cmd_set_property(context, reg, val);
++}
++
++static int si476x_core_regmap_read(void *context, unsigned int reg, unsigned *val)
++{
++	struct si476x_core *core = context;
++	int err;
++
++	err = si476x_core_cmd_get_property(core, reg);
++	if (err < 0)
++		return err;
++
++	*val = err;
++
++	return 0;
++}
++
++
++static const struct regmap_config si476x_regmap_config = {
++	.reg_bits = 16,
++	.val_bits = 16,
++
++	.max_register = 0x4003,
++
++	.writeable_reg = si476x_core_regmap_writable_register,
++	.readable_reg = si476x_core_regmap_readable_register,
++
++	.reg_read = si476x_core_regmap_read, 
++	.reg_write = si476x_core_regmap_write,
++ 
++	.cache_type = REGCACHE_RBTREE,
++};
++
++struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
++{
++	return devm_regmap_init(&core->client->dev, NULL,
++				core, &si476x_regmap_config);
++}
++EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
