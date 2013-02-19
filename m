@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:64647 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab3B1HI2 (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:61431 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932530Ab3BSMKe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Feb 2013 02:08:28 -0500
-Message-ID: <512F0252.3050802@asianux.com>
-Date: Thu, 28 Feb 2013 15:08:02 +0800
-From: Chen Gang <gang.chen@asianux.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Subject: [PATCH] drivers/staging/media/as102: using ccflags-y instead of EXTRA_FLAGS
- in Makefile
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+	Tue, 19 Feb 2013 07:10:34 -0500
+Received: by mail-pb0-f51.google.com with SMTP id un15so2228489pbc.10
+        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 04:10:34 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, sachin.kamat@linaro.org
+Subject: [PATCH 1/1] [media] timblogiw: Fix sparse warning
+Date: Tue, 19 Feb 2013 17:30:36 +0530
+Message-Id: <1361275236-16071-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fixes the below warning:
+drivers/media/platform/timblogiw.c:81:31: warning:
+symbol 'timblogiw_tvnorms' was not declared. Should it be static?
 
-  need using ccflags-y instead of EXTRA_CFLAGS
-    can reference scripts/checkpatch.pl (1755..1766)
-
-  when make EXTRA_CFLAGS=-W, the compiling issue will be occured.
-
-
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/staging/media/as102/Makefile |    2 +-
+ drivers/media/platform/timblogiw.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/media/as102/Makefile b/drivers/staging/media/as102/Makefile
-index d8dfb75..8916d8a 100644
---- a/drivers/staging/media/as102/Makefile
-+++ b/drivers/staging/media/as102/Makefile
-@@ -3,4 +3,4 @@ dvb-as102-objs := as102_drv.o as102_fw.o as10x_cmd.o as10x_cmd_stream.o \
+diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
+index c3a2a44..2d91eeb 100644
+--- a/drivers/media/platform/timblogiw.c
++++ b/drivers/media/platform/timblogiw.c
+@@ -78,7 +78,7 @@ struct timblogiw_buffer {
+ 	struct timblogiw_fh	*fh;
+ };
  
- obj-$(CONFIG_DVB_AS102) += dvb-as102.o
- 
--EXTRA_CFLAGS += -Idrivers/media/dvb-core
-+ccflags-y += -Idrivers/media/dvb-core
+-const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
++static const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
+ 	{
+ 		.std			= V4L2_STD_PAL,
+ 		.width			= 720,
 -- 
-1.7.7.6
+1.7.4.1
+
