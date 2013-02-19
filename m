@@ -1,147 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:53881 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060Ab3BCN10 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 08:27:26 -0500
-Message-ID: <510E65B3.10901@gmail.com>
-Date: Sun, 03 Feb 2013 14:27:15 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC v2] media: tvp514x: add OF support
-References: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com> <510C43A0.7090906@gmail.com> <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
-In-Reply-To: <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:13675 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933124Ab3BSUDx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Feb 2013 15:03:53 -0500
+Date: Tue, 19 Feb 2013 17:03:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mr Goldcove <goldcove@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Wrongly identified easycap em28xx
+Message-ID: <20130219170343.00b92d18@redhat.com>
+In-Reply-To: <5123D651.1090108@googlemail.com>
+References: <512294CA.3050401@gmail.com>
+	<51229C2D.8060700@googlemail.com>
+	<5122ACDF.1020705@gmail.com>
+	<5123ACA0.2060503@googlemail.com>
+	<20130219153024.6f468d43@redhat.com>
+	<5123C849.6080207@googlemail.com>
+	<20130219155303.25c5077a@redhat.com>
+	<5123D651.1090108@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Em Tue, 19 Feb 2013 20:45:21 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-On 02/03/2013 11:13 AM, Prabhakar Lad wrote:
-[...]
->>> +Required Properties :
->>> +- compatible: Must be "ti,tvp514x-decoder"
->>
->>
->> There are no significant differences among TVP514* devices as listed above,
->> you would like to handle above ?
+> Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
+> > Em Tue, 19 Feb 2013 19:45:29 +0100
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >>> I don't like the idea of merging those two entries. As far as I remember
+> >>> there are devices that works out of the box with
+> >>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
+> >>> the driver for them.
+> >> As described above, there is a good chance to break devices with both
+> >> solutions.
+> >>
+> >> What's your suggestion ? ;-)
+> >>
+> > As I said, just leave it as-is (documenting at web) 
+> 
+> That seems to be indeed the only 100%-regression-safe solution.
+> But also _no_ solution for this device.
+> A device which works only with a special module parameter passed on
+> driver loading isn't much better than an unsupported device.
 
-Sorry for the mangled sentence, I intended to write "in the driver" instead
-of the last "above".
+That's not true. There are dozens of devices that only work with
+modprobe parameter (even ones with their own USB or PCI address). The thing
+is that crappy vendors don't provide any way for a driver to detect what's
+there, as their driver rely on some *.inf config file with those parameters
+hardcoded.
 
->> I'm just wondering if you don't need ,for instance, two separate compatible
->> properties, e.g. "ti,tvp5146-decoder" and "ti,tvp5147-decoder" ?
->>
-> There are few differences in init/power sequence tough, I would still
-> like to have
-> single compatible property "ti,tvp514x-decoder", If you feel we need separate
-> property I will change it please let me know on this.
+We can't do any better than what's provided by the device.
 
-As Sekhar already mentioned, wildcards in the compatible property should
-not be used. You could just use exact part names in the compatible
-properties and list them all in the tvp514x_of_match[] array. Even though
-this driver doesn't care about the differences between various tvp514?
-chips, there might be others that do.
+> 
+> It comes down to the following question:
+> Do we want to refuse fixing known/existing devices for the sake of
+> avoiding regression for unknown devices which even might not exist ? ;-)
 
-[...]
->>> +#if defined(CONFIG_OF)
->>> +static const struct of_device_id tvp514x_of_match[] = {
->>> +       {.compatible = "ti,tvp514x-decoder", },
->>> +       {},
->>> +};
->>> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
->>> +
->>> +static struct tvp514x_platform_data
->>> +       *tvp514x_get_pdata(struct i2c_client *client)
->>> +{
->>> +       if (!client->dev.platform_data&&   client->dev.of_node) {
->>>
->>> +               struct tvp514x_platform_data *pdata;
->>> +               struct v4l2_of_endpoint bus_cfg;
->>> +               struct device_node *endpoint;
->>> +
->>> +               pdata = devm_kzalloc(&client->dev,
->>> +                               sizeof(struct tvp514x_platform_data),
->>> +                               GFP_KERNEL);
->>> +               client->dev.platform_data = pdata;
->>
->>
->> Do you really need to set client->dev.platform_data this way ?
->> What about passing struct tvp514x_decoder pointer to this function
->> and initializing struct tvp514x_decoder::pdata instead ?
->>
->>
-> Yes that can work too, I'll do the same.
+HUH? As I said: there are devices that work with the other board entry.
+If you remove the other entry, _then_ you'll be breaking the driver.
 
-Ok, thanks.
+> I have no strong and final opinion yet. Still hoping someone knows how
+> the Empia driver handles these cases...
 
->>> +               if (!pdata)
->>> +                       return NULL;
->>> +
->>> +               endpoint = of_get_child_by_name(client->dev.of_node,
->>> "port");
->>> +               if (endpoint)
->>> +                       endpoint = of_get_child_by_name(endpoint,
->>> "endpoint");
->>
->>
->> I think you could replace these two calls above with
->>
->>                  endpoint = v4l2_of_get_next_endpoint(client->dev.of_node);
->>
-> Ok
->
->> Now I see I should have modified this function to ensure it works also when
->> 'port' nodes are grouped in a 'ports' node.
->>
-> So V5 series of V4l OF parser doesn't have this fix ?
+What do you mean? The original driver? The parameters are hardcoded at the
+*.inf file. Once you get the driver, the *.inf file contains all the
+parameters for it to work there. If you have two empia devices with
+different models, you can only use the second one after removing the
+install for the first one.
 
-No, it doesn't. I think we need something along the lines of:
+> > or to use the AC97
+> > chip ID as a hint. This works fine for devices that don't come with
+> > Empiatech em202, but with something else, like the case of the Realtek
+> > chip found on this device. The reference design for sure uses em202.
+> 
+> How could the AC97 chip ID help us in this situation ?
+> As far as I understand, it doesn't matter which AC97 IC is used.
+> They are all compatible and at least our driver uses the same code for
+> all of them.
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c 
-b/drivers/media/v4l2-core/v4l2-of.c
-index e1f570b..8a286f1 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -185,10 +185,15 @@ struct device_node 
-*v4l2_of_get_next_endpoint(const struct device_node *parent,
-                  * This is the first call, we have to find a port within
-                  * this node.
-                  */
--               for_each_child_of_node(parent, port) {
-+               while (port = of_get_next_child(parent, port)) {
-                         if (!of_node_cmp(port->name, "port"))
-                                 break;
--               }
-+                       if (!of_node_cmp(port->name, "ports")) {
-+                               parent = port;
-+                               of_node_put(port);
-+                               port = NULL:
-+                       }
-+               };
-                 if (port) {
-                         /* Found a port, get an endpoint. */
-                         endpoint = of_get_next_child(port, NULL);
+The em28xx Kernel driver uses a hint code to try to identify the device
+model. That hint code is not perfect, but it is the better we can do.
 
-However this shouldn't affect you, as you don't use the 'ports' node...
-I will likely post v6 including this fix tomorrow.
+There are two hint codes there, currently: 
+1) device's eeprom hash, used when the device has an eeprom, but the
+   USB ID is not unique;
 
---
+2) I2C scan bus hash: sometimes, different devices use different I2C
+addresses.
 
-Regards,
-Sylwester
+> 
+> So even if you are are right and the Empia reference design uses an EMP202,
+> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
+> AC97-ICs, too.
+
+The vast majority of devices use emp202. There are very few ones using
+different models.
+
+The proposal here is to add a third hint code, that would distinguish
+the devices based on the ac97 ID.
+
+> We should also expect manufacturers to switch between them whenever they
+> want (e.g. because of price changes).
+
+Yes, and then we'll need other entries at the hint table.
+
+Regards
+Mauro
