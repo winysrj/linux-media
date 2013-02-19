@@ -1,98 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:33705 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932146Ab3B0JaS (ORCPT
+Received: from mail-da0-f48.google.com ([209.85.210.48]:33620 "EHLO
+	mail-da0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932261Ab3BSEAK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 04:30:18 -0500
-Received: by mail-la0-f51.google.com with SMTP id fo13so331402lab.38
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 01:30:17 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <5125C74F.3000705@samsung.com>
-References: <1361423512-2882-1-git-send-email-vikas.sajjan@linaro.org>
- <1361423512-2882-3-git-send-email-vikas.sajjan@linaro.org> <5125C74F.3000705@samsung.com>
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-Date: Wed, 27 Feb 2013 14:59:56 +0530
-Message-ID: <CAD025yS+jZNqneY6afBbSYAhMrcs24_MRg-xQsde62nPSa6eCw@mail.gmail.com>
-Subject: Re: [PATCH v7 2/2] video: drm: exynos: Add pinctrl support to fimd
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: dri-devel@lists.freedesktop.org, l.krishna@samsung.com,
-	kgene.kim@samsung.com, linux-media@vger.kernel.org,
-	sunil joshi <joshi@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 18 Feb 2013 23:00:10 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: andrew.smirnov@gmail.com
+Cc: hverkuil@xs4all.nl, broonie@opensource.wolfsonmicro.com,
+	mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
+	tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v4 6/7] sound/soc/codecs: Convert SI476X codec to use regmap
+Date: Mon, 18 Feb 2013 19:59:34 -0800
+Message-Id: <1361246375-8848-7-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mr.Shim,
+From: Andrey Smirnov <andreysm@charmander.(none)>
 
-On 21 February 2013 12:35, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
-> Hi,
->
->
-> On 02/21/2013 02:11 PM, Vikas Sajjan wrote:
->>
->> Adds support for pinctrl to drm fimd.
->>
->> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
->> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->> ---
->>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |    9 +++++++++
->>   1 file changed, 9 insertions(+)
->>
->> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->> index f80cf68..878b134 100644
->> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->> @@ -19,6 +19,7 @@
->>   #include <linux/clk.h>
->>   #include <linux/of_device.h>
->>   #include <linux/pm_runtime.h>
->> +#include <linux/pinctrl/consumer.h>
->>     #include <video/of_display_timing.h>
->>   #include <video/samsung_fimd.h>
->> @@ -879,6 +880,7 @@ static int fimd_probe(struct platform_device *pdev)
->>         struct exynos_drm_fimd_pdata *pdata;
->>         struct exynos_drm_panel_info *panel;
->>         struct fb_videomode *fbmode;
->> +       struct pinctrl *pctrl;
->>         struct resource *res;
->>         int win;
->>         int ret = -EINVAL;
->> @@ -900,6 +902,13 @@ static int fimd_probe(struct platform_device *pdev)
->>                                 "with return value: %d\n", ret);
->>                         return ret;
->>                 }
->> +               pctrl = devm_pinctrl_get_select_default(dev);
->> +               if (IS_ERR_OR_NULL(pctrl)) {
->> +                       DRM_ERROR("failed:
->> devm_pinctrl_get_select_default()\n"
->> +                               "with return value: %d\n",
->> PTR_RET(pctrl));
->> +                       return PTR_RET(pctrl);
->> +               }
->
->
-> I think pinctrl isn't related with dt then it doesn't need to be in "if
-> (pdev->dev.of_node)".
->
-actuall in V1 patchset it was outside "if (pdev->dev.of_node)".
-lated in V2, I moved 'devm_pinctrl_get_select_default' function call under
-'if (pdev->dev.of_node)', to keep NON-DT code unchanged.
+The latest radio and MFD drivers for SI476X radio chips use regmap API
+to provide access to the registers and allow for caching of their
+values when the actual chip is powered off. Convert the codec driver
+to do the same, so it would not loose the settings when the radio
+driver powers the chip down.
 
->>
->
->
-> Blank.
->
->
->>         } else {
->>                 pdata = pdev->dev.platform_data;
->>                 if (!pdata) {
->
->
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+---
+ sound/soc/codecs/si476x.c |   22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
 
-
-
+diff --git a/sound/soc/codecs/si476x.c b/sound/soc/codecs/si476x.c
+index f2d61a1..30aebbe 100644
+--- a/sound/soc/codecs/si476x.c
++++ b/sound/soc/codecs/si476x.c
+@@ -45,13 +45,23 @@ static unsigned int si476x_codec_read(struct snd_soc_codec *codec,
+ 				      unsigned int reg)
+ {
+ 	int err;
++	unsigned int val;
+ 	struct si476x_core *core = codec->control_data;
+ 
+ 	si476x_core_lock(core);
+-	err = si476x_core_cmd_get_property(core, reg);
++	if (!si476x_core_is_powered_up(core))
++		regcache_cache_only(core->regmap, true);
++
++	err = regmap_read(core->regmap, reg, &val);
++
++	if (!si476x_core_is_powered_up(core))
++		regcache_cache_only(core->regmap, false);
+ 	si476x_core_unlock(core);
+ 
+-	return err;
++	if (err < 0)
++		return err;
++
++	return val;
+ }
+ 
+ static int si476x_codec_write(struct snd_soc_codec *codec,
+@@ -61,7 +71,13 @@ static int si476x_codec_write(struct snd_soc_codec *codec,
+ 	struct si476x_core *core = codec->control_data;
+ 
+ 	si476x_core_lock(core);
+-	err = si476x_core_cmd_set_property(core, reg, val);
++	if (!si476x_core_is_powered_up(core))
++		regcache_cache_only(core->regmap, true);
++
++	err = regmap_write(core->regmap, reg, val);
++
++	if (!si476x_core_is_powered_up(core))
++		regcache_cache_only(core->regmap, false);
+ 	si476x_core_unlock(core);
+ 
+ 	return err;
 -- 
-Thanks and Regards
- Vikas Sajjan
+1.7.10.4
+
