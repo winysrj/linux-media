@@ -1,107 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36251 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759525Ab3BGXbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 18:31:45 -0500
-References: <201302071807.47221.hverkuil@xs4all.nl> <b5588d09-bb0a-4571-a580-78e34042f4e3@email.android.com> <201302072357.03659.hverkuil@xs4all.nl>
-In-Reply-To: <201302072357.03659.hverkuil@xs4all.nl>
+Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:45266 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932600Ab3BSRBe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Feb 2013 12:01:34 -0500
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: omap3isp, omap3-isp-live, mt9p031: snapshot-mode causing picture
+ corruption
+Date: Tue, 19 Feb 2013 17:01:22 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546724596F85@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFC PATCH] ivtv-alsa: regression fix: remove __init from ivtv_alsa_load
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 07 Feb 2013 18:31:44 -0500
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Message-ID: <35ed01b6-7195-415d-b0bc-64d7c9feb3bf@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Hi Laurent
 
->On Thu February 7 2013 22:58:53 Andy Walls wrote:
->> Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> 
->> >Andy,
->> >
->> >Please review this patch. This fix probably should be fast-tracked
->to
->> >3.8 and
->> >queued for stable 3.7.
->> >
->> >ivtv-alsa kept crashing my machine every time I loaded it, and this
->is
->> >the
->> >cause.
->> >
->> >Regards,
->> >
->> >	Hans
->> >
->> >This function is called after initialization, so it should never be
->> >marked
->> >__init!
->> >
->> >Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> >---
->> > drivers/media/pci/ivtv/ivtv-alsa-main.c |    2 +-
->> > 1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> >diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c
->> >b/drivers/media/pci/ivtv/ivtv-alsa-main.c
->> >index 4a221c6..e970cfa 100644
->> >--- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
->> >+++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
->> >@@ -205,7 +205,7 @@ err_exit:
->> > 	return ret;
->> > }
->> > 
->> >-static int __init ivtv_alsa_load(struct ivtv *itv)
->> >+static int ivtv_alsa_load(struct ivtv *itv)
->> > {
->> > 	struct v4l2_device *v4l2_dev = &itv->v4l2_dev;
->> > 	struct ivtv_stream *s;
->> 
->> Hans,
->> 
->> I concur.  Now I have to check cx18 for the same problem.
->
->Hmm, there is the same problem in cx18 as well:
->
->static int __init cx18_alsa_load(struct cx18 *cx)
->
->Checking some more I saw that this __init annotation was added only in
->3.8,
->both for ivtv and cx18 (so 3.7 is fine).
->
->Ah, I see that Mauro added __init accidentally when fixing some
->compiler
->warnings in ivtv and cx18.
->
->I'll make a pull request tomorrow morning removing the __init from
->ivtv_alsa_load
->and cx18_alsa_load and ask Mauro to fast-track this regression.
->
->I assume I have your SoB for this?
->
->Regards,
->
->	Hans
->
->> 
->> Your patch looks good.
->> 
->> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
->> Signed-off-by: Andy Walls <awalls@md.metrocast.net>
->> 
->> Regards,
->> Andy  
->> 
+I'm still modifying your omap3-isp-live application to fit our needs.
+Now I have severe problems with the snapshot-mode.
 
-Yes.
+When I let the "live"-app running, the picture is fine. Then I capture
+a snapshot by clicking the right mouse-button. The snapshot is taken
+(1-2 seconds) and displayed on the LCD. Now the picture is corrupted.
+Only the lower part of the picture looks good (altough it has a
+green cast):
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+https://www.dropbox.com/s/ijk1nq8nrhlobfd/bad-snapshot.jpg
 
--Andy
+When I now resume the viewfinder, then a moving picture is shown, but
+also partially corrupted (not a lot - just about the last 50 lines).
+If I do the switching (viewfinder<->snapshot) several times, the
+hardware locks completely up.
+
+My hardware is as usual ;)
+beagleboard-xm
+kernel 3.7
+mt9p031 running at 96Mhz (instead of 48Mhz, problem?)
+lcd 800x480
+vrfb with rotate 3
+
+Further testing:
+It also happens with vrfb disabled.
+If I manually load a picture from disk into the resizer-input 
+(in the function snapshot_process) while in snapshot-mode, the picture
+is displayed correctly. 
+It seems that the picture taken from the snapshot-pipeline is "dirty".
+The buffer-sizes are correct though. Furthermore the snapshot-pipeline
+looks nearly the same as the viewfinder-pipeline...
+
+streaming-pipeline: http://pastebin.com/7qXtqXNz
+during-snapshot-pipeline: http://pastebin.com/L5XE0h30
+display-snapshot-pipeline: http://pastebin.com/dZ0zzHyC
+
+I really have to get this working... any workarounds, dirty hacks or
+ideas (or even fixes ;)) are very welcome!
+
+Regards,
+
+Florian
+
