@@ -1,129 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37619 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759013Ab3BXXkp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Feb 2013 18:40:45 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: poma <pomidorabelisima@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] af9015: do not use buffers from stack for usb_bulk_msg()
-Date: Mon, 25 Feb 2013 01:39:41 +0200
-Message-Id: <1361749181-27059-1-git-send-email-crope@iki.fi>
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:53493 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932164Ab3BSD7z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Feb 2013 22:59:55 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: andrew.smirnov@gmail.com
+Cc: hverkuil@xs4all.nl, broonie@opensource.wolfsonmicro.com,
+	mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
+	tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v4 0/7] Driver for Si476x series of chips
+Date: Mon, 18 Feb 2013 19:59:28 -0800
+Message-Id: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-WARNING: at lib/dma-debug.c:947 check_for_stack+0xa7/0xf0()
-ehci-pci 0000:00:04.1: DMA-API: device driver maps memory fromstack
+This is a fourth version of the patchset originaly posted here:
+https://lkml.org/lkml/2012/9/13/590
 
-Reported-by: poma <pomidorabelisima@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c | 34 ++++++++++++++++------------------
- drivers/media/usb/dvb-usb-v2/af9015.h |  2 ++
- 2 files changed, 18 insertions(+), 18 deletions(-)
+Second version of the patch was posted here:
+https://lkml.org/lkml/2012/10/5/598
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index b86d0f2..28983aa 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -30,22 +30,20 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- 
- static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- {
--#define BUF_LEN 63
- #define REQ_HDR_LEN 8 /* send header size */
- #define ACK_HDR_LEN 2 /* rece header size */
- 	struct af9015_state *state = d_to_priv(d);
- 	int ret, wlen, rlen;
--	u8 buf[BUF_LEN];
- 	u8 write = 1;
- 
--	buf[0] = req->cmd;
--	buf[1] = state->seq++;
--	buf[2] = req->i2c_addr;
--	buf[3] = req->addr >> 8;
--	buf[4] = req->addr & 0xff;
--	buf[5] = req->mbox;
--	buf[6] = req->addr_len;
--	buf[7] = req->data_len;
-+	state->buf[0] = req->cmd;
-+	state->buf[1] = state->seq++;
-+	state->buf[2] = req->i2c_addr;
-+	state->buf[3] = req->addr >> 8;
-+	state->buf[4] = req->addr & 0xff;
-+	state->buf[5] = req->mbox;
-+	state->buf[6] = req->addr_len;
-+	state->buf[7] = req->data_len;
- 
- 	switch (req->cmd) {
- 	case GET_CONFIG:
-@@ -55,14 +53,14 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 		break;
- 	case READ_I2C:
- 		write = 0;
--		buf[2] |= 0x01; /* set I2C direction */
-+		state->buf[2] |= 0x01; /* set I2C direction */
- 	case WRITE_I2C:
--		buf[0] = READ_WRITE_I2C;
-+		state->buf[0] = READ_WRITE_I2C;
- 		break;
- 	case WRITE_MEMORY:
- 		if (((req->addr & 0xff00) == 0xff00) ||
- 		    ((req->addr & 0xff00) == 0xae00))
--			buf[0] = WRITE_VIRTUAL_MEMORY;
-+			state->buf[0] = WRITE_VIRTUAL_MEMORY;
- 	case WRITE_VIRTUAL_MEMORY:
- 	case COPY_FIRMWARE:
- 	case DOWNLOAD_FIRMWARE:
-@@ -90,7 +88,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 	rlen = ACK_HDR_LEN;
- 	if (write) {
- 		wlen += req->data_len;
--		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
-+		memcpy(&state->buf[REQ_HDR_LEN], req->data, req->data_len);
- 	} else {
- 		rlen += req->data_len;
- 	}
-@@ -99,21 +97,21 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
- 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
- 		rlen = 0;
- 
--	ret = dvb_usbv2_generic_rw(d, buf, wlen, buf, rlen);
-+	ret = dvb_usbv2_generic_rw(d, state->buf, wlen, state->buf, rlen);
- 	if (ret)
- 		goto error;
- 
- 	/* check status */
--	if (rlen && buf[1]) {
-+	if (rlen && state->buf[1]) {
- 		dev_err(&d->udev->dev, "%s: command failed=%d\n",
--				KBUILD_MODNAME, buf[1]);
-+				KBUILD_MODNAME, state->buf[1]);
- 		ret = -EIO;
- 		goto error;
- 	}
- 
- 	/* read request, copy returned data to return buf */
- 	if (!write)
--		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
-+		memcpy(req->data, &state->buf[ACK_HDR_LEN], req->data_len);
- error:
- 	return ret;
- }
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
-index 533637d..3a6f3ad 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.h
-@@ -115,7 +115,9 @@ enum af9015_ir_mode {
- 	AF9015_IR_MODE_POLLING, /* just guess */
- };
- 
-+#define BUF_LEN 63
- struct af9015_state {
-+	u8 buf[BUF_LEN]; /* bulk USB control message */
- 	u8 ir_mode;
- 	u8 rc_repeat;
- 	u32 rc_keycode;
+Third version of the patch was posted here:
+https://lkml.org/lkml/2012/10/23/510
+
+To save everyone's time I'll repost the original description of it:
+
+This patchset contains a driver for a Silicon Laboratories 476x series
+of radio tuners. The driver itself is implemented as an MFD devices
+comprised of three parts: 
+ 1. Core device that provides all the other devices with basic
+functionality and locking scheme.
+ 2. Radio device that translates between V4L2 subsystem requests into
+Core device commands.
+ 3. Codec device that does similar to the earlier described task, but
+for ALSA SoC subsystem.
+
+v4 of this driver has following changes:
+ - All of the adjustable timeouts(expose via sysfs) are gone
+ - Names of the controls are changes as was requested
+ - Added documentation for exposed debugfs files 
+ - Minor fix in si476x_radio_fops_poll
+ - DBG_BUFFER is removed
+ - Tested for compilation w/o debugfs enabled
+
+This version still has all the radio controls being private. The
+reason for that is because I am not sure how that should be handled.
+
+Hans, do you want me to move all the controls to be standard, that is
+exted V4L's with the needed controls? Should I pick up the parts of
+http://lists-archives.com/linux-kernel/27641304-radio-fixes-and-new-features-for-fm.html and take relevants bits and pieces of it?
+
+How do you want that to be handled?
+
+
+
+Here is v4l2-compliance output for one of the tuners:
+sudo v4l2-compliance -r /dev/radio0
+is radio
+Driver Info:
+	Driver name   : si476x-radio0
+	Card type     : SI476x AM/FM Receiver
+	Bus info      : platform:si476x-radio0
+	Driver version: 3.1.0
+	Capabilities  : 0x81050500
+		RDS Capture
+		Tuner
+		Radio
+		Read/Write
+		Device Capabilities
+	Device Caps   : 0x01050500
+		RDS Capture
+		Tuner
+		Radio
+		Read/Write
+
+Compliance test for device /dev/radio0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second radio open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G_CHIP_IDENT: OK
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK
+	test VIDIOC_G/S_FREQUENCY: OK
+	test VIDIOC_S_HW_FREQ_SEEK: OK
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 1
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+	test VIDIOC_QUERYCTRL/MENU: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 2 Private Controls: 8
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK (Not Supported)
+	test VIDIOC_TRY_FMT: OK (Not Supported)
+	test VIDIOC_S_FMT: OK (Not Supported)
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+
+Total: 38, Succeeded: 38, Failed: 0, Warnings: 0
+
+Andrey Smirnov (7):
+  mfd: Add header files and Kbuild plumbing for SI476x MFD core
+  mfd: Add commands abstraction layer for SI476X MFD
+  mfd: Add the main bulk of core driver for SI476x code
+  mfd: Add chip properties handling code for SI476X MFD
+  v4l2: Add a V4L2 driver for SI476X MFD
+  sound/soc/codecs: Convert SI476X codec to use regmap
+  sound/soc/codecs: Cosmetic changes to SI476X codec driver
+
+ Documentation/video4linux/si476x.txt |  187 ++++
+ drivers/media/radio/Kconfig          |   17 +
+ drivers/media/radio/Makefile         |    1 +
+ drivers/media/radio/radio-si476x.c   | 1557 ++++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                  |   13 +
+ drivers/mfd/Makefile                 |    4 +
+ drivers/mfd/si476x-cmd.c             | 1553 +++++++++++++++++++++++++++++++++
+ drivers/mfd/si476x-i2c.c             |  878 +++++++++++++++++++
+ drivers/mfd/si476x-prop.c            |  234 +++++
+ include/linux/mfd/si476x-core.h      |  525 ++++++++++++
+ include/media/si476x.h               |  428 ++++++++++
+ sound/soc/codecs/si476x.c            |   47 +-
+ 12 files changed, 5438 insertions(+), 6 deletions(-)
+ create mode 100644 Documentation/video4linux/si476x.txt
+ create mode 100644 drivers/media/radio/radio-si476x.c
+ create mode 100644 drivers/mfd/si476x-cmd.c
+ create mode 100644 drivers/mfd/si476x-i2c.c
+ create mode 100644 drivers/mfd/si476x-prop.c
+ create mode 100644 include/linux/mfd/si476x-core.h
+ create mode 100644 include/media/si476x.h
+
 -- 
-1.7.11.7
+1.7.10.4
 
