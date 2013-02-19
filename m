@@ -1,59 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1042 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab3BIKBT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 06/26] cx231xx: zero priv field and use right width in try_fmt
-Date: Sat,  9 Feb 2013 11:00:36 +0100
-Message-Id: <b2e41de42ae000cb8d3ca17b08a7efc5feb2e6ee.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45287 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932923Ab3BSSrw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Feb 2013 13:47:52 -0500
+Date: Tue, 19 Feb 2013 19:47:49 +0100
+From: Robert Schwebel <r.schwebel@pengutronix.de>
+To: =?iso-8859-15?Q?Ga=EBtan?= Carlier <gcembed@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Rob Herring <rob.herring@calxeda.com>
+Subject: Re: coda: support of decoding
+Message-ID: <20130219184749.GD30071@pengutronix.de>
+References: <5122D999.3070405@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5122D999.3070405@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Feb 19, 2013 at 02:47:05AM +0100, Gaëtan Carlier wrote:
+> I see in code source of coda driver that decoding is not supported.
+>
+> ctx->inst_type = CODA_INST_DECODER;
+> v4l2_err(v4l2_dev, "decoding not supported.\n");
+> return -EINVAL;
+>
+> Is there any technical reason or the code has not been written ?
 
-The priv field of v4l2_pix_format must be zeroed. Also fix a bug in try_fmt
-where the current width was used instead of the width passed to try_fmt.
+We have a lot of encoder + decoder patches for Coda in the queue, but
+unfortunately not all of that is ready-for-primetime yet.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-video.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Which processor are you interested in? MX27 or MX5/MX6?
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 8e0703c..90f4510 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1005,6 +1005,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 
- 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-+	f->fmt.pix.priv = 0;
- 
- 	return 0;
- }
-@@ -1045,10 +1046,11 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	f->fmt.pix.width = width;
- 	f->fmt.pix.height = height;
- 	f->fmt.pix.pixelformat = fmt->fourcc;
--	f->fmt.pix.bytesperline = (dev->width * fmt->depth + 7) >> 3;
-+	f->fmt.pix.bytesperline = (width * fmt->depth + 7) >> 3;
- 	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * height;
- 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-+	f->fmt.pix.priv = 0;
- 
- 	return 0;
- }
+rsc
 -- 
-1.7.10.4
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
