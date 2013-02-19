@@ -1,85 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:61402 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754117Ab3BOLNn (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:61218 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933599Ab3BSVgl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 06:13:43 -0500
-Received: by mail-wi0-f178.google.com with SMTP id o1so992362wic.11
-        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 03:13:42 -0800 (PST)
+	Tue, 19 Feb 2013 16:36:41 -0500
+Received: by mail-ee0-f49.google.com with SMTP id d4so3702004eek.36
+        for <linux-media@vger.kernel.org>; Tue, 19 Feb 2013 13:36:40 -0800 (PST)
+Message-ID: <5123F026.8020801@gmail.com>
+Date: Tue, 19 Feb 2013 22:35:34 +0100
+From: =?UTF-8?B?R2HDq3RhbiBDYXJsaWVy?= <gcembed@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20130214214953.GB24184@valkosipuli.retiisi.org.uk>
-References: <CAJRKTVq-dgT2yMViBY=ZCbTHmV7m_9KN+mGXfCeqf1myL5tsWg@mail.gmail.com>
- <20130214214953.GB24184@valkosipuli.retiisi.org.uk>
-From: Adriano Martins <adrianomatosmartins@gmail.com>
-Date: Fri, 15 Feb 2013 09:13:22 -0200
-Message-ID: <CAJRKTVqb7ZnNifS5rHruqXqh+5Y8z8PzffmuudoNfk=Sk+MrZA@mail.gmail.com>
-Subject: Re: omap3isp omap3isp: CCDC stop timeout!
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Robert Schwebel <r.schwebel@pengutronix.de>
+CC: linux-media@vger.kernel.org,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <festevam@gmail.com>,
+	Rob Herring <rob.herring@calxeda.com>
+Subject: Re: coda: support of decoding
+References: <5122D999.3070405@gmail.com> <20130219184749.GD30071@pengutronix.de> <5123D93E.9050602@gmail.com> <20130219213037.GF30071@pengutronix.de>
+In-Reply-To: <20130219213037.GF30071@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-2013/2/14 Sakari Ailus <sakari.ailus@iki.fi>:
-> On Thu, Jan 31, 2013 at 05:40:38PM -0200, Adriano Martins wrote:
->> Hi all,
+On 02/19/2013 10:30 PM, Robert Schwebel wrote:
+> On Tue, Feb 19, 2013 at 08:57:50PM +0100, Gaëtan Carlier wrote:
+>>> We have a lot of encoder + decoder patches for Coda in the queue,
+>>> but unfortunately not all of that is ready-for-primetime yet.
 >>
->> I'm trying capture images from an ov5640 sensor on parallel mode. The
->> sensor output format is UYVY8_2X8.
->> And the CCDC input is configured as  UYVY8_2X8 too. I can do it, after
->> I applied the Laurent's patches:
->> "[PATCH 0/6] YUV input support for the OMAP3 ISP".
->>
->> I have my sensor configured:
->> {
->> .subdevs = cm-t35_ov5640_primary_subdevs,
->> .interface = ISP_INTERFACE_PARALLEL,
->> .bus = {
->>      .parallel = {
->>      .data_lane_shift = 2,
->>      .clk_pol = 0,
->>      .hs_pol = 1,
->>      .vs_pol = 1,
->>      .data_pol = 1,
->> },
->> },
->>
->> I defined ISP_ISR_DEBUG and DEBUG in the isp.c
->> Then, I configure the media-controller pipeline and try to capture:
->>
->> media-ctl -v -r -l '"ov5640 3-003c":0->"OMAP3 ISP CCDC":0[1]'
->> media-ctl -v  -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> media-ctl -v -V '"ov5640 3-003c":0 [UYVY2X8 640x480]'
->> media-ctl -v -V '"OMAP3 ISP CCDC":0 [UYVY2X8 640x480]'
->> yavta -f UYVY -s 640x480 --capture=5 --file=image# /dev/video2
->>
->> In this point, it hangs, and I need hit ctrol-c.
->> I get this message:
->> [ 1640.308807] omap3isp omap3isp: CCDC stop timeout!
+>> MX27. I have not yet tested if encoding is working or not. Where can I
+>> find this set of patches? I will test it with pleasure.
 >
-> The CCDC needs to receive a complete frames before it can stop.
+> Most of the work is on MX53 and MX6 recently. We will post the patches
+> here when something is ready.
+OK thanks a lot.
 >
->> I have observed that I don't get any interrupt messages. However, the
+> rsc
 >
-> This suggests that the ISP doesn't receive any data from the sensor. You
-> should see at least the HS_VS interrupt.
->
-> Do you see any ISP interrupts in /proc/interrupts?
-
-I solved my problem. I couldn't see any interrups because I didn't the
-mux settings in the pins camera.
-Now, I can capture frames from ov5640.
-
->> DATA0:7, PCLK, HSYNC and VSYNC is working fine, I guess.
->>
->> NOTE: the sensor has externel 24 MHz oscillator, and the signals never
->> stop into CCDC:
->
-
-Thanks
-
-Regards
-Adriano Martins
+Gaëtan Carlier.
