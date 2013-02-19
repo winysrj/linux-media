@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f48.google.com ([209.85.212.48]:54856 "EHLO
-	mail-vb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750809Ab3BPH5o (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4030 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789Ab3BSFFi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 02:57:44 -0500
-Received: by mail-vb0-f48.google.com with SMTP id fc21so2573590vbb.7
-        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 23:57:43 -0800 (PST)
+	Tue, 19 Feb 2013 00:05:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: Re: [PATCH v4 0/7] Driver for Si476x series of chips
+Date: Mon, 18 Feb 2013 21:05:19 -0800
+Cc: broonie@opensource.wolfsonmicro.com, mchehab@redhat.com,
+	sameo@linux.intel.com, perex@perex.cz, tiwai@suse.de,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CABXgeUHzMhk7rCtpoVuEz1zUYuGwUMEmxrFMKripnO8qvNX+Sg@mail.gmail.com>
-References: <CABXgeUHzMhk7rCtpoVuEz1zUYuGwUMEmxrFMKripnO8qvNX+Sg@mail.gmail.com>
-Date: Sat, 16 Feb 2013 13:27:43 +0530
-Message-ID: <CAHFNz9L-TM-+unnGWR5ak8x1WsVrNcL1J6aKLmBpfRtGYxe1bg@mail.gmail.com>
-Subject: Re: DVB_T2 Multistream support (PLP)
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Michael Stilmant-Rovi <stilmant.michael.rovi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302182105.20090.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 31, 2013 at 7:57 PM, Michael Stilmant-Rovi
-<stilmant.michael.rovi@gmail.com> wrote:
-> Hello,
->
-> I would like to know the support status of Multiple PLPs in DVB-T2.
-> Is someone know if tests were performed in a broadcast with an
-> effective Multistream? (PLP Id: 0 and 1 for example)
->
-> I'm out of range of such multiplex but I'm trying some tunes on London
-> DVB-T2 (CrystalPalace tower)
-> "unfortunately" that mux seems Single PLP and everything work well :-(
->   ( yes tune always succeed :-D )
->
-> I'm using DVB API 5.6.
-> If I tune with FE_SET_PROPERTY without or with DTV_DVBT2_PLP_ID set to
-> 0, 1 or 15. the tune succeed.
->
-> I'm not sure of the expected behavior, I was expecting if I tune with
-> plp_id 1 that the tuner would fail somewhere finding that stream.
->
-> So in short I don't understand what is the requirements to be able to
-> use the DVB_T2 Multistream support proposed in APIs:
->  o I see that the DVB API 5.8(?) had some patch at that level and so
-> it is maybe requested?
->  o How can I know if my driver support that feature on DVB API 5.6?
-> (PCTV nanoStick T2 290e)?
->
-> Thank you for all indications.
+On Monday, February 18, 2013 19:59:28 Andrey Smirnov wrote:
+> This is a fourth version of the patchset originaly posted here:
+> https://lkml.org/lkml/2012/9/13/590
+> 
+> Second version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/5/598
+> 
+> Third version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/23/510
+> 
+> To save everyone's time I'll repost the original description of it:
+> 
+> This patchset contains a driver for a Silicon Laboratories 476x series
+> of radio tuners. The driver itself is implemented as an MFD devices
+> comprised of three parts: 
+>  1. Core device that provides all the other devices with basic
+> functionality and locking scheme.
+>  2. Radio device that translates between V4L2 subsystem requests into
+> Core device commands.
+>  3. Codec device that does similar to the earlier described task, but
+> for ALSA SoC subsystem.
+> 
+> v4 of this driver has following changes:
+>  - All of the adjustable timeouts(expose via sysfs) are gone
+>  - Names of the controls are changes as was requested
+>  - Added documentation for exposed debugfs files 
+>  - Minor fix in si476x_radio_fops_poll
+>  - DBG_BUFFER is removed
+>  - Tested for compilation w/o debugfs enabled
+> 
+> This version still has all the radio controls being private. The
+> reason for that is because I am not sure how that should be handled.
+> 
+> Hans, do you want me to move all the controls to be standard, that is
+> exted V4L's with the needed controls? Should I pick up the parts of
+> http://lists-archives.com/linux-kernel/27641304-radio-fixes-and-new-features-for-fm.html and take relevants bits and pieces of it?
 
+Yes, please do that. It's too bad that never made it into the kernel, so let's
+do it now.
 
-At least, according to Sony: the CXD2820 chipset maker (hardware) doesn't
-support multiple PLP's.
+So take the controls that you can use from that patch and leave out those that
+do not apply to your driver. From the remaining controls not covered by that
+patch you will have to decide which are truly chip-specific and which are
+valid for any advanced radio receiver.
 
+The really chip(set) specific controls should be put in their own header,
+but add the base control ID to v4l2-controls.h (see for example the way that
+is done for the MEYE controls).
+
+If you can do that quickly and post a v5, then I will do my best to review
+it this week or Monday at the latest. Let's finish this driver asap.
 
 Regards,
-Manu
+
+	Hans
