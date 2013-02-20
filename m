@@ -1,68 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:36592 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756288Ab3BEDOR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Feb 2013 22:14:17 -0500
-Date: Mon, 4 Feb 2013 20:14:16 -0700
-From: Jonathan Corbet <corbet@lwn.net>
-To: Albert Wang <twang13@marvell.com>
-Cc: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [PATCH V3 10/15] [media] marvell-ccic: split mcam-core into 2
- parts for soc_camera support
-Message-ID: <20130204201416.23485c28@lwn.net>
-In-Reply-To: <477F20668A386D41ADCC57781B1F70430D14255139@SC-VEXCH1.marvell.com>
-References: <1355565484-15791-1-git-send-email-twang13@marvell.com>
-	<1355565484-15791-11-git-send-email-twang13@marvell.com>
-	<20121216093717.4be8feff@hpe.lwn.net>
-	<477F20668A386D41ADCC57781B1F70430D13C8CCE4@SC-VEXCH1.marvell.com>
-	<20121217082832.7f363d05@lwn.net>
-	<477F20668A386D41ADCC57781B1F70430D13C8D0E3@SC-VEXCH1.marvell.com>
-	<20121218121508.7a4de314@lwn.net>
-	<477F20668A386D41ADCC57781B1F70430D14255139@SC-VEXCH1.marvell.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49513 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755648Ab3BTRLo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Feb 2013 12:11:44 -0500
+Date: Wed, 20 Feb 2013 17:11:43 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 7/7] sound/soc/codecs: Cosmetic changes to SI476X
+ codec driver
+Message-ID: <20130220171142.GQ2726@opensource.wolfsonmicro.com>
+References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+ <1361246375-8848-8-git-send-email-andrew.smirnov@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XG0jWBK27HhJN4nS"
+Content-Disposition: inline
+In-Reply-To: <1361246375-8848-8-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My apologies for the slow response...I'm running far behind.
 
-On Thu, 31 Jan 2013 00:29:13 -0800
-Albert Wang <twang13@marvell.com> wrote:
+--XG0jWBK27HhJN4nS
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> As you know, we are working on adding B_DMA_SG support on soc_camera mode.
-> 
-> We found there is some code we can't understand in irq handler:
-> >>>>>>  
-> if (handled == IRQ_HANDLED) {
-> 	set_bit(CF_DMA_ACTIVE, &cam->flags);
-> 	if (cam->buffer_mode == B_DMA_sg)
-> 		mcam_ctlr_stop(cam);
-> }
-> <<<<<<
-> 
-> The question is why we need stop ccic in irq handler when buffer mode is B_DMA_sg?
+On Mon, Feb 18, 2013 at 07:59:35PM -0800, Andrey Smirnov wrote:
+> - Add appropriate license header
+> - Change email address in MODULE_AUTHOR
+> - Remove trailing whitespaces
 
-That's actually intended to be addressed by this comment in the DMA setup
-code:
+Applied, thanks.  Always use subject lines appropriate for the subsystem
+you're submitting against.
 
-/*
- * Frame completion with S/G is trickier.  We can't muck with
- * a descriptor chain on the fly, since the controller buffers it
- * internally.  So we have to actually stop and restart; Marvell
- * says this is the way to do it.
- *
+--XG0jWBK27HhJN4nS
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-...and, indeed, at the time, I was told by somebody at Marvell that I
-needed to stop the controller before I could store a new descriptor into
-the chain.  I don't see how it could work otherwise, really?
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-I'd be happy to see this code go, it always felt a bit hacky.  But the
-controller buffers the descriptor chain deep inside its unreachable guts,
-so one has to mess with it carefully.
+iQIcBAEBAgAGBQJRJQPHAAoJELSic+t+oim9jPIQAJCExBxoGC5mQUEVLhDhVi2B
+0k7z81NECa/a4KBjUJTq52R/NnAO+eO5jDHVclQgghAzKmB/UGmd5382AqtCPmUe
+wUYFTKVeFsFAGDjOz/nWzrxcxR+iofBcNad/hbu2VwkH/Ln2GNjreNue84wXNOx2
+N9aDvXI+T85o6Azh1M4KY1d7Ewk1JwhcqED3JmzZNkP1vW7JYOl9KizvS1lFXlr3
+7DpNQ/sXHP6a/UkSzF3bgYO+G4hyta921jFXMODim7JfXDUAz6pmf11Yb6zIddOP
+SYKePl0tTfBb4Oowt2PT9hLhXbmwsDVlEVKNtVpYALCqSOwJf6KDk0NDFQZMEFse
+KxG1nNZG/RVTkZcbFOJb6tUrq3IlmGD7BpAyP2Ku6oYvKtIcC3/5pt0Pvk8y0nnI
+ht0j1OF4WLN5UPcZdc2paNBz0WLx1MuO0i/m+zapp2/nEzhYaJfBOOTCJFx0rBDN
+iEU7yf9ZfbVfXLg7TthLo7GjUc0wbGF40wewRX0Ci/zeVdQRfTAV4mjmFCBgaM7V
+yhqiWbahPO4RwGhuPVlsDIX7jf0NAUueZniLeUaZstlujTPehDukA1yN02KpBQtt
+qzV6a6sIJVDh9fq7oJfEwewP3MSRlvt/qJluiBd+t14tTudNZnfAjVLGca0O9ndB
+Jn4rDOxWhWhPFxLu+Msp
+=7DA3
+-----END PGP SIGNATURE-----
 
-Thanks,
-
-jon
+--XG0jWBK27HhJN4nS--
