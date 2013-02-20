@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1851 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946100Ab3BHJVA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Feb 2013 04:21:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Arvydas Sidorenko <asido4@gmail.com>
-Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
-Date: Fri, 8 Feb 2013 10:20:49 +0100
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl> <201302060832.46736.hverkuil@xs4all.nl> <CA+6av4nWfjBh4jzWRoz9Hvj=QhL5V1CzDb=kKRiANtGCp0Ff1Q@mail.gmail.com>
-In-Reply-To: <CA+6av4nWfjBh4jzWRoz9Hvj=QhL5V1CzDb=kKRiANtGCp0Ff1Q@mail.gmail.com>
+Received: from mail.ispras.ru ([83.149.199.45]:40122 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934384Ab3BTKUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Feb 2013 05:20:33 -0500
+Message-ID: <5124A360.8070208@ispras.ru>
+Date: Wed, 20 Feb 2013 14:20:16 +0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <manu@linuxtv.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Subject: Re: [PATCH] [media] stv090x: do not unlock unheld mutex in stv090x_sleep()
+References: <1361300333-9410-1-git-send-email-khoroshilov@ispras.ru> <CAHFNz9+RnXh3AeSn70mpP-Z=26=MCZDtGPHnr67U++i7X6ELOA@mail.gmail.com>
+In-Reply-To: <CAHFNz9+RnXh3AeSn70mpP-Z=26=MCZDtGPHnr67U++i7X6ELOA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302081020.49754.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu February 7 2013 23:39:58 Arvydas Sidorenko wrote:
-> On Wed, Feb 6, 2013 at 8:32 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > I've improved v4l2-compliance a bit, but I've also pushed a fix (I hope) to
-> > my git branch.
-> >
-> > It's great if you can test this!
-> >
+On 02/20/2013 10:58 AM, Manu Abraham wrote:
+> Hi,
+>
+> On Wed, Feb 20, 2013 at 12:28 AM, Alexey Khoroshilov
+> <khoroshilov@ispras.ru> wrote:
+>> goto err and goto err_gateoff before mutex_lock(&state->internal->demod_lock)
+>> lead to unlock of unheld mutex in stv090x_sleep().
+> Out of curiosity, what happens when you try to unlock an unlocked mutex ?
+>
+> Regards,
+> Manu
+>
+Bad things can happen if someone else holds the mutex and it becomes
+unexpectedly unlocked.
+Also it can result that the next lock() operation leaves the mutex in
+unlocked state.
+The both cases can lead to data races with unpredictable consequences.
 
-Thanks for the testing! I've pushed some more improvements to my git branch.
-Hopefully the compliance tests are now running OK. Please check the dmesg
-output as well.
-
-In addition I've added an 'upside down' message to the kernel log that tells
-me whether the driver is aware that your sensor is upside down or not.
-
-Which laptop do you have? Asus G1?
-
-Regards,
-
-	Hans
+--
+Alexey Khoroshilov
