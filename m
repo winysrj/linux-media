@@ -1,138 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4731 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab3BIKBY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 15/26] cx231xx-417: remove empty functions.
-Date: Sat,  9 Feb 2013 11:00:45 +0100
-Message-Id: <fec9d49790b53d4b3ed41cc86f68615b8bfe7503.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:47058 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933357Ab3BTSTz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Feb 2013 13:19:55 -0500
+Received: by mail-ee0-f50.google.com with SMTP id e51so4279286eek.9
+        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 10:19:54 -0800 (PST)
+Message-ID: <512513FB.60105@googlemail.com>
+Date: Wed, 20 Feb 2013 19:20:43 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mr Goldcove <goldcove@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Wrongly identified easycap em28xx
+References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com> <5123C849.6080207@googlemail.com> <20130219155303.25c5077a@redhat.com> <5123D651.1090108@googlemail.com> <20130219170343.00b92d18@redhat.com> <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 20.02.2013 06:09, schrieb Theodore Kilgore:
+> On Tue, 19 Feb 2013, Mauro Carvalho Chehab wrote:
+>
+>> Em Tue, 19 Feb 2013 20:45:21 +0100
+>> Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
+>>
+>>> Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
+>>>> Em Tue, 19 Feb 2013 19:45:29 +0100
+>>>> Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
+>>>>
+>>>>>> I don't like the idea of merging those two entries. As far as I remember
+>>>>>> there are devices that works out of the box with
+>>>>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
+>>>>>> the driver for them.
+>>>>> As described above, there is a good chance to break devices with both
+>>>>> solutions.
+>>>>>
+>>>>> What's your suggestion ? ;-)
+>>>>>
+>>>> As I said, just leave it as-is (documenting at web) 
+>>> That seems to be indeed the only 100%-regression-safe solution.
+>>> But also _no_ solution for this device.
+>>> A device which works only with a special module parameter passed on
+>>> driver loading isn't much better than an unsupported device.
+>> That's not true. There are dozens of devices that only work with
+>> modprobe parameter (even ones with their own USB or PCI address). The thing
+>> is that crappy vendors don't provide any way for a driver to detect what's
+>> there, as their driver rely on some *.inf config file with those parameters
+>> hardcoded.
+>>
+>> We can't do any better than what's provided by the device.
+>>
+>>> It comes down to the following question:
+>>> Do we want to refuse fixing known/existing devices for the sake of
+>>> avoiding regression for unknown devices which even might not exist ? ;-)
+>> HUH? As I said: there are devices that work with the other board entry.
+>> If you remove the other entry, _then_ you'll be breaking the driver.
+>>
+>>> I have no strong and final opinion yet. Still hoping someone knows how
+>>> the Empia driver handles these cases...
+>> What do you mean? The original driver? The parameters are hardcoded at the
+>> *.inf file. Once you get the driver, the *.inf file contains all the
+>> parameters for it to work there. If you have two empia devices with
+>> different models, you can only use the second one after removing the
+>> install for the first one.
+>>
+>>>> or to use the AC97
+>>>> chip ID as a hint. This works fine for devices that don't come with
+>>>> Empiatech em202, but with something else, like the case of the Realtek
+>>>> chip found on this device. The reference design for sure uses em202.
+>>> How could the AC97 chip ID help us in this situation ?
+>>> As far as I understand, it doesn't matter which AC97 IC is used.
+>>> They are all compatible and at least our driver uses the same code for
+>>> all of them.
+>> The em28xx Kernel driver uses a hint code to try to identify the device
+>> model. That hint code is not perfect, but it is the better we can do.
+>>
+>> There are two hint codes there, currently: 
+>> 1) device's eeprom hash, used when the device has an eeprom, but the
+>>    USB ID is not unique;
+>>
+>> 2) I2C scan bus hash: sometimes, different devices use different I2C
+>> addresses.
+>>
+>>> So even if you are are right and the Empia reference design uses an EMP202,
+>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
+>>> AC97-ICs, too.
+>> The vast majority of devices use emp202. There are very few ones using
+>> different models.
+>>
+>> The proposal here is to add a third hint code, that would distinguish
+>> the devices based on the ac97 ID.
+>>
+>>> We should also expect manufacturers to switch between them whenever they
+>>> want (e.g. because of price changes).
+>> Yes, and then we'll need other entries at the hint table.
+>>
+>> Regards
+>> Mauro
+> I see the dilemma. Devices which are not uniquely identifiable. Mauro is 
+> right in pinpointing the problem, 
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-417.c |   68 +------------------------------
- 1 file changed, 1 insertion(+), 67 deletions(-)
+To be honest, it was _me_ who pointed out the dilemma here.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
-index 15dd334..ac15a55 100644
---- a/drivers/media/usb/cx231xx/cx231xx-417.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-417.c
-@@ -1551,33 +1551,6 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *id)
- 	dprintk(3, "exit vidioc_s_std() i=0x%x\n", i);
- 	return 0;
- }
--static int vidioc_g_audio(struct file *file, void *fh,
--					struct v4l2_audio *a)
--{
--		struct v4l2_audio *vin = a;
--
--		int ret = -EINVAL;
--		if (vin->index > 0)
--			return ret;
--		strncpy(vin->name, "VideoGrabber Audio", 14);
--		vin->capability = V4L2_AUDCAP_STEREO;
--return 0;
--}
--static int vidioc_enumaudio(struct file *file, void *fh,
--					struct v4l2_audio *a)
--{
--		struct v4l2_audio *vin = a;
--
--		int ret = -EINVAL;
--
--		if (vin->index > 0)
--			return ret;
--		strncpy(vin->name, "VideoGrabber Audio", 14);
--		vin->capability = V4L2_AUDCAP_STEREO;
--
--
--return 0;
--}
- static const char *iname[] = {
- 	[CX231XX_VMUX_COMPOSITE1] = "Composite1",
- 	[CX231XX_VMUX_SVIDEO]     = "S-Video",
-@@ -1642,32 +1615,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--static int vidioc_g_tuner(struct file *file, void *priv,
--				struct v4l2_tuner *t)
--{
--	return 0;
--}
--
--static int vidioc_s_tuner(struct file *file, void *priv,
--				struct v4l2_tuner *t)
--{
--	return 0;
--}
--
--static int vidioc_g_frequency(struct file *file, void *priv,
--				struct v4l2_frequency *f)
--{
--	return 0;
--}
--
--static int vidioc_s_frequency(struct file *file, void *priv,
--				struct v4l2_frequency *f)
--{
--
--
--	return 0;
--}
--
- static int vidioc_s_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctl)
- {
-@@ -1748,13 +1695,6 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
--				struct v4l2_format *f)
--{
--
--	return 0;
--}
--
- static int vidioc_reqbufs(struct file *file, void *priv,
- 				struct v4l2_requestbuffers *p)
- {
-@@ -2073,20 +2013,14 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
- 	.vidioc_g_std		 = vidioc_g_std,
- 	.vidioc_enum_input	 = vidioc_enum_input,
--	.vidioc_enumaudio	 = vidioc_enumaudio,
--	.vidioc_g_audio		 = vidioc_g_audio,
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
--	.vidioc_g_tuner		 = vidioc_g_tuner,
--	.vidioc_s_tuner		 = vidioc_s_tuner,
--	.vidioc_g_frequency	 = vidioc_g_frequency,
--	.vidioc_s_frequency	 = vidioc_s_frequency,
- 	.vidioc_s_ctrl		 = vidioc_s_ctrl,
- 	.vidioc_querycap	 = vidioc_querycap,
- 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap	 = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap	 = vidioc_try_fmt_vid_cap,
--	.vidioc_s_fmt_vid_cap	 = vidioc_s_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap	 = vidioc_try_fmt_vid_cap,
- 	.vidioc_reqbufs		 = vidioc_reqbufs,
- 	.vidioc_querybuf	 = vidioc_querybuf,
- 	.vidioc_qbuf		 = vidioc_qbuf,
--- 
-1.7.10.4
+> and he is also right that one can not 
+> expect the manufacturers to pay any attention. Mauro is also absolutely 
+> right that it is not good to break what works already for some people, 
+> hoping to please some others who are presently unhappy.
+
+We all agree in this point (although it's actually the other way around
+in this case - we would _verifiably_ fix the Easycap device and _might_
+break others).
+It's just as you said a few lines above - it's a dilemma.
+And at the moment, it seems the only way to make sure we don't cause
+regressions is to do nothing (=> use module parameters)
+
+>  A better solution needs to be found.
+
+That's what this discussion is about. ;-)
+
+> Could I make a suggestion?
+>
+> Sometimes it is possible to find some undocumented way to identify 
+> uniquely which one of two devices you have. As an example, look in 
+> mr97310a.c, where there is a detection routine for several devices which 
+> all have the same USB vendor:product code but are different inside. 
+>
+> Indeed, back when lots of those mr97310a cameras were on the market, the 
+> "manufacturers" were supposed to be sending out the cameras with the 
+> "right" windows driver. Except the situation was actually so bad that 
+> quite often some of the manufacturers were grabbing the wrong driver CD 
+> off the shelf and putting it with the wrong cameras! You can do a Google 
+> search for the Windows driver for some of those cameras and find web pages 
+> full of complaints from disgruntled users who got the wrong CD in the 
+> package with the camera, frantically looking for the right driver CD. It 
+> was that bad. Now to top that off, think of some poor guy having a Windows 
+> computer and wanting to have two cameras of the same brand and make, with 
+> identical cases on the outside, but which needed different versions of the 
+> driver CD. And whichever driver is installed one of the two cameras will 
+> not work. Proof, BTW, that neither of those Windows drivers contains any 
+> detection routine.
+>
+> The gspca_mr97310a module for Linux is the only support for those cameras 
+> for any operating system that I know of, which actually can tell one of 
+> those cameras from the other and apply the right initialiation to it when 
+> it is hooked up -- unless somebody has copied us since then.
+>
+> The situation here looks to me similar. What someone needs to do is to 
+> find some kind of "read" command or sequence of commands (probably to the 
+> sensor, not to the controller) which will report a distinct answer for 
+> each of the various different cameras. Almost certainly, it will not be 
+> documented, but it almost certainly has to exist -- if for no other 
+> reason, because something is obviously different about the two pieces of 
+> hardware. So in my opinion the thing to do is to try to find that magic 
+> command. By a combination of educated guessing and trial and error. This 
+> needs for someone to have both cameras, or for two or more people who have 
+> the different cameras to cooperate together and hunt for the right command 
+> which unlocks the mystery.
+>
+> I am out of this one because I don't have one of the cameras currently in 
+> question. But I did have a big pile of mr97310a cameras, and that is 
+> exactly what I did. Started sending various commands and checking whether 
+> or not I got different results until I found what works.
+>
+> So, good luck. The answer is probably there if one looks for it.
+
+The problem is, we don't have other devices at the moment for comparision.
+And the second but more serious problems is, that we don't start from zero.
+There _is_ already a board configuration assigned to these (em2860 +
+saa7113) devices and it has been used for a long time (at least 4 years).
+So unless we don't know the details about _all_ existing devices,
+changes can always cause regressions.
+That sucks, but it's the truth. :-(
+
+So we have basically two choices:
+a) be conservative and dot nothing to avoid regressions
+b) speculate about unknown devices (possible configurations, quantity)
+and pondering on the risks of changes
+
+I personally tend to be conservative, but I'm not 100% sure if this is
+The Right Thing (TM) to do in this case.
+
+
+Regards,
+Frank
+
+> My two cents,
+>
+> Theodore Kilgore
 
