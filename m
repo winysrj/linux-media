@@ -1,75 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21225 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:23103 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751858Ab3BEPqY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Feb 2013 10:46:24 -0500
-Date: Tue, 5 Feb 2013 13:46:18 -0200
+	id S1756216Ab3BTTNA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Feb 2013 14:13:00 -0500
+Date: Wed, 20 Feb 2013 16:12:49 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for 3.7-rc7] media fixes
-Message-ID: <20130205134618.66560236@redhat.com>
-In-Reply-To: <20130205133519.51713e27@redhat.com>
-References: <20130205133519.51713e27@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mr Goldcove <goldcove@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Wrongly identified easycap em28xx
+Message-ID: <20130220161249.27848f77@redhat.com>
+In-Reply-To: <512513FB.60105@googlemail.com>
+References: <512294CA.3050401@gmail.com>
+	<51229C2D.8060700@googlemail.com>
+	<5122ACDF.1020705@gmail.com>
+	<5123ACA0.2060503@googlemail.com>
+	<20130219153024.6f468d43@redhat.com>
+	<5123C849.6080207@googlemail.com>
+	<20130219155303.25c5077a@redhat.com>
+	<5123D651.1090108@googlemail.com>
+	<20130219170343.00b92d18@redhat.com>
+	<alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
+	<512513FB.60105@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 5 Feb 2013 13:35:19 -0200
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Em Wed, 20 Feb 2013 19:20:43 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Heh, obviously the subject is wrong... I meant to write "GIT PULL for 3.8-rc7" :)
+> I personally tend to be conservative
 
-Regards,
+Please stop playing games. You're the one accusing us of being conservative.
+
+Let's just keep it as-is. I'm done with this thread.
 Mauro
 
-> Hi Linus,
-> 
-> Please pull from:
-> 	  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> 
-> For a regression fix on a few radio drivers that were preventing radio TX
-> to work on those devices.
-> 
-> Regards,
-> Mauro
-> 
-> -
-> 
-> The following changes since commit 68d6f84ba0c47e658beff3a4bf0c43acee4b4690:
-> 
->   [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures (2013-01-11 13:30:27 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> 
-> for you to fetch changes up to ce4a3d52888a95473914bd54bcf6c566014fc03e:
-> 
->   [media] radio: set vfl_dir correctly to fix modulator regression (2013-01-24 18:54:14 -0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (1):
->       [media] radio: set vfl_dir correctly to fix modulator regression
-> 
->  drivers/media/radio/radio-keene.c       |  1 +
->  drivers/media/radio/radio-si4713.c      |  1 +
->  drivers/media/radio/radio-wl1273.c      |  1 +
->  drivers/media/radio/wl128x/fmdrv_v4l2.c | 10 ++++++++++
->  4 files changed, 13 insertions(+)
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
