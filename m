@@ -1,99 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2482 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757282Ab3BKNvl (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:63520 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933407Ab3BTSWg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 08:51:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFCv2 PATCH 01/12] stk-webcam: the initial hflip and vflip setup was the wrong way around
-Date: Mon, 11 Feb 2013 14:51:31 +0100
-Cc: Arvydas Sidorenko <asido4@gmail.com>, linux-media@vger.kernel.org
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl> <201302111421.17226.hverkuil@xs4all.nl> <5118F4F4.1070602@redhat.com>
-In-Reply-To: <5118F4F4.1070602@redhat.com>
+	Wed, 20 Feb 2013 13:22:36 -0500
+Received: by mail-ee0-f49.google.com with SMTP id d4so4113447eek.8
+        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 10:22:35 -0800 (PST)
+Message-ID: <5125149C.6030208@googlemail.com>
+Date: Wed, 20 Feb 2013 19:23:24 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mr Goldcove <goldcove@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Wrongly identified easycap em28xx
+References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com> <5123C849.6080207@googlemail.com> <20130219155303.25c5077a@redhat.com> <5123D651.1090108@googlemail.com> <20130219170343.00b92d18@redhat.com> <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu> <20130220075134.4d07213f@redhat.com>
+In-Reply-To: <20130220075134.4d07213f@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201302111451.31133.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon February 11 2013 14:41:08 Hans de Goede wrote:
-> Hi,
-> 
-> On 02/11/2013 02:21 PM, Hans Verkuil wrote:
-> > On Mon February 11 2013 14:08:44 Hans de Goede wrote:
-> >> Hi,
-> >>
-> >> Subject: stk-webcam: the initial hflip and vflip setup was the wrong way around
-> >>
-> >> No it is not.
-> >
-> > You are right, that patch makes no sense. It was a long day :-)
-> >
-> >> On 02/10/2013 06:52 PM, Hans Verkuil wrote:
-> >>> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>>
-> >>> This resulted in an upside-down picture.
-> >>
-> >> No it does not, the laptop having an upside down mounted camera and not being
-> >> in the dmi-table is what causes an upside down picture. For a non upside
-> >> down camera (so no dmi-match) hflip and vflip should be 0.
-> >>
-> >> The fix for the upside-down-ness Arvydas Sidorenko reported would be to
-> >> add his laptop to the upside down table.
-> >
-> > That doesn't make sense either. Arvydas, it worked fine for you before, right?
-> 
-> Yes, it probably worked before, but not with...
-> 
-> > That is, if you use e.g. v3.8-rc7 then your picture is the right side up.
-> 
-> 3.8 will show it upside down for Arvydas
-> 
-> The story goes likes this:
-> 
-> 1) Once upon a time the stkwebcam driver was written
-> 2) The webcam in question was used mostly in Asus laptop models, including
-> the laptop of the original author of the driver, and in these models, in
-> typical Asus fashion (see the long long list for uvc cams inside v4l-utils),
-> they mounted the webcam-module the wrong way up. So the hflip and vflip
-> module options were given a default value of 1 (the correct value for
-> upside down mounted models)
-> 
-> 3) Years later I got a bug report from a user with a laptop with stkwebcam,
-> where the module was actually mounted the right way up, and thus showed upside
-> down under Linux. So now I was facing the choice of 2 options:
-> a) Add a not-upside-down list to stkwebcam, which overrules the default
-> b) Do it like all the other drivers do, and make the default right for
-> cams mounted the proper way and add an upside-down model list, with models
-> where we need to flip-by-default.
-> 
-> Despite knowing that going b) would cause a period of pain where we were
-> building the table (ie what we're discussing now) I opted to go for option
-> b), since a) is just too ugly, and worse different from how every other
-> driver does it leading to confusion in the long run.
-> 
-> IOW this is entirely my fault, and I take full responsibility for it.
+<snip>
 
-Ah, OK. Now it makes sense. I wasn't aware of this history and it (clearly)
-confused me greatly.
+Am 20.02.2013 11:51, schrieb Mauro Carvalho Chehab:
+> Em Tue, 19 Feb 2013 23:09:16 -0600 (CST)
+> Theodore Kilgore <kilgota@banach.math.auburn.edu> escreveu:
+>
+>> On Tue, 19 Feb 2013, Mauro Carvalho Chehab wrote:
+>>
+>>>> So even if you are are right and the Empia reference design uses an EMP202,
+>>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
+>>>> AC97-ICs, too.
+>>> The vast majority of devices use emp202. There are very few ones using
+>>> different models.
+>>>
+>>> The proposal here is to add a third hint code, that would distinguish
+>>> the devices based on the ac97 ID.
+>>>
+>>>> We should also expect manufacturers to switch between them whenever they
+>>>> want (e.g. because of price changes).
+>>> Yes, and then we'll need other entries at the hint table.
+>>>
+>>> Regards
+>>> Mauro
+>> I see the dilemma. Devices which are not uniquely identifiable. Mauro is 
+>> right in pinpointing the problem, and he is also right that one can not 
+>> expect the manufacturers to pay any attention. Mauro is also absolutely 
+>> right that it is not good to break what works already for some people, 
+>> hoping to please some others who are presently unhappy. A better solution 
+>> needs to be found.
+>>
+>> Could I make a suggestion?
+>>
+>> Sometimes it is possible to find some undocumented way to identify 
+>> uniquely which one of two devices you have. 
+> The hardware is identical, except for the audio decoder. Both devices have
+> only 3 chips on it: the em2860 chip, an saa7113 video decoder and the ac97
+> audio mixer, that it is different on each device. 
+>
+> One board comes with an ac97 chip ID=0xffffffff [1](emp202, found on the
+> reference design and clones). The other one comes with an ac97 chip 
+> with ID=0x414c4761 (a Realtek ALC653, only found so far on EasyCap DC-60).
+>
+> Btw, the issue between them is because of the different mixers found:
+> the mixer channel used by the DC-60 is different than the mixer channel
+> used by the reference design. At the reference design, the audio
+> channel is EM28XX_AMUX_VIDEO. At DC-60, it is EM28XX_AMUX_LINE_IN.
 
-Can you perhaps provide me with a patch that adds some comments to the source
-explaining this. And in particular with which kernel this change took place?
+Now you got it.
+The relevant difference is the _channel_configuration_, not the used
+AC97 IC manufacturer+model.
 
-The next time some poor sod (e.g. me) has to work on this the comments should
-explain this history.
+> I can't think on any other way do distinguish between them except by
+> checking if the audio decoder matches the expected one.
+>
+> Adding a logic for such check is simple enough, as the probing logic already
+> contains the needed bits for it.
 
-> 
-> Arvydas, can you please run "sudo dmidecode > dmi.log", and send me or
-> Hans V. the generated dmi.log file? Then we can add your laptop to the
-> upside-down model list.
+I'm not convinced, for the following reasons:
+You can't infer from the usage of a particular AC97 IC how the device is
+wired internally / which channel configuration it uses.
+We also can't assume a fixed binding between a particular AC97 IC and a
+product/board.
 
-When I have this information I'll update my patch series and ask Arvydas
-to test again.
+So _if_ we really decide to leave the conservative path and take the
+risk of regressions for the sake of fixing other devices,
+we should at least be sure that we fix more devices than we break. (Even
+then it still sucks !)
 
 Regards,
+Frank
 
-	Hans
+> [1] There is a variant of emp202 at address 0x83847650.
+>
+> Regards,
+> Mauro
+
