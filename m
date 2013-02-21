@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:48463 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759189Ab3BGRji (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Feb 2013 12:39:38 -0500
-Received: by mail-ee0-f53.google.com with SMTP id e53so1502439eek.12
-        for <linux-media@vger.kernel.org>; Thu, 07 Feb 2013 09:39:37 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 06/13] em28xx: make ioctls VIDIOC_G/S_PARM working for VBI devices
-Date: Thu,  7 Feb 2013 18:39:14 +0100
-Message-Id: <1360258761-2959-7-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1360258761-2959-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:18864 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087Ab3BULx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Feb 2013 06:53:27 -0500
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MIK002FUJP1A1O0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 20:53:25 +0900 (KST)
+Received: from shaik-linux.sisodomain.com ([107.108.207.106])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MIK00DQ4JNSPK40@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 20:53:25 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com
+Subject: [PATCH] [media] fimc-lite: Fix the variable type to avoid possible
+ crash
+Date: Thu, 21 Feb 2013 17:24:17 +0530
+Message-id: <1361447658-20793-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the current code V4L2_BUF_TYPE_VIDEO_CAPTURE is accepted only, but for VBI
-devices only buffer type V4L2_BUF_TYPE_VBI_CAPTURE is used/valid.
+Changing the variable type to 'int' from 'unsigned int'. Driver
+logic expects the variable type to be 'int'.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |    6 ------
- 1 Datei geändert, 6 Zeilen entfernt(-)
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index d4dc5b2..6172d59 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1024,9 +1024,6 @@ static int vidioc_g_parm(struct file *file, void *priv,
- 	struct em28xx      *dev = fh->dev;
- 	int rc = 0;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
+index f0af075..3c7dd65 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite-reg.c
+@@ -128,7 +128,7 @@ static const u32 src_pixfmt_map[8][3] = {
+ void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f)
+ {
+ 	enum v4l2_mbus_pixelcode pixelcode = dev->fmt->mbus_code;
+-	unsigned int i = ARRAY_SIZE(src_pixfmt_map);
++	int i = ARRAY_SIZE(src_pixfmt_map);
+ 	u32 cfg;
  
--	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
- 	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
- 	if (dev->board.is_webcam)
- 		rc = v4l2_device_call_until_err(&dev->v4l2_dev, 0,
-@@ -1044,9 +1041,6 @@ static int vidioc_s_parm(struct file *file, void *priv,
- 	struct em28xx_fh   *fh  = priv;
- 	struct em28xx      *dev = fh->dev;
+ 	while (i-- >= 0) {
+@@ -224,7 +224,7 @@ static void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
+ 		{ V4L2_MBUS_FMT_VYUY8_2X8, FLITE_REG_CIODMAFMT_CRYCBY },
+ 	};
+ 	u32 cfg = readl(dev->regs + FLITE_REG_CIODMAFMT);
+-	unsigned int i = ARRAY_SIZE(pixcode);
++	int i = ARRAY_SIZE(pixcode);
  
--	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
- 	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
- 	return v4l2_device_call_until_err(&dev->v4l2_dev, 0, video, s_parm, p);
- }
+ 	while (i-- >= 0)
+ 		if (pixcode[i][0] == dev->fmt->mbus_code)
 -- 
-1.7.10.4
+1.7.9.5
 
