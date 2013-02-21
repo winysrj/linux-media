@@ -1,58 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:46735 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832Ab3BOShy (ORCPT
+Received: from mail-da0-f51.google.com ([209.85.210.51]:53180 "EHLO
+	mail-da0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521Ab3BUFMJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 13:37:54 -0500
-Received: by mail-ea0-f173.google.com with SMTP id i1so1539931eaa.18
-        for <linux-media@vger.kernel.org>; Fri, 15 Feb 2013 10:37:53 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 0/4] em28xx: add image quality bridge controls
-Date: Fri, 15 Feb 2013 19:38:28 +0100
-Message-Id: <1360953512-4133-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 21 Feb 2013 00:12:09 -0500
+Received: by mail-da0-f51.google.com with SMTP id n15so3865868dad.38
+        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 21:12:08 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com
+Subject: [PATCH v7 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
+Date: Thu, 21 Feb 2013 10:41:51 +0530
+Message-Id: <1361423512-2882-2-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1361423512-2882-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1361423512-2882-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first two patches remove unused code.
-The third patch makes sure that the same image quality default settings are used
-everywhere in the code.
-The fourth patch finally adds the following image quality bridge controls:
-- contrast
-- brightness
-- saturation
-- blue balance
-- red balance
-- sharpness
+Add support for parsing the display-timing node using video helper
+function.
 
-Tested with the following devices:
-"Terratec Cinergy 200 USB"
-"Hauppauge HVR-900"
-"SilverCrest 1.3MPix webcam"
-"Hauppauge WinTV USB2"
-"Speedlink VAD Laplace webcam"
+The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+exists and the NON-DT logic is still maintained under the 'else' part.
 
-Changes in v2:
-- fixed a tab-space issue in patch 3
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-Frank Schäfer (4):
-  em28xx: remove unused image quality control functions
-  em28xx: remove unused ac97 v4l2_ctrl_handler
-  em28xx: introduce #defines for the image quality default settings
-  em28xx: add image quality bridge controls
-
- drivers/media/usb/em28xx/em28xx-cards.c |    7 +---
- drivers/media/usb/em28xx/em28xx-core.c  |   12 +++---
- drivers/media/usb/em28xx/em28xx-reg.h   |   23 ++++++++---
- drivers/media/usb/em28xx/em28xx-video.c |   58 +++++++++++++++++++++++++-
- drivers/media/usb/em28xx/em28xx.h       |   68 -------------------------------
- 5 Dateien geändert, 80 Zeilen hinzugefügt(+), 88 Zeilen entfernt(-)
-
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..f80cf68 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -20,6 +20,7 @@
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
+ 
++#include <video/of_display_timing.h>
+ #include <video/samsung_fimd.h>
+ #include <drm/exynos_drm.h>
+ 
+@@ -877,16 +878,34 @@ static int fimd_probe(struct platform_device *pdev)
+ 	struct exynos_drm_subdrv *subdrv;
+ 	struct exynos_drm_fimd_pdata *pdata;
+ 	struct exynos_drm_panel_info *panel;
++	struct fb_videomode *fbmode;
+ 	struct resource *res;
+ 	int win;
+ 	int ret = -EINVAL;
+ 
+ 	DRM_DEBUG_KMS("%s\n", __FILE__);
+ 
+-	pdata = pdev->dev.platform_data;
+-	if (!pdata) {
+-		dev_err(dev, "no platform data specified\n");
+-		return -EINVAL;
++	if (pdev->dev.of_node) {
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			DRM_ERROR("memory allocation for pdata failed\n");
++			return -ENOMEM;
++		}
++
++		fbmode = &pdata->panel.timing;
++		ret = of_get_fb_videomode(dev->of_node, fbmode,
++					OF_USE_NATIVE_MODE);
++		if (ret) {
++			DRM_ERROR("failed: of_get_fb_videomode()\n"
++				"with return value: %d\n", ret);
++			return ret;
++		}
++	} else {
++		pdata = pdev->dev.platform_data;
++		if (!pdata) {
++			DRM_ERROR("no platform data specified\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	panel = &pdata->panel;
 -- 
-1.7.10.4
+1.7.9.5
 
