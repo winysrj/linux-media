@@ -1,91 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:53006 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755886Ab3BQNks (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:45389 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090Ab3BULxs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Feb 2013 08:40:48 -0500
-Received: by mail-ee0-f54.google.com with SMTP id c41so2360353eek.27
-        for <linux-media@vger.kernel.org>; Sun, 17 Feb 2013 05:40:47 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/2] bttv: move fini_bttv_i2c() from bttv-input.c to bttv-i2c.c
-Date: Sun, 17 Feb 2013 14:41:29 +0100
-Message-Id: <1361108489-3623-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 21 Feb 2013 06:53:48 -0500
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MIK001TAJPMX1I0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 20:53:46 +0900 (KST)
+Received: from shaik-linux.sisodomain.com ([107.108.207.106])
+ by mmp2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MIK00DQ4JNSPK40@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 20:53:46 +0900 (KST)
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com
+Subject: [PATCH] [media] fimc-lite: Initialize 'step' field in fimc_lite_ctrl
+ structure
+Date: Thu, 21 Feb 2013 17:24:18 +0530
+Message-id: <1361447658-20793-2-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1361447658-20793-1-git-send-email-shaik.ameer@samsung.com>
+References: <1361447658-20793-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Like init_bttv_i2c(), fini_bttv_i2c() belongs to bttv-i2c.c.
+v4l2_ctrl_new() uses check_range() for control range checking.
+This function expects 'step' value for V4L2_CTRL_TYPE_BOOLEAN type control.
+If 'step' value doesn't match to '1', it returns -ERANGE error.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+This patch adds the default .step value to 1.
+
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 ---
- drivers/media/pci/bt8xx/bttv-i2c.c   |    8 ++++++++
- drivers/media/pci/bt8xx/bttv-input.c |    8 --------
- drivers/media/pci/bt8xx/bttvp.h      |    5 ++++-
- 3 Dateien geändert, 12 Zeilen hinzugefügt(+), 9 Zeilen entfernt(-)
+ drivers/media/platform/s5p-fimc/fimc-lite.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-i2c.c b/drivers/media/pci/bt8xx/bttv-i2c.c
-index c63c643..b7c52dc 100644
---- a/drivers/media/pci/bt8xx/bttv-i2c.c
-+++ b/drivers/media/pci/bt8xx/bttv-i2c.c
-@@ -394,3 +394,11 @@ int init_bttv_i2c(struct bttv *btv)
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index bfc4206..bbc35de 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -1408,6 +1408,7 @@ static const struct v4l2_ctrl_config fimc_lite_ctrl = {
+ 	.id	= V4L2_CTRL_CLASS_USER | 0x1001,
+ 	.type	= V4L2_CTRL_TYPE_BOOLEAN,
+ 	.name	= "Test Pattern 640x480",
++	.step	= 1,
+ };
  
- 	return btv->i2c_rc;
- }
-+
-+int fini_bttv_i2c(struct bttv *btv)
-+{
-+	if (0 != btv->i2c_rc)
-+		return 0;
-+
-+	return i2c_del_adapter(&btv->c.i2c_adap);
-+}
-diff --git a/drivers/media/pci/bt8xx/bttv-input.c b/drivers/media/pci/bt8xx/bttv-input.c
-index 01c7121..f368213 100644
---- a/drivers/media/pci/bt8xx/bttv-input.c
-+++ b/drivers/media/pci/bt8xx/bttv-input.c
-@@ -415,14 +415,6 @@ void init_bttv_i2c_ir(struct bttv *btv)
- #endif
- }
- 
--int fini_bttv_i2c(struct bttv *btv)
--{
--	if (0 != btv->i2c_rc)
--		return 0;
--
--	return i2c_del_adapter(&btv->c.i2c_adap);
--}
--
- int bttv_input_init(struct bttv *btv)
- {
- 	struct bttv_ir *ir;
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index 3aacb87..0903547 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -300,6 +300,10 @@ extern int no_overlay;
- /* bttv-input.c                                               */
- 
- extern void init_bttv_i2c_ir(struct bttv *btv);
-+
-+/* ---------------------------------------------------------- */
-+/* bttv-i2c.c                                                 */
-+extern int init_bttv_i2c(struct bttv *btv);
- extern int fini_bttv_i2c(struct bttv *btv);
- 
- /* ---------------------------------------------------------- */
-@@ -310,7 +314,6 @@ extern unsigned int bttv_verbose;
- extern unsigned int bttv_debug;
- extern unsigned int bttv_gpio;
- extern void bttv_gpio_tracking(struct bttv *btv, char *comment);
--extern int init_bttv_i2c(struct bttv *btv);
- 
- #define dprintk(fmt, ...)			\
- do {						\
+ static int fimc_lite_create_capture_subdev(struct fimc_lite *fimc)
 -- 
-1.7.10.4
+1.7.9.5
 
