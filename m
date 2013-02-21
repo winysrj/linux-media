@@ -1,316 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2686 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932952Ab3BOJTL (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:54371 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751682Ab3BUGzA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Feb 2013 04:19:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/9] s2255: convert to the control framework.
-Date: Fri, 15 Feb 2013 10:18:46 +0100
-Message-Id: <fa483ff8ca5aae815cd227f47fe797c1c5a8a73d.1360919695.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360919934-25552-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 21 Feb 2013 01:55:00 -0500
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MIK00GIF5UO71T0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 15:54:59 +0900 (KST)
+Received: from [10.90.51.60] by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MIK007PM5VM3650@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 21 Feb 2013 15:54:58 +0900 (KST)
+Message-id: <5125C4D4.5040804@samsung.com>
+Date: Thu, 21 Feb 2013 15:55:16 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+MIME-version: 1.0
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, l.krishna@samsung.com,
+	kgene.kim@samsung.com, patches@linaro.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 1/1] video: drm: exynos: Add display-timing node parsing
+ using video helper function
+References: <1360910587-25548-1-git-send-email-vikas.sajjan@linaro.org>
+ <1360910587-25548-2-git-send-email-vikas.sajjan@linaro.org>
+In-reply-to: <1360910587-25548-2-git-send-email-vikas.sajjan@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/s2255/s2255drv.c |  172 ++++++++++++------------------------
- include/uapi/linux/v4l2-controls.h |    4 +
- 2 files changed, 59 insertions(+), 117 deletions(-)
+On 02/15/2013 03:43 PM, Vikas Sajjan wrote:
+> Add support for parsing the display-timing node using video helper
+> function.
+>
+> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+> exists and the NON-DT logic is still maintained under the 'else' part.
+>
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |   37 ++++++++++++++++++++++++++----
+>   1 file changed, 33 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index 9537761..8b2c0ff 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -19,7 +19,9 @@
+>   #include <linux/clk.h>
+>   #include <linux/of_device.h>
+>   #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+>   
+> +#include <video/of_display_timing.h>
+>   #include <video/samsung_fimd.h>
+>   #include <drm/exynos_drm.h>
+>   
+> @@ -877,16 +879,43 @@ static int fimd_probe(struct platform_device *pdev)
+>   	struct exynos_drm_subdrv *subdrv;
+>   	struct exynos_drm_fimd_pdata *pdata;
+>   	struct exynos_drm_panel_info *panel;
+> +	struct fb_videomode *fbmode;
+> +	struct pinctrl *pctrl;
+>   	struct resource *res;
+>   	int win;
+>   	int ret = -EINVAL;
+>   
+>   	DRM_DEBUG_KMS("%s\n", __FILE__);
+>   
+> -	pdata = pdev->dev.platform_data;
+> -	if (!pdata) {
+> -		dev_err(dev, "no platform data specified\n");
+> -		return -EINVAL;
+> +	if (pdev->dev.of_node) {
+> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata) {
+> +			DRM_ERROR("memory allocation for pdata failed\n");
+> +			return -ENOMEM;
+> +		}
+> +
+> +		fbmode = &pdata->panel.timing;
+> +		ret = of_get_fb_videomode(dev->of_node, fbmode,
+> +					OF_USE_NATIVE_MODE);
 
-diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
-index 498c57e..2dcb29b 100644
---- a/drivers/media/usb/s2255/s2255drv.c
-+++ b/drivers/media/usb/s2255/s2255drv.c
-@@ -47,6 +47,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- #include <linux/vmalloc.h>
- #include <linux/usb.h>
- 
-@@ -217,6 +218,7 @@ struct s2255_dev;
- 
- struct s2255_channel {
- 	struct video_device	vdev;
-+	struct v4l2_ctrl_handler hdl;
- 	int			resources;
- 	struct s2255_dmaqueue	vidq;
- 	struct s2255_bufferi	buffer;
-@@ -336,7 +338,7 @@ struct s2255_fh {
-  */
- #define S2255_V4L2_YC_ON  1
- #define S2255_V4L2_YC_OFF 0
--#define V4L2_CID_PRIVATE_COLORFILTER (V4L2_CID_PRIVATE_BASE + 0)
-+#define V4L2_CID_S2255_COLORFILTER (V4L2_CID_USER_S2255_BASE + 0)
- 
- /* frame prefix size (sent once every frame) */
- #define PREFIX_SIZE		512
-@@ -810,28 +812,6 @@ static void res_free(struct s2255_fh *fh)
- 	dprintk(1, "res: put\n");
- }
- 
--static int vidioc_querymenu(struct file *file, void *priv,
--			    struct v4l2_querymenu *qmenu)
--{
--	static const char *colorfilter[] = {
--		"Off",
--		"On",
--		NULL
--	};
--	if (qmenu->id == V4L2_CID_PRIVATE_COLORFILTER) {
--		int i;
--		const char **menu_items = colorfilter;
--		for (i = 0; i < qmenu->index && menu_items[i]; i++)
--			; /* do nothing (from v4l2-common.c) */
--		if (menu_items[i] == NULL || menu_items[i][0] == '\0')
--			return -EINVAL;
--		strlcpy(qmenu->name, menu_items[qmenu->index],
--			sizeof(qmenu->name));
--		return 0;
--	}
--	return v4l2_ctrl_query_menu(qmenu, NULL, NULL);
--}
--
- static int vidioc_querycap(struct file *file, void *priv,
- 			   struct v4l2_capability *cap)
- {
-@@ -1427,109 +1407,32 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--/* --- controls ---------------------------------------------- */
--static int vidioc_queryctrl(struct file *file, void *priv,
--			    struct v4l2_queryctrl *qc)
-+static int s2255_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct s2255_fh *fh = priv;
--	struct s2255_channel *channel = fh->channel;
--	struct s2255_dev *dev = fh->dev;
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--		v4l2_ctrl_query_fill(qc, -127, 127, 1, DEF_BRIGHT);
--		break;
--	case V4L2_CID_CONTRAST:
--		v4l2_ctrl_query_fill(qc, 0, 255, 1, DEF_CONTRAST);
--		break;
--	case V4L2_CID_SATURATION:
--		v4l2_ctrl_query_fill(qc, 0, 255, 1, DEF_SATURATION);
--		break;
--	case V4L2_CID_HUE:
--		v4l2_ctrl_query_fill(qc, 0, 255, 1, DEF_HUE);
--		break;
--	case V4L2_CID_PRIVATE_COLORFILTER:
--		if (dev->dsp_fw_ver < S2255_MIN_DSP_COLORFILTER)
--			return -EINVAL;
--		if ((dev->pid == 0x2257) && (channel->idx > 1))
--			return -EINVAL;
--		strlcpy(qc->name, "Color Filter", sizeof(qc->name));
--		qc->type = V4L2_CTRL_TYPE_MENU;
--		qc->minimum = 0;
--		qc->maximum = 1;
--		qc->step = 1;
--		qc->default_value = 1;
--		qc->flags = 0;
--		break;
--	default:
--		return -EINVAL;
--	}
--	dprintk(4, "%s, id %d\n", __func__, qc->id);
--	return 0;
--}
--
--static int vidioc_g_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
--{
--	struct s2255_fh *fh = priv;
--	struct s2255_dev *dev = fh->dev;
--	struct s2255_channel *channel = fh->channel;
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = channel->mode.bright;
--		break;
--	case V4L2_CID_CONTRAST:
--		ctrl->value = channel->mode.contrast;
--		break;
--	case V4L2_CID_SATURATION:
--		ctrl->value = channel->mode.saturation;
--		break;
--	case V4L2_CID_HUE:
--		ctrl->value = channel->mode.hue;
--		break;
--	case V4L2_CID_PRIVATE_COLORFILTER:
--		if (dev->dsp_fw_ver < S2255_MIN_DSP_COLORFILTER)
--			return -EINVAL;
--		if ((dev->pid == 0x2257) && (channel->idx > 1))
--			return -EINVAL;
--		ctrl->value = !((channel->mode.color & MASK_INPUT_TYPE) >> 16);
--		break;
--	default:
--		return -EINVAL;
--	}
--	dprintk(4, "%s, id %d val %d\n", __func__, ctrl->id, ctrl->value);
--	return 0;
--}
--
--static int vidioc_s_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
--{
--	struct s2255_fh *fh = priv;
--	struct s2255_channel *channel = fh->channel;
--	struct s2255_dev *dev = to_s2255_dev(channel->vdev.v4l2_dev);
-+	struct s2255_channel *channel =
-+		container_of(ctrl->handler, struct s2255_channel, hdl);
- 	struct s2255_mode mode;
-+
- 	mode = channel->mode;
- 	dprintk(4, "%s\n", __func__);
-+
- 	/* update the mode to the corresponding value */
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		mode.bright = ctrl->value;
-+		mode.bright = ctrl->val;
- 		break;
- 	case V4L2_CID_CONTRAST:
--		mode.contrast = ctrl->value;
-+		mode.contrast = ctrl->val;
- 		break;
- 	case V4L2_CID_HUE:
--		mode.hue = ctrl->value;
-+		mode.hue = ctrl->val;
- 		break;
- 	case V4L2_CID_SATURATION:
--		mode.saturation = ctrl->value;
-+		mode.saturation = ctrl->val;
- 		break;
--	case V4L2_CID_PRIVATE_COLORFILTER:
--		if (dev->dsp_fw_ver < S2255_MIN_DSP_COLORFILTER)
--			return -EINVAL;
--		if ((dev->pid == 0x2257) && (channel->idx > 1))
--			return -EINVAL;
-+	case V4L2_CID_S2255_COLORFILTER:
- 		mode.color &= ~MASK_INPUT_TYPE;
--		mode.color |= ((ctrl->value ? 0 : 1) << 16);
-+		mode.color |= !ctrl->val << 16;
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -1539,7 +1442,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 	   some V4L programs restart stream unnecessarily
- 	   after a s_crtl.
- 	*/
--	s2255_set_mode(fh->channel, &mode);
-+	s2255_set_mode(channel, &mode);
- 	return 0;
- }
- 
-@@ -1886,7 +1789,6 @@ static const struct v4l2_file_operations s2255_fops_v4l = {
- };
- 
- static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
--	.vidioc_querymenu = vidioc_querymenu,
- 	.vidioc_querycap = vidioc_querycap,
- 	.vidioc_enum_fmt_vid_cap = vidioc_enum_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap = vidioc_g_fmt_vid_cap,
-@@ -1900,9 +1802,6 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
- 	.vidioc_enum_input = vidioc_enum_input,
- 	.vidioc_g_input = vidioc_g_input,
- 	.vidioc_s_input = vidioc_s_input,
--	.vidioc_queryctrl = vidioc_queryctrl,
--	.vidioc_g_ctrl = vidioc_g_ctrl,
--	.vidioc_s_ctrl = vidioc_s_ctrl,
- 	.vidioc_streamon = vidioc_streamon,
- 	.vidioc_streamoff = vidioc_streamoff,
- 	.vidioc_s_jpegcomp = vidioc_s_jpegcomp,
-@@ -1915,8 +1814,13 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
- static void s2255_video_device_release(struct video_device *vdev)
- {
- 	struct s2255_dev *dev = to_s2255_dev(vdev->v4l2_dev);
--	dprintk(4, "%s, chnls: %d \n", __func__,
-+	struct s2255_channel *channel =
-+		container_of(vdev, struct s2255_channel, vdev);
-+
-+	v4l2_ctrl_handler_free(&channel->hdl);
-+	dprintk(4, "%s, chnls: %d\n", __func__,
- 		atomic_read(&dev->num_channels));
-+
- 	if (atomic_dec_and_test(&dev->num_channels))
- 		s2255_destroy(dev);
- 	return;
-@@ -1931,6 +1835,20 @@ static struct video_device template = {
- 	.current_norm = V4L2_STD_NTSC_M,
- };
- 
-+static const struct v4l2_ctrl_ops s2255_ctrl_ops = {
-+	.s_ctrl = s2255_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config color_filter_ctrl = {
-+	.ops = &s2255_ctrl_ops,
-+	.name = "Color Filter",
-+	.id = V4L2_CID_S2255_COLORFILTER,
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+	.def = 1,
-+};
-+
- static int s2255_probe_v4l(struct s2255_dev *dev)
- {
- 	int ret;
-@@ -1945,9 +1863,29 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 	for (i = 0; i < MAX_CHANNELS; i++) {
- 		channel = &dev->channel[i];
- 		INIT_LIST_HEAD(&channel->vidq.active);
-+
-+		v4l2_ctrl_handler_init(&channel->hdl, 5);
-+		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
-+				V4L2_CID_BRIGHTNESS, -127, 127, 1, DEF_BRIGHT);
-+		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
-+				V4L2_CID_CONTRAST, 0, 255, 1, DEF_CONTRAST);
-+		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
-+				V4L2_CID_SATURATION, 0, 255, 1, DEF_SATURATION);
-+		v4l2_ctrl_new_std(&channel->hdl, &s2255_ctrl_ops,
-+				V4L2_CID_HUE, 0, 255, 1, DEF_HUE);
-+		if (dev->dsp_fw_ver >= S2255_MIN_DSP_COLORFILTER &&
-+		    (dev->pid != 0x2257 || channel->idx <= 1))
-+			v4l2_ctrl_new_custom(&channel->hdl, &color_filter_ctrl, NULL);
-+		if (channel->hdl.error) {
-+			ret = channel->hdl.error;
-+			v4l2_ctrl_handler_free(&channel->hdl);
-+			dev_err(&dev->udev->dev, "couldn't register control\n");
-+			break;
-+		}
- 		channel->vidq.dev = dev;
- 		/* register 4 video devices */
- 		channel->vdev = template;
-+		channel->vdev.ctrl_handler = &channel->hdl;
- 		channel->vdev.lock = &dev->lock;
- 		channel->vdev.v4l2_dev = &dev->v4l2_dev;
- 		video_set_drvdata(&channel->vdev, channel);
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index dcd6374..dd86250 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -146,6 +146,10 @@ enum v4l2_colorfx {
-  * of controls. We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
- 
-+/* The base for the s2255 driver controls.
-+ * We reserve 8 controls for this driver. */
-+#define V4L2_CID_USER_S2255_BASE		(V4L2_CID_USER_BASE + 0x1030)
-+
- /* MPEG-class control IDs */
- 
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
--- 
-1.7.10.4
+fbmode variable can be substituted to &pdata->panel.timing directly then 
+can remove fbmode variable.
 
+> +		if (ret) {
+> +			DRM_ERROR("failed: of_get_fb_videomode()\n"
+> +				"with return value: %d\n", ret);
+> +			return ret;
+> +		}
+> +
+> +		pctrl = devm_pinctrl_get_select_default(dev);
+> +		if (IS_ERR_OR_NULL(pctrl)) {
+
+It's enough to "if (IS_ERR(pctrl)) {".
+
+> +			DRM_ERROR("failed: devm_pinctrl_get_select_default()\n"
+> +				"with return value: %d\n", PTR_RET(pctrl));
+> +			return PTR_RET(pctrl);
+
+It's enough to "return PTR_ERR(pctrl);"
+
+> +		}
+
+If this needs, parts for pinctrl should go to another patch.
+
+> +
+> +	} else {
+> +		pdata = pdev->dev.platform_data;
+> +		if (!pdata) {
+> +			DRM_ERROR("no platform data specified\n");
+> +			return -EINVAL;
+> +		}
+>   	}
+>   
+>   	panel = &pdata->panel;
+
+Thanks.
