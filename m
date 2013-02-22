@@ -1,114 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55390 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757242Ab3BATKO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 14:10:14 -0500
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	swarren@wwwdotorg.org, rob.herring@calxeda.com,
-	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4 07/10] ARM: dts: Add camera to node exynos4.dtsi
-Date: Fri, 01 Feb 2013 20:09:28 +0100
-Message-id: <1359745771-23684-8-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
-References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3474 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757614Ab3BVPwS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Feb 2013 10:52:18 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: 3.7/3.8 kernel won't boot with Hauppauge pvr-150
+Date: Fri, 22 Feb 2013 07:51:58 -0800
+Cc: Ron Andreasen <dlanor78@gmail.com>, linux-media@vger.kernel.org,
+	ivtv-users@ivtvdriver.org
+References: <CADUyVi=ztr2uF8jb6urSMtJ0yKRFrLWHrCHYmgKX+-9BTRsRFQ@mail.gmail.com> <ab89dced-9718-4e81-a2c9-1581e0528eb9@email.android.com> <1361546262.1968.11.camel@palomino.walls.org>
+In-Reply-To: <1361546262.1968.11.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302220751.58931.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds common FIMC device nodes for all Exynos4 SoCs.
+On Friday, February 22, 2013 07:17:42 Andy Walls wrote:
+> On Thu, 2013-02-21 at 22:32 -0500, Andy Walls wrote:
+> > Ron Andreasen <dlanor78@gmail.com> wrote:
+> > 
+> > >I've been having trouble getting distros that have any kernel above the
+> > >3.5
+> > >series to boot (only tried 64-bit). I get a black screen with a bunch
+> > >of
+> > >text and the boot process goes no further. I don't know if this is
+> > >usually
+> > >okay, but I'm posting a link to a picture I took of my monitor with my
+> > >cell
+> > >phone. It's a bit blurry but hopefully it's still okay:
+> > >
+> > >http://imgur.com/viP1kWk,3YJXKbG
+> > >
+> > >The distros I've had this problem in are Kubuntu (I've tried several of
+> > >the
+> > >daily builds) which uses the 3.8.? (can't boot far enough to see)
+> > >kernel,
+> > >Cinnarch which uses the 3.7.3 kernel, and openSUSE 12.3 and I don't
+> > >remember what version of the kernel that one used.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi |   64 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 64 insertions(+)
+Please note that any 3.8 kernel is terminally broken with ivtv/cx18 and will
+crash during boot as long as this patch is not applied:
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index e1347fc..75c388b 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -36,6 +36,12 @@
- 		i2c5 = &i2c_5;
- 		i2c6 = &i2c_6;
- 		i2c7 = &i2c_7;
-+		csis0 = &csis_0;
-+		csis1 = &csis_1;
-+		fimc0 = &fimc_0;
-+		fimc1 = &fimc_1;
-+		fimc2 = &fimc_2;
-+		fimc3 = &fimc_3;
- 	};
- 
- 	pd_mfc: mfc-power-domain@10023C40 {
-@@ -82,6 +88,64 @@
- 		reg = <0x10440000 0x1000>;
- 	};
- 
-+	camera {
-+		compatible = "samsung,fimc", "simple-bus";
-+		status = "disabled";
-+		#address-cells = <1>;
-+		#size-cells = <1>;
-+		ranges;
-+
-+		fimc_0: fimc@11800000 {
-+			compatible = "samsung,exynos4210-fimc";
-+			reg = <0x11800000 0x1000>;
-+			interrupts = <0 84 0>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+
-+		fimc_1: fimc@11810000 {
-+			compatible = "samsung,exynos4210-fimc";
-+			reg = <0x11810000 0x1000>;
-+			interrupts = <0 85 0>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+
-+		fimc_2: fimc@11820000 {
-+			compatible = "samsung,exynos4210-fimc";
-+			reg = <0x11820000 0x1000>;
-+			interrupts = <0 86 0>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+
-+		fimc_3: fimc@11830000 {
-+			compatible = "samsung,exynos4210-fimc";
-+			reg = <0x11830000 0x1000>;
-+			interrupts = <0 87 0>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+
-+		csis_0: csis@11880000 {
-+			compatible = "samsung,exynos4210-csis";
-+			reg = <0x11880000 0x4000>;
-+			interrupts = <0 78 0>;
-+			bus-width = <4>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+
-+		csis_1: csis@11890000 {
-+			compatible = "samsung,exynos4210-csis";
-+			reg = <0x11890000 0x4000>;
-+			interrupts = <0 80 0>;
-+			bus-width = <2>;
-+			samsung,power-domain = <&pd_cam>;
-+			status = "disabled";
-+		};
-+	};
-+
- 	watchdog@10060000 {
- 		compatible = "samsung,s3c2410-wdt";
- 		reg = <0x10060000 0x100>;
--- 
-1.7.9.5
+http://git.linuxtv.org/media_tree.git/commit/cfb046cb800ba306b211fbbe4ac633486e11055f
 
+It can be worked around by renaming ivtv-alsa.ko, as Andy mentioned.
+
+I hope to get this patch into the 3.8 stable series as soon as possible.
+I have to wait until it is merged into mainline first, though.
+
+Regards,
+
+    Hans
+
+> > >
+> > >
+> 
+> > It looks like the ivtv module is failing to initialize, starts to
+> > unload, and in the process of unloading, the cleanup path causes an
+> > Ooops.  
+> > 
+> > I should have time to look closer at it this weekend.
+> 
+> Test this patch (made against Kernel v3.8-rc5).
+> 
+> Hopefully, it will fix the oops and then let you see why the
+> ivtv_probe() function fails when initializing the PVR-150.
+> 
+> Regards,
+> Andy
+> 
+> diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
+> index df88dc4..de5db69 100644
+> --- a/drivers/media/pci/ivtv/ivtv-driver.c
+> +++ b/drivers/media/pci/ivtv/ivtv-driver.c
+> @@ -298,7 +298,6 @@ static void request_module_async(struct work_struct *work)
+>  
+>  static void request_modules(struct ivtv *dev)
+>  {
+> -	INIT_WORK(&dev->request_module_wk, request_module_async);
+>  	schedule_work(&dev->request_module_wk);
+>  }
+>  
+> @@ -307,6 +306,9 @@ static void flush_request_modules(struct ivtv *dev)
+>  	flush_work_sync(&dev->request_module_wk);
+>  }
+>  #else
+> +static void request_module_async(struct work_struct *work)
+> +{
+> +}
+>  #define request_modules(dev)
+>  #define flush_request_modules(dev)
+>  #endif /* CONFIG_MODULES */
+> @@ -751,6 +753,8 @@ static int ivtv_init_struct1(struct ivtv *itv)
+>  	spin_lock_init(&itv->lock);
+>  	spin_lock_init(&itv->dma_reg_lock);
+>  
+> +	INIT_WORK(&itv->request_module_wk, request_module_async);
+> +
+>  	init_kthread_worker(&itv->irq_worker);
+>  	itv->irq_worker_task = kthread_run(kthread_worker_fn, &itv->irq_worker,
+>  					   itv->v4l2_dev.name);
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
