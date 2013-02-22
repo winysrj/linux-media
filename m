@@ -1,120 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4749 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab3BIIps (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 03:45:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR v3.8] Regression fix: cx18/ivtv: remove __init from a non-init function.
-Date: Sat, 9 Feb 2013 09:45:34 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@md.metrocast.net>
-References: <201302080940.27735.hverkuil@xs4all.nl> <20130208223344.38009a5c@redhat.com>
-In-Reply-To: <20130208223344.38009a5c@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53906 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755117Ab3BVDcz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Feb 2013 22:32:55 -0500
+References: <CADUyVi=ztr2uF8jb6urSMtJ0yKRFrLWHrCHYmgKX+-9BTRsRFQ@mail.gmail.com>
+In-Reply-To: <CADUyVi=ztr2uF8jb6urSMtJ0yKRFrLWHrCHYmgKX+-9BTRsRFQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302090945.34653.hverkuil@xs4all.nl>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: 3.7/3.8 kernel won't boot with Hauppauge pvr-150
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 21 Feb 2013 22:32:58 -0500
+To: Ron Andreasen <dlanor78@gmail.com>, linux-media@vger.kernel.org
+Message-ID: <ab89dced-9718-4e81-a2c9-1581e0528eb9@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat February 9 2013 01:33:44 Mauro Carvalho Chehab wrote:
-> Em Fri, 8 Feb 2013 09:40:27 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > Mauro,
-> > 
-> > Please fast-track this for 3.8. Yesterday I discovered that commits made earlier
-> > for 3.8 kill ivtv and cx18 (as in: unable to boot, instant crash) since a
-> > function was made __init that was actually called *after* initialization.
-> > 
-> > We are already at rc6 and this *must* make it for 3.8. Without this patch
-> > anyone with a cx18/ivtv will crash immediately as soon as they upgrade to 3.8.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit 248ac368ce4b3cd36515122d888403909d7a2500:
-> > 
-> >   [media] s5p-fimc: Fix fimc-lite entities deregistration (2013-02-06 09:42:19 -0200)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://linuxtv.org/hverkuil/media_tree.git ivtv
-> > 
-> > for you to fetch changes up to ddf276062e68607323fca363b99bdf426dddad9b:
-> > 
-> >   cx18/ivtv: fix regression: remove __init from a non-init function. (2013-02-08 09:30:11 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > Hans Verkuil (1):
-> >       cx18/ivtv: fix regression: remove __init from a non-init function.
-> 
-> Hmm... the patch seems to be broken/incomplete:
+Ron Andreasen <dlanor78@gmail.com> wrote:
 
-It turned out that the cx18/ivtv-alsa-pcm.h header had an __init annotation,
-although the corresponding function in the c source didn't. And
-CONFIG_DEBUG_SECTION_MISMATCH was turned off, so I didn't see the full warning
-message (now corrected). The fact that __init wasn't present in the C source
-is the reason why the fix worked.
+>I've been having trouble getting distros that have any kernel above the
+>3.5
+>series to boot (only tried 64-bit). I get a black screen with a bunch
+>of
+>text and the boot process goes no further. I don't know if this is
+>usually
+>okay, but I'm posting a link to a picture I took of my monitor with my
+>cell
+>phone. It's a bit blurry but hopefully it's still okay:
+>
+>http://imgur.com/viP1kWk,3YJXKbG
+>
+>The distros I've had this problem in are Kubuntu (I've tried several of
+>the
+>daily builds) which uses the 3.8.? (can't boot far enough to see)
+>kernel,
+>Cinnarch which uses the 3.7.3 kernel, and openSUSE 12.3 and I don't
+>remember what version of the kernel that one used.
+>
+>My processor is a AMD Phenom(tm) 9850 Quad-Core Processor with all four
+>cores unlocked. The output of lspci -vvv (in Kubuntu 12.10) can be
+>found at
+>[redacted]. I have 6 gb of ddr2 ram. Not sure
+>what
+>else I need to include so if you need more please let me know.
+>
+>When I was testing out Cinnarch I was able to boot by taking the
+>Hauppauge
+>PVR-150 out of the computer so I know for sure that's the hardware that
+>was
+>causing the problem. I haven't found any other way to boot with the
+>card
+>in. I tried different boot options. The ones I can remember are
+>nomodeset
+>and noacpi (or something like that). The distro I'm currently using is
+>Kubuntu 12.10 and the kernel as of this writing is 3.5.0-24
 
-I'll post a new pull request fixing the headers as well.
+For now rename the ivtv-alsa.ko module to ivtv-alsa.ko.orig 
+
+If that doesn't allow a normal boot, blacklist the ivtv module in /etc/modprobe.d/blacklist.  That way your machine will at least boot.
+
+It looks like the ivtv module is failing to initialize, starts to unload, and in the process of unloading, the cleanup path causes an Ooops.  
+
+I should have time to look closer at it this weekend.
 
 Regards,
-
-	Hans
-
-
-
-> 
-> 
-> WARNING: drivers/media/pci/cx18/cx18-alsa.o(.text+0x449): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
-> The function cx18_alsa_load() references
-> the function __init snd_cx18_pcm_create().
-> This is often because cx18_alsa_load lacks a __init 
-> annotation or the annotation of snd_cx18_pcm_create is wrong.
-> 
-> WARNING: drivers/media/pci/cx18/built-in.o(.text+0x1be69): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
-> The function cx18_alsa_load() references
-> the function __init snd_cx18_pcm_create().
-> This is often because cx18_alsa_load lacks a __init 
-> annotation or the annotation of snd_cx18_pcm_create is wrong.
-> 
-> WARNING: drivers/media/pci/ivtv/ivtv-alsa.o(.text+0x454): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
-> The function ivtv_alsa_load() references
-> the function __init snd_ivtv_pcm_create().
-> This is often because ivtv_alsa_load lacks a __init 
-> annotation or the annotation of snd_ivtv_pcm_create is wrong.
-> 
-> WARNING: drivers/media/pci/ivtv/built-in.o(.text+0x20790): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
-> The function ivtv_alsa_load() references
-> the function __init snd_ivtv_pcm_create().
-> This is often because ivtv_alsa_load lacks a __init 
-> annotation or the annotation of snd_ivtv_pcm_create is wrong.
-> 
-> WARNING: drivers/media/pci/built-in.o(.text+0x6b958): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
-> The function ivtv_alsa_load() references
-> the function __init snd_ivtv_pcm_create().
-> This is often because ivtv_alsa_load lacks a __init 
-> annotation or the annotation of snd_ivtv_pcm_create is wrong.
-> 
-> WARNING: drivers/media/pci/built-in.o(.text+0x9fc21): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
-> The function cx18_alsa_load() references
-> the function __init snd_cx18_pcm_create().
-> This is often because cx18_alsa_load lacks a __init 
-> annotation or the annotation of snd_cx18_pcm_create is wrong.
-> 
-> WARNING: drivers/media/built-in.o(.text+0x289f48): Section mismatch in reference from the function ivtv_alsa_load() to the function .init.text:snd_ivtv_pcm_create()
-> The function ivtv_alsa_load() references
-> the function __init snd_ivtv_pcm_create().
-> This is often because ivtv_alsa_load lacks a __init 
-> annotation or the annotation of snd_ivtv_pcm_create is wrong.
-> 
-> WARNING: drivers/media/built-in.o(.text+0x2be211): Section mismatch in reference from the function cx18_alsa_load() to the function .init.text:snd_cx18_pcm_create()
-> The function cx18_alsa_load() references
-> the function __init snd_cx18_pcm_create().
-> This is often because cx18_alsa_load lacks a __init 
-> annotation or the annotation of snd_cx18_pcm_create is wrong.
-> 
+Andy
