@@ -1,74 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43871 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030217Ab3BGV6z (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2095 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054Ab3BVADY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 Feb 2013 16:58:55 -0500
-References: <201302071807.47221.hverkuil@xs4all.nl>
-In-Reply-To: <201302071807.47221.hverkuil@xs4all.nl>
+	Thu, 21 Feb 2013 19:03:24 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Subject: Re: [PATCH] solo6x10: Maintainer change
+Date: Thu, 21 Feb 2013 16:03:08 -0800
+Cc: gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+References: <1361487238-4921-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+In-Reply-To: <1361487238-4921-1-git-send-email-ismael.luceno@corp.bluecherry.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFC PATCH] ivtv-alsa: regression fix: remove __init from ivtv_alsa_load
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 07 Feb 2013 16:58:53 -0500
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Message-ID: <b5588d09-bb0a-4571-a580-78e34042f4e3@email.android.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302211603.08411.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
->Andy,
->
->Please review this patch. This fix probably should be fast-tracked to
->3.8 and
->queued for stable 3.7.
->
->ivtv-alsa kept crashing my machine every time I loaded it, and this is
->the
->cause.
->
->Regards,
->
->	Hans
->
->This function is called after initialization, so it should never be
->marked
->__init!
->
->Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->---
-> drivers/media/pci/ivtv/ivtv-alsa-main.c |    2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
->
->diff --git a/drivers/media/pci/ivtv/ivtv-alsa-main.c
->b/drivers/media/pci/ivtv/ivtv-alsa-main.c
->index 4a221c6..e970cfa 100644
->--- a/drivers/media/pci/ivtv/ivtv-alsa-main.c
->+++ b/drivers/media/pci/ivtv/ivtv-alsa-main.c
->@@ -205,7 +205,7 @@ err_exit:
-> 	return ret;
-> }
+On Thursday, February 21, 2013 14:53:58 Ismael Luceno wrote:
+> Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+> ---
+>  MAINTAINERS | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
->-static int __init ivtv_alsa_load(struct ivtv *itv)
->+static int ivtv_alsa_load(struct ivtv *itv)
-> {
-> 	struct v4l2_device *v4l2_dev = &itv->v4l2_dev;
-> 	struct ivtv_stream *s;
->-- 
->1.7.10.4
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 3b95564..eb277c9 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -7315,8 +7315,8 @@ S:	Odd Fixes
+>  F:	drivers/staging/sm7xxfb/
+>  
+>  STAGING - SOFTLOGIC 6x10 MPEG CODEC
+> -M:	Ben Collins <bcollins@bluecherry.net>
+> -S:	Odd Fixes
+> +M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+> +S:	Supported
+>  F:	drivers/staging/media/solo6x10/
+>  
+>  STAGING - SPEAKUP CONSOLE SPEECH DRIVER
+> 
 
-Hans,
+Hi Ismael!
 
-I concur.  Now I have to check cx18 for the same problem.
+FYI: I'm working on updates to the solo driver:
 
-Your patch looks good.
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/solo
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+It's work-in-progress but I hope to finish it within 1-2 weeks.
+
+I might ask you for some help if I need some information.
 
 Regards,
-Andy  
+
+	Hans
