@@ -1,142 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:39925 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753901Ab3BILWO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 06:22:14 -0500
-Received: by mail-wg0-f54.google.com with SMTP id fm10so3488120wgb.33
-        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2013 03:22:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201302081020.49754.hverkuil@xs4all.nl>
-References: <1359981381-23901-1-git-send-email-hverkuil@xs4all.nl>
-	<201302060832.46736.hverkuil@xs4all.nl>
-	<CA+6av4nWfjBh4jzWRoz9Hvj=QhL5V1CzDb=kKRiANtGCp0Ff1Q@mail.gmail.com>
-	<201302081020.49754.hverkuil@xs4all.nl>
-Date: Sat, 9 Feb 2013 12:22:12 +0100
-Message-ID: <CA+6av4m5OoVB6aXxfi5GFX6uAY7MJnSgiRG22Navag1t3h8z9A@mail.gmail.com>
-Subject: Re: [RFC PATCH 1/8] stk-webcam: various fixes.
-From: Arvydas Sidorenko <asido4@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:39909 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755579Ab3BXMWo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Feb 2013 07:22:44 -0500
+Date: Sun, 24 Feb 2013 09:22:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Joseph Yasi <joe.yasi@gmail.com>, linux-media@vger.kernel.org,
+	David Woodhouse <dwmw2@infradead.org>,
+	"Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>,
+	"Sri Deevi" <Srinivasa.Deevi@conexant.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: Firmware for cx23885 in linux-firmware.git is broken
+Message-ID: <20130224092216.3627110f@redhat.com>
+In-Reply-To: <1361675795.27602.9.camel@deadeye.wl.decadent.org.uk>
+References: <CADzA9okNTohmDwxbQNri4y8Gb-=BksugMSiCNaGMzFQXDyLu7g@mail.gmail.com>
+	<1361675795.27602.9.camel@deadeye.wl.decadent.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 8, 2013 at 10:20 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Thanks for the testing! I've pushed some more improvements to my git branch.
-> Hopefully the compliance tests are now running OK. Please check the dmesg
-> output as well.
->
-> In addition I've added an 'upside down' message to the kernel log that tells
-> me whether the driver is aware that your sensor is upside down or not.
->
-> Which laptop do you have? Asus G1?
->
-> Regards,
->
->         Hans
+Em Sun, 24 Feb 2013 03:16:35 +0000
+Ben Hutchings <ben@decadent.org.uk> escreveu:
 
-Now it looks better, but clearly there is an issue with the upside down thing.
-I have ASUS F3Jc laptop.
+> On Fri, 2013-02-22 at 19:30 -0500, Joseph Yasi wrote:
+> > Hi,
+> > 
+> > I'm not sure the appropriate list to email for this, but the
+> > v4l-cx23885-enc.fw file in the linux-firmware.git tree is incorrect.
+> > It is the wrong size and just a duplicate of the
+> > v4l-cx23885-avcore-01.fw. The correct file can be extracted from the
+> > HVR1800 drivers here: http://steventoth.net/linux/hvr1800/.
+> 
+> This was previously requested
+> <http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/57816> but unfortunately it's not clear that it would be legal to redistribute firmware extracted from that driver (or the driver itself).
 
-Although a commit '6f89814d3d' introduced a problem.
-> if (rb->count == 0)
->     dev->owner = NULL;
-Now 'v4l_stk_release' doesn't release the resources because 'dev->owner != fp'.
+(c/c Conexant developers, Andy and Hans)
 
-$ dmesg | grep upside
-[    4.933507] upside down: 0
+Let's see if we can once for all fix this issue. So, let me do a summary
+of the firmware situation here.
 
-$ v4l2-compliance -d /dev/video0
-Driver Info:
-	Driver name   : stk
-	Card type     : stk
-	Bus info      : usb-0000:00:1d.7-8
-	Driver version: 3.1.0
-	Capabilities  : 0x85000001
-		Video Capture
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
+Basically, the firmwares at linux-kernel are the ones that Conexant
+gave us license to re-distribute.
 
-Compliance test for device /dev/video0 (not using libv4l2):
+According with Conexant, there's one firmware that it is the same
+for two different chips. On their words:
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
+	"The Merlin firmware are the same for 418 and 416/7."
 
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
+The envolved Conexant firmwares are the ones used by cx23885-417.c,
+cx231xx-417.c and cx25850.c:
 
-Debug ioctls:
-	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
+$ git grep v4l-cx23885-enc.fw drivers/media
+drivers/media/pci/cx23885/cx23885-417.c:#define CX23885_FIRM_IMAGE_NAME "v4l-cx23885-enc.fw"
+drivers/media/usb/cx231xx/cx231xx-417.c:#define CX231xx_FIRM_IMAGE_NAME "v4l-cx23885-enc.fw"
 
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
+$ grep "define.*FIRM" drivers/media/i2c/cx25840/cx25840-firmware.c
+#define CX2388x_FIRMWARE "v4l-cx23885-avcore-01.fw"
+#define CX231xx_FIRMWARE "v4l-cx231xx-avcore-01.fw"
+#define CX25840_FIRMWARE "v4l-cx25840.fw"
 
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
+Those are the Conexant firmware files that we currently have at 
+linux-firmware:
 
-Control ioctls:
-	test VIDIOC_QUERYCTRL/MENU: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 4 Private Controls: 0
+-rw-rw-r-- 1 v4l v4l  16382 Ago 10  2012 v4l-cx231xx-avcore-01.fw
+-rw-rw-r-- 1 v4l v4l 141200 Ago 10  2012 v4l-cx23418-apu.fw
+-rw-rw-r-- 1 v4l v4l 158332 Ago 10  2012 v4l-cx23418-cpu.fw
+-rw-rw-r-- 1 v4l v4l  16382 Ago 10  2012 v4l-cx23418-dig.fw
+-rw-rw-r-- 1 v4l v4l  16382 Ago 10  2012 v4l-cx23885-avcore-01.fw
+-rw-rw-r-- 1 v4l v4l  16382 Ago 10  2012 v4l-cx23885-enc.fw
+-rw-rw-r-- 1 v4l v4l  16382 Ago 10  2012 v4l-cx25840.fw
 
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+And those are their corresponding md5sum:
 
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-		warn: v4l2-test-formats.cpp(565): TRY_FMT cannot handle an invalid
-pixelformat. This may or may not be a problem.
-See http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-for more information.
-	test VIDIOC_TRY_FMT: OK
-		warn: v4l2-test-formats.cpp(723): S_FMT cannot handle an invalid
-pixelformat. This may or may not be a problem.
-See http://www.mail-archive.com/linux-media@vger.kernel.org/msg56550.html
-for more information.
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+7d3bb956dc9df0eafded2b56ba57cc42  v4l-cx231xx-avcore-01.fw
+588f081b562f5c653a3db1ad8f65939a  v4l-cx23418-apu.fw
+b6c7ed64bc44b1a6e0840adaeac39d79  v4l-cx23418-cpu.fw
+95bc688d3e7599fd5800161e9971cc55  v4l-cx23418-dig.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-avcore-01.fw
+a9f8f5d901a7fb42f552e1ee6384f3bb  v4l-cx23885-enc.fw
+dadb79e9904fc8af96e8111d9cb59320  v4l-cx25840.fw
 
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+So, yes, v4l-cx23885-avcore-01.fw and v4l-cx23885-enc.fw files are
+identical on the official released firmwares, and both have 16K.
 
-Buffer ioctls:
-		warn: v4l2-test-buffers.cpp(175): VIDIOC_CREATE_BUFS not supported
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+Now, Hauppauge is using different firmwares for v4l-cx23885-enc.fw
+and v4l-cx23885-avcore-01.fw. After extracting the firmware from their
+zip file, we have:
 
-Total: 38, Succeeded: 38, Failed: 0, Warnings: 3
+-r--r--r--   1 v4l v4l  376836 Fev 24 08:47 v4l-cx23885-enc.fw
+-r--r--r--   1 v4l v4l   16382 Fev 24 08:47 v4l-cx23885-avcore-01.fw
 
+With different checksums:
 
-Arvydas
+b3704908fd058485f3ef136941b2e513  v4l-cx23885-avcore-01.fw
+1cb3c48a6684126f5e503a434f2d636b  v4l-cx23885-enc.fw
+
+So:
+1) With regards to the encoder firmware for cx23885-417, both Conexant and
+   Hauppauge, provided a firmware with 16KB. Although they're different.
+   Not sure if they are just different versions, or if Hauppauge customized
+   it on their driver.
+
+2) With regards to the decoder firmware for cx25840 (actually, the
+   equivalent IP block inside cx23885), while Conexant provided us with
+   a 16KB firmware, and both decoder and encoder using the very same
+   firmware, Hauppauge's driver is shipped with a 372KB firmware.
+
+What's more intriguing is that the firmware size is so different
+between those two versions. Also, having the encoder and the 
+decoder using the same firmware looks weird.
+
+In any case, it is clear, from the reports, that the cx25840 driver
+doesn't work with the 16KB v4l-cx23885-enc.fw firmware provided by
+Conexant.
+
+It should also be noticed that the other firmwares used by cx25840 driver
+also has only 16 KB.
+
+So, I can see two possible situations here:
+
+1) Conexant shipped us a wrong v4l-cx23885-enc.fw;
+
+2) Hauppauge uses a completely different version for it, perhaps
+developed by them, and the driver was written to take that special
+version into account. So, the driver is not currently prepared to
+use the Conexant firmware for cx23885.
+
+As I didn't work on the development of this driver, nor I worked with
+HVR1800 development, I can't tell what of the above is the case.
+
+There are two possible solutions to solve the issue it:
+
+1) Conexant could help us to make the cx23885 driver to work with
+   their firmware, or release us the right firmware, (if this was simply a
+   mistake when they sent us the firmwares). The driver could be smart
+   enough to work with either firmware (it should be easy to distinguish
+   between them, due to the huge difference on its size);
+
+2) Hauppauge should re-license their v4l-cx23885-enc.fw firmware to
+   allow it to be shipped together with linux-firmware;
+
+> For now, I think we should delete the current version.
+
+That seems to be the only approach left, if neither Conexant or Hauppauge
+could help solving this dilema.
+
+Regards,
+Mauro
