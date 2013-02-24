@@ -1,92 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:54183 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753393Ab3BCQKr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Feb 2013 11:10:47 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:60605 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759357Ab3BXXuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Feb 2013 18:50:08 -0500
+Message-ID: <512AA70B.4000500@iki.fi>
+Date: Mon, 25 Feb 2013 01:49:31 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <510E61B7.6030904@ti.com>
-References: <1359464832-8875-1-git-send-email-prabhakar.lad@ti.com>
- <510C43A0.7090906@gmail.com> <CA+V-a8u6VADw_HfbBN4ESGUXTSMKfVyKZaEf1bhVGACof6qZ8A@mail.gmail.com>
- <510E61B7.6030904@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 3 Feb 2013 21:40:25 +0530
-Message-ID: <CA+V-a8vjCbSU8jji48oNq6UBfnOj_bYf_tQn3AU3CW_ToY6e5w@mail.gmail.com>
-Subject: Re: [PATCH RFC v2] media: tvp514x: add OF support
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Rob Landley <rob@landley.net>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-kernel@vger.kernel.org,
-	Rob Herring <rob.herring@calxeda.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+CC: linux-media@vger.kernel.org, poma <pomidorabelisima@gmail.com>
+Subject: Re: [PATCH] af9015: do not use buffers from stack for usb_bulk_msg()
+References: <1361749181-27059-1-git-send-email-crope@iki.fi>
+In-Reply-To: <1361749181-27059-1-git-send-email-crope@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sekhar,
+Ooops, I think it will not work properly for the long ran as there is no 
+lock to serialize access to that buffer early enough.
 
-On Sun, Feb 3, 2013 at 6:40 PM, Sekhar Nori <nsekhar@ti.com> wrote:
-> On 2/3/2013 3:43 PM, Prabhakar Lad wrote:
->> Hi Sylwester,
->>
->> Thanks for the review.
->>
->> On Sat, Feb 2, 2013 at 4:07 AM, Sylwester Nawrocki
->> <sylvester.nawrocki@gmail.com> wrote:
->>> Hi Prabhakar,
->>>
->>> On 01/29/2013 02:07 PM, Prabhakar Lad wrote:
->>> [...]
->>>
->>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>>> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>>> new file mode 100644
->>>> index 0000000..55d3ffd
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>>> @@ -0,0 +1,38 @@
->>>> +* Texas Instruments TVP514x video decoder
->>>> +
->>>> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality,
->>>> single-chip
->>>> +digital video decoder that digitizes and decodes all popular baseband
->>>> analog
->>>> +video formats into digital video component. The tvp514x decoder supports
->>>> analog-
->>>> +to-digital (A/D) conversion of component RGB and YPbPr signals as well as
->>>> A/D
->>>> +conversion and decoding of NTSC, PAL and SECAM composite and S-video into
->>>> +component YCbCr.
->>>> +
->>>> +Required Properties :
->>>> +- compatible: Must be "ti,tvp514x-decoder"
->>>
->>>
->>> There are no significant differences among TVP514* devices as listed above,
->>> you would like to handle above ?
->>>
->>> I'm just wondering if you don't need ,for instance, two separate compatible
->>> properties, e.g. "ti,tvp5146-decoder" and "ti,tvp5147-decoder" ?
->>>
->> There are few differences in init/power sequence tough, I would still
->> like to have
->> single compatible property "ti,tvp514x-decoder", If you feel we need separate
->> property I will change it please let me know on this.
+I have to rethink whole situation and maybe try to move "usb_mutex" from 
+the dvb_usbv2_generic_rw() to the device driver. Or add totally new mutex.
+
+
+regards
+Antti
+
+On 02/25/2013 01:39 AM, Antti Palosaari wrote:
+> WARNING: at lib/dma-debug.c:947 check_for_stack+0xa7/0xf0()
+> ehci-pci 0000:00:04.1: DMA-API: device driver maps memory fromstack
 >
-> Compatible properties should not use generic part numbers. See one past
-> discussion here: http://en.usenet.digipedia.org/thread/18472/20788/
+> Reported-by: poma <pomidorabelisima@gmail.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/usb/dvb-usb-v2/af9015.c | 34 ++++++++++++++++------------------
+>   drivers/media/usb/dvb-usb-v2/af9015.h |  2 ++
+>   2 files changed, 18 insertions(+), 18 deletions(-)
 >
-Thanks for the link, I'll have separate compatible properties.
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+> index b86d0f2..28983aa 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9015.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+> @@ -30,22 +30,20 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>
+>   static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>   {
+> -#define BUF_LEN 63
+>   #define REQ_HDR_LEN 8 /* send header size */
+>   #define ACK_HDR_LEN 2 /* rece header size */
+>   	struct af9015_state *state = d_to_priv(d);
+>   	int ret, wlen, rlen;
+> -	u8 buf[BUF_LEN];
+>   	u8 write = 1;
+>
+> -	buf[0] = req->cmd;
+> -	buf[1] = state->seq++;
+> -	buf[2] = req->i2c_addr;
+> -	buf[3] = req->addr >> 8;
+> -	buf[4] = req->addr & 0xff;
+> -	buf[5] = req->mbox;
+> -	buf[6] = req->addr_len;
+> -	buf[7] = req->data_len;
+> +	state->buf[0] = req->cmd;
+> +	state->buf[1] = state->seq++;
+> +	state->buf[2] = req->i2c_addr;
+> +	state->buf[3] = req->addr >> 8;
+> +	state->buf[4] = req->addr & 0xff;
+> +	state->buf[5] = req->mbox;
+> +	state->buf[6] = req->addr_len;
+> +	state->buf[7] = req->data_len;
+>
+>   	switch (req->cmd) {
+>   	case GET_CONFIG:
+> @@ -55,14 +53,14 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>   		break;
+>   	case READ_I2C:
+>   		write = 0;
+> -		buf[2] |= 0x01; /* set I2C direction */
+> +		state->buf[2] |= 0x01; /* set I2C direction */
+>   	case WRITE_I2C:
+> -		buf[0] = READ_WRITE_I2C;
+> +		state->buf[0] = READ_WRITE_I2C;
+>   		break;
+>   	case WRITE_MEMORY:
+>   		if (((req->addr & 0xff00) == 0xff00) ||
+>   		    ((req->addr & 0xff00) == 0xae00))
+> -			buf[0] = WRITE_VIRTUAL_MEMORY;
+> +			state->buf[0] = WRITE_VIRTUAL_MEMORY;
+>   	case WRITE_VIRTUAL_MEMORY:
+>   	case COPY_FIRMWARE:
+>   	case DOWNLOAD_FIRMWARE:
+> @@ -90,7 +88,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>   	rlen = ACK_HDR_LEN;
+>   	if (write) {
+>   		wlen += req->data_len;
+> -		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
+> +		memcpy(&state->buf[REQ_HDR_LEN], req->data, req->data_len);
+>   	} else {
+>   		rlen += req->data_len;
+>   	}
+> @@ -99,21 +97,21 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>   	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
+>   		rlen = 0;
+>
+> -	ret = dvb_usbv2_generic_rw(d, buf, wlen, buf, rlen);
+> +	ret = dvb_usbv2_generic_rw(d, state->buf, wlen, state->buf, rlen);
+>   	if (ret)
+>   		goto error;
+>
+>   	/* check status */
+> -	if (rlen && buf[1]) {
+> +	if (rlen && state->buf[1]) {
+>   		dev_err(&d->udev->dev, "%s: command failed=%d\n",
+> -				KBUILD_MODNAME, buf[1]);
+> +				KBUILD_MODNAME, state->buf[1]);
+>   		ret = -EIO;
+>   		goto error;
+>   	}
+>
+>   	/* read request, copy returned data to return buf */
+>   	if (!write)
+> -		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
+> +		memcpy(req->data, &state->buf[ACK_HDR_LEN], req->data_len);
+>   error:
+>   	return ret;
+>   }
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
+> index 533637d..3a6f3ad 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9015.h
+> +++ b/drivers/media/usb/dvb-usb-v2/af9015.h
+> @@ -115,7 +115,9 @@ enum af9015_ir_mode {
+>   	AF9015_IR_MODE_POLLING, /* just guess */
+>   };
+>
+> +#define BUF_LEN 63
+>   struct af9015_state {
+> +	u8 buf[BUF_LEN]; /* bulk USB control message */
+>   	u8 ir_mode;
+>   	u8 rc_repeat;
+>   	u32 rc_keycode;
+>
 
-Regards,
---Prabhakar
 
-> Thanks,
-> Sekhar
+-- 
+http://palosaari.fi/
