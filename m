@@ -1,97 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:49582 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758951Ab3BNXDr (ORCPT
+Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:54258
+	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757221Ab3BXUqf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 18:03:47 -0500
-Message-ID: <511D6D4E.9040201@gmail.com>
-Date: Fri, 15 Feb 2013 00:03:42 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Stephen Warren <swarren@wwwdotorg.org>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, rob.herring@calxeda.com,
-	prabhakar.lad@ti.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v4 02/10] s5p-fimc: Add device tree support for FIMC devices
-References: <1359745771-23684-1-git-send-email-s.nawrocki@samsung.com> <1359745771-23684-3-git-send-email-s.nawrocki@samsung.com> <5112E9EF.8090908@wwwdotorg.org> <5115874A.6050406@gmail.com> <51158873.3060508@wwwdotorg.org> <511592B4.5050406@gmail.com> <5115991E.7050009@wwwdotorg.org> <5116CDBB.4080807@gmail.com> <511967AC.7030909@wwwdotorg.org> <511AC4A7.7030706@gmail.com> <511BFAAC.6020008@wwwdotorg.org>
-In-Reply-To: <511BFAAC.6020008@wwwdotorg.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 24 Feb 2013 15:46:35 -0500
+From: Kevin Baradon <kevin.baradon@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Kevin Baradon <kevin.baradon@gmail.com>
+Subject: [PATCH 2/2] media/rc/imon.c: avoid flooding syslog with "unknown keypress" when keypad is pressed
+Date: Sun, 24 Feb 2013 21:19:30 +0100
+Message-Id: <1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
+In-Reply-To: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
+References: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/13/2013 09:42 PM, Stephen Warren wrote:
-> On 02/12/2013 03:39 PM, Sylwester Nawrocki wrote:
-[...]
->> The whole subsystem topology is exposed to user space through the Media
->> Controller API.
->
-> OK, stable user-visible names are a reasonable use for device tree. I
-> still don't think you should use those user-visible IDs for making any
-> other kind of decision though.
+My 15c2:0036 device floods syslog when a keypad key is pressed:
 
-OK, I will update the bindings so all variant details are placed in the
-device tree. Then the routing information would mostly be coming from the
-device specific dt properties/the common media bindings and the state of
-links between the media entities, set by the user.
+Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
+Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fef2
+Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
+Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
+Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
 
->> It's a bit simpler than that. We would need only to look for the reg
->> property in a local port subnode. MIPI-CSIS correspond to physical MIPI
->> CSI-2 bus interface of an SoC, hence it has to have specific reg values
->> that identify each camera input interface.
->
-> Oh I see. I guess if a device is using its own node to determine its own
-> identify, that's reasonable.
+This patch lowers severity of this message when key appears to be coming from keypad.
 
-OK, I'm going to post an updated patch series in a week or two.
+Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+---
+ drivers/media/rc/imon.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-> I thought you were talking about a situation like:
->
-> FIMC <--> XXX
->
-> where FIMC wanted to determine what ID XXX knew that particular FIMC as.
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index a3e66a0..bca03d4 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1499,7 +1499,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	int i;
+ 	u64 scancode;
+ 	int press_type = 0;
+-	int msec;
++	int msec, is_pad_key = 0;
+ 	struct timeval t;
+ 	static struct timeval prev_time = { 0, 0 };
+ 	u8 ktype;
+@@ -1562,6 +1562,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	    ((len == 8) && (buf[0] & 0x40) &&
+ 	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
+ 		len = 8;
++		is_pad_key = 1;
+ 		imon_pad_to_keys(ictx, buf);
+ 	}
+ 
+@@ -1625,8 +1626,16 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 
+ unknown_key:
+ 	spin_unlock_irqrestore(&ictx->kc_lock, flags);
+-	dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
+-		 (long long)scancode);
++	/*
++	 * On some devices syslog is flooded with unknown keypresses when keypad
++	 * is pressed. Lower message severity in that case.
++	 */
++	if (!is_pad_key)
++		dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
++			 (long long)scancode);
++	else
++		dev_dbg(dev, "%s: unknown keypad keypress, code 0x%llx\n",
++			__func__, (long long)scancode);
+ 	return;
+ 
+ not_input_data:
+-- 
+1.7.10.4
 
-Ah, no. Sorry for the poor explanation. FIMC are on a sort if interconnect
-bus and they can be attached to a single data source, even in parallel,
-and the data source entity don't even need to be fully aware of it.
-
->>>> I can see aliases used in bindings of multiple devices: uart, spi, sound
->>>> interfaces, gpio, ... And all bindings seem to impose some rules on how
->>>> their aliases are created.
->>>
->>> Do you have specific examples? I really don't think the bindings should
->>> be dictating the alias values.
->>
->> I just grepped through the existing bindings documentation:
-> ...
->> I think "correctly numbered" in the above statements means there are some
->> specific rules on how the aliases are created, however those seem not
->> clearly communicated.
->
-> A binding specifying that an alias must (or even should) exist for each
-> node seems odd to me. In the absence of an explicit rule for how to
-> determine the alias IDs to use, I think the rule would simply be that
-> the aliases must be unique?
-
-I guess so. Inspecting of_alias_get_id() call sites tells us that most 
-drivers
-just fail when alias is not present and only rarely it is not treated as an
-error condition.
-
->> And there is a new patch series that allows I2C bus controller enumeration
->> by means of the aliases:
->>
->> http://www.spinics.net/lists/arm-kernel/msg224162.html
->
-> That's not enumerating controllers by alias (they're still enumerated by
-> scanning the DT nodes for buses in the normal way). The change simply
-> assigns the bus ID of each controller from an alias; exactly what
-> aliases are for.
-
-OK, that clarifies a bit my understanding of the aliases.
-
-Thanks,
-Sylwester
