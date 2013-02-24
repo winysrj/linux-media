@@ -1,168 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:23170 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838Ab3B1Bvd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 20:51:33 -0500
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MIW00GKUQFU0PE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 28 Feb 2013 10:51:21 +0900 (KST)
-Message-id: <512EB830.5030808@samsung.com>
-Date: Thu, 28 Feb 2013 10:51:44 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-MIME-version: 1.0
-To: Vikas Sajjan <vikas.sajjan@linaro.org>, linus.walleij@linaro.org
-Cc: kgene.kim@samsung.com, patches@linaro.org, l.krishna@samsung.com,
-	sunil joshi <joshi@samsung.com>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v6 1/1] video: drm: exynos: Add display-timing node parsing
- using video helper function
-References: <1360910587-25548-1-git-send-email-vikas.sajjan@linaro.org>
- <1360910587-25548-2-git-send-email-vikas.sajjan@linaro.org>
- <5125C4D4.5040804@samsung.com>
- <CAD025yR8u79VHg0oACTWTFQxiEBzzw6hHA6c=+CA9VP__fRJuA@mail.gmail.com>
- <5125CA44.10506@samsung.com>
-In-reply-to: <5125CA44.10506@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:37619 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759013Ab3BXXkp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Feb 2013 18:40:45 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: poma <pomidorabelisima@gmail.com>, Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9015: do not use buffers from stack for usb_bulk_msg()
+Date: Mon, 25 Feb 2013 01:39:41 +0200
+Message-Id: <1361749181-27059-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+WARNING: at lib/dma-debug.c:947 check_for_stack+0xa7/0xf0()
+ehci-pci 0000:00:04.1: DMA-API: device driver maps memory fromstack
 
-On 02/21/2013 04:18 PM, Joonyoung Shim wrote:
-> On 02/21/2013 04:12 PM, Vikas Sajjan wrote:
->> Hi,
->>
->> On 21 February 2013 12:25, Joonyoung Shim <jy0922.shim@samsung.com> 
->> wrote:
->>> Hi,
->>>
->>>
->>> On 02/15/2013 03:43 PM, Vikas Sajjan wrote:
->>>> Add support for parsing the display-timing node using video helper
->>>> function.
->>>>
->>>> The DT node parsing and pinctrl selection is done only if 
->>>> 'dev.of_node'
->>>> exists and the NON-DT logic is still maintained under the 'else' part.
->>>>
->>>> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
->>>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
->>>> ---
->>>>    drivers/gpu/drm/exynos/exynos_drm_fimd.c |   37
->>>> ++++++++++++++++++++++++++----
->>>>    1 file changed, 33 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> index 9537761..8b2c0ff 100644
->>>> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
->>>> @@ -19,7 +19,9 @@
->>>>    #include <linux/clk.h>
->>>>    #include <linux/of_device.h>
->>>>    #include <linux/pm_runtime.h>
->>>> +#include <linux/pinctrl/consumer.h>
->>>>    +#include <video/of_display_timing.h>
->>>>    #include <video/samsung_fimd.h>
->>>>    #include <drm/exynos_drm.h>
->>>>    @@ -877,16 +879,43 @@ static int fimd_probe(struct platform_device
->>>> *pdev)
->>>>          struct exynos_drm_subdrv *subdrv;
->>>>          struct exynos_drm_fimd_pdata *pdata;
->>>>          struct exynos_drm_panel_info *panel;
->>>> +       struct fb_videomode *fbmode;
->>>> +       struct pinctrl *pctrl;
->>>>          struct resource *res;
->>>>          int win;
->>>>          int ret = -EINVAL;
->>>>          DRM_DEBUG_KMS("%s\n", __FILE__);
->>>>    -     pdata = pdev->dev.platform_data;
->>>> -       if (!pdata) {
->>>> -               dev_err(dev, "no platform data specified\n");
->>>> -               return -EINVAL;
->>>> +       if (pdev->dev.of_node) {
->>>> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
->>>> +               if (!pdata) {
->>>> +                       DRM_ERROR("memory allocation for pdata 
->>>> failed\n");
->>>> +                       return -ENOMEM;
->>>> +               }
->>>> +
->>>> +               fbmode = &pdata->panel.timing;
->>>> +               ret = of_get_fb_videomode(dev->of_node, fbmode,
->>>> +                                       OF_USE_NATIVE_MODE);
->>>
->>> fbmode variable can be substituted to &pdata->panel.timing directly 
->>> then can
->>> remove fbmode variable.
->>>
->> this is can be done.
->>>> +               if (ret) {
->>>> +                       DRM_ERROR("failed: of_get_fb_videomode()\n"
->>>> +                               "with return value: %d\n", ret);
->>>> +                       return ret;
->>>> +               }
->>>> +
->>>> +               pctrl = devm_pinctrl_get_select_default(dev);
->>>> +               if (IS_ERR_OR_NULL(pctrl)) {
->>>
->>> It's enough to "if (IS_ERR(pctrl)) {".
->>>
->> what if it returns NULL?
->
-> devm_pinctrl_get_select_default() never return NULL.
->
+Reported-by: poma <pomidorabelisima@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9015.c | 34 ++++++++++++++++------------------
+ drivers/media/usb/dvb-usb-v2/af9015.h |  2 ++
+ 2 files changed, 18 insertions(+), 18 deletions(-)
 
-My mistake. If CONFIG_PINCTRL is disabled, 
-devm_pinctrl_get_select_default can return NULL.
-
-Linus,
-
-devm_pinctrl_get_select() and pinctrl_get_select() also need 
-IS_ERR_OR_NULL instead of IS_ERR?
-And many drivers using above functions don't check NULL, right?
-
-Thanks.
-
->
->>>> + DRM_ERROR("failed:
->>>> devm_pinctrl_get_select_default()\n"
->>>> +                               "with return value: %d\n",
->>>> PTR_RET(pctrl));
->>>> +                       return PTR_RET(pctrl);
->>>
->>> It's enough to "return PTR_ERR(pctrl);"
->>>
->> ok.
->>
->>>> +               }
->>>
->>> If this needs, parts for pinctrl should go to another patch.
->>>
->> I have it as a separate patch already. [PATCH v7 2/2] video: drm:
->> exynos: Add pinctrl support to fimd
->>>> +
->>>> +       } else {
->>>> +               pdata = pdev->dev.platform_data;
->>>> +               if (!pdata) {
->>>> +                       DRM_ERROR("no platform data specified\n");
->>>> +                       return -EINVAL;
->>>> +               }
->>>>          }
->>>>          panel = &pdata->panel;
->>>
->>> Thanks.
->>
->>
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
->
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+index b86d0f2..28983aa 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.c
++++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+@@ -30,22 +30,20 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+ {
+-#define BUF_LEN 63
+ #define REQ_HDR_LEN 8 /* send header size */
+ #define ACK_HDR_LEN 2 /* rece header size */
+ 	struct af9015_state *state = d_to_priv(d);
+ 	int ret, wlen, rlen;
+-	u8 buf[BUF_LEN];
+ 	u8 write = 1;
+ 
+-	buf[0] = req->cmd;
+-	buf[1] = state->seq++;
+-	buf[2] = req->i2c_addr;
+-	buf[3] = req->addr >> 8;
+-	buf[4] = req->addr & 0xff;
+-	buf[5] = req->mbox;
+-	buf[6] = req->addr_len;
+-	buf[7] = req->data_len;
++	state->buf[0] = req->cmd;
++	state->buf[1] = state->seq++;
++	state->buf[2] = req->i2c_addr;
++	state->buf[3] = req->addr >> 8;
++	state->buf[4] = req->addr & 0xff;
++	state->buf[5] = req->mbox;
++	state->buf[6] = req->addr_len;
++	state->buf[7] = req->data_len;
+ 
+ 	switch (req->cmd) {
+ 	case GET_CONFIG:
+@@ -55,14 +53,14 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+ 		break;
+ 	case READ_I2C:
+ 		write = 0;
+-		buf[2] |= 0x01; /* set I2C direction */
++		state->buf[2] |= 0x01; /* set I2C direction */
+ 	case WRITE_I2C:
+-		buf[0] = READ_WRITE_I2C;
++		state->buf[0] = READ_WRITE_I2C;
+ 		break;
+ 	case WRITE_MEMORY:
+ 		if (((req->addr & 0xff00) == 0xff00) ||
+ 		    ((req->addr & 0xff00) == 0xae00))
+-			buf[0] = WRITE_VIRTUAL_MEMORY;
++			state->buf[0] = WRITE_VIRTUAL_MEMORY;
+ 	case WRITE_VIRTUAL_MEMORY:
+ 	case COPY_FIRMWARE:
+ 	case DOWNLOAD_FIRMWARE:
+@@ -90,7 +88,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+ 	rlen = ACK_HDR_LEN;
+ 	if (write) {
+ 		wlen += req->data_len;
+-		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
++		memcpy(&state->buf[REQ_HDR_LEN], req->data, req->data_len);
+ 	} else {
+ 		rlen += req->data_len;
+ 	}
+@@ -99,21 +97,21 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+ 	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
+ 		rlen = 0;
+ 
+-	ret = dvb_usbv2_generic_rw(d, buf, wlen, buf, rlen);
++	ret = dvb_usbv2_generic_rw(d, state->buf, wlen, state->buf, rlen);
+ 	if (ret)
+ 		goto error;
+ 
+ 	/* check status */
+-	if (rlen && buf[1]) {
++	if (rlen && state->buf[1]) {
+ 		dev_err(&d->udev->dev, "%s: command failed=%d\n",
+-				KBUILD_MODNAME, buf[1]);
++				KBUILD_MODNAME, state->buf[1]);
+ 		ret = -EIO;
+ 		goto error;
+ 	}
+ 
+ 	/* read request, copy returned data to return buf */
+ 	if (!write)
+-		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
++		memcpy(req->data, &state->buf[ACK_HDR_LEN], req->data_len);
+ error:
+ 	return ret;
+ }
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.h b/drivers/media/usb/dvb-usb-v2/af9015.h
+index 533637d..3a6f3ad 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.h
++++ b/drivers/media/usb/dvb-usb-v2/af9015.h
+@@ -115,7 +115,9 @@ enum af9015_ir_mode {
+ 	AF9015_IR_MODE_POLLING, /* just guess */
+ };
+ 
++#define BUF_LEN 63
+ struct af9015_state {
++	u8 buf[BUF_LEN]; /* bulk USB control message */
+ 	u8 ir_mode;
+ 	u8 rc_repeat;
+ 	u32 rc_keycode;
+-- 
+1.7.11.7
 
