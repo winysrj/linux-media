@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f47.google.com ([209.85.210.47]:43337 "EHLO
-	mail-da0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937Ab3B0KdL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 05:33:11 -0500
-Received: by mail-da0-f47.google.com with SMTP id s35so237312dak.6
-        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 02:33:10 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com,
-	jy0922.shim@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, t.figa@samsung.com
-Subject: [PATCH] drm/exynos: modify the compatible string for exynos fimd
-Date: Wed, 27 Feb 2013 16:02:58 +0530
-Message-Id: <1361961178-1912-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:64045 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759234Ab3BYLeA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Feb 2013 06:34:00 -0500
+Date: Mon, 25 Feb 2013 08:33:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: jandegr1@dommel.be
+Cc: linux-media@vger.kernel.org
+Subject: Re: HAUPPAUGE HVR-930C analog tv feasible ??
+Message-ID: <20130225083345.2d83d554@redhat.com>
+In-Reply-To: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
+References: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-modified compatible string for exynos4 fimd as "exynos4210-fimd" and
-exynos5 fimd as "exynos5250-fimd" to stick to the rule that compatible
-value should be named after first specific SoC model in which this
-particular IP version was included as discussed at
-https://patchwork.kernel.org/patch/2144861/
+Em Mon, 25 Feb 2013 12:01:17 +0100
+jandegr1@dommel.be escreveu:
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> Hi,
+> 
+> To get analog tv working on a hauppauge hvr-930c, I started sniffing usb and
+> parsing.
+> 
+> you can see a sample here : https://dl.dropbox.com/u/93775123/grphCable22.txt
+> 
+> Howeverver I am missing a lot of knowledge to jump on it right away, so I'd
+> as for opinion of the experts over here first.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..433ed35 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -109,9 +109,9 @@ struct fimd_context {
- 
- #ifdef CONFIG_OF
- static const struct of_device_id fimd_driver_dt_match[] = {
--	{ .compatible = "samsung,exynos4-fimd",
-+	{ .compatible = "samsung,exynos4210-fimd",
- 	  .data = &exynos4_fimd_driver_data },
--	{ .compatible = "samsung,exynos5-fimd",
-+	{ .compatible = "samsung,exynos5250-fimd",
- 	  .data = &exynos5_fimd_driver_data },
- 	{},
- };
+AFAIKT, the designs with avf4910b also has a drx-k demod on it (or maybe some
+other Micronas demod, like drx-j).
+
+When I added support for Terratec H7, I used a Linux driver made available by
+Terratec at that time, as reference. See:
+	http://lwn.net/Articles/476992/
+
+While I don't see the link for the driver anymore on Terratec linux site,
+it seems that the file is still there at:
+	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
+
+While H7 driver there only adds support for digital TV, you may find
+something useful at drxk driver, as it has several stuff there related
+to analog TV. I won't doubt that the needed bits for avf4910 are (at least
+partially) there. So, you may find useful to take a look on it.
+
+To be frank, while I would love to have analog working there, I never
+found enough time to work on adding analog support for it, nor I succeeded
+to get any avf4910b datasheet or development kit.
+
+> 
+> This could be benifical for several other cards with the avf4910 as well.
+
+Sure. I suspect that, once having it work for one device, it should be
+trivial to make it work with the others.
+
+> 
+> thx,
+> 
+> Jan De Graeve
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
