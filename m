@@ -1,79 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f42.google.com ([209.85.212.42]:52021 "EHLO
-	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065Ab3BBKIe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Feb 2013 05:08:34 -0500
+Received: from mail-da0-f49.google.com ([209.85.210.49]:47433 "EHLO
+	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759527Ab3BYDWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Feb 2013 22:22:19 -0500
+Date: Sun, 24 Feb 2013 19:22:16 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] Media: remove incorrect __exit markups
+Message-ID: <20130225032215.GA9352@core.coreip.homeip.net>
 MIME-Version: 1.0
-In-Reply-To: <1699935.hiBjgCN6cp@avalon>
-References: <1353620736-6517-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CAN_cFWPyrvO5RAvMHhZgQySf_Y5N2pz64uMurvdG0d-4zDjPFQ@mail.gmail.com>
-	<CAPdUM4P6riQVJ4m4Sdkh1O8xmpKF4YnhGq69p7DkxAdr165KYA@mail.gmail.com>
-	<1699935.hiBjgCN6cp@avalon>
-Date: Sat, 2 Feb 2013 04:08:33 -0600
-Message-ID: <CAF6AEGvcT27FRo4Zv3UvftqmqZYe4ReQsmddnO+WT9qpZj=z7Q@mail.gmail.com>
-Subject: Re: [RFC v2 0/5] Common Display Framework
-From: Rob Clark <rob.clark@linaro.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Rahul Sharma <r.sh.open@gmail.com>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Ragesh Radhakrishnan <ragesh.r@linaro.org>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Sebastien Guiriec <s-guiriec@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 1, 2013 at 5:42 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Rahul,
->
-> On Wednesday 09 January 2013 13:53:30 Rahul Sharma wrote:
->> Hi Laurent,
->>
->> CDF will also be helpful in supporting Panels with integrated audio
->> (HDMI/DP) if we can add audio related control operations to
->> display_entity_control_ops. Video controls will be called by crtc in DRM/V4L
->> and audio controls from Alsa.
->
-> I knew that would come up at some point :-) I agree with you that adding audio
-> support would be a very nice improvement, and I'm totally open to that, but I
-> will concentrate on video, at least to start with. The first reason is that
-> I'm not familiar enough with ALSA, and the second that there's only 24h per
-> day :-)
->
-> Please feel free, of course, to submit a proposal for audio support.
->
->> Secondly, if I need to support get_modes operation in hdmi/dp panel, I need
->> to implement edid parser inside the panel driver. It will be meaningful to
->> add get_edid control operation for hdmi/dp.
->
-> Even if EDID data is parsed in the panel driver, raw EDID will still need to
-> be exported, so a get_edid control operation (or something similar) is
-> definitely needed. There's no disagreement on this, I just haven't included
-> that operation yet because my test hardware is purely panel-based.
+Even if bus is not hot-pluggable, the devices can be unbound from the
+driver via sysfs, so we should not be using __exit annotations on
+remove() methods. The only exception is drivers registered with
+platform_driver_probe() which specifically disables sysfs bind/unbind
+attributes.
 
-one of (probably many) places that just keeping CDF (CDH? common
-display helpers..) inside DRM makes life easier :-P
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
+ drivers/media/i2c/adp1653.c                      | 4 ++--
+ drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
+ drivers/media/platform/soc_camera/omap1_camera.c | 4 ++--
+ drivers/media/radio/radio-si4713.c               | 4 ++--
+ drivers/media/rc/ir-rx51.c                       | 4 ++--
+ 5 files changed, 10 insertions(+), 10 deletions(-)
 
-BR,
--R
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index df16380..ef75abe 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -447,7 +447,7 @@ free_and_quit:
+ 	return ret;
+ }
+ 
+-static int __exit adp1653_remove(struct i2c_client *client)
++static int adp1653_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+@@ -476,7 +476,7 @@ static struct i2c_driver adp1653_i2c_driver = {
+ 		.pm	= &adp1653_pm_ops,
+ 	},
+ 	.probe		= adp1653_probe,
+-	.remove		= __exit_p(adp1653_remove),
++	.remove		= adp1653_remove,
+ 	.id_table	= adp1653_id_table,
+ };
+ 
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 83c7ed7..cae4f46 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2833,7 +2833,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 				 sensor->src->pads, 0);
+ }
+ 
+-static int __exit smiapp_remove(struct i2c_client *client)
++static int smiapp_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+@@ -2881,7 +2881,7 @@ static struct i2c_driver smiapp_i2c_driver = {
+ 		.pm = &smiapp_pm_ops,
+ 	},
+ 	.probe	= smiapp_probe,
+-	.remove	= __exit_p(smiapp_remove),
++	.remove	= smiapp_remove,
+ 	.id_table = smiapp_id_table,
+ };
+ 
+diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
+index 39a77f0..5f548ac 100644
+--- a/drivers/media/platform/soc_camera/omap1_camera.c
++++ b/drivers/media/platform/soc_camera/omap1_camera.c
+@@ -1677,7 +1677,7 @@ exit:
+ 	return err;
+ }
+ 
+-static int __exit omap1_cam_remove(struct platform_device *pdev)
++static int omap1_cam_remove(struct platform_device *pdev)
+ {
+ 	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+ 	struct omap1_cam_dev *pcdev = container_of(soc_host,
+@@ -1709,7 +1709,7 @@ static struct platform_driver omap1_cam_driver = {
+ 		.name	= DRIVER_NAME,
+ 	},
+ 	.probe		= omap1_cam_probe,
+-	.remove		= __exit_p(omap1_cam_remove),
++	.remove		= omap1_cam_remove,
+ };
+ 
+ module_platform_driver(omap1_cam_driver);
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 1507c9d..8ae8442d 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -328,7 +328,7 @@ exit:
+ }
+ 
+ /* radio_si4713_pdriver_remove - remove the device */
+-static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
++static int radio_si4713_pdriver_remove(struct platform_device *pdev)
+ {
+ 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+ 	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
+@@ -350,7 +350,7 @@ static struct platform_driver radio_si4713_pdriver = {
+ 		.name	= "radio-si4713",
+ 	},
+ 	.probe		= radio_si4713_pdriver_probe,
+-	.remove         = __exit_p(radio_si4713_pdriver_remove),
++	.remove         = radio_si4713_pdriver_remove,
+ };
+ 
+ module_platform_driver(radio_si4713_pdriver);
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 8ead492..31b955b 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -464,14 +464,14 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int __exit lirc_rx51_remove(struct platform_device *dev)
++static int lirc_rx51_remove(struct platform_device *dev)
+ {
+ 	return lirc_unregister_driver(lirc_rx51_driver.minor);
+ }
+ 
+ struct platform_driver lirc_rx51_platform_driver = {
+ 	.probe		= lirc_rx51_probe,
+-	.remove		= __exit_p(lirc_rx51_remove),
++	.remove		= lirc_rx51_remove,
+ 	.suspend	= lirc_rx51_suspend,
+ 	.resume		= lirc_rx51_resume,
+ 	.driver		= {
+-- 
+1.7.11.7
 
-> --
-> Regards,
->
-> Laurent Pinchart
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Dmitry
