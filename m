@@ -1,151 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2950 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757386Ab3BFP4r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 10:56:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 03/17] bttv: add VIDIOC_DBG_G_CHIP_IDENT
-Date: Wed,  6 Feb 2013 16:56:21 +0100
-Message-Id: <e2f3405f21d160f0c0985b6b993dff6b35517106.1360165855.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360166195-18010-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
-References: <c5d83e654c3cfd166ee832f83458c19904851980.1360165855.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:53057 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752375Ab3BYLOk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Feb 2013 06:14:40 -0500
+Date: Mon, 25 Feb 2013 08:14:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, poma <pomidorabelisima@gmail.com>
+Subject: Re: [PATCH] af9015: do not use buffers from stack for
+ usb_bulk_msg()
+Message-ID: <20130225081427.36f0c530@redhat.com>
+In-Reply-To: <1361749181-27059-1-git-send-email-crope@iki.fi>
+References: <1361749181-27059-1-git-send-email-crope@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Mon, 25 Feb 2013 01:39:41 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-VIDIOC_DBG_G_CHIP_IDENT is a prerequisite for the G/S_REGISTER ioctls.
-In addition, add support to call G/S_REGISTER for supporting i2c devices.
+> WARNING: at lib/dma-debug.c:947 check_for_stack+0xa7/0xf0()
+> ehci-pci 0000:00:04.1: DMA-API: device driver maps memory fromstack
+> 
+> Reported-by: poma <pomidorabelisima@gmail.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>  drivers/media/usb/dvb-usb-v2/af9015.c | 34 ++++++++++++++++------------------
+>  drivers/media/usb/dvb-usb-v2/af9015.h |  2 ++
+>  2 files changed, 18 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+> index b86d0f2..28983aa 100644
+> --- a/drivers/media/usb/dvb-usb-v2/af9015.c
+> +++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+> @@ -30,22 +30,20 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+>  
+>  static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>  {
+> -#define BUF_LEN 63
+>  #define REQ_HDR_LEN 8 /* send header size */
+>  #define ACK_HDR_LEN 2 /* rece header size */
+>  	struct af9015_state *state = d_to_priv(d);
+>  	int ret, wlen, rlen;
+> -	u8 buf[BUF_LEN];
+>  	u8 write = 1;
+>  
+> -	buf[0] = req->cmd;
+> -	buf[1] = state->seq++;
+> -	buf[2] = req->i2c_addr;
+> -	buf[3] = req->addr >> 8;
+> -	buf[4] = req->addr & 0xff;
+> -	buf[5] = req->mbox;
+> -	buf[6] = req->addr_len;
+> -	buf[7] = req->data_len;
+> +	state->buf[0] = req->cmd;
+> +	state->buf[1] = state->seq++;
+> +	state->buf[2] = req->i2c_addr;
+> +	state->buf[3] = req->addr >> 8;
+> +	state->buf[4] = req->addr & 0xff;
+> +	state->buf[5] = req->mbox;
+> +	state->buf[6] = req->addr_len;
+> +	state->buf[7] = req->data_len;
+>  
+>  	switch (req->cmd) {
+>  	case GET_CONFIG:
+> @@ -55,14 +53,14 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>  		break;
+>  	case READ_I2C:
+>  		write = 0;
+> -		buf[2] |= 0x01; /* set I2C direction */
+> +		state->buf[2] |= 0x01; /* set I2C direction */
+>  	case WRITE_I2C:
+> -		buf[0] = READ_WRITE_I2C;
+> +		state->buf[0] = READ_WRITE_I2C;
+>  		break;
+>  	case WRITE_MEMORY:
+>  		if (((req->addr & 0xff00) == 0xff00) ||
+>  		    ((req->addr & 0xff00) == 0xae00))
+> -			buf[0] = WRITE_VIRTUAL_MEMORY;
+> +			state->buf[0] = WRITE_VIRTUAL_MEMORY;
+>  	case WRITE_VIRTUAL_MEMORY:
+>  	case COPY_FIRMWARE:
+>  	case DOWNLOAD_FIRMWARE:
+> @@ -90,7 +88,7 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>  	rlen = ACK_HDR_LEN;
+>  	if (write) {
+>  		wlen += req->data_len;
+> -		memcpy(&buf[REQ_HDR_LEN], req->data, req->data_len);
+> +		memcpy(&state->buf[REQ_HDR_LEN], req->data, req->data_len);
+>  	} else {
+>  		rlen += req->data_len;
+>  	}
+> @@ -99,21 +97,21 @@ static int af9015_ctrl_msg(struct dvb_usb_device *d, struct req_t *req)
+>  	if (req->cmd == DOWNLOAD_FIRMWARE || req->cmd == RECONNECT_USB)
+>  		rlen = 0;
+>  
+> -	ret = dvb_usbv2_generic_rw(d, buf, wlen, buf, rlen);
+> +	ret = dvb_usbv2_generic_rw(d, state->buf, wlen, state->buf, rlen);
+>  	if (ret)
+>  		goto error;
+>  
+>  	/* check status */
+> -	if (rlen && buf[1]) {
+> +	if (rlen && state->buf[1]) {
+>  		dev_err(&d->udev->dev, "%s: command failed=%d\n",
+> -				KBUILD_MODNAME, buf[1]);
+> +				KBUILD_MODNAME, state->buf[1]);
+>  		ret = -EIO;
+>  		goto error;
+>  	}
+>  
+>  	/* read request, copy returned data to return buf */
+>  	if (!write)
+> -		memcpy(req->data, &buf[ACK_HDR_LEN], req->data_len);
+> +		memcpy(req->data, &state->buf[ACK_HDR_LEN], req->data_len);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |   40 +++++++++++++++++++++++++++++----
- drivers/media/pci/bt8xx/bttv.h        |    3 +++
- include/media/v4l2-chip-ident.h       |    8 +++++++
- 3 files changed, 47 insertions(+), 4 deletions(-)
+Now that you're using just one buffer here, you'll need to protect this
+routine with a mutex, as af9015_rc_query() may be called by a kthread 
+while af9015_ctrl_msg() is running. As the RC polling code will also call
+af9015_ctrl_msg() and both will be filling the very same state->buf, a
+race condition happens.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index cc7f58f..b36d675 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -49,6 +49,7 @@
- #include "bttvp.h"
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-chip-ident.h>
- #include <media/tvaudio.h>
- #include <media/msp3400.h>
- 
-@@ -2059,6 +2060,28 @@ static int bttv_log_status(struct file *file, void *f)
- 	return 0;
- }
- 
-+static int bttv_g_chip_ident(struct file *file, void *f, struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct bttv_fh *fh  = f;
-+	struct bttv *btv = fh->btv;
-+
-+	chip->ident = V4L2_IDENT_NONE;
-+	chip->revision = 0;
-+	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
-+		if (v4l2_chip_match_host(&chip->match)) {
-+			chip->ident = btv->id;
-+			if (chip->ident == PCI_DEVICE_ID_FUSION879)
-+				chip->ident = V4L2_IDENT_BT879;
-+		}
-+		return 0;
-+	}
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+	    chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
-+		return -EINVAL;
-+	/* TODO: is this correct? */
-+	return bttv_call_all_err(btv, core, g_chip_ident, chip);
-+}
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int bttv_g_register(struct file *file, void *f,
- 					struct v4l2_dbg_register *reg)
-@@ -2069,8 +2092,12 @@ static int bttv_g_register(struct file *file, void *f,
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	if (!v4l2_chip_match_host(&reg->match))
--		return -EINVAL;
-+	if (!v4l2_chip_match_host(&reg->match)) {
-+		/* TODO: subdev errors should not be ignored, this should become a
-+		   subdev helper function. */
-+		bttv_call_all(btv, core, g_register, reg);
-+		return 0;
-+	}
- 
- 	/* bt848 has a 12-bit register space */
- 	reg->reg &= 0xfff;
-@@ -2089,8 +2116,12 @@ static int bttv_s_register(struct file *file, void *f,
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 
--	if (!v4l2_chip_match_host(&reg->match))
--		return -EINVAL;
-+	if (!v4l2_chip_match_host(&reg->match)) {
-+		/* TODO: subdev errors should not be ignored, this should become a
-+		   subdev helper function. */
-+		bttv_call_all(btv, core, s_register, reg);
-+		return 0;
-+	}
- 
- 	/* bt848 has a 12-bit register space */
- 	reg->reg &= 0xfff;
-@@ -3394,6 +3425,7 @@ static const struct v4l2_ioctl_ops bttv_ioctl_ops = {
- 	.vidioc_s_frequency             = bttv_s_frequency,
- 	.vidioc_log_status		= bttv_log_status,
- 	.vidioc_querystd		= bttv_querystd,
-+	.vidioc_g_chip_ident		= bttv_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register		= bttv_g_register,
- 	.vidioc_s_register		= bttv_s_register,
-diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-index 79a1124..6139ce2 100644
---- a/drivers/media/pci/bt8xx/bttv.h
-+++ b/drivers/media/pci/bt8xx/bttv.h
-@@ -359,6 +359,9 @@ void bttv_gpio_bits(struct bttv_core *core, u32 mask, u32 bits);
- #define bttv_call_all(btv, o, f, args...) \
- 	v4l2_device_call_all(&btv->c.v4l2_dev, 0, o, f, ##args)
- 
-+#define bttv_call_all_err(btv, o, f, args...) \
-+	v4l2_device_call_until_err(&btv->c.v4l2_dev, 0, o, f, ##args)
-+
- extern int bttv_I2CRead(struct bttv *btv, unsigned char addr, char *probe_for);
- extern int bttv_I2CWrite(struct bttv *btv, unsigned char addr, unsigned char b1,
- 			 unsigned char b2, int both);
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index 4ee125b..b5996f9 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -96,12 +96,20 @@ enum {
- 	/* module au0828 */
- 	V4L2_IDENT_AU0828 = 828,
- 
-+	/* module bttv: ident 848 + 849 */
-+	V4L2_IDENT_BT848 = 848,
-+	V4L2_IDENT_BT849 = 849,
-+
- 	/* module bt856: just ident 856 */
- 	V4L2_IDENT_BT856 = 856,
- 
- 	/* module bt866: just ident 866 */
- 	V4L2_IDENT_BT866 = 866,
- 
-+	/* module bttv: ident 878 + 879 */
-+	V4L2_IDENT_BT878 = 878,
-+	V4L2_IDENT_BT879 = 879,
-+
- 	/* module ks0127: reserved range 1120-1129 */
- 	V4L2_IDENT_KS0122S = 1122,
- 	V4L2_IDENT_KS0127  = 1127,
 -- 
-1.7.10.4
 
+Cheers,
+Mauro
