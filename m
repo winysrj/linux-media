@@ -1,38 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:48517 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756282Ab3BEVpZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Feb 2013 16:45:25 -0500
-Received: by mail-ea0-f174.google.com with SMTP id 1so301516eaa.33
-        for <linux-media@vger.kernel.org>; Tue, 05 Feb 2013 13:45:24 -0800 (PST)
-Message-ID: <51117DA2.4030703@googlemail.com>
-Date: Tue, 05 Feb 2013 22:46:10 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mail-da0-f42.google.com ([209.85.210.42]:45204 "EHLO
+	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758411Ab3BYRfX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Feb 2013 12:35:23 -0500
+Date: Mon, 25 Feb 2013 09:35:18 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Media: remove incorrect __exit markups
+Message-ID: <20130225173518.GA6059@core.coreip.homeip.net>
+References: <20130225032215.GA9352@core.coreip.homeip.net>
+ <Pine.LNX.4.64.1302250847540.3030@axis700.grange>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patch update notification: 2 patches updated
-References: <20130205213301.13968.54926@www.linuxtv.org>
-In-Reply-To: <20130205213301.13968.54926@www.linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1302250847540.3030@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 05.02.2013 22:33, schrieb Patchwork:
-> Hello,
->
-> The following patches (submitted by you) have been updated in patchwork:
-...
->  * [RFC] em28xx: fix analog streaming with USB bulk transfers
->      - http://patchwork.linuxtv.org/patch/16197/
->     was: New
->     now: RFC
+On Mon, Feb 25, 2013 at 08:49:26AM +0100, Guennadi Liakhovetski wrote:
+> Hi Dmitry
+> 
+> On Sun, 24 Feb 2013, Dmitry Torokhov wrote:
+> 
+> > Even if bus is not hot-pluggable, the devices can be unbound from the
+> > driver via sysfs, so we should not be using __exit annotations on
+> > remove() methods. The only exception is drivers registered with
+> > platform_driver_probe() which specifically disables sysfs bind/unbind
+> > attributes.
+> > 
+> > Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > ---
+> >  drivers/media/i2c/adp1653.c                      | 4 ++--
+> >  drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
+> >  drivers/media/platform/soc_camera/omap1_camera.c | 4 ++--
+> >  drivers/media/radio/radio-si4713.c               | 4 ++--
+> >  drivers/media/rc/ir-rx51.c                       | 4 ++--
+> >  5 files changed, 10 insertions(+), 10 deletions(-)
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
+> > index 39a77f0..5f548ac 100644
+> > --- a/drivers/media/platform/soc_camera/omap1_camera.c
+> > +++ b/drivers/media/platform/soc_camera/omap1_camera.c
+> > @@ -1677,7 +1677,7 @@ exit:
+> >  	return err;
+> >  }
+> >  
+> > -static int __exit omap1_cam_remove(struct platform_device *pdev)
+> > +static int omap1_cam_remove(struct platform_device *pdev)
+> >  {
+> >  	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+> >  	struct omap1_cam_dev *pcdev = container_of(soc_host,
+> > @@ -1709,7 +1709,7 @@ static struct platform_driver omap1_cam_driver = {
+> >  		.name	= DRIVER_NAME,
+> >  	},
+> >  	.probe		= omap1_cam_probe,
+> > -	.remove		= __exit_p(omap1_cam_remove),
+> > +	.remove		= omap1_cam_remove,
+> >  };
+> >  
+> >  module_platform_driver(omap1_cam_driver);
+> 
+> This looks correct, but don't we also have to remove __init from 
+> omap1_cam_probe()? Or would that be a separate patch?
 
-What's your plan with this patch ?
-We have this regression in the media-tree since a few weeks now.
-Nobody replied to it or came up with a better solution...
+Thanks Guennadi, I missed that one, will update the patch.
 
-Frank
-
-
+-- 
+Dmitry
