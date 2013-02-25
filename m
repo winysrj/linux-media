@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:33430 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757261Ab3BIOEu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 09:04:50 -0500
-Received: by mail-ee0-f47.google.com with SMTP id e52so2453231eek.20
-        for <linux-media@vger.kernel.org>; Sat, 09 Feb 2013 06:04:49 -0800 (PST)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: add PTR_RET to compat.h
-Date: Sat,  9 Feb 2013 15:04:40 +0100
-Message-Id: <1360418680-9682-1-git-send-email-gennarone@gmail.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2805 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412Ab3BYLG4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Feb 2013 06:06:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] ISA radio fixes
+Date: Mon, 25 Feb 2013 12:06:50 +0100
+Cc: Steven Toth <stoth@kernellabs.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302251206.50181.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PTR_RET is used by the solo6x10 staging driver,
-and was introduced in kernel 2.6.39.
-Add it to compat.h for compatibility with older kernels.
+Hi Mauro,
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- v4l/compat.h                      | 10 ++++++++++
- v4l/scripts/make_config_compat.pl |  1 +
- 2 files changed, 11 insertions(+)
+These are two small fixes for 3.10:
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index 1a82bb7..b27b178 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -1137,4 +1137,14 @@ static inline int usb_translate_errors(int error_code)
- }
- #endif
- 
-+#ifdef NEED_PTR_RET
-+static inline int __must_check PTR_RET(const void *ptr)
-+{
-+	if (IS_ERR(ptr))
-+		return PTR_ERR(ptr);
-+	else
-+		return 0;
-+}
-+#endif
-+
- #endif /*  _COMPAT_H */
-diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
-index 583ef9d..51a1f5d 100644
---- a/v4l/scripts/make_config_compat.pl
-+++ b/v4l/scripts/make_config_compat.pl
-@@ -588,6 +588,7 @@ sub check_other_dependencies()
- 	check_files_for_func("config_enabled", "NEED_IS_ENABLED", "include/linux/kconfig.h");
- 	check_files_for_func("DEFINE_PCI_DEVICE_TABLE", "NEED_DEFINE_PCI_DEVICE_TABLE", "include/linux/pci.h");
- 	check_files_for_func("usb_translate_errors", "NEED_USB_TRANSLATE_ERRORS", "include/linux/usb.h");
-+	check_files_for_func("PTR_RET", "NEED_PTR_RET", "include/linux/err.h");
- 
- 	# For tests for uapi-dependent logic
- 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
--- 
-1.8.1.1
+- capabilities were mixed up in radio-isa
+- fixed a mute bug in radio-rtrack2: I got hold of a radio-rtrack2 card so
+  I could finally test this driver with real hardware.
 
+Thanks to Steve Toth for helping me obtain this card!
+
+Regards,
+
+	Hans
+
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+
+  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git radio-isa
+
+for you to fetch changes up to 54a2b5393931a4b794b9505158a158585822e3cf:
+
+  radio-rtrack2: fix mute bug. (2013-02-25 12:00:15 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      radio-isa: fix querycap capabilities code.
+      radio-rtrack2: fix mute bug.
+
+ drivers/media/radio/radio-isa.c     |    4 ++--
+ drivers/media/radio/radio-rtrack2.c |    5 +++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
