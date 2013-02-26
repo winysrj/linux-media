@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:53319 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933044Ab3BLNbu (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3588 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657Ab3BZRf5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Feb 2013 08:31:50 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MI40025G06WAO60@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 12 Feb 2013 13:31:47 +0000 (GMT)
-Received: from [106.116.147.32] by eusync1.samsung.com
- (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
- 10 2011)) with ESMTPA id <0MI400CLG08YHO30@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 12 Feb 2013 13:31:47 +0000 (GMT)
-Message-id: <511A4442.6000402@samsung.com>
-Date: Tue, 12 Feb 2013 14:31:46 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Inki Dae <inki.dae@samsung.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	patches@linaro.org, Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: [PATCH v2 2/2] drm/exynos: Add device tree based discovery support
- for G2D
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org>
- <1360128584-23167-2-git-send-email-sachin.kamat@linaro.org>
- <CAAQKjZNmUVZnDcy3fbWkairnneOK7dooJT2gn=9++tzS=uhhzA@mail.gmail.com>
-In-reply-to: <CAAQKjZNmUVZnDcy3fbWkairnneOK7dooJT2gn=9++tzS=uhhzA@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 26 Feb 2013 12:35:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 04/11] s2255: add device_caps support to querycap.
+Date: Tue, 26 Feb 2013 18:35:39 +0100
+Message-Id: <b1f7028f3bdfc212550bf96b0e90c89c6ac69c7c.1361900043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2013 02:17 PM, Inki Dae wrote:
-> Applied and will go to -next.
-> And please post the document(in
-> Documentation/devicetree/bindings/gpu/) for it later.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-There is already some old patch applied in the devicetree/next tree:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-http://git.secretlab.ca/?p=linux.git;a=commitdiff;h=09495dda6a62c74b13412a63528093910ef80edd
-
-I guess there is now an incremental patch needed for this.
-
-
-Regards,
-Sylwester
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index 55c972a..9cb8325 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -821,10 +821,12 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	struct s2255_fh *fh = file->private_data;
+ 	struct s2255_dev *dev = fh->dev;
++
+ 	strlcpy(cap->driver, "s2255", sizeof(cap->driver));
+ 	strlcpy(cap->card, "s2255", sizeof(cap->card));
+ 	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+-- 
+1.7.10.4
 
