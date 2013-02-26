@@ -1,45 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62172 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219Ab3BKIi4 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1641 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758129Ab3BZRgB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Feb 2013 03:38:56 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 725AB40B98
-	for <linux-media@vger.kernel.org>; Mon, 11 Feb 2013 09:38:54 +0100 (CET)
-Date: Mon, 11 Feb 2013 09:38:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera 3.8 / 3.9 fixes
-Message-ID: <Pine.LNX.4.64.1302110937220.30282@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 26 Feb 2013 12:36:01 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 09/11] s2255: Add ENUM_FRAMESIZES support.
+Date: Tue, 26 Feb 2013 18:35:44 +0100
+Message-Id: <9b76c632f89246912598367d1879c924724851a3.1361900043.git.hans.verkuil@cisco.com>
+In-Reply-To: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
+References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
+References: <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I guess, these are too late for 3.8, so, let's push them for 3.9 too.
-
-The following changes since commit 2e51b231a8d716ea5aacde0bd95ac789cea195b0:
-
-  Merge branch 'drm-fixes' of git://people.freedesktop.org/~airlied/linux (2013-01-30 12:02:26 +1100)
-
-are available in the git repository at:
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.8-set_3
-
-Guennadi Liakhovetski (2):
-      sh-mobile-ceu-camera: fix SHARPNESS control default
-      mt9t112: mt9t111 format set up differs from mt9t112
-
- drivers/media/i2c/soc_camera/mt9t112.c             |   18 +++++++++++++-----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
- 2 files changed, 14 insertions(+), 6 deletions(-)
-
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/s2255/s2255drv.c |   73 +++++++++++++++++++++++++-----------
+ 1 file changed, 51 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index eaae9d1..59d40e6 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1545,36 +1545,64 @@ static int vidioc_s_parm(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++#define NUM_SIZE_ENUMS 3
++static const struct v4l2_frmsize_discrete ntsc_sizes[] = {
++	{ 640, 480 },
++	{ 640, 240 },
++	{ 320, 240 },
++};
++static const struct v4l2_frmsize_discrete pal_sizes[] = {
++	{ 704, 576 },
++	{ 704, 288 },
++	{ 352, 288 },
++};
++
++static int vidioc_enum_framesizes(struct file *file, void *priv,
++			    struct v4l2_frmsizeenum *fe)
++{
++	struct s2255_fh *fh = priv;
++	struct s2255_channel *channel = fh->channel;
++	int is_ntsc = channel->std & V4L2_STD_525_60;
++	const struct s2255_fmt *fmt;
++
++	if (fe->index >= NUM_SIZE_ENUMS)
++		return -EINVAL;
++
++	fmt = format_by_fourcc(fe->pixel_format);
++	if (fmt == NULL)
++		return -EINVAL;
++	fe->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fe->discrete = is_ntsc ?  ntsc_sizes[fe->index] : pal_sizes[fe->index];
++	return 0;
++}
++
+ static int vidioc_enum_frameintervals(struct file *file, void *priv,
+ 			    struct v4l2_frmivalenum *fe)
+ {
+-	int is_ntsc = 0;
++	struct s2255_fh *fh = priv;
++	struct s2255_channel *channel = fh->channel;
++	const struct s2255_fmt *fmt;
++	const struct v4l2_frmsize_discrete *sizes;
++	int is_ntsc = channel->std & V4L2_STD_525_60;
+ #define NUM_FRAME_ENUMS 4
+ 	int frm_dec[NUM_FRAME_ENUMS] = {1, 2, 3, 5};
++	int i;
++
+ 	if (fe->index >= NUM_FRAME_ENUMS)
+ 		return -EINVAL;
+-	switch (fe->width) {
+-	case 640:
+-		if (fe->height != 240 && fe->height != 480)
+-			return -EINVAL;
+-		is_ntsc = 1;
+-		break;
+-	case 320:
+-		if (fe->height != 240)
+-			return -EINVAL;
+-		is_ntsc = 1;
+-		break;
+-	case 704:
+-		if (fe->height != 288 && fe->height != 576)
+-			return -EINVAL;
+-		break;
+-	case 352:
+-		if (fe->height != 288)
+-			return -EINVAL;
+-		break;
+-	default:
++
++	fmt = format_by_fourcc(fe->pixel_format);
++	if (fmt == NULL)
+ 		return -EINVAL;
+-	}
++
++	sizes = is_ntsc ? ntsc_sizes : pal_sizes;
++	for (i = 0; i < NUM_SIZE_ENUMS; i++, sizes++)
++		if (fe->width == sizes->width &&
++		    fe->height == sizes->height)
++			break;
++	if (i == NUM_SIZE_ENUMS)
++		return -EINVAL;
++
+ 	fe->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+ 	fe->discrete.denominator = is_ntsc ? 30000 : 25000;
+ 	fe->discrete.numerator = (is_ntsc ? 1001 : 1000) * frm_dec[fe->index];
+@@ -1813,6 +1841,7 @@ static const struct v4l2_ioctl_ops s2255_ioctl_ops = {
+ 	.vidioc_g_jpegcomp = vidioc_g_jpegcomp,
+ 	.vidioc_s_parm = vidioc_s_parm,
+ 	.vidioc_g_parm = vidioc_g_parm,
++	.vidioc_enum_framesizes = vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+ 	.vidioc_log_status  = v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+-- 
+1.7.10.4
+
