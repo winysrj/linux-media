@@ -1,84 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62409 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757283Ab3BNKWQ (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:38277 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755420Ab3BZTZR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 05:22:16 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH 2/3] mutex: add support for reservation style locks
-Date: Thu, 14 Feb 2013 10:22:00 +0000
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	a.p.zijlstra@chello.nl, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, robclark@gmail.com,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-References: <20130207151831.2868.5146.stgit@patser.local> <20130207151838.2868.69610.stgit@patser.local>
-In-Reply-To: <20130207151838.2868.69610.stgit@patser.local>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302141022.00297.arnd@arndb.de>
+	Tue, 26 Feb 2013 14:25:17 -0500
+Received: by mail-pb0-f49.google.com with SMTP id xa12so2564672pbc.36
+        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 11:25:16 -0800 (PST)
+From: Syam Sidhardhan <syamsidhardh@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: syamsidhardh@gmail.com, mchehab@redhat.com
+Subject: [PATCH] siano: Remove redundant NULL check before kfree
+Date: Wed, 27 Feb 2013 00:54:56 +0530
+Message-Id: <1361906696-2624-1-git-send-email-s.syam@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 07 February 2013, Maarten Lankhorst wrote:
+kfree on NULL pointer is a no-op.
 
-Hi Maarten,
+Signed-off-by: Syam Sidhardhan <s.syam@samsung.com>
+---
+ drivers/media/common/siano/smscoreapi.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-I cannot help a lot on this patch set, but there are a few things that
-I noticed when reading it.
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 1842e64..9565dcc 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -719,8 +719,7 @@ void smscore_unregister_device(struct smscore_device_t *coredev)
+ 		dma_free_coherent(NULL, coredev->common_buffer_size,
+ 			coredev->common_buffer, coredev->common_buffer_phys);
+ 
+-	if (coredev->fw_buf != NULL)
+-		kfree(coredev->fw_buf);
++	kfree(coredev->fw_buf);
+ 
+ 	list_del(&coredev->entry);
+ 	kfree(coredev);
+-- 
+1.7.9.5
 
-> Functions:
-> ----------
-> 
-> mutex_reserve_lock, and mutex_reserve_lock_interruptible:
->   Lock a buffer with a reservation_id set. reservation_id must not be
->   set to 0, since this is a special value that means no reservation_id.
-
-I think the entire description should go into a file in the Documentation
-directory, to make it easier to find without looking up the git history.
-
-For the purpose of documenting this, it feels a little strange to
-talk about "buffers" here. Obviously this is what you are using the
-locks for, but it sounds like that is not the only possible use
-case.
-
->   These functions will return -EDEADLK instead of -EAGAIN if
->   reservation_id is the same as the reservation_id that's attempted to
->   lock the mutex with, since in that case you presumably attempted to
->   lock the same lock twice.
-
-Since the user always has to check the return value, would it be
-possible to provide only the interruptible kind of this function
-but not the non-interruptible one? In general, interruptible locks
-are obviously harder to use, but they are much user friendlier when
-something goes wrong.
-
-> mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow:
->   Similar to mutex_reserve_lock, except it won't backoff with -EAGAIN.
->   This is useful when mutex_reserve_lock failed with -EAGAIN, and you
->   unreserved all buffers so no deadlock can occur.
-
-Are these meant to be used a lot? If not, maybe prefix them with __mutex_
-instead of mutex_.
-
-> diff --git a/include/linux/mutex.h b/include/linux/mutex.h
-> index 9121595..602c247 100644
-> --- a/include/linux/mutex.h
-> +++ b/include/linux/mutex.h
-> @@ -62,6 +62,11 @@ struct mutex {
->  #endif
->  };
->  
-> +struct ticket_mutex {
-> +	struct mutex base;
-> +	atomic_long_t reservation_id;
-> +};
-
-Have you considered changing the meaning of the "count" member
-of the mutex in the case where a ticket mutex is used? That would
-let you use an unmodified structure.
-
-	Arnd
