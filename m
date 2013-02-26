@@ -1,274 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:35458 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235Ab3BSEAG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Feb 2013 23:00:06 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: andrew.smirnov@gmail.com
-Cc: hverkuil@xs4all.nl, broonie@opensource.wolfsonmicro.com,
-	mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
-	tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v4 4/7] mfd: Add chip properties handling code for SI476X MFD
-Date: Mon, 18 Feb 2013 19:59:32 -0800
-Message-Id: <1361246375-8848-5-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361246375-8848-1-git-send-email-andrew.smirnov@gmail.com>
+Received: from mta-out.inet.fi ([195.156.147.13]:56713 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759876Ab3BZJUd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Feb 2013 04:20:33 -0500
+Date: Tue, 26 Feb 2013 11:20:22 +0200
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2] Media: remove incorrect __init/__exit markups
+Message-ID: <20130226092022.GA14209@itanic.dhcp.inet.fi>
+References: <20130226071726.GA11322@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130226071726.GA11322@core.coreip.homeip.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrey Smirnov <andreysm@charmander.(none)>
+On 02.25 2013 23:17:27, Dmitry Torokhov wrote:
+> Even if bus is not hot-pluggable, the devices can be unbound from the
+> driver via sysfs, so we should not be using __exit annotations on
+> remove() methods. The only exception is drivers registered with
+> platform_driver_probe() which specifically disables sysfs bind/unbind
+> attributes.
+> 
+> Similarly probe() methods should not be marked __init unless
+> platform_driver_probe() is used.
+> 
+> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> ---
+> 
+> v1->v2: removed __init markup on omap1_cam_probe() that was pointed out
+> 	by Guennadi Liakhovetski.
+> 
+>  drivers/media/i2c/adp1653.c                      | 4 ++--
+>  drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
+>  drivers/media/platform/soc_camera/omap1_camera.c | 6 +++---
+>  drivers/media/radio/radio-si4713.c               | 4 ++--
+>  drivers/media/rc/ir-rx51.c                       | 4 ++--
+>  5 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+> index 8ead492..31b955b 100644
+> --- a/drivers/media/rc/ir-rx51.c
+> +++ b/drivers/media/rc/ir-rx51.c
+> @@ -464,14 +464,14 @@ static int lirc_rx51_probe(struct platform_device *dev)
+>  	return 0;
+>  }
+>  
+> -static int __exit lirc_rx51_remove(struct platform_device *dev)
+> +static int lirc_rx51_remove(struct platform_device *dev)
+>  {
+>  	return lirc_unregister_driver(lirc_rx51_driver.minor);
+>  }
+>  
+>  struct platform_driver lirc_rx51_platform_driver = {
+>  	.probe		= lirc_rx51_probe,
+> -	.remove		= __exit_p(lirc_rx51_remove),
+> +	.remove		= lirc_rx51_remove,
+>  	.suspend	= lirc_rx51_suspend,
+>  	.resume		= lirc_rx51_resume,
+>  	.driver		= {
 
-This patch adds code related to manipulation of the properties of
-SI476X chips.
+For ir-rx51:
 
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- drivers/mfd/si476x-prop.c |  234 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 234 insertions(+)
- create mode 100644 drivers/mfd/si476x-prop.c
+Acked-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 
-diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
-new file mode 100644
-index 0000000..d2b5cc0
---- /dev/null
-+++ b/drivers/mfd/si476x-prop.c
-@@ -0,0 +1,234 @@
-+/*
-+ * drivers/mfd/si476x-prop.c -- Subroutines to manipulate with
-+ * properties of si476x chips
-+ *
-+ * Copyright (C) 2012 Innovative Converged Devices(ICD)
-+ * Copyright (C) 2013 Andrey Smirnov
-+ *
-+ * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/module.h>
-+
-+#include <media/si476x.h>
-+#include <linux/mfd/si476x-core.h>
-+
-+struct si476x_property_range {
-+	u16 low, high;
-+};
-+
-+static bool si476x_core_element_is_in_array(u16 element, const u16 array[], size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element == array[i])
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_element_is_in_range(u16 element,
-+					    const struct si476x_property_range range[],
-+					    size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element <= range[i].high && element >= range[i].low)
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x0000,
-+		0x0500, 0x0501,
-+		0x0600,
-+		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
-+		0x0718,
-+		0x1207, 0x1208,
-+		0x2007,
-+		0x2300,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0200, 0x0203 },
-+		{ 0x0300, 0x0303 },
-+		{ 0x0400, 0x0404 },
-+		{ 0x0700, 0x0707 },
-+		{ 0x1100, 0x1102 },
-+		{ 0x1200, 0x1204 },
-+		{ 0x1300, 0x1306 },
-+		{ 0x2000, 0x2005 },
-+		{ 0x2100, 0x2104 },
-+		{ 0x2106, 0x2106 },
-+		{ 0x2200, 0x220E },
-+		{ 0x3100, 0x3104 },
-+		{ 0x3207, 0x320F },
-+		{ 0x3300, 0x3304 },
-+		{ 0x3500, 0x3517 },
-+		{ 0x3600, 0x3617 },
-+		{ 0x3700, 0x3717 },
-+		{ 0x4000, 0x4003 },
-+	};
-+
-+	return	si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071B,
-+		0x1006,
-+		0x2210,
-+		0x3401,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x2215, 0x2219 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a10(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges))  ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071C, 0x071D,
-+		0x1007, 0x1008,
-+		0x220F, 0x2214,
-+		0x2301,
-+		0x3105, 0x3106,
-+		0x3402,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0405, 0x0411 },
-+		{ 0x2008, 0x200B },
-+		{ 0x2220, 0x2223 },
-+		{ 0x3100, 0x3106 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a20(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
-+
-+static bool si476x_core_is_valid_property(struct si476x_core *core, u16 property)
-+{
-+	static const valid_property_pred_t is_valid_property[] = {
-+		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
-+		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
-+		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
-+	};
-+
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+	return is_valid_property[core->revision](core, property);
-+}
-+
-+
-+static bool si476x_core_is_readonly_property(struct si476x_core *core, u16 property)
-+{
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+
-+	switch (core->revision) {
-+	case SI476X_REVISION_A10:
-+		return (property == 0x3200);
-+	case SI476X_REVISION_A20:
-+		return (property == 0x1006 ||
-+			property == 0x2210 ||
-+			property == 0x3200);
-+	case SI476X_REVISION_A30:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static bool si476x_core_regmap_readable_register(struct device *dev, unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg);
-+
-+}
-+
-+static bool si476x_core_regmap_writable_register(struct device *dev, unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg) &&
-+		!si476x_core_is_readonly_property(core, (u16) reg);
-+}
-+
-+
-+static int si476x_core_regmap_write(void *context, unsigned int reg, unsigned int val)
-+{
-+	return si476x_core_cmd_set_property(context, reg, val);
-+}
-+
-+static int si476x_core_regmap_read(void *context, unsigned int reg, unsigned *val)
-+{
-+	struct si476x_core *core = context;
-+	int err;
-+
-+	err = si476x_core_cmd_get_property(core, reg);
-+	if (err < 0)
-+		return err;
-+
-+	*val = err;
-+
-+	return 0;
-+}
-+
-+
-+static const struct regmap_config si476x_regmap_config = {
-+	.reg_bits = 16,
-+	.val_bits = 16,
-+
-+	.max_register = 0x4003,
-+
-+	.writeable_reg = si476x_core_regmap_writable_register,
-+	.readable_reg = si476x_core_regmap_readable_register,
-+
-+	.reg_read = si476x_core_regmap_read, 
-+	.reg_write = si476x_core_regmap_write,
-+ 
-+	.cache_type = REGCACHE_RBTREE,
-+};
-+
-+struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
-+{
-+	return devm_regmap_init(&core->client->dev, NULL,
-+				core, &si476x_regmap_config);
-+}
-+EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
--- 
-1.7.10.4
+Thanks!
 
+-Timo
