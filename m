@@ -1,44 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:33151 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759896Ab3BZQcL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48246 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758511Ab3BZIZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 11:32:11 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: andrew.smirnov@gmail.com
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	Tue, 26 Feb 2013 03:25:40 -0500
+Date: Tue, 26 Feb 2013 10:25:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
 	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH v6 8/9] v4l2: Add private controls base for SI476X
-Date: Tue, 26 Feb 2013 08:31:34 -0800
-Message-Id: <1361896295-26138-9-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361896295-26138-1-git-send-email-andrew.smirnov@gmail.com>
+Subject: Re: [PATCH v2] Media: remove incorrect __init/__exit markups
+Message-ID: <20130226082534.GD24184@valkosipuli.retiisi.org.uk>
+References: <20130226071726.GA11322@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130226071726.GA11322@core.coreip.homeip.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a base to be used for allocation of all the SI476X specific
-controls in the corresponding driver.
+Hi Dmitry,
 
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- include/uapi/linux/v4l2-controls.h |    4 ++++
- 1 file changed, 4 insertions(+)
+On Mon, Feb 25, 2013 at 11:17:27PM -0800, Dmitry Torokhov wrote:
+> Even if bus is not hot-pluggable, the devices can be unbound from the
+> driver via sysfs, so we should not be using __exit annotations on
+> remove() methods. The only exception is drivers registered with
+> platform_driver_probe() which specifically disables sysfs bind/unbind
+> attributes.
+> 
+> Similarly probe() methods should not be marked __init unless
+> platform_driver_probe() is used.
+> 
+> Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> ---
+> 
+> v1->v2: removed __init markup on omap1_cam_probe() that was pointed out
+> 	by Guennadi Liakhovetski.
+> 
+>  drivers/media/i2c/adp1653.c                      | 4 ++--
+>  drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
+>  drivers/media/platform/soc_camera/omap1_camera.c | 6 +++---
+>  drivers/media/radio/radio-si4713.c               | 4 ++--
+>  drivers/media/rc/ir-rx51.c                       | 4 ++--
+>  5 files changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+> index df16380..ef75abe 100644
+> --- a/drivers/media/i2c/adp1653.c
+> +++ b/drivers/media/i2c/adp1653.c
+> @@ -447,7 +447,7 @@ free_and_quit:
+>  	return ret;
+>  }
+>  
+> -static int __exit adp1653_remove(struct i2c_client *client)
+> +static int adp1653_remove(struct i2c_client *client)
+>  {
+>  	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+>  	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+> @@ -476,7 +476,7 @@ static struct i2c_driver adp1653_i2c_driver = {
+>  		.pm	= &adp1653_pm_ops,
+>  	},
+>  	.probe		= adp1653_probe,
+> -	.remove		= __exit_p(adp1653_remove),
+> +	.remove		= adp1653_remove,
+>  	.id_table	= adp1653_id_table,
+>  };
+>  
+> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+> index 83c7ed7..cae4f46 100644
+> --- a/drivers/media/i2c/smiapp/smiapp-core.c
+> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
+> @@ -2833,7 +2833,7 @@ static int smiapp_probe(struct i2c_client *client,
+>  				 sensor->src->pads, 0);
+>  }
+>  
+> -static int __exit smiapp_remove(struct i2c_client *client)
+> +static int smiapp_remove(struct i2c_client *client)
+>  {
+>  	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+>  	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+> @@ -2881,7 +2881,7 @@ static struct i2c_driver smiapp_i2c_driver = {
+>  		.pm = &smiapp_pm_ops,
+>  	},
+>  	.probe	= smiapp_probe,
+> -	.remove	= __exit_p(smiapp_remove),
+> +	.remove	= smiapp_remove,
+>  	.id_table = smiapp_id_table,
+>  };
+>  
 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 3e985be..22e5170 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -147,6 +147,10 @@ enum v4l2_colorfx {
-  * of controls. We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
- 
-+/* The base for the si476x driver controls. See include/media/si476x.h for the list
-+ * of controls. Total of 16 controls is reserved for that driver */
-+#define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1010)
-+
- /* MPEG-class control IDs */
- 
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+For adp1653 and smiapp:
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.7.10.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
