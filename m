@@ -1,71 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:51088 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354Ab3BMXek (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2004 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759950Ab3BZVKn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Feb 2013 18:34:40 -0500
-Received: by mail-ea0-f174.google.com with SMTP id 1so653642eaa.33
-        for <linux-media@vger.kernel.org>; Wed, 13 Feb 2013 15:34:38 -0800 (PST)
-Message-ID: <511C230B.5060302@gmail.com>
-Date: Thu, 14 Feb 2013 00:34:35 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>,
-	"k.debski@samsung.com" <k.debski@samsung.com>,
-	"kgene.kim@samsung.com" <kgene.kim@samsung.com>,
-	"patches@linaro.org" <patches@linaro.org>,
-	"inki.dae@samsung.com" <inki.dae@samsung.com>,
-	"s.nawrocki@samsung.com" <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] [media] s5p-g2d: Add DT based discovery support
-References: <1360128584-23167-1-git-send-email-sachin.kamat@linaro.org> <CAK9yfHzaDDD0XEywdv+P6gEapjHwxKEfwHzKKQuXWEPHeAFgCw@mail.gmail.com>
-In-Reply-To: <CAK9yfHzaDDD0XEywdv+P6gEapjHwxKEfwHzKKQuXWEPHeAFgCw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Feb 2013 16:10:43 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1QLAdxp035589
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:10:42 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 44AE111E00BB
+	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:10:38 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130226211038.44AE111E00BB@alastor.dyndns.org>
+Date: Tue, 26 Feb 2013 22:10:38 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/2013 06:30 PM, Sachin Kamat wrote:
->
-> Hi Sylwester,
->
-> On Wednesday, 6 February 2013, Sachin Kamat <sachin.kamat@linaro.org> wrote:
->>  This patch adds device tree based discovery support to G2D driver
->>
->>  Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->>  ---
->>  Based on for_v3.9 branch of below tree:
->>  git://linuxtv.org/snawrocki/samsung.git
->>
->>  Changes since v1:
->>  * Addressed review comments from Sylwester <s.nawrocki@samsung.com>.
->>  * Modified the compatible string as per the discussions at [1].
->>  [1] https://patchwork1.kernel.org/patch/2045821/
->>
->
-> Does this patch look good?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It looks OK to me. I've sent a pull request including it, but it may
-happen it ends up only in 3.10.
+Results of the daily build of media_tree:
 
-I tried to test this patch today and I had to correct some clock
-definitions in the common clock API driver [1]. And we already have
-quite a few fixes to that patch series.
+date:		Tue Feb 26 19:00:22 CET 2013
+git branch:	for_v3.9
+git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-Shouldn't you also provide a patch adding related OF_DEV_AUXDATA entry ?
-How did you test this one ?
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-When the new clocks driver gets merged (I guess it happens only in 3.10)
-I'd like to have the media devices' clock names cleaned up, instead of
-names like: {"sclk_fimg2d", "fimg2d"}, {"sclk_fimc", "fimc"},
-{"sclk_fimd"/"fimd"}, in clock-names property we could have common names,
-e.g. { "sclk", "gate" }. This could simplify a bit subsystems like devfreq.
+Detailed results are available here:
 
-Also I noticed there are some issues caused by splitting mux + div + gate
-clocks into 3 different clocks. One solution to this might be to use the
-new composite clock type.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-[1] http://www.spinics.net/lists/arm-kernel/msg214149.html
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
