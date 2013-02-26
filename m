@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22307 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756094Ab3BEPf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Feb 2013 10:35:28 -0500
-Date: Tue, 5 Feb 2013 13:35:19 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 3.7-rc7] media fixes
-Message-ID: <20130205133519.51713e27@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:52312 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755909Ab3BZUHq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Feb 2013 15:07:46 -0500
+Message-ID: <512D160D.1050706@gmail.com>
+Date: Tue, 26 Feb 2013 21:07:41 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Lonsn <lonsn2005@gmail.com>
+CC: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: SMDKV210 support issue in kernel 3.8 (dma-pl330 and HDMI failed)
+References: <51275DF7.4010600@gmail.com> <512CB1BE.1070401@gmail.com>
+In-Reply-To: <512CB1BE.1070401@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi Lonsn,
 
-Please pull from:
-	  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+On 02/26/2013 01:59 PM, Lonsn wrote:
+> Now I checked HDMI failed at:
+> drivers/media/platform/s5p-tv/hdmi_drv.c: 912 line
+>      adapter = i2c_get_adapter(pdata->hdmiphy_bus);
+>      if (adapter == NULL) {
+>          dev_err(dev, "hdmiphy adapter request failed\n");
+>          ret = -ENXIO;
+>          goto fail_vdev;
+>      }
+> Since pdata->hdmiphy_bus is 3, why i2c_get_adapter failed?
 
-For a regression fix on a few radio drivers that were preventing radio TX
-to work on those devices.
+Do you have I2C3 bus controller device added to the list of devices
+registered in the init_machine() callback, i.e. &s3c_device_i2c3
+entry in smdkv210_devices[] array ?
+
+You can refer to arch/arm/mach-exynos/mach-universal_c210.c board file
+for how a complete setup for the HDMI driver should look like. It's
+for Exynos4210 SoCs but it should not be much different from what you
+need for S5PV210.
+
+--
 
 Regards,
-Mauro
-
--
-
-The following changes since commit 68d6f84ba0c47e658beff3a4bf0c43acee4b4690:
-
-  [media] uvcvideo: Set error_idx properly for S_EXT_CTRLS failures (2013-01-11 13:30:27 -0200)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-for you to fetch changes up to ce4a3d52888a95473914bd54bcf6c566014fc03e:
-
-  [media] radio: set vfl_dir correctly to fix modulator regression (2013-01-24 18:54:14 -0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      [media] radio: set vfl_dir correctly to fix modulator regression
-
- drivers/media/radio/radio-keene.c       |  1 +
- drivers/media/radio/radio-si4713.c      |  1 +
- drivers/media/radio/radio-wl1273.c      |  1 +
- drivers/media/radio/wl128x/fmdrv_v4l2.c | 10 ++++++++++
- 4 files changed, 13 insertions(+)
-
+Sylwester
