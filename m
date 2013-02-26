@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f182.google.com ([209.85.160.182]:60451 "EHLO
-	mail-gh0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753658Ab3BUWyw (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:51164 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797Ab3BZTfS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Feb 2013 17:54:52 -0500
-Received: by mail-gh0-f182.google.com with SMTP id z15so11866ghb.27
-        for <linux-media@vger.kernel.org>; Thu, 21 Feb 2013 14:54:52 -0800 (PST)
-From: Ismael Luceno <ismael.luceno@gmail.com>
-To: gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] solo6x10: Maintainer change
-Date: Thu, 21 Feb 2013 19:53:58 -0300
-Message-Id: <1361487238-4921-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+	Tue, 26 Feb 2013 14:35:18 -0500
+From: Syam Sidhardhan <syamsidhardh@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: syamsidhardh@gmail.com, mchehab@redhat.com
+Subject: [PATCH] dvb-usb: Remove redundant NULL check before kfree
+Date: Wed, 27 Feb 2013 01:05:01 +0530
+Message-Id: <1361907301-2769-1-git-send-email-s.syam@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
----
- MAINTAINERS | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+kfree on NULL pointer is a no-op.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3b95564..eb277c9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7315,8 +7315,8 @@ S:	Odd Fixes
- F:	drivers/staging/sm7xxfb/
+Signed-off-by: Syam Sidhardhan <s.syam@samsung.com>
+---
+ drivers/media/usb/dvb-usb/cinergyT2-fe.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/cinergyT2-fe.c b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+index 1efc028..c890fe4 100644
+--- a/drivers/media/usb/dvb-usb/cinergyT2-fe.c
++++ b/drivers/media/usb/dvb-usb/cinergyT2-fe.c
+@@ -300,8 +300,7 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
+ static void cinergyt2_fe_release(struct dvb_frontend *fe)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+-	if (state != NULL)
+-		kfree(state);
++	kfree(state);
+ }
  
- STAGING - SOFTLOGIC 6x10 MPEG CODEC
--M:	Ben Collins <bcollins@bluecherry.net>
--S:	Odd Fixes
-+M:	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-+S:	Supported
- F:	drivers/staging/media/solo6x10/
- 
- STAGING - SPEAKUP CONSOLE SPEECH DRIVER
+ static struct dvb_frontend_ops cinergyt2_fe_ops;
 -- 
-1.8.1.3
+1.7.9.5
 
