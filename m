@@ -1,153 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2471 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752577Ab3BIKBQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:16 -0500
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3860 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752339Ab3BZIBY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Feb 2013 03:01:24 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 08/26] cx231xx: fix vbi compliance issues.
-Date: Sat,  9 Feb 2013 11:00:38 +0100
-Message-Id: <23510a308011b5f442bae312c815bea97b6c01cf.1360403310.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: Re: [PATCH v5 5/8] v4l2: Add standard controls for FM receivers
+Date: Tue, 26 Feb 2013 09:00:11 +0100
+Cc: mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
+	tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+References: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com> <1361860734-21666-6-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361860734-21666-6-git-send-email-andrew.smirnov@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302260900.11966.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue February 26 2013 07:38:51 Andrey Smirnov wrote:
+> This commit introduces new class of standard controls
+> V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
+> pertaining to FM receiver chips. Also, two controls belonging to said
+> class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
+> V4L2_CID_RDS_RECEPTION.
+> 
+> Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
 
-Various v4l2-compliance fixes: remove unused sliced VBI functions, zero the
-reserved fields of struct v4l2_vbi_format and implement the missing s_fmt_vbi_cap.
+Since patches 5/8 and 6/8 are based on work done by Manjunatha Halli you
+should state so in your commit message. Credit where credit is due, etc. :-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/cx231xx/cx231xx-video.c |   67 ++++++++---------------------
- 1 file changed, 17 insertions(+), 50 deletions(-)
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
+>  include/uapi/linux/v4l2-controls.h   |   13 ++++++++++++-
+>  2 files changed, 23 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 6b28b58..8b89fb8 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		"Text",
+>  		NULL
+>  	};
+> -	static const char * const tune_preemphasis[] = {
+> -		"No Preemphasis",
+> +	static const char * const tune_emphasis[] = {
+> +		"None",
+>  		"50 Microseconds",
+>  		"75 Microseconds",
+>  		NULL,
+> @@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  	case V4L2_CID_SCENE_MODE:
+>  		return scene_mode;
+>  	case V4L2_CID_TUNE_PREEMPHASIS:
+> -		return tune_preemphasis;
+> +		return tune_emphasis;
+> +	case V4L2_CID_TUNE_DEEMPHASIS:
+> +		return tune_emphasis;
+>  	case V4L2_CID_FLASH_LED_MODE:
+>  		return flash_led_mode;
+>  	case V4L2_CID_FLASH_STROBE_SOURCE:
+> @@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
+>  	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+>  
+> +	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
+> +	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
+> +	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+>  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+>  	case V4L2_CID_IMAGE_STABILIZATION:
+> +	case V4L2_CID_RDS_RECEPTION:
+>  		*type = V4L2_CTRL_TYPE_BOOLEAN;
+>  		*min = 0;
+>  		*max = *step = 1;
+> @@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_DV_TX_RGB_RANGE:
+>  	case V4L2_CID_DV_RX_RGB_RANGE:
+>  	case V4L2_CID_TEST_PATTERN:
+> +	case V4L2_CID_TUNE_DEEMPHASIS:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> @@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_IMAGE_SOURCE_CLASS:
+>  	case V4L2_CID_IMAGE_PROC_CLASS:
+>  	case V4L2_CID_DV_CLASS:
+> +	case V4L2_CID_FM_RX_CLASS:
+>  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+>  		/* You can neither read not write these */
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index dcd6374..296d20e 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -59,6 +59,7 @@
+>  #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
+>  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+>  #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+> +#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
+>  
+>  /* User-class control IDs */
+>  
+> @@ -711,10 +712,14 @@ enum v4l2_auto_focus_range {
+>  #define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 98)
+>  
+>  #define V4L2_CID_TUNE_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 112)
+> -enum v4l2_preemphasis {
+> +enum v4l2_xemphasis {
+>  	V4L2_PREEMPHASIS_DISABLED	= 0,
+>  	V4L2_PREEMPHASIS_50_uS		= 1,
+>  	V4L2_PREEMPHASIS_75_uS		= 2,
+> +	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
+> +	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
+> +	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
+> +
+>  };
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 36ec4bc..f96fbd6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1867,47 +1867,6 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--/* Sliced VBI ioctls */
--static int vidioc_g_fmt_sliced_vbi_cap(struct file *file, void *priv,
--				       struct v4l2_format *f)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int rc;
--
--	rc = check_dev(dev);
--	if (rc < 0)
--		return rc;
--
--	f->fmt.sliced.service_set = 0;
--
--	call_all(dev, vbi, g_sliced_fmt, &f->fmt.sliced);
--
--	if (f->fmt.sliced.service_set == 0)
--		rc = -EINVAL;
--
--	return rc;
--}
--
--static int vidioc_try_set_sliced_vbi_cap(struct file *file, void *priv,
--					 struct v4l2_format *f)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int rc;
--
--	rc = check_dev(dev);
--	if (rc < 0)
--		return rc;
--
--	call_all(dev, vbi, g_sliced_fmt, &f->fmt.sliced);
--
--	if (f->fmt.sliced.service_set == 0)
--		return -EINVAL;
--
--	return 0;
--}
--
- /* RAW VBI ioctls */
- 
- static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
-@@ -1915,6 +1874,7 @@ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
- {
- 	struct cx231xx_fh *fh = priv;
- 	struct cx231xx *dev = fh->dev;
-+
- 	f->fmt.vbi.sampling_rate = 6750000 * 4;
- 	f->fmt.vbi.samples_per_line = VBI_LINE_LENGTH;
- 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
-@@ -1926,6 +1886,7 @@ static int vidioc_g_fmt_vbi_cap(struct file *file, void *priv,
- 	f->fmt.vbi.start[1] = (dev->norm & V4L2_STD_625_50) ?
- 	    PAL_VBI_START_LINE + 312 : NTSC_VBI_START_LINE + 263;
- 	f->fmt.vbi.count[1] = f->fmt.vbi.count[0];
-+	memset(f->fmt.vbi.reserved, 0, sizeof(f->fmt.vbi.reserved));
- 
- 	return 0;
- 
-@@ -1937,12 +1898,6 @@ static int vidioc_try_fmt_vbi_cap(struct file *file, void *priv,
- 	struct cx231xx_fh *fh = priv;
- 	struct cx231xx *dev = fh->dev;
- 
--	if (dev->vbi_stream_on && !fh->stream_on) {
--		cx231xx_errdev("%s device in use by another fh\n", __func__);
--		return -EBUSY;
--	}
--
--	f->type = V4L2_BUF_TYPE_VBI_CAPTURE;
- 	f->fmt.vbi.sampling_rate = 6750000 * 4;
- 	f->fmt.vbi.samples_per_line = VBI_LINE_LENGTH;
- 	f->fmt.vbi.sample_format = V4L2_PIX_FMT_GREY;
-@@ -1955,11 +1910,25 @@ static int vidioc_try_fmt_vbi_cap(struct file *file, void *priv,
- 	f->fmt.vbi.start[1] = (dev->norm & V4L2_STD_625_50) ?
- 	    PAL_VBI_START_LINE + 312 : NTSC_VBI_START_LINE + 263;
- 	f->fmt.vbi.count[1] = f->fmt.vbi.count[0];
-+	memset(f->fmt.vbi.reserved, 0, sizeof(f->fmt.vbi.reserved));
- 
- 	return 0;
- 
- }
- 
-+static int vidioc_s_fmt_vbi_cap(struct file *file, void *priv,
-+				  struct v4l2_format *f)
-+{
-+	struct cx231xx_fh *fh = priv;
-+	struct cx231xx *dev = fh->dev;
-+
-+	if (dev->vbi_stream_on && !fh->stream_on) {
-+		cx231xx_errdev("%s device in use by another fh\n", __func__);
-+		return -EBUSY;
-+	}
-+	return vidioc_try_fmt_vbi_cap(file, priv, f);
-+}
-+
- static int vidioc_reqbufs(struct file *file, void *priv,
- 			  struct v4l2_requestbuffers *rb)
- {
-@@ -2421,10 +2390,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_s_fmt_vid_cap          = vidioc_s_fmt_vid_cap,
- 	.vidioc_g_fmt_vbi_cap          = vidioc_g_fmt_vbi_cap,
- 	.vidioc_try_fmt_vbi_cap        = vidioc_try_fmt_vbi_cap,
--	.vidioc_s_fmt_vbi_cap          = vidioc_try_fmt_vbi_cap,
-+	.vidioc_s_fmt_vbi_cap          = vidioc_s_fmt_vbi_cap,
- 	.vidioc_cropcap                = vidioc_cropcap,
--	.vidioc_g_fmt_sliced_vbi_cap   = vidioc_g_fmt_sliced_vbi_cap,
--	.vidioc_try_fmt_sliced_vbi_cap = vidioc_try_set_sliced_vbi_cap,
- 	.vidioc_reqbufs                = vidioc_reqbufs,
- 	.vidioc_querybuf               = vidioc_querybuf,
- 	.vidioc_qbuf                   = vidioc_qbuf,
--- 
-1.7.10.4
+No, just leave this enum alone. It's part of the public API, so it can't be
+renamed.
 
+What is best is if a new enum v4l2_deemphasis is created:
+
+enum v4l2_deemphasis {
+	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
+	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
+	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
+
+};
+
+>  #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+>  #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+> @@ -825,4 +830,10 @@ enum v4l2_dv_rgb_range {
+>  #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
+>  #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
+>  
+> +#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
+> +#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
+> +
+> +#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
+> +#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
+> +
+>  #endif
+> 
+
+Regards,
+
+	Hans
