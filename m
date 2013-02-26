@@ -1,96 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1295 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756205Ab3BVVLL (ORCPT
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:40199 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759783Ab3BZTa6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Feb 2013 16:11:11 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r1MLB7Vm090083
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 22 Feb 2013 22:11:09 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9CAE111E00B5
-	for <linux-media@vger.kernel.org>; Fri, 22 Feb 2013 22:11:06 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 26 Feb 2013 14:30:58 -0500
+Received: by mail-pa0-f52.google.com with SMTP id fb1so2639117pad.11
+        for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 11:30:57 -0800 (PST)
+From: Syam Sidhardhan <syamsidhardh@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130222211106.9CAE111E00B5@alastor.dyndns.org>
-Date: Fri, 22 Feb 2013 22:11:06 +0100 (CET)
+Cc: syamsidhardh@gmail.com, mchehab@redhat.com
+Subject: [PATCH] media: tuners: Remove redundant NULL check before kfree
+Date: Wed, 27 Feb 2013 01:00:45 +0530
+Message-Id: <1361907045-2722-1-git-send-email-s.syam@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+kfree on NULL pointer is a no-op.
 
-Results of the daily build of media_tree:
+Signed-off-by: Syam Sidhardhan <s.syam@samsung.com>
+---
+ drivers/media/tuners/tuner-xc2028.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-date:		Fri Feb 22 19:00:46 CET 2013
-git branch:	for_v3.9
-git hash:	ed72d37a33fdf43dc47787fe220532cdec9da528
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
+index 0945173..878d2c4 100644
+--- a/drivers/media/tuners/tuner-xc2028.c
++++ b/drivers/media/tuners/tuner-xc2028.c
+@@ -1378,8 +1378,7 @@ static int xc2028_set_config(struct dvb_frontend *fe, void *priv_cfg)
+ 	 * For the firmware name, keep a local copy of the string,
+ 	 * in order to avoid troubles during device release.
+ 	 */
+-	if (priv->ctrl.fname)
+-		kfree(priv->ctrl.fname);
++	kfree(priv->ctrl.fname);
+ 	memcpy(&priv->ctrl, p, sizeof(priv->ctrl));
+ 	if (p->fname) {
+ 		priv->ctrl.fname = kstrdup(p->fname, GFP_KERNEL);
+-- 
+1.7.9.5
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
