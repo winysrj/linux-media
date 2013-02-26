@@ -1,54 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3111 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752957Ab3BPKSn (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:45905 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758627Ab3BZGjR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 05:18:43 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Anatolij Gustschin <agust@denx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 4/5] fsl-viu: remove deprecated use of current_norm.
-Date: Sat, 16 Feb 2013 11:18:26 +0100
-Message-Id: <a381147b566f92fd8fb82643636f5175be9e0d4b.1361009701.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <77816a8ba6f0fe685a83a012371cf07b1ab505da.1361009701.git.hans.verkuil@cisco.com>
-References: <77816a8ba6f0fe685a83a012371cf07b1ab505da.1361009701.git.hans.verkuil@cisco.com>
+	Tue, 26 Feb 2013 01:39:17 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: andrew.smirnov@gmail.com
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
+	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v5 0/8] Driver for Si476x series of chips
+Date: Mon, 25 Feb 2013 22:38:46 -0800
+Message-Id: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This is a fourth version of the patchset originaly posted here:
+https://lkml.org/lkml/2012/9/13/590
 
-It was pointless anyway since fsl-viu already implements g_std.
+Second version of the patch was posted here:
+https://lkml.org/lkml/2012/10/5/598
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/fsl-viu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Third version of the patch was posted here:
+https://lkml.org/lkml/2012/10/23/510
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 961fc72..c7c1295 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -1376,8 +1376,7 @@ static struct video_device viu_template = {
- 	.ioctl_ops	= &viu_ioctl_ops,
- 	.release	= video_device_release,
- 
--	.tvnorms        = V4L2_STD_NTSC_M | V4L2_STD_PAL,
--	.current_norm   = V4L2_STD_NTSC_M,
-+	.tvnorms        = V4L2_STD_ALL,
- };
- 
- static int viu_of_probe(struct platform_device *op)
-@@ -1452,6 +1451,7 @@ static int viu_of_probe(struct platform_device *op)
- 	/* This control handler will inherit the control(s) from the
- 	   sub-device(s). */
- 	viu_dev->v4l2_dev.ctrl_handler = &viu_dev->hdl;
-+	viu_dev->std = V4L2_STD_NTSC_M;
- 	viu_dev->decoder = v4l2_i2c_new_subdev(&viu_dev->v4l2_dev, ad,
- 			"saa7113", VIU_VIDEO_DECODER_ADDR, NULL);
- 
+Fourth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/18/572
+
+To save everyone's time I'll repost the original description of it:
+
+This patchset contains a driver for a Silicon Laboratories 476x series
+of radio tuners. The driver itself is implemented as an MFD devices
+comprised of three parts: 
+ 1. Core device that provides all the other devices with basic
+functionality and locking scheme.
+ 2. Radio device that translates between V4L2 subsystem requests into
+Core device commands.
+ 3. Codec device that does similar to the earlier described task, but
+for ALSA SoC subsystem.
+
+v5 of this driver has following changes:
+- Generic controls are converted to standard ones
+- Custom controls use a differend offest as base
+- Added documentation with controls description
+
+
+Andrey Smirnov (8):
+  mfd: Add header files and Kbuild plumbing for SI476x MFD core
+  mfd: Add commands abstraction layer for SI476X MFD
+  mfd: Add the main bulk of core driver for SI476x code
+  mfd: Add chip properties handling code for SI476X MFD
+  v4l2: Add standard controls for FM receivers
+  v4l2: Add documentation for the FM RX controls
+  v4l2: Add private controls base for SI476X
+  v4l2: Add a V4L2 driver for SI476X MFD
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   72 +
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   11 +-
+ Documentation/video4linux/si476x.txt               |  187 +++
+ drivers/media/radio/Kconfig                        |   17 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-si476x.c                 | 1581 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   14 +-
+ drivers/mfd/Kconfig                                |   13 +
+ drivers/mfd/Makefile                               |    4 +
+ drivers/mfd/si476x-cmd.c                           | 1553 +++++++++++++++++++
+ drivers/mfd/si476x-i2c.c                           |  878 +++++++++++
+ drivers/mfd/si476x-prop.c                          |  234 +++
+ include/linux/mfd/si476x-core.h                    |  525 +++++++
+ include/media/si476x.h                             |  426 ++++++
+ include/uapi/linux/v4l2-controls.h                 |   17 +-
+ 16 files changed, 5531 insertions(+), 5 deletions(-)
+ create mode 100644 Documentation/video4linux/si476x.txt
+ create mode 100644 drivers/media/radio/radio-si476x.c
+ create mode 100644 drivers/mfd/si476x-cmd.c
+ create mode 100644 drivers/mfd/si476x-i2c.c
+ create mode 100644 drivers/mfd/si476x-prop.c
+ create mode 100644 include/linux/mfd/si476x-core.h
+ create mode 100644 include/media/si476x.h
+
 -- 
 1.7.10.4
 
