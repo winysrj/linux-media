@@ -1,53 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1311 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756178Ab3BJRxJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 12:53:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 12/12] stk-webcam: implement support for count == 0 when calling REQBUFS.
-Date: Sun, 10 Feb 2013 18:52:53 +0100
-Message-Id: <b3ffc78282cdb3930ee22f8bc39c58f3b0b5ba90.1360518391.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360518773-1065-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
-References: <21a2f157a80755483630be6aab26f67dc9f041c6.1360518390.git.hans.verkuil@cisco.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:47025 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753371Ab3BZMJI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Feb 2013 07:09:08 -0500
+Message-ID: <512C91BC.4010306@schinagl.nl>
+Date: Tue, 26 Feb 2013 11:43:08 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Geert Hedde Bosman <geert.hedde.bosman@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Please update DVB-T frequency list 'dvb-t/nl-All'
+References: <512BD285.9010802@gmail.com>
+In-Reply-To: <512BD285.9010802@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 25-02-13 22:07, Geert Hedde Bosman wrote:
+> Hello,
+> in summer 2012 in the Netherlands major frequency changes took place 
+> in DVB-t broadcast. Some new frequencies were added as well. Therefore 
+> the frequency-file dvb/dvb-t/nl-All is no longer actual. Could someone 
+> (i believe Cristoph P. is one of the maintainers) please update this 
+> file? The website http://radio-tv-nederland.nl/ provides an up to date 
+> frequency list.
+> As an example: i had to add the following line to the file 'nl-All' to 
+> get the FTA tv-stations in the north of the Netherlands as it was 
+> missing:
+> T 674000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
+I'll go over the list and update all the frequencies. For me in the 
+south, the list seems to be still accurate ;)
 
-The spec specifies that setting count to 0 in v4l2_requestbuffers
-should result in releasing any streaming resources and the stream
-ownership. Implement this.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Arvydas Sidorenko <asido4@gmail.com>
----
- drivers/media/usb/stkwebcam/stk-webcam.c |    7 +++++++
- 1 file changed, 7 insertions(+)
-
-diff --git a/drivers/media/usb/stkwebcam/stk-webcam.c b/drivers/media/usb/stkwebcam/stk-webcam.c
-index 0b25448..5aeef83 100644
---- a/drivers/media/usb/stkwebcam/stk-webcam.c
-+++ b/drivers/media/usb/stkwebcam/stk-webcam.c
-@@ -1008,6 +1008,13 @@ static int stk_vidioc_reqbufs(struct file *filp,
- 	if (is_streaming(dev)
- 		|| (dev->owner && dev->owner != filp))
- 		return -EBUSY;
-+	stk_free_buffers(dev);
-+	if (rb->count == 0) {
-+		stk_camera_write_reg(dev, 0x0, 0x49); /* turn off the LED */
-+		unset_initialised(dev);
-+		dev->owner = NULL;
-+		return 0;
-+	}
- 	dev->owner = filp;
- 
- 	/*FIXME If they ask for zero, we must stop streaming and free */
--- 
-1.7.10.4
+Expect a patch + push today/tomorrow.
+>
+> regards
+> GHB
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
