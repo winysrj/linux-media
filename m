@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:63686 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932146Ab3BZGjc (ORCPT
+Received: from mail.stepping-stone.ch ([194.176.109.206]:53002 "EHLO
+	mail.stepping-stone.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab3BZVwL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 01:39:32 -0500
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: andrew.smirnov@gmail.com
-Cc: hverkuil@xs4all.nl, mchehab@redhat.com, sameo@linux.intel.com,
-	perex@perex.cz, tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v5 7/8] v4l2: Add private controls base for SI476X
-Date: Mon, 25 Feb 2013 22:38:53 -0800
-Message-Id: <1361860734-21666-8-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com>
+	Tue, 26 Feb 2013 16:52:11 -0500
+Received: from localhost (janitor-01.int.stepping-stone.ch [10.17.98.12])
+	by mta-01.int.stepping-stone.ch (Postfix) with ESMTP id 01719A0D81
+	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:42:47 +0100 (CET)
+Received: from mta-01.int.stepping-stone.ch ([10.17.98.30])
+	by localhost (janitor-01.int.stepping-stone.ch [10.17.98.12]) (amavisd-new, port 10026)
+	with LMTP id Rv7BOrxGJUAE for <linux-media@vger.kernel.org>;
+	Tue, 26 Feb 2013 22:42:45 +0100 (CET)
+Received: from [192.168.1.194] (84-75-186-212.dclient.hispeed.ch [84.75.186.212])
+	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by smtp.stepping-stone.ch (Postfix) with ESMTPSA id F3573A0D80
+	for <linux-media@vger.kernel.org>; Tue, 26 Feb 2013 22:42:44 +0100 (CET)
+Message-ID: <512D2C54.7010205@purplehaze.ch>
+Date: Tue, 26 Feb 2013 22:42:44 +0100
+From: Christian Affolter <c.affolter@purplehaze.ch>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Initial tuning data for upc cablecom Berne, Switzerland
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a base to be used for allocation of all the SI476X specific
-controls in the corresponding driver.
+Hi
 
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- include/uapi/linux/v4l2-controls.h |    4 ++++
- 1 file changed, 4 insertions(+)
+please find the initial tuning data for the Swiss cable provider "upc 
+cablecom" in Berne.
 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 296d20e..133703d 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -147,6 +147,10 @@ enum v4l2_colorfx {
-  * of controls. We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
- 
-+/* The base for the si476x driver controls. See include/media/si476x.h for the list
-+ * of controls. */
-+#define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x2000)
-+
- /* MPEG-class control IDs */
- 
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
--- 
-1.7.10.4
+I've added the data below to dvb-c/ch-Bern-upc-cablecom
 
+# upc cablecom
+# Berne, Switzerland
+# freq sr fec mod
+C 426000000 6900000 NONE QAM64
+
+
+regards
+Christian
