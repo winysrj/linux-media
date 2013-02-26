@@ -1,99 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:59755 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412Ab3B0Vlr (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:37734 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756077Ab3BZHRb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Feb 2013 16:41:47 -0500
-Message-ID: <512E7D97.4000608@gmail.com>
-Date: Wed, 27 Feb 2013 22:41:43 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Tue, 26 Feb 2013 02:17:31 -0500
+Date: Mon, 25 Feb 2013 23:17:27 -0800
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v2] Media: remove incorrect __init/__exit markups
+Message-ID: <20130226071726.GA11322@core.coreip.homeip.net>
 MIME-Version: 1.0
-To: Lonsn <lonsn2005@gmail.com>
-CC: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: SMDKV210 support issue in kernel 3.8 (dma-pl330 and HDMI failed)
-References: <51275DF7.4010600@gmail.com> <512CB1BE.1070401@gmail.com> <512D160D.1050706@gmail.com> <512D1BFB.4000700@gmail.com> <512E22AA.8020006@gmail.com> <512E2ABF.1080206@gmail.com>
-In-Reply-To: <512E2ABF.1080206@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2013 04:48 PM, Lonsn wrote:
-> 于 2013/2/27 23:13, Lonsn 写道:
->>> On 02/26/2013 09:07 PM, Sylwester Nawrocki wrote:
->>>> On 02/26/2013 01:59 PM, Lonsn wrote:
-[...]
->> Now kernel prints the following HDMI related:
->> m2m-testdev m2m-testdev.0: mem2mem-testdevDevice registered as
->> /dev/video0
->> s5p-jpeg s5p-jpeg.0: encoder device registered as /dev/video1
->> s5p-jpeg s5p-jpeg.0: decoder device registered as /dev/video2
->> s5p-jpeg s5p-jpeg.0: Samsung S5P JPEG codec
->> s5p-mfc s5p-mfc: decoder registered as /dev/video3
->> s5p-mfc s5p-mfc: encoder registered as /dev/video4
->> s5p-hdmi s5pv210-hdmi: probe start
->> s5p-hdmi s5pv210-hdmi: HDMI resource init
->> s5p-hdmiphy 3-0038: probe successful
->> s5p-hdmi s5pv210-hdmi: probe successful
->> Samsung TV Mixer driver, (c) 2010-2011 Samsung Electronics Co., Ltd.
->>
->> s5p-mixer s5p-mixer: probe start
->> s5p-mixer s5p-mixer: resources acquired
->> s5p-mixer s5p-mixer: added output 'S5P HDMI connector' from module
->> 's5p-hdmi'
->> s5p-mixer s5p-mixer: module s5p-sdo provides no subdev!
->> s5p-mixer s5p-mixer: registered layer graph0 as /dev/video5
->> s5p-mixer s5p-mixer: registered layer graph1 as /dev/video6
->> s5p-mixer s5p-mixer: registered layer video0 as /dev/video7
->> s5p-mixer s5p-mixer: probe successful
->>
->> How can I test the HDMI output whether it's OK? Which /dev/video is real
->> HDMI output? I have used
->> http://git.infradead.org/users/kmpark/public-apps hdmi test program buf
->> failed:
->> root@linaro-developer:/opt# ./tvdemo /dev/video7 720 480 0 0
->> ERROR(main.c:80) : VIDIOC_S_FMT failed: Invalid argument
+Even if bus is not hot-pluggable, the devices can be unbound from the
+driver via sysfs, so we should not be using __exit annotations on
+remove() methods. The only exception is drivers registered with
+platform_driver_probe() which specifically disables sysfs bind/unbind
+attributes.
 
-It failed because you've opened device node of the Video Processor, which
-supports only NV12/21(MT) formats. I believe the v4l2-hdmi-example
-application, which renders some simple test images, needs to be run with one
-the graphics layer video nodes as an argument.  Doesn't it work when you 
-try
-on /dev/video5 or /dev/video6 ?
+Similarly probe() methods should not be marked __init unless
+platform_driver_probe() is used.
 
->> root@linaro-developer:/opt#
->> Maybe I still miss some configuration in mach-smdkv210.c.
+Signed-off-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+---
 
-I don't think so, it all looks more or less OK now :)
+v1->v2: removed __init markup on omap1_cam_probe() that was pointed out
+	by Guennadi Liakhovetski.
 
-> The kernel print when run tvdemo:
-> root@linaro-developer:/opt# ./tvdemo /dev/video7 720 480 0 0
-> ERROR(main.c:80) : VIDIOC_S_FMT failed: Invalid argument
-> Aborted
-> root@linaro-developer:/opt# dmesg
-> s5p-mixer s5p-mixer: mxr_video_open:762
-> s5p-mixer s5p-mixer: resume - start
-> s5p-mixer s5p-mixer: resume - finished
-> s5p-hdmi s5pv210-hdmi: hdmi_g_mbus_fmt
-> s5p-mixer s5p-mixer: src.full_size = (720, 480)
-> s5p-mixer s5p-mixer: src.size = (720, 480)
-> s5p-mixer s5p-mixer: src.offset = (0, 0)
-> s5p-mixer s5p-mixer: dst.full_size = (720, 480)
-> s5p-mixer s5p-mixer: dst.size = (720, 480)
-> s5p-mixer s5p-mixer: dst.offset = (0, 0)
-> s5p-mixer s5p-mixer: ratio = (0, 0)
-> s5p-mixer s5p-mixer: src.full_size = (720, 480)
-> s5p-mixer s5p-mixer: src.size = (720, 480)
-> s5p-mixer s5p-mixer: src.offset = (0, 0)
-> s5p-mixer s5p-mixer: dst.full_size = (720, 480)
-> s5p-mixer s5p-mixer: dst.size = (720, 480)
-> s5p-mixer s5p-mixer: dst.offset = (0, 0)
-> s5p-mixer s5p-mixer: ratio = (65536, 65536)
-> s5p-mixer s5p-mixer: mxr_s_fmt:322
-> s5p-mixer s5p-mixer: not recognized fourcc: 34524742
+ drivers/media/i2c/adp1653.c                      | 4 ++--
+ drivers/media/i2c/smiapp/smiapp-core.c           | 4 ++--
+ drivers/media/platform/soc_camera/omap1_camera.c | 6 +++---
+ drivers/media/radio/radio-si4713.c               | 4 ++--
+ drivers/media/rc/ir-rx51.c                       | 4 ++--
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-Yes, it must definitely be incorrect video node. Only the graph0/1
-devices support RGB.
+diff --git a/drivers/media/i2c/adp1653.c b/drivers/media/i2c/adp1653.c
+index df16380..ef75abe 100644
+--- a/drivers/media/i2c/adp1653.c
++++ b/drivers/media/i2c/adp1653.c
+@@ -447,7 +447,7 @@ free_and_quit:
+ 	return ret;
+ }
+ 
+-static int __exit adp1653_remove(struct i2c_client *client)
++static int adp1653_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct adp1653_flash *flash = to_adp1653_flash(subdev);
+@@ -476,7 +476,7 @@ static struct i2c_driver adp1653_i2c_driver = {
+ 		.pm	= &adp1653_pm_ops,
+ 	},
+ 	.probe		= adp1653_probe,
+-	.remove		= __exit_p(adp1653_remove),
++	.remove		= adp1653_remove,
+ 	.id_table	= adp1653_id_table,
+ };
+ 
+diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
+index 83c7ed7..cae4f46 100644
+--- a/drivers/media/i2c/smiapp/smiapp-core.c
++++ b/drivers/media/i2c/smiapp/smiapp-core.c
+@@ -2833,7 +2833,7 @@ static int smiapp_probe(struct i2c_client *client,
+ 				 sensor->src->pads, 0);
+ }
+ 
+-static int __exit smiapp_remove(struct i2c_client *client)
++static int smiapp_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+@@ -2881,7 +2881,7 @@ static struct i2c_driver smiapp_i2c_driver = {
+ 		.pm = &smiapp_pm_ops,
+ 	},
+ 	.probe	= smiapp_probe,
+-	.remove	= __exit_p(smiapp_remove),
++	.remove	= smiapp_remove,
+ 	.id_table = smiapp_id_table,
+ };
+ 
+diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
+index 39a77f0..e5091b7 100644
+--- a/drivers/media/platform/soc_camera/omap1_camera.c
++++ b/drivers/media/platform/soc_camera/omap1_camera.c
+@@ -1546,7 +1546,7 @@ static struct soc_camera_host_ops omap1_host_ops = {
+ 	.poll		= omap1_cam_poll,
+ };
+ 
+-static int __init omap1_cam_probe(struct platform_device *pdev)
++static int omap1_cam_probe(struct platform_device *pdev)
+ {
+ 	struct omap1_cam_dev *pcdev;
+ 	struct resource *res;
+@@ -1677,7 +1677,7 @@ exit:
+ 	return err;
+ }
+ 
+-static int __exit omap1_cam_remove(struct platform_device *pdev)
++static int omap1_cam_remove(struct platform_device *pdev)
+ {
+ 	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+ 	struct omap1_cam_dev *pcdev = container_of(soc_host,
+@@ -1709,7 +1709,7 @@ static struct platform_driver omap1_cam_driver = {
+ 		.name	= DRIVER_NAME,
+ 	},
+ 	.probe		= omap1_cam_probe,
+-	.remove		= __exit_p(omap1_cam_remove),
++	.remove		= omap1_cam_remove,
+ };
+ 
+ module_platform_driver(omap1_cam_driver);
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 1507c9d..8ae8442d 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -328,7 +328,7 @@ exit:
+ }
+ 
+ /* radio_si4713_pdriver_remove - remove the device */
+-static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
++static int radio_si4713_pdriver_remove(struct platform_device *pdev)
+ {
+ 	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+ 	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
+@@ -350,7 +350,7 @@ static struct platform_driver radio_si4713_pdriver = {
+ 		.name	= "radio-si4713",
+ 	},
+ 	.probe		= radio_si4713_pdriver_probe,
+-	.remove         = __exit_p(radio_si4713_pdriver_remove),
++	.remove         = radio_si4713_pdriver_remove,
+ };
+ 
+ module_platform_driver(radio_si4713_pdriver);
+diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
+index 8ead492..31b955b 100644
+--- a/drivers/media/rc/ir-rx51.c
++++ b/drivers/media/rc/ir-rx51.c
+@@ -464,14 +464,14 @@ static int lirc_rx51_probe(struct platform_device *dev)
+ 	return 0;
+ }
+ 
+-static int __exit lirc_rx51_remove(struct platform_device *dev)
++static int lirc_rx51_remove(struct platform_device *dev)
+ {
+ 	return lirc_unregister_driver(lirc_rx51_driver.minor);
+ }
+ 
+ struct platform_driver lirc_rx51_platform_driver = {
+ 	.probe		= lirc_rx51_probe,
+-	.remove		= __exit_p(lirc_rx51_remove),
++	.remove		= lirc_rx51_remove,
+ 	.suspend	= lirc_rx51_suspend,
+ 	.resume		= lirc_rx51_resume,
+ 	.driver		= {
+-- 
+1.7.11.7
 
-Regards,
-Sylwester
+
+-- 
+Dmitry
