@@ -1,195 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:47058 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933357Ab3BTSTz (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:25728 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756450Ab3B0LWX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 13:19:55 -0500
-Received: by mail-ee0-f50.google.com with SMTP id e51so4279286eek.9
-        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 10:19:54 -0800 (PST)
-Message-ID: <512513FB.60105@googlemail.com>
-Date: Wed, 20 Feb 2013 19:20:43 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com> <5123C849.6080207@googlemail.com> <20130219155303.25c5077a@redhat.com> <5123D651.1090108@googlemail.com> <20130219170343.00b92d18@redhat.com> <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Feb 2013 06:22:23 -0500
+Message-id: <512DEC6C.60607@samsung.com>
+Date: Wed, 27 Feb 2013 12:22:20 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Inderpal Singh <inderpal.singh@linaro.org>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Lonsn <lonsn2005@gmail.com>, linux-samsung-soc@vger.kernel.org,
+	linux-media@vger.kernel.org, Boojin Kim <boojin.kim@samsung.com>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Subject: Re: SMDKV210 support issue in kernel 3.8 (dma-pl330 and HDMI failed)
+References: <51275DF7.4010600@gmail.com> <512D2780.3020103@gmail.com>
+ <CAG17yqQ3d+3Uwpfo+_r0Jwm4TQXcSY-bcW4qRcygzjq=9qXvvA@mail.gmail.com>
+In-reply-to: <CAG17yqQ3d+3Uwpfo+_r0Jwm4TQXcSY-bcW4qRcygzjq=9qXvvA@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.02.2013 06:09, schrieb Theodore Kilgore:
-> On Tue, 19 Feb 2013, Mauro Carvalho Chehab wrote:
->
->> Em Tue, 19 Feb 2013 20:45:21 +0100
->> Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
+On 02/27/2013 11:51 AM, Inderpal Singh wrote:
+> On 27 February 2013 02:52, Sylwester Nawrocki
+> <sylvester.nawrocki@gmail.com> wrote:
+>> On 02/22/2013 01:00 PM, Lonsn wrote:
+>>>
+>>> Hi,
+>>> I have tested the kernel 3.8 with a SMDKV210 like board. But I failed
+>>> with dma-pl330 and HDMI driver.
+>>> For dma-pl330, kernel print:
+>>> dma-pl330 dma-pl330.0: PERIPH_ID 0x0, PCELL_ID 0x0 !
+>>> dma-pl330: probe of dma-pl330.0 failed with error -22
+>>> dma-pl330 dma-pl330.1: PERIPH_ID 0x0, PCELL_ID 0x0 !
+>>> dma-pl330: probe of dma-pl330.1 failed with error -22
 >>
->>> Am 19.02.2013 19:53, schrieb Mauro Carvalho Chehab:
->>>> Em Tue, 19 Feb 2013 19:45:29 +0100
->>>> Frank Sch?fer <fschaefer.oss@googlemail.com> escreveu:
->>>>
->>>>>> I don't like the idea of merging those two entries. As far as I remember
->>>>>> there are devices that works out of the box with
->>>>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN. A change like that can break
->>>>>> the driver for them.
->>>>> As described above, there is a good chance to break devices with both
->>>>> solutions.
->>>>>
->>>>> What's your suggestion ? ;-)
->>>>>
->>>> As I said, just leave it as-is (documenting at web) 
->>> That seems to be indeed the only 100%-regression-safe solution.
->>> But also _no_ solution for this device.
->>> A device which works only with a special module parameter passed on
->>> driver loading isn't much better than an unsupported device.
->> That's not true. There are dozens of devices that only work with
->> modprobe parameter (even ones with their own USB or PCI address). The thing
->> is that crappy vendors don't provide any way for a driver to detect what's
->> there, as their driver rely on some *.inf config file with those parameters
->> hardcoded.
 >>
->> We can't do any better than what's provided by the device.
+>> Maybe there is some issue with the PL330 DMA controller clocks and the
+>> read values are all 0 because the clocks are disabled ?
 >>
->>> It comes down to the following question:
->>> Do we want to refuse fixing known/existing devices for the sake of
->>> avoiding regression for unknown devices which even might not exist ? ;-)
->> HUH? As I said: there are devices that work with the other board entry.
->> If you remove the other entry, _then_ you'll be breaking the driver.
+>> It seems arch/arm/mach-s5pv210/clock.c might be missing "apb_pclk" clock
+>> supply names, which I suspect may be required after commits:
 >>
->>> I have no strong and final opinion yet. Still hoping someone knows how
->>> the Empia driver handles these cases...
->> What do you mean? The original driver? The parameters are hardcoded at the
->> *.inf file. Once you get the driver, the *.inf file contains all the
->> parameters for it to work there. If you have two empia devices with
->> different models, you can only use the second one after removing the
->> install for the first one.
+>> commit 7c71b8eb268ee38235f7e924d943ea9d90e59469
+>> Author: Inderpal Singh <inderpal.singh@linaro.org>
+>> Date:   Fri Sep 7 12:14:48 2012 +0530
 >>
->>>> or to use the AC97
->>>> chip ID as a hint. This works fine for devices that don't come with
->>>> Empiatech em202, but with something else, like the case of the Realtek
->>>> chip found on this device. The reference design for sure uses em202.
->>> How could the AC97 chip ID help us in this situation ?
->>> As far as I understand, it doesn't matter which AC97 IC is used.
->>> They are all compatible and at least our driver uses the same code for
->>> all of them.
->> The em28xx Kernel driver uses a hint code to try to identify the device
->> model. That hint code is not perfect, but it is the better we can do.
+>>     DMA: PL330: Remove redundant runtime_suspend/resume functions
 >>
->> There are two hint codes there, currently: 
->> 1) device's eeprom hash, used when the device has an eeprom, but the
->>    USB ID is not unique;
+>>     The driver's  runtime_suspend/resume functions just disable/enable
+>>     the clock which is already being managed at AMBA bus level
+>>     runtime_suspend/resume functions.
 >>
->> 2) I2C scan bus hash: sometimes, different devices use different I2C
->> addresses.
+>>     Hence, remove the driver's runtime_suspend/resume functions.
 >>
->>> So even if you are are right and the Empia reference design uses an EMP202,
->>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
->>> AC97-ICs, too.
->> The vast majority of devices use emp202. There are very few ones using
->> different models.
+>>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
+>>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
+>>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
 >>
->> The proposal here is to add a third hint code, that would distinguish
->> the devices based on the ac97 ID.
+>> commit faf6fbc6f2ca3b34bf464a8bb079a998e571957c
+>> Author: Inderpal Singh <inderpal.singh@linaro.org>
+>> Date:   Fri Sep 7 12:14:47 2012 +0530
 >>
->>> We should also expect manufacturers to switch between them whenever they
->>> want (e.g. because of price changes).
->> Yes, and then we'll need other entries at the hint table.
+>>     DMA: PL330: Remove controller clock enable/disable
 >>
->> Regards
->> Mauro
-> I see the dilemma. Devices which are not uniquely identifiable. Mauro is 
-> right in pinpointing the problem, 
+>>     The controller clock is being enabled/disabled in AMBA bus
+>>     infrastructre in probe/remove functions. Hence, its not required
+>>     at driver level probe/remove.
+>>
+>>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
+>>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
+>>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+>>
+>> I have added people who made related changes at Cc, hopefully they
+>> can provide some help in debugging this.
+>>
+> 
+> The mentioned patches just removed the redundant clock enable/disable
+> from the driver as clock is already being managed at amba bus level in
+> the same code path. As per my understanding the issue should come even
+> without these patches.
 
-To be honest, it was _me_ who pointed out the dilemma here.
+But were the clocks managed directly by the pl330 driver same as those
+managed at amba bus level ? The first patch as above removed chunk
 
-> and he is also right that one can not 
-> expect the manufacturers to pay any attention. Mauro is also absolutely 
-> right that it is not good to break what works already for some people, 
-> hoping to please some others who are presently unhappy.
+@@ -2887,24 +2884,17 @@ pl330_probe(struct amba_device *adev, const struct
+amba_id *id)
+                goto probe_err1;
+        }
 
-We all agree in this point (although it's actually the other way around
-in this case - we would _verifiably_ fix the Easycap device and _might_
-break others).
-It's just as you said a few lines above - it's a dilemma.
-And at the moment, it seems the only way to make sure we don't cause
-regressions is to do nothing (=> use module parameters)
+-       pdmac->clk = clk_get(&adev->dev, "dma");
+-       if (IS_ERR(pdmac->clk)) {
+-               dev_err(&adev->dev, "Cannot get operation clock.\n");
+-               ret = -EINVAL;
+-               goto probe_err2;
+-       }
+-
 
->  A better solution needs to be found.
+which suggest the driver was enabling directly "dma" clocks, defined at
+S5PV210 platform level as:
 
-That's what this discussion is about. ;-)
+        {
+                .name           = "dma",
+                .devname        = "dma-pl330.0",
+                .parent         = &clk_hclk_psys.clk,
+                .enable         = s5pv210_clk_ip0_ctrl,
+                .ctrlbit        = (1 << 3),
+        }, {
+                .name           = "dma",
+                .devname        = "dma-pl330.1",
+                .parent         = &clk_hclk_psys.clk,
+                .enable         = s5pv210_clk_ip0_ctrl,
+                .ctrlbit        = (1 << 4),
+        }, {
 
-> Could I make a suggestion?
->
-> Sometimes it is possible to find some undocumented way to identify 
-> uniquely which one of two devices you have. As an example, look in 
-> mr97310a.c, where there is a detection routine for several devices which 
-> all have the same USB vendor:product code but are different inside. 
->
-> Indeed, back when lots of those mr97310a cameras were on the market, the 
-> "manufacturers" were supposed to be sending out the cameras with the 
-> "right" windows driver. Except the situation was actually so bad that 
-> quite often some of the manufacturers were grabbing the wrong driver CD 
-> off the shelf and putting it with the wrong cameras! You can do a Google 
-> search for the Windows driver for some of those cameras and find web pages 
-> full of complaints from disgruntled users who got the wrong CD in the 
-> package with the camera, frantically looking for the right driver CD. It 
-> was that bad. Now to top that off, think of some poor guy having a Windows 
-> computer and wanting to have two cameras of the same brand and make, with 
-> identical cases on the outside, but which needed different versions of the 
-> driver CD. And whichever driver is installed one of the two cameras will 
-> not work. Proof, BTW, that neither of those Windows drivers contains any 
-> detection routine.
->
-> The gspca_mr97310a module for Linux is the only support for those cameras 
-> for any operating system that I know of, which actually can tell one of 
-> those cameras from the other and apply the right initialiation to it when 
-> it is hooked up -- unless somebody has copied us since then.
->
-> The situation here looks to me similar. What someone needs to do is to 
-> find some kind of "read" command or sequence of commands (probably to the 
-> sensor, not to the controller) which will report a distinct answer for 
-> each of the various different cameras. Almost certainly, it will not be 
-> documented, but it almost certainly has to exist -- if for no other 
-> reason, because something is obviously different about the two pieces of 
-> hardware. So in my opinion the thing to do is to try to find that magic 
-> command. By a combination of educated guessing and trial and error. This 
-> needs for someone to have both cameras, or for two or more people who have 
-> the different cameras to cooperate together and hunt for the right command 
-> which unlocks the mystery.
->
-> I am out of this one because I don't have one of the cameras currently in 
-> question. But I did have a big pile of mr97310a cameras, and that is 
-> exactly what I did. Started sending various commands and checking whether 
-> or not I got different results until I found what works.
->
-> So, good luck. The answer is probably there if one looks for it.
+And amba bus was getting only dummy clocks behind "apb_pclk" clock
+conn_id.
 
-The problem is, we don't have other devices at the moment for comparision.
-And the second but more serious problems is, that we don't start from zero.
-There _is_ already a board configuration assigned to these (em2860 +
-saa7113) devices and it has been used for a long time (at least 4 years).
-So unless we don't know the details about _all_ existing devices,
-changes can always cause regressions.
-That sucks, but it's the truth. :-(
+> @Lonsn: Can you please test without these patches?
 
-So we have basically two choices:
-a) be conservative and dot nothing to avoid regressions
-b) speculate about unknown devices (possible configurations, quantity)
-and pondering on the risks of changes
+I suspect reverting only patch
+DMA: PL330: Remove redundant runtime_suspend/resume functions
+with PM_RUNTIME enabled might fix the issue.
 
-I personally tend to be conservative, but I'm not 100% sure if this is
-The Right Thing (TM) to do in this case.
-
+--
 
 Regards,
-Frank
-
-> My two cents,
->
-> Theodore Kilgore
-
+Sylwester
