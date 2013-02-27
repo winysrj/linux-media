@@ -1,146 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gw90.de ([188.40.100.199]:52038 "EHLO mail.gw90.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750932Ab3BEKKS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Feb 2013 05:10:18 -0500
-Message-ID: <1360057113.5004.29.camel@mattotaupa>
-Subject: Re: [PATCH v4 1/1] video: drm: exynos: Adds display-timing node
- parsing using video helper function
-From: Paul Menzel <paulepanter@users.sourceforge.net>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, l.krishna@samsung.com,
-	kgene.kim@samsung.com, linux-media@vger.kernel.org
-Date: Tue, 05 Feb 2013 10:38:33 +0100
-In-Reply-To: <1360042367-16397-2-git-send-email-vikas.sajjan@linaro.org>
-References: <1360042367-16397-1-git-send-email-vikas.sajjan@linaro.org>
-	 <1360042367-16397-2-git-send-email-vikas.sajjan@linaro.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-8g6tEjELB1oZ4vrDJzKB"
-Mime-Version: 1.0
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:46872 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755151Ab3B0JFl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 04:05:41 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [REVIEW PATCH 01/11] s2255: convert to the control framework.
+Date: Wed, 27 Feb 2013 10:05:17 +0100
+Cc: linux-media@vger.kernel.org, Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1361900146-32759-1-git-send-email-hverkuil@xs4all.nl> <f11ed501c392d8891c3eefeb4959a117e5ddf94e.1361900043.git.hans.verkuil@cisco.com> <512D355F.2010309@gmail.com>
+In-Reply-To: <512D355F.2010309@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201302271005.17713.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue 26 February 2013 23:21:19 Sylwester Nawrocki wrote:
+> Hi Hans,
+> 
+> On 02/26/2013 06:35 PM, Hans Verkuil wrote:
+> > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> > index dcd6374..f6ba2fc 100644
+> > --- a/include/uapi/linux/v4l2-controls.h
+> > +++ b/include/uapi/linux/v4l2-controls.h
+> > @@ -146,6 +146,10 @@ enum v4l2_colorfx {
+> >    * of controls. We reserve 16 controls for this driver. */
+> >   #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
+> 
+> I couldn't find a patch adding this hunk in my e-mail archive so I'm
+> commenting here. Shouldn't V4L2_CID_USER_MEYE_BASE start at a higher value,
+> e.g. (V4L2_CID_USER_BASE + 0x1010) to account for drivers that already
+> use private controls ? There is couple of them with a few control IDs
+> starting at V4L2_CID_USER_BASE.
 
---=-8g6tEjELB1oZ4vrDJzKB
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Private controls always had overlapping IDs. During one of the mini-summits
+last year we decided to change that so they all had their own ID. The meye
+driver is one of the first to have a proper range defined, eventually all
+other drivers that have private controls will be added there. That includes
+those you found with grep.
 
-Dear Vikas,
+So give me time and it will all be fixed :-)
 
+Regards,
 
-thank you for the patch. Please send a fifth iteration with the
-following changes to the commit message.
+	Hans
 
-Am Dienstag, den 05.02.2013, 11:02 +0530 schrieb Vikas Sajjan:
-
-The summary should not implicitly assume =C2=BBpatch=C2=AB written before i=
-t. So
-do not add third person s to =C2=BBAdd=C2=AB.
-
-        video: drm: exynos: Add display-timing node parsing using video hel=
-per function
-
-> This patch adds display-timing node parsing using video helper function
-
-As this is the same as the summary you should leave it out. Also it is
-good style not to use =C2=BBThis/The patch=C2=AB in the commit message.
-
-Please use the commit message to explain your change. For example the if
-statement. Why is the original code put into the else branch and is not
-needed if the first condition is true?
-
-> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   41 ++++++++++++++++++++++++=
-+++---
->  1 file changed, 37 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/e=
-xynos/exynos_drm_fimd.c
-> index bf0d9ba..978e866 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
-> =20
->  #include <video/samsung_fimd.h>
->  #include <drm/exynos_drm.h>
-> @@ -905,16 +906,48 @@ static int __devinit fimd_probe(struct platform_dev=
-ice *pdev)
->  	struct exynos_drm_subdrv *subdrv;
->  	struct exynos_drm_fimd_pdata *pdata;
->  	struct exynos_drm_panel_info *panel;
-> +	struct fb_videomode *fbmode;
-> +	struct pinctrl *pctrl;
->  	struct resource *res;
->  	int win;
->  	int ret =3D -EINVAL;
-> =20
->  	DRM_DEBUG_KMS("%s\n", __FILE__);
-> =20
-> -	pdata =3D pdev->dev.platform_data;
-> -	if (!pdata) {
-> -		dev_err(dev, "no platform data specified\n");
-> -		return -EINVAL;
-> +	if (pdev->dev.of_node) {
-> +		pdata =3D devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +		if (!pdata) {
-> +			DRM_ERROR("memory allocation for pdata failed\n");
-> +			return -ENOMEM;
-> +		}
-> +
-> +		fbmode =3D devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-> +		if (!fbmode) {
-> +			DRM_ERROR("memory allocation for fbmode failed\n");
-> +			return -ENOMEM;
-> +		}
-> +
-> +		ret =3D of_get_fb_videomode(dev->of_node, fbmode, -1);
-> +		if (ret) {
-> +			DRM_ERROR("failed: of_get_fb_videomode() :"
-> +				"return value: %d\n", ret);
-> +			return ret;
-> +		}
-> +		pdata->panel.timing =3D (struct fb_videomode) *fbmode;
-> +
-> +		pctrl =3D devm_pinctrl_get_select_default(dev);
-> +		if (IS_ERR_OR_NULL(pctrl)) {
-> +			DRM_ERROR("failed: devm_pinctrl_get_select_default()"
-> +				"return value: %d\n", PTR_RET(pctrl));
-> +			return PTR_RET(pctrl);
-> +		}
-> +
-> +	} else {
-> +		pdata =3D pdev->dev.platform_data;
-> +		if (!pdata) {
-> +			DRM_ERROR("no platform data specified\n");
-> +			return -EINVAL;
-> +		}
->  	}
-> =20
->  	panel =3D &pdata->panel;
-
-
-Thanks,
-
-Paul
-
---=-8g6tEjELB1oZ4vrDJzKB
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAlEQ0xkACgkQPX1aK2wOHVh+hwCgiFBvZnbfyOHF18dAIP8QqH3G
-veMAoIJcUPX7VpUd8IljC8Mfeim5ypCz
-=BQ9F
------END PGP SIGNATURE-----
-
---=-8g6tEjELB1oZ4vrDJzKB--
-
+> 
+> $ git grep V4L2_CID_USER_BASE
+> 
+> drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_AUTO 
+> (V4L2_CID_USER_BASE | 0x1002)
+> drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_TARGET_LEVEL 
+> (V4L2_CID_USER_BASE | 0x1003)
+> drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_ANALOG_OFFSET 
+> (V4L2_CID_USER_BASE | 0x1004)
+> drivers/media/i2c/mt9p031.c:#define V4L2_CID_BLC_DIGITAL_OFFSET 
+> (V4L2_CID_USER_BASE | 0x1005)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_TEST_PATTERN_COLOR 
+> (V4L2_CID_USER_BASE | 0x1001)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_AUTO 
+> (V4L2_CID_USER_BASE | 0x1002)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_OFFSET 
+> (V4L2_CID_USER_BASE | 0x1003)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_BLACK_LEVEL_CALIBRATE 
+> (V4L2_CID_USER_BASE | 0x1004)
+> drivers/media/i2c/mt9v032.c:#define V4L2_CID_TEST_PATTERN_COLOR 
+> (V4L2_CID_USER_BASE | 0x1001)
+> drivers/media/platform/mem2mem_testdev.c:#define 
+> V4L2_CID_TRANS_TIME_MSEC       (V4L2_CID_USER_BASE + 0x1000)
+> drivers/media/platform/mem2mem_testdev.c:#define V4L2_CID_TRANS_NUM_BUFS 
+>                 (V4L2_CID_USER_BASE + 0x1001)
+> drivers/media/platform/vivi.c:#define VIVI_CID_CUSTOM_BASE 
+> (V4L2_CID_USER_BASE | 0xf000)
+> drivers/media/usb/cpia2/cpia2_v4l.c:#define CPIA2_CID_USB_ALT 
+> (V4L2_CID_USER_BASE | 0xf000)
+> drivers/media/usb/pwc/pwc-v4l.c:#define PWC_CID_CUSTOM(ctrl) 
+> ((V4L2_CID_USER_BASE | 0xf000) + custom_ ## ctrl)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_ISIF_CID_CRGAIN             (V4L2_CID_USER_BASE | 0xa001)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_ISIF_CID_CGRGAIN            (V4L2_CID_USER_BASE | 0xa002)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_ISIF_CID_CGBGAIN            (V4L2_CID_USER_BASE | 0xa003)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_ISIF_CID_CBGAIN             (V4L2_CID_USER_BASE | 0xa004)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_ISIF_CID_GAIN_OFFSET        (V4L2_CID_USER_BASE | 0xa005)
+> drivers/staging/media/davinci_vpfe/davinci_vpfe_user.h:#define 
+> VPFE_CID_DPCM_PREDICTOR          (V4L2_CID_USER_BASE | 0xa006)
+> include/uapi/linux/v4l2-controls.h:#define V4L2_CID_USER_BASE 
+> V4L2_CID_BASE
+> include/uapi/linux/v4l2-controls.h:#define V4L2_CID_USER_MEYE_BASE 
+>                  (V4L2_CID_USER_BASE + 0x1000)
+> 
+> And also
+> 
+> $ git grep V4L2_CTRL_CLASS_CAMERA
+> 
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_RED 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1001)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_GREEN_RED 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1002)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_GREEN_BLUE 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1003)
+> drivers/media/i2c/mt9t001.c:#define V4L2_CID_GAIN_BLUE 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1004)
+> drivers/media/i2c/s5k6aa.c:#define V4L2_CID_RED_GAIN 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1001)
+> drivers/media/i2c/s5k6aa.c:#define V4L2_CID_GREEN_GAIN 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1002)
+> drivers/media/i2c/s5k6aa.c:#define V4L2_CID_BLUE_GAIN 
+> (V4L2_CTRL_CLASS_CAMERA | 0x1003)
+> 
+> > +/* The base for the s2255 driver controls.
+> > + * We reserve 8 controls for this driver. */
+> > +#define V4L2_CID_USER_S2255_BASE		(V4L2_CID_USER_BASE + 0x1010)
+> > +
+> 
+> --
+> 
+> Regards,
+> Sylwester
+> 
