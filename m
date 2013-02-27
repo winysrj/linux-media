@@ -1,69 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:51500 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755992Ab3BNHym (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 02:54:42 -0500
-Message-ID: <511C980E.40305@schinagl.nl>
-Date: Thu, 14 Feb 2013 08:53:50 +0100
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47298 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265Ab3B0QFy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 11:05:54 -0500
+Date: Wed, 27 Feb 2013 17:05:40 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Dave Airlie <airlied@linux.ie>,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Rob Clark <robdclark@gmail.com>,
+	Leela Krishna Amudala <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: Re: [PATCH v17 2/7] video: add display_timing and videomode
+Message-ID: <20130227160540.GA10491@pengutronix.de>
+References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1359104515-8907-3-git-send-email-s.trumtrar@pengutronix.de>
+ <51223615.4090709@iki.fi>
+ <512E2A1B.6040704@ti.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Michael Stilmant <michael.stilmant@gmail.com>
-Subject: Re: [DTV-TABLE] lu-all
-References: <CA+YD7UG8RApCsqA4adKEOZ7_8a69RhszzWrTBmr_gBoc3pGqxw@mail.gmail.com>
-In-Reply-To: <CA+YD7UG8RApCsqA4adKEOZ7_8a69RhszzWrTBmr_gBoc3pGqxw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <512E2A1B.6040704@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13-02-13 14:56, Michael Stilmant wrote:
-> Hello,
->
-> On Mon, Jan 28, 2013 at 4:12 PM, Oliver Schinagl
-> <oliver+list@schinagl.nl> wrote:
->> "send a git-patch to the mailing list"
-> In attachment what I think is a patch for Luxembourg DVB-T initial
-> scan ("git diff origin master > lux-all.diff")
-> "Adding Channel 21 broadcasting 'Air' since 28/02/2011"
-Applied in c57839aad2260306e6adecc0058fb683a8b34bc4
-> I'm not sure if it is the diff format you expect.
-> I used "git://linuxtv.org/dtv-scan-tables.git" but I can't do a push
-> or I don't know how to do.
-If everybody could push to the repo, it would become a huge mess ;) If a 
-scanfile would needed to be updated on a regular basis (very unlikely) 
-someone could maintain it of course. For now it is based on user 
-contributions.
->
-> isn't expected/easier that I would push the change to some branch and you would
-> commit on master if accepted? or similar?
-You can always do this to your local clone and have a pull request to 
-your branch. But it's much easier to review on the mailing list using a 
-patch. btw, git send-email or git format-patch help greatly in that regard.
->
->>> Indeed in dvb-apps scan /util/scan/dvb-t folder there is still a  fr-Bordeaux files.
->>> In July 2011 Christoph Pfister removed all France regional initial scan files.
->>> http://linuxtv.org/hg/dvb-apps/rev/0b1e26f79698
->>> with commit message: "remove outdated scan files fr-* submitted by mossroy
->>> free.fr use auto-Default or auto-With167kHzOffsets instead"
->>>
->>> I don't know why but Bordeaux escaped from the genocide.
->> IF you have accurate details of fr-Bordeaux (most have those values online,
->> check some of the scanfiles, like nl-All for here in the NL) you'll see that they
->> where actually hand-made from the available resources.
-> I don't have accurate scan for Bordeaux, I believe fr-Bordeaux should
-> been deleted like
-> all region was deleted in July 2011 in one batch by Christoph Pfister.
->
-> this if all region should have been deleted.. it is strange that
-> decision was made.
-> it is like initial scan files are not needed in fact. (why not needed
-> for france?)
-I have no clue what the current situation is in France and why certain 
-decisions where made. If anybody has accurate information to fix things, 
-we can happily fix things.
->
-> best regards,
->
-> Michael
+Ah, sorry. Forgot to answer this.
 
+On Wed, Feb 27, 2013 at 05:45:31PM +0200, Tomi Valkeinen wrote:
+> Ping.
+> 
+> On 2013-02-18 16:09, Tomi Valkeinen wrote:
+> > Hi Steffen,
+> > 
+> > On 2013-01-25 11:01, Steffen Trumtrar wrote:
+> > 
+> >> +/* VESA display monitor timing parameters */
+> >> +#define VESA_DMT_HSYNC_LOW		BIT(0)
+> >> +#define VESA_DMT_HSYNC_HIGH		BIT(1)
+> >> +#define VESA_DMT_VSYNC_LOW		BIT(2)
+> >> +#define VESA_DMT_VSYNC_HIGH		BIT(3)
+> >> +
+> >> +/* display specific flags */
+> >> +#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
+> >> +#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
+> >> +#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. edge */
+> >> +#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. edge */
+> >> +#define DISPLAY_FLAGS_INTERLACED	BIT(4)
+> >> +#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
+> > 
+> > <snip>
+> > 
+> >> +	unsigned int dmt_flags;	/* VESA DMT flags */
+> >> +	unsigned int data_flags; /* video data flags */
+> > 
+> > Why did you go for this approach? To be able to represent
+> > true/false/not-specified?
+> > 
+
+We decided somewhere between v3 and v8 (I think), that those flags can be
+high/low/ignored.
+
+> > Would it be simpler to just have "flags" field? What does it give us to
+> > have those two separately?
+> > 
+
+I decided to split them, so it is clear that some flags are VESA defined and
+the others are "invented" for the display-timings framework and may be
+extended.
+
+> > Should the above say raising edge/falling edge instead of positive
+> > edge/negative edge?
+> > 
+
+Hm, I used posedge/negedge because it is shorter (and because of my Verilog past
+pretty natural to me :-) ). I don't know what others are thinking though.
+
+Regards,
+Steffen
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
