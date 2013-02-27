@@ -1,101 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:63520 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933407Ab3BTSWg (ORCPT
+Received: from mail-da0-f52.google.com ([209.85.210.52]:60833 "EHLO
+	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759656Ab3B0LuS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Feb 2013 13:22:36 -0500
-Received: by mail-ee0-f49.google.com with SMTP id d4so4113447eek.8
-        for <linux-media@vger.kernel.org>; Wed, 20 Feb 2013 10:22:35 -0800 (PST)
-Message-ID: <5125149C.6030208@googlemail.com>
-Date: Wed, 20 Feb 2013 19:23:24 +0100
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Mr Goldcove <goldcove@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Wrongly identified easycap em28xx
-References: <512294CA.3050401@gmail.com> <51229C2D.8060700@googlemail.com> <5122ACDF.1020705@gmail.com> <5123ACA0.2060503@googlemail.com> <20130219153024.6f468d43@redhat.com> <5123C849.6080207@googlemail.com> <20130219155303.25c5077a@redhat.com> <5123D651.1090108@googlemail.com> <20130219170343.00b92d18@redhat.com> <alpine.LNX.2.02.1302192234130.27265@banach.math.auburn.edu> <20130220075134.4d07213f@redhat.com>
-In-Reply-To: <20130220075134.4d07213f@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 27 Feb 2013 06:50:18 -0500
+Received: by mail-da0-f52.google.com with SMTP id x33so263708dad.39
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 03:50:18 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	joshi@samsung.com, inki.dae@samsung.com, l.krishna@samsung.com,
+	patches@linaro.org, linaro-dev@lists.linaro.org
+Subject: [PATCH v8 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
+Date: Wed, 27 Feb 2013 17:19:55 +0530
+Message-Id: <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<snip>
+Add support for parsing the display-timing node using video helper
+function.
 
-Am 20.02.2013 11:51, schrieb Mauro Carvalho Chehab:
-> Em Tue, 19 Feb 2013 23:09:16 -0600 (CST)
-> Theodore Kilgore <kilgota@banach.math.auburn.edu> escreveu:
->
->> On Tue, 19 Feb 2013, Mauro Carvalho Chehab wrote:
->>
->>>> So even if you are are right and the Empia reference design uses an EMP202,
->>>> EM2860_BOARD_SAA711X_REFERENCE_DESIGN might work for devices with other
->>>> AC97-ICs, too.
->>> The vast majority of devices use emp202. There are very few ones using
->>> different models.
->>>
->>> The proposal here is to add a third hint code, that would distinguish
->>> the devices based on the ac97 ID.
->>>
->>>> We should also expect manufacturers to switch between them whenever they
->>>> want (e.g. because of price changes).
->>> Yes, and then we'll need other entries at the hint table.
->>>
->>> Regards
->>> Mauro
->> I see the dilemma. Devices which are not uniquely identifiable. Mauro is 
->> right in pinpointing the problem, and he is also right that one can not 
->> expect the manufacturers to pay any attention. Mauro is also absolutely 
->> right that it is not good to break what works already for some people, 
->> hoping to please some others who are presently unhappy. A better solution 
->> needs to be found.
->>
->> Could I make a suggestion?
->>
->> Sometimes it is possible to find some undocumented way to identify 
->> uniquely which one of two devices you have. 
-> The hardware is identical, except for the audio decoder. Both devices have
-> only 3 chips on it: the em2860 chip, an saa7113 video decoder and the ac97
-> audio mixer, that it is different on each device. 
->
-> One board comes with an ac97 chip ID=0xffffffff [1](emp202, found on the
-> reference design and clones). The other one comes with an ac97 chip 
-> with ID=0x414c4761 (a Realtek ALC653, only found so far on EasyCap DC-60).
->
-> Btw, the issue between them is because of the different mixers found:
-> the mixer channel used by the DC-60 is different than the mixer channel
-> used by the reference design. At the reference design, the audio
-> channel is EM28XX_AMUX_VIDEO. At DC-60, it is EM28XX_AMUX_LINE_IN.
+The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+exists and the NON-DT logic is still maintained under the 'else' part.
 
-Now you got it.
-The relevant difference is the _channel_configuration_, not the used
-AC97 IC manufacturer+model.
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-> I can't think on any other way do distinguish between them except by
-> checking if the audio decoder matches the expected one.
->
-> Adding a logic for such check is simple enough, as the probing logic already
-> contains the needed bits for it.
-
-I'm not convinced, for the following reasons:
-You can't infer from the usage of a particular AC97 IC how the device is
-wired internally / which channel configuration it uses.
-We also can't assume a fixed binding between a particular AC97 IC and a
-product/board.
-
-So _if_ we really decide to leave the conservative path and take the
-risk of regressions for the sake of fixing other devices,
-we should at least be sure that we fix more devices than we break. (Even
-then it still sucks !)
-
-Regards,
-Frank
-
-> [1] There is a variant of emp202 at address 0x83847650.
->
-> Regards,
-> Mauro
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..7932dc2 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -20,6 +20,7 @@
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
+ 
++#include <video/of_display_timing.h>
+ #include <video/samsung_fimd.h>
+ #include <drm/exynos_drm.h>
+ 
+@@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device *pdev)
+ 
+ 	DRM_DEBUG_KMS("%s\n", __FILE__);
+ 
+-	pdata = pdev->dev.platform_data;
+-	if (!pdata) {
+-		dev_err(dev, "no platform data specified\n");
+-		return -EINVAL;
++	if (pdev->dev.of_node) {
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			DRM_ERROR("memory allocation for pdata failed\n");
++			return -ENOMEM;
++		}
++
++		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
++					OF_USE_NATIVE_MODE);
++		if (ret) {
++			DRM_ERROR("failed: of_get_fb_videomode()\n"
++				"with return value: %d\n", ret);
++			return ret;
++		}
++	} else {
++		pdata = pdev->dev.platform_data;
++		if (!pdata) {
++			DRM_ERROR("no platform data specified\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	panel = &pdata->panel;
+-- 
+1.7.9.5
 
