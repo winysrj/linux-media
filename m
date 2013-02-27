@@ -1,94 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:42408 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756526Ab3BAMAA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 07:00:00 -0500
-Received: by mail-da0-f52.google.com with SMTP id f10so1714076dak.25
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 04:00:00 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	s.trumtrar@pengutronix.de, inki.dae@samsung.com,
-	l.krishna@samsung.com
-Subject: [PATCH v3 1/1] video: drm: exynos: Adds display-timing node parsing using video helper function
-Date: Fri,  1 Feb 2013 17:29:49 +0530
-Message-Id: <1359719989-29628-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1359719989-29628-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1359719989-29628-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:39588 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484Ab3B0GHa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 01:07:30 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: mchehab@redhat.com
+Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, sam@ravnborg.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v7 3/9] mfd: Add chip properties handling code for SI476X MFD
+Date: Tue, 26 Feb 2013 22:06:47 -0800
+Message-Id: <1361945213-4280-4-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds display-timing node parsing using video helper function
+This patch adds code related to manipulation of the properties of
+SI476X chips.
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
 ---
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   39 +++++++++++++++++++++++++++---
- 1 file changed, 35 insertions(+), 4 deletions(-)
+ drivers/mfd/si476x-prop.c |  234 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 234 insertions(+)
+ create mode 100644 drivers/mfd/si476x-prop.c
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index bf0d9ba..8eee13f 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -19,6 +19,7 @@
- #include <linux/clk.h>
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pinctrl/consumer.h>
- 
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
-@@ -905,16 +906,46 @@ static int __devinit fimd_probe(struct platform_device *pdev)
- 	struct exynos_drm_subdrv *subdrv;
- 	struct exynos_drm_fimd_pdata *pdata;
- 	struct exynos_drm_panel_info *panel;
-+	struct fb_videomode *fbmode;
-+	struct pinctrl *pctrl;
- 	struct resource *res;
- 	int win;
- 	int ret = -EINVAL;
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
+diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
+new file mode 100644
+index 0000000..d2b5cc0
+--- /dev/null
++++ b/drivers/mfd/si476x-prop.c
+@@ -0,0 +1,234 @@
++/*
++ * drivers/mfd/si476x-prop.c -- Subroutines to manipulate with
++ * properties of si476x chips
++ *
++ * Copyright (C) 2012 Innovative Converged Devices(ICD)
++ * Copyright (C) 2013 Andrey Smirnov
++ *
++ * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; version 2 of the License.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/module.h>
 +
-+		fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-+		if (!fbmode) {
-+			DRM_ERROR("memory allocation for fbmode failed\n");
-+			return -ENOMEM;
-+		}
++#include <media/si476x.h>
++#include <linux/mfd/si476x-core.h>
 +
-+		ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
-+		if (ret) {
-+			DRM_ERROR("failed to get fb_videomode\n");
-+			return -EINVAL;
-+		}
-+		pdata->panel.timing = (struct fb_videomode) *fbmode;
++struct si476x_property_range {
++	u16 low, high;
++};
 +
-+		pctrl = devm_pinctrl_get_select_default(dev);
-+		if (IS_ERR(pctrl)) {
-+			DRM_ERROR("no pinctrl data provided.\n");
-+			return -EINVAL;
-+		}
++static bool si476x_core_element_is_in_array(u16 element, const u16 array[], size_t size)
++{
++	int i;
 +
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
- 	}
- 
- 	panel = &pdata->panel;
++	for (i = 0; i < size; i++)
++		if (element == array[i])
++			return true;
++
++	return false;
++}
++
++static bool si476x_core_element_is_in_range(u16 element,
++					    const struct si476x_property_range range[],
++					    size_t size)
++{
++	int i;
++
++	for (i = 0; i < size; i++)
++		if (element <= range[i].high && element >= range[i].low)
++			return true;
++
++	return false;
++}
++
++static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x0000,
++		0x0500, 0x0501,
++		0x0600,
++		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
++		0x0718,
++		0x1207, 0x1208,
++		0x2007,
++		0x2300,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x0200, 0x0203 },
++		{ 0x0300, 0x0303 },
++		{ 0x0400, 0x0404 },
++		{ 0x0700, 0x0707 },
++		{ 0x1100, 0x1102 },
++		{ 0x1200, 0x1204 },
++		{ 0x1300, 0x1306 },
++		{ 0x2000, 0x2005 },
++		{ 0x2100, 0x2104 },
++		{ 0x2106, 0x2106 },
++		{ 0x2200, 0x220E },
++		{ 0x3100, 0x3104 },
++		{ 0x3207, 0x320F },
++		{ 0x3300, 0x3304 },
++		{ 0x3500, 0x3517 },
++		{ 0x3600, 0x3617 },
++		{ 0x3700, 0x3717 },
++		{ 0x4000, 0x4003 },
++	};
++
++	return	si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges)) ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x071B,
++		0x1006,
++		0x2210,
++		0x3401,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x2215, 0x2219 },
++	};
++
++	return	si476x_core_is_valid_property_a10(core, property) ||
++		si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges))  ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
++					      u16 property)
++{
++	static const u16 valid_properties[] = {
++		0x071C, 0x071D,
++		0x1007, 0x1008,
++		0x220F, 0x2214,
++		0x2301,
++		0x3105, 0x3106,
++		0x3402,
++	};
++
++	static const struct si476x_property_range valid_ranges[] = {
++		{ 0x0405, 0x0411 },
++		{ 0x2008, 0x200B },
++		{ 0x2220, 0x2223 },
++		{ 0x3100, 0x3106 },
++	};
++
++	return	si476x_core_is_valid_property_a20(core, property) ||
++		si476x_core_element_is_in_range(property, valid_ranges,
++						ARRAY_SIZE(valid_ranges)) ||
++		si476x_core_element_is_in_array(property, valid_properties,
++						ARRAY_SIZE(valid_properties));
++}
++
++typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
++
++static bool si476x_core_is_valid_property(struct si476x_core *core, u16 property)
++{
++	static const valid_property_pred_t is_valid_property[] = {
++		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
++		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
++		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
++	};
++
++	BUG_ON(core->revision > SI476X_REVISION_A30 ||
++	       core->revision == -1);
++	return is_valid_property[core->revision](core, property);
++}
++
++
++static bool si476x_core_is_readonly_property(struct si476x_core *core, u16 property)
++{
++	BUG_ON(core->revision > SI476X_REVISION_A30 ||
++	       core->revision == -1);
++
++	switch (core->revision) {
++	case SI476X_REVISION_A10:
++		return (property == 0x3200);
++	case SI476X_REVISION_A20:
++		return (property == 0x1006 ||
++			property == 0x2210 ||
++			property == 0x3200);
++	case SI476X_REVISION_A30:
++		return false;
++	}
++
++	return false;
++}
++
++static bool si476x_core_regmap_readable_register(struct device *dev, unsigned int reg)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct si476x_core *core = i2c_get_clientdata(client);
++
++	return si476x_core_is_valid_property(core, (u16) reg);
++
++}
++
++static bool si476x_core_regmap_writable_register(struct device *dev, unsigned int reg)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct si476x_core *core = i2c_get_clientdata(client);
++
++	return si476x_core_is_valid_property(core, (u16) reg) &&
++		!si476x_core_is_readonly_property(core, (u16) reg);
++}
++
++
++static int si476x_core_regmap_write(void *context, unsigned int reg, unsigned int val)
++{
++	return si476x_core_cmd_set_property(context, reg, val);
++}
++
++static int si476x_core_regmap_read(void *context, unsigned int reg, unsigned *val)
++{
++	struct si476x_core *core = context;
++	int err;
++
++	err = si476x_core_cmd_get_property(core, reg);
++	if (err < 0)
++		return err;
++
++	*val = err;
++
++	return 0;
++}
++
++
++static const struct regmap_config si476x_regmap_config = {
++	.reg_bits = 16,
++	.val_bits = 16,
++
++	.max_register = 0x4003,
++
++	.writeable_reg = si476x_core_regmap_writable_register,
++	.readable_reg = si476x_core_regmap_readable_register,
++
++	.reg_read = si476x_core_regmap_read, 
++	.reg_write = si476x_core_regmap_write,
++ 
++	.cache_type = REGCACHE_RBTREE,
++};
++
++struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
++{
++	return devm_regmap_init(&core->client->dev, NULL,
++				core, &si476x_regmap_config);
++}
++EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
 -- 
-1.7.9.5
+1.7.10.4
 
