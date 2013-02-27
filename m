@@ -1,42 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from infernal.debian.net ([176.28.9.132]:44715 "EHLO
-	infernal.debian.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754867Ab3BRAvQ (ORCPT
+Received: from mail-oa0-f42.google.com ([209.85.219.42]:51194 "EHLO
+	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab3B0KQU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Feb 2013 19:51:16 -0500
-Date: Mon, 18 Feb 2013 01:10:02 +0100
-From: Andreas Bombe <aeb@debian.org>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [media-ctl PATCH] configure.ac: Respect CPPFLAGS from environment
-Message-ID: <20130218001002.GA7885@amos.fritz.box>
+	Wed, 27 Feb 2013 05:16:20 -0500
+Received: by mail-oa0-f42.google.com with SMTP id i18so772185oag.15
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 02:16:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Wed, 27 Feb 2013 15:46:00 +0530
+Message-ID: <CAO_48GG2T1owdCPdmArG0ZY_SbBk5JwSu4a9O20qGvYfEObLhA@mail.gmail.com>
+Subject: [GIT PULL]: dma-buf updates for 3.9
+To: Linus Torvalds <torvalds@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	linux-media@vger.kernel.org
+Cc: akpm@linux-foundation.org, Daniel Vetter <daniel@ffwll.ch>,
+	Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@linux.ie>,
+	Tom Gall <tom.gall@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andreas Bombe <aeb@debian.org>
----
- configure.ac |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Linus,
 
-diff --git a/configure.ac b/configure.ac
-index 98459d4..a749794 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -48,7 +48,7 @@ AC_ARG_WITH(kernel-headers,
-      esac],
-     [KERNEL_HEADERS_DIR="/usr/src/kernel-headers"])
- 
--CPPFLAGS="-I$KERNEL_HEADERS_DIR/include"
-+CPPFLAGS="$CPPFLAGS -I$KERNEL_HEADERS_DIR/include"
- 
- # Checks for header files.
- AC_CHECK_HEADERS([linux/media.h \
--- 
-1.7.10.4
+Here's the 3.9 pull request for dma-buf framework updates: could you
+please pull?
+
+Thanks and best regards,
+~Sumit.
 
 
--- 
-Andreas Bombe
+The following changes since commit d895cb1af15c04c522a25c79cc429076987c089b:
+
+  Merge branch 'for-linus' of
+git://git.kernel.org/pub/scm/linux/kernel/git/viro/vfs (2013-02-26
+20:16:07 -0800)
+
+are available in the git repository at:
+
+
+  git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+tags/tag-for-linus-3.9
+
+for you to fetch changes up to 495c10cc1c0c359871d5bef32dd173252fc17995:
+
+  CHROMIUM: dma-buf: restore args on failure of dma_buf_mmap
+(2013-02-27 15:14:02 +0530)
+
+----------------------------------------------------------------
+3.9: dma-buf updates
+Refcounting implemented for vmap in core dma-buf
+
+----------------------------------------------------------------
+Daniel Vetter (1):
+      dma-buf: implement vmap refcounting in the interface logic
+
+John Sheu (1):
+      CHROMIUM: dma-buf: restore args on failure of dma_buf_mmap
+
+ Documentation/dma-buf-sharing.txt |    6 +++-
+ drivers/base/dma-buf.c            |   66 ++++++++++++++++++++++++++++++-------
+ include/linux/dma-buf.h           |    4 ++-
+ 3 files changed, 63 insertions(+), 13 deletions(-)
