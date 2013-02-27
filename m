@@ -1,124 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:57686 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932322Ab3BODU0 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39461 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759943Ab3B0PqQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Feb 2013 22:20:26 -0500
-Received: by mail-wg0-f52.google.com with SMTP id 12so2374402wgh.31
-        for <linux-media@vger.kernel.org>; Thu, 14 Feb 2013 19:20:25 -0800 (PST)
+	Wed, 27 Feb 2013 10:46:16 -0500
+Message-ID: <512E2A1B.6040704@ti.com>
+Date: Wed, 27 Feb 2013 17:45:31 +0200
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1360124655-22902-2-git-send-email-vikas.sajjan@linaro.org>
-References: <1360124655-22902-1-git-send-email-vikas.sajjan@linaro.org>
-	<1360124655-22902-2-git-send-email-vikas.sajjan@linaro.org>
-Date: Fri, 15 Feb 2013 12:20:24 +0900
-Message-ID: <CAAQKjZNoY2cXXc2b3AUiU0mmUKqgOd4MA_CjUe+tr0H4WN1htg@mail.gmail.com>
-Subject: Re: [PATCH v5 1/1] video: drm: exynos: Add display-timing node
- parsing using video helper function
-From: Inki Dae <inki.dae@samsung.com>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, l.krishna@samsung.com,
-	kgene.kim@samsung.com, paulepanter@users.sourceforge.net,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+CC: <devicetree-discuss@lists.ozlabs.org>,
+	Dave Airlie <airlied@linux.ie>,
+	Rob Herring <robherring2@gmail.com>,
+	<linux-fbdev@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	<linux-media@vger.kernel.org>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Rob Clark <robdclark@gmail.com>,
+	Leela Krishna Amudala <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, <kernel@pengutronix.de>
+Subject: Re: [PATCH v17 2/7] video: add display_timing and videomode
+References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de> <1359104515-8907-3-git-send-email-s.trumtrar@pengutronix.de> <51223615.4090709@iki.fi>
+In-Reply-To: <51223615.4090709@iki.fi>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig8D4F70B7470859BB845B6389"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/2/6 Vikas Sajjan <vikas.sajjan@linaro.org>:
-> Add support for parsing the display-timing node using video helper
-> function.
->
-> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
-> exists and the NON-DT logic is still maintained under the 'else' part.
->
-> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   41 +++++++++++++++++++++++++++---
->  1 file changed, 37 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index bf0d9ba..978e866 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -19,6 +19,7 @@
->  #include <linux/clk.h>
->  #include <linux/of_device.h>
->  #include <linux/pm_runtime.h>
-> +#include <linux/pinctrl/consumer.h>
->
->  #include <video/samsung_fimd.h>
->  #include <drm/exynos_drm.h>
-> @@ -905,16 +906,48 @@ static int __devinit fimd_probe(struct platform_device *pdev)
->         struct exynos_drm_subdrv *subdrv;
->         struct exynos_drm_fimd_pdata *pdata;
->         struct exynos_drm_panel_info *panel;
-> +       struct fb_videomode *fbmode;
-> +       struct pinctrl *pctrl;
->         struct resource *res;
->         int win;
->         int ret = -EINVAL;
->
->         DRM_DEBUG_KMS("%s\n", __FILE__);
->
-> -       pdata = pdev->dev.platform_data;
-> -       if (!pdata) {
-> -               dev_err(dev, "no platform data specified\n");
-> -               return -EINVAL;
-> +       if (pdev->dev.of_node) {
-> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-> +               if (!pdata) {
-> +                       DRM_ERROR("memory allocation for pdata failed\n");
-> +                       return -ENOMEM;
-> +               }
-> +
-> +               fbmode = devm_kzalloc(dev, sizeof(*fbmode), GFP_KERNEL);
-> +               if (!fbmode) {
-> +                       DRM_ERROR("memory allocation for fbmode failed\n");
-> +                       return -ENOMEM;
-> +               }
+--------------enig8D4F70B7470859BB845B6389
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-It doesn't need to allocate fbmode.
+Ping.
 
-> +
-> +               ret = of_get_fb_videomode(dev->of_node, fbmode, -1);
+On 2013-02-18 16:09, Tomi Valkeinen wrote:
+> Hi Steffen,
+>=20
+> On 2013-01-25 11:01, Steffen Trumtrar wrote:
+>=20
+>> +/* VESA display monitor timing parameters */
+>> +#define VESA_DMT_HSYNC_LOW		BIT(0)
+>> +#define VESA_DMT_HSYNC_HIGH		BIT(1)
+>> +#define VESA_DMT_VSYNC_LOW		BIT(2)
+>> +#define VESA_DMT_VSYNC_HIGH		BIT(3)
+>> +
+>> +/* display specific flags */
+>> +#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
+>> +#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
+>> +#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. ed=
+ge */
+>> +#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. ed=
+ge */
+>> +#define DISPLAY_FLAGS_INTERLACED	BIT(4)
+>> +#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
+>=20
+> <snip>
+>=20
+>> +	unsigned int dmt_flags;	/* VESA DMT flags */
+>> +	unsigned int data_flags; /* video data flags */
+>=20
+> Why did you go for this approach? To be able to represent
+> true/false/not-specified?
+>=20
+> Would it be simpler to just have "flags" field? What does it give us to=
 
-What is -1? use OF_USE_NATIVE_MODE instead including
-"of_display_timing.h" and just change the above code like below,
+> have those two separately?
+>=20
+> Should the above say raising edge/falling edge instead of positive
+> edge/negative edge?
+>=20
+>  Tomi
+>=20
 
-                   fbmode = &pdata->panel.timing;
-                   ret = of_get_fb_videomode(dev->of_node, fbmode,
-OF_USE_NATIVE_MODE);
 
-> +               if (ret) {
-> +                       DRM_ERROR("failed: of_get_fb_videomode()\n"
-> +                               "with return value: %d\n", ret);
-> +                       return ret;
-> +               }
-> +               pdata->panel.timing = (struct fb_videomode) *fbmode;
 
-remove the above line.
+--------------enig8D4F70B7470859BB845B6389
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> +
-> +               pctrl = devm_pinctrl_get_select_default(dev);
-> +               if (IS_ERR_OR_NULL(pctrl)) {
-> +                       DRM_ERROR("failed: devm_pinctrl_get_select_default()\n"
-> +                               "with return value: %d\n", PTR_RET(pctrl));
-> +                       return PTR_RET(pctrl);
-> +               }
-> +
-> +       } else {
-> +               pdata = pdev->dev.platform_data;
-> +               if (!pdata) {
-> +                       DRM_ERROR("no platform data specified\n");
-> +                       return -EINVAL;
-> +               }
->         }
->
->         panel = &pdata->panel;
-> --
-> 1.7.9.5
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with undefined - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJRLiobAAoJEPo9qoy8lh71288P/1mHpTBjp+F4XUAKRdQ1KaaX
+EIvTd8/DjltO8lTrXsIE7aYIfsHIAVNayTYdwRyxUNwMM+rvN1xFwSxVXV3dfJUV
+yGihyg5zFNwFQoNZ+H0kzGYZyjWa6by2ILu39lGSnKDs+4MZby2QlxLjQXrLIlUe
+xVqUrxUVLf2+iaHUhrdoi/ZZmE8qK1qzTCI4mmZtyQWkXgop11c+xKgWCoDvPtnd
+mnwtVOPdUW+TLg2TVfVUHoY87fxk+mNvC7cm8n25LdTwDHEwT8FCyduAWRveJqYb
+x3vctW0Fz1cqS/0mZ6MFT9OExy9DbyYMVZ4YgNX1jupeNT6V6kiKR9+31vs8M6lP
+rK54jhudTOe7eB20561VD3vKiT1O5GUn2KPj3tL8P2CxF4xKWy4gvEHHv7s4wvmR
+rbUARk2E9D4gl0UhW1y20nurTxMw6xGRGaD4PRRXH8F1c6rnho8Qgc1SXlI40OKj
+0ta3uN1DFQS8LGCV6BfEffB5LmpuByEjoO/hJ2kjunUSSrdYxHgbq1vRSM6ACe6b
+1tME9pfQmM2VCn8x+ECehEsDoawx2yBJvfwk0JDz0sTvZaz92tsrx8ORL/zxuiKc
+6jsaZwrmCNnYCs+dSJRSFWnn9AG8nbSnMO+6815TEADHxLTvZew5BNkd95SzLAFi
+QAg2E8INo4IOxs84Hs9J
+=9R2k
+-----END PGP SIGNATURE-----
+
+--------------enig8D4F70B7470859BB845B6389--
