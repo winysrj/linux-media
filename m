@@ -1,112 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f171.google.com ([209.85.128.171]:48942 "EHLO
-	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754590Ab3BFOuU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Feb 2013 09:50:20 -0500
-MIME-Version: 1.0
-In-Reply-To: <51123A5F.9050604@ti.com>
-References: <1990856.qS9uisuiVF@avalon>
-	<51123A5F.9050604@ti.com>
-Date: Wed, 6 Feb 2013 09:44:34 -0500
-Message-ID: <CADnq5_P1GFbAwoe9kTeARq8ZLP1tOBc9Rn1h2KrRYxkoLxLXfw@mail.gmail.com>
-Subject: Re: CDF meeting @FOSDEM report
-From: Alex Deucher <alexdeucher@gmail.com>
-To: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-fbdev@vger.kernel.org, Sebastien Guiriec <s-guiriec@ti.com>,
-	dri-devel@lists.freedesktop.org,
-	Jesse Barnes <jesse.barnes@intel.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Tom Gall <tom.gall@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org,
-	Stephen Warren <swarren@wwwdotorg.org>,
-	Thierry Reding <thierry.reding@avionic-desi.gn.de>,
-	Mark Zhang <markz@nvidia.com>, linaro-mm-sig@lists.linaro.org,
-	=?ISO-8859-1?Q?St=E9phane_Marchesin?=
-	<stephane.marchesin@gmail.com>,
-	Alexandre Courbot <acourbot@nvidia.com>,
-	Ragesh Radhakrishnan <Ragesh.R@linaro.org>,
-	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-	Sunil Joshi <joshi@samsung.com>,
-	Maxime Ripard <maxime.ripard@free-electrons.com>,
-	Vikas Sajjan <vikas.sajjan@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:62462 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752868Ab3B0GHg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 01:07:36 -0500
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: mchehab@redhat.com
+Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, sam@ravnborg.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v7 6/9] v4l2: Add standard controls for FM receivers
+Date: Tue, 26 Feb 2013 22:06:50 -0800
+Message-Id: <1361945213-4280-7-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 6, 2013 at 6:11 AM, Tomi Valkeinen <tomi.valkeinen@ti.com> wrote:
-> Hi,
->
-> On 2013-02-06 00:27, Laurent Pinchart wrote:
->> Hello,
->>
->> We've hosted a CDF meeting at the FOSDEM on Sunday morning. Here's a summary
->> of the discussions.
->
-> Thanks for the summary. I've been on a longish leave, and just got back,
-> so I haven't read the recent CDF discussions on lists yet. I thought
-> I'll start by replying to this summary first =).
->
->> 0. Abbreviations
->> ----------------
->>
->> DBI - Display Bus Interface, a parallel video control and data bus that
->> transmits data using parallel data, read/write, chip select and address
->> signals, similarly to 8051-style microcontroller parallel busses. This is a
->> mixed video control and data bus.
->>
->> DPI - Display Pixel Interface, a parallel video data bus that transmits data
->> using parallel data, h/v sync and clock signals. This is a video data bus
->> only.
->>
->> DSI - Display Serial Interface, a serial video control and data bus that
->> transmits data using one or more differential serial lines. This is a mixed
->> video control and data bus.
->
-> In case you'll re-use these abbrevs in later posts, I think it would be
-> good to mention that DPI is a one-way bus, whereas DBI and DSI are
-> two-way (perhaps that's implicit with control bus, though).
->
->> 1. Goals
->> --------
->>
->> The meeting started with a brief discussion about the CDF goals.
->>
->> Tomi Valkeinin and Tomasz Figa have sent RFC patches to show their views of
->> what CDF could/should be. Many others have provided very valuable feedback.
->> Given the early development stage propositions were sometimes contradictory,
->> and focused on different areas of interest. We have thus started the meeting
->> with a discussion about what CDF should try to achieve, and what it shouldn't.
->>
->> CDF has two main purposes. The original goal was to support display panels in
->> a platform- and subsystem-independent way. While mostly useful for embedded
->> systems, the emergence of platforms such as Intel Medfield and ARM-based PCs
->> that blends the embedded and PC worlds makes panel support useful for the PC
->> world as well.
->>
->> The second purpose is to provide a cross-subsystem interface to support video
->> encoders. The idea originally came from a generalisation of the original RFC
->> that supported panels only. While encoder support is considered as lower
->> priority than display panel support by developers focussed on display
->> controller driver (Intel, Renesas, ST Ericsson, TI), companies that produce
->> video encoders (Analog Devices, and likely others) don't share that point of
->> view and would like to provide a single encoder driver that can be used in
->> both KMS and V4L2 drivers.
->
-> What is an encoder? Something that takes a video signal in, and lets the
-> CPU store the received data to memory? Isn't that a decoder?
->
-> Or do you mean something that takes a video signal in, and outputs a
-> video signal in another format? (transcoder?)
+This commit introduces new class of standard controls
+V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
+pertaining to FM receiver chips. Also, two controls belonging to said
+class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
+V4L2_CID_RDS_RECEPTION.
 
-In KMS parlance, we have two objects a crtc and an encoder.  A crtc
-reads data from memory and produces a data stream with display timing.
- The encoder then takes that datastream and timing from the crtc and
-converts it some sort of physical signal (LVDS, TMDS, DP, etc.).  It's
-not always a perfect match to the hardware.  For example a lot of GPUs
-have a DVO encoder which feeds a secondary encoder like an sil164 DVO
-to TMDS encoder.
+This patch is based on the code found in the patch by Manjunatha Halli [1]
 
-Alex
+[1] http://lists-archives.com/linux-kernel/27641307-new-control-class-and-features-for-fm-rx.html
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
+ include/uapi/linux/v4l2-controls.h   |   13 +++++++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6b28b58..8b89fb8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Text",
+ 		NULL
+ 	};
+-	static const char * const tune_preemphasis[] = {
+-		"No Preemphasis",
++	static const char * const tune_emphasis[] = {
++		"None",
+ 		"50 Microseconds",
+ 		"75 Microseconds",
+ 		NULL,
+@@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_SCENE_MODE:
+ 		return scene_mode;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+-		return tune_preemphasis;
++		return tune_emphasis;
++	case V4L2_CID_TUNE_DEEMPHASIS:
++		return tune_emphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 		return flash_led_mode;
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+@@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
+ 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+ 
++	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
++	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
++	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
++	case V4L2_CID_RDS_RECEPTION:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 	case V4L2_CID_TEST_PATTERN:
++	case V4L2_CID_TUNE_DEEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+@@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index dcd6374..3e985be 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -59,6 +59,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
++#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
+ 
+ /* User-class control IDs */
+ 
+@@ -825,4 +826,16 @@ enum v4l2_dv_rgb_range {
+ #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
+ #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
+ 
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++
++#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
++enum v4l2_deemphasis {
++	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
++	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
++	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
++};
++
++#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
++
+ #endif
+-- 
+1.7.10.4
+
