@@ -1,116 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:41703 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760818Ab3BISws (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 13:52:48 -0500
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Alexander Nestorov <alexandernst@gmail.com>,
-	Juergen Beisert <jbe@pengutronix.de>,
-	oselas@community.pengutronix.de,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>,
-	Andrey Gusakov <dron0gus@gmail.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [oselas] Audio support on Mini6410 board
-Date: Sat, 09 Feb 2013 19:52:43 +0100
-Message-ID: <9072709.Au7dcGPusH@flatron>
-In-Reply-To: <511693AC.5010604@gmail.com>
-References: <CACuz9s2w28eVG8qS9FXkUYAggXn7y2deHi2fPGizcURu_Bp4wg@mail.gmail.com> <CACuz9s0kscbt5Z87mOX6C=9vKg2wrU-T69RS6NQmeSRqP_8K4w@mail.gmail.com> <511693AC.5010604@gmail.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:55449 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755151Ab3B0Kv1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 05:51:27 -0500
+Received: by mail-wi0-f178.google.com with SMTP id hq4so457757wib.5
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 02:51:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <512D2780.3020103@gmail.com>
+References: <51275DF7.4010600@gmail.com>
+	<512D2780.3020103@gmail.com>
+Date: Wed, 27 Feb 2013 16:21:26 +0530
+Message-ID: <CAG17yqQ3d+3Uwpfo+_r0Jwm4TQXcSY-bcW4qRcygzjq=9qXvvA@mail.gmail.com>
+Subject: Re: SMDKV210 support issue in kernel 3.8 (dma-pl330 and HDMI failed)
+From: Inderpal Singh <inderpal.singh@linaro.org>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Lonsn <lonsn2005@gmail.com>, linux-samsung-soc@vger.kernel.org,
+	linux-media@vger.kernel.org, Boojin Kim <boojin.kim@samsung.com>,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 27 February 2013 02:52, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 02/22/2013 01:00 PM, Lonsn wrote:
+>>
+>> Hi,
+>> I have tested the kernel 3.8 with a SMDKV210 like board. But I failed
+>> with dma-pl330 and HDMI driver.
+>> For dma-pl330, kernel print:
+>> dma-pl330 dma-pl330.0: PERIPH_ID 0x0, PCELL_ID 0x0 !
+>> dma-pl330: probe of dma-pl330.0 failed with error -22
+>> dma-pl330 dma-pl330.1: PERIPH_ID 0x0, PCELL_ID 0x0 !
+>> dma-pl330: probe of dma-pl330.1 failed with error -22
+>
+>
+> Maybe there is some issue with the PL330 DMA controller clocks and the
+> read values are all 0 because the clocks are disabled ?
+>
+> It seems arch/arm/mach-s5pv210/clock.c might be missing "apb_pclk" clock
+> supply names, which I suspect may be required after commits:
+>
+> commit 7c71b8eb268ee38235f7e924d943ea9d90e59469
+> Author: Inderpal Singh <inderpal.singh@linaro.org>
+> Date:   Fri Sep 7 12:14:48 2012 +0530
+>
+>     DMA: PL330: Remove redundant runtime_suspend/resume functions
+>
+>     The driver's  runtime_suspend/resume functions just disable/enable
+>     the clock which is already being managed at AMBA bus level
+>     runtime_suspend/resume functions.
+>
+>     Hence, remove the driver's runtime_suspend/resume functions.
+>
+>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
+>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
+>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+>
+> commit faf6fbc6f2ca3b34bf464a8bb079a998e571957c
+> Author: Inderpal Singh <inderpal.singh@linaro.org>
+> Date:   Fri Sep 7 12:14:47 2012 +0530
+>
+>     DMA: PL330: Remove controller clock enable/disable
+>
+>     The controller clock is being enabled/disabled in AMBA bus
+>     infrastructre in probe/remove functions. Hence, its not required
+>     at driver level probe/remove.
+>
+>     Signed-off-by: Inderpal Singh <inderpal.singh@linaro.org>
+>     Tested-by: Chander Kashyap <chander.kashyap@linaro.org>
+>     Signed-off-by: Vinod Koul <vinod.koul@linux.intel.com>
+>
+> I have added people who made related changes at Cc, hopefully they
+> can provide some help in debugging this.
+>
 
-On Saturday 09 of February 2013 19:21:32 Sylwester Nawrocki wrote:
-> Hi,
-> 
-> On 01/20/2013 09:46 PM, Alexander Nestorov wrote:
-> > I have been playing for a week with the board. Both audio and video
-> > work correctly, but I haven't
-> > been able to set the mic settings in alsamixer (so I can't test the
-> > mic). The touchscreen isn't working, so I'll try to make it working
-> > and send you some patches.
-> > 
-> > Anyways, now there's another question/problem that I have. Video
-> > playback is really slow because
-> > I'm not using the device's cpu-decoder but rather doing everything in
-> > software mode.
-> > 
-> > Is there support for hardware acceleration in the kernel for this
-> > device? Also, after talking with
-> 
-> No, there is still no video codec (MFC) driver for s3c6410 upstream.
-> Now, when there is support for the hardware video codec available in
-> newer SoC (Exynos4/5) and some V4L2 infrastructure added together with
-> the s5p-mfc driver, it should be much easier to write a driver for the
-> s3c64xx MFC. Still it is relatively huge task and I didn't see any
-> volunteers willing to add support upstream for the s3c64xx MFC, except
-> Andrey who replied in this thread. I could provide some help, but
-> I will likely won't find time to do any development work or testing.
-> 
-> Also please note there is no support for the mem-to-mem features (color
-> space conversion, scaling, rotation/flip) in the s3c-camif driver.
-> It should be relatively simple to add it though. I'm not really sure
-> if it is needed to run the codec on s3c64xx, but the plugin [1] uses
-> FIMC (CAMIF) as a video post-processor. This plugin sets up processing
-> pipeline like:
-> 
-> memory (compressed data) -> MFC -> (YCbCr tiled) memory -> FIMC ->
-> memory (display)
+The mentioned patches just removed the redundant clock enable/disable
+from the driver as clock is already being managed at amba bus level in
+the same code path. As per my understanding the issue should come even
+without these patches.
 
-AFAIK the MFC (like rest of the media processing peripherals) on S3C6410 
-does not support tiled buffers. It uses the standard planar Y + Cb + Cr 
-format.
+@Lonsn: Can you please test without these patches?
 
-In addition, the MFC of S3C6410 supports built-in rotation and mirroring 
-of decoded video.
+Thanks,
+Inder
 
-For scaling, there is a video post-processor block. There is no upstreamed 
-driver for it, but the hardware is reasonably simple, so it wouldn't be 
-too hard to write a driver for it. (I might be able to do it, although 
-don't count on me, as I have also much other work to do, part of which is 
-also related to S3C64xx).
-
-Best regards,
-Tomasz
-
-> > some people from #gstreamer they pointed me to a component[1] in
-> > gstreamer, but I'm not really
-> > sure how to I use it. Any ideas/experience with that?
-> 
-> This component uses multi-planar V4L2 API [2], which also use the
-> s5p-mfc and s5p-fimc driver. The s3c-camif driver uses the
-> single-planar API at the camera capture video node. So if this existing
-> plugin was to be used with the s3c64xx hardware, the drivers for it
-> would have to support the multi-planar API, which I believe is not
-> needed on s3c64xx hardware.
-> The best is probably to make the drivers only single-plane API aware
-> and adapt the plugin. The required changes at the plugin wouldn't be
-> significant.
-> 
-> Anyway, a real problem here is lack of the s3c64xx MFC driver. So
-> first we need the codec driver, which could be tested with modified
-> test application [3], or directly with modified plugin [1].
-> 
-> > Regards!
-> > 
-> > [1] http://cgit.freedesktop.org/gstreamer/gst-plugins-bad/tree/sys/mfc
-> 
-> [2] http://linuxtv.org/downloads/v4l-dvb-apis/planar-apis.html
-> [3]
-> http://git.infradead.org/users/kmpark/public-apps/tree/9c057b001e8873861
-> a70f7025214003837a0860b
-> 
-> --
-> 
-> Regards,
-> Sylwester
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-samsung-soc" in the body of a message to
-> majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please try the following change:
+>
+> 8<--------------------
+> diff --git a/arch/arm/mach-s5pv210/clock.c b/arch/arm/mach-s5pv210/clock.c
+> index fcdf52d..87c7d3f 100644
+> --- a/arch/arm/mach-s5pv210/clock.c
+> +++ b/arch/arm/mach-s5pv210/clock.c
+> @@ -214,11 +214,6 @@ static struct clk clk_pcmcdclk2 = {
+>         .name           = "pcmcdclk",
+>  };
+>
+> -static struct clk dummy_apb_pclk = {
+> -       .name           = "apb_pclk",
+> -       .id             = -1,
+> -};
+> -
+>  static struct clk *clkset_vpllsrc_list[] = {
+>         [0] = &clk_fin_vpll,
+>         [1] = &clk_sclk_hdmi27m,
+> @@ -1333,6 +1328,8 @@ static struct clk_lookup s5pv210_clk_lookup[] = {
+>         CLKDEV_INIT(NULL, "spi_busclk0", &clk_p),
+>         CLKDEV_INIT("s5pv210-spi.0", "spi_busclk1", &clk_sclk_spi0.clk),
+>         CLKDEV_INIT("s5pv210-spi.1", "spi_busclk1", &clk_sclk_spi1.clk),
+> +       CLKDEV_INIT("dma-pl330.0", "apb_pclk", &init_clocks_off[0]),
+> +       CLKDEV_INIT("dma-pl330.1", "apb_pclk", &init_clocks_off[1]),
+>  };
+>
+>  void __init s5pv210_register_clocks(void)
+> @@ -1361,6 +1358,5 @@ void __init s5pv210_register_clocks(void)
+>         for (ptr = 0; ptr < ARRAY_SIZE(clk_cdev); ptr++)
+>                 s3c_disable_clocks(clk_cdev[ptr], 1);
+>
+> -       s3c24xx_register_clock(&dummy_apb_pclk);
+>         s3c_pwmclk_init();
+>  }
+> 8<--------------------
+>
+> If it works then we could make some cleaner patch.
+>
+>
+>> For HDMI driver,
+>> I have added the following HDMI related code to
+>> arch/arm/mach-s5pv210/mach-smdkv210.c:
+>> /* I2C module and id for HDMIPHY */
+>> static struct i2c_board_info hdmiphy_info = {
+>> I2C_BOARD_INFO("hdmiphy-s5pv210", 0x38),
+>> };
+>>
+>> i2c_register_board_info(2, smdkv210_i2c_devs2,
+>> ARRAY_SIZE(smdkv210_i2c_devs2));
+>>
+>> s5p_i2c_hdmiphy_set_platdata(NULL);
+>> s5p_hdmi_set_platdata(&hdmiphy_info, NULL, 0);
+>>
+>> s3c_ide_set_platdata(&smdkv210_ide_pdata);
+>>
+>> then kernel print:
+>> s5p-hdmi s5pv210-hdmi: hdmiphy adapter request failed
+>> s5p-hdmi s5pv210-hdmi: probe failed
+>> Samsung TV Mixer driver, (c) 2010-2011 Samsung Electronics Co., Ltd.
+>>
+>> s5p-mixer s5p-mixer: probe start
+>> s5p-mixer s5p-mixer: resources acquired
+>> s5p-mixer s5p-mixer: module s5p-hdmi provides no subdev!
+>> s5p-mixer s5p-mixer: module s5p-sdo provides no subdev!
+>> s5p-mixer s5p-mixer: failed to register any output
+>> s5p-mixer s5p-mixer: probe failed
+>>
+>> Can anybody help me on how to config the HDMI output function in linux
+>> kernel 3.8? I mainly want to do video hardware decode using s5pv210 MFC
+>> and then display with HDMI.
+>
+>
+> For video playback (video post-processing) you might also need at least one
+> FIMC device. Please refer to arch/arm/mach-goni.c for an example on how to
+> add related devices to your board. You don't need the camera stuff, just
+> add:
+>
+>         &s5p_device_mfc,
+>         &s5p_device_mfc_l,
+>         &s5p_device_mfc_r,
+>
+>         &s5p_device_fimc0,
+>         &s5p_device_fimc1,
+>         &s5p_device_fimc2,
+>         &s5p_device_fimc_md,
+>
+> to smdkv210_devices[] and related Kconfig entries to make it compile.
+> You'll need a function similar to goni_reserve() in your board file
+> to reserve memory for the video codec.
+>
+> Hope that helps.
