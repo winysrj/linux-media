@@ -1,139 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1133 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752969Ab3BPJ26 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Feb 2013 04:28:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/18] s5p-tv: remove dv_preset support from mixer_video.
-Date: Sat, 16 Feb 2013 10:28:14 +0100
-Message-Id: <686e9074fa10f883d236767e2b33f07728aaf8f7.1361006882.git.hans.verkuil@cisco.com>
-In-Reply-To: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
-References: <a9599acc7829c431d88b547de87c500968ccb86a.1361006882.git.hans.verkuil@cisco.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:36629 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758160Ab3B0PMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 10:12:16 -0500
+Message-ID: <512E0E2B.6020706@schinagl.nl>
+Date: Wed, 27 Feb 2013 14:46:19 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Christian Affolter <c.affolter@purplehaze.ch>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: Initial tuning data for upc cablecom Berne, Switzerland
+References: <512D2C54.7010205@purplehaze.ch> <512DF217.3000305@schinagl.nl> <512E0DE4.10709@purplehaze.ch> <512E04DE.2040305@schinagl.nl>
+In-Reply-To: <512E04DE.2040305@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 27-02-13 14:06, Oliver Schinagl wrote:
+> On 27-02-13 14:45, Christian Affolter wrote:
+>> Hi Oliver
+>>
+>>>> Hi
+>>>>
+>>>> please find the initial tuning data for the Swiss cable provider "upc
+>>>> cablecom" in Berne.
+>>>>
+>>>> I've added the data below to dvb-c/ch-Bern-upc-cablecom
+>>>>
+>>>> # upc cablecom
+>>>> # Berne, Switzerland
+>>>> # freq sr fec mod
+>>>> C 426000000 6900000 NONE QAM64
+>>> Thanks,
+>>>
+>>> pushed in 5493eb3f5f7801cc409596de0e2d0edb499daf70
+>> Thanks a lot, but watch out for the typo within the file name [1]:
+>> The companies brand is spelled 'upc cablecom' [2] not 'UPC-Capblecom'.
+>>
+> I will adjust this immediatly the typo (do'h cablecom, capcom!) and 
+> the capitisation. It appeared that it was lazy capitalization from 
+> your end for that I apologize. I wrongfully assumed since UPC here in 
+> NL is in caps, it should have been there as well. I'll lower the ch one.
+Adjusted in 88b27009b76203b1a2583a6fe8d7c9d866ede808
 
-The dv_preset API is deprecated and is replaced by the much improved dv_timings
-API. Remove the dv_preset support from this driver as this will allow us to
-remove the dv_preset API altogether (s5p-tv being the last user of this code).
+nl-upc has also been lowercased as that is their official branding here 
+in NL as well [1].
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-tv/mixer_video.c |   68 ++-------------------------
- 1 file changed, 3 insertions(+), 65 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index cdfadba..9961e13 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -501,64 +501,6 @@ fail:
- 	return -ERANGE;
- }
- 
--static int mxr_enum_dv_presets(struct file *file, void *fh,
--	struct v4l2_dv_enum_preset *preset)
--{
--	struct mxr_layer *layer = video_drvdata(file);
--	struct mxr_device *mdev = layer->mdev;
--	int ret;
--
--	/* lock protects from changing sd_out */
--	mutex_lock(&mdev->mutex);
--	ret = v4l2_subdev_call(to_outsd(mdev), video, enum_dv_presets, preset);
--	mutex_unlock(&mdev->mutex);
--
--	return ret ? -EINVAL : 0;
--}
--
--static int mxr_s_dv_preset(struct file *file, void *fh,
--	struct v4l2_dv_preset *preset)
--{
--	struct mxr_layer *layer = video_drvdata(file);
--	struct mxr_device *mdev = layer->mdev;
--	int ret;
--
--	/* lock protects from changing sd_out */
--	mutex_lock(&mdev->mutex);
--
--	/* preset change cannot be done while there is an entity
--	 * dependant on output configuration
--	 */
--	if (mdev->n_output > 0) {
--		mutex_unlock(&mdev->mutex);
--		return -EBUSY;
--	}
--
--	ret = v4l2_subdev_call(to_outsd(mdev), video, s_dv_preset, preset);
--
--	mutex_unlock(&mdev->mutex);
--
--	mxr_layer_update_output(layer);
--
--	/* any failure should return EINVAL according to V4L2 doc */
--	return ret ? -EINVAL : 0;
--}
--
--static int mxr_g_dv_preset(struct file *file, void *fh,
--	struct v4l2_dv_preset *preset)
--{
--	struct mxr_layer *layer = video_drvdata(file);
--	struct mxr_device *mdev = layer->mdev;
--	int ret;
--
--	/* lock protects from changing sd_out */
--	mutex_lock(&mdev->mutex);
--	ret = v4l2_subdev_call(to_outsd(mdev), video, g_dv_preset, preset);
--	mutex_unlock(&mdev->mutex);
--
--	return ret ? -EINVAL : 0;
--}
--
- static int mxr_enum_dv_timings(struct file *file, void *fh,
- 	struct v4l2_enum_dv_timings *timings)
- {
-@@ -584,7 +526,7 @@ static int mxr_s_dv_timings(struct file *file, void *fh,
- 	/* lock protects from changing sd_out */
- 	mutex_lock(&mdev->mutex);
- 
--	/* preset change cannot be done while there is an entity
-+	/* timings change cannot be done while there is an entity
- 	 * dependant on output configuration
- 	 */
- 	if (mdev->n_output > 0) {
-@@ -689,8 +631,8 @@ static int mxr_enum_output(struct file *file, void *fh, struct v4l2_output *a)
- 	/* try to obtain supported tv norms */
- 	v4l2_subdev_call(sd, video, g_tvnorms_output, &a->std);
- 	a->capabilities = 0;
--	if (sd->ops->video && sd->ops->video->s_dv_preset)
--		a->capabilities |= V4L2_OUT_CAP_PRESETS;
-+	if (sd->ops->video && sd->ops->video->s_dv_timings)
-+		a->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
- 	if (sd->ops->video && sd->ops->video->s_std_output)
- 		a->capabilities |= V4L2_OUT_CAP_STD;
- 	a->type = V4L2_OUTPUT_TYPE_ANALOG;
-@@ -811,10 +753,6 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
- 	/* Streaming control */
- 	.vidioc_streamon = mxr_streamon,
- 	.vidioc_streamoff = mxr_streamoff,
--	/* Preset functions */
--	.vidioc_enum_dv_presets = mxr_enum_dv_presets,
--	.vidioc_s_dv_preset = mxr_s_dv_preset,
--	.vidioc_g_dv_preset = mxr_g_dv_preset,
- 	/* DV Timings functions */
- 	.vidioc_enum_dv_timings = mxr_enum_dv_timings,
- 	.vidioc_s_dv_timings = mxr_s_dv_timings,
--- 
-1.7.10.4
+[1] http://www.upc.nl
+>
+>> Thanks again and best regards
+>> Christian
+>>
+>>
+>> [1]
+>> http://git.linuxtv.org/dtv-scan-tables.git/blob/HEAD:/dvb-c/ch-Bern-UPC-Capblecom 
+>>
+>> [2] http://www.upc-cablecom.ch/en/b2c/about/ueberuns.htm
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
