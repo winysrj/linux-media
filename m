@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:59958 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896Ab3BMGkj (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:46355 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750916Ab3B1Co0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Feb 2013 01:40:39 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so371729eek.39
-        for <linux-media@vger.kernel.org>; Tue, 12 Feb 2013 22:40:38 -0800 (PST)
-Message-ID: <511B3564.20006@gmail.com>
-Date: Wed, 13 Feb 2013 07:40:36 +0100
-From: thomas schorpp <thomas.schorpp@gmail.com>
-Reply-To: thomas.schorpp@gmail.com
+	Wed, 27 Feb 2013 21:44:26 -0500
+Received: by mail-la0-f45.google.com with SMTP id er20so1304596lab.32
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 18:44:24 -0800 (PST)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] MAINTAINERS: Remove Jarod Wilson and orphan LIRC drivers
-References: <1360704036.22660.5.camel@joe-AO722>  <511AFC9E.5060408@gmail.com> <1360723757.2220.1.camel@joe-AO722> <511B2A9A.1030305@gmail.com>
-In-Reply-To: <511B2A9A.1030305@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <512EC410.3050301@samsung.com>
+References: <1361961178-1912-1-git-send-email-vikas.sajjan@linaro.org> <512EC410.3050301@samsung.com>
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+Date: Thu, 28 Feb 2013 08:14:04 +0530
+Message-ID: <CAD025yRzP4OaSwRLYf_oHnX14e-eM4tDt1GXp+iDvw1ikjgjdg@mail.gmail.com>
+Subject: Re: [PATCH] drm/exynos: modify the compatible string for exynos fimd
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	kgene.kim@samsung.com, inki.dae@samsung.com, l.krishna@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	t.figa@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.02.2013 06:54, thomas schorpp wrote:
-> On 13.02.2013 03:49, Joe Perches wrote:
-...
+Thanks Mr. Shim.
 
->> Bounces for me.
+On 28 February 2013 08:12, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
+> On 02/27/2013 07:32 PM, Vikas Sajjan wrote:
+>>
+>> modified compatible string for exynos4 fimd as "exynos4210-fimd" and
+>> exynos5 fimd as "exynos5250-fimd" to stick to the rule that compatible
+>> value should be named after first specific SoC model in which this
+>> particular IP version was included as discussed at
+>> https://patchwork.kernel.org/patch/2144861/
+>>
+>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+>> ---
+>>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |    4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>> index 9537761..433ed35 100644
+>> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>> @@ -109,9 +109,9 @@ struct fimd_context {
+>>     #ifdef CONFIG_OF
+>>   static const struct of_device_id fimd_driver_dt_match[] = {
+>> -       { .compatible = "samsung,exynos4-fimd",
+>> +       { .compatible = "samsung,exynos4210-fimd",
+>>           .data = &exynos4_fimd_driver_data },
+>> -       { .compatible = "samsung,exynos5-fimd",
+>> +       { .compatible = "samsung,exynos5250-fimd",
+>>           .data = &exynos5_fimd_driver_data },
+>>         {},
+>>   };
 >
-> Cant confirm:
 >
-> wilsonet.com.        5602    IN    MX    0 aspmx.l.google.com.
-> ...
+> Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
 >
->   -> RCPT TO:<jarod@wilsonet.com>
-> <-  250 2.0.0 OK 1360733211 g1si2865285eeo.229 - gsmtp
->
-> $ grep jarod /var/log/mail.log
-> $
->
-
-Sorry, need some sleep soon, correction:
-
-$ grep google /var/log/mail.log
-$
-
-But still no bounce.
-
-y
-tom
+> Thanks.
 
 
 
+-- 
+Thanks and Regards
+ Vikas Sajjan
