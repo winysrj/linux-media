@@ -1,49 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f43.google.com ([209.85.216.43]:41846 "EHLO
-	mail-qa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757508Ab3BAVPl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Feb 2013 16:15:41 -0500
-Received: by mail-qa0-f43.google.com with SMTP id dx4so512367qab.9
-        for <linux-media@vger.kernel.org>; Fri, 01 Feb 2013 13:15:38 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <510C2DA2.7020000@googlemail.com>
-References: <510A9A1E.9090801@googlemail.com>
-	<CAGoCfiwQNBv1r5KgCzYFf7X1hP--fyQpqvRHCDtKFcSxwbJWpA@mail.gmail.com>
-	<510ADB2F.4080901@googlemail.com>
-	<510AF800.2090607@googlemail.com>
-	<510BACD5.2070406@googlemail.com>
-	<510BCE2F.1070100@googlemail.com>
-	<CAGoCfix8XDzcgtCiL39Qna_QBx_=ZEKyMknzbsS3iTXS04_a8A@mail.gmail.com>
-	<510C2DA2.7020000@googlemail.com>
-Date: Fri, 1 Feb 2013 16:07:58 -0500
-Message-ID: <CAGoCfiy3hJtkxZG==wg4o1AG2dV3ESiwApNj3GxENDsLSQ=jSA@mail.gmail.com>
-Subject: Re: WinTV-HVR-1400: scandvb (and kaffeine) fails to find any channels
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Chris Clayton <chris2553@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.samsung.com ([203.254.224.24]:33149 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750699Ab3B1Cgi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 21:36:38 -0500
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MIW00DJNSL1QJI0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 28 Feb 2013 11:36:37 +0900 (KST)
+Message-id: <512EC2CC.2090605@samsung.com>
+Date: Thu, 28 Feb 2013 11:37:00 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+MIME-version: 1.0
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
+	linaro-dev@lists.linaro.org, patches@linaro.org,
+	l.krishna@samsung.com, joshi@samsung.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v8 1/2] video: drm: exynos: Add display-timing node parsing
+ using video helper function
+References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
+ <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
+In-reply-to: <1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 1, 2013 at 4:03 PM, Chris Clayton <chris2553@googlemail.com> wrote:
-> Yes, I noticed that but even with the tuning timeout set at medium or
-> longest, I doesn't find any channels. However, I've been following the debug
-> messages through the code and ended up at
-> drivers/media/pci/cx23885/cx23885-i2c.c.
+On 02/27/2013 08:49 PM, Vikas Sajjan wrote:
+> Add support for parsing the display-timing node using video helper
+> function.
 >
-> I've found that by amending I2C_WAIT_DELAY from 32 to 64, I get improved
-> results from scanning. With that delay doubled, scandvb now finds 49
-> channels over 3 frequencies. That's with all debugging turned off, so no
-> extra delays provided by the production of debug messages.
+> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+> exists and the NON-DT logic is still maintained under the 'else' part.
 >
-> I'll play around more tomorrow and update then.
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25 +++++++++++++++++++++----
+>   1 file changed, 21 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index 9537761..7932dc2 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -20,6 +20,7 @@
+>   #include <linux/of_device.h>
+>   #include <linux/pm_runtime.h>
+>   
+> +#include <video/of_display_timing.h>
+>   #include <video/samsung_fimd.h>
+>   #include <drm/exynos_drm.h>
+>   
+> @@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device *pdev)
+>   
+>   	DRM_DEBUG_KMS("%s\n", __FILE__);
+>   
+> -	pdata = pdev->dev.platform_data;
+> -	if (!pdata) {
+> -		dev_err(dev, "no platform data specified\n");
+> -		return -EINVAL;
+> +	if (pdev->dev.of_node) {
+> +		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+> +		if (!pdata) {
+> +			DRM_ERROR("memory allocation for pdata failed\n");
+> +			return -ENOMEM;
+> +		}
+> +
+> +		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
+> +					OF_USE_NATIVE_MODE);
+> +		if (ret) {
+> +			DRM_ERROR("failed: of_get_fb_videomode()\n"
+> +				"with return value: %d\n", ret);
 
-It could be that the cx23885 driver doesn't properly implement I2C
-clock stretching, which is something you don't encounter on most
-tuners but is an issue when communicating with the Xceive parts.
+Could you make this error log to one line?
 
-Devin
+except this,
+Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> +			return ret;
+> +		}
+> +	} else {
+> +		pdata = pdev->dev.platform_data;
+> +		if (!pdata) {
+> +			DRM_ERROR("no platform data specified\n");
+> +			return -EINVAL;
+> +		}
+>   	}
+>   
+>   	panel = &pdata->panel;
+
