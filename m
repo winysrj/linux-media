@@ -1,78 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f176.google.com ([209.85.223.176]:61569 "EHLO
-	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754986Ab3BDPAB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Feb 2013 10:00:01 -0500
-Received: by mail-ie0-f176.google.com with SMTP id k13so4034682iea.35
-        for <linux-media@vger.kernel.org>; Mon, 04 Feb 2013 07:00:01 -0800 (PST)
-Message-ID: <51108498.4090406@gmail.com>
-Date: Mon, 04 Feb 2013 23:03:36 -0500
-From: Huang Shijie <shijie8@gmail.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:58087 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751571Ab3B1C4u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Feb 2013 21:56:50 -0500
+Received: by mail-wg0-f44.google.com with SMTP id dr12so1031057wgb.23
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 18:56:49 -0800 (PST)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 04/18] tlg2300: remove ioctls that are invalid for
- radio devices.
-References: <1359627936-14918-1-git-send-email-hverkuil@xs4all.nl> <fa815493501dbc166181e228f66319ac3398cd2c.1359627298.git.hans.verkuil@cisco.com>
-In-Reply-To: <fa815493501dbc166181e228f66319ac3398cd2c.1359627298.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <512EC64F.7080602@samsung.com>
+References: <1361965796-16117-1-git-send-email-vikas.sajjan@linaro.org>
+	<1361965796-16117-2-git-send-email-vikas.sajjan@linaro.org>
+	<512EC2CC.2090605@samsung.com>
+	<CAD025yS8H-3d2AXi-=XBZFztCjffOVSMUOgegNM-paqDjxBf0g@mail.gmail.com>
+	<512EC64F.7080602@samsung.com>
+Date: Thu, 28 Feb 2013 08:26:49 +0530
+Message-ID: <CAGm_ybjDHkX4Rei5oViG3fsUD7qZi3yXYdXZ=D1H1tTGp=1V0Q@mail.gmail.com>
+Subject: Re: [PATCH v8 1/2] video: drm: exynos: Add display-timing node
+ parsing using video helper function
+From: Vikas Sajjan <sajjan.linux@gmail.com>
+To: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Vikas Sajjan <vikas.sajjan@linaro.org>,
+	dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
+	linaro-dev@lists.linaro.org, patches@linaro.org,
+	l.krishna@samsung.com, joshi@samsung.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-于 2013年01月31日 05:25, Hans Verkuil 写道:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Feb 28, 2013 at 8:21 AM, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
+> On 02/28/2013 11:45 AM, Vikas Sajjan wrote:
+>>
+>> Hi,
+>>
+>> On 28 February 2013 08:07, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
+>>>
+>>> On 02/27/2013 08:49 PM, Vikas Sajjan wrote:
+>>>>
+>>>> Add support for parsing the display-timing node using video helper
+>>>> function.
+>>>>
+>>>> The DT node parsing and pinctrl selection is done only if 'dev.of_node'
+>>>> exists and the NON-DT logic is still maintained under the 'else' part.
+>>>>
+>>>> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+>>>> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+>>>> ---
+>>>>    drivers/gpu/drm/exynos/exynos_drm_fimd.c |   25
+>>>> +++++++++++++++++++++----
+>>>>    1 file changed, 21 insertions(+), 4 deletions(-)
+>>>>
+>>>> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>>>> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>>>> index 9537761..7932dc2 100644
+>>>> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>>>> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+>>>> @@ -20,6 +20,7 @@
+>>>>    #include <linux/of_device.h>
+>>>>    #include <linux/pm_runtime.h>
+>>>>    +#include <video/of_display_timing.h>
+>>>>    #include <video/samsung_fimd.h>
+>>>>    #include <drm/exynos_drm.h>
+>>>>    @@ -883,10 +884,26 @@ static int fimd_probe(struct platform_device
+>>>> *pdev)
+>>>>          DRM_DEBUG_KMS("%s\n", __FILE__);
+>>>>    -     pdata = pdev->dev.platform_data;
+>>>> -       if (!pdata) {
+>>>> -               dev_err(dev, "no platform data specified\n");
+>>>> -               return -EINVAL;
+>>>> +       if (pdev->dev.of_node) {
+>>>> +               pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
+>>>> +               if (!pdata) {
+>>>> +                       DRM_ERROR("memory allocation for pdata
+>>>> failed\n");
+>>>> +                       return -ENOMEM;
+>>>> +               }
+>>>> +
+>>>> +               ret = of_get_fb_videomode(dev->of_node,
+>>>> &pdata->panel.timing,
+>>>> +                                       OF_USE_NATIVE_MODE);
+>>>> +               if (ret) {
+>>>> +                       DRM_ERROR("failed: of_get_fb_videomode()\n"
+>>>> +                               "with return value: %d\n", ret);
+>>>
+>>>
+>>> Could you make this error log to one line?
+>>>
+>> The Line was going beyond 80 line marks, hence I had to split it.
 >
-> The input and audio ioctls are only valid for video/vbi nodes.
 >
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/usb/tlg2300/pd-radio.c |   27 ---------------------------
->  1 file changed, 27 deletions(-)
+> So remove or contract some log messages, e.g. "with return value"
+> I think that is unnecessary.
 >
-> diff --git a/drivers/media/usb/tlg2300/pd-radio.c b/drivers/media/usb/tlg2300/pd-radio.c
-> index c4feffb..4c76e089 100644
-> --- a/drivers/media/usb/tlg2300/pd-radio.c
-> +++ b/drivers/media/usb/tlg2300/pd-radio.c
-> @@ -350,36 +350,9 @@ static int vidioc_s_tuner(struct file *file, void *priv, struct v4l2_tuner *vt)
->  {
->  	return vt->index > 0 ? -EINVAL : 0;
->  }
-> -static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *va)
-> -{
-> -	return (va->index != 0) ? -EINVAL : 0;
-> -}
-> -
-> -static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
-> -{
-> -	a->index    = 0;
-> -	a->mode    = 0;
-> -	a->capability = V4L2_AUDCAP_STEREO;
-> -	strcpy(a->name, "Radio");
-> -	return 0;
-> -}
-> -
-> -static int vidioc_s_input(struct file *filp, void *priv, u32 i)
-> -{
-> -	return (i != 0) ? -EINVAL : 0;
-> -}
-> -
-> -static int vidioc_g_input(struct file *filp, void *priv, u32 *i)
-> -{
-> -	return (*i != 0) ? -EINVAL : 0;
-> -}
->  
->  static const struct v4l2_ioctl_ops poseidon_fm_ioctl_ops = {
->  	.vidioc_querycap    = vidioc_querycap,
-> -	.vidioc_g_audio     = vidioc_g_audio,
-> -	.vidioc_s_audio     = vidioc_s_audio,
-> -	.vidioc_g_input     = vidioc_g_input,
-> -	.vidioc_s_input     = vidioc_s_input,
->  	.vidioc_queryctrl   = tlg_fm_vidioc_queryctrl,
->  	.vidioc_querymenu   = tlg_fm_vidioc_querymenu,
->  	.vidioc_g_ctrl      = tlg_fm_vidioc_g_ctrl,
-
-I tested this patch. it seems ok.
-thanks.
-
-Acked-by: Huang Shijie <shijie8@gmail.com>
+Will do and resend.
+>
+>>> except this,
+>>> Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+>>>
+>>>
+>>>> +                       return ret;
+>>>> +               }
+>>>> +       } else {
+>>>> +               pdata = pdev->dev.platform_data;
+>>>> +               if (!pdata) {
+>>>> +                       DRM_ERROR("no platform data specified\n");
+>>>> +                       return -EINVAL;
+>>>> +               }
+>>>>          }
+>>>>          panel = &pdata->panel;
+>>>
+>>>
+>>
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
