@@ -1,129 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2890 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557Ab3BIKBO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Feb 2013 05:01:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Srinivasa Deevi <srinivasa.deevi@conexant.com>,
-	Palash.Bandyopadhyay@conexant.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 04/26] cx231xx: remove broken audio input support from the driver.
-Date: Sat,  9 Feb 2013 11:00:34 +0100
-Message-Id: <0306a951f747a45d7a6b67406e58793d2f712228.1360403309.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360404056-9614-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
-References: <9e42c08a9181147e28836646a93756f0077df9fc.1360403309.git.hans.verkuil@cisco.com>
+Received: from adelie.canonical.com ([91.189.90.139]:42767 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865Ab3B1KZP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Feb 2013 05:25:15 -0500
+Subject: [PATCH v2 1/3] arch: make __mutex_fastpath_lock_retval return whether
+ fastpath succeeded or not.
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, a.p.zijlstra@chello.nl,
+	daniel.vetter@ffwll.ch, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org
+Date: Thu, 28 Feb 2013 11:24:52 +0100
+Message-ID: <20130228102452.15191.22673.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This will allow me to call functions that have multiple arguments if fastpath fails.
+This is required to support ticket mutexes, because they need to be able to pass an
+extra argument to the fail function.
 
-The audio selection code is broken. Audio and video indices were
-mixed up and s_audio would reject changing the audio input to
-something else anyway, so what's the point?
+Originally I duplicated the functions, by adding __mutex_fastpath_lock_retval_arg.
+This ended up being just a duplication of the existing function, so a way to test
+if fastpath was called ended up being better.
 
-All the audio input code has been removed.
+This also cleaned up the reservation mutex patch some by being able to call an
+atomic_set instead of atomic_xchg, and making it easier to detect if the wrong
+unlock function was previously used.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-video.c |   52 +++++------------------------
- 1 file changed, 8 insertions(+), 44 deletions(-)
+ arch/ia64/include/asm/mutex.h    |   10 ++++------
+ arch/powerpc/include/asm/mutex.h |   10 ++++------
+ arch/sh/include/asm/mutex-llsc.h |    4 ++--
+ arch/x86/include/asm/mutex_32.h  |   11 ++++-------
+ arch/x86/include/asm/mutex_64.h  |   11 ++++-------
+ include/asm-generic/mutex-dec.h  |   10 ++++------
+ include/asm-generic/mutex-null.h |    2 +-
+ include/asm-generic/mutex-xchg.h |   10 ++++------
+ kernel/mutex.c                   |   32 ++++++++++++++------------------
+ 9 files changed, 41 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 0436b12..f4243c6 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1231,44 +1231,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+diff --git a/arch/ia64/include/asm/mutex.h b/arch/ia64/include/asm/mutex.h
+index bed73a6..f41e66d 100644
+--- a/arch/ia64/include/asm/mutex.h
++++ b/arch/ia64/include/asm/mutex.h
+@@ -29,17 +29,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(ia64_fetchadd4_acq(count, -1) != 1))
+-		return fail_fn(count);
++		return -1;
  	return 0;
  }
  
--static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--
--	switch (a->index) {
--	case CX231XX_AMUX_VIDEO:
--		strcpy(a->name, "Television");
--		break;
--	case CX231XX_AMUX_LINE_IN:
--		strcpy(a->name, "Line In");
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	a->index = dev->ctl_ainput;
--	a->capability = V4L2_AUDCAP_STEREO;
--
--	return 0;
--}
--
--static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio *a)
--{
--	struct cx231xx_fh *fh = priv;
--	struct cx231xx *dev = fh->dev;
--	int status = 0;
--
--	/* Doesn't allow manual routing */
--	if (a->index != dev->ctl_ainput)
--		return -EINVAL;
--
--	dev->ctl_ainput = INPUT(a->index)->amux;
--	status = cx231xx_set_audio_input(dev, dev->ctl_ainput);
--
--	return status;
--}
--
- static int vidioc_queryctrl(struct file *file, void *priv,
- 			    struct v4l2_queryctrl *qc)
+diff --git a/arch/powerpc/include/asm/mutex.h b/arch/powerpc/include/asm/mutex.h
+index 5399f7e..127ab23 100644
+--- a/arch/powerpc/include/asm/mutex.h
++++ b/arch/powerpc/include/asm/mutex.h
+@@ -82,17 +82,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
  {
-@@ -1877,8 +1839,7 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	if (vdev->vfl_type == VFL_TYPE_RADIO)
- 		cap->device_caps = V4L2_CAP_RADIO;
- 	else {
--		cap->device_caps = V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
--			V4L2_CAP_STREAMING;
-+		cap->device_caps = V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
- 		if (vdev->vfl_type == VFL_TYPE_VBI)
- 			cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
- 		else
-@@ -1886,9 +1847,8 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	}
- 	if (dev->tuner_type != TUNER_ABSENT)
- 		cap->device_caps |= V4L2_CAP_TUNER;
--	cap->capabilities = cap->device_caps |
-+	cap->capabilities = cap->device_caps | V4L2_CAP_READWRITE |
- 		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE |
--		V4L2_CAP_AUDIO | V4L2_CAP_READWRITE |
- 		V4L2_CAP_STREAMING | V4L2_CAP_DEVICE_CAPS;
- 	if (dev->radio_dev)
- 		cap->capabilities |= V4L2_CAP_RADIO;
-@@ -2463,8 +2423,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_fmt_vbi_cap          = vidioc_g_fmt_vbi_cap,
- 	.vidioc_try_fmt_vbi_cap        = vidioc_try_fmt_vbi_cap,
- 	.vidioc_s_fmt_vbi_cap          = vidioc_try_fmt_vbi_cap,
--	.vidioc_g_audio                =  vidioc_g_audio,
--	.vidioc_s_audio                = vidioc_s_audio,
- 	.vidioc_cropcap                = vidioc_cropcap,
- 	.vidioc_g_fmt_sliced_vbi_cap   = vidioc_g_fmt_sliced_vbi_cap,
- 	.vidioc_try_fmt_sliced_vbi_cap = vidioc_try_set_sliced_vbi_cap,
-@@ -2553,6 +2511,12 @@ static struct video_device *cx231xx_vdev_init(struct cx231xx *dev,
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s", dev->name, type_name);
- 
- 	video_set_drvdata(vfd, dev);
-+	if (dev->tuner_type == TUNER_ABSENT) {
-+		v4l2_disable_ioctl(vfd, VIDIOC_G_FREQUENCY);
-+		v4l2_disable_ioctl(vfd, VIDIOC_S_FREQUENCY);
-+		v4l2_disable_ioctl(vfd, VIDIOC_G_TUNER);
-+		v4l2_disable_ioctl(vfd, VIDIOC_S_TUNER);
-+	}
- 	return vfd;
+ 	if (unlikely(__mutex_dec_return_lock(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	return 0;
  }
  
--- 
-1.7.10.4
+diff --git a/arch/sh/include/asm/mutex-llsc.h b/arch/sh/include/asm/mutex-llsc.h
+index 090358a..dad29b6 100644
+--- a/arch/sh/include/asm/mutex-llsc.h
++++ b/arch/sh/include/asm/mutex-llsc.h
+@@ -37,7 +37,7 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+ }
+ 
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	int __done, __res;
+ 
+@@ -51,7 +51,7 @@ __mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
+ 		: "t");
+ 
+ 	if (unlikely(!__done || __res != 0))
+-		__res = fail_fn(count);
++		__res = -1;
+ 
+ 	return __res;
+ }
+diff --git a/arch/x86/include/asm/mutex_32.h b/arch/x86/include/asm/mutex_32.h
+index 03f90c8..b7f6b34 100644
+--- a/arch/x86/include/asm/mutex_32.h
++++ b/arch/x86/include/asm/mutex_32.h
+@@ -42,17 +42,14 @@ do {								\
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
+- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or 1 otherwise.
+  */
+-static inline int __mutex_fastpath_lock_retval(atomic_t *count,
+-					       int (*fail_fn)(atomic_t *))
++static inline int __mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	else
+ 		return 0;
+ }
+diff --git a/arch/x86/include/asm/mutex_64.h b/arch/x86/include/asm/mutex_64.h
+index 68a87b0..2c543ff 100644
+--- a/arch/x86/include/asm/mutex_64.h
++++ b/arch/x86/include/asm/mutex_64.h
+@@ -37,17 +37,14 @@ do {								\
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+-static inline int __mutex_fastpath_lock_retval(atomic_t *count,
+-					       int (*fail_fn)(atomic_t *))
++static inline int __mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	else
+ 		return 0;
+ }
+diff --git a/include/asm-generic/mutex-dec.h b/include/asm-generic/mutex-dec.h
+index f104af7..d4f9fb4 100644
+--- a/include/asm-generic/mutex-dec.h
++++ b/include/asm-generic/mutex-dec.h
+@@ -28,17 +28,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
+- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns.
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_dec_return(count) < 0))
+-		return fail_fn(count);
++		return -1;
+ 	return 0;
+ }
+ 
+diff --git a/include/asm-generic/mutex-null.h b/include/asm-generic/mutex-null.h
+index e1bbbc7..efd6206 100644
+--- a/include/asm-generic/mutex-null.h
++++ b/include/asm-generic/mutex-null.h
+@@ -11,7 +11,7 @@
+ #define _ASM_GENERIC_MUTEX_NULL_H
+ 
+ #define __mutex_fastpath_lock(count, fail_fn)		fail_fn(count)
+-#define __mutex_fastpath_lock_retval(count, fail_fn)	fail_fn(count)
++#define __mutex_fastpath_lock_retval(count, fail_fn)	(-1)
+ #define __mutex_fastpath_unlock(count, fail_fn)		fail_fn(count)
+ #define __mutex_fastpath_trylock(count, fail_fn)	fail_fn(count)
+ #define __mutex_slowpath_needs_to_unlock()		1
+diff --git a/include/asm-generic/mutex-xchg.h b/include/asm-generic/mutex-xchg.h
+index c04e0db..f169ec0 100644
+--- a/include/asm-generic/mutex-xchg.h
++++ b/include/asm-generic/mutex-xchg.h
+@@ -39,18 +39,16 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
+  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
+  *                                 from 1 to a 0 value
+  *  @count: pointer of type atomic_t
+- *  @fail_fn: function to call if the original value was not 1
+  *
+- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
+- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
+- * or anything the slow path function returns
++ * Change the count from 1 to a value lower than 1. This function returns 0
++ * if the fastpath succeeds, or -1 otherwise.
+  */
+ static inline int
+-__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
++__mutex_fastpath_lock_retval(atomic_t *count)
+ {
+ 	if (unlikely(atomic_xchg(count, 0) != 1))
+ 		if (likely(atomic_xchg(count, -1) != 1))
+-			return fail_fn(count);
++			return -1;
+ 	return 0;
+ }
+ 
+diff --git a/kernel/mutex.c b/kernel/mutex.c
+index 52f2301..84a5f07 100644
+--- a/kernel/mutex.c
++++ b/kernel/mutex.c
+@@ -351,10 +351,10 @@ __mutex_unlock_slowpath(atomic_t *lock_count)
+  * mutex_lock_interruptible() and mutex_trylock().
+  */
+ static noinline int __sched
+-__mutex_lock_killable_slowpath(atomic_t *lock_count);
++__mutex_lock_killable_slowpath(struct mutex *lock);
+ 
+ static noinline int __sched
+-__mutex_lock_interruptible_slowpath(atomic_t *lock_count);
++__mutex_lock_interruptible_slowpath(struct mutex *lock);
+ 
+ /**
+  * mutex_lock_interruptible - acquire the mutex, interruptible
+@@ -372,12 +372,12 @@ int __sched mutex_lock_interruptible(struct mutex *lock)
+ 	int ret;
+ 
+ 	might_sleep();
+-	ret =  __mutex_fastpath_lock_retval
+-			(&lock->count, __mutex_lock_interruptible_slowpath);
+-	if (!ret)
++	ret =  __mutex_fastpath_lock_retval(&lock->count);
++	if (likely(!ret)) {
+ 		mutex_set_owner(lock);
+-
+-	return ret;
++		return 0;
++	} else
++		return __mutex_lock_interruptible_slowpath(lock);
+ }
+ 
+ EXPORT_SYMBOL(mutex_lock_interruptible);
+@@ -387,12 +387,12 @@ int __sched mutex_lock_killable(struct mutex *lock)
+ 	int ret;
+ 
+ 	might_sleep();
+-	ret = __mutex_fastpath_lock_retval
+-			(&lock->count, __mutex_lock_killable_slowpath);
+-	if (!ret)
++	ret = __mutex_fastpath_lock_retval(&lock->count);
++	if (likely(!ret)) {
+ 		mutex_set_owner(lock);
+-
+-	return ret;
++		return 0;
++	} else
++		return __mutex_lock_killable_slowpath(lock);
+ }
+ EXPORT_SYMBOL(mutex_lock_killable);
+ 
+@@ -405,18 +405,14 @@ __mutex_lock_slowpath(atomic_t *lock_count)
+ }
+ 
+ static noinline int __sched
+-__mutex_lock_killable_slowpath(atomic_t *lock_count)
++__mutex_lock_killable_slowpath(struct mutex *lock)
+ {
+-	struct mutex *lock = container_of(lock_count, struct mutex, count);
+-
+ 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, NULL, _RET_IP_);
+ }
+ 
+ static noinline int __sched
+-__mutex_lock_interruptible_slowpath(atomic_t *lock_count)
++__mutex_lock_interruptible_slowpath(struct mutex *lock)
+ {
+-	struct mutex *lock = container_of(lock_count, struct mutex, count);
+-
+ 	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, NULL, _RET_IP_);
+ }
+ #endif
 
