@@ -1,157 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3860 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752339Ab3BZIBY (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52057 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549Ab3B1W0q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Feb 2013 03:01:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: Re: [PATCH v5 5/8] v4l2: Add standard controls for FM receivers
-Date: Tue, 26 Feb 2013 09:00:11 +0100
-Cc: mchehab@redhat.com, sameo@linux.intel.com, perex@perex.cz,
-	tiwai@suse.de, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <1361860734-21666-1-git-send-email-andrew.smirnov@gmail.com> <1361860734-21666-6-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1361860734-21666-6-git-send-email-andrew.smirnov@gmail.com>
+	Thu, 28 Feb 2013 17:26:46 -0500
+Date: Thu, 28 Feb 2013 22:26:12 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Vikas Sajjan <vikas.sajjan@linaro.org>, kgene.kim@samsung.com,
+	linaro-dev@lists.linaro.org, jy0922.shim@samsung.com,
+	patches@linaro.org, l.krishna@samsung.com, joshi@samsung.com,
+	dri-devel@lists.freedesktop.org, inki.dae@samsung.com,
+	linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v9 2/2] video: drm: exynos: Add pinctrl support to fimd
+Message-ID: <20130228222612.GE17833@n2100.arm.linux.org.uk>
+References: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org> <1362024762-28406-3-git-send-email-vikas.sajjan@linaro.org> <512FD44D.1070408@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201302260900.11966.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <512FD44D.1070408@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue February 26 2013 07:38:51 Andrey Smirnov wrote:
-> This commit introduces new class of standard controls
-> V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
-> pertaining to FM receiver chips. Also, two controls belonging to said
-> class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
-> V4L2_CID_RDS_RECEPTION.
-> 
-> Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+On Thu, Feb 28, 2013 at 11:03:57PM +0100, Sylwester Nawrocki wrote:
+> Please just use IS_ERR(), let's stop this IS_ERR_OR_NULL() insanity.
 
-Since patches 5/8 and 6/8 are based on work done by Manjunatha Halli you
-should state so in your commit message. Credit where credit is due, etc. :-)
+Yes, indeed.
 
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
->  include/uapi/linux/v4l2-controls.h   |   13 ++++++++++++-
->  2 files changed, 23 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 6b28b58..8b89fb8 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Text",
->  		NULL
->  	};
-> -	static const char * const tune_preemphasis[] = {
-> -		"No Preemphasis",
-> +	static const char * const tune_emphasis[] = {
-> +		"None",
->  		"50 Microseconds",
->  		"75 Microseconds",
->  		NULL,
-> @@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  	case V4L2_CID_SCENE_MODE:
->  		return scene_mode;
->  	case V4L2_CID_TUNE_PREEMPHASIS:
-> -		return tune_preemphasis;
-> +		return tune_emphasis;
-> +	case V4L2_CID_TUNE_DEEMPHASIS:
-> +		return tune_emphasis;
->  	case V4L2_CID_FLASH_LED_MODE:
->  		return flash_led_mode;
->  	case V4L2_CID_FLASH_STROBE_SOURCE:
-> @@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
->  	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
->  
-> +	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-> +	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-> +	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
->  	default:
->  		return NULL;
->  	}
-> @@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
->  	case V4L2_CID_WIDE_DYNAMIC_RANGE:
->  	case V4L2_CID_IMAGE_STABILIZATION:
-> +	case V4L2_CID_RDS_RECEPTION:
->  		*type = V4L2_CTRL_TYPE_BOOLEAN;
->  		*min = 0;
->  		*max = *step = 1;
-> @@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_DV_TX_RGB_RANGE:
->  	case V4L2_CID_DV_RX_RGB_RANGE:
->  	case V4L2_CID_TEST_PATTERN:
-> +	case V4L2_CID_TUNE_DEEMPHASIS:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> @@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_IMAGE_SOURCE_CLASS:
->  	case V4L2_CID_IMAGE_PROC_CLASS:
->  	case V4L2_CID_DV_CLASS:
-> +	case V4L2_CID_FM_RX_CLASS:
->  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		/* You can neither read not write these */
->  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index dcd6374..296d20e 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -59,6 +59,7 @@
->  #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
->  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
->  #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
-> +#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
->  
->  /* User-class control IDs */
->  
-> @@ -711,10 +712,14 @@ enum v4l2_auto_focus_range {
->  #define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 98)
->  
->  #define V4L2_CID_TUNE_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 112)
-> -enum v4l2_preemphasis {
-> +enum v4l2_xemphasis {
->  	V4L2_PREEMPHASIS_DISABLED	= 0,
->  	V4L2_PREEMPHASIS_50_uS		= 1,
->  	V4L2_PREEMPHASIS_75_uS		= 2,
-> +	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
-> +	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
-> +	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
-> +
->  };
+On that topic (and off-topic for this thread, sorry) I've committed
+a set of patches to remove most users of IS_ERR_OR_NULL() from arch/arm.
+These are the last remaining ones there - and I don't want to see any
+more appearing:
 
-No, just leave this enum alone. It's part of the public API, so it can't be
-renamed.
+arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk))
+arch/arm/plat-samsung/clock.c:	if (!IS_ERR_OR_NULL(clk) && clk->ops && clk->ops->round_rate)
+arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk))
+arch/arm/plat-samsung/clock.c:	if (IS_ERR_OR_NULL(clk) || IS_ERR_OR_NULL(parent))
+arch/arm/mach-imx/devices/platform-ipu-core.c:	if (IS_ERR_OR_NULL(imx_ipu_coredev))
+arch/arm/mach-imx/devices/platform-ipu-core.c:	if (IS_ERR_OR_NULL(imx_ipu_coredev))
+arch/arm/kernel/smp_twd.c:		 * We use IS_ERR_OR_NULL() here, because if the clock stubs
+arch/arm/kernel/smp_twd.c:		if (!IS_ERR_OR_NULL(twd_clk))
 
-What is best is if a new enum v4l2_deemphasis is created:
-
-enum v4l2_deemphasis {
-	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
-	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
-	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
-
-};
-
->  #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
->  #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
-> @@ -825,4 +830,10 @@ enum v4l2_dv_rgb_range {
->  #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
->  #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
->  
-> +#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-> +#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-> +
-> +#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
-> +#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
-> +
->  #endif
-> 
-
-Regards,
-
-	Hans
+They currently all legal uses of it - though I'm sure that the samsung
+clock uses can be reduced to just IS_ERR().  The IMX use looks "valid"
+in that imx_ipu_coredev really can be an error pointer (on failure) or
+NULL if the platform device hasn't yet been created.  The TWD one is
+explained in the comments in the code (if people had to write explanations
+for using IS_ERR_OR_NULL(), we'd probably have it used correctly!)
