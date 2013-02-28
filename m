@@ -1,43 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4207 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754826Ab3BJMuY (ORCPT
+Received: from mail-da0-f44.google.com ([209.85.210.44]:49910 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587Ab3B1ENF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Feb 2013 07:50:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 07/19] bttv: G_PARM: set readbuffers.
-Date: Sun, 10 Feb 2013 13:50:02 +0100
-Message-Id: <851421d58a91584b832dcc56f79426a5f5ae9ca4.1360500224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-References: <1360500614-15122-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
-References: <7737b9a5554e0487bf83dd3d51cae2d8f76603ab.1360500224.git.hans.verkuil@cisco.com>
+	Wed, 27 Feb 2013 23:13:05 -0500
+Received: by mail-da0-f44.google.com with SMTP id z20so646836dae.17
+        for <linux-media@vger.kernel.org>; Wed, 27 Feb 2013 20:13:04 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com, patches@linaro.org,
+	linaro-dev@lists.linaro.org, joshi@samsung.com,
+	jy0922.shim@samsung.com
+Subject: [PATCH v9 2/2] video: drm: exynos: Add pinctrl support to fimd
+Date: Thu, 28 Feb 2013 09:42:42 +0530
+Message-Id: <1362024762-28406-3-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Adds support for pinctrl to drm fimd
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 07c0919..3ba423e 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -2970,6 +2970,9 @@ static int bttv_g_parm(struct file *file, void *f,
- 	struct bttv_fh *fh = f;
- 	struct bttv *btv = fh->btv;
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index e323cf9..21ada8d 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -19,6 +19,7 @@
+ #include <linux/clk.h>
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/pinctrl/consumer.h>
  
-+	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+	parm->parm.capture.readbuffers = gbuffers;
- 	v4l2_video_std_frame_period(bttv_tvnorms[btv->tvnorm].v4l2_id,
- 				    &parm->parm.capture.timeperframe);
+ #include <video/of_display_timing.h>
+ #include <video/samsung_fimd.h>
+@@ -879,6 +880,7 @@ static int fimd_probe(struct platform_device *pdev)
+ 	struct exynos_drm_fimd_pdata *pdata;
+ 	struct exynos_drm_panel_info *panel;
+ 	struct resource *res;
++	struct pinctrl *pctrl;
+ 	int win;
+ 	int ret = -EINVAL;
  
+@@ -897,6 +899,13 @@ static int fimd_probe(struct platform_device *pdev)
+ 			DRM_ERROR("failed: of_get_fb_videomode() : %d\n", ret);
+ 			return ret;
+ 		}
++		pctrl = devm_pinctrl_get_select_default(dev);
++		if (IS_ERR_OR_NULL(pctrl)) {
++			DRM_ERROR("failed: devm_pinctrl_get_select_default():"
++				"%d\n", PTR_RET(pctrl));
++			return PTR_ERR(pctrl);
++		}
++
+ 	} else {
+ 		pdata = pdev->dev.platform_data;
+ 		if (!pdata) {
 -- 
-1.7.10.4
+1.7.9.5
 
