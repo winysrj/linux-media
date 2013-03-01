@@ -1,54 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:60967 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757768Ab3CIKwV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2013 05:52:21 -0500
-Received: by mail-ee0-f54.google.com with SMTP id c41so1433841eek.27
-        for <linux-media@vger.kernel.org>; Sat, 09 Mar 2013 02:52:20 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: set the timestamp type for video and vbi vb2_queues
-Date: Sat,  9 Mar 2013 11:53:01 +0100
-Message-Id: <1362826381-4460-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-we0-f182.google.com ([74.125.82.182]:65217 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221Ab3CAJdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 04:33:21 -0500
+Received: by mail-we0-f182.google.com with SMTP id t57so2323919wey.41
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 01:33:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1362116080-20063-3-git-send-email-vikas.sajjan@linaro.org>
+References: <1362116080-20063-1-git-send-email-vikas.sajjan@linaro.org>
+	<1362116080-20063-3-git-send-email-vikas.sajjan@linaro.org>
+Date: Fri, 1 Mar 2013 15:03:19 +0530
+Message-ID: <CAGm_ybjtwN_XnaFye7dbq5CdsWKw+kA98P=0pmiwSarG9XY=ZQ@mail.gmail.com>
+Subject: Re: [PATCH v10 2/2] video: drm: exynos: Add pinctrl support to fimd
+From: Vikas Sajjan <sajjan.linux@gmail.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	kgene.kim@samsung.com, inki.dae@samsung.com, l.krishna@samsung.com,
+	jy0922.shim@samsung.com, sylvester.nawrocki@gmail.com,
+	Linus Walleij <linus.walleij@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The em28xx driver obtains the timestamps using function v4l2_get_timestamp(),
-which produces a montonic timestamp.
+Hi All,
 
-Fixes the warnings appearing in the system log since commit 6aa69f99
-"[media] vb2: Add support for non monotonic timestamps"
+On Fri, Mar 1, 2013 at 11:04 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
+> Adds support for pinctrl to drm fimd
+>
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_fimd.c |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index e323cf9..c00aa4a 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -19,6 +19,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/of_device.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+>
+>  #include <video/of_display_timing.h>
+>  #include <video/samsung_fimd.h>
+> @@ -879,6 +880,7 @@ static int fimd_probe(struct platform_device *pdev)
+>         struct exynos_drm_fimd_pdata *pdata;
+>         struct exynos_drm_panel_info *panel;
+>         struct resource *res;
+> +       struct pinctrl *pctrl;
+>         int win;
+>         int ret = -EINVAL;
+>
+> @@ -897,6 +899,13 @@ static int fimd_probe(struct platform_device *pdev)
+>                         DRM_ERROR("failed: of_get_fb_videomode() : %d\n", ret);
+>                         return ret;
+>                 }
+> +               pctrl = devm_pinctrl_get_select_default(dev);
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-video.c |    2 ++
- 1 Datei geändert, 2 Zeilen hinzugefügt(+)
+This patch is abandoned, as the device core will do this for you as of commit
+ab78029ecc347debbd737f06688d788bd9d60c1d
+"drivers/pinctrl: grab default handles from device core"
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 93fc620..d585c19 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -700,6 +700,7 @@ int em28xx_vb2_setup(struct em28xx *dev)
- 	q = &dev->vb_vidq;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-+	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->drv_priv = dev;
- 	q->buf_struct_size = sizeof(struct em28xx_buffer);
- 	q->ops = &em28xx_video_qops;
-@@ -713,6 +714,7 @@ int em28xx_vb2_setup(struct em28xx *dev)
- 	q = &dev->vb_vbiq;
- 	q->type = V4L2_BUF_TYPE_VBI_CAPTURE;
- 	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
-+	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	q->drv_priv = dev;
- 	q->buf_struct_size = sizeof(struct em28xx_buffer);
- 	q->ops = &em28xx_vbi_qops;
--- 
-1.7.10.4
-
+> +               if (IS_ERR(pctrl)) {
+> +                       DRM_ERROR("failed: devm_pinctrl_get_select_default():\n"
+> +                               "%d\n", PTR_RET(pctrl));
+> +                       return PTR_ERR(pctrl);
+> +               }
+> +
+>         } else {
+>                 pdata = pdev->dev.platform_data;
+>                 if (!pdata) {
+> --
+> 1.7.9.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
