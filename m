@@ -1,105 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4441 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422649Ab3CVQh3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 12:37:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.10] au0828 driver overhaul
-Date: Fri, 22 Mar 2013 17:37:22 +0100
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-References: <201303221722.24739.hverkuil@xs4all.nl>
-In-Reply-To: <201303221722.24739.hverkuil@xs4all.nl>
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:53935 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab3CAXLf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:35 -0500
+Received: by mail-ea0-f180.google.com with SMTP id c1so406196eaa.11
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:34 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 00/11] em28xx: i2c debugging cleanups and support for newer eeproms
+Date: Sat,  2 Mar 2013 00:12:04 +0100
+Message-Id: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303221737.22179.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 22 2013 17:22:24 Hans Verkuil wrote:
-> Hi all,
-> 
-> This pull request converts the au0828/au8522 drivers to the latest frameworks,
-> except for vb2 as usual.
-> 
-> Tested with a WinTV aero generously donated by Hauppauge some time ago.
-> 
-> I also did a lot of fixes in the disconnect handling and setting up the
-> right routing/std information at the right time.
-> 
-> It works fine with qv4l2, but there is still a bug causing tvtime to fail.
-> That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
-> August last year, that broke g_tuner: after that 'signal' would always be 0
-> and tvtime expects signal to be non-zero for a valid frequency. The signal
-> field is set by the au8522, but g_tuner is only called for the tuner (well,
-> also for au8522 but since the i2c gate is set for the tuner that won't do
-> anything).
-> 
-> I have a patch for that but I want to convert that to using an i2c mux instead.
-> 
-> For the time being I'd like to get this merged since at least it is in a
-> lot better shape.
-> 
-> Note: this pull request sits on top of this 'const' pull request:
-> 
-> http://patchwork.linuxtv.org/patch/17568/
-> 
-> Regards,
-> 
->         Hans
+The first 3 patches clean up / simplify the debugging and info messages a bit.
 
-Oops, missed a compiler warning relating to the const changes.
+Patches 4, 5 and 6 fix two bugs I've noticed while working on the eeprom stuff.
 
-Nacked-by: Hans Verkuil <hans.verkuil@xs4all.nl>
+Patches 7-10 add support for the newer eeproms with 16 bit address width.
+This allows us to display the eeprom content, to calculate the eeprom hash for 
+board hints for devices with generic USB IDs, to read the device configuration 
+and to use tveeprom for Hauppauge devices just as with the old eeprom type.
 
-I'll post a new, fixed, version.
+The used eeprom type depends on the chip type/id (confirmed by the Empia datasheets).
+For unknown chips, the old 8 bit eeprom type is assumed, which makes sure that the
+eeprom content can't be damaged accidentally.
+In video capturing/TV/DVB devices, the new eeprom still has the old eeprom content 
+(device configuration + tveeprom structure for Hauppauge devices) embedded.
+Camera devices (em25xx, em276x+) however are using a different data structure,
+which isn't supported yet.
 
-Regards,
+Patch 11 is a follow-up which enables tveeprom for the Hauppauge HVR-930C
 
-	Hans
+All patches have been tested with the following devices:
+- Hauppauge HVR-900 (normal 8 bit eeprom)
+- Hauppauge HVR-930C (16 bit eeprom, tveeprom)
+- SpeedLink VAD Laplace webcam (16 bit eeprom, no device config dataset)
 
-> 
-> The following changes since commit 8bf1a5a826d06a9b6f65b3e8dffb9be59d8937c3:
-> 
->   v4l2-ioctl: add precision when printing names. (2013-03-22 11:59:21 +0100)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git au0828b
-> 
-> for you to fetch changes up to 9b216a590115ea8aac389b9bb9248b7adce25f7f:
-> 
->   au0828: improve firmware loading & locking. (2013-03-22 17:13:57 +0100)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (15):
->       au8522_decoder: convert to the control framework.
->       au0828: fix querycap.
->       au0828: frequency handling fixes.
->       au0828: fix intendation coding style issue.
->       au0828: fix audio input handling.
->       au0828: convert to the control framework.
->       au0828: add prio, control event and log_status support
->       au0828: add try_fmt_vbi support, zero vbi.reserved, pix.priv.
->       au0828: replace deprecated current_norm by g_std.
->       au8522_decoder: remove obsolete control ops.
->       au0828: fix disconnect sequence.
->       au0828: simplify i2c_gate_ctrl.
->       au0828: don't change global state information on open().
->       au0828: fix initial video routing.
->       au0828: improve firmware loading & locking.
-> 
->  drivers/media/dvb-frontends/au8522_decoder.c |  123 ++++++++------------------
->  drivers/media/dvb-frontends/au8522_priv.h    |    6 +-
->  drivers/media/usb/au0828/au0828-core.c       |   61 +++++++++----
->  drivers/media/usb/au0828/au0828-video.c      |  286 ++++++++++++++++++++++++++++++++++++------------------------
->  drivers/media/usb/au0828/au0828.h            |    7 ++
->  5 files changed, 260 insertions(+), 223 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+I also checked the USB log of the MSI Digivox ATSC which confirms that 
+non-Hauppauge devices are using the same eeprom format.
+
+
+Frank Schäfer (11):
+  em28xx-i2c: replace printk() with the corresponding em28xx macros
+  em28xx-i2c: get rid of the dprintk2 macro
+  em28xx-i2c: also print debug messages at debug level 1
+  em28xx: do not interpret eeprom content if eeprom key is invalid
+  em28xx: fix eeprom data endianess
+  em28xx: make sure we are at i2c bus A when calling
+    em28xx_i2c_register()
+  em28xx: add basic support for eeproms with 16 bit address width
+  em28xx: add helper function for reading data blocks from i2c clients
+  em28xx: do not store eeprom content permanently
+  em28xx: extract the device configuration dataset from eeproms with 16
+    bit address width
+  em28xx: enable tveeprom for device Hauppauge HVR-930C
+
+ drivers/media/usb/em28xx/em28xx-cards.c |   45 +++--
+ drivers/media/usb/em28xx/em28xx-i2c.c   |  284 ++++++++++++++++++++-----------
+ drivers/media/usb/em28xx/em28xx.h       |   17 +-
+ 3 Dateien geändert, 225 Zeilen hinzugefügt(+), 121 Zeilen entfernt(-)
+
+-- 
+1.7.10.4
+
