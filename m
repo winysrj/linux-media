@@ -1,165 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:40761 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751135Ab3CJNzf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 09:55:35 -0400
-Received: by mail-ee0-f49.google.com with SMTP id d41so1735440eek.8
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 06:55:34 -0700 (PDT)
-Message-ID: <513C9107.6030408@googlemail.com>
-Date: Sun, 10 Mar 2013 14:56:23 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH 1/2] bttv: fix audio mute on device close for the
- video device node
-References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com> <201303101301.00039.hverkuil@xs4all.nl>
-In-Reply-To: <201303101301.00039.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-da0-f42.google.com ([209.85.210.42]:47685 "EHLO
+	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887Ab3CAFey (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 00:34:54 -0500
+Received: by mail-da0-f42.google.com with SMTP id n15so1221371dad.29
+        for <linux-media@vger.kernel.org>; Thu, 28 Feb 2013 21:34:54 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com,
+	jy0922.shim@samsung.com, sylvester.nawrocki@gmail.com
+Subject: [PATCH v10 0/2] Add display-timing node parsing to exynos drm fimd
+Date: Fri,  1 Mar 2013 11:04:38 +0530
+Message-Id: <1362116080-20063-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.03.2013 13:00, schrieb Hans Verkuil:
-> On Sun March 10 2013 12:40:34 Frank Schäfer wrote:
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> Could you describe exactly what bug is fixed? I tested it a fair amount
-> when I created my bttv patches, so I'd like to know what I missed.
+Add display-timing node parsing to drm fimd and depends on
+the display helper patchset at
+http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 
-Yeah, sure. The whole thing is a bit tricky and I have to admit that the
-patch isn't self-explaining enough.
+It also adds pinctrl support for drm fimd.
 
-The main issue it fixes is, that audio_mux() is called with the current
-value of the mute control instead of mute=1.
-So the device is muted on last close only if the mute control was 1.
-Fixing this needs changing some other parts of the code, too.
+changes since v9:
+	- replaced IS_ERR_OR_NULL() with IS_ERR(), since IS_ERR_OR_NULL()
+	will be depreciated, as discussed at
+	http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/140543.html
+	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg78030.html
 
-What makes the patch bit complicated is the fact, that there are
-actually two types of "mute" handled in function audio_mux():
-1) gpio mute
-2) subdevice muting
-The "automute" feature also does its best to make things complicating.
+changes since v8:
+	- replaced IS_ERR() with IS_ERR_OR_NULL(),
+	because devm_pinctrl_get_select_default can return NULL,
+	If CONFIG_PINCTRL is disabled.
+	- modified the error log, such that it shall NOT cross 80 column.
+	- added Acked-by.
 
-And finally a follow-up fix is needed to avoid device unmuting already
-when the drivers probing function is called (should not happen before
-the first open).
+changes since v7:
+	- addressed comments from Joonyoung Shim <jy0922.shim@samsung.com> 
+	to remove a unnecessary variable.
 
-Hmm... sorry... I should really have split this into two patches.
-I will send an updated patch series with better explanations.
+changes since v6:
+	addressed comments from Inki Dae <inki.dae@samsung.com> to
+	separated out the pinctrl functionality and made a separate patch.
 
-Regards,
-Frank
+changes since v5:
+	- addressed comments from Inki Dae <inki.dae@samsung.com>,
+	to remove the allocation of 'fbmode' and replaced
+	'-1'in "of_get_fb_videomode(dev->of_node, fbmode, -1)" with
+	OF_USE_NATIVE_MODE.
 
->
-> Regards,
->
-> 	Hans
->
->> ---
->>  drivers/media/pci/bt8xx/bttv-driver.c |   22 +++++++++++-----------
->>  1 Datei geändert, 11 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
->>
->> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
->> index 8610b6a..2c09bc5 100644
->> --- a/drivers/media/pci/bt8xx/bttv-driver.c
->> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
->> @@ -992,21 +992,20 @@ static char *audio_modes[] = {
->>  static int
->>  audio_mux(struct bttv *btv, int input, int mute)
->>  {
->> -	int gpio_val, signal;
->> +	int gpio_val, signal, mute_gpio;
->>  	struct v4l2_ctrl *ctrl;
->>  
->>  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
->>  		   bttv_tvcards[btv->c.type].gpiomask);
->>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
->>  
->> -	btv->mute = mute;
->>  	btv->audio = input;
->>  
->>  	/* automute */
->> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
->> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
->>  				&& !btv->has_radio_tuner);
->>  
->> -	if (mute)
->> +	if (mute_gpio)
->>  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
->>  	else
->>  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
->> @@ -1022,7 +1021,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->>  	}
->>  
->>  	if (bttv_gpio)
->> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
->> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
->>  	if (in_interrupt())
->>  		return 0;
->>  
->> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->>  
->>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->>  		if (ctrl)
->> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
->> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->>  
->>  		/* Note: the inputs tuner/radio/extern/intern are translated
->>  		   to msp routings. This assumes common behavior for all msp3400
->> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->>  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->>  
->>  		if (ctrl)
->> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
->> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
->>  				input, 0, 0);
->>  	}
->> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->>  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->>  
->>  		if (ctrl)
->> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
->> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->>  	}
->>  	return 0;
->>  }
->> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
->>  		break;
->>  	case V4L2_CID_AUDIO_MUTE:
->>  		audio_mute(btv, c->val);
->> +		btv->mute = c->val;
->>  		break;
->>  	case V4L2_CID_AUDIO_VOLUME:
->>  		btv->volume_gpio(btv, c->val);
->> @@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
->>  			    sizeof(struct bttv_buffer),
->>  			    fh, &btv->lock);
->>  	set_tvnorm(btv,btv->tvnorm);
->> -	set_input(btv, btv->input, btv->tvnorm);
->> -
->> +	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
->>  
->>  	/* The V4L2 spec requires one global set of cropping parameters
->>  	   which only change on request. These are stored in btv->crop[1].
->> @@ -3124,7 +3123,7 @@ static int bttv_release(struct file *file)
->>  	bttv_field_count(btv);
->>  
->>  	if (!btv->users)
->> -		audio_mute(btv, btv->mute);
->> +		audio_mute(btv, 1);
->>  
->>  	v4l2_fh_del(&fh->fh);
->>  	v4l2_fh_exit(&fh->fh);
->> @@ -4209,6 +4208,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
->>  	btv->std = V4L2_STD_PAL;
->>  	init_irqreg(btv);
->>  	v4l2_ctrl_handler_setup(hdl);
->> +	audio_mute(btv, 1);
->>  
->>  	if (hdl->error) {
->>  		result = hdl->error;
->>
+changes since v4:
+	- addressed comments from Paul Menzel 
+	<paulepanter@users.sourceforge.net>, to modify the commit message
+
+changes since v3:
+	- addressed comments from Sean Paul <seanpaul@chromium.org>, to modify
+	the return values and print messages.
+
+changes since v2:
+	- moved 'devm_pinctrl_get_select_default' function call under
+		'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
+		(reported by: Rahul Sharma <r.sh.open@gmail.com>)
+
+changes since v1:
+	- addressed comments from Sean Paul <seanpaul@chromium.org>
+
+
+Vikas Sajjan (2):
+  video: drm: exynos: Add display-timing node parsing using video
+    helper function
+  video: drm: exynos: Add pinctrl support to fimd
+
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   33 ++++++++++++++++++++++++++----
+ 1 file changed, 29 insertions(+), 4 deletions(-)
+
+-- 
+1.7.9.5
 
