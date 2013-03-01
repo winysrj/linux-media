@@ -1,85 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:13803 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755592Ab3CFN1V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 08:27:21 -0500
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1UDENK-00033J-L8
-	(TLSv1:AES128-SHA:128)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Wed, 06 Mar 2013 14:27:18 +0100
-Date: Wed, 6 Mar 2013 14:27:13 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: TerraTec Cinergy T PCIe Dual not working
-Message-ID: <20130306142713.6a68179a@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-ia0-f171.google.com ([209.85.210.171]:41666 "EHLO
+	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752496Ab3CAXxe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:53:34 -0500
+Received: by mail-ia0-f171.google.com with SMTP id z13so3156021iaz.2
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:53:33 -0800 (PST)
+Message-ID: <51313F7A.9080900@gmail.com>
+Date: Fri, 01 Mar 2013 16:53:30 -0700
+From: Matt Gomboc <gomboc0@gmail.com>
+Reply-To: gomboc0@gmail.com
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
+References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt> <201303010852.36574.hverkuil@xs4all.nl>
+In-Reply-To: <201303010852.36574.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Thanks for the response, I have done as you suggested.
 
-I have a TerraTec Cinergy T PCIe Dual card and I can't get it to work.
-I had been using it several months ago, with some success, although the
-stability wasn't ideal. Then I moved it to another machine to check if
-it was any better on Windows (and indeed it was better.) Now I put it
-back in my system and I can't get it to work at all.
+Below is an updated patch for the OTG102 device against http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx, kernel version 3.8.
 
-I have the following relevant kernel log messages:
+With further testing it appears the extra clauses in cx231xx-cards.c were not necessary (in static in cx231xx_init_dev and static int cx231xx_usb_probe), so those have been also been removed.
 
-[    0.362783] pci 0000:0b:00.0: [14f1:8852] type 00 class 0x040000
-[    0.362809] pci 0000:0b:00.0: reg 10: [mem 0xfbc00000-0xfbdfffff 64bit]
-[    0.362940] pci 0000:0b:00.0: supports D1 D2
-[    0.362942] pci 0000:0b:00.0: PME# supported from D0 D1 D2 D3hot
-[    0.362967] pci 0000:0b:00.0: disabling ASPM on pre-1.1 PCIe device.  You can enable it with 'pcie_aspm=force'
-[    6.313259] cx23885 driver version 0.0.3 loaded
-[    6.313898] CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec Cinergy T PCIe Dual [card=34,autodetected]
-[    6.498999] cx25840 11-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
-[    7.114399] cx25840 11-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
-[    7.150641] cx23885_dvb_register() allocating 1 frontend(s)
-[    7.150704] cx23885[0]: cx23885 based dvb card
-[    7.178681] drxk: status = 0x639160d9
-[    7.180049] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
-[    7.245259] DRXK driver version 0.9.4300
-[    7.268760] drxk: frontend initialized.
-[    7.961207] mt2063_attach: Attaching MT2063
-[    7.961271] DVB: registering new adapter (cx23885[0])
-[    7.961332] DVB: registering adapter 0 frontend 0 (DRXK DVB-T)...
-[    7.961877] cx23885_dvb_register() allocating 1 frontend(s)
-[    7.961881] cx23885[0]: cx23885 based dvb card
-[    7.974320] drxk: status = 0x639130d9
-[    7.975838] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
-[    8.040888] DRXK driver version 0.9.4300
-[    8.064459] drxk: frontend initialized.
-[    8.064467] mt2063_attach: Attaching MT2063
-[    8.064475] DVB: registering new adapter (cx23885[0])
-[    8.064482] DVB: registering adapter 1 frontend 0 (DRXK DVB-C DVB-T)...
-[    8.065919] cx23885_dev_checkrevision() Hardware revision = 0xa5
-[    8.066004] cx23885[0]/0: found at 0000:0b:00.0, rev: 4, irq: 28, latency: 0, mmio: 0xfbc00000
-[   27.281490] mt2063: detected a mt2063 B3
-[   27.319390] mt2063: detected a mt2063 B3
 
-I don't see anything wrong here, all the components are apparently
-found and identified properly. However I can't get the card to actually
-work, neither in me-tv nor in VLC.
+Signed-off-by: Matt Gomboc <gomboc0@gmail.com>
+--
+ drivers/media/usb/cx231xx/cx231xx-avcore.c |  2 ++
+ drivers/media/usb/cx231xx/cx231xx-cards.c  | 35 ++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h        |  1 +
+ 3 files changed, 38 insertions(+)
 
-Me-tv (version 1.3.6) tells me:
-03/06/13 14:20:10: Device: 'DRXK DVB-T' (DVB-T) at "/dev/dvb/adapter0/frontend0"
-03/06/13 14:20:11: Device: 'DRXK DVB-C DVB-T' (DVB-C) at "/dev/dvb/adapter1/frontend0"
-03/06/13 14:20:11: Frontend::tune_to(490000000)
-03/06/13 14:20:11: Waiting for signal lock ...
-And then "Failed to lock channel".
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 2e51fb9..235ba65 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -357,6 +357,7 @@ int cx231xx_afe_update_power_control(struct cx231xx *dev,
+ 	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
+ 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
+ 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
++	case CX231XX_BOARD_OTG102:
+ 		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
+ 			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
+ 						FLD_PWRDN_ENABLE_PLL)) {
+@@ -1720,6 +1721,7 @@ int cx231xx_dif_set_standard(struct cx231xx *dev, u32 standard)
+ 	case CX231XX_BOARD_CNXT_RDU_250:
+ 	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
+ 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
++	case CX231XX_BOARD_OTG102:
+ 		func_mode = 0x03;
+ 		break;
+ 	case CX231XX_BOARD_CNXT_RDE_253S:
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index b7b1acd..13249e5 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -634,6 +634,39 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_OTG102] = {
++		.name = "Geniatech OTG102",
++		.tuner_type = TUNER_ABSENT,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c, 
++			/* According with PV CxPlrCAP.inf file */
++		.gpio_pin_status_mask = 0x4001000,
++		.norm = V4L2_STD_NTSC,
++		.no_alt_vanc = 1,
++		.external_av = 1,
++		.dont_use_port_3 = 1,
++		/*.has_417 = 1, */
++		/* This board is believed to have a hardware encoding chip
++		 * supporting mpeg1/2/4, but as the 417 is apparently not
++		 * working for the reference board it is not here either. */
++
++		.input = {{
++				.type = CX231XX_VMUX_COMPOSITE1,
++				.vmux = CX231XX_VIN_2_1,
++				.amux = CX231XX_AMUX_LINE_IN,
++				.gpio = NULL,
++			}, {
++				.type = CX231XX_VMUX_SVIDEO,
++				.vmux = CX231XX_VIN_1_1 |
++					(CX231XX_VIN_1_2 << 8) |
++					CX25840_SVIDEO_ON,
++				.amux = CX231XX_AMUX_LINE_IN,
++				.gpio = NULL,
++			}
++		},
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -675,6 +708,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_ICONBIT_U100},
+ 	{USB_DEVICE(0x0fd9, 0x0037),
+ 	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
++	{USB_DEVICE(0x1f4d, 0x0102),
++	 .driver_info = CX231XX_BOARD_OTG102},
+ 	{},
+ };
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index a8e50d2..dff3f1d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -71,6 +71,7 @@
+ #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
+ #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
+ #define CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2 16
++#define CX231XX_BOARD_OTG102 17
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
 
-VLC (version 2.0.5) tells me:
-main stream error: cannot pre fill buffer
-
-I tried with kernels 3.4.30, 3.5.7, 3.6.0, 3.6.11, 3.7.10 and 3.8.2, with
-exactly the same results.
-
-How would I debug this further?
-
-Thanks,
--- 
-Jean Delvare
