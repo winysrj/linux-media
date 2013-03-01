@@ -1,265 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56604 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932483Ab3CSQuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:35 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 09/46] [media] siano: use USB endpoint descriptors for in/out endp
-Date: Tue, 19 Mar 2013 13:48:58 -0300
-Message-Id: <1363711775-2120-10-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1135 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab3CASoT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 13:44:19 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC PATCH] Adding additional flags when allocating buffer memory
+Date: Fri, 1 Mar 2013 19:44:00 +0100
+Cc: Federico Vaga <federico.vaga@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303011944.00532.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using hardcoded descriptors, detect them from the
-USB descriptors.
+Hi all,
 
-This patch is rebased form Doron Cohen's patch:
-	http://patchwork.linuxtv.org/patch/7883/
+This patch is based on an idea from Federico:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/siano/smsusb.c | 99 +++++++++++++++++++++++++++++-----------
- 1 file changed, 73 insertions(+), 26 deletions(-)
+http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg24669.html
 
-diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
-index 2050e4c..a31bf74 100644
---- a/drivers/media/usb/siano/smsusb.c
-+++ b/drivers/media/usb/siano/smsusb.c
-@@ -35,16 +35,23 @@ module_param_named(debug, sms_dbg, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+While working on converting the solo6x10 driver to vb2 I realized that the
+same thing was needed for the dma-sg case: the solo6x10 has 32-bit PCI DMA,
+so you want to specify __GFP_DMA32 to prevent bounce buffers from being created.
+
+Rather than patching all drivers as the patch above does (error prone IMHO),
+I've decided to just add a gfp_flags field to vb2_queue and pass that to the
+alloc mem_op. The various alloc implementations will just OR it in.
+
+This is urgently needed for any driver with DMA32 restrictions (which are most
+PCI drivers).
+
+Comments?
+
+Regards,
+
+	Hans
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index db1235d..adde3e6 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -57,7 +57,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	/* Allocate memory for all planes in this buffer */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+-				      q->plane_sizes[plane]);
++				      q->plane_sizes[plane], q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
  
- #define USB1_BUFFER_SIZE		0x1000
--#define USB2_BUFFER_SIZE		0x4000
-+#define USB2_BUFFER_SIZE		0x2000
- 
- #define MAX_BUFFERS		50
- #define MAX_URBS		10
- 
- struct smsusb_device_t;
- 
-+enum smsusb_state {
-+	SMSUSB_DISCONNECTED,
-+	SMSUSB_SUSPENDED,
-+	SMSUSB_ACTIVE
-+};
-+
- struct smsusb_urb_t {
-+	struct list_head entry;
- 	struct smscore_buffer_t *cb;
--	struct smsusb_device_t	*dev;
-+	struct smsusb_device_t *dev;
- 
- 	struct urb urb;
- };
-@@ -57,11 +64,23 @@ struct smsusb_device_t {
- 
- 	int		response_alignment;
- 	int		buffer_size;
-+
-+	unsigned char in_ep;
-+	unsigned char out_ep;
-+	enum smsusb_state state;
- };
- 
- static int smsusb_submit_urb(struct smsusb_device_t *dev,
- 			     struct smsusb_urb_t *surb);
- 
-+/**
-+ * Completing URB's callback handler - top half (interrupt context)
-+ * adds completing sms urb to the global surbs list and activtes the worker
-+ * thread the surb
-+ * IMPORTANT - blocking functions must not be called from here !!!
-+
-+ * @param urb pointer to a completing urb object
-+ */
- static void smsusb_onresponse(struct urb *urb)
- {
- 	struct smsusb_urb_t *surb = (struct smsusb_urb_t *) urb->context;
-@@ -140,7 +159,7 @@ static int smsusb_submit_urb(struct smsusb_device_t *dev,
- 	usb_fill_bulk_urb(
- 		&surb->urb,
- 		dev->udev,
--		usb_rcvbulkpipe(dev->udev, 0x81),
-+		usb_rcvbulkpipe(dev->udev, dev->in_ep),
- 		surb->cb->p,
- 		dev->buffer_size,
- 		smsusb_onresponse,
-@@ -192,6 +211,9 @@ static int smsusb_sendrequest(void *context, void *buffer, size_t size)
- 		  smscore_translate_msg(phdr->msgType), phdr->msgType,
- 		  phdr->msgLength);
- 
-+	if (dev->state != SMSUSB_ACTIVE)
-+		return -ENOENT;
-+
- 	smsendian_handle_message_header((struct SmsMsgHdr_ST *)buffer);
- 	return usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
- 			    buffer, size, &dummy, 1000);
-@@ -301,13 +323,15 @@ static void smsusb_term_device(struct usb_interface *intf)
- 	struct smsusb_device_t *dev = usb_get_intfdata(intf);
- 
- 	if (dev) {
-+		dev->state = SMSUSB_DISCONNECTED;
-+
- 		smsusb_stop_streaming(dev);
- 
- 		/* unregister from smscore */
- 		if (dev->coredev)
- 			smscore_unregister_device(dev->coredev);
- 
--		sms_info("device %p destroyed", dev);
-+		sms_info("device 0x%p destroyed", dev);
- 		kfree(dev);
- 	}
- 
-@@ -330,6 +354,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 	memset(&params, 0, sizeof(params));
- 	usb_set_intfdata(intf, dev);
- 	dev->udev = interface_to_usbdev(intf);
-+	dev->state = SMSUSB_DISCONNECTED;
- 
- 	params.device_type = sms_get_board(board_id)->type;
- 
-@@ -346,6 +371,8 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 	case SMS_NOVA_A0:
- 	case SMS_NOVA_B0:
- 	case SMS_VEGA:
-+	case SMS_VENICE:
-+	case SMS_DENVER_1530:
- 		dev->buffer_size = USB2_BUFFER_SIZE;
- 		dev->response_alignment =
- 		    le16_to_cpu(dev->udev->ep_in[1]->desc.wMaxPacketSize) -
-@@ -355,6 +382,16 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 		break;
- 	}
- 
-+	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
-+		if (intf->cur_altsetting->endpoint[i].desc. bEndpointAddress & USB_DIR_IN)
-+			dev->in_ep = intf->cur_altsetting->endpoint[i].desc.bEndpointAddress;
-+		else
-+			dev->out_ep = intf->cur_altsetting->endpoint[i].desc.bEndpointAddress;
-+	}
-+
-+	sms_info("in_ep = %02x, out_ep = %02x",
-+		dev->in_ep, dev->out_ep);
-+
- 	params.device = &dev->udev->dev;
- 	params.buffer_size = dev->buffer_size;
- 	params.num_buffers = MAX_BUFFERS;
-@@ -386,6 +423,8 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 		return rc;
- 	}
- 
-+	dev->state = SMSUSB_ACTIVE;
-+
- 	rc = smscore_start_device(dev->coredev);
- 	if (rc < 0) {
- 		sms_err("smscore_start_device(...) failed");
-@@ -393,7 +432,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
- 		return rc;
- 	}
- 
--	sms_info("device %p created", dev);
-+	sms_info("device 0x%p created", dev);
- 
- 	return rc;
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 10beaee..ae35d25 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -152,7 +152,7 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
  }
-@@ -402,15 +441,23 @@ static int smsusb_probe(struct usb_interface *intf,
- 			const struct usb_device_id *id)
+ 
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
  {
- 	struct usb_device *udev = interface_to_usbdev(intf);
--	char devpath[32];
- 	int i, rc;
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -165,7 +165,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	/* align image size to PAGE_SIZE */
+ 	size = PAGE_ALIGN(size);
  
--	rc = usb_clear_halt(udev, usb_rcvbulkpipe(udev, 0x81));
--	rc = usb_clear_halt(udev, usb_rcvbulkpipe(udev, 0x02));
-+	sms_info("interface number %d",
-+		 intf->cur_altsetting->desc.bInterfaceNumber);
+-	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
++	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
++						GFP_KERNEL | gfp_flags);
+ 	if (!buf->vaddr) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 25c3b36..952776f 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -33,7 +33,7 @@ struct vb2_dma_sg_buf {
  
--	if (intf->num_altsetting > 0) {
--		rc = usb_set_interface(
--			udev, intf->cur_altsetting->desc.bInterfaceNumber, 0);
-+	if (sms_get_board(id->driver_info)->intf_num !=
-+	    intf->cur_altsetting->desc.bInterfaceNumber) {
-+		sms_err("interface number is %d expecting %d",
-+			sms_get_board(id->driver_info)->intf_num,
-+			intf->cur_altsetting->desc.bInterfaceNumber);
-+		return -ENODEV;
-+	}
-+
-+	if (intf->num_altsetting > 1) {
-+		rc = usb_set_interface(udev,
-+				       intf->cur_altsetting->desc.bInterfaceNumber,
-+				       0);
- 		if (rc < 0) {
- 			sms_err("usb_set_interface failed, rc %d", rc);
- 			return rc;
-@@ -419,27 +466,25 @@ static int smsusb_probe(struct usb_interface *intf,
+ static void vb2_dma_sg_put(void *buf_priv);
  
- 	sms_info("smsusb_probe %d",
- 	       intf->cur_altsetting->desc.bInterfaceNumber);
--	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++)
-+	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
- 		sms_info("endpoint %d %02x %02x %d", i,
- 		       intf->cur_altsetting->endpoint[i].desc.bEndpointAddress,
- 		       intf->cur_altsetting->endpoint[i].desc.bmAttributes,
- 		       intf->cur_altsetting->endpoint[i].desc.wMaxPacketSize);
--
-+		if (intf->cur_altsetting->endpoint[i].desc.bEndpointAddress &
-+		    USB_DIR_IN)
-+			rc = usb_clear_halt(udev, usb_rcvbulkpipe(udev,
-+				intf->cur_altsetting->endpoint[i].desc.bEndpointAddress));
-+		else
-+			rc = usb_clear_halt(udev, usb_sndbulkpipe(udev,
-+				intf->cur_altsetting->endpoint[i].desc.bEndpointAddress));
-+	}
- 	if ((udev->actconfig->desc.bNumInterfaces == 2) &&
- 	    (intf->cur_altsetting->desc.bInterfaceNumber == 0)) {
- 		sms_err("rom interface 0 is not used");
- 		return -ENODEV;
- 	}
- 
--	if (intf->cur_altsetting->desc.bInterfaceNumber == 1) {
--		snprintf(devpath, sizeof(devpath), "usb\\%d-%s",
--			 udev->bus->busnum, udev->devpath);
--		sms_info("stellar device was found.");
--		return smsusb1_load_firmware(
--				udev, smscore_registry_getmode(devpath),
--				id->driver_info);
--	}
--
- 	rc = smsusb_init_device(intf, id->driver_info);
- 	sms_info("rc %d", rc);
- 	sms_board_load_modules(id->driver_info);
-@@ -454,7 +499,9 @@ static void smsusb_disconnect(struct usb_interface *intf)
- static int smsusb_suspend(struct usb_interface *intf, pm_message_t msg)
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
  {
- 	struct smsusb_device_t *dev = usb_get_intfdata(intf);
--	printk(KERN_INFO "%s: Entering status %d.\n", __func__, msg.event);
-+	printk(KERN_INFO "%s  Entering status %d.\n", __func__, msg.event);
-+	dev->state = SMSUSB_SUSPENDED;
-+	/*smscore_set_power_mode(dev, SMS_POWER_MODE_SUSPENDED);*/
- 	smsusb_stop_streaming(dev);
- 	return 0;
- }
-@@ -465,9 +512,9 @@ static int smsusb_resume(struct usb_interface *intf)
- 	struct smsusb_device_t *dev = usb_get_intfdata(intf);
- 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	struct vb2_dma_sg_buf *buf;
+ 	int i;
+@@ -60,7 +60,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+ 		goto fail_pages_array_alloc;
  
--	printk(KERN_INFO "%s: Entering.\n", __func__);
--	usb_clear_halt(udev, usb_rcvbulkpipe(udev, 0x81));
--	usb_clear_halt(udev, usb_rcvbulkpipe(udev, 0x02));
-+	printk(KERN_INFO "%s  Entering.\n", __func__);
-+	usb_clear_halt(udev, usb_rcvbulkpipe(udev, dev->in_ep));
-+	usb_clear_halt(udev, usb_sndbulkpipe(udev, dev->out_ep));
+ 	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
++		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
++					   __GFP_NOWARN | gfp_flags);
+ 		if (NULL == buf->pages[i])
+ 			goto fail_pages_alloc;
+ 		sg_set_page(&buf->sg_desc.sglist[i],
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index a47fd4f..313d977 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -35,11 +35,11 @@ struct vb2_vmalloc_buf {
  
- 	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++)
- 		printk(KERN_INFO "endpoint %d %02x %02x %d\n", i,
--- 
-1.8.1.4
-
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+-	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
+ 	if (!buf)
+ 		return NULL;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 9cfd4ee..251d66b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -27,7 +27,9 @@ struct vb2_fileio_data;
+  *		return NULL on failure or a pointer to allocator private,
+  *		per-buffer data on success; the returned private structure
+  *		will then be passed as buf_priv argument to other ops in this
+- *		structure
++ *		structure. Additional gfp_flags to use when allocating the
++ *		are also passed to this operation. These flags are from the
++ *		gfp_flags field of vb2_queue.
+  * @put:	inform the allocator that the buffer will no longer be used;
+  *		usually will result in the allocator freeing the buffer (if
+  *		no other users of this buffer are present); the buf_priv
+@@ -79,7 +81,7 @@ struct vb2_fileio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size);
++	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+@@ -302,6 +304,9 @@ struct v4l2_fh;
+  * @buf_struct_size: size of the driver-specific buffer structure;
+  *		"0" indicates the driver doesn't want to use a custom buffer
+  *		structure type, so sizeof(struct vb2_buffer) will is used
++ * @gfp_flags:	additional gfp flags used when allocating the buffers.
++ *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
++ *		to force the buffer allocation to a specific memory zone.
+  *
+  * @memory:	current memory type used
+  * @bufs:	videobuf buffer structures
+@@ -326,6 +331,7 @@ struct vb2_queue {
+ 	const struct vb2_mem_ops	*mem_ops;
+ 	void				*drv_priv;
+ 	unsigned int			buf_struct_size;
++	gfp_t				gfp_flags;
+ 
+ /* private: internal use only */
+ 	enum v4l2_memory		memory;
