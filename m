@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:52710 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755911Ab3CQLrI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 07:47:08 -0400
-Received: by mail-ee0-f52.google.com with SMTP id b15so2058482eek.25
-        for <linux-media@vger.kernel.org>; Sun, 17 Mar 2013 04:47:07 -0700 (PDT)
-Message-ID: <5145AD38.3050206@gmail.com>
-Date: Sun, 17 Mar 2013 12:47:04 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:34998 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab3CAXLi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:38 -0500
+Received: by mail-ee0-f43.google.com with SMTP id c50so2701792eek.30
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:36 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 02/11] em28xx-i2c: get rid of the dprintk2 macro
+Date: Sat,  2 Mar 2013 00:12:06 +0100
+Message-Id: <1362179535-18929-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.9] Samsung media driver fixes
-References: <513A4A6C.3090408@gmail.com>
-In-Reply-To: <513A4A6C.3090408@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/08/2013 09:30 PM, Sylwester Nawrocki wrote:
-> Hi Mauro,
->
-> The following changes since commit
-> 9f225788cc047fb7c2ef2326eb4f86dee890e2ef:
->
-> Merge branch 'merge' of
-> git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2013-03-05
-> 18:56:22 -0800)
->
-> are available in the git repository at:
->
-> git://linuxtv.org/snawrocki/samsung.git v3.9-fixes
->
-> Andrzej Hajda (1):
-> m5mols: Fix bug in stream on handler
->
-> Arun Kumar K (2):
-> s5p-mfc: Fix frame skip bug
-> s5p-mfc: Fix encoder control 15 issue
->
-> Shaik Ameer Basha (4):
-> fimc-lite: Initialize 'step' field in fimc_lite_ctrl structure
-> fimc-lite: Fix the variable type to avoid possible crash
-> exynos-gsc: send valid m2m ctx to gsc_m2m_job_finish
-> s5p-fimc: send valid m2m ctx to fimc_m2m_job_finish
->
-> Sylwester Nawrocki (1):
-> s5p-fimc: Do not attempt to disable not enabled media pipeline
+There is only a single place where the dprintk2 macro is used, so get rid of it.
 
-I've found an issue in one of these patches thus I'm cancelling
-this pull request. I'll send an updated version in a minute.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   17 ++++++-----------
+ 1 Datei geändert, 6 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
 
-Nacked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 8819b54..f970c29 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -41,14 +41,6 @@ static unsigned int i2c_debug;
+ module_param(i2c_debug, int, 0644);
+ MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+ 
+-#define dprintk2(lvl, fmt, args...)			\
+-do {							\
+-	if (i2c_debug >= lvl) {				\
+-		printk(KERN_DEBUG "%s at %s: " fmt,	\
+-		       dev->name, __func__ , ##args);	\
+-      } 						\
+-} while (0)
+-
+ /*
+  * em2800_i2c_send_bytes()
+  * send up to 4 bytes to the em2800 i2c device
+@@ -295,9 +287,12 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 		return 0;
+ 	for (i = 0; i < num; i++) {
+ 		addr = msgs[i].addr << 1;
+-		dprintk2(2, "%s %s addr=%x len=%d:",
+-			 (msgs[i].flags & I2C_M_RD) ? "read" : "write",
+-			 i == num - 1 ? "stop" : "nonstop", addr, msgs[i].len);
++		if (i2c_debug >= 2)
++			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
++			       dev->name, __func__ ,
++			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
++			       i == num - 1 ? "stop" : "nonstop",
++			       addr, msgs[i].len			     );
+ 		if (!msgs[i].len) { /* no len: check only for device presence */
+ 			if (dev->board.is_em2800)
+ 				rc = em2800_i2c_check_for_device(dev, addr);
+-- 
+1.7.10.4
 
