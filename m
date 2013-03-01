@@ -1,81 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29293 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754685Ab3C2Mv4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 08:51:56 -0400
-Date: Fri, 29 Mar 2013 09:51:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [GIT PULL FOR v3.10] Move cypress_firmware to common
-Message-ID: <20130329095142.5856e961@redhat.com>
-In-Reply-To: <201303291246.39331.hverkuil@xs4all.nl>
-References: <201303291246.39331.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3123 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751711Ab3CALcR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 06:32:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFC PATCH 00/18] Remove DV_PRESET API
+Date: Fri, 1 Mar 2013 12:32:04 +0100
+Cc: linux-media@vger.kernel.org,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <51308A75.4040300@samsung.com>
+In-Reply-To: <51308A75.4040300@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201303011232.04059.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Mar 2013 12:46:39 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Fri March 1 2013 12:01:09 Tomasz Stanislawski wrote:
+> Hi Hans,
+> Thank you for the patches.
+> I applied the patchset on the top of SPRC's 3.8-rc4 kernel.
+> I tested the s5p-tv dv-timings using 0.9.3 using v4l-utils.
+> The test platform was Universal C210 (based on Exynos 4210 SoC).
+> 
+> Every timing mode worked correctly so do not hesitate to add:
+> 
+> Tested-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> 
+> to all s5p-tv related patches.
 
-> As discussed earlier (http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/62438)
-> let's move this to common. It's a nice cleanup for go7007 as well which had a weird DVB
-> dependency.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit 9e7664e0827528701074875eef872f2be1dfaab8:
-> 
->   [media] solo6x10: The size of the thresholds ioctls was too large (2013-03-29 08:34:23 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git cypress-common
-> 
-> for you to fetch changes up to 6e69c66b2dafc4927b88a15801e0f84585a28336:
-> 
->   media: move dvb-usb-v2/cypress_firmware.c to media/common. (2013-03-29 12:42:32 +0100)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (1):
->       media: move dvb-usb-v2/cypress_firmware.c to media/common.
-
-That broke compilation:
-
-drivers/media/usb/dvb-usb-v2/az6007.c: In function 'az6007_download_firmware':
-drivers/media/usb/dvb-usb-v2/az6007.c:845:2: error: implicit declaration of function 'cypress_load_firmware' [-Werror=implicit-function-declaration]
-cc1: some warnings being treated as errors
+Thanks for testing! Much appreciated.
 
 > 
->  drivers/media/common/Kconfig                                |    3 +++
->  drivers/media/common/Makefile                               |    2 ++
->  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c |   77 +++++++++++++++++++++++++++++++++---------------------------------
->  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h |    9 +++-----
->  drivers/media/usb/dvb-usb-v2/Kconfig                        |    6 +-----
->  drivers/media/usb/dvb-usb-v2/Makefile                       |    5 +----
->  drivers/media/usb/dvb-usb-v2/az6007.c                       |    2 +-
->  drivers/staging/media/go7007/Kconfig                        |    3 ++-
->  drivers/staging/media/go7007/Makefile                       |    6 +-----
->  drivers/staging/media/go7007/go7007-loader.c                |    4 ++--
->  10 files changed, 54 insertions(+), 63 deletions(-)
+> I tested following features:
+> a) v4l2-ctl --list-dv-timings
+>    Result: got 10 timings entries as expected
+> b) v4l2-ctl --get-dv-timings-cap
+>    Result: got timings caps. The was minor issue. Minimal with is 720 not 640.
+> c) for each available timing
+>    v4l2-ctl --set-dv-bt-timings=index={index}
+>    v4l2-ctl --get-dv-bt-timings
+>    Show test image on the screen
+>    Result: TV detected correct timings for all cases
+> 
+> I found some minor issues in the patches.
+> Please refer to the inlined comments.
 
->  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c (88%)
->  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h (68%)
+I'll take those into account for my v2 posting.
 
-Why are out there so many changes? 
+> BTW.
+> The v4l2-ctl reports that fps for 1080i50 and 1080i60 as 25 and 30 respectively.
+> I agree that those values correctly reflects relation between
+> image resolution and the pixel rate.
+> However, I admit it looks a little bit confusing when suddenly 50 changes into 25.
+> It should clarified if F in FPS stands for "frame" or "field".
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Can you add this patch to v4l2-ctl and see if that looks better?
 
+--------------- cut here ---------------
+diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+index 863357a..d39faca 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
+@@ -260,10 +260,9 @@ static void print_dv_timings(const struct v4l2_dv_timings *t)
+ 				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? '+' : '-');
+ 		printf("\tPixelclock: %lld Hz", bt->pixelclock);
+ 		if (bt->width && bt->height)
+-			printf(" (%.2f fps)", (double)bt->pixelclock /
++			printf(" (%.2f fields per second)", (double)bt->pixelclock /
+ 					((bt->width + bt->hfrontporch + bt->hsync + bt->hbackporch) *
+-					 (bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch +
+-					  bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch)));
++					 (bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch)));
+ 		printf("\n");
+ 		printf("\tHorizontal frontporch: %d\n", bt->hfrontporch);
+ 		printf("\tHorizontal sync: %d\n", bt->hsync);
+--------------- cut here ---------------
 
--- 
+Also, can you run v4l2-compliance as well? See what that reports.
 
-Cheers,
-Mauro
+Regards,
+
+	Hans
