@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:43513 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755358Ab3CUK4C convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 06:56:02 -0400
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3990 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab3CAJIa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 04:08:30 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH 09/10] bttv: fix mute on last close of the video device node
-Date: Thu, 21 Mar 2013 11:56:00 +0100
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-10-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363807490-3906-10-git-send-email-fschaefer.oss@googlemail.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] s2255: v4l2-compliance + bug-endian fixes
+Date: Fri, 1 Mar 2013 10:08:13 +0100
+Cc: Pete Eberlein <pete@sensoray.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303211156.00584.hverkuil@xs4all.nl>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303011008.13397.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 20 March 2013 20:24:49 Frank Schäfer wrote:
-> Instead of applying the current mute setting on last device node close, always
-> mute the device.
+Hi Mauro,
 
-I am very pleased with the preceding 8 patches. That does exactly what I had
-in mind. For this patch and the next (I would have combined those two into one
-patch BTW) I want to do some testing first. Unfortunately due to travel I will
-not have access to bttv hardware for the next 10 days or so.
+This pull request updates the s2255 driver with the usual v4l2-compliance and
+big-endian fixes.
 
-One thing I am considering is adding some basic tuner-ownership functionality
-to the v4l2 core. Without that I don't think we can ever get this working as
-it should.
+Tested on my s2255 device, generously supplied by Sensoray.
 
-It might be an idea to make a pull request for the first 8 patches some time
-next week. That's all good stuff and it makes the code much easier to
-understand.
+The patches in this pull request are unchanged from my review patch series
+posted Tuesday.
 
 Regards,
 
 	Hans
 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |    2 +-
->  1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 2fb2168..469ea06 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -3126,7 +3126,7 @@ static int bttv_release(struct file *file)
->  	bttv_field_count(btv);
->  
->  	if (!btv->users)
-> -		audio_mute(btv, btv->mute);
-> +		audio_mute(btv, 1);
->  
->  	v4l2_fh_del(&fh->fh);
->  	v4l2_fh_exit(&fh->fh);
-> 
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:                                           
+                                                                                                                       
+  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)                          
+                                                                                                                       
+are available in the git repository at:                                                                                
+                                                                                                                       
+  git://linuxtv.org/hverkuil/media_tree.git s2255                                                                      
+                                                                                                                       
+for you to fetch changes up to 73aace6ab8b80cfda30fa99a1bd02f359b7dad1f:                                               
+                                                                                                                       
+  s2255: fix big-endian support. (2013-02-26 18:32:04 +0100)                                                           
+                                                                                                                       
+----------------------------------------------------------------                                                       
+Hans Verkuil (11):                                                                                                     
+      s2255: convert to the control framework.                                                                         
+      s2255: add V4L2_CID_JPEG_COMPRESSION_QUALITY
+      s2255: add support for control events and prio handling.
+      s2255: add device_caps support to querycap.
+      s2255: fixes in the way standards are handled.
+      s2255: zero priv and set colorspace.
+      s2255: fix field handling
+      s2255: don't zero struct v4l2_streamparm
+      s2255: Add ENUM_FRAMESIZES support.
+      s2255: choose YUYV as the default format, not YUV422P
+      s2255: fix big-endian support.
+
+ drivers/media/usb/s2255/s2255drv.c |  439 ++++++++++++++++++++++++++++++++++++---------------------------------------
+ include/uapi/linux/v4l2-controls.h |    4 +
+ 2 files changed, 215 insertions(+), 228 deletions(-)
