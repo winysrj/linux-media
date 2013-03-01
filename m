@@ -1,135 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10964 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755799Ab3CEPT6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Mar 2013 10:19:58 -0500
-Date: Tue, 5 Mar 2013 12:19:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37259 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab3CALCd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 06:02:33 -0500
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MIZ00BBPAK3MI70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Mar 2013 11:02:32 +0000 (GMT)
+Received: from [106.116.147.108] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MIZ003SWAO8OT10@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 01 Mar 2013 11:02:32 +0000 (GMT)
+Message-id: <51308AC7.9070005@samsung.com>
+Date: Fri, 01 Mar 2013 12:02:31 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org,
-	"Sri Deevi" <Srinivasa.Deevi@conexant.com>,
-	"Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
-Subject: Re: [GIT PULL FOR v3.9] cx231xx: v4l2 compliance and big-endian
- fixes.
-Message-ID: <20130305121952.75418052@redhat.com>
-In-Reply-To: <201302150946.59696.hverkuil@xs4all.nl>
-References: <201302150946.59696.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 11/18] s5p-tv: remove dv_preset support from
+ mixer_video.
+References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl>
+ <686e9074fa10f883d236767e2b33f07728aaf8f7.1361006882.git.hans.verkuil@cisco.com>
+In-reply-to: <686e9074fa10f883d236767e2b33f07728aaf8f7.1361006882.git.hans.verkuil@cisco.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 15 Feb 2013 09:46:59 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Hans,
+Please refer to the comments below.
 
-> This patch series cleans up the cx231xx driver based on v4l2-compliance
-> reports.
+On 02/16/2013 10:28 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> It is identical to the RFCv2 patch series I posted a week ago:
+> The dv_preset API is deprecated and is replaced by the much improved dv_timings
+> API. Remove the dv_preset support from this driver as this will allow us to
+> remove the dv_preset API altogether (s5p-tv being the last user of this code).
 > 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg58508.html
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/s5p-tv/mixer_video.c |   68 ++-------------------------
+>  1 file changed, 3 insertions(+), 65 deletions(-)
 > 
-> I have tested this on various cx231xx devices. However, I have no hardware
-> that supports the radio tuner, so that's untested. To my knowledge, no such
-> devices exist at the moment anyway.
-> 
-> Also note that the MPEG encoder support does not seem to work. It didn't work
-> before these patches are applied, and it doesn't work afterwards. At best it
-> will stream for a bit and then hang the machine. While I did convert the 417
-> code to have it pass the compliance tests, I also disable 417 support in the
-> single card that supports it (gracefully provided by Conexant for which I
-> want to thank them!) until someone can find the time to dig into it and
-> figure out what is wrong. Note that that board is an evaluation board and not
-> a consumer product.
-> 
-> In addition the vbi support is flaky as well. It was flaky before this patch
-> series, and it is equally flaky afterwards. I have managed to get something
-> to work only on rare occasions and only for NTSC, never for PAL.
-> 
-> Finally I have tested this on a big-endian machine so there are a bunch of
-> patches fixing a lot of endianness problems.
-> 
-> A general note regarding this driver: I've found this to be a particularly
-> fragile driver. Things like changing formats/standards, unplugging at
-> unexpected times and vbi support all seem very prone to errors. I have
-> serious doubts about the disconnect handling: this code really should use the
-> core support for handling such events (in particular the v4l2_device release
-> callback).
-> 
-> Regards,
-> 
->         Hans
-> 
-> The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
-> 
->   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git cx231xx
-> 
-> for you to fetch changes up to bb047a3fd001f7de36f94058c9c296332c494f83:
-> 
->   cx231xx: fix gpio big-endian problems (2013-02-15 09:42:39 +0100)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (26):
->       cx231xx: add device_caps support to QUERYCAP.
->       cx231xx: add required VIDIOC_DBG_G_CHIP_IDENT support.
->       cx231xx: clean up radio support.
->       cx231xx: remove broken audio input support from the driver.
->       cx231xx: fix tuner compliance issues.
->       cx231xx: zero priv field and use right width in try_fmt
->       cx231xx: fix frequency clamping.
->       cx231xx: fix vbi compliance issues.
->       cx231xx: convert to the control framework.
->       cx231xx: add struct v4l2_fh to get prio and event support.
->       cx231xx: remove current_norm usage.
->       cx231xx: replace ioctl by unlocked_ioctl.
->       cx231xx: get rid of a bunch of unused cx231xx_fh fields.
->       cx231xx: improve std handling.
->       cx231xx-417: remove empty functions.
->       cx231xx-417: use one querycap for all device nodes.
->       cx231xx-417: fix g/try_fmt compliance problems
->       cx231xx-417: checkpatch cleanups.
->       cx231xx-417: share ioctls with cx231xx-video.
->       cx231xx-417: convert to the control framework.
->       cx231xx: remove bogus driver prefix in log messages.
->       cx231xx: disable 417 support from the Conexant video grabber
 
-Since when it was broken?
+[snip]
 
-Did you c/c those patch series to Sri/Palash? What they said about the
-issues with 417?
+>  static int mxr_enum_dv_timings(struct file *file, void *fh,
+>  	struct v4l2_enum_dv_timings *timings)
+>  {
+> @@ -584,7 +526,7 @@ static int mxr_s_dv_timings(struct file *file, void *fh,
+>  	/* lock protects from changing sd_out */
+>  	mutex_lock(&mdev->mutex);
+>  
+> -	/* preset change cannot be done while there is an entity
+> +	/* timings change cannot be done while there is an entity
+>  	 * dependant on output configuration
+>  	 */
+>  	if (mdev->n_output > 0) {
+> @@ -689,8 +631,8 @@ static int mxr_enum_output(struct file *file, void *fh, struct v4l2_output *a)
+>  	/* try to obtain supported tv norms */
+>  	v4l2_subdev_call(sd, video, g_tvnorms_output, &a->std);
+>  	a->capabilities = 0;
+> -	if (sd->ops->video && sd->ops->video->s_dv_preset)
+> -		a->capabilities |= V4L2_OUT_CAP_PRESETS;
 
-Palash/Sri: 
+Could you move the lines below to the patch named
+"[RFC PATCH 08/18] s5p-tv: add dv_timings support for mixer_video.".
 
-I remember Palash mentioned that he would be the "odd fixes"
-maintainer for Conexant drivers. If you're willing to do so, could you
-please send us a patch for MAINTAINERS, to avoid the risk of having a
-series like this one without your review?
+> +	if (sd->ops->video && sd->ops->video->s_dv_timings)
+> +		a->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
 
-Regards,
-Mauro
+Don't you think that all "add" patches should go in reverse order?
+I mean that dv_timings hdmiphy should be applied before hdmi. The hdmi before mixer.
+This way all non-functional features would stay invisible from user-space until
+they become functional.
 
->       cx231xx: don't reset width/height on first open.
->       cx231xx: don't use port 3 on the Conexant video grabber.
->       cx231xx: fix big-endian problems.
->       cx231xx: fix gpio big-endian problems
+>  	if (sd->ops->video && sd->ops->video->s_std_output)
+>  		a->capabilities |= V4L2_OUT_CAP_STD;
+>  	a->type = V4L2_OUTPUT_TYPE_ANALOG;
+> @@ -811,10 +753,6 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+>  	/* Streaming control */
+>  	.vidioc_streamon = mxr_streamon,
+>  	.vidioc_streamoff = mxr_streamoff,
+> -	/* Preset functions */
+> -	.vidioc_enum_dv_presets = mxr_enum_dv_presets,
+> -	.vidioc_s_dv_preset = mxr_s_dv_preset,
+> -	.vidioc_g_dv_preset = mxr_g_dv_preset,
+>  	/* DV Timings functions */
+>  	.vidioc_enum_dv_timings = mxr_enum_dv_timings,
+>  	.vidioc_s_dv_timings = mxr_s_dv_timings,
 > 
->  drivers/media/usb/cx231xx/cx231xx-417.c     | 1178 +++++++++++++++++++++++++------------------------------------
->  drivers/media/usb/cx231xx/cx231xx-audio.c   |    8 +-
->  drivers/media/usb/cx231xx/cx231xx-avcore.c  |   83 ++---
->  drivers/media/usb/cx231xx/cx231xx-cards.c   |   24 +-
->  drivers/media/usb/cx231xx/cx231xx-core.c    |    2 +-
->  drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c |    2 +-
->  drivers/media/usb/cx231xx/cx231xx-vbi.c     |   25 +-
->  drivers/media/usb/cx231xx/cx231xx-video.c   |  589 ++++++++-----------------------
->  drivers/media/usb/cx231xx/cx231xx.h         |   54 ++-
->  9 files changed, 740 insertions(+), 1225 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
