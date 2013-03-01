@@ -1,221 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2927 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412Ab3CBXpz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 07/20] solo6x10: fix various format-related compliancy issues.
-Date: Sun,  3 Mar 2013 00:45:23 +0100
-Message-Id: <81bd01e3e289158b9691c29ff258f1dd81d928ec.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:44682 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290Ab3CAXLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:36 -0500
+Received: by mail-ea0-f169.google.com with SMTP id d13so423818eaa.28
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:35 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 01/11] em28xx-i2c: replace printk() with the corresponding em28xx macros
+Date: Sat,  2 Mar 2013 00:12:05 +0100
+Message-Id: <1362179535-18929-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Reduces the number of characters/lines, unifies the code and improves readability.
 
-- try_fmt should never return -EBUSY.
-- invalid pix->field values were not mapped to a valid value.
-- the priv field of struct v4l2_pix_format wasn't zeroed.
-- the try_fmt error code was not checked in set_fmt.
-- enum_framesizes/intervals is valid for both MJPEG and MPEG pixel formats.
-- enum_frameintervals didn't check width and height and reported the
-  wrong range.
-- s_parm didn't set readbuffers.
-- don't fail on invalid colorspace, just replace with the valid colorspace.
-- bytesperline should be 0 for compressed formats.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/staging/media/solo6x10/v4l2-enc.c |   51 ++++++++++++++++++++---------
- drivers/staging/media/solo6x10/v4l2.c     |   29 +++++++---------
- 2 files changed, 46 insertions(+), 34 deletions(-)
+ drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
+ 1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
 
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 6b5b8c0..43ce8c5 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -1105,13 +1105,6 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 	    pix->pixelformat != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 8532c1d..8819b54 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ 	/* Check if board has eeprom */
+ 	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
+ 	if (err < 0) {
+-		em28xx_errdev("board has no eeprom\n");
++		em28xx_info("board has no eeprom\n");
+ 		memset(eedata, 0, len);
+ 		return -ENODEV;
+ 	}
+@@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
  
--	/* We cannot change width/height in mid read */
--	if (atomic_read(&solo_enc->readers) > 0) {
--		if (pix->width != solo_enc->width ||
--		    pix->height != solo_enc->height)
--			return -EBUSY;
--	}
--
- 	if (pix->width < solo_dev->video_hsize ||
- 	    pix->height < solo_dev->video_vsize << 1) {
- 		/* Default to CIF 1/2 size */
-@@ -1123,14 +1116,20 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 		pix->height = solo_dev->video_vsize << 1;
+ 	err = i2c_master_send(&dev->i2c_client, &buf, 1);
+ 	if (err != 1) {
+-		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
+-		       dev->name, err);
++		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+ 		return err;
  	}
  
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = V4L2_FIELD_INTERLACED;
--	else if (pix->field != V4L2_FIELD_INTERLACED)
-+	switch (pix->field) {
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ANY:
-+	default:
- 		pix->field = V4L2_FIELD_INTERLACED;
-+		break;
-+	}
+@@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
  
- 	/* Just set these */
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->sizeimage = FRAME_BUF_SIZE;
-+	pix->priv = 0;
+ 		if (block !=
+ 		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
+-			printk(KERN_WARNING
+-			       "%s: i2c eeprom read error (err=%d)\n",
+-			       dev->name, err);
++			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
+ 			return err;
+ 		}
+ 		size -= block;
+@@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ 	}
+ 	for (i = 0; i < len; i++) {
+ 		if (0 == (i % 16))
+-			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
++			em28xx_info("i2c eeprom %02x:", i);
+ 		printk(" %02x", eedata[i]);
+ 		if (15 == (i % 16))
+ 			printk("\n");
+@@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ 	if (em_eeprom->id == 0x9567eb1a)
+ 		dev->hash = em28xx_hash_mem(eedata, len, 32);
  
- 	return 0;
- }
-@@ -1147,6 +1146,15 @@ static int solo_enc_set_fmt_cap(struct file *file, void *priv,
- 	spin_lock(&solo_enc->lock);
+-	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
+-	       dev->name, em_eeprom->id, dev->hash);
++	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
++		    em_eeprom->id, dev->hash);
  
- 	ret = solo_enc_try_fmt_cap(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	/* We cannot change width/height in mid read */
-+	if (!ret && atomic_read(&solo_enc->readers) > 0) {
-+		if (pix->width != solo_enc->width ||
-+		    pix->height != solo_enc->height)
-+			ret = -EBUSY;
-+	}
- 	if (ret) {
- 		spin_unlock(&solo_enc->lock);
- 		return ret;
-@@ -1186,6 +1194,7 @@ static int solo_enc_get_fmt_cap(struct file *file, void *priv,
- 		     V4L2_FIELD_NONE;
- 	pix->sizeimage = FRAME_BUF_SIZE;
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	pix->priv = 0;
+-	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
++	em28xx_info("EEPROM info:\n");
  
- 	return 0;
- }
-@@ -1298,7 +1307,8 @@ static int solo_enum_framesizes(struct file *file, void *priv,
- 	struct solo_enc_fh *fh = priv;
- 	struct solo_dev *solo_dev = fh->enc->solo_dev;
+ 	switch (em_eeprom->chip_conf >> 4 & 0x3) {
+ 	case 0:
+-		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
++		em28xx_info("\tNo audio on board.\n");
+ 		break;
+ 	case 1:
+-		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
+-				 dev->name);
++		em28xx_info("\tAC97 audio (5 sample rates)\n");
+ 		break;
+ 	case 2:
+-		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
+-				 dev->name);
++		em28xx_info("\tI2S audio, sample rate=32k\n");
+ 		break;
+ 	case 3:
+-		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
+-				 dev->name);
++		em28xx_info("\tI2S audio, 3 sample rates\n");
+ 		break;
+ 	}
  
--	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG)
-+	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	    fsize->pixel_format != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
+ 	if (em_eeprom->chip_conf & 1 << 3)
+-		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
++		em28xx_info("\tUSB Remote wakeup capable\n");
  
- 	switch (fsize->index) {
-@@ -1325,16 +1335,24 @@ static int solo_enum_frameintervals(struct file *file, void *priv,
- 	struct solo_enc_fh *fh = priv;
- 	struct solo_dev *solo_dev = fh->enc->solo_dev;
+ 	if (em_eeprom->chip_conf & 1 << 2)
+-		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
++		em28xx_info("\tUSB Self power capable\n");
  
--	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG || fintv->index)
-+	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	    fintv->pixel_format != V4L2_PIX_FMT_MJPEG)
-+		return -EINVAL;
-+	if (fintv->index)
-+		return -EINVAL;
-+	if ((fintv->width != solo_dev->video_hsize >> 1 ||
-+	     fintv->height != solo_dev->video_vsize) &&
-+	    (fintv->width != solo_dev->video_hsize ||
-+	     fintv->height != solo_dev->video_vsize << 1))
- 		return -EINVAL;
- 
- 	fintv->type = V4L2_FRMIVAL_TYPE_STEPWISE;
- 
--	fintv->stepwise.min.numerator = solo_dev->fps;
--	fintv->stepwise.min.denominator = 1;
-+	fintv->stepwise.min.denominator = solo_dev->fps;
-+	fintv->stepwise.min.numerator = 15;
- 
--	fintv->stepwise.max.numerator = solo_dev->fps;
--	fintv->stepwise.max.denominator = 15;
-+	fintv->stepwise.max.denominator = solo_dev->fps;
-+	fintv->stepwise.max.numerator = 1;
- 
- 	fintv->stepwise.step.numerator = 1;
- 	fintv->stepwise.step.denominator = 1;
-@@ -1391,6 +1409,7 @@ static int solo_s_parm(struct file *file, void *priv,
- 	solo_enc->interval = cp->timeperframe.numerator;
- 
- 	cp->capability = V4L2_CAP_TIMEPERFRAME;
-+	cp->readbuffers = 2;
- 
- 	solo_enc->gop = max(solo_dev->fps / solo_enc->interval, 1);
- 	solo_update_mode(solo_enc);
-diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
-index e0cf498..3db65a7 100644
---- a/drivers/staging/media/solo6x10/v4l2.c
-+++ b/drivers/staging/media/solo6x10/v4l2.c
-@@ -28,7 +28,6 @@
- #include "tw28.h"
- 
- #define SOLO_HW_BPL		2048
--#define SOLO_DISP_PIX_FIELD	V4L2_FIELD_INTERLACED
- 
- /* Image size is two fields, SOLO_HW_BPL is one horizontal line */
- #define solo_vlines(__solo)	(__solo->video_vsize * 2)
-@@ -538,7 +537,7 @@ static int solo_v4l2_open(struct file *file)
- 	videobuf_queue_sg_init(&fh->vidq, &solo_video_qops,
- 			       &solo_dev->pdev->dev, &fh->slock,
- 			       V4L2_BUF_TYPE_VIDEO_CAPTURE,
--			       SOLO_DISP_PIX_FIELD,
-+			       V4L2_FIELD_INTERLACED,
- 			       sizeof(struct videobuf_buffer), fh, NULL);
- 
- 	return 0;
-@@ -672,23 +671,16 @@ static int solo_try_fmt_cap(struct file *file, void *priv,
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	int image_size = solo_image_size(solo_dev);
- 
--	/* Check supported sizes */
--	if (pix->width != solo_dev->video_hsize)
--		pix->width = solo_dev->video_hsize;
--	if (pix->height != solo_vlines(solo_dev))
--		pix->height = solo_vlines(solo_dev);
--	if (pix->sizeimage != image_size)
--		pix->sizeimage = image_size;
--
--	/* Check formats */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = SOLO_DISP_PIX_FIELD;
--
--	if (pix->pixelformat != V4L2_PIX_FMT_UYVY ||
--	    pix->field       != SOLO_DISP_PIX_FIELD ||
--	    pix->colorspace  != V4L2_COLORSPACE_SMPTE170M)
-+	if (pix->pixelformat != V4L2_PIX_FMT_UYVY)
- 		return -EINVAL;
- 
-+	pix->width = solo_dev->video_hsize;
-+	pix->height = solo_vlines(solo_dev);
-+	pix->sizeimage = image_size;
-+	pix->field = V4L2_FIELD_INTERLACED;
-+	pix->pixelformat = V4L2_PIX_FMT_UYVY;
-+	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	pix->priv = 0;
- 	return 0;
- }
- 
-@@ -715,10 +707,11 @@ static int solo_get_fmt_cap(struct file *file, void *priv,
- 	pix->width = solo_dev->video_hsize;
- 	pix->height = solo_vlines(solo_dev);
- 	pix->pixelformat = V4L2_PIX_FMT_UYVY;
--	pix->field = SOLO_DISP_PIX_FIELD;
-+	pix->field = V4L2_FIELD_INTERLACED;
- 	pix->sizeimage = solo_image_size(solo_dev);
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->bytesperline = solo_bytesperline(solo_dev);
-+	pix->priv = 0;
+ 	switch (em_eeprom->chip_conf & 0x3) {
+ 	case 0:
+-		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
++		em28xx_info("\t500mA max power\n");
+ 		break;
+ 	case 1:
+-		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
++		em28xx_info("\t400mA max power\n");
+ 		break;
+ 	case 2:
+-		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
++		em28xx_info("\t300mA max power\n");
+ 		break;
+ 	case 3:
+-		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
++		em28xx_info("\t200mA max power\n");
+ 		break;
+ 	}
+-	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+-				dev->name,
+-				em_eeprom->string_idx_table,
+-				em_eeprom->string1,
+-				em_eeprom->string2,
+-				em_eeprom->string3);
++	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
++		    em_eeprom->string_idx_table,
++		    em_eeprom->string1,
++		    em_eeprom->string2,
++		    em_eeprom->string3);
  
  	return 0;
  }
+@@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
+ 		if (rc < 0)
+ 			continue;
+ 		i2c_devicelist[i] = i;
+-		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
+-		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
++		em28xx_info("found i2c device @ 0x%x [%s]\n",
++			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+ 	}
+ 
+ 	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
 -- 
 1.7.10.4
 
