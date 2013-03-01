@@ -1,98 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f45.google.com ([74.125.83.45]:49207 "EHLO
-	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757881Ab3CTTYL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 15:24:11 -0400
-Received: by mail-ee0-f45.google.com with SMTP id b57so1375441eek.32
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 12:24:10 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFC PATCH 04/10] bttv: rename field 'audio' in struct 'bttv' to 'audio_input'
-Date: Wed, 20 Mar 2013 20:24:44 +0100
-Message-Id: <1363807490-3906-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2636 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab3CAJ7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 04:59:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] s2255: v4l2-compliance and big-endian fixes
+Date: Fri, 1 Mar 2013 10:59:44 +0100
+Cc: Pete Eberlein <pete@sensoray.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303011059.44601.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'audio_input' better describes the meaning of this field.
+(Retry: the first pull request didn't end up in patchwork for some reason,
+let's see if this works better)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-cards.c  |    2 +-
- drivers/media/pci/bt8xx/bttv-driver.c |   12 ++++++------
- drivers/media/pci/bt8xx/bttvp.h       |    2 +-
- 3 Dateien geändert, 8 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
+Hi Mauro,
 
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index fa0faaa..b7dc921 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -3947,7 +3947,7 @@ static void avermedia_eeprom(struct bttv *btv)
- u32 bttv_tda9880_setnorm(struct bttv *btv, u32 gpiobits)
- {
- 
--	if (btv->audio == TVAUDIO_INPUT_TUNER) {
-+	if (btv->audio_input == TVAUDIO_INPUT_TUNER) {
- 		if (bttv_tvnorms[btv->tvnorm].v4l2_id & V4L2_STD_MN)
- 			gpiobits |= 0x10000;
- 		else
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index e01a8d8..81ee70d 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1093,7 +1093,7 @@ audio_mux(struct bttv *btv, int input, int mute)
- static inline int
- audio_mute(struct bttv *btv, int mute)
- {
--	return audio_mux(btv, btv->audio, mute);
-+	return audio_mux(btv, btv->audio_input, mute);
- }
- 
- static inline int
-@@ -1195,9 +1195,9 @@ set_input(struct bttv *btv, unsigned int input, unsigned int norm)
- 	} else {
- 		video_mux(btv,input);
- 	}
--	btv->audio = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
--			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
--	audio_input(btv, btv->audio);
-+	btv->audio_input = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
-+				TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
-+	audio_input(btv, btv->audio_input);
- 	set_tvnorm(btv, norm);
- }
- 
-@@ -1706,8 +1706,8 @@ static void radio_enable(struct bttv *btv)
- 	if (!btv->has_radio_tuner) {
- 		btv->has_radio_tuner = 1;
- 		bttv_call_all(btv, tuner, s_radio);
--		btv->audio = TVAUDIO_INPUT_RADIO;
--		audio_input(btv, btv->audio);
-+		btv->audio_input = TVAUDIO_INPUT_RADIO;
-+		audio_input(btv, btv->audio_input);
- 	}
- }
- 
-diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
-index e7910e0..9c1cc2c 100644
---- a/drivers/media/pci/bt8xx/bttvp.h
-+++ b/drivers/media/pci/bt8xx/bttvp.h
-@@ -423,7 +423,7 @@ struct bttv {
- 
- 	/* video state */
- 	unsigned int input;
--	unsigned int audio;
-+	unsigned int audio_input;
- 	unsigned int mute;
- 	unsigned long tv_freq;
- 	unsigned int tvnorm;
--- 
-1.7.10.4
+This pull request updates the s2255 driver with the usual v4l2-compliance and
+big-endian fixes.
 
+Tested on my s2255 device, generously supplied by Sensoray.
+
+The patches in this pull request are unchanged from my review patch series
+posted Tuesday.
+
+Regards,
+
+        Hans
+
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+
+  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git s2255
+
+for you to fetch changes up to 73aace6ab8b80cfda30fa99a1bd02f359b7dad1f:
+
+  s2255: fix big-endian support. (2013-02-26 18:32:04 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (11):
+      s2255: convert to the control framework.
+      s2255: add V4L2_CID_JPEG_COMPRESSION_QUALITY
+      s2255: add support for control events and prio handling.
+      s2255: add device_caps support to querycap.
+      s2255: fixes in the way standards are handled.
+      s2255: zero priv and set colorspace.
+      s2255: fix field handling
+      s2255: don't zero struct v4l2_streamparm
+      s2255: Add ENUM_FRAMESIZES support.
+      s2255: choose YUYV as the default format, not YUV422P
+      s2255: fix big-endian support.
+
+ drivers/media/usb/s2255/s2255drv.c |  439 ++++++++++++++++++++++++++++++++++++++------------------------------------------
+ include/uapi/linux/v4l2-controls.h |    4 +
+ 2 files changed, 215 insertions(+), 228 deletions(-)
