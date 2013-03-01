@@ -1,101 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:58187 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753749Ab3CRJb2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 05:31:28 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 7/8] smi2021: Add smi2021_bl.c
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
-	<1363270024-12127-8-git-send-email-jonarne@jonarne.no>
-Date: Mon, 18 Mar 2013 10:31:14 +0100
-In-Reply-To: <1363270024-12127-8-git-send-email-jonarne@jonarne.no> ("Jon
- Arne
-	=?utf-8?Q?J=C3=B8rgensen=22's?= message of "Thu, 14 Mar 2013 15:07:03
- +0100")
-Message-ID: <871ubd3vh9.fsf@nemi.mork.no>
+Received: from luna.schedom-europe.net ([193.109.184.86]:57378 "HELO
+	luna.schedom-europe.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752240Ab3CAU3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 15:29:01 -0500
+Message-ID: <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
+Date: Fri,  1 Mar 2013 21:28:54 +0100
+From: jandegr1@dommel.be
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: HAUPPAUGE HVR-930C analog tv feasible ??
+References: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
+	<20130225083345.2d83d554@redhat.com>
+In-Reply-To: <20130225083345.2d83d554@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jon Arne Jørgensen <jonarne@jonarne.no> writes:
+Citeren Mauro Carvalho Chehab <mchehab@redhat.com>:
 
-> This is the smi2021-bootloader module.
-> This module will upload the firmware for the different somagic devices.
+> Em Mon, 25 Feb 2013 12:01:17 +0100
+> jandegr1@dommel.be escreveu:
+>
+>> Hi,
+>>
+>> To get analog tv working on a hauppauge hvr-930c, I started sniffing usb and
+>> parsing.
+>>
+>> you can see a sample here : 
+>> https://dl.dropbox.com/u/93775123/grphCable22.txt
+>>
+>> Howeverver I am missing a lot of knowledge to jump on it right away, so I'd
+>> as for opinion of the experts over here first.
+>
+> AFAIKT, the designs with avf4910b also has a drx-k demod on it (or maybe some
+> other Micronas demod, like drx-j).
+>
+> When I added support for Terratec H7, I used a Linux driver made available by
+> Terratec at that time, as reference. See:
+> 	http://lwn.net/Articles/476992/
+>
+> While I don't see the link for the driver anymore on Terratec linux site,
+> it seems that the file is still there at:
+> 	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
+>
+> While H7 driver there only adds support for digital TV, you may find
+> something useful at drxk driver, as it has several stuff there related
+> to analog TV. I won't doubt that the needed bits for avf4910 are (at least
+> partially) there. So, you may find useful to take a look on it.
+>
+> To be frank, while I would love to have analog working there, I never
+> found enough time to work on adding analog support for it, nor I succeeded
+> to get any avf4910b datasheet or development kit.
+>
+>>
+>> This could be benifical for several other cards with the avf4910 as well.
+>
+> Sure. I suspect that, once having it work for one device, it should be
+> trivial to make it work with the others.
+>
+>>
+>> thx,
+>>
+>> Jan De Graeve
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+>
+> Cheers,
+> Mauro
+>
+Hi,
 
-I really don't understand why you want to make that a separate module.
-Building both the bootlader driver and the real driver into the same
-module will make sure that either both or none are available, document
-the relationship to the end user, and allow you to tell the user that
-firmware files may be needed for the real driver by using the
-MODULE_FIRMWARE macro (which you should do, IMHO).
+Thanks for the pointers, the code for the audio demodulator is in the drx-k
+driver. I updated the comments accordingly in
+https://dl.dropbox.com/u/93775123/grphCable22.txt
+I am updating that file it as I find more things.
 
-> +static unsigned int firmware_version;
-> +module_param(firmware_version, int, 0644);
-> +MODULE_PARM_DESC(firmware_version,
-> +			"Firmware version to be uploaded to device\n"
-> +			"if there are more than one firmware present");
-> +
-> +struct usb_device_id smi2021_bootloader_id_table[] = {
-> +	{ USB_DEVICE(0x1c88, 0x0007) },
-> +	{ }
-> +};
-> +
-> +struct smi2021_firmware {
-> +	int		id;
-> +	const char	*name;
-> +	int		found;
-> +};
-> +
-> +struct smi2021_firmware available_fw[] = {
-> +	{
-> +		.id = 0x3c,
-> +		.name = "smi2021_3c.bin",
-> +	},
-> +	{
-> +		.id = 0x3e,
-> +		.name = "smi2021_3e.bin",
-> +	},
-> +	{
-> +		.id = 0x3f,
-> +		.name = "smi2021_3f.bin",
-> +	}
-> +};
+Any other suggestions/comments or anyone wanting to work with me on this ?
+It would be a pity if these boards did not get analog support.
 
+regards,
 
-How does the user know which firmware to select?  Will any of them work,
-or are they device specific? Either way I believe you should publish all
-three names using MODULE_FIRMWARE.
-
-
-> +static int smi2021_load_firmware(struct usb_device *udev,
-> +					const struct firmware *firmware)
-> +{
-> +	int i, size, rc = 0;
-> +	u8 *chunk;
-> +	u16 ack = 0x0000;
-> +
-> +	if (udev == NULL)
-> +		goto end_out;
-
-Is this possible? 
-
-
-
-> +	size = FIRMWARE_CHUNK_SIZE + FIRMWARE_HEADER_SIZE;
-> +	chunk = kzalloc(size, GFP_KERNEL);
-> +	chunk[0] = 0x05;
-> +	chunk[1] = 0xff;
-> +
-> +	if (chunk == NULL) {
-
-This on the other hand, will happen.  But you have already oopsed when
-you test it here...
+Jan De Graeve
 
 
-Bjørn
+
+
+
+
+
