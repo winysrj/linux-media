@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:65479 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753280Ab3CNV4z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 17:56:55 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Tony Lindgren <tony@atomide.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] ir: IR_RX51 only works on OMAP2
-Date: Thu, 14 Mar 2013 22:56:44 +0100
-Message-Id: <1363298204-8014-7-git-send-email-arnd@arndb.de>
-In-Reply-To: <1363298204-8014-1-git-send-email-arnd@arndb.de>
-References: <1363298204-8014-1-git-send-email-arnd@arndb.de>
+Received: from mail-ia0-f178.google.com ([209.85.210.178]:58518 "EHLO
+	mail-ia0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750968Ab3CAJTM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 04:19:12 -0500
+Received: by mail-ia0-f178.google.com with SMTP id y26so2487012iab.9
+        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 01:19:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1362024762-28406-3-git-send-email-vikas.sajjan@linaro.org>
+References: <1362024762-28406-1-git-send-email-vikas.sajjan@linaro.org>
+	<1362024762-28406-3-git-send-email-vikas.sajjan@linaro.org>
+Date: Fri, 1 Mar 2013 10:19:10 +0100
+Message-ID: <CACRpkdbW-+Ady4oHWmG+paw48SZwGtmPZmXNnawqJ3w9qXBuBQ@mail.gmail.com>
+Subject: Re: [PATCH v9 2/2] video: drm: exynos: Add pinctrl support to fimd
+From: Linus Walleij <linus.walleij@linaro.org>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
+	linaro-dev@lists.linaro.org, jy0922.shim@samsung.com,
+	patches@linaro.org, l.krishna@samsung.com, joshi@samsung.com,
+	inki.dae@samsung.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver can be enabled on OMAP1 at the moment, which breaks
-allyesconfig for that platform. Let's mark it OMAP2PLUS-only
-in Kconfig, since that is the only thing it builds on.
+On Thu, Feb 28, 2013 at 5:12 AM, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
----
-Mauro, please apply for 3.9
+> Adds support for pinctrl to drm fimd
+>
+> Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+(...)
+> +               pctrl = devm_pinctrl_get_select_default(dev);
 
- drivers/media/rc/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+NAK.
 
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index 19f3563..5a79c33 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -291,7 +291,7 @@ config IR_TTUSBIR
- 
- config IR_RX51
- 	tristate "Nokia N900 IR transmitter diode"
--	depends on OMAP_DM_TIMER && LIRC && !ARCH_MULTIPLATFORM
-+	depends on OMAP_DM_TIMER && ARCH_OMAP2PLUS && LIRC && !ARCH_MULTIPLATFORM
- 	---help---
- 	   Say Y or M here if you want to enable support for the IR
- 	   transmitter diode built in the Nokia N900 (RX51) device.
--- 
-1.8.1.2
+The device core will do this for you as of commit
+ab78029ecc347debbd737f06688d788bd9d60c1d
+"drivers/pinctrl: grab default handles from device core"
 
+Yours,
+Linus Walleij
