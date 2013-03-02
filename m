@@ -1,38 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:38744 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004Ab3CFJO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 04:14:58 -0500
-Received: by mail-pb0-f51.google.com with SMTP id un15so5735379pbc.10
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 01:14:57 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2239 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616Ab3CBXqD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:46:03 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, sachin.kamat@linaro.org
-Subject: [PATCH 1/1] [media] dvb-usb/dw2102: Remove duplicate inclusion of ts2020.h
-Date: Wed,  6 Mar 2013 14:34:26 +0530
-Message-Id: <1362560666-4249-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 15/20] solo6x10: use monotonic timestamps.
+Date: Sun,  3 Mar 2013 00:45:31 +0100
+Message-Id: <82414c2026e0ec585f43110794bb474d9fbe6c00.1362266529.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ts2020.h was included twice.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb/dw2102.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/staging/media/solo6x10/v4l2-enc.c |    2 +-
+ drivers/staging/media/solo6x10/v4l2.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb/dw2102.c b/drivers/media/usb/dvb-usb/dw2102.c
-index 9578a67..c629d02 100644
---- a/drivers/media/usb/dvb-usb/dw2102.c
-+++ b/drivers/media/usb/dvb-usb/dw2102.c
-@@ -29,7 +29,6 @@
- #include "stb6100.h"
- #include "stb6100_proc.h"
- #include "m88rs2000.h"
--#include "ts2020.h"
+diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
+index 4fc8d84..fd9cf4f 100644
+--- a/drivers/staging/media/solo6x10/v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/v4l2-enc.c
+@@ -814,7 +814,7 @@ void solo_enc_v4l2_isr(struct solo_dev *solo_dev)
+ 		enc_buf->jpeg_size = jpeg_size;
+ 		enc_buf->type = enc_type;
  
- #ifndef USB_PID_DW2102
- #define USB_PID_DW2102 0x2102
+-		do_gettimeofday(&enc_buf->ts);
++		v4l2_get_timestamp(&enc_buf->ts);
+ 
+ 		solo_dev->enc_wr_idx = (solo_dev->enc_wr_idx + 1) %
+ 					SOLO_NR_RING_BUFS;
+diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
+index 8900015..8a4194b 100644
+--- a/drivers/staging/media/solo6x10/v4l2.c
++++ b/drivers/staging/media/solo6x10/v4l2.c
+@@ -336,7 +336,7 @@ finish_buf:
+ 		vb2_set_plane_payload(vb, 0,
+ 			solo_vlines(solo_dev) * solo_bytesperline(solo_dev));
+ 		vb->v4l2_buf.sequence++;
+-		do_gettimeofday(&vb->v4l2_buf.timestamp);
++		v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
+ 	}
+ 
+ 	vb2_buffer_done(vb, error ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
 -- 
-1.7.4.1
+1.7.10.4
 
