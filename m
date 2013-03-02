@@ -1,85 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:59016 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751992Ab3CBKvZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 05:51:25 -0500
-Received: by mail-pb0-f46.google.com with SMTP id uo15so2232561pbc.19
-        for <linux-media@vger.kernel.org>; Sat, 02 Mar 2013 02:51:24 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2216 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752103Ab3CBXpw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:52 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 1/1] [media] s5p-mfc: Staticize some symbols in s5p_mfc_cmd_v6.c
-Date: Sat,  2 Mar 2013 16:11:02 +0530
-Message-Id: <1362220862-29079-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/20] vb2-dma-sg: add debug module option.
+Date: Sun,  3 Mar 2013 00:45:18 +0100
+Message-Id: <1d5cad0441bd2e7af543f058c32c6e6ae452766a.1362266529.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since these symbols are used only in this file, they can be made static.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+This prevents the kernel log from being spammed with these messages.
+By turning on the debug option you will see them again.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 754bfbc..5708fc3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -17,7 +17,7 @@
- #include "s5p_mfc_intr.h"
- #include "s5p_mfc_opr.h"
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 952776f..59522b2 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -21,6 +21,15 @@
+ #include <media/videobuf2-memops.h>
+ #include <media/videobuf2-dma-sg.h>
  
--int s5p_mfc_cmd_host2risc_v6(struct s5p_mfc_dev *dev, int cmd,
-+static int s5p_mfc_cmd_host2risc_v6(struct s5p_mfc_dev *dev, int cmd,
- 				struct s5p_mfc_cmd_args *args)
- {
- 	mfc_debug(2, "Issue the command: %d\n", cmd);
-@@ -32,7 +32,7 @@ int s5p_mfc_cmd_host2risc_v6(struct s5p_mfc_dev *dev, int cmd,
- 	return 0;
- }
++static int debug;
++module_param(debug, int, 0644);
++
++#define dprintk(level, fmt, arg...)					\
++	do {								\
++		if (debug >= level)					\
++			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
++	} while (0)
++
+ struct vb2_dma_sg_buf {
+ 	void				*vaddr;
+ 	struct page			**pages;
+@@ -74,7 +83,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
  
--int s5p_mfc_sys_init_cmd_v6(struct s5p_mfc_dev *dev)
-+static int s5p_mfc_sys_init_cmd_v6(struct s5p_mfc_dev *dev)
- {
- 	struct s5p_mfc_cmd_args h2r_args;
- 	struct s5p_mfc_buf_size_v6 *buf_size = dev->variant->buf_size->priv;
-@@ -44,7 +44,7 @@ int s5p_mfc_sys_init_cmd_v6(struct s5p_mfc_dev *dev)
- 					&h2r_args);
- }
+ 	atomic_inc(&buf->refcount);
  
--int s5p_mfc_sleep_cmd_v6(struct s5p_mfc_dev *dev)
-+static int s5p_mfc_sleep_cmd_v6(struct s5p_mfc_dev *dev)
- {
- 	struct s5p_mfc_cmd_args h2r_args;
+-	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
++	dprintk(1, "%s: Allocated buffer of %d pages\n",
+ 		__func__, buf->sg_desc.num_pages);
+ 	return buf;
  
-@@ -53,7 +53,7 @@ int s5p_mfc_sleep_cmd_v6(struct s5p_mfc_dev *dev)
- 			&h2r_args);
- }
+@@ -97,7 +106,7 @@ static void vb2_dma_sg_put(void *buf_priv)
+ 	int i = buf->sg_desc.num_pages;
  
--int s5p_mfc_wakeup_cmd_v6(struct s5p_mfc_dev *dev)
-+static int s5p_mfc_wakeup_cmd_v6(struct s5p_mfc_dev *dev)
- {
- 	struct s5p_mfc_cmd_args h2r_args;
+ 	if (atomic_dec_and_test(&buf->refcount)) {
+-		printk(KERN_DEBUG "%s: Freeing buffer of %d pages\n", __func__,
++		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
+ 			buf->sg_desc.num_pages);
+ 		if (buf->vaddr)
+ 			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
+@@ -163,7 +172,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	return buf;
  
-@@ -63,7 +63,7 @@ int s5p_mfc_wakeup_cmd_v6(struct s5p_mfc_dev *dev)
- }
+ userptr_fail_get_user_pages:
+-	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
++	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+ 	       num_pages_from_user, buf->sg_desc.num_pages);
+ 	while (--num_pages_from_user >= 0)
+ 		put_page(buf->pages[num_pages_from_user]);
+@@ -186,7 +195,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
+ 	struct vb2_dma_sg_buf *buf = buf_priv;
+ 	int i = buf->sg_desc.num_pages;
  
- /* Open a new instance and get its number */
--int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
-+static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	struct s5p_mfc_cmd_args h2r_args;
-@@ -121,7 +121,7 @@ int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- }
- 
- /* Close instance */
--int s5p_mfc_close_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
-+static int s5p_mfc_close_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	struct s5p_mfc_cmd_args h2r_args;
+-	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
++	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
+ 	       __func__, buf->sg_desc.num_pages);
+ 	if (buf->vaddr)
+ 		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
 -- 
-1.7.4.1
+1.7.10.4
 
