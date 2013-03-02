@@ -1,60 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26787 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752936Ab3C2IqH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 04:46:07 -0400
-Message-ID: <51555598.1040505@redhat.com>
-Date: Fri, 29 Mar 2013 09:49:28 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:43304 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624Ab3CBEAY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 23:00:24 -0500
+Message-ID: <51317952.9040402@gmail.com>
+Date: Sat, 02 Mar 2013 12:00:18 +0800
+From: Lonsn <lonsn2005@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Paul Bolle <pebolle@tiscali.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca: remove obsolete Kconfig macros
-References: <1364506437.1345.42.camel@x61.thuisdomein>
-In-Reply-To: <1364506437.1345.42.camel@x61.thuisdomein>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
+CC: k.debski@samsung.com,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: MFC decode failed in S5PV210 in kernel 3.8
+Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi,
+I tested the MFC decode example v4l2_decode from
+http://git.infradead.org/users/kmpark/public-apps and meet some problems
+as following:
+# ./v4l2_decode -f /dev/video5 -m /dev/video9 -d /dev/fb0 -c mpeg4 -i
+shrek.m4v
+V4L2 Codec decoding example application
+Kamil Debski <k.debski@samsung.com>
+Copyright 2012 Samsung Electronics Co., Ltd.
 
-Can you pick this one up? I don't have anything pending for gspca,
-and to create a tree + pullreq for just a trivial patch is not really
-efficient.
+(fb.c:fb_open:51): Framebuffer properties: xres=1024, yres=768, bpp=32
+(fb.c:fb_open:53): Virtual resolution: vxres=1024 vyres=768
+(fimc.c:fimc_open:56): FIMC Info (/dev/video5): driver="s5pv210-fimc"
+bus_info="" card="s5pv210-fimc" fd=0x5
+(mfc.c:mfc_open:57): MFC Info (/dev/video9): driver="s5p-mfc"
+bus_info="" card="s5p-mfc" fd=0x6
+(main.c:main:415): Successfully opened all necessary files and devices
+(mfc.c:mfc_dec_setup_output:101): Setup MFC decoding OUTPUT buffer
+size=1048576 (requested=1048576)
+(mfc.c:mfc_dec_setup_output:118): Number of MFC OUTPUT buffers is 2
+(requested 2)
+(mfc.c:mfc_dec_setup_output:148): Succesfully mmapped 2 MFC OUTPUT buffers
+(main.c:extract_and_process_header:84): Extracted header of size 13089
+(mfc.c:mfc_dec_queue_buf:178): Queued buffer on OUTPUT queue with index 0
+(mfc.c:mfc_stream:236): Stream ON on OUTPUT queue
+(mfc.c:mfc_dec_setup_capture:277): MFC buffer parameters: 0x0 plane[0]=0
+plane[1]=0
+Error (mfc.c:mfc_dec_setup_capture:283): Failed to get crop information
 
-Alternatively I can put it on my TODO for when there is more gspca work,
-esp. since there is not really a need to hurry with merging this.
+And kernel print:
+ s5p_mfc_handle_error:420: Interrupt Error: 00000035
+vidioc_g_crop:782: Cannont set crop
 
-Regards,
+It seems MFC buffer parameters error first.
+The shrek.m4v comes from http://www.uky.edu/~drlane/com351/shrek.m4v and
+is H264 format. But if I use -c h264, then v4l2_decode will print:
+Error (parser.c:parse_h264_stream:337): Output buffer too small for
+current frame
+Error (main.c:extract_and_process_header:71): Failed to extract header
+from stream
 
-Hans
+Any suggestions?
 
-
-On 03/28/2013 10:33 PM, Paul Bolle wrote:
-> The et61x251 driver was removed in v3.5. Remove the last references to
-> its Kconfig macro now.
->
-> Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> ---
-> Untested, as usual.
->
->   drivers/media/usb/gspca/etoms.c | 2 --
->   1 file changed, 2 deletions(-)
->
-> diff --git a/drivers/media/usb/gspca/etoms.c b/drivers/media/usb/gspca/etoms.c
-> index 38f68e1..f165581 100644
-> --- a/drivers/media/usb/gspca/etoms.c
-> +++ b/drivers/media/usb/gspca/etoms.c
-> @@ -768,9 +768,7 @@ static const struct sd_desc sd_desc = {
->   /* -- module initialisation -- */
->   static const struct usb_device_id device_table[] = {
->   	{USB_DEVICE(0x102c, 0x6151), .driver_info = SENSOR_PAS106},
-> -#if !defined CONFIG_USB_ET61X251 && !defined CONFIG_USB_ET61X251_MODULE
->   	{USB_DEVICE(0x102c, 0x6251), .driver_info = SENSOR_TAS5130CXX},
-> -#endif
->   	{}
->   };
->
->
+Thanks.
