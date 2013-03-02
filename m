@@ -1,63 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59296 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932528Ab3CHOnH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 09:43:07 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: [RFC 11/12] exynos-fimc-is: Adds the Kconfig and Makefile
-Date: Fri, 08 Mar 2013 09:59:24 -0500
-Message-id: <1362754765-2651-12-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3727 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608Ab3CBXp6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 20/20] solo6x10: also stop DMA if the SOLO_PCI_ERR_P2M_DESC is raised.
+Date: Sun,  3 Mar 2013 00:45:36 +0100
+Message-Id: <7cbef81c5bd2ac97a064ba7a77e7cea2f490d977.1362266529.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modifies the exynos5-is Makefile and Kconfig to include the new
-fimc-is driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+Otherwise the computer will hang.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/exynos5-is/Kconfig  |   12 ++++++++++++
- drivers/media/platform/exynos5-is/Makefile |    3 +++
- 2 files changed, 15 insertions(+)
+ drivers/staging/media/solo6x10/disp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/exynos5-is/Kconfig b/drivers/media/platform/exynos5-is/Kconfig
-index 7aacf3b..588103e 100644
---- a/drivers/media/platform/exynos5-is/Kconfig
-+++ b/drivers/media/platform/exynos5-is/Kconfig
-@@ -5,3 +5,15 @@ config VIDEO_SAMSUNG_EXYNOS5_MDEV
- 	  This is a v4l2 based media controller driver for
- 	  Exynos5 SoC.
+diff --git a/drivers/staging/media/solo6x10/disp.c b/drivers/staging/media/solo6x10/disp.c
+index b91a6e2..224aa46 100644
+--- a/drivers/staging/media/solo6x10/disp.c
++++ b/drivers/staging/media/solo6x10/disp.c
+@@ -149,7 +149,7 @@ static int solo_dma_vin_region(struct solo_dev *solo_dev, u32 off,
+ 	int ret = 0;
  
-+if VIDEO_SAMSUNG_EXYNOS5_MDEV
-+
-+config VIDEO_SAMSUNG_EXYNOS5_FIMC_IS
-+	tristate "Samsung Exynos5 SoC FIMC-IS driver"
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	depends on VIDEO_SAMSUNG_EXYNOS5_MDEV
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  This is a v4l2 driver for Samsung Exynos5 SoC series Imaging
-+	  subsystem known as FIMC-IS.
-+
-+endif #VIDEO_SAMSUNG_EXYNOS5_MDEV
-diff --git a/drivers/media/platform/exynos5-is/Makefile b/drivers/media/platform/exynos5-is/Makefile
-index 472d8e1..e5003d0 100644
---- a/drivers/media/platform/exynos5-is/Makefile
-+++ b/drivers/media/platform/exynos5-is/Makefile
-@@ -1,4 +1,7 @@
- ccflags-y += -Idrivers/media/platform/s5p-fimc
-+exynos5-fimc-is-objs := fimc-is-core.o fimc-is-isp.o fimc-is-scaler.o fimc-is-sensor.o
-+exynos5-fimc-is-objs += fimc-is-pipeline.o fimc-is-interface.o
- exynos-mdevice-objs := exynos5-mdev.o
+ 	for (i = 0; i < sizeof(buf) >> 1; i++)
+-		buf[i] = val;
++		buf[i] = cpu_to_le16(val);
  
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_FIMC_IS) += exynos5-fimc-is.o
- obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS5_MDEV) += exynos-mdevice.o
+ 	for (i = 0; i < reg_size; i += sizeof(buf))
+ 		ret |= solo_p2m_dma(solo_dev, SOLO_P2M_DMA_ID_VIN, 1, buf,
 -- 
-1.7.9.5
+1.7.10.4
 
