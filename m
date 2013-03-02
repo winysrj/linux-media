@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52705 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933054Ab3CSQuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:15 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 12/46] [media] siano: report the choosed firmware in debug
-Date: Tue, 19 Mar 2013 13:49:01 -0300
-Message-Id: <1363711775-2120-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4981 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752502Ab3CBXp6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 17/20] solo6x10: update buffer flags to fix clash with existing flags.
+Date: Sun,  3 Mar 2013 00:45:33 +0100
+Message-Id: <9f8abfdfc95e256e10f084358958efa3b89e089f.1362266529.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't keep in the dark: report the firmware file name after
-lookup. That helps to debug what's happening when a firmware is not
-found.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/siano/smscoreapi.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/staging/media/solo6x10/solo6x10.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 74a2cb5..250fe37 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -1010,6 +1010,7 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
- 	const struct firmware *fw;
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index d24b3cd..e404ec7 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -112,8 +112,8 @@
+ #define SOLO_CLOCK_MHZ			108
  
- 	char *fw_filename = smscore_get_fw_filename(coredev, mode, lookup);
-+	sms_debug("Firmware name: %s\n", fw_filename);
- 	if (!strcmp(fw_filename, "none"))
- 		return -ENOENT;
+ #ifndef V4L2_BUF_FLAG_MOTION_ON
+-#define V4L2_BUF_FLAG_MOTION_ON		0x0400
+-#define V4L2_BUF_FLAG_MOTION_DETECTED	0x0800
++#define V4L2_BUF_FLAG_MOTION_ON		0x10000
++#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
+ #endif
  
+ #ifndef V4L2_CID_MOTION_ENABLE
 -- 
-1.8.1.4
+1.7.10.4
 
