@@ -1,88 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38262 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754281Ab3COMQq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 08:16:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:41139 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753793Ab3CCThI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:08 -0500
+Received: by mail-ee0-f41.google.com with SMTP id c13so3529951eek.28
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:07 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/5] v4l2: pass std by value to the write-only s_std ioctl.
-Date: Fri, 15 Mar 2013 13:17:23 +0100
-Message-ID: <47014515.Cl8oU7ANsq@avalon>
-In-Reply-To: <968af7abdc8503e5bb59869b2e9a3d9b2b453563.1363342714.git.hans.verkuil@cisco.com>
-References: <1363343245-23531-1-git-send-email-hverkuil@xs4all.nl> <968af7abdc8503e5bb59869b2e9a3d9b2b453563.1363342714.git.hans.verkuil@cisco.com>
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 04/11] em28xx: do not interpret eeprom content if eeprom key is invalid
+Date: Sun,  3 Mar 2013 20:37:37 +0100
+Message-Id: <1362339464-3373-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+If the eeprom key isn't valid, either a different (currently unknown) format
+is used or the eeprom is corrupted.
+In both cases it doesn't make sense to interpret the data.
+Also print an error message.
 
-Thanks for the patch.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |    8 ++++++--
+ 1 Datei geändert, 6 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
 
-On Friday 15 March 2013 11:27:23 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ioctl is defined as IOW, so pass the argument by value instead of by
-> reference. I could have chosen to add const instead, but this is 1) easier
-> to handle in drivers and 2) consistent with the s_std subdev operation.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-[snip]
-
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index 8ec8abe..d80d8af 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1383,15 +1383,15 @@ static int v4l_s_std(const struct v4l2_ioctl_ops
-> *ops, struct file *file, void *fh, void *arg)
->  {
->  	struct video_device *vfd = video_devdata(file);
-> -	v4l2_std_id *id = arg, norm;
-> +	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
-
-This is getting a bit hard to read, I would have split the declaration of norm 
-to a separate line, but that's just nit-picking.
-
->  	int ret;
-> 
-> -	norm = (*id) & vfd->tvnorms;
-> +	norm = id & vfd->tvnorms;
->  	if (vfd->tvnorms && !norm)	/* Check if std is supported */
->  		return -EINVAL;
-> 
->  	/* Calls the specific handler */
-> -	ret = ops->vidioc_s_std(file, fh, &norm);
-> +	ret = ops->vidioc_s_std(file, fh, norm);
-> 
->  	/* Updates standard information */
->  	if (ret >= 0)
-
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index d765567..9612086 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -434,8 +434,12 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ 			printk("\n");
+ 	}
+ 
+-	if (em_eeprom->id == 0x9567eb1a)
+-		dev->hash = em28xx_hash_mem(eedata, len, 32);
++	if (em_eeprom->id != 0x9567eb1a) {
++		em28xx_errdev("Unknown eeprom type or eeprom corrupted !");
++		return -ENODEV;
++	}
++
++	dev->hash = em28xx_hash_mem(eedata, len, 32);
+ 
+ 	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
+ 		    em_eeprom->id, dev->hash);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
