@@ -1,76 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38973 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:14876 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758289Ab3CDTml convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 14:42:41 -0500
-Date: Mon, 4 Mar 2013 16:42:34 -0300
+	id S1753514Ab3CCP66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Mar 2013 10:58:58 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23FwvnJ004186
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:57 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti
-	<alfredodelaiti@netscape.net>, linux-media@vger.kernel.org
-Subject: Re: mb86a20s and cx23885
-Message-ID: <20130304164234.18df36a7@redhat.com>
-In-Reply-To: <20130303134051.6dc038aa@redhat.com>
-References: <51054759.7050202@netscape.net>
-	<20130127141633.5f751e5d@redhat.com>
-	<5105A0C9.6070007@netscape.net>
-	<20130128082354.607fae64@redhat.com>
-	<5106E3EA.70307@netscape.net>
-	<511264CF.3010002@netscape.net>
-	<51336331.10205@netscape.net>
-	<20130303134051.6dc038aa@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 08/11] [media] mb86a20s: Don't reset strength with the other stats
+Date: Sun,  3 Mar 2013 12:58:48 -0300
+Message-Id: <1362326331-17541-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 3 Mar 2013 13:40:51 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Signal strength is always available. There's no reason to reset
+it, as it has its own logic to reset it already.
 
-> Em Sun, 03 Mar 2013 11:50:25 -0300
-> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
-> 
-> 
-> > The new data replacement in mb86a20s
-> > 
-> > /*
-> >   * Initialization sequence: Use whatevere default values that PV SBTVD
-> >   * does on its initialisation, obtained via USB snoop
-> >   */
-> > static struct regdata mb86a20s_init[] = {
-> 
-> Please test first my mb86a20s patchset. If it doesn't work, we'll need
-> to dig into the differences.
-> 
-> The better is to group these and reorder them to look like what's there
-> at the driver, and send it like a diff. That would make a way easier to
-> see what's different there.
-> 
-> Anyway, it follows my comments about a few things that came into my eyes.
-> 
-> >      { 0x09, 0x3a },
-> 
-> No idea what's here, but it seems a worth trial to change it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-It controls inversion. I just pushed a patch that will let it handle
-both normal and inverted spectrum. The DVB core will automatically
-switch inversion during device tuning.
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 1589662..7238947 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -754,7 +754,6 @@ static int mb86a20s_reset_counters(struct dvb_frontend *fe)
+ 
+ 	/* Reset the counters, if the channel changed */
+ 	if (state->last_frequency != c->frequency) {
+-		memset(&c->strength, 0, sizeof(c->strength));
+ 		memset(&c->cnr, 0, sizeof(c->cnr));
+ 		memset(&c->pre_bit_error, 0, sizeof(c->pre_bit_error));
+ 		memset(&c->pre_bit_count, 0, sizeof(c->pre_bit_count));
+-- 
+1.8.1.4
 
-> >      { 0x28, 0x2a },
-> >      { 0x29, 0x00 },
-> >      { 0x2a, 0xfd },
-> >      { 0x2b, 0xc8 },
-> 
-> Hmm... the above may explain why it is not working. This is calculated
-> from the XTAL frequency, and IF (if different than 4MHz).
-> 
-> Just changing it could fix the issue.
-
-I also added a patch that allows using a different XTAL frequency.
-
-You can use the calculus there to convert from 0x00fdc8 into the XTAL
-frequency, if you have the IF set by xc5000.
-
-Regards,
-Mauro
