@@ -1,65 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11481 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:1543 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933132Ab3CSQuT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:19 -0400
+	id S1753603Ab3CCP7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Mar 2013 10:59:01 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 43/46] [media] siano: add a MAINTAINERS entry for it
-Date: Tue, 19 Mar 2013 13:49:32 -0300
-Message-Id: <1363711775-2120-44-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+	=?UTF-8?q?Alfredo=20Jes=C3=BAs=20Delaiti?=
+	<alfredodelaiti@netscape.net>
+Subject: [PATCH 00/11] Do some improvements/fixups on mb86a20s, cx231xx and em28xx
+Date: Sun,  3 Mar 2013 12:58:40 -0300
+Message-Id: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Nobody is maintaining this driver. The project started by a
-developer that used to work at Hauppauge. A Siano developer
-assumed its maintainership after that, but he left the company.
-Another Siano developer sent several patches updating it, but,
-after upstream feedback, it seems he gave up merging the driver,
-as he never answered back to the received feedbacks.
+While working to add support for a new device, I discovered a
+series of issues with mb86a20s and one with em28xx.
 
-As I have a few siano devices here that work with ISDB-T, I
-can help to keep it into a good shape. So, better to take its
-maintainership.
+While here, I also changed cx231xx to improve its signal
+detection, by using a different IF frequency and increasing the
+IF signal level from the tuner by 12dB.
 
-I don't have any siano SDIO setup here, trough. So, I'll just
-apply without any test any patch that looks sane and touches
-only drivers/media/mmc/siano. So, let's tag it as "Odd fixes".
+Mauro Carvalho Chehab (11):
+  [media] mb86a20s: don't pollute dmesg with debug messages
+  [media] mb86a20s: adjust IF based on what's set on the tuner
+  [media] mb86a20s: provide CNR stats before FE_HAS_SYNC
+  [media] mb86a20s: Fix signal strength calculus
+  [media] mb86a20s: don't allow updating signal strength too fast
+  [media] mb86a20s: change AGC tuning parameters
+  [media] mb86a20s: Always reset the frontend with set_frontend
+  [media] mb86a20s: Don't reset strength with the other stats
+  [media] mb86a20s: cleanup the status at set_frontend()
+  [media] cx231xx: Improve signal reception for PV SBTVD
+  [media] em28xx-dvb: Don't put device in suspend mode at feed stop
 
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- MAINTAINERS | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/media/dvb-core/dmxdev.c         |   3 +-
+ drivers/media/dvb-frontends/mb86a20s.c  | 200 +++++++++++++++++++++-----------
+ drivers/media/usb/cx231xx/cx231xx-dvb.c |   4 +-
+ drivers/media/usb/em28xx/em28xx-dvb.c   |   2 -
+ 4 files changed, 136 insertions(+), 73 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 90e1797..8d8e762 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7038,6 +7038,17 @@ F:	drivers/media/radio/si470x/radio-si470x-common.c
- F:	drivers/media/radio/si470x/radio-si470x.h
- F:	drivers/media/radio/si470x/radio-si470x-usb.c
- 
-+SIANO DVB DRIVER
-+M:	Mauro Carvalho Chehab <mchehab@redhat.com>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Odd fixes
-+F:	drivers/media/common/siano/
-+F:	drivers/media/dvb/siano/
-+F:	drivers/media/usb/siano/
-+F:	drivers/media/mmc/siano
-+
- SH_VEU V4L2 MEM2MEM DRIVER
- M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
- L:	linux-media@vger.kernel.org
 -- 
 1.8.1.4
 
