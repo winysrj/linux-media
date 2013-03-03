@@ -1,94 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1689 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:62628 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758216Ab3CYRg7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 13:36:59 -0400
-Date: Mon, 25 Mar 2013 14:36:47 -0300
+	id S1753532Ab3CCP66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Mar 2013 10:58:58 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23FwwYs021697
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:58 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Timo Teras <timo.teras@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Terratec Grabby hwrev 2
-Message-ID: <20130325143647.3da1360f@redhat.com>
-In-Reply-To: <20130325190846.3250fe98@vostro>
-References: <20130325190846.3250fe98@vostro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 03/11] [media] mb86a20s: provide CNR stats before FE_HAS_SYNC
+Date: Sun,  3 Mar 2013 12:58:43 -0300
+Message-Id: <1362326331-17541-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Mar 2013 19:08:46 +0200
-Timo Teras <timo.teras@iki.fi> escreveu:
+State 9 means TS started to be output, and it should be
+associated with FE_HAS_SYNC.
 
-> I just bought a Terratec Grabby hardware revision 2 in hopes that it
-> would work on my linux box.
-> 
-> But alas, I got only sound working. It seems that analog video picture
-> grabbing does not work.
-> 
-> I tried kernels 3.4.34-grsec, 3.7.1 (vanilla), 3.8.2-grsec and
-> 3.9.0-rc4 (vanilla). And all fail the same way - no video data received.
-> 
-> The USB ID is same as on the revision 1 board:
-> Bus 005 Device 002: ID 0ccd:0096 TerraTec Electronic GmbH
-> 
-> And it is properly detected as Grabby.
-> 
-> It seems that the videobuf2 changes for 3.9.0-rc4 resulted in better
-> debug logging, and it implies that the application (ffmpeg 1.1.4) is
-> behaving well: all buffers are allocated, mmapped, queued, streamon
-> called. But no data is received from the dongle. I also tested mencoder
-> and it fails in similar manner.
-> 
-> Dmesg (on 3.9.0-rc4) tells after module load the following:
->  
-> [ 1249.600246] em28xx: New device TerraTec Electronic GmbH TerraTec Grabby @ 480 Mbps (0ccd:0096, inte
-> rface 0, class 0)
-> [ 1249.600258] em28xx: Video interface 0 found: isoc
-> [ 1249.600264] em28xx: DVB interface 0 found: isoc
-> [ 1249.600443] em28xx: chip ID is em2860
-> [ 1249.715053] em2860 #0: i2c eeprom 00: 1a eb 67 95 cd 0c 96 00 50 00 11 03 9c 20 6a 32
-> [ 1249.715084] em2860 #0: i2c eeprom 10: 00 00 06 57 0e 02 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715110] em2860 #0: i2c eeprom 20: 02 00 01 00 f0 10 01 00 00 00 00 00 5b 00 00 00
-> [ 1249.715136] em2860 #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-> [ 1249.715161] em2860 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715186] em2860 #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715211] em2860 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 32 03 54 00 65 00
-> [ 1249.715235] em2860 #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
-> [ 1249.715261] em2860 #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
-> [ 1249.715286] em2860 #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 20 03 54 00
-> [ 1249.715311] em2860 #0: i2c eeprom a0: 65 00 72 00 72 00 61 00 54 00 65 00 63 00 20 00
-> [ 1249.715336] em2860 #0: i2c eeprom b0: 47 00 72 00 61 00 62 00 62 00 79 00 48 00 00 00
-> [ 1249.715361] em2860 #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715385] em2860 #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715410] em2860 #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715435] em2860 #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> [ 1249.715464] em2860 #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xd3498090
-> [ 1249.715470] em2860 #0: EEPROM info:
-> [ 1249.715475] em2860 #0:       AC97 audio (5 sample rates)
-> [ 1249.715480] em2860 #0:       500mA max power
-> [ 1249.715487] em2860 #0:       Table at 0x06, strings=0x209c, 0x326a, 0x0000
-> [ 1249.715495] em2860 #0: Identified as Terratec Grabby (card=67)
-> [ 1250.058076] em2860 #0: Config register raw data: 0x50
-> [ 1250.076845] em2860 #0: AC97 vendor ID = 0x60f160f1
-> [ 1250.086814] em2860 #0: AC97 features = 0x60f1
+The mb86a20scan get CNR statistics at state 7, when frame sync
+is obtained.
 
-That looks weird on my eyes: 3 AC97 reads returned 0x60f1. I suspect that
-the GPIOs for this device are different than on version 1.
+As CNR may help to adjust the antenna, provide it earlier.
 
-> [ 1250.086822] em2860 #0: Unknown AC97 audio processor detected!
-> [ 1251.116646] em2860 #0: v4l2 driver version 0.1.3
-> [ 1251.891145] em2860 #0: V4L2 video device registered as video0
-> [ 1251.891155] em2860 #0: V4L2 VBI device registered as vbi0
-> [ 1251.891161] em2860 #0: analog set to isoc mode.
-> [ 1251.891167] em2860 #0: dvb set to isoc mode.
-> [ 1251.910649] usbcore: registered new interface driver em28xx
-> 
-> Any suggestions how to debug/fix this?
+A latter patch could eventually start outputing MER measures
+earlier, but that would require a bigger change, and probably
+won't be better than the current way, as the time between
+changing from state 8 to 9 is generally lower than the time
+to get the stats collected.
 
-The better is to run the original driver at a recent version of KVM
-with USB port forward enabled, and capture the USB logs. There are some
-pages at LinuxTV wiki explaining how to do it.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index daeee81..e222e55 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -312,7 +312,7 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
+ 		 __func__, *status, val);
+ 
+-	return 0;
++	return val;
+ }
+ 
+ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+@@ -1564,7 +1564,7 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
+ 	}
+ }
+ 
+-static int mb86a20s_get_stats(struct dvb_frontend *fe)
++static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1584,6 +1584,14 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 	/* Get per-layer stats */
+ 	mb86a20s_get_blk_error_layer_CNR(fe);
+ 
++	/*
++	 * At state 7, only CNR is available
++	 * For BER measures, state=9 is required
++	 * FIXME: we may get MER measures with state=8
++	 */
++	if (status_nr < 9)
++		return 0;
++
+ 	for (i = 0; i < 3; i++) {
+ 		if (c->isdbt_layer_enabled & (1 << i)) {
+ 			/* Layer is active and has rc segments */
+@@ -1875,7 +1883,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int rc;
++	int rc, status_nr;
+ 
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+@@ -1883,12 +1891,12 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	/* Get lock */
+-	rc = mb86a20s_read_status(fe, status);
+-	if (!(*status & FE_HAS_LOCK)) {
++	status_nr = mb86a20s_read_status(fe, status);
++	if (status_nr < 7) {
+ 		mb86a20s_stats_not_ready(fe);
+ 		mb86a20s_reset_frontend_cache(fe);
+ 	}
+-	if (rc < 0) {
++	if (state < 0) {
+ 		dev_err(&state->i2c->dev,
+ 			"%s: Can't read frontend lock status\n", __func__);
+ 		goto error;
+@@ -1908,7 +1916,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 	/* Fill signal strength */
+ 	c->strength.stat[0].uvalue = rc;
+ 
+-	if (*status & FE_HAS_LOCK) {
++	if (status_nr >= 7) {
+ 		/* Get TMCC info*/
+ 		rc = mb86a20s_get_frontend(fe);
+ 		if (rc < 0) {
+@@ -1919,7 +1927,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 		}
+ 
+ 		/* Get statistics */
+-		rc = mb86a20s_get_stats(fe);
++		rc = mb86a20s_get_stats(fe, status_nr);
+ 		if (rc < 0 && rc != -EBUSY) {
+ 			dev_err(&state->i2c->dev,
+ 				"%s: Can't get FE statistics.\n", __func__);
+-- 
+1.8.1.4
+
