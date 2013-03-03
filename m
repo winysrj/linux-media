@@ -1,80 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43826 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754775Ab3CLNTa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 09:19:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:49631 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897Ab3CCThO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:14 -0500
+Received: by mail-ee0-f51.google.com with SMTP id d17so3380044eek.24
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:13 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: omap3isp: iommu register problem.
-Date: Tue, 12 Mar 2013 14:20:04 +0100
-Message-ID: <1574649.Ib7kFY8lEY@avalon>
-In-Reply-To: <CACKLOr3aLMvdyQb7_=rd0vn4=LsVi+agq82qrYno31DUWxYfbw@mail.gmail.com>
-References: <CACKLOr0DGrULZmrzRuEqdm_Ec0hroCAXrnqLUFrc37YKpQ-Vpw@mail.gmail.com> <2890206.GE3SX5DoKH@avalon> <CACKLOr3aLMvdyQb7_=rd0vn4=LsVi+agq82qrYno31DUWxYfbw@mail.gmail.com>
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 07/11] em28xx: add basic support for eeproms with 16 bit address width
+Date: Sun,  3 Mar 2013 20:37:40 +0100
+Message-Id: <1362339464-3373-8-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Newer devices (em2874, em2884, em28174, em25xx, em27[6,7,8]x) use eeproms with
+16 bit instead of 8 bit address width.
+The used eeprom type depends on the chip type, which makes sure eeproms can't
+be damaged.
 
-On Tuesday 12 March 2013 08:52:39 javier Martin wrote:
-> On 11 March 2013 21:51, Laurent Pinchart wrote:
-> > Hi Javier,
-> > 
-> >> [    2.706939] omap3isp omap3isp: Revision 15.0 found
-> >> [    2.712402] omap_iommu_attach: 1
-> >> [    2.715942] omap_iommu_attach: 2
-> >> [    2.719329] omap_iommu_attach: 3
-> >> [    2.722778] omap_iommu_attach: 4
-> >> [    2.726135] omap_iommu_attach: 5
-> >> [    2.729553] iommu_enable: 1
-> >> [    2.732482] iommu_enable: 2, arch_iommu = c0599adc
-> >> [    2.737548] iommu_enable: 3
-> >> [    2.740478] iommu_enable: 5
-> >> [    2.743652] omap-iommu omap-iommu.0: mmu_isp: version 1.1
-> >> [    2.749389] omap_iommu_attach: 6
-> >> [    2.752807] omap_iommu_attach: 7
-> >> [    2.756195] omap_iommu_attach: 8
-> >> [    2.759613] omap_iommu_attach: 9
-> >> [    2.763977] omap3isp omap3isp: hist: DMA channel = 2
-> >> [    2.770904] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-> >> [    2.778839] ALSA device list:
-> >> [    2.781982]   No soundcards found.
-> >> [    2.799285] mt9m111 2-0048: mt9m111: driver needs platform data
-> >> [    2.805603] mt9m111: probe of 2-0048 failed with error -22
-> >> [    2.814849] omap3isp omap3isp: isp_register_subdev_group: Unable to
-> >> register subdev mt9m111
-> >> 
-> >> The error I get now seems more related to the fact that I am trying to
-> >> use a soc-camera sensor (mt9m111) with a non-soc-camera host
-> >> (omap3isp) and I probably need some extra platform code.
-> >> 
-> >> Do you know any board in mainline in a similar situation?
-> > 
-> > There's none yet I'm afraid.
-> > 
-> > We don't have the necessary infrastructure in place yet to allow this.
-> > Guennadi might be able to give you a bit more information about the
-> > current status.
-> 
-> So what kind of changes are required to make this work? Are we talking
-> about migrating each soc-camera sensor separately, soc-camera
-> framework changes, both of them?
+This patch adds basic support for 16 bit eeproms only, which includes
+- reading the content
+- calculating the eeprom hash
+- displaying the content
 
-Both actually. The soc-camera core and soc-camera hosts first need to be 
-extended to support both pad-aware and non pad-aware subdevs. Guennadi gave 
-that a thought some time ago, I'm not sure what the status is.
+The eeprom content uses a different format, for which support will be added with
+subsequent patches.
 
-Then the soc-camera platform data need to be split in a sensor part and a host 
-part. This is required for DT support as well, so work is ongoing there. 
-Finally your sensor driver will need to implement pad operations.
+Tested with the "Hauppauge HVR-930C" and the "Speedlink VAD Laplace webcam"
+(with additional experimental patches).
 
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |    4 ++
+ drivers/media/usb/em28xx/em28xx-i2c.c   |   69 ++++++++++++++++++++-----------
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 3 Dateien geändert, 49 Zeilen hinzugefügt(+), 25 Zeilen entfernt(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 0d74734..fa51f81 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2187,6 +2187,7 @@ static struct em28xx_hash_table em28xx_i2c_hash[] = {
+ 	{0x4ba50080, EM2861_BOARD_GADMEI_UTV330PLUS, TUNER_TNF_5335MF},
+ 	{0x6b800080, EM2874_BOARD_LEADERSHIP_ISDBT, TUNER_ABSENT},
+ };
++/* NOTE: introduce a separate hash table for devices with 16 bit eeproms */
+ 
+ /* I2C possible address to saa7115, tvp5150, msp3400, tvaudio */
+ static unsigned short saa711x_addrs[] = {
+@@ -3023,11 +3024,13 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			chip_name = "em2874";
+ 			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
++			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+ 		case CHIP_ID_EM28174:
+ 			chip_name = "em28174";
+ 			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
++			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+ 		case CHIP_ID_EM2883:
+ 			chip_name = "em2882/3";
+@@ -3037,6 +3040,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			chip_name = "em2884";
+ 			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
++			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+ 		default:
+ 			printk(KERN_INFO DRIVER_NAME
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index ebe4b20..7185812 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -368,46 +368,34 @@ static inline unsigned long em28xx_hash_mem(char *buf, int length, int bits)
+ 
+ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ {
+-	unsigned char buf, *p = eedata;
++	unsigned char buf[2], *p = eedata;
+ 	struct em28xx_eeprom *em_eeprom = (void *)eedata;
+ 	int i, err, size = len, block, block_max;
+ 
+-	if (dev->chip_id == CHIP_ID_EM2874 ||
+-	    dev->chip_id == CHIP_ID_EM28174 ||
+-	    dev->chip_id == CHIP_ID_EM2884) {
+-		/* Empia switched to a 16-bit addressable eeprom in newer
+-		   devices.  While we could certainly write a routine to read
+-		   the eeprom, there is nothing of use in there that cannot be
+-		   accessed through registers, and there is the risk that we
+-		   could corrupt the eeprom (since a 16-bit read call is
+-		   interpreted as a write call by 8-bit eeproms).
+-		*/
+-		return 0;
+-	}
+-
+ 	dev->i2c_client.addr = 0xa0 >> 1;
+ 
+ 	/* Check if board has eeprom */
+-	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
++	err = i2c_master_recv(&dev->i2c_client, buf, 0);
+ 	if (err < 0) {
+ 		em28xx_info("board has no eeprom\n");
+ 		memset(eedata, 0, len);
+ 		return -ENODEV;
+ 	}
+ 
+-	buf = 0;
+-
+-	err = i2c_master_send(&dev->i2c_client, &buf, 1);
+-	if (err != 1) {
++	/* Select address memory address 0x00(00) */
++	buf[0] = 0;
++	buf[1] = 0;
++	err = i2c_master_send(&dev->i2c_client, buf, 1 + dev->eeprom_addrwidth_16bit);
++	if (err != 1 + dev->eeprom_addrwidth_16bit) {
+ 		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+ 		return err;
+ 	}
+ 
++	/* Read eeprom content */
+ 	if (dev->board.is_em2800)
+ 		block_max = 4;
+ 	else
+ 		block_max = 64;
+-
+ 	while (size > 0) {
+ 		if (size > block_max)
+ 			block = block_max;
+@@ -422,17 +410,48 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ 		size -= block;
+ 		p += block;
+ 	}
++
++	/* Display eeprom content */
+ 	for (i = 0; i < len; i++) {
+-		if (0 == (i % 16))
+-			em28xx_info("i2c eeprom %02x:", i);
++		if (0 == (i % 16)) {
++			if (dev->eeprom_addrwidth_16bit)
++				em28xx_info("i2c eeprom %04x:", i);
++			else
++				em28xx_info("i2c eeprom %02x:", i);
++		}
+ 		printk(" %02x", eedata[i]);
+ 		if (15 == (i % 16))
+ 			printk("\n");
+ 	}
+ 
+-	if (em_eeprom->id[0] != 0x1a || em_eeprom->id[1] != 0xeb ||
+-	    em_eeprom->id[2] != 0x67 || em_eeprom->id[3] != 0x95   ) {
+-		em28xx_errdev("Unknown eeprom type or eeprom corrupted !");
++	if (dev->eeprom_addrwidth_16bit &&
++	    eedata[0] == 0x26 && eedata[3] == 0x00) {
++		/* new eeprom format; size 4-64kb */
++		dev->hash = em28xx_hash_mem(eedata, len, 32);
++		em28xx_info("EEPROM hash = 0x%08lx\n", dev->hash);
++		em28xx_info("EEPROM info: boot page address = 0x%02x04, "
++			    "boot configuration = 0x%02x\n",
++			    eedata[1], eedata[2]);
++		/* boot configuration (address 0x0002):
++		 * [0]   microcode download speed: 1 = 400 kHz; 0 = 100 kHz
++		 * [1]   always selects 12 kb RAM
++		 * [2]   USB device speed: 1 = force Full Speed; 0 = auto detect
++		 * [4]   1 = force fast mode and no suspend for device testing
++		 * [5:7] USB PHY tuning registers; determined by device
++		 *       characterization
++		 */
++
++		/* FIXME:
++		 * - read more than 256 bytes / addresses above 0x00ff
++		 * - find offset for device config dataset and extract it
++		 * - decrypt eeprom data for camera bridges (em25xx, em276x+)
++		 * - use separate/different eeprom hashes (not yet used)
++		 */
++
++		return 0;
++	} else if (em_eeprom->id[0] != 0x1a || em_eeprom->id[1] != 0xeb ||
++		   em_eeprom->id[2] != 0x67 || em_eeprom->id[3] != 0x95   ) {
++		em28xx_info("unknown eeprom format or eeprom corrupted !\n");
+ 		return -ENODEV;
+ 	}
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 90266a1..139dfe5 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -510,6 +510,7 @@ struct em28xx {
+ 	/* i2c i/o */
+ 	struct i2c_adapter i2c_adap;
+ 	struct i2c_client i2c_client;
++	unsigned char eeprom_addrwidth_16bit:1;
+ 	/* video for linux */
+ 	int users;		/* user count for exclusive use */
+ 	int streaming_users;    /* Number of actively streaming users */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
