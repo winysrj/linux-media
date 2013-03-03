@@ -1,46 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4446 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754131Ab3CKLq4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:46:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 21/42] go7007: remove current_norm.
-Date: Mon, 11 Mar 2013 12:45:59 +0100
-Message-Id: <0e04dd3a9d1d705160e8c2718a2f57d6d5a64836.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58757 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753745Ab3CCQk5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 11:40:57 -0500
+Date: Sun, 3 Mar 2013 13:40:51 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+Message-ID: <20130303134051.6dc038aa@redhat.com>
+In-Reply-To: <51336331.10205@netscape.net>
+References: <51054759.7050202@netscape.net>
+	<20130127141633.5f751e5d@redhat.com>
+	<5105A0C9.6070007@netscape.net>
+	<20130128082354.607fae64@redhat.com>
+	<5106E3EA.70307@netscape.net>
+	<511264CF.3010002@netscape.net>
+	<51336331.10205@netscape.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Sun, 03 Mar 2013 11:50:25 -0300
+Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 
-It's deprecated and replaced by g_std. Since this driver already implements
-g_std the use of current_norm can just be removed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/go7007/go7007-v4l2.c |    1 -
- 1 file changed, 1 deletion(-)
+> The new data replacement in mb86a20s
+> 
+> /*
+>   * Initialization sequence: Use whatevere default values that PV SBTVD
+>   * does on its initialisation, obtained via USB snoop
+>   */
+> static struct regdata mb86a20s_init[] = {
 
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index 6f14ac5..b470306 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -1834,7 +1834,6 @@ static struct video_device go7007_template = {
- 	.release	= go7007_vfl_release,
- 	.ioctl_ops	= &video_ioctl_ops,
- 	.tvnorms	= V4L2_STD_ALL,
--	.current_norm	= V4L2_STD_NTSC,
- };
- 
- int go7007_v4l2_init(struct go7007 *go)
--- 
-1.7.10.4
+Please test first my mb86a20s patchset. If it doesn't work, we'll need
+to dig into the differences.
 
+The better is to group these and reorder them to look like what's there
+at the driver, and send it like a diff. That would make a way easier to
+see what's different there.
+
+Anyway, it follows my comments about a few things that came into my eyes.
+
+>      { 0x09, 0x3a },
+
+No idea what's here, but it seems a worth trial to change it.
+
+>      { 0x28, 0x2a },
+>      { 0x29, 0x00 },
+>      { 0x2a, 0xfd },
+>      { 0x2b, 0xc8 },
+
+Hmm... the above may explain why it is not working. This is calculated
+from the XTAL frequency, and IF (if different than 4MHz).
+
+Just changing it could fix the issue.
+
+>      { 0x28, 0x20 },
+>      { 0x29, 0x3e },
+>      { 0x2a, 0xde },
+>      { 0x2b, 0x4d },
+
+This doesn't matter anymore. It will be now be calculated based on the
+frequency you use for IF at the tuner.
+The above frequency is not 4MHz.
+
+>      { 0x08, 0x1e },
+
+This looks weird. You probably got it wrong.
+
+>      { 0x80, 0xdf },
+
+This also looks weird. I suspect that you also lost data here.
+
+Regards,
+Mauro
