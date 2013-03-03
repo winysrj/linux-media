@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:40692 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754091Ab3CZRh7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:37:59 -0400
-Received: by mail-bk0-f42.google.com with SMTP id jc3so922553bkc.29
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:57 -0700 (PDT)
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:46197 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab3CCTkZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:25 -0500
+Received: by mail-ea0-f174.google.com with SMTP id 1so666065eaa.33
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:22 -0800 (PST)
 From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
 To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
 	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 4/5] em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
-Date: Tue, 26 Mar 2013 18:38:39 +0100
-Message-Id: <1364319520-6628-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/5] em28xx: add support for em25xx/em276x/em277x/em278x frame data processing
+Date: Sun,  3 Mar 2013 20:40:59 +0100
+Message-Id: <1362339661-3446-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Streaming doesn't work with the EM2765 if bit 5 of the output format register
-0x27 is set.
-It's actually not clear if really has to be set for the other chips, but for
-now let's keep it to avoid regressions and add a comment to the code.
+The em25xx/em276x/em277x/em278x frame data format is different to the one used
+by the em2710/em2750/em28xx chips.
+With the recent cleanups and reorganization of the frame data processing code it
+can be easily extended to support these devices.
 
 Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/em28xx/em28xx-core.c |   21 ++++++++++++++++-----
- 1 Datei geändert, 16 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+ drivers/media/usb/em28xx/em28xx-video.c |   72 ++++++++++++++++++++++++++++++-
+ 1 Datei geändert, 71 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index b2dcb3d..575a46a 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -697,12 +697,23 @@ int em28xx_vbi_supported(struct em28xx *dev)
- int em28xx_set_outfmt(struct em28xx *dev)
- {
- 	int ret;
--	u8 vinctrl;
--
--	ret = em28xx_write_reg_bits(dev, EM28XX_R27_OUTFMT,
--				dev->format->reg | 0x20, 0xff);
-+	u8 fmt, vinctrl;
-+
-+	fmt = dev->format->reg;
-+	if (!dev->is_em25xx)
-+		fmt |= 0x20;
-+	/*
-+	 * NOTE: it's not clear if this is really needed !
-+	 * The datasheets say bit 5 is a reserved bit and devices seem to work
-+	 * fine without it. But the Windows driver sets it for em2710/50+em28xx
-+	 * devices and we've always been setting it, too.
-+	 *
-+	 * em2765 (em25xx, em276x/7x/8x) devices do NOT work with this bit set,
-+	 * it's likely used for an additional (compressed ?) format there.
-+	 */
-+	ret = em28xx_write_reg(dev, EM28XX_R27_OUTFMT, fmt);
- 	if (ret < 0)
--			return ret;
-+		return ret;
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 93fc620..2e8681f 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -76,6 +76,16 @@ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(EM28XX_VERSION);
  
- 	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
- 	if (ret < 0)
++
++#define EM25XX_FRMDATAHDR_BYTE1			0x02
++#define EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE	0x20
++#define EM25XX_FRMDATAHDR_BYTE2_FRAME_END	0x02
++#define EM25XX_FRMDATAHDR_BYTE2_FRAME_ID	0x01
++#define EM25XX_FRMDATAHDR_BYTE2_MASK	(EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE | \
++					 EM25XX_FRMDATAHDR_BYTE2_FRAME_END |   \
++					 EM25XX_FRMDATAHDR_BYTE2_FRAME_ID)
++
++
+ static unsigned int video_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+ static unsigned int vbi_nr[]   = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+ static unsigned int radio_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+@@ -408,6 +418,62 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
+ 		em28xx_copy_video(dev, buf, data_pkt, data_len);
+ }
+ 
++/*
++ * Process data packet according to the em25xx/em276x/7x/8x frame data format
++ */
++static inline void process_frame_data_em25xx(struct em28xx *dev,
++					     unsigned char *data_pkt,
++					     unsigned int  data_len)
++{
++	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
++	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
++	bool frame_end = 0;
++
++	/* Check for header */
++	/* NOTE: at least with bulk transfers, only the first packet
++	 * has a header and has always set the FRAME_END bit         */
++	if (data_len >= 2) {	/* em25xx header is only 2 bytes long */
++		if ((data_pkt[0] == EM25XX_FRMDATAHDR_BYTE1) &&
++		    ((data_pkt[1] & ~EM25XX_FRMDATAHDR_BYTE2_MASK) == 0x00)) {
++			dev->top_field = !(data_pkt[1] &
++					   EM25XX_FRMDATAHDR_BYTE2_FRAME_ID);
++			frame_end = data_pkt[1] &
++				    EM25XX_FRMDATAHDR_BYTE2_FRAME_END;
++			data_pkt += 2;
++			data_len -= 2;
++		}
++
++		/* Finish field and prepare next (BULK only) */
++		if (dev->analog_xfer_bulk && frame_end) {
++			buf = finish_field_prepare_next(dev, buf, dmaq);
++			dev->usb_ctl.vid_buf = buf;
++		}
++		/* NOTE: in ISOC mode when a new frame starts and buf==NULL,
++		 * we COULD already prepare a buffer here to avoid skipping the
++		 * first frame.
++		 */
++	}
++
++	/* Copy data */
++	if (buf != NULL && data_len > 0)
++		em28xx_copy_video(dev, buf, data_pkt, data_len);
++
++	/* Finish frame (ISOC only) => avoids lag of 1 frame */
++	if (!dev->analog_xfer_bulk && frame_end) {
++		buf = finish_field_prepare_next(dev, buf, dmaq);
++		dev->usb_ctl.vid_buf = buf;
++	}
++
++	/* NOTE: Tested with USB bulk transfers only !
++	 * The wording in the datasheet suggests that isoc might work different.
++	 * The current code assumes that with isoc transfers each packet has a
++	 * header like with the other em28xx devices.
++	 */
++	/* NOTE: Support for interlaced mode is pure theory. It has not been
++	 * tested and it is unknown if these devices actually support it. */
++	/* NOTE: No VBI support yet (these chips likely do not support VBI). */
++}
++
+ /* Processes and copies the URB data content (video and VBI data) */
+ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ {
+@@ -460,7 +526,11 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 			continue;
+ 		}
+ 
+-		process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
++		if (dev->is_em25xx)
++			process_frame_data_em25xx(dev, usb_data_pkt, usb_data_len);
++		else
++			process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
++
+ 	}
+ 	return 1;
+ }
 -- 
 1.7.10.4
 
