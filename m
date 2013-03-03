@@ -1,59 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:52091 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751320Ab3CCABi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Mar 2013 19:01:38 -0500
-Received: from mailout-de.gmx.net ([10.1.76.10]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0Ly8b5-1UqrkI3NJN-015dvs for
- <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 01:01:35 +0100
-Date: Sun, 3 Mar 2013 01:01:34 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: jandegr1@dommel.be
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: HAUPPAUGE HVR-930C analog tv feasible ??
-Message-ID: <20130303000134.GA21166@minime.bse>
-References: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
- <20130225083345.2d83d554@redhat.com>
- <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:63657 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753631Ab3CCThH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:07 -0500
+Received: by mail-ee0-f44.google.com with SMTP id l10so3534756eei.3
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:05 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 03/11] em28xx-i2c: also print debug messages at debug level 1
+Date: Sun,  3 Mar 2013 20:37:36 +0100
+Message-Id: <1362339464-3373-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The current code uses only a single debug level and all debug messages are
+printed for i2c_debug >= 2 only. So debug level 1 is actually the same as
+level 0, which is odd.
+Users expect debugging messages to become enabled for anything else than
+debug level 0.
 
-On Fri, Mar 01, 2013 at 09:28:54PM +0100, jandegr1@dommel.be wrote:
-> Citeren Mauro Carvalho Chehab <mchehab@redhat.com>:
-> >nor I succeeded
-> >to get any avf4910b datasheet or development kit.
+Fix it and simplify the code a bit by printing the debug messages also at debug
+level 1;
 
-and now that Trident went bankrupt chances are slim that one of us ever
-will.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   12 ++++++------
+ 1 Datei geändert, 6 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
 
-> Any other suggestions/comments or anyone wanting to work with me on this ?
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index f970c29..d765567 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -287,7 +287,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 		return 0;
+ 	for (i = 0; i < num; i++) {
+ 		addr = msgs[i].addr << 1;
+-		if (i2c_debug >= 2)
++		if (i2c_debug)
+ 			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
+ 			       dev->name, __func__ ,
+ 			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
+@@ -299,7 +299,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			else
+ 				rc = em28xx_i2c_check_for_device(dev, addr);
+ 			if (rc == -ENODEV) {
+-				if (i2c_debug >= 2)
++				if (i2c_debug)
+ 					printk(" no device\n");
+ 				return rc;
+ 			}
+@@ -313,13 +313,13 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 				rc = em28xx_i2c_recv_bytes(dev, addr,
+ 							   msgs[i].buf,
+ 							   msgs[i].len);
+-			if (i2c_debug >= 2) {
++			if (i2c_debug) {
+ 				for (byte = 0; byte < msgs[i].len; byte++)
+ 					printk(" %02x", msgs[i].buf[byte]);
+ 			}
+ 		} else {
+ 			/* write bytes */
+-			if (i2c_debug >= 2) {
++			if (i2c_debug) {
+ 				for (byte = 0; byte < msgs[i].len; byte++)
+ 					printk(" %02x", msgs[i].buf[byte]);
+ 			}
+@@ -334,11 +334,11 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 							   i == num - 1);
+ 		}
+ 		if (rc < 0) {
+-			if (i2c_debug >= 2)
++			if (i2c_debug)
+ 				printk(" ERROR: %i\n", rc);
+ 			return rc;
+ 		}
+-		if (i2c_debug >= 2)
++		if (i2c_debug)
+ 			printk("\n");
+ 	}
+ 
+-- 
+1.7.10.4
 
-I have an AF9035 based stick with that chip and once sniffed the
-communication from cold state until about the 40th frame. At that
-point what appears to be sound frames in the iso packets still just
-contains 0x00 bytes at about 192kB/s. VBI data is captured as well
-raw and sliced but I don't know if the slicing is done by the AF9035.
-I beat the old log into a shape similar to your log's and uploaded it:
-http://pastebin.com/mfN1TXrG
-AF9035 firmare and iso data have been omitted.
-
-As you can see, the driver uploads some kind of firmware to the upper
-address space of the AVF4910B. According to
-http://driveragent.com/c/archive/562634f6/image/2-1-0/Yuan-MC270B-TV-Tuner-Driver,-IdeaCentre-B310
-the chip contains a 8051 microcontroller.
-
-Devin Heitmueller once told me that he wrote a driver for the AVF4910A
-as part of their Osprey 240e/450e driver. He also said that it was
-completely different to the AVF4910B. I can no longer find it online,
-but my local copy tells me that the AVF4910A also uses demod register
-0x50 for I2S configuration and register 0x20 for standard selection.
-Maybe they are not so different after all.
-
-  Daniel
