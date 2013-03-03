@@ -1,64 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3912 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753551Ab3COOOv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 10:14:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [REVIEW PATCH 3/5] v4l2: pass std by value to the write-only s_std ioctl.
-Date: Fri, 15 Mar 2013 15:14:16 +0100
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:41427 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753631Ab3CCThQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:16 -0500
+Received: by mail-ee0-f42.google.com with SMTP id b47so3530992eek.29
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:14 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1363343245-23531-1-git-send-email-hverkuil@xs4all.nl> <968af7abdc8503e5bb59869b2e9a3d9b2b453563.1363342714.git.hans.verkuil@cisco.com> <20130315105835.0954d389@redhat.com>
-In-Reply-To: <20130315105835.0954d389@redhat.com>
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 08/11] em28xx: add helper function for reading data blocks from i2c clients
+Date: Sun,  3 Mar 2013 20:37:41 +0100
+Message-Id: <1362339464-3373-9-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303151514.16685.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 15 2013 14:58:35 Mauro Carvalho Chehab wrote:
-> Em Fri, 15 Mar 2013 11:27:23 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This ioctl is defined as IOW, so pass the argument by value instead of by
-> > reference. I could have chosen to add const instead, but this is 1) easier
-> > to handle in drivers and 2) consistent with the s_std subdev operation.
-> 
-> Hmm... this could potentially break userspace. I remember I saw in the past
-> some code that used the returned standard. I can't remember where. It could
-> be inside the V4L1 compat layer, but I think it was on some userspace app(s).
-> 
-> Had you verify how the several different userspace apps handle S_STD?
+Add a helper function for reading data blocks from i2c devices with 8 or 16 bit
+address width and 8 bit register width.
+This allows us to reduce the size of new code added by the following patches.
+Works only for devices with activated register auto incrementation.
 
-video_usercopy doesn't call copy_to_user for write-only ioctls, so any changed
-data will never make it to userspace.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |   74 ++++++++++++++++++++-------------
+ 1 Datei geändert, 46 Zeilen hinzugefügt(+), 28 Zeilen entfernt(-)
 
-If there is an app that expects to see the returned standard then they broke
-many years ago :-)
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 7185812..a3e9547 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -366,51 +366,69 @@ static inline unsigned long em28xx_hash_mem(char *buf, int length, int bits)
+ 	return (hash >> (32 - bits)) & 0xffffffffUL;
+ }
+ 
++/* Helper function to read data blocks from i2c clients with 8 or 16 bit
++ * address width, 8 bit register width and auto incrementation been activated */
++static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
++				 u16 len, u8 *data)
++{
++	int remain = len, rsize, rsize_max, ret;
++	u8 buf[2];
++
++	/* Sanity check */
++	if (addr + remain > (addr_w16 * 0xff00 + 0xff + 1))
++		return -EINVAL;
++	/* Select address */
++	buf[0] = addr >> 8;
++	buf[1] = addr & 0xff;
++	ret = i2c_master_send(&dev->i2c_client, buf + !addr_w16, 1 + addr_w16);
++	if (ret < 0)
++		return ret;
++	/* Read data */
++	if (dev->board.is_em2800)
++		rsize_max = 4;
++	else
++		rsize_max = 64;
++	while (remain > 0) {
++		if (remain > rsize_max)
++			rsize = rsize_max;
++		else
++			rsize = remain;
++
++		ret = i2c_master_recv(&dev->i2c_client, data, rsize);
++		if (ret < 0)
++			return ret;
++
++		remain -= rsize;
++		data += rsize;
++	}
++
++	return len;
++}
++
+ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+ {
+-	unsigned char buf[2], *p = eedata;
++	unsigned char buf, *p = eedata;
+ 	struct em28xx_eeprom *em_eeprom = (void *)eedata;
+-	int i, err, size = len, block, block_max;
++	int i, err;
+ 
+ 	dev->i2c_client.addr = 0xa0 >> 1;
+ 
+ 	/* Check if board has eeprom */
+-	err = i2c_master_recv(&dev->i2c_client, buf, 0);
++	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
+ 	if (err < 0) {
+ 		em28xx_info("board has no eeprom\n");
+ 		memset(eedata, 0, len);
+ 		return -ENODEV;
+ 	}
+ 
+-	/* Select address memory address 0x00(00) */
+-	buf[0] = 0;
+-	buf[1] = 0;
+-	err = i2c_master_send(&dev->i2c_client, buf, 1 + dev->eeprom_addrwidth_16bit);
+-	if (err != 1 + dev->eeprom_addrwidth_16bit) {
++	/* Read EEPROM content */
++	err = em28xx_i2c_read_block(dev, 0x0000, dev->eeprom_addrwidth_16bit,
++				    len, p);
++	if (err != len) {
+ 		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+ 		return err;
+ 	}
+ 
+-	/* Read eeprom content */
+-	if (dev->board.is_em2800)
+-		block_max = 4;
+-	else
+-		block_max = 64;
+-	while (size > 0) {
+-		if (size > block_max)
+-			block = block_max;
+-		else
+-			block = size;
+-
+-		if (block !=
+-		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
+-			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
+-			return err;
+-		}
+-		size -= block;
+-		p += block;
+-	}
+-
+ 	/* Display eeprom content */
+ 	for (i = 0; i < len; i++) {
+ 		if (0 == (i % 16)) {
+-- 
+1.7.10.4
 
-Regards,
-
-	Hans
