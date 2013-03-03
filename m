@@ -1,95 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:56292 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753443Ab3CSGOd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 02:14:33 -0400
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:53363 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753851Ab3CCTk1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:27 -0500
+Received: by mail-ee0-f52.google.com with SMTP id b15so3381774eek.11
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:26 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 5/5] em28xx: write output frame resolution to regs 0x34+0x35 for em25xx family bridges
+Date: Sun,  3 Mar 2013 20:41:01 +0100
+Message-Id: <1362339661-3446-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1363633580-2920-1-git-send-email-silviupopescu1990@gmail.com>
-References: <1363633580-2920-1-git-send-email-silviupopescu1990@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 19 Mar 2013 11:44:11 +0530
-Message-ID: <CA+V-a8tAL7mNgwFBxy_zCJrHffZf4PY-O66dkYa8gNCJNK27iw@mail.gmail.com>
-Subject: Re: [PATCH v2] drivers: staging: davinci_vpfe: use resource_size()
-To: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	gregkh@linuxfoundation.org, prabhakar.lad@ti.com,
-	sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wei,
+The Windows driver writes the output resolution to registers 0x34 (width / 16)
+and 0x35 (height / 16) always.
+We don't know yet what these registers are used for.
 
-Thanks for the patch! I'll queue it up for v3.10
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
+ drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
+ 2 Dateien geändert, 13 Zeilen hinzugefügt(+)
 
-On Tue, Mar 19, 2013 at 12:36 AM, Silviu-Mihai Popescu
-<silviupopescu1990@gmail.com> wrote:
-> This uses the resource_size() function instead of explicit computation.
->
-> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 7b9f76b..0ce6b0f 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
+ 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
++
++	if (dev->is_em25xx) {
++		em28xx_write_reg(dev, 0x34, width >> 4);
++		em28xx_write_reg(dev, 0x35, height >> 4);
++	}
++	/* FIXME: function/meaning of these registers ? */
++	/* FIXME: align width+height to multiples of 4 ?! */
+ }
+ 
+ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index d765d59..3ec5528 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -167,6 +167,12 @@
+ 
+ #define EM28XX_R34_VBI_START_H	0x34
+ #define EM28XX_R35_VBI_START_V	0x35
++/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
++ * registers for a different unknown purpose.
++ *   => register 0x34 is set to capture width / 16
++ *   => register 0x35 is set to capture height / 16
++ */
++
+ #define EM28XX_R36_VBI_WIDTH	0x36
+ #define EM28XX_R37_VBI_HEIGHT	0x37
+ 
+-- 
+1.7.10.4
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Regards,
---Prabhakar Lad
-
-> ---
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |    2 +-
->  drivers/staging/media/davinci_vpfe/dm365_isif.c    |    4 ++--
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c |    2 +-
->  3 files changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> index 9285353..05673ed 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> @@ -1859,5 +1859,5 @@ void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
->         iounmap(ipipe->isp5_base_addr);
->         res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
->         if (res)
-> -               release_mem_region(res->start, res->end - res->start + 1);
-> +               release_mem_region(res->start, resource_size(res));
->  }
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> index ebeea72..c4a5660 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> @@ -1953,7 +1953,7 @@ static void isif_remove(struct vpfe_isif_device *isif,
->                 res = platform_get_resource(pdev, IORESOURCE_MEM, i);
->                 if (res)
->                         release_mem_region(res->start,
-> -                                          res->end - res->start + 1);
-> +                                          resource_size(res));
->                 i++;
->         }
->  }
-> @@ -2003,7 +2003,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
->                         status = -ENOENT;
->                         goto fail_nobase_res;
->                 }
-> -               res_len = res->end - res->start + 1;
-> +               res_len = resource_size(res);
->                 res = request_mem_region(res->start, res_len, res->name);
->                 if (!res) {
->                         status = -EBUSY;
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> index 9cb0262..126f84c 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> @@ -1995,5 +1995,5 @@ vpfe_resizer_cleanup(struct vpfe_resizer_device *vpfe_rsz,
->         res = platform_get_resource(pdev, IORESOURCE_MEM, 5);
->         if (res)
->                 release_mem_region(res->start,
-> -                                       res->end - res->start + 1);
-> +                                       resource_size(res));
->  }
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
