@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55545 "EHLO mx1.redhat.com"
+Received: from mout.gmx.net ([212.227.17.21]:52091 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933463Ab3CUOEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 10:04:34 -0400
-Date: Thu, 21 Mar 2013 11:02:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Simon Horman <horms@verge.net.au>
-Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
-	Jesse Gross <jesse@nicira.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Karsten Keil <isdn@linux-pingi.de>,
-	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	dev@openvswitch.org
-Subject: Re: [PATCH] net: add ETH_P_802_3_MIN
-Message-ID: <20130321110255.4c06b2b7@redhat.com>
-In-Reply-To: <1363854568-32228-1-git-send-email-horms@verge.net.au>
-References: <1363854568-32228-1-git-send-email-horms@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751320Ab3CCABi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 Mar 2013 19:01:38 -0500
+Received: from mailout-de.gmx.net ([10.1.76.10]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0Ly8b5-1UqrkI3NJN-015dvs for
+ <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 01:01:35 +0100
+Date: Sun, 3 Mar 2013 01:01:34 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: jandegr1@dommel.be
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: HAUPPAUGE HVR-930C analog tv feasible ??
+Message-ID: <20130303000134.GA21166@minime.bse>
+References: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
+ <20130225083345.2d83d554@redhat.com>
+ <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Mar 2013 17:29:28 +0900
-Simon Horman <horms@verge.net.au> escreveu:
+Hi,
 
-> Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
-> an 802.3 frame. Frames with a lower value in the ethernet type field
-> are Ethernet II.
-> 
-> Also update all the users of this value that I could find to use the
-> new constant.
-> 
-> I anticipate adding some more users of this constant when
-> adding MPLS support to Open vSwtich.
-> 
-> As suggested by Jesse Gross.
-> 
-> Compile tested only.
-> 
-> Cc: Jesse Gross <jesse@nicira.com>
-> Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-> Cc: Karsten Keil <isdn@linux-pingi.de>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux1394-devel@lists.sourceforge.net
-> Cc: linux-media@vger.kernel.org
-> Cc: dev@openvswitch.org
-> Signed-off-by: Simon Horman <horms@verge.net.au>
+On Fri, Mar 01, 2013 at 09:28:54PM +0100, jandegr1@dommel.be wrote:
+> Citeren Mauro Carvalho Chehab <mchehab@redhat.com>:
+> >nor I succeeded
+> >to get any avf4910b datasheet or development kit.
 
-...
+and now that Trident went bankrupt chances are slim that one of us ever
+will.
 
-> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-> index 44225b1..9fc82a1 100644
-> --- a/drivers/media/dvb-core/dvb_net.c
-> +++ b/drivers/media/dvb-core/dvb_net.c
-> @@ -185,7 +185,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
->  			skb->pkt_type=PACKET_MULTICAST;
->  	}
->  
-> -	if (ntohs(eth->h_proto) >= 1536)
-> +	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
->  		return eth->h_proto;
+> Any other suggestions/comments or anyone wanting to work with me on this ?
 
-...
+I have an AF9035 based stick with that chip and once sniffed the
+communication from cold state until about the 40th frame. At that
+point what appears to be sound frames in the iso packets still just
+contains 0x00 bytes at about 192kB/s. VBI data is captured as well
+raw and sliced but I don't know if the slicing is done by the AF9035.
+I beat the old log into a shape similar to your log's and uploaded it:
+http://pastebin.com/mfN1TXrG
+AF9035 firmare and iso data have been omitted.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+As you can see, the driver uploads some kind of firmware to the upper
+address space of the AVF4910B. According to
+http://driveragent.com/c/archive/562634f6/image/2-1-0/Yuan-MC270B-TV-Tuner-Driver,-IdeaCentre-B310
+the chip contains a 8051 microcontroller.
 
-Cheers,
-Mauro
+Devin Heitmueller once told me that he wrote a driver for the AVF4910A
+as part of their Osprey 240e/450e driver. He also said that it was
+completely different to the AVF4910B. I can no longer find it online,
+but my local copy tells me that the AVF4910A also uses demod register
+0x50 for I2S configuration and register 0x20 for standard selection.
+Maybe they are not so different after all.
+
+  Daniel
