@@ -1,131 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10841 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752200Ab3CATzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Mar 2013 14:55:04 -0500
-Date: Fri, 1 Mar 2013 16:54:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: "H. Cristiano Alves Machado" <heberto.machado@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Report of anomally in AVerMedia AVerTV Volar HD/PRO (A835)
- firmware
-Message-ID: <20130301165457.2103fc4a@redhat.com>
-In-Reply-To: <CA+pZ=S32rP-OObve-tpt4CXX6YdXGm3_XK1bOf3-s2RHZSPS4g@mail.gmail.com>
-References: <CA+pZ=S32rP-OObve-tpt4CXX6YdXGm3_XK1bOf3-s2RHZSPS4g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:44774 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753897Ab3CCThT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:19 -0500
+Received: by mail-ea0-f172.google.com with SMTP id f13so669023eaa.3
+        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:17 -0800 (PST)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 10/11] em28xx: extract the device configuration dataset from eeproms with 16 bit address width
+Date: Sun,  3 Mar 2013 20:37:43 +0100
+Message-Id: <1362339464-3373-11-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Cristiano,
+The new eeproms with 16 address width still have the the device config dataset
+(the content of the old 8 bit eeproms) embedded.
+Hauppauge also continues to include the tveeprom data structure inside this
+dataset in their devices.
+The start address of the dataset depends on the start address of the microcode
+and a variable additional offset.
 
-Em Fri, 1 Mar 2013 19:47:19 +0000
-"H. Cristiano Alves Machado" <heberto.machado@gmail.com> escreveu:
+It should be mentioned that Camera devices seem to use a different dataset type,
+which is not yet supported.
 
-> Hello.
-> 
-> I believe that this might already have been reported...
-> 
-> 
-> The problem can only be solved by physically removing the usb-dvb
-> plug, and plugging it back again... :(
+Tested with devices "Hauppauge HVR-930C". I've also checked the USB-log from the
+"MSI Digivox ATSC" and it works the same way.
 
-Well, this driver doesn't use dvb-usb stack anymore, it got ported to
-dvb-usb-v2. I suggest you to test it again on kernel 3.8.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-i2c.c |  117 +++++++++++++++++++++++----------
+ drivers/media/usb/em28xx/em28xx.h     |    4 +-
+ 2 Dateien geändert, 85 Zeilen hinzugefügt(+), 36 Zeilen entfernt(-)
 
-Btw, you're also reporting the issue to the wrong ML... linux-dvb ML
-was deprecated a long time ago ;)
-
-Regards,
-Mauro
-> 
-> Below are the dmesg logs (both before dvb software reported error, and
-> after, when the same software did not complain).
-> 
-> I am currently using vlc software to access dvb-t card (Avermedia
-> mentioned in the subject).
-> 
-> Several times in the last few days/weeks, when I start the pc from off
-> state (normal boot), the dvb card will fail to be accessed.
-> 
-> Iam currently running a 'Linux 3.5.0-18-generic #29~precise1-Ubuntu
-> SMP  x86_64 GNU/Linux' setup, and "VLC media player 2.0.6 Twoflower
-> (revision 2.0.5+git20130228+r534)" from the daily stable 'repo'.
-> 
-> Maybe the "critical" points could lie in the fact that after plugging
-> the device  again it successfully loads the firmware. While during
-> 'boot' time it can only "register it"
-> 
-> So, here are the 'dvb' dmesg "greps", and at the end the "cut" down
-> differences between the two "moments".
-> 
-> [   13.154237] dvb-usb: found a 'AVerMedia AVerTV Volar HD/PRO (A835)'
-> in warm state.
-> [   13.154325] dvb-usb: will pass the complete MPEG2 transport stream
-> to the software demuxer.
-> [   13.154774] DVB: registering new adapter (AVerMedia AVerTV Volar
-> HD/PRO (A835))
-> [   13.165623] dvb-usb: MAC address: 00:00:00:00:00:00
-> [   13.175623] dvb-usb: no frontend was attached by 'AVerMedia AVerTV
-> Volar HD/PRO (A835)'
-> [   13.175761] input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0/input2
-> [   13.175822] rc0: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0
-> [   13.175824] dvb-usb: schedule remote query interval to 250 msecs.
-> [   13.175826] dvb-usb: AVerMedia AVerTV Volar HD/PRO (A835)
-> successfully initialized and connected.
-> [   13.194629] usbcore: registered new interface driver dvb_usb_af9035
-> [17246.232556] dvb-usb: AVerMedia AVerTV Volar HD/PRO (A835)
-> successfully deinitialized and disconnected.
-> [17255.906733] dvb-usb: found a 'AVerMedia AVerTV Volar HD/PRO (A835)'
-> in cold state, will try to load a firmware
-> [17255.917426] dvb-usb: downloading firmware from file 'dvb-usb-af9035-02.fw'
-> [17256.222632] dvb-usb: found a 'AVerMedia AVerTV Volar HD/PRO (A835)'
-> in warm state.
-> [17256.222739] dvb-usb: will pass the complete MPEG2 transport stream
-> to the software demuxer.
-> [17256.223030] DVB: registering new adapter (AVerMedia AVerTV Volar
-> HD/PRO (A835))
-> [17256.225735] dvb-usb: MAC address: 00:00:00:00:00:00
-> [17256.227866] DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> [17256.272866] input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc1/input12
-> [17256.272938] rc1: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc1
-> [17256.272941] dvb-usb: schedule remote query interval to 250 msecs.
-> [17256.272944] dvb-usb: AVerMedia AVerTV Volar HD/PRO (A835)
-> successfully initialized and connected.
-> 
-> Differences between the first section and the second:
-> 
-> 0a1,3
-> >  dvb-usb: AVerMedia AVerTV Volar HD/PRO (A835) successfully deinitialized and disconnected.
-> >  dvb-usb: found a 'AVerMedia AVerTV Volar HD/PRO (A835)' in cold state, will try to load a firmware
-> >  dvb-usb: downloading firmware from file 'dvb-usb-af9035-02.fw'
-> 5,7c8,10
-> <  dvb-usb: no frontend was attached by 'AVerMedia AVerTV Volar HD/PRO (A835)'
-> <  input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0/input2
-> <  rc0: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0
-> ---
-> >  DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> >  input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc1/input12
-> >  rc1: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc1
-> 10d12
-> <  usbcore: registered new interface driver dvb_usb_af9035
-> 
-> 
-> Hope there may be some solution to this... and at least that this
-> report may have been useful.
-> 
-> Best regards
-> 
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index dfbc22e..44bef43 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -405,13 +405,18 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
+ 	return len;
+ }
+ 
+-static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len)
++static int em28xx_i2c_eeprom(struct em28xx *dev, u8 **eedata, u16 *eedata_len)
+ {
+-	u8 buf, *data;
+-	struct em28xx_eeprom *em_eeprom;
++	const u16 len = 256;
++	/* FIXME common length/size for bytes to read, to display, hash
++	 * calculation and returned device dataset. Simplifies the code a lot,
++	 * but we might have to deal with multiple sizes in the future !      */
+ 	int i, err;
++	struct em28xx_eeprom *dev_config;
++	u8 buf, *data;
+ 
+ 	*eedata = NULL;
++	*eedata_len = 0;
+ 
+ 	dev->i2c_client.addr = 0xa0 >> 1;
+ 
+@@ -431,8 +436,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
+ 				    len, data);
+ 	if (err != len) {
+ 		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+-		kfree(data);
+-		return err;
++		goto error;
+ 	}
+ 
+ 	/* Display eeprom content */
+@@ -447,15 +451,25 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
+ 		if (15 == (i % 16))
+ 			printk("\n");
+ 	}
++	if (dev->eeprom_addrwidth_16bit)
++		em28xx_info("i2c eeprom %04x: ... (skipped)\n", i);
+ 
+ 	if (dev->eeprom_addrwidth_16bit &&
+ 	    data[0] == 0x26 && data[3] == 0x00) {
+ 		/* new eeprom format; size 4-64kb */
++		u16 mc_start;
++		u16 hwconf_offset;
++
+ 		dev->hash = em28xx_hash_mem(data, len, 32);
+-		em28xx_info("EEPROM hash = 0x%08lx\n", dev->hash);
+-		em28xx_info("EEPROM info: boot page address = 0x%02x04, "
++		mc_start = (data[1] << 8) + 4;	/* usually 0x0004 */
++
++		em28xx_info("EEPROM ID = %02x %02x %02x %02x, "
++			    "EEPROM hash = 0x%08lx\n",
++			    data[0], data[1], data[2], data[3], dev->hash);
++		em28xx_info("EEPROM info:\n");
++		em28xx_info("\tmicrocode start address = 0x%04x, "
+ 			    "boot configuration = 0x%02x\n",
+-			    data[1], data[2]);
++			    mc_start, data[2]);
+ 		/* boot configuration (address 0x0002):
+ 		 * [0]   microcode download speed: 1 = 400 kHz; 0 = 100 kHz
+ 		 * [1]   always selects 12 kb RAM
+@@ -465,32 +479,61 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
+ 		 *       characterization
+ 		 */
+ 
+-		/* FIXME:
+-		 * - read more than 256 bytes / addresses above 0x00ff
+-		 * - find offset for device config dataset and extract it
+-		 * - decrypt eeprom data for camera bridges (em25xx, em276x+)
+-		 * - use separate/different eeprom hashes (not yet used)
++		/* Read hardware config dataset offset from address
++		 * (microcode start + 46)			    */
++		err = em28xx_i2c_read_block(dev, mc_start + 46, 1, 2, data);
++		if (err != 2) {
++			em28xx_errdev("failed to read hardware configuration data from eeprom (err=%d)\n",
++				      err);
++			goto error;
++		}
++
++		/* Calculate hardware config dataset start address */
++		hwconf_offset = mc_start + data[0] + (data[1] << 8);
++
++		/* Read hardware config dataset */
++		/* NOTE: the microcode copy can be multiple pages long, but
++		 * we assume the hardware config dataset is the same as in
++		 * the old eeprom and not longer than 256 bytes.
++		 * tveeprom is currently also limited to 256 bytes.
+ 		 */
++		err = em28xx_i2c_read_block(dev, hwconf_offset, 1, len, data);
++		if (err != len) {
++			em28xx_errdev("failed to read hardware configuration data from eeprom (err=%d)\n",
++				      err);
++			goto error;
++		}
+ 
+-		return 0;
+-	} else if (data[0] != 0x1a || data[1] != 0xeb ||
+-		   data[2] != 0x67 || data[3] != 0x95   ) {
++		/* Verify hardware config dataset */
++		/* NOTE: not all devices provide this type of dataset */
++		if (data[0] != 0x1a || data[1] != 0xeb ||
++		    data[2] != 0x67 || data[3] != 0x95    ) {
++			em28xx_info("\tno hardware configuration dataset found in eeprom\n");
++			kfree(data);
++			return 0;
++		}
++
++		/* TODO: decrypt eeprom data for camera bridges (em25xx, em276x+) */
++
++	} else if (!dev->eeprom_addrwidth_16bit &&
++		   data[0] == 0x1a && data[1] == 0xeb &&
++		   data[2] == 0x67 && data[3] == 0x95   ) {
++		dev->hash = em28xx_hash_mem(data, len, 32);
++		em28xx_info("EEPROM ID = %02x %02x %02x %02x, "
++			    "EEPROM hash = 0x%08lx\n",
++			    data[0], data[1], data[2], data[3], dev->hash);
++		em28xx_info("EEPROM info:\n");
++	} else {
+ 		em28xx_info("unknown eeprom format or eeprom corrupted !\n");
+-		return -ENODEV;
++		err = -ENODEV;
++		goto error;
+ 	}
+ 
+ 	*eedata = data;
+-	em_eeprom = (void *)eedata;
++	*eedata_len = len;
++	dev_config = (void *)eedata;
+ 
+-	dev->hash = em28xx_hash_mem(data, len, 32);
+-
+-	em28xx_info("EEPROM ID = %02x %02x %02x %02x, EEPROM hash = 0x%08lx\n",
+-		    em_eeprom->id[0], em_eeprom->id[1],
+-		    em_eeprom->id[2], em_eeprom->id[3], dev->hash);
+-
+-	em28xx_info("EEPROM info:\n");
+-
+-	switch (le16_to_cpu(em_eeprom->chip_conf) >> 4 & 0x3) {
++	switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
+ 	case 0:
+ 		em28xx_info("\tNo audio on board.\n");
+ 		break;
+@@ -505,13 +548,13 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
+ 		break;
+ 	}
+ 
+-	if (le16_to_cpu(em_eeprom->chip_conf) & 1 << 3)
++	if (le16_to_cpu(dev_config->chip_conf) & 1 << 3)
+ 		em28xx_info("\tUSB Remote wakeup capable\n");
+ 
+-	if (le16_to_cpu(em_eeprom->chip_conf) & 1 << 2)
++	if (le16_to_cpu(dev_config->chip_conf) & 1 << 2)
+ 		em28xx_info("\tUSB Self power capable\n");
+ 
+-	switch (le16_to_cpu(em_eeprom->chip_conf) & 0x3) {
++	switch (le16_to_cpu(dev_config->chip_conf) & 0x3) {
+ 	case 0:
+ 		em28xx_info("\t500mA max power\n");
+ 		break;
+@@ -526,12 +569,16 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
+ 		break;
+ 	}
+ 	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+-		    em_eeprom->string_idx_table,
+-		    le16_to_cpu(em_eeprom->string1),
+-		    le16_to_cpu(em_eeprom->string2),
+-		    le16_to_cpu(em_eeprom->string3));
++		    dev_config->string_idx_table,
++		    le16_to_cpu(dev_config->string1),
++		    le16_to_cpu(dev_config->string2),
++		    le16_to_cpu(dev_config->string3));
+ 
+ 	return 0;
++
++error:
++	kfree(data);
++	return err;
+ }
+ 
+ /* ----------------------------------------------------------- */
+@@ -640,7 +687,7 @@ int em28xx_i2c_register(struct em28xx *dev)
+ 	dev->i2c_client = em28xx_client_template;
+ 	dev->i2c_client.adapter = &dev->i2c_adap;
+ 
+-	retval = em28xx_i2c_eeprom(dev, &dev->eedata, 256);
++	retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
+ 	if ((retval < 0) && (retval != -ENODEV)) {
+ 		em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
+ 			__func__, retval);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 77f600d..2d6d31a 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -562,7 +562,9 @@ struct em28xx {
+ 	/* resources in use */
+ 	unsigned int resources;
+ 
+-	u8 *eedata;	/* currently always 256 bytes */
++	/* eeprom content */
++	u8 *eedata;
++	u16 eedata_len;
+ 
+ 	/* Isoc control struct */
+ 	struct em28xx_dmaqueue vidq;
 -- 
+1.7.10.4
 
-Cheers,
-Mauro
