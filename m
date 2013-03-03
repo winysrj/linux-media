@@ -1,78 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:38762 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756411Ab3CQT6j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 15:58:39 -0400
-Date: Sun, 17 Mar 2013 21:01:58 +0100
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 0/8] Add a driver for somagic smi2021
-Message-ID: <20130317200158.GB17291@dell.arpanet.local>
-Reply-To: 20130315120856.GA2989@localhost.arpanet.local
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <20130315120856.GA2989@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130315120856.GA2989@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:58350 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753499Ab3CCP64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Mar 2013 10:58:56 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23Fwuon014119
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:56 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/11] [media] mb86a20s: don't pollute dmesg with debug messages
+Date: Sun,  3 Mar 2013 12:58:41 -0300
+Message-Id: <1362326331-17541-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 15, 2013 at 09:08:58AM -0300, Ezequiel Garcia wrote:
-> On Thu, Mar 14, 2013 at 03:06:56PM +0100, Jon Arne Jørgensen wrote:
-> > This patch-set will add a driver for the Somagic SMI2021 chip.
-> > 
-> > This chip is found inside different usb video-capture devices.
-> > Most of them are branded as EasyCap, but there also seems to be
-> > some other brands selling devices with this chip.
-> > 
-> > This driver is split into two modules, where one is called smi2021-bootloader,
-> > and the other is just called smi2021.
-> > 
-> > The bootloader is responsible for the upload of a firmware that is needed by some
-> > versions of the devices.
-> > 
-> > All Somagic devices that need firmware seems to identify themselves
-> > with the usb product id 0x0007. There is no way for the kernel to know
-> > what firmware to upload to the device without user interaction.
-> > 
-> > If there is only one firmware present on the computer, the kernel
-> > will upload that firmware to any device that identifies as 0x0007.
-> > If there are multiple Somagic firmwares present, the user will have to pass
-> > a module parameter to the smi2021-bootloader module to tell what firmware to use.
-> > 
-> 
-> Nice job!
->
-Thanks :)
+There are a few debug tests that are shown with dev_err() or
+dev_info(). Replace them by dev_dbg().
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index f19cd73..44bfb88 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -1095,7 +1095,7 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
+ 	if (rc < 0)
+ 		return rc;
+ 	*error |= rc;
+-	dev_err(&state->i2c->dev, "%s: block error for layer %c: %d.\n",
++	dev_dbg(&state->i2c->dev, "%s: block error for layer %c: %d.\n",
+ 		__func__, 'A' + layer, *error);
  
-> I have some minor comments on each patch, but also I don't agree
-> with the patch splitting: what's the point in splitting and sending
-> one patch per file?
-> 
-> It doesn't make it any easier to review, so why don't you just
-> send one patch: "Introduce smi2021 driver"?
-> 
-> The rule is one patch per change, and I believe this whole patchset
-> is just one change: adding a new driver.
-> 
+ 	/* Read Bit Count */
+@@ -1386,7 +1386,7 @@ static int mb86a20s_get_main_CNR(struct dvb_frontend *fe)
+ 		return rc;
+ 
+ 	if (!(rc & 0x40)) {
+-		dev_info(&state->i2c->dev, "%s: CNR is not available yet.\n",
++		dev_dbg(&state->i2c->dev, "%s: CNR is not available yet.\n",
+ 			 __func__);
+ 		return -EBUSY;
+ 	}
+@@ -1441,7 +1441,7 @@ static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
+ 
+ 	/* Check if data is available */
+ 	if (!(rc & 0x01)) {
+-		dev_info(&state->i2c->dev,
++		dev_dbg(&state->i2c->dev,
+ 			"%s: MER measures aren't available yet.\n", __func__);
+ 		return -EBUSY;
+ 	}
+-- 
+1.8.1.4
 
-I think I read another patch to this mailinglist, where someone was told
-to split his patch into one mail per file, but I can't find that thread
-now :)
-
-I will send the next version as a single mail, and see what happens...
-
-> -- 
-> Ezequiel García, Free Electrons
-> Embedded Linux, Kernel and Android Engineering
-> http://free-electrons.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
