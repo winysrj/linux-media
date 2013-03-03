@@ -1,42 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:27062 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146Ab3CZS5x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 14:57:53 -0400
-Message-id: <5151EFAC.2040002@samsung.com>
-Date: Tue, 26 Mar 2013 19:57:48 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org
-Subject: Re: [PATCH v2 0/4] exynos4-is updates
-References: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:44898 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753519Ab3CCP66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 3 Mar 2013 10:58:58 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23FwvGG019226
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:58 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 09/11] [media] mb86a20s: cleanup the status at set_frontend()
+Date: Sun,  3 Mar 2013 12:58:49 -0300
+Message-Id: <1362326331-17541-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/26/2013 07:38 PM, Sylwester Nawrocki wrote:
-> This patch series includes YUV order handling fix for the FIMC
-> and FIMC-LITE, a fix for media entity ref_count issue, minor
-> refactoring and removal of some static data that will no longer
-> be needed since starting from 3.10 Exynos platform is going to
-> be DT only.
+As the device got re-initialized, the stats should vanish
+until the device gets lock again.
 
-Sorry for spamming with this double patch series. Will try to
-be more careful next time.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> Sylwester Nawrocki (5):
->   exynos4-is: Remove static driver data for Exynos4210 FIMC variants
->   exynos4-is: Use common driver data for all FIMC-LITE IP instances
->   exynos4-is: Allow colorspace conversion at fimc-lite
->   exynos4-is: Correct input DMA YUV order configuration
->   exynos4-is: Ensure proper media pipeline state on device close
-
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 7238947..2d85131 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -1880,6 +1880,7 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 
+ 	rc = mb86a20s_writeregdata(state, mb86a20s_reset_reception);
+ 	mb86a20s_reset_counters(fe);
++	mb86a20s_stats_not_ready(fe);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
 -- 
-Thanks,
-Sylwester
+1.8.1.4
+
