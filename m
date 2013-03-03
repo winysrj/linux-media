@@ -1,62 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:64212 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753358Ab3CUKjz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 06:39:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH 08/10] bttv: apply mute settings on open
-Date: Thu, 21 Mar 2013 11:39:52 +0100
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-9-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363807490-3906-9-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303211139.52921.hverkuil@xs4all.nl>
+Received: from smtp-01.mandic.com.br ([200.225.81.132]:54037 "EHLO
+	smtp-01.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540Ab3CCCA6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 21:00:58 -0500
+From: Cesar Eduardo Barros <cesarb@cesarb.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>,
+	Cesar Eduardo Barros <cesarb@cesarb.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 10/14] MAINTAINERS: remove include/media/sh_veu.h
+Date: Sat,  2 Mar 2013 22:53:48 -0300
+Message-Id: <1362275632-20242-11-git-send-email-cesarb@cesarb.net>
+In-Reply-To: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
+References: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 20 March 2013 20:24:48 Frank Schäfer wrote:
-> Previously, this has been done implicitly for video device nodes by calling
-> set_input() (which calls audio_input() and also modified the mute
-> setting).
-> Since input and mute setting are now untangled (as much as possible), we need to
-> apply the mute setting with an explicit call to audio_mute().
-> Also apply the mute setting when the radio device node gets opened.
+Apparently a copy-paste mistake; the similar sh_vou.h exists, and both
+were added to MAINTAINERS by commit b618b69 ([media] MAINTAINERS: add
+entries for sh_veu and sh_vou V4L2 drivers).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
+---
+ MAINTAINERS | 1 -
+ 1 file changed, 1 deletion(-)
 
-Regards,
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 44b9f69..5cb888a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7088,7 +7088,6 @@ M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+ L:	linux-media@vger.kernel.org
+ S:	Maintained
+ F:	drivers/media/platform/sh_veu.c
+-F:	include/media/sh_veu.h
+ 
+ SH_VOU V4L2 OUTPUT DRIVER
+ M:	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+-- 
+1.7.11.7
 
-	Hans
-
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |    3 ++-
->  1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 55eab61..2fb2168 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -3065,7 +3065,7 @@ static int bttv_open(struct file *file)
->  			    fh, &btv->lock);
->  	set_tvnorm(btv,btv->tvnorm);
->  	set_input(btv, btv->input, btv->tvnorm);
-> -
-> +	audio_mute(btv, btv->mute);
->  
->  	/* The V4L2 spec requires one global set of cropping parameters
->  	   which only change on request. These are stored in btv->crop[1].
-> @@ -3230,6 +3230,7 @@ static int radio_open(struct file *file)
->  	v4l2_fh_init(&fh->fh, vdev);
->  
->  	btv->radio_user++;
-> +	audio_mute(btv, btv->mute);
->  
->  	v4l2_fh_add(&fh->fh);
->  
-> 
