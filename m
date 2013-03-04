@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:61212 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896Ab3CURuk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 13:50:40 -0400
-Received: by mail-ee0-f53.google.com with SMTP id e53so1840698eek.12
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:50:38 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/8] bttv: separate GPIO part from function audio_mux()
-Date: Thu, 21 Mar 2013 18:51:17 +0100
-Message-Id: <1363888280-28724-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-da0-f44.google.com ([209.85.210.44]:59748 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755457Ab3CDIZr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 03:25:47 -0500
+Received: by mail-da0-f44.google.com with SMTP id z20so2434135dae.17
+        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 00:25:47 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org,
+	thierry.reding@avionic-design.de
+Subject: [PATCH 1/4] [media] sh_veu.c: Convert to devm_ioremap_resource()
+Date: Mon,  4 Mar 2013 13:45:18 +0530
+Message-Id: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the GPIO part of function audio_mux() to a separate function
-audio_mux_gpio().
-This prepares the code for the next patch which will separate mute and input
-setting.
+Use the newly introduced devm_ioremap_resource() instead of
+devm_request_and_ioremap() which provides more consistent error handling.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |   18 ++++++++++++------
- 1 Datei geändert, 12 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
+ drivers/media/platform/sh_veu.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 81ee70d..f1cb0db 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -989,11 +989,10 @@ static char *audio_modes[] = {
- 	"audio: intern", "audio: mute"
- };
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index cb54c69..362d88e 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -10,6 +10,7 @@
+  * published by the Free Software Foundation
+  */
  
--static int
--audio_mux(struct bttv *btv, int input, int mute)
-+static void
-+audio_mux_gpio(struct bttv *btv, int input, int mute)
- {
- 	int gpio_val, signal, mute_gpio;
--	struct v4l2_ctrl *ctrl;
++#include <linux/err.h>
+ #include <linux/fs.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -1164,9 +1165,9 @@ static int sh_veu_probe(struct platform_device *pdev)
  
- 	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
- 		   bttv_tvcards[btv->c.type].gpiomask);
-@@ -1020,8 +1019,14 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 	veu->is_2h = resource_size(reg_res) == 0x22c;
  
- 	if (bttv_gpio)
- 		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
--	if (in_interrupt())
--		return 0;
-+}
-+
-+static int
-+audio_mux(struct bttv *btv, int input, int mute)
-+{
-+	struct v4l2_ctrl *ctrl;
-+
-+	audio_mux_gpio(btv, input, mute);
+-	veu->base = devm_request_and_ioremap(&pdev->dev, reg_res);
+-	if (!veu->base)
+-		return -ENOMEM;
++	veu->base = devm_ioremap_resource(&pdev->dev, reg_res);
++	if (IS_ERR(veu->base))
++		return PTR_ERR(veu->base);
  
- 	if (btv->sd_msp34xx) {
- 		u32 in;
-@@ -3846,7 +3851,8 @@ static irqreturn_t bttv_irq(int irq, void *dev_id)
- 			bttv_irq_switch_video(btv);
- 
- 		if ((astat & BT848_INT_HLOCK)  &&  btv->opt_automute)
--			audio_mute(btv, btv->mute);  /* trigger automute */
-+			/* trigger automute */
-+			audio_mux_gpio(btv, btv->audio_input, btv->mute);
- 
- 		if (astat & (BT848_INT_SCERR|BT848_INT_OCERR)) {
- 			pr_info("%d: %s%s @ %08x,",
+ 	ret = devm_request_threaded_irq(&pdev->dev, irq, sh_veu_isr, sh_veu_bh,
+ 					0, "veu", veu);
 -- 
-1.7.10.4
+1.7.4.1
 
