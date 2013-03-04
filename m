@@ -1,77 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:37825 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755824Ab3CTLcM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 07:32:12 -0400
-Received: by mail-pb0-f42.google.com with SMTP id xb4so1283671pbc.29
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 04:32:12 -0700 (PDT)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, linaro-kernel@lists.linaro.org,
-	jy0922.shim@samsung.com, linux-samsung-soc@vger.kernel.org,
-	thomas.abraham@linaro.org
-Subject: [PATCH v2] drm/exynos: enable FIMD clocks
-Date: Wed, 20 Mar 2013 17:01:59 +0530
-Message-Id: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3797 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932121Ab3CDTpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 14:45:14 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r24JixTL020380
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 4 Mar 2013 20:45:13 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0AC7011E00AE
+	for <linux-media@vger.kernel.org>; Mon,  4 Mar 2013 20:44:59 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130304194500.0AC7011E00AE@alastor.dyndns.org>
+Date: Mon,  4 Mar 2013 20:44:59 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While migrating to common clock framework (CCF), found that the FIMD clocks
-were pulled down by the CCF.
-If CCF finds any clock(s) which has NOT been claimed by any of the
-drivers, then such clock(s) are PULLed low by CCF.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-By calling clk_prepare_enable() for FIMD clocks fixes the issue.
+Results of the daily build of media_tree:
 
-this patch also replaces clk_disable() with clk_disable_unprepare()
-during exit.
+date:		Mon Mar  4 19:00:45 CET 2013
+git branch:	for_v3.9
+git hash:	d34c353cd40ff0e6e5ed3753e80f6aa7eaa2c298
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
-Changes since v1:
-	- added error checking for clk_prepare_enable() and also replaced 
-	clk_disable() with clk_disable_unprepare() during exit.
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..014d750 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -934,6 +934,19 @@ static int fimd_probe(struct platform_device *pdev)
- 		return ret;
- 	}
- 
-+	ret = clk_prepare_enable(ctx->lcd_clk);
-+	if (ret) {
-+		dev_err(dev, "failed to enable 'sclk_fimd' clock\n");
-+		return ret;
-+	}
-+
-+	ret = clk_prepare_enable(ctx->bus_clk);
-+	if (ret) {
-+		clk_disable_unprepare(ctx->lcd_clk);
-+		dev_err(dev, "failed to enable 'fimd' clock\n");
-+		return ret;
-+	}
-+
- 	ctx->vidcon0 = pdata->vidcon0;
- 	ctx->vidcon1 = pdata->vidcon1;
- 	ctx->default_win = pdata->default_win;
-@@ -981,8 +994,8 @@ static int fimd_remove(struct platform_device *pdev)
- 	if (ctx->suspended)
- 		goto out;
- 
--	clk_disable(ctx->lcd_clk);
--	clk_disable(ctx->bus_clk);
-+	clk_disable_unprepare(ctx->lcd_clk);
-+	clk_disable_unprepare(ctx->bus_clk);
- 
- 	pm_runtime_set_suspended(dev);
- 	pm_runtime_put_sync(dev);
--- 
-1.7.9.5
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
