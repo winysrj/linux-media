@@ -1,82 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:39814 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965000Ab3CNRKA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 13:10:00 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH v2 8/8] drivers: misc: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 18:09:38 +0100
-Message-Id: <1363280978-24051-9-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:61242 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756331Ab3CDJNE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:13:04 -0500
+Date: Mon, 4 Mar 2013 10:12:51 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [PATCH 1/4] [media] sh_veu.c: Convert to devm_ioremap_resource()
+Message-ID: <20130304091243.GA13335@avionic-0098.mockup.avionic-design.de>
+References: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
+Content-Disposition: inline
+In-Reply-To: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
----
- drivers/misc/atmel_pwm.c  | 12 +-----------
- drivers/misc/ep93xx_pwm.c | 13 +------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+--4Ckj6UjgE2iN1+kY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/misc/atmel_pwm.c b/drivers/misc/atmel_pwm.c
-index 28f5aaa..494d050 100644
---- a/drivers/misc/atmel_pwm.c
-+++ b/drivers/misc/atmel_pwm.c
-@@ -393,17 +393,7 @@ static struct platform_driver atmel_pwm_driver = {
- 	 */
- };
- 
--static int __init pwm_init(void)
--{
--	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
--}
--module_init(pwm_init);
--
--static void __exit pwm_exit(void)
--{
--	platform_driver_unregister(&atmel_pwm_driver);
--}
--module_exit(pwm_exit);
-+module_platform_driver_probe(atmel_pwm_driver, pwm_probe);
- 
- MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/misc/ep93xx_pwm.c b/drivers/misc/ep93xx_pwm.c
-index 16d7179..96787ec 100644
---- a/drivers/misc/ep93xx_pwm.c
-+++ b/drivers/misc/ep93xx_pwm.c
-@@ -365,18 +365,7 @@ static struct platform_driver ep93xx_pwm_driver = {
- 	.remove		= __exit_p(ep93xx_pwm_remove),
- };
- 
--static int __init ep93xx_pwm_init(void)
--{
--	return platform_driver_probe(&ep93xx_pwm_driver, ep93xx_pwm_probe);
--}
--
--static void __exit ep93xx_pwm_exit(void)
--{
--	platform_driver_unregister(&ep93xx_pwm_driver);
--}
--
--module_init(ep93xx_pwm_init);
--module_exit(ep93xx_pwm_exit);
-+module_platform_driver_probe(ep93xx_pwm_driver, ep93xx_pwm_probe);
- 
- MODULE_AUTHOR("Matthieu Crapet <mcrapet@gmail.com>, "
- 	      "H Hartley Sweeten <hsweeten@visionengravers.com>");
--- 
-1.8.1.5
+On Mon, Mar 04, 2013 at 01:45:18PM +0530, Sachin Kamat wrote:
+> Use the newly introduced devm_ioremap_resource() instead of
+> devm_request_and_ioremap() which provides more consistent error handling.
+>=20
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/platform/sh_veu.c |    7 ++++---
+>  1 files changed, 4 insertions(+), 3 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_=
+veu.c
+> index cb54c69..362d88e 100644
+> --- a/drivers/media/platform/sh_veu.c
+> +++ b/drivers/media/platform/sh_veu.c
+> @@ -10,6 +10,7 @@
+>   * published by the Free Software Foundation
+>   */
+> =20
+> +#include <linux/err.h>
+>  #include <linux/fs.h>
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> @@ -1164,9 +1165,9 @@ static int sh_veu_probe(struct platform_device *pde=
+v)
+> =20
+>  	veu->is_2h =3D resource_size(reg_res) =3D=3D 0x22c;
+> =20
+> -	veu->base =3D devm_request_and_ioremap(&pdev->dev, reg_res);
+> -	if (!veu->base)
+> -		return -ENOMEM;
+> +	veu->base =3D devm_ioremap_resource(&pdev->dev, reg_res);
+> +	if (IS_ERR(veu->base))
+> +		return PTR_ERR(veu->base);
+> =20
+>  	ret =3D devm_request_threaded_irq(&pdev->dev, irq, sh_veu_isr, sh_veu_b=
+h,
+>  					0, "veu", veu);
 
+Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+
+--4Ckj6UjgE2iN1+kY
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRNGWLAAoJEN0jrNd/PrOh+MYQAKyFlvEeCkKwJG5o0z/UdMCJ
+98GIk+sh9SIvoMwrpJ1MTKEp0qs0oCTaS5KFGCWeFtiFkD6xGyGzKZ9zp/JyDZM0
+uRyg9dqVIwDFb3Lx0qyiqOXMIsY9i+bDPEgkXVvLtSFY6IZoC5EF2mrppOp5hS5M
+k8ocRU+wsooy3NJ9uozzS52a/cxgWmh1Qe9TbVtd/N3y1uokbC6Kwy6bJWiuYn7/
+HZsL3FrBgq6RRFCXfsHCjCxg0OC3/vZHTEPTm5Alm6nn9Y+DVgEziekjD7XQB0pD
+7xjPVmDqs9939YO+TCif+aY+R9IjoCgitMC9LXNkzht7TXxL1wchj81cwmhKP4vl
+4+XVF/cQAQ5p9hwFuaUCQ19kzKWltk60ylPdboEmOeR9C41tYdEh7lRnPTEWSKKg
+YZ4Lz6afOk3Av/GnD4m1L74N5Y8rhhNpecBN6B1ullhgPKvqUTfymDT/7qr07gGu
+vWdPMKwWOmTbuuFA4nLJ36ELbp+dqh38gGfahdb12EYvLHUqLs+orv94tFYUgcad
+jKVLT+1m+YliZAkgFk319eH/Rv993idVBPDqPJTleLosO2mqdPH8exE2UmHs/iqH
+NUoxgwJxpT4Tj/fXHkW8QvTTi9bWpu8N6CSqR4g6P8dgc6i32qMN34pSu4mRMyjk
+QSeuJmEXyquxNopd9oG9
+=YA4i
+-----END PGP SIGNATURE-----
+
+--4Ckj6UjgE2iN1+kY--
