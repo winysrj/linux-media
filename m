@@ -1,90 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:56966 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756124Ab3CDJxV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:53:21 -0500
-Received: by mail-wi0-f176.google.com with SMTP id hm14so1758045wib.3
-        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 01:53:20 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201303041036.32470.hverkuil@xs4all.nl>
-References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
- <82ceff23cb7321a9f84f76ae1ed956b2829a45d6.1362387265.git.hans.verkuil@cisco.com>
- <CA+V-a8t_ri8qJoc=KwE6kMCXwPxqkpbMoV3UsjZ9mJ_zgRFORQ@mail.gmail.com> <201303041036.32470.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 4 Mar 2013 15:23:00 +0530
-Message-ID: <CA+V-a8uuo6sLXL-dZgeq1Y47Mueno4UX8B4YMgbQVmJh3i=MQA@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 10/11] davinci/dm644x_ccdc: fix compiler warning
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4432 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756160Ab3CDJFr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
 	davinci-linux-open-source@linux.davincidsp.com,
 	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Subject: [REVIEW PATCH 08/11] davinci/vpbe_display: remove deprecated current_norm.
+Date: Mon,  4 Mar 2013 10:05:02 +0100
+Message-Id: <02cb33521404120c6c8262187514fd9b3ec3eab3.1362387265.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Mon, Mar 4, 2013 at 3:06 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Mon March 4 2013 10:29:26 Prabhakar Lad wrote:
->> Hi Hans,
->>
->> On Mon, Mar 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > From: Hans Verkuil <hans.verkuil@cisco.com>
->> >
->> > drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
->> > drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between ‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
->> >
->> please refer this discussion [1], where Mauro has suggested
->> few options for fixing it.
->
-> Ah, good. I'll try and do a proper fix.
->
-> BTW, does 'CCDC_GAMMA_BITS_15_6' mean '15 bits'? I'm not sure about the meaning
-> of the '_6' suffix. Also, I assume that 'gama' in 'enum ccdc_gama_width' is a
-> misspelling for 'gamma', right?
->
-Its the gamma width input, Since the data resolution can be greater
-than 10-bits,
-the 10-bits for input to A-Law operation is specified by this bit.
-'CCDC_GAMMA_BITS_15_6'
-means bits 6-15 are input for A-Law operation.
+Since vpbe_display already provides a g_std op setting current_norm
+didn't do anything. Remove that code.
 
-Yes 'gama' in 'enum ccdc_gama_width' is misspelled.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-Regards,
---Prabhakar
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 1f59955..a9e90b0 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1176,10 +1176,6 @@ vpbe_display_s_dv_timings(struct file *file, void *priv,
+ 			"Failed to set the dv timings info\n");
+ 		return -EINVAL;
+ 	}
+-	/* set the current norm to zero to be consistent. If STD is used
+-	 * v4l2 layer will set the norm properly on successful s_std call
+-	 */
+-	layer->video_dev.current_norm = 0;
+ 
+ 	return 0;
+ }
+@@ -1693,12 +1689,8 @@ static int init_vpbe_layer(int i, struct vpbe_display *disp_dev,
+ 	vbd->vfl_dir	= VFL_DIR_TX;
+ 
+ 	if (disp_dev->vpbe_dev->current_timings.timings_type &
+-			VPBE_ENC_STD) {
++			VPBE_ENC_STD)
+ 		vbd->tvnorms = (V4L2_STD_525_60 | V4L2_STD_625_50);
+-		vbd->current_norm =
+-			disp_dev->vpbe_dev->current_timings.std_id;
+-	} else
+-		vbd->current_norm = 0;
+ 
+ 	snprintf(vbd->name, sizeof(vbd->name),
+ 			"DaVinci_VPBE Display_DRIVER_V%d.%d.%d",
+-- 
+1.7.10.4
 
-> Regards,
->
->         Hans
->
->>
->> Regards,
->> --Prabhakar Lad
->>
->> [1] https://patchwork.kernel.org/patch/1923091/
->>
->> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> > ---
->> >  drivers/media/platform/davinci/dm644x_ccdc.c |    2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> > diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
->> > index 318e805..41f0a80 100644
->> > --- a/drivers/media/platform/davinci/dm644x_ccdc.c
->> > +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
->> > @@ -230,7 +230,7 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
->> >         if (ccdcparam->alaw.enable) {
->> >                 if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
->> >                     (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
->> > -                   (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
->> > +                   (ccdcparam->alaw.gama_wd < (unsigned)ccdcparam->data_sz)) {
->> >                         dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
->> >                         return -1;
->> >                 }
->> > --
->> > 1.7.10.4
->> >
->>
