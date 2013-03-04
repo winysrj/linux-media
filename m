@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6617 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932778Ab3CSQt6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:49:58 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 16/46] [media] siano: add some new messages to the smscoreapi
-Date: Tue, 19 Mar 2013 13:49:05 -0300
-Message-Id: <1363711775-2120-17-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3242 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755607Ab3CDJFa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [REVIEW PATCH 00/11] davinci/blackfin DV_PRESET/current_norm removal
+Date: Mon,  4 Mar 2013 10:04:54 +0100
+Message-Id: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Based on Doron Cohen's patch:
-	http://patchwork.linuxtv.org/patch/7887/
+Hi all,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/siano/smscoreapi.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+This patch series is for the most part identical to the RFC patch series
+posted earlier:
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index d928c22..6e60c99 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -1430,7 +1430,23 @@ void smscore_onresponse(struct smscore_device_t *coredev,
- 		rc = client->onresponse_handler(client->context, cb);
- 
- 	if (rc < 0) {
-+		smsendian_handle_rx_message((struct SmsMsgData_ST *)phdr);
-+
- 		switch (phdr->msgType) {
-+		case MSG_SMS_ISDBT_TUNE_RES:
-+			break;
-+		case MSG_SMS_RF_TUNE_RES:
-+			break;
-+		case MSG_SMS_SIGNAL_DETECTED_IND:
-+			break;
-+		case MSG_SMS_NO_SIGNAL_IND:
-+			break;
-+		case MSG_SMS_SPI_INT_LINE_SET_RES:
-+			break;
-+		case MSG_SMS_INTERFACE_LOCK_IND:
-+			break;
-+		case MSG_SMS_INTERFACE_UNLOCK_IND:
-+			break;
- 		case MSG_SMS_GET_VERSION_EX_RES:
- 		{
- 			struct SmsVersionRes_ST *ver =
--- 
-1.8.1.4
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg58762.html
+
+The main changes are:
+
+- dropped the Samsung-related patches, those will go through a separate
+  patch series.
+- added patches 7-10.
+
+The first set of patches deal with the removal of the obsolete dv_preset
+API. Patch 7 converts one last davinci driver to the control framework,
+patches 8 and 9 remove the use of the obsolete current_norm field and
+patch 10 fixes a compiler warning.
+
+Scott, the blackfin patch is here only because I want to make a single pull
+request for both the davinci and blackfin patches. Since you have already
+acked your patch there is no need for you to do anything.
+
+Prabhakar, if you can look at patches 7-10 (note that patch 7 is different
+from the one you saw earlier), then that would be appreciated. Once I have
+your ack I can make a pull request by the end of the week.
+
+Regards,
+
+	Hans
 
