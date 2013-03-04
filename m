@@ -1,60 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:63044 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967Ab3CSSAQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 14:00:16 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Fabio Porcedda <fabio.porcedda@gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Date: Tue, 19 Mar 2013 17:59:27 +0000
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	H Hartley Sweeten <hartleys@visionengravers.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	"Hans-Christian Egtvedt" <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com> <201303191648.31527.arnd@arndb.de> <CAHkwnC9FL9W07=n6bWvcwiE058zcBZwqUwtRB-VVNpU0gv0mNw@mail.gmail.com>
-In-Reply-To: <CAHkwnC9FL9W07=n6bWvcwiE058zcBZwqUwtRB-VVNpU0gv0mNw@mail.gmail.com>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:57712 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754525Ab3CDMJc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 07:09:32 -0500
+Received: by mail-wg0-f48.google.com with SMTP id 16so3982389wgi.3
+        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 04:09:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303191759.27762.arnd@arndb.de>
+In-Reply-To: <1c75e578e64fa834679109097006030973afaa66.1362395861.git.hans.verkuil@cisco.com>
+References: <ea9d6410777ee7ed06cd2869b20ce0f03b1bb8d7.1362395861.git.hans.verkuil@cisco.com>
+ <1362395963-14266-1-git-send-email-hverkuil@xs4all.nl> <1c75e578e64fa834679109097006030973afaa66.1362395861.git.hans.verkuil@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 4 Mar 2013 17:39:09 +0530
+Message-ID: <CA+V-a8vqb1FUunOEbQBh6oKnpatyNgOKbi4a-mgxPG3Qj5bYCQ@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 2/2] davinci: more gama -> gamma typo fixes.
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 19 March 2013, Fabio Porcedda wrote:
-> On Tue, Mar 19, 2013 at 5:48 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Tuesday 19 March 2013, Geert Uytterhoeven wrote:
-> >> Hmm, so we may have drivers that (now) work perfectly fine with
-> >> module_platform_driver_probe()/platform_driver_probe(), but will start
-> >> failing suddenly in the future?
-> >
-> > They will fail if someone changes the initialization order. That would
-> > already break drivers before deferred probing support (and was the reason
-> > we added feature in the first place), but now we can be much more liberal
-> > with the order in which drivers are initialized, except when they are
-> > using platform_driver_probe()
-> >
-> >> I guess we need a big fat WARN_ON(-EPROBE_DEFER) in
-> >> platform_driver_probe() to catch these?
-> >
-> > Yes, very good idea.
-> 
-> If it's fine, I'll send a patch for that.
+Hi Hans,
 
-That would be cool, yes. I looked at it earlier (after sending my email above)
-and couldn't find an easy way to do it though, because platform_drv_probe
-does not know whether it is called from platform_driver_probe or not.
+Thanks for the patch!
 
-Maybe using something other than platform_driver_register would work here.
+On Mon, Mar 4, 2013 at 4:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-	Arnd
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+
+Regards,
+--Prabhakar Lad
+
+> ---
+>  drivers/media/platform/davinci/dm355_ccdc.c      |   10 +++++-----
+>  drivers/media/platform/davinci/dm355_ccdc_regs.h |    2 +-
+>  drivers/media/platform/davinci/isif.c            |    2 +-
+>  drivers/media/platform/davinci/isif_regs.h       |    4 ++--
+>  include/media/davinci/dm355_ccdc.h               |    6 +++---
+>  5 files changed, 12 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+> index 4277e4a..2364dba 100644
+> --- a/drivers/media/platform/davinci/dm355_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm355_ccdc.c
+> @@ -85,7 +85,7 @@ static struct ccdc_oper_config {
+>                         .mfilt1 = CCDC_NO_MEDIAN_FILTER1,
+>                         .mfilt2 = CCDC_NO_MEDIAN_FILTER2,
+>                         .alaw = {
+> -                               .gama_wd = 2,
+> +                               .gamma_wd = 2,
+>                         },
+>                         .blk_clamp = {
+>                                 .sample_pixel = 1,
+> @@ -303,8 +303,8 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
+>         }
+>
+>         if (ccdcparam->alaw.enable) {
+> -               if (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_13_4 ||
+> -                   ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) {
+> +               if (ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_13_4 ||
+> +                   ccdcparam->alaw.gamma_wd > CCDC_GAMMA_BITS_09_0) {
+>                         dev_dbg(ccdc_cfg.dev, "Invalid value of ALAW\n");
+>                         return -EINVAL;
+>                 }
+> @@ -680,8 +680,8 @@ static int ccdc_config_raw(void)
+>         /* Enable and configure aLaw register if needed */
+>         if (config_params->alaw.enable) {
+>                 val |= (CCDC_ALAW_ENABLE |
+> -                       ((config_params->alaw.gama_wd &
+> -                       CCDC_ALAW_GAMA_WD_MASK) <<
+> +                       ((config_params->alaw.gamma_wd &
+> +                       CCDC_ALAW_GAMMA_WD_MASK) <<
+>                         CCDC_GAMMAWD_INPUT_SHIFT));
+>         }
+>
+> diff --git a/drivers/media/platform/davinci/dm355_ccdc_regs.h b/drivers/media/platform/davinci/dm355_ccdc_regs.h
+> index d6d2ef0..2e1946e 100644
+> --- a/drivers/media/platform/davinci/dm355_ccdc_regs.h
+> +++ b/drivers/media/platform/davinci/dm355_ccdc_regs.h
+> @@ -153,7 +153,7 @@
+>  #define CCDC_VDHDEN_ENABLE                     (1 << 16)
+>  #define CCDC_LPF_ENABLE                                (1 << 14)
+>  #define CCDC_ALAW_ENABLE                       1
+> -#define CCDC_ALAW_GAMA_WD_MASK                 7
+> +#define CCDC_ALAW_GAMMA_WD_MASK                        7
+>  #define CCDC_REC656IF_BT656_EN                 3
+>
+>  #define CCDC_FMTCFG_FMTMODE_MASK               3
+> diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+> index 5050f92..abc3ae3 100644
+> --- a/drivers/media/platform/davinci/isif.c
+> +++ b/drivers/media/platform/davinci/isif.c
+> @@ -604,7 +604,7 @@ static int isif_config_raw(void)
+>         if (module_params->compress.alg == ISIF_ALAW)
+>                 val |= ISIF_ALAW_ENABLE;
+>
+> -       val |= (params->data_msb << ISIF_ALAW_GAMA_WD_SHIFT);
+> +       val |= (params->data_msb << ISIF_ALAW_GAMMA_WD_SHIFT);
+>         regw(val, CGAMMAWD);
+>
+>         /* Configure DPCM compression settings */
+> diff --git a/drivers/media/platform/davinci/isif_regs.h b/drivers/media/platform/davinci/isif_regs.h
+> index aa69a46..3993aec 100644
+> --- a/drivers/media/platform/davinci/isif_regs.h
+> +++ b/drivers/media/platform/davinci/isif_regs.h
+> @@ -203,8 +203,8 @@
+>  #define ISIF_LPF_MASK                          1
+>
+>  /* GAMMAWD registers */
+> -#define ISIF_ALAW_GAMA_WD_MASK                 0xF
+> -#define ISIF_ALAW_GAMA_WD_SHIFT                        1
+> +#define ISIF_ALAW_GAMMA_WD_MASK                        0xF
+> +#define ISIF_ALAW_GAMMA_WD_SHIFT               1
+>  #define ISIF_ALAW_ENABLE                       1
+>  #define ISIF_GAMMAWD_CFA_SHIFT                 5
+>
+> diff --git a/include/media/davinci/dm355_ccdc.h b/include/media/davinci/dm355_ccdc.h
+> index adf2fe4..c669a9f 100644
+> --- a/include/media/davinci/dm355_ccdc.h
+> +++ b/include/media/davinci/dm355_ccdc.h
+> @@ -38,7 +38,7 @@ enum ccdc_sample_line {
+>         CCDC_SAMPLE_16LINES
+>  };
+>
+> -/* enum for Alaw gama width */
+> +/* enum for Alaw gamma width */
+>  enum ccdc_gamma_width {
+>         CCDC_GAMMA_BITS_13_4,
+>         CCDC_GAMMA_BITS_12_3,
+> @@ -97,8 +97,8 @@ enum ccdc_mfilt2 {
+>  struct ccdc_a_law {
+>         /* Enable/disable A-Law */
+>         unsigned char enable;
+> -       /* Gama Width Input */
+> -       enum ccdc_gamma_width gama_wd;
+> +       /* Gamma Width Input */
+> +       enum ccdc_gamma_width gamma_wd;
+>  };
+>
+>  /* structure for Black Clamping */
+> --
+> 1.7.10.4
+>
