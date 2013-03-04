@@ -1,211 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:50799 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965733Ab3CZQk0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 12:40:26 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 3/6] s5p-fimc: Add device tree support for FIMC-LITE device
- driver
-Date: Tue, 26 Mar 2013 17:39:55 +0100
-Message-id: <1364315998-19372-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364315998-19372-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364315998-19372-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:53082 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758432Ab3CDSeb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 13:34:31 -0500
+Received: by mail-ea0-f177.google.com with SMTP id n13so894251eaa.8
+        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 10:34:30 -0800 (PST)
+Message-ID: <5134E780.4000700@googlemail.com>
+Date: Mon, 04 Mar 2013 19:27:12 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 01/11] em28xx-i2c: replace printk() with the corresponding
+ em28xx macros
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com> <1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com> <20130304150931.050dd815@redhat.com>
+In-Reply-To: <20130304150931.050dd815@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the device tree support for FIMC-LITE device
-driver. The bindings include compatible property for the Exynos5
-SoC series, however the actual implementation for these SoCs will
-be added in a separate patch.
+Am 04.03.2013 19:09, schrieb Mauro Carvalho Chehab:
+> Em Sun,  3 Mar 2013 20:37:34 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Reduces the number of characters/lines, unifies the code and improves readability.
+> Had you actually test this patch? The reason why printk() is used on some
+> places is because dev->name is not available early.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
+The em28xx-specific macros are using printk, too.
+They are actually just an abbreviation of the current printks (saving us
+the KERN_XY and the the dev->name parameter).
+See em28xx.h.
 
-Changes since v5:
- - Added clocks/clock-names properties to the binding documentation.
----
- .../devicetree/bindings/media/exynos-fimc-lite.txt |   14 +++++
- drivers/media/platform/s5p-fimc/fimc-lite.c        |   63 ++++++++++++++------
- 2 files changed, 59 insertions(+), 18 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
+> That's said, it makes sense to replace all those em28xx-specific printk
+> functions by the standard pr_fmt-based ones (pr_err, pr_info, pr_debug, etc).
 
-diff --git a/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt b/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
-new file mode 100644
-index 0000000..3f62adf
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
-@@ -0,0 +1,14 @@
-+Exynos4x12/Exynos5 SoC series camera host interface (FIMC-LITE)
-+
-+Required properties:
-+
-+- compatible	: should be "samsung,exynos4212-fimc" for Exynos4212 and
-+		  Exynos4412 SoCs;
-+- reg		: physical base address and size of the device memory mapped
-+		  registers;
-+- interrupts	: should contain FIMC-LITE interrupt;
-+- clocks	: FIMC LITE gate clock should be specified in this property.
-+- clock-names	: should contain "flite" entry.
-+
-+Each FIMC device should have an alias in the aliases node, in the form of
-+fimc-lite<n>, where <n> is an integer specifying the IP block instance.
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 187d9f6..c76a9d6 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -17,6 +17,7 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/of.h>
- #include <linux/types.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -1401,18 +1402,34 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
- 	return ret;
- }
- 
-+static const struct of_device_id flite_of_match[];
-+
- static int fimc_lite_probe(struct platform_device *pdev)
- {
--	struct flite_drvdata *drv_data = fimc_lite_get_drvdata(pdev);
-+	struct flite_drvdata *drv_data = NULL;
-+	struct device *dev = &pdev->dev;
-+	const struct of_device_id *of_id;
- 	struct fimc_lite *fimc;
- 	struct resource *res;
- 	int ret;
- 
--	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
-+	fimc = devm_kzalloc(dev, sizeof(*fimc), GFP_KERNEL);
- 	if (!fimc)
- 		return -ENOMEM;
- 
--	fimc->index = pdev->id;
-+	if (dev->of_node) {
-+		of_id = of_match_node(flite_of_match, dev->of_node);
-+		if (of_id)
-+			drv_data = (struct flite_drvdata *)of_id->data;
-+		fimc->index = of_alias_get_id(dev->of_node, "fimc-lite");
-+	} else {
-+		drv_data = fimc_lite_get_drvdata(pdev);
-+		fimc->index = pdev->id;
-+	}
-+
-+	if (!drv_data || fimc->index < 0 || fimc->index >= FIMC_LITE_MAX_DEVS)
-+		return -EINVAL;
-+
- 	fimc->variant = drv_data->variant[fimc->index];
- 	fimc->pdev = pdev;
- 
-@@ -1421,13 +1438,13 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 	mutex_init(&fimc->lock);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	fimc->regs = devm_ioremap_resource(&pdev->dev, res);
-+	fimc->regs = devm_ioremap_resource(dev, res);
- 	if (IS_ERR(fimc->regs))
- 		return PTR_ERR(fimc->regs);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (res == NULL) {
--		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
-+		dev_err(dev, "Failed to get IRQ resource\n");
- 		return -ENXIO;
- 	}
- 
-@@ -1435,10 +1452,10 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = devm_request_irq(&pdev->dev, res->start, flite_irq_handler,
--			       0, dev_name(&pdev->dev), fimc);
-+	ret = devm_request_irq(dev, res->start, flite_irq_handler,
-+			       0, dev_name(dev), fimc);
- 	if (ret) {
--		dev_err(&pdev->dev, "Failed to install irq (%d)\n", ret);
-+		dev_err(dev, "Failed to install irq (%d)\n", ret);
- 		goto err_clk;
- 	}
- 
-@@ -1448,23 +1465,23 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 		goto err_clk;
- 
- 	platform_set_drvdata(pdev, fimc);
--	pm_runtime_enable(&pdev->dev);
--	ret = pm_runtime_get_sync(&pdev->dev);
-+	pm_runtime_enable(dev);
-+	ret = pm_runtime_get_sync(dev);
- 	if (ret < 0)
- 		goto err_sd;
- 
--	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-+	fimc->alloc_ctx = vb2_dma_contig_init_ctx(dev);
- 	if (IS_ERR(fimc->alloc_ctx)) {
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_pm;
- 	}
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- 
--	dev_dbg(&pdev->dev, "FIMC-LITE.%d registered successfully\n",
-+	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
- 		fimc->index);
- 	return 0;
- err_pm:
--	pm_runtime_put(&pdev->dev);
-+	pm_runtime_put(dev);
- err_sd:
- 	fimc_lite_unregister_capture_subdev(fimc);
- err_clk:
-@@ -1555,6 +1572,12 @@ static int fimc_lite_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static const struct dev_pm_ops fimc_lite_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
-+	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
-+			   NULL)
-+};
-+
- static struct flite_variant fimc_lite0_variant_exynos4 = {
- 	.max_width		= 8192,
- 	.max_height		= 8192,
-@@ -1580,17 +1603,21 @@ static struct platform_device_id fimc_lite_driver_ids[] = {
- };
- MODULE_DEVICE_TABLE(platform, fimc_lite_driver_ids);
- 
--static const struct dev_pm_ops fimc_lite_pm_ops = {
--	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
--	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
--			   NULL)
-+static const struct of_device_id flite_of_match[] = {
-+	{
-+		.compatible = "samsung,exynos4212-fimc-lite",
-+		.data = &fimc_lite_drvdata_exynos4,
-+	},
-+	{ /* sentinel */ },
- };
-+MODULE_DEVICE_TABLE(of, flite_of_match);
- 
- static struct platform_driver fimc_lite_driver = {
- 	.probe		= fimc_lite_probe,
- 	.remove		= fimc_lite_remove,
- 	.id_table	= fimc_lite_driver_ids,
- 	.driver = {
-+		.of_match_table = flite_of_match,
- 		.name		= FIMC_LITE_DRV_NAME,
- 		.owner		= THIS_MODULE,
- 		.pm		= &fimc_lite_pm_ops,
--- 
-1.7.9.5
+Yeah, I agree.
+But that would be a separate patch series... ;)
+I can do that (later) if you want.
+
+Regards,
+Frank
+
+>
+> Regards,
+> Mauro
+>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
+>>  1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> index 8532c1d..8819b54 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> @@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>>  	/* Check if board has eeprom */
+>>  	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
+>>  	if (err < 0) {
+>> -		em28xx_errdev("board has no eeprom\n");
+>> +		em28xx_info("board has no eeprom\n");
+>>  		memset(eedata, 0, len);
+>>  		return -ENODEV;
+>>  	}
+>> @@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>>  
+>>  	err = i2c_master_send(&dev->i2c_client, &buf, 1);
+>>  	if (err != 1) {
+>> -		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
+>> -		       dev->name, err);
+>> +		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+>>  		return err;
+>>  	}
+>>  
+>> @@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>>  
+>>  		if (block !=
+>>  		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
+>> -			printk(KERN_WARNING
+>> -			       "%s: i2c eeprom read error (err=%d)\n",
+>> -			       dev->name, err);
+>> +			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
+>>  			return err;
+>>  		}
+>>  		size -= block;
+>> @@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>>  	}
+>>  	for (i = 0; i < len; i++) {
+>>  		if (0 == (i % 16))
+>> -			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
+>> +			em28xx_info("i2c eeprom %02x:", i);
+>>  		printk(" %02x", eedata[i]);
+>>  		if (15 == (i % 16))
+>>  			printk("\n");
+>> @@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>>  	if (em_eeprom->id == 0x9567eb1a)
+>>  		dev->hash = em28xx_hash_mem(eedata, len, 32);
+>>  
+>> -	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
+>> -	       dev->name, em_eeprom->id, dev->hash);
+>> +	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
+>> +		    em_eeprom->id, dev->hash);
+>>  
+>> -	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
+>> +	em28xx_info("EEPROM info:\n");
+>>  
+>>  	switch (em_eeprom->chip_conf >> 4 & 0x3) {
+>>  	case 0:
+>> -		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
+>> +		em28xx_info("\tNo audio on board.\n");
+>>  		break;
+>>  	case 1:
+>> -		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
+>> -				 dev->name);
+>> +		em28xx_info("\tAC97 audio (5 sample rates)\n");
+>>  		break;
+>>  	case 2:
+>> -		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
+>> -				 dev->name);
+>> +		em28xx_info("\tI2S audio, sample rate=32k\n");
+>>  		break;
+>>  	case 3:
+>> -		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
+>> -				 dev->name);
+>> +		em28xx_info("\tI2S audio, 3 sample rates\n");
+>>  		break;
+>>  	}
+>>  
+>>  	if (em_eeprom->chip_conf & 1 << 3)
+>> -		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
+>> +		em28xx_info("\tUSB Remote wakeup capable\n");
+>>  
+>>  	if (em_eeprom->chip_conf & 1 << 2)
+>> -		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
+>> +		em28xx_info("\tUSB Self power capable\n");
+>>  
+>>  	switch (em_eeprom->chip_conf & 0x3) {
+>>  	case 0:
+>> -		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
+>> +		em28xx_info("\t500mA max power\n");
+>>  		break;
+>>  	case 1:
+>> -		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
+>> +		em28xx_info("\t400mA max power\n");
+>>  		break;
+>>  	case 2:
+>> -		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
+>> +		em28xx_info("\t300mA max power\n");
+>>  		break;
+>>  	case 3:
+>> -		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
+>> +		em28xx_info("\t200mA max power\n");
+>>  		break;
+>>  	}
+>> -	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+>> -				dev->name,
+>> -				em_eeprom->string_idx_table,
+>> -				em_eeprom->string1,
+>> -				em_eeprom->string2,
+>> -				em_eeprom->string3);
+>> +	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+>> +		    em_eeprom->string_idx_table,
+>> +		    em_eeprom->string1,
+>> +		    em_eeprom->string2,
+>> +		    em_eeprom->string3);
+>>  
+>>  	return 0;
+>>  }
+>> @@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
+>>  		if (rc < 0)
+>>  			continue;
+>>  		i2c_devicelist[i] = i;
+>> -		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
+>> -		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+>> +		em28xx_info("found i2c device @ 0x%x [%s]\n",
+>> +			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+>>  	}
+>>  
+>>  	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
+>
 
