@@ -1,60 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:47562 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab3CKFbd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 01:31:33 -0400
-MIME-Version: 1.0
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 11 Mar 2013 11:01:01 +0530
-Message-ID: <CA+V-a8vVtqBHsDHKZS63B+7p-8gDgKuJ3sy+T+Y1kz-xjdyn7w@mail.gmail.com>
-Subject: [GIT PULL FOR v3.10] DaVinci media/tvp514x/ths7353 cleanups and
- feature enhancement
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1457 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758112Ab3CDNCU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 08:02:20 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [REVIEW PATCH 0/6] s5p-tv: replace dv_preset by dv_timings
+Date: Mon,  4 Mar 2013 14:02:00 +0100
+Message-Id: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Tomasz,
 
-Please pull the following patches.
+Here is what I hope is the final patch series for this. I've incorporated
+your suggestions and it's split off from the davinci/blackfin changes into
+its own patch series to keep things better organized.
 
-A gentle request, can you please pull these patches ASAP as my TI I'd might
-get shut any movement, so as the mails of patches being queued don’t get bounce.
+The changes since the previous version are:
 
-Regards,
---Prabhakar Lad
+- changed the order of the first three patches as per your suggestion.
+- the patch named "[RFC PATCH 08/18] s5p-tv: add dv_timings support for
+  mixer_video." had two changes that rightfully belonged to the 'add
+  dv_timings support for mixer_video.' patch. Moved them accordingly.
+- hdmiphy now also supports dv_timings_cap and sets the pixelclock range
+  accordingly. The hdmi driver chains hdmiphy to get those values.
+- updating the minimum width to 720.
 
-The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
+I didn't add a comment to clarify the pixclk handling hdmiphy_s_dv_preset
+because 1) I forgot, 2) it's not a bug, and 3) that whole function is
+removed anyway a few patches later :-)
 
-  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+The only functional change is the handling of dv_timings_cap. Can you
+verify that that works as it should?
 
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_v3.10
+Thanks!
 
-Lad, Prabhakar (1):
-      media: ths7353: add support for ths7353 video amplifier
+	Hans
 
-Manjunath Hadli (2):
-      media: add support for decoder as one of media entity types
-      media: tvp514x: enable TVP514X for media controller based usage
-
-Sachin Kamat (1):
-      davinci_vpfe: Use module_platform_driver macro
-
- .../DocBook/media/v4l/media-ioc-enum-entities.xml  |   10 +
- drivers/media/i2c/Kconfig                          |    6 +-
- drivers/media/i2c/ths7303.c                        |  351 ++++++++++++++++----
- drivers/media/i2c/tvp514x.c                        |  163 +++++++++-
- .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |   20 +-
- include/media/ths7303.h                            |   42 +++
- include/media/v4l2-chip-ident.h                    |    3 +
- include/uapi/linux/media.h                         |    2 +
- 8 files changed, 507 insertions(+), 90 deletions(-)
- create mode 100644 include/media/ths7303.h
