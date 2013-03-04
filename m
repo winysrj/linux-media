@@ -1,161 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:47923 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758022Ab3CSJwd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 05:52:33 -0400
-Message-id: <5148355D.5070806@samsung.com>
-Date: Tue, 19 Mar 2013 10:52:29 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH v6 1/7] media: V4L2: add temporary clock helpers
-References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
- <1363382873-20077-2-git-send-email-g.liakhovetski@gmx.de>
- <5147934D.2040908@gmail.com> <Pine.LNX.4.64.1303190821470.10482@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1303190821470.10482@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4933 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758328Ab3CDNC0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 08:02:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 3/6] s5p-tv: add dv_timings support for mixer_video.
+Date: Mon,  4 Mar 2013 14:02:03 +0100
+Message-Id: <f3470cbb559c08a101418bc39621aabe2ab072b0.1362401530.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <2b361dfb4359134806e6b6d741d9286968c49df6.1362401530.git.hans.verkuil@cisco.com>
+References: <2b361dfb4359134806e6b6d741d9286968c49df6.1362401530.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 03/19/2013 08:32 AM, Guennadi Liakhovetski wrote:
-> On Mon, 18 Mar 2013, Sylwester Nawrocki wrote:
->> On 03/15/2013 10:27 PM, Guennadi Liakhovetski wrote:
-[...]
->>> diff --git a/drivers/media/v4l2-core/v4l2-clk.c
->>> b/drivers/media/v4l2-core/v4l2-clk.c
->>> new file mode 100644
->>> index 0000000..3505972
->>> --- /dev/null
->>> +++ b/drivers/media/v4l2-core/v4l2-clk.c
->>> @@ -0,0 +1,184 @@
->>> +/*
->>> + * V4L2 clock service
->>> + *
->>> + * Copyright (C) 2012, Guennadi Liakhovetski<g.liakhovetski@gmx.de>
->>
->> 2013 ?
->>
->>> + * This program is free software; you can redistribute it and/or modify
->>> + * it under the terms of the GNU General Public License version 2 as
->>> + * published by the Free Software Foundation.
->>> + */
->>> +
->>> +#include<linux/atomic.h>
->>> +#include<linux/errno.h>
->>> +#include<linux/list.h>
->>> +#include<linux/module.h>
->>> +#include<linux/mutex.h>
->>> +#include<linux/string.h>
->>> +
->>> +#include<media/v4l2-clk.h>
->>> +#include<media/v4l2-subdev.h>
->>> +
->>> +static DEFINE_MUTEX(clk_lock);
->>> +static LIST_HEAD(clk_list);
->>> +
->>> +static struct v4l2_clk *v4l2_clk_find(const struct v4l2_subdev *sd,
->>> +				      const char *dev_id, const char *id)
->>> +{
->>> +	struct v4l2_clk *clk;
->>> +
->>> +	list_for_each_entry(clk,&clk_list, list) {
->>> +		if (!sd || !(sd->flags&  V4L2_SUBDEV_FL_IS_I2C)) {
->>> +			if (strcmp(dev_id, clk->dev_id))
->>> +				continue;
->>> +		} else {
->>> +			char *i2c = strstr(dev_id, clk->dev_id);
->>> +			if (!i2c || i2c == dev_id || *(i2c - 1) != ' ')
->>> +				continue;
->>> +		}
->>> +
->>> +		if (!id || !clk->id || !strcmp(clk->id, id))
->>> +			return clk;
->>> +	}
->>> +
->>> +	return ERR_PTR(-ENODEV);
->>> +}
->>> +
->>> +struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
->>> +{
->>> +	struct v4l2_clk *clk;
->>> +
->>> +	mutex_lock(&clk_lock);
->>> +	clk = v4l2_clk_find(sd, sd->name, id);
->>
->> Couldn't we just pass the I2C client's struct device name to this function ?
-> 
-> Certainly not. This is a part of the generic V4L2 clock API, it's not I2C 
-> specific.
+This just adds dv_timings support without modifying existing dv_preset
+support.
 
-I have been thinking about something like dev_name(sd->dev), but struct
-v4l2_subdev doesn't have struct device associated with it.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c |   80 +++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
 
->> And if the host driver that registers a clock for its sub-device knows the
->> type
->> of device (I2C, SPI client, etc.) why we need to even bother with checking the
->> subdev/bus type in v4l2_clk_find() function above, when the host could
->> properly
->> format dev_id when it registers a clock ?
-> 
-> This has been discussed. The host doesn't know the name of the I2C driver, 
-> that would attach to this subdevice at the time, it registers the clock. 
-> This is the easiest way to oversome this problem.
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index 82142a2..24fb381 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -559,6 +559,79 @@ static int mxr_g_dv_preset(struct file *file, void *fh,
+ 	return ret ? -EINVAL : 0;
+ }
+ 
++static int mxr_enum_dv_timings(struct file *file, void *fh,
++	struct v4l2_enum_dv_timings *timings)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++	struct mxr_device *mdev = layer->mdev;
++	int ret;
++
++	/* lock protects from changing sd_out */
++	mutex_lock(&mdev->mutex);
++	ret = v4l2_subdev_call(to_outsd(mdev), video, enum_dv_timings, timings);
++	mutex_unlock(&mdev->mutex);
++
++	return ret ? -EINVAL : 0;
++}
++
++static int mxr_s_dv_timings(struct file *file, void *fh,
++	struct v4l2_dv_timings *timings)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++	struct mxr_device *mdev = layer->mdev;
++	int ret;
++
++	/* lock protects from changing sd_out */
++	mutex_lock(&mdev->mutex);
++
++	/* timings change cannot be done while there is an entity
++	 * dependant on output configuration
++	 */
++	if (mdev->n_output > 0) {
++		mutex_unlock(&mdev->mutex);
++		return -EBUSY;
++	}
++
++	ret = v4l2_subdev_call(to_outsd(mdev), video, s_dv_timings, timings);
++
++	mutex_unlock(&mdev->mutex);
++
++	mxr_layer_update_output(layer);
++
++	/* any failure should return EINVAL according to V4L2 doc */
++	return ret ? -EINVAL : 0;
++}
++
++static int mxr_g_dv_timings(struct file *file, void *fh,
++	struct v4l2_dv_timings *timings)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++	struct mxr_device *mdev = layer->mdev;
++	int ret;
++
++	/* lock protects from changing sd_out */
++	mutex_lock(&mdev->mutex);
++	ret = v4l2_subdev_call(to_outsd(mdev), video, g_dv_timings, timings);
++	mutex_unlock(&mdev->mutex);
++
++	return ret ? -EINVAL : 0;
++}
++
++static int mxr_dv_timings_cap(struct file *file, void *fh,
++	struct v4l2_dv_timings_cap *cap)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++	struct mxr_device *mdev = layer->mdev;
++	int ret;
++
++	/* lock protects from changing sd_out */
++	mutex_lock(&mdev->mutex);
++	ret = v4l2_subdev_call(to_outsd(mdev), video, dv_timings_cap, cap);
++	mutex_unlock(&mdev->mutex);
++
++	return ret ? -EINVAL : 0;
++}
++
+ static int mxr_s_std(struct file *file, void *fh, v4l2_std_id *norm)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -618,6 +691,8 @@ static int mxr_enum_output(struct file *file, void *fh, struct v4l2_output *a)
+ 	a->capabilities = 0;
+ 	if (sd->ops->video && sd->ops->video->s_dv_preset)
+ 		a->capabilities |= V4L2_OUT_CAP_PRESETS;
++	if (sd->ops->video && sd->ops->video->s_dv_timings)
++		a->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
+ 	if (sd->ops->video && sd->ops->video->s_std_output)
+ 		a->capabilities |= V4L2_OUT_CAP_STD;
+ 	a->type = V4L2_OUTPUT_TYPE_ANALOG;
+@@ -742,6 +817,11 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_enum_dv_presets = mxr_enum_dv_presets,
+ 	.vidioc_s_dv_preset = mxr_s_dv_preset,
+ 	.vidioc_g_dv_preset = mxr_g_dv_preset,
++	/* DV Timings functions */
++	.vidioc_enum_dv_timings = mxr_enum_dv_timings,
++	.vidioc_s_dv_timings = mxr_s_dv_timings,
++	.vidioc_g_dv_timings = mxr_g_dv_timings,
++	.vidioc_dv_timings_cap = mxr_dv_timings_cap,
+ 	/* analog TV standard functions */
+ 	.vidioc_s_std = mxr_s_std,
+ 	.vidioc_g_std = mxr_g_std,
+-- 
+1.7.10.4
 
-OK, thanks for reminding. It would be probably much easier to associate
-the clock with struct device, not with subdev driver. Devices have more
-clear naming rules (at last I2C, SPI clients). And most host drivers
-already have information about I2C bus id, just I2C slave address would
-need to be passed to the host driver so it can register a clock for its
-subdev.
-
->> Then the subdev would just pass its
->> struct device pointer to this API to find its clock. What am I missing here ?
-> 
-> I don't think there's a 1-to-1 correspondence between devices and V4L2 
-> subdevices.
-
-I would expect at least a subdev that needs a clock to have struct device
-associated with it. It would be also much easier this way to use generic
-clocks API in the device tree instantiated systems.
-
->>> +	if (!IS_ERR(clk)&&  !try_module_get(clk->ops->owner))
->>> +		clk = ERR_PTR(-ENODEV);
->>> +	mutex_unlock(&clk_lock);
->>> +
->>> +	if (!IS_ERR(clk)) {
->>> +		clk->subdev = sd;
->>
->> Why is this needed ? It seems a strange addition that might potentially
->> make transition to the common clocks API more difficult.
-> 
-> We got rid of the v4l2_clk_bind() function and the .bind() callback. Now I 
-> need a pointer to subdevice _before_ v4l2_clk_register() (former 
-> v4l2_clk_bound()), that's why I have to store it here.
-
-Hmm, sorry, I'm not following. How can we store a subdev pointer in the clock
-data structure that has not been registered yet and thus cannot be found
-with v4l2_clk_find() ?
-
->>> +		atomic_inc(&clk->use_count);
->>> +	}
->>> +
->>> +	return clk;
->>> +}
->>> +EXPORT_SYMBOL(v4l2_clk_get);
-
---
-
-Regards,
-Sylwester
