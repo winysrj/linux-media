@@ -1,175 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:51770 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932356Ab3CUIaH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 04:30:07 -0400
-From: Simon Horman <horms@verge.net.au>
-To: netdev@vger.kernel.org
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Simon Horman <horms@verge.net.au>,
-	Jesse Gross <jesse@nicira.com>,
-	Stefan Richter <stefanr@s5r6.in-berlin.de>,
-	Karsten Keil <isdn@linux-pingi.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	dev@openvswitch.org
-Subject: [PATCH] net: add ETH_P_802_3_MIN
-Date: Thu, 21 Mar 2013 17:29:28 +0900
-Message-Id: <1363854568-32228-1-git-send-email-horms@verge.net.au>
+Received: from mx1.redhat.com ([209.132.183.28]:6296 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756573Ab3CDLXS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Mar 2013 06:23:18 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r24BNHrp003231
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 4 Mar 2013 06:23:17 -0500
+Date: Mon, 4 Mar 2013 08:23:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 03/11] [media] mb86a20s: provide CNR stats before
+ FE_HAS_SYNC
+Message-ID: <20130304082313.7acf632e@redhat.com>
+In-Reply-To: <1362326331-17541-4-git-send-email-mchehab@redhat.com>
+References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
+	<1362326331-17541-4-git-send-email-mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
-an 802.3 frame. Frames with a lower value in the ethernet type field
-are Ethernet II.
+Em Sun,  3 Mar 2013 12:58:43 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-Also update all the users of this value that I could find to use the
-new constant.
+> State 9 means TS started to be output, and it should be
+> associated with FE_HAS_SYNC.
+> 
+> The mb86a20scan get CNR statistics at state 7, when frame sync
+> is obtained.
+> 
+> As CNR may help to adjust the antenna, provide it earlier.
+> 
+> A latter patch could eventually start outputing MER measures
+> earlier, but that would require a bigger change, and probably
+> won't be better than the current way, as the time between
+> changing from state 8 to 9 is generally lower than the time
+> to get the stats collected.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/dvb-frontends/mb86a20s.c | 24 ++++++++++++++++--------
+>  1 file changed, 16 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+> index daeee81..e222e55 100644
+> --- a/drivers/media/dvb-frontends/mb86a20s.c
+> +++ b/drivers/media/dvb-frontends/mb86a20s.c
+> @@ -312,7 +312,7 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+>  	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
+>  		 __func__, *status, val);
+>  
+> -	return 0;
+> +	return val;
+>  }
+>  
+>  static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+> @@ -1564,7 +1564,7 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
+>  	}
+>  }
+>  
+> -static int mb86a20s_get_stats(struct dvb_frontend *fe)
+> +static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
+>  {
+>  	struct mb86a20s_state *state = fe->demodulator_priv;
+>  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> @@ -1584,6 +1584,14 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+>  	/* Get per-layer stats */
+>  	mb86a20s_get_blk_error_layer_CNR(fe);
+>  
+> +	/*
+> +	 * At state 7, only CNR is available
+> +	 * For BER measures, state=9 is required
+> +	 * FIXME: we may get MER measures with state=8
+> +	 */
+> +	if (status_nr < 9)
+> +		return 0;
+> +
+>  	for (i = 0; i < 3; i++) {
+>  		if (c->isdbt_layer_enabled & (1 << i)) {
+>  			/* Layer is active and has rc segments */
+> @@ -1875,7 +1883,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+>  {
+>  	struct mb86a20s_state *state = fe->demodulator_priv;
+>  	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> -	int rc;
+> +	int rc, status_nr;
+>  
+>  	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+>  
+> @@ -1883,12 +1891,12 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+>  		fe->ops.i2c_gate_ctrl(fe, 0);
+>  
+>  	/* Get lock */
+> -	rc = mb86a20s_read_status(fe, status);
+> -	if (!(*status & FE_HAS_LOCK)) {
+> +	status_nr = mb86a20s_read_status(fe, status);
+> +	if (status_nr < 7) {
+>  		mb86a20s_stats_not_ready(fe);
+>  		mb86a20s_reset_frontend_cache(fe);
+>  	}
+> -	if (rc < 0) {
+> +	if (state < 0) {
 
-I anticipate adding some more users of this constant when
-adding MPLS support to Open vSwtich.
+This is obviously wrong ;)
 
-As suggested by Jesse Gross.
+Patch with fixup enclosed.
 
-Compile tested only.
+Cheers,
+Mauro
 
-Cc: Jesse Gross <jesse@nicira.com>
-Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Cc: Karsten Keil <isdn@linux-pingi.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux1394-devel@lists.sourceforge.net
-Cc: linux-media@vger.kernel.org
-Cc: dev@openvswitch.org
-Signed-off-by: Simon Horman <horms@verge.net.au>
----
- drivers/firewire/net.c           |    2 +-
- drivers/isdn/i4l/isdn_net.c      |    2 +-
- drivers/media/dvb-core/dvb_net.c |    6 +++---
- drivers/net/ethernet/sun/niu.c   |    2 +-
- drivers/net/plip/plip.c          |    2 +-
- include/uapi/linux/if_ether.h    |    3 +++
- net/ethernet/eth.c               |    2 +-
- net/openvswitch/datapath.c       |    2 +-
- 8 files changed, 12 insertions(+), 9 deletions(-)
+-
 
-diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
-index 2b27bff..bd34ca1 100644
---- a/drivers/firewire/net.c
-+++ b/drivers/firewire/net.c
-@@ -630,7 +630,7 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
- 			if (memcmp(eth->h_dest, net->dev_addr, net->addr_len))
- 				skb->pkt_type = PACKET_OTHERHOST;
- 		}
--		if (ntohs(eth->h_proto) >= 1536) {
-+		if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN) {
- 			protocol = eth->h_proto;
- 		} else {
- 			rawp = (u16 *)skb->data;
-diff --git a/drivers/isdn/i4l/isdn_net.c b/drivers/isdn/i4l/isdn_net.c
-index babc621..88d657d 100644
---- a/drivers/isdn/i4l/isdn_net.c
-+++ b/drivers/isdn/i4l/isdn_net.c
-@@ -1385,7 +1385,7 @@ isdn_net_type_trans(struct sk_buff *skb, struct net_device *dev)
- 		if (memcmp(eth->h_dest, dev->dev_addr, ETH_ALEN))
- 			skb->pkt_type = PACKET_OTHERHOST;
+[PATCH 03/11v2] [media] mb86a20s: provide CNR stats before FE_HAS_SYNC
+
+State 9 means TS started to be output, and it should be
+associated with FE_HAS_SYNC.
+
+The mb86a20scan get CNR statistics at state 7, when frame sync
+is obtained.
+
+As CNR may help to adjust the antenna, provide it earlier.
+
+A latter patch could eventually start outputing MER measures
+earlier, but that would require a bigger change, and probably
+won't be better than the current way, as the time between
+changing from state 8 to 9 is generally lower than the time
+to get the stats collected.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index daeee81..2720b82 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -312,7 +312,7 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
+ 		 __func__, *status, val);
+ 
+-	return 0;
++	return val;
+ }
+ 
+ static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
+@@ -1564,7 +1564,7 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
  	}
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
+ }
  
- 	rawp = skb->data;
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 44225b1..9fc82a1 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -185,7 +185,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
- 			skb->pkt_type=PACKET_MULTICAST;
- 	}
- 
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
- 
- 	rawp = skb->data;
-@@ -228,9 +228,9 @@ static int ule_test_sndu( struct dvb_net_priv *p )
- static int ule_bridged_sndu( struct dvb_net_priv *p )
+-static int mb86a20s_get_stats(struct dvb_frontend *fe)
++static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
  {
- 	struct ethhdr *hdr = (struct ethhdr*) p->ule_next_hdr;
--	if(ntohs(hdr->h_proto) < 1536) {
-+	if(ntohs(hdr->h_proto) < ETH_P_802_3_MIN) {
- 		int framelen = p->ule_sndu_len - ((p->ule_next_hdr+sizeof(struct ethhdr)) - p->ule_skb->data);
--		/* A frame Type < 1536 for a bridged frame, introduces a LLC Length field. */
-+		/* A frame Type < ETH_P_802_3_MIN for a bridged frame, introduces a LLC Length field. */
- 		if(framelen != ntohs(hdr->h_proto)) {
- 			return -1;
- 		}
-diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/niu.c
-index e4c1c88..95cff98 100644
---- a/drivers/net/ethernet/sun/niu.c
-+++ b/drivers/net/ethernet/sun/niu.c
-@@ -6618,7 +6618,7 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
- 	       (len << TXHDR_LEN_SHIFT) |
- 	       ((l3off / 2) << TXHDR_L3START_SHIFT) |
- 	       (ihl << TXHDR_IHL_SHIFT) |
--	       ((eth_proto_inner < 1536) ? TXHDR_LLC : 0) |
-+	       ((eth_proto_inner < ETH_P_802_3_MIN) ? TXHDR_LLC : 0) |
- 	       ((eth_proto == ETH_P_8021Q) ? TXHDR_VLAN : 0) |
- 	       (ipv6 ? TXHDR_IP_VER : 0) |
- 	       csum_bits);
-diff --git a/drivers/net/plip/plip.c b/drivers/net/plip/plip.c
-index bed62d9..1f7bef9 100644
---- a/drivers/net/plip/plip.c
-+++ b/drivers/net/plip/plip.c
-@@ -560,7 +560,7 @@ static __be16 plip_type_trans(struct sk_buff *skb, struct net_device *dev)
- 	 *	so don't forget to remove it.
- 	 */
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1584,6 +1584,14 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
+ 	/* Get per-layer stats */
+ 	mb86a20s_get_blk_error_layer_CNR(fe);
  
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
- 
- 	rawp = skb->data;
-diff --git a/include/uapi/linux/if_ether.h b/include/uapi/linux/if_ether.h
-index 798032d..ade07f1 100644
---- a/include/uapi/linux/if_ether.h
-+++ b/include/uapi/linux/if_ether.h
-@@ -94,6 +94,9 @@
- #define ETH_P_EDSA	0xDADA		/* Ethertype DSA [ NOT AN OFFICIALLY REGISTERED ID ] */
- #define ETH_P_AF_IUCV   0xFBFB		/* IBM af_iucv [ NOT AN OFFICIALLY REGISTERED ID ] */
- 
-+#define ETH_P_802_3_MIN	0x0600		/* If the value in the ethernet type is less than this value
-+					 * then the frame is Ethernet II. Else it is 802.3 */
++	/*
++	 * At state 7, only CNR is available
++	 * For BER measures, state=9 is required
++	 * FIXME: we may get MER measures with state=8
++	 */
++	if (status_nr < 9)
++		return 0;
 +
- /*
-  *	Non DIX types. Won't clash for 1500 types.
-  */
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index a36c85ea..5359560 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -195,7 +195,7 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
- 	if (netdev_uses_trailer_tags(dev))
- 		return htons(ETH_P_TRAILER);
+ 	for (i = 0; i < 3; i++) {
+ 		if (c->isdbt_layer_enabled & (1 << i)) {
+ 			/* Layer is active and has rc segments */
+@@ -1875,7 +1883,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int rc;
++	int rc, status_nr;
  
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
  
- 	/*
-diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
-index d61cd99..8759265 100644
---- a/net/openvswitch/datapath.c
-+++ b/net/openvswitch/datapath.c
-@@ -681,7 +681,7 @@ static int ovs_packet_cmd_execute(struct sk_buff *skb, struct genl_info *info)
- 	/* Normally, setting the skb 'protocol' field would be handled by a
- 	 * call to eth_type_trans(), but it assumes there's a sending
- 	 * device, which we may not have. */
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		packet->protocol = eth->h_proto;
- 	else
- 		packet->protocol = htons(ETH_P_802_2);
--- 
-1.7.10.4
+@@ -1883,12 +1891,12 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	/* Get lock */
+-	rc = mb86a20s_read_status(fe, status);
+-	if (!(*status & FE_HAS_LOCK)) {
++	status_nr = mb86a20s_read_status(fe, status);
++	if (status_nr < 7) {
+ 		mb86a20s_stats_not_ready(fe);
+ 		mb86a20s_reset_frontend_cache(fe);
+ 	}
+-	if (rc < 0) {
++	if (status_nr < 0) {
+ 		dev_err(&state->i2c->dev,
+ 			"%s: Can't read frontend lock status\n", __func__);
+ 		goto error;
+@@ -1908,7 +1916,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 	/* Fill signal strength */
+ 	c->strength.stat[0].uvalue = rc;
+ 
+-	if (*status & FE_HAS_LOCK) {
++	if (status_nr >= 7) {
+ 		/* Get TMCC info*/
+ 		rc = mb86a20s_get_frontend(fe);
+ 		if (rc < 0) {
+@@ -1919,7 +1927,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
+ 		}
+ 
+ 		/* Get statistics */
+-		rc = mb86a20s_get_stats(fe);
++		rc = mb86a20s_get_stats(fe, status_nr);
+ 		if (rc < 0 && rc != -EBUSY) {
+ 			dev_err(&state->i2c->dev,
+ 				"%s: Can't get FE statistics.\n", __func__);
+
 
