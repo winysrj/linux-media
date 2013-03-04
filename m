@@ -1,99 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33299 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755824Ab3CRXQv (ORCPT
+Received: from cpsmtpb-ews05.kpnxchange.com ([213.75.39.8]:59332 "EHLO
+	cpsmtpb-ews05.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754497Ab3CDNn0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 19:16:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 1/6] v4l2: add const to argument of write-only s_frequency ioctl.
-Date: Tue, 19 Mar 2013 00:17:32 +0100
-Message-ID: <38963986.sdyc1budE1@avalon>
-In-Reply-To: <1363615925-19507-2-git-send-email-hverkuil@xs4all.nl>
-References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl> <1363615925-19507-2-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 4 Mar 2013 08:43:26 -0500
+Message-ID: <1362404600.16460.26.camel@x61.thuisdomein>
+Subject: [PATCH] [media] m920x: let GCC see 'ret' is used initialized
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 04 Mar 2013 14:43:20 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Since commit 7543f344e9b06afe86b55a2620f5c11b38bd5642 ("[media] m920x:
+factor out a m920x_write_seq() function") building m920x.o triggers this
+GCC warning:
+    drivers/media/usb/dvb-usb/m920x.c: In function ‘m920x_probe’:
+    drivers/media/usb/dvb-usb/m920x.c:91:6: warning: ‘ret’ may be used uninitialized in this function [-Wuninitialized]
 
-Thanks for the patch.
+This warning is caused by m920x_write_seq(), which is apparently inlined
+into m920x_probe(). It is clear why GCC thinks 'ret' may be used
+uninitialized. But in practice the first seq->address will always be
+non-zero when this function is called. That means we can change the
+while()-do{} loop into a do{}-while() loop. And that suffices to make
+GCC see that 'ret' will not be used uninitialized.
 
-On Monday 18 March 2013 15:12:00 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ioctl is defined as IOW, so pass the argument as const.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Compile tested only!
 
-[snip]
+ drivers/media/usb/dvb-usb/m920x.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-> diff --git a/drivers/media/radio/radio-keene.c
-> b/drivers/media/radio/radio-keene.c index 296941a..a598852 100644
-> --- a/drivers/media/radio/radio-keene.c
-> +++ b/drivers/media/radio/radio-keene.c
-> @@ -82,9 +82,12 @@ static inline struct keene_device *to_keene_dev(struct
-> v4l2_device *v4l2_dev) /* Set frequency (if non-0), PA, mute and turn
-> on/off the FM transmitter. */ static int keene_cmd_main(struct keene_device
-> *radio, unsigned freq, bool play) {
-> -	unsigned short freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
-> +	unsigned short freq_send;
->  	int ret;
-> 
-> +	if (freq)
-> +		freq = clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
-> +	freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
->  	radio->buffer[0] = 0x00;
->  	radio->buffer[1] = 0x50;
->  	radio->buffer[2] = (freq_send >> 8) & 0xff;
-> @@ -215,15 +218,15 @@ static int vidioc_s_modulator(struct file *file, void
-> *priv, }
-> 
->  static int vidioc_s_frequency(struct file *file, void *priv,
-> -				struct v4l2_frequency *f)
-> +				const struct v4l2_frequency *f)
->  {
->  	struct keene_device *radio = video_drvdata(file);
-> 
->  	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
->  		return -EINVAL;
-> -	f->frequency = clamp(f->frequency,
-> -			FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
-> -	return keene_cmd_main(radio, f->frequency, true);
-> +	/* Take care: keene_cmd_main handles a frequency of 0 as a
-> +	 * special case, so make sure we never give that from here. */
-> +	return keene_cmd_main(radio, f->frequency ? f->frequency : 1, true);
-
-Can't you keep the clamp() here ? That looks easier.
-
->  }
-> 
->  static int vidioc_g_frequency(struct file *file, void *priv,
-
+diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+index 92afeb2..79b31ae 100644
+--- a/drivers/media/usb/dvb-usb/m920x.c
++++ b/drivers/media/usb/dvb-usb/m920x.c
+@@ -68,13 +68,13 @@ static inline int m920x_write_seq(struct usb_device *udev, u8 request,
+ 				  struct m920x_inits *seq)
+ {
+ 	int ret;
+-	while (seq->address) {
++	do {
+ 		ret = m920x_write(udev, request, seq->data, seq->address);
+ 		if (ret != 0)
+ 			return ret;
+ 
+ 		seq++;
+-	}
++	} while (seq->address);
+ 
+ 	return ret;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
