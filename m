@@ -1,367 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35001 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63863 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab3CRTZo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 15:25:44 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2IJPiTg014258
+	id S1758335Ab3CDThw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Mar 2013 14:37:52 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r24JbqAl030926
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 15:25:44 -0400
+	for <linux-media@vger.kernel.org>; Mon, 4 Mar 2013 14:37:52 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] dvb-frontend: split set_delivery_system()
-Date: Mon, 18 Mar 2013 16:25:36 -0300
-Message-Id: <1363634737-22550-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH 2/2] [media] mb86a20s: Don't assume a 32.57142MHz clock
+Date: Mon,  4 Mar 2013 16:37:44 -0300
+Message-Id: <1362425864-29292-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362425864-29292-1-git-send-email-mchehab@redhat.com>
+References: <1362425864-29292-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function is complex, and has different workflows, one for
-DVBv3 calls, and another one for DVBv5 calls. Break it into 3
-functions, in order to make easier to understand what each
-block does.
-
-No functional changes so far. A few comments got improved.
+Now that some devices initialize register 0x2a with different
+values, add the calculus formula, instead of hardcoding it.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 292 +++++++++++++++++++---------------
- 1 file changed, 164 insertions(+), 128 deletions(-)
+ drivers/media/dvb-frontends/mb86a20s.c | 26 ++++++++++++++++++++++++--
+ drivers/media/dvb-frontends/mb86a20s.h |  8 ++++++--
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 6e50a75..bbc1965 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1509,132 +1509,12 @@ static bool is_dvbv3_delsys(u32 delsys)
- 	return status;
- }
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index 1859e9d..d04b52e 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -70,7 +70,6 @@ static struct regdata mb86a20s_init1[] = {
+ 	{ 0x70, 0xff },
+ 	{ 0x08, 0x01 },
+ 	{ 0x50, 0xd1 }, { 0x51, 0x20 },
+-	{ 0x28, 0x2a }, { 0x29, 0x00 }, { 0x2a, 0xff }, { 0x2b, 0x80 },
+ };
  
--static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
-+static int emulate_delivery_system(struct dvb_frontend *fe,
-+				   enum dvbv3_emulation_type type,
-+				   u32 delsys, u32 desired_system)
+ static struct regdata mb86a20s_init2[] = {
+@@ -1776,6 +1775,7 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
  {
--	int ncaps, i;
--	u32 delsys = SYS_UNDEFINED;
-+	int i;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	enum dvbv3_emulation_type type;
--
--	/*
--	 * It was reported that some old DVBv5 applications were
--	 * filling delivery_system with SYS_UNDEFINED. If this happens,
--	 * assume that the application wants to use the first supported
--	 * delivery system.
--	 */
--	if (c->delivery_system == SYS_UNDEFINED)
--	        c->delivery_system = fe->ops.delsys[0];
--
--	if (desired_system == SYS_UNDEFINED) {
--		/*
--		 * A DVBv3 call doesn't know what's the desired system.
--		 * Also, DVBv3 applications don't know that ops.info->type
--		 * could be changed, and they simply dies when it doesn't
--		 * match.
--		 * So, don't change the current delivery system, as it
--		 * may be trying to do the wrong thing, like setting an
--		 * ISDB-T frontend as DVB-T. Instead, find the closest
--		 * DVBv3 system that matches the delivery system.
--		 */
--		if (is_dvbv3_delsys(c->delivery_system)) {
--			dev_dbg(fe->dvb->device,
--					"%s: Using delivery system to %d\n",
--					__func__, c->delivery_system);
--			return 0;
--		}
--		type = dvbv3_type(c->delivery_system);
--		switch (type) {
--		case DVBV3_QPSK:
--			desired_system = SYS_DVBS;
--			break;
--		case DVBV3_QAM:
--			desired_system = SYS_DVBC_ANNEX_A;
--			break;
--		case DVBV3_ATSC:
--			desired_system = SYS_ATSC;
--			break;
--		case DVBV3_OFDM:
--			desired_system = SYS_DVBT;
--			break;
--		default:
--			dev_dbg(fe->dvb->device, "%s: This frontend doesn't support DVBv3 calls\n",
--					__func__);
--			return -EINVAL;
--		}
--		/*
--		 * Get a delivery system that is compatible with DVBv3
--		 * NOTE: in order for this to work with softwares like Kaffeine that
--		 *	uses a DVBv5 call for DVB-S2 and a DVBv3 call to go back to
--		 *	DVB-S, drivers that support both should put the SYS_DVBS entry
--		 *	before the SYS_DVBS2, otherwise it won't switch back to DVB-S.
--		 *	The real fix is that userspace applications should not use DVBv3
--		 *	and not trust on calling FE_SET_FRONTEND to switch the delivery
--		 *	system.
--		 */
--		ncaps = 0;
--		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
--			if (fe->ops.delsys[ncaps] == desired_system) {
--				delsys = desired_system;
--				break;
--			}
--			ncaps++;
--		}
--		if (delsys == SYS_UNDEFINED) {
--			dev_dbg(fe->dvb->device, "%s: Couldn't find a delivery system that matches %d\n",
--					__func__, desired_system);
--		}
--	} else {
--		/*
--		 * This is a DVBv5 call. So, it likely knows the supported
--		 * delivery systems.
--		 */
--
--		/* Check if the desired delivery system is supported */
--		ncaps = 0;
--		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
--			if (fe->ops.delsys[ncaps] == desired_system) {
--				c->delivery_system = desired_system;
--				dev_dbg(fe->dvb->device,
--						"%s: Changing delivery system to %d\n",
--						__func__, desired_system);
--				return 0;
--			}
--			ncaps++;
--		}
--		type = dvbv3_type(desired_system);
--
--		/*
--		 * The delivery system is not supported. See if it can be
--		 * emulated.
--		 * The emulation only works if the desired system is one of the
--		 * DVBv3 delivery systems
--		 */
--		if (!is_dvbv3_delsys(desired_system)) {
--			dev_dbg(fe->dvb->device,
--					"%s: can't use a DVBv3 FE_SET_FRONTEND call on this frontend\n",
--					__func__);
--			return -EINVAL;
--		}
--
--		/*
--		 * Get the last non-DVBv3 delivery system that has the same type
--		 * of the desired system
--		 */
--		ncaps = 0;
--		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
--			if ((dvbv3_type(fe->ops.delsys[ncaps]) == type) &&
--			    !is_dvbv3_delsys(fe->ops.delsys[ncaps]))
--				delsys = fe->ops.delsys[ncaps];
--			ncaps++;
--		}
--		/* There's nothing compatible with the desired delivery system */
--		if (delsys == SYS_UNDEFINED) {
--			dev_dbg(fe->dvb->device,
--					"%s: Incompatible DVBv3 FE_SET_FRONTEND call for this frontend\n",
--					__func__);
--			return -EINVAL;
--		}
--	}
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	u64 pll;
++	u32 fclk;
+ 	int rc;
+ 	u8  regD5 = 1, reg71, reg09 = 0x3a;
  
- 	c->delivery_system = delsys;
+@@ -1810,6 +1810,10 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
  
-@@ -1648,8 +1528,8 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 	 * delivery system is the last one at the ops.delsys[] array
- 	 */
- 	dev_dbg(fe->dvb->device,
--			"%s: Using delivery system %d emulated as if it were a %d\n",
--			__func__, delsys, desired_system);
-+		"%s: Using delivery system %d emulated as if it were a %d\n",
-+		__func__, delsys, desired_system);
++	fclk = state->config->fclk;
++	if (!fclk)
++		fclk = 32571428;
++
+ 	/* Adjust IF frequency to match tuner */
+ 	if (fe->ops.tuner_ops.get_if_frequency)
+ 		fe->ops.tuner_ops.get_if_frequency(fe, &state->if_freq);
+@@ -1817,6 +1821,24 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
+ 	if (!state->if_freq)
+ 		state->if_freq = 3300000;
  
- 	/*
- 	 * For now, handles ISDB-T calls. More code may be needed here for the
-@@ -1684,6 +1564,162 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 	return 0;
- }
++	pll = (((u64)1) << 34) * state->if_freq;
++	do_div(pll, 63 * fclk);
++	pll = (1 << 25) - pll;
++	rc = mb86a20s_writereg(state, 0x28, 0x2a);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_writereg(state, 0x29, (pll >> 16) & 0xff);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_writereg(state, 0x2a, (pll >> 8) & 0xff);
++	if (rc < 0)
++		goto err;
++	rc = mb86a20s_writereg(state, 0x2b, pll & 0xff);
++	if (rc < 0)
++		goto err;
++	dev_dbg(&state->i2c->dev, "%s: fclk=%d, IF=%d, clock reg=0x%06llx\n",
++		__func__, fclk, state->if_freq, (long long)pll);
++
+ 	/* pll = freq[Hz] * 2^24/10^6 / 16.285714286 */
+ 	pll = state->if_freq * 1677721600L;
+ 	do_div(pll, 1628571429L);
+@@ -1832,7 +1854,7 @@ static int mb86a20s_initfe(struct dvb_frontend *fe)
+ 	rc = mb86a20s_writereg(state, 0x2b, pll & 0xff);
+ 	if (rc < 0)
+ 		goto err;
+-	dev_dbg(&state->i2c->dev, "%s: IF=%d, PLL=0x%06llx\n",
++	dev_dbg(&state->i2c->dev, "%s: IF=%d, IF reg=0x%06llx\n",
+ 		__func__, state->if_freq, (long long)pll);
  
-+static int dvbv5_set_delivery_system(struct dvb_frontend *fe,
-+				     u32 desired_system)
-+{
-+	int ncaps;
-+	u32 delsys = SYS_UNDEFINED;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	enum dvbv3_emulation_type type;
-+
-+	/*
-+	 * It was reported that some old DVBv5 applications were
-+	 * filling delivery_system with SYS_UNDEFINED. If this happens,
-+	 * assume that the application wants to use the first supported
-+	 * delivery system.
-+	 */
-+	if (c->delivery_system == SYS_UNDEFINED)
-+	        c->delivery_system = fe->ops.delsys[0];
-+
-+	/*
-+	* This is a DVBv5 call. So, it likely knows the supported
-+	* delivery systems.
-+	*/
-+
-+	/* Check if the desired delivery system is supported */
-+	ncaps = 0;
-+	while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+		if (fe->ops.delsys[ncaps] == desired_system) {
-+			c->delivery_system = desired_system;
-+			dev_dbg(fe->dvb->device,
-+					"%s: Changing delivery system to %d\n",
-+					__func__, desired_system);
-+			return 0;
-+		}
-+		ncaps++;
-+	}
-+
-+	/*
-+	 * Need to emulate a delivery system
-+	 */
-+
-+	type = dvbv3_type(desired_system);
-+
-+	/*
-+	* The delivery system is not supported. See if it can be
-+	* emulated.
-+	* The emulation only works if the desired system is one of the
-+	* DVBv3 delivery systems
-+	*/
-+	if (!is_dvbv3_delsys(desired_system)) {
-+		dev_dbg(fe->dvb->device,
-+			"%s: can't use a DVBv3 FE_SET_FRONTEND call for this frontend\n",
-+			__func__);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	* Get the last non-DVBv3 delivery system that has the same type
-+	* of the desired system
-+	*/
-+	ncaps = 0;
-+	while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+		if ((dvbv3_type(fe->ops.delsys[ncaps]) == type) &&
-+		    !is_dvbv3_delsys(fe->ops.delsys[ncaps]))
-+			delsys = fe->ops.delsys[ncaps];
-+		ncaps++;
-+	}
-+	/* There's nothing compatible with the desired delivery system */
-+	if (delsys == SYS_UNDEFINED) {
-+		dev_dbg(fe->dvb->device,
-+				"%s: Incompatible DVBv3 FE_SET_FRONTEND call for this frontend\n",
-+				__func__);
-+		return -EINVAL;
-+	}
-+
-+	return emulate_delivery_system(fe, type, delsys, desired_system);
-+}
-+
-+static int dvbv3_set_delivery_system(struct dvb_frontend *fe)
-+{
-+	int ncaps;
-+	u32 desired_system;
-+	u32 delsys = SYS_UNDEFINED;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	enum dvbv3_emulation_type type;
-+
-+	/* If not set yet, defaults to the first supported delivery system */
-+	if (c->delivery_system == SYS_UNDEFINED)
-+	        c->delivery_system = fe->ops.delsys[0];
-+
-+	/*
-+	 * A DVBv3 call doesn't know what's the desired system.
-+	 * Also, DVBv3 applications don't know that ops.info->type
-+	 * could be changed, and they simply don't tune when it doesn't
-+	 * match.
-+	 * So, don't change the current delivery system, as it
-+	 * may be trying to do the wrong thing, like setting an
-+	 * ISDB-T frontend as DVB-T. Instead, find the closest
-+	 * DVBv3 system that matches the delivery system.
-+	 */
-+
-+	/*
-+	 * Trivial case: just use the current one, if it already a DVBv3
-+	 * delivery system
-+	 */
-+	if (is_dvbv3_delsys(c->delivery_system)) {
-+		dev_dbg(fe->dvb->device,
-+				"%s: Using delivery system to %d\n",
-+				__func__, c->delivery_system);
-+		return 0;
-+	}
-+
-+	/* Convert from DVBv3 into DVBv5 namespace */
-+	type = dvbv3_type(c->delivery_system);
-+	switch (type) {
-+	case DVBV3_QPSK:
-+		desired_system = SYS_DVBS;
-+		break;
-+	case DVBV3_QAM:
-+		desired_system = SYS_DVBC_ANNEX_A;
-+		break;
-+	case DVBV3_ATSC:
-+		desired_system = SYS_ATSC;
-+		break;
-+	case DVBV3_OFDM:
-+		desired_system = SYS_DVBT;
-+		break;
-+	default:
-+		dev_dbg(fe->dvb->device, "%s: This frontend doesn't support DVBv3 calls\n",
-+				__func__);
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Get a delivery system that is compatible with DVBv3
-+	 * NOTE: in order for this to work with softwares like Kaffeine that
-+	 *	uses a DVBv5 call for DVB-S2 and a DVBv3 call to go back to
-+	 *	DVB-S, drivers that support both should put the SYS_DVBS entry
-+	 *	before the SYS_DVBS2, otherwise it won't switch back to DVB-S.
-+	 *	The real fix is that userspace applications should not use DVBv3
-+	 *	and not trust on calling FE_SET_FRONTEND to switch the delivery
-+	 *	system.
-+	 */
-+	ncaps = 0;
-+	while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+		if (fe->ops.delsys[ncaps] == desired_system) {
-+			delsys = desired_system;
-+			break;
-+		}
-+		ncaps++;
-+	}
-+	if (delsys == SYS_UNDEFINED) {
-+		dev_dbg(fe->dvb->device, "%s: Couldn't find a delivery system that matches %d\n",
-+			__func__, desired_system);
-+	}
-+	return emulate_delivery_system(fe, type, delsys, desired_system);
-+}
-+
- static int dtv_property_process_set(struct dvb_frontend *fe,
- 				    struct dtv_property *tvp,
- 				    struct file *file)
-@@ -1742,7 +1778,7 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		c->rolloff = tvp->u.data;
- 		break;
- 	case DTV_DELIVERY_SYSTEM:
--		r = set_delivery_system(fe, tvp->u.data);
-+		r = dvbv5_set_delivery_system(fe, tvp->u.data);
- 		break;
- 	case DTV_VOLTAGE:
- 		c->voltage = tvp->u.data;
-@@ -2335,7 +2371,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		break;
+ 	if (!state->config->is_serial) {
+diff --git a/drivers/media/dvb-frontends/mb86a20s.h b/drivers/media/dvb-frontends/mb86a20s.h
+index bf22e77..1a7dea2 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.h
++++ b/drivers/media/dvb-frontends/mb86a20s.h
+@@ -21,12 +21,16 @@
+ /**
+  * struct mb86a20s_config - Define the per-device attributes of the frontend
+  *
++ * @fclk:		Clock frequency. If zero, assumes the default
++ *			(32.57142 Mhz)
+  * @demod_address:	the demodulator's i2c address
++ * @is_serial:		if true, TS is serial. Otherwise, TS is parallel
+  */
  
- 	case FE_SET_FRONTEND:
--		err = set_delivery_system(fe, SYS_UNDEFINED);
-+		err = dvbv3_set_delivery_system(fe);
- 		if (err)
- 			break;
+ struct mb86a20s_config {
+-	u8 demod_address;
+-	bool is_serial;
++	u32	fclk;
++	u8	demod_address;
++	bool	is_serial;
+ };
  
+ #if defined(CONFIG_DVB_MB86A20S) || (defined(CONFIG_DVB_MB86A20S_MODULE) \
 -- 
 1.8.1.4
 
