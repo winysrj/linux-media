@@ -1,109 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:43722 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757830Ab3CFLyc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 06:54:32 -0500
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com
-Subject: [RFC 02/12] fimc-lite: Adding Exynos5 compatibility to fimc-lite driver
-Date: Wed,  6 Mar 2013 17:23:48 +0530
-Message-Id: <1362570838-4737-3-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
-References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31983 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758478Ab3CDSJh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 13:09:37 -0500
+Date: Mon, 4 Mar 2013 15:09:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 01/11] em28xx-i2c: replace printk() with the
+ corresponding em28xx macros
+Message-ID: <20130304150931.050dd815@redhat.com>
+In-Reply-To: <1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the Exynos5 soc compatibility to the fimc-lite driver.
-It also adds a version checking to deal with the changes between
-different fimc-lite hardware versions.
+Em Sun,  3 Mar 2013 20:37:34 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-lite.c |   23 +++++++++++++++++++++++
- drivers/media/platform/s5p-fimc/fimc-lite.h |    7 ++++++-
- 2 files changed, 29 insertions(+), 1 deletion(-)
+> Reduces the number of characters/lines, unifies the code and improves readability.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 122cf95..eb64f87 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -1653,6 +1653,16 @@ static struct flite_variant fimc_lite0_variant_exynos4 = {
- 	.out_width_align	= 8,
- 	.win_hor_offs_align	= 2,
- 	.out_hor_offs_align	= 8,
-+	.version		= FLITE_VER_EXYNOS4,
-+};
-+
-+static struct flite_variant fimc_lite0_variant_exynos5 = {
-+	.max_width		= 8192,
-+	.max_height		= 8192,
-+	.out_width_align	= 8,
-+	.win_hor_offs_align	= 2,
-+	.out_hor_offs_align	= 8,
-+	.version		= FLITE_VER_EXYNOS5,
- };
- 
- /* EXYNOS4212, EXYNOS4412 */
-@@ -1663,6 +1673,15 @@ static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
- 	},
- };
- 
-+/* EXYNOS5250 */
-+static struct flite_drvdata fimc_lite_drvdata_exynos5 = {
-+	.variant = {
-+		[0] = &fimc_lite0_variant_exynos5,
-+		[1] = &fimc_lite0_variant_exynos5,
-+		[2] = &fimc_lite0_variant_exynos5,
-+	},
-+};
-+
- static struct platform_device_id fimc_lite_driver_ids[] = {
- 	{
- 		.name		= "exynos-fimc-lite",
-@@ -1677,6 +1696,10 @@ static const struct of_device_id flite_of_match[] = {
- 		.compatible = "samsung,exynos4212-fimc-lite",
- 		.data = &fimc_lite_drvdata_exynos4,
- 	},
-+	{
-+		.compatible = "samsung,exynos5250-fimc-lite",
-+		.data = &fimc_lite_drvdata_exynos5,
-+	},
- 	{ /* sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, flite_of_match);
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h b/drivers/media/platform/s5p-fimc/fimc-lite.h
-index 66d6eeb..ef43fe0 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
-@@ -28,7 +28,7 @@
- 
- #define FIMC_LITE_DRV_NAME	"exynos-fimc-lite"
- #define FLITE_CLK_NAME		"flite"
--#define FIMC_LITE_MAX_DEVS	2
-+#define FIMC_LITE_MAX_DEVS	3
- #define FLITE_REQ_BUFS_MIN	2
- 
- /* Bit index definitions for struct fimc_lite::state */
-@@ -49,12 +49,17 @@ enum {
- #define FLITE_SD_PAD_SOURCE_ISP	2
- #define FLITE_SD_PADS_NUM	3
- 
-+#define FLITE_VER_EXYNOS4	0
-+#define FLITE_VER_EXYNOS5	1
-+
-+
- struct flite_variant {
- 	unsigned short max_width;
- 	unsigned short max_height;
- 	unsigned short out_width_align;
- 	unsigned short win_hor_offs_align;
- 	unsigned short out_hor_offs_align;
-+	unsigned short version;
- };
- 
- struct flite_drvdata {
+Had you actually test this patch? The reason why printk() is used on some
+places is because dev->name is not available early.
+
+That's said, it makes sense to replace all those em28xx-specific printk
+functions by the standard pr_fmt-based ones (pr_err, pr_info, pr_debug, etc).
+
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
+>  1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 8532c1d..8819b54 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>  	/* Check if board has eeprom */
+>  	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
+>  	if (err < 0) {
+> -		em28xx_errdev("board has no eeprom\n");
+> +		em28xx_info("board has no eeprom\n");
+>  		memset(eedata, 0, len);
+>  		return -ENODEV;
+>  	}
+> @@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>  
+>  	err = i2c_master_send(&dev->i2c_client, &buf, 1);
+>  	if (err != 1) {
+> -		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
+> -		       dev->name, err);
+> +		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
+>  		return err;
+>  	}
+>  
+> @@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>  
+>  		if (block !=
+>  		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
+> -			printk(KERN_WARNING
+> -			       "%s: i2c eeprom read error (err=%d)\n",
+> -			       dev->name, err);
+> +			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
+>  			return err;
+>  		}
+>  		size -= block;
+> @@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>  	}
+>  	for (i = 0; i < len; i++) {
+>  		if (0 == (i % 16))
+> -			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
+> +			em28xx_info("i2c eeprom %02x:", i);
+>  		printk(" %02x", eedata[i]);
+>  		if (15 == (i % 16))
+>  			printk("\n");
+> @@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
+>  	if (em_eeprom->id == 0x9567eb1a)
+>  		dev->hash = em28xx_hash_mem(eedata, len, 32);
+>  
+> -	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
+> -	       dev->name, em_eeprom->id, dev->hash);
+> +	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
+> +		    em_eeprom->id, dev->hash);
+>  
+> -	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
+> +	em28xx_info("EEPROM info:\n");
+>  
+>  	switch (em_eeprom->chip_conf >> 4 & 0x3) {
+>  	case 0:
+> -		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
+> +		em28xx_info("\tNo audio on board.\n");
+>  		break;
+>  	case 1:
+> -		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
+> -				 dev->name);
+> +		em28xx_info("\tAC97 audio (5 sample rates)\n");
+>  		break;
+>  	case 2:
+> -		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
+> -				 dev->name);
+> +		em28xx_info("\tI2S audio, sample rate=32k\n");
+>  		break;
+>  	case 3:
+> -		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
+> -				 dev->name);
+> +		em28xx_info("\tI2S audio, 3 sample rates\n");
+>  		break;
+>  	}
+>  
+>  	if (em_eeprom->chip_conf & 1 << 3)
+> -		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
+> +		em28xx_info("\tUSB Remote wakeup capable\n");
+>  
+>  	if (em_eeprom->chip_conf & 1 << 2)
+> -		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
+> +		em28xx_info("\tUSB Self power capable\n");
+>  
+>  	switch (em_eeprom->chip_conf & 0x3) {
+>  	case 0:
+> -		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
+> +		em28xx_info("\t500mA max power\n");
+>  		break;
+>  	case 1:
+> -		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
+> +		em28xx_info("\t400mA max power\n");
+>  		break;
+>  	case 2:
+> -		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
+> +		em28xx_info("\t300mA max power\n");
+>  		break;
+>  	case 3:
+> -		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
+> +		em28xx_info("\t200mA max power\n");
+>  		break;
+>  	}
+> -	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+> -				dev->name,
+> -				em_eeprom->string_idx_table,
+> -				em_eeprom->string1,
+> -				em_eeprom->string2,
+> -				em_eeprom->string3);
+> +	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
+> +		    em_eeprom->string_idx_table,
+> +		    em_eeprom->string1,
+> +		    em_eeprom->string2,
+> +		    em_eeprom->string3);
+>  
+>  	return 0;
+>  }
+> @@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
+>  		if (rc < 0)
+>  			continue;
+>  		i2c_devicelist[i] = i;
+> -		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
+> -		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+> +		em28xx_info("found i2c device @ 0x%x [%s]\n",
+> +			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
+>  	}
+>  
+>  	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
+
+
 -- 
-1.7.9.5
 
+Cheers,
+Mauro
