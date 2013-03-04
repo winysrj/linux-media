@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:41231 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757724Ab3CNNLt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 09:11:49 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jeff Garzik <jgarzik@pobox.com>
-Subject: [PATCH 02/10] drivers: ata: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 14:11:23 +0100
-Message-Id: <1363266691-15757-4-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:34502 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756281Ab3CDJUT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:20:19 -0500
+Received: by mail-wg0-f48.google.com with SMTP id 16so3961538wgi.27
+        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 01:20:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <fd5a003b7dfa01578da8e0fc92a9c1df551cd594.1362387265.git.hans.verkuil@cisco.com>
+References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+ <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl> <fd5a003b7dfa01578da8e0fc92a9c1df551cd594.1362387265.git.hans.verkuil@cisco.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 4 Mar 2013 14:49:56 +0530
+Message-ID: <CA+V-a8vzE9NzacS9_Lj3Y8Jmh-5ch=A4cPkuycufyjOsyYwTGA@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 09/11] davinci/vpfe_capture: remove current_norm
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+Hi Hans,
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: linux-ide@vger.kernel.org
----
- drivers/ata/pata_at32.c       | 13 +------------
- drivers/ata/pata_samsung_cf.c | 13 +------------
- 2 files changed, 2 insertions(+), 24 deletions(-)
+Thanks for the patch!
 
-diff --git a/drivers/ata/pata_at32.c b/drivers/ata/pata_at32.c
-index 36f189c..8d493b4 100644
---- a/drivers/ata/pata_at32.c
-+++ b/drivers/ata/pata_at32.c
-@@ -393,18 +393,7 @@ static struct platform_driver pata_at32_driver = {
- 	},
- };
- 
--static int __init pata_at32_init(void)
--{
--	return platform_driver_probe(&pata_at32_driver, pata_at32_probe);
--}
--
--static void __exit pata_at32_exit(void)
--{
--	platform_driver_unregister(&pata_at32_driver);
--}
--
--module_init(pata_at32_init);
--module_exit(pata_at32_exit);
-+module_platform_driver_probe(pata_at32_driver, pata_at32_probe);
- 
- MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("AVR32 SMC/CFC PATA Driver");
-diff --git a/drivers/ata/pata_samsung_cf.c b/drivers/ata/pata_samsung_cf.c
-index 70b0e01..6ef27e9 100644
---- a/drivers/ata/pata_samsung_cf.c
-+++ b/drivers/ata/pata_samsung_cf.c
-@@ -661,18 +661,7 @@ static struct platform_driver pata_s3c_driver = {
- 	},
- };
- 
--static int __init pata_s3c_init(void)
--{
--	return platform_driver_probe(&pata_s3c_driver, pata_s3c_probe);
--}
--
--static void __exit pata_s3c_exit(void)
--{
--	platform_driver_unregister(&pata_s3c_driver);
--}
--
--module_init(pata_s3c_init);
--module_exit(pata_s3c_exit);
-+module_platform_driver_probe(pata_s3c_driver, pata_s3c_probe);
- 
- MODULE_AUTHOR("Abhilash Kesavan, <a.kesavan@samsung.com>");
- MODULE_DESCRIPTION("low-level driver for Samsung PATA controller");
--- 
-1.8.1.5
+On Mon, Mar 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Since vpfe_capture already provided a g_std op setting current_norm
+> does not actually do anything. Remove it.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+
+Regards,
+--Prabhakar Lad
+
+> ---
+>  drivers/media/platform/davinci/vpfe_capture.c |    1 -
+>  1 file changed, 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
+> index 70facc0..3d1af67 100644
+> --- a/drivers/media/platform/davinci/vpfe_capture.c
+> +++ b/drivers/media/platform/davinci/vpfe_capture.c
+> @@ -1884,7 +1884,6 @@ static int vpfe_probe(struct platform_device *pdev)
+>         vfd->fops               = &vpfe_fops;
+>         vfd->ioctl_ops          = &vpfe_ioctl_ops;
+>         vfd->tvnorms            = 0;
+> -       vfd->current_norm       = V4L2_STD_PAL;
+>         vfd->v4l2_dev           = &vpfe_dev->v4l2_dev;
+>         snprintf(vfd->name, sizeof(vfd->name),
+>                  "%s_V%d.%d.%d",
+> --
+> 1.7.10.4
+>
