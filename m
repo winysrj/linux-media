@@ -1,144 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:62913 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768Ab3CJLmZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 07:42:25 -0400
-Received: by mail-ee0-f51.google.com with SMTP id d17so1708152eek.10
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 04:42:23 -0700 (PDT)
-Message-ID: <513C71CF.2040508@googlemail.com>
-Date: Sun, 10 Mar 2013 12:43:11 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: mchehab@redhat.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH 1/2] bttv: fix audio mute on device close for the
- video device node
-References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2229 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756846Ab3CDLTi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 06:19:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 2/2] davinci: more gama -> gamma typo fixes.
+Date: Mon,  4 Mar 2013 12:19:23 +0100
+Message-Id: <1c75e578e64fa834679109097006030973afaa66.1362395861.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362395963-14266-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362395963-14266-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea9d6410777ee7ed06cd2869b20ce0f03b1bb8d7.1362395861.git.hans.verkuil@cisco.com>
+References: <ea9d6410777ee7ed06cd2869b20ce0f03b1bb8d7.1362395861.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.03.2013 12:40, schrieb Frank Schäfer:
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |   22 +++++++++++-----------
->  1 Datei geändert, 11 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
->
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 8610b6a..2c09bc5 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -992,21 +992,20 @@ static char *audio_modes[] = {
->  static int
->  audio_mux(struct bttv *btv, int input, int mute)
->  {
-> -	int gpio_val, signal;
-> +	int gpio_val, signal, mute_gpio;
->  	struct v4l2_ctrl *ctrl;
->  
->  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
->  		   bttv_tvcards[btv->c.type].gpiomask);
->  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
->  
-> -	btv->mute = mute;
->  	btv->audio = input;
->  
->  	/* automute */
-> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
-> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
->  				&& !btv->has_radio_tuner);
->  
-> -	if (mute)
-> +	if (mute_gpio)
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
->  	else
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
-> @@ -1022,7 +1021,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  	}
->  
->  	if (bttv_gpio)
-> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
-> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
->  	if (in_interrupt())
->  		return 0;
->  
-> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  
->  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->  		if (ctrl)
-> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->  
->  		/* Note: the inputs tuner/radio/extern/intern are translated
->  		   to msp routings. This assumes common behavior for all msp3400
-> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->  
->  		if (ctrl)
-> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
->  				input, 0, 0);
->  	}
-> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
->  
->  		if (ctrl)
-> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-> +			v4l2_ctrl_s_ctrl(ctrl, mute);
->  	}
->  	return 0;
->  }
-> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
->  		break;
->  	case V4L2_CID_AUDIO_MUTE:
->  		audio_mute(btv, c->val);
-> +		btv->mute = c->val;
->  		break;
->  	case V4L2_CID_AUDIO_VOLUME:
->  		btv->volume_gpio(btv, c->val);
-> @@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
->  			    sizeof(struct bttv_buffer),
->  			    fh, &btv->lock);
->  	set_tvnorm(btv,btv->tvnorm);
-> -	set_input(btv, btv->input, btv->tvnorm);
-> -
-> +	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
->  
->  	/* The V4L2 spec requires one global set of cropping parameters
->  	   which only change on request. These are stored in btv->crop[1].
-> @@ -3124,7 +3123,7 @@ static int bttv_release(struct file *file)
->  	bttv_field_count(btv);
->  
->  	if (!btv->users)
-> -		audio_mute(btv, btv->mute);
-> +		audio_mute(btv, 1);
->  
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Btw, what about the interaction between the video and the radio device
-node ?
-With the current code it is possible to open the video and the radio
-device node at the same time, so I wonder if we need an additional patch
-changing this to
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/davinci/dm355_ccdc.c      |   10 +++++-----
+ drivers/media/platform/davinci/dm355_ccdc_regs.h |    2 +-
+ drivers/media/platform/davinci/isif.c            |    2 +-
+ drivers/media/platform/davinci/isif_regs.h       |    4 ++--
+ include/media/davinci/dm355_ccdc.h               |    6 +++---
+ 5 files changed, 12 insertions(+), 12 deletions(-)
 
-                if (!btv->users && !btv->radio_user)
-
-
-Regards,
-Frank
-
->  	v4l2_fh_del(&fh->fh);
->  	v4l2_fh_exit(&fh->fh);
-> @@ -4209,6 +4208,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
->  	btv->std = V4L2_STD_PAL;
->  	init_irqreg(btv);
->  	v4l2_ctrl_handler_setup(hdl);
-> +	audio_mute(btv, 1);
->  
->  	if (hdl->error) {
->  		result = hdl->error;
+diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+index 4277e4a..2364dba 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc.c
++++ b/drivers/media/platform/davinci/dm355_ccdc.c
+@@ -85,7 +85,7 @@ static struct ccdc_oper_config {
+ 			.mfilt1 = CCDC_NO_MEDIAN_FILTER1,
+ 			.mfilt2 = CCDC_NO_MEDIAN_FILTER2,
+ 			.alaw = {
+-				.gama_wd = 2,
++				.gamma_wd = 2,
+ 			},
+ 			.blk_clamp = {
+ 				.sample_pixel = 1,
+@@ -303,8 +303,8 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
+ 	}
+ 
+ 	if (ccdcparam->alaw.enable) {
+-		if (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_13_4 ||
+-		    ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) {
++		if (ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_13_4 ||
++		    ccdcparam->alaw.gamma_wd > CCDC_GAMMA_BITS_09_0) {
+ 			dev_dbg(ccdc_cfg.dev, "Invalid value of ALAW\n");
+ 			return -EINVAL;
+ 		}
+@@ -680,8 +680,8 @@ static int ccdc_config_raw(void)
+ 	/* Enable and configure aLaw register if needed */
+ 	if (config_params->alaw.enable) {
+ 		val |= (CCDC_ALAW_ENABLE |
+-			((config_params->alaw.gama_wd &
+-			CCDC_ALAW_GAMA_WD_MASK) <<
++			((config_params->alaw.gamma_wd &
++			CCDC_ALAW_GAMMA_WD_MASK) <<
+ 			CCDC_GAMMAWD_INPUT_SHIFT));
+ 	}
+ 
+diff --git a/drivers/media/platform/davinci/dm355_ccdc_regs.h b/drivers/media/platform/davinci/dm355_ccdc_regs.h
+index d6d2ef0..2e1946e 100644
+--- a/drivers/media/platform/davinci/dm355_ccdc_regs.h
++++ b/drivers/media/platform/davinci/dm355_ccdc_regs.h
+@@ -153,7 +153,7 @@
+ #define CCDC_VDHDEN_ENABLE			(1 << 16)
+ #define CCDC_LPF_ENABLE				(1 << 14)
+ #define CCDC_ALAW_ENABLE			1
+-#define CCDC_ALAW_GAMA_WD_MASK			7
++#define CCDC_ALAW_GAMMA_WD_MASK			7
+ #define CCDC_REC656IF_BT656_EN			3
+ 
+ #define CCDC_FMTCFG_FMTMODE_MASK 		3
+diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+index 5050f92..abc3ae3 100644
+--- a/drivers/media/platform/davinci/isif.c
++++ b/drivers/media/platform/davinci/isif.c
+@@ -604,7 +604,7 @@ static int isif_config_raw(void)
+ 	if (module_params->compress.alg == ISIF_ALAW)
+ 		val |= ISIF_ALAW_ENABLE;
+ 
+-	val |= (params->data_msb << ISIF_ALAW_GAMA_WD_SHIFT);
++	val |= (params->data_msb << ISIF_ALAW_GAMMA_WD_SHIFT);
+ 	regw(val, CGAMMAWD);
+ 
+ 	/* Configure DPCM compression settings */
+diff --git a/drivers/media/platform/davinci/isif_regs.h b/drivers/media/platform/davinci/isif_regs.h
+index aa69a46..3993aec 100644
+--- a/drivers/media/platform/davinci/isif_regs.h
++++ b/drivers/media/platform/davinci/isif_regs.h
+@@ -203,8 +203,8 @@
+ #define ISIF_LPF_MASK				1
+ 
+ /* GAMMAWD registers */
+-#define ISIF_ALAW_GAMA_WD_MASK			0xF
+-#define ISIF_ALAW_GAMA_WD_SHIFT			1
++#define ISIF_ALAW_GAMMA_WD_MASK			0xF
++#define ISIF_ALAW_GAMMA_WD_SHIFT		1
+ #define ISIF_ALAW_ENABLE			1
+ #define ISIF_GAMMAWD_CFA_SHIFT			5
+ 
+diff --git a/include/media/davinci/dm355_ccdc.h b/include/media/davinci/dm355_ccdc.h
+index adf2fe4..c669a9f 100644
+--- a/include/media/davinci/dm355_ccdc.h
++++ b/include/media/davinci/dm355_ccdc.h
+@@ -38,7 +38,7 @@ enum ccdc_sample_line {
+ 	CCDC_SAMPLE_16LINES
+ };
+ 
+-/* enum for Alaw gama width */
++/* enum for Alaw gamma width */
+ enum ccdc_gamma_width {
+ 	CCDC_GAMMA_BITS_13_4,
+ 	CCDC_GAMMA_BITS_12_3,
+@@ -97,8 +97,8 @@ enum ccdc_mfilt2 {
+ struct ccdc_a_law {
+ 	/* Enable/disable A-Law */
+ 	unsigned char enable;
+-	/* Gama Width Input */
+-	enum ccdc_gamma_width gama_wd;
++	/* Gamma Width Input */
++	enum ccdc_gamma_width gamma_wd;
+ };
+ 
+ /* structure for Black Clamping */
+-- 
+1.7.10.4
 
