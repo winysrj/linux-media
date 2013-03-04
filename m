@@ -1,77 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:54723 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753554Ab3CFUwW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 15:52:22 -0500
-Subject: [PATCH 2/3] rc-core: rename ir_input_class to rc_class
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4844 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755794Ab3CDJFi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, sean@mess.org
-Date: Wed, 06 Mar 2013 21:52:10 +0100
-Message-ID: <20130306205210.12635.56184.stgit@zeus.hardeman.nu>
-In-Reply-To: <20130306205057.12635.59234.stgit@zeus.hardeman.nu>
-References: <20130306205057.12635.59234.stgit@zeus.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 04/11] davinci_vpfe: fix copy-paste errors in several comments.
+Date: Mon,  4 Mar 2013 10:04:58 +0100
+Message-Id: <d2ed885d922842b6f8628a557d40ed5656b4ef24.1362387265.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The name is already misleading and will be more so in the future as the
-connection to the input subsystem is obscured away further.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+This removes some incorrect dv_preset references left over from copy-and-paste
+errors.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 ---
- drivers/media/rc/rc-main.c |   12 ++++++------
+ drivers/staging/media/davinci_vpfe/vpfe_video.c |   12 ++++++------
  1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 3090b40..c56650c 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -715,14 +715,14 @@ static void ir_close(struct input_dev *idev)
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index 99ccbeb..19dc5b0 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1016,12 +1016,12 @@ vpfe_query_dv_timings(struct file *file, void *fh,
  }
- 
- /* class for /sys/class/rc */
--static char *ir_devnode(struct device *dev, umode_t *mode)
-+static char *rc_devnode(struct device *dev, umode_t *mode)
- {
- 	return kasprintf(GFP_KERNEL, "rc/%s", dev_name(dev));
- }
- 
--static struct class ir_input_class = {
-+static struct class rc_class = {
- 	.name		= "rc",
--	.devnode	= ir_devnode,
-+	.devnode	= rc_devnode,
- };
  
  /*
-@@ -1004,7 +1004,7 @@ struct rc_dev *rc_allocate_device(void)
- 	setup_timer(&dev->timer_keyup, ir_timer_keyup, (unsigned long)dev);
- 
- 	dev->dev.type = &rc_dev_type;
--	dev->dev.class = &ir_input_class;
-+	dev->dev.class = &rc_class;
- 	device_initialize(&dev->dev);
- 
- 	__module_get(THIS_MODULE);
-@@ -1178,7 +1178,7 @@ EXPORT_SYMBOL_GPL(rc_unregister_device);
- 
- static int __init rc_core_init(void)
- {
--	int rc = class_register(&ir_input_class);
-+	int rc = class_register(&rc_class);
- 	if (rc) {
- 		printk(KERN_ERR "rc_core: unable to register rc class\n");
- 		return rc;
-@@ -1191,7 +1191,7 @@ static int __init rc_core_init(void)
- 
- static void __exit rc_core_exit(void)
- {
--	class_unregister(&ir_input_class);
-+	class_unregister(&rc_class);
- 	rc_map_unregister(&empty_map);
+- * vpfe_s_dv_timings() - set dv_preset on external subdev
++ * vpfe_s_dv_timings() - set dv_timings on external subdev
+  * @file: file pointer
+  * @priv: void pointer
+  * @timings: pointer to v4l2_dv_timings structure
+  *
+- * set dv_timings pointed by preset on external subdev through
++ * set dv_timings pointed by timings on external subdev through
+  * v4l2_device_call_until_err, this configures amplifier also
+  *
+  * Return 0 on success, error code otherwise
+@@ -1042,12 +1042,12 @@ vpfe_s_dv_timings(struct file *file, void *fh,
  }
  
+ /*
+- * vpfe_g_dv_timings() - get dv_preset which is set on external subdev
++ * vpfe_g_dv_timings() - get dv_timings which is set on external subdev
+  * @file: file pointer
+  * @priv: void pointer
+  * @timings: pointer to v4l2_dv_timings structure
+  *
+- * get dv_preset which is set on external subdev through
++ * get dv_timings which is set on external subdev through
+  * v4l2_subdev_call
+  *
+  * Return 0 on success, error code otherwise
+@@ -1423,7 +1423,7 @@ static int vpfe_dqbuf(struct file *file, void *priv,
+ }
+ 
+ /*
+- * vpfe_streamon() - get dv_preset which is set on external subdev
++ * vpfe_streamon() - start streaming
+  * @file: file pointer
+  * @priv: void pointer
+  * @buf_type: enum v4l2_buf_type
+@@ -1472,7 +1472,7 @@ static int vpfe_streamon(struct file *file, void *priv,
+ }
+ 
+ /*
+- * vpfe_streamoff() - get dv_preset which is set on external subdev
++ * vpfe_streamoff() - stop streaming
+  * @file: file pointer
+  * @priv: void pointer
+  * @buf_type: enum v4l2_buf_type
+-- 
+1.7.10.4
 
