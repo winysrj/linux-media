@@ -1,171 +1,348 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:63254 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754042Ab3CFXFI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 18:05:08 -0500
-Received: by mail-ie0-f173.google.com with SMTP id 9so10290444iec.32
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 15:05:08 -0800 (PST)
-From: "Matt Gomboc" <gomboc0@gmail.com>
-To: "'Hans Verkuil'" <hverkuil@xs4all.nl>
-Cc: <linux-media@vger.kernel.org>
-References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt> <201303010852.36574.hverkuil@xs4all.nl> <51313F7A.9080900@gmail.com> <201303062056.24462.hverkuil@xs4all.nl>
-Subject: RE: cx231xx : Add support for OTG102 aka EZGrabber2
-Date: Wed, 6 Mar 2013 16:05:03 -0700
-Message-ID: <7B6EFBC44C0448D4962F730753A94DEA@ucdenver.pvt>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <201303062056.24462.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:38350 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758586Ab3CDUUO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 15:20:14 -0500
+Date: Mon, 4 Mar 2013 17:20:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] em28xx: add support for em25xx i2c bus B
+ read/write/check device operations
+Message-ID: <20130304172005.58590d43@redhat.com>
+In-Reply-To: <1362339661-3446-2-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1362339661-3446-2-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That is welcome by me, let me know if any action is needed on my end. 
+Em Sun,  3 Mar 2013 20:40:57 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-I was also wondering about adding the definition for the device 0572:58a3
-which is identically identified in the distributed Windows driver from
-Geniatech, but as it is not verified and may not even be in production, I
-suppose it is best to wait until someone with such a device cares to test
-it.
-
-Thanks,
-
-Matt
-
------Original Message-----
-From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
-Sent: Wednesday, March 06, 2013 12:56 PM
-To: gomboc0@gmail.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
-
-Hi Matt,
-
-While I added this patch to my cx231xx patch series, Mauro didn't pick it
-up for some reason. So for when he gets around to looking at your patch, I
-want to
-add my:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
-On Sat March 2 2013 00:53:30 Matt Gomboc wrote:
-> Thanks for the response, I have done as you suggested.
+> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
+> for i2c communication with the sensor, which is connected to a second i2c bus.
 > 
-> Below is an updated patch for the OTG102 device against
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx,
-kernel version 3.8.
+> We don't know yet how to find out which devices support/use it.
+> It's very likely used by all em25xx and em276x+ bridges.
+> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
+> algorithm always succeeds there although no slave device is connected.
 > 
-> With further testing it appears the extra clauses in cx231xx-cards.c were
-not necessary (in static in cx231xx_init_dev and static int
-cx231xx_usb_probe), so those have been also been removed.
+> The algorithm likely also works for real I2C client devices (OV2640 uses SCCB),
+> because the Windows driver seems to use it for probing Samsung and Kodak
+> sensors.
 > 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c |    6 +-
+>  drivers/media/usb/em28xx/em28xx-i2c.c   |  164 +++++++++++++++++++++++++++----
+>  drivers/media/usb/em28xx/em28xx.h       |    7 ++
+>  3 Dateien geändert, 159 Zeilen hinzugefügt(+), 18 Zeilen entfernt(-)
 > 
-> Signed-off-by: Matt Gomboc <gomboc0@gmail.com>
-> --
->  drivers/media/usb/cx231xx/cx231xx-avcore.c |  2 ++
->  drivers/media/usb/cx231xx/cx231xx-cards.c  | 35
-++++++++++++++++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx.h        |  1 +
->  3 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> index 2e51fb9..235ba65 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> @@ -357,6 +357,7 @@ int cx231xx_afe_update_power_control(struct cx231xx
-*dev,
->  	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
->  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
->  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
-> +	case CX231XX_BOARD_OTG102:
->  		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
->  			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
->  						FLD_PWRDN_ENABLE_PLL)) {
-> @@ -1720,6 +1721,7 @@ int cx231xx_dif_set_standard(struct cx231xx *dev,
-u32 standard)
->  	case CX231XX_BOARD_CNXT_RDU_250:
->  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
->  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
-> +	case CX231XX_BOARD_OTG102:
->  		func_mode = 0x03;
->  		break;
->  	case CX231XX_BOARD_CNXT_RDE_253S:
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c
-b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index b7b1acd..13249e5 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -634,6 +634,39 @@ struct cx231xx_board cx231xx_boards[] = {
->  			.gpio = NULL,
->  		} },
->  	},
-> +	[CX231XX_BOARD_OTG102] = {
-> +		.name = "Geniatech OTG102",
-> +		.tuner_type = TUNER_ABSENT,
-> +		.decoder = CX231XX_AVDECODER,
-> +		.output_mode = OUT_MODE_VIP11,
-> +		.ctl_pin_status_mask = 0xFFFFFFC4,
-> +		.agc_analog_digital_select_gpio = 0x0c, 
-> +			/* According with PV CxPlrCAP.inf file */
-> +		.gpio_pin_status_mask = 0x4001000,
-> +		.norm = V4L2_STD_NTSC,
-> +		.no_alt_vanc = 1,
-> +		.external_av = 1,
-> +		.dont_use_port_3 = 1,
-> +		/*.has_417 = 1, */
-> +		/* This board is believed to have a hardware encoding chip
-> +		 * supporting mpeg1/2/4, but as the 417 is apparently not
-> +		 * working for the reference board it is not here either. */
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 5a5b637..75d4aef 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -3103,7 +3103,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+>  		return retval;
+>  	}
+>  	/* Configure i2c bus */
+> -	if (!dev->board.is_em2800) {
+> +	if (dev->board.is_em2800) {
+> +		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM2800;
+> +	} else {
+> +		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM28XX;
 > +
-> +		.input = {{
-> +				.type = CX231XX_VMUX_COMPOSITE1,
-> +				.vmux = CX231XX_VIN_2_1,
-> +				.amux = CX231XX_AMUX_LINE_IN,
-> +				.gpio = NULL,
-> +			}, {
-> +				.type = CX231XX_VMUX_SVIDEO,
-> +				.vmux = CX231XX_VIN_1_1 |
-> +					(CX231XX_VIN_1_2 << 8) |
-> +					CX25840_SVIDEO_ON,
-> +				.amux = CX231XX_AMUX_LINE_IN,
-> +				.gpio = NULL,
+>  		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
+>  		if (retval < 0) {
+>  			em28xx_errdev("%s: em28xx_write_reg failed!"
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 44bef43..6e86ffc 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -5,6 +5,7 @@
+>  		      Markus Rechberger <mrechberger@gmail.com>
+>  		      Mauro Carvalho Chehab <mchehab@infradead.org>
+>  		      Sascha Sommer <saschasommer@freenet.de>
+> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+>  
+>     This program is free software; you can redistribute it and/or modify
+>     it under the terms of the GNU General Public License as published by
+> @@ -270,6 +271,114 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+>  }
+>  
+>  /*
+> + * em25xx_bus_B_send_bytes
+> + * write bytes to the i2c device
+> + */
+> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> +				   u16 len)
+> +{
+> +	int ret;
+> +
+> +	if (len < 1 || len > 64)
+> +		return -EOPNOTSUPP;
+> +	/* NOTE: limited by the USB ctrl message constraints
+> +	 * Zero length reads always succeed, even if no device is connected */
+> +
+> +	/* Set register and write value */
+> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
+> +	/* NOTE:
+> +	 * 0 byte writes always succeed, even if no device is connected. */
+> +	if (ret != len) {
+> +		if (ret < 0) {
+> +			em28xx_warn("writing to i2c device at 0x%x failed "
+> +				    "(error=%i)\n", addr, ret);
+> +			return ret;
+> +		} else {
+> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
+> +				    "requested, but %i bytes written\n",
+> +				    len, addr, ret);
+> +			return -EIO;
+> +		}
+> +	}
+> +	/* Check success */
+> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
+> +	/* NOTE: the only error we've seen so far is
+> +	 * 0x01 when the slave device is not present */
+> +	if (ret == 0x00) {
+> +		return len;
+> +	} else if (ret > 0) {
+> +		return -ENODEV;
+> +	}
+> +
+> +	return ret;
+> +	/* NOTE: With chips which do not support this operation,
+> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> +}
+> +
+> +/*
+> + * em25xx_bus_B_recv_bytes
+> + * read bytes from the i2c device
+> + */
+> +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> +				   u16 len)
+> +{
+> +	int ret;
+> +
+> +	if (len < 1 || len > 64)
+> +		return -EOPNOTSUPP;
+> +	/* NOTE: limited by the USB ctrl message constraints
+> +	 * Zero length reads always succeed, even if no device is connected */
+> +
+> +	/* Read value */
+> +	ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
+> +	/* NOTE:
+> +	 * 0 byte reads always succeed, even if no device is connected. */
+> +	if (ret != len) {
+> +		if (ret < 0) {
+> +			em28xx_warn("reading from i2c device at 0x%x failed "
+> +				    "(error=%i)\n", addr, ret);
+> +			return ret;
+> +		} else {
+> +			em28xx_warn("%i bytes requested from i2c device at "
+> +				    "0x%x, but %i bytes received\n",
+> +				    len, addr, ret);
+> +			return -EIO;
+> +		}
+> +	}
+> +	/* Check success */
+> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
+> +	/* NOTE: the only error we've seen so far is
+> +	 * 0x01 when the slave device is not present */
+> +	if (ret == 0x00) {
+> +		return len;
+> +	} else if (ret > 0) {
+> +		return -ENODEV;
+> +	}
+> +
+> +	return ret;
+> +	/* NOTE: With chips which do not support this operation,
+> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> +}
+> +
+> +/*
+> + * em25xx_bus_B_check_for_device()
+> + * check if there is a i2c device at the supplied address
+> + */
+> +static int em25xx_bus_B_check_for_device(struct em28xx *dev, u16 addr)
+> +{
+> +	u8 buf;
+> +	int ret;
+> +
+> +	ret = em25xx_bus_B_recv_bytes(dev, addr, &buf, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return 0;
+> +	/* NOTE: With chips which do not support this operation,
+> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> +}
+> +
+> +/*
+>   * em28xx_i2c_xfer()
+>   * the main i2c transfer function
+>   */
+> @@ -277,7 +386,9 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			   struct i2c_msg msgs[], int num)
+>  {
+>  	struct em28xx *dev = i2c_adap->algo_data;
+> -	int addr, rc, i, byte;
+> +	int addr, i, byte;
+> +	int rc = -EOPNOTSUPP;
+> +	enum em28xx_i2c_algo_type algo_type = dev->i2c_algo_type;
+>  
+>  	if (num <= 0)
+>  		return 0;
+> @@ -290,10 +401,13 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			       i == num - 1 ? "stop" : "nonstop",
+>  			       addr, msgs[i].len			     );
+>  		if (!msgs[i].len) { /* no len: check only for device presence */
+> -			if (dev->board.is_em2800)
+> -				rc = em2800_i2c_check_for_device(dev, addr);
+> -			else
+> +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
+>  				rc = em28xx_i2c_check_for_device(dev, addr);
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
+> +				rc = em2800_i2c_check_for_device(dev, addr);
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+> +				rc = em25xx_bus_B_check_for_device(dev, addr);
 > +			}
-> +		},
-> +	},
->  };
->  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->  
-> @@ -675,6 +708,8 @@ struct usb_device_id cx231xx_id_table[] = {
->  	 .driver_info = CX231XX_BOARD_ICONBIT_U100},
->  	{USB_DEVICE(0x0fd9, 0x0037),
->  	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
-> +	{USB_DEVICE(0x1f4d, 0x0102),
-> +	 .driver_info = CX231XX_BOARD_OTG102},
->  	{},
->  };
->  
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h
-b/drivers/media/usb/cx231xx/cx231xx.h
-> index a8e50d2..dff3f1d 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -71,6 +71,7 @@
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
->  #define CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2 16
-> +#define CX231XX_BOARD_OTG102 17
->  
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
+That seems too messy. 
+
+IMO, the best is to create 3 different em28xx_i2c_xfer() routines:
+one for em2800, one for "standard" I2c protocol, and another one for
+this em25xx one. Then, all you need to do is to embed 
+static struct i2c_algorithm into struct em28xx and fill
+em28xx_algo.master_transfer to point to the correct xfer.
+
+That makes the code more readable and remove a little faster by removing
+the unneeded ifs from the code.
+
+>  			if (rc == -ENODEV) {
+>  				if (i2c_debug)
+>  					printk(" no device\n");
+> @@ -301,14 +415,19 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  			}
+>  		} else if (msgs[i].flags & I2C_M_RD) {
+>  			/* read bytes */
+> -			if (dev->board.is_em2800)
+> -				rc = em2800_i2c_recv_bytes(dev, addr,
+> +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
+> +				rc = em28xx_i2c_recv_bytes(dev, addr,
+>  							   msgs[i].buf,
+>  							   msgs[i].len);
+> -			else
+> -				rc = em28xx_i2c_recv_bytes(dev, addr,
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
+> +				rc = em2800_i2c_recv_bytes(dev, addr,
+>  							   msgs[i].buf,
+>  							   msgs[i].len);
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+> +				rc = em25xx_bus_B_recv_bytes(dev, addr,
+> +							    msgs[i].buf,
+> +							    msgs[i].len);
+> +			}
+>  			if (i2c_debug) {
+>  				for (byte = 0; byte < msgs[i].len; byte++)
+>  					printk(" %02x", msgs[i].buf[byte]);
+> @@ -319,15 +438,20 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+>  				for (byte = 0; byte < msgs[i].len; byte++)
+>  					printk(" %02x", msgs[i].buf[byte]);
+>  			}
+> -			if (dev->board.is_em2800)
+> -				rc = em2800_i2c_send_bytes(dev, addr,
+> -							   msgs[i].buf,
+> -							   msgs[i].len);
+> -			else
+> +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
+>  				rc = em28xx_i2c_send_bytes(dev, addr,
+>  							   msgs[i].buf,
+>  							   msgs[i].len,
+>  							   i == num - 1);
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
+> +				rc = em2800_i2c_send_bytes(dev, addr,
+> +							   msgs[i].buf,
+> +							   msgs[i].len);
+> +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+> +				rc = em25xx_bus_B_send_bytes(dev, addr,
+> +							    msgs[i].buf,
+> +							    msgs[i].len);
+> +			}
+>  		}
+>  		if (rc < 0) {
+>  			if (i2c_debug)
+> @@ -589,10 +713,16 @@ error:
+>  static u32 functionality(struct i2c_adapter *adap)
+>  {
+>  	struct em28xx *dev = adap->algo_data;
+> -	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+> -	if (dev->board.is_em2800)
+> -		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
+> -	return func_flags;
+> +
+> +	if ((dev->i2c_algo_type == EM28XX_I2C_ALGO_EM28XX) ||
+> +	    (dev->i2c_algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)) {
+> +		return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+> +	} else if (dev->i2c_algo_type == EM28XX_I2C_ALGO_EM2800)  {
+> +		return (I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL) &
+> +			~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
+> +	}
+> +
+> +	return 0; /* BUG */
+
+Please create a separate I2C register logic for bus B. It was a mistake
+to reuse the existing I2C bus for logic for both buses (ok, actually,
+no device currently uses 2 buses, as they simply don't read eeproms on
+2 bus devices). 
+
+Btw, cx231xx has a similar issue: it has 3 buses. See how it was solved there:
+
+drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[0]);
+drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[1]);
+drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[2]);
+
+Of course, the em28xx-cards will need to tell on what bus the tuner and
+demods are. The em28xx I2C logic will also need to write to EM28XX_R06_I2C_CLK
+if the bus is different - the windows driver is just stupid: it just precedes all
+I2C writes by a write at reg 0x06 - we can certainly do better than that ;).
+
+If you're in doubt on how to do it, I can seek for some time to address it
+properly.
+
+>  }
+>  
+>  static struct i2c_algorithm em28xx_algo = {
+> diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+> index 2d6d31a..b7c8134 100644
+> --- a/drivers/media/usb/em28xx/em28xx.h
+> +++ b/drivers/media/usb/em28xx/em28xx.h
+> @@ -175,6 +175,12 @@
+>  /* time in msecs to wait for i2c writes to finish */
+>  #define EM2800_I2C_XFER_TIMEOUT		20
+>  
+> +enum em28xx_i2c_algo_type {
+> +	EM28XX_I2C_ALGO_EM28XX,
+> +	EM28XX_I2C_ALGO_EM2800,
+> +	EM28XX_I2C_ALGO_EM25XX_BUS_B,
+> +};
+> +
+>  enum em28xx_mode {
+>  	EM28XX_SUSPEND,
+>  	EM28XX_ANALOG_MODE,
+> @@ -510,6 +516,7 @@ struct em28xx {
+>  	/* i2c i/o */
+>  	struct i2c_adapter i2c_adap;
+>  	struct i2c_client i2c_client;
+> +	enum em28xx_i2c_algo_type i2c_algo_type;
+>  	unsigned char eeprom_addrwidth_16bit:1;
+>  	/* video for linux */
+>  	int users;		/* user count for exclusive use */
+
+-- 
+
+Cheers,
+Mauro
