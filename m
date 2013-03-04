@@ -1,231 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45245 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752394Ab3CUTjv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 15:39:51 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>, Michael Buesch <m@bues.ch>,
-	Hans-Frieder Vogt <hfvogt@gmx.net>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: [PATCH 2/4] [media] tuners: use IS_ENABLED
-Date: Thu, 21 Mar 2013 16:39:06 -0300
-Message-Id: <1363894748-28000-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
-References: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3574 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755623Ab3CDJFn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:43 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 03/11] tvp7002: remove dv_preset support.
+Date: Mon,  4 Mar 2013 10:04:57 +0100
+Message-Id: <6d12aca80e48a751711d24d6a6bfbc52ccfcf67b.1362387265.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of checking everywhere there for 3 symbols, use instead
-IS_ENABLED macro.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This replacement was done using this small perl script:
+Finally remove the dv_preset support from this driver. Note that dv_preset
+support was already removed from any bridge drivers that use this i2c
+driver, so the dv_preset ops were no longer called and can be removed
+safely.
 
-my $data;
-$data .= $_ while (<>);
-if ($data =~ m/CONFIG_([A-Z\_\d]*)_MODULE/) {
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)\!]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-}
-print $data;
-
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Michael Buesch <m@bues.ch>
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
-Cc: Michael Krufky <mkrufky@kernellabs.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 ---
- drivers/media/tuners/e4000.h    | 3 +--
- drivers/media/tuners/fc0011.h   | 3 +--
- drivers/media/tuners/fc0012.h   | 3 +--
- drivers/media/tuners/fc0013.h   | 3 +--
- drivers/media/tuners/fc2580.h   | 3 +--
- drivers/media/tuners/max2165.h  | 3 +--
- drivers/media/tuners/mc44s803.h | 3 +--
- drivers/media/tuners/mxl5005s.h | 3 +--
- drivers/media/tuners/tda18212.h | 3 +--
- drivers/media/tuners/tda18218.h | 3 +--
- drivers/media/tuners/tua9001.h  | 3 +--
- drivers/media/tuners/xc5000.h   | 3 +--
- 12 files changed, 12 insertions(+), 24 deletions(-)
+ drivers/media/i2c/tvp7002.c |   70 -------------------------------------------
+ 1 file changed, 70 deletions(-)
 
-diff --git a/drivers/media/tuners/e4000.h b/drivers/media/tuners/e4000.h
-index 71b1935..7801270 100644
---- a/drivers/media/tuners/e4000.h
-+++ b/drivers/media/tuners/e4000.h
-@@ -36,8 +36,7 @@ struct e4000_config {
- 	u32 clock;
- };
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index d7a08bc..7406de9 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -328,7 +328,6 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
  
--#if defined(CONFIG_MEDIA_TUNER_E4000) || \
--	(defined(CONFIG_MEDIA_TUNER_E4000_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_E4000)
- extern struct dvb_frontend *e4000_attach(struct dvb_frontend *fe,
- 		struct i2c_adapter *i2c, const struct e4000_config *cfg);
- #else
-diff --git a/drivers/media/tuners/fc0011.h b/drivers/media/tuners/fc0011.h
-index 0ee581f..33db6e4 100644
---- a/drivers/media/tuners/fc0011.h
-+++ b/drivers/media/tuners/fc0011.h
-@@ -22,8 +22,7 @@ enum fc0011_fe_callback_commands {
- 	FC0011_FE_CALLBACK_RESET,
- };
+ /* Timings definition for handling device operation */
+ struct tvp7002_timings_definition {
+-	u32 preset;
+ 	struct v4l2_dv_timings timings;
+ 	const struct i2c_reg_value *p_settings;
+ 	enum v4l2_colorspace color_space;
+@@ -342,7 +341,6 @@ struct tvp7002_timings_definition {
+ /* Struct list for digital video timings */
+ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 	{
+-		V4L2_DV_720P60,
+ 		V4L2_DV_BT_CEA_1280X720P60,
+ 		tvp7002_parms_720P60,
+ 		V4L2_COLORSPACE_REC709,
+@@ -353,7 +351,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		153
+ 	},
+ 	{
+-		V4L2_DV_1080I60,
+ 		V4L2_DV_BT_CEA_1920X1080I60,
+ 		tvp7002_parms_1080I60,
+ 		V4L2_COLORSPACE_REC709,
+@@ -364,7 +361,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		205
+ 	},
+ 	{
+-		V4L2_DV_1080I50,
+ 		V4L2_DV_BT_CEA_1920X1080I50,
+ 		tvp7002_parms_1080I50,
+ 		V4L2_COLORSPACE_REC709,
+@@ -375,7 +371,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		245
+ 	},
+ 	{
+-		V4L2_DV_720P50,
+ 		V4L2_DV_BT_CEA_1280X720P50,
+ 		tvp7002_parms_720P50,
+ 		V4L2_COLORSPACE_REC709,
+@@ -386,7 +381,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		183
+ 	},
+ 	{
+-		V4L2_DV_1080P60,
+ 		V4L2_DV_BT_CEA_1920X1080P60,
+ 		tvp7002_parms_1080P60,
+ 		V4L2_COLORSPACE_REC709,
+@@ -397,7 +391,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		102
+ 	},
+ 	{
+-		V4L2_DV_480P59_94,
+ 		V4L2_DV_BT_CEA_720X480P59_94,
+ 		tvp7002_parms_480P,
+ 		V4L2_COLORSPACE_SMPTE170M,
+@@ -408,7 +401,6 @@ static const struct tvp7002_timings_definition tvp7002_timings[] = {
+ 		0xffff
+ 	},
+ 	{
+-		V4L2_DV_576P50,
+ 		V4L2_DV_BT_CEA_720X576P50,
+ 		tvp7002_parms_576P,
+ 		V4L2_COLORSPACE_SMPTE170M,
+@@ -588,32 +580,6 @@ static int tvp7002_write_inittab(struct v4l2_subdev *sd,
+ 	return error;
+ }
  
--#if defined(CONFIG_MEDIA_TUNER_FC0011) ||\
--    defined(CONFIG_MEDIA_TUNER_FC0011_MODULE)
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_FC0011)
- struct dvb_frontend *fc0011_attach(struct dvb_frontend *fe,
- 				   struct i2c_adapter *i2c,
- 				   const struct fc0011_config *config);
-diff --git a/drivers/media/tuners/fc0012.h b/drivers/media/tuners/fc0012.h
-index 54508fc..668d70d 100644
---- a/drivers/media/tuners/fc0012.h
-+++ b/drivers/media/tuners/fc0012.h
-@@ -48,8 +48,7 @@ struct fc0012_config {
- 	bool clock_out;
- };
+-/*
+- * tvp7002_s_dv_preset() - Set digital video preset
+- * @sd: ptr to v4l2_subdev struct
+- * @dv_preset: ptr to v4l2_dv_preset struct
+- *
+- * Set the digital video preset for a TVP7002 decoder device.
+- * Returns zero when successful or -EINVAL if register access fails.
+- */
+-static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
+-					struct v4l2_dv_preset *dv_preset)
+-{
+-	struct tvp7002 *device = to_tvp7002(sd);
+-	u32 preset;
+-	int i;
+-
+-	for (i = 0; i < NUM_TIMINGS; i++) {
+-		preset = tvp7002_timings[i].preset;
+-		if (preset == dv_preset->preset) {
+-			device->current_timings = &tvp7002_timings[i];
+-			return tvp7002_write_inittab(sd, tvp7002_timings[i].p_settings);
+-		}
+-	}
+-
+-	return -EINVAL;
+-}
+-
+ static int tvp7002_s_dv_timings(struct v4l2_subdev *sd,
+ 					struct v4l2_dv_timings *dv_timings)
+ {
+@@ -752,22 +718,6 @@ static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+ 	return 0;
+ }
  
--#if defined(CONFIG_MEDIA_TUNER_FC0012) || \
--	(defined(CONFIG_MEDIA_TUNER_FC0012_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_FC0012)
- extern struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
- 					struct i2c_adapter *i2c,
- 					const struct fc0012_config *cfg);
-diff --git a/drivers/media/tuners/fc0013.h b/drivers/media/tuners/fc0013.h
-index 594efd6..34aa1c3 100644
---- a/drivers/media/tuners/fc0013.h
-+++ b/drivers/media/tuners/fc0013.h
-@@ -25,8 +25,7 @@
- #include "dvb_frontend.h"
- #include "fc001x-common.h"
+-static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+-					struct v4l2_dv_preset *qpreset)
+-{
+-	int index;
+-	int err = tvp7002_query_dv(sd, &index);
+-
+-	if (err || index == NUM_TIMINGS) {
+-		qpreset->preset = V4L2_DV_INVALID;
+-		if (err == -ENOLINK)
+-			err = 0;
+-		return err;
+-	}
+-	qpreset->preset = tvp7002_timings[index].preset;
+-	return 0;
+-}
+-
+ static int tvp7002_query_dv_timings(struct v4l2_subdev *sd,
+ 					struct v4l2_dv_timings *timings)
+ {
+@@ -915,23 +865,6 @@ static int tvp7002_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
  
--#if defined(CONFIG_MEDIA_TUNER_FC0013) || \
--	(defined(CONFIG_MEDIA_TUNER_FC0013_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_FC0013)
- extern struct dvb_frontend *fc0013_attach(struct dvb_frontend *fe,
- 					struct i2c_adapter *i2c,
- 					u8 i2c_address, int dual_master,
-diff --git a/drivers/media/tuners/fc2580.h b/drivers/media/tuners/fc2580.h
-index 222601e..2dbf91f 100644
---- a/drivers/media/tuners/fc2580.h
-+++ b/drivers/media/tuners/fc2580.h
-@@ -36,8 +36,7 @@ struct fc2580_config {
- 	u32 clock;
- };
+-/*
+- * tvp7002_enum_dv_presets() - Enum supported digital video formats
+- * @sd: pointer to standard V4L2 sub-device structure
+- * @preset: pointer to format struct
+- *
+- * Enumerate supported digital video formats.
+- */
+-static int tvp7002_enum_dv_presets(struct v4l2_subdev *sd,
+-		struct v4l2_dv_enum_preset *preset)
+-{
+-	/* Check requested format index is within range */
+-	if (preset->index >= NUM_TIMINGS)
+-		return -EINVAL;
+-
+-	return v4l_fill_dv_preset_info(tvp7002_timings[preset->index].preset, preset);
+-}
+-
+ static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
+ 		struct v4l2_enum_dv_timings *timings)
+ {
+@@ -966,9 +899,6 @@ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
  
--#if defined(CONFIG_MEDIA_TUNER_FC2580) || \
--	(defined(CONFIG_MEDIA_TUNER_FC2580_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_FC2580)
- extern struct dvb_frontend *fc2580_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c, const struct fc2580_config *cfg);
- #else
-diff --git a/drivers/media/tuners/max2165.h b/drivers/media/tuners/max2165.h
-index c063c36..531c79d 100644
---- a/drivers/media/tuners/max2165.h
-+++ b/drivers/media/tuners/max2165.h
-@@ -30,8 +30,7 @@ struct max2165_config {
- 	u8 osc_clk; /* in MHz, selectable values: 4,16,18,20,22,24,26,28 */
- };
- 
--#if defined(CONFIG_MEDIA_TUNER_MAX2165) || \
--    (defined(CONFIG_MEDIA_TUNER_MAX2165_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_MAX2165)
- extern struct dvb_frontend *max2165_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c,
- 	struct max2165_config *cfg);
-diff --git a/drivers/media/tuners/mc44s803.h b/drivers/media/tuners/mc44s803.h
-index 34f3892..cfaed1b 100644
---- a/drivers/media/tuners/mc44s803.h
-+++ b/drivers/media/tuners/mc44s803.h
-@@ -30,8 +30,7 @@ struct mc44s803_config {
- 	u8 dig_out;
- };
- 
--#if defined(CONFIG_MEDIA_TUNER_MC44S803) || \
--    (defined(CONFIG_MEDIA_TUNER_MC44S803_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_MC44S803)
- extern struct dvb_frontend *mc44s803_attach(struct dvb_frontend *fe,
- 	 struct i2c_adapter *i2c, struct mc44s803_config *cfg);
- #else
-diff --git a/drivers/media/tuners/mxl5005s.h b/drivers/media/tuners/mxl5005s.h
-index fc8a1ff..5b070e9 100644
---- a/drivers/media/tuners/mxl5005s.h
-+++ b/drivers/media/tuners/mxl5005s.h
-@@ -116,8 +116,7 @@ struct mxl5005s_config {
- 	u8 AgcMasterByte;
- };
- 
--#if defined(CONFIG_MEDIA_TUNER_MXL5005S) || \
--	(defined(CONFIG_MEDIA_TUNER_MXL5005S_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_MXL5005S)
- extern struct dvb_frontend *mxl5005s_attach(struct dvb_frontend *fe,
- 					    struct i2c_adapter *i2c,
- 					    struct mxl5005s_config *config);
-diff --git a/drivers/media/tuners/tda18212.h b/drivers/media/tuners/tda18212.h
-index 9bd5da4..056636b 100644
---- a/drivers/media/tuners/tda18212.h
-+++ b/drivers/media/tuners/tda18212.h
-@@ -36,8 +36,7 @@ struct tda18212_config {
- 	u16 if_dvbc;
- };
- 
--#if defined(CONFIG_MEDIA_TUNER_TDA18212) || \
--	(defined(CONFIG_MEDIA_TUNER_TDA18212_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_TDA18212)
- extern struct dvb_frontend *tda18212_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c, struct tda18212_config *cfg);
- #else
-diff --git a/drivers/media/tuners/tda18218.h b/drivers/media/tuners/tda18218.h
-index b4180d1..4b81b9c 100644
---- a/drivers/media/tuners/tda18218.h
-+++ b/drivers/media/tuners/tda18218.h
-@@ -29,8 +29,7 @@ struct tda18218_config {
- 	u8 loop_through:1;
- };
- 
--#if defined(CONFIG_MEDIA_TUNER_TDA18218) || \
--	(defined(CONFIG_MEDIA_TUNER_TDA18218_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_TDA18218)
- extern struct dvb_frontend *tda18218_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c, struct tda18218_config *cfg);
- #else
-diff --git a/drivers/media/tuners/tua9001.h b/drivers/media/tuners/tua9001.h
-index cf5b815..d3faf29 100644
---- a/drivers/media/tuners/tua9001.h
-+++ b/drivers/media/tuners/tua9001.h
-@@ -50,8 +50,7 @@ struct tua9001_config {
- #define TUA9001_CMD_RESETN  1
- #define TUA9001_CMD_RXEN    2
- 
--#if defined(CONFIG_MEDIA_TUNER_TUA9001) || \
--	(defined(CONFIG_MEDIA_TUNER_TUA9001_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_TUA9001)
- extern struct dvb_frontend *tua9001_attach(struct dvb_frontend *fe,
- 		struct i2c_adapter *i2c, struct tua9001_config *cfg);
- #else
-diff --git a/drivers/media/tuners/xc5000.h b/drivers/media/tuners/xc5000.h
-index b1a5474..bb1040b 100644
---- a/drivers/media/tuners/xc5000.h
-+++ b/drivers/media/tuners/xc5000.h
-@@ -56,8 +56,7 @@ struct xc5000_config {
-  * it's passed back to a bridge during tuner_callback().
-  */
- 
--#if defined(CONFIG_MEDIA_TUNER_XC5000) || \
--    (defined(CONFIG_MEDIA_TUNER_XC5000_MODULE) && defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_TUNER_XC5000)
- extern struct dvb_frontend *xc5000_attach(struct dvb_frontend *fe,
- 					  struct i2c_adapter *i2c,
- 					  const struct xc5000_config *cfg);
+ /* Specific video subsystem operation handlers */
+ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+-	.enum_dv_presets = tvp7002_enum_dv_presets,
+-	.s_dv_preset = tvp7002_s_dv_preset,
+-	.query_dv_preset = tvp7002_query_dv_preset,
+ 	.g_dv_timings = tvp7002_g_dv_timings,
+ 	.s_dv_timings = tvp7002_s_dv_timings,
+ 	.enum_dv_timings = tvp7002_enum_dv_timings,
 -- 
-1.8.1.4
+1.7.10.4
 
