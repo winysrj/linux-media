@@ -1,52 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4113 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161005Ab3CVQqC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 12:46:02 -0400
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3813 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756139Ab3CDJFp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:45 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "edubezval@gmail.com" <edubezval@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/4] media: si4713: minor updates
-Date: Fri, 22 Mar 2013 17:45:55 +0100
-References: <1363707694-27224-1-git-send-email-edubezval@gmail.com> <201303221504.06707.hverkuil@xs4all.nl> <CAC-25o-Y=0d9=W2L9-_THvK2cR+jwp=gcZ6URSa6byaR3mKpiw@mail.gmail.com>
-In-Reply-To: <CAC-25o-Y=0d9=W2L9-_THvK2cR+jwp=gcZ6URSa6byaR3mKpiw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303221745.55932.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/11] blackfin: replace V4L2_IN/OUT_CAP_CUSTOM_TIMINGS by DV_TIMINGS
+Date: Mon,  4 Mar 2013 10:05:05 +0100
+Message-Id: <14f532b645c6b28d4b145c6a6ef9216f1c49a077.1362387265.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 22 2013 17:26:57 edubezval@gmail.com wrote:
-> Hello Hans,
-> 
-> On Fri, Mar 22, 2013 at 10:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> <snip>
-> 
-> >>
-> >> # on your branch on the other hand I get a NULL pointer:
-> >
-> > I've fixed that (v4l2_dev was never initialized), and I've also rebased my tree
-> > to the latest code. Can you try again?
-> >
-> 
-> This time I get a kernel crash at _power. Unfortunately I cannot fetch
-> the crash log as I am not having access to a serial line (using vga
-> console) and in my setup mtdoops is not working somehow.
-> 
-> 
-> Sequence is v4l2_ioctl->video_usercopy->__video_do_ioctl->v4l_s_ctrl->v4l2_s_ctrl->set_ctrl_lock->try_or_set_cluster->si4713_s_ctrl->si4713_set_power_state->mutex_lock_nested->lock_acquire.
-> 
-> 
-> I 'd need to spend some time on it to understand better your patches
-> and help you to get this working. And for that I'd prob need to spend
-> some time to either hack a serial line or get mtdoops to work :-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-You're doing fine: that was all the info I needed. Can you do a git pull and
-try again?
+The use of V4L2_IN/OUT_CAP_CUSTOM_TIMINGS is obsolete, use DV_TIMINGS instead.
+Note that V4L2_IN/OUT_CAP_CUSTOM_TIMINGS is just a #define for
+V4L2_IN/OUT_CAP_DV_TIMINGS.
 
-Regards,
+At some point in the future these CUSTOM_TIMINGS defines might be removed.
 
-	Hans
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ arch/blackfin/mach-bf609/boards/ezkit.c        |    8 ++++----
+ drivers/media/platform/blackfin/bfin_capture.c |    4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/arch/blackfin/mach-bf609/boards/ezkit.c b/arch/blackfin/mach-bf609/boards/ezkit.c
+index 61c1f47..97d7016 100644
+--- a/arch/blackfin/mach-bf609/boards/ezkit.c
++++ b/arch/blackfin/mach-bf609/boards/ezkit.c
+@@ -936,19 +936,19 @@ static struct v4l2_input adv7842_inputs[] = {
+ 		.index = 2,
+ 		.name = "Component",
+ 		.type = V4L2_INPUT_TYPE_CAMERA,
+-		.capabilities = V4L2_IN_CAP_CUSTOM_TIMINGS,
++		.capabilities = V4L2_IN_CAP_DV_TIMINGS,
+ 	},
+ 	{
+ 		.index = 3,
+ 		.name = "VGA",
+ 		.type = V4L2_INPUT_TYPE_CAMERA,
+-		.capabilities = V4L2_IN_CAP_CUSTOM_TIMINGS,
++		.capabilities = V4L2_IN_CAP_DV_TIMINGS,
+ 	},
+ 	{
+ 		.index = 4,
+ 		.name = "HDMI",
+ 		.type = V4L2_INPUT_TYPE_CAMERA,
+-		.capabilities = V4L2_IN_CAP_CUSTOM_TIMINGS,
++		.capabilities = V4L2_IN_CAP_DV_TIMINGS,
+ 	},
+ };
+ 
+@@ -1074,7 +1074,7 @@ static struct v4l2_output adv7511_outputs[] = {
+ 		.index = 0,
+ 		.name = "HDMI",
+ 		.type = V4L2_INPUT_TYPE_CAMERA,
+-		.capabilities = V4L2_OUT_CAP_CUSTOM_TIMINGS,
++		.capabilities = V4L2_OUT_CAP_DV_TIMINGS,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 5f209d5..6691355 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -384,7 +384,7 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	params.ppi_control = bcap_dev->cfg->ppi_control;
+ 	params.int_mask = bcap_dev->cfg->int_mask;
+ 	if (bcap_dev->cfg->inputs[bcap_dev->cur_input].capabilities
+-			& V4L2_IN_CAP_CUSTOM_TIMINGS) {
++			& V4L2_IN_CAP_DV_TIMINGS) {
+ 		struct v4l2_bt_timings *bt = &bcap_dev->dv_timings.bt;
+ 
+ 		params.hdelay = bt->hsync + bt->hbackporch;
+@@ -1110,7 +1110,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 		}
+ 		bcap_dev->std = std;
+ 	}
+-	if (config->inputs[0].capabilities & V4L2_IN_CAP_CUSTOM_TIMINGS) {
++	if (config->inputs[0].capabilities & V4L2_IN_CAP_DV_TIMINGS) {
+ 		struct v4l2_dv_timings dv_timings;
+ 		ret = v4l2_subdev_call(bcap_dev->sd, video,
+ 				g_dv_timings, &dv_timings);
+-- 
+1.7.10.4
+
