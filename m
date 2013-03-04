@@ -1,99 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1741 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751070Ab3CRT2O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 15:28:14 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2IJSAPx091381
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 20:28:13 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4699411E0194
-	for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 20:28:10 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130318192810.4699411E0194@alastor.dyndns.org>
-Date: Mon, 18 Mar 2013 20:28:10 +0100 (CET)
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:50215 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755781Ab3CDLmu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 06:42:50 -0500
+Message-ID: <513488B6.1080704@gmail.com>
+Date: Mon, 04 Mar 2013 19:42:46 +0800
+From: Lonsn <lonsn2005@gmail.com>
+MIME-Version: 1.0
+To: Kamil Debski <k.debski@samsung.com>
+CC: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: MFC decode failed in S5PV210 in kernel 3.8
+References: <51317952.9040402@gmail.com> <5131C429.2040406@gmail.com> <02f101ce18ba$e8ef8cc0$bacea640$%debski@samsung.com>
+In-Reply-To: <02f101ce18ba$e8ef8cc0$bacea640$%debski@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+于 2013/3/4 17:30, Kamil Debski 写道:
+> Hi,
+>
+> This problem is known to us and Marek is planning a fix. However, the
+> problem
+> proved to be quite difficult, so please be patient.
+>
+> Best wishes,
+>
+Kamil,
+Thanks for your information.
+Is there any workaround method which can let me continue the MFC decoder 
+test?  Is it a MFC driver or v4l2_deocde app question? If it is just an 
+app question, then I would like to use gstreamer with mfc plugin to have 
+a test.
 
-Results of the daily build of media_tree:
-
-date:		Mon Mar 18 19:00:23 CET 2013
-git branch:	test
-git hash:	4d35435d3ffb853b491f5bb21a62529cd925d660
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
-
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Lonsn
