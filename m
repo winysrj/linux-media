@@ -1,50 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4487 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754156Ab3CKLrR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:47:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: =?UTF-8?q?=5BREVIEW=20PATCH=2042/42=5D=20MAINTAINERS=3A=20add=20the=20go7007=20driver=2E?=
-Date: Mon, 11 Mar 2013 12:46:20 +0100
-Message-Id: <6f8851517f7495c0aefaca92cca74680c23dd97e.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Received: from gerard.telenet-ops.be ([195.130.132.48]:43224 "EHLO
+	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932329Ab3CDUwk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 15:52:40 -0500
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: [PATCH] media/v4l2: VIDEOBUF2_DMA_CONTIG should depend on HAS_DMA
+Date: Mon,  4 Mar 2013 21:52:36 +0100
+Message-Id: <1362430356-31626-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+m68k/sun3:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
+drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
+drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
+drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
+
+Make VIDEOBUF2_DMA_CONTIG and VIDEO_SH_VEU (which selects the former and
+doesn't have a platform dependency) depend on HAS_DMA to fix this.
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 ---
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/Kconfig  |    2 +-
+ drivers/media/v4l2-core/Kconfig |    1 +
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ff2fcc9..5703edd 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -7550,6 +7550,11 @@ M:	David Täht <d@teklibre.com>
- S:	Odd Fixes
- F:	drivers/staging/frontier/
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 05d7b63..42c62aa 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -204,7 +204,7 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
  
-+STAGING - GO7007 MPEG CODEC
-+M:	Hans Verkuil <hans.verkuil@cisco.com>
-+S:	Maintained
-+F:	drivers/staging/media/go7007/
-+
- STAGING - INDUSTRIAL IO
- M:	Jonathan Cameron <jic23@cam.ac.uk>
- L:	linux-iio@vger.kernel.org
+ config VIDEO_SH_VEU
+ 	tristate "SuperH VEU mem2mem video processing driver"
+-	depends on VIDEO_DEV && VIDEO_V4L2
++	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
+ 	help
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index 976d029..8c05565 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -67,6 +67,7 @@ config VIDEOBUF2_MEMOPS
+ 
+ config VIDEOBUF2_DMA_CONTIG
+ 	tristate
++	depends on HAS_DMA
+ 	select VIDEOBUF2_CORE
+ 	select VIDEOBUF2_MEMOPS
+ 	select DMA_SHARED_BUFFER
 -- 
-1.7.10.4
+1.7.0.4
 
