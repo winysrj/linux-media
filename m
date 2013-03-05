@@ -1,266 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49281 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 22/41] af9033: add IT9135 demod reg init tables
-Date: Sun, 10 Mar 2013 04:03:14 +0200
-Message-Id: <1362881013-5271-22-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45788 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755104Ab3CEJZI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 04:25:08 -0500
+Date: Tue, 5 Mar 2013 10:24:53 +0100
+From: Steffen Trumtrar <s.trumtrar@pengutronix.de>
+To: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: devicetree-discuss@lists.ozlabs.org,
+	Dave Airlie <airlied@linux.ie>,
+	Rob Herring <robherring2@gmail.com>,
+	linux-fbdev@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Guennady Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Rob Clark <robdclark@gmail.com>,
+	Leela Krishna Amudala <leelakrishna.a@gmail.com>,
+	"Mohammed, Afzal" <afzal@ti.com>, kernel@pengutronix.de
+Subject: Re: [PATCH v17 2/7] video: add display_timing and videomode
+Message-ID: <20130305092453.GB7042@pengutronix.de>
+References: <1359104515-8907-1-git-send-email-s.trumtrar@pengutronix.de>
+ <1359104515-8907-3-git-send-email-s.trumtrar@pengutronix.de>
+ <51223615.4090709@iki.fi>
+ <512E2A1B.6040704@ti.com>
+ <20130227160540.GA10491@pengutronix.de>
+ <512E30BD.7010603@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <512E30BD.7010603@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dumped out from Windows driver version 12.07.06.1, 07/06/2012.
+Hi!
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c      |   6 +-
- drivers/media/dvb-frontends/af9033_priv.h | 209 ++++++++++++++++++++++++++++++
- 2 files changed, 214 insertions(+), 1 deletion(-)
+On Wed, Feb 27, 2013 at 06:13:49PM +0200, Tomi Valkeinen wrote:
+> On 2013-02-27 18:05, Steffen Trumtrar wrote:
+> > Ah, sorry. Forgot to answer this.
+> > 
+> > On Wed, Feb 27, 2013 at 05:45:31PM +0200, Tomi Valkeinen wrote:
+> >> Ping.
+> >>
+> >> On 2013-02-18 16:09, Tomi Valkeinen wrote:
+> >>> Hi Steffen,
+> >>>
+> >>> On 2013-01-25 11:01, Steffen Trumtrar wrote:
+> >>>
+> >>>> +/* VESA display monitor timing parameters */
+> >>>> +#define VESA_DMT_HSYNC_LOW		BIT(0)
+> >>>> +#define VESA_DMT_HSYNC_HIGH		BIT(1)
+> >>>> +#define VESA_DMT_VSYNC_LOW		BIT(2)
+> >>>> +#define VESA_DMT_VSYNC_HIGH		BIT(3)
+> >>>> +
+> >>>> +/* display specific flags */
+> >>>> +#define DISPLAY_FLAGS_DE_LOW		BIT(0)	/* data enable flag */
+> >>>> +#define DISPLAY_FLAGS_DE_HIGH		BIT(1)
+> >>>> +#define DISPLAY_FLAGS_PIXDATA_POSEDGE	BIT(2)	/* drive data on pos. edge */
+> >>>> +#define DISPLAY_FLAGS_PIXDATA_NEGEDGE	BIT(3)	/* drive data on neg. edge */
+> >>>> +#define DISPLAY_FLAGS_INTERLACED	BIT(4)
+> >>>> +#define DISPLAY_FLAGS_DOUBLESCAN	BIT(5)
+> >>>
+> >>> <snip>
+> >>>
+> >>>> +	unsigned int dmt_flags;	/* VESA DMT flags */
+> >>>> +	unsigned int data_flags; /* video data flags */
+> >>>
+> >>> Why did you go for this approach? To be able to represent
+> >>> true/false/not-specified?
+> >>>
+> > 
+> > We decided somewhere between v3 and v8 (I think), that those flags can be
+> > high/low/ignored.
+> 
+> Okay. Why aren't they enums, though? That always makes more clear which
+> defines are to be used with which fields.
+> 
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index f510228..23690aa 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -297,10 +297,14 @@ static int af9033_init(struct dvb_frontend *fe)
- 	case AF9033_TUNER_IT9135_38:
- 	case AF9033_TUNER_IT9135_51:
- 	case AF9033_TUNER_IT9135_52:
-+		len = ARRAY_SIZE(ofsm_init_it9135_v1);
-+		init = ofsm_init_it9135_v1;
-+		break;
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
- 	case AF9033_TUNER_IT9135_62:
--		len = 0;
-+		len = ARRAY_SIZE(ofsm_init_it9135_v2);
-+		init = ofsm_init_it9135_v2;
- 		break;
- 	default:
- 		len = ARRAY_SIZE(ofsm_init);
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index e9bd782..0808319 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -547,5 +547,214 @@ static const struct reg_val tuner_init_fc2580[] = {
- 	{ 0x80f1e6, 0x01 },
- };
- 
-+static const struct reg_val ofsm_init_it9135_v1[] = {
-+	{ 0x800051, 0x01 },
-+	{ 0x800070, 0x0a },
-+	{ 0x80007e, 0x04 },
-+	{ 0x800081, 0x0a },
-+	{ 0x80008a, 0x01 },
-+	{ 0x80008e, 0x01 },
-+	{ 0x800092, 0x06 },
-+	{ 0x800099, 0x01 },
-+	{ 0x80009f, 0xe1 },
-+	{ 0x8000a0, 0xcf },
-+	{ 0x8000a3, 0x01 },
-+	{ 0x8000a5, 0x01 },
-+	{ 0x8000a6, 0x01 },
-+	{ 0x8000a9, 0x00 },
-+	{ 0x8000aa, 0x01 },
-+	{ 0x8000b0, 0x01 },
-+	{ 0x8000c2, 0x05 },
-+	{ 0x8000c6, 0x19 },
-+	{ 0x80f000, 0x0f },
-+	{ 0x80f016, 0x10 },
-+	{ 0x80f017, 0x04 },
-+	{ 0x80f018, 0x05 },
-+	{ 0x80f019, 0x04 },
-+	{ 0x80f01a, 0x05 },
-+	{ 0x80f021, 0x03 },
-+	{ 0x80f022, 0x0a },
-+	{ 0x80f023, 0x0a },
-+	{ 0x80f02b, 0x00 },
-+	{ 0x80f02c, 0x01 },
-+	{ 0x80f064, 0x03 },
-+	{ 0x80f065, 0xf9 },
-+	{ 0x80f066, 0x03 },
-+	{ 0x80f067, 0x01 },
-+	{ 0x80f06f, 0xe0 },
-+	{ 0x80f070, 0x03 },
-+	{ 0x80f072, 0x0f },
-+	{ 0x80f073, 0x03 },
-+	{ 0x80f078, 0x00 },
-+	{ 0x80f087, 0x00 },
-+	{ 0x80f09b, 0x3f },
-+	{ 0x80f09c, 0x00 },
-+	{ 0x80f09d, 0x20 },
-+	{ 0x80f09e, 0x00 },
-+	{ 0x80f09f, 0x0c },
-+	{ 0x80f0a0, 0x00 },
-+	{ 0x80f130, 0x04 },
-+	{ 0x80f132, 0x04 },
-+	{ 0x80f144, 0x1a },
-+	{ 0x80f146, 0x00 },
-+	{ 0x80f14a, 0x01 },
-+	{ 0x80f14c, 0x00 },
-+	{ 0x80f14d, 0x00 },
-+	{ 0x80f14f, 0x04 },
-+	{ 0x80f158, 0x7f },
-+	{ 0x80f15a, 0x00 },
-+	{ 0x80f15b, 0x08 },
-+	{ 0x80f15d, 0x03 },
-+	{ 0x80f15e, 0x05 },
-+	{ 0x80f163, 0x05 },
-+	{ 0x80f166, 0x01 },
-+	{ 0x80f167, 0x40 },
-+	{ 0x80f168, 0x0f },
-+	{ 0x80f17a, 0x00 },
-+	{ 0x80f17b, 0x00 },
-+	{ 0x80f183, 0x01 },
-+	{ 0x80f19d, 0x40 },
-+	{ 0x80f1bc, 0x36 },
-+	{ 0x80f1bd, 0x00 },
-+	{ 0x80f1cb, 0xa0 },
-+	{ 0x80f1cc, 0x01 },
-+	{ 0x80f204, 0x10 },
-+	{ 0x80f214, 0x00 },
-+	{ 0x80f40e, 0x0a },
-+	{ 0x80f40f, 0x40 },
-+	{ 0x80f410, 0x08 },
-+	{ 0x80f55f, 0x0a },
-+	{ 0x80f561, 0x15 },
-+	{ 0x80f562, 0x20 },
-+	{ 0x80f5df, 0xfb },
-+	{ 0x80f5e0, 0x00 },
-+	{ 0x80f5e3, 0x09 },
-+	{ 0x80f5e4, 0x01 },
-+	{ 0x80f5e5, 0x01 },
-+	{ 0x80f5f8, 0x01 },
-+	{ 0x80f5fd, 0x01 },
-+	{ 0x80f600, 0x05 },
-+	{ 0x80f601, 0x08 },
-+	{ 0x80f602, 0x0b },
-+	{ 0x80f603, 0x0e },
-+	{ 0x80f604, 0x11 },
-+	{ 0x80f605, 0x14 },
-+	{ 0x80f606, 0x17 },
-+	{ 0x80f607, 0x1f },
-+	{ 0x80f60e, 0x00 },
-+	{ 0x80f60f, 0x04 },
-+	{ 0x80f610, 0x32 },
-+	{ 0x80f611, 0x10 },
-+	{ 0x80f707, 0xfc },
-+	{ 0x80f708, 0x00 },
-+	{ 0x80f709, 0x37 },
-+	{ 0x80f70a, 0x00 },
-+	{ 0x80f78b, 0x01 },
-+	{ 0x80f80f, 0x40 },
-+	{ 0x80f810, 0x54 },
-+	{ 0x80f811, 0x5a },
-+	{ 0x80f905, 0x01 },
-+	{ 0x80fb06, 0x03 },
-+	{ 0x80fd8b, 0x00 },
-+};
-+
-+static const struct reg_val ofsm_init_it9135_v2[] = {
-+	{ 0x800051, 0x01 },
-+	{ 0x800070, 0x0a },
-+	{ 0x80007e, 0x04 },
-+	{ 0x800081, 0x0a },
-+	{ 0x80008a, 0x01 },
-+	{ 0x80008e, 0x01 },
-+	{ 0x800092, 0x06 },
-+	{ 0x800099, 0x01 },
-+	{ 0x80009f, 0xe1 },
-+	{ 0x8000a0, 0xcf },
-+	{ 0x8000a3, 0x01 },
-+	{ 0x8000a5, 0x01 },
-+	{ 0x8000a6, 0x01 },
-+	{ 0x8000a9, 0x00 },
-+	{ 0x8000aa, 0x01 },
-+	{ 0x8000b0, 0x01 },
-+	{ 0x8000c2, 0x05 },
-+	{ 0x8000c6, 0x19 },
-+	{ 0x80f000, 0x0f },
-+	{ 0x80f02b, 0x00 },
-+	{ 0x80f064, 0x03 },
-+	{ 0x80f065, 0xf9 },
-+	{ 0x80f066, 0x03 },
-+	{ 0x80f067, 0x01 },
-+	{ 0x80f06f, 0xe0 },
-+	{ 0x80f070, 0x03 },
-+	{ 0x80f072, 0x0f },
-+	{ 0x80f073, 0x03 },
-+	{ 0x80f078, 0x00 },
-+	{ 0x80f087, 0x00 },
-+	{ 0x80f09b, 0x3f },
-+	{ 0x80f09c, 0x00 },
-+	{ 0x80f09d, 0x20 },
-+	{ 0x80f09e, 0x00 },
-+	{ 0x80f09f, 0x0c },
-+	{ 0x80f0a0, 0x00 },
-+	{ 0x80f130, 0x04 },
-+	{ 0x80f132, 0x04 },
-+	{ 0x80f144, 0x1a },
-+	{ 0x80f146, 0x00 },
-+	{ 0x80f14a, 0x01 },
-+	{ 0x80f14c, 0x00 },
-+	{ 0x80f14d, 0x00 },
-+	{ 0x80f14f, 0x04 },
-+	{ 0x80f158, 0x7f },
-+	{ 0x80f15a, 0x00 },
-+	{ 0x80f15b, 0x08 },
-+	{ 0x80f15d, 0x03 },
-+	{ 0x80f15e, 0x05 },
-+	{ 0x80f163, 0x05 },
-+	{ 0x80f166, 0x01 },
-+	{ 0x80f167, 0x40 },
-+	{ 0x80f168, 0x0f },
-+	{ 0x80f17a, 0x00 },
-+	{ 0x80f17b, 0x00 },
-+	{ 0x80f183, 0x01 },
-+	{ 0x80f19d, 0x40 },
-+	{ 0x80f1bc, 0x36 },
-+	{ 0x80f1bd, 0x00 },
-+	{ 0x80f1cb, 0xa0 },
-+	{ 0x80f1cc, 0x01 },
-+	{ 0x80f204, 0x10 },
-+	{ 0x80f214, 0x00 },
-+	{ 0x80f40e, 0x0a },
-+	{ 0x80f40f, 0x40 },
-+	{ 0x80f410, 0x08 },
-+	{ 0x80f55f, 0x0a },
-+	{ 0x80f561, 0x15 },
-+	{ 0x80f562, 0x20 },
-+	{ 0x80f5e3, 0x09 },
-+	{ 0x80f5e4, 0x01 },
-+	{ 0x80f5e5, 0x01 },
-+	{ 0x80f600, 0x05 },
-+	{ 0x80f601, 0x08 },
-+	{ 0x80f602, 0x0b },
-+	{ 0x80f603, 0x0e },
-+	{ 0x80f604, 0x11 },
-+	{ 0x80f605, 0x14 },
-+	{ 0x80f606, 0x17 },
-+	{ 0x80f607, 0x1f },
-+	{ 0x80f60e, 0x00 },
-+	{ 0x80f60f, 0x04 },
-+	{ 0x80f610, 0x32 },
-+	{ 0x80f611, 0x10 },
-+	{ 0x80f707, 0xfc },
-+	{ 0x80f708, 0x00 },
-+	{ 0x80f709, 0x37 },
-+	{ 0x80f70a, 0x00 },
-+	{ 0x80f78b, 0x01 },
-+	{ 0x80f80f, 0x40 },
-+	{ 0x80f810, 0x54 },
-+	{ 0x80f811, 0x5a },
-+	{ 0x80f905, 0x01 },
-+	{ 0x80fb06, 0x03 },
-+	{ 0x80fd8b, 0x00 },
-+};
-+
- #endif /* AF9033_PRIV_H */
- 
+Hm...
+
+> >>> Would it be simpler to just have "flags" field? What does it give us to
+> >>> have those two separately?
+> >>>
+> > 
+> > I decided to split them, so it is clear that some flags are VESA defined and
+> > the others are "invented" for the display-timings framework and may be
+> > extended.
+> 
+> Hmm... Okay. Is it relevant that they are VESA defined? It just feels to
+> complicate handling the flags =).
+> 
+> >>> Should the above say raising edge/falling edge instead of positive
+> >>> edge/negative edge?
+> >>>
+> > 
+> > Hm, I used posedge/negedge because it is shorter (and because of my Verilog past
+> > pretty natural to me :-) ). I don't know what others are thinking though.
+> 
+> I guess it's quite clear, but it's still different terms than used
+> elsewhere, e.g. documentation for videomodes.
+> 
+> Another thing I noticed while using the new videomode, display_timings.h
+> has a few names that are quite short and generic. Like "TE_MIN", which
+> is now a global define. And "timing_entry". Either name could be well
+> used internally in some .c file, and could easily clash.
+> 
+
+Yes. You are correct.
+Everyone using this is welcome to send patches now :-)
+
+Regards,
+Steffen
+
 -- 
-1.7.11.7
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
