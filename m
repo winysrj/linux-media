@@ -1,252 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:51673 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153Ab3CAXLy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:54 -0500
-Received: by mail-ea0-f177.google.com with SMTP id n13so407523eaa.22
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:52 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 10/11] em28xx: extract the device configuration dataset from eeproms with 16 bit address width
-Date: Sat,  2 Mar 2013 00:12:14 +0100
-Message-Id: <1362179535-18929-11-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:49462 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753608Ab3CEORY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 09:17:24 -0500
+Date: Tue, 5 Mar 2013 15:17:22 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: corbet@lwn.net, linux-media@vger.kernel.org,
+	Libin Yang <lbyang@marvell.com>
+Subject: Re: [REVIEW PATCH V4 12/12] [media] marvell-ccic: add 3 frame buffers
+ support in DMA_CONTIG mode
+In-Reply-To: <1360238687-15768-13-git-send-email-twang13@marvell.com>
+Message-ID: <Pine.LNX.4.64.1303051515590.25837@axis700.grange>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+ <1360238687-15768-13-git-send-email-twang13@marvell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The new eeproms with 16 address width still have the the device config dataset
-(the content of the old 8 bit eeproms) embedded.
-Hauppauge also continues to include the tveeprom data structure inside this
-dataset in their devices.
-The start address of the dataset depends on the start address of the microcode
-and a variable additional offset.
+On Thu, 7 Feb 2013, Albert Wang wrote:
 
-It should be mentioned that camera devices seem to use a different dataset type,
-which is not yet supported.
+> This patch adds support of 3 frame buffers in DMA-contiguous mode.
+> 
+> In current DMA_CONTIG mode, only 2 frame buffers can be supported.
+> Actually, Marvell CCIC can support 2 or 3 frame buffers.
+> 
+> Currently 3 frame buffers mode will be used by default.
+> To use 2 frame buffers mode, can do:
+>   #define MAX_FRAME_BUFS 2
+> in mcam-core.h.
+> 
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> Signed-off-by: Libin Yang <lbyang@marvell.com>
+> Acked-by: Jonathan Corbet <corbet@lwn.net>
+> ---
+>  drivers/media/platform/marvell-ccic/mcam-core.c |   59 +++++++++++++++++------
+>  drivers/media/platform/marvell-ccic/mcam-core.h |   13 +++++
+>  2 files changed, 57 insertions(+), 15 deletions(-)
+> 
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+> index f206e3c..33fce6c 100755
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+> @@ -494,13 +494,32 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
+>  	struct mcam_vb_buffer *buf;
+>  	struct v4l2_pix_format *fmt = &cam->pix_format;
+>  
+> -	/*
+> -	 * If there are no available buffers, go into single mode
+> -	 */
+>  	if (list_empty(&cam->buffers)) {
+> -		buf = cam->vb_bufs[frame ^ 0x1];
+> -		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+> -		cam->frame_state.singles++;
+> +		/*
+> +		 * If there are no available buffers
+> +		 * go into single buffer mode
+> +		 *
+> +		 * If CCIC use Two Buffers mode
+> +		 * will use another remaining frame buffer
+> +		 * frame 0 -> buf 1
+> +		 * frame 1 -> buf 0
+> +		 *
+> +		 * If CCIC use Three Buffers mode
+> +		 * will use the 2rd remaining frame buffer
+> +		 * frame 0 -> buf 2
+> +		 * frame 1 -> buf 0
+> +		 * frame 2 -> buf 1
+> +		 */
+> +		buf = cam->vb_bufs[(frame + (MAX_FRAME_BUFS - 1))
+> +						% MAX_FRAME_BUFS];
+> +		if (cam->frame_state.usebufs == 0)
+> +			cam->frame_state.usebufs++;
+> +		else {
+> +			set_bit(CF_SINGLE_BUFFER, &cam->flags);
+> +			cam->frame_state.singles++;
+> +			if (cam->frame_state.usebufs < 2)
+> +				cam->frame_state.usebufs++;
 
-Tested with devices "Hauppauge HVR-930C". I've also checked the USB-log from the
-"MSI Digivox ATSC" and it works the same way.
+What is this .usebufs actually supposed to do? AFAICS, it is only used to 
+decide, whether it should be changed, I don't see it having any effect on 
+anything else?
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> +		}
+>  	} else {
+>  		/*
+>  		 * OK, we have a buffer we can use.
+> @@ -509,15 +528,15 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
+>  					queue);
+>  		list_del_init(&buf->queue);
+>  		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+> +		if (cam->frame_state.usebufs != (3 - MAX_FRAME_BUFS))
+> +			cam->frame_state.usebufs--;
+>  	}
+>  
+>  	cam->vb_bufs[frame] = buf;
+> -	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
+> +	mcam_reg_write(cam, REG_Y0BAR + (frame << 2), buf->yuv_p.y);
+>  	if (mcam_fmt_is_planar(fmt->pixelformat)) {
+> -		mcam_reg_write(cam, frame == 0 ?
+> -					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
+> -		mcam_reg_write(cam, frame == 0 ?
+> -					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
+> +		mcam_reg_write(cam, REG_U0BAR + (frame << 2), buf->yuv_p.u);
+> +		mcam_reg_write(cam, REG_V0BAR + (frame << 2), buf->yuv_p.v);
+>  	}
+>  }
+>  
+> @@ -526,10 +545,14 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, unsigned int frame)
+>   */
+>  static void mcam_ctlr_dma_contig(struct mcam_camera *cam)
+>  {
+> -	mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
+> -	cam->nbufs = 2;
+> -	mcam_set_contig_buffer(cam, 0);
+> -	mcam_set_contig_buffer(cam, 1);
+> +	unsigned int frame;
+> +
+> +	cam->nbufs = MAX_FRAME_BUFS;
+> +	for (frame = 0; frame < cam->nbufs; frame++)
+> +		mcam_set_contig_buffer(cam, frame);
+> +
+> +	if (cam->nbufs == 2)
+> +		mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
+>  }
+>  
+>  /*
+> @@ -1068,6 +1091,12 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+>  	for (frame = 0; frame < cam->nbufs; frame++)
+>  		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+>  
+> +	/*
+> +	 *  If CCIC use Two Buffers mode, init usebufs == 1
+> +	 *  If CCIC use Three Buffers mode, init usebufs == 0
+> +	 */
+> +	cam->frame_state.usebufs = 3 - MAX_FRAME_BUFS;
+> +
+>  	return mcam_read_setup(cam);
+>  }
+>  
+> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+> index 0accdbb..6fffa14 100755
+> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+> @@ -44,6 +44,15 @@ enum mcam_state {
+>  };
+>  #define MAX_DMA_BUFS 3
+>  
+> +#ifdef MCAM_MODE_DMA_CONTIG
+> +/*
+> + * CCIC can support at most 3 frame buffers in DMA_CONTIG buffer mode
+> + * 2 - Use Two Buffers mode
+> + * 3 - Use Three Buffers mode
+> + */
+> +#define MAX_FRAME_BUFS 3 /* marvell-ccic used Three Buffers mode as default */
+> +#endif
+> +
+>  /*
+>   * Different platforms work best with different buffer modes, so we
+>   * let the platform pick.
+> @@ -82,6 +91,10 @@ struct mcam_frame_state {
+>  	unsigned int frames;
+>  	unsigned int singles;
+>  	unsigned int delivered;
+> +	/*
+> +	 * Only usebufs == 2 can enter single buffer mode
+> +	 */
+> +	unsigned int usebufs;
+>  };
+>  
+>  #define NR_MCAM_CLK 3
+> -- 
+> 1.7.9.5
+> 
+
+Thanks
+Guennadi
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c |  117 +++++++++++++++++++++++----------
- drivers/media/usb/em28xx/em28xx.h     |    4 +-
- 2 Dateien geändert, 85 Zeilen hinzugefügt(+), 36 Zeilen entfernt(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index dfbc22e..44bef43 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -405,13 +405,18 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
- 	return len;
- }
- 
--static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len)
-+static int em28xx_i2c_eeprom(struct em28xx *dev, u8 **eedata, u16 *eedata_len)
- {
--	u8 buf, *data;
--	struct em28xx_eeprom *em_eeprom;
-+	const u16 len = 256;
-+	/* FIXME common length/size for bytes to read, to display, hash
-+	 * calculation and returned device dataset. Simplifies the code a lot,
-+	 * but we might have to deal with multiple sizes in the future !      */
- 	int i, err;
-+	struct em28xx_eeprom *dev_config;
-+	u8 buf, *data;
- 
- 	*eedata = NULL;
-+	*eedata_len = 0;
- 
- 	dev->i2c_client.addr = 0xa0 >> 1;
- 
-@@ -431,8 +436,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
- 				    len, data);
- 	if (err != len) {
- 		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
--		kfree(data);
--		return err;
-+		goto error;
- 	}
- 
- 	/* Display eeprom content */
-@@ -447,15 +451,25 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
- 		if (15 == (i % 16))
- 			printk("\n");
- 	}
-+	if (dev->eeprom_addrwidth_16bit)
-+		em28xx_info("i2c eeprom %04x: ... (skipped)\n", i);
- 
- 	if (dev->eeprom_addrwidth_16bit &&
- 	    data[0] == 0x26 && data[3] == 0x00) {
- 		/* new eeprom format; size 4-64kb */
-+		u16 mc_start;
-+		u16 hwconf_offset;
-+
- 		dev->hash = em28xx_hash_mem(data, len, 32);
--		em28xx_info("EEPROM hash = 0x%08lx\n", dev->hash);
--		em28xx_info("EEPROM info: boot page address = 0x%02x04, "
-+		mc_start = (data[1] << 8) + 4;	/* usually 0x0004 */
-+
-+		em28xx_info("EEPROM ID = %02x %02x %02x %02x, "
-+			    "EEPROM hash = 0x%08lx\n",
-+			    data[0], data[1], data[2], data[3], dev->hash);
-+		em28xx_info("EEPROM info:\n");
-+		em28xx_info("\tmicrocode start address = 0x%04x, "
- 			    "boot configuration = 0x%02x\n",
--			    data[1], data[2]);
-+			    mc_start, data[2]);
- 		/* boot configuration (address 0x0002):
- 		 * [0]   microcode download speed: 1 = 400 kHz; 0 = 100 kHz
- 		 * [1]   always selects 12 kb RAM
-@@ -465,32 +479,61 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
- 		 *       characterization
- 		 */
- 
--		/* FIXME:
--		 * - read more than 256 bytes / addresses above 0x00ff
--		 * - find offset for device config dataset and extract it
--		 * - decrypt eeprom data for camera bridges (em25xx, em276x+)
--		 * - use separate/different eeprom hashes (not yet used)
-+		/* Read hardware config dataset offset from address
-+		 * (microcode start + 46)			    */
-+		err = em28xx_i2c_read_block(dev, mc_start + 46, 1, 2, data);
-+		if (err != 2) {
-+			em28xx_errdev("failed to read hardware configuration data from eeprom (err=%d)\n",
-+				      err);
-+			goto error;
-+		}
-+
-+		/* Calculate hardware config dataset start address */
-+		hwconf_offset = mc_start + data[0] + (data[1] << 8);
-+
-+		/* Read hardware config dataset */
-+		/* NOTE: the microcode copy can be multiple pages long, but
-+		 * we assume the hardware config dataset is the same as in
-+		 * the old eeprom and not longer than 256 bytes.
-+		 * tveeprom is currently also limited to 256 bytes.
- 		 */
-+		err = em28xx_i2c_read_block(dev, hwconf_offset, 1, len, data);
-+		if (err != len) {
-+			em28xx_errdev("failed to read hardware configuration data from eeprom (err=%d)\n",
-+				      err);
-+			goto error;
-+		}
- 
--		return 0;
--	} else if (data[0] != 0x1a || data[1] != 0xeb ||
--		   data[2] != 0x67 || data[3] != 0x95   ) {
-+		/* Verify hardware config dataset */
-+		/* NOTE: not all devices provide this type of dataset */
-+		if (data[0] != 0x1a || data[1] != 0xeb ||
-+		    data[2] != 0x67 || data[3] != 0x95    ) {
-+			em28xx_info("no hardware configuration dataset found in eeprom\n");
-+			kfree(data);
-+			return 0;
-+		}
-+
-+		/* TODO: decrypt eeprom data for camera bridges (em25xx, em276x+) */
-+
-+	} else if (!dev->eeprom_addrwidth_16bit &&
-+		   data[0] == 0x1a && data[1] == 0xeb &&
-+		   data[2] == 0x67 && data[3] == 0x95   ) {
-+		dev->hash = em28xx_hash_mem(data, len, 32);
-+		em28xx_info("EEPROM ID = %02x %02x %02x %02x, "
-+			    "EEPROM hash = 0x%08lx\n",
-+			    data[0], data[1], data[2], data[3], dev->hash);
-+		em28xx_info("EEPROM info:\n");
-+	} else {
- 		em28xx_info("unknown eeprom format or eeprom corrupted !\n");
--		return -ENODEV;
-+		err = -ENODEV;
-+		goto error;
- 	}
- 
- 	*eedata = data;
--	em_eeprom = (void *)eedata;
-+	*eedata_len = len;
-+	dev_config = (void *)eedata;
- 
--	dev->hash = em28xx_hash_mem(data, len, 32);
--
--	em28xx_info("EEPROM ID = %02x %02x %02x %02x, EEPROM hash = 0x%08lx\n",
--		    em_eeprom->id[0], em_eeprom->id[1],
--		    em_eeprom->id[2], em_eeprom->id[3], dev->hash);
--
--	em28xx_info("EEPROM info:\n");
--
--	switch (le16_to_cpu(em_eeprom->chip_conf) >> 4 & 0x3) {
-+	switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
- 	case 0:
- 		em28xx_info("\tNo audio on board.\n");
- 		break;
-@@ -505,13 +548,13 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
- 		break;
- 	}
- 
--	if (le16_to_cpu(em_eeprom->chip_conf) & 1 << 3)
-+	if (le16_to_cpu(dev_config->chip_conf) & 1 << 3)
- 		em28xx_info("\tUSB Remote wakeup capable\n");
- 
--	if (le16_to_cpu(em_eeprom->chip_conf) & 1 << 2)
-+	if (le16_to_cpu(dev_config->chip_conf) & 1 << 2)
- 		em28xx_info("\tUSB Self power capable\n");
- 
--	switch (le16_to_cpu(em_eeprom->chip_conf) & 0x3) {
-+	switch (le16_to_cpu(dev_config->chip_conf) & 0x3) {
- 	case 0:
- 		em28xx_info("\t500mA max power\n");
- 		break;
-@@ -526,12 +569,16 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char **eedata, int len
- 		break;
- 	}
- 	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
--		    em_eeprom->string_idx_table,
--		    le16_to_cpu(em_eeprom->string1),
--		    le16_to_cpu(em_eeprom->string2),
--		    le16_to_cpu(em_eeprom->string3));
-+		    dev_config->string_idx_table,
-+		    le16_to_cpu(dev_config->string1),
-+		    le16_to_cpu(dev_config->string2),
-+		    le16_to_cpu(dev_config->string3));
- 
- 	return 0;
-+
-+error:
-+	kfree(data);
-+	return err;
- }
- 
- /* ----------------------------------------------------------- */
-@@ -640,7 +687,7 @@ int em28xx_i2c_register(struct em28xx *dev)
- 	dev->i2c_client = em28xx_client_template;
- 	dev->i2c_client.adapter = &dev->i2c_adap;
- 
--	retval = em28xx_i2c_eeprom(dev, &dev->eedata, 256);
-+	retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
- 	if ((retval < 0) && (retval != -ENODEV)) {
- 		em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
- 			__func__, retval);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 77f600d..2d6d31a 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -562,7 +562,9 @@ struct em28xx {
- 	/* resources in use */
- 	unsigned int resources;
- 
--	u8 *eedata;	/* currently always 256 bytes */
-+	/* eeprom content */
-+	u8 *eedata;
-+	u16 eedata_len;
- 
- 	/* Isoc control struct */
- 	struct em28xx_dmaqueue vidq;
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
