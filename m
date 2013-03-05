@@ -1,79 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51720 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab3CGWxk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 17:53:40 -0500
-Date: Thu, 7 Mar 2013 23:53:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
-	<benoit.thebaudeau@advansee.com>,
-	=?ISO-8859-1?Q?Micka=EBl_Guivarc=27h?=
-	<mickael.guivarch@advansee.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] soc-camera: mt9m111: Fix auto-exposure control
-In-Reply-To: <CACKLOr3mgdn2GbSkk5SAUoTmZKzNs7T8RYJWHg+kVV5RSbD5Hg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1303072353120.20470@axis700.grange>
-References: <1361903569-30244-1-git-send-email-benoit.thebaudeau@advansee.com>
- <CACKLOr3mgdn2GbSkk5SAUoTmZKzNs7T8RYJWHg+kVV5RSbD5Hg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:37211 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729Ab3CEFEK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 00:04:10 -0500
+Received: by mail-pb0-f53.google.com with SMTP id un1so3890270pbc.12
+        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 21:04:10 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
+Subject: [PATCH 2/3] [media] sh_vou: Use module_platform_driver_probe macro
+Date: Tue,  5 Mar 2013 10:23:37 +0530
+Message-Id: <1362459218-13314-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1362459218-13314-1-git-send-email-sachin.kamat@linaro.org>
+References: <1362459218-13314-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 7 Mar 2013, javier Martin wrote:
+module_platform_driver_probe() eliminates the boilerplate and simplifies
+the code.
 
-> Hi,
-> 
-> On 26 February 2013 19:32, Benoît Thébaudeau
-> <benoit.thebaudeau@advansee.com> wrote:
-> > Commit f9bd5843658e18a7097fc7258c60fb840109eaa8 changed V4L2_CID_EXPOSURE_AUTO
-> > from boolean to enum, and commit af8425c54beb3c32cbb503a379132b3975535289
-> > changed the creation of this control into a menu for the mt9m111. However,
-> > mt9m111_set_autoexposure() is still interpreting the value set for this control
-> > as a boolean, which also conflicts with the default value of this control set to
-> > V4L2_EXPOSURE_AUTO (0).
-> >
-> > This patch makes mt9m111_set_autoexposure() interpret the value set for
-> > V4L2_CID_EXPOSURE_AUTO as defined by enum v4l2_exposure_auto_type.
-> >
-> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: Mickaël Guivarc'h <mickael.guivarch@advansee.com>
-> > Cc: <linux-media@vger.kernel.org>
-> > Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
-> > ---
-> >  drivers/media/i2c/soc_camera/mt9m111.c |    4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-> > index bbc4ff9..0b0ebaa 100644
-> > --- a/drivers/media/i2c/soc_camera/mt9m111.c
-> > +++ b/drivers/media/i2c/soc_camera/mt9m111.c
-> > @@ -701,11 +701,11 @@ static int mt9m111_set_global_gain(struct mt9m111 *mt9m111, int gain)
-> >         return reg_write(GLOBAL_GAIN, val);
-> >  }
-> >
-> > -static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int on)
-> > +static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int val)
-> >  {
-> >         struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-> >
-> > -       if (on)
-> > +       if (val == V4L2_EXPOSURE_AUTO)
-> >                 return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
-> >         return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
-> >  }
-> > --
-> > 1.7.10.4
-> 
-> This solves a real issue.
-> 
-> Tested-By: Javier Martin <javier.martin@vista-silicon.com>
-
-Thanks, will push to 3.9 + stable.
-
-Guennadi
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/sh_vou.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+index 66c8da1..d853162 100644
+--- a/drivers/media/platform/sh_vou.c
++++ b/drivers/media/platform/sh_vou.c
+@@ -1485,18 +1485,7 @@ static struct platform_driver __refdata sh_vou = {
+ 	},
+ };
+ 
+-static int __init sh_vou_init(void)
+-{
+-	return platform_driver_probe(&sh_vou, sh_vou_probe);
+-}
+-
+-static void __exit sh_vou_exit(void)
+-{
+-	platform_driver_unregister(&sh_vou);
+-}
+-
+-module_init(sh_vou_init);
+-module_exit(sh_vou_exit);
++module_platform_driver_probe(sh_vou, sh_vou_probe);
+ 
+ MODULE_DESCRIPTION("SuperH VOU driver");
+ MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+-- 
+1.7.4.1
+
