@@ -1,55 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31822 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750836Ab3CWMfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 08:35:21 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2NCZIHU028731
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 08:35:18 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 3/4] [media] cx23885: use IS_ENABLED
-Date: Sat, 23 Mar 2013 09:35:10 -0300
-Message-Id: <1364042111-24708-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1364042111-24708-1-git-send-email-mchehab@redhat.com>
-References: <1364042111-24708-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.187]:64689 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755467Ab3CEWQ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 17:16:59 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Bill Pemberton <wfp5p@virginia.edu>,
+	Felipe Balbi <balbi@ti.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Joerg Roedel <joro@8bytes.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mike Turquette <mturquette@linaro.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Tony Prisk <linux@prisktech.co.nz>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	iommu@lists.linux-foundation.org, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
+Subject: [PATCH 0/9] fixes for ARM build regressions in 3.9-rc1
+Date: Tue,  5 Mar 2013 23:16:40 +0100
+Message-Id: <1362521809-22989-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of checking everywhere there for 3 symbols, use instead
-IS_ENABLED macro.
+This is the result of my my build tests on 3.9-rc1, mostly bugs
+that I had not caught before the merge window, or where the fix
+for some reason has not yet made it in.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/pci/cx23885/altera-ci.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+I hope the subsystem maintainers can take care of applying these,
+for the arch/arm/mach-* patches I can either apply them directly
+to the arm-soc tree with an Ack or do a round-trip through
+the platform maintainer tree. I think Tony already has some of
+the OMAP1 fixes, so we should try not to duplicate them.
 
-diff --git a/drivers/media/pci/cx23885/altera-ci.h b/drivers/media/pci/cx23885/altera-ci.h
-index 70e4fd6..4998c96 100644
---- a/drivers/media/pci/cx23885/altera-ci.h
-+++ b/drivers/media/pci/cx23885/altera-ci.h
-@@ -24,6 +24,8 @@
- #ifndef __ALTERA_CI_H
- #define __ALTERA_CI_H
- 
-+#include <linux/kconfig.h>
-+
- #define ALT_DATA	0x000000ff
- #define ALT_TDI		0x00008000
- #define ALT_TDO		0x00004000
-@@ -41,8 +43,7 @@ struct altera_ci_config {
- 	int (*fpga_rw) (void *dev, int ad_rg, int val, int rw);
- };
- 
--#if defined(CONFIG_MEDIA_ALTERA_CI) || (defined(CONFIG_MEDIA_ALTERA_CI_MODULE) \
--							&& defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_ALTERA_CI)
- 
- extern int altera_ci_init(struct altera_ci_config *config, int ci_nr);
- extern void altera_ci_release(void *dev, int ci_nr);
+	Arnd
+
+Arnd Bergmann (9):
+  clk: vt8500: Fix "fix device clock divisor calculations"
+  Revert parts of "hlist: drop the node parameter from iterators"
+  mfd: remove __exit_p annotation for twl4030_madc_remove
+  usb: gadget: fix omap_udc build errors
+  ARM: omap1: add back missing includes
+  [media] ir-rx51: fix clock API related build issues
+  [media] s5p-fimc: fix s5pv210 build
+  iommu: OMAP: build only on OMAP2+
+  ARM: spear3xx: Use correct pl080 header file
+
+ arch/arm/mach-omap1/board-fsample.c  |  1 +
+ arch/arm/mach-omap1/board-h2.c       |  1 +
+ arch/arm/mach-omap1/board-perseus2.c |  1 +
+ arch/arm/mach-omap1/board-sx1.c      |  1 +
+ arch/arm/mach-s5pv210/mach-goni.c    |  2 +-
+ arch/arm/mach-spear3xx/spear3xx.c    |  2 +-
+ arch/arm/plat-omap/dmtimer.c         | 16 ++++++++--------
+ drivers/clk/clk-vt8500.c             |  2 +-
+ drivers/iommu/Kconfig                |  2 +-
+ drivers/media/rc/ir-rx51.c           |  4 ++--
+ drivers/mfd/twl4030-madc.c           |  2 +-
+ drivers/usb/gadget/omap_udc.c        |  3 ++-
+ drivers/video/omap/lcd_ams_delta.c   |  1 +
+ drivers/video/omap/lcd_osk.c         |  1 +
+ kernel/smpboot.c                     |  2 +-
+ net/9p/trans_virtio.c                |  2 +-
+ 16 files changed, 25 insertions(+), 18 deletions(-)
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joerg Roedel <joro@8bytes.org>
+Cc: Kukjin Kim <kgene.kim@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Tony Lindgren <tony@atomide.com>
+Cc: Tony Prisk <linux@prisktech.co.nz>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: iommu@lists.linux-foundation.org
+Cc: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org
+
+
 -- 
-1.8.1.4
+1.8.1.2
 
