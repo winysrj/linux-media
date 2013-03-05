@@ -1,83 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:47185 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757892Ab3CTJpY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 05:45:24 -0400
-Date: Wed, 20 Mar 2013 10:48:42 +0100
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	elezegarcia@gmail.com
-Subject: Re: [RFC V1 4/8] smi2021: Add smi2021_v4l2.c
-Message-ID: <20130320094842.GL17291@dell.arpanet.local>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <1363270024-12127-5-git-send-email-jonarne@jonarne.no>
- <201303180929.07864.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <201303180929.07864.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:5739 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751217Ab3CECaf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 21:30:35 -0500
+Date: Mon, 4 Mar 2013 23:30:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+Message-ID: <20130304233028.7bc3c86c@redhat.com>
+In-Reply-To: <51353591.4040709@netscape.net>
+References: <51054759.7050202@netscape.net>
+	<20130127141633.5f751e5d@redhat.com>
+	<5105A0C9.6070007@netscape.net>
+	<20130128082354.607fae64@redhat.com>
+	<5106E3EA.70307@netscape.net>
+	<511264CF.3010002@netscape.net>
+	<51336331.10205@netscape.net>
+	<20130303134051.6dc038aa@redhat.com>
+	<20130304164234.18df36a7@redhat.com>
+	<51353591.4040709@netscape.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 18, 2013 at 09:29:07AM +0100, Hans Verkuil wrote:
-> On Thu March 14 2013 15:07:00 Jon Arne Jørgensen wrote:
-> > This file is responsible for registering the device with the v4l2 subsystem,
-> > and the communication with v4l2.
-> > Most of the v4l2 ioctls are just passed on to vidbuf2.
-> > 
-> > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> > ---
-> >  drivers/media/usb/smi2021/smi2021_v4l2.c | 566 +++++++++++++++++++++++++++++++
-> >  1 file changed, 566 insertions(+)
-> >  create mode 100644 drivers/media/usb/smi2021/smi2021_v4l2.c
-> > 
-> > diff --git a/drivers/media/usb/smi2021/smi2021_v4l2.c b/drivers/media/usb/smi2021/smi2021_v4l2.c
-> > new file mode 100644
-> > index 0000000..d402093
-> > --- /dev/null
-> > +++ b/drivers/media/usb/smi2021/smi2021_v4l2.c
-> > @@ -0,0 +1,566 @@
-> 
-> ...
-> 
-> > +int smi2021_vb2_setup(struct smi2021_dev *dev)
-> > +{
-> > +	int rc;
-> > +	struct vb2_queue *q;
-> > +
-> > +	q = &dev->vb_vidq;
-> > +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > +	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
-> > +	q->drv_priv = dev;
-> > +	q->buf_struct_size = sizeof(struct smi2021_buffer);
-> > +	q->ops = &smi2021_video_qops;
-> > +	q->mem_ops = &vb2_vmalloc_memops;
-> 
-> q->timestamp_type isn't filled in.
->
-I'll add that
- 
-> For that matter, neither the sequence number nor the timestamp are filled in
-> in v4l2_buffer during capturing.
-> 
-> You need to add a buf_finish op to fill those in (use v4l2_timestamp() for the
-> timestamp).
->
+Em Mon, 04 Mar 2013 21:00:17 -0300
+Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 
-I'm filling these variables in the smi2021_buffer_done function in
-smi2021_video.c?
-
-Should I do that somewhere else?
-
- 
-> Regards,
+> Hi all
 > 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> El 04/03/13 16:42, Mauro Carvalho Chehab escribió:
+> > Em Sun, 3 Mar 2013 13:40:51 -0300
+> > Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+> >
+> >> Em Sun, 03 Mar 2013 11:50:25 -0300
+> >> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
+> >>
+> >>
+> >>> The new data replacement in mb86a20s
+> >>>
+> >>> /*
+> >>>    * Initialization sequence: Use whatevere default values that PV SBTVD
+> >>>    * does on its initialisation, obtained via USB snoop
+> >>>    */
+> >>> static struct regdata mb86a20s_init[] = {
+> >> Please test first my mb86a20s patchset. If it doesn't work, we'll need
+> >> to dig into the differences.
+> >>
+> >> The better is to group these and reorder them to look like what's there
+> >> at the driver, and send it like a diff. That would make a way easier to
+> >> see what's different there.
+> >>
+> >> Anyway, it follows my comments about a few things that came into my eyes.
+> >>
+> >>>       { 0x09, 0x3a },
+> >> No idea what's here, but it seems a worth trial to change it.
+> > It controls inversion. I just pushed a patch that will let it handle
+> > both normal and inverted spectrum. The DVB core will automatically
+> > switch inversion during device tuning.
+> 
+> I test, but not work.
+> 
+> Before the latest patches, obtained as follows, for example:
+> 
+> dmesg
+> [  397.076641] mb86a20s: mb86a20s_read_status:
+> [  397.077129] mb86a20s: mb86a20s_read_status: val = X, status = 0xXX
+
+I did a cleanup at the printk messages. Also, the debug ones now use
+dynamic_printk. That means that they're disabled by default. They can
+be enabled in runtime (and per-line). If you want to enable all messages,
+you can do:
+
+To enable all debug messages on mb86a20s:
+	echo "file drivers/media/dvb-frontends/mb86a20s.c +p" > /sys/kernel/debug/dynamic_debug/control
+
+To clean all debug messages
+	echo "-p" > /sys/kernel/debug/dynamic_debug/control
+
+To enable just the *ber* or *BER* ones:
+	
+	for i in $(cat /sys/kernel/debug/dynamic_debug/control|grep mb86a20s.c|grep -i ber|cut -d' ' -f 1|cut -d: -f2); do
+		echo "file drivers/media/dvb-frontends/mb86a20s.c line $i +p" > /sys/kernel/debug/dynamic_debug/control
+	done
+
+
+> and now, I don't get anything. But if I use VLC I get this:
+> 
+> 
+> dtvdebug: frontend status: 0x00
+> 
+> dtvdebug: frontend status: 0x03
+> 
+> dtvdebug: frontend status: 0x07
+> 
+> dtvdebug: frontend status: 0x01
+
+Ok, that means that it is trying to sync Viterbi. You're better served if you
+use dvbv5-scan[1], instead, as it will provide you more information (eventually
+CNR - if it can keep status = 0x07 for a while, or if you have a zap file:
+
+$ dvbv5-zap -I zap  -c ~/isdb_channel.conf "globo 1seg"
+using demux '/dev/dvb/adapter0/demux0'
+reading channels from file '/home/mchehab/isdb_channel.conf'
+tuning to 485142857 Hz
+video pid 529
+  dvb_set_pesfilter 529
+audio pid 530
+  dvb_set_pesfilter 530
+RF     (0x01) Signal= 0.00%
+RF     (0x01) Signal= 0.00%
+RF     (0x01) Signal= 0.00%
+Carrier(0x03) Signal= 0.00%
+RF     (0x01) Signal= 0.00%
+RF     (0x01) Signal= 0.00%
+Lock   (0x1f) Quality= Poor Signal= 6.25% C/N= 15.57dB UCB= 96965 postBER= 0 preBER= 3.08x10^-3 PER= 1.00
+	  Layer A: Quality= Poor C/N= 15.52dB UCB= 4064 postBER= 0 preBER= 3.08x10^-3 PER= 1.00
+	  Layer B: C/N= 30.00dB
+
+I think I asked it already, but eventually, it is just antenna. 
+
+[1] http://git.linuxtv.org/v4l-utils.git/blob/192d27e53f09924e9ec3150ae146df86da178f02:/utils/dvb/dvbv5-scan.c
+
+> >>>       { 0x28, 0x2a },
+> >>>       { 0x29, 0x00 },
+> >>>       { 0x2a, 0xfd },
+> >>>       { 0x2b, 0xc8 },
+> >> Hmm... the above may explain why it is not working. This is calculated
+> >> from the XTAL frequency, and IF (if different than 4MHz).
+> >>
+> >> Just changing it could fix the issue.
+> > I also added a patch that allows using a different XTAL frequency.
+> >
+> > You can use the calculus there to convert from 0x00fdc8 into the XTAL
+> > frequency, if you have the IF set by xc5000.
+> I don't have the IF. How I can know the intermediate frequency?
+> 
+> Xtal near of xc5000 is 32.000MHz. Perhaps 32/8=4 -->IF
+
+The easiest way to discover is to enable the mb86a20s debug:
+
+[ 1443.564782] i2c i2c-3: mb86a20s_initfe: fclk=32571428, IF=4000000, clock reg=0x00ff80
+[ 1443.566781] i2c i2c-3: mb86a20s_initfe: IF=4000000, IF reg=0x3ee08f
+
+The IF here come from the tuner, via ops.get_if_frequency().
+
+> There are other 2 xtal of 16.000MHz and other of 28.636MHz.
+
+> Xtal of mb86a20s is 32.571MHz.
+
+That seems to be the standard xtal. 
+
+> In total there are 4 xtal.
+> 
+> With mb86a20s changes made, the logs (i2c traffic) obtained are 
+> different from those obtained with Windows
+> 
+> I have yet to thoroughly analyze 24 samples I took with the logic 
+> analyzer and try to see your logic. This is going to take some time.
+> 
+> 
+> Again thank you very much,
+> 
+> Alfredo
+
+
+-- 
+
+Cheers,
+Mauro
