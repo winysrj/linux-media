@@ -1,129 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:47248 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750835Ab3CTKI1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 06:08:27 -0400
-Date: Wed, 20 Mar 2013 11:11:46 +0100
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 0/8] Add a driver for somagic smi2021
-Message-ID: <20130320101146.GN17291@dell.arpanet.local>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <20130315120856.GA2989@localhost>
- <20130317200158.GB17291@dell.arpanet.local>
- <20130318000507.GA2456@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130318000507.GA2456@localhost>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:58600 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752148Ab3CEJ2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 04:28:43 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MJ600HGWKXTUM60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Mar 2013 09:28:41 +0000 (GMT)
+Received: from [127.0.0.1] ([106.116.147.30])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MJ60053YKZRI090@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 05 Mar 2013 09:28:41 +0000 (GMT)
+Message-id: <5135BAC6.5050703@samsung.com>
+Date: Tue, 05 Mar 2013 10:28:38 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	Pawel Osciak <p.osciak@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH] Adding additional flags when allocating buffer memory
+References: <201303011944.00532.hverkuil@xs4all.nl>
+In-reply-to: <201303011944.00532.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 17, 2013 at 09:05:08PM -0300, Ezequiel Garcia wrote:
-> Hi Jon,
-> 
-> On Sun, Mar 17, 2013 at 09:01:58PM +0100, Jon Arne Jørgensen wrote:
-> > On Fri, Mar 15, 2013 at 09:08:58AM -0300, Ezequiel Garcia wrote:
-> > > On Thu, Mar 14, 2013 at 03:06:56PM +0100, Jon Arne Jørgensen wrote:
-> > > > This patch-set will add a driver for the Somagic SMI2021 chip.
-> > > > 
-> > > > This chip is found inside different usb video-capture devices.
-> > > > Most of them are branded as EasyCap, but there also seems to be
-> > > > some other brands selling devices with this chip.
-> > > > 
-> > > > This driver is split into two modules, where one is called smi2021-bootloader,
-> > > > and the other is just called smi2021.
-> > > > 
-> > > > The bootloader is responsible for the upload of a firmware that is needed by some
-> > > > versions of the devices.
-> > > > 
-> > > > All Somagic devices that need firmware seems to identify themselves
-> > > > with the usb product id 0x0007. There is no way for the kernel to know
-> > > > what firmware to upload to the device without user interaction.
-> > > > 
-> > > > If there is only one firmware present on the computer, the kernel
-> > > > will upload that firmware to any device that identifies as 0x0007.
-> > > > If there are multiple Somagic firmwares present, the user will have to pass
-> > > > a module parameter to the smi2021-bootloader module to tell what firmware to use.
-> > > > 
-> > > 
-> > > Nice job!
-> > >
-> > Thanks :)
-> >  
-> > > I have some minor comments on each patch, but also I don't agree
-> > > with the patch splitting: what's the point in splitting and sending
-> > > one patch per file?
-> > > 
-> > > It doesn't make it any easier to review, so why don't you just
-> > > send one patch: "Introduce smi2021 driver"?
-> > > 
-> > > The rule is one patch per change, and I believe this whole patchset
-> > > is just one change: adding a new driver.
-> > > 
-> > 
-> > I think I read another patch to this mailinglist, where someone was told
-> > to split his patch into one mail per file, but I can't find that thread
-> > now :)
-> > 
-> > I will send the next version as a single mail, and see what happens...
-> > 
-> 
-> As you will soon realize, the patch preparation is equally important as the
-> patch content itself. Often, it takes the same time to implement or
-> fix something, as it takes to prepare the patchset carefully.
+Hello,
+
+On 3/1/2013 7:44 PM, Hans Verkuil wrote:
+> Hi all,
+>
+> This patch is based on an idea from Federico:
+>
+> http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg24669.html
+>
+> While working on converting the solo6x10 driver to vb2 I realized that the
+> same thing was needed for the dma-sg case: the solo6x10 has 32-bit PCI DMA,
+> so you want to specify __GFP_DMA32 to prevent bounce buffers from being created.
+>
+> Rather than patching all drivers as the patch above does (error prone IMHO),
+> I've decided to just add a gfp_flags field to vb2_queue and pass that to the
+> alloc mem_op. The various alloc implementations will just OR it in.
+
+I agree that the gfp_flags is needed. It should be there from the 
+beginning,
+but there is not DMA zone on our hardware and we missed that point. Our 
+fault.
+However IMHO the better place for gfp_flags is the allocator context 
+structure
+instead of vb2_queue. vb2_dma_contig_init_ctx() would need to be 
+extended and
+similar function should be added for dma sg.
+
+This reminds me that dma sg allocator needs to be seriously cleaned up 
+to match
+the changes done in dma contig allocator from the beginning of its life. 
+I have
+some work-in-progress patches, but I didn't manage to finish them due to 
+lack
+of time...
+
+> This is urgently needed for any driver with DMA32 restrictions (which are most
+> PCI drivers).
+>
+> Comments?
+>
+> Regards,
+>
+> 	Hans
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index db1235d..adde3e6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -57,7 +57,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>   	/* Allocate memory for all planes in this buffer */
+>   	for (plane = 0; plane < vb->num_planes; ++plane) {
+>   		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+> -				      q->plane_sizes[plane]);
+> +				      q->plane_sizes[plane], q->gfp_flags);
+>   		if (IS_ERR_OR_NULL(mem_priv))
+>   			goto free;
+>   
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 10beaee..ae35d25 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -152,7 +152,7 @@ static void vb2_dc_put(void *buf_priv)
+>   	kfree(buf);
+>   }
+>   
+> -static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_dc_conf *conf = alloc_ctx;
+>   	struct device *dev = conf->dev;
+> @@ -165,7 +165,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+>   	/* align image size to PAGE_SIZE */
+>   	size = PAGE_ALIGN(size);
+>   
+> -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+> +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+> +						GFP_KERNEL | gfp_flags);
+>   	if (!buf->vaddr) {
+>   		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+>   		kfree(buf);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 25c3b36..952776f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -33,7 +33,7 @@ struct vb2_dma_sg_buf {
+>   
+>   static void vb2_dma_sg_put(void *buf_priv);
+>   
+> -static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_dma_sg_buf *buf;
+>   	int i;
+> @@ -60,7 +60,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+>   		goto fail_pages_array_alloc;
+>   
+>   	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+> -		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
+> +		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+> +					   __GFP_NOWARN | gfp_flags);
+>   		if (NULL == buf->pages[i])
+>   			goto fail_pages_alloc;
+>   		sg_set_page(&buf->sg_desc.sglist[i],
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index a47fd4f..313d977 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -35,11 +35,11 @@ struct vb2_vmalloc_buf {
+>   
+>   static void vb2_vmalloc_put(void *buf_priv);
+>   
+> -static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_vmalloc_buf *buf;
+>   
+> -	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
+>   	if (!buf)
+>   		return NULL;
+>   
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index 9cfd4ee..251d66b 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -27,7 +27,9 @@ struct vb2_fileio_data;
+>    *		return NULL on failure or a pointer to allocator private,
+>    *		per-buffer data on success; the returned private structure
+>    *		will then be passed as buf_priv argument to other ops in this
+> - *		structure
+> + *		structure. Additional gfp_flags to use when allocating the
+> + *		are also passed to this operation. These flags are from the
+> + *		gfp_flags field of vb2_queue.
+>    * @put:	inform the allocator that the buffer will no longer be used;
+>    *		usually will result in the allocator freeing the buffer (if
+>    *		no other users of this buffer are present); the buf_priv
+> @@ -79,7 +81,7 @@ struct vb2_fileio_data;
+>    *				  unmap_dmabuf.
+>    */
+>   struct vb2_mem_ops {
+> -	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+> +	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
+>   	void		(*put)(void *buf_priv);
+>   	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+>   
+> @@ -302,6 +304,9 @@ struct v4l2_fh;
+>    * @buf_struct_size: size of the driver-specific buffer structure;
+>    *		"0" indicates the driver doesn't want to use a custom buffer
+>    *		structure type, so sizeof(struct vb2_buffer) will is used
+> + * @gfp_flags:	additional gfp flags used when allocating the buffers.
+> + *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+> + *		to force the buffer allocation to a specific memory zone.
+>    *
+>    * @memory:	current memory type used
+>    * @bufs:	videobuf buffer structures
+> @@ -326,6 +331,7 @@ struct vb2_queue {
+>   	const struct vb2_mem_ops	*mem_ops;
+>   	void				*drv_priv;
+>   	unsigned int			buf_struct_size;
+> +	gfp_t				gfp_flags;
+>   
+>   /* private: internal use only */
+>   	enum v4l2_memory		memory;
 >
 
-I'm beginning to realize that yes :)
- 
-> When deciding how to prepare your patches you have to keep two main things in mind:
-> 
->   * The kernel build can never be broken, in any configuration and in any
->     point of the kernel history (in other words, by any patch of a patchset).
->     This is called 'keep the bisectability' because it's essential
->     to make 'git bisect' work properly.
->
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Then it does make good sense to send this whole driver as a singe email.
- 
->   * Do as much as possible to facilitate reviews from other people.
->     This is also important because patches tend to be accepted quicker
->     if they recieve attention (reviews, testing, etc.).
-> 
-> In this particular case, I think that the easier way to review is to be
-> able to see the complete driver in a single patch. Of course, I can be
-> wrong, so feel free to correct me.
-> 
-> Please note that the reviews I made where almost nitpicks, and the
-> driver looks good in general. I cannot provide any testing for lack of hardware.
-> 
-> Also, for your next patch, add the output of v4l2-compliance tool,
-> showing it passes all the tests. This shows your driver is in good shape.
-> Get v4l2-compliancefrom the git repo, as distribution often provide
-> an outdated version.
-> 
 
-I'll do this.
-
-> (And another thing, please fix your mail client: the reply-to is pointing
-> to '20130315120856.GA2989@localhost.arpanet.local'.)
->
-
-Yes, my first attempts to send mail from mutt, classic PEBCAP...
-
-Again, thank you for your time.
-
-> Thanks for your work and best regards,
-> -- 
-> Ezequiel García, Free Electrons
-> Embedded Linux, Kernel and Android Engineering
-> http://free-electrons.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
