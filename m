@@ -1,92 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39134 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751121Ab3CXLol convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 07:44:41 -0400
-Date: Sun, 24 Mar 2013 08:44:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 5/5] em28xx: write output frame resolution to regs
- 0x34+0x35 for em25xx family bridges
-Message-ID: <20130324084436.76968b9e@redhat.com>
-In-Reply-To: <1364059632-29070-6-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1364059632-29070-6-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:53817 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755355Ab3CEPjq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 10:39:46 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.9] cx231xx: v4l2 compliance and big-endian fixes.
+Date: Tue, 5 Mar 2013 16:39:12 +0100
+Cc: linux-media@vger.kernel.org,
+	"Sri Deevi" <Srinivasa.Deevi@conexant.com>,
+	"Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
+References: <201302150946.59696.hverkuil@xs4all.nl> <20130305121952.75418052@redhat.com>
+In-Reply-To: <20130305121952.75418052@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303051639.12394.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 23 Mar 2013 18:27:12 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-
-> The Windows driver writes the output resolution to registers 0x34 (width / 16)
-> and 0x35 (height / 16) always.
-> We don't know yet what these registers are used for.
+On Tue 5 March 2013 16:19:52 Mauro Carvalho Chehab wrote:
+> Em Fri, 15 Feb 2013 09:46:59 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 > 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
->  drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
->  2 Dateien geändert, 13 Zeilen hinzugefügt(+)
+> > This patch series cleans up the cx231xx driver based on v4l2-compliance
+> > reports.
+> > 
+> > It is identical to the RFCv2 patch series I posted a week ago:
+> > 
+> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg58508.html
+> > 
+> > I have tested this on various cx231xx devices. However, I have no hardware
+> > that supports the radio tuner, so that's untested. To my knowledge, no such
+> > devices exist at the moment anyway.
+> > 
+> > Also note that the MPEG encoder support does not seem to work. It didn't work
+> > before these patches are applied, and it doesn't work afterwards. At best it
+> > will stream for a bit and then hang the machine. While I did convert the 417
+> > code to have it pass the compliance tests, I also disable 417 support in the
+> > single card that supports it (gracefully provided by Conexant for which I
+> > want to thank them!) until someone can find the time to dig into it and
+> > figure out what is wrong. Note that that board is an evaluation board and not
+> > a consumer product.
+> > 
+> > In addition the vbi support is flaky as well. It was flaky before this patch
+> > series, and it is equally flaky afterwards. I have managed to get something
+> > to work only on rare occasions and only for NTSC, never for PAL.
+> > 
+> > Finally I have tested this on a big-endian machine so there are a bunch of
+> > patches fixing a lot of endianness problems.
+> > 
+> > A general note regarding this driver: I've found this to be a particularly
+> > fragile driver. Things like changing formats/standards, unplugging at
+> > unexpected times and vbi support all seem very prone to errors. I have
+> > serious doubts about the disconnect handling: this code really should use the
+> > core support for handling such events (in particular the v4l2_device release
+> > callback).
+> > 
+> > Regards,
+> > 
+> >         Hans
+> > 
+> > The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
+> > 
+> >   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git cx231xx
+> > 
+> > for you to fetch changes up to bb047a3fd001f7de36f94058c9c296332c494f83:
+> > 
+> >   cx231xx: fix gpio big-endian problems (2013-02-15 09:42:39 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Hans Verkuil (26):
+> >       cx231xx: add device_caps support to QUERYCAP.
+> >       cx231xx: add required VIDIOC_DBG_G_CHIP_IDENT support.
+> >       cx231xx: clean up radio support.
+> >       cx231xx: remove broken audio input support from the driver.
+> >       cx231xx: fix tuner compliance issues.
+> >       cx231xx: zero priv field and use right width in try_fmt
+> >       cx231xx: fix frequency clamping.
+> >       cx231xx: fix vbi compliance issues.
+> >       cx231xx: convert to the control framework.
+> >       cx231xx: add struct v4l2_fh to get prio and event support.
+> >       cx231xx: remove current_norm usage.
+> >       cx231xx: replace ioctl by unlocked_ioctl.
+> >       cx231xx: get rid of a bunch of unused cx231xx_fh fields.
+> >       cx231xx: improve std handling.
+> >       cx231xx-417: remove empty functions.
+> >       cx231xx-417: use one querycap for all device nodes.
+> >       cx231xx-417: fix g/try_fmt compliance problems
+> >       cx231xx-417: checkpatch cleanups.
+> >       cx231xx-417: share ioctls with cx231xx-video.
+> >       cx231xx-417: convert to the control framework.
+> >       cx231xx: remove bogus driver prefix in log messages.
+> >       cx231xx: disable 417 support from the Conexant video grabber
 > 
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index 7b9f76b..0ce6b0f 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
->  	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
->  	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
->  	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
-> +
-> +	if (dev->is_em25xx) {
-> +		em28xx_write_reg(dev, 0x34, width >> 4);
-> +		em28xx_write_reg(dev, 0x35, height >> 4);
-> +	}
-> +	/* FIXME: function/meaning of these registers ? */
-> +	/* FIXME: */
+> Since when it was broken?
 
-Please move those comments to be _before_ the code you're commenting.
+That's impossible to say without going back a very long time. I doubt it ever
+worked reliably. Note that there were no consumer devices supporting this until
+now (the new OTG102 device), so nobody could ever test it unless they has the
+dev board from Conexant.
 
-E. g. something like:
+> Did you c/c those patch series to Sri/Palash?
 
-	if (dev->is_em25xx) {
-		/*
-		 * FIXME:
- 		 *	- function/meaning of these registers are unknown;
-		 *	- align width+height to multiples of 4 ?! 
-		 */
-		em28xx_write_reg(dev, 0x34, width >> 4);
-		em28xx_write_reg(dev, 0x35, height >> 4);
-	}
+Yes, to both of them.
 
+> What they said about the
+> issues with 417?
 
->  }
->  
->  static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
-> diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-> index 1b0ecd6..e08982a 100644
-> --- a/drivers/media/usb/em28xx/em28xx-reg.h
-> +++ b/drivers/media/usb/em28xx/em28xx-reg.h
-> @@ -167,6 +167,12 @@
->  
->  #define EM28XX_R34_VBI_START_H	0x34
->  #define EM28XX_R35_VBI_START_V	0x35
-> +/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
-> + * registers for a different unknown purpose.
-> + *   => register 0x34 is set to capture width / 16
-> + *   => register 0x35 is set to capture height / 16
-> + */
-> +
->  #define EM28XX_R36_VBI_WIDTH	0x36
->  #define EM28XX_R37_VBI_HEIGHT	0x37
->  
+Nothing :-)
 
+Anyway, this patch series does not affect the 417: it's just as broken before
+as it is after. I have been able to get MPEG out of it on occasion, but it
+crashed quickly afterwards.
 
--- 
+The only thing I did is disable it in the board config, waiting for someone
+with more time to dig into this and fix it. As I mentioned in my pull request
+this driver is quite fragile.
 
-Cheers,
-Mauro
+Regards,
+
+	Hans
+
+> 
+> Palash/Sri: 
+> 
+> I remember Palash mentioned that he would be the "odd fixes"
+> maintainer for Conexant drivers. If you're willing to do so, could you
+> please send us a patch for MAINTAINERS, to avoid the risk of having a
+> series like this one without your review?
+> 
+> Regards,
+> Mauro
+> 
+> >       cx231xx: don't reset width/height on first open.
+> >       cx231xx: don't use port 3 on the Conexant video grabber.
+> >       cx231xx: fix big-endian problems.
+> >       cx231xx: fix gpio big-endian problems
+> > 
+> >  drivers/media/usb/cx231xx/cx231xx-417.c     | 1178 +++++++++++++++++++++++++------------------------------------
+> >  drivers/media/usb/cx231xx/cx231xx-audio.c   |    8 +-
+> >  drivers/media/usb/cx231xx/cx231xx-avcore.c  |   83 ++---
+> >  drivers/media/usb/cx231xx/cx231xx-cards.c   |   24 +-
+> >  drivers/media/usb/cx231xx/cx231xx-core.c    |    2 +-
+> >  drivers/media/usb/cx231xx/cx231xx-pcb-cfg.c |    2 +-
+> >  drivers/media/usb/cx231xx/cx231xx-vbi.c     |   25 +-
+> >  drivers/media/usb/cx231xx/cx231xx-video.c   |  589 ++++++++-----------------------
+> >  drivers/media/usb/cx231xx/cx231xx.h         |   54 ++-
+> >  9 files changed, 740 insertions(+), 1225 deletions(-)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
