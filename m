@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4746 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752091Ab3CBXpo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [RFC PATCH 00/20] solo6x10: V4L2 compliancy fixes and major overhaul
-Date: Sun,  3 Mar 2013 00:45:16 +0100
-Message-Id: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:46858 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753568Ab3CEMRK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 07:17:10 -0500
+Received: by mail-wg0-f50.google.com with SMTP id es5so5663017wgb.5
+        for <linux-media@vger.kernel.org>; Tue, 05 Mar 2013 04:17:08 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1362484334-18804-1-git-send-email-sachin.kamat@linaro.org>
+References: <1362484334-18804-1-git-send-email-sachin.kamat@linaro.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 5 Mar 2013 17:46:46 +0530
+Message-ID: <CA+V-a8vwiXk+0AcRgRRdOP-qbKrsDKFNQ4DKm+fTGgTSiiwn7g@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] davinci_vpfe: Use module_platform_driver macro
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	prabhakar.lad@ti.com, manjunath.hadli@ti.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Sachin,
 
-This patch series updates the solo6x10 staging driver to a usable state.
+Thanks for the patch!
 
-It has been tested with my Bluecherry BC-04120A MPEG4 4 port video encoder/decoder
-card, generously provided by Bluecherry about two years ago.
+On Tue, Mar 5, 2013 at 5:22 PM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> module_platform_driver() eliminates the boilerplate and simplifies
+> the code.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Most of these fixes are the usual fall-out from testing with v4l2-compliance,
-but due to the many locking errors in this driver I decided to also convert
-it to vb2. It was frankly easier then trying to fix the locking madness
-caused by the interaction between threads and videobuf.
-
-Currently this driver seems to be quite reliable (I haven't done any long-term
-tests though), but there are a few TODO items:
-
-1) Most importantly, the video from video0 is broken: it is supposed to be
-   either one of the four inputs or a 2x2 image of all four inputs, instead I
-   always get the first video line of the input repeated for the whole image.
-
-   I have no idea why and it would be very nice if someone from Bluecherry
-   can look at this. I do not see anything wrong in the DMA code, so it is
-   a mystery to me. I'm beginning to wonder if you are actually supposed to
-   be able to DMA from video0!
-
-2) I couldn't get it to work on a big-endian system. I keep getting
-   SOLO_PCI_ERR_P2M_DESC errors, but I see nothing wrong with the DMA
-   descriptor. Perhaps if someone with a solo datasheet can tell me the
-   possible causes of that error interrupt I might be able to figure it
-   out. It's just the DMA setup that does something wrong, the rest seems
-   fine.
-
-3) What is the meaning of this snippet of code in v4l2-enc.c?
-
-	if (pix->priv)
-		solo_enc->type = SOLO_ENC_TYPE_EXT;
-
-   I've commented it out since it is completely undocumented and no driver
-   should assume that priv is non-zero anymore, precisely because of issues
-   like this. Ismael, do you know what the difference is between SOLO_ENC_TYPE_STD
-   and SOLO_ENC_TYPE_EXT?
-
-4) Most of the sources and headers need to be renamed with a solo6x10- prefix.
-   The current names are too general.
-
-5) There is a custom extension for motion detection. I left that part unchanged
-   as it doesn't look too bad, but I am unable to test it properly. I've
-   ordered a suitable CCTV camera from dealextreme, but that will take a few
-   weeks before I have it (dx.com is cheap, but delivery is quite slow). I'd
-   like to experiment a bit with this.
-
-6) The tw28* 'drivers' should really be split off as subdevice drivers, but
-   unfortunately I don't have a datasheet for the tw2815 (I found one for the
-   tw2864 though). If I ever get hold of a datasheet, then creating subdev
-   drivers for this would be nice.
-
-7) The kernel threads really should be replaced by workqueues.
-
-All in all this driver is now almost ready to go into the mainline part of
-the kernel. Before that's done I'd like to get items 1, 3 and 5 resolved
-first. Ismael, it would be great if you could help me out with 1 and 3!
+Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
 
 Regards,
+--Prabhakar Lad
 
-	Hans
-
+> ---
+>  .../staging/media/davinci_vpfe/vpfe_mc_capture.c   |   20 +-------------------
+>  1 files changed, 1 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> index 7b35171..c7ae7d7 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> @@ -719,22 +719,4 @@ static struct platform_driver vpfe_driver = {
+>         .remove = vpfe_remove,
+>  };
+>
+> -/**
+> - * vpfe_init : This function registers device driver
+> - */
+> -static __init int vpfe_init(void)
+> -{
+> -       /* Register driver to the kernel */
+> -       return platform_driver_register(&vpfe_driver);
+> -}
+> -
+> -/**
+> - * vpfe_cleanup : This function un-registers device driver
+> - */
+> -static void vpfe_cleanup(void)
+> -{
+> -       platform_driver_unregister(&vpfe_driver);
+> -}
+> -
+> -module_init(vpfe_init);
+> -module_exit(vpfe_cleanup);
+> +module_platform_driver(vpfe_driver);
+> --
+> 1.7.4.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
