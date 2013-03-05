@@ -1,364 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2799 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754144Ab3CKLrO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:47:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 37/42] saa7134-go7007: add support for this combination.
-Date: Mon, 11 Mar 2013 12:46:15 +0100
-Message-Id: <f8598fa09f062999b079c7f2ae5f9e4566d9725e.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57273 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750729Ab3CEKzh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Mar 2013 05:55:37 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/3] em28xx: add support for registering multiple i2c buses
+Date: Tue,  5 Mar 2013 07:55:28 -0300
+Message-Id: <1362480928-20382-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
+References: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pete Eberlein <pete@sensoray.com>
+Register both buses 0 and 1 via I2C API. For now, bus 0 is used
+only by eeprom on all known devices. Later patches will be needed
+if this changes in the future.
 
-Add support for the Sensoray model 614 board, which is a saa7134
-with a go7007 MPEG encoder.
-
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
-[hans.verkuil@cisco.com: updated to make it merge correctly]
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/pci/saa7134/saa7134-cards.c     |   29 ++++++
- drivers/media/pci/saa7134/saa7134-core.c      |   10 ++-
- drivers/media/pci/saa7134/saa7134.h           |    5 ++
- drivers/staging/media/go7007/Makefile         |    4 +-
- drivers/staging/media/go7007/saa7134-go7007.c |  117 +++++++++++++++----------
- 5 files changed, 115 insertions(+), 50 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c | 29 +++++++---
+ drivers/media/usb/em28xx/em28xx-i2c.c   | 93 ++++++++++++++++++++++-----------
+ drivers/media/usb/em28xx/em28xx.h       | 19 +++++--
+ 3 files changed, 97 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/media/pci/saa7134/saa7134-cards.c b/drivers/media/pci/saa7134/saa7134-cards.c
-index dc68cf1..9a53794 100644
---- a/drivers/media/pci/saa7134/saa7134-cards.c
-+++ b/drivers/media/pci/saa7134/saa7134-cards.c
-@@ -5790,6 +5790,29 @@ struct saa7134_board saa7134_boards[] = {
- 			.gpio = 0x6010000,
- 		} },
- 	},
-+	[SAA7134_BOARD_WIS_VOYAGER] = {
-+		.name           = "WIS Voyager or compatible",
-+		.audio_clock    = 0x00200000,
-+		.tuner_type	= TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.mpeg		= SAA7134_MPEG_GO7007,
-+		.inputs		= { {
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_tv,
-+			.vmux = 3,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 6,
-+		.amux = LINE1,
-+		} },
-+	},
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 16ab4d7..496b938 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2235,8 +2235,8 @@ static inline void em28xx_set_model(struct em28xx *dev)
+ 		dev->board.i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
+ 				       EM28XX_I2C_FREQ_100_KHZ;
  
- };
- 
-@@ -7037,6 +7060,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
- 		.subdevice    = 0x0911,
- 		.driver_data  = SAA7134_BOARD_SENSORAY811_911,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1905, /* WIS */
-+		.subdevice    = 0x7007,
-+		.driver_data  = SAA7134_BOARD_WIS_VOYAGER,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index 8fd24e7..0a849ea 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -156,6 +156,8 @@ static void request_module_async(struct work_struct *work){
- 		request_module("saa7134-empress");
- 	if (card_is_dvb(dev))
- 		request_module("saa7134-dvb");
-+	if (card_is_go7007(dev))
-+		request_module("saa7134-go7007");
- 	if (alsa) {
- 		if (dev->pci->device != PCI_DEVICE_ID_PHILIPS_SAA7130)
- 			request_module("saa7134-alsa");
-@@ -557,8 +559,12 @@ static irqreturn_t saa7134_irq(int irq, void *dev_id)
- 			saa7134_irq_vbi_done(dev,status);
- 
- 		if ((report & SAA7134_IRQ_REPORT_DONE_RA2) &&
--		    card_has_mpeg(dev))
--			saa7134_irq_ts_done(dev,status);
-+		    card_has_mpeg(dev)) {
-+			if (dev->mops->irq_ts_done != NULL)
-+				dev->mops->irq_ts_done(dev, status);
-+			else
-+				saa7134_irq_ts_done(dev, status);
-+		}
- 
- 		if (report & SAA7134_IRQ_REPORT_GPIO16) {
- 			switch (dev->has_remote) {
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index 71eefef..e337e6c 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -334,6 +334,7 @@ struct saa7134_card_ir {
- #define SAA7134_BOARD_KWORLD_PC150U         189
- #define SAA7134_BOARD_ASUSTeK_PS3_100      190
- #define SAA7134_BOARD_HAWELL_HW_9004V1      191
-+#define SAA7134_BOARD_WIS_VOYAGER           192
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-@@ -364,6 +365,7 @@ enum saa7134_mpeg_type {
- 	SAA7134_MPEG_UNUSED,
- 	SAA7134_MPEG_EMPRESS,
- 	SAA7134_MPEG_DVB,
-+	SAA7134_MPEG_GO7007,
- };
- 
- enum saa7134_mpeg_ts_type {
-@@ -403,6 +405,7 @@ struct saa7134_board {
- #define card_has_radio(dev)   (NULL != saa7134_boards[dev->board].radio.name)
- #define card_is_empress(dev)  (SAA7134_MPEG_EMPRESS == saa7134_boards[dev->board].mpeg)
- #define card_is_dvb(dev)      (SAA7134_MPEG_DVB     == saa7134_boards[dev->board].mpeg)
-+#define card_is_go7007(dev)   (SAA7134_MPEG_GO7007  == saa7134_boards[dev->board].mpeg)
- #define card_has_mpeg(dev)    (SAA7134_MPEG_UNUSED  != saa7134_boards[dev->board].mpeg)
- #define card(dev)             (saa7134_boards[dev->board])
- #define card_in(dev,n)        (saa7134_boards[dev->board].inputs[n])
-@@ -535,6 +538,8 @@ struct saa7134_mpeg_ops {
- 	int                        (*init)(struct saa7134_dev *dev);
- 	int                        (*fini)(struct saa7134_dev *dev);
- 	void                       (*signal_change)(struct saa7134_dev *dev);
-+	void                       (*irq_ts_done)(struct saa7134_dev *dev,
-+						  unsigned long status);
- };
- 
- /* global device status */
-diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
-index f9c8e0f..7885c21 100644
---- a/drivers/staging/media/go7007/Makefile
-+++ b/drivers/staging/media/go7007/Makefile
-@@ -8,8 +8,8 @@ go7007-y := go7007-v4l2.o go7007-driver.o go7007-i2c.o go7007-fw.o \
- s2250-y := s2250-board.o
- 
- # Uncomment when the saa7134 patches get into upstream
--#obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
--#ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
-+obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
-+ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/pci/saa7134
- 
- # S2250 needs cypress ezusb loader from dvb-usb-v2
- ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
-diff --git a/drivers/staging/media/go7007/saa7134-go7007.c b/drivers/staging/media/go7007/saa7134-go7007.c
-index 752f1bd..f51f42e 100644
---- a/drivers/staging/media/go7007/saa7134-go7007.c
-+++ b/drivers/staging/media/go7007/saa7134-go7007.c
-@@ -28,12 +28,15 @@
- #include <linux/i2c.h>
- #include <asm/byteorder.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
- 
--#include "saa7134-reg.h"
- #include "saa7134.h"
-+#include "saa7134-reg.h"
-+#include "go7007.h"
- #include "go7007-priv.h"
- 
--#define GO7007_HPI_DEBUG
-+/*#define GO7007_HPI_DEBUG*/
- 
- enum hpi_address {
- 	HPI_ADDR_VIDEO_BUFFER = 0xe4,
-@@ -57,6 +60,7 @@ enum gpio_command {
- };
- 
- struct saa7134_go7007 {
-+	struct v4l2_subdev sd;
- 	struct saa7134_dev *dev;
- 	u8 *top;
- 	u8 *bottom;
-@@ -64,6 +68,11 @@ struct saa7134_go7007 {
- 	dma_addr_t bottom_dma;
- };
- 
-+static inline struct saa7134_go7007 *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct saa7134_go7007, sd);
-+}
-+
- static struct go7007_board_info board_voyager = {
- 	.firmware	 = "go7007tv.bin",
- 	.flags		 = 0,
-@@ -84,7 +93,6 @@ static struct go7007_board_info board_voyager = {
- 		},
- 	},
- };
--MODULE_FIRMWARE("go7007tv.bin");
- 
- /********************* Driver for GPIO HPI interface *********************/
- 
-@@ -380,47 +388,6 @@ static int saa7134_go7007_send_firmware(struct go7007 *go, u8 *data, int len)
- 	return 0;
+-	if (dev->board.def_i2c_bus == 1)
+-		dev->board.i2c_speed |= EM2874_I2C_SECONDARY_BUS_SELECT;
++	/* Should be initialized early, for I2C to work */
++	dev->def_i2c_bus = dev->board.def_i2c_bus;
  }
  
--static int saa7134_go7007_send_command(struct go7007 *go, unsigned int cmd,
--					void *arg)
--{
--	struct saa7134_go7007 *saa = go->hpi_context;
--	struct saa7134_dev *dev = saa->dev;
--
--	switch (cmd) {
--	case VIDIOC_S_STD:
--	{
--		v4l2_std_id *std = arg;
--		return saa7134_s_std_internal(dev, NULL, std);
--	}
--	case VIDIOC_G_STD:
--	{
--		v4l2_std_id *std = arg;
--		*std = dev->tvnorm->id;
--		return 0;
--	}
--	case VIDIOC_QUERYCTRL:
--	{
--		struct v4l2_queryctrl *ctrl = arg;
--		if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_USER)
--			return saa7134_queryctrl(NULL, NULL, ctrl);
--	}
--	case VIDIOC_G_CTRL:
--	{
--		struct v4l2_control *ctrl = arg;
--		if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_USER)
--			return saa7134_g_ctrl_internal(dev, NULL, ctrl);
--	}
--	case VIDIOC_S_CTRL:
--	{
--		struct v4l2_control *ctrl = arg;
--		if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_USER)
--			return saa7134_s_ctrl_internal(dev, NULL, ctrl);
--	}
--	}
--	return -EINVAL;
--
--}
--
- static struct go7007_hpi_ops saa7134_go7007_hpi_ops = {
- 	.interface_reset	= saa7134_go7007_interface_reset,
- 	.write_interrupt	= saa7134_go7007_write_interrupt,
-@@ -428,15 +395,62 @@ static struct go7007_hpi_ops saa7134_go7007_hpi_ops = {
- 	.stream_start		= saa7134_go7007_stream_start,
- 	.stream_stop		= saa7134_go7007_stream_stop,
- 	.send_firmware		= saa7134_go7007_send_firmware,
--	.send_command		= saa7134_go7007_send_command,
+ 
+@@ -2642,7 +2642,7 @@ static int em28xx_hint_board(struct em28xx *dev)
+ 
+ 	/* user did not request i2c scanning => do it now */
+ 	if (!dev->i2c_hash)
+-		em28xx_do_i2c_scan(dev);
++		em28xx_do_i2c_scan(dev, dev->def_i2c_bus);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(em28xx_i2c_hash); i++) {
+ 		if (dev->i2c_hash == em28xx_i2c_hash[i].hash) {
+@@ -2953,7 +2953,9 @@ void em28xx_release_resources(struct em28xx *dev)
+ 
+ 	em28xx_release_analog_resources(dev);
+ 
+-	em28xx_i2c_unregister(dev);
++	if (dev->def_i2c_bus)
++		em28xx_i2c_unregister(dev, 1);
++	em28xx_i2c_unregister(dev, 0);
+ 
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 
+@@ -3109,14 +3111,23 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 	v4l2_ctrl_handler_init(hdl, 8);
+ 	dev->v4l2_dev.ctrl_handler = hdl;
+ 
+-	/* register i2c bus */
+-	retval = em28xx_i2c_register(dev);
++	/* register i2c bus 0 */
++	retval = em28xx_i2c_register(dev, 0);
+ 	if (retval < 0) {
+-		em28xx_errdev("%s: em28xx_i2c_register - error [%d]!\n",
++		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
+ 			__func__, retval);
+ 		goto unregister_dev;
+ 	}
+ 
++	if (dev->def_i2c_bus) {
++		retval = em28xx_i2c_register(dev, 1);
++		if (retval < 0) {
++			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
++				__func__, retval);
++			goto unregister_dev;
++		}
++	}
++
+ 	/*
+ 	 * Default format, used for tvp5150 or saa711x output formats
+ 	 */
+@@ -3186,7 +3197,9 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 	return 0;
+ 
+ fail:
+-	em28xx_i2c_unregister(dev);
++	if (dev->def_i2c_bus)
++		em28xx_i2c_unregister(dev, 1);
++	em28xx_i2c_unregister(dev, 0);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 
+ unregister_dev:
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 9086e57..ea63ac4 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -280,9 +280,22 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			   struct i2c_msg msgs[], int num)
+ {
+-	struct em28xx *dev = i2c_adap->algo_data;
++	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
++	struct em28xx *dev = i2c_bus->dev;
++	unsigned bus = i2c_bus->bus, last_bus;
+ 	int addr, rc, i, byte;
+ 
++	/* Switch I2C bus if needed */
++	last_bus = (dev->board.i2c_speed & EM2874_I2C_SECONDARY_BUS_SELECT) ?
++		   1 : 0;
++	if (bus != last_bus) {
++		if (bus == 1)
++			dev->board.i2c_speed |= EM2874_I2C_SECONDARY_BUS_SELECT;
++		else
++			dev->board.i2c_speed &= ~EM2874_I2C_SECONDARY_BUS_SELECT;
++		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
++	}
++
+ 	if (num <= 0)
+ 		return 0;
+ 	for (i = 0; i < num; i++) {
+@@ -384,7 +397,7 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
+ 	/* Select address */
+ 	buf[0] = addr >> 8;
+ 	buf[1] = addr & 0xff;
+-	ret = i2c_master_send(&dev->i2c_client[dev->def_i2c_bus], buf + !addr_w16, 1 + addr_w16);
++	ret = i2c_master_send(&dev->i2c_client[0], buf + !addr_w16, 1 + addr_w16);
+ 	if (ret < 0)
+ 		return ret;
+ 	/* Read data */
+@@ -398,7 +411,7 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
+ 		else
+ 			rsize = remain;
+ 
+-		ret = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], data, rsize);
++		ret = i2c_master_recv(&dev->i2c_client[0], data, rsize);
+ 		if (ret < 0)
+ 			return ret;
+ 
+@@ -422,10 +435,12 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, u8 **eedata, u16 *eedata_len)
+ 	*eedata = NULL;
+ 	*eedata_len = 0;
+ 
+-	dev->i2c_client[dev->def_i2c_bus].addr = 0xa0 >> 1;
++	/* EEPROM is always on i2c bus 0 on all known devices. */
++
++	dev->i2c_client[0].addr = 0xa0 >> 1;
+ 
+ 	/* Check if board has eeprom */
+-	err = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], &buf, 0);
++	err = i2c_master_recv(&dev->i2c_client[0], &buf, 0);
+ 	if (err < 0) {
+ 		em28xx_info("board has no eeprom\n");
+ 		return -ENODEV;
+@@ -590,9 +605,11 @@ error:
+ /*
+  * functionality()
+  */
+-static u32 functionality(struct i2c_adapter *adap)
++static u32 functionality(struct i2c_adapter *i2c_adap)
+ {
+-	struct em28xx *dev = adap->algo_data;
++	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
++	struct em28xx *dev = i2c_bus->dev;
++
+ 	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
+ 	if (dev->board.is_em2800)
+ 		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
+@@ -643,7 +660,7 @@ static char *i2c_devs[128] = {
+  * do_i2c_scan()
+  * check i2c address range for devices
+  */
+-void em28xx_do_i2c_scan(struct em28xx *dev)
++void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus)
+ {
+ 	u8 i2c_devicelist[128];
+ 	unsigned char buf;
+@@ -652,55 +669,66 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
+ 	memset(i2c_devicelist, 0, ARRAY_SIZE(i2c_devicelist));
+ 
+ 	for (i = 0; i < ARRAY_SIZE(i2c_devs); i++) {
+-		dev->i2c_client[dev->def_i2c_bus].addr = i;
+-		rc = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], &buf, 0);
++		dev->i2c_client[bus].addr = i;
++		rc = i2c_master_recv(&dev->i2c_client[bus], &buf, 0);
+ 		if (rc < 0)
+ 			continue;
+ 		i2c_devicelist[i] = i;
+-		em28xx_info("found i2c device @ 0x%x [%s]\n",
+-			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
++		em28xx_info("found i2c device @ 0x%x on bus %d [%s]\n",
++			    i << 1, bus, i2c_devs[i] ? i2c_devs[i] : "???");
+ 	}
+ 
+-	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
+-					ARRAY_SIZE(i2c_devicelist), 32);
++	if (bus == dev->def_i2c_bus)
++		dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
++						ARRAY_SIZE(i2c_devicelist), 32);
+ }
+ 
+ /*
+  * em28xx_i2c_register()
+  * register i2c bus
+  */
+-int em28xx_i2c_register(struct em28xx *dev)
++int em28xx_i2c_register(struct em28xx *dev, unsigned bus)
+ {
+ 	int retval;
+ 
+ 	BUG_ON(!dev->em28xx_write_regs || !dev->em28xx_read_reg);
+ 	BUG_ON(!dev->em28xx_write_regs_req || !dev->em28xx_read_reg_req);
+-	dev->i2c_adap[dev->def_i2c_bus] = em28xx_adap_template;
+-	dev->i2c_adap[dev->def_i2c_bus].dev.parent = &dev->udev->dev;
+-	strcpy(dev->i2c_adap[dev->def_i2c_bus].name, dev->name);
+-	dev->i2c_adap[dev->def_i2c_bus].algo_data = dev;
+-	i2c_set_adapdata(&dev->i2c_adap[dev->def_i2c_bus], &dev->v4l2_dev);
+ 
+-	retval = i2c_add_adapter(&dev->i2c_adap[dev->def_i2c_bus]);
++	if (bus >= NUM_I2C_BUSES)
++		return -ENODEV;
++
++	dev->i2c_adap[bus] = em28xx_adap_template;
++	dev->i2c_adap[bus].dev.parent = &dev->udev->dev;
++	strcpy(dev->i2c_adap[bus].name, dev->name);
++
++	dev->i2c_bus[bus].bus = bus;
++	dev->i2c_bus[bus].dev = dev;
++	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
++	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
++
++	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
+ 	if (retval < 0) {
+ 		em28xx_errdev("%s: i2c_add_adapter failed! retval [%d]\n",
+ 			__func__, retval);
+ 		return retval;
+ 	}
+ 
+-	dev->i2c_client[dev->def_i2c_bus] = em28xx_client_template;
+-	dev->i2c_client[dev->def_i2c_bus].adapter = &dev->i2c_adap[dev->def_i2c_bus];
++	dev->i2c_client[bus] = em28xx_client_template;
++	dev->i2c_client[bus].adapter = &dev->i2c_adap[bus];
+ 
+-	retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
+-	if ((retval < 0) && (retval != -ENODEV)) {
+-		em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
+-			__func__, retval);
++	/* Up to now, all eeproms are at bus 0 */
++	if (!bus) {
++		retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
++		if ((retval < 0) && (retval != -ENODEV)) {
++			em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
++				__func__, retval);
+ 
+-		return retval;
++			return retval;
++		}
+ 	}
+ 
+ 	if (i2c_scan)
+-		em28xx_do_i2c_scan(dev);
++		em28xx_do_i2c_scan(dev, bus);
+ 
+ 	return 0;
+ }
+@@ -709,8 +737,11 @@ int em28xx_i2c_register(struct em28xx *dev)
+  * em28xx_i2c_unregister()
+  * unregister i2c_bus
+  */
+-int em28xx_i2c_unregister(struct em28xx *dev)
++int em28xx_i2c_unregister(struct em28xx *dev, unsigned bus)
+ {
+-	i2c_del_adapter(&dev->i2c_adap[dev->def_i2c_bus]);
++	if (bus >= NUM_I2C_BUSES)
++		return -ENODEV;
++
++	i2c_del_adapter(&dev->i2c_adap[bus]);
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 43eb1c6..6800992 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -375,7 +375,7 @@ struct em28xx_board {
+ 	int vchannels;
+ 	int tuner_type;
+ 	int tuner_addr;
+-	int def_i2c_bus;	/* Default I2C bus */
++	unsigned def_i2c_bus;	/* Default I2C bus */
+ 
+ 	/* i2c flags */
+ 	unsigned int tda9887_conf;
+@@ -460,6 +460,13 @@ struct em28xx_fh {
+ 	enum v4l2_buf_type           type;
  };
  
-+/* --------------------------------------------------------------------------*/
++struct em28xx_i2c_bus {
++	struct em28xx *dev;
 +
-+static int saa7134_go7007_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
-+{
-+	struct saa7134_go7007 *saa = to_state(sd);
-+	struct saa7134_dev *dev = saa->dev;
-+
-+	return saa7134_s_std_internal(dev, NULL, &norm);
-+}
-+
-+static int saa7134_go7007_queryctrl(struct v4l2_subdev *sd,
-+				    struct v4l2_queryctrl *query)
-+{
-+	return saa7134_queryctrl(NULL, NULL, query);
-+}
-+static int saa7134_go7007_s_ctrl(struct v4l2_subdev *sd,
-+				 struct v4l2_control *ctrl)
-+{
-+	struct saa7134_go7007 *saa = to_state(sd);
-+	struct saa7134_dev *dev = saa->dev;
-+	return saa7134_s_ctrl_internal(dev, NULL, ctrl);
-+}
-+
-+static int saa7134_go7007_g_ctrl(struct v4l2_subdev *sd,
-+				 struct v4l2_control *ctrl)
-+{
-+	struct saa7134_go7007 *saa = to_state(sd);
-+	struct saa7134_dev *dev = saa->dev;
-+	return saa7134_g_ctrl_internal(dev, NULL, ctrl);
-+}
-+
-+/* --------------------------------------------------------------------------*/
-+
-+static const struct v4l2_subdev_core_ops saa7134_go7007_core_ops = {
-+	.g_ctrl = saa7134_go7007_g_ctrl,
-+	.s_ctrl = saa7134_go7007_s_ctrl,
-+	.queryctrl = saa7134_go7007_queryctrl,
-+	.s_std = saa7134_go7007_s_std,
++	unsigned bus;
 +};
 +
-+static const struct v4l2_subdev_ops saa7134_go7007_sd_ops = {
-+	.core = &saa7134_go7007_core_ops,
-+};
 +
-+/* --------------------------------------------------------------------------*/
+ /* main device struct */
+ struct em28xx {
+ 	/* generic device properties */
+@@ -515,8 +522,10 @@ struct em28xx {
+ 	/* i2c i/o */
+ 	struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
+ 	struct i2c_client i2c_client[NUM_I2C_BUSES];
++	struct em28xx_i2c_bus i2c_bus[NUM_I2C_BUSES];
 +
-+
- /********************* Add/remove functions *********************/
+ 	unsigned char eeprom_addrwidth_16bit:1;
+-	int def_i2c_bus;	/* Default I2C bus */
++	unsigned def_i2c_bus;	/* Default I2C bus */
  
- static int saa7134_go7007_init(struct saa7134_dev *dev)
- {
- 	struct go7007 *go;
- 	struct saa7134_go7007 *saa;
-+	struct v4l2_subdev *sd;
+ 	/* video for linux */
+ 	int users;		/* user count for exclusive use */
+@@ -638,9 +647,9 @@ struct em28xx_ops {
+ };
  
- 	printk(KERN_DEBUG "saa7134-go7007: probing new SAA713X board\n");
+ /* Provided by em28xx-i2c.c */
+-void em28xx_do_i2c_scan(struct em28xx *dev);
+-int  em28xx_i2c_register(struct em28xx *dev);
+-int  em28xx_i2c_unregister(struct em28xx *dev);
++void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus);
++int  em28xx_i2c_register(struct em28xx *dev, unsigned bus);
++int  em28xx_i2c_unregister(struct em28xx *dev, unsigned bus);
  
-@@ -444,6 +458,12 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
- 	if (saa == NULL)
- 		return -ENOMEM;
- 
-+	/* Init the subdevice interface */
-+	sd = &saa->sd;
-+	v4l2_subdev_init(sd, &saa7134_go7007_sd_ops);
-+	v4l2_set_subdevdata(sd, saa);
-+	strncpy(sd->name, "saa7134-go7007", sizeof(sd->name));
-+
- 	/* Allocate a couple pages for receiving the compressed stream */
- 	saa->top = (u8 *)get_zeroed_page(GFP_KERNEL);
- 	if (!saa->top)
-@@ -471,8 +491,12 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
- 	 * V4L2 and ALSA interfaces */
- 	if (go7007_register_encoder(go, go->board_info->num_i2c_devs) < 0)
- 		goto initfail;
-+
-+	/* Register the subdevice interface with the go7007 device */
-+	if (v4l2_device_register_subdev(&go->v4l2_dev, sd) < 0)
-+		printk(KERN_INFO "saa7134-go7007: register subdev failed\n");
-+
- 	dev->empress_dev = &go->vdev;
--	video_set_drvdata(dev->empress_dev, go);
- 
- 	go->status = STATUS_ONLINE;
- 	return 0;
-@@ -506,6 +530,7 @@ static int saa7134_go7007_fini(struct saa7134_dev *dev)
- 	go->status = STATUS_SHUTDOWN;
- 	free_page((unsigned long)saa->top);
- 	free_page((unsigned long)saa->bottom);
-+	v4l2_device_unregister_subdev(&saa->sd);
- 	kfree(saa);
- 	video_unregister_device(&go->vdev);
- 
+ /* Provided by em28xx-core.c */
+ int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
 -- 
-1.7.10.4
+1.8.1.4
 
