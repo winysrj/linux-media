@@ -1,36 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:22894 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751502Ab3COQ2o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 12:28:44 -0400
-Date: Fri, 15 Mar 2013 09:28:38 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] ir: IR_RX51 only works on OMAP2
-Message-ID: <20130315162837.GD9370@atomide.com>
-References: <1363298204-8014-1-git-send-email-arnd@arndb.de>
- <1363298204-8014-7-git-send-email-arnd@arndb.de>
- <20130315063913.GC1638@itanic.dhcp.inet.fi>
+Received: from mail.telros.ru ([83.136.244.21]:52357 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756212Ab3CFKW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 05:22:59 -0500
+Date: Wed, 6 Mar 2013 14:23:12 +0400
+From: volokh84@gmail.com
+To: volokh84@gmail.com
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: tw2804.c
+Message-ID: <20130306102312.GA1940@VPir.1>
+References: <20130305194828.8A75511E00AE@alastor.dyndns.org>
+ <20130306094813.GA1888@VPir.1>
+ <201303061102.47933.hverkuil@xs4all.nl>
+ <20130306101124.GA1916@VPir.1>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20130315063913.GC1638@itanic.dhcp.inet.fi>
+In-Reply-To: <20130306101124.GA1916@VPir.1>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [130314 23:43]:
-> On 03.14 2013 22:56:44, Arnd Bergmann wrote:
-> > This driver can be enabled on OMAP1 at the moment, which breaks
-> > allyesconfig for that platform. Let's mark it OMAP2PLUS-only
-> > in Kconfig, since that is the only thing it builds on.
+On Wed, Mar 06, 2013 at 02:11:24PM +0400, volokh84@gmail.com wrote:
+> On Wed, Mar 06, 2013 at 11:02:47AM +0100, Hans Verkuil wrote:
+> > On Wed 6 March 2013 10:48:13 volokh84@gmail.com wrote:
+> > > Hi,
+> > > Hans
+> > > 
+> > > I found in d8077d2df184f3ef63ed9ff4579d41ca64e12855 commit,
+> > > that V4L2_CTRL_FLAG_VOLATILE flag was disabled for some STD controls
+> > > and fully disabled g_ctrl iface. So How can userspace know about changing some values?
 > > 
+> > VOLATILE is used when register values can change automatically (e.g. if
+> > autogain is on and the device regulates the gain and updates that gain
+> > register itself).
+> >
+> Right that!!!
+> there one register for all 4 channell for each of AUTOGAIN,CHROMA,RED_B,BLUE_B reg, so if one channel changes CHROMA value (it changes all 4 channels),
+Sorry not AUTOGAIN, just GAIN
+> the another channel will have cached old value, instead new (case it value have not volatile control)
+> > However, testing proved that the hardware doesn't update anything when
+> > in autogain mode, hence volatile support isn't needed.
+> > 
+> > Note that the control framework always caches the last control value,
+> > so to get non-volatile controls the framework just returns that cached
+> > value.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> Acked-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-
-Acked-by: Tony Lindgren <tony@atomide.com>
