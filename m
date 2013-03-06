@@ -1,35 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55538 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933454Ab3CHJa4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 Mar 2013 04:30:56 -0500
-Message-ID: <5139AFCA.6040409@ti.com>
-Date: Fri, 8 Mar 2013 15:00:50 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	<Davinci-linux-open-source@linux.davincidsp.com>
-Subject: Error while building vpbe display as module
-Content-Type: text/plain; charset="UTF-8"
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:24297 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756273Ab3CFPDq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 10:03:46 -0500
+Date: Wed, 6 Mar 2013 16:03:35 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: TerraTec Cinergy T PCIe Dual not working
+Message-ID: <20130306160335.01cc5cd4@endymion.delvare>
+In-Reply-To: <51374B6D.9010805@schinagl.nl>
+References: <20130306142713.6a68179a@endymion.delvare>
+	<51374B6D.9010805@schinagl.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prabhakar,
+Hi Oliver,
 
-Building with CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY=m in latest mainline
-gives the error:
+Thanks for your fast reply.
 
-   MODPOST 130 modules
-drivers/media/platform/davinci/vpbe_osd: struct platform_device_id is 24
-bytes.  The last of 3 is:
-0x64 0x6d 0x33 0x35 0x35 0x2c 0x76 0x70 0x62 0x65 0x2d 0x6f 0x73 0x64
-0x00 0x00 0x00 0x00 0x00 0x00 0x03 0x00 0x00 0x00
-FATAL: drivers/media/platform/davinci/vpbe_osd: struct
-platform_device_id is not  terminated with a NULL entry!
+On Wed, 06 Mar 2013 14:58:05 +0100, Oliver Schinagl wrote:
+> I have the same card, and have not much problems. I have some reception 
+> issues, but I don't think it's to blame on the card (yet). I do use 
+> tvheadend however.
+> 
+> In anycase, can you use w_scan or dvb-scan?
 
-Can you please look into this?
+I have neither but I have "scan" from package "dvb" which does work.
+This gave me the idea to re-run scan with different frequency files and
+different antennas.
 
-Thanks,
-Sekhar
+It turns out that my problem is the antenna. I was using the antenna I
+have been using with my previous card, which is an internal DVB-T
+antenna with amplification (external power supply.) I get zero signal
+with that. But using the Terratec-provided cheap "stick" antenna, I get
+signal again, with reasonable quality (although not as stable as with
+the old card and the powered antenna.) I also get signal (but not all
+channels) with my original antenna _unpowered_ (thus signal not
+amplified.)
+
+I admit I don't quite understand. I would understand that a bad,
+unpowered antenna causes no signal to be sensed. But how is it possible
+that a supposedly better, powered antenna causes that kind of issue?
+
+Oliver, out of curiosity, what antenna are you using? The
+Terratec-provided one, or another one?
+
+-- 
+Jean Delvare
