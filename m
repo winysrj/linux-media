@@ -1,174 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57419 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755104Ab3CEJut (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 04:50:49 -0500
-Date: Tue, 5 Mar 2013 10:50:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [REVIEW PATCH V4 02/12] [media] marvell-ccic: add clock tree
- support for marvell-ccic driver
-In-Reply-To: <1360238687-15768-3-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1303051047120.25837@axis700.grange>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
- <1360238687-15768-3-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:15727 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753478Ab3CFVOb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 16:14:31 -0500
+Date: Wed, 6 Mar 2013 18:14:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: oliver+list@schinagl.nl, oliver@schinagl.nl,
+	Linux Media <linux-media@vger.kernel.org>,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: Re: drxk driver statistics
+Message-ID: <20130306181411.7e6f0e4a@redhat.com>
+In-Reply-To: <51379EB3.3040900@schinagl.nl>
+References: <20130306183604.3015c1f0@endymion.delvare>
+	<51379EB3.3040900@schinagl.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert
+Em Wed, 06 Mar 2013 20:53:23 +0100
+Oliver Schinagl <oliver@schinagl.nl> escreveu:
 
-On Thu, 7 Feb 2013, Albert Wang wrote:
+> On 03/06/13 18:36, Jean Delvare wrote:
+> > Hi all,
+> >
+> > I have a TerraTec Cinergy T PCIe Dual card, with DRX-3916K and
+> > DRX-3913K frontends. I am thus using the drxk dvb-frontend driver.
+> > While trying to find the best antenna, position and amplification, I
+> > found that the statistics returned by the drxk driver look quite bad:
+> >
+> > $ femon -H 3
+> > FE: DRXK DVB-T (DVBT)
+> > status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+> > status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+> > status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+> >
+> > This is with TV looking reasonably good, so these figures are not
+> > plausible.
+> >
+> > $ femon 10
+> > FE: DRXK DVB-T (DVBT)
+> > status SCVYL | signal 00de | snr 00f5 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00f0 | snr 00f5 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 0117 | snr 00f6 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00b6 | snr 00eb | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00d1 | snr 00e7 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 0073 | snr 00ea | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00a3 | snr 00ee | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00b5 | snr 00f4 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00ba | snr 00f3 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> > status SCVYL | signal 00be | snr 00f0 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> >
+> > Signal values are changing too much, snr is stable enough but way too
+> > low, ber is apparently unimplemented, and unc is never reset AFAICS (it
+> > started at 1 when the system started and has been only increasing since
+> > then.) On my previous card, unc was an instant measurement, not a
+> > cumulative value, not sure which is correct.
+> Yes I found that out aswell, but since image quality has always been 
+> very fine, I haven't looked what this all should be.
+> >
+> > I would like to see these statistics improved. I am willing to help,
+> > however the drxk driver is rather complex (at least to my eyes) and I
+> > do not have a datasheet so I wouldn't know where to start. Is there
+> > anyone who can work on this and/or provide some guidance?
 
-> From: Libin Yang <lbyang@marvell.com>
-> 
-> This patch adds the clock tree support for marvell-ccic.
-> 
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Acked-by: Jonathan Corbet <corbet@lwn.net>
-> ---
->  drivers/media/platform/marvell-ccic/mcam-core.h  |    4 ++
->  drivers/media/platform/marvell-ccic/mmp-driver.c |   47 ++++++++++++++++++++++
->  2 files changed, 51 insertions(+)
-> 
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index f73a801..2b2dc06 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -82,6 +82,8 @@ struct mcam_frame_state {
->  	unsigned int delivered;
->  };
->  
-> +#define NR_MCAM_CLK 3
-> +
->  /*
->   * A description of one of our devices.
->   * Locking: controlled by s_mutex.  Certain fields, however, require
-> @@ -109,6 +111,8 @@ struct mcam_camera {
->  	int lane;			/* lane number */
->  
->  	struct clk *pll1;
-> +	/* clock tree support */
-> +	struct clk *clk[NR_MCAM_CLK];
->  
->  	/*
->  	 * Callbacks from the core to the platform code.
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index 7ab01e9..2fe0324 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -35,6 +35,8 @@ MODULE_ALIAS("platform:mmp-camera");
->  MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
->  MODULE_LICENSE("GPL");
->  
-> +static char *mcam_clks[] = {"CCICAXICLK", "CCICFUNCLK", "CCICPHYCLK"};
-> +
+Terratec released some time ago the source code for Azureus 6007 that
+uses the drx-k demod. I think it is still there at:
+	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
 
-It's good, you are using fixed clock names now!
+The stats logic there is a little more complete than the one backported to
+the Kernel. I've plans to add support for DVBv5 statistics, but, even
+on the above driver, it was not trivial to discover the scale for the
+parameters.
 
->  struct mmp_camera {
->  	void *power_regs;
->  	struct platform_device *pdev;
-> @@ -104,6 +106,26 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
->  #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
->  #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
->  
-> +static void mcam_clk_enable(struct mcam_camera *mcam)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < NR_MCAM_CLK; i++) {
-> +		if (mcam->clk[i])
-> +			clk_enable(mcam->clk[i]);
+-- 
 
-I think it's generally considered a better option to use 
-clk_prepare_enable() and clk_disable_unprepare() instead of just 
-clk_enable() and clk_disable().
-
-> +	}
-> +}
-> +
-> +static void mcam_clk_disable(struct mcam_camera *mcam)
-> +{
-> +	int i;
-> +
-> +	for (i = NR_MCAM_CLK - 1; i >= 0; i--) {
-> +		if (mcam->clk[i])
-> +			clk_disable(mcam->clk[i]);
-> +	}
-> +}
-> +
->  /*
->   * Power control.
->   */
-> @@ -134,6 +156,8 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
->  	mdelay(5);
->  	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
->  	mdelay(5);
-> +
-> +	mcam_clk_enable(mcam);
->  }
->  
->  static void mmpcam_power_down(struct mcam_camera *mcam)
-> @@ -151,6 +175,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
->  	pdata = cam->pdev->dev.platform_data;
->  	gpio_set_value(pdata->sensor_power_gpio, 0);
->  	gpio_set_value(pdata->sensor_reset_gpio, 0);
-> +
-> +	mcam_clk_disable(mcam);
->  }
->  
->  /*
-> @@ -263,6 +289,23 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
->  	return IRQ_RETVAL(handled);
->  }
->  
-> +static int mcam_init_clk(struct mcam_camera *mcam,
-> +			struct mmp_camera_platform_data *pdata)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < NR_MCAM_CLK; i++) {
-> +		if (mcam_clks[i] != NULL) {
-> +			mcam->clk[i] = devm_clk_get(mcam->dev, mcam_clks[i]);
-> +			if (IS_ERR(mcam->clk[i])) {
-> +				dev_err(mcam->dev, "Could not get clk: %s\n",
-> +						mcam_clks[i]);
-> +				return PTR_ERR(mcam->clk[i]);
-> +			}
-> +		}
-> +	}
-> +	return 0;
-> +}
->  
->  static int mmpcam_probe(struct platform_device *pdev)
->  {
-> @@ -331,6 +374,10 @@ static int mmpcam_probe(struct platform_device *pdev)
->  		ret = -ENODEV;
->  		goto out_unmap1;
->  	}
-> +
-> +	ret = mcam_init_clk(mcam, pdata);
-> +	if (ret)
-> +		goto out_unmap2;
-
-Now, I'm confused again: doesn't this mean, that all existing users of 
-this driver will fail?
-
->  	/*
->  	 * Find the i2c adapter.  This assumes, of course, that the
->  	 * i2c bus is already up and functioning.
-> -- 
-> 1.7.9.5
-> 
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
