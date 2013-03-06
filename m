@@ -1,63 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58350 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:33999 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753499Ab3CCP64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Mar 2013 10:58:56 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23Fwuon014119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:56 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 01/11] [media] mb86a20s: don't pollute dmesg with debug messages
-Date: Sun,  3 Mar 2013 12:58:41 -0300
-Message-Id: <1362326331-17541-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
-References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1756487Ab3CFKXl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 05:23:41 -0500
+Message-ID: <5137191F.6050707@ti.com>
+Date: Wed, 6 Mar 2013 15:53:27 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Prabhakar Lad <prabhakar.lad@ti.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
+References: <1362492801-13202-1-git-send-email-nsekhar@ti.com> <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com> <51371553.5030103@ti.com> <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
+In-Reply-To: <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a few debug tests that are shown with dev_err() or
-dev_info(). Replace them by dev_dbg().
+On 3/6/2013 3:46 PM, Prabhakar Lad wrote:
+> Sekhar,
+> 
+> On Wed, Mar 6, 2013 at 3:37 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> On 3/6/2013 2:59 PM, Prabhakar Lad wrote:
+>>
+>>>>  config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+>>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>>         select VIDEOBUF2_DMA_CONTIG
+>>>> -       select VIDEO_DAVINCI_VPIF
+>>>>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+>>>>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+>>>>         help
+>>>> @@ -15,9 +14,8 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>>
+>>>>  config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+>>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>>         select VIDEOBUF2_DMA_CONTIG
+>>>> -       select VIDEO_DAVINCI_VPIF
+>>>>         help
+>>>>           Enables Davinci VPIF module used for captur devices.
+>>>>           This module is common for following DM6467/DA850/OMAPL138
+>>>> @@ -28,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>>
+>>>>  config VIDEO_DAVINCI_VPIF
+>>>>         tristate "DaVinci VPIF Driver"
+>>>> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+>>>> +       depends on ARCH_DAVINCI
+>>>
+>>> It would be better if this was  depends on MACH_DAVINCI_DM6467_EVM ||
+>>> MACH_DAVINCI_DA850_EVM
+>>> rather than 'ARCH_DAVINCI' then you can remove 'MACH_DAVINCI_DM6467_EVM' and
+>>> 'MACH_DAVINCI_DA850_EVM' dependency from VIDEO_DAVINCI_VPIF_DISPLAY and
+>>> VIDEO_DAVINCI_VPIF_CAPTURE. So it would be just 'depends on VIDEO_DEV
+>>> && VIDEO_DAVINCI_VPIF'
+>>
+>> I could, but vpif.c seems pretty board independent to me. Are you sure
+>> no other board would like to build vpif.c? BTW, are vpif_display.c and
+>> vpif_capture.c really that board specific? May be we can all make them
+>> depend on ARCH_DAVINCI?
+>>
+> VPIF is present only in DM646x and DA850/OMAP-L1138.
+> vpif.c is common file which is used by vpif_capture and vpif_display.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+So vpif.c per se doesn't do anything useful. Why the dependency on EVMs?
+There are other boards for these platform which could use VPIF.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index f19cd73..44bfb88 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -1095,7 +1095,7 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 	if (rc < 0)
- 		return rc;
- 	*error |= rc;
--	dev_err(&state->i2c->dev, "%s: block error for layer %c: %d.\n",
-+	dev_dbg(&state->i2c->dev, "%s: block error for layer %c: %d.\n",
- 		__func__, 'A' + layer, *error);
- 
- 	/* Read Bit Count */
-@@ -1386,7 +1386,7 @@ static int mb86a20s_get_main_CNR(struct dvb_frontend *fe)
- 		return rc;
- 
- 	if (!(rc & 0x40)) {
--		dev_info(&state->i2c->dev, "%s: CNR is not available yet.\n",
-+		dev_dbg(&state->i2c->dev, "%s: CNR is not available yet.\n",
- 			 __func__);
- 		return -EBUSY;
- 	}
-@@ -1441,7 +1441,7 @@ static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
- 
- 	/* Check if data is available */
- 	if (!(rc & 0x01)) {
--		dev_info(&state->i2c->dev,
-+		dev_dbg(&state->i2c->dev,
- 			"%s: MER measures aren't available yet.\n", __func__);
- 		return -EBUSY;
- 	}
--- 
-1.8.1.4
-
+Thanks,
+Sekhar
