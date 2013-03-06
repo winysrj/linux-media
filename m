@@ -1,20 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm19.access.bullet.mail.sp2.yahoo.com ([98.139.44.146]:46802
-	"EHLO nm19.access.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370Ab3CEVTe convert rfc822-to-8bit
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53292 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758191Ab3CFOkF convert rfc822-to-8bit
 	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Mar 2013 16:19:34 -0500
-Message-ID: <1362518046.96688.YahooMailRC@web5714.biz.mail.ne1.yahoo.com>
-Date: Tue, 5 Mar 2013 13:14:06 -0800 (PST)
-From: "jane.ferguson" <jane.ferguson.uk102@gmail.com>
-Reply-To: "jane.ferguson" <jane.ferguson.uk18@gmail.com>
-Subject: Hello my love, My name is Jane Ferguson,i read through your profile today and i became interested in you,i will also like to know you the more,and i want you to send an e-mail to my e-mail address so i can give you my picture for you to know whom i am and for the both of us to know each other very well and better in life,and we can achieve it in future because ture love and feeling means alot in future.Here is my private e-mail address you can contact me with it.(jane.ferguson.uk18@gmail.com)I am waiting for your mail to my e-mail address above and aslo, Remember the distance or colour does not matter but love,feeling,e-motions and sympathetic love matters alot in life. Thanks,and i promise to be honest and to keep a very good relationship with you. jane.              jane.ferguson.uk18@gmail.com
-To: undisclosed recipients:;
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+	Wed, 6 Mar 2013 09:40:05 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Wed, 6 Mar 2013 06:38:22 -0800
+Subject: RE: [REVIEW PATCH V4 10/12] [media] marvell-ccic: add soc_camera
+ support for marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D9D8DAA8E@SC-VEXCH1.marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+ <1360238687-15768-11-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1303051151310.25837@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1303051151310.25837@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi, Guennadi
+
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Tuesday, 05 March, 2013 21:33
+>To: Albert Wang
+>Cc: corbet@lwn.net; Linux Media Mailing List; Libin Yang
+>Subject: Re: [REVIEW PATCH V4 10/12] [media] marvell-ccic: add soc_camera support
+>for marvell-ccic driver
+>
+>Ok, can we test existing systems, have they been tested? It is hard to
+>review this, as you might imagine. At least I don't think I can in any
+>reasonably way verify by just looking at this whether it's breaking
+>anything... I think, people, really using / developing this driver for
+>other platforms would have to just extensively test this and verify the
+>final result (I think I know one such person ;-)). A couple of minor
+>comments below. In general - it does look quite good to me! So, provided
+>relevant testing is done and, possibly, my comments addressed:
+>
+Actually, we have tested it on all Marvell platforms which we have.
+But we have no OLPC board on hand.
+
+You are right and we still need test it on OLPC.
 
 
+>Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>
+>Thanks
+>Guennadi
+>
+>On Thu, 7 Feb 2013, Albert Wang wrote:
+>
+>> This patch adds the soc_camera mode support in marvell-ccic driver.
+>> It also removes the old mode for maintaining single mode in the future.
+>>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> ---
+>>  drivers/media/platform/Makefile                  |    4 +-
+>>  drivers/media/platform/marvell-ccic/Kconfig      |    6 +-
+>>  drivers/media/platform/marvell-ccic/mcam-core.c  | 1084 +++++++---------------
+>>  drivers/media/platform/marvell-ccic/mcam-core.h  |   27 +-
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c |   73 +-
+>>  include/media/mmp-camera.h                       |    5 +
+>>  6 files changed, 402 insertions(+), 797 deletions(-)
+>
+>At least the stats look good ;-)
+>
+>>
+>> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+>> index 4817d28..1a345c8 100644
+>> --- a/drivers/media/platform/Makefile
+>> +++ b/drivers/media/platform/Makefile
+>> @@ -11,8 +11,6 @@ obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
+>>  obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
+>>
+>>  obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
+>> -obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
+>> -obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
+>>
+>>  obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+>>  obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
+>> @@ -43,6 +41,8 @@ obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+>>  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+>>
+>>  obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
+>> +obj-$(CONFIG_VIDEO_CAFE_CCIC)		+= marvell-ccic/
+>> +obj-$(CONFIG_VIDEO_MMP_CAMERA)		+= marvell-ccic/
+>>
+>>  obj-y	+= davinci/
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/Kconfig
+>b/drivers/media/platform/marvell-ccic/Kconfig
+>> index bf739e3..7fa3c62 100755
+>> --- a/drivers/media/platform/marvell-ccic/Kconfig
+>> +++ b/drivers/media/platform/marvell-ccic/Kconfig
+>> @@ -10,14 +10,14 @@ config VIDEO_CAFE_CCIC
+>>  	  generation OLPC systems.
+>>
+>>  config VIDEO_MMP_CAMERA
+>> -	tristate "Marvell Armada 610 integrated camera controller support"
+>> +	tristate "Marvell Armada integrated camera controller support"
+>>  	depends on ARCH_MMP && I2C && VIDEO_V4L2
+>
+>Perhaps, you want to add "&& SOC_CAMERA" above
+>
+Yes, we missed it. Thanks!
+
+>> -	select VIDEO_OV7670
+>>  	select I2C_GPIO
+>> +	select VIDEOBUF2_DMA_CONTIG
+>>  	select VIDEOBUF2_DMA_SG
+>>  	---help---
+>>  	  This is a Video4Linux2 driver for the integrated camera
+>> -	  controller found on Marvell Armada 610 application
+>> +	  controller found on Marvell Armada application
+>>  	  processors (and likely beyond).  This is the controller found
+>>  	  in OLPC XO 1.75 systems.
+>>
+>
+>[snip]
+>
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index 732af16..3d5db24 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -28,6 +28,10 @@
+>>  #include <linux/list.h>
+>>  #include <linux/pm.h>
+>>  #include <linux/clk.h>
+>> +#include <linux/regulator/consumer.h>
+>
+>Looks like you don't need this header.
+>
+Ok, will remove it.
+
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+
+
+Thanks
+Albert Wang
+86-21-61092656
