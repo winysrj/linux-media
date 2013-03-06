@@ -1,88 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:47562 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753327Ab3CGHRK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:17:10 -0500
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MJA003SG489FEH0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 07 Mar 2013 16:17:08 +0900 (KST)
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Vikas Sajjan' <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	kgene.kim@samsung.com, 'Joonyoung Shim' <jy0922.shim@samsung.com>,
-	'sunil joshi' <joshi@samsung.com>
-References: <1361961178-1912-1-git-send-email-vikas.sajjan@linaro.org>
- <512EC410.3050301@samsung.com>
- <CAD025yT+VQ=bv1Sk61QtMft45nw7BWqn9ox5B5opGpr3s-1nxw@mail.gmail.com>
-In-reply-to: <CAD025yT+VQ=bv1Sk61QtMft45nw7BWqn9ox5B5opGpr3s-1nxw@mail.gmail.com>
-Subject: RE: [PATCH] drm/exynos: modify the compatible string for exynos fimd
-Date: Thu, 07 Mar 2013 16:17:07 +0900
-Message-id: <014501ce1b03$c70ccdc0$55266940$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:51046 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757900Ab3CFLyz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 06:54:55 -0500
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com
+Subject: [RFC 08/12] ARM: dts: add camera specific pinctrl nodes for Exynos5250 SoC
+Date: Wed,  6 Mar 2013 17:23:54 +0530
+Message-Id: <1362570838-4737-9-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
+References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Already merged. :)
+Add device nodes for pinctrl group-1 for Exynos5250 SoC.
+This only adds cam1 specific pinctrl nodes to the file.
 
-> -----Original Message-----
-> From: Vikas Sajjan [mailto:vikas.sajjan@linaro.org]
-> Sent: Thursday, March 07, 2013 4:09 PM
-> To: InKi Dae
-> Cc: dri-devel@lists.freedesktop.org; linux-media@vger.kernel.org;
-> kgene.kim@samsung.com; Joonyoung Shim; sunil joshi
-> Subject: Re: [PATCH] drm/exynos: modify the compatible string for exynos
-> fimd
-> 
-> Hi Mr Inki Dae,
-> 
-> On 28 February 2013 08:12, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
-> > On 02/27/2013 07:32 PM, Vikas Sajjan wrote:
-> >>
-> >> modified compatible string for exynos4 fimd as "exynos4210-fimd" and
-> >> exynos5 fimd as "exynos5250-fimd" to stick to the rule that compatible
-> >> value should be named after first specific SoC model in which this
-> >> particular IP version was included as discussed at
-> >> https://patchwork.kernel.org/patch/2144861/
-> >>
-> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> >> ---
-> >>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |    4 ++--
-> >>   1 file changed, 2 insertions(+), 2 deletions(-)
-> >>
-> >> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> >> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> >> index 9537761..433ed35 100644
-> >> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> >> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> >> @@ -109,9 +109,9 @@ struct fimd_context {
-> >>     #ifdef CONFIG_OF
-> >>   static const struct of_device_id fimd_driver_dt_match[] = {
-> >> -       { .compatible = "samsung,exynos4-fimd",
-> >> +       { .compatible = "samsung,exynos4210-fimd",
-> >>           .data = &exynos4_fimd_driver_data },
-> >> -       { .compatible = "samsung,exynos5-fimd",
-> >> +       { .compatible = "samsung,exynos5250-fimd",
-> >>           .data = &exynos5_fimd_driver_data },
-> >>         {},
-> >>   };
-> >
-> >
-> > Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
-> 
-> Can you please apply this patch.
-> 
-> >
-> > Thanks.
-> 
-> 
-> 
-> --
-> Thanks and Regards
->  Vikas Sajjan
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ arch/arm/boot/dts/exynos5250-pinctrl.dtsi |   41 +++++++++++++++++++++++++++++
+ arch/arm/boot/dts/exynos5250.dtsi         |    7 +++++
+ 2 files changed, 48 insertions(+)
+
+diff --git a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+index 24180fc..3caaa21 100644
+--- a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+@@ -555,6 +555,47 @@
+ 		};
+ 	};
+ 
++	pinctrl@13400000 {
++		gph0: gph0 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
++		gph1: gph1 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
++		cam_port_a_io: cam-port-a-io {
++			samsung,pins = "gph0-0", "gph0-1", "gph0-2", "gph0-3",
++				"gph1-0", "gph1-1", "gph1-2", "gph1-3",
++				"gph1-4", "gph1-5", "gph1-6", "gph1-7";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_port_a_clk_active: cam-port-a-clk-active {
++			samsung,pins = "gph0-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_port_a_clk_idle: cam-port-a-clk-idle {
++			samsung,pins = "gph0-3";
++			samsung,pin-function = <0>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <0>;
++		};
++	};
++
+ 	pinctrl_3: pinctrl@03680000 {
+ 		gpz: gpz {
+ 			gpio-controller;
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index 4754865..e09cda0 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -37,6 +37,7 @@
+ 		mshc2 = &dwmmc_2;
+ 		mshc3 = &dwmmc_3;
+ 		pinctrl0 = &pinctrl_0;
++		pinctrl1 = &pinctrl_1;
+ 		pinctrl3 = &pinctrl_3;
+ 		i2c0 = &i2c_0;
+ 		i2c1 = &i2c_1;
+@@ -95,6 +96,12 @@
+ 		};
+ 	};
+ 
++	pinctrl_1: pinctrl@13400000 {
++		compatible = "samsung,pinctrl-exynos5250";
++		reg = <0x13400000 0x1000>;
++		interrupts = <0 47 0>;
++	};
++
+ 	pinctrl_3: pinctrl@03680000 {
+ 		compatible = "samsung,pinctrl-exynos5250";
+ 		reg = <0x0368000 0x1000>;
+-- 
+1.7.9.5
 
