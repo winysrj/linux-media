@@ -1,42 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:63512 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756193Ab3CYDWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 23:22:46 -0400
-Message-ID: <514FC2E9.9090300@asianux.com>
-Date: Mon, 25 Mar 2013 11:22:17 +0800
-From: Chen Gang <gang.chen@asianux.com>
-MIME-Version: 1.0
+Received: from mho-03-ewr.mailhop.org ([204.13.248.66]:53836 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755465Ab3CFBJ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 20:09:59 -0500
+Date: Tue, 5 Mar 2013 17:09:53 -0800
+From: Tony Lindgren <tony@atomide.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Greg KH <gregkh@linuxfoundation.org>, linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Subject: [PATCH] drivers/staging/media/go7007: using strlcpy instead of strncpy
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, arm@kernel.org,
+	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/9] [media] ir-rx51: fix clock API related build issues
+Message-ID: <20130306010952.GJ11806@atomide.com>
+References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
+ <1362521809-22989-7-git-send-email-arnd@arndb.de>
+ <20130305212351.4993d8c6@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130305212351.4993d8c6@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+* Mauro Carvalho Chehab <mchehab@redhat.com> [130305 16:28]:
+> Em Tue,  5 Mar 2013 23:16:46 +0100
+> Arnd Bergmann <arnd@arndb.de> escreveu:
+> 
+> > OMAP1 no longer provides its own clock interfaces since patch
+> > a135eaae52 "ARM: OMAP: remove plat/clock.h". This is great, but
+> > we now have to convert the ir-rx51 driver to use the generic
+> > interface from linux/clk.h.
+> > 
+> > The driver also uses the omap_dm_timer_get_fclk() function,
+> > which is not exported for OMAP1, so we have to move the
+> > definition out of the OMAP2 specific section.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> From my side:
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-  for NUL terminated string, need always set '\0' in the end.
+There's just one issue, this driver most likely only needed on
+rx51 board.. So I suggest we just mark the driver depends on
+ARCH_OMAP2PLUS and let's drop this patch.
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- drivers/staging/media/go7007/saa7134-go7007.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This driver is already disabled for ARCH_MULTIPLATFORM
+as we need to move dmtimer.c to drivers and have some minimal
+include/linux/timer-omap.h for it.
+ 
+> > --- a/arch/arm/plat-omap/dmtimer.c
+> > +++ b/arch/arm/plat-omap/dmtimer.c
+> > @@ -333,6 +333,14 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
+> >  }
+> >  EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
+> >  
+> > +struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
+> > +{
+> > +	if (timer)
+> > +		return timer->fclk;
+> > +	return NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
+> > +
+> >  #if defined(CONFIG_ARCH_OMAP1)
+> >  #include <mach/hardware.h>
+> >  /**
+> > @@ -371,14 +379,6 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
+> >  
+> >  #else
+> >  
+> > -struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
+> > -{
+> > -	if (timer)
+> > -		return timer->fclk;
+> > -	return NULL;
+> > -}
+> > -EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
+> > -
+> >  __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
+> >  {
+> >  	BUG();
 
-diff --git a/drivers/staging/media/go7007/saa7134-go7007.c b/drivers/staging/media/go7007/saa7134-go7007.c
-index cf7c34a..2d1c6c2 100644
---- a/drivers/staging/media/go7007/saa7134-go7007.c
-+++ b/drivers/staging/media/go7007/saa7134-go7007.c
-@@ -456,7 +456,7 @@ static int saa7134_go7007_init(struct saa7134_dev *dev)
- 	if (go == NULL)
- 		goto allocfail;
- 	go->board_id = GO7007_BOARDID_PCI_VOYAGER;
--	strncpy(go->name, saa7134_boards[dev->board].name, sizeof(go->name));
-+	strlcpy(go->name, saa7134_boards[dev->board].name, sizeof(go->name));
- 	go->hpi_ops = &saa7134_go7007_hpi_ops;
- 	go->hpi_context = saa;
- 	saa->dev = dev;
--- 
-1.7.7.6
+Then omap_dm_timer_get_fclk() won't work on omap1 as there's no
+separate functional clock. We probably should not even export
+this function eventually when things are fixed up.
+
+Regards,
+
+Tony
