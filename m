@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55955 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:58733 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933145Ab3CSQuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:25 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
+	id S1754417Ab3CFTwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 14:52:12 -0500
+Message-ID: <51379EB3.3040900@schinagl.nl>
+Date: Wed, 06 Mar 2013 20:53:23 +0100
+From: Oliver Schinagl <oliver@schinagl.nl>
+Reply-To: oliver+list@schinagl.nl
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>
+CC: Linux Media <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 46/46] [media] siano: Remove bogus complain about MSG_SMS_DVBT_BDA_DATA
-Date: Tue, 19 Mar 2013 13:49:35 -0300
-Message-Id: <1363711775-2120-47-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: Re: drxk driver statistics
+References: <20130306183604.3015c1f0@endymion.delvare>
+In-Reply-To: <20130306183604.3015c1f0@endymion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the driver is tuned into chanel, and it is removed/reinserted,
-the message stream data may be arriving during device probe:
-
-	[ 5680.162004] smscore_set_device_mode: set device mode to 6
-	[ 5680.162267] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.162391] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.162641] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.162891] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.163016] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.163266] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.163516] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.163640] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.163891] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.164016] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.164265] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.164515] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.164519] smscore_onresponse: Firmware id 6 prots 0x40 ver 8.1
-	[ 5680.164766] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.166018] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
-	[ 5680.166438] DVB: registering new adapter (Siano Rio Digital Receiver)
-
-Instead of complaining, just silently discard those messages, instead of
-complaining.
-
-A proper fix is to put the device on suspend/power down mode when the module
-is removed.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/siano/smscoreapi.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
-
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 244928b..c260974 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -1606,6 +1606,15 @@ void smscore_onresponse(struct smscore_device_t *coredev,
- 				- sizeof(struct SmsMsgHdr_ST));
- 			break;
- 
-+		case MSG_SMS_DVBT_BDA_DATA:
-+			/*
-+			 * It can be received here, if the frontend is
-+			 * tuned into a valid channel and the proper firmware
-+			 * is loaded. That happens when the module got removed
-+			 * and re-inserted, without powering the device off
-+			 */
-+			break;
-+
- 		default:
- 			sms_debug("message %s(%d) not handled.",
- 				  smscore_translate_msg(phdr->msgType),
--- 
-1.8.1.4
+On 03/06/13 18:36, Jean Delvare wrote:
+> Hi all,
+>
+> I have a TerraTec Cinergy T PCIe Dual card, with DRX-3916K and
+> DRX-3913K frontends. I am thus using the drxk dvb-frontend driver.
+> While trying to find the best antenna, position and amplification, I
+> found that the statistics returned by the drxk driver look quite bad:
+>
+> $ femon -H 3
+> FE: DRXK DVB-T (DVBT)
+> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 | FE_HAS_LOCK
+>
+> This is with TV looking reasonably good, so these figures are not
+> plausible.
+>
+> $ femon 10
+> FE: DRXK DVB-T (DVBT)
+> status SCVYL | signal 00de | snr 00f5 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00f0 | snr 00f5 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 0117 | snr 00f6 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00b6 | snr 00eb | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00d1 | snr 00e7 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 0073 | snr 00ea | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00a3 | snr 00ee | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00b5 | snr 00f4 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00ba | snr 00f3 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+> status SCVYL | signal 00be | snr 00f0 | ber 00000000 | unc 000097a6 | FE_HAS_LOCK
+>
+> Signal values are changing too much, snr is stable enough but way too
+> low, ber is apparently unimplemented, and unc is never reset AFAICS (it
+> started at 1 when the system started and has been only increasing since
+> then.) On my previous card, unc was an instant measurement, not a
+> cumulative value, not sure which is correct.
+Yes I found that out aswell, but since image quality has always been 
+very fine, I haven't looked what this all should be.
+>
+> I would like to see these statistics improved. I am willing to help,
+> however the drxk driver is rather complex (at least to my eyes) and I
+> do not have a datasheet so I wouldn't know where to start. Is there
+> anyone who can work on this and/or provide some guidance?
+>
+> Thanks,
+>
 
