@@ -1,82 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49875 "EHLO mail.kapsi.fi"
+Received: from mout.gmx.net ([212.227.17.21]:50062 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752000Ab3CJCEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:39 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 12/41] af9033: IT9135 v2 supported related changes
-Date: Sun, 10 Mar 2013 04:03:04 +0200
-Message-Id: <1362881013-5271-12-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S1756900Ab3CFKyS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 05:54:18 -0500
+Received: from mailout-de.gmx.net ([10.1.76.2]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0LfUkZ-1UbFL42kbR-00p4Wf for
+ <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 11:54:15 +0100
+Date: Wed, 6 Mar 2013 11:54:14 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: jandegr1@dommel.be
+Cc: linux-media@vger.kernel.org
+Subject: Re: HAUPPAUGE HVR-930C analog tv feasible ??
+Message-ID: <20130306105414.GA30253@minime.bse>
+References: <20130225120117.atcsi16l8jokos80@webmail.dommel.be>
+ <20130225083345.2d83d554@redhat.com>
+ <20130301212854.93kflfbg4jc0kksk@webmail.dommel.be>
+ <20130303000134.GA21166@minime.bse>
+ <20130305223233.m32q5iyo2zwo4g0o@webmail.dommel.be>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130305223233.m32q5iyo2zwo4g0o@webmail.dommel.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 31 ++++++++++++++++++++++++++++---
- 1 file changed, 28 insertions(+), 3 deletions(-)
+On Tue, Mar 05, 2013 at 10:32:33PM +0100, jandegr1@dommel.be wrote:
+> Your local avf4910a copy probably offers not much more than the one
+> over here ?
+> https://github.com/wurststulle/ngene_2400i/tree/2377b1fd99d91ff355a5e46881ef27ccc87cb376
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index dece775..f510228 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -285,10 +285,29 @@ static int af9033_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
-+	/*
-+	 * FIXME: These inits are logically property of demodulator driver
-+	 * (that driver), but currently in case of IT9135 those are done by
-+	 * tuner driver.
-+	 */
-+
- 	/* load OFSM settings */
- 	dev_dbg(&state->i2c->dev, "%s: load ofsm settings\n", __func__);
--	len = ARRAY_SIZE(ofsm_init);
--	init = ofsm_init;
-+	switch (state->cfg.tuner) {
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+		len = 0;
-+		break;
-+	default:
-+		len = ARRAY_SIZE(ofsm_init);
-+		init = ofsm_init;
-+		break;
-+	}
-+
- 	for (i = 0; i < len; i++) {
- 		ret = af9033_wr_reg(state, init[i].reg, init[i].val);
- 		if (ret < 0)
-@@ -424,7 +443,8 @@ err:
- static int af9033_get_tune_settings(struct dvb_frontend *fe,
- 		struct dvb_frontend_tune_settings *fesettings)
- {
--	fesettings->min_delay_ms = 800;
-+	/* 800 => 2000 because IT9135 v2 is slow to gain lock */
-+	fesettings->min_delay_ms = 2000;
- 	fesettings->step_size = 0;
- 	fesettings->max_drift = 0;
- 
-@@ -513,6 +533,11 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
- 		buf[0] = (freq_cw >>  0) & 0xff;
- 		buf[1] = (freq_cw >>  8) & 0xff;
- 		buf[2] = (freq_cw >> 16) & 0x7f;
-+
-+		/* FIXME: there seems to be calculation error here... */
-+		if (if_frequency == 0)
-+			buf[2] = 0;
-+
- 		ret = af9033_wr_regs(state, 0x800029, buf, 3);
- 		if (ret < 0)
- 			goto err;
--- 
-1.7.11.7
+No, mainly cleanup and coding style conversion.
+A few DSP writes are amended to MSP_InitTable to set registers
+a second time with different values.
 
+  Daniel
