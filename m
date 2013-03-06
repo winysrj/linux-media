@@ -1,453 +1,514 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63548 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933096Ab3CHPqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 10:46:20 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MJC00JPXMGZ1J70@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 09 Mar 2013 00:46:18 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MJC00BM9MGUEG40@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 09 Mar 2013 00:46:18 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
-Cc: devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v7] [media] Add a V4L2 OF parser
-Date: Fri, 08 Mar 2013 16:46:03 +0100
-Message-id: <1362757563-30825-1-git-send-email-s.nawrocki@samsung.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:36676 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757602Ab3CFOQi convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 09:16:38 -0500
+From: Albert Wang <twang13@marvell.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "corbet@lwn.net" <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Libin Yang <lbyang@marvell.com>
+Date: Wed, 6 Mar 2013 06:10:21 -0800
+Subject: RE: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support
+ for marvell-ccic driver
+Message-ID: <477F20668A386D41ADCC57781B1F70430D9D8DAA86@SC-VEXCH1.marvell.com>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+ <1360238687-15768-2-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1303042128390.20206@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1303042128390.20206@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Hi, Guennadi
 
-Add a V4L2 OF parser, implementing bindings documented in
-Documentation/devicetree/bindings/media/video-interfaces.txt.
+Thank you very much for your review and comments!
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-[s.nawrocki@samsung.com: various corrections and improvements
-since the initial version]
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
-The last version of the bindings documentation patch can be found
-at: https://patchwork.kernel.org/patch/2074951
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Tuesday, 05 March, 2013 05:35
+>To: Albert Wang
+>Cc: corbet@lwn.net; Linux Media Mailing List; Libin Yang
+>Subject: Re: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support for
+>marvell-ccic driver
+>
+>Hi Albert
+>
+>A general comment first: I have no idea about this hardware, so, feel free
+>to ignore all my hardware-handling related comments. But just from looking
+>your handling of the pll1 clock does seem a bit fishy to me. You acquire
+>and release the clock in the generic mcam code, but only use it in the mmp
+>driver. Is it really needed centrally? Wouldn't it suffice to only acquire
+>it in mmp? Same goes for your mcam_config_mipi() function - is it really
+>needed centrally? But as I said, maybe I'm just missing something.
+>
+>On Thu, 7 Feb 2013, Albert Wang wrote:
+>
+>> From: Libin Yang <lbyang@marvell.com>
+>>
+>> This patch adds the MIPI support for marvell-ccic.
+>> Board driver should determine whether using MIPI or not.
+>>
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
+>> ---
+>>  drivers/media/platform/marvell-ccic/mcam-core.c  |   66 +++++++++++++
+>>  drivers/media/platform/marvell-ccic/mcam-core.h  |   28 +++++-
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c |  113 +++++++++++++++++++++-
+>>  include/media/mmp-camera.h                       |   10 ++
+>>  4 files changed, 214 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c
+>b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index 7012913f..7e178d8 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -19,6 +19,7 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/vmalloc.h>
+>>  #include <linux/io.h>
+>> +#include <linux/clk.h>
+>>  #include <linux/videodev2.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-ioctl.h>
+>> @@ -253,6 +254,39 @@ static void mcam_ctlr_stop(struct mcam_camera *cam)
+>>      mcam_reg_clear_bit(cam, REG_CTRL0, C0_ENABLE);
+>>  }
+>>
+>> +static int mcam_config_mipi(struct mcam_camera *mcam, int enable)
+>> +{
+>> +    if (mcam->bus_type == V4L2_MBUS_CSI2 && enable) {
+>
+>This function is only called twice in the code: both times with a const
+>"enable" - once 1 and once 0. But you also do a disable, if the parallel
+>bus is used. Wouldn't it look prettier as
+>
+>+static int mcam_config_mipi(struct mcam_camera *mcam, bool enable)
+>+{
+>+      if (enable) {
+>
+>And then see the change below.
+>
+OK, we can think about it.
 
-Changes since v6:
- - minor v4l2_of_get_remote_port_parent() function cleanup.
+>> +            /* Using MIPI mode and enable MIPI */
+>> +            cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x,
+>DPHY6=0x%x\n",
+>> +                    mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
+>> +
+>> +            if (mcam->mipi_enabled == 0) {
+>> +                    BUG_ON(mcam->lane > 4 || mcam->lane <= 0);
+>
+>A recent discussion about the use of BUG* macros in the kernel indicated,
+>that you only should BUG() the kernel, when there's really no way to
+>continue and the system would die soon anyway. Otherwise produce an error
+>/ warning message and return an error code (if possible).
+>
+Yes, you are right, we will change it.
 
-Changes since v5:
- - renamed v4l2_of_parse_mipi_csi2 -> v4l2_of_parse_csi_bus,
- - corrected v4l2_of_get_remote_port_parent() function declaration
-   for !CONFIG_OF,
- - reworked v4l2_of_get_next_endpoint() function to consider the
-   'port' nodes can be grouped under optional 'ports' node,
- - added kerneldoc description for v4l2_of_get_next_endpoint()
-   function.
+>> +                    /*
+>> +                     * 0x41 actives 1 lane
+>> +                     * 0x43 actives 2 lanes
+>> +                     * 0x45 actives 3 lanes (never happen)
+>> +                     * 0x47 actives 4 lanes
+>> +                     */
+>> +                    mcam_reg_write(mcam, REG_CSI2_CTRL0,
+>> +                            CSI2_C0_MIPI_EN | CSI2_C0_ACT_LANE(mcam->lane));
+>> +                    mcam->mipi_enabled = 1;
+>> +            }
+>> +    } else {
+>> +            /* Using Parallel mode or disable MIPI */
+>> +            mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x0);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY3, 0x0);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY5, 0x0);
+>> +            mcam_reg_write(mcam, REG_CSI2_DPHY6, 0x0);
+>> +            mcam->mipi_enabled = 0;
+>> +    }
+>> +    return 0;
+>
+>If you convert the above BUG() to a failure, then you need this return
+>value, in this version this function never fails.
+>
+>> +}
+>> +
+>>  /* ------------------------------------------------------------------- */
+>>
+>>  #ifdef MCAM_MODE_VMALLOC
+>> @@ -656,6 +690,13 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
+>>       */
+>>      mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
+>>                      C0_SIFM_MASK);
+>> +
+>> +    /*
+>> +     * This field controls the generation of EOF(DVP only)
+>> +     */
+>> +    if (cam->bus_type != V4L2_MBUS_CSI2)
+>> +            mcam_reg_set_bit(cam, REG_CTRL0,
+>> +                            C0_EOF_VSYNC | C0_VEDGE_CTRL);
+>>  }
+>>
+>>
+>> @@ -886,6 +927,16 @@ static int mcam_read_setup(struct mcam_camera *cam)
+>>      spin_lock_irqsave(&cam->dev_lock, flags);
+>>      clear_bit(CF_DMA_ACTIVE, &cam->flags);
+>>      mcam_reset_buffers(cam);
+>> +    /*
+>> +     * Update CSI2_DPHY value
+>> +     */
+>> +    if (cam->calc_dphy)
+>> +            cam->calc_dphy(cam);
+>> +    cam_dbg(cam, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x,
+>dphy6=0x%x\n",
+>> +                    cam->dphy[0], cam->dphy[1], cam->dphy[2]);
+>> +    ret = mcam_config_mipi(cam, 1);
+>
+>Then here you do
+>
+>+      ret = mcam_config_mipi(cam, cam->bus_type == V4L2_MBUS_CSI2);
+>
+>> +    if (ret < 0)
+>> +            return ret;
+>>      mcam_ctlr_irq_enable(cam);
+>>      cam->state = S_STREAMING;
+>>      if (!test_bit(CF_SG_RESTART, &cam->flags))
+>> @@ -1551,6 +1602,16 @@ static int mcam_v4l_open(struct file *filp)
+>>              mcam_set_config_needed(cam, 1);
+>>      }
+>>      (cam->users)++;
+>> +    if (cam->bus_type == V4L2_MBUS_CSI2) {
+>> +            cam->pll1 = devm_clk_get(cam->dev, "pll1");
+>> +            if (IS_ERR_OR_NULL(cam->pll1) && cam->dphy[2] == 0) {
+>
+>So, is CSI2 mode only supported with enabled CONFIG_HAVE_CLK? It looks a
+>bit susppicious, but, I think, this might be valid here - you really need
+>a clock, from which you can read a valid rate to use CSI2, right?
+>Otherwise you cannot configure dphy.
+>
+Yes.
 
-Changes since v4:
- - reworked v4l2_of_get_remote_port() function to consider cases
-   where 'port' nodes are grouped in a parent 'ports' node,
- - rearranged struct v4l2_of_endpoint and related changes added
-   in the parser code,
- - added kerneldoc description for struct v4l2_of_endpoint,
- - s/link/endpoint in the comments,
----
- drivers/media/v4l2-core/Makefile  |    3 +
- drivers/media/v4l2-core/v4l2-of.c |  261 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-of.h           |   98 ++++++++++++++
- 3 files changed, 362 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-of.c
- create mode 100644 include/media/v4l2-of.h
+>> +                    cam_err(cam, "Could not get pll1 clock\n");
+>> +                    if (IS_ERR(cam->pll1))
+>> +                            ret = PTR_ERR(cam->pll1);
+>> +                    else
+>> +                            ret = -EINVAL;
+>> +            }
+>> +    }
+>>  out:
+>>      mutex_unlock(&cam->s_mutex);
+>>      return ret;
+>> @@ -1569,10 +1630,15 @@ static int mcam_v4l_release(struct file *filp)
+>>      if (cam->users == 0) {
+>>              mcam_ctlr_stop_dma(cam);
+>>              mcam_cleanup_vb2(cam);
+>> +            mcam_config_mipi(cam, 0);
+>
+>and use a boolean value here
+>
+>+              mcam_config_mipi(cam, false);
+>
+>>              mcam_ctlr_power_down(cam);
+>>              if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
+>>                      mcam_free_dma_bufs(cam);
+>>      }
+>> +    if (cam->bus_type == V4L2_MBUS_CSI2) {
+>> +            devm_clk_put(cam->dev, cam->pll1);
+>> +            cam->pll1 = NULL;
+>> +    }
+>>      mutex_unlock(&cam->s_mutex);
+>>      return 0;
+>>  }
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h
+>b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 5e802c6..f73a801 100755
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -101,11 +101,21 @@ struct mcam_camera {
+>>      short int clock_speed;  /* Sensor clock speed, default 30 */
+>>      short int use_smbus;    /* SMBUS or straight I2c? */
+>>      enum mcam_buffer_mode buffer_mode;
+>> +
+>> +    enum v4l2_mbus_type bus_type;
+>> +    /* MIPI support */
+>> +    int *dphy;
+>> +    int mipi_enabled;
+>> +    int lane;                       /* lane number */
+>> +
+>> +    struct clk *pll1;
+>> +
+>>      /*
+>>       * Callbacks from the core to the platform code.
+>>       */
+>>      void (*plat_power_up) (struct mcam_camera *cam);
+>>      void (*plat_power_down) (struct mcam_camera *cam);
+>> +    void (*calc_dphy) (struct mcam_camera *cam);
+>>
+>>      /*
+>>       * Everything below here is private to the mcam core and
+>> @@ -218,6 +228,17 @@ int mccic_resume(struct mcam_camera *cam);
+>>  #define REG_Y0BAR   0x00
+>>  #define REG_Y1BAR   0x04
+>>  #define REG_Y2BAR   0x08
+>> +
+>> +/*
+>> + * register definitions for MIPI support
+>> + */
+>> +#define REG_CSI2_CTRL0      0x100
+>> +#define   CSI2_C0_MIPI_EN (0x1 << 0)
+>> +#define   CSI2_C0_ACT_LANE(n) ((n-1) << 1)
+>> +#define REG_CSI2_DPHY3      0x12c
+>> +#define REG_CSI2_DPHY5      0x134
+>> +#define REG_CSI2_DPHY6      0x138
+>> +
+>>  /* ... */
+>>
+>>  #define REG_IMGPITCH        0x24    /* Image pitch register */
+>> @@ -286,13 +307,16 @@ int mccic_resume(struct mcam_camera *cam);
+>>  #define       C0_YUVE_XUVY    0x00020000    /* 420: .UVY            */
+>>  #define       C0_YUVE_XVUY    0x00030000    /* 420: .VUY            */
+>>  /* Bayer bits 18,19 if needed */
+>> +#define       C0_EOF_VSYNC    0x00400000    /* Generate EOF by VSYNC */
+>> +#define       C0_VEDGE_CTRL   0x00800000    /* Detect falling edge of
+>VSYNC */
+>>  #define       C0_HPOL_LOW     0x01000000    /* HSYNC polarity active low */
+>>  #define       C0_VPOL_LOW     0x02000000    /* VSYNC polarity active low */
+>>  #define       C0_VCLK_LOW     0x04000000    /* VCLK on falling edge */
+>>  #define       C0_DOWNSCALE    0x08000000    /* Enable downscaler */
+>> -#define       C0_SIFM_MASK    0xc0000000    /* SIF mode bits */
+>> +/* SIFMODE */
+>>  #define       C0_SIF_HVSYNC   0x00000000    /* Use H/VSYNC */
+>> -#define       CO_SOF_NOSYNC   0x40000000    /* Use inband active signaling */
+>> +#define       C0_SOF_NOSYNC   0x40000000    /* Use inband active signaling */
+>> +#define       C0_SIFM_MASK    0xc0000000    /* SIF mode bits */
+>>
+>>  /* Bits below C1_444ALPHA are not present in Cafe */
+>>  #define REG_CTRL1   0x40    /* Control 1 */
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index c4c17fe..7ab01e9 100755
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> @@ -27,6 +27,7 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/list.h>
+>>  #include <linux/pm.h>
+>> +#include <linux/clk.h>
+>>
+>>  #include "mcam-core.h"
+>>
+>> @@ -152,6 +153,103 @@ static void mmpcam_power_down(struct mcam_camera
+>*mcam)
+>>      gpio_set_value(pdata->sensor_reset_gpio, 0);
+>>  }
+>>
+>> +/*
+>> + * calc the dphy register values
+>> + * There are three dphy registers being used.
+>> + * dphy[0] - CSI2_DPHY3
+>> + * dphy[1] - CSI2_DPHY5
+>> + * dphy[2] - CSI2_DPHY6
+>> + * CSI2_DPHY3 and CSI2_DPHY6 can be set with a default value
+>> + * or be calculated dynamically
+>
+>Do you really support static dphy[*] valus? You'd recalculate them every
+>time this function is called?
+>
+It looks that's our fault.
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index c2d61d4..00f64d6 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-+ifeq ($(CONFIG_OF),y)
-+  videodev-objs += v4l2-of.o
-+endif
- 
- obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
- obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-new file mode 100644
-index 0000000..cbd18f6
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -0,0 +1,261 @@
-+/*
-+ * V4L2 OF binding parsing library
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+
-+#include <media/v4l2-of.h>
-+
-+/**
-+ * v4l2_of_parse_csi_bus() - parse MIPI CSI-2 bus properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ *
-+ * Return: 0 on success or negative error value otherwise.
-+ */
-+int v4l2_of_parse_csi_bus(const struct device_node *node,
-+			  struct v4l2_of_endpoint *endpoint)
-+{
-+	struct v4l2_mbus_mipi_csi2 *mipi_csi2 = &endpoint->mbus.mipi_csi2;
-+	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
-+	struct property *prop;
-+	const __be32 *lane = NULL;
-+	u32 v;
-+	int i = 0;
-+
-+	prop = of_find_property(node, "data-lanes", NULL);
-+	if (!prop)
-+		return -EINVAL;
-+	do {
-+		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-+	} while (lane && i++ < ARRAY_SIZE(data_lanes));
-+
-+	mipi_csi2->num_data_lanes = i;
-+	while (i--)
-+		mipi_csi2->data_lanes[i] = data_lanes[i];
-+
-+	if (!of_property_read_u32(node, "clock-lanes", &v))
-+		mipi_csi2->clock_lane = v;
-+
-+	if (of_get_property(node, "clock-noncontinuous", &v))
-+		endpoint->mbus.flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_csi_bus);
-+
-+/**
-+ * v4l2_of_parse_parallel_bus() - parse parallel bus properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ */
-+void v4l2_of_parse_parallel_bus(const struct device_node *node,
-+				struct v4l2_of_endpoint *endpoint)
-+{
-+	unsigned int flags = 0;
-+	u32 v;
-+
-+	if (WARN_ON(!endpoint))
-+		return;
-+
-+	if (!of_property_read_u32(node, "hsync-active", &v))
-+		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_HSYNC_ACTIVE_LOW;
-+
-+	if (!of_property_read_u32(node, "vsync-active", &v))
-+		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
-+			V4L2_MBUS_VSYNC_ACTIVE_LOW;
-+
-+	if (!of_property_read_u32(node, "pclk-sample", &v))
-+		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-+			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-+
-+	if (!of_property_read_u32(node, "field-even-active", &v))
-+		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
-+			V4L2_MBUS_FIELD_EVEN_LOW;
-+	if (flags)
-+		endpoint->mbus.type = V4L2_MBUS_PARALLEL;
-+	else
-+		endpoint->mbus.type = V4L2_MBUS_BT656;
-+
-+	if (!of_property_read_u32(node, "data-active", &v))
-+		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
-+			V4L2_MBUS_DATA_ACTIVE_LOW;
-+
-+	if (of_get_property(node, "slave-mode", &v))
-+		flags |= V4L2_MBUS_SLAVE;
-+
-+	if (!of_property_read_u32(node, "bus-width", &v))
-+		endpoint->mbus.parallel.bus_width = v;
-+
-+	if (!of_property_read_u32(node, "data-shift", &v))
-+		endpoint->mbus.parallel.data_shift = v;
-+
-+	endpoint->mbus.flags = flags;
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
-+
-+/**
-+ * v4l2_of_parse_endpoint() - parse all endpoint node properties
-+ * @node: pointer to endpoint device_node
-+ * @endpoint: pointer to v4l2_of_endpoint data structure
-+ *
-+ * All properties are optional. If none are found, we don't set any flags.
-+ * This means the port has a static configuration and no properties have
-+ * to be specified explicitly.
-+ * If any properties that identify the bus as parallel are found and
-+ * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-+ * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-+ * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-+ * The caller should hold a reference to @node.
-+ */
-+void v4l2_of_parse_endpoint(const struct device_node *node,
-+			    struct v4l2_of_endpoint *endpoint)
-+{
-+	const struct device_node *port_node = of_get_parent(node);
-+	struct v4l2_of_mbus *mbus = &endpoint->mbus;
-+	bool data_lanes_present = false;
-+
-+	memset(endpoint, 0, sizeof(*endpoint));
-+
-+	endpoint->local_node = node;
-+	/*
-+	 * It doesn't matter whether the two calls below succeed. If they
-+	 * don't then the default value 0 is used.
-+	 */
-+	of_property_read_u32(port_node, "reg", &endpoint->port);
-+	of_property_read_u32(node, "reg", &endpoint->id);
-+
-+	v4l2_of_parse_parallel_bus(node, endpoint);
-+
-+	/* If any parallel bus properties have been found, skip serial ones. */
-+	if (mbus->parallel.bus_width || mbus->parallel.data_shift ||
-+	    mbus->flags) {
-+		/* Default parallel bus-master. */
-+		if (!(mbus->flags & V4L2_MBUS_SLAVE))
-+			mbus->flags |= V4L2_MBUS_MASTER;
-+		return;
-+	}
-+
-+	mbus->type = V4L2_MBUS_CSI2;
-+
-+	if (!v4l2_of_parse_csi_bus(node, endpoint))
-+		data_lanes_present = true;
-+
-+	if ((mbus->mipi_csi2.clock_lane || data_lanes_present) &&
-+	    !(mbus->flags & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
-+		/* Default CSI-2: continuous clock. */
-+		mbus->flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-+	}
-+}
-+EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-+
-+/**
-+ * v4l2_of_get_next_endpoint() - get next endpoint node
-+ * @parent: pointer to the parent's device node
-+ * @prev: previous endpoint node, or NULL to get first
-+ *
-+ * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-+ * of the passed @prev node is not decremented, the caller have to use
-+ * of_node_put() on it when done.
-+ */
-+struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-+					struct device_node *prev)
-+{
-+	struct device_node *endpoint, *port = NULL;
-+
-+	if (!parent)
-+		return NULL;
-+
-+	if (!prev) {
-+		/*
-+		 * It's the first call, we have to find a port subnode
-+		 * within this node or within an optional 'ports' node.
-+		 */
-+		while ((port = of_get_next_child(parent, port))) {
-+			if (!of_node_cmp(port->name, "port"))
-+				break;
-+			if (!of_node_cmp(port->name, "ports")) {
-+				parent = port;
-+				of_node_put(port);
-+				port = NULL;
-+			}
-+		};
-+		if (port) {
-+			/* Found a port, get an endpoint. */
-+			endpoint = of_get_next_child(port, NULL);
-+			of_node_put(port);
-+		} else {
-+			endpoint = NULL;
-+		}
-+		if (!endpoint)
-+			pr_err("%s(): no endpoint nodes specified for %s\n",
-+			       __func__, parent->full_name);
-+	} else {
-+		port = of_get_parent(prev);
-+		if (!port)
-+			/* Hm, has someone given us the root node ?... */
-+			return NULL;
-+
-+		/* Avoid dropping prev node refcount to 0. */
-+		of_node_get(prev);
-+		endpoint = of_get_next_child(port, prev);
-+		if (endpoint) {
-+			of_node_put(port);
-+			return endpoint;
-+		}
-+
-+		/* No more endpoints under this port, try the next one. */
-+		do {
-+			port = of_get_next_child(parent, port);
-+			if (!port)
-+				return NULL;
-+		} while (of_node_cmp(port->name, "port"));
-+
-+		/* Pick up the first endpoint in this port. */
-+		endpoint = of_get_next_child(port, NULL);
-+		of_node_put(port);
-+	}
-+
-+	return endpoint;
-+}
-+EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
-+
-+/**
-+ * v4l2_of_get_remote_port_parent() - get remote port's parent node
-+ * @node: pointer to a local endpoint device_node
-+ *
-+ * Return: Remote device node associated with remote endpoint node linked
-+ *	   to @node. Use of_node_put() on it when done.
-+ */
-+struct device_node *v4l2_of_get_remote_port_parent(
-+			       const struct device_node *node)
-+{
-+	struct device_node *np;
-+	unsigned int depth = 3;
-+
-+	/* Get remote endpoint node. */
-+	np = of_parse_phandle(node, "remote-endpoint", 0);
-+
-+	/* Walk 3 levels up only if there is 'ports' node. */
-+	while (np && --depth >= 0) {
-+		np = of_get_next_parent(np);
-+		if (depth == 1 && of_node_cmp(np->name, "ports"))
-+			break;
-+	}
-+	return np;
-+}
-+EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
-diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-new file mode 100644
-index 0000000..458e97b
---- /dev/null
-+++ b/include/media/v4l2-of.h
-@@ -0,0 +1,98 @@
-+/*
-+ * V4L2 OF binding parsing library
-+ *
-+ * Copyright (C) 2012 Renesas Electronics Corp.
-+ * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of version 2 of the GNU General Public License as
-+ * published by the Free Software Foundation.
-+ */
-+#ifndef _V4L2_OF_H
-+#define _V4L2_OF_H
-+
-+#include <linux/list.h>
-+#include <linux/types.h>
-+#include <linux/errno.h>
-+
-+#include <media/v4l2-mediabus.h>
-+
-+struct device_node;
-+
-+struct v4l2_mbus_mipi_csi2 {
-+	unsigned char data_lanes[4];
-+	unsigned char clock_lane;
-+	unsigned short num_data_lanes;
-+};
-+
-+struct v4l2_mbus_parallel {
-+	unsigned char bus_width;
-+	unsigned char data_shift;
-+};
-+
-+/**
-+ * struct v4l2_of_endpoint - the endpoint data structure
-+ * @port: identifier (value of reg property) of a port this endpoint belongs to
-+ * @id: identifier (value of reg property) of this endpoint
-+ * @head: list head for this structure
-+ * @local_node: pointer to device_node of this endpoint
-+ * @remote: phandle to remote endpoint node
-+ * @type: media bus type
-+ * @flags: media bus (V4L2_MBUS_*) flags
-+ * @mipi_csi2: MIPI CSI-2 bus configuration data structure
-+ * @parallel: parallel bus configuration data structure
-+ */
-+struct v4l2_of_endpoint {
-+	unsigned int port;
-+	unsigned int id;
-+	struct list_head head;
-+	const struct device_node *local_node;
-+	const __be32 *remote;
-+	struct v4l2_of_mbus {
-+		enum v4l2_mbus_type type;
-+		unsigned int flags;
-+		union {
-+			struct v4l2_mbus_mipi_csi2 mipi_csi2;
-+			struct v4l2_mbus_parallel parallel;
-+		};
-+	} mbus;
-+};
-+
-+#ifdef CONFIG_OF
-+int v4l2_of_parse_csi_bus(const struct device_node *node,
-+				struct v4l2_of_endpoint *endpoint);
-+void v4l2_of_parse_parallel_bus(const struct device_node *node,
-+				struct v4l2_of_endpoint *endpoint);
-+void v4l2_of_parse_endpoint(const struct device_node *node,
-+				struct v4l2_of_endpoint *link);
-+struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-+					struct device_node *previous);
-+struct device_node *v4l2_of_get_remote_port_parent(
-+					const struct device_node *node);
-+#else /* CONFIG_OF */
-+
-+static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-+					struct v4l2_of_endpoint *link)
-+{
-+	return -ENOSYS;
-+}
-+
-+static inline struct device_node *v4l2_of_get_next_endpoint(
-+					const struct device_node *parent,
-+					struct device_node *previous)
-+{
-+	return NULL;
-+}
-+
-+static inline struct device_node *v4l2_of_get_remote_port_parent(
-+					const struct device_node *node)
-+{
-+	return NULL;
-+}
-+
-+#endif /* CONFIG_OF */
-+
-+#endif /* _V4L2_OF_H */
--- 
-1.7.9.5
+>> + */
+>> +void mmpcam_calc_dphy(struct mcam_camera *mcam)
+>> +{
+>> +    struct mmp_camera *cam = mcam_to_cam(mcam);
+>> +    struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
+>> +    struct device *dev = &cam->pdev->dev;
+>> +    unsigned long tx_clk_esc;
+>> +
+>> +    /*
+>> +     * If CSI2_DPHY3 is calculated dynamically,
+>> +     * pdata->lane_clk should be already set
+>> +     * either in the board driver statically
+>> +     * or in the sensor driver dynamically.
+>> +     */
+>> +    /*
+>> +     * dphy[0] - CSI2_DPHY3:
+>> +     *  bit 0 ~ bit 7: HS Term Enable.
+>> +     *   defines the time that the DPHY
+>> +     *   wait before enabling the data
+>> +     *   lane termination after detecting
+>> +     *   that the sensor has driven the data
+>> +     *   lanes to the LP00 bridge state.
+>> +     *   The value is calculated by:
+>> +     *   (Max T(D_TERM_EN)/Period(DDR)) - 1
+>> +     *  bit 8 ~ bit 15: HS_SETTLE
+>> +     *   Time interval during which the HS
+>> +     *   receiver shall ignore any Data Lane
+>> +     *   HS transistions.
+>> +     *   The vaule has been calibrated on
+>> +     *   different boards. It seems to work well.
+>> +     *
+>> +     *  More detail please refer
+>> +     *  MIPI Alliance Spectification for D-PHY
+>> +     *  document for explanation of HS-SETTLE
+>> +     *  and D-TERM-EN.
+>> +     */
+>> +    switch (pdata->dphy3_algo) {
+>> +    case 1:
+>
+>These values are purely software, thy have no direct analogs in hardware,
+>right? I.e. you cannot read them from a register and you don't have to
+>write them to one. Then, I think, you really want to use macros for them.
+>
+Yes, your suggestion is reasonable.
 
+>> +            /*
+>> +             * dphy3_algo == 1
+>> +             * Calculate CSI2_DPHY3 algo for PXA910
+>> +             */
+>> +            pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 1000) & 0xff) << 8
+>> +                    | (1 + pdata->lane_clk * 35 / 1000);
+>> +            break;
+>> +    case 2:
+>> +            /*
+>> +             * dphy3_algo == 2
+>> +             * Calculate CSI2_DPHY3 algo for PXA2128
+>> +             */
+>> +            pdata->dphy[0] =
+>> +                    ((2 + pdata->lane_clk * 110 / 1000) & 0xff) << 8
+>> +                    | (1 + pdata->lane_clk * 35 / 1000);
+>> +            break;
+>> +    default:
+>> +            /*
+>> +             * dphy3_algo == 0
+>> +             * Use default CSI2_DPHY3 value for PXA688/PXA988
+>> +             */
+>> +            dev_dbg(dev, "camera: use the default CSI2_DPHY3 value\n");
+>> +    }
+>> +
+>> +    /*
+>> +     * pll1 will never be changed, it is a fixed value
+>> +     */
+>> +
+>> +    if (IS_ERR_OR_NULL(mcam->pll1))
+>> +            return;
+>
+>All this function does is calculate dphy[] array values, right? And these
+>values are only used if CSI2 is activated. And CSI2 can only be activated
+>if an open() has been successful. And you only succeed a CSI2-mode open()
+>if a clock can be acquired. So, the above check is redundant?
+>
+Yes.
+
+>> +
+>> +    /* get the escape clk, this is hard coded */
+>> +    tx_clk_esc = (clk_get_rate(mcam->pll1) / 1000000) / 12;
+>> +
+>> +    /*
+>> +     * dphy[2] - CSI2_DPHY6:
+>> +     * bit 0 ~ bit 7: CK Term Enable
+>> +     *  Time for the Clock Lane receiver to enable the HS line
+>> +     *  termination. The value is calculated similarly with
+>> +     *  HS Term Enable
+>> +     * bit 8 ~ bit 15: CK Settle
+>> +     *  Time interval during which the HS receiver shall ignore
+>> +     *  any Clock Lane HS transitions.
+>> +     *  The value is calibrated on the boards.
+>> +     */
+>> +    pdata->dphy[2] = ((534 * tx_clk_esc / 2000 - 1) & 0xff) << 8
+>> +                    | ((38 * tx_clk_esc / 1000 - 1) & 0xff);
+>> +
+>> +    dev_dbg(dev, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x,
+>dphy6=0x%x\n",
+>> +            pdata->dphy[0], pdata->dphy[1], pdata->dphy[2]);
+>> +}
+>>
+>>  static irqreturn_t mmpcam_irq(int irq, void *data)
+>>  {
+>> @@ -174,6 +272,10 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>      struct mmp_camera_platform_data *pdata;
+>>      int ret;
+>>
+>> +    pdata = pdev->dev.platform_data;
+>> +    if (!pdata)
+>> +            return -ENODEV;
+>> +
+>>      cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+>>      if (cam == NULL)
+>>              return -ENOMEM;
+>> @@ -183,8 +285,18 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>      mcam = &cam->mcam;
+>>      mcam->plat_power_up = mmpcam_power_up;
+>>      mcam->plat_power_down = mmpcam_power_down;
+>> +    mcam->calc_dphy = mmpcam_calc_dphy;
+>>      mcam->dev = &pdev->dev;
+>>      mcam->use_smbus = 0;
+>> +    mcam->bus_type = pdata->bus_type;
+>> +    mcam->dphy = pdata->dphy;
+>> +    /* mosetly it won't happen. dphy is an array in pdata, but in case .. */
+>> +    if (unlikely(mcam->dphy == NULL)) {
+>> +            ret = -EINVAL;
+>> +            goto out_free;
+>> +    }
+>> +    mcam->mipi_enabled = 0;
+>> +    mcam->lane = pdata->lane;
+>>      mcam->chip_id = V4L2_IDENT_ARMADA610;
+>>      mcam->buffer_mode = B_DMA_sg;
+>>      spin_lock_init(&mcam->dev_lock);
+>> @@ -223,7 +335,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>       * Find the i2c adapter.  This assumes, of course, that the
+>>       * i2c bus is already up and functioning.
+>>       */
+>> -    pdata = pdev->dev.platform_data;
+>>      mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+>>      if (mcam->i2c_adapter == NULL) {
+>>              ret = -ENODEV;
+>> diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+>> index 7611963..813efe2 100755
+>> --- a/include/media/mmp-camera.h
+>> +++ b/include/media/mmp-camera.h
+>> @@ -1,3 +1,4 @@
+>> +#include <media/v4l2-mediabus.h>
+>>  /*
+>>   * Information for the Marvell Armada MMP camera
+>>   */
+>> @@ -6,4 +7,13 @@ struct mmp_camera_platform_data {
+>>      struct platform_device *i2c_device;
+>>      int sensor_power_gpio;
+>>      int sensor_reset_gpio;
+>> +    enum v4l2_mbus_type bus_type;
+>> +    /*
+>> +     * MIPI support
+>> +     */
+>> +    int dphy[3];            /* DPHY: CSI2_DPHY3, CSI2_DPHY5, CSI2_DPHY6 */
+>> +    int dphy3_algo;         /* Exist 2 algos for calculate CSI2_DPHY3 */
+>
+>I'd make the above an enum
+>
+>> +    int mipi_enabled;       /* MIPI enabled flag */
+>
+>And this one a bool
+>
+OK, we will update it.
+
+>> +    int lane;               /* ccic used lane number; 0 means DVP mode */
+>> +    int lane_clk;
+>>  };
+>> --
+>> 1.7.9.5
+>>
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+
+Thanks
+Albert Wang
+86-21-61092656
