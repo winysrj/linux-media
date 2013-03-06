@@ -1,108 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62647 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758035Ab3CNPSs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 11:18:48 -0400
-Date: Thu, 14 Mar 2013 12:18:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Kevin Baradon <kevin.baradon@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Jarod Wilson <jarod@wilsonet.com>
-Subject: Re: [PATCH 2/2] media/rc/imon.c: avoid flooding syslog with
- "unknown keypress" when keypad is pressed
-Message-ID: <20130314121841.574d2d0f@redhat.com>
-In-Reply-To: <1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
-References: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
-	<1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2228 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754762Ab3CFT4b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 14:56:31 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: gomboc0@gmail.com
+Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
+Date: Wed, 6 Mar 2013 20:56:24 +0100
+Cc: linux-media@vger.kernel.org
+References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt> <201303010852.36574.hverkuil@xs4all.nl> <51313F7A.9080900@gmail.com>
+In-Reply-To: <51313F7A.9080900@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201303062056.24462.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 24 Feb 2013 21:19:30 +0100
-Kevin Baradon <kevin.baradon@gmail.com> escreveu:
+Hi Matt,
 
-> My 15c2:0036 device floods syslog when a keypad key is pressed:
-> 
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fef2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> 
-> This patch lowers severity of this message when key appears to be coming from keypad.
-> 
-> Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
-> ---
->  drivers/media/rc/imon.c |   15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-> index a3e66a0..bca03d4 100644
-> --- a/drivers/media/rc/imon.c
-> +++ b/drivers/media/rc/imon.c
-> @@ -1499,7 +1499,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
->  	int i;
->  	u64 scancode;
->  	int press_type = 0;
-> -	int msec;
-> +	int msec, is_pad_key = 0;
->  	struct timeval t;
->  	static struct timeval prev_time = { 0, 0 };
->  	u8 ktype;
-> @@ -1562,6 +1562,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
->  	    ((len == 8) && (buf[0] & 0x40) &&
->  	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
->  		len = 8;
-> +		is_pad_key = 1;
->  		imon_pad_to_keys(ictx, buf);
->  	}
->  
-> @@ -1625,8 +1626,16 @@ static void struct imon_context *ictx,
->  
->  unknown_key:
->  	spin_unlock_irqrestore(&ictx->kc_lock, flags);
-> -	dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
-> -		 (long long)scancode);
-> +	/*
-> +	 * On some devices syslog is flooded with unknown keypresses when keypad
-> +	 * is pressed. Lower message severity in that case.
-> +	 */
-> +	if (!is_pad_key)
-> +		dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
-> +			 (long long)scancode);
-> +	else
-> +		dev_dbg(dev, "%s: unknown keypad keypress, code 0x%llx\n",
-> +			__func__, (long long)scancode);
+While I added this patch to my cx231xx patch series, Mauro didn't pick it
+up for some reason. So for when he gets around to looking at your patch, I want to
+add my:
 
-Hmmm... this entire logic looks weird to me. IMO, the proper fix is to
-remove this code snippet from imon_incoming_packet():
-
-	spin_lock_irqsave(&ictx->kc_lock, flags);
-	if (ictx->kc == KEY_UNKNOWN)
-		goto unknown_key;
-	spin_unlock_irqrestore(&ictx->kc_lock, flags);
-
-and similar logic from other parts of the code, and just let rc_keydown()
-to be handled for KEY_UNKNOWN.
-
-rc_keydown() actually produces two input events:
-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-	input_event(dev, EV_KEY, code, !!value);
-
-(the last one, indirectly, by calling input_report_key)
-
-In this particular case, the fist event will allow userspace programs
-like "rc-keycode -t" to detect that an unknown scancode was produced,
-helping the user to properly fill the scancode table for a particular device.
-
-In the case of your remote, you'll likely will want to add support for those
-currently unknown scancodes.
-
-Those "unkonwn keypad keypress" type of messages are now obsolete, as users
-can get it anytime in userspace, using the appropriate tool (ir-keytable,
-with is part of v4l-utils).
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
-Mauro
+
+	Hans
+
+On Sat March 2 2013 00:53:30 Matt Gomboc wrote:
+> Thanks for the response, I have done as you suggested.
+> 
+> Below is an updated patch for the OTG102 device against http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx, kernel version 3.8.
+> 
+> With further testing it appears the extra clauses in cx231xx-cards.c were not necessary (in static in cx231xx_init_dev and static int cx231xx_usb_probe), so those have been also been removed.
+> 
+> 
+> Signed-off-by: Matt Gomboc <gomboc0@gmail.com>
+> --
+>  drivers/media/usb/cx231xx/cx231xx-avcore.c |  2 ++
+>  drivers/media/usb/cx231xx/cx231xx-cards.c  | 35 ++++++++++++++++++++++++++++++
+>  drivers/media/usb/cx231xx/cx231xx.h        |  1 +
+>  3 files changed, 38 insertions(+)
+> 
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> index 2e51fb9..235ba65 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+> @@ -357,6 +357,7 @@ int cx231xx_afe_update_power_control(struct cx231xx *dev,
+>  	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
+>  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
+>  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
+> +	case CX231XX_BOARD_OTG102:
+>  		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
+>  			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
+>  						FLD_PWRDN_ENABLE_PLL)) {
+> @@ -1720,6 +1721,7 @@ int cx231xx_dif_set_standard(struct cx231xx *dev, u32 standard)
+>  	case CX231XX_BOARD_CNXT_RDU_250:
+>  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
+>  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
+> +	case CX231XX_BOARD_OTG102:
+>  		func_mode = 0x03;
+>  		break;
+>  	case CX231XX_BOARD_CNXT_RDE_253S:
+> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> index b7b1acd..13249e5 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
+> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+> @@ -634,6 +634,39 @@ struct cx231xx_board cx231xx_boards[] = {
+>  			.gpio = NULL,
+>  		} },
+>  	},
+> +	[CX231XX_BOARD_OTG102] = {
+> +		.name = "Geniatech OTG102",
+> +		.tuner_type = TUNER_ABSENT,
+> +		.decoder = CX231XX_AVDECODER,
+> +		.output_mode = OUT_MODE_VIP11,
+> +		.ctl_pin_status_mask = 0xFFFFFFC4,
+> +		.agc_analog_digital_select_gpio = 0x0c, 
+> +			/* According with PV CxPlrCAP.inf file */
+> +		.gpio_pin_status_mask = 0x4001000,
+> +		.norm = V4L2_STD_NTSC,
+> +		.no_alt_vanc = 1,
+> +		.external_av = 1,
+> +		.dont_use_port_3 = 1,
+> +		/*.has_417 = 1, */
+> +		/* This board is believed to have a hardware encoding chip
+> +		 * supporting mpeg1/2/4, but as the 417 is apparently not
+> +		 * working for the reference board it is not here either. */
+> +
+> +		.input = {{
+> +				.type = CX231XX_VMUX_COMPOSITE1,
+> +				.vmux = CX231XX_VIN_2_1,
+> +				.amux = CX231XX_AMUX_LINE_IN,
+> +				.gpio = NULL,
+> +			}, {
+> +				.type = CX231XX_VMUX_SVIDEO,
+> +				.vmux = CX231XX_VIN_1_1 |
+> +					(CX231XX_VIN_1_2 << 8) |
+> +					CX25840_SVIDEO_ON,
+> +				.amux = CX231XX_AMUX_LINE_IN,
+> +				.gpio = NULL,
+> +			}
+> +		},
+> +	},
+>  };
+>  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+>  
+> @@ -675,6 +708,8 @@ struct usb_device_id cx231xx_id_table[] = {
+>  	 .driver_info = CX231XX_BOARD_ICONBIT_U100},
+>  	{USB_DEVICE(0x0fd9, 0x0037),
+>  	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
+> +	{USB_DEVICE(0x1f4d, 0x0102),
+> +	 .driver_info = CX231XX_BOARD_OTG102},
+>  	{},
+>  };
+>  
+> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+> index a8e50d2..dff3f1d 100644
+> --- a/drivers/media/usb/cx231xx/cx231xx.h
+> +++ b/drivers/media/usb/cx231xx/cx231xx.h
+> @@ -71,6 +71,7 @@
+>  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
+>  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
+>  #define CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2 16
+> +#define CX231XX_BOARD_OTG102 17
+>  
+>  /* Limits minimum and default number of buffers */
+>  #define CX231XX_MIN_BUF                 4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
