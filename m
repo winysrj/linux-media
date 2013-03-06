@@ -1,80 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:45908 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035Ab3CKTpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:45:34 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:41104 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803Ab3CFM40 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 07:56:26 -0500
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MJ80028EP9PJHW0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Mar 2013 21:56:24 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MJ800A8OP8EHQ90@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 06 Mar 2013 21:56:24 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH 6/8] fimc-is: Add Exynos4x12 FIMC-IS device tree bindings
- documentation
-Date: Mon, 11 Mar 2013 20:44:50 +0100
-Message-id: <1363031092-29950-7-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363031092-29950-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363031092-29950-1-git-send-email-s.nawrocki@samsung.com>
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	arun.kk@samsung.com
+Subject: [PATCH] [media] s5p-mfc: Fix encoder control 15 issue
+Date: Wed, 06 Mar 2013 08:15:57 -0500
+Message-id: <1362575757-22839-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../devicetree/bindings/media/exynos4-fimc-is.txt  |   41 ++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
+mfc-encoder is not working in the latest kernel giving the
+erorr "Adding control (15) failed". Adding the missing step
+parameter in this control to fix the issue.
 
-diff --git a/Documentation/devicetree/bindings/media/exynos4-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
-new file mode 100644
-index 0000000..ef994d1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
-@@ -0,0 +1,41 @@
-+Exynos4x12 SoC series Imaging Subsystem (FIMC-IS)
-+
-+The FIMC-IS is an subsystem for processing image signal from an image sensor.
-+The Exynos4x12 SoC series FIMC-IS V1.5 comprises of a dedicated ARM Cortex-A5
-+processor, ISP, DRC and FD IP blocks and peripheral IPs such as I2C, SPI, UART
-+bus controllers, Multi-PWM and ADC.
-+
-+fimc-is node
-+------------
-+
-+Required properties:
-+
-+- compatible : should be "samsung,exynos4212-fimc-is" for Exynos4212 and
-+	       Exynos4412 SoCs;
-+- reg	     : physical base address and size of the device memory mapped
-+	       registers;
-+- interrupts : should contain FIMC-IS interrupts;
-+
-+The following are the FIMC-IS peripheral device nodes and can be specified
-+either standalone or as fimc-is child nodes.
-+
-+pmu subnode
-+-----------
-+
-+Required properties:
-+ - reg	: should contain PMU physical base address of the memory mapped
-+          registers and size, the value of size should be 0x3000.
-+
-+
-+i2c-isp (ISP I2C bus controller) nodes
-+------------------------------------------
-+
-+Required properties:
-+
-+- compatible : should be "samsung,exynos4212-i2c-isp" for Exynos4212 and
-+	       Exynos4412 SoCs;
-+- reg	     : physical base address and size of the device memory mapped
-+	       registers;
-+
-+For the above nodes it is required to specify a pinctrl state named "default",
-+according to the pinctrl bindings defined in ../pinctrl/pinctrl-bindings.txt.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2356fd5..4f6b553 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -232,6 +232,7 @@ static struct mfc_control controls[] = {
+ 		.minimum = 0,
+ 		.maximum = 1,
+ 		.default_value = 0,
++		.step = 1,
+ 		.menu_skip_mask = 0,
+ 	},
+ 	{
 -- 
 1.7.9.5
 
