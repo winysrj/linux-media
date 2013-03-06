@@ -1,154 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:53292 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758191Ab3CFOkF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Mar 2013 09:40:05 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Wed, 6 Mar 2013 06:38:22 -0800
-Subject: RE: [REVIEW PATCH V4 10/12] [media] marvell-ccic: add soc_camera
- support for marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D9D8DAA8E@SC-VEXCH1.marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
- <1360238687-15768-11-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1303051151310.25837@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1303051151310.25837@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:21686 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab3CFTff (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 14:35:35 -0500
+Date: Wed, 6 Mar 2013 20:35:25 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: TerraTec Cinergy T PCIe Dual not working
+Message-ID: <20130306203525.3d7b0588@endymion.delvare>
+In-Reply-To: <513785C5.8040702@schinagl.nl>
+References: <20130306142713.6a68179a@endymion.delvare>
+	<51374B6D.9010805@schinagl.nl>
+	<20130306160335.01cc5cd4@endymion.delvare>
+	<513785C5.8040702@schinagl.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+Hi Oliver,
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Tuesday, 05 March, 2013 21:33
->To: Albert Wang
->Cc: corbet@lwn.net; Linux Media Mailing List; Libin Yang
->Subject: Re: [REVIEW PATCH V4 10/12] [media] marvell-ccic: add soc_camera support
->for marvell-ccic driver
+On Wed, 06 Mar 2013 19:07:01 +0100, Oliver Schinagl wrote:
+> On 03/06/13 16:03, Jean Delvare wrote:
+> > It turns out that my problem is the antenna. I was using the antenna I
+> > have been using with my previous card, which is an internal DVB-T
+> > antenna with amplification (external power supply.) I get zero signal
+> > with that. But using the Terratec-provided cheap "stick" antenna, I get
+> > signal again, with reasonable quality (although not as stable as with
+> > the old card and the powered antenna.) I also get signal (but not all
+> > channels) with my original antenna _unpowered_ (thus signal not
+> > amplified.)
+> >
+> > I admit I don't quite understand. I would understand that a bad,
+> > unpowered antenna causes no signal to be sensed. But how is it possible
+> > that a supposedly better, powered antenna causes that kind of issue?
+> >
+> > Oliver, out of curiosity, what antenna are you using? The
+> > Terratec-provided one, or another one?
 >
->Ok, can we test existing systems, have they been tested? It is hard to
->review this, as you might imagine. At least I don't think I can in any
->reasonably way verify by just looking at this whether it's breaking
->anything... I think, people, really using / developing this driver for
->other platforms would have to just extensively test this and verify the
->final result (I think I know one such person ;-)). A couple of minor
->comments below. In general - it does look quite good to me! So, provided
->relevant testing is done and, possibly, my comments addressed:
->
-Actually, we have tested it on all Marvell platforms which we have.
-But we have no OLPC board on hand.
+> Right now, I use 11cm stripped coax :) But that's because I live 600 
+> meters from the broadcasting tower. This actually gives me the best 
+> reception. The mini antenna that came with the thing worked quite well, 
+> but the wire was a bit short.
+> 
+> Besides that I did use a powered antenna for a while, without the power 
+> connected, because it actually dampens the signal. That worked quite 
+> well for a while. Using it powered, with an external power source, 
+> actually made it much worse.
 
-You are right and we still need test it on OLPC.
+My experience matches yours exactly. Thanks for confirming. I wonder if
+this is a limitation of the Linux drivers (not adjusting the tuner
+sensibility to the signal strength) or a hardware characteristic.
 
-
->Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->
->Thanks
->Guennadi
->
->On Thu, 7 Feb 2013, Albert Wang wrote:
->
->> This patch adds the soc_camera mode support in marvell-ccic driver.
->> It also removes the old mode for maintaining single mode in the future.
->>
->> Signed-off-by: Libin Yang <lbyang@marvell.com>
->> Signed-off-by: Albert Wang <twang13@marvell.com>
->> ---
->>  drivers/media/platform/Makefile                  |    4 +-
->>  drivers/media/platform/marvell-ccic/Kconfig      |    6 +-
->>  drivers/media/platform/marvell-ccic/mcam-core.c  | 1084 +++++++---------------
->>  drivers/media/platform/marvell-ccic/mcam-core.h  |   27 +-
->>  drivers/media/platform/marvell-ccic/mmp-driver.c |   73 +-
->>  include/media/mmp-camera.h                       |    5 +
->>  6 files changed, 402 insertions(+), 797 deletions(-)
->
->At least the stats look good ;-)
->
->>
->> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
->> index 4817d28..1a345c8 100644
->> --- a/drivers/media/platform/Makefile
->> +++ b/drivers/media/platform/Makefile
->> @@ -11,8 +11,6 @@ obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
->>  obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
->>
->>  obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
->> -obj-$(CONFIG_VIDEO_CAFE_CCIC) += marvell-ccic/
->> -obj-$(CONFIG_VIDEO_MMP_CAMERA) += marvell-ccic/
->>
->>  obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
->>  obj-$(CONFIG_VIDEO_OMAP3)	+= omap3isp/
->> @@ -43,6 +41,8 @@ obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
->>  obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
->>
->>  obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
->> +obj-$(CONFIG_VIDEO_CAFE_CCIC)		+= marvell-ccic/
->> +obj-$(CONFIG_VIDEO_MMP_CAMERA)		+= marvell-ccic/
->>
->>  obj-y	+= davinci/
->>
->> diff --git a/drivers/media/platform/marvell-ccic/Kconfig
->b/drivers/media/platform/marvell-ccic/Kconfig
->> index bf739e3..7fa3c62 100755
->> --- a/drivers/media/platform/marvell-ccic/Kconfig
->> +++ b/drivers/media/platform/marvell-ccic/Kconfig
->> @@ -10,14 +10,14 @@ config VIDEO_CAFE_CCIC
->>  	  generation OLPC systems.
->>
->>  config VIDEO_MMP_CAMERA
->> -	tristate "Marvell Armada 610 integrated camera controller support"
->> +	tristate "Marvell Armada integrated camera controller support"
->>  	depends on ARCH_MMP && I2C && VIDEO_V4L2
->
->Perhaps, you want to add "&& SOC_CAMERA" above
->
-Yes, we missed it. Thanks!
-
->> -	select VIDEO_OV7670
->>  	select I2C_GPIO
->> +	select VIDEOBUF2_DMA_CONTIG
->>  	select VIDEOBUF2_DMA_SG
->>  	---help---
->>  	  This is a Video4Linux2 driver for the integrated camera
->> -	  controller found on Marvell Armada 610 application
->> +	  controller found on Marvell Armada application
->>  	  processors (and likely beyond).  This is the controller found
->>  	  in OLPC XO 1.75 systems.
->>
->
->[snip]
->
->> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c
->b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> index 732af16..3d5db24 100755
->> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
->> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
->> @@ -28,6 +28,10 @@
->>  #include <linux/list.h>
->>  #include <linux/pm.h>
->>  #include <linux/clk.h>
->> +#include <linux/regulator/consumer.h>
->
->Looks like you don't need this header.
->
-Ok, will remove it.
-
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
-
-
-Thanks
-Albert Wang
-86-21-61092656
+-- 
+Jean Delvare
