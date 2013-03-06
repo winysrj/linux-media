@@ -1,59 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4969 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757045Ab3CYMDu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 08:03:50 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2PC3kZ7038523
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 13:03:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 322C711E0164
-	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 13:03:45 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.10] Two fixes
-Date: Mon, 25 Mar 2013 13:03:45 +0100
+Received: from mail-we0-f173.google.com ([74.125.82.173]:63287 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803Ab3CFKRK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 05:17:10 -0500
+Received: by mail-we0-f173.google.com with SMTP id r5so7623900wey.32
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 02:17:09 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303251303.45719.hverkuil@xs4all.nl>
+In-Reply-To: <51371553.5030103@ti.com>
+References: <1362492801-13202-1-git-send-email-nsekhar@ti.com>
+ <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com> <51371553.5030103@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 6 Mar 2013 15:46:48 +0530
+Message-ID: <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two patches were part of this patch series:
+Sekhar,
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg59894.html
-
-But I decided to split them off since they have nothing to do with the new
-chip_name ioctl.
+On Wed, Mar 6, 2013 at 3:37 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On 3/6/2013 2:59 PM, Prabhakar Lad wrote:
+>
+>>>  config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>         select VIDEOBUF2_DMA_CONTIG
+>>> -       select VIDEO_DAVINCI_VPIF
+>>>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+>>>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+>>>         help
+>>> @@ -15,9 +14,8 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>
+>>>  config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>         select VIDEOBUF2_DMA_CONTIG
+>>> -       select VIDEO_DAVINCI_VPIF
+>>>         help
+>>>           Enables Davinci VPIF module used for captur devices.
+>>>           This module is common for following DM6467/DA850/OMAPL138
+>>> @@ -28,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>
+>>>  config VIDEO_DAVINCI_VPIF
+>>>         tristate "DaVinci VPIF Driver"
+>>> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+>>> +       depends on ARCH_DAVINCI
+>>
+>> It would be better if this was  depends on MACH_DAVINCI_DM6467_EVM ||
+>> MACH_DAVINCI_DA850_EVM
+>> rather than 'ARCH_DAVINCI' then you can remove 'MACH_DAVINCI_DM6467_EVM' and
+>> 'MACH_DAVINCI_DA850_EVM' dependency from VIDEO_DAVINCI_VPIF_DISPLAY and
+>> VIDEO_DAVINCI_VPIF_CAPTURE. So it would be just 'depends on VIDEO_DEV
+>> && VIDEO_DAVINCI_VPIF'
+>
+> I could, but vpif.c seems pretty board independent to me. Are you sure
+> no other board would like to build vpif.c? BTW, are vpif_display.c and
+> vpif_capture.c really that board specific? May be we can all make them
+> depend on ARCH_DAVINCI?
+>
+VPIF is present only in DM646x and DA850/OMAP-L1138.
+vpif.c is common file which is used by vpif_capture and vpif_display.
 
 Regards,
+--Prabhakar Lad
 
-	Hans
-
-The following changes since commit c535cc6c714bd21b3afad35baa926b3b9eb51361:
-
-  [media] staging: lirc_sir: remove dead code (2013-03-25 08:21:20 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git fixes
-
-for you to fetch changes up to 54957d2a4225d22cf6014399f88e91b794f44522:
-
-  DocBook media: fix syntax problems in dvbproperty.xml (2013-03-25 12:50:42 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (2):
-      v4l2-common: remove obsolete check for ' at the end of a driver name.
-      DocBook media: fix syntax problems in dvbproperty.xml
-
- Documentation/DocBook/media/dvb/dvbproperty.xml |   46 ++++++++++++++++++++++------------------------
- drivers/media/v4l2-core/v4l2-common.c           |    3 ---
- 2 files changed, 22 insertions(+), 27 deletions(-)
+>>
+>> BTW this patch doesn’t apply on3.9.0-rc1.
+>
+> Oops. I based this on a handy v3.8. I will fix.
+>
+> Thanks,
+> sekhar
