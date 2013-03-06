@@ -1,221 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4996 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751156Ab3CRMcd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 08:32:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 05/19] solo6x10: fix various format-related compliancy issues.
-Date: Mon, 18 Mar 2013 13:32:04 +0100
-Message-Id: <1363609938-21735-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
+Received: from bear.ext.ti.com ([192.94.94.41]:39095 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757061Ab3CFOVz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Mar 2013 09:21:55 -0500
+Message-ID: <513750ED.2040701@ti.com>
+Date: Wed, 6 Mar 2013 19:51:33 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Prabhakar Lad <prabhakar.lad@ti.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
+References: <1362492801-13202-1-git-send-email-nsekhar@ti.com> <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com> <51371553.5030103@ti.com> <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com> <5137191F.6050707@ti.com> <CA+V-a8s_x_X_GdQ0aa36e-B3DhxpXJ5vzsce0yqPcn78g81m+w@mail.gmail.com>
+In-Reply-To: <CA+V-a8s_x_X_GdQ0aa36e-B3DhxpXJ5vzsce0yqPcn78g81m+w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-- try_fmt should never return -EBUSY.
-- invalid pix->field values were not mapped to a valid value.
-- the priv field of struct v4l2_pix_format wasn't zeroed.
-- the try_fmt error code was not checked in set_fmt.
-- enum_framesizes/intervals is valid for both MJPEG and MPEG pixel formats.
-- enum_frameintervals didn't check width and height and reported the
-  wrong range.
-- s_parm didn't set readbuffers.
-- don't fail on invalid colorspace, just replace with the valid colorspace.
-- bytesperline should be 0 for compressed formats.
+On 3/6/2013 4:05 PM, Prabhakar Lad wrote:
+> On Wed, Mar 6, 2013 at 3:53 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> On 3/6/2013 3:46 PM, Prabhakar Lad wrote:
+>>> Sekhar,
+>>>
+>>> On Wed, Mar 6, 2013 at 3:37 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+>>>> On 3/6/2013 2:59 PM, Prabhakar Lad wrote:
+>>>>
+>>>>>>  config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+>>>>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>>>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>>>>         select VIDEOBUF2_DMA_CONTIG
+>>>>>> -       select VIDEO_DAVINCI_VPIF
+>>>>>>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+>>>>>>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+>>>>>>         help
+>>>>>> @@ -15,9 +14,8 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
+>>>>>>
+>>>>>>  config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+>>>>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+>>>>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
+>>>>>>         select VIDEOBUF2_DMA_CONTIG
+>>>>>> -       select VIDEO_DAVINCI_VPIF
+>>>>>>         help
+>>>>>>           Enables Davinci VPIF module used for captur devices.
+>>>>>>           This module is common for following DM6467/DA850/OMAPL138
+>>>>>> @@ -28,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
+>>>>>>
+>>>>>>  config VIDEO_DAVINCI_VPIF
+>>>>>>         tristate "DaVinci VPIF Driver"
+>>>>>> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+>>>>>> +       depends on ARCH_DAVINCI
+>>>>>
+>>>>> It would be better if this was  depends on MACH_DAVINCI_DM6467_EVM ||
+>>>>> MACH_DAVINCI_DA850_EVM
+>>>>> rather than 'ARCH_DAVINCI' then you can remove 'MACH_DAVINCI_DM6467_EVM' and
+>>>>> 'MACH_DAVINCI_DA850_EVM' dependency from VIDEO_DAVINCI_VPIF_DISPLAY and
+>>>>> VIDEO_DAVINCI_VPIF_CAPTURE. So it would be just 'depends on VIDEO_DEV
+>>>>> && VIDEO_DAVINCI_VPIF'
+>>>>
+>>>> I could, but vpif.c seems pretty board independent to me. Are you sure
+>>>> no other board would like to build vpif.c? BTW, are vpif_display.c and
+>>>> vpif_capture.c really that board specific? May be we can all make them
+>>>> depend on ARCH_DAVINCI?
+>>>>
+>>> VPIF is present only in DM646x and DA850/OMAP-L1138.
+>>> vpif.c is common file which is used by vpif_capture and vpif_display.
+>>
+>> So vpif.c per se doesn't do anything useful. Why the dependency on EVMs?
+>> There are other boards for these platform which could use VPIF.
+>>
+> yep agreed!
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+So instead of presenting a non-useful vpif selection to users,
+vpif.c dependency is better handled in makefile, no?
+
+How about the patch below (now also rebased on v3.9-rc1)?
+
+What about vpss.c? Does it make sense not to present a config
+for that as well?
+
+I also noticed that module build of VPIF is broken in mainline.
+That needs to be fixed too.
+
+Thanks,
+Sekhar
+
+---8<---
+From: Sekhar Nori <nsekhar@ti.com>
+Date: Tue, 5 Mar 2013 19:08:59 +0530
+Subject: [PATCH] media: davinci: kconfig: fix incorrect selects
+
+drivers/media/platform/davinci/Kconfig uses selects where
+it should be using 'depends on'. This results in warnings of
+the following sort when doing randconfig builds.
+
+warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
+
+The VPIF kconfigs had a strange 'select' and 'depends on' cross
+linkage which have been fixed as well by removing unneeded
+VIDEO_DAVINCI_VPIF config symbol. Selecting VPIF is now possible
+on all DaVinci platforms instead of two specific EVMs earlier.
+
+While at it, fix the Kconfig help text to make it more readable.
+
+This patch has only been build tested, I do not have the setup
+to test video. I also do not know if the dependencies are really
+needed, I have just tried to not break any existing assumptions.
+
+Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+Signed-off-by: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/staging/media/solo6x10/v4l2-enc.c |   51 ++++++++++++++++++++---------
- drivers/staging/media/solo6x10/v4l2.c     |   30 +++++++----------
- 2 files changed, 46 insertions(+), 35 deletions(-)
+ drivers/media/platform/davinci/Kconfig  |   41 ++++++++++---------------------
+ drivers/media/platform/davinci/Makefile |    7 ++----
+ 2 files changed, 15 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 1fbd95f..bf52a73 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -1039,13 +1039,6 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 	    pix->pixelformat != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
+diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+index ccfde4e..42152f9 100644
+--- a/drivers/media/platform/davinci/Kconfig
++++ b/drivers/media/platform/davinci/Kconfig
+@@ -1,40 +1,29 @@
+ config VIDEO_DAVINCI_VPIF_DISPLAY
+-	tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+-	depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
++	tristate "TI DaVinci VPIF Video Display"
++	depends on VIDEO_DEV && ARCH_DAVINCI
+ 	select VIDEOBUF2_DMA_CONTIG
+-	select VIDEO_DAVINCI_VPIF
+ 	select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Enables Davinci VPIF module used for display devices.
+-	  This module is common for following DM6467/DA850/OMAPL138
+-	  based display devices.
++	  This module is used for display on TI DM6467/DA850/OMAPL138
++	  SoCs.
  
--	/* We cannot change width/height in mid mpeg */
--	if (atomic_read(&solo_enc->mpeg_readers) > 0) {
--		if (pix->width != solo_enc->width ||
--		    pix->height != solo_enc->height)
--			return -EBUSY;
--	}
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called vpif_display.
+ 
+ config VIDEO_DAVINCI_VPIF_CAPTURE
+-	tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+-	depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
++	tristate "TI DaVinci VPIF Video Capture"
++	depends on VIDEO_DEV && ARCH_DAVINCI
+ 	select VIDEOBUF2_DMA_CONTIG
+-	select VIDEO_DAVINCI_VPIF
+ 	help
+-	  Enables Davinci VPIF module used for captur devices.
+-	  This module is common for following DM6467/DA850/OMAPL138
+-	  based capture devices.
++	  Enables Davinci VPIF module used for capture devices.
++	  This module is used for capture on TI DM6467/DA850/OMAPL138
++	  SoCs.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called vpif_capture.
+ 
+-config VIDEO_DAVINCI_VPIF
+-	tristate "DaVinci VPIF Driver"
+-	depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+-	help
+-	  Support for DaVinci VPIF Driver.
 -
- 	if (pix->width < solo_dev->video_hsize ||
- 	    pix->height < solo_dev->video_vsize << 1) {
- 		/* Default to CIF 1/2 size */
-@@ -1057,14 +1050,20 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 		pix->height = solo_dev->video_vsize << 1;
- 	}
- 
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = V4L2_FIELD_INTERLACED;
--	else if (pix->field != V4L2_FIELD_INTERLACED)
-+	switch (pix->field) {
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	case V4L2_FIELD_ANY:
-+	default:
- 		pix->field = V4L2_FIELD_INTERLACED;
-+		break;
-+	}
- 
- 	/* Just set these */
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->sizeimage = FRAME_BUF_SIZE;
-+	pix->priv = 0;
- 
- 	return 0;
- }
-@@ -1081,6 +1080,15 @@ static int solo_enc_set_fmt_cap(struct file *file, void *priv,
- 	mutex_lock(&solo_enc->enable_lock);
- 
- 	ret = solo_enc_try_fmt_cap(file, priv, f);
-+	if (ret)
-+		return ret;
-+
-+	/* We cannot change width/height in mid read */
-+	if (!ret && atomic_read(&solo_enc->readers) > 0) {
-+		if (pix->width != solo_enc->width ||
-+		    pix->height != solo_enc->height)
-+			ret = -EBUSY;
-+	}
- 	if (ret) {
- 		mutex_unlock(&solo_enc->enable_lock);
- 		return ret;
-@@ -1116,6 +1124,7 @@ static int solo_enc_get_fmt_cap(struct file *file, void *priv,
- 		     V4L2_FIELD_NONE;
- 	pix->sizeimage = FRAME_BUF_SIZE;
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	pix->priv = 0;
- 
- 	return 0;
- }
-@@ -1205,7 +1214,8 @@ static int solo_enum_framesizes(struct file *file, void *priv,
- 	struct solo_enc_fh *fh = priv;
- 	struct solo_dev *solo_dev = fh->enc->solo_dev;
- 
--	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG)
-+	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	    fsize->pixel_format != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
- 
- 	switch (fsize->index) {
-@@ -1232,16 +1242,24 @@ static int solo_enum_frameintervals(struct file *file, void *priv,
- 	struct solo_enc_fh *fh = priv;
- 	struct solo_dev *solo_dev = fh->enc->solo_dev;
- 
--	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG || fintv->index)
-+	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	    fintv->pixel_format != V4L2_PIX_FMT_MJPEG)
-+		return -EINVAL;
-+	if (fintv->index)
-+		return -EINVAL;
-+	if ((fintv->width != solo_dev->video_hsize >> 1 ||
-+	     fintv->height != solo_dev->video_vsize) &&
-+	    (fintv->width != solo_dev->video_hsize ||
-+	     fintv->height != solo_dev->video_vsize << 1))
- 		return -EINVAL;
- 
- 	fintv->type = V4L2_FRMIVAL_TYPE_STEPWISE;
- 
--	fintv->stepwise.min.numerator = solo_dev->fps;
--	fintv->stepwise.min.denominator = 1;
-+	fintv->stepwise.min.denominator = solo_dev->fps;
-+	fintv->stepwise.min.numerator = 15;
- 
--	fintv->stepwise.max.numerator = solo_dev->fps;
--	fintv->stepwise.max.denominator = 15;
-+	fintv->stepwise.max.denominator = solo_dev->fps;
-+	fintv->stepwise.max.numerator = 1;
- 
- 	fintv->stepwise.step.numerator = 1;
- 	fintv->stepwise.step.denominator = 1;
-@@ -1298,6 +1316,7 @@ static int solo_s_parm(struct file *file, void *priv,
- 	solo_enc->interval = cp->timeperframe.numerator;
- 
- 	cp->capability = V4L2_CAP_TIMEPERFRAME;
-+	cp->readbuffers = 2;
- 
- 	solo_update_mode(solo_enc);
- 
-diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
-index 21b486c..a606c5c 100644
---- a/drivers/staging/media/solo6x10/v4l2.c
-+++ b/drivers/staging/media/solo6x10/v4l2.c
-@@ -34,8 +34,6 @@
- #include "solo6x10.h"
- #include "tw28.h"
- 
--#define SOLO_DISP_PIX_FIELD	V4L2_FIELD_INTERLACED
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called vpif.
 -
- /* Image size is two fields, SOLO_HW_BPL is one horizontal line in hardware */
- #define SOLO_HW_BPL		2048
- #define solo_vlines(__solo)	(__solo->video_vsize * 2)
-@@ -439,7 +437,7 @@ static int solo_v4l2_open(struct file *file)
- 	videobuf_queue_dma_contig_init(&fh->vidq, &solo_video_qops,
- 				       &solo_dev->pdev->dev, &fh->slock,
- 				       V4L2_BUF_TYPE_VIDEO_CAPTURE,
--				       SOLO_DISP_PIX_FIELD,
-+				       V4L2_FIELD_INTERLACED,
- 				       sizeof(struct videobuf_buffer),
- 				       fh, NULL);
- 	return 0;
-@@ -581,23 +579,16 @@ static int solo_try_fmt_cap(struct file *file, void *priv,
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	int image_size = solo_image_size(solo_dev);
+ config VIDEO_VPSS_SYSTEM
+ 	tristate "VPSS System module driver"
+ 	depends on ARCH_DAVINCI
+@@ -56,8 +45,7 @@ config VIDEO_VPFE_CAPTURE
  
--	/* Check supported sizes */
--	if (pix->width != solo_dev->video_hsize)
--		pix->width = solo_dev->video_hsize;
--	if (pix->height != solo_vlines(solo_dev))
--		pix->height = solo_vlines(solo_dev);
--	if (pix->sizeimage != image_size)
--		pix->sizeimage = image_size;
+ config VIDEO_DM6446_CCDC
+ 	tristate "DM6446 CCDC HW module"
+-	depends on VIDEO_VPFE_CAPTURE
+-	select VIDEO_VPSS_SYSTEM
++	depends on VIDEO_VPFE_CAPTURE && VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+ 	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
+@@ -71,8 +59,7 @@ config VIDEO_DM6446_CCDC
+ 
+ config VIDEO_DM355_CCDC
+ 	tristate "DM355 CCDC HW module"
+-	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
+-	select VIDEO_VPSS_SYSTEM
++	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE && VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+ 	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+@@ -86,8 +73,7 @@ config VIDEO_DM355_CCDC
+ 
+ config VIDEO_ISIF
+ 	tristate "ISIF HW module"
+-	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+-	select VIDEO_VPSS_SYSTEM
++	depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE && VIDEO_VPSS_SYSTEM
+ 	default y
+ 	help
+ 	   Enables ISIF hw module. This is the hardware module for
+@@ -99,8 +85,7 @@ config VIDEO_ISIF
+ 
+ config VIDEO_DAVINCI_VPBE_DISPLAY
+ 	tristate "DM644X/DM365/DM355 VPBE HW module"
+-	depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365
+-	select VIDEO_VPSS_SYSTEM
++	depends on (ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365) && VIDEO_VPSS_SYSTEM
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	    Enables Davinci VPBE module used for display devices.
+diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
+index f40f521..4d91cb9 100644
+--- a/drivers/media/platform/davinci/Makefile
++++ b/drivers/media/platform/davinci/Makefile
+@@ -2,13 +2,10 @@
+ # Makefile for the davinci video device drivers.
+ #
+ 
+-# VPIF
+-obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
 -
--	/* Check formats */
--	if (pix->field == V4L2_FIELD_ANY)
--		pix->field = SOLO_DISP_PIX_FIELD;
--
--	if (pix->pixelformat != V4L2_PIX_FMT_UYVY ||
--	    pix->field       != SOLO_DISP_PIX_FIELD ||
--	    pix->colorspace  != V4L2_COLORSPACE_SMPTE170M)
-+	if (pix->pixelformat != V4L2_PIX_FMT_UYVY)
- 		return -EINVAL;
+ #VPIF Display driver
+-obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif_display.o
++obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif.o vpif_display.o
+ #VPIF Capture driver
+-obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif_capture.o
++obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif.o vpif_capture.o
  
-+	pix->width = solo_dev->video_hsize;
-+	pix->height = solo_vlines(solo_dev);
-+	pix->sizeimage = image_size;
-+	pix->field = V4L2_FIELD_INTERLACED;
-+	pix->pixelformat = V4L2_PIX_FMT_UYVY;
-+	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	pix->priv = 0;
- 	return 0;
- }
- 
-@@ -624,10 +615,11 @@ static int solo_get_fmt_cap(struct file *file, void *priv,
- 	pix->width = solo_dev->video_hsize;
- 	pix->height = solo_vlines(solo_dev);
- 	pix->pixelformat = V4L2_PIX_FMT_UYVY;
--	pix->field = SOLO_DISP_PIX_FIELD;
-+	pix->field = V4L2_FIELD_INTERLACED;
- 	pix->sizeimage = solo_image_size(solo_dev);
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->bytesperline = solo_bytesperline(solo_dev);
-+	pix->priv = 0;
- 
- 	return 0;
- }
--- 
-1.7.10.4
-
+ # Capture: DM6446 and DM355
+ obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
