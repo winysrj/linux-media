@@ -1,59 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:57278 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758063Ab3CUNSP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 09:18:15 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] siano: remove the remaining CamelCase compliants
-References: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
-	<1363870963-28552-4-git-send-email-mchehab@redhat.com>
-Date: Thu, 21 Mar 2013 14:18:11 +0100
-In-Reply-To: <1363870963-28552-4-git-send-email-mchehab@redhat.com> (Mauro
-	Carvalho Chehab's message of "Thu, 21 Mar 2013 10:02:41 -0300")
-Message-ID: <87d2usj3ho.fsf@nemi.mork.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:58992 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab3CGHxB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:53:01 -0500
+Received: by mail-pb0-f41.google.com with SMTP id um15so183968pbc.14
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 23:53:01 -0800 (PST)
+Message-ID: <5138475c.8ac5440a.2d19.45c3@mx.google.com>
+Subject: China silicone gifts factory
+Content-Transfer-Encoding: Quoted-Printable
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 7 Mar 2013 15:52:47 +0800
+From: "Sales ZCH" <springzch520@gmail.com>
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+ZCH Industrial Co., Ltd is is located in Donguang city since 2006's, W=
+e have strong area in fields of silicone rubber series, Such as silico=
+ne watches, wristband, bracelet,phone case,kitchware,cake mould,ballet=
+ point toe pads,keyboard etc.
 
-> Remove the remaining CamelCase checkpatch.pl compliants.
-> There are still a few left, but those are due to USB and
-> DVB APIs.
-[..]
-> @@ -840,31 +840,31 @@ int smscore_configure_board(struct smscore_device_t *coredev)
->  	}
->  
->  	if (board->mtu) {
-> -		struct sms_msg_data MtuMsg;
-> +		struct sms_msg_data mtu_msg;
->  		sms_debug("set max transmit unit %d", board->mtu);
->  
-> -		MtuMsg.x_msg_header.msg_src_id = 0;
-> -		MtuMsg.x_msg_header.msg_dst_id = HIF_TASK;
-> -		MtuMsg.x_msg_header.msg_flags = 0;
-> -		MtuMsg.x_msg_header.msg_type = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> -		MtuMsg.x_msg_header.msg_length = sizeof(MtuMsg);
-> -		MtuMsg.msgData[0] = board->mtu;
-> +		mtu_msg.x_msg_header.msg_src_id = 0;
-> +		mtu_msg.x_msg_header.msg_dst_id = HIF_TASK;
-> +		mtu_msg.x_msg_header.msg_flags = 0;
-> +		mtu_msg.x_msg_header.msg_type = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> +		mtu_msg.x_msg_header.msg_length = sizeof(mtu_msg);
-> +		mtu_msg.msg_data[0] = board->mtu;
->  
+Also our sales term responsible for promotion, business and shipping. =
+it's our pleasure to be your reliable representative office in China
 
-Ah, right.  Why don't you just squash patch 1 and 4 together, reducing
-the set with about the size of patch 4, and making all this somewhat
-more meaningful?
+For more our company information, please browse or downlad catalogue a=
+t http://www.giftzch.com , Your questions,OEM,ODM design please contac=
+t us at sales@giftzch.com or 0086 769 81187183.
 
-Tounching the exact same lines twice in the same patchset, doing the
-exact same type of cleanup, does *not* help review.
-
-
-Bjørn
