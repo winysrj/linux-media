@@ -1,64 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:55425 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184Ab3CGHOa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:14:30 -0500
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>
-Subject: [PATCH] davinci: vpif: Fix module build for capture and display
-Date: Thu,  7 Mar 2013 12:44:21 +0530
-Message-Id: <1362640461-29106-1-git-send-email-prabhakar.lad@ti.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:51720 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751599Ab3CGWxk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 17:53:40 -0500
+Date: Thu, 7 Mar 2013 23:53:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
+	<benoit.thebaudeau@advansee.com>,
+	=?ISO-8859-1?Q?Micka=EBl_Guivarc=27h?=
+	<mickael.guivarch@advansee.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] soc-camera: mt9m111: Fix auto-exposure control
+In-Reply-To: <CACKLOr3mgdn2GbSkk5SAUoTmZKzNs7T8RYJWHg+kVV5RSbD5Hg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1303072353120.20470@axis700.grange>
+References: <1361903569-30244-1-git-send-email-benoit.thebaudeau@advansee.com>
+ <CACKLOr3mgdn2GbSkk5SAUoTmZKzNs7T8RYJWHg+kVV5RSbD5Hg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.lad@ti.com>
+On Thu, 7 Mar 2013, javier Martin wrote:
 
-export the symbols which are used by two modules vpif_capture and
-vpif_display.
+> Hi,
+> 
+> On 26 February 2013 19:32, Benoît Thébaudeau
+> <benoit.thebaudeau@advansee.com> wrote:
+> > Commit f9bd5843658e18a7097fc7258c60fb840109eaa8 changed V4L2_CID_EXPOSURE_AUTO
+> > from boolean to enum, and commit af8425c54beb3c32cbb503a379132b3975535289
+> > changed the creation of this control into a menu for the mt9m111. However,
+> > mt9m111_set_autoexposure() is still interpreting the value set for this control
+> > as a boolean, which also conflicts with the default value of this control set to
+> > V4L2_EXPOSURE_AUTO (0).
+> >
+> > This patch makes mt9m111_set_autoexposure() interpret the value set for
+> > V4L2_CID_EXPOSURE_AUTO as defined by enum v4l2_exposure_auto_type.
+> >
+> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Cc: Mickaël Guivarc'h <mickael.guivarch@advansee.com>
+> > Cc: <linux-media@vger.kernel.org>
+> > Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
+> > ---
+> >  drivers/media/i2c/soc_camera/mt9m111.c |    4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+> > index bbc4ff9..0b0ebaa 100644
+> > --- a/drivers/media/i2c/soc_camera/mt9m111.c
+> > +++ b/drivers/media/i2c/soc_camera/mt9m111.c
+> > @@ -701,11 +701,11 @@ static int mt9m111_set_global_gain(struct mt9m111 *mt9m111, int gain)
+> >         return reg_write(GLOBAL_GAIN, val);
+> >  }
+> >
+> > -static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int on)
+> > +static int mt9m111_set_autoexposure(struct mt9m111 *mt9m111, int val)
+> >  {
+> >         struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+> >
+> > -       if (on)
+> > +       if (val == V4L2_EXPOSURE_AUTO)
+> >                 return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+> >         return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+> >  }
+> > --
+> > 1.7.10.4
+> 
+> This solves a real issue.
+> 
+> Tested-By: Javier Martin <javier.martin@vista-silicon.com>
 
-This patch fixes following error:
-ERROR: "ch_params" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-ERROR: "vpif_ch_params_count" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-ERROR: "vpif_base" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-ERROR: "ch_params" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-ERROR: "vpif_ch_params_count" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-ERROR: "vpif_base" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-make[1]: *** [__modpost] Error 1
+Thanks, will push to 3.9 + stable.
 
-Reported-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+Guennadi
 ---
- drivers/media/platform/davinci/vpif.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 28638a8..8fbb4a2 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -44,6 +44,8 @@ static struct resource	*res;
- spinlock_t vpif_lock;
- 
- void __iomem *vpif_base;
-+EXPORT_SYMBOL(vpif_base);
-+
- struct clk *vpif_clk;
- 
- /**
-@@ -220,8 +222,10 @@ const struct vpif_channel_config_params ch_params[] = {
- 		.stdid = V4L2_STD_625_50,
- 	},
- };
-+EXPORT_SYMBOL(ch_params);
- 
- const unsigned int vpif_ch_params_count = ARRAY_SIZE(ch_params);
-+EXPORT_SYMBOL(vpif_ch_params_count);
- 
- static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
- {
--- 
-1.7.4.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
