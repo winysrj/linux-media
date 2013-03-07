@@ -1,44 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36566 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932837Ab3CRVRq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 17:17:46 -0400
-Date: Mon, 18 Mar 2013 18:17:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Subject: Re: [PATCH 0/3] em28xx: add support for two buses on em2874 and
- upper
-Message-ID: <20130318181739.7bccd1d4@redhat.com>
-In-Reply-To: <CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com>
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-qa0-f51.google.com ([209.85.216.51]:43584 "EHLO
+	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754065Ab3CGCUq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 21:20:46 -0500
+Received: by mail-qa0-f51.google.com with SMTP id cr7so36752qab.17
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 18:20:46 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <5137BEBF.7060608@gmail.com>
+References: <1362575757-22839-1-git-send-email-arun.kk@samsung.com>
+	<5137BEBF.7060608@gmail.com>
+Date: Thu, 7 Mar 2013 07:50:46 +0530
+Message-ID: <CAOD6ATpeNvnAsTL+j17d3W-SZr0gXAk07AsXqo+HWW50N7V1_g@mail.gmail.com>
+Subject: Re: [PATCH] [media] s5p-mfc: Fix encoder control 15 issue
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>, linux-media@vger.kernel.org,
+	k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 5 Mar 2013 10:43:10 -0500
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+Hi Sylwester,
 
-> 2013/3/5 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> > The em2874 chips and upper have 2 buses. On all known devices, bus 0 is
-> > currently used only by eeprom, and bus 1 for the rest. Add support to
-> > register both buses.
-> 
-> Did you add a mutex to ensure that both buses cannot be used at the
-> same time?  Because using the bus requires you to toggle a register
-> (thus you cannot be using both busses at the same time), you cannot
-> rely on the existing i2c adapter lock anymore.
-> 
-> You don't want a situation where something is actively talking on bus
-> 0, and then something else tries to talk on bus 1, flips the register
-> bit and then the thread talking on bus 0 starts failing.
+On Thu, Mar 7, 2013 at 3:40 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Arun,
+>
+>
+> On 03/06/2013 02:15 PM, Arun Kumar K wrote:
+>>
+>> mfc-encoder is not working in the latest kernel giving the
+>> erorr "Adding control (15) failed". Adding the missing step
+>> parameter in this control to fix the issue.
+>
+>
+> Do you mean this problem was not observed in 3.8 kernel and something
+> has changed in the v4l2 core so it fails in 3.9-rc now ? Or is it
+> related to some change in the driver itself ?
 
-Good point. The I2C mutex won't solve for this case. I'll add a mutex
-there at the xfer function on a separate patch.
+v4l2_ctrl_new() uses check_range() for control range checking (which
+is added newly).
+This function expects 'step' value for V4L2_CTRL_TYPE_BOOLEAN type control.
+If 'step' value doesn't match to '1', it returns -ERANGE error.
 
-Cheers,
-Mauro
+Its a change in v4l2 core.
+
+Regards,
+Shaik Ameer Basha
+
+>
+>
+>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+>> ---
+>>   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    1 +
+>>   1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+>> b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+>> index 2356fd5..4f6b553 100644
+>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+>> @@ -232,6 +232,7 @@ static struct mfc_control controls[] = {
+>>                 .minimum = 0,
+>>                 .maximum = 1,
+>>                 .default_value = 0,
+>> +               .step = 1,
+>>                 .menu_skip_mask = 0,
+>>         },
+>>         {
+>
+>
+> Regards,
+> Sylwester
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
