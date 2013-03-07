@@ -1,68 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:61581 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305Ab3CZRhz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:37:55 -0400
-Received: by mail-bk0-f53.google.com with SMTP id e19so1411717bku.40
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:53 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 0/5] em28xx: add support for the em2765 bridge
-Date: Tue, 26 Mar 2013 18:38:35 +0100
-Message-Id: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:50344 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752732Ab3CGHYP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:24:15 -0500
+Received: by mail-wg0-f45.google.com with SMTP id dq12so133091wgb.24
+        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 23:24:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAK9yfHyeoMYiYZUEUY+gPRGOaLf4Qk500R=N4uKNV7n-csqiWQ@mail.gmail.com>
+References: <1362484334-18804-1-git-send-email-sachin.kamat@linaro.org>
+ <CA+V-a8vwiXk+0AcRgRRdOP-qbKrsDKFNQ4DKm+fTGgTSiiwn7g@mail.gmail.com> <CAK9yfHyeoMYiYZUEUY+gPRGOaLf4Qk500R=N4uKNV7n-csqiWQ@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 7 Mar 2013 12:53:54 +0530
+Message-ID: <CA+V-a8tEQmabr40j6jWOPDwFRnmH80kKze_G4Ldwr0r3D1ofRg@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] davinci_vpfe: Use module_platform_driver macro
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds basic support for the em25xx/276x/7x/8x camera bridges.
-These devices differ from the em2710/2750 and em28xx bridges in several points:
-1) a second i2c bus is provided which has to be accessed with a different 
-   read/write algorithm (=> patch 1)
-2) a different frame data format is used (=> patch 3)
-3) additional output formats (e.g. mpeg) are provided. This patch series does
-   not (yet) add support for them, but it fixes the output format selection 
-   for these bridges (the current code sets bit 5 of the output format register,
-   which has a different meaning for the other bridges and breaks capturing
-   with em25xx family sdevices). (=> patch 4)
-4) registers 0x34+0x35 (VBI_START_H/V for em28xx devices) are used for a 
-   different (unknown) purpose. This needs to be investigated further (could be 
-   zooming, cropping, image statistics or AWB/AE window selection).
-   At normal operation, these registers are set to capturing (input) 
-   width/height / 16. (=> patch 5)
+Hi Sachin,
 
-Patch 2 adds the chip id of the em2765 as found in the "SpeedLink Vicious And 
-Devine Laplace" webcam. The changes have also been tested with this device.
+On Thu, Mar 7, 2013 at 12:46 PM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> On 5 March 2013 17:46, Prabhakar Lad <prabhakar.csengg@gmail.com> wrote:
+>> Hi Sachin,
+>>
+>> Thanks for the patch!
+>>
+>> On Tue, Mar 5, 2013 at 5:22 PM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+>>> module_platform_driver() eliminates the boilerplate and simplifies
+>>> the code.
+>>>
+>>> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+>>
+>> Acked-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+>
+> Thanks Prabhakar.
+> BTW, who is supposed to pick this patch?
+>
+I'll queue it for 3.10 and a issue a pull request to Mauro soon.
+Or if you have a branch and want to issue a pull no problem(anyways
+I have Acked it). what do you suggest ?
 
-Changes since v1:
-- rebased on the recent em28xx i2c bus changes (real support for 2 busses)
-- moved i2c algorithm depending transfer function calls to separate functions
+Regards,
+--Prabhakar Lad
 
-Changes since v2:
-- fixed some coding style issues and comments
-
-Frank Schäfer (5):
-  em28xx: add support for em25xx i2c bus B read/write/check device
-    operations
-  em28xx: add chip id of the em2765
-  em28xx: add support for em25xx/em276x/em277x/em278x frame data
-    processing
-  em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
-  em28xx: write output frame resolution to regs 0x34+0x35 for em25xx
-    family bridges
-
- drivers/media/usb/em28xx/em28xx-cards.c |   19 ++-
- drivers/media/usb/em28xx/em28xx-core.c  |   28 +++-
- drivers/media/usb/em28xx/em28xx-i2c.c   |  236 ++++++++++++++++++++++++++-----
- drivers/media/usb/em28xx/em28xx-reg.h   |   10 +-
- drivers/media/usb/em28xx/em28xx-video.c |   74 +++++++++-
- drivers/media/usb/em28xx/em28xx.h       |   11 +-
- 6 Dateien geändert, 329 Zeilen hinzugefügt(+), 49 Zeilen entfernt(-)
-
--- 
-1.7.10.4
-
+> --
+> With warm regards,
+> Sachin
