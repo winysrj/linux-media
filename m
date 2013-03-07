@@ -1,135 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2345 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507Ab3CKVBL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:01:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 11/15] au0828: fix disconnect sequence.
-Date: Mon, 11 Mar 2013 22:00:42 +0100
-Message-Id: <6d4b25c7bfc65cfff4937133bed3e60828c20174.1363035203.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
-References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+Received: from zose-mta12.web4all.fr ([178.33.204.89]:48742 "EHLO
+	zose-mta12.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751508Ab3CGMSH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 07:18:07 -0500
+Date: Thu, 7 Mar 2013 13:13:03 +0100 (CET)
+From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
+	<benoit.thebaudeau@advansee.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Message-ID: <962516300.332041.1362658383433.JavaMail.root@advansee.com>
+In-Reply-To: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com>
+References: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com>
+Subject: Re: mt9m111/mt9m131: kernel 3.8 issues.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Dear Javier Martin,
 
-The driver crashed when the device was disconnected while an application
-still had a device node open. Fixed by using the release() callback of struct
-v4l2_device.
+On Thursday, March 7, 2013 10:43:42 AM, Javier Martin wrote:
+> Hi,
+> I am testing mt9m131 sensor (which is supported in mt9m111.c) in
+> mainline kernel 3.8 with my Visstrim M10, which is an i.MX27 board.
+> 
+> Since both mx2_camera.c and mt9m111.c are soc_camera drivers making it
+> work was quite straightforward. However, I've found several issues
+> regarding mt9m111.c:
+> 
+> 1. mt9m111 probe is broken. It will give an oops since it tries to use
+> a context before it's been assigned.
+> 2. mt9m111 auto exposure control is broken too (see the patch below).
+> 3. After I've fixed 1 and 2 the colours in the pictures I grab are
+> dull and not vibrant, green is very dark and red seems like pink, blue
+> and yellow look fine though. I have both auto exposure and auto white
+> balance enabled.
+> 
+> I can see in the list that you have tried this sensor before. Have you
+> also noticed these problems (specially 3)?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/au0828/au0828-core.c  |   48 ++++++++++++++++++++-----------
- drivers/media/usb/au0828/au0828-video.c |    9 +-----
- 2 files changed, 32 insertions(+), 25 deletions(-)
+I am using the MT9M131 with an i.MX35 board and Linux 3.4.5. It works nicely. I
+have not noticed 1 and 3. However, I have noticed 2, for which I already have
+posted a patch (here: https://patchwork.kernel.org/patch/2187291/), but I have
+not yet received any feedback.
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index ffd3bcb..bd9d19a 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -125,36 +125,48 @@ static int recv_control_msg(struct au0828_dev *dev, u16 request, u32 value,
- 	return status;
- }
- 
--static void au0828_usb_disconnect(struct usb_interface *interface)
-+static void au0828_usb_release(struct au0828_dev *dev)
- {
--	struct au0828_dev *dev = usb_get_intfdata(interface);
--
--	dprintk(1, "%s()\n", __func__);
--
--	/* Digital TV */
--	au0828_dvb_unregister(dev);
--
--#ifdef CONFIG_VIDEO_AU0828_V4L2
--	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED)
--		au0828_analog_unregister(dev);
--#endif
--
- 	/* I2C */
- 	au0828_i2c_unregister(dev);
- 
-+	kfree(dev);
-+}
-+
- #ifdef CONFIG_VIDEO_AU0828_V4L2
-+static void au0828_usb_v4l2_release(struct v4l2_device *v4l2_dev)
-+{
-+	struct au0828_dev *dev =
-+		container_of(v4l2_dev, struct au0828_dev, v4l2_dev);
-+
- 	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
-+	au0828_usb_release(dev);
-+}
- #endif
- 
--	usb_set_intfdata(interface, NULL);
-+static void au0828_usb_disconnect(struct usb_interface *interface)
-+{
-+	struct au0828_dev *dev = usb_get_intfdata(interface);
-+
-+	dprintk(1, "%s()\n", __func__);
-+
-+	/* Digital TV */
-+	au0828_dvb_unregister(dev);
- 
-+	usb_set_intfdata(interface, NULL);
- 	mutex_lock(&dev->mutex);
- 	dev->usbdev = NULL;
- 	mutex_unlock(&dev->mutex);
--
--	kfree(dev);
--
-+#ifdef CONFIG_VIDEO_AU0828_V4L2
-+	if (AUVI_INPUT(0).type != AU0828_VMUX_UNDEFINED) {
-+		au0828_analog_unregister(dev);
-+		v4l2_device_disconnect(&dev->v4l2_dev);
-+		v4l2_device_put(&dev->v4l2_dev);
-+		return;
-+	}
-+#endif
-+	au0828_usb_release(dev);
- }
- 
- static int au0828_usb_probe(struct usb_interface *interface,
-@@ -203,6 +215,8 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	dev->boardnr = id->driver_info;
- 
- #ifdef CONFIG_VIDEO_AU0828_V4L2
-+	dev->v4l2_dev.release = au0828_usb_v4l2_release;
-+
- 	/* Create the v4l2_device */
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 62308fe..a41e5ae 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1063,14 +1063,7 @@ static int au0828_v4l2_close(struct file *filp)
- 		res_free(fh, AU0828_RESOURCE_VBI);
- 	}
- 
--	if (dev->users == 1) {
--		if (dev->dev_state & DEV_DISCONNECTED) {
--			au0828_analog_unregister(dev);
--			kfree(fh);
--			kfree(dev);
--			return 0;
--		}
--
-+	if (dev->users == 1 && video_is_registered(video_devdata(filp))) {
- 		au0828_analog_stream_disable(dev);
- 
- 		au0828_uninit_isoc(dev);
--- 
-1.7.10.4
+> This patch is just to provide a quick fix for points 1 and 2 just in
+> case you feel like testing this in kernel 3.8. If you consider these
+> fix are valid I'll send a proper patch later:
 
+It's not straightforward to port my board to 3.8, but I've just reviewed the
+code in linux-next (see below).
+
+> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c
+> b/drivers/media/i2c/soc_camera/mt9m111.c
+> index 62fd94a..7d99655 100644
+> --- a/drivers/media/i2c/soc_camera/mt9m111.c
+> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
+> @@ -704,7 +704,7 @@ static int mt9m111_set_autoexposure(struct mt9m111
+> *mt9m111, int on)
+>  {
+>         struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+> 
+> -       if (on)
+> +       if (on == V4L2_EXPOSURE_AUTO)
+>                 return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+>         return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+>  }
+
+This hunk does the same thing as my patch mentioned above, so please don't send
+anything for that.
+
+> @@ -916,6 +916,9 @@ static int mt9m111_video_probe(struct i2c_client *client)
+>         s32 data;
+>         int ret;
+> 
+> +       /* Assign context to avoid oops */
+> +       mt9m111->ctx = &context_a;
+> +
+>         ret = mt9m111_s_power(&mt9m111->subdev, 1);
+>         if (ret < 0)
+>                 return ret;
+
+There is indeed a bug, introduced by commit 4bbc6d5. The issue is:
+ mt9m111_set_context(mt9m111, mt9m111->ctx);
+in mt9m111_restore_state() called (indirectly) from mt9m111_s_power() from
+mt9m111_video_probe() with ctx still NULL, before mt9m111_init() has been called
+to initialize ctx to &context_b.
+
+So the fix would not be what you did, but rather to reorganize things a little
+bit to avoid this out-of-order init and use of ctx.
+
+Best regards,
+Benoît
