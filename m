@@ -1,82 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zose-mta13.web4all.fr ([178.33.204.91]:53859 "EHLO
-	zose-mta13.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757186Ab3CHNWx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 08:22:53 -0500
-Date: Fri, 8 Mar 2013 14:17:40 +0100 (CET)
-From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Message-ID: <1700189562.356790.1362748660082.JavaMail.root@advansee.com>
-In-Reply-To: <CACKLOr0FEO3wvpZpn=Fg9ZSBYLDnY-hY=KysD72JVbrcVChArg@mail.gmail.com>
-References: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com> <962516300.332041.1362658383433.JavaMail.root@advansee.com> <CACKLOr2VOb3GMiX6GVmSchhGs8XeBJ0c7qRSHZwU8e8C+qeWPg@mail.gmail.com> <1201392585.355417.1362743602969.JavaMail.root@advansee.com> <CACKLOr0FEO3wvpZpn=Fg9ZSBYLDnY-hY=KysD72JVbrcVChArg@mail.gmail.com>
-Subject: Re: mt9m111/mt9m131: kernel 3.8 issues.
+Received: from forward2.mail.yandex.net ([77.88.46.7]:44309 "EHLO
+	forward2.mail.yandex.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753798Ab3CGAWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 19:22:44 -0500
+Received: from web22d.yandex.ru (web22d.yandex.ru [77.88.46.52])
+	by forward2.mail.yandex.net (Yandex) with ESMTP id 11A5E12A1F34
+	for <linux-media@vger.kernel.org>; Thu,  7 Mar 2013 04:16:31 +0400 (MSK)
+From: CrazyCat <crazycat69@yandex.ua>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] cxd2820r_t2: Multistream support (MultiPLP)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Message-Id: <302151362615390@web22d.yandex.ru>
+Date: Thu, 07 Mar 2013 02:16:30 +0200
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+MultiPLP filtering support for CXD2820r, not tested.
+Somebody from Russia please test (exclude Moscow, because used singlePLP). Usual used PLP 0 (4TV + 3 radio) and 1 (4TV). PLP 2,3 reserved (regional channels).
 
-On Friday, March 8, 2013 1:37:38 PM, Javier Martin wrote:
-> Hi Benoît,
-> 
-> On 8 March 2013 12:53, Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
-> wrote:
-> >
-> >> Regarding 3, you say it works nicely for you in kernel 3.4.5. I've
-> >> migrated my code to that version but I still get colours that lack
-> >> enough intensity.
-> >> This is a snapshot "a" taken with my mobile which is much more similar
-> >> to what I can really see with my eyes:
-> >> http://img96.imageshack.us/img96/1451/20130307171334.jpg
-> >>
-> >> This is a similar snapshot "b" taken with mt9m131 in my board. It
-> >> shows that colours tend to be dull and darker, specially green:
-> >> http://img703.imageshack.us/img703/6025/testgo.jpg
-> >>
-> >> Are the snapshots you take with your HW  more similar to "a" or to
-> >> "b"? Perhaps I am being too picky with the image quality and this is
-> >> all what mt9m131 can do?
-> >
-> > I fear that my captures are closer to "b". Your description of "3" was
-> > giving
-> > the impression of flashy colors. But the impression that this sensor gives
-> > me is
-> > rather a superimposed gray film. This effect is more or less visible
-> > depending
-> > on the lighting conditions, but it never seems to produce high quality
-> > colors.
-> 
-> Yes, yours is probably is the best description for the image quality
-> this sensor provides with the current settings.
-> Well, this is a bit disappointing. Let's see if some other user has a
-> similar experience with it or comes up with a way to improve it.
-> 
-> I've tested several things such as disabling auto white balance and
-> auto exposure and try to manually change colour gains but it seems the
-> sensor simply ignores the latter.
-> 
-> There is an evaluation board  from Aptina
-> (http://www.digikey.com/product-detail/es/MT9M131C12STCH%20ES/557-1251-ND/1643271)
-> but, unfortunately, I don't have one of these available. It could be
-> very useful to test the sensor with this board with the configuration
-> Aptina recommends and see whether the "grey layer effect" still
-> persists.
+P.S. You can use my scan-s2 with multistream support - https://bitbucket.org/CrazyCat/scan-s2. Generated channel list compatible with current VDR 1.7.3x
 
-It is perhaps also possible to find their recommended register settings
-somewhere without having this evaluation board.
-
-> I will try to contact Aptina's technical support but, according to my
-> previous experience, there is no guarantee we get a clarifying answer.
-> I'll keep you updated nevertheless.
-
-Thanks.
-
-Best regards,
-Benoît
+Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
+index 9b658c1..7ca5c69 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_core.c
++++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+@@ -660,7 +660,8 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
+ 			FE_CAN_GUARD_INTERVAL_AUTO	|
+ 			FE_CAN_HIERARCHY_AUTO		|
+ 			FE_CAN_MUTE_TS			|
+-			FE_CAN_2G_MODULATION
++			FE_CAN_2G_MODULATION		|
++			FE_CAN_MULTISTREAM
+ 		},
+ 
+ 	.release		= cxd2820r_release,
+diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
+index e82d82a..c2bfea7 100644
+--- a/drivers/media/dvb-frontends/cxd2820r_t2.c
++++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
+@@ -124,6 +124,23 @@ int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
+ 	buf[1] = ((if_ctl >>  8) & 0xff);
+ 	buf[2] = ((if_ctl >>  0) & 0xff);
+ 
++	/* PLP filtering */
++	if (c->stream_id < 0 || c->stream_id > 255) {
++		dev_dbg(&priv->i2c->dev, "%s: Disable PLP filtering\n", __func__);
++		ret = cxd2820r_wr_reg(priv, 0x023ad , 0);
++		if (ret)
++			goto error;
++	} else {
++		dev_dbg(&priv->i2c->dev, "%s: Enable PLP filtering = %d\n", __func__,
++				c->stream_id);
++		ret = cxd2820r_wr_reg(priv, 0x023af , c->stream_id & 0xFF);
++		if (ret)
++			goto error;
++		ret = cxd2820r_wr_reg(priv, 0x023ad , 1);
++		if (ret)
++			goto error;
++	}
++
+ 	ret = cxd2820r_wr_regs(priv, 0x020b6, buf, 3);
+ 	if (ret)
+ 		goto error;
