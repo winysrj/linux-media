@@ -1,134 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f52.google.com ([209.85.128.52]:46975 "EHLO
-	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989Ab3CKGl5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 02:41:57 -0400
-MIME-Version: 1.0
-In-Reply-To: <513CEEDF.4010304@gmail.com>
-References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
-	<1362570838-4737-3-git-send-email-shaik.ameer@samsung.com>
-	<513CEEDF.4010304@gmail.com>
-Date: Mon, 11 Mar 2013 12:11:56 +0530
-Message-ID: <CAOD6ATpsXWjQ4xPywukBXfx7GaywK+7HvLDydsXrwQV4wZr5cw@mail.gmail.com>
-Subject: Re: [RFC 02/12] fimc-lite: Adding Exynos5 compatibility to fimc-lite driver
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:7505 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752993Ab3CGW1W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 Mar 2013 17:27:22 -0500
+Date: Thu, 7 Mar 2013 19:26:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: oliver+list@schinagl.nl, Jean Delvare <khali@linux-fr.org>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: Re: drxk driver statistics
+Message-ID: <20130307192659.201d6a55@redhat.com>
+In-Reply-To: <1682f22b-3a4a-4473-b22e-c8cce3477092@email.android.com>
+References: <20130306183604.3015c1f0@endymion.delvare>
+	<51379EB3.3040900@schinagl.nl>
+	<1682f22b-3a4a-4473-b22e-c8cce3477092@email.android.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Em Thu, 07 Mar 2013 16:18:41 -0500
+Andy Walls <awalls@md.metrocast.net> escreveu:
 
-On Mon, Mar 11, 2013 at 2:06 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
->>
->> This patch adds the Exynos5 soc compatibility to the fimc-lite driver.
->> It also adds a version checking to deal with the changes between
->> different fimc-lite hardware versions.
->
->
-> Is there really anything different between the Exynos4 and Exynos5
-> FIMC-LITE IPs except the maximum number of buffer descriptors in
-> the output DMA queue ?
->
->
->> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
->> ---
->>   drivers/media/platform/s5p-fimc/fimc-lite.c |   23
->> +++++++++++++++++++++++
->>   drivers/media/platform/s5p-fimc/fimc-lite.h |    7 ++++++-
->>   2 files changed, 29 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c
->> b/drivers/media/platform/s5p-fimc/fimc-lite.c
->> index 122cf95..eb64f87 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
->> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
->> @@ -1653,6 +1653,16 @@ static struct flite_variant
->> fimc_lite0_variant_exynos4 = {
->>         .out_width_align        = 8,
->>         .win_hor_offs_align     = 2,
->>         .out_hor_offs_align     = 8,
->> +       .version                = FLITE_VER_EXYNOS4,
->> +};
->> +
->> +static struct flite_variant fimc_lite0_variant_exynos5 = {
->> +       .max_width              = 8192,
->> +       .max_height             = 8192,
->> +       .out_width_align        = 8,
->> +       .win_hor_offs_align     = 2,
->> +       .out_hor_offs_align     = 8,
->
->
-> Please see my comment to patch 03/12.
->
->
->> +       .version                = FLITE_VER_EXYNOS5,
->>   };
->>
->>   /* EXYNOS4212, EXYNOS4412 */
->> @@ -1663,6 +1673,15 @@ static struct flite_drvdata
->> fimc_lite_drvdata_exynos4 = {
->>         },
->>   };
->>
->> +/* EXYNOS5250 */
->> +static struct flite_drvdata fimc_lite_drvdata_exynos5 = {
->> +       .variant = {
->> +               [0] =&fimc_lite0_variant_exynos5,
->> +               [1] =&fimc_lite0_variant_exynos5,
->> +               [2] =&fimc_lite0_variant_exynos5,
->> +       },
->> +};
->> +
->>   static struct platform_device_id fimc_lite_driver_ids[] = {
->>         {
->>                 .name           = "exynos-fimc-lite",
->> @@ -1677,6 +1696,10 @@ static const struct of_device_id flite_of_match[] =
->> {
->>                 .compatible = "samsung,exynos4212-fimc-lite",
->>                 .data =&fimc_lite_drvdata_exynos4,
->>         },
->> +       {
->> +               .compatible = "samsung,exynos5250-fimc-lite",
->> +               .data =&fimc_lite_drvdata_exynos5,
->> +       },
->>         { /* sentinel */ },
->>   };
->>   MODULE_DEVICE_TABLE(of, flite_of_match);
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h
->> b/drivers/media/platform/s5p-fimc/fimc-lite.h
->> index 66d6eeb..ef43fe0 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-lite.h
->> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
->> @@ -28,7 +28,7 @@
->>
->>   #define FIMC_LITE_DRV_NAME    "exynos-fimc-lite"
->>   #define FLITE_CLK_NAME                "flite"
->> -#define FIMC_LITE_MAX_DEVS     2
->> +#define FIMC_LITE_MAX_DEVS     3
->>   #define FLITE_REQ_BUFS_MIN    2
->>
->>   /* Bit index definitions for struct fimc_lite::state */
->> @@ -49,12 +49,17 @@ enum {
->>   #define FLITE_SD_PAD_SOURCE_ISP       2
->>   #define FLITE_SD_PADS_NUM     3
->>
->> +#define FLITE_VER_EXYNOS4      0
->> +#define FLITE_VER_EXYNOS5      1
->
->
-> I would prefer not using explicit version and rather put each
-> quirk in the driver data structure, so we can avoid those
-> multiple if (version == ...) checks all over in the code, should
-> more revision of this IP come in future SoCs.
+> Oliver Schinagl <oliver@schinagl.nl> wrote:
+> 
+> >On 03/06/13 18:36, Jean Delvare wrote:
+> >> Hi all,
+> >>
+> >> I have a TerraTec Cinergy T PCIe Dual card, with DRX-3916K and
+> >> DRX-3913K frontends. I am thus using the drxk dvb-frontend driver.
+> >> While trying to find the best antenna, position and amplification, I
+> >> found that the statistics returned by the drxk driver look quite bad:
+> >>
+> >> $ femon -H 3
+> >> FE: DRXK DVB-T (DVBT)
+> >> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal   0% | snr   0% | ber 0 | unc 38822 |
+> >FE_HAS_LOCK
+> >>
+> >> This is with TV looking reasonably good, so these figures are not
+> >> plausible.
+> >>
+> >> $ femon 10
+> >> FE: DRXK DVB-T (DVBT)
+> >> status SCVYL | signal 00de | snr 00f5 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00f0 | snr 00f5 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 0117 | snr 00f6 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00b6 | snr 00eb | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00d1 | snr 00e7 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 0073 | snr 00ea | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00a3 | snr 00ee | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00b5 | snr 00f4 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00ba | snr 00f3 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >> status SCVYL | signal 00be | snr 00f0 | ber 00000000 | unc 000097a6 |
+> >FE_HAS_LOCK
+> >>
+> >> Signal values are changing too much, snr is stable enough but way too
+> >> low, ber is apparently unimplemented, and unc is never reset AFAICS
+> >(it
+> >> started at 1 when the system started and has been only increasing
+> >since
+> >> then.) On my previous card, unc was an instant measurement, not a
+> >> cumulative value, not sure which is correct.
+> >Yes I found that out aswell, but since image quality has always been 
+> >very fine, I haven't looked what this all should be.
+> >>
+> >> I would like to see these statistics improved. I am willing to help,
+> >> however the drxk driver is rather complex (at least to my eyes) and I
+> >> do not have a datasheet so I wouldn't know where to start. Is there
+> >> anyone who can work on this and/or provide some guidance?
+> >>
+> >> Thanks,
+> >>
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Unc should be a cumulative value and not reset after each read.  Then you can support a use case of 2 different apps monitoring the statistics.
+> 
+> I can't recall when exactly unc should be reset, but of frequency change sounds reasonable.
 
-Ok. no issues. we can remove this version checking and maintain the
-differences in driver data structures.
+According with the DVBv3 API spec, never.
+
+The DVBv5 stats API moves the policy to userspace, as it measures both
+the number of uncorrected error blocks and the total amount of blocks.
+Both counters are now unsigned 64 bits integers.
+
+So, userspace may apply any policy it wants, by keeping stored the
+previous counter for a given amount of time (or even using something more
+sophisticated, like a convolution filter or a moving average filter).
+
+The libdvbv5 currently applies a very simple policy for it.
 
 Regards,
-Shaik Ameer Basha
+Mauro
