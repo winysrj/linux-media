@@ -1,46 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:62625 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753784Ab3CZGmt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 02:42:49 -0400
-Received: by mail-bk0-f44.google.com with SMTP id jk13so436972bkc.17
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 23:42:48 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 26 Mar 2013 14:42:47 +0800
-Message-ID: <CAPgLHd-+DNxxVHsXiJpk2KFk8mzrQUkwaYPUFeWHyAmz-H6=4Q@mail.gmail.com>
-Subject: [PATCH -next] [media] go7007: fix invalid use of sizeof in go7007_usb_i2c_master_xfer()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@redhat.com,
-	gregkh@linuxfoundation.org
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:10115 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754288Ab3CGIEl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 03:04:41 -0500
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MJA00JEJ6FFT3H0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 07 Mar 2013 17:04:39 +0900 (KST)
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Vikas Sajjan' <vikas.sajjan@linaro.org>,
+	dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	l.krishna@samsung.com, joshi@samsung.com,
+	linaro-kernel@lists.linaro.org
+References: <1362641984-2706-1-git-send-email-vikas.sajjan@linaro.org>
+ <1362641984-2706-3-git-send-email-vikas.sajjan@linaro.org>
+In-reply-to: <1362641984-2706-3-git-send-email-vikas.sajjan@linaro.org>
+Subject: RE: [PATCH v12 2/2] drm/exynos: enable OF_VIDEOMODE and
+ FB_MODE_HELPERS for exynos drm fimd
+Date: Thu, 07 Mar 2013 17:04:38 +0900
+Message-id: <015c01ce1b0a$6a7887f0$3f6997d0$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-sizeof() when applied to a pointer typed expression gives the
-size of the pointer, not that of the pointed data.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/staging/media/go7007/go7007-usb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Vikas Sajjan
+> Sent: Thursday, March 07, 2013 4:40 PM
+> To: dri-devel@lists.freedesktop.org
+> Cc: linux-media@vger.kernel.org; kgene.kim@samsung.com;
+> inki.dae@samsung.com; l.krishna@samsung.com; joshi@samsung.com; linaro-
+> kernel@lists.linaro.org
+> Subject: [PATCH v12 2/2] drm/exynos: enable OF_VIDEOMODE and
+> FB_MODE_HELPERS for exynos drm fimd
+> 
+> patch adds "select OF_VIDEOMODE" and "select FB_MODE_HELPERS" when
+> EXYNOS_DRM_FIMD config is selected.
+> 
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+>  drivers/gpu/drm/exynos/Kconfig |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/gpu/drm/exynos/Kconfig
+> b/drivers/gpu/drm/exynos/Kconfig
+> index 046bcda..bb25130 100644
+> --- a/drivers/gpu/drm/exynos/Kconfig
+> +++ b/drivers/gpu/drm/exynos/Kconfig
+> @@ -25,6 +25,8 @@ config DRM_EXYNOS_DMABUF
+>  config DRM_EXYNOS_FIMD
+>  	bool "Exynos DRM FIMD"
+>  	depends on DRM_EXYNOS && !FB_S3C && !ARCH_MULTIPLATFORM
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 0823506..7219ae0 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1035,7 +1035,7 @@ static int go7007_usb_i2c_master_xfer(struct i2c_adapter *adapter,
- 						buf, buf_len, 0) < 0)
- 			goto i2c_done;
- 		if (msgs[i].flags & I2C_M_RD) {
--			memset(buf, 0, sizeof(buf));
-+			memset(buf, 0, sizeof(*buf));
- 			if (go7007_usb_vendor_request(go, 0x25, 0, 0, buf,
- 						msgs[i].len + 1, 1) < 0)
- 				goto i2c_done;
+Again, you missed 'OF' dependency. At least, let's have build testing surely
+before posting :)
 
+Thanks,
+Inki Dae
+
+> +	select OF_VIDEOMODE
+> +	select FB_MODE_HELPERS
+>  	help
+>  	  Choose this option if you want to use Exynos FIMD for DRM.
+> 
+> --
+> 1.7.9.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
