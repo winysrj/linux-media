@@ -1,77 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37114 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752126Ab3CJCEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:40 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 21/41] it913x: use dev_foo() logging
-Date: Sun, 10 Mar 2013 04:03:13 +0200
-Message-Id: <1362881013-5271-21-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from mailout3.samsung.com ([203.254.224.33]:47562 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753327Ab3CGHRK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:17:10 -0500
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MJA003SG489FEH0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 07 Mar 2013 16:17:08 +0900 (KST)
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Vikas Sajjan' <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	kgene.kim@samsung.com, 'Joonyoung Shim' <jy0922.shim@samsung.com>,
+	'sunil joshi' <joshi@samsung.com>
+References: <1361961178-1912-1-git-send-email-vikas.sajjan@linaro.org>
+ <512EC410.3050301@samsung.com>
+ <CAD025yT+VQ=bv1Sk61QtMft45nw7BWqn9ox5B5opGpr3s-1nxw@mail.gmail.com>
+In-reply-to: <CAD025yT+VQ=bv1Sk61QtMft45nw7BWqn9ox5B5opGpr3s-1nxw@mail.gmail.com>
+Subject: RE: [PATCH] drm/exynos: modify the compatible string for exynos fimd
+Date: Thu, 07 Mar 2013 16:17:07 +0900
+Message-id: <014501ce1b03$c70ccdc0$55266940$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/it913x.c | 16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+Already merged. :)
 
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index 1cb9709..66e003f 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -175,7 +175,9 @@ static int it913x_init(struct dvb_frontend *fe)
- 	default:
- 		set_lna = it9135_38;
- 	}
--	pr_info("Tuner LNA type :%02x\n", state->tuner_type);
-+
-+	dev_dbg(&state->i2c_adap->dev, "%s: Tuner LNA type :%02x\n",
-+			KBUILD_MODNAME, state->tuner_type);
- 
- 	ret = it913x_script_loader(state, set_lna);
- 	if (ret < 0)
-@@ -226,7 +228,8 @@ static int it913x_init(struct dvb_frontend *fe)
- 	}
- 	state->tun_fn_min = state->tun_xtal * reg;
- 	state->tun_fn_min /= (state->tun_fdiv * nv_val);
--	pr_debug("Tuner fn_min %d\n", state->tun_fn_min);
-+	dev_dbg(&state->i2c_adap->dev, "%s: Tuner fn_min %d\n", __func__,
-+			state->tun_fn_min);
- 
- 	if (state->chip_ver > 1)
- 		msleep(50);
-@@ -272,7 +275,8 @@ static int it9137_set_params(struct dvb_frontend *fe)
- 	else
- 		set_tuner = set_it9137_template;
- 
--	pr_debug("Tuner Frequency %d Bandwidth %d\n", frequency, bandwidth);
-+	dev_dbg(&state->i2c_adap->dev, "%s: Tuner Frequency %d Bandwidth %d\n",
-+			__func__, frequency, bandwidth);
- 
- 	if (frequency >= 51000 && frequency <= 440000) {
- 		l_band = 0;
-@@ -387,13 +391,15 @@ static int it9137_set_params(struct dvb_frontend *fe)
- 	set_tuner[3].reg[0] =  temp_f & 0xff;
- 	set_tuner[4].reg[0] =  (temp_f >> 8) & 0xff;
- 
--	pr_debug("High Frequency = %04x\n", temp_f);
-+	dev_dbg(&state->i2c_adap->dev, "%s: High Frequency = %04x\n",
-+			__func__, temp_f);
- 
- 	/* Lower frequency */
- 	set_tuner[5].reg[0] =  freq & 0xff;
- 	set_tuner[6].reg[0] =  (freq >> 8) & 0xff;
- 
--	pr_debug("low Frequency = %04x\n", freq);
-+	dev_dbg(&state->i2c_adap->dev, "%s: low Frequency = %04x\n",
-+			__func__, freq);
- 
- 	ret = it913x_script_loader(state, set_tuner);
- 
--- 
-1.7.11.7
+> -----Original Message-----
+> From: Vikas Sajjan [mailto:vikas.sajjan@linaro.org]
+> Sent: Thursday, March 07, 2013 4:09 PM
+> To: InKi Dae
+> Cc: dri-devel@lists.freedesktop.org; linux-media@vger.kernel.org;
+> kgene.kim@samsung.com; Joonyoung Shim; sunil joshi
+> Subject: Re: [PATCH] drm/exynos: modify the compatible string for exynos
+> fimd
+> 
+> Hi Mr Inki Dae,
+> 
+> On 28 February 2013 08:12, Joonyoung Shim <jy0922.shim@samsung.com> wrote:
+> > On 02/27/2013 07:32 PM, Vikas Sajjan wrote:
+> >>
+> >> modified compatible string for exynos4 fimd as "exynos4210-fimd" and
+> >> exynos5 fimd as "exynos5250-fimd" to stick to the rule that compatible
+> >> value should be named after first specific SoC model in which this
+> >> particular IP version was included as discussed at
+> >> https://patchwork.kernel.org/patch/2144861/
+> >>
+> >> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> >> ---
+> >>   drivers/gpu/drm/exynos/exynos_drm_fimd.c |    4 ++--
+> >>   1 file changed, 2 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> >> b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> >> index 9537761..433ed35 100644
+> >> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> >> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> >> @@ -109,9 +109,9 @@ struct fimd_context {
+> >>     #ifdef CONFIG_OF
+> >>   static const struct of_device_id fimd_driver_dt_match[] = {
+> >> -       { .compatible = "samsung,exynos4-fimd",
+> >> +       { .compatible = "samsung,exynos4210-fimd",
+> >>           .data = &exynos4_fimd_driver_data },
+> >> -       { .compatible = "samsung,exynos5-fimd",
+> >> +       { .compatible = "samsung,exynos5250-fimd",
+> >>           .data = &exynos5_fimd_driver_data },
+> >>         {},
+> >>   };
+> >
+> >
+> > Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+> 
+> Can you please apply this patch.
+> 
+> >
+> > Thanks.
+> 
+> 
+> 
+> --
+> Thanks and Regards
+>  Vikas Sajjan
 
