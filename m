@@ -1,300 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49175 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932706Ab3CLQDg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 12:03:36 -0400
-Date: Tue, 12 Mar 2013 17:03:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v4] media: V4L2: add temporary clock helpers
-Message-ID: <Pine.LNX.4.64.1303121658590.680@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53484 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753110Ab3CHMGM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 07:06:12 -0500
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MJC00IRTC8PBZ60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:06:09 +0000 (GMT)
+Received: from [127.0.0.1] ([106.116.147.30])
+ by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MJC008USCA8EW60@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:06:09 +0000 (GMT)
+Message-id: <5139D430.3050506@samsung.com>
+Date: Fri, 08 Mar 2013 13:06:08 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Federico Vaga <federico.vaga@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 1/2] videobuf2: add gfp_flags.
+References: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
+ <6b64252b870ca5f3433b1d5ed2a2d1f977cd8f48.1362734097.git.hans.verkuil@cisco.com>
+In-reply-to: <6b64252b870ca5f3433b1d5ed2a2d1f977cd8f48.1362734097.git.hans.verkuil@cisco.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Typical video devices like camera sensors require an external clock source.
-Many such devices cannot even access their hardware registers without a
-running clock. These clock sources should be controlled by their consumers.
-This should be performed, using the generic clock framework. Unfortunately
-so far only very few systems have been ported to that framework. This patch
-adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
-Platforms, adopting the clock API, should switch to using it. Eventually
-this temporary API should be removed.
+Hello,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On 3/8/2013 10:21 AM, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> Some drivers have special memory requirements for their buffers, usually
+> related to DMA (e.g. GFP_DMA or __GFP_DMA32). Make it possible to specify
+> additional GFP flags for those buffers by adding a gfp_flags field to
+> vb2_queue.
+>
+> Note that this field will be replaced in the future with a different
+> mechanism, but that is still work in progress and we need this feature
+> now so we won't be able to convert drivers with such requirements to vb2.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-v4: replace BUG() with a WARN_ON() - thanks to Sylwester for a geads-up
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
- drivers/media/v4l2-core/Makefile   |    2 +-
- drivers/media/v4l2-core/v4l2-clk.c |  175 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-clk.h           |   54 +++++++++++
- 3 files changed, 230 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
- create mode 100644 include/media/v4l2-clk.h
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c       |    2 +-
+>   drivers/media/v4l2-core/videobuf2-dma-contig.c |    5 +++--
+>   drivers/media/v4l2-core/videobuf2-dma-sg.c     |    5 +++--
+>   drivers/media/v4l2-core/videobuf2-vmalloc.c    |    4 ++--
+>   include/media/videobuf2-core.h                 |   10 ++++++++--
+>   5 files changed, 17 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index be04481..70827fe 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -57,7 +57,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>   	/* Allocate memory for all planes in this buffer */
+>   	for (plane = 0; plane < vb->num_planes; ++plane) {
+>   		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+> -				      q->plane_sizes[plane]);
+> +				      q->plane_sizes[plane], q->gfp_flags);
+>   		if (IS_ERR_OR_NULL(mem_priv))
+>   			goto free;
+>   
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> index 10beaee..ae35d25 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -152,7 +152,7 @@ static void vb2_dc_put(void *buf_priv)
+>   	kfree(buf);
+>   }
+>   
+> -static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_dc_conf *conf = alloc_ctx;
+>   	struct device *dev = conf->dev;
+> @@ -165,7 +165,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+>   	/* align image size to PAGE_SIZE */
+>   	size = PAGE_ALIGN(size);
+>   
+> -	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+> +	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+> +						GFP_KERNEL | gfp_flags);
+>   	if (!buf->vaddr) {
+>   		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+>   		kfree(buf);
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> index 25c3b36..952776f 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -33,7 +33,7 @@ struct vb2_dma_sg_buf {
+>   
+>   static void vb2_dma_sg_put(void *buf_priv);
+>   
+> -static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_dma_sg_buf *buf;
+>   	int i;
+> @@ -60,7 +60,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+>   		goto fail_pages_array_alloc;
+>   
+>   	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+> -		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
+> +		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+> +					   __GFP_NOWARN | gfp_flags);
+>   		if (NULL == buf->pages[i])
+>   			goto fail_pages_alloc;
+>   		sg_set_page(&buf->sg_desc.sglist[i],
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index a47fd4f..313d977 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -35,11 +35,11 @@ struct vb2_vmalloc_buf {
+>   
+>   static void vb2_vmalloc_put(void *buf_priv);
+>   
+> -static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
+> +static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+>   {
+>   	struct vb2_vmalloc_buf *buf;
+>   
+> -	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+> +	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
+>   	if (!buf)
+>   		return NULL;
+>   
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index a2d4274..d88a098 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -27,7 +27,9 @@ struct vb2_fileio_data;
+>    *		return NULL on failure or a pointer to allocator private,
+>    *		per-buffer data on success; the returned private structure
+>    *		will then be passed as buf_priv argument to other ops in this
+> - *		structure
+> + *		structure. Additional gfp_flags to use when allocating the
+> + *		are also passed to this operation. These flags are from the
+> + *		gfp_flags field of vb2_queue.
+>    * @put:	inform the allocator that the buffer will no longer be used;
+>    *		usually will result in the allocator freeing the buffer (if
+>    *		no other users of this buffer are present); the buf_priv
+> @@ -79,7 +81,7 @@ struct vb2_fileio_data;
+>    *				  unmap_dmabuf.
+>    */
+>   struct vb2_mem_ops {
+> -	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+> +	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
+>   	void		(*put)(void *buf_priv);
+>   	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+>   
+> @@ -302,6 +304,9 @@ struct v4l2_fh;
+>    * @buf_struct_size: size of the driver-specific buffer structure;
+>    *		"0" indicates the driver doesn't want to use a custom buffer
+>    *		structure type, so sizeof(struct vb2_buffer) will is used
+> + * @gfp_flags:	additional gfp flags used when allocating the buffers.
+> + *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
+> + *		to force the buffer allocation to a specific memory zone.
+>    *
+>    * @memory:	current memory type used
+>    * @bufs:	videobuf buffer structures
+> @@ -327,6 +332,7 @@ struct vb2_queue {
+>   	void				*drv_priv;
+>   	unsigned int			buf_struct_size;
+>   	u32				timestamp_type;
+> +	gfp_t				gfp_flags;
+>   
+>   /* private: internal use only */
+>   	enum v4l2_memory		memory;
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index a9d3552..aea7aea 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -5,7 +5,7 @@
- tuner-objs	:=	tuner-core.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-new file mode 100644
-index 0000000..9c714a7
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -0,0 +1,175 @@
-+/*
-+ * V4L2 clock service
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/atomic.h>
-+#include <linux/errno.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/string.h>
-+
-+#include <media/v4l2-clk.h>
-+#include <media/v4l2-subdev.h>
-+
-+static DEFINE_MUTEX(clk_lock);
-+static LIST_HEAD(clk_list);
-+
-+static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
-+{
-+	struct v4l2_clk *clk;
-+
-+	list_for_each_entry(clk, &clk_list, list) {
-+		if (strcmp(dev_id, clk->dev_id))
-+			continue;
-+
-+		if (!id || !clk->id || !strcmp(clk->id, id))
-+			return clk;
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
-+{
-+	struct v4l2_clk *clk;
-+
-+	mutex_lock(&clk_lock);
-+	clk = v4l2_clk_find(sd->name, id);
-+
-+	if (!IS_ERR(clk) && !try_module_get(clk->ops->owner))
-+		clk = ERR_PTR(-ENODEV);
-+	mutex_unlock(&clk_lock);
-+
-+	if (!IS_ERR(clk))
-+		atomic_inc(&clk->use_count);
-+
-+	return clk;
-+}
-+EXPORT_SYMBOL(v4l2_clk_get);
-+
-+void v4l2_clk_put(struct v4l2_clk *clk)
-+{
-+	if (!IS_ERR(clk)) {
-+		atomic_dec(&clk->use_count);
-+		module_put(clk->ops->owner);
-+	}
-+}
-+EXPORT_SYMBOL(v4l2_clk_put);
-+
-+int v4l2_clk_enable(struct v4l2_clk *clk)
-+{
-+	int ret;
-+	mutex_lock(&clk->lock);
-+	if (++clk->enable == 1 && clk->ops->enable) {
-+		ret = clk->ops->enable(clk);
-+		if (ret < 0)
-+			clk->enable--;
-+	} else {
-+		ret = 0;
-+	}
-+	mutex_unlock(&clk->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_clk_enable);
-+
-+void v4l2_clk_disable(struct v4l2_clk *clk)
-+{
-+	int enable;
-+
-+	mutex_lock(&clk->lock);
-+	enable = --clk->enable;
-+	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
-+		 clk->dev_id, clk->id))
-+		clk->enable++;
-+	else if (!enable && clk->ops->disable)
-+		clk->ops->disable(clk);
-+	mutex_unlock(&clk->lock);
-+}
-+EXPORT_SYMBOL(v4l2_clk_disable);
-+
-+unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
-+{
-+	if (!clk->ops->get_rate)
-+		return -ENOSYS;
-+
-+	return clk->ops->get_rate(clk);
-+}
-+EXPORT_SYMBOL(v4l2_clk_get_rate);
-+
-+int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
-+{
-+	if (!clk->ops->set_rate)
-+		return -ENOSYS;
-+
-+	return clk->ops->set_rate(clk, rate);
-+}
-+EXPORT_SYMBOL(v4l2_clk_set_rate);
-+
-+struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
-+				   const char *dev_id,
-+				   const char *id, void *priv)
-+{
-+	struct v4l2_clk *clk;
-+	int ret;
-+
-+	if (!ops || !dev_id)
-+		return ERR_PTR(-EINVAL);
-+
-+	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-+	if (!clk)
-+		return ERR_PTR(-ENOMEM);
-+
-+	clk->id = kstrdup(id, GFP_KERNEL);
-+	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
-+	if ((id && !clk->id) || !clk->dev_id) {
-+		ret = -ENOMEM;
-+		goto ealloc;
-+	}
-+	clk->ops = ops;
-+	clk->priv = priv;
-+	atomic_set(&clk->use_count, 0);
-+	mutex_init(&clk->lock);
-+
-+	mutex_lock(&clk_lock);
-+	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
-+		mutex_unlock(&clk_lock);
-+		ret = -EEXIST;
-+		goto eexist;
-+	}
-+	list_add_tail(&clk->list, &clk_list);
-+	mutex_unlock(&clk_lock);
-+
-+	return clk;
-+
-+eexist:
-+ealloc:
-+	kfree(clk->id);
-+	kfree(clk->dev_id);
-+	kfree(clk);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(v4l2_clk_register);
-+
-+void v4l2_clk_unregister(struct v4l2_clk *clk)
-+{
-+	if (WARN(atomic_read(&clk->use_count),
-+		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
-+		 __func__, clk->dev_id, clk->id))
-+		return;
-+
-+	mutex_lock(&clk_lock);
-+	list_del(&clk->list);
-+	mutex_unlock(&clk_lock);
-+
-+	kfree(clk->id);
-+	kfree(clk->dev_id);
-+	kfree(clk);
-+}
-+EXPORT_SYMBOL(v4l2_clk_unregister);
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-new file mode 100644
-index 0000000..9b67472
---- /dev/null
-+++ b/include/media/v4l2-clk.h
-@@ -0,0 +1,54 @@
-+/*
-+ * V4L2 clock service
-+ *
-+ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * ATTENTION: This is a temporary API and it shall be replaced by the generic
-+ * clock API, when the latter becomes widely available.
-+ */
-+
-+#ifndef MEDIA_V4L2_CLK_H
-+#define MEDIA_V4L2_CLK_H
-+
-+#include <linux/atomic.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+
-+struct module;
-+struct v4l2_subdev;
-+
-+struct v4l2_clk {
-+	struct list_head list;
-+	const struct v4l2_clk_ops *ops;
-+	const char *dev_id;
-+	const char *id;
-+	int enable;
-+	struct mutex lock; /* Protect the enable count */
-+	atomic_t use_count;
-+	void *priv;
-+};
-+
-+struct v4l2_clk_ops {
-+	struct module	*owner;
-+	int		(*enable)(struct v4l2_clk *clk);
-+	void		(*disable)(struct v4l2_clk *clk);
-+	unsigned long	(*get_rate)(struct v4l2_clk *clk);
-+	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
-+};
-+
-+struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
-+				   const char *dev_name,
-+				   const char *name, void *priv);
-+void v4l2_clk_unregister(struct v4l2_clk *clk);
-+struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id);
-+void v4l2_clk_put(struct v4l2_clk *clk);
-+int v4l2_clk_enable(struct v4l2_clk *clk);
-+void v4l2_clk_disable(struct v4l2_clk *clk);
-+unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
-+int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
-+
-+#endif
+Best regards
 -- 
-1.7.2.5
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
