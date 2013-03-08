@@ -1,89 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39250 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757405Ab3CZFcV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 01:32:21 -0400
-Received: by mail-bk0-f46.google.com with SMTP id je9so1116442bkc.5
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 22:32:20 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 26 Mar 2013 13:32:19 +0800
-Message-ID: <CAPgLHd8Ow5eV=zrOJ7PxWtOFn2qLwVd_Ys2LNE3ddL4gf3EFQg@mail.gmail.com>
-Subject: [PATCH -next] [media] af9035: fix missing unlock on error in af9035_ctrl_msg()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: crope@iki.fi, mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.samsung.com ([203.254.224.24]:15123 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933517Ab3CHQqW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 11:46:22 -0500
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MJC00IWEP98S540@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 09 Mar 2013 01:46:20 +0900 (KST)
+Received: from amdc1344.digital.local ([106.116.147.32])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MJC00BU5P8ZM870@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 09 Mar 2013 01:46:20 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: devicetree-discuss@lists.ozlabs.org, swarren@wwwdotorg.org,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC v5 0/5] Device tree support for Exynos SoC camera subsystem
+Date: Fri, 08 Mar 2013 17:45:59 +0100
+Message-id: <1362761166-5285-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi All,
 
-Add the missing unlock before return from function af9035_ctrl_msg()
-in the error handling case.
+Here is an updated version of my patch series adding device tree support
+for the Samsung S5P/Exynos SoC series camera subsystem. Previous version
+can be found at [1]. Still it doesn't include asynchronous subdev 
+registration support as I have been focused on the Exynos4x12 SoC camera 
+ISP driver recently.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+Changes in this series are mostly addressed review comments from Stephen 
+Warren. Thank you for taking time to review!
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index b1f7059..b638fc1 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -57,7 +57,7 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 		dev_err(&d->udev->dev, "%s: too much data wlen=%d rlen=%d\n",
- 				__func__, req->wlen, req->rlen);
- 		ret = -EINVAL;
--		goto err;
-+		goto exit;
- 	}
- 
- 	state->buf[0] = REQ_HDR_LEN + req->wlen + CHECKSUM_LEN - 1;
-@@ -81,7 +81,7 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 	ret = dvb_usbv2_generic_rw_locked(d,
- 			state->buf, wlen, state->buf, rlen);
- 	if (ret)
--		goto err;
-+		goto exit;
- 
- 	/* no ack for those packets */
- 	if (req->cmd == CMD_FW_DL)
-@@ -95,28 +95,29 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 				"(%04x != %04x)\n", KBUILD_MODNAME, req->cmd,
- 				tmp_checksum, checksum);
- 		ret = -EIO;
--		goto err;
-+		goto exit;
- 	}
- 
- 	/* check status */
- 	if (state->buf[2]) {
- 		/* fw returns status 1 when IR code was not received */
--		if (req->cmd == CMD_IR_GET || state->buf[2] == 1)
--			return 1;
-+		if (req->cmd == CMD_IR_GET || state->buf[2] == 1) {
-+			ret = 1;
-+			goto exit;
-+		}
- 
- 		dev_dbg(&d->udev->dev, "%s: command=%02x failed fw error=%d\n",
- 				__func__, req->cmd, state->buf[2]);
- 		ret = -EIO;
--		goto err;
-+		goto exit;
- 	}
- 
- 	/* read request, copy returned data to return buf */
- 	if (req->rlen)
- 		memcpy(req->rbuf, &state->buf[ACK_HDR_LEN], req->rlen);
- exit:
--err:
- 	mutex_unlock(&d->usb_mutex);
--	if (ret)
-+	if (ret < 0)
- 		dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
- }
+Detailed changes are listed in each patch. I've dropped the device tree
+patches since those are mostly unchanged since the last version, which 
+can be found at [1].
 
+[1] http://www.spinics.net/lists/arm-kernel/msg222071.html
+
+Thanks,
+Sylwester
+
+Sylwester Nawrocki (6):
+  s5p-csis: Add device tree support
+  s5p-fimc: Add device tree support for FIMC device driver
+  s5p-fimc: Add device tree support for FIMC-LITE device driver
+  s5p-fimc: Add device tree support for the media device driver
+  s5p-fimc: Add device tree based sensors registration
+  s5p-fimc: Use pinctrl API for camera ports configuration
+
+ .../devicetree/bindings/media/exynos-fimc-lite.txt |   13 +
+ .../devicetree/bindings/media/samsung-fimc.txt     |  186 ++++++++++
+ .../bindings/media/samsung-mipi-csis.txt           |   80 +++++
+ drivers/media/platform/s5p-fimc/fimc-capture.c     |    6 +-
+ drivers/media/platform/s5p-fimc/fimc-core.c        |  231 +++++++------
+ drivers/media/platform/s5p-fimc/fimc-core.h        |   21 +-
+ drivers/media/platform/s5p-fimc/fimc-lite.c        |   63 +++-
+ drivers/media/platform/s5p-fimc/fimc-m2m.c         |    2 +-
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c     |  358 +++++++++++++++++---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   16 +
+ drivers/media/platform/s5p-fimc/fimc-reg.c         |    6 +-
+ drivers/media/platform/s5p-fimc/mipi-csis.c        |  160 +++++++--
+ drivers/media/platform/s5p-fimc/mipi-csis.h        |    1 +
+ include/media/s5p_fimc.h                           |   17 +
+ 14 files changed, 957 insertions(+), 203 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-fimc.txt
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-mipi-csis.txt
+
+-- 
+1.7.9.5
 
