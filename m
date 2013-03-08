@@ -1,624 +1,309 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54153 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754183Ab3COMd2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 08:33:28 -0400
-Date: Fri, 15 Mar 2013 09:33:20 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 4/8] smi2021: Add smi2021_v4l2.c
-Message-ID: <20130315123319.GE2989@localhost>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <1363270024-12127-5-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1363270024-12127-5-git-send-email-jonarne@jonarne.no>
+Received: from mailout4.samsung.com ([203.254.224.34]:59135 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932528Ab3CHOjy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 09:39:54 -0500
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org
+Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
+Subject: [RFC 01/12] exynos-fimc-is: Adding device tree nodes
+Date: Fri, 08 Mar 2013 09:59:14 -0500
+Message-id: <1362754765-2651-2-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
+References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 14, 2013 at 03:07:00PM +0100, Jon Arne Jørgensen wrote:
-> This file is responsible for registering the device with the v4l2 subsystem,
-> and the communication with v4l2.
-> Most of the v4l2 ioctls are just passed on to vidbuf2.
-> 
-> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> ---
->  drivers/media/usb/smi2021/smi2021_v4l2.c | 566 +++++++++++++++++++++++++++++++
->  1 file changed, 566 insertions(+)
->  create mode 100644 drivers/media/usb/smi2021/smi2021_v4l2.c
-> 
-> diff --git a/drivers/media/usb/smi2021/smi2021_v4l2.c b/drivers/media/usb/smi2021/smi2021_v4l2.c
-> new file mode 100644
-> index 0000000..d402093
-> --- /dev/null
-> +++ b/drivers/media/usb/smi2021/smi2021_v4l2.c
-> @@ -0,0 +1,566 @@
-> +/*******************************************************************************
-> + * smi2021_v4l2.c                                                              *
-> + *                                                                             *
-> + * USB Driver for smi2021 - EasyCap                                            *
-> + * USB ID 1c88:003c                                                            *
-> + *                                                                             *
-> + * *****************************************************************************
-> + *
-> + * Copyright 2011-2013 Jon Arne Jørgensen
-> + * <jonjon.arnearne--a.t--gmail.com>
-> + *
-> + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
-> + *
-> + * This file is part of SMI2021
-> + * http://code.google.com/p/easycap-somagic-linux/
-> + *
-> + * This program is free software: you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation, either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
-> + *
-> + * This driver is heavily influensed by the STK1160 driver.
-> + * Copyright (C) 2012 Ezequiel Garcia
-> + * <elezegarcia--a.t--gmail.com>
-> + *
-> + */
-> +
-> +#include "smi2021.h"
-> +
-> +static struct smi2021_fmt format[] = {
-> +	{
-> +		.name = "16bpp YU2, 4:2:2, packed",
-> +		.fourcc = V4L2_PIX_FMT_UYVY,
-> +		.depth = 16,
-> +	}
-> +};
-> +
-> +static const int inputs = 2;
+Add the fimc-is node and the required pinctrl nodes for
+fimc-is driver for Exynos5. Also adds the DT binding documentation
+for the new fimc-is node.
 
-You could use ARRAY_SIZE on inputs as well?
-Hardcoded values in general are a good way to have future bugs.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+---
+ .../devicetree/bindings/media/soc/exynos5-is.txt   |   81 ++++++++++++++++++++
+ arch/arm/boot/dts/exynos5250-pinctrl.dtsi          |   60 +++++++++++++++
+ arch/arm/boot/dts/exynos5250-smdk5250.dts          |   54 ++++++++++++-
+ arch/arm/boot/dts/exynos5250.dtsi                  |    8 ++
+ 4 files changed, 201 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/soc/exynos5-is.txt
+ mode change 100644 => 100755 arch/arm/boot/dts/exynos5250-smdk5250.dts
+ mode change 100644 => 100755 arch/arm/boot/dts/exynos5250.dtsi
 
-> +static struct smi2021_input input[] = {
-> +	{
-> +		.name = "Composite",
-> +		.type = SAA7115_COMPOSITE0,
-> +	},
-> +	{
-> +		.name = "S-Video",
-> +		.type = SAA7115_SVIDEO1,
-> +	}
-> +};
-> +
-> +static void smi2021_set_input(struct smi2021_dev *dev)
-> +{
-> +	if (dev->udev == NULL)
-> +		return;
-> +
-> +	if (dev->ctl_input >= inputs) {
-> +		smi2021_err("BUG: ctl_input to big!\n");
-> +		return;
-> +	}
-
-Aren't you already checking for this? See vidioc_s_input.
-
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_routing,
-> +		input[dev->ctl_input].type, 0, 0);
-> +}
-> +
-> +static int smi2021_start_streaming(struct smi2021_dev *dev)
-> +{
-> +	u8 data[2];
-> +	int i, rc = 0;
-> +	data[0] = 0x01;
-> +	data[1] = 0x05;
-> +
-> +	if (!dev->udev)
-> +		return -ENODEV;
-> +
-> +	dev->sync_state = HSYNC;
-> +	dev->buf_count = 0;
-> +
-> +	if (mutex_lock_interruptible(&dev->v4l2_lock))
-> +		return -ERESTARTSYS;
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 1);
-> +
-> +	/* The saa 7115 driver sets these wrong,
-> +	 * this leads to sync issues.
-> +	 * V_GATE1_START
-> +	 * V_GATE1_STOP
-> +	 * V_GATE1_MSB
-> +	 * All these should be 0x00 for this device.
-> +	 */
-> +	smi2021_write_reg(dev, 0x4a, 0x15, 0x00);
-> +	smi2021_write_reg(dev, 0x4a, 0x16, 0x00);
-> +	smi2021_write_reg(dev, 0x4a, 0x17, 0x00);
-
-Oops, magic numbers!
-
-> +
-> +	rc = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0x00),
-> +			0x01, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +			0x01, 0x00, data, sizeof(data), 1000);
-> +	if (rc < 0) {
-> +		smi2021_err("Could not start device!\n");
-> +		goto out_unlock;
-> +	}
-> +
-> +	/* It's mandatory to set alt interface before allocating isoc buffer */
-> +	usb_set_interface(dev->udev, 0, 2);
-> +
-> +	smi2021_write_reg(dev, 0, 0x1740, 0x1d);
-> +
-> +	if (!dev->isoc_ctl.num_bufs) {
-> +		rc = smi2021_alloc_isoc(dev);
-> +		if (rc < 0)
-> +			goto out_stop_hw;
-> +	}
-> +
-> +	/* submit urbs and enable IRQ */
-> +	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
-> +		rc = usb_submit_urb(dev->isoc_ctl.urb[i], GFP_KERNEL);
-> +		if (rc) {
-> +			smi2021_err("cannot submit urb[%d] (%d)\n", i, rc);
-> +			goto out_uninit;
-> +		}
-> +	}
-> +
-> +	mutex_unlock(&dev->v4l2_lock);
-> +
-> +	smi2021_dbg("Streaming started!");
-> +	return 0;
-> +
-> +out_uninit:
-> +	smi2021_uninit_isoc(dev);
-> +out_stop_hw:
-> +	usb_set_interface(dev->udev, 0, 0);
-> +	smi2021_clear_queue(dev);
-> +
-> +out_unlock:
-> +	mutex_unlock(&dev->v4l2_lock);
-> +
-> +	return rc;
-> +}
-> +
-> +/* Must be called with v4l2_lock hold */
-> +static void smi2021_stop_hw(struct smi2021_dev *dev)
-> +{
-> +	int rc = 0;
-> +	u8 data[] = { 0x01, 0x03 };
-> +
-> +	if (!dev->udev)
-> +		return;
-> +
-> +	usb_set_interface(dev->udev, 0, 0);
-> +
-> +	rc = usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0x00),
-> +			0x01, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
-> +			0x01, 0x00, data, sizeof(data), 1000);
-> +	if (rc < 0)
-> +		smi2021_err("Could not stop device!\n");
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
-> +}
-> +
-> +static int smi2021_stop_streaming(struct smi2021_dev *dev)
-> +{
-> +	/* HACK: Stop the audio subsystem,
-> +	 * without this, the pcm middle-layer will hang waiting for more data.
-> +	 *
-> +	 * Is there a better way to do this?
-> +	 */
-> +	if (dev->pcm_substream && dev->pcm_substream->runtime) {
-> +		struct snd_pcm_runtime *runtime = dev->pcm_substream->runtime;
-> +		if (runtime->status) {
-> +			runtime->status->state = SNDRV_PCM_STATE_DRAINING;
-> +			wake_up(&runtime->sleep);
-> +		}
-> +	}
-> +
-> +	if (mutex_lock_interruptible(&dev->v4l2_lock))
-> +		return -ERESTARTSYS;
-> +
-> +	smi2021_cancel_isoc(dev);
-> +	smi2021_free_isoc(dev);
-> +	smi2021_stop_hw(dev);
-> +	smi2021_clear_queue(dev);
-> +
-> +	smi2021_dbg("Streaming stopped!\n");
-> +
-> +	mutex_unlock(&dev->v4l2_lock);
-> +
-> +	return 0;
-> +}
-> +
-> +static struct v4l2_file_operations smi2021_fops = {
-> +	.owner = THIS_MODULE,
-> +	.open = v4l2_fh_open,
-> +	.release = vb2_fop_release,
-> +	.read = vb2_fop_read,
-> +	.poll = vb2_fop_poll,
-> +	.mmap = vb2_fop_mmap,
-> +	.unlocked_ioctl = video_ioctl2,
-> +};
-> +
-> +/******************************************************************************/
-> +/*                                                                            */
-> +/*          Vidioc IOCTLS                                                     */
-> +/*                                                                            */
-> +/******************************************************************************/
-> +
-> +static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-> +			struct v4l2_fmtdesc *f)
-> +{
-> +	if (f->index != 0)
-> +		return -EINVAL;
-> +
-> +	strlcpy(f->description, format[f->index].name, sizeof(f->description));
-> +	f->pixelformat = format[f->index].fourcc;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_querycap(struct file *file, void *priv,
-> +			struct v4l2_capability *cap)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	strcpy(cap->driver, "smi2021");
-> +	strcpy(cap->card, "smi2021");
-> +	usb_make_path(dev->udev, cap->bus_info, sizeof(cap->bus_info));
-> +	cap->device_caps =
-> +		V4L2_CAP_VIDEO_CAPTURE |
-> +		V4L2_CAP_STREAMING |
-> +		V4L2_CAP_READWRITE;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-> +			struct v4l2_format *f)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	f->fmt.pix.pixelformat = dev->fmt->fourcc;
-> +	f->fmt.pix.width = dev->width;
-> +	f->fmt.pix.height = dev->height;
-> +	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-> +	f->fmt.pix.bytesperline = dev->width * 2;
-> +	f->fmt.pix.sizeimage = dev->height * f->fmt.pix.bytesperline;
-> +	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	f->fmt.pix.priv = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-> +			struct v4l2_format *f)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	f->fmt.pix.pixelformat = dev->fmt->fourcc;
-> +	f->fmt.pix.width = dev->width;
-> +	f->fmt.pix.height = dev->height;
-> +	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-> +	f->fmt.pix.bytesperline = dev->width * 2;
-> +	f->fmt.pix.sizeimage = dev->height * f->fmt.pix.bytesperline;
-> +	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	f->fmt.pix.priv = 0;
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> +			struct v4l2_format *f)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +	struct vb2_queue *q = &dev->vb_vidq;
-> +
-> +	if (vb2_is_busy(q))
-> +		return -EBUSY;
-> +
-> +	vidioc_try_fmt_vid_cap(file, priv, f);
-> +	return 0;
-> +}
-> +
-> +static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, querystd, norm);
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	*norm = dev->norm;
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +	struct vb2_queue *q = &dev->vb_vidq;
-> +
-> +	if (vb2_is_busy(q))
-> +		return -EBUSY;
-> +
-> +	if (!dev->udev)
-> +		return -ENODEV;
-> +
-> +	dev->norm = *norm;
-> +	if (dev->norm & V4L2_STD_525_60) {
-> +		dev->width = SMI2021_BYTES_PER_LINE / 2;
-> +		dev->height = SMI2021_NTSC_LINES;
-> +	} else if (dev->norm & V4L2_STD_625_50) {
-> +		dev->width = SMI2021_BYTES_PER_LINE / 2;
-> +		dev->height =  SMI2021_PAL_LINES;
-> +	} else {
-> +		smi2021_err("Invalid standard\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-> +	return 0;
-> +}
-> +
-> +static int vidioc_enum_input(struct file *file, void *priv,
-> +				struct v4l2_input *i)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	if (i->index >= inputs)
-> +		return -EINVAL;
-> +
-> +	strlcpy(i->name, input[i->index].name, sizeof(i->name));
-> +	i->type = V4L2_INPUT_TYPE_CAMERA;
-> +	i->std = dev->vdev.tvnorms;
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +	*i = dev->ctl_input;
-> +	return 0;
-> +}
-> +
-> +static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
-> +{
-> +	struct smi2021_dev *dev = video_drvdata(file);
-> +
-> +	if (i >= inputs)
-> +		return -EINVAL;
-> +
-> +	dev->ctl_input = i;
-> +	smi2021_set_input(dev);
-> +
-> +	return 0;
-> +}
-> +
-> +static int vidioc_g_chip_ident(struct file *file, void *priv,
-> +			struct v4l2_dbg_chip_ident *chip)
-> +{
-> +	switch (chip->match.type) {
-> +	case V4L2_CHIP_MATCH_HOST:
-> +		chip->ident = V4L2_IDENT_NONE;
-> +		chip->revision = 0;
-> +		return 0;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static const struct v4l2_ioctl_ops smi2021_ioctl_ops = {
-> +	.vidioc_querycap		= vidioc_querycap,
-> +	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap		= vidioc_g_fmt_vid_cap,
-> +	.vidioc_try_fmt_vid_cap		= vidioc_try_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap		= vidioc_s_fmt_vid_cap,
-> +	.vidioc_querystd		= vidioc_querystd,
-> +	.vidioc_g_std			= vidioc_g_std,
-> +	.vidioc_s_std			= vidioc_s_std,
-> +	.vidioc_enum_input		= vidioc_enum_input,
-> +	.vidioc_g_input			= vidioc_g_input,
-> +	.vidioc_s_input			= vidioc_s_input,
-> +
-> +	/* vb2 handle these */
-> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_streamon		= vb2_ioctl_streamon,
-> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
-> +
-> +	.vidioc_log_status		= v4l2_ctrl_log_status,
-> +	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-> +	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-> +	.vidioc_g_chip_ident		= vidioc_g_chip_ident,
-> +
-> +};
-> +
-> +/******************************************************************************/
-> +/*                                                                            */
-> +/*          Videobuf2 operations                                              */
-> +/*                                                                            */
-> +/******************************************************************************/
-> +static int queue_setup(struct vb2_queue *vq,
-> +				const struct v4l2_format *v4l2_fmt,
-> +				unsigned int *nbuffers, unsigned int *nplanes,
-> +				unsigned int sizes[], void *alloc_ctxs[])
-> +{
-> +	struct smi2021_dev *dev = vb2_get_drv_priv(vq);
-> +	unsigned long size;
-> +
-> +	size = dev->width * dev->height * 2;
-> +
-> +	*nbuffers = clamp_t(unsigned int, *nbuffers, 2, 4);
-> +
-> +	/* Packed color format */
-> +	*nplanes = 1;
-> +	sizes[0] = size;
-> +
-> +	return 0;
-> +}
-> +
-> +static void buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	unsigned long flags;
-> +	struct smi2021_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct smi2021_buffer *buf = container_of(vb, struct smi2021_buffer,
-> +							vb);
-> +
-> +	spin_lock_irqsave(&dev->buf_lock, flags);
-> +	if (!dev->udev) {
-> +		/*
-> +		 * If the device is disconnected return the buffer to userspace
-> +		 * directly. The next QBUF call will fail with -ENODEV.
-> +		 */
-> +		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> +	} else {
-> +		buf->mem = vb2_plane_vaddr(vb, 0);
-> +		buf->length = vb2_plane_size(vb, 0);
-> +
-> +		buf->pos = 0;
-> +		buf->trc_av = 0;
-> +		buf->in_blank = true;
-> +		buf->second_field = false;
-> +
-> +		if (buf->length < dev->width * dev->height * 2)
-> +			vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> +		else
-> +			list_add_tail(&buf->list, &dev->avail_bufs);
-> +	}
-> +	spin_unlock_irqrestore(&dev->buf_lock, flags);
-> +}
-> +
-> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
-> +{
-> +	struct smi2021_dev *dev = vb2_get_drv_priv(vq);
-> +	return smi2021_start_streaming(dev);
-> +}
-> +
-> +static int stop_streaming(struct vb2_queue *vq)
-> +{
-> +	struct smi2021_dev *dev = vb2_get_drv_priv(vq);
-> +	return smi2021_stop_streaming(dev);
-> +}
-> +
-> +static struct vb2_ops smi2021_video_qops = {
-> +	.queue_setup		= queue_setup,
-> +	.buf_queue		= buffer_queue,
-> +	.start_streaming	= start_streaming,
-> +	.stop_streaming		= stop_streaming,
-> +	.wait_prepare		= vb2_ops_wait_prepare,
-> +	.wait_finish		= vb2_ops_wait_finish,
-> +};
-> +
-> +static struct video_device v4l2_template = {
-> +	.name			= "easycap_smi2021_dc60",
-> +	.tvnorms		= V4L2_STD_625_50 | V4L2_STD_525_60,
-> +	.fops			= &smi2021_fops,
-> +	.ioctl_ops		= &smi2021_ioctl_ops,
-> +	.release		= video_device_release_empty,
-> +};
-> +
-> +/* Must be called with both v4l2_lock and vb_queue_lock hold */
-> +void smi2021_clear_queue(struct smi2021_dev *dev)
-> +{
-> +	struct smi2021_buffer *buf;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&dev->buf_lock, flags);
-> +	while (!list_empty(&dev->avail_bufs)) {
-> +		buf = list_first_entry(&dev->avail_bufs,
-> +			struct smi2021_buffer, list);
-> +		list_del(&buf->list);
-> +		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> +	}
-> +	dev->isoc_ctl.buf = NULL;
-> +	spin_unlock_irqrestore(&dev->buf_lock, flags);
-> +}
-> +
-> +int smi2021_vb2_setup(struct smi2021_dev *dev)
-> +{
-> +	int rc;
-> +	struct vb2_queue *q;
-> +
-> +	q = &dev->vb_vidq;
-> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
-> +	q->drv_priv = dev;
-> +	q->buf_struct_size = sizeof(struct smi2021_buffer);
-> +	q->ops = &smi2021_video_qops;
-> +	q->mem_ops = &vb2_vmalloc_memops;
-> +
-> +	rc = vb2_queue_init(q);
-> +	if (rc < 0)
-> +		return rc;
-> +
-> +	/* Initialize video dma queue */
-> +	INIT_LIST_HEAD(&dev->avail_bufs);
-> +
-> +	return 0;
-> +}
-> +
-> +int smi2021_video_register(struct smi2021_dev *dev)
-> +{
-> +	int rc;
-> +
-> +	dev->vdev = v4l2_template;
-> +	dev->vdev.debug = 0;
-> +	dev->vdev.queue = &dev->vb_vidq;
-> +
-> +	dev->vdev.lock = &dev->v4l2_lock;
-> +	dev->vdev.queue->lock = &dev->vb_queue_lock;
-> +
-> +	dev->vdev.v4l2_dev = &dev->v4l2_dev;
-> +	set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
-> +
-> +	/* PAL is default */
-> +	dev->norm = V4L2_STD_PAL;
-> +	dev->width = SMI2021_BYTES_PER_LINE / 2;
-> +	dev->height = SMI2021_PAL_LINES;
-> +
-> +	dev->fmt = &format[0];
-> +
-> +	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
-> +	smi2021_set_input(dev);
-> +
-> +	video_set_drvdata(&dev->vdev, dev);
-> +	rc = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
-> +	if (rc < 0) {
-> +		smi2021_err("video_register_device failed %d\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
-> +		video_device_node_name(&dev->vdev));
-> +
-> +	return 0;
-> +}
-> -- 
-> 1.8.1.1
-> 
-
+diff --git a/Documentation/devicetree/bindings/media/soc/exynos5-is.txt b/Documentation/devicetree/bindings/media/soc/exynos5-is.txt
+new file mode 100644
+index 0000000..e0fdf02
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/soc/exynos5-is.txt
+@@ -0,0 +1,81 @@
++Samsung EXYNOS SoC Camera Subsystem
++-----------------------------------
++
++The camera subsystem on Samsung Exynos5 SoC has some changes relative
++to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
++FIMC-LITE IPs but removed the FIMC-CAPTURE. Instead it has an improved
++FIMC-IS which can provide imate data DMA output.
++
++The device tree binding remain similar to the Exynos4 bindings which can
++be seen at samsung-fimc.txt with the addition of fimc-is sub-node which will
++be explained here.
++
++fimc-is subnode of camera node
++------------------------------
++
++Required properties:
++
++- compatible		: must be "samsung,exynos5250-fimc-is"
++- reg			: physical base address and size of the memory mapped
++			  registers
++- interrupt-parent	: Parent interrupt controller
++- interrupts		: fimc-is interrupt to the parent combiner
++
++Board specific properties:
++
++- pinctrl-names    : pinctrl names for camera port pinmux control, at least
++		     "default" needs to be specified.
++- pinctrl-0...N	   : pinctrl properties corresponding to pinctrl-names
++
++Sensor sub-nodes:
++
++FIMC-IS IP supports custom built sensors to be controlled exclusively by
++the FIMC-IS firmware. These sensor properties are to be defined here.
++Sensor nodes are described in the same way as in generic sensors used in
++Exynos4 and described in samsung-fimc.txt.
++
++Example:
++
++SoC common node:
++
++		fimc_is: fimc-is@13000000 {
++			compatible = "samsung,exynos5250-fimc-is";
++			reg = <0x13000000 0x200000>;
++			interrupt-parent = <&combiner>;
++			interrupts = <19 1>;
++			status = "disabled";
++		};
++
++Board specific node:
++
++		fimc-is@13000000 {
++			status = "okay";
++			pinctrl-0 =
++				<&cam_port_a_clk_active
++				&cam_bayer_clk_active
++				&isp_uart
++				&cam_i2c0
++				&cam_i2c1>;
++			pinctrl-names = "default";
++			s5k4e5 {
++				compatible = "samsung,s5k4e5";
++				gpios = <&gpx1 2 1>;
++				clock-frequency = <24000000>;
++				port {
++					is_s5k4e5_ep: endpoint {
++						remote-endpoint = <&csis0_ep>;
++					};
++				};
++			};
++			s5k6a3 {
++				compatible = "samsung,s5k6a3";
++				gpios = <&gpx1 0 1>;
++				clock-frequency = <24000000>;
++				port {
++					is_s5k6a3_ep: endpoint {
++						remote-endpoint = <&csis1_ep>;
++					};
++				};
++			};
++		};
++
+diff --git a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+index 3caaa21..320c22b 100644
+--- a/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
++++ b/arch/arm/boot/dts/exynos5250-pinctrl.dtsi
+@@ -556,6 +556,38 @@
+ 	};
+ 
+ 	pinctrl@13400000 {
++		gpe1: gpe1 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
++		gpf0: gpf0 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
++		gpf1: gpf1 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
++		gpg2: gpg2 {
++			gpio-controller;
++			#gpio-cells = <2>;
++
++			interrupt-controller;
++			#interrupt-cells = <2>;
++		};
++
+ 		gph0: gph0 {
+ 			gpio-controller;
+ 			#gpio-cells = <2>;
+@@ -594,6 +626,34 @@
+ 			samsung,pin-pud = <0>;
+ 			samsung,pin-drv = <0>;
+ 		};
++
++		cam_bayer_clk_active: cam-bayer-clk-active {
++			samsung,pins = "gpg2-1";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		isp_uart: isp-uart {
++			samsung,pins = "gpe1-0", "gpe1-1";
++			samsung,pin-function = <3>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_i2c0: cam-i2c0 {
++			samsung,pins = "gpf0-0", "gpf0-1";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
++
++		cam_i2c1: cam-i2c1 {
++			samsung,pins = "gpf0-2", "gpf0-3";
++			samsung,pin-function = <2>;
++			samsung,pin-pud = <0>;
++			samsung,pin-drv = <3>;
++		};
+ 	};
+ 
+ 	pinctrl_3: pinctrl@03680000 {
+diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+old mode 100644
+new mode 100755
+index 356e014..0a2da64
+--- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
++++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
+@@ -92,6 +92,7 @@
+ 
+ 		m5mols@1f {
+ 			compatible = "fujitsu,m-5mols";
++			status = "disabled";
+ 			reg = <0x1F>;
+ 			gpios = <&gpx3 3 0xf>, <&gpx1 2 1>;
+ 			clock-frequency = <24000000>;
+@@ -242,7 +243,7 @@
+ 
+ 		csis_0: csis@13C20000 {
+ 			status = "okay";
+-			clock-frequency = <166000000>;
++			clock-frequency = <267000000>; /* s5k4e5 */
+ 			#address-cells = <1>;
+ 			#size-cells = <0>;
+ 
+@@ -250,7 +251,7 @@
+ 			port@3 {
+ 				reg = <3>;
+ 				csis0_ep: endpoint {
+-					remote-endpoint = <&m5mols_ep>;
++					remote-endpoint = <&is_s5k4e5_ep>;
+ 					data-lanes = <1 2 3 4>;
+ 					samsung,csis-hs-settle = <12>;
+ 					samsung,csis-wclk;
+@@ -258,5 +259,54 @@
+ 			};
+ 		};
+ 
++		csis_1: csis@13C30000 {
++			status = "okay";
++			clock-frequency = <160000000>;
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			/* Camera D (4) MIPI CSI-2 (CSIS1) */
++			port@4 {
++				reg = <4>;
++				csis1_ep: endpoint {
++					remote-endpoint = <&is_s5k6a3_ep>;
++					data-lanes = <1>;
++					samsung,csis-hs-settle = <18>;
++					samsung,csis-wclk;
++				};
++			};
++		};
++
++		fimc-is@13000000 {
++			status = "okay";
++			pinctrl-0 =
++				<&cam_port_a_clk_active
++				&cam_bayer_clk_active
++				&isp_uart
++				&cam_i2c0
++				&cam_i2c1>;
++			pinctrl-names = "default";
++			s5k4e5 {
++				compatible = "samsung,s5k4e5";
++				gpios = <&gpx1 2 1>;
++				clock-frequency = <24000000>;
++				port {
++					is_s5k4e5_ep: endpoint {
++						remote-endpoint = <&csis0_ep>;
++					};
++				};
++			};
++			s5k6a3 {
++				compatible = "samsung,s5k6a3";
++				gpios = <&gpx1 0 1>;
++				clock-frequency = <24000000>;
++				port {
++					is_s5k6a3_ep: endpoint {
++						remote-endpoint = <&csis1_ep>;
++					};
++				};
++			};
++		};
++
+ 	};
+ };
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+old mode 100644
+new mode 100755
+index 564c05f..e18df49
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -410,5 +410,13 @@
+ 			bus-width = <2>;
+ 			status = "disabled";
+ 		};
++
++		fimc_is: fimc-is@13000000 {
++			compatible = "samsung,exynos5250-fimc-is";
++			reg = <0x13000000 0x200000>;
++			interrupt-parent = <&combiner>;
++			interrupts = <19 1>;
++			status = "disabled";
++		};
+ 	};
+ };
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.7.9.5
+
