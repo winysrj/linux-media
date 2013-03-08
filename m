@@ -1,240 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45118 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932476Ab3CQVqr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 17:46:47 -0400
-Message-ID: <5146399E.8070404@iki.fi>
-Date: Sun, 17 Mar 2013 23:46:06 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:62004 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754610Ab3CHHz1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 02:55:27 -0500
+Received: by mail-wi0-f175.google.com with SMTP id l13so1246505wie.14
+        for <linux-media@vger.kernel.org>; Thu, 07 Mar 2013 23:55:26 -0800 (PST)
 MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Gianluca Gennari <gennarone@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] block i2c tuner reads for Avermedia Twinstar in the af9035
- driver
-References: <4261811.IXtDYhFBCx@jar7.dominio> <5231183.rT6pVb4eC3@jar7.dominio> <513E569A.4030407@iki.fi> <2056426.oO4bCijko2@jar7.dominio>
-In-Reply-To: <2056426.oO4bCijko2@jar7.dominio>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <962516300.332041.1362658383433.JavaMail.root@advansee.com>
+References: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com>
+	<962516300.332041.1362658383433.JavaMail.root@advansee.com>
+Date: Fri, 8 Mar 2013 08:55:25 +0100
+Message-ID: <CACKLOr2VOb3GMiX6GVmSchhGs8XeBJ0c7qRSHZwU8e8C+qeWPg@mail.gmail.com>
+Subject: Re: mt9m111/mt9m131: kernel 3.8 issues.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
+	<benoit.thebaudeau@advansee.com>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/17/2013 08:49 PM, Jose Alberto Reguero wrote:
-> On Martes, 12 de marzo de 2013 00:11:38 Antti Palosaari escribió:
->> On 03/11/2013 10:02 PM, Jose Alberto Reguero wrote:
->>> On Lunes, 11 de marzo de 2013 14:57:37 Antti Palosaari escribió:
->>>> On 03/11/2013 01:51 PM, Jose Alberto Reguero wrote:
->>>>> On Lunes, 11 de febrero de 2013 14:48:18 Jose Alberto Reguero escribió:
->>>>>> On Domingo, 10 de febrero de 2013 22:11:53 Antti Palosaari escribió:
->>>>>>> On 02/10/2013 09:43 PM, Jose Alberto Reguero wrote:
->>>>>>>> This patch block the i2c tuner reads for Avermedia Twinstar. If it's
->>>>>>>> needed other pids can be added.
->>>>>>>>
->>>>>>>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
->>>>>>>>
->>>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
->>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c ---
->>>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
->>>>>>>> 05:45:57.000000000 +0100 +++
->>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-02-08
->>>>>>>> 22:55:08.304089054 +0100 @@ -232,7 +232,11 @@ static int
->>>>>>>> af9035_i2c_master_xfer(struct
->>>>>>>>
->>>>>>>>      			buf[3] = 0x00; /* reg addr MSB */
->>>>>>>>      			buf[4] = 0x00; /* reg addr LSB */
->>>>>>>>      			memcpy(&buf[5], msg[0].buf, msg[0].len);
->>>>>>>>
->>>>>>>> -			ret = af9035_ctrl_msg(d, &req);
->>>>>>>> +			if (state->block_read) {
->>>>>>>> +				msg[1].buf[0] = 0x3f;
->>>>>>>> +				ret = 0;
->>>>>>>> +			} else
->>>>>>>> +				ret = af9035_ctrl_msg(d, &req);
->>>>>>>>
->>>>>>>>      		}
->>>>>>>>      	
->>>>>>>>      	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
->>>>>>>>      	
->>>>>>>>      		if (msg[0].len > 40) {
->>>>>>>>
->>>>>>>> @@ -638,6 +642,17 @@ static int af9035_read_config(struct dvb
->>>>>>>>
->>>>>>>>      	for (i = 0; i < ARRAY_SIZE(state->af9033_config); i++)
->>>>>>>>      	
->>>>>>>>      		state->af9033_config[i].clock = clock_lut[tmp];
->>>>>>>>
->>>>>>>> +	state->block_read = false;
->>>>>>>> +
->>>>>>>> +	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA
->>>>>>>> &&
->>>>>>>> +		le16_to_cpu(d->udev->descriptor.idProduct) ==
->>>>>>>> +			USB_PID_AVERMEDIA_TWINSTAR) {
->>>>>>>> +		dev_dbg(&d->udev->dev,
->>>>>>>> +				"%s: AverMedia Twinstar: block i2c read from tuner\n",
->>>>>>>> +				__func__);
->>>>>>>> +		state->block_read = true;
->>>>>>>> +	}
->>>>>>>> +
->>>>>>>>
->>>>>>>>      	return 0;
->>>>>>>>
->>>>>>>>      err:
->>>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
->>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h ---
->>>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07
->>>>>>>> 05:45:57.000000000 +0100 +++
->>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-02-08
->>>>>>>> 22:52:42.293842710 +0100 @@ -54,6 +54,7 @@ struct usb_req {
->>>>>>>>
->>>>>>>>      struct state {
->>>>>>>>
->>>>>>>>      	u8 seq; /* packet sequence number */
->>>>>>>>      	bool dual_mode;
->>>>>>>>
->>>>>>>> +	bool block_read;
->>>>>>>>
->>>>>>>>      	struct af9033_config af9033_config[2];
->>>>>>>>
->>>>>>>>      };
->>>>>>>
->>>>>>> Could you test if faking tuner ID during attach() is enough?
->>>>>>>
->>>>>>> Also, I would like to know what is returned error code from firmware
->>>>>>> when it fails. Enable debugs to see it. It should print something like
->>>>>>> that: af9035_ctrl_msg: command=03 failed fw error=2
->>>>>>>
->>>>>>>
->>>>>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
->>>>>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
->>>>>>> index a1e953a..5a4f28d 100644
->>>>>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
->>>>>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
->>>>>>> @@ -1082,9 +1082,22 @@ static int af9035_tuner_attach(struct
->>>>>>> dvb_usb_adapter *adap)
->>>>>>>
->>>>>>>                             tuner_addr = 0x60 | 0x80; /* I2C bus hack
->>>>>>>                             */
->>>>>>>
->>>>>>>                     }
->>>>>>>
->>>>>>> +               // fake used tuner for demod firmware / i2c adapter
->>>>>>> +               if (adap->id == 0)
->>>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
->>>>>>> AF9033_TUNER_FC0011);
->>>>>>> +               else
->>>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
->>>>>>> AF9033_TUNER_FC0011);
->>>>>>> +
->>>>>>>
->>>>>>>                     /* attach tuner */
->>>>>>>                     fe = dvb_attach(mxl5007t_attach, adap->fe[0],
->>>>>>>                     &d->i2c_adap,
->>>>>>>
->>>>>>>                                     tuner_addr,
->>>>>>>
->>>>>>> &af9035_mxl5007t_config[adap->id]);
->>>>>>> +
->>>>>>> +               // return correct tuner
->>>>>>> +               if (adap->id == 0)
->>>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
->>>>>>> AF9033_TUNER_MXL5007T);
->>>>>>> +               else
->>>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
->>>>>>> AF9033_TUNER_MXL5007T);
->>>>>>> +
->>>>>>>
->>>>>>>                     break;
->>>>>>>
->>>>>>>             case AF9033_TUNER_TDA18218:
->>>>>>>                     /* attach tuner */
->>>>>>>
->>>>>>> regards
->>>>>>> Antti
->>>>>>
->>>>>> I will try with fake tuner, but I can't test unil next weekend.
->>>>>> If I remember, the read operation is performed, and return good value,
->>>>>> but after that, all the i2c transfers fail. Seee:
->>>>>>
->>>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56346.html
->>>>>>
->>>>>> Jose Alberto
->>>>>
->>>>> I tried with fake tuner without success:
->>>>>
->>>>> [ 1346.707405] DVB: registering new adapter (AVerMedia Twinstar (A825))
->>>>> [ 1346.959043] i2c i2c-1: af9033: firmware version: LINK=11.5.9.0
->>>>> OFDM=5.17.9.1
->>>>> [ 1346.962920] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech
->>>>> AF9033 (DVB-T))...
->>>>> [ 1347.439354] mxl5007t 1-0060: creating new instance
->>>>> [ 1347.440644] mxl5007t_get_chip_id: unknown rev (3f)
->>>>> [ 1347.440652] mxl5007t_get_chip_id: MxL5007T detected @ 1-0060
->>>>> [ 1347.443023] mxl5007t_write_reg: 472: failed!
->>>>> [ 1347.443031] mxl5007t_attach: error -121 on line 903
->>>>> [ 1347.443790] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error
->>>>> while
->>>>> loading driver (-19)
->>>>> [ 1347.446624] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)'
->>>>> successfully deinitialized and disconnected
->>>>
->>>> I don't see how the hell it could even go to the mxl5007t_write_reg()
->>>> during attach. Any idea?
->>>
->>> Now with the patches I sent for mxl5007 in the attach function
->>> mxl5007t_soft_reset is called, and also  loop_thru_enable is writed. The
->>> problem is that the read is performed and it return a good value, but the
->>> next writes fail.
->>>
->>>> I have some thoughts that mxl5007t do not use repeated condition. Driver
->>>> still does that. Could you test to perform register read without a
->>>> repeated I2C condition?
->>>
->>> How I can do that? what it is a repeated i2c condition?
->>
->> You should take a look for I2C specification.
->>
->> Please test that:
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_i2c_
->> mxl5007t_test
->>
->> It fixes similar issue of AF9015 driver :)
->>
->> I am not able to test AF9035 as I have no hw. It is compile tested only.
->> Try to do some tweaking for AF9035 implementation if it does not work!
->>
->> regards
->> Antti
+Hi Benoît,
+thank you for your answer.
+
+On 7 March 2013 13:13, Benoît Thébaudeau <benoit.thebaudeau@advansee.com> wrote:
+> Dear Javier Martin,
 >
-> I try with the i2c changes of your tree, and don't work, but there are some
-> differences. With the i2c changes now the chip is recognized as MxL5007T.v4
-> and without the changes the chip is recognized as unknown rev (3f). But the
-> problem after the i2c read persit.
+> On Thursday, March 7, 2013 10:43:42 AM, Javier Martin wrote:
+>> Hi,
+>> I am testing mt9m131 sensor (which is supported in mt9m111.c) in
+>> mainline kernel 3.8 with my Visstrim M10, which is an i.MX27 board.
+>>
+>> Since both mx2_camera.c and mt9m111.c are soc_camera drivers making it
+>> work was quite straightforward. However, I've found several issues
+>> regarding mt9m111.c:
+>>
+>> 1. mt9m111 probe is broken. It will give an oops since it tries to use
+>> a context before it's been assigned.
+>> 2. mt9m111 auto exposure control is broken too (see the patch below).
+>> 3. After I've fixed 1 and 2 the colours in the pictures I grab are
+>> dull and not vibrant, green is very dark and red seems like pink, blue
+>> and yellow look fine though. I have both auto exposure and auto white
+>> balance enabled.
+>>
+>> I can see in the list that you have tried this sensor before. Have you
+>> also noticed these problems (specially 3)?
 >
-> [ 1784.774117] DVB: registering new adapter (AVerMedia Twinstar (A825))
-> [ 1784.877636] i2c i2c-4: af9033: firmware version: LINK=11.5.9.0
-> OFDM=5.17.9.1
-> [ 1784.884771] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033
-> (DVB-T))...
-> [ 1785.274753] mxl5007t 4-0060: creating new instance
-> [ 1785.276886] mxl5007t_get_chip_id: MxL5007T.v4 detected @ 4-0060
-> [ 1785.279252] mxl5007t_write_reg: 472: failed!
-> [ 1785.279260] mxl5007t_attach: error -121 on line 940
-> [ 1785.279703] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error while
-> loading driver (-19)
-> [ 1785.282377] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' successfully
-> deinitialized and disconnected
+> I am using the MT9M131 with an i.MX35 board and Linux 3.4.5. It works nicely. I
+> have not noticed 1 and 3. However, I have noticed 2, for which I already have
+> posted a patch (here: https://patchwork.kernel.org/patch/2187291/), but I have
+> not yet received any feedback.
 
-I have asked that earlier, but Haven't got answer. Could you say how it 
-fails? mxl5007t is a little bit dummy and didn't print any hint why it 
-fails - just set error -EREMOTEIO in any case.
+I've just added my Tested-By to your patch, and it seems Guennadi will
+merge it. So, we don't have to worry about 2 any more.
 
-Enable dvb_usb_v2 and dvb_usb_af9035 debugs to see what it returns. I 
-want to see those raw debug lines from dvb_usb_v2 + af9035 debugs.
+Regarding 3, you say it works nicely for you in kernel 3.4.5. I've
+migrated my code to that version but I still get colours that lack
+enough intensity.
+This is a snapshot "a" taken with my mobile which is much more similar
+to what I can really see with my eyes:
+http://img96.imageshack.us/img96/1451/20130307171334.jpg
 
-Also, could you add hw sniffer to I2C bus and look what goes there?
+This is a similar snapshot "b" taken with mt9m131 in my board. It
+shows that colours tend to be dull and darker, specially green:
+http://img703.imageshack.us/img703/6025/testgo.jpg
 
-regards
-Antti
+Are the snapshots you take with your HW  more similar to "a" or to
+"b"? Perhaps I am being too picky with the image quality and this is
+all what mt9m131 can do?
 
+>> This patch is just to provide a quick fix for points 1 and 2 just in
+>> case you feel like testing this in kernel 3.8. If you consider these
+>> fix are valid I'll send a proper patch later:
+>
+> It's not straightforward to port my board to 3.8, but I've just reviewed the
+> code in linux-next (see below).
+>
+>> diff --git a/drivers/media/i2c/soc_camera/mt9m111.c
+>> b/drivers/media/i2c/soc_camera/mt9m111.c
+>> index 62fd94a..7d99655 100644
+>> --- a/drivers/media/i2c/soc_camera/mt9m111.c
+>> +++ b/drivers/media/i2c/soc_camera/mt9m111.c
+>> @@ -704,7 +704,7 @@ static int mt9m111_set_autoexposure(struct mt9m111
+>> *mt9m111, int on)
+>>  {
+>>         struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+>>
+>> -       if (on)
+>> +       if (on == V4L2_EXPOSURE_AUTO)
+>>                 return reg_set(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+>>         return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
+>>  }
+>
+> This hunk does the same thing as my patch mentioned above, so please don't send
+> anything for that.
+
+Sure.
+
+>> @@ -916,6 +916,9 @@ static int mt9m111_video_probe(struct i2c_client *client)
+>>         s32 data;
+>>         int ret;
+>>
+>> +       /* Assign context to avoid oops */
+>> +       mt9m111->ctx = &context_a;
+>> +
+>>         ret = mt9m111_s_power(&mt9m111->subdev, 1);
+>>         if (ret < 0)
+>>                 return ret;
+>
+> There is indeed a bug, introduced by commit 4bbc6d5. The issue is:
+>  mt9m111_set_context(mt9m111, mt9m111->ctx);
+> in mt9m111_restore_state() called (indirectly) from mt9m111_s_power() from
+> mt9m111_video_probe() with ctx still NULL, before mt9m111_init() has been called
+> to initialize ctx to &context_b.
+>
+> So the fix would not be what you did, but rather to reorganize things a little
+> bit to avoid this out-of-order init and use of ctx.
+
+Thanks, I will take a look at the offending commit and try to
+reorganize the code properly.
+
+Regards.
 -- 
-http://palosaari.fi/
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
