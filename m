@@ -1,75 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:10769 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752559Ab3CUKY6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 06:24:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH 01/10] bttv: audio_mux(): use a local variable "gpio_mute" instead of modifying the function parameter "mute"
-Date: Thu, 21 Mar 2013 11:24:55 +0100
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363807490-3906-2-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-we0-f180.google.com ([74.125.82.180]:55514 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751491Ab3CHUal (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 15:30:41 -0500
+Received: by mail-we0-f180.google.com with SMTP id k14so1467493wer.39
+        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 12:30:40 -0800 (PST)
+Message-ID: <513A4A6C.3090408@gmail.com>
+Date: Fri, 08 Mar 2013 21:30:36 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303211124.55708.hverkuil@xs4all.nl>
+To: LMML <linux-media@vger.kernel.org>
+CC: Andrzej Hajda <a.hajda@samsung.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>
+Subject: [GIT PULL FOR 3.9] Samsung media driver fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 20 March 2013 20:24:41 Frank Schäfer wrote:
-> Function audio_mux() actually deals with two types of mute: gpio mute and
-> subdevice muting.
-> This patch claryfies the meaning of these values, but mainly prepares the code for
-> the next patch.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Hi Mauro,
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 9f225788cc047fb7c2ef2326eb4f86dee890e2ef:
+
+   Merge branch 'merge' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2013-03-05 
+18:56:22 -0800)
+
+are available in the git repository at:
+
+   git://linuxtv.org/snawrocki/samsung.git v3.9-fixes
+
+Andrzej Hajda (1):
+       m5mols: Fix bug in stream on handler
+
+Arun Kumar K (2):
+       s5p-mfc: Fix frame skip bug
+       s5p-mfc: Fix encoder control 15 issue
+
+Shaik Ameer Basha (4):
+       fimc-lite: Initialize 'step' field in fimc_lite_ctrl structure
+       fimc-lite: Fix the variable type to avoid possible crash
+       exynos-gsc: send valid m2m ctx to gsc_m2m_job_finish
+       s5p-fimc: send valid m2m ctx to fimc_m2m_job_finish
+
+Sylwester Nawrocki (1):
+       s5p-fimc: Do not attempt to disable not enabled media pipeline
+
+  drivers/media/i2c/m5mols/m5mols_core.c          |    2 +-
+  drivers/media/platform/exynos-gsc/gsc-core.c    |    8 +++--
+  drivers/media/platform/s5p-fimc/fimc-core.c     |    6 ++-
+  drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    8 ++--
+  drivers/media/platform/s5p-fimc/fimc-lite.c     |    1 +
+  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |   39 
++++++++++++------------
+  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +-
+  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    1 +
+  8 files changed, 36 insertions(+), 31 deletions(-)
+
+The pwclient commands:
+
+pwclient update -s accepted 17149
+pwclient update -s accepted 16930
+pwclient update -s accepted 16931
+pwclient update -s superseded 17153
+pwclient update -s accepted 16652
+pwclient update -s accepted 16653
+pwclient update -s accepted 16954
+pwclient update -s accepted 17134
+pwclient update -s accepted 17150
+
+I hope these all patches can be applied to 3.9.
+
+Thank you.
+
+---
 
 Regards,
-
-	Hans
-
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
->  1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 8610b6a..a584d82 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -992,7 +992,7 @@ static char *audio_modes[] = {
->  static int
->  audio_mux(struct bttv *btv, int input, int mute)
->  {
-> -	int gpio_val, signal;
-> +	int gpio_val, signal, mute_gpio;
->  	struct v4l2_ctrl *ctrl;
->  
->  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
-> @@ -1003,10 +1003,10 @@ audio_mux(struct bttv *btv, int input, int mute)
->  	btv->audio = input;
->  
->  	/* automute */
-> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
-> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
->  				&& !btv->has_radio_tuner);
->  
-> -	if (mute)
-> +	if (mute_gpio)
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
->  	else
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
-> @@ -1022,7 +1022,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  	}
->  
->  	if (bttv_gpio)
-> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
-> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
->  	if (in_interrupt())
->  		return 0;
->  
-> 
+Sylwester
