@@ -1,219 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:62484 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332Ab3CZRaW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:30:22 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4229 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933331Ab3CHJWR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 04:22:17 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 04/10] s5p-fimc: Add support for PIXELASYNCMx clocks
-Date: Tue, 26 Mar 2013 18:29:46 +0100
-Message-id: <1364318992-20562-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Federico Vaga <federico.vaga@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 1/2] videobuf2: add gfp_flags.
+Date: Fri,  8 Mar 2013 10:21:56 +0100
+Message-Id: <6b64252b870ca5f3433b1d5ed2a2d1f977cd8f48.1362734097.git.hans.verkuil@cisco.com>
+In-Reply-To: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
+References: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch ads handling of clocks for the CAMBLK subsystem which
-is a glue logic for FIMC-IS or LCD controller and FIMC IP.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Some drivers have special memory requirements for their buffers, usually
+related to DMA (e.g. GFP_DMA or __GFP_DMA32). Make it possible to specify
+additional GFP flags for those buffers by adding a gfp_flags field to
+vb2_queue.
+
+Note that this field will be replaced in the future with a different
+mechanism, but that is still work in progress and we need this feature
+now so we won't be able to convert drivers with such requirements to vb2.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/v4l2-core/videobuf2-core.c       |    2 +-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |    5 +++--
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |    5 +++--
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |    4 ++--
+ include/media/videobuf2-core.h                 |   10 ++++++++--
+ 5 files changed, 17 insertions(+), 9 deletions(-)
 
-Changes since v1:
-
- - Do not keep PXLASYNC clocks always enabled. Enable PXLASYNC0
-   clock only if video pipeline including FIMC-IS was opened.
-   Enabling this clock only when it is actually used decreases
-   power consumption a bit.
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   83 ++++++++++++++++++++----
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |   10 +++
- 2 files changed, 82 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index abd3ad3..c5bc0d1 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -151,26 +151,48 @@ static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
-  * __fimc_pipeline_open - update the pipeline information, enable power
-  *                        of all pipeline subdevs and the sensor clock
-  * @me: media entity to start graph walk with
-- * @prep: true to acquire sensor (and csis) subdevs
-+ * @prepare: true to walk the current pipeline and acquire all subdevs
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index be04481..70827fe 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -57,7 +57,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	/* Allocate memory for all planes in this buffer */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+-				      q->plane_sizes[plane]);
++				      q->plane_sizes[plane], q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index 10beaee..ae35d25 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -152,7 +152,7 @@ static void vb2_dc_put(void *buf_priv)
+ 	kfree(buf);
+ }
+ 
+-static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct device *dev = conf->dev;
+@@ -165,7 +165,8 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	/* align image size to PAGE_SIZE */
+ 	size = PAGE_ALIGN(size);
+ 
+-	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
++	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
++						GFP_KERNEL | gfp_flags);
+ 	if (!buf->vaddr) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 25c3b36..952776f 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -33,7 +33,7 @@ struct vb2_dma_sg_buf {
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+ 
+-static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+ 	int i;
+@@ -60,7 +60,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size)
+ 		goto fail_pages_array_alloc;
+ 
+ 	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
++		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
++					   __GFP_NOWARN | gfp_flags);
+ 		if (NULL == buf->pages[i])
+ 			goto fail_pages_alloc;
+ 		sg_set_page(&buf->sg_desc.sglist[i],
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index a47fd4f..313d977 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -35,11 +35,11 @@ struct vb2_vmalloc_buf {
+ 
+ static void vb2_vmalloc_put(void *buf_priv);
+ 
+-static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_vmalloc_buf *buf;
+ 
+-	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
++	buf = kzalloc(sizeof(*buf), GFP_KERNEL | gfp_flags);
+ 	if (!buf)
+ 		return NULL;
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a2d4274..d88a098 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -27,7 +27,9 @@ struct vb2_fileio_data;
+  *		return NULL on failure or a pointer to allocator private,
+  *		per-buffer data on success; the returned private structure
+  *		will then be passed as buf_priv argument to other ops in this
+- *		structure
++ *		structure. Additional gfp_flags to use when allocating the
++ *		are also passed to this operation. These flags are from the
++ *		gfp_flags field of vb2_queue.
+  * @put:	inform the allocator that the buffer will no longer be used;
+  *		usually will result in the allocator freeing the buffer (if
+  *		no other users of this buffer are present); the buf_priv
+@@ -79,7 +81,7 @@ struct vb2_fileio_data;
+  *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+-	void		*(*alloc)(void *alloc_ctx, unsigned long size);
++	void		*(*alloc)(void *alloc_ctx, unsigned long size, gfp_t gfp_flags);
+ 	void		(*put)(void *buf_priv);
+ 	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+@@ -302,6 +304,9 @@ struct v4l2_fh;
+  * @buf_struct_size: size of the driver-specific buffer structure;
+  *		"0" indicates the driver doesn't want to use a custom buffer
+  *		structure type, so sizeof(struct vb2_buffer) will is used
++ * @gfp_flags:	additional gfp flags used when allocating the buffers.
++ *		Typically this is 0, but it may be e.g. GFP_DMA or __GFP_DMA32
++ *		to force the buffer allocation to a specific memory zone.
   *
-  * Called with the graph mutex held.
-  */
- static int __fimc_pipeline_open(struct fimc_pipeline *p,
--				struct media_entity *me, bool prep)
-+				struct media_entity *me, bool prepare)
- {
-+	struct fimc_md *fmd = entity_to_fimc_mdev(me);
-+	struct v4l2_subdev *sd;
- 	int ret;
+  * @memory:	current memory type used
+  * @bufs:	videobuf buffer structures
+@@ -327,6 +332,7 @@ struct vb2_queue {
+ 	void				*drv_priv;
+ 	unsigned int			buf_struct_size;
+ 	u32				timestamp_type;
++	gfp_t				gfp_flags;
  
--	if (prep)
-+	if (WARN_ON(p == NULL || me == NULL))
-+		return -EINVAL;
-+
-+	if (prepare)
- 		fimc_pipeline_prepare(p, me);
- 
--	if (p->subdevs[IDX_SENSOR] == NULL)
-+	sd = p->subdevs[IDX_SENSOR];
-+	if (sd == NULL)
- 		return -EINVAL;
- 
--	ret = fimc_md_set_camclk(p->subdevs[IDX_SENSOR], true);
--	if (ret)
--		return ret;
-+	/* Disable PXLASYNC clock if this pipeline includes FIMC-IS */
-+	if (!IS_ERR(fmd->wbclk[CLK_IDX_WB_B]) && p->subdevs[IDX_IS_ISP]) {
-+		ret = clk_prepare_enable(fmd->wbclk[CLK_IDX_WB_B]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	ret = fimc_md_set_camclk(sd, true);
-+	if (ret < 0)
-+		goto err_wbclk;
-+
-+	ret = fimc_pipeline_s_power(p, 1);
-+	if (!ret)
-+		return 0;
-+
-+	fimc_md_set_camclk(sd, false);
- 
--	return fimc_pipeline_s_power(p, 1);
-+err_wbclk:
-+	if (!IS_ERR(fmd->wbclk[CLK_IDX_WB_B]) && p->subdevs[IDX_IS_ISP])
-+		clk_disable_unprepare(fmd->wbclk[CLK_IDX_WB_B]);
-+
-+	return ret;
- }
- 
- /**
-@@ -181,15 +203,24 @@ static int __fimc_pipeline_open(struct fimc_pipeline *p,
-  */
- static int __fimc_pipeline_close(struct fimc_pipeline *p)
- {
-+	struct v4l2_subdev *sd = p ? p->subdevs[IDX_SENSOR] : NULL;
-+	struct fimc_md *fmd;
- 	int ret = 0;
- 
--	if (!p || !p->subdevs[IDX_SENSOR])
-+	if (WARN_ON(sd == NULL))
- 		return -EINVAL;
- 
- 	if (p->subdevs[IDX_SENSOR]) {
- 		ret = fimc_pipeline_s_power(p, 0);
--		fimc_md_set_camclk(p->subdevs[IDX_SENSOR], false);
-+		fimc_md_set_camclk(sd, false);
- 	}
-+
-+	fmd = entity_to_fimc_mdev(&sd->entity);
-+
-+	/* Disable PXLASYNC clock if this pipeline includes FIMC-IS */
-+	if (!IS_ERR(fmd->wbclk[CLK_IDX_WB_B]) && p->subdevs[IDX_IS_ISP])
-+		clk_disable_unprepare(fmd->wbclk[CLK_IDX_WB_B]);
-+
- 	return ret == -ENXIO ? 0 : ret;
- }
- 
-@@ -957,7 +988,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
- }
- 
- /*
-- * The peripheral sensor clock management.
-+ * The peripheral sensor and CAM_BLK (PIXELASYNCMx) clocks management.
-  */
- static void fimc_md_put_clocks(struct fimc_md *fmd)
- {
-@@ -970,6 +1001,14 @@ static void fimc_md_put_clocks(struct fimc_md *fmd)
- 		clk_put(fmd->camclk[i].clock);
- 		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
- 	}
-+
-+	/* Writeback (PIXELASYNCMx) clocks */
-+	for (i = 0; i < FIMC_MAX_WBCLKS; i++) {
-+		if (IS_ERR(fmd->wbclk[i]))
-+			continue;
-+		clk_put(fmd->wbclk[i]);
-+		fmd->wbclk[i] = ERR_PTR(-EINVAL);
-+	}
- }
- 
- static int fimc_md_get_clocks(struct fimc_md *fmd)
-@@ -1006,6 +1045,28 @@ static int fimc_md_get_clocks(struct fimc_md *fmd)
- 	if (ret)
- 		fimc_md_put_clocks(fmd);
- 
-+	if (!fmd->use_isp)
-+		return 0;
-+	/*
-+	 * For now get only PIXELASYNCM1 clock (Writeback B/ISP),
-+	 * leave PIXELASYNCM0 out for the LCD Writeback driver.
-+	 */
-+	fmd->wbclk[CLK_IDX_WB_A] = ERR_PTR(-EINVAL);
-+
-+	for (i = CLK_IDX_WB_B; i < FIMC_MAX_WBCLKS; i++) {
-+		snprintf(clk_name, sizeof(clk_name), "pxl_async%u", i);
-+		clock = clk_get(dev, clk_name);
-+		if (IS_ERR(clock)) {
-+			v4l2_err(&fmd->v4l2_dev, "Failed to get clock: %s\n",
-+				  clk_name);
-+			ret = PTR_ERR(clock);
-+			break;
-+		}
-+		fmd->wbclk[i] = clock;
-+	}
-+	if (ret)
-+		fimc_md_put_clocks(fmd);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 5d6146e..46f3b82 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -41,6 +41,13 @@
- #define FIMC_MAX_SENSORS	8
- #define FIMC_MAX_CAMCLKS	2
- 
-+/* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-+enum {
-+	CLK_IDX_WB_A,
-+	CLK_IDX_WB_B,
-+	FIMC_MAX_WBCLKS
-+};
-+
- struct fimc_csis_info {
- 	struct v4l2_subdev *sd;
- 	int id;
-@@ -73,6 +80,7 @@ struct fimc_sensor_info {
-  * @num_sensors: actual number of registered sensors
-  * @camclk: external sensor clock information
-  * @fimc: array of registered fimc devices
-+ * @use_isp: set to true when FIMC-IS subsystem is used
-  * @media_dev: top level media device
-  * @v4l2_dev: top level v4l2_device holding up the subdevs
-  * @pdev: platform device this media device is hooked up into
-@@ -87,8 +95,10 @@ struct fimc_md {
- 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
- 	int num_sensors;
- 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
-+	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
- 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
-+	bool use_isp;
- 	struct media_device media_dev;
- 	struct v4l2_device v4l2_dev;
- 	struct platform_device *pdev;
+ /* private: internal use only */
+ 	enum v4l2_memory		memory;
 -- 
-1.7.9.5
+1.7.10.4
 
