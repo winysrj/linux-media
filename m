@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:21686 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab3CFTff (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 14:35:35 -0500
-Date: Wed, 6 Mar 2013 20:35:25 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: TerraTec Cinergy T PCIe Dual not working
-Message-ID: <20130306203525.3d7b0588@endymion.delvare>
-In-Reply-To: <513785C5.8040702@schinagl.nl>
-References: <20130306142713.6a68179a@endymion.delvare>
-	<51374B6D.9010805@schinagl.nl>
-	<20130306160335.01cc5cd4@endymion.delvare>
-	<513785C5.8040702@schinagl.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1760 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933473Ab3CHQOx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 11:14:53 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] vb2 enhancements
+Date: Fri, 8 Mar 2013 17:14:34 +0100
+Cc: Federico Vaga <federico.vaga@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201303081714.34667.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Oliver,
+Hi Mauro,
 
-On Wed, 06 Mar 2013 19:07:01 +0100, Oliver Schinagl wrote:
-> On 03/06/13 16:03, Jean Delvare wrote:
-> > It turns out that my problem is the antenna. I was using the antenna I
-> > have been using with my previous card, which is an internal DVB-T
-> > antenna with amplification (external power supply.) I get zero signal
-> > with that. But using the Terratec-provided cheap "stick" antenna, I get
-> > signal again, with reasonable quality (although not as stable as with
-> > the old card and the powered antenna.) I also get signal (but not all
-> > channels) with my original antenna _unpowered_ (thus signal not
-> > amplified.)
-> >
-> > I admit I don't quite understand. I would understand that a bad,
-> > unpowered antenna causes no signal to be sensed. But how is it possible
-> > that a supposedly better, powered antenna causes that kind of issue?
-> >
-> > Oliver, out of curiosity, what antenna are you using? The
-> > Terratec-provided one, or another one?
->
-> Right now, I use 11cm stripped coax :) But that's because I live 600 
-> meters from the broadcasting tower. This actually gives me the best 
-> reception. The mini antenna that came with the thing worked quite well, 
-> but the wire was a bit short.
-> 
-> Besides that I did use a powered antenna for a while, without the power 
-> connected, because it actually dampens the signal. That worked quite 
-> well for a while. Using it powered, with an external power source, 
-> actually made it much worse.
+This patch series adds the gfp_flags field to vb2 in order to be able to
+use GFP_DMA or __GFP_DMA32 for PCI drivers like the solo that can only do
+32-bit DMA. This is a temporary fix, Marek is working on a better solution,
+but that won't happen during this kernel cycle. It's blocking work Federico
+and myself are doing though, so he is OK with this going in and he'll adapt
+it later. It's an internal API only and easy enough to change later.
 
-My experience matches yours exactly. Thanks for confirming. I wonder if
-this is a limitation of the Linux drivers (not adjusting the tuner
-sensibility to the signal strength) or a hardware characteristic.
+The second vb2 patch silences some debug messages that the dma-sg allocator
+kept sending out every time a buffer was allocated or freed. Only do that
+if the debug option is set. Those messages really started to annoy me.
 
--- 
-Jean Delvare
+Regards,
+
+	Hans
+
+The following changes since commit 457ba4ce4f435d0b4dd82a0acc6c796e541a2ea7:
+
+  [media] bttv: move fini_bttv_i2c() from bttv-input.c to bttv-i2c.c (2013-03-05 17:11:12 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git vb2
+
+for you to fetch changes up to c366a106a6c0c7345cdbf532b0d543696f16ec76:
+
+  vb2-dma-sg: add debug module option. (2013-03-08 13:22:35 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (2):
+      videobuf2: add gfp_flags.
+      vb2-dma-sg: add debug module option.
+
+ drivers/media/v4l2-core/videobuf2-core.c       |    2 +-
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |    5 +++--
+ drivers/media/v4l2-core/videobuf2-dma-sg.c     |   22 ++++++++++++++++------
+ drivers/media/v4l2-core/videobuf2-vmalloc.c    |    4 ++--
+ include/media/videobuf2-core.h                 |   10 ++++++++--
+ 5 files changed, 30 insertions(+), 13 deletions(-)
