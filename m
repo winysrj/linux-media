@@ -1,82 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2413 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751Ab3CKLzl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:55:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2230 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751079Ab3CIVUQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2013 16:20:16 -0500
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r29LKCkn064719
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 9 Mar 2013 22:20:14 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id BAA3B11E00C9
+	for <linux-media@vger.kernel.org>; Sat,  9 Mar 2013 22:20:11 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 19/42] s2250-loader: use usbv2_cypress_load_firmware
-Date: Mon, 11 Mar 2013 12:45:57 +0100
-Message-Id: <400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130309212011.BAA3B11E00C9@alastor.dyndns.org>
+Date: Sat,  9 Mar 2013 22:20:11 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The v2 of this function doesn't do DMA to objects on the stack like
-its predecessor does.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/go7007/Makefile       |    4 ++--
- drivers/staging/media/go7007/s2250-loader.c |    7 ++++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+date:		Sat Mar  9 19:00:19 CET 2013
+git branch:	test
+git hash:	457ba4ce4f435d0b4dd82a0acc6c796e541a2ea7
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
-index 5bed78b..f9c8e0f 100644
---- a/drivers/staging/media/go7007/Makefile
-+++ b/drivers/staging/media/go7007/Makefile
-@@ -11,8 +11,8 @@ s2250-y := s2250-board.o
- #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
- #ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
- 
--# S2250 needs cypress ezusb loader from dvb-usb
--ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb
-+# S2250 needs cypress ezusb loader from dvb-usb-v2
-+ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
- 
- ccflags-y += -Idrivers/media/dvb-frontends
- ccflags-y += -Idrivers/media/dvb-core
-diff --git a/drivers/staging/media/go7007/s2250-loader.c b/drivers/staging/media/go7007/s2250-loader.c
-index 72e5175..6453ec0 100644
---- a/drivers/staging/media/go7007/s2250-loader.c
-+++ b/drivers/staging/media/go7007/s2250-loader.c
-@@ -19,7 +19,8 @@
- #include <linux/init.h>
- #include <linux/slab.h>
- #include <linux/usb.h>
--#include <dvb-usb.h>
-+#include <linux/firmware.h>
-+#include <cypress_firmware.h>
- 
- #define S2250_LOADER_FIRMWARE	"s2250_loader.fw"
- #define S2250_FIRMWARE		"s2250.fw"
-@@ -104,7 +105,7 @@ static int s2250loader_probe(struct usb_interface *interface,
- 			S2250_LOADER_FIRMWARE);
- 		goto failed2;
- 	}
--	ret = usb_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
-+	ret = usbv2_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
- 	release_firmware(fw);
- 	if (0 != ret) {
- 		dev_err(&interface->dev, "loader download failed\n");
-@@ -117,7 +118,7 @@ static int s2250loader_probe(struct usb_interface *interface,
- 			S2250_FIRMWARE);
- 		goto failed2;
- 	}
--	ret = usb_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
-+	ret = usbv2_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
- 	release_firmware(fw);
- 	if (0 != ret) {
- 		dev_err(&interface->dev, "firmware_s2250 download failed\n");
--- 
-1.7.10.4
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
