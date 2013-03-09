@@ -1,83 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:39140 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754203Ab3C0UHk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 16:07:40 -0400
-Message-ID: <1364414849.3909.24.camel@samsungRC530>
-Subject: [patch 1/2] hid: fix Masterkit MA901 hid quirks
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: jkosina@suse.cz
-Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	linux@wagner-budenheim.de, klimov.linux@gmail.com
-Date: Thu, 28 Mar 2013 00:07:29 +0400
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mail-da0-f49.google.com ([209.85.210.49]:57667 "EHLO
+	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab3CIAKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 19:10:35 -0500
+Received: by mail-da0-f49.google.com with SMTP id t11so233670daj.22
+        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 16:10:34 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com,
+	linaro-kernel@lists.linaro.org
+Subject: [PATCH v13 0/2] Add display-timing node parsing to exynos drm fimd
+Date: Sat,  9 Mar 2013 05:40:18 +0530
+Message-Id: <1362787820-5305-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch reverts commit 0322bd3980b3ebf7dde8474e22614cb443d6479a and
-adds checks in hid_ignore() for Masterkit MA901 usb radio device. This
-usb radio device shares USB ID with many Atmel V-USB (and probably
-other) devices so patch sorts things out by checking name, vendor,
-product of hid device.
+Add display-timing node parsing to drm fimd and depends on
+the display helper patchset at
+http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+changes since v12:
+	- Added dependency of "OF" for exynos drm fimd as suggested
+	by Inki Dae <inki.dae@samsung.com>
 
-diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
-index 512b01c..aa341d1 100644
---- a/drivers/hid/hid-core.c
-+++ b/drivers/hid/hid-core.c
-@@ -2077,7 +2077,6 @@ static const struct hid_device_id hid_ignore_list[] = {
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HYBRID) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HEATCONTROL) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MADCATZ, USB_DEVICE_ID_MADCATZ_BEATPAD) },
--	{ HID_USB_DEVICE(USB_VENDOR_ID_MASTERKIT, USB_DEVICE_ID_MASTERKIT_MA901RADIO) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1024LS) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1208LS) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROCHIP, USB_DEVICE_ID_PICKIT1) },
-@@ -2244,6 +2243,18 @@ bool hid_ignore(struct hid_device *hdev)
- 		     hdev->product <= USB_DEVICE_ID_VELLEMAN_K8061_LAST))
- 			return true;
- 		break;
-+	case USB_VENDOR_ID_ATMEL_V_USB:
-+		/* Masterkit MA901 usb radio based on Atmel tiny85 chip and
-+		 * it has the same USB ID as many Atmel V-USB devices. This
-+		 * usb radio is handled by radio-ma901.c driver so we want
-+		 * ignore the hid. Check the name, bus, product and ignore
-+		 * if we have MA901 usb radio.
-+		 */
-+		if (hdev->product == USB_DEVICE_ID_ATMEL_V_USB &&
-+			hdev->bus == BUS_USB &&
-+			strncmp(hdev->name, "www.masterkit.ru MA901", 22) == 0)
-+			return true;
-+		break;
- 	}
- 
- 	if (hdev->type == HID_TYPE_USBMOUSE &&
-diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
-index 92e47e5..57d9f3a 100644
---- a/drivers/hid/hid-ids.h
-+++ b/drivers/hid/hid-ids.h
-@@ -158,6 +158,8 @@
- #define USB_VENDOR_ID_ATMEL		0x03eb
- #define USB_DEVICE_ID_ATMEL_MULTITOUCH	0x211c
- #define USB_DEVICE_ID_ATMEL_MXT_DIGITIZER	0x2118
-+#define USB_VENDOR_ID_ATMEL_V_USB	0x16c0
-+#define USB_DEVICE_ID_ATMEL_V_USB	0x05df
- 
- #define USB_VENDOR_ID_AUREAL		0x0755
- #define USB_DEVICE_ID_AUREAL_W01RN	0x2626
-@@ -557,9 +559,6 @@
- #define USB_VENDOR_ID_MADCATZ		0x0738
- #define USB_DEVICE_ID_MADCATZ_BEATPAD	0x4540
- 
--#define USB_VENDOR_ID_MASTERKIT			0x16c0
--#define USB_DEVICE_ID_MASTERKIT_MA901RADIO	0x05df
--
- #define USB_VENDOR_ID_MCC		0x09db
- #define USB_DEVICE_ID_MCC_PMD1024LS	0x0076
- #define USB_DEVICE_ID_MCC_PMD1208LS	0x007a
+changes since v11:
+	- Oops, there was a build error, fixed that.
 
+changes since v10:
+	- abandoned the pinctrl patch, as commented by Linus Walleij
+	<linus.walleij@linaro.org>
+	- added new patch to enable the OF_VIDEOMODE and FB_MODE_HELPERS for
+	EXYNOS DRM FIMD.
+
+changes since v9:
+        - replaced IS_ERR_OR_NULL() with IS_ERR(), since IS_ERR_OR_NULL()
+        will be depreciated, as discussed at
+        http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/140543.html
+        http://www.mail-archive.com/linux-omap@vger.kernel.org/msg78030.html
+
+changes since v8:
+        - replaced IS_ERR() with IS_ERR_OR_NULL(),
+        because devm_pinctrl_get_select_default can return NULL,
+        If CONFIG_PINCTRL is disabled.
+        - modified the error log, such that it shall NOT cross 80 column.
+        - added Acked-by.
+
+changes since v7:
+        - addressed comments from Joonyoung Shim <jy0922.shim@samsung.com>
+        to remove a unnecessary variable.
+
+changes since v6:
+        addressed comments from Inki Dae <inki.dae@samsung.com> to
+        separated out the pinctrl functionality and made a separate patch.
+
+changes since v5:
+        - addressed comments from Inki Dae <inki.dae@samsung.com>,
+        to remove the allocation of 'fbmode' and replaced
+        '-1'in "of_get_fb_videomode(dev->of_node, fbmode, -1)" with
+        OF_USE_NATIVE_MODE.
+
+changes since v4:
+        - addressed comments from Paul Menzel
+        <paulepanter@users.sourceforge.net>, to modify the commit message
+
+changes since v3:
+        - addressed comments from Sean Paul <seanpaul@chromium.org>, to modify
+        the return values and print messages.
+
+changes since v2:
+        - moved 'devm_pinctrl_get_select_default' function call under
+	'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
+	(reported by: Rahul Sharma <r.sh.open@gmail.com>)
+
+changes since v1:
+        - addressed comments from Sean Paul <seanpaul@chromium.org>
+
+
+Vikas Sajjan (2):
+  video: drm: exynos: Add display-timing node parsing using video
+    helper function
+  drm/exynos: enable OF_VIDEOMODE and FB_MODE_HELPERS for exynos drm
+    fimd
+
+ drivers/gpu/drm/exynos/Kconfig           |    4 +++-
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   24 ++++++++++++++++++++----
+ 2 files changed, 23 insertions(+), 5 deletions(-)
+
+-- 
+1.7.9.5
 
