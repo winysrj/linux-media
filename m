@@ -1,67 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3626 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757005Ab3C2VWa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 17:22:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH] si476x: Fix some config dependencies and a compile warnings
-Date: Fri, 29 Mar 2013 22:22:24 +0100
-Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303292222.24181.hverkuil@xs4all.nl>
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:48535 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab3CIAKk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 19:10:40 -0500
+Received: by mail-pb0-f53.google.com with SMTP id un1so1722887pbc.40
+        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 16:10:40 -0800 (PST)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, l.krishna@samsung.com,
+	linaro-kernel@lists.linaro.org
+Subject: [PATCH v13 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
+Date: Sat,  9 Mar 2013 05:40:19 +0530
+Message-Id: <1362787820-5305-2-git-send-email-vikas.sajjan@linaro.org>
+In-Reply-To: <1362787820-5305-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1362787820-5305-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-radio-si476x depends on SND and SND_SOC, the mfd driver should select
-REGMAP_I2C.
+Add support for parsing the display-timing node using video helper
+function.
 
-Also fix a small compile warning in a debug message:
+The DT node parsing is done only if 'dev.of_node'
+exists and the NON-DT logic is still maintained under the 'else' part.
 
-drivers/mfd/si476x-i2c.c: In function ‘si476x_core_drain_rds_fifo’:
-drivers/mfd/si476x-i2c.c:391:4: warning: field width specifier ‘*’ expects argument of type ‘int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
+Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 28ded24..fef427e 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -20,7 +20,7 @@ source "drivers/media/radio/si470x/Kconfig"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..e323cf9 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -20,6 +20,7 @@
+ #include <linux/of_device.h>
+ #include <linux/pm_runtime.h>
  
- config RADIO_SI476X
- 	tristate "Silicon Laboratories Si476x I2C FM Radio"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && SND && SND_SOC
- 	select MFD_CORE
- 	select MFD_SI476X_CORE
- 	select SND_SOC_SI476X
-diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
-index 9b80e1e..2f97ad1 100644
---- a/drivers/mfd/Kconfig
-+++ b/drivers/mfd/Kconfig
-@@ -980,6 +980,7 @@ config MFD_SI476X_CORE
- 	tristate "Support for Silicon Laboratories 4761/64/68 AM/FM radio."
- 	depends on I2C
- 	select MFD_CORE
-+	select REGMAP_I2C
- 	help
- 	  This is the core driver for the SI476x series of AM/FM
- 	  radio. This MFD driver connects the radio-si476x V4L2 module
-diff --git a/drivers/mfd/si476x-i2c.c b/drivers/mfd/si476x-i2c.c
-index 118c6b1..f5bc8e4 100644
---- a/drivers/mfd/si476x-i2c.c
-+++ b/drivers/mfd/si476x-i2c.c
-@@ -389,7 +389,7 @@ static void si476x_core_drain_rds_fifo(struct work_struct *work)
- 			kfifo_in(&core->rds_fifo, report.rds,
- 				 sizeof(report.rds));
- 			dev_dbg(&core->client->dev, "RDS data:\n %*ph\n",
--				sizeof(report.rds), report.rds);
-+				(int)sizeof(report.rds), report.rds);
- 		}
- 		dev_dbg(&core->client->dev, "Drrrrained!\n");
- 		wake_up_interruptible(&core->rds_read_queue);
++#include <video/of_display_timing.h>
+ #include <video/samsung_fimd.h>
+ #include <drm/exynos_drm.h>
+ 
+@@ -883,10 +884,25 @@ static int fimd_probe(struct platform_device *pdev)
+ 
+ 	DRM_DEBUG_KMS("%s\n", __FILE__);
+ 
+-	pdata = pdev->dev.platform_data;
+-	if (!pdata) {
+-		dev_err(dev, "no platform data specified\n");
+-		return -EINVAL;
++	if (pdev->dev.of_node) {
++		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
++		if (!pdata) {
++			DRM_ERROR("memory allocation for pdata failed\n");
++			return -ENOMEM;
++		}
++
++		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
++					OF_USE_NATIVE_MODE);
++		if (ret) {
++			DRM_ERROR("failed: of_get_fb_videomode() : %d\n", ret);
++			return ret;
++		}
++	} else {
++		pdata = pdev->dev.platform_data;
++		if (!pdata) {
++			DRM_ERROR("no platform data specified\n");
++			return -EINVAL;
++		}
+ 	}
+ 
+ 	panel = &pdata->panel;
+-- 
+1.7.9.5
+
