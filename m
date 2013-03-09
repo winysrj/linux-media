@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:53935 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab3CAXLf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:35 -0500
-Received: by mail-ea0-f180.google.com with SMTP id c1so406196eaa.11
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:34 -0800 (PST)
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:60967 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757768Ab3CIKwV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2013 05:52:21 -0500
+Received: by mail-ee0-f54.google.com with SMTP id c41so1433841eek.27
+        for <linux-media@vger.kernel.org>; Sat, 09 Mar 2013 02:52:20 -0800 (PST)
 From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
 To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
 	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 00/11] em28xx: i2c debugging cleanups and support for newer eeproms
-Date: Sat,  2 Mar 2013 00:12:04 +0100
-Message-Id: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx: set the timestamp type for video and vbi vb2_queues
+Date: Sat,  9 Mar 2013 11:53:01 +0100
+Message-Id: <1362826381-4460-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The first 3 patches clean up / simplify the debugging and info messages a bit.
+The em28xx driver obtains the timestamps using function v4l2_get_timestamp(),
+which produces a montonic timestamp.
 
-Patches 4, 5 and 6 fix two bugs I've noticed while working on the eeprom stuff.
+Fixes the warnings appearing in the system log since commit 6aa69f99
+"[media] vb2: Add support for non monotonic timestamps"
 
-Patches 7-10 add support for the newer eeproms with 16 bit address width.
-This allows us to display the eeprom content, to calculate the eeprom hash for 
-board hints for devices with generic USB IDs, to read the device configuration 
-and to use tveeprom for Hauppauge devices just as with the old eeprom type.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |    2 ++
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+)
 
-The used eeprom type depends on the chip type/id (confirmed by the Empia datasheets).
-For unknown chips, the old 8 bit eeprom type is assumed, which makes sure that the
-eeprom content can't be damaged accidentally.
-In video capturing/TV/DVB devices, the new eeprom still has the old eeprom content 
-(device configuration + tveeprom structure for Hauppauge devices) embedded.
-Camera devices (em25xx, em276x+) however are using a different data structure,
-which isn't supported yet.
-
-Patch 11 is a follow-up which enables tveeprom for the Hauppauge HVR-930C
-
-All patches have been tested with the following devices:
-- Hauppauge HVR-900 (normal 8 bit eeprom)
-- Hauppauge HVR-930C (16 bit eeprom, tveeprom)
-- SpeedLink VAD Laplace webcam (16 bit eeprom, no device config dataset)
-
-I also checked the USB log of the MSI Digivox ATSC which confirms that 
-non-Hauppauge devices are using the same eeprom format.
-
-
-Frank Schäfer (11):
-  em28xx-i2c: replace printk() with the corresponding em28xx macros
-  em28xx-i2c: get rid of the dprintk2 macro
-  em28xx-i2c: also print debug messages at debug level 1
-  em28xx: do not interpret eeprom content if eeprom key is invalid
-  em28xx: fix eeprom data endianess
-  em28xx: make sure we are at i2c bus A when calling
-    em28xx_i2c_register()
-  em28xx: add basic support for eeproms with 16 bit address width
-  em28xx: add helper function for reading data blocks from i2c clients
-  em28xx: do not store eeprom content permanently
-  em28xx: extract the device configuration dataset from eeproms with 16
-    bit address width
-  em28xx: enable tveeprom for device Hauppauge HVR-930C
-
- drivers/media/usb/em28xx/em28xx-cards.c |   45 +++--
- drivers/media/usb/em28xx/em28xx-i2c.c   |  284 ++++++++++++++++++++-----------
- drivers/media/usb/em28xx/em28xx.h       |   17 +-
- 3 Dateien geändert, 225 Zeilen hinzugefügt(+), 121 Zeilen entfernt(-)
-
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 93fc620..d585c19 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -700,6 +700,7 @@ int em28xx_vb2_setup(struct em28xx *dev)
+ 	q = &dev->vb_vidq;
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->drv_priv = dev;
+ 	q->buf_struct_size = sizeof(struct em28xx_buffer);
+ 	q->ops = &em28xx_video_qops;
+@@ -713,6 +714,7 @@ int em28xx_vb2_setup(struct em28xx *dev)
+ 	q = &dev->vb_vbiq;
+ 	q->type = V4L2_BUF_TYPE_VBI_CAPTURE;
+ 	q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
++	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 	q->drv_priv = dev;
+ 	q->buf_struct_size = sizeof(struct em28xx_buffer);
+ 	q->ops = &em28xx_vbi_qops;
 -- 
 1.7.10.4
 
