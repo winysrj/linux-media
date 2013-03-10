@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2139 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754485Ab3CKVBB (ORCPT
+Received: from mail-we0-f180.google.com ([74.125.82.180]:50552 "EHLO
+	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751227Ab3CJUkH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:01:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [REVIEW PATCH 00/15] au0828: v4l2-compliance cleanups
-Date: Mon, 11 Mar 2013 22:00:31 +0100
-Message-Id: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 10 Mar 2013 16:40:07 -0400
+Message-ID: <513CEFA1.3030809@gmail.com>
+Date: Sun, 10 Mar 2013 21:40:01 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
+	shaik.samsung@gmail.com
+Subject: Re: [RFC 04/12] s5p-csis: Adding Exynos5250 compatibility
+References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com> <1362570838-4737-5-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1362570838-4737-5-git-send-email-shaik.ameer@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
 
-This patch series converts the au0828/au8522 drivers to the latest frameworks,
-except for vb2 as usual.
+Please don't leave the change log empty. I'll apply this patch.
+I'm just wondering, if there aren't any further changes needed
+to make the driver really working on exynos5250 ?
 
-Tested with a WinTV aero generously donated by Hauppauge some time ago.
-
-I also did a lot of fixes in the disconnect handling and setting up the
-right routing/std information at the right time.
-
-It is now working correctly as far as I can tell: if I stick it in my PC
-and run qv4l2 it actually picks up the tuner signal right away (if I set
-it to the correct frequency of course).
-
-If someone has additional hardware, then that would be nice if that can be
-tested as well.
-
-My git branch is here:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/au0828
-
-Regards,
-
-	Hans
-
+> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+> ---
+>   drivers/media/platform/s5p-fimc/mipi-csis.c |    1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
+> index df4411c..debda7c 100644
+> --- a/drivers/media/platform/s5p-fimc/mipi-csis.c
+> +++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
+> @@ -1002,6 +1002,7 @@ static const struct dev_pm_ops s5pcsis_pm_ops = {
+>   static const struct of_device_id s5pcsis_of_match[] __devinitconst = {
+>   	{ .compatible = "samsung,exynos3110-csis" },
+>   	{ .compatible = "samsung,exynos4210-csis" },
+> +	{ .compatible = "samsung,exynos5250-csis" },
+>   	{ /* sentinel */ },
+>   };
+>   MODULE_DEVICE_TABLE(of, s5pcsis_of_match);
