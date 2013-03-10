@@ -1,199 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46502 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:49369 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329Ab3CXLiv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 07:38:51 -0400
-Date: Sun, 24 Mar 2013 08:38:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B
- read/write/check device operations
-Message-ID: <20130324083846.199bdda6@redhat.com>
-In-Reply-To: <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1752193Ab3CJCEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:43 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 33/41] af9033: add IT9135 tuner config "61" init table
+Date: Sun, 10 Mar 2013 04:03:25 +0200
+Message-Id: <1362881013-5271-33-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 23 Mar 2013 18:27:08 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Dumped out from the Windows driver version 12.07.06.1
 
-> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
-> for i2c communication with the sensor, which is connected to a second i2c bus.
-> 
-> We don't know yet how to find out which devices support/use it.
-> It's very likely used by all em25xx and em276x+ bridges.
-> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
-> algorithm always succeeds there although no slave device is connected.
-> 
-> The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
-> because the Windows driver seems to use it for probing Samsung and Kodak
-> sensors.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
->  drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
->  drivers/media/usb/em28xx/em28xx.h       |   10 +-
->  3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index cb7cdd3..033b6cb 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  	rt_mutex_init(&dev->i2c_bus_lock);
->  
->  	/* register i2c bus 0 */
-> -	retval = em28xx_i2c_register(dev, 0);
-> +	if (dev->board.is_em2800)
-> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
-> +	else
-> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
->  	if (retval < 0) {
->  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
->  			__func__, retval);
->  		goto unregister_dev;
->  	}
->  
-> +	/* register i2c bus 1 */
->  	if (dev->def_i2c_bus) {
-> -		retval = em28xx_i2c_register(dev, 1);
-> +		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
->  		if (retval < 0) {
->  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
->  				__func__, retval);
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 9e2fa41..ab14ac3 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -5,6 +5,7 @@
->  		      Markus Rechberger <mrechberger@gmail.com>
->  		      Mauro Carvalho Chehab <mchehab@infradead.org>
->  		      Sascha Sommer <saschasommer@freenet.de>
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
->  
->     This program is free software; you can redistribute it and/or modify
->     it under the terms of the GNU General Public License as published by
-> @@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
->  }
->  
->  /*
-> + * em25xx_bus_B_send_bytes
-> + * write bytes to the i2c device
-> + */
-> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> +				   u16 len)
-> +{
-> +	int ret;
-> +
-> +	if (len < 1 || len > 64)
-> +		return -EOPNOTSUPP;
-> +	/* NOTE: limited by the USB ctrl message constraints
-> +	 * Zero length reads always succeed, even if no device is connected */
-> +
-> +	/* Set register and write value */
-> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
-> +	/* NOTE:
-> +	 * 0 byte writes always succeed, even if no device is connected. */
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb-frontends/af9033.c      |   3 +
+ drivers/media/dvb-frontends/af9033_priv.h | 216 +++++++++++++++++++++++++++++-
+ 2 files changed, 218 insertions(+), 1 deletion(-)
 
-You already noticed it on the previous note.
+diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
+index 9359dbd..c3c3a6d 100644
+--- a/drivers/media/dvb-frontends/af9033.c
++++ b/drivers/media/dvb-frontends/af9033.c
+@@ -363,6 +363,9 @@ static int af9033_init(struct dvb_frontend *fe)
+ 		init = tuner_init_it9135_60;
+ 		break;
+ 	case AF9033_TUNER_IT9135_61:
++		len = ARRAY_SIZE(tuner_init_it9135_61);
++		init = tuner_init_it9135_61;
++		break;
+ 	case AF9033_TUNER_IT9135_62:
+ 		len = 0;
+ 		break;
+diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
+index 3b4ff8b..4a78b66 100644
+--- a/drivers/media/dvb-frontends/af9033_priv.h
++++ b/drivers/media/dvb-frontends/af9033_priv.h
+@@ -1622,5 +1622,219 @@ static const struct reg_val tuner_init_it9135_60[] = {
+ 	{ 0x80fd8b, 0x00 },
+ };
+ 
+-#endif /* AF9033_PRIV_H */
++/* ITE Tech IT9135 Omega v2 LNA config 1 tuner init
++   AF9033_TUNER_IT9135_61   = 0x61 */
++static const struct reg_val tuner_init_it9135_61[] = {
++	{ 0x800043, 0x00 },
++	{ 0x800046, 0x61 },
++	{ 0x800051, 0x01 },
++	{ 0x80005f, 0x00 },
++	{ 0x800060, 0x00 },
++	{ 0x800068, 0x06 },
++	{ 0x80006a, 0x03 },
++	{ 0x800070, 0x0a },
++	{ 0x800071, 0x05 },
++	{ 0x800072, 0x02 },
++	{ 0x800075, 0x8c },
++	{ 0x800076, 0x8c },
++	{ 0x800077, 0x8c },
++	{ 0x800078, 0x90 },
++	{ 0x800079, 0x01 },
++	{ 0x80007e, 0x04 },
++	{ 0x800081, 0x0a },
++	{ 0x800082, 0x12 },
++	{ 0x800084, 0x0a },
++	{ 0x800085, 0x33 },
++	{ 0x800086, 0xbc },
++	{ 0x800087, 0x9c },
++	{ 0x800088, 0xcc },
++	{ 0x800089, 0xa8 },
++	{ 0x80008a, 0x01 },
++	{ 0x80008e, 0x01 },
++	{ 0x800092, 0x06 },
++	{ 0x800093, 0x00 },
++	{ 0x800094, 0x00 },
++	{ 0x800095, 0x00 },
++	{ 0x800096, 0x00 },
++	{ 0x800099, 0x01 },
++	{ 0x80009b, 0x3c },
++	{ 0x80009c, 0x28 },
++	{ 0x80009f, 0xe1 },
++	{ 0x8000a0, 0xcf },
++	{ 0x8000a3, 0x01 },
++	{ 0x8000a4, 0x5c },
++	{ 0x8000a5, 0x01 },
++	{ 0x8000a6, 0x01 },
++	{ 0x8000a9, 0x00 },
++	{ 0x8000aa, 0x01 },
++	{ 0x8000b0, 0x01 },
++	{ 0x8000b3, 0x02 },
++	{ 0x8000b4, 0x3a },
++	{ 0x8000b6, 0x14 },
++	{ 0x8000c0, 0x11 },
++	{ 0x8000c1, 0x00 },
++	{ 0x8000c2, 0x05 },
++	{ 0x8000c3, 0x01 },
++	{ 0x8000c4, 0x00 },
++	{ 0x8000c6, 0x19 },
++	{ 0x8000c7, 0x00 },
++	{ 0x8000cb, 0x32 },
++	{ 0x8000cc, 0x2c },
++	{ 0x8000cd, 0x4f },
++	{ 0x8000ce, 0x30 },
++	{ 0x8000f3, 0x05 },
++	{ 0x8000f4, 0xa0 },
++	{ 0x8000f5, 0x8c },
++	{ 0x8000f8, 0x03 },
++	{ 0x8000f9, 0x06 },
++	{ 0x8000fa, 0x06 },
++	{ 0x8000fc, 0x03 },
++	{ 0x8000fd, 0x03 },
++	{ 0x8000fe, 0x02 },
++	{ 0x8000ff, 0x08 },
++	{ 0x800100, 0x50 },
++	{ 0x800101, 0x7b },
++	{ 0x800102, 0x8c },
++	{ 0x800103, 0x01 },
++	{ 0x800104, 0x02 },
++	{ 0x800105, 0xc8 },
++	{ 0x800106, 0x00 },
++	{ 0x800109, 0x02 },
++	{ 0x800115, 0x0a },
++	{ 0x800116, 0x03 },
++	{ 0x80011a, 0xc6 },
++	{ 0x800124, 0xa8 },
++	{ 0x800127, 0x00 },
++	{ 0x80012a, 0x59 },
++	{ 0x80012b, 0x50 },
++	{ 0x80012c, 0x47 },
++	{ 0x80012d, 0x42 },
++	{ 0x800137, 0x00 },
++	{ 0x80013b, 0x05 },
++	{ 0x80013f, 0x5b },
++	{ 0x800141, 0x59 },
++	{ 0x800142, 0xf9 },
++	{ 0x800143, 0x59 },
++	{ 0x800144, 0x01 },
++	{ 0x800145, 0x8c },
++	{ 0x800146, 0x8c },
++	{ 0x800147, 0x8c },
++	{ 0x800148, 0x7b },
++	{ 0x800149, 0x8c },
++	{ 0x80014a, 0x50 },
++	{ 0x80014b, 0x8c },
++	{ 0x80014d, 0xa8 },
++	{ 0x80014e, 0xc6 },
++	{ 0x80014f, 0x03 },
++	{ 0x800151, 0x28 },
++	{ 0x800153, 0xcc },
++	{ 0x800178, 0x09 },
++	{ 0x800181, 0x9c },
++	{ 0x800182, 0x76 },
++	{ 0x800185, 0x28 },
++	{ 0x800189, 0xaa },
++	{ 0x80018c, 0x03 },
++	{ 0x80018d, 0x5f },
++	{ 0x80018f, 0xfb },
++	{ 0x800190, 0x5c },
++	{ 0x80ed02, 0xff },
++	{ 0x80ee42, 0xff },
++	{ 0x80ee82, 0xff },
++	{ 0x80f000, 0x0f },
++	{ 0x80f01f, 0x8c },
++	{ 0x80f020, 0x00 },
++	{ 0x80f029, 0x8c },
++	{ 0x80f02a, 0x00 },
++	{ 0x80f02b, 0x00 },
++	{ 0x80f064, 0x03 },
++	{ 0x80f065, 0xf9 },
++	{ 0x80f066, 0x03 },
++	{ 0x80f067, 0x01 },
++	{ 0x80f06f, 0xe0 },
++	{ 0x80f070, 0x03 },
++	{ 0x80f072, 0x0f },
++	{ 0x80f073, 0x03 },
++	{ 0x80f077, 0x01 },
++	{ 0x80f078, 0x00 },
++	{ 0x80f087, 0x00 },
++	{ 0x80f09b, 0x3f },
++	{ 0x80f09c, 0x00 },
++	{ 0x80f09d, 0x20 },
++	{ 0x80f09e, 0x00 },
++	{ 0x80f09f, 0x0c },
++	{ 0x80f0a0, 0x00 },
++	{ 0x80f130, 0x04 },
++	{ 0x80f132, 0x04 },
++	{ 0x80f144, 0x1a },
++	{ 0x80f146, 0x00 },
++	{ 0x80f14a, 0x01 },
++	{ 0x80f14c, 0x00 },
++	{ 0x80f14d, 0x00 },
++	{ 0x80f14f, 0x04 },
++	{ 0x80f158, 0x7f },
++	{ 0x80f15a, 0x00 },
++	{ 0x80f15b, 0x08 },
++	{ 0x80f15d, 0x03 },
++	{ 0x80f15e, 0x05 },
++	{ 0x80f163, 0x05 },
++	{ 0x80f166, 0x01 },
++	{ 0x80f167, 0x40 },
++	{ 0x80f168, 0x0f },
++	{ 0x80f17a, 0x00 },
++	{ 0x80f17b, 0x00 },
++	{ 0x80f183, 0x01 },
++	{ 0x80f19d, 0x40 },
++	{ 0x80f1bc, 0x36 },
++	{ 0x80f1bd, 0x00 },
++	{ 0x80f1cb, 0xa0 },
++	{ 0x80f1cc, 0x01 },
++	{ 0x80f204, 0x10 },
++	{ 0x80f214, 0x00 },
++	{ 0x80f24c, 0x88 },
++	{ 0x80f24d, 0x95 },
++	{ 0x80f24e, 0x9a },
++	{ 0x80f24f, 0x90 },
++	{ 0x80f25a, 0x07 },
++	{ 0x80f25b, 0xe8 },
++	{ 0x80f25c, 0x03 },
++	{ 0x80f25d, 0xb0 },
++	{ 0x80f25e, 0x04 },
++	{ 0x80f270, 0x01 },
++	{ 0x80f271, 0x02 },
++	{ 0x80f272, 0x01 },
++	{ 0x80f273, 0x02 },
++	{ 0x80f40e, 0x0a },
++	{ 0x80f40f, 0x40 },
++	{ 0x80f410, 0x08 },
++	{ 0x80f55f, 0x0a },
++	{ 0x80f561, 0x15 },
++	{ 0x80f562, 0x20 },
++	{ 0x80f5e3, 0x09 },
++	{ 0x80f5e4, 0x01 },
++	{ 0x80f5e5, 0x01 },
++	{ 0x80f600, 0x05 },
++	{ 0x80f601, 0x08 },
++	{ 0x80f602, 0x0b },
++	{ 0x80f603, 0x0e },
++	{ 0x80f604, 0x11 },
++	{ 0x80f605, 0x14 },
++	{ 0x80f606, 0x17 },
++	{ 0x80f607, 0x1f },
++	{ 0x80f60e, 0x00 },
++	{ 0x80f60f, 0x04 },
++	{ 0x80f610, 0x32 },
++	{ 0x80f611, 0x10 },
++	{ 0x80f707, 0xfc },
++	{ 0x80f708, 0x00 },
++	{ 0x80f709, 0x37 },
++	{ 0x80f70a, 0x00 },
++	{ 0x80f78b, 0x01 },
++	{ 0x80f80f, 0x40 },
++	{ 0x80f810, 0x54 },
++	{ 0x80f811, 0x5a },
++	{ 0x80f905, 0x01 },
++	{ 0x80fb06, 0x03 },
++	{ 0x80fd8b, 0x00 },
++};
+ 
++#endif /* AF9033_PRIV_H */
+-- 
+1.7.11.7
 
-> +	if (ret != len) {
-> +		if (ret < 0) {
-> +			em28xx_warn("writing to i2c device at 0x%x failed "
-> +				    "(error=%i)\n", addr, ret);
-> +			return ret;
-> +		} else {
-> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
-> +				    "requested, but %i bytes written\n",
-> +				    len, addr, ret);
-> +			return -EIO;
-> +		}
-> +	}
-> +	/* Check success */
-> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-> +	/* NOTE: the only error we've seen so far is
-> +	 * 0x01 when the slave device is not present */
-> +	if (ret == 0x00) {
-
-	Please simplify. just use:
-		if (!ret)
-
-> +		return len;
-> +	} else if (ret > 0) {
-> +		return -ENODEV;
-> +	}
-> +
-> +	return ret;
-> +	/* NOTE: With chips which do not support this operation,
-> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-
-Sorry, but I didn't get what you're trying to explain here. What are those
-em25xx chips that don't support this operation?
-
-> +}
-> +
-> +/*
-> + * em25xx_bus_B_recv_bytes
-> + * read bytes from the i2c device
-> + */
-> +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> +				   u16 len)
-> +{
-> +	int ret;
-> +
-> +	if (len < 1 || len > 64)
-> +		return -EOPNOTSUPP;
-> +	/* NOTE: limited by the USB ctrl message constraints
-> +	 * Zero length reads always succeed, even if no device is connected */
-
-You already explained about the zero length before.
-
-> +
-> +	/* Read value */
-> +	ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
-> +	/* NOTE:
-> +	 * 0 byte reads always succeed, even if no device is connected. */
-
-You're insistent on that, won't you? ;)
-
-> +	if (ret < 0) {
-> +		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
-> +			    addr, ret);
-> +		return ret;
-> +	}
-> +	/* NOTE: some devices with two i2c busses have the bad habit to return 0
-> +	 * bytes if we are on bus B AND there was no write attempt to the
-> +	 * specified slave address before AND no device is present at the
-> +	 * requested slave address.
-> +	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-> +	 * spamming the system log on device probing and do nothing here.
-> +	 */
-> +
-> +	/* Check success */
-> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-> +	/* NOTE: the only error we've seen so far is
-> +	 * 0x01 when the slave device is not present */
-> +	if (ret == 0x00) {
-
-Same as already noticed.
-
-> +		return len;
-> +	} else if (ret > 0) {
-> +		return -ENODEV;
-> +	}
-> +
-> +	return ret;
-> +	/* NOTE: With chips which do not support this operation,
-> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-
-Again, didn't understand what you're meaning.
-
-Regards,
-Mauro
