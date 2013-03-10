@@ -1,70 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:65000 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896Ab3CURuh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 13:50:37 -0400
-Received: by mail-ee0-f49.google.com with SMTP id d41so1851926eek.22
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:50:36 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/8] bttv: do not save the audio input in audio_mux()
-Date: Thu, 21 Mar 2013 18:51:15 +0100
-Message-Id: <1363888280-28724-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53660 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751915Ab3CJCEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:39 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 09/41] af9035: USB1.1 support (== PID filters)
+Date: Sun, 10 Mar 2013 04:03:01 +0200
+Message-Id: <1362881013-5271-9-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We can't and do not save the mute setting in function audio_mux(), so we
-should also not save the input in this function for consistency.
-
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |   10 +++++-----
- 1 Datei geändert, 5 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 85 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 82 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index a082ab4..e01a8d8 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -999,8 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
- 		   bttv_tvcards[btv->c.type].gpiomask);
- 	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
- 
--	btv->audio = input;
--
- 	/* automute */
- 	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
- 				&& !btv->has_radio_tuner);
-@@ -1197,8 +1195,9 @@ set_input(struct bttv *btv, unsigned int input, unsigned int norm)
- 	} else {
- 		video_mux(btv,input);
- 	}
--	audio_input(btv, (btv->tuner_type != TUNER_ABSENT && input == 0) ?
--			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN);
-+	btv->audio = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
-+			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
-+	audio_input(btv, btv->audio);
- 	set_tvnorm(btv, norm);
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 1e1cee6..42ed0f7 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -894,7 +894,12 @@ static int af9035_frontend_callback(void *adapter_priv, int component,
+ static int af9035_get_adapter_count(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
+-	return state->dual_mode + 1;
++
++	/* disable 2nd adapter as we don't have PID filters implemented */
++	if (d->udev->speed == USB_SPEED_FULL)
++		return 1;
++	else
++		return state->dual_mode + 1;
  }
  
-@@ -1707,7 +1706,8 @@ static void radio_enable(struct bttv *btv)
- 	if (!btv->has_radio_tuner) {
- 		btv->has_radio_tuner = 1;
- 		bttv_call_all(btv, tuner, s_radio);
--		audio_input(btv, TVAUDIO_INPUT_RADIO);
-+		btv->audio = TVAUDIO_INPUT_RADIO;
-+		audio_input(btv, btv->audio);
- 	}
- }
+ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+@@ -1201,8 +1206,8 @@ static int af9035_init(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
+ 	int ret, i;
+-	u16 frame_size = 87 * 188 / 4;
+-	u8  packet_size = 512 / 4;
++	u16 frame_size = (d->udev->speed == USB_SPEED_FULL ? 5 : 87) * 188 / 4;
++	u8 packet_size = (d->udev->speed == USB_SPEED_FULL ? 64 : 512) / 4;
+ 	struct reg_val_mask tab[] = {
+ 		{ 0x80f99d, 0x01, 0x01 },
+ 		{ 0x80f9a4, 0x01, 0x01 },
+@@ -1328,6 +1333,72 @@ err:
+ 	#define af9035_get_rc_config NULL
+ #endif
  
++static int af9035_get_stream_config(struct dvb_frontend *fe, u8 *ts_type,
++		struct usb_data_stream_properties *stream)
++{
++	struct dvb_usb_device *d = fe_to_d(fe);
++	dev_dbg(&d->udev->dev, "%s: adap=%d\n", __func__, fe_to_adap(fe)->id);
++
++	if (d->udev->speed == USB_SPEED_FULL)
++		stream->u.bulk.buffersize = 5 * 188;
++
++	return 0;
++}
++
++/*
++ * FIXME: PID filter is property of demodulator and should be moved to the
++ * correct driver. Also we support only adapter #0 PID filter and will
++ * disable adapter #1 if USB1.1 is used.
++ */
++static int af9035_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	int ret;
++
++	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
++
++	ret = af9035_wr_reg_mask(d, 0x80f993, onoff, 0x01);
++	if (ret < 0)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++
++static int af9035_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
++		int onoff)
++{
++	struct dvb_usb_device *d = adap_to_d(adap);
++	int ret;
++	u8 wbuf[2] = {(pid >> 0) & 0xff, (pid >> 8) & 0xff};
++
++	dev_dbg(&d->udev->dev, "%s: index=%d pid=%04x onoff=%d\n",
++			__func__, index, pid, onoff);
++
++	ret = af9035_wr_regs(d, 0x80f996, wbuf, 2);
++	if (ret < 0)
++		goto err;
++
++	ret = af9035_wr_reg(d, 0x80f994, onoff);
++	if (ret < 0)
++		goto err;
++
++	ret = af9035_wr_reg(d, 0x80f995, index);
++	if (ret < 0)
++		goto err;
++
++	return 0;
++
++err:
++	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
++
++	return ret;
++}
++
+ static int af9035_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+@@ -1385,10 +1456,18 @@ static const struct dvb_usb_device_properties af9035_props = {
+ 	.tuner_attach = af9035_tuner_attach,
+ 	.init = af9035_init,
+ 	.get_rc_config = af9035_get_rc_config,
++	.get_stream_config = af9035_get_stream_config,
+ 
+ 	.get_adapter_count = af9035_get_adapter_count,
+ 	.adapter = {
+ 		{
++			.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++			.pid_filter_count = 32,
++			.pid_filter_ctrl = af9035_pid_filter_ctrl,
++			.pid_filter = af9035_pid_filter,
++
+ 			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
+ 		}, {
+ 			.stream = DVB_USB_STREAM_BULK(0x85, 6, 87 * 188),
 -- 
-1.7.10.4
+1.7.11.7
 
