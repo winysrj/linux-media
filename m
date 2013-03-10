@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:13380 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755754Ab3CDJW1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:22:27 -0500
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Lonsn' <lonsn2005@gmail.com>, linux-samsung-soc@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	'Sylwester Nawrocki' <sylvester.nawrocki@gmail.com>,
-	arun.kk@samsung.com
-References: <51317952.9040402@gmail.com> <5131C429.2040406@gmail.com>
- <5132BF0A.70507@gmail.com>
-In-reply-to: <5132BF0A.70507@gmail.com>
-Subject: RE: MFC decode failed in S5PV210 in kernel 3.8
-Date: Mon, 04 Mar 2013 10:22:37 +0100
-Message-id: <02ef01ce18b9$d05104b0$70f30e10$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail.kapsi.fi ([217.30.184.167]:58869 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778Ab3CJCQT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:16:19 -0500
+Received: from dyn3-82-128-191-178.psoas.suomi.net ([82.128.191.178] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1UEVo9-0003GE-FH
+	for linux-media@vger.kernel.org; Sun, 10 Mar 2013 04:16:17 +0200
+Message-ID: <513BECCC.7060809@iki.fi>
+Date: Sun, 10 Mar 2013 04:15:40 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] dvb_usb_v2: do not use USB buffers from stack
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
 
-> From: Lonsn [mailto:lonsn2005@gmail.com]
-> Sent: Sunday, March 03, 2013 4:10 AM
-> 
-> Which firmware should be used for S5PV210 for kernel 3.8?
-> Here:
-> https://git.kernel.org/cgit/linux/kernel/git/firmware/linux-
-> firmware.git/commit/?id=fb5cda9c70277f633ca0c1e81b6fa7b13007bbf6
-> It only says for Exynos4 series :
-> for s5p-mfc.fw    - For v5 firmware used in Exynos4 series
-> Does the firmware have any relation with compiler armhf or armef?
+   [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) 
+(2013-02-13 18:05:29 -0200)
 
-There is no relation. s5p-mfc.fw is good for Exynos4 you are using
-(S5PV210).
+are available in the git repository at:
 
-> 
-> Thanks.
+   git://linuxtv.org/anttip/media_tree.git dvb_usb_v2_stack
+
+for you to fetch changes up to b14e9121a75432796155d42c31602cd1ce724250:
+
+   anysee: coding style changes (2013-02-26 19:18:13 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (5):
+       dvb_usb_v2: locked versions of USB bulk IO functions
+       af9015: do not use buffers from stack for usb_bulk_msg()
+       af9035: do not use buffers from stack for usb_bulk_msg()
+       anysee: do not use buffers from stack for usb_bulk_msg()
+       anysee: coding style changes
+
+  drivers/media/usb/dvb-usb-v2/af9015.c      | 39 
++++++++++++++++++++++------------------
+  drivers/media/usb/dvb-usb-v2/af9015.h      |  2 ++
+  drivers/media/usb/dvb-usb-v2/af9035.c      | 44 
+++++++++++++++++++++++----------------------
+  drivers/media/usb/dvb-usb-v2/af9035.h      |  2 ++
+  drivers/media/usb/dvb-usb-v2/anysee.c      | 46 
++++++++++++++++++++++-------------------------
+  drivers/media/usb/dvb-usb-v2/anysee.h      |  3 ++-
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h     |  4 ++++
+  drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c | 38 
++++++++++++++++++++++++++++++++++-----
+  8 files changed, 107 insertions(+), 71 deletions(-)
+
+
 
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-[snip]
-
-
+http://palosaari.fi/
