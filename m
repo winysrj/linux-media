@@ -1,89 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61242 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756331Ab3CDJNE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:13:04 -0500
-Date: Mon, 4 Mar 2013 10:12:51 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de
-Subject: Re: [PATCH 1/4] [media] sh_veu.c: Convert to devm_ioremap_resource()
-Message-ID: <20130304091243.GA13335@avionic-0098.mockup.avionic-design.de>
-References: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:39784 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995Ab3CJVxQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Mar 2013 17:53:16 -0400
+Received: by mail-ea0-f174.google.com with SMTP id q10so875486eaj.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:15 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH v2 0/6] bttv: fix muting/unmuting on probing, first open and last close
+Date: Sun, 10 Mar 2013 22:53:48 +0100
+Message-Id: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="4Ckj6UjgE2iN1+kY"
-Content-Disposition: inline
-In-Reply-To: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch series fixes some remaining issues with regards to device 
+muting/unmuting on probing, first open and last close with the bttv driver.
 
---4Ckj6UjgE2iN1+kY
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The first 2 patches are preparatory patches, patches 3 to 6 the actual fixes.
 
-On Mon, Mar 04, 2013 at 01:45:18PM +0530, Sachin Kamat wrote:
-> Use the newly introduced devm_ioremap_resource() instead of
-> devm_request_and_ioremap() which provides more consistent error handling.
->=20
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/platform/sh_veu.c |    7 ++++---
->  1 files changed, 4 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_=
-veu.c
-> index cb54c69..362d88e 100644
-> --- a/drivers/media/platform/sh_veu.c
-> +++ b/drivers/media/platform/sh_veu.c
-> @@ -10,6 +10,7 @@
->   * published by the Free Software Foundation
->   */
-> =20
-> +#include <linux/err.h>
->  #include <linux/fs.h>
->  #include <linux/kernel.h>
->  #include <linux/module.h>
-> @@ -1164,9 +1165,9 @@ static int sh_veu_probe(struct platform_device *pde=
-v)
-> =20
->  	veu->is_2h =3D resource_size(reg_res) =3D=3D 0x22c;
-> =20
-> -	veu->base =3D devm_request_and_ioremap(&pdev->dev, reg_res);
-> -	if (!veu->base)
-> -		return -ENOMEM;
-> +	veu->base =3D devm_ioremap_resource(&pdev->dev, reg_res);
-> +	if (IS_ERR(veu->base))
-> +		return PTR_ERR(veu->base);
-> =20
->  	ret =3D devm_request_threaded_irq(&pdev->dev, irq, sh_veu_isr, sh_veu_b=
-h,
->  					0, "veu", veu);
+Changes since v1:
+- splitted patch 1 to 4 separate patches (patches 1-4)
+- dropped patch 2 (mute on last close of the radio device node)
+- added patches 5+6
 
-Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
+Frank Schäfer (6):
+  bttv: audio_mux() use a local variable "gpio_mute" instead of
+    modifying the function parameter "mute"
+  bttv: audio_mux(): do not change the value of the v4l2 mute control
+  bttv: fix mute on last close of the video device node
+  bttv: do not unmute the device before the first open
+  bttv: avoid mute on last close when the radio device node is still
+    open
+  bttv: radio: apply mute settings on open
 
---4Ckj6UjgE2iN1+kY
-Content-Type: application/pgp-signature
+ drivers/media/pci/bt8xx/bttv-driver.c |   34 +++++++++++++++++++--------------
+ 1 Datei geändert, 20 Zeilen hinzugefügt(+), 14 Zeilen entfernt(-)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
+-- 
+1.7.10.4
 
-iQIcBAEBAgAGBQJRNGWLAAoJEN0jrNd/PrOh+MYQAKyFlvEeCkKwJG5o0z/UdMCJ
-98GIk+sh9SIvoMwrpJ1MTKEp0qs0oCTaS5KFGCWeFtiFkD6xGyGzKZ9zp/JyDZM0
-uRyg9dqVIwDFb3Lx0qyiqOXMIsY9i+bDPEgkXVvLtSFY6IZoC5EF2mrppOp5hS5M
-k8ocRU+wsooy3NJ9uozzS52a/cxgWmh1Qe9TbVtd/N3y1uokbC6Kwy6bJWiuYn7/
-HZsL3FrBgq6RRFCXfsHCjCxg0OC3/vZHTEPTm5Alm6nn9Y+DVgEziekjD7XQB0pD
-7xjPVmDqs9939YO+TCif+aY+R9IjoCgitMC9LXNkzht7TXxL1wchj81cwmhKP4vl
-4+XVF/cQAQ5p9hwFuaUCQ19kzKWltk60ylPdboEmOeR9C41tYdEh7lRnPTEWSKKg
-YZ4Lz6afOk3Av/GnD4m1L74N5Y8rhhNpecBN6B1ullhgPKvqUTfymDT/7qr07gGu
-vWdPMKwWOmTbuuFA4nLJ36ELbp+dqh38gGfahdb12EYvLHUqLs+orv94tFYUgcad
-jKVLT+1m+YliZAkgFk319eH/Rv993idVBPDqPJTleLosO2mqdPH8exE2UmHs/iqH
-NUoxgwJxpT4Tj/fXHkW8QvTTi9bWpu8N6CSqR4g6P8dgc6i32qMN34pSu4mRMyjk
-QSeuJmEXyquxNopd9oG9
-=YA4i
------END PGP SIGNATURE-----
-
---4Ckj6UjgE2iN1+kY--
