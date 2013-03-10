@@ -1,69 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:42318 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758708Ab3CYVuJ (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:49755 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751730Ab3CJOMB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 17:50:09 -0400
-Received: by mail-ee0-f47.google.com with SMTP id t10so466402eei.34
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 14:50:08 -0700 (PDT)
-Message-ID: <5150C68D.80109@gmail.com>
-Date: Mon, 25 Mar 2013 22:50:05 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Jarod Wilson <jwilson@redhat.com>,
-	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
-	Ravi Kumar V <kumarrav@codeaurora.org>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans Verkuil <hansverk@cisco.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: Status of the patches under review at LMML (32 patches)
-References: <20130324151111.1b2ca8d4@redhat.com>
-In-Reply-To: <20130324151111.1b2ca8d4@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sun, 10 Mar 2013 10:12:01 -0400
+Received: by mail-lb0-f180.google.com with SMTP id q12so2434777lbc.25
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 07:12:00 -0700 (PDT)
+From: Volokh Konstantin <volokh84@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 1/7] hverkuil/go7007: staging: media: go7007: Add Framesizes
+Date: Sun, 10 Mar 2013 18:04:40 +0400
+Message-Id: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/2013 07:11 PM, Mauro Carvalho Chehab wrote:
-> This is the summary of the patches that are currently under review at
-> Linux Media Mailing List<linux-media@vger.kernel.org>.
-> Each patch is represented by its submission date, the subject (up to 70
-> chars) and the patchwork link (if submitted via email).
->
-> P.S.: This email is c/c to the developers where some action is expected.
->        If you were copied, please review the patches, acking/nacking or
->        submitting an update.
->
-> It took me a lot of time to handle patches this time. The good news is that
-> there's just one patch without an owner.
->
-> This patch is there on the pile for a long time. I was actually expecting
-> that either Jarod or David could review it, as it can affect existing
-> NEC devices:
-[...]
-> 		== Sylwester Nawrocki <s.nawrocki@samsung.com>  ==
->
-> Jan, 6 2013: s5p-tv: mixer: fix handling of VIDIOC_S_FMT
-http://patchwork.linuxtv.org/patch/16143  Tomasz 
-Stanislawski<t.stanislaws@samsung.com>
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/go7007-v4l2.c |   76 ++++++++++++++++++++++++++++
+ 1 files changed, 76 insertions(+), 0 deletions(-)
 
- From my side I can't see any applications this patch could cause issues to.
-And it actually breaks some applications to not have this patch applied.
-Hence we keep it applied internally. I will likely not be able to address
-the issue at V4L2 API that some applications rely on drivers returning
--EINVAL on an attempt to set unsupported format. I don't have an idea what
-to do with that at the moment :) I would say it is safe to apply this 
-patch.
-But if you have concerns please ignore it. Or let's leave it in current 
-state.
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 66307ea..4ec9b84 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -612,6 +612,82 @@ static int vidioc_enum_framesizes(struct file *filp, void *priv,
+ {
+ 	struct go7007 *go = video_drvdata(filp);
+ 
++	if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
++		switch (go->standard) {
++		case GO7007_STD_NTSC:
++			switch (fsize->pixel_format) {
++			case V4L2_PIX_FMT_MJPEG:
++			case V4L2_PIX_FMT_MPEG:
++			case V4L2_PIX_FMT_H263:
++				switch (fsize->index) {
++				case 0:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 720;
++					fsize->discrete.height = 480;
++					break;
++				case 1:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 640;
++					fsize->discrete.height = 480;
++					break;
++				case 2:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 352;
++					fsize->discrete.height = 240;
++					break;
++				case 3:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 320;
++					fsize->discrete.height = 240;
++					break;
++				case 4:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 176;
++					fsize->discrete.height = 112;
++					break;
++				default:
++					return -EINVAL;
++				}
++				break;
++			default:
++				return -EINVAL;
++			}
++			break;
++		case GO7007_STD_PAL:
++			switch (fsize->pixel_format) {
++			case V4L2_PIX_FMT_MJPEG:
++			case V4L2_PIX_FMT_MPEG:
++			case V4L2_PIX_FMT_H263:
++				switch (fsize->index) {
++				case 0:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 720;
++					fsize->discrete.height = 576;
++					break;
++				case 1:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 352;
++					fsize->discrete.height = 288;
++					break;
++				case 2:
++					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++					fsize->discrete.width = 176;
++					fsize->discrete.height = 144;
++					break;
++				default:
++					return -EINVAL;
++				}
++				break;
++			default:
++				return -EINVAL;
++			}
++			break;
++		default:
++			return -EINVAL;
++		}
++		return 0;
++	}
++
+ 	if (fsize->index > 0)
+ 		return -EINVAL;
+ 
+-- 
+1.7.7.6
 
-Regards,
-Sylwester
