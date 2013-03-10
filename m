@@ -1,107 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38842 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752994Ab3CKUvE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 16:51:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: omap3isp: iommu register problem.
-Date: Mon, 11 Mar 2013 21:51:38 +0100
-Message-ID: <2890206.GE3SX5DoKH@avalon>
-In-Reply-To: <CACKLOr3VojUn2CyVUxyA-6ESkGdx3h-ShmCXLEsD3czeYeQ=bg@mail.gmail.com>
-References: <CACKLOr0DGrULZmrzRuEqdm_Ec0hroCAXrnqLUFrc37YKpQ-Vpw@mail.gmail.com> <2233212.n9eBIia8fu@avalon> <CACKLOr3VojUn2CyVUxyA-6ESkGdx3h-ShmCXLEsD3czeYeQ=bg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:32967 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751450Ab3CJBnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 20:43:46 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 1/5] dvb_usb_v2: replace Kernel userspace lock with wait queue
+Date: Sun, 10 Mar 2013 03:42:31 +0200
+Message-Id: <1362879755-4839-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+There was sync mutex which was held over userspace. That is very
+wrong and could cause deadlock if different userspace process is
+used to "unlock". Wait queue seems to be correct solution for
+that kind of synchronizing issue so use it instead.
 
-On Monday 11 March 2013 16:28:58 javier Martin wrote:
-> On 11 March 2013 16:01, Laurent Pinchart wrote:
-> > On Monday 11 March 2013 13:18:12 javier Martin wrote:
-> >> I've just found the following thread where te problem is explained:
-> >> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-February/08636
-> >> 4.h tml
-> >> 
-> >> The problem is related with the order iommu and omap3isp are probed
-> >> when both are built-in. If I load omap3isp as a module the problem is
-> >> gone.
-> >> 
-> >> However, according to the previous thread, omap3isp register should
-> >> return error but an oops should not be generated. So I think there is
-> >> a bug here anyway.
-> > 
-> > Does the following patch (compile-tested only) fix the issue ?
-> > 
-> > diff --git a/drivers/media/platform/omap3isp/isp.c
-> > b/drivers/media/platform/omap3isp/isp.c index 6e5ad8e..4d889be 100644
-> > --- a/drivers/media/platform/omap3isp/isp.c
-> > +++ b/drivers/media/platform/omap3isp/isp.c
-> > @@ -2123,6 +2123,7 @@ static int isp_probe(struct platform_device *pdev)
-> >         ret = iommu_attach_device(isp->domain, &pdev->dev);
-> >         if (ret) {
-> >                 dev_err(&pdev->dev, "can't attach iommu device: %d\n",
-> >                 ret);
-> > +               ret = -EPROBE_DEFER;
-> >                 goto free_domain;
-> >         }
-> > 
-> > @@ -2161,6 +2162,7 @@ detach_dev:
-> >         iommu_detach_device(isp->domain, &pdev->dev);
-> >  free_domain:
-> >         iommu_domain_free(isp->domain);
-> > +       isp->domain = NULL;
-> >  error_isp:
-> >         omap3isp_put(isp);
-> >  error:
->
-> Yes, that solves the problems.
+lock debug gives following bug report:
+================================================
+[ BUG: lock held when returning to user space! ]
+3.9.0-rc1+ #38 Tainted: G           O
+------------------------------------------------
+tzap/4614 is leaving the kernel with locks still held!
+1 lock held by tzap/4614:
 
-Great. I'll push the patch to v3.10 then.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/dvb_usb.h      |  5 ++-
+ drivers/media/usb/dvb-usb-v2/dvb_usb_core.c | 53 ++++++++++++++++++++---------
+ 2 files changed, 41 insertions(+), 17 deletions(-)
 
-> [    2.706939] omap3isp omap3isp: Revision 15.0 found
-> [    2.712402] omap_iommu_attach: 1
-> [    2.715942] omap_iommu_attach: 2
-> [    2.719329] omap_iommu_attach: 3
-> [    2.722778] omap_iommu_attach: 4
-> [    2.726135] omap_iommu_attach: 5
-> [    2.729553] iommu_enable: 1
-> [    2.732482] iommu_enable: 2, arch_iommu = c0599adc
-> [    2.737548] iommu_enable: 3
-> [    2.740478] iommu_enable: 5
-> [    2.743652] omap-iommu omap-iommu.0: mmu_isp: version 1.1
-> [    2.749389] omap_iommu_attach: 6
-> [    2.752807] omap_iommu_attach: 7
-> [    2.756195] omap_iommu_attach: 8
-> [    2.759613] omap_iommu_attach: 9
-> [    2.763977] omap3isp omap3isp: hist: DMA channel = 2
-> [    2.770904] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
-> [    2.778839] ALSA device list:
-> [    2.781982]   No soundcards found.
-> [    2.799285] mt9m111 2-0048: mt9m111: driver needs platform data
-> [    2.805603] mt9m111: probe of 2-0048 failed with error -22
-> [    2.814849] omap3isp omap3isp: isp_register_subdev_group: Unable to
-> register subdev mt9m111
-> 
-> The error I get now seems more related to the fact that I am trying to
-> use a soc-camera sensor (mt9m111) with a non-soc-camera host
-> (omap3isp) and I probably need some extra platform code.
-> 
-> Do you know any board in mainline in a similar situation?
-
-There's none yet I'm afraid.
-
-We don't have the necessary infrastructure in place yet to allow this. 
-Guennadi might be able to give you a bit more information about the current 
-status.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+index 3cac8bd..ac1f145 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
+@@ -329,13 +329,16 @@ struct dvb_usb_adapter {
+ 	u8 feed_count;
+ 	u8 max_feed_count;
+ 	s8 active_fe;
++#define ADAP_INIT                0
++#define ADAP_SLEEP               1
++#define ADAP_STREAMING           2
++	unsigned long state_bits;
+ 
+ 	/* dvb */
+ 	struct dvb_adapter   dvb_adap;
+ 	struct dmxdev        dmxdev;
+ 	struct dvb_demux     demux;
+ 	struct dvb_net       dvb_net;
+-	struct mutex         sync_mutex;
+ 
+ 	struct dvb_frontend *fe[MAX_NO_OF_FE_PER_ADAP];
+ 	int (*fe_init[MAX_NO_OF_FE_PER_ADAP]) (struct dvb_frontend *);
+diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+index 0867920..c91da3c 100644
+--- a/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
++++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_core.c
+@@ -253,6 +253,13 @@ static int dvb_usbv2_adapter_stream_exit(struct dvb_usb_adapter *adap)
+ 	return usb_urb_exitv2(&adap->stream);
+ }
+ 
++static int wait_schedule(void *ptr)
++{
++	schedule();
++
++	return 0;
++}
++
+ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 		int count)
+ {
+@@ -266,6 +273,9 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 			dvbdmxfeed->pid, dvbdmxfeed->index,
+ 			(count == 1) ? "on" : "off");
+ 
++	wait_on_bit(&adap->state_bits, ADAP_INIT, wait_schedule,
++			TASK_UNINTERRUPTIBLE);
++
+ 	if (adap->active_fe == -1)
+ 		return -EINVAL;
+ 
+@@ -283,11 +293,14 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 						"failed=%d\n", KBUILD_MODNAME,
+ 						ret);
+ 				usb_urb_killv2(&adap->stream);
+-				goto err_mutex_unlock;
++				goto err_clear_wait;
+ 			}
+ 		}
+ 		usb_urb_killv2(&adap->stream);
+-		mutex_unlock(&adap->sync_mutex);
++
++		clear_bit(ADAP_STREAMING, &adap->state_bits);
++		smp_mb__after_clear_bit();
++		wake_up_bit(&adap->state_bits, ADAP_STREAMING);
+ 	}
+ 
+ 	/* activate the pid on the device pid filter */
+@@ -303,7 +316,7 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 	/* start feeding if it is first pid */
+ 	if (adap->feed_count == 1 && count == 1) {
+ 		struct usb_data_stream_properties stream_props;
+-		mutex_lock(&adap->sync_mutex);
++		set_bit(ADAP_STREAMING, &adap->state_bits);
+ 		dev_dbg(&d->udev->dev, "%s: start feeding\n", __func__);
+ 
+ 		/* resolve input and output streaming paramters */
+@@ -314,7 +327,7 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 					adap->fe[adap->active_fe],
+ 					&adap->ts_type, &stream_props);
+ 			if (ret < 0)
+-				goto err_mutex_unlock;
++				goto err_clear_wait;
+ 		} else {
+ 			stream_props = adap->props->stream;
+ 		}
+@@ -344,7 +357,7 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 				dev_err(&d->udev->dev, "%s: " \
+ 						"pid_filter_ctrl() failed=%d\n",
+ 						KBUILD_MODNAME, ret);
+-				goto err_mutex_unlock;
++				goto err_clear_wait;
+ 			}
+ 		}
+ 
+@@ -355,14 +368,16 @@ static inline int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed,
+ 				dev_err(&d->udev->dev, "%s: streaming_ctrl() " \
+ 						"failed=%d\n", KBUILD_MODNAME,
+ 						ret);
+-				goto err_mutex_unlock;
++				goto err_clear_wait;
+ 			}
+ 		}
+ 	}
+ 
+ 	return 0;
+-err_mutex_unlock:
+-	mutex_unlock(&adap->sync_mutex);
++err_clear_wait:
++	clear_bit(ADAP_STREAMING, &adap->state_bits);
++	smp_mb__after_clear_bit();
++	wake_up_bit(&adap->state_bits, ADAP_STREAMING);
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+ }
+@@ -435,8 +450,6 @@ static int dvb_usbv2_adapter_dvb_init(struct dvb_usb_adapter *adap)
+ 		goto err_dvb_net_init;
+ 	}
+ 
+-	mutex_init(&adap->sync_mutex);
+-
+ 	return 0;
+ err_dvb_net_init:
+ 	dvb_dmxdev_release(&adap->dmxdev);
+@@ -500,7 +513,7 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 
+ 	if (!adap->suspend_resume_active) {
+ 		adap->active_fe = fe->id;
+-		mutex_lock(&adap->sync_mutex);
++		set_bit(ADAP_INIT, &adap->state_bits);
+ 	}
+ 
+ 	ret = dvb_usbv2_device_power_ctrl(d, 1);
+@@ -519,8 +532,11 @@ static int dvb_usb_fe_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ err:
+-	if (!adap->suspend_resume_active)
+-		mutex_unlock(&adap->sync_mutex);
++	if (!adap->suspend_resume_active) {
++		clear_bit(ADAP_INIT, &adap->state_bits);
++		smp_mb__after_clear_bit();
++		wake_up_bit(&adap->state_bits, ADAP_INIT);
++	}
+ 
+ 	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
+ 	return ret;
+@@ -534,8 +550,11 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ 	dev_dbg(&d->udev->dev, "%s: adap=%d fe=%d\n", __func__, adap->id,
+ 			fe->id);
+ 
+-	if (!adap->suspend_resume_active)
+-		mutex_lock(&adap->sync_mutex);
++	if (!adap->suspend_resume_active) {
++		set_bit(ADAP_SLEEP, &adap->state_bits);
++		wait_on_bit(&adap->state_bits, ADAP_STREAMING, wait_schedule,
++				TASK_UNINTERRUPTIBLE);
++	}
+ 
+ 	if (adap->fe_sleep[fe->id]) {
+ 		ret = adap->fe_sleep[fe->id](fe);
+@@ -555,7 +574,9 @@ static int dvb_usb_fe_sleep(struct dvb_frontend *fe)
+ err:
+ 	if (!adap->suspend_resume_active) {
+ 		adap->active_fe = -1;
+-		mutex_unlock(&adap->sync_mutex);
++		clear_bit(ADAP_SLEEP, &adap->state_bits);
++		smp_mb__after_clear_bit();
++		wake_up_bit(&adap->state_bits, ADAP_SLEEP);
+ 	}
+ 
+ 	dev_dbg(&d->udev->dev, "%s: ret=%d\n", __func__, ret);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
