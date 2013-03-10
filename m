@@ -1,84 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f178.google.com ([209.85.128.178]:57117 "EHLO
-	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759259Ab3CZMRK (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58856 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751705Ab3CJCIy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 08:17:10 -0400
-MIME-Version: 1.0
-In-Reply-To: <514DAAC3.4050202@gmail.com>
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
-	<1362754765-2651-2-git-send-email-arun.kk@samsung.com>
-	<514DAAC3.4050202@gmail.com>
-Date: Tue, 26 Mar 2013 17:47:09 +0530
-Message-ID: <CALt3h7_nXSd6A2t55fi3PD+BkpZh5Lo4suWcg-ZF=jDq+V3NXA@mail.gmail.com>
-Subject: Re: [RFC 01/12] exynos-fimc-is: Adding device tree nodes
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kgene.kim@samsung.com, kilyeon.im@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 9 Mar 2013 21:08:54 -0500
+Message-ID: <1362881375.13530.10.camel@palomino.walls.org>
+Subject: Re: cannot unload cx18_alsa to hibernate Mint13 64 computer
+From: Andy Walls <awalls@md.metrocast.net>
+To: Dixon Craig <dixonjnk@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Sat, 09 Mar 2013 21:09:35 -0500
+In-Reply-To: <loom.20130309T225537-954@post.gmane.org>
+References: <loom.20130309T225537-954@post.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Sat, 2013-03-09 at 21:57 +0000, Dixon Craig wrote:
+> Hello and thank you to all linuxtv developers!
+> 
+> I have my hauppuage pvr-1600 working very nicely for us-cable analog and 
+> composite inputs using cx18 from original linuxmint 13 MATE 64 and I also tried 
+> newest drivers from git.linuxtv.org.
+> 
+> My problem is cx18_alsa prevents successful suspend to disk when I run hibernate 
+> script.
+> 
+> I cannot unload module before hibernating because modprobe -r returns "FATAL: 
+> Module cx18_alsa is in use." 
+> 
+> lsmod does not list dependancies but lists 1 in use. here is my lsmod output:
+> 
+> dixon2@phenom ~ $ lsmod | grep cx
+> cx18_alsa              13730  1 
+> cx18                  131960  1 cx18_alsa
+> dvb_core              105885  1 cx18
+> cx2341x                28283  1 cx18
+> i2c_algo_bit           13423  1 cx18
+> videobuf_vmalloc       13589  1 cx18
+> videobuf_core          26022  2 cx18,videobuf_vmalloc
+> tveeprom               21249  1 cx18
+> v4l2_common            21560  4 cs5345,tuner,cx18,cx2341x
+> videodev              135159  5 cs5345,tuner,cx18,cx2341x,v4l2_common
+> snd_pcm                97275  3 cx18_alsa,snd_hda_intel,snd_hda_codec
+> snd                    79041  18 
+> cx18_alsa,snd_hda_codec_via,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_pcm,snd_ra
+> wmidi,snd_seq,snd_timer,snd_seq_device
+> 
+> 
+> I have tried stopping all sound services (alsa-restore, alsa-store, and 
+> pulseaudio) then running modprobe -r on all the above listed modules but they 
+> all return the same "in use" error.
 
-Thank you for the review.
+pulseaudio respawns when you kill it.  pulseaudio is likely the process
+keeping the CX23418 ALSA device node open: use 'ps axf' and 'fuser' as
+root on the /dev/snd/pcm* and /dev/snd/control* nodes to verify.
+
+You have these options:
+
+# killall pulseaudio; modprobe -r cx18_alsa; killall pulseaudio;
+modprobe -r cx18_alsa; killall pulseaudio; modprobe -r cx18_alsa
+
+or
+
+# pactl (some arcane arugments to get pulseaudio to let go of the cx18
+ALSA /dev/ nodes)
+
+or 
+
+# pacmd
+> (some arcane commands to get pulseaudio to let go of the cx18
+ALSA /dev/ nodes)
+> exit
+
+or
+
+# find /lib/modules/`uname -r` -name "cx18-alsa.ko" -exec mv {}
+{}.backup \; -print
+# shutdown -r now
 
 
->> +Sensor sub-nodes:
->> +
->> +FIMC-IS IP supports custom built sensors to be controlled exclusively by
->> +the FIMC-IS firmware. These sensor properties are to be defined here.
->
+Regards,
+Andy
 
-[snip]
 
->
-> Defining image sensor nodes in a standard way as ISP I2C bus controller
-> nodes has an disadvantage that we need dummy I2C bus controller driver,
-> at least this is how I have written the driver for Exynos4x12. In some
-> version of it I had sensor nodes put in a isp-i2c fimc-is sub-node, but
-> then there was an issue that this was not a fully specified I2C bus
-> controller node.
->
-> You can refer to my exynos4 fimc-is patch series for details on how this
-> is now implemented.
->
-> Handling the image sensor in a standard way, as regular I2C client devices
-> has an advantage that we can put pinctrl properties in relevant device
-> nodes,
-> where available, which more closely describes the hardware structure.
->
-> I'm not really sure in 100% if all this complication is required. It would
-> allow to use same DT blob for different Imaging Subsystem SW architecture.
-> For example some parts of functionality handled currently by FIMC-IS (ARM
-> Cortex-A5) could be moved to host CPU, without any change in the device
-> tree structure. The kernel could decide e.g. if it uses image sensor driver
-> implemented in the ISP firmware, or a driver run on the host CPU.
->
-> What do you think ?
->
+> I have tried Lubuntu 12.04 with the same hardware and nvidia graphics driver
+> using same kernel 3.2.0-38 and I can successfully rmmod cx18_alsa and hibernate
+> computer. In Lubuntu, lsmod reports cx18_alsa is used by "0" other modules and
+> it rmmods without a problem.
+> 
+> 
+> Is there any other trick I can use to remove cx18_alsa module from kernel?
+> 
+> Thank you
+> 
+> Dixon 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I have seen your Exynos4 FIMC-IS patchset and you have made a dummy
-I2C sensor driver there.
-That mode would work fine in Exynos4 since the sensor and ISP will be used
-by the same media controller pipeline. So the ISP component in the pipeline
-will ensure that the HW is initialized and sensor is working.
 
-But in Exynos5, we are using sensor in pipeline0 and ISP in pipeline1.
-So there is a possibility of using sensor subdev independently
-without using pipeline1 ISP components.
-
-So with the driver I sent, the pipeline0 can still work like this -->
-
-ISP sensor ---> MIPI-CSIS ---> FIMC-LITE ---> Memory
-
-This cannot be done if a dummy I2C driver is made for ISP sensor.
-What is your suggestion on this?
-
-Regards
-Arun
