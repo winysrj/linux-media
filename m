@@ -1,112 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13480 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:35570 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201Ab3C1PXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 11:23:09 -0400
-Date: Thu, 28 Mar 2013 12:22:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Timo Teras <timo.teras@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Terratec Grabby hwrev 2
-Message-ID: <20130328122252.19769614@redhat.com>
-In-Reply-To: <20130328153556.0b58d1aa@vostro>
-References: <20130325190846.3250fe98@vostro>
-	<20130325143647.3da1360f@redhat.com>
-	<20130325194820.7c122834@vostro>
-	<20130325153220.3e6dbfe5@redhat.com>
-	<20130325211238.7c325d5e@vostro>
-	<20130326102056.63b55916@vostro>
-	<20130327161049.683483f8@vostro>
-	<20130328105201.7bcc7388@vostro>
-	<20130328094052.26b7f3f5@redhat.com>
-	<20130328153556.0b58d1aa@vostro>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1751713Ab3CJBnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 20:43:46 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Malcolm Priestley <tvboxspy@gmail.com>
+Subject: [REVIEW PATCH 5/5] it913x: fix pid filter
+Date: Sun, 10 Mar 2013 03:42:35 +0200
+Message-Id: <1362879755-4839-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1362879755-4839-1-git-send-email-crope@iki.fi>
+References: <1362879755-4839-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 28 Mar 2013 15:35:56 +0200
-Timo Teras <timo.teras@iki.fi> escreveu:
+I just made commit: "dvb_usb_v2: rework USB streaming logic" that
+breaks that driver PID filter.
+it913x driver checks use of PID filter directly from DVB USB v2 core
+internal variable "adap->pid_filtering" and stores it to own state.
+Calling order of .pid_filter_ctrl() and .pid_filter() was changed
+and due to that state was updated too late. Update state earlier.
 
-> On Thu, 28 Mar 2013 09:40:52 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
-> > Em Thu, 28 Mar 2013 10:52:01 +0200
-> > Timo Teras <timo.teras@iki.fi> escreveu:
-> > 
-> > > On Wed, 27 Mar 2013 16:10:49 +0200
-> > > Timo Teras <timo.teras@iki.fi> wrote:
-> > > 
-> > > > On Tue, 26 Mar 2013 10:20:56 +0200
-> > > > Timo Teras <timo.teras@iki.fi> wrote:
-> > > > 
-> > > > > I did manage to get decent traces with USBlyzer evaluation
-> > > > > version.
-> > > > 
-> > > > Nothing _that_ exciting there. Though, there's quite a bit of
-> > > > differences on certain register writes. I tried copying the
-> > > > changed parts, but did not really help.
-> > > > 
-> > > > Turning on saa7115 debug gave:
-> > > > 
-> > > > saa7115 1-0025: chip found @ 0x4a (ID 000000000000000) does not
-> > > > match a known saa711x chip.
-> > > 
-> > > Well, I just made saa7115.c ignore this ID check, and defeault to
-> > > saa7113 which is apparently the chip used.
-> > > 
-> > > And now it looks like things start to work a lot better.
-> > > 
-> > > Weird that the saa7113 chip is missing the ID string. Will continue
-> > > testing.
-> > 
-> > That could happen if saa7113 is behind some I2C bridge and when
-> > saa7113 is not found when the detection code is called.
-> 
-> Smells to me that they replaced the saa7113 with cheaper clone that
-> does not support the ID string.
+TODO: checking PID filter usage from DVB USB v2 is not very good idea
+as PID filter callbacks are called only when PID filter is enabled.
 
-Well, I suspect that you'll need to open the box and see what's there.
+Cc: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/it913x.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Are you sure that you've initiated the needed GPIO settings before
-start writing data to it?
-
-> 
-> Sounds like the same issue as:
-> http://www.spinics.net/lists/linux-media/msg57926.html
-> 
-> Additionally noted that something is not initialized right:
-> 
-> With PAL signal:
-> - there's some junk pixel in beginning of each line (looks like pixes
->   from previous lines end), sync issue?
-> - some junk lines at the end
-> - distorted colors when white and black change between pixels
-> 
-> With NTSC signal:
-> - unable to get a lock, and the whole picture looks garbled
-
-The driver supports several chipset variants, by reading the ID
-data from it. If the autodetection code didn't work, it may be
-sending commands to the wrong variation.
-
-Also, if this is a clone, it may require some different setups
-for it to work, either at saa711x driver or less likely at em28xx.
-
-> 
-> On the W7 driver, I don't get any of the above mentioned problems.
-> 
-> I looked at the saa7113 register init sequence, and copied that over to
-> linux saa7113 init, but that did not remove the problems. There were
-> only few changes.
-
-So, maybe it does a different crop setup at em28xx.
-> 
-> - Timo
-
-
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
+index 8338479..e48cdeb 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -218,6 +218,7 @@ static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 
+ 	deb_info(1, "PID_C  (%02x)", onoff);
+ 
++	st->pid_filter_onoff = adap->pid_filtering;
+ 	ret = it913x_wr_reg(d, pro, PID_EN, st->pid_filter_onoff);
+ 
+ 	mutex_unlock(&d->i2c_mutex);
 -- 
+1.7.11.7
 
-Cheers,
-Mauro
