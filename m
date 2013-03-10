@@ -1,60 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([149.20.54.216]:43591 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932910Ab3CUP4L (ORCPT
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:58937 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909Ab3CJNrB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 11:56:11 -0400
-Date: Thu, 21 Mar 2013 11:56:08 -0400 (EDT)
-Message-Id: <20130321.115608.570355867509300023.davem@davemloft.net>
-To: horms@verge.net.au
-Cc: netdev@vger.kernel.org, jesse@nicira.com,
-	stefanr@s5r6.in-berlin.de, isdn@linux-pingi.de, mchehab@redhat.com,
-	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	dev@openvswitch.org
-Subject: Re: [PATCH] net: add ETH_P_802_3_MIN
-From: David Miller <davem@davemloft.net>
-In-Reply-To: <1363854568-32228-1-git-send-email-horms@verge.net.au>
-References: <1363854568-32228-1-git-send-email-horms@verge.net.au>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Sun, 10 Mar 2013 09:47:01 -0400
+Received: by mail-ea0-f179.google.com with SMTP id f15so773747eak.38
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 06:47:00 -0700 (PDT)
+Message-ID: <513C8F04.70809@googlemail.com>
+Date: Sun, 10 Mar 2013 14:47:48 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 2/2] bttv: fix audio mute on device close for the
+ radio device node
+References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com> <1362915635-5431-2-git-send-email-fschaefer.oss@googlemail.com> <201303101259.42692.hverkuil@xs4all.nl>
+In-Reply-To: <201303101259.42692.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Simon Horman <horms@verge.net.au>
-Date: Thu, 21 Mar 2013 17:29:28 +0900
+Am 10.03.2013 12:59, schrieb Hans Verkuil:
+> On Sun March 10 2013 12:40:35 Frank Schäfer wrote:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/pci/bt8xx/bttv-driver.c |    5 ++++-
+>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+>>
+>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>> index 2c09bc5..74977f7 100644
+>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>> @@ -3227,6 +3227,7 @@ static int radio_open(struct file *file)
+>>  	v4l2_fh_init(&fh->fh, vdev);
+>>  
+>>  	btv->radio_user++;
+>> +	audio_mute(btv, btv->mute);
+>>  
+>>  	v4l2_fh_add(&fh->fh);
+>>  
+>> @@ -3248,8 +3249,10 @@ static int radio_release(struct file *file)
+>>  
+>>  	bttv_call_all(btv, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
+>>  
+>> -	if (btv->radio_user == 0)
+>> +	if (btv->radio_user == 0) {
+>>  		btv->has_radio_tuner = 0;
+>> +		audio_mute(btv, 1);
+>> +	}
+>>  	return 0;
+>>  }
+>>  
+>>
+> Sorry, but this isn't right.
+>
+> You should be able to just set the radio to a frequency and then exit. Since
+> most cards have an audio out that loops to an audio input you don't want to
+> have to keep the radio device open.
 
-> Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
-> an 802.3 frame. Frames with a lower value in the ethernet type field
-> are Ethernet II.
-> 
-> Also update all the users of this value that I could find to use the
-> new constant.
-> 
-> I anticipate adding some more users of this constant when
-> adding MPLS support to Open vSwtich.
-> 
-> As suggested by Jesse Gross.
-> 
-> Compile tested only.
-> 
-> Signed-off-by: Simon Horman <horms@verge.net.au>
+Ok, so I will drop this patch.
 
-You missed a few cases:
+AFAICS the above said also applies to the video device part, so it's
+still not clear to me why both devices should be handled differently.
+Anyway, I will regard it as a kind of "tradition".
 
-drivers/media/dvb-core/dvb_net.c:       } while (p->ule_sndu_type < 1536);
-drivers/media/dvb-core/dvb_net.c:                               if (priv->ule_sndu_type < 1536) {
-net/atm/lec.h: *    is less than 1536(0x0600) MUST be encoded by placing that length
-drivers/net/wireless/ray_cs.c:  if (ntohs(proto) >= 1536) { /* DIX II ethernet frame */
-net/bridge/netfilter/ebtables.c:                if (FWINV2(ntohs(ethproto) >= 1536, EBT_IPROTO))
-include/linux/if_vlan.h:        if (ntohs(proto) >= 1536) {
-net/bluetooth/bnep/netdev.c:    if (proto >= 1536)
-net/openvswitch/flow.c: if (ntohs(proto) >= 1536)
-net/mac80211/tx.c:      } else if (ethertype >= 0x600) {
-net/wireless/util.c:    } else if (ethertype > 0x600) {
+>
+> Audio should be muted when the module is unloaded, though.
+>
+> The relationship between TV and radio tuners was discussed last year. The
+> following proposal was accepted:
+>
+> ------- start -----------
+> How to handle tuner ownership if both a video and radio node share the same
+> tuner?
+>
+> Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will make the filehandle
+> the owner if possible. EBUSY is returned if someone else owns the tuner and you
+> would need to switch the tuner mode.
+>
+> Ditto for ioctls that expect a valid tuner configuration like QUERYSTD. This is
+> likely to be driver dependent, though. Just opening a device node should not
+> switch ownership.
+>
+> G_FREQUENCY: should just return the last set frequency for radio or TV: requires
+> that that is remembered when switching ownership. This is what happens today, so
+> G_FREQUENCY does not have to switch ownership.
+>
+> G_TUNER: the rxsubchans, signal and afc fields all require ownership of the tuner.
+> So in principle you would want to switch ownership when G_TUNER is called. On the
+> other hand, that would mean that calling v4l2-ctl --all -d /dev/radio0 would change
+> tuner ownership to radio for /dev/video0. That's rather unexpected.
+>
+> So just set rxsubchans, signal and afc to 0 if the device node doesn't own the tuner.
+>
+> Closing a device node should not switch ownership. E.g. if nobody has a radio device
+> open, should the tuner switch back to TV mode automatically? The answer is that it
+> shouldn't.
+>
+> How about hybrid tuners? The code to handle tuner ownership should be shared between
+> DVB and V4L2.
+> ----------- end --------------
+>
+> All very nice, but nobody had the chance to actually work on this.
+>
+> But this is how it should work.
 
-In fact, the last line looks like a bug, it should be >= not >.
+Interesting, thanks !
 
-Could you take care of these bits and respin your patch?
+Regards,
+Frank
 
-Thanks!
+>
+> Regards,
+>
+> 	Hans
+
