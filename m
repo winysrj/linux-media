@@ -1,133 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36076 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:60403 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751959Ab3CJCEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:39 -0500
+	id S1751800Ab3CJCEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:38 -0500
 From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 11/41] af9035: basic support for IT9135 v2 chips
-Date: Sun, 10 Mar 2013 04:03:03 +0200
-Message-Id: <1362881013-5271-11-git-send-email-crope@iki.fi>
+Subject: [REVIEW PATCH 04/41] af9035: add auto configuration heuristic for it9135
+Date: Sun, 10 Mar 2013 04:02:56 +0200
+Message-Id: <1362881013-5271-4-git-send-email-crope@iki.fi>
 In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
 References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Detect automatically multiple chip versions and select configuration
+according to that.
+
 Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 44 ++++++++++++++++++++++++-----------
- 1 file changed, 31 insertions(+), 13 deletions(-)
+ drivers/media/usb/dvb-usb-v2/af9035.c | 116 ++++++++++++++++++++++++----------
+ drivers/media/usb/dvb-usb-v2/af9035.h |   6 +-
+ 2 files changed, 88 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index a1e953a..0b92277 100644
+index d57fbb1..7fdc9ed 100644
 --- a/drivers/media/usb/dvb-usb-v2/af9035.c
 +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -316,7 +316,7 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
- 			state->chip_type);
+@@ -292,12 +292,38 @@ static struct i2c_algorithm af9035_i2c_algo = {
  
- 	if (state->chip_type == 0x9135) {
--		if (state->chip_version == 2)
-+		if (state->chip_version == 0x02)
- 			*name = AF9035_FIRMWARE_IT9135_V2;
- 		else
- 			*name = AF9035_FIRMWARE_IT9135_V1;
-@@ -595,18 +595,23 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
+ {
++	struct state *state = d_to_priv(d);
+ 	int ret;
+ 	u8 wbuf[1] = { 1 };
+ 	u8 rbuf[4];
+ 	struct usb_req req = { CMD_FW_QUERYINFO, 0, sizeof(wbuf), wbuf,
+ 			sizeof(rbuf), rbuf };
  
- 	/* eeprom memory mapped location */
- 	if (state->chip_type == 0x9135) {
-+		if (state->chip_version == 0x02) {
-+			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
-+			tmp16 = 0x00461d;
-+		} else {
-+			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
-+			tmp16 = 0x00461b;
-+		}
++	ret = af9035_rd_regs(d, 0x1222, rbuf, 3);
++	if (ret < 0)
++		goto err;
 +
- 		/* check if eeprom exists */
--		if (state->chip_version == 2)
--			ret = af9035_rd_reg(d, 0x00461d, &tmp);
--		else
--			ret = af9035_rd_reg(d, 0x00461b, &tmp);
-+		ret = af9035_rd_reg(d, tmp16, &tmp);
- 		if (ret < 0)
- 			goto err;
- 
- 		if (tmp) {
- 			addr = EEPROM_BASE_IT9135;
- 		} else {
--			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
-+			dev_dbg(&d->udev->dev, "%s: no eeprom\n", __func__);
- 			goto skip_eeprom;
- 		}
- 	} else {
-@@ -639,12 +644,15 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		if (ret < 0)
- 			goto err;
- 
--		state->af9033_config[i].tuner = tmp;
--		dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
--				__func__, i, tmp);
-+		if (tmp == 0x00)
-+			dev_dbg(&d->udev->dev,
-+					"%s: [%d]tuner not set, using default\n",
-+					__func__, i);
++	state->chip_version = rbuf[0];
++	state->chip_type = rbuf[2] << 8 | rbuf[1] << 0;
++
++	ret = af9035_rd_reg(d, 0x384f, &state->prechip_version);
++	if (ret < 0)
++		goto err;
++
++	dev_info(&d->udev->dev,
++			"%s: prechip_version=%02x chip_version=%02x chip_type=%04x\n",
++			__func__, state->prechip_version, state->chip_version,
++			state->chip_type);
++
++	if (state->chip_type == 0x9135) {
++		if (state->chip_version == 2)
++			*name = AF9035_FIRMWARE_IT9135_V2;
 +		else
-+			state->af9033_config[i].tuner = tmp;
++			*name = AF9035_FIRMWARE_IT9135_V1;
++	} else {
++		*name = AF9035_FIRMWARE_AF9035;
++	}
++
+ 	ret = af9035_ctrl_msg(d, &req);
+ 	if (ret < 0)
+ 		goto err;
+@@ -316,7 +342,7 @@ err:
+ 	return ret;
+ }
  
--		if (state->chip_type == 0x9135 && tmp == 0x00)
--			state->af9033_config[i].tuner = AF9033_TUNER_IT9135_38;
+-static int af9035_download_firmware(struct dvb_usb_device *d,
++static int af9035_download_firmware_af9035(struct dvb_usb_device *d,
+ 		const struct firmware *fw)
+ {
+ 	int ret, i, j, len;
+@@ -543,7 +569,18 @@ err:
+ 	return ret;
+ }
+ 
+-static int af9035_read_config(struct dvb_usb_device *d)
++static int af9035_download_firmware(struct dvb_usb_device *d,
++		const struct firmware *fw)
++{
++	struct state *state = d_to_priv(d);
++
++	if (state->chip_type == 0x9135)
++		return af9035_download_firmware_it9135(d, fw);
++	else
++		return af9035_download_firmware_af9035(d, fw);
++}
++
++static int af9035_read_config_af9035(struct dvb_usb_device *d)
+ {
+ 	struct state *state = d_to_priv(d);
+ 	int ret, i, eeprom_shift = 0;
+@@ -658,6 +695,27 @@ static int af9035_read_config_it9135(struct dvb_usb_device *d)
+ 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
+ 	state->dual_mode = false;
+ 
++	/* check if eeprom exists */
++	if (state->chip_version == 2)
++		ret = af9035_rd_reg(d, 0x00461d, &tmp);
++	else
++		ret = af9035_rd_reg(d, 0x00461b, &tmp);
++	if (ret < 0)
++		goto err;
++
++	if (tmp) {
++		/* tuner */
++		ret = af9035_rd_reg(d, 0x0049d0, &tmp);
++		if (ret < 0)
++			goto err;
++
 +		dev_dbg(&d->udev->dev, "%s: [%d]tuner=%02x\n",
-+				__func__, i, state->af9033_config[i].tuner);
++				__func__, 0, tmp);
++
++		if (tmp)
++			state->af9033_config[0].tuner = tmp;
++	}
++
+ 	/* get demod clock */
+ 	ret = af9035_rd_reg(d, 0x00d800, &tmp);
+ 	if (ret < 0)
+@@ -676,6 +734,16 @@ err:
+ 	return ret;
+ }
  
- 		switch (state->af9033_config[i].tuner) {
- 		case AF9033_TUNER_TUA9001:
-@@ -975,12 +983,12 @@ static const struct fc0012_config af9035_fc0012_config[] = {
- };
- 
- static struct ite_config af9035_it913x_config = {
--	.chip_ver = 0x01,
-+	.chip_ver = 0x02,
- 	.chip_type = 0x9135,
- 	.firmware = 0x00000000,
- 	.firmware_ver = 1,
- 	.adc_x2 = 1,
--	.tuner_id_0 = AF9033_TUNER_IT9135_38,
-+	.tuner_id_0 = 0x00,
- 	.tuner_id_1 = 0x00,
- 	.dual_mode = 0x00,
- 	.adf = 0x00,
-@@ -1153,6 +1161,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
++static int af9035_read_config(struct dvb_usb_device *d)
++{
++	struct state *state = d_to_priv(d);
++
++	if (state->chip_type == 0x9135)
++		return af9035_read_config_it9135(d);
++	else
++		return af9035_read_config_af9035(d);
++}
++
+ static int af9035_tua9001_tuner_callback(struct dvb_usb_device *d,
+ 		int cmd, int arg)
+ {
+@@ -1101,7 +1169,13 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+ 				&af9035_fc0012_config[adap->id]);
+ 		break;
  	case AF9033_TUNER_IT9135_38:
- 	case AF9033_TUNER_IT9135_51:
- 	case AF9033_TUNER_IT9135_52:
-+		af9035_it913x_config.chip_ver = 0x01;
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
- 	case AF9033_TUNER_IT9135_62:
-@@ -1453,6 +1462,7 @@ static const struct dvb_usb_device_properties af9035_props = {
++	case AF9033_TUNER_IT9135_51:
++	case AF9033_TUNER_IT9135_52:
++	case AF9033_TUNER_IT9135_60:
++	case AF9033_TUNER_IT9135_61:
++	case AF9033_TUNER_IT9135_62:
+ 		/* attach tuner */
++		af9035_it913x_config.tuner_id_0 = state->af9033_config[0].tuner;
+ 		fe = dvb_attach(it913x_attach, adap->fe[0],
+ 				&d->i2c_adap, 0x38, &af9035_it913x_config);
+ 		break;
+@@ -1202,9 +1276,14 @@ err:
+ 
+ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ {
++	struct state *state = d_to_priv(d);
+ 	int ret;
+ 	u8 tmp;
+ 
++	/* TODO: IT9135 remote control support */
++	if (state->chip_type == 0x9135)
++		return 0;
++
+ 	ret = af9035_rd_reg(d, EEPROM_IR_MODE, &tmp);
+ 	if (ret < 0)
+ 		goto err;
+@@ -1260,7 +1339,6 @@ static const struct dvb_usb_device_properties af9035_props = {
+ 	.generic_bulk_ctrl_endpoint_response = 0x81,
+ 
+ 	.identify_state = af9035_identify_state,
+-	.firmware = AF9035_FIRMWARE_AF9035,
+ 	.download_firmware = af9035_download_firmware,
+ 
+ 	.i2c_algo = &af9035_i2c_algo,
+@@ -1280,35 +1358,6 @@ static const struct dvb_usb_device_properties af9035_props = {
+ 	},
  };
  
+-static const struct dvb_usb_device_properties it9135_props = {
+-	.driver_name = KBUILD_MODNAME,
+-	.owner = THIS_MODULE,
+-	.adapter_nr = adapter_nr,
+-	.size_of_priv = sizeof(struct state),
+-
+-	.generic_bulk_ctrl_endpoint = 0x02,
+-	.generic_bulk_ctrl_endpoint_response = 0x81,
+-
+-	.identify_state = af9035_identify_state,
+-	.firmware = AF9035_FIRMWARE_IT9135,
+-	.download_firmware = af9035_download_firmware_it9135,
+-
+-	.i2c_algo = &af9035_i2c_algo,
+-	.read_config = af9035_read_config_it9135,
+-	.frontend_attach = af9035_frontend_attach,
+-	.tuner_attach = af9035_tuner_attach,
+-	.init = af9035_init,
+-
+-	.num_adapters = 1,
+-	.adapter = {
+-		{
+-			.stream = DVB_USB_STREAM_BULK(0x84, 6, 87 * 188),
+-		}, {
+-			.stream = DVB_USB_STREAM_BULK(0x85, 6, 87 * 188),
+-		},
+-	},
+-};
+-
  static const struct usb_device_id af9035_id_table[] = {
-+	/* AF9035 devices */
  	{ DVB_USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_9035,
  		&af9035_props, "Afatech AF9035 reference design", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_1000,
-@@ -1477,6 +1487,14 @@ static const struct usb_device_id af9035_id_table[] = {
- 		&af9035_props, "AVerMedia Twinstar (A825)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_ASUS, USB_PID_ASUS_U3100MINI_PLUS,
- 		&af9035_props, "Asus U3100Mini Plus", NULL) },
-+
-+	/* IT9135 devices */
-+#if 0
-+	{ DVB_USB_DEVICE(0x048d, 0x9135,
-+		&af9035_props, "IT9135 reference design", NULL) },
-+	{ DVB_USB_DEVICE(0x048d, 0x9006,
-+		&af9035_props, "IT9135 reference design", NULL) },
-+#endif
- 	/* XXX: that same ID [0ccd:0099] is used by af9015 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, 0x0099,
- 		&af9035_props, "TerraTec Cinergy T Stick Dual RC (rev. 2)", NULL) },
+@@ -1356,4 +1405,5 @@ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Afatech AF9035 driver");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(AF9035_FIRMWARE_AF9035);
+-MODULE_FIRMWARE(AF9035_FIRMWARE_IT9135);
++MODULE_FIRMWARE(AF9035_FIRMWARE_IT9135_V1);
++MODULE_FIRMWARE(AF9035_FIRMWARE_IT9135_V2);
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
+index 9556bab..f995339 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.h
++++ b/drivers/media/usb/dvb-usb-v2/af9035.h
+@@ -55,6 +55,9 @@ struct usb_req {
+ struct state {
+ 	u8 seq; /* packet sequence number */
+ 	bool dual_mode;
++	u8 prechip_version;
++	u8 chip_version;
++	u16 chip_type;
+ 	struct af9033_config af9033_config[2];
+ };
+ 
+@@ -87,7 +90,8 @@ u32 clock_lut_it9135[] = {
+ };
+ 
+ #define AF9035_FIRMWARE_AF9035 "dvb-usb-af9035-02.fw"
+-#define AF9035_FIRMWARE_IT9135 "dvb-usb-it9135-01.fw"
++#define AF9035_FIRMWARE_IT9135_V1 "dvb-usb-it9135-01.fw"
++#define AF9035_FIRMWARE_IT9135_V2 "dvb-usb-it9135-02.fw"
+ 
+ /* EEPROM locations */
+ #define EEPROM_IR_MODE            0x430d
 -- 
 1.7.11.7
 
