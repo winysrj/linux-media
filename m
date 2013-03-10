@@ -1,60 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:61883 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755457Ab3CDIZ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 03:25:56 -0500
-Received: by mail-pa0-f48.google.com with SMTP id hz10so3004928pad.21
-        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 00:25:55 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org,
-	thierry.reding@avionic-design.de
-Subject: [PATCH 4/4] [media] soc_camera/sh_mobile_csi2: Convert to devm_ioremap_resource()
-Date: Mon,  4 Mar 2013 13:45:21 +0530
-Message-Id: <1362384921-7344-4-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
-References: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:42921 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab3CJLYr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Mar 2013 07:24:47 -0400
+Received: by mail-ee0-f53.google.com with SMTP id e53so1705897eek.12
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 04:24:46 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx-i2c: relax error check in em28xx_i2c_recv_bytes()
+Date: Sun, 10 Mar 2013 12:25:25 +0100
+Message-Id: <1362914725-5172-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the newly introduced devm_ioremap_resource() instead of
-devm_request_and_ioremap() which provides more consistent error handling.
+It turned out that some devices return less bytes then requested via i2c when
+ALL of the following 3 conditions are met:
+- i2c bus B is used
+- there was no attempt to write to the specified slave address before
+- no device present at the specified slave address
 
-devm_ioremap_resource() provides its own error messages; so all explicit
-error messages can be removed from the failure code paths.
+With the current code, this triggers an -EIO error and prints a message to the
+system log.
+Because it can happen very often during device probing, it is better to ignore
+this error and bail out silently after the follwing i2c transaction success
+check with -ENODEV.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/platform/soc_camera/sh_mobile_csi2.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/media/usb/em28xx/em28xx-i2c.c |   22 +++++++++++-----------
+ 1 Datei geändert, 11 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-index 42c559e..09cb4fc 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-@@ -9,6 +9,7 @@
-  */
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 6152423..94521bf 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -227,18 +227,18 @@ static int em28xx_i2c_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf, u16 len)
  
- #include <linux/delay.h>
-+#include <linux/err.h>
- #include <linux/i2c.h>
- #include <linux/io.h>
- #include <linux/platform_device.h>
-@@ -324,11 +325,9 @@ static int sh_csi2_probe(struct platform_device *pdev)
+ 	/* Read data from i2c device */
+ 	ret = dev->em28xx_read_reg_req_len(dev, 2, addr, buf, len);
+-	if (ret != len) {
+-		if (ret < 0) {
+-			em28xx_warn("reading from i2c device at 0x%x failed "
+-				    "(error=%i)\n", addr, ret);
+-			return ret;
+-		} else {
+-			em28xx_warn("%i bytes requested from i2c device at "
+-				    "0x%x, but %i bytes received\n",
+-				    len, addr, ret);
+-			return -EIO;
+-		}
++	if (ret < 0) {
++		em28xx_warn("reading from i2c device at 0x%x failed "
++			    "(error=%i)\n", addr, ret);
++		return ret;
+ 	}
++	/* NOTE: some devices with two i2c busses have the bad habit to return 0
++	 * bytes if we are on bus B AND there was no write attempt to the
++	 * specified slave address before AND no device is present at the
++	 * requested slave address.
++	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
++	 * spamming the system log on device probing and do nothing here.
++	 */
  
- 	priv->irq = irq;
- 
--	priv->base = devm_request_and_ioremap(&pdev->dev, res);
--	if (!priv->base) {
--		dev_err(&pdev->dev, "Unable to ioremap CSI2 registers.\n");
--		return -ENXIO;
--	}
-+	priv->base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(priv->base))
-+		return PTR_ERR(priv->base);
- 
- 	priv->pdev = pdev;
- 	platform_set_drvdata(pdev, priv);
+ 	/* Check success of the i2c operation */
+ 	ret = dev->em28xx_read_reg(dev, 0x05);
 -- 
-1.7.4.1
+1.7.10.4
 
