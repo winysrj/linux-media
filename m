@@ -1,152 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:63458 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab3C0E10 (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:40761 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751135Ab3CJNzf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 00:27:26 -0400
-Received: by mail-wi0-f178.google.com with SMTP id ez12so1833430wid.5
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 21:27:25 -0700 (PDT)
+	Sun, 10 Mar 2013 09:55:35 -0400
+Received: by mail-ee0-f49.google.com with SMTP id d41so1735440eek.8
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 06:55:34 -0700 (PDT)
+Message-ID: <513C9107.6030408@googlemail.com>
+Date: Sun, 10 Mar 2013 14:56:23 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1364311408-8710-1-git-send-email-standby24x7@gmail.com>
-References: <1364311408-8710-1-git-send-email-standby24x7@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 27 Mar 2013 09:57:05 +0530
-Message-ID: <CA+V-a8uVtnsGpWHfVdw9TTbi_jhxVmkzgHpVoBxO3URLjj_jrw@mail.gmail.com>
-Subject: Re: [PATCH] staging: davinci: Fix typo in staging/media/davinci
-To: Masanari Iida <standby24x7@gmail.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 1/2] bttv: fix audio mute on device close for the
+ video device node
+References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com> <201303101301.00039.hverkuil@xs4all.nl>
+In-Reply-To: <201303101301.00039.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Masanari,
+Am 10.03.2013 13:00, schrieb Hans Verkuil:
+> On Sun March 10 2013 12:40:34 Frank Schäfer wrote:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> Could you describe exactly what bug is fixed? I tested it a fair amount
+> when I created my bttv patches, so I'd like to know what I missed.
 
-Thanks for the patch!
+Yeah, sure. The whole thing is a bit tricky and I have to admit that the
+patch isn't self-explaining enough.
 
-On Tue, Mar 26, 2013 at 8:53 PM, Masanari Iida <standby24x7@gmail.com> wrote:
-> Correct spelling typo in staging/media/davinci
->
-> Signed-off-by: Masanari Iida <standby24x7@gmail.com>
-> ---
->  drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt | 2 +-
->  drivers/staging/media/davinci_vpfe/dm365_isif.c        | 6 +++---
->  drivers/staging/media/davinci_vpfe/vpfe_video.c        | 8 ++++----
->  drivers/staging/media/davinci_vpfe/vpfe_video.h        | 2 +-
->  4 files changed, 9 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt b/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-> index 1dbd564..a1e9177 100644
-> --- a/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-> +++ b/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-> @@ -38,7 +38,7 @@ interface to userspace.
->         DAVINCI RESIZER A
->         DAVINCI RESIZER B
->
-> -Each possible link in the VPFE is modeled by a link in the Media controller
-> +Each possible link in the VPFE is modelled by a link in the Media controller
+The main issue it fixes is, that audio_mux() is called with the current
+value of the mute control instead of mute=1.
+So the device is muted on last close only if the mute control was 1.
+Fixing this needs changing some other parts of the code, too.
 
-s/modeled/modelled are one and the same. you can keep it as is.
-Rest of the patch looks OK. With this change you can add my ACK.
+What makes the patch bit complicated is the fact, that there are
+actually two types of "mute" handled in function audio_mux():
+1) gpio mute
+2) subdevice muting
+The "automute" feature also does its best to make things complicating.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+And finally a follow-up fix is needed to avoid device unmuting already
+when the drivers probing function is called (should not happen before
+the first open).
+
+Hmm... sorry... I should really have split this into two patches.
+I will send an updated patch series with better explanations.
 
 Regards,
---Prabhakar
+Frank
 
->  interface. For an example program see [1].
 >
+> Regards,
 >
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> index ebeea72..6d4a93c 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> @@ -685,7 +685,7 @@ static void isif_config_bclamp(struct vpfe_isif_device *isif,
->         val = (bc->bc_mode_color & ISIF_BC_MODE_COLOR_MASK) <<
->                 ISIF_BC_MODE_COLOR_SHIFT;
+> 	Hans
 >
-> -       /* Enable BC and horizontal clamp caculation paramaters */
-> +       /* Enable BC and horizontal clamp calculation paramaters */
->         val = val | 1 | ((bc->horz.mode & ISIF_HORZ_BC_MODE_MASK) <<
->               ISIF_HORZ_BC_MODE_SHIFT);
->
-> @@ -722,7 +722,7 @@ static void isif_config_bclamp(struct vpfe_isif_device *isif,
->                 isif_write(isif->isif_cfg.base_addr, val, CLHWIN2);
->         }
->
-> -       /* vertical clamp caculation paramaters */
-> +       /* vertical clamp calculation paramaters */
->         /* OB H Valid */
->         val = bc->vert.ob_h_sz_calc & ISIF_VERT_BC_OB_H_SZ_MASK;
->
-> @@ -1569,7 +1569,7 @@ isif_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->                 crop->rect.width = format->width;
->                 crop->rect.height = format->height;
->         }
-> -       /* adjust the width to 16 pixel boundry */
-> +       /* adjust the width to 16 pixel boundary */
->         crop->rect.width = ((crop->rect.width + 15) & ~0xf);
->         vpfe_isif->crop = crop->rect;
->         if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> index 99ccbeb..c91d356 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -357,7 +357,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
->   *
->   * Set the pipeline to the given stream state.
->   *
-> - * Return 0 if successfull, or the return value of the failed video::s_stream
-> + * Return 0 if successful, or the return value of the failed video::s_stream
->   * operation otherwise.
->   */
->  static int vpfe_pipeline_set_stream(struct vpfe_pipeline *pipe,
-> @@ -644,7 +644,7 @@ static int vpfe_g_fmt(struct file *file, void *priv,
->   * fills v4l2_fmtdesc structure with output format set on adjacent subdev,
->   * only one format is enumearted as subdevs are already configured
->   *
-> - * Return 0 if successfull, error code otherwise
-> + * Return 0 if successful, error code otherwise
->   */
->  static int vpfe_enum_fmt(struct file *file, void  *priv,
->                                    struct v4l2_fmtdesc *fmt)
-> @@ -769,7 +769,7 @@ static int vpfe_try_fmt(struct file *file, void *priv,
->   * fills v4l2_input structure with input available on media chain,
->   * only one input is enumearted as media chain is setup by this time
->   *
-> - * Return 0 if successfull, -EINVAL is media chain is invalid
-> + * Return 0 if successful, -EINVAL is media chain is invalid
->   */
->  static int vpfe_enum_input(struct file *file, void *priv,
->                                  struct v4l2_input *inp)
-> @@ -779,7 +779,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
->         struct vpfe_device *vpfe_dev = video->vpfe_dev;
->
->         v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_input\n");
-> -       /* enumerate from the subdev user has choosen through mc */
-> +       /* enumerate from the subdev user has chosen through mc */
->         if (inp->index < sdinfo->num_inputs) {
->                 memcpy(inp, &sdinfo->inputs[inp->index],
->                        sizeof(struct v4l2_input));
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-> index bf8af01..df0aeec 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-> @@ -138,7 +138,7 @@ struct vpfe_video_device {
->         v4l2_std_id                             stdid;
->         /*
->          * offset where second field starts from the starting of the
-> -        * buffer for field seperated YCbCr formats
-> +        * buffer for field separated YCbCr formats
->          */
->         u32                                     field_off;
->  };
-> --
-> 1.8.2.135.g7b592fa
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> ---
+>>  drivers/media/pci/bt8xx/bttv-driver.c |   22 +++++++++++-----------
+>>  1 Datei geändert, 11 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>> index 8610b6a..2c09bc5 100644
+>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>> @@ -992,21 +992,20 @@ static char *audio_modes[] = {
+>>  static int
+>>  audio_mux(struct bttv *btv, int input, int mute)
+>>  {
+>> -	int gpio_val, signal;
+>> +	int gpio_val, signal, mute_gpio;
+>>  	struct v4l2_ctrl *ctrl;
+>>  
+>>  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
+>>  		   bttv_tvcards[btv->c.type].gpiomask);
+>>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+>>  
+>> -	btv->mute = mute;
+>>  	btv->audio = input;
+>>  
+>>  	/* automute */
+>> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
+>> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
+>>  				&& !btv->has_radio_tuner);
+>>  
+>> -	if (mute)
+>> +	if (mute_gpio)
+>>  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
+>>  	else
+>>  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
+>> @@ -1022,7 +1021,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  	}
+>>  
+>>  	if (bttv_gpio)
+>> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
+>> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
+>>  	if (in_interrupt())
+>>  		return 0;
+>>  
+>> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  
+>>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  
+>>  		/* Note: the inputs tuner/radio/extern/intern are translated
+>>  		   to msp routings. This assumes common behavior for all msp3400
+>> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+>>  				input, 0, 0);
+>>  	}
+>> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  	}
+>>  	return 0;
+>>  }
+>> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+>>  		break;
+>>  	case V4L2_CID_AUDIO_MUTE:
+>>  		audio_mute(btv, c->val);
+>> +		btv->mute = c->val;
+>>  		break;
+>>  	case V4L2_CID_AUDIO_VOLUME:
+>>  		btv->volume_gpio(btv, c->val);
+>> @@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
+>>  			    sizeof(struct bttv_buffer),
+>>  			    fh, &btv->lock);
+>>  	set_tvnorm(btv,btv->tvnorm);
+>> -	set_input(btv, btv->input, btv->tvnorm);
+>> -
+>> +	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
+>>  
+>>  	/* The V4L2 spec requires one global set of cropping parameters
+>>  	   which only change on request. These are stored in btv->crop[1].
+>> @@ -3124,7 +3123,7 @@ static int bttv_release(struct file *file)
+>>  	bttv_field_count(btv);
+>>  
+>>  	if (!btv->users)
+>> -		audio_mute(btv, btv->mute);
+>> +		audio_mute(btv, 1);
+>>  
+>>  	v4l2_fh_del(&fh->fh);
+>>  	v4l2_fh_exit(&fh->fh);
+>> @@ -4209,6 +4208,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+>>  	btv->std = V4L2_STD_PAL;
+>>  	init_irqreg(btv);
+>>  	v4l2_ctrl_handler_setup(hdl);
+>> +	audio_mute(btv, 1);
+>>  
+>>  	if (hdl->error) {
+>>  		result = hdl->error;
+>>
+
