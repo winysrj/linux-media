@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:54075 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995Ab3CJVxS (ORCPT
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:39206 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751800Ab3CJLj5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 17:53:18 -0400
-Received: by mail-ea0-f172.google.com with SMTP id d10so918141eaj.31
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:17 -0700 (PDT)
+	Sun, 10 Mar 2013 07:39:57 -0400
+Received: by mail-ea0-f175.google.com with SMTP id o10so751245eaj.6
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 04:39:56 -0700 (PDT)
 From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
 To: mchehab@redhat.com
 Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
 	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFC PATCH v2 2/6] bttv: audio_mux(): do not change the value of the v4l2 mute control
-Date: Sun, 10 Mar 2013 22:53:50 +0100
-Message-Id: <1362952434-2974-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH 2/2] bttv: fix audio mute on device close for the radio device node
+Date: Sun, 10 Mar 2013 12:40:35 +0100
+Message-Id: <1362915635-5431-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are cases where we want to call audio_mux() without changing the value of
-the v4l2 mute control, for example
-- mute mute on last close
-- mute on device probing
-
 Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
- 1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
+ drivers/media/pci/bt8xx/bttv-driver.c |    5 ++++-
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
 diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index a584d82..a082ab4 100644
+index 2c09bc5..74977f7 100644
 --- a/drivers/media/pci/bt8xx/bttv-driver.c
 +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -999,7 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
- 		   bttv_tvcards[btv->c.type].gpiomask);
- 	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+@@ -3227,6 +3227,7 @@ static int radio_open(struct file *file)
+ 	v4l2_fh_init(&fh->fh, vdev);
  
--	btv->mute = mute;
- 	btv->audio = input;
+ 	btv->radio_user++;
++	audio_mute(btv, btv->mute);
  
- 	/* automute */
-@@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 	v4l2_fh_add(&fh->fh);
  
- 		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
- 		if (ctrl)
--			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-+			v4l2_ctrl_s_ctrl(ctrl, mute);
+@@ -3248,8 +3249,10 @@ static int radio_release(struct file *file)
  
- 		/* Note: the inputs tuner/radio/extern/intern are translated
- 		   to msp routings. This assumes common behavior for all msp3400
-@@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
- 		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 	bttv_call_all(btv, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
  
- 		if (ctrl)
--			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-+			v4l2_ctrl_s_ctrl(ctrl, mute);
- 		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
- 				input, 0, 0);
- 	}
-@@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
- 		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
- 
- 		if (ctrl)
--			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
-+			v4l2_ctrl_s_ctrl(ctrl, mute);
- 	}
+-	if (btv->radio_user == 0)
++	if (btv->radio_user == 0) {
+ 		btv->has_radio_tuner = 0;
++		audio_mute(btv, 1);
++	}
  	return 0;
  }
-@@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
- 		break;
- 	case V4L2_CID_AUDIO_MUTE:
- 		audio_mute(btv, c->val);
-+		btv->mute = c->val;
- 		break;
- 	case V4L2_CID_AUDIO_VOLUME:
- 		btv->volume_gpio(btv, c->val);
+ 
 -- 
 1.7.10.4
 
