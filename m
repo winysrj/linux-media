@@ -1,196 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3030 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502Ab3CBXpz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:49014 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752130Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:41 -0500
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/20] solo6x10: add support for prio and control event handling.
-Date: Sun,  3 Mar 2013 00:45:24 +0100
-Message-Id: <88cf9d776d6096b94d25a75bb1149e2b25c1b5c3.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 23/41] it913x: remove demod init reg tables
+Date: Sun, 10 Mar 2013 04:03:15 +0200
+Message-Id: <1362881013-5271-23-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+These are demod inits and are already done by af9033 demod driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/staging/media/solo6x10/v4l2-enc.c |   19 +++++++++++++++++--
- drivers/staging/media/solo6x10/v4l2.c     |   18 ++++++++++++++++--
- 2 files changed, 33 insertions(+), 4 deletions(-)
+ drivers/media/tuners/it913x.c      |   8 --
+ drivers/media/tuners/it913x_priv.h | 211 -------------------------------------
+ 2 files changed, 219 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 43ce8c5..453bdba 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -23,6 +23,7 @@
- #include <linux/freezer.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-event.h>
- #include <media/videobuf-dma-sg.h>
- #include "solo6x10.h"
- #include "tw28.h"
-@@ -37,7 +38,8 @@ static int solo_enc_thread(void *data);
- extern unsigned video_nr;
+diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
+index 66e003f..ec4964c 100644
+--- a/drivers/media/tuners/it913x.c
++++ b/drivers/media/tuners/it913x.c
+@@ -146,14 +146,6 @@ static int it913x_init(struct dvb_frontend *fe)
+ 	u8 nv[] = {48, 32, 24, 16, 12, 8, 6, 4, 2};
+ 	u8 b[2];
  
- struct solo_enc_fh {
--	struct			solo_enc_dev *enc;
-+	struct v4l2_fh		fh;
-+	struct solo_enc_dev	*enc;
- 	u32			fmt;
- 	u16			rd_idx;
- 	u8			enc_on;
-@@ -938,7 +940,11 @@ static unsigned int solo_enc_poll(struct file *file,
- 				  struct poll_table_struct *wait)
- {
- 	struct solo_enc_fh *fh = file->private_data;
-+	unsigned long req_events = poll_requested_events(wait);
-+	unsigned res = v4l2_ctrl_poll(file, wait);
- 
-+	if (!(req_events & (POLLIN | POLLRDNORM)))
-+		return res;
- 	return videobuf_poll_stream(file, &fh->vidq, wait);
- }
- 
-@@ -958,6 +964,7 @@ static int solo_enc_open(struct file *file)
- 	if (fh == NULL)
- 		return -ENOMEM;
- 
-+	v4l2_fh_init(&fh->fh, video_devdata(file));
- 	fh->enc = solo_enc;
- 	file->private_data = fh;
- 	INIT_LIST_HEAD(&fh->vidq_active);
-@@ -970,7 +977,7 @@ static int solo_enc_open(struct file *file)
- 			       V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			       V4L2_FIELD_INTERLACED,
- 			       sizeof(struct videobuf_buffer), fh, NULL);
+-	/* v1 or v2 tuner script */
+-	if (state->chip_ver > 1)
+-		ret = it913x_script_loader(state, it9135_v2);
+-	else
+-		ret = it913x_script_loader(state, it9135_v1);
+-	if (ret < 0)
+-		return ret;
 -
-+	v4l2_fh_add(&fh->fh);
- 	return 0;
- }
- 
-@@ -1007,6 +1014,8 @@ static int solo_enc_release(struct file *file)
- 	videobuf_mmap_free(&fh->vidq);
- 
- 	solo_enc_off(fh);
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 
- 	kfree(fh);
- 
-@@ -1129,6 +1138,7 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 	/* Just set these */
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->sizeimage = FRAME_BUF_SIZE;
-+	pix->bytesperline = 0;
- 	pix->priv = 0;
- 
- 	return 0;
-@@ -1494,6 +1504,10 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
- 	/* Video capture parameters */
- 	.vidioc_s_parm			= solo_s_parm,
- 	.vidioc_g_parm			= solo_g_parm,
-+	/* Logging and events */
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ 	/* LNA Scripts */
+ 	switch (state->tuner_type) {
+ 	case AF9033_TUNER_IT9135_51:
+diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/it913x_priv.h
+index 1491bf8..7d0e292 100644
+--- a/drivers/media/tuners/it913x_priv.h
++++ b/drivers/media/tuners/it913x_priv.h
+@@ -37,118 +37,6 @@ struct it913xset {	u32 pro;
  };
  
- static struct video_device solo_enc_template = {
-@@ -1592,6 +1606,7 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev, u8 ch)
- 	*solo_enc->vfd = solo_enc_template;
- 	solo_enc->vfd->v4l2_dev = &solo_dev->v4l2_dev;
- 	solo_enc->vfd->ctrl_handler = hdl;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &solo_enc->vfd->flags);
- 	ret = video_register_device(solo_enc->vfd, VFL_TYPE_GRABBER,
- 				    video_nr);
- 	if (ret < 0) {
-diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
-index 3db65a7..d9298ac 100644
---- a/drivers/staging/media/solo6x10/v4l2.c
-+++ b/drivers/staging/media/solo6x10/v4l2.c
-@@ -23,6 +23,7 @@
- #include <linux/freezer.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-event.h>
- #include <media/videobuf-dma-sg.h>
- #include "solo6x10.h"
- #include "tw28.h"
-@@ -39,6 +40,7 @@
- 
- /* Simple file handle */
- struct solo_filehandle {
-+	struct v4l2_fh		fh;
- 	struct solo_dev		*solo_dev;
- 	struct videobuf_queue	vidq;
- 	struct task_struct      *kthread;
-@@ -502,8 +504,12 @@ static unsigned int solo_v4l2_poll(struct file *file,
- 				   struct poll_table_struct *wait)
- {
- 	struct solo_filehandle *fh = file->private_data;
-+	unsigned long req_events = poll_requested_events(wait);
-+	unsigned res = v4l2_ctrl_poll(file, wait);
- 
--	return videobuf_poll_stream(file, &fh->vidq, wait);
-+	if (!(req_events & (POLLIN | POLLRDNORM)))
-+		return res;
-+	return res | videobuf_poll_stream(file, &fh->vidq, wait);
- }
- 
- static int solo_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
-@@ -523,6 +529,7 @@ static int solo_v4l2_open(struct file *file)
- 	if (fh == NULL)
- 		return -ENOMEM;
- 
-+	v4l2_fh_init(&fh->fh, video_devdata(file));
- 	spin_lock_init(&fh->slock);
- 	INIT_LIST_HEAD(&fh->vidq_active);
- 	fh->solo_dev = solo_dev;
-@@ -539,7 +546,7 @@ static int solo_v4l2_open(struct file *file)
- 			       V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			       V4L2_FIELD_INTERLACED,
- 			       sizeof(struct videobuf_buffer), fh, NULL);
+ /* Version 1 types */
+-static struct it913xset it9135_v1[] = {
+-	{PRO_DMOD, 0x0051, {0x01}, 0x01},
+-	{PRO_DMOD, 0x0070, {0x0a}, 0x01},
+-	{PRO_DMOD, 0x007e, {0x04}, 0x01},
+-	{PRO_DMOD, 0x0081, {0x0a}, 0x01},
+-	{PRO_DMOD, 0x008a, {0x01}, 0x01},
+-	{PRO_DMOD, 0x008e, {0x01}, 0x01},
+-	{PRO_DMOD, 0x0092, {0x06}, 0x01},
+-	{PRO_DMOD, 0x0099, {0x01}, 0x01},
+-	{PRO_DMOD, 0x009f, {0xe1}, 0x01},
+-	{PRO_DMOD, 0x00a0, {0xcf}, 0x01},
+-	{PRO_DMOD, 0x00a3, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a5, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a6, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a9, {0x00}, 0x01},
+-	{PRO_DMOD, 0x00aa, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00c2, {0x05}, 0x01},
+-	{PRO_DMOD, 0x00c6, {0x19}, 0x01},
+-	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf016, {0x10}, 0x01},
+-	{PRO_DMOD, 0xf017, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf018, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf019, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf01a, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf021, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf022, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf023, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf02b, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf02c, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf064, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf065, {0xf9}, 0x01},
+-	{PRO_DMOD, 0xf066, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf067, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf06f, {0xe0}, 0x01},
+-	{PRO_DMOD, 0xf070, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf072, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf073, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf078, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf087, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09b, {0x3f}, 0x01},
+-	{PRO_DMOD, 0xf09c, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09d, {0x20}, 0x01},
+-	{PRO_DMOD, 0xf09e, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09f, {0x0c}, 0x01},
+-	{PRO_DMOD, 0xf0a0, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf130, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf132, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
+-	{PRO_DMOD, 0xf146, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf14c, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14d, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
+-	{PRO_DMOD, 0xf15a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf15b, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf15d, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf15e, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf163, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf166, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf167, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf168, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf17a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf17b, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf183, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf1bc, {0x36}, 0x01},
+-	{PRO_DMOD, 0xf1bd, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf1cb, {0xa0}, 0x01},
+-	{PRO_DMOD, 0xf1cc, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf204, {0x10}, 0x01},
+-	{PRO_DMOD, 0xf214, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf40e, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf40f, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf410, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf561, {0x15}, 0x01},
+-	{PRO_DMOD, 0xf562, {0x20}, 0x01},
+-	{PRO_DMOD, 0xf5df, {0xfb}, 0x01},
+-	{PRO_DMOD, 0xf5e0, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf5e3, {0x09}, 0x01},
+-	{PRO_DMOD, 0xf5e4, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf5e5, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf5f8, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf5fd, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf600, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf601, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf602, {0x0b}, 0x01},
+-	{PRO_DMOD, 0xf603, {0x0e}, 0x01},
+-	{PRO_DMOD, 0xf604, {0x11}, 0x01},
+-	{PRO_DMOD, 0xf605, {0x14}, 0x01},
+-	{PRO_DMOD, 0xf606, {0x17}, 0x01},
+-	{PRO_DMOD, 0xf607, {0x1f}, 0x01},
+-	{PRO_DMOD, 0xf60e, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf60f, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf610, {0x32}, 0x01},
+-	{PRO_DMOD, 0xf611, {0x10}, 0x01},
+-	{PRO_DMOD, 0xf707, {0xfc}, 0x01},
+-	{PRO_DMOD, 0xf708, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf709, {0x37}, 0x01},
+-	{PRO_DMOD, 0xf70a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf80f, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf810, {0x54}, 0x01},
+-	{PRO_DMOD, 0xf811, {0x5a}, 0x01},
+-	{PRO_DMOD, 0xf905, {0x01}, 0x01},
+-	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
+-	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
+-	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
+-};
 -
-+	v4l2_fh_add(&fh->fh);
- 	return 0;
- }
- 
-@@ -559,6 +566,8 @@ static int solo_v4l2_release(struct file *file)
- 	videobuf_stop(&fh->vidq);
- 	videobuf_mmap_free(&fh->vidq);
- 	solo_stop_thread(fh);
-+	v4l2_fh_del(&fh->fh);
-+	v4l2_fh_exit(&fh->fh);
- 	kfree(fh);
- 
- 	return 0;
-@@ -828,6 +837,10 @@ static const struct v4l2_ioctl_ops solo_v4l2_ioctl_ops = {
- 	.vidioc_dqbuf			= solo_dqbuf,
- 	.vidioc_streamon		= solo_streamon,
- 	.vidioc_streamoff		= solo_streamoff,
-+	/* Logging and events */
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ static struct it913xset it9135_38[] = {
+ 	{PRO_DMOD, 0x0043, {0x00}, 0x01},
+ 	{PRO_DMOD, 0x0046, {0x38}, 0x01},
+@@ -414,105 +302,6 @@ static struct it913xset it9135_52[] = {
  };
  
- static struct video_device solo_v4l2_template = {
-@@ -872,6 +885,7 @@ int solo_v4l2_init(struct solo_dev *solo_dev)
- 	if (solo_dev->disp_hdl.error)
- 		return solo_dev->disp_hdl.error;
- 	solo_dev->vfd->ctrl_handler = &solo_dev->disp_hdl;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &solo_dev->vfd->flags);
- 
- 	ret = video_register_device(solo_dev->vfd, VFL_TYPE_GRABBER, video_nr);
- 	if (ret < 0) {
+ /* Version 2 types */
+-static struct it913xset it9135_v2[] = {
+-	{PRO_DMOD, 0x0051, {0x01}, 0x01},
+-	{PRO_DMOD, 0x0070, {0x0a}, 0x01},
+-	{PRO_DMOD, 0x007e, {0x04}, 0x01},
+-	{PRO_DMOD, 0x0081, {0x0a}, 0x01},
+-	{PRO_DMOD, 0x008a, {0x01}, 0x01},
+-	{PRO_DMOD, 0x008e, {0x01}, 0x01},
+-	{PRO_DMOD, 0x0092, {0x06}, 0x01},
+-	{PRO_DMOD, 0x0099, {0x01}, 0x01},
+-	{PRO_DMOD, 0x009f, {0xe1}, 0x01},
+-	{PRO_DMOD, 0x00a0, {0xcf}, 0x01},
+-	{PRO_DMOD, 0x00a3, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a5, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a6, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00a9, {0x00}, 0x01},
+-	{PRO_DMOD, 0x00aa, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00b0, {0x01}, 0x01},
+-	{PRO_DMOD, 0x00c2, {0x05}, 0x01},
+-	{PRO_DMOD, 0x00c6, {0x19}, 0x01},
+-	{PRO_DMOD, 0xf000, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf02b, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf064, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf065, {0xf9}, 0x01},
+-	{PRO_DMOD, 0xf066, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf067, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf06f, {0xe0}, 0x01},
+-	{PRO_DMOD, 0xf070, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf072, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf073, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf078, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf087, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09b, {0x3f}, 0x01},
+-	{PRO_DMOD, 0xf09c, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09d, {0x20}, 0x01},
+-	{PRO_DMOD, 0xf09e, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf09f, {0x0c}, 0x01},
+-	{PRO_DMOD, 0xf0a0, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf130, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf132, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf144, {0x1a}, 0x01},
+-	{PRO_DMOD, 0xf146, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14a, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf14c, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14d, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf14f, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf158, {0x7f}, 0x01},
+-	{PRO_DMOD, 0xf15a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf15b, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf15d, {0x03}, 0x01},
+-	{PRO_DMOD, 0xf15e, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf163, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf166, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf167, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf168, {0x0f}, 0x01},
+-	{PRO_DMOD, 0xf17a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf17b, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf183, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf19d, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf1bc, {0x36}, 0x01},
+-	{PRO_DMOD, 0xf1bd, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf1cb, {0xa0}, 0x01},
+-	{PRO_DMOD, 0xf1cc, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf204, {0x10}, 0x01},
+-	{PRO_DMOD, 0xf214, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf40e, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf40f, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf410, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf55f, {0x0a}, 0x01},
+-	{PRO_DMOD, 0xf561, {0x15}, 0x01},
+-	{PRO_DMOD, 0xf562, {0x20}, 0x01},
+-	{PRO_DMOD, 0xf5e3, {0x09}, 0x01},
+-	{PRO_DMOD, 0xf5e4, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf5e5, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf600, {0x05}, 0x01},
+-	{PRO_DMOD, 0xf601, {0x08}, 0x01},
+-	{PRO_DMOD, 0xf602, {0x0b}, 0x01},
+-	{PRO_DMOD, 0xf603, {0x0e}, 0x01},
+-	{PRO_DMOD, 0xf604, {0x11}, 0x01},
+-	{PRO_DMOD, 0xf605, {0x14}, 0x01},
+-	{PRO_DMOD, 0xf606, {0x17}, 0x01},
+-	{PRO_DMOD, 0xf607, {0x1f}, 0x01},
+-	{PRO_DMOD, 0xf60e, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf60f, {0x04}, 0x01},
+-	{PRO_DMOD, 0xf610, {0x32}, 0x01},
+-	{PRO_DMOD, 0xf611, {0x10}, 0x01},
+-	{PRO_DMOD, 0xf707, {0xfc}, 0x01},
+-	{PRO_DMOD, 0xf708, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf709, {0x37}, 0x01},
+-	{PRO_DMOD, 0xf70a, {0x00}, 0x01},
+-	{PRO_DMOD, 0xf78b, {0x01}, 0x01},
+-	{PRO_DMOD, 0xf80f, {0x40}, 0x01},
+-	{PRO_DMOD, 0xf810, {0x54}, 0x01},
+-	{PRO_DMOD, 0xf811, {0x5a}, 0x01},
+-	{PRO_DMOD, 0xf905, {0x01}, 0x01},
+-	{PRO_DMOD, 0xfb06, {0x03}, 0x01},
+-	{PRO_DMOD, 0xfd8b, {0x00}, 0x01},
+-	{0xff, 0x0000, {0x00}, 0x00} /* Terminating Entry */
+-};
+-
+ static struct it913xset it9135_60[] = {
+ 	{PRO_DMOD, 0x0043, {0x00}, 0x01},
+ 	{PRO_DMOD, 0x0046, {0x60}, 0x01},
 -- 
-1.7.10.4
+1.7.11.7
 
