@@ -1,79 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:57150 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674Ab3CPGvc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Mar 2013 02:51:32 -0400
-Date: Sat, 16 Mar 2013 07:50:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 4/5] v4l2: add const to argument of write-only
- s_register ioctl.
-In-Reply-To: <60593e2e438a51d9ba5be2179f56a0858df458db.1363342714.git.hans.verkuil@cisco.com>
-Message-ID: <Pine.LNX.4.64.1303160747100.12165@axis700.grange>
-References: <1363343245-23531-1-git-send-email-hverkuil@xs4all.nl>
- <60593e2e438a51d9ba5be2179f56a0858df458db.1363342714.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:43048 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752249Ab3CJCEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:44 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 40/41] af9035: style changes for remote controller polling
+Date: Sun, 10 Mar 2013 04:03:32 +0200
+Message-Id: <1362881013-5271-40-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 15 Mar 2013, Hans Verkuil wrote:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ioctl is defined as IOW, so pass the argument as const.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-
-[snip]
-
->  drivers/media/i2c/soc_camera/mt9m001.c          |    2 +-
->  drivers/media/i2c/soc_camera/mt9m111.c          |    2 +-
->  drivers/media/i2c/soc_camera/mt9t031.c          |    2 +-
->  drivers/media/i2c/soc_camera/mt9t112.c          |    2 +-
->  drivers/media/i2c/soc_camera/mt9v022.c          |    2 +-
->  drivers/media/i2c/soc_camera/ov2640.c           |    2 +-
->  drivers/media/i2c/soc_camera/ov5642.c           |    2 +-
->  drivers/media/i2c/soc_camera/ov6650.c           |    2 +-
->  drivers/media/i2c/soc_camera/ov772x.c           |    2 +-
->  drivers/media/i2c/soc_camera/ov9640.c           |    2 +-
->  drivers/media/i2c/soc_camera/ov9740.c           |    2 +-
->  drivers/media/i2c/soc_camera/rj54n1cb0c.c       |    2 +-
->  drivers/media/i2c/soc_camera/tw9910.c           |    2 +-
-
-[snip]
-
->  drivers/media/platform/sh_vou.c                 |    2 +-
->  drivers/media/platform/soc_camera/soc_camera.c  |    2 +-
-
-For the above
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/dvb-usb-v2/af9035.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index a1ae5c5..c35fab8 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -1221,10 +1221,10 @@ err:
+ #if IS_ENABLED(CONFIG_RC_CORE)
+ static int af9035_rc_query(struct dvb_usb_device *d)
+ {
+-	unsigned int key;
+-	unsigned char b[4];
+ 	int ret;
+-	struct usb_req req = { CMD_IR_GET, 0, 0, NULL, 4, b };
++	u32 key;
++	u8 buf[4];
++	struct usb_req req = { CMD_IR_GET, 0, 0, NULL, 4, buf };
+ 
+ 	ret = af9035_ctrl_msg(d, &req);
+ 	if (ret == 1)
+@@ -1232,18 +1232,21 @@ static int af9035_rc_query(struct dvb_usb_device *d)
+ 	else if (ret < 0)
+ 		goto err;
+ 
+-	if ((b[2] + b[3]) == 0xff) {
+-		if ((b[0] + b[1]) == 0xff) {
+-			/* NEC */
+-			key = b[0] << 8 | b[2];
++	if ((buf[2] + buf[3]) == 0xff) {
++		if ((buf[0] + buf[1]) == 0xff) {
++			/* NEC standard 16bit */
++			key = buf[0] << 8 | buf[2];
+ 		} else {
+-			/* ext. NEC */
+-			key = b[0] << 16 | b[1] << 8 | b[2];
++			/* NEC extended 24bit */
++			key = buf[0] << 16 | buf[1] << 8 | buf[2];
+ 		}
+ 	} else {
+-		key = b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3];
++		/* NEC full code 32bit */
++		key = buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3];
+ 	}
+ 
++	dev_dbg(&d->udev->dev, "%s: %*ph\n", __func__, 4, buf);
++
+ 	rc_keydown(d->rc_dev, key, 0);
+ 
+ 	return 0;
+-- 
+1.7.11.7
+
