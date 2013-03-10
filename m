@@ -1,125 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:57330 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754427Ab3CKTBF (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:62913 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751768Ab3CJLmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:01:05 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 05/11] s5p-fimc: Add support for PIXELASYNCMx clocks
-Date: Mon, 11 Mar 2013 20:00:20 +0100
-Message-id: <1363028426-2771-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 10 Mar 2013 07:42:25 -0400
+Received: by mail-ee0-f51.google.com with SMTP id d17so1708152eek.10
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 04:42:23 -0700 (PDT)
+Message-ID: <513C71CF.2040508@googlemail.com>
+Date: Sun, 10 Mar 2013 12:43:11 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: mchehab@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 1/2] bttv: fix audio mute on device close for the
+ video device node
+References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch ads handling of clocks for the CAMBLK subsystem which
-is a glue logic for FIMC-IS or LCD controller and FIMC IP.
+Am 10.03.2013 12:40, schrieb Frank Schäfer:
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |   22 +++++++++++-----------
+>  1 Datei geändert, 11 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
+>
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index 8610b6a..2c09bc5 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -992,21 +992,20 @@ static char *audio_modes[] = {
+>  static int
+>  audio_mux(struct bttv *btv, int input, int mute)
+>  {
+> -	int gpio_val, signal;
+> +	int gpio_val, signal, mute_gpio;
+>  	struct v4l2_ctrl *ctrl;
+>  
+>  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
+>  		   bttv_tvcards[btv->c.type].gpiomask);
+>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+>  
+> -	btv->mute = mute;
+>  	btv->audio = input;
+>  
+>  	/* automute */
+> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
+> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
+>  				&& !btv->has_radio_tuner);
+>  
+> -	if (mute)
+> +	if (mute_gpio)
+>  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
+>  	else
+>  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
+> @@ -1022,7 +1021,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  	}
+>  
+>  	if (bttv_gpio)
+> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
+> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
+>  	if (in_interrupt())
+>  		return 0;
+>  
+> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  
+>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  
+>  		/* Note: the inputs tuner/radio/extern/intern are translated
+>  		   to msp routings. This assumes common behavior for all msp3400
+> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+>  				input, 0, 0);
+>  	}
+> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  	}
+>  	return 0;
+>  }
+> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+>  		break;
+>  	case V4L2_CID_AUDIO_MUTE:
+>  		audio_mute(btv, c->val);
+> +		btv->mute = c->val;
+>  		break;
+>  	case V4L2_CID_AUDIO_VOLUME:
+>  		btv->volume_gpio(btv, c->val);
+> @@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
+>  			    sizeof(struct bttv_buffer),
+>  			    fh, &btv->lock);
+>  	set_tvnorm(btv,btv->tvnorm);
+> -	set_input(btv, btv->input, btv->tvnorm);
+> -
+> +	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
+>  
+>  	/* The V4L2 spec requires one global set of cropping parameters
+>  	   which only change on request. These are stored in btv->crop[1].
+> @@ -3124,7 +3123,7 @@ static int bttv_release(struct file *file)
+>  	bttv_field_count(btv);
+>  
+>  	if (!btv->users)
+> -		audio_mute(btv, btv->mute);
+> +		audio_mute(btv, 1);
+>  
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   41 +++++++++++++++++++++++-
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    8 +++++
- 2 files changed, 48 insertions(+), 1 deletion(-)
+Btw, what about the interaction between the video and the radio device
+node ?
+With the current code it is possible to open the video and the radio
+device node at the same time, so I wonder if we need an additional patch
+changing this to
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index 0a7c95b..b9f9976 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -944,7 +944,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
- }
- 
- /*
-- * The peripheral sensor clock management.
-+ * The peripheral sensor and CAM_BLK (PIXELASYNCMx) clocks management.
-  */
- static void fimc_md_put_clocks(struct fimc_md *fmd)
- {
-@@ -957,6 +957,17 @@ static void fimc_md_put_clocks(struct fimc_md *fmd)
- 		clk_put(fmd->camclk[i].clock);
- 		fmd->camclk[i].clock = ERR_PTR(-EINVAL);
- 	}
-+
-+	/* Writeback (PIXELASYNCMx) clocks */
-+	for (i = 0; i < FIMC_MAX_WBCLKS; i++) {
-+		if (IS_ERR(fmd->wbclk[i]))
-+			continue;
-+		/* FIXME: find better place to disable this clock! */
-+		clk_disable(fmd->wbclk[i]);
-+		clk_unprepare(fmd->wbclk[i]);
-+		clk_put(fmd->wbclk[i]);
-+		fmd->wbclk[i] = ERR_PTR(-EINVAL);
-+	}
- }
- 
- static int fimc_md_get_clocks(struct fimc_md *fmd)
-@@ -993,6 +1004,34 @@ static int fimc_md_get_clocks(struct fimc_md *fmd)
- 	if (ret)
- 		fimc_md_put_clocks(fmd);
- 
-+	if (!fmd->use_isp)
-+		return 0;
-+	/*
-+	 * For now get only PIXELASYNCM1 clock (Writeback B/ISP),
-+	 * leave PIXELASYNCM0 out for the display driver.
-+	 */
-+	for (i = CLK_IDX_WB_B; i < FIMC_MAX_WBCLKS; i++) {
-+		snprintf(clk_name, sizeof(clk_name), "pxl_async%u", i);
-+		clock = clk_get(dev, clk_name);
-+		if (IS_ERR(clock)) {
-+			v4l2_err(&fmd->v4l2_dev, "Failed to get clock: %s\n",
-+				  clk_name);
-+			ret = PTR_ERR(clock);
-+			break;
-+		}
-+		ret = clk_prepare(clock);
-+		if (ret < 0) {
-+			clk_put(clock);
-+			fmd->wbclk[i] = ERR_PTR(-EINVAL);
-+			break;
-+		}
-+		fmd->wbclk[i] = clock;
-+		/* FIXME: find better place to enable this clock! */
-+		clk_enable(clock);
-+	}
-+	if (ret)
-+		fimc_md_put_clocks(fmd);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 5d6146e..91be5db 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -41,6 +41,13 @@
- #define FIMC_MAX_SENSORS	8
- #define FIMC_MAX_CAMCLKS	2
- 
-+/* LCD/ISP Writeback clocks (PIXELASYNCMx) */
-+enum {
-+	CLK_IDX_WB_A,
-+	CLK_IDX_WB_B,
-+	FIMC_MAX_WBCLKS
-+};
-+
- struct fimc_csis_info {
- 	struct v4l2_subdev *sd;
- 	int id;
-@@ -87,6 +94,7 @@ struct fimc_md {
- 	struct fimc_sensor_info sensor[FIMC_MAX_SENSORS];
- 	int num_sensors;
- 	struct fimc_camclk_info camclk[FIMC_MAX_CAMCLKS];
-+	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
- 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
- 	struct media_device media_dev;
--- 
-1.7.9.5
+                if (!btv->users && !btv->radio_user)
+
+
+Regards,
+Frank
+
+>  	v4l2_fh_del(&fh->fh);
+>  	v4l2_fh_exit(&fh->fh);
+> @@ -4209,6 +4208,7 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+>  	btv->std = V4L2_STD_PAL;
+>  	init_irqreg(btv);
+>  	v4l2_ctrl_handler_setup(hdl);
+> +	audio_mute(btv, 1);
+>  
+>  	if (hdl->error) {
+>  		result = hdl->error;
 
