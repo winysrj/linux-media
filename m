@@ -1,63 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:57651 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752837Ab3C2OOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 10:14:37 -0400
-Date: Fri, 29 Mar 2013 15:14:36 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>,
-	"Dirk E. Wagner" <linux@wagner-budenheim.de>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
-In-Reply-To: <20130329100534.75f72b2b@redhat.com>
-Message-ID: <alpine.LNX.2.00.1303291514160.22069@pobox.suse.cz>
-References: <20121228102928.4103390e@redhat.com> <CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com> <63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de> <CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
- <alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz> <CALW4P+L1QKe=1wNkr90LsZY89OFnGBKB2N6yVeDhnyab_rSsnA@mail.gmail.com> <alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz> <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
- <20130329100534.75f72b2b@redhat.com>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:59409 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753313Ab3CJVxU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Mar 2013 17:53:20 -0400
+Received: by mail-ea0-f169.google.com with SMTP id z7so878368eaf.14
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:19 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH v2 4/6] bttv: do not unmute the device before the first open
+Date: Sun, 10 Mar 2013 22:53:52 +0100
+Message-Id: <1362952434-2974-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 29 Mar 2013, Mauro Carvalho Chehab wrote:
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |    8 +++++---
+ 1 Datei geändert, 5 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
 
-> > >> Yes, i just checked how hid_ignore() works and prepared dirty fix to
-> > >> test in almost the same way like it's done for Keene usb driver. I
-> > >> will send correct fix in next few days.
-> > >
-> > > Any news on this, please?
-> > 
-> > Hi Jiri,
-> > 
-> > I'm very very sorry (was busy because of life). I just sent two
-> > patches to you, Mauro and two mail lists:
-> > [patch 1/2] hid: fix Masterkit MA901 hid quirks
-> > [patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
-> > doesn't match
-> > 
-> > Please check. First one for hid layer, so maybe you can take it
-> > directly through your tree. I hope it's not too late.
-> > I think Mauro will take second patch.
-> 
-> It is better to add both patches via the same tree. As it is badly 
-> affecting HID, it seems better if Jiri can apply both patches. 
-> 
-> Also, there's no other patch for radio-ma901 on my tree. So, 
-> I don't expect any conflicts if those patches got merged via hid tree.
-> 
-> Jiri, could you please apply both patches on your tree?
-> 
-> For both:
-> > [patch 1/2] hid: fix Masterkit MA901 hid quirks
-> > [patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Absolutely. Will add your Ack and push it to Linus for 3.9 still.
-
-Thanks,
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 945ecd2..6432bfe 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
+ 			    sizeof(struct bttv_buffer),
+ 			    fh, &btv->lock);
+ 	set_tvnorm(btv,btv->tvnorm);
+-	set_input(btv, btv->input, btv->tvnorm);
+-
++	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
+ 
+ 	/* The V4L2 spec requires one global set of cropping parameters
+ 	   which only change on request. These are stored in btv->crop[1].
+@@ -4209,11 +4208,14 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
+ 	btv->std = V4L2_STD_PAL;
+ 	init_irqreg(btv);
+ 	v4l2_ctrl_handler_setup(hdl);
+-
+ 	if (hdl->error) {
+ 		result = hdl->error;
+ 		goto fail2;
+ 	}
++
++	/* mute device */
++	audio_mute(btv, 1);
++
+ 	/* register video4linux + input */
+ 	if (!bttv_tvcards[btv->c.type].no_video) {
+ 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
 -- 
-Jiri Kosina
-SUSE Labs
+1.7.10.4
+
