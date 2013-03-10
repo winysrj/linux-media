@@ -1,90 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1271 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab3CRONA (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:54075 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752995Ab3CJVxS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 10:13:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 5/6] v4l2-ioctl: simplify debug code.
-Date: Mon, 18 Mar 2013 15:12:04 +0100
-Message-Id: <1363615925-19507-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 10 Mar 2013 17:53:18 -0400
+Received: by mail-ea0-f172.google.com with SMTP id d10so918141eaj.31
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:17 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH v2 2/6] bttv: audio_mux(): do not change the value of the v4l2 mute control
+Date: Sun, 10 Mar 2013 22:53:50 +0100
+Message-Id: <1362952434-2974-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There are cases where we want to call audio_mux() without changing the value of
+the v4l2 mute control, for example
+- mute mute on last close
+- mute on device probing
 
-The core debug code can now be simplified since all the write-only ioctls are
-now const and will not modify the data they pass to the drivers.
-
-So instead of logging write-only ioctls before the driver is called this can
-now be done afterwards, which is cleaner when it comes to error reporting as
-well.
-
-This also fixes a logic error in the debugging code where there was one 'else'
-too many.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 2abd13a..b3fe148 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2147,11 +2147,6 @@ static long __video_do_ioctl(struct file *file,
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index a584d82..a082ab4 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -999,7 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		   bttv_tvcards[btv->c.type].gpiomask);
+ 	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+ 
+-	btv->mute = mute;
+ 	btv->audio = input;
+ 
+ 	/* automute */
+@@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 
+ 		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 
+ 		/* Note: the inputs tuner/radio/extern/intern are translated
+ 		   to msp routings. This assumes common behavior for all msp3400
+@@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+ 				input, 0, 0);
  	}
+@@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
  
- 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
--	if (write_only && debug > V4L2_DEBUG_IOCTL) {
--		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
--		pr_cont(": ");
--		info->debug(arg, write_only);
--	}
- 	if (info->flags & INFO_FL_STD) {
- 		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
- 		const void *p = vfd->ioctl_ops;
-@@ -2170,16 +2165,10 @@ static long __video_do_ioctl(struct file *file,
- 
- done:
- 	if (debug) {
--		if (write_only && debug > V4L2_DEBUG_IOCTL) {
--			if (ret < 0)
--				printk(KERN_DEBUG "%s: error %ld\n",
--					video_device_node_name(vfd), ret);
--			return ret;
--		}
- 		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
- 		if (ret < 0)
--			pr_cont(": error %ld\n", ret);
--		else if (debug == V4L2_DEBUG_IOCTL)
-+			pr_cont(": error %ld", ret);
-+		if (debug == V4L2_DEBUG_IOCTL)
- 			pr_cont("\n");
- 		else if (_IOC_DIR(cmd) == _IOC_NONE)
- 			info->debug(arg, write_only);
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 	}
+ 	return 0;
+ }
+@@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+ 		break;
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		audio_mute(btv, c->val);
++		btv->mute = c->val;
+ 		break;
+ 	case V4L2_CID_AUDIO_VOLUME:
+ 		btv->volume_gpio(btv, c->val);
 -- 
 1.7.10.4
 
