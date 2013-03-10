@@ -1,66 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:39388 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755333Ab3CPMSj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Mar 2013 08:18:39 -0400
-Received: by mail-ve0-f175.google.com with SMTP id cy12so3229533veb.6
-        for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 05:18:38 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <097e3e28dc8fbe8105fa3b2a489e18a5c5eca7bb.1363342714.git.hans.verkuil@cisco.com>
-References: <9ae3227f74816dbf699bbc8b1ce6202a5de1582f.1363342714.git.hans.verkuil@cisco.com>
-	<1363343245-23531-1-git-send-email-hverkuil@xs4all.nl>
-	<097e3e28dc8fbe8105fa3b2a489e18a5c5eca7bb.1363342714.git.hans.verkuil@cisco.com>
-Date: Sat, 16 Mar 2013 16:18:38 +0400
-Message-ID: <CALW4P+KY8iXrVm5GEPQ=_8O2qYxOqStxE15_Gifo-Hwkuy=ozw@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 2/5] v4l2: add const to argument of write-only
- s_tuner ioctl.
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:55355 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752148Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:41 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 26/41] af9035: set demod TS mode config in read_config()
+Date: Sun, 10 Mar 2013 04:03:18 +0200
+Message-Id: <1362881013-5271-26-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-On Fri, Mar 15, 2013 at 2:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This ioctl is defined as IOW, so pass the argument as const.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-[snip]
-
->  drivers/media/radio/dsbr100.c                    |    2 +-
-
->  drivers/media/radio/radio-ma901.c                |    2 +-
-
->  drivers/media/radio/radio-mr800.c                |    2 +-
-
-Acked-by: Alexey Klimov <klimov.linux@gmail.com>
-
-for this three radio drivers.
-Thanks.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index a29169f..7f87b01 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -588,6 +588,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 	state->af9033_config[0].i2c_addr = 0x38;
+ 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
+ 	state->af9033_config[1].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
++	state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
++	state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
+ 
+ 	/* eeprom memory mapped location */
+ 	if (state->chip_type == 0x9135) {
+@@ -903,11 +905,6 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
+ 		goto err;
+ 	}
+ 
+-	if (adap->id == 0) {
+-		state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
+-		state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
+-	}
+-
+ 	/* attach demodulator */
+ 	adap->fe[0] = dvb_attach(af9033_attach, &state->af9033_config[adap->id],
+ 			&d->i2c_adap);
 -- 
-Best regards, Klimov Alexey
+1.7.11.7
+
