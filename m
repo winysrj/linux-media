@@ -1,57 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56804 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754856Ab3COUTA (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:54103 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741Ab3CJOM2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 16:19:00 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: H Hartley Sweeten <hartleys@visionengravers.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Date: Fri, 15 Mar 2013 20:18:08 +0000
-Cc: Fabio Porcedda <fabio.porcedda@gmail.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
-	"Hans-Christian Egtvedt" <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com> <201303141358.05616.arnd@arndb.de> <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
-In-Reply-To: <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303152018.09094.arnd@arndb.de>
+	Sun, 10 Mar 2013 10:12:28 -0400
+Received: by mail-la0-f52.google.com with SMTP id fs12so3019449lab.25
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 07:12:27 -0700 (PDT)
+From: Volokh Konstantin <volokh84@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 4/7] hverkuil/go7007: staging: media: go7007: Add Modet controls
+Date: Sun, 10 Mar 2013 18:04:43 +0400
+Message-Id: <1362924286-23995-4-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
+References: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 15 March 2013, H Hartley Sweeten wrote:
-> Arnd,
-> 
-> Ill look at converting the ep93xx pwm driver to the PWM subsystem. The only issue is
-> the current driver exposes a sysfs interface that I think is not available in that subsystem.
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/go7007-v4l2.c |   95 ++++++++++++++++++++++++++++
+ drivers/staging/media/go7007/go7007.h      |   18 +++++
+ 2 files changed, 113 insertions(+), 0 deletions(-)
 
-You can probably keep providing that interface if you have active users.
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 91e5572..c4d0ca2 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1137,6 +1137,101 @@ static struct video_device go7007_template = {
+ 	.tvnorms	= V4L2_STD_ALL,
+ };
+ 
++static struct v4l2_ctrl_config md_configs[] = {
++	{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_REGION_NUMBER
++		,.name = "Region MD"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.max = 3
++		,.step = 1
++		,.def = 0
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_PIXEL_THRESOLD
++		,.name = "Pixel Thresold"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.max = 65535
++		,.step = 1
++		,.def = 32767
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_MOTION_THRESOLD
++		,.name = "Motion Thresold"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.max = 65535
++		,.step = 1
++		,.def = 32767
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_TRIGGER
++		,.name = "Trigger"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.max = 65535
++		,.step = 1
++		,.def = 32767
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_CLIP_LEFT
++		,.name = "Left of Region"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.step = 1
++		,.def = 0
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_CLIP_TOP
++		,.name = "Top of Region"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.step = 1
++		,.def = 0
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_CLIP_WIDTH
++		,.name = "Width of Region"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.step = 1
++		,.def = 0
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_CLIP_HEIGHT
++		,.name = "Height of Region"
++		,.type = V4L2_CTRL_TYPE_INTEGER
++		,.min = 0
++		,.step = 1
++		,.def = 0
++	}
++	,{
++		.ops = &go7007_ctrl_ops
++		,.id = V4L2_CID_USER_MODET_REGION_CONTROL
++		,.name = "Region Control"
++		,.type = V4L2_CTRL_TYPE_MENU
++		,.min = rcAdd
++		,.max = rcClear
++		,.step = 0
++		,.def = rcClear
++		,.qmenu = (const char * const[]){
++			"Add"
++			,"Delete"
++			,"Clear"
++			,NULL
++		}
++	}
++};
++
+ int go7007_v4l2_ctrl_init(struct go7007 *go)
+ {
+ 	struct v4l2_ctrl_handler *hdl = &go->hdl;
+diff --git a/drivers/staging/media/go7007/go7007.h b/drivers/staging/media/go7007/go7007.h
+index 54b9897..fcb45ea 100644
+--- a/drivers/staging/media/go7007/go7007.h
++++ b/drivers/staging/media/go7007/go7007.h
+@@ -38,3 +38,21 @@ struct go7007_md_region {
+ 					struct go7007_md_params)
+ #define	GO7007IOC_S_MD_REGION	_IOW('V', BASE_VIDIOC_PRIVATE + 8, \
+ 					struct go7007_md_region)
++
++#define V4L2_CID_USER_GO7007_BASE			(V4L2_CID_USER_BASE + 0x1000)
++#define V4L2_CID_USER_MODET_REGION_NUMBER		(V4L2_CID_USER_GO7007_BASE + 0x01)
++#define V4L2_CID_USER_MODET_PIXEL_THRESOLD		(V4L2_CID_USER_GO7007_BASE + 0x02)
++#define V4L2_CID_USER_MODET_MOTION_THRESOLD		(V4L2_CID_USER_GO7007_BASE + 0x03)
++#define V4L2_CID_USER_MODET_TRIGGER			(V4L2_CID_USER_GO7007_BASE + 0x04)
++#define V4L2_CID_USER_MODET_REGION_CONTROL		(V4L2_CID_USER_GO7007_BASE + 0x05)
++#define V4L2_CID_USER_MODET_CLIP_LEFT			(V4L2_CID_USER_GO7007_BASE + 0x06)
++#define V4L2_CID_USER_MODET_CLIP_TOP			(V4L2_CID_USER_GO7007_BASE + 0x07)
++#define V4L2_CID_USER_MODET_CLIP_WIDTH			(V4L2_CID_USER_GO7007_BASE + 0x08)
++#define V4L2_CID_USER_MODET_CLIP_HEIGHT			(V4L2_CID_USER_GO7007_BASE + 0x09)
++#define V4L2_CID_USER_MODET_ALARM			(V4L2_CID_USER_GO7007_BASE + 0x09)
++
++enum RegionControl {
++	rcAdd = 0
++	,rcDelete = 1
++	,rcClear = 2
++};
+-- 
+1.7.7.6
 
-> >* Regarding the use of module_platform_driver_probe, I'm a little worried about
-> >  the interactions with deferred probing. I don't think there are any regressions,
-> >  but we should probably make people aware that one cannot return -EPROBE_DEFER
-> >  from a platform_driver_probe function.
-> 
-> The ep93xx pwm driver does not need to use platform_driver_probe(). It can be changed
-> to use module_platform_driver() by just moving the .probe to the platform_driver. This
-> driver was added before module_platform_driver() was available and I used the
-> platform_driver_probe() thinking it would save a couple lines of code.
-> 
-> I'll change this in a bit. Right now I'm trying to work out why kernel 3.8 is not booting
-> on the ep93xx. I had 3.6.6 on my development board and 3.7 works fine but 3.8 hangs
-> without uncompressing the kernel.
-
-Ok, thanks!
-
-	Arnd
