@@ -1,84 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:34227 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964969Ab3CNRJ6 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4047 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331Ab3CJVUL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 13:09:58 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: [PATCH v2 7/8] drivers: video: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 18:09:37 +0100
-Message-Id: <1363280978-24051-8-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+	Sun, 10 Mar 2013 17:20:11 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2ALK7Qg022350
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 22:20:10 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C58A111E01D0
+	for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 22:20:06 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130310212006.C58A111E01D0@alastor.dyndns.org>
+Date: Sun, 10 Mar 2013 22:20:06 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-fbdev@vger.kernel.org
----
- drivers/video/sh_mipi_dsi.c    | 12 +-----------
- drivers/video/sh_mobile_hdmi.c | 12 +-----------
- 2 files changed, 2 insertions(+), 22 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
-index 701b461..6cad530 100644
---- a/drivers/video/sh_mipi_dsi.c
-+++ b/drivers/video/sh_mipi_dsi.c
-@@ -581,17 +581,7 @@ static struct platform_driver sh_mipi_driver = {
- 	},
- };
- 
--static int __init sh_mipi_init(void)
--{
--	return platform_driver_probe(&sh_mipi_driver, sh_mipi_probe);
--}
--module_init(sh_mipi_init);
--
--static void __exit sh_mipi_exit(void)
--{
--	platform_driver_unregister(&sh_mipi_driver);
--}
--module_exit(sh_mipi_exit);
-+module_platform_driver_probe(sh_mipi_driver, sh_mipi_probe);
- 
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile MIPI DSI driver");
-diff --git a/drivers/video/sh_mobile_hdmi.c b/drivers/video/sh_mobile_hdmi.c
-index 930e550..bfe4728 100644
---- a/drivers/video/sh_mobile_hdmi.c
-+++ b/drivers/video/sh_mobile_hdmi.c
-@@ -1445,17 +1445,7 @@ static struct platform_driver sh_hdmi_driver = {
- 	},
- };
- 
--static int __init sh_hdmi_init(void)
--{
--	return platform_driver_probe(&sh_hdmi_driver, sh_hdmi_probe);
--}
--module_init(sh_hdmi_init);
--
--static void __exit sh_hdmi_exit(void)
--{
--	platform_driver_unregister(&sh_hdmi_driver);
--}
--module_exit(sh_hdmi_exit);
-+module_platform_driver_probe(sh_hdmi_driver, sh_hdmi_probe);
- 
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile HDMI driver");
--- 
-1.8.1.5
+date:		Sun Mar 10 19:00:20 CET 2013
+git branch:	test
+git hash:	457ba4ce4f435d0b4dd82a0acc6c796e541a2ea7
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
