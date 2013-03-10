@@ -1,110 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64254 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753730Ab3CZSOk (ORCPT
+Received: from mail-la0-f52.google.com ([209.85.215.52]:34985 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751730Ab3CJOMF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 14:14:40 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 0/7] V4L2 driver for Exynos4x12 Imaging Subsystem
-Date: Tue, 26 Mar 2013 19:14:16 +0100
-Message-id: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 10 Mar 2013 10:12:05 -0400
+Received: by mail-la0-f52.google.com with SMTP id fs12so3019294lab.25
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 07:12:04 -0700 (PDT)
+From: Volokh Konstantin <volokh84@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH 2/7] hverkuil/go7007: staging: media: go7007: Add Frameintervals
+Date: Sun, 10 Mar 2013 18:04:41 +0400
+Message-Id: <1362924286-23995-2-git-send-email-volokh84@gmail.com>
+In-Reply-To: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
+References: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This iteration includes couple bug fixes and minor cleanup comparing
-to the original version (original cover letter can be found below).
-A patch adding ISP capture node has been removed as I'll need more
-time to enable this feature and I'd like to possibly have this series
-included in 3.10.
-                       -------
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/staging/media/go7007/go7007-v4l2.c |  123 ++++++++++++++++++++++++++++
+ 1 files changed, 123 insertions(+), 0 deletions(-)
 
-This patch series is an initial version of a driver for the camera ISP
-subsystem (FIMC-IS) found in Samsung Exynos4x12 SoCs.
-
-The FIMC-IS subsystem is build around a ARM Cortex-A5 CPU that controls
-its dedicated peripherals, like I2C, SPI, UART, PWM, ADC,...  and the
-ISP chain. There are 3 hardware image processing blocks: ISP, DRC
-(dynamic range compression) and FD (face detection) that are normally
-controlled by the Cortex-A5 firmware.
-
-The driver currently exposes two additional sub-devices to user space:
-the image sensor and FIMC-IS-ISP sub-device. Another one might be
-added in future for the FD features.
-
-The FIMC-IS has various data inputs, it can capture data from memory
-or from other SoC IP blocks (FIMC-LITE). It is currently plugged
-between FIMC-LITE and FIMC IP blocks, so there is a media pipeline
-like:
-
-sensor -> MIPI-CSIS -> FIMC-LITE -> FIMC-IS-ISP -> FIMC -> memory
-
-A raw Bayer image data can be captured from the ISP block which has
-it's own DMA engines. Support for this is not really included in
-this series though, only a video capture node driver stubs are added.
-
-This is a bit complicated code, nevertheless I would really appreciate
-any review comments you might have.
-
-And this is just a basic set of futures this patch series addresses.
-Others include input/output DMA support for the DRC and FD blocks,
-support for more ISP controls, etc.
-
-
-Full git tree with all dependencies can be found at:
-http://git.linuxtv.org/snawrocki/samsung.git/exynos4-fimc-is-v2
-
-Sylwester Nawrocki (7):
-  exynos4-is: Add Exynos4x12 FIMC-IS driver
-  exynos4-is: Add FIMC-IS ISP I2C bus driver
-  exynos4-is: Add FIMC-IS parameter region definitions
-  exynos4-is: Add common FIMC-IS image sensor driver
-  exynos4-is: Add Exynos4x12 FIMC-IS device tree bindings documentation
-  s5p-fimc: Add fimc-is subdevs registration
-  s5p-fimc: Create media links for the FIMC-IS entities
-
- .../devicetree/bindings/media/exynos4-fimc-is.txt  |   45 +
- drivers/media/platform/exynos4-is/Kconfig          |   13 +
- drivers/media/platform/exynos4-is/Makefile         |    3 +
- .../media/platform/exynos4-is/fimc-is-command.h    |  147 +++
- drivers/media/platform/exynos4-is/fimc-is-errno.c  |  272 ++++++
- drivers/media/platform/exynos4-is/fimc-is-errno.h  |  248 +++++
- drivers/media/platform/exynos4-is/fimc-is-i2c.c    |   81 ++
- drivers/media/platform/exynos4-is/fimc-is-i2c.h    |   15 +
- drivers/media/platform/exynos4-is/fimc-is-param.c  |  971 +++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-param.h  | 1022 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |  242 +++++
- drivers/media/platform/exynos4-is/fimc-is-regs.h   |  164 ++++
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  307 ++++++
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   80 ++
- drivers/media/platform/exynos4-is/fimc-is.c        |  962 ++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is.h        |  340 +++++++
- drivers/media/platform/exynos4-is/fimc-isp.c       |  707 ++++++++++++++
- drivers/media/platform/exynos4-is/fimc-isp.h       |  181 ++++
- drivers/media/platform/exynos4-is/media-dev.c      |  120 ++-
- drivers/media/platform/exynos4-is/media-dev.h      |   13 +
- 20 files changed, 5911 insertions(+), 22 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-command.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.h
-
---
-1.7.9.5
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 4ec9b84..96538f6 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -703,6 +703,129 @@ static int vidioc_enum_frameintervals(struct file *filp, void *priv,
+ {
+ 	struct go7007 *go = video_drvdata(filp);
+ 
++	if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
++		switch (fival->pixel_format) {
++		case V4L2_PIX_FMT_MJPEG:
++		case V4L2_PIX_FMT_MPEG:
++		case V4L2_PIX_FMT_H263:
++			switch (go->standard) {
++			case GO7007_STD_NTSC:
++				switch (fival->index) {
++				case 0:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*1;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 1:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*2;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 2:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*3;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 3:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*4;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 4:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*5;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 5:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*6;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 6:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*7;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 7:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*10;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 8:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*15;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 9:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*30;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				default:
++					return -EINVAL;
++				}
++				break;
++			case GO7007_STD_PAL:
++				switch (fival->index) {
++				case 0:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*1;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 1:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*2;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 2:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*3;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 3:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*4;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 4:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*5;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 5:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*6;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 6:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*8;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 7:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*13;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				case 8:
++					fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++					fival->discrete.numerator = 1001*25;
++					fival->discrete.denominator = go->sensor_framerate;
++					break;
++				default:
++					return -EINVAL;
++				}
++				break;
++			default:
++				return -EINVAL;
++			}
++			break;
++		default:
++			return -EINVAL;
++		}
++		return 0;
++	}
++
+ 	if (fival->index > 0)
+ 		return -EINVAL;
+ 
+-- 
+1.7.7.6
 
