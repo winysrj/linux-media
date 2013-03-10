@@ -1,123 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:33498 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756197Ab3CQNii (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 09:38:38 -0400
-MIME-Version: 1.0
-In-Reply-To: <1363506232-11517-1-git-send-email-silviupopescu1990@gmail.com>
-References: <1363506232-11517-1-git-send-email-silviupopescu1990@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 17 Mar 2013 19:08:16 +0530
-Message-ID: <CA+V-a8v0cPS_KcOrCHCBN5roqLDa49GH8TbGNSb+pEey-iEXEA@mail.gmail.com>
-Subject: Re: [PATCH] drivers: staging: davinci_vpfe: use resource_size()
-To: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-Cc: linux-media@vger.kernel.org, gregkh@linuxfoundation.org,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.kapsi.fi ([217.30.184.167]:53887 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752146Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Mar 2013 21:04:41 -0500
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [REVIEW PATCH 25/41] af9035: use already detected eeprom base addr
+Date: Sun, 10 Mar 2013 04:03:17 +0200
+Message-Id: <1362881013-5271-25-git-send-email-crope@iki.fi>
+In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+eeprom memory mapped base address is detected at the very first.
+Use it everywhere.
 
-Thanks for the patch!
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-On Sun, Mar 17, 2013 at 1:13 PM, Silviu-Mihai Popescu
-<silviupopescu1990@gmail.com> wrote:
-> This uses the resource_size() function instead of explicit computation.
->
-> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-> ---
->  drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |    3 ++-
->  drivers/staging/media/davinci_vpfe/dm365_isif.c    |    6 ++++--
->  drivers/staging/media/davinci_vpfe/dm365_resizer.c |    4 +++-
->  3 files changed, 9 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> index 9285353..de3f202 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-> @@ -27,6 +27,7 @@
->   */
->
->  #include <linux/slab.h>
-> +#include <linux/ioport.h>
->
->  #include "dm365_ipipe.h"
->  #include "dm365_ipipe_hw.h"
-> @@ -1859,5 +1860,5 @@ void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
->         iounmap(ipipe->isp5_base_addr);
->         res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
->         if (res)
-> -               release_mem_region(res->start, res->end - res->start + 1);
-> +               release_mem_region(res->start, resource_size(res));
->  }
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> index ebeea72..cd263d5 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-> @@ -19,6 +19,8 @@
->   *      Prabhakar Lad <prabhakar.lad@ti.com>
->   */
->
-> +#include <linux/ioport.h>
-> +
->  #include "dm365_isif.h"
->  #include "vpfe_mc_capture.h"
->
-> @@ -1953,7 +1955,7 @@ static void isif_remove(struct vpfe_isif_device *isif,
->                 res = platform_get_resource(pdev, IORESOURCE_MEM, i);
->                 if (res)
->                         release_mem_region(res->start,
-> -                                          res->end - res->start + 1);
-> +                                          resource_size(res));
->                 i++;
->         }
->  }
-> @@ -2003,7 +2005,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
->                         status = -ENOENT;
->                         goto fail_nobase_res;
->                 }
-> -               res_len = res->end - res->start + 1;
-> +               res_len = resource_size(res);
->                 res = request_mem_region(res->start, res_len, res->name);
->                 if (!res) {
->                         status = -EBUSY;
-> diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> index 9cb0262..c351ea1 100644
-> --- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> +++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-> @@ -24,6 +24,8 @@
->   * same input image, but can have different output resolution.
->   */
->
-> +#include <linux/ioport.h>
-> +
-did you build test this patch ? the above header file(ioport.h) is not
-required in all the
-above files which you included.
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 0399062..a29169f 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -606,18 +606,14 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 		if (ret < 0)
+ 			goto err;
+ 
+-		if (tmp) {
+-			addr = EEPROM_BASE_IT9135;
+-		} else {
++		if (tmp == 0x00) {
+ 			dev_dbg(&d->udev->dev, "%s: no eeprom\n", __func__);
+ 			goto skip_eeprom;
+ 		}
+-	} else {
+-		addr = EEPROM_BASE_AF9035;
+ 	}
+ 
+ 	/* check if there is dual tuners */
+-	ret = af9035_rd_reg(d, addr + EEPROM_DUAL_MODE, &tmp);
++	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_DUAL_MODE, &tmp);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -627,7 +623,9 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 
+ 	if (state->dual_mode) {
+ 		/* read 2nd demodulator I2C address */
+-		ret = af9035_rd_reg(d, addr + EEPROM_2ND_DEMOD_ADDR, &tmp);
++		ret = af9035_rd_reg(d,
++				state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR,
++				&tmp);
+ 		if (ret < 0)
+ 			goto err;
+ 
+@@ -636,6 +634,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
+ 				__func__, tmp);
+ 	}
+ 
++	addr = state->eeprom_addr;
++
+ 	for (i = 0; i < state->dual_mode + 1; i++) {
+ 		/* tuner */
+ 		ret = af9035_rd_reg(d, addr + EEPROM_1_TUNER_ID, &tmp);
+@@ -1258,7 +1258,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 	if (state->chip_type == 0x9135)
+ 		return 0;
+ 
+-	ret = af9035_rd_reg(d, EEPROM_BASE_AF9035 + EEPROM_IR_MODE, &tmp);
++	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_MODE, &tmp);
+ 	if (ret < 0)
+ 		goto err;
+ 
+@@ -1266,7 +1266,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
+ 
+ 	/* don't activate rc if in HID mode or if not available */
+ 	if (tmp == 5) {
+-		ret = af9035_rd_reg(d, EEPROM_BASE_AF9035 + EEPROM_IR_TYPE,
++		ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_TYPE,
+ 				&tmp);
+ 		if (ret < 0)
+ 			goto err;
+-- 
+1.7.11.7
 
-Cheers,
---Prabhakar Lad
-http://in.linkedin.com/pub/prabhakar-lad/19/92b/955
-
->  #include "dm365_ipipe_hw.h"
->  #include "dm365_resizer.h"
->
-> @@ -1995,5 +1997,5 @@ vpfe_resizer_cleanup(struct vpfe_resizer_device *vpfe_rsz,
->         res = platform_get_resource(pdev, IORESOURCE_MEM, 5);
->         if (res)
->                 release_mem_region(res->start,
-> -                                       res->end - res->start + 1);
-> +                                  resource_size(res));
->  }
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
