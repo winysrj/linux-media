@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:45602 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518Ab3CTKj7 (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:37419 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751487Ab3CJUgd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 06:39:59 -0400
+	Sun, 10 Mar 2013 16:36:33 -0400
+Message-ID: <513CEECC.8050903@gmail.com>
+Date: Sun, 10 Mar 2013 21:36:28 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201303201020.14654.arnd@arndb.de>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
- <201303191759.27762.arnd@arndb.de> <CAHkwnC-3_dDM3JO8y3yeNFz7=fpP=MtZ9D-3cMH8rNF9C1NZBA@mail.gmail.com>
- <201303201020.14654.arnd@arndb.de>
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Wed, 20 Mar 2013 11:39:38 +0100
-Message-ID: <CAHkwnC-8FH0nyJ+eT=+7doP+fSdZjNYUW4zzs_r6e9wt3Yt4Fg@mail.gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	H Hartley Sweeten <hartleys@visionengravers.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Grant Likely <grant.likely@secretlab.ca>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
+	shaik.samsung@gmail.com
+Subject: Re: [RFC 00/12] Adding media device driver for Exynos imaging subsystem
+References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 20, 2013 at 11:20 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 20 March 2013, Fabio Porcedda wrote:
->> I think we can check inside the  deferred_probe_work_func()
->> if the dev->probe function pointer is equal to platform_drv_probe_fail().
+On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
+> The following patchset features:
 >
-> I think it's too late by then, because that would only warn if we try to probe
-> it again, but when platform_driver_probe() does not succeed immediately, it
+> 1] Creating a common pipeline framework which can be used by all
+> Exynos series SoCs for developing media device drivers.
+> 2] Modified the existing fimc-mdevice for exynos4 to use the common
+> pipeline framework.
+> 3] Adding of media device driver for Exynos5 Imaging subsystem.
+> 4] Upgrading mipi-csis and fimc-lite drivers for Exynos5 SoCs.
+> 5] Adding DT support to m5mols driver and tested with Exynos5 media
+> device driver.
+>
+> Current changes are not tested on exynos4 series SoCs. Current media
+> device driver only support one pipeline (pipeline0) which consists of
+> 	Sensor -->  MIPI-CSIS -->  FIMC-LITE
+> 	Sensor -->  FIMC-LITE
 
-Maybe you mean "does succeed immediately" ?
+Thanks Shaik. My quick review to follow. I'll focus on most significant
+issues for now.
 
-> unregisters the driver again, so we never get there.
+And here is my updated patch series adding device tree support to
+s5p-fimc driver [1]. I hope it gets merged to v3.10 without significant
+changes. Sorry, for now we need to use that private branch.
 
---
-Fabio Porcedda
+[1] http://git.linuxtv.org/snawrocki/samsung.git/devicetree-fimc
+
+Regards,
+Sylwester
