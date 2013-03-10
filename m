@@ -1,66 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38906 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:9495 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753944Ab3CXPuA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 11:50:00 -0400
-Message-ID: <514F2078.7090807@iki.fi>
-Date: Sun, 24 Mar 2013 17:49:12 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 19/42] s2250-loader: use usbv2_cypress_load_firmware
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl> <400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com> <20130324123924.2451beb9@redhat.com>
-In-Reply-To: <20130324123924.2451beb9@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751361Ab3CJN6j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Mar 2013 09:58:39 -0400
+Date: Sun, 10 Mar 2013 10:58:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 2/2] bttv: fix audio mute on device close for the
+ radio device node
+Message-ID: <20130310105834.669a729a@redhat.com>
+In-Reply-To: <513C8F04.70809@googlemail.com>
+References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1362915635-5431-2-git-send-email-fschaefer.oss@googlemail.com>
+	<201303101259.42692.hverkuil@xs4all.nl>
+	<513C8F04.70809@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/24/2013 05:39 PM, Mauro Carvalho Chehab wrote:
-> Em Mon, 11 Mar 2013 12:45:57 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> The v2 of this function doesn't do DMA to objects on the stack like
->> its predecessor does.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>   drivers/staging/media/go7007/Makefile       |    4 ++--
->>   drivers/staging/media/go7007/s2250-loader.c |    7 ++++---
->>   2 files changed, 6 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
->> index 5bed78b..f9c8e0f 100644
->> --- a/drivers/staging/media/go7007/Makefile
->> +++ b/drivers/staging/media/go7007/Makefile
->> @@ -11,8 +11,8 @@ s2250-y := s2250-board.o
->>   #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
->>   #ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
->>
->> -# S2250 needs cypress ezusb loader from dvb-usb
->> -ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb
->> +# S2250 needs cypress ezusb loader from dvb-usb-v2
->> +ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
->
-> Please don't do it like that. Ok, for now it is in staging,
-> but once you move it outside it, please move the cypress load firmware
-> code to drivers/media/common, and do the proper changes for it to be
-> shared between go7007 and dvb-usb-v2.
+Em Sun, 10 Mar 2013 14:47:48 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-I agree with Mauro, you could move it to the common as it is nothing DVB 
-USB only related.
+> Am 10.03.2013 12:59, schrieb Hans Verkuil:
+> > On Sun March 10 2013 12:40:35 Frank Schäfer wrote:
+> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >> ---
+> >>  drivers/media/pci/bt8xx/bttv-driver.c |    5 ++++-
+> >>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+> >>
+> >> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> >> index 2c09bc5..74977f7 100644
+> >> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> >> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> >> @@ -3227,6 +3227,7 @@ static int radio_open(struct file *file)
+> >>  	v4l2_fh_init(&fh->fh, vdev);
+> >>  
+> >>  	btv->radio_user++;
+> >> +	audio_mute(btv, btv->mute);
+> >>  
+> >>  	v4l2_fh_add(&fh->fh);
+> >>  
+> >> @@ -3248,8 +3249,10 @@ static int radio_release(struct file *file)
+> >>  
+> >>  	bttv_call_all(btv, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
+> >>  
+> >> -	if (btv->radio_user == 0)
+> >> +	if (btv->radio_user == 0) {
+> >>  		btv->has_radio_tuner = 0;
+> >> +		audio_mute(btv, 1);
+> >> +	}
+> >>  	return 0;
+> >>  }
+> >>  
+> >>
+> > Sorry, but this isn't right.
+> >
+> > You should be able to just set the radio to a frequency and then exit. Since
+> > most cards have an audio out that loops to an audio input you don't want to
+> > have to keep the radio device open.
+> 
+> Ok, so I will drop this patch.
+> 
+> AFAICS the above said also applies to the video device part, so it's
+> still not clear to me why both devices should be handled differently.
+> Anyway, I will regard it as a kind of "tradition".
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+It is not tradition. Changing it would break userspace. For example, xawtv's
+"radio" program expects this behavior (see the "-q" and "-m" parameters).
 
-regards
-Antti
+A typical radio usage is to do:
 
+	$ radio -f 93.7 -q
 
--- 
-http://palosaari.fi/
+And when user is done listening to radio:
+
+	$ radio -m
+
+Of course, for the above to work, the user needs to have a board wired into
+the audio device, or with an speaker directly connected into it.
+
+Regards,
+Mauro
