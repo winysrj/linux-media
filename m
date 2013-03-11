@@ -1,135 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:51050 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550Ab3CZRh6 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4364 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754607Ab3CKVBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:37:58 -0400
-Received: by mail-bk0-f51.google.com with SMTP id y8so1239060bkt.38
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:56 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 3/5] em28xx: add support for em25xx/em276x/em277x/em278x frame data processing
-Date: Tue, 26 Mar 2013 18:38:38 +0100
-Message-Id: <1364319520-6628-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 11 Mar 2013 17:01:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 12/15] au0828: simplify i2c_gate_ctrl.
+Date: Mon, 11 Mar 2013 22:00:43 +0100
+Message-Id: <73e4d5617809d7ed66184533438acf61533af07f.1363035203.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The em25xx/em276x/em277x/em278x frame data format is different to the one used
-by the em2710/em2750/em28xx chips.
-With the recent cleanups and reorganization of the frame data processing code it
-can be easily extended to support these devices.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Turn it into a simple function.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |   74 ++++++++++++++++++++++++++++++-
- 1 Datei geändert, 73 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+ drivers/media/usb/au0828/au0828-video.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index b181723..ef1959b 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -76,6 +76,16 @@ MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
- MODULE_VERSION(EM28XX_VERSION);
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index a41e5ae..ac89b2c5 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -59,6 +59,12 @@ do {\
+ 	} \
+   } while (0)
  
-+
-+#define EM25XX_FRMDATAHDR_BYTE1			0x02
-+#define EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE	0x20
-+#define EM25XX_FRMDATAHDR_BYTE2_FRAME_END	0x02
-+#define EM25XX_FRMDATAHDR_BYTE2_FRAME_ID	0x01
-+#define EM25XX_FRMDATAHDR_BYTE2_MASK	(EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE | \
-+					 EM25XX_FRMDATAHDR_BYTE2_FRAME_END |   \
-+					 EM25XX_FRMDATAHDR_BYTE2_FRAME_ID)
-+
-+
- static unsigned int video_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
- static unsigned int vbi_nr[]   = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
- static unsigned int radio_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
-@@ -408,6 +418,62 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
- 		em28xx_copy_video(dev, buf, data_pkt, data_len);
- }
- 
-+/*
-+ * Process data packet according to the em25xx/em276x/7x/8x frame data format
-+ */
-+static inline void process_frame_data_em25xx(struct em28xx *dev,
-+					     unsigned char *data_pkt,
-+					     unsigned int  data_len)
++static inline void i2c_gate_ctrl(struct au0828_dev *dev, int val)
 +{
-+	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
-+	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
-+	bool frame_end = 0;
-+
-+	/* Check for header */
-+	/* NOTE: at least with bulk transfers, only the first packet
-+	 * has a header and has always set the FRAME_END bit         */
-+	if (data_len >= 2) {	/* em25xx header is only 2 bytes long */
-+		if ((data_pkt[0] == EM25XX_FRMDATAHDR_BYTE1) &&
-+		    ((data_pkt[1] & ~EM25XX_FRMDATAHDR_BYTE2_MASK) == 0x00)) {
-+			dev->top_field = !(data_pkt[1] &
-+					   EM25XX_FRMDATAHDR_BYTE2_FRAME_ID);
-+			frame_end = data_pkt[1] &
-+				    EM25XX_FRMDATAHDR_BYTE2_FRAME_END;
-+			data_pkt += 2;
-+			data_len -= 2;
-+		}
-+
-+		/* Finish field and prepare next (BULK only) */
-+		if (dev->analog_xfer_bulk && frame_end) {
-+			buf = finish_field_prepare_next(dev, buf, dmaq);
-+			dev->usb_ctl.vid_buf = buf;
-+		}
-+		/* NOTE: in ISOC mode when a new frame starts and buf==NULL,
-+		 * we COULD already prepare a buffer here to avoid skipping the
-+		 * first frame.
-+		 */
-+	}
-+
-+	/* Copy data */
-+	if (buf != NULL && data_len > 0)
-+		em28xx_copy_video(dev, buf, data_pkt, data_len);
-+
-+	/* Finish frame (ISOC only) => avoids lag of 1 frame */
-+	if (!dev->analog_xfer_bulk && frame_end) {
-+		buf = finish_field_prepare_next(dev, buf, dmaq);
-+		dev->usb_ctl.vid_buf = buf;
-+	}
-+
-+	/* NOTE: Tested with USB bulk transfers only !
-+	 * The wording in the datasheet suggests that isoc might work different.
-+	 * The current code assumes that with isoc transfers each packet has a
-+	 * header like with the other em28xx devices.
-+	 */
-+	/* NOTE: Support for interlaced mode is pure theory. It has not been
-+	 * tested and it is unknown if these devices actually support it. */
-+	/* NOTE: No VBI support yet (these chips likely do not support VBI). */
++	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
++		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, val);
 +}
 +
- /* Processes and copies the URB data content (video and VBI data) */
- static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ static inline void print_err_status(struct au0828_dev *dev,
+ 				    int packet, int status)
  {
-@@ -460,7 +526,13 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 			continue;
- 		}
+@@ -1320,8 +1326,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
  
--		process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
-+		if (dev->is_em25xx)
-+			process_frame_data_em25xx(dev,
-+						  usb_data_pkt, usb_data_len);
-+		else
-+			process_frame_data_em28xx(dev,
-+						  usb_data_pkt, usb_data_len);
-+
- 	}
- 	return 1;
- }
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 1);
++	i2c_gate_ctrl(dev, 1);
+ 
+ 	/* FIXME: when we support something other than NTSC, we are going to
+ 	   have to make the au0828 bridge adjust the size of its capture
+@@ -1330,8 +1335,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, *norm);
+ 	dev->std_set_in_tuner_core = 1;
+ 
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 0);
++	i2c_gate_ctrl(dev, 0);
+ 	dev->std = *norm;
+ 
+ 	return 0;
+@@ -1517,13 +1521,11 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 	if (t->index != 0)
+ 		return -EINVAL;
+ 
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 1);
++	i2c_gate_ctrl(dev, 1);
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+ 
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 0);
++	i2c_gate_ctrl(dev, 0);
+ 
+ 	dprintk(1, "VIDIOC_S_TUNER: signal = %x, afc = %x\n", t->signal,
+ 		t->afc);
+@@ -1553,8 +1555,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	if (freq->tuner != 0)
+ 		return -EINVAL;
+ 
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 1);
++	i2c_gate_ctrl(dev, 1);
+ 
+ 	if (dev->std_set_in_tuner_core == 0) {
+ 		/* If we've never sent the standard in tuner core, do so now.
+@@ -1570,8 +1571,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, freq);
+ 	dev->ctrl_freq = freq->frequency;
+ 
+-	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
+-		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 0);
++	i2c_gate_ctrl(dev, 0);
+ 
+ 	au0828_analog_stream_reset(dev);
+ 
 -- 
 1.7.10.4
 
