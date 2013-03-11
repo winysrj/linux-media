@@ -1,57 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f174.google.com ([209.85.128.174]:56257 "EHLO
-	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750794Ab3C0Uda (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2282 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754137Ab3CKLrC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 16:33:30 -0400
-Received: by mail-ve0-f174.google.com with SMTP id jz10so4532964veb.5
-        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 13:33:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz>
-References: <20121228102928.4103390e@redhat.com>
-	<CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com>
-	<63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de>
-	<CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
-	<alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz>
-	<CALW4P+L1QKe=1wNkr90LsZY89OFnGBKB2N6yVeDhnyab_rSsnA@mail.gmail.com>
-	<alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz>
-Date: Thu, 28 Mar 2013 00:33:29 +0400
-Message-ID: <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
-Subject: Re: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Dirk E. Wagner" <linux@wagner-budenheim.de>,
-	Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 11 Mar 2013 07:47:02 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 28/42] go7007: add log_status support.
+Date: Mon, 11 Mar 2013 12:46:06 +0100
+Message-Id: <5f728e5f0d938172330c4904636153eb1db01d9a.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 27, 2013 at 2:18 PM, Jiri Kosina <jkosina@suse.cz> wrote:
-> On Tue, 19 Mar 2013, Alexey Klimov wrote:
->
->> Yes, i just checked how hid_ignore() works and prepared dirty fix to
->> test in almost the same way like it's done for Keene usb driver. I
->> will send correct fix in next few days.
->
-> Any news on this, please?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi Jiri,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/go7007/go7007-v4l2.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-I'm very very sorry (was busy because of life). I just sent two
-patches to you, Mauro and two mail lists:
-[patch 1/2] hid: fix Masterkit MA901 hid quirks
-[patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
-doesn't match
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 186a56b..d3eef8d 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1188,6 +1188,14 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	return call_all(&go->v4l2_dev, tuner, s_frequency, f);
+ }
+ 
++static int vidioc_log_status(struct file *file, void *priv)
++{
++	struct go7007 *go = ((struct go7007_file *) priv)->go;
++
++	v4l2_ctrl_log_status(file, priv);
++	return call_all(&go->v4l2_dev, core, log_status);
++}
++
+ static int vidioc_cropcap(struct file *file, void *priv,
+ 					struct v4l2_cropcap *cropcap)
+ {
+@@ -1654,7 +1662,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_cropcap           = vidioc_cropcap,
+ 	.vidioc_g_crop            = vidioc_g_crop,
+ 	.vidioc_s_crop            = vidioc_s_crop,
+-	.vidioc_log_status        = v4l2_ctrl_log_status,
++	.vidioc_log_status        = vidioc_log_status,
+ 	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+-- 
+1.7.10.4
 
-Please check. First one for hid layer, so maybe you can take it
-directly through your tree. I hope it's not too late.
-I think Mauro will take second patch.
-
-I spend some time testing them trying to figure out right scenarios
-and i hope i did correct checks.
-It will be nice if someone can test patches because i don't have any
-devices with same USB IDs as radio-ma901.
-
-Thanks and best regards,
-Alexey.
