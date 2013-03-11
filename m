@@ -1,47 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:5538 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab3CUKTX (ORCPT
+Received: from mail-qe0-f52.google.com ([209.85.128.52]:46975 "EHLO
+	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab3CKGl5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 06:19:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: em28xx: commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke HVR 900
-Date: Thu, 21 Mar 2013 11:19:21 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201303210933.41537.hverkuil@xs4all.nl> <20130321070327.772c6301@redhat.com>
-In-Reply-To: <20130321070327.772c6301@redhat.com>
+	Mon, 11 Mar 2013 02:41:57 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303211119.21485.hverkuil@xs4all.nl>
+In-Reply-To: <513CEEDF.4010304@gmail.com>
+References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
+	<1362570838-4737-3-git-send-email-shaik.ameer@samsung.com>
+	<513CEEDF.4010304@gmail.com>
+Date: Mon, 11 Mar 2013 12:11:56 +0530
+Message-ID: <CAOD6ATpsXWjQ4xPywukBXfx7GaywK+7HvLDydsXrwQV4wZr5cw@mail.gmail.com>
+Subject: Re: [RFC 02/12] fimc-lite: Adding Exynos5 compatibility to fimc-lite driver
+From: Shaik Ameer Basha <shaik.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 21 March 2013 11:03:27 Mauro Carvalho Chehab wrote:
-> Em Thu, 21 Mar 2013 09:33:41 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > I tried to use my HVR 900 stick today and discovered that it no longer worked.
-> > I traced it to commit aab3125c43d8fecc7134e5f1e729fabf4dd196da: "em28xx: add
-> > support for registering multiple i2c buses".
-> > 
-> > The kernel messages for when it fails are:
-> ...
-> > Mar 21 09:26:57 telek kernel: [ 1396.542517] xc2028 12-0061: attaching existing instance
-> > Mar 21 09:26:57 telek kernel: [ 1396.542521] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
-> > Mar 21 09:26:57 telek kernel: [ 1396.542523] em2882/3 #0: em2882/3 #0/2: xc3028 attached
-> ...
-> > Mar 21 09:26:57 telek kernel: [ 1396.547833] xc2028 12-0061: Error on line 1293: -19
-> 
-> Probably, the I2C speed is wrong. I noticed a small bug on this patch.
-> The following patch should fix it. Could you please test?
-> 
-> 
+Hi Sylwester,
 
-I'll try to test this later today, otherwise it will be tomorrow.
+On Mon, Mar 11, 2013 at 2:06 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
+>>
+>> This patch adds the Exynos5 soc compatibility to the fimc-lite driver.
+>> It also adds a version checking to deal with the changes between
+>> different fimc-lite hardware versions.
+>
+>
+> Is there really anything different between the Exynos4 and Exynos5
+> FIMC-LITE IPs except the maximum number of buffer descriptors in
+> the output DMA queue ?
+>
+>
+>> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
+>> ---
+>>   drivers/media/platform/s5p-fimc/fimc-lite.c |   23
+>> +++++++++++++++++++++++
+>>   drivers/media/platform/s5p-fimc/fimc-lite.h |    7 ++++++-
+>>   2 files changed, 29 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> b/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> index 122cf95..eb64f87 100644
+>> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+>> @@ -1653,6 +1653,16 @@ static struct flite_variant
+>> fimc_lite0_variant_exynos4 = {
+>>         .out_width_align        = 8,
+>>         .win_hor_offs_align     = 2,
+>>         .out_hor_offs_align     = 8,
+>> +       .version                = FLITE_VER_EXYNOS4,
+>> +};
+>> +
+>> +static struct flite_variant fimc_lite0_variant_exynos5 = {
+>> +       .max_width              = 8192,
+>> +       .max_height             = 8192,
+>> +       .out_width_align        = 8,
+>> +       .win_hor_offs_align     = 2,
+>> +       .out_hor_offs_align     = 8,
+>
+>
+> Please see my comment to patch 03/12.
+>
+>
+>> +       .version                = FLITE_VER_EXYNOS5,
+>>   };
+>>
+>>   /* EXYNOS4212, EXYNOS4412 */
+>> @@ -1663,6 +1673,15 @@ static struct flite_drvdata
+>> fimc_lite_drvdata_exynos4 = {
+>>         },
+>>   };
+>>
+>> +/* EXYNOS5250 */
+>> +static struct flite_drvdata fimc_lite_drvdata_exynos5 = {
+>> +       .variant = {
+>> +               [0] =&fimc_lite0_variant_exynos5,
+>> +               [1] =&fimc_lite0_variant_exynos5,
+>> +               [2] =&fimc_lite0_variant_exynos5,
+>> +       },
+>> +};
+>> +
+>>   static struct platform_device_id fimc_lite_driver_ids[] = {
+>>         {
+>>                 .name           = "exynos-fimc-lite",
+>> @@ -1677,6 +1696,10 @@ static const struct of_device_id flite_of_match[] =
+>> {
+>>                 .compatible = "samsung,exynos4212-fimc-lite",
+>>                 .data =&fimc_lite_drvdata_exynos4,
+>>         },
+>> +       {
+>> +               .compatible = "samsung,exynos5250-fimc-lite",
+>> +               .data =&fimc_lite_drvdata_exynos5,
+>> +       },
+>>         { /* sentinel */ },
+>>   };
+>>   MODULE_DEVICE_TABLE(of, flite_of_match);
+>> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h
+>> b/drivers/media/platform/s5p-fimc/fimc-lite.h
+>> index 66d6eeb..ef43fe0 100644
+>> --- a/drivers/media/platform/s5p-fimc/fimc-lite.h
+>> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
+>> @@ -28,7 +28,7 @@
+>>
+>>   #define FIMC_LITE_DRV_NAME    "exynos-fimc-lite"
+>>   #define FLITE_CLK_NAME                "flite"
+>> -#define FIMC_LITE_MAX_DEVS     2
+>> +#define FIMC_LITE_MAX_DEVS     3
+>>   #define FLITE_REQ_BUFS_MIN    2
+>>
+>>   /* Bit index definitions for struct fimc_lite::state */
+>> @@ -49,12 +49,17 @@ enum {
+>>   #define FLITE_SD_PAD_SOURCE_ISP       2
+>>   #define FLITE_SD_PADS_NUM     3
+>>
+>> +#define FLITE_VER_EXYNOS4      0
+>> +#define FLITE_VER_EXYNOS5      1
+>
+>
+> I would prefer not using explicit version and rather put each
+> quirk in the driver data structure, so we can avoid those
+> multiple if (version == ...) checks all over in the code, should
+> more revision of this IP come in future SoCs.
+
+Ok. no issues. we can remove this version checking and maintain the
+differences in driver data structures.
 
 Regards,
-
-	Hans
+Shaik Ameer Basha
