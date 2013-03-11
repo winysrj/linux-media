@@ -1,45 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:50552 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab3CJUkH (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:58391 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754451Ab3CKTBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 16:40:07 -0400
-Message-ID: <513CEFA1.3030809@gmail.com>
-Date: Sun, 10 Mar 2013 21:40:01 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
-	shaik.samsung@gmail.com
-Subject: Re: [RFC 04/12] s5p-csis: Adding Exynos5250 compatibility
-References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com> <1362570838-4737-5-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1362570838-4737-5-git-send-email-shaik.ameer@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 11 Mar 2013 15:01:12 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 07/11] s5p-fimc: Ensure CAMCLK clock can be enabled by
+ FIMC-LITE devices
+Date: Mon, 11 Mar 2013 20:00:22 +0100
+Message-id: <1363028426-2771-8-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
+In configurations where FIMC-LITE is used to capture image signal
+from an external sensor only we need to ensure one of FIMC devices
+is in active power state and the "fimc" gate clock is enabled.
+Otherwise the CAMCLK clock output signal will be masked off
+preventing an external sensor's operation.
+This affect processing pipelines like:
 
-Please don't leave the change log empty. I'll apply this patch.
-I'm just wondering, if there aren't any further changes needed
-to make the driver really working on exynos5250 ?
+ - sensor -> FIMC-LITE -> memory
+ - sensor -> MIPI-CSIS -> FIMC-LITE -> memory
 
-> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
-> ---
->   drivers/media/platform/s5p-fimc/mipi-csis.c |    1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> index df4411c..debda7c 100644
-> --- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-> +++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-> @@ -1002,6 +1002,7 @@ static const struct dev_pm_ops s5pcsis_pm_ops = {
->   static const struct of_device_id s5pcsis_of_match[] __devinitconst = {
->   	{ .compatible = "samsung,exynos3110-csis" },
->   	{ .compatible = "samsung,exynos4210-csis" },
-> +	{ .compatible = "samsung,exynos5250-csis" },
->   	{ /* sentinel */ },
->   };
->   MODULE_DEVICE_TABLE(of, s5pcsis_of_match);
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   18 ++++++++++--------
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h |    2 ++
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index d26b7bf..c336ed1 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -464,7 +464,6 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+ {
+ 	struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
+ 	struct device_node *of_node = fmd->pdev->dev.of_node;
+-	struct fimc_dev *fd = NULL;
+ 	int num_clients = 0;
+ 	int ret, i;
+ 
+@@ -472,13 +471,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+ 	 * Runtime resume one of the FIMC entities to make sure
+ 	 * the sclk_cam clocks are not globally disabled.
+ 	 */
+-	for (i = 0; !fd && i < ARRAY_SIZE(fmd->fimc); i++)
+-		if (fmd->fimc[i])
+-			fd = fmd->fimc[i];
+-	if (!fd)
++	if (!fmd->pmf)
+ 		return -ENXIO;
+ 
+-	ret = pm_runtime_get_sync(&fd->pdev->dev);
++	ret = pm_runtime_get_sync(fmd->pmf);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -512,7 +508,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
+ 		}
+ 	}
+ 
+-	pm_runtime_put(&fd->pdev->dev);
++	pm_runtime_put(fmd->pmf);
+ 	return ret;
+ }
+ 
+@@ -557,6 +553,8 @@ static int register_fimc_entity(struct fimc_md *fmd, struct fimc_dev *fimc)
+ 
+ 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
+ 	if (!ret) {
++		if (!fmd->pmf && fimc->pdev)
++			fmd->pmf = &fimc->pdev->dev;
+ 		fmd->fimc[fimc->id] = fimc;
+ 		fimc->vid_cap.user_subdev_api = fmd->user_subdev_api;
+ 	} else {
+@@ -1048,7 +1046,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ 	struct fimc_camclk_info *camclk;
+ 	int ret = 0;
+ 
+-	if (WARN_ON(pdata->clk_id >= FIMC_MAX_CAMCLKS) || fmd == NULL)
++	if (WARN_ON(pdata->clk_id >= FIMC_MAX_CAMCLKS) || !fmd || !fmd->pmf)
+ 		return -EINVAL;
+ 
+ 	camclk = &fmd->camclk[pdata->clk_id];
+@@ -1064,6 +1062,9 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ 		if (camclk->use_count++ == 0) {
+ 			clk_set_rate(camclk->clock, pdata->clk_frequency);
+ 			camclk->frequency = pdata->clk_frequency;
++			ret = pm_runtime_get_sync(fmd->pmf);
++			if (ret < 0)
++				return ret;
+ 			ret = clk_enable(camclk->clock);
+ 			dbg("Enabled camclk %d: f: %lu", pdata->clk_id,
+ 			    clk_get_rate(camclk->clock));
+@@ -1076,6 +1077,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ 
+ 	if (--camclk->use_count == 0) {
+ 		clk_disable(camclk->clock);
++		pm_runtime_put(fmd->pmf);
+ 		dbg("Disabled camclk %d", pdata->clk_id);
+ 	}
+ 	return ret;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+index 91be5db..a827bf9 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+@@ -80,6 +80,7 @@ struct fimc_sensor_info {
+  * @num_sensors: actual number of registered sensors
+  * @camclk: external sensor clock information
+  * @fimc: array of registered fimc devices
++ * @pmf: handle to the CAMCLK clock control FIMC helper device
+  * @media_dev: top level media device
+  * @v4l2_dev: top level v4l2_device holding up the subdevs
+  * @pdev: platform device this media device is hooked up into
+@@ -97,6 +98,7 @@ struct fimc_md {
+ 	struct clk *wbclk[FIMC_MAX_WBCLKS];
+ 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
+ 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
++	struct device *pmf;
+ 	struct media_device media_dev;
+ 	struct v4l2_device v4l2_dev;
+ 	struct platform_device *pdev;
+-- 
+1.7.9.5
+
