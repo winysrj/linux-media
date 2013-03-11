@@ -1,107 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58880 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758094Ab3CNPSZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 11:18:25 -0400
-Date: Thu, 14 Mar 2013 12:18:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Kevin Baradon <kevin.baradon@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 2/2] media/rc/imon.c: avoid flooding syslog with
- "unknown keypress" when keypad is pressed
-Message-ID: <20130314121817.07fca24a@redhat.com>
-In-Reply-To: <1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
-References: <1361737170-4687-1-git-send-email-kevin.baradon@gmail.com>
-	<1361737170-4687-3-git-send-email-kevin.baradon@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4487 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab3CKLrR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 07:47:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: =?UTF-8?q?=5BREVIEW=20PATCH=2042/42=5D=20MAINTAINERS=3A=20add=20the=20go7007=20driver=2E?=
+Date: Mon, 11 Mar 2013 12:46:20 +0100
+Message-Id: <6f8851517f7495c0aefaca92cca74680c23dd97e.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 24 Feb 2013 21:19:30 +0100
-Kevin Baradon <kevin.baradon@gmail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> My 15c2:0036 device floods syslog when a keypad key is pressed:
-> 
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fef2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> Feb 18 19:00:57 homeserver kernel: imon 5-1:1.0: imon_incoming_packet: unknown keypress, code 0x100fff2
-> 
-> This patch lowers severity of this message when key appears to be coming from keypad.
-> 
-> Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
-> ---
->  drivers/media/rc/imon.c |   15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-> index a3e66a0..bca03d4 100644
-> --- a/drivers/media/rc/imon.c
-> +++ b/drivers/media/rc/imon.c
-> @@ -1499,7 +1499,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
->  	int i;
->  	u64 scancode;
->  	int press_type = 0;
-> -	int msec;
-> +	int msec, is_pad_key = 0;
->  	struct timeval t;
->  	static struct timeval prev_time = { 0, 0 };
->  	u8 ktype;
-> @@ -1562,6 +1562,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
->  	    ((len == 8) && (buf[0] & 0x40) &&
->  	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
->  		len = 8;
-> +		is_pad_key = 1;
->  		imon_pad_to_keys(ictx, buf);
->  	}
->  
-> @@ -1625,8 +1626,16 @@ static void struct imon_context *ictx,
->  
->  unknown_key:
->  	spin_unlock_irqrestore(&ictx->kc_lock, flags);
-> -	dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
-> -		 (long long)scancode);
-> +	/*
-> +	 * On some devices syslog is flooded with unknown keypresses when keypad
-> +	 * is pressed. Lower message severity in that case.
-> +	 */
-> +	if (!is_pad_key)
-> +		dev_info(dev, "%s: unknown keypress, code 0x%llx\n", __func__,
-> +			 (long long)scancode);
-> +	else
-> +		dev_dbg(dev, "%s: unknown keypad keypress, code 0x%llx\n",
-> +			__func__, (long long)scancode);
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Hmmm... this entire logic looks weird to me. IMO, the proper fix is to
-remove this code snippet from imon_incoming_packet():
+diff --git a/MAINTAINERS b/MAINTAINERS
+index ff2fcc9..5703edd 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7550,6 +7550,11 @@ M:	David Täht <d@teklibre.com>
+ S:	Odd Fixes
+ F:	drivers/staging/frontier/
+ 
++STAGING - GO7007 MPEG CODEC
++M:	Hans Verkuil <hans.verkuil@cisco.com>
++S:	Maintained
++F:	drivers/staging/media/go7007/
++
+ STAGING - INDUSTRIAL IO
+ M:	Jonathan Cameron <jic23@cam.ac.uk>
+ L:	linux-iio@vger.kernel.org
+-- 
+1.7.10.4
 
-	spin_lock_irqsave(&ictx->kc_lock, flags);
-	if (ictx->kc == KEY_UNKNOWN)
-		goto unknown_key;
-	spin_unlock_irqrestore(&ictx->kc_lock, flags);
-
-and similar logic from other parts of the code, and just let rc_keydown()
-to be handled for KEY_UNKNOWN.
-
-rc_keydown() actually produces two input events:
-	input_event(dev->input_dev, EV_MSC, MSC_SCAN, scancode);
-	input_event(dev, EV_KEY, code, !!value);
-
-(the last one, indirectly, by calling input_report_key)
-
-In this particular case, the fist event will allow userspace programs
-like "rc-keycode -t" to detect that an unknown scancode was produced,
-helping the user to properly fill the scancode table for a particular device.
-
-In the case of your remote, you'll likely will want to add support for those
-currently unknown scancodes.
-
-Those "unkonwn keypad keypress" type of messages are now obsolete, as users
-can get it anytime in userspace, using the appropriate tool (ir-keytable,
-with is part of v4l-utils).
-
-Regards,
-Mauro
