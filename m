@@ -1,128 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:41827 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754588Ab3C0Crw (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:57325 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754427Ab3CKTBC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 22:47:52 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: mchehab@redhat.com
-Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v8 6/9] v4l2: Add standard controls for FM receivers
-Date: Tue, 26 Mar 2013 19:47:23 -0700
-Message-Id: <1364352446-28572-7-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
+	Mon, 11 Mar 2013 15:01:02 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 04/11] s5p-fimc: Update graph traversal for entities with
+ multiple source pads
+Date: Mon, 11 Mar 2013 20:00:19 +0100
+Message-id: <1363028426-2771-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit introduces new class of standard controls
-V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
-pertaining to FM receiver chips. Also, two controls belonging to said
-class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
-V4L2_CID_RDS_RECEPTION.
+We cannot assume that the passed entity the fimc_pipeline_prepare()
+function is supposed to start the media graph traversal from will
+always have its sink pad at pad index 0. Find the starting media
+entity's sink pad by iterating over its all pads and checking the
+pad flags. This ensures proper handling of FIMC, FIMC-LITE and
+FIMC-IS-ISP subdevs that have more than one sink and one source pad.
 
-This patch is based on the code found in the patch by Manjunatha Halli [1]
-
-[1] http://lists-archives.com/linux-kernel/27641307-new-control-class-and-features-for-fm-rx.html
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
- include/uapi/linux/v4l2-controls.h   |   13 +++++++++++++
- 2 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 6b28b58..8b89fb8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Text",
- 		NULL
- 	};
--	static const char * const tune_preemphasis[] = {
--		"No Preemphasis",
-+	static const char * const tune_emphasis[] = {
-+		"None",
- 		"50 Microseconds",
- 		"75 Microseconds",
- 		NULL,
-@@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_SCENE_MODE:
- 		return scene_mode;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
--		return tune_preemphasis;
-+		return tune_emphasis;
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		return tune_emphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
- 		return flash_led_mode;
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-@@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
- 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index 19cd628..0a7c95b 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -47,7 +47,6 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 				  struct media_entity *me)
+ {
+-	struct media_pad *pad = &me->pads[0];
+ 	struct v4l2_subdev *sd;
+ 	int i;
  
-+	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-+	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-+	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
- 	default:
- 		return NULL;
+@@ -55,15 +54,21 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 		p->subdevs[i] = NULL;
+ 
+ 	while (1) {
+-		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+-			break;
++		struct media_pad *pad = NULL;
++
++		/* Find remote source pad */
++		for (i = 0; i < me->num_pads; i++) {
++			struct media_pad *spad = &me->pads[i];
++			if (!(spad->flags & MEDIA_PAD_FL_SINK))
++				continue;
++			pad = media_entity_remote_source(spad);
++			if (pad)
++				break;
++		}
+ 
+-		/* source pad */
+-		pad = media_entity_remote_source(pad);
+ 		if (pad == NULL ||
+ 		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			break;
+-
+ 		sd = media_entity_to_v4l2_subdev(pad->entity);
+ 
+ 		switch (sd->grp_id) {
+@@ -84,8 +89,9 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 			pr_warn("%s: Unknown subdev grp_id: %#x\n",
+ 				__func__, sd->grp_id);
+ 		}
+-		/* sink pad */
+-		pad = &sd->entity.pads[0];
++		me = &sd->entity;
++		if (me->num_pads == 1)
++			break;
  	}
-@@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
-+	case V4L2_CID_RDS_RECEPTION:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_TX_RGB_RANGE:
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 	case V4L2_CID_TEST_PATTERN:
-+	case V4L2_CID_TUNE_DEEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:
- 	case V4L2_CID_IMAGE_PROC_CLASS:
- 	case V4L2_CID_DV_CLASS:
-+	case V4L2_CID_FM_RX_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index dcd6374..3e985be 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -59,6 +59,7 @@
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
-+#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
+ }
  
- /* User-class control IDs */
- 
-@@ -825,4 +826,16 @@ enum v4l2_dv_rgb_range {
- #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
- #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
- 
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-+
-+#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
-+enum v4l2_deemphasis {
-+	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
-+	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
-+	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
-+};
-+
-+#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
-+
- #endif
 -- 
-1.7.10.4
+1.7.9.5
 
