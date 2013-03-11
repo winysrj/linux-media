@@ -1,107 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23982 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754142Ab3C2Mqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 08:46:42 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: [PATCH] [media] radio-si476x: vidioc_s* now uses a const parameter
-Date: Fri, 29 Mar 2013 09:46:37 -0300
-Message-Id: <1364561197-19719-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3922 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507Ab3CKVBE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 17:01:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 01/15] au8522_decoder: convert to the control framework.
+Date: Mon, 11 Mar 2013 22:00:32 +0100
+Message-Id: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vidioc_s_tuner, vidioc_s_frequency and vidioc_s_register now
-uses a constant argument. So, the driver reports warnings:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-	drivers/media/radio/radio-si476x.c:1196:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1196:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_tuner') [enabled by default]
-	drivers/media/radio/radio-si476x.c:1199:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1199:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_frequency') [enabled by default]
-	drivers/media/radio/radio-si476x.c:1209:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1209:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_register') [enabled by default]
-
-This is due to a (soft) merge conflict, as both this driver and the
-const patches were applied for the same Kernel version.
-
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/radio-si476x.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/media/dvb-frontends/au8522_decoder.c |  130 +++++++++-----------------
+ drivers/media/dvb-frontends/au8522_priv.h    |    6 +-
+ 2 files changed, 46 insertions(+), 90 deletions(-)
 
-diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
-index 0895a0c..9430c6a 100644
---- a/drivers/media/radio/radio-si476x.c
-+++ b/drivers/media/radio/radio-si476x.c
-@@ -472,7 +472,7 @@ static int si476x_radio_g_tuner(struct file *file, void *priv,
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 5243ba6..be2c802 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -229,15 +229,11 @@ static void setup_decoder_defaults(struct au8522_state *state, u8 input_mode)
+ 	/* Provide reasonable defaults for picture tuning values */
+ 	au8522_writereg(state, AU8522_TVDEC_SHARPNESSREG009H, 0x07);
+ 	au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH, 0xed);
+-	state->brightness = 0xed - 128;
+ 	au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH, 0x79);
+-	state->contrast = 0x79;
+ 	au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH, 0x80);
+ 	au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH, 0x80);
+-	state->saturation = 0x80;
+ 	au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH, 0x00);
+ 	au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH, 0x00);
+-	state->hue = 0x00;
+ 
+ 	/* Other decoder registers */
+ 	au8522_writereg(state, AU8522_TVDEC_INT_MASK_REG010H, 0x00);
+@@ -489,75 +485,32 @@ static void set_audio_input(struct au8522_state *state, int aud_input)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static int au8522_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct au8522_state *state = to_state(sd);
++	struct au8522_state *state =
++		container_of(ctrl->handler, struct au8522_state, hdl);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		state->brightness = ctrl->value;
+ 		au8522_writereg(state, AU8522_TVDEC_BRIGHTNESS_REG00AH,
+-				ctrl->value - 128);
++				ctrl->val - 128);
+ 		break;
+ 	case V4L2_CID_CONTRAST:
+-		state->contrast = ctrl->value;
+ 		au8522_writereg(state, AU8522_TVDEC_CONTRAST_REG00BH,
+-				ctrl->value);
++				ctrl->val);
+ 		break;
+ 	case V4L2_CID_SATURATION:
+-		state->saturation = ctrl->value;
+ 		au8522_writereg(state, AU8522_TVDEC_SATURATION_CB_REG00CH,
+-				ctrl->value);
++				ctrl->val);
+ 		au8522_writereg(state, AU8522_TVDEC_SATURATION_CR_REG00DH,
+-				ctrl->value);
++				ctrl->val);
+ 		break;
+ 	case V4L2_CID_HUE:
+-		state->hue = ctrl->value;
+ 		au8522_writereg(state, AU8522_TVDEC_HUE_H_REG00EH,
+-				ctrl->value >> 8);
++				ctrl->val >> 8);
+ 		au8522_writereg(state, AU8522_TVDEC_HUE_L_REG00FH,
+-				ctrl->value & 0xFF);
+-		break;
+-	case V4L2_CID_AUDIO_VOLUME:
+-	case V4L2_CID_AUDIO_BASS:
+-	case V4L2_CID_AUDIO_TREBLE:
+-	case V4L2_CID_AUDIO_BALANCE:
+-	case V4L2_CID_AUDIO_MUTE:
+-		/* Not yet implemented */
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+-static int au8522_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct au8522_state *state = to_state(sd);
+-
+-	/* Note that we are using values cached in the state structure instead
+-	   of reading the registers due to issues with i2c reads not working
+-	   properly/consistently yet on the HVR-950q */
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		ctrl->value = state->brightness;
+-		break;
+-	case V4L2_CID_CONTRAST:
+-		ctrl->value = state->contrast;
+-		break;
+-	case V4L2_CID_SATURATION:
+-		ctrl->value = state->saturation;
+-		break;
+-	case V4L2_CID_HUE:
+-		ctrl->value = state->hue;
++				ctrl->val & 0xFF);
+ 		break;
+-	case V4L2_CID_AUDIO_VOLUME:
+-	case V4L2_CID_AUDIO_BASS:
+-	case V4L2_CID_AUDIO_TREBLE:
+-	case V4L2_CID_AUDIO_BALANCE:
+-	case V4L2_CID_AUDIO_MUTE:
+-		/* Not yet supported */
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -616,26 +569,6 @@ static int au8522_s_stream(struct v4l2_subdev *sd, int enable)
+ 	return 0;
  }
  
- static int si476x_radio_s_tuner(struct file *file, void *priv,
--				struct v4l2_tuner *tuner)
-+				const struct v4l2_tuner *tuner)
+-static int au8522_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+-{
+-	switch (qc->id) {
+-	case V4L2_CID_CONTRAST:
+-		return v4l2_ctrl_query_fill(qc, 0, 255, 1,
+-					    AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
+-	case V4L2_CID_BRIGHTNESS:
+-		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 109);
+-	case V4L2_CID_SATURATION:
+-		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
+-	case V4L2_CID_HUE:
+-		return v4l2_ctrl_query_fill(qc, -32768, 32768, 1, 0);
+-	default:
+-		break;
+-	}
+-
+-	qc->type = 0;
+-	return -EINVAL;
+-}
+-
+ static int au8522_reset(struct v4l2_subdev *sd, u32 val)
  {
- 	struct si476x_radio *radio = video_drvdata(file);
- 
-@@ -699,15 +699,16 @@ static int si476x_radio_g_frequency(struct file *file, void *priv,
+ 	struct au8522_state *state = to_state(sd);
+@@ -712,20 +645,18 @@ static int au8522_g_chip_ident(struct v4l2_subdev *sd,
+ 	return v4l2_chip_ident_i2c_client(client, chip, state->id, state->rev);
  }
  
- static int si476x_radio_s_frequency(struct file *file, void *priv,
--				    struct v4l2_frequency *f)
-+				    const struct v4l2_frequency *f)
+-static int au8522_log_status(struct v4l2_subdev *sd)
+-{
+-	/* FIXME: Add some status info here */
+-	return 0;
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_subdev_core_ops au8522_core_ops = {
+-	.log_status = au8522_log_status,
++	.log_status = v4l2_ctrl_subdev_log_status,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
+ 	.g_chip_ident = au8522_g_chip_ident,
+-	.g_ctrl = au8522_g_ctrl,
+-	.s_ctrl = au8522_s_ctrl,
+-	.queryctrl = au8522_queryctrl,
+ 	.reset = au8522_reset,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = au8522_g_register,
+@@ -753,12 +684,17 @@ static const struct v4l2_subdev_ops au8522_ops = {
+ 	.video = &au8522_video_ops,
+ };
+ 
++static const struct v4l2_ctrl_ops au8522_ctrl_ops = {
++	.s_ctrl = au8522_s_ctrl,
++};
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static int au8522_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
  {
- 	int err;
-+	u32 freq = f->frequency;
- 	struct si476x_tune_freq_args args;
- 	struct si476x_radio *radio = video_drvdata(file);
+ 	struct au8522_state *state;
++	struct v4l2_ctrl_handler *hdl;
+ 	struct v4l2_subdev *sd;
+ 	int instance;
+ 	struct au8522_config *demod_config;
+@@ -799,6 +735,27 @@ static int au8522_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &au8522_ops);
  
- 	const u32 midrange = (si476x_bands[SI476X_BAND_AM].rangehigh +
- 			      si476x_bands[SI476X_BAND_FM].rangelow) / 2;
--	const int band = (f->frequency > midrange) ?
-+	const int band = (freq > midrange) ?
- 		SI476X_BAND_FM : SI476X_BAND_AM;
- 	const enum si476x_func func = (band == SI476X_BAND_AM) ?
- 		SI476X_FUNC_AM_RECEIVER : SI476X_FUNC_FM_RECEIVER;
-@@ -718,11 +719,11 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
- 
- 	si476x_core_lock(radio->core);
- 
--	f->frequency = clamp(f->frequency,
--			     si476x_bands[band].rangelow,
--			     si476x_bands[band].rangehigh);
-+	freq = clamp(freq,
-+		     si476x_bands[band].rangelow,
-+		     si476x_bands[band].rangehigh);
- 
--	if (si476x_radio_freq_is_inside_of_the_band(f->frequency,
-+	if (si476x_radio_freq_is_inside_of_the_band(freq,
- 						    SI476X_BAND_AM) &&
- 	    (!si476x_core_has_am(radio->core) ||
- 	     si476x_core_is_a_secondary_tuner(radio->core))) {
-@@ -737,8 +738,7 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
- 	args.zifsr		= false;
- 	args.hd			= false;
- 	args.injside		= SI476X_INJSIDE_AUTO;
--	args.freq		= v4l2_to_si476x(radio->core,
--						 f->frequency);
-+	args.freq		= v4l2_to_si476x(radio->core, freq);
- 	args.tunemode		= SI476X_TM_VALIDATED_NORMAL_TUNE;
- 	args.smoothmetrics	= SI476X_SM_INITIALIZE_AUDIO;
- 	args.antcap		= 0;
-@@ -1046,7 +1046,7 @@ static int si476x_radio_g_register(struct file *file, void *fh,
- 	return err;
++	hdl = &state->hdl;
++	v4l2_ctrl_handler_init(hdl, 4);
++	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0, 255, 1, 109);
++	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
++			V4L2_CID_CONTRAST, 0, 255, 1,
++			AU8522_TVDEC_CONTRAST_REG00BH_CVBS);
++	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
++			V4L2_CID_SATURATION, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(hdl, &au8522_ctrl_ops,
++			V4L2_CID_HUE, -32768, 32767, 1, 0);
++	sd->ctrl_handler = hdl;
++	if (hdl->error) {
++		int err = hdl->error;
++
++		v4l2_ctrl_handler_free(hdl);
++		kfree(demod_config);
++		kfree(state);
++		return err;
++	}
++
+ 	state->c = client;
+ 	state->vid_input = AU8522_COMPOSITE_CH1;
+ 	state->aud_input = AU8522_AUDIO_NONE;
+@@ -815,6 +772,7 @@ static int au8522_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	au8522_release_state(to_state(sd));
+ 	return 0;
  }
- static int si476x_radio_s_register(struct file *file, void *fh,
--				   struct v4l2_dbg_register *reg)
-+				   const struct v4l2_dbg_register *reg)
- {
+diff --git a/drivers/media/dvb-frontends/au8522_priv.h b/drivers/media/dvb-frontends/au8522_priv.h
+index 0529699..aa0f16d 100644
+--- a/drivers/media/dvb-frontends/au8522_priv.h
++++ b/drivers/media/dvb-frontends/au8522_priv.h
+@@ -29,6 +29,7 @@
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ #include <linux/i2c.h>
+ #include "dvb_frontend.h"
+ #include "au8522.h"
+@@ -65,10 +66,7 @@ struct au8522_state {
+ 	int aud_input;
+ 	u32 id;
+ 	u32 rev;
+-	u8 brightness;
+-	u8 contrast;
+-	u8 saturation;
+-	s16 hue;
++	struct v4l2_ctrl_handler hdl;
+ };
  
- 	int err;
+ /* These are routines shared by both the VSB/QAM demodulator and the analog
 -- 
-1.8.1.4
+1.7.10.4
 
