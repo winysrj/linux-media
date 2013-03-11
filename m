@@ -1,44 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3727 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608Ab3CBXp6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:43993 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754463Ab3CKTBZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 15:01:25 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 20/20] solo6x10: also stop DMA if the SOLO_PCI_ERR_P2M_DESC is raised.
-Date: Sun,  3 Mar 2013 00:45:36 +0100
-Message-Id: <7cbef81c5bd2ac97a064ba7a77e7cea2f490d977.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 11/11] V4L: Add MATRIX option to V4L2_CID_EXPOSURE_METERING
+ control
+Date: Mon, 11 Mar 2013 20:00:26 +0100
+Message-id: <1363028426-2771-12-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds a menu option to the V4L2_CID_EXPOSURE_METERING
+control for multi-zone metering.
 
-Otherwise the computer will hang.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/staging/media/solo6x10/disp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/controls.xml |    9 ++++++++-
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    1 +
+ include/uapi/linux/v4l2-controls.h           |    1 +
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/solo6x10/disp.c b/drivers/staging/media/solo6x10/disp.c
-index b91a6e2..224aa46 100644
---- a/drivers/staging/media/solo6x10/disp.c
-+++ b/drivers/staging/media/solo6x10/disp.c
-@@ -149,7 +149,7 @@ static int solo_dma_vin_region(struct solo_dev *solo_dev, u32 off,
- 	int ret = 0;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 7fe5be1..0484a7d 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3159,6 +3159,13 @@ giving priority to the center of the metered area.</entry>
+ 		  <entry><constant>V4L2_EXPOSURE_METERING_SPOT</constant>&nbsp;</entry>
+ 		  <entry>Measure only very small area at the center of the frame.</entry>
+ 		</row>
++		<row>
++		  <entry><constant>V4L2_EXPOSURE_METERING_MATRIX</constant>&nbsp;</entry>
++		  <entry>A multi-zone metering. The light intensity is measured
++in several points of the frame and the the results are combined. The
++algorithm of the zones selection and their significance in calculating the
++final value is device dependant.</entry>
++		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
+@@ -3986,7 +3993,7 @@ interface and may change in the future.</para>
  
- 	for (i = 0; i < sizeof(buf) >> 1; i++)
--		buf[i] = val;
-+		buf[i] = cpu_to_le16(val);
+           <table pgwide="1" frame="none" id="flash-control-id">
+           <title>Flash Control IDs</title>
+-    
++
+           <tgroup cols="4">
+     	<colspec colname="c1" colwidth="1*" />
+     	<colspec colname="c2" colwidth="6*" />
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 4b45d49..6b56d7b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -234,6 +234,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Average",
+ 		"Center Weighted",
+ 		"Spot",
++		"Matrix",
+ 		NULL
+ 	};
+ 	static const char * const camera_auto_focus_range[] = {
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index f56c945..22556a2 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -642,6 +642,7 @@ enum v4l2_exposure_metering {
+ 	V4L2_EXPOSURE_METERING_AVERAGE		= 0,
+ 	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED	= 1,
+ 	V4L2_EXPOSURE_METERING_SPOT		= 2,
++	V4L2_EXPOSURE_METERING_MATRIX		= 3,
+ };
  
- 	for (i = 0; i < reg_size; i += sizeof(buf))
- 		ret |= solo_p2m_dma(solo_dev, SOLO_P2M_DMA_ID_VIN, 1, buf,
+ #define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
 -- 
-1.7.10.4
+1.7.9.5
 
