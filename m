@@ -1,108 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:60226 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932687Ab3CRAFM (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:57315 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310Ab3CKTAz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 20:05:12 -0400
-Date: Sun, 17 Mar 2013 21:05:08 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 0/8] Add a driver for somagic smi2021
-Message-ID: <20130318000507.GA2456@localhost>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <20130315120856.GA2989@localhost>
- <20130317200158.GB17291@dell.arpanet.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130317200158.GB17291@dell.arpanet.local>
+	Mon, 11 Mar 2013 15:00:55 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 02/11] s5p-fimc: Add parent clock setup
+Date: Mon, 11 Mar 2013 20:00:17 +0100
+Message-id: <1363028426-2771-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+With this patch the driver will set "parent" clock as a parent
+clock of "mux" clock. When the samsung clocks driver is reworked
+to use new composite clock type, the "mux" clock can be removed.
 
-On Sun, Mar 17, 2013 at 09:01:58PM +0100, Jon Arne Jørgensen wrote:
-> On Fri, Mar 15, 2013 at 09:08:58AM -0300, Ezequiel Garcia wrote:
-> > On Thu, Mar 14, 2013 at 03:06:56PM +0100, Jon Arne Jørgensen wrote:
-> > > This patch-set will add a driver for the Somagic SMI2021 chip.
-> > > 
-> > > This chip is found inside different usb video-capture devices.
-> > > Most of them are branded as EasyCap, but there also seems to be
-> > > some other brands selling devices with this chip.
-> > > 
-> > > This driver is split into two modules, where one is called smi2021-bootloader,
-> > > and the other is just called smi2021.
-> > > 
-> > > The bootloader is responsible for the upload of a firmware that is needed by some
-> > > versions of the devices.
-> > > 
-> > > All Somagic devices that need firmware seems to identify themselves
-> > > with the usb product id 0x0007. There is no way for the kernel to know
-> > > what firmware to upload to the device without user interaction.
-> > > 
-> > > If there is only one firmware present on the computer, the kernel
-> > > will upload that firmware to any device that identifies as 0x0007.
-> > > If there are multiple Somagic firmwares present, the user will have to pass
-> > > a module parameter to the smi2021-bootloader module to tell what firmware to use.
-> > > 
-> > 
-> > Nice job!
-> >
-> Thanks :)
->  
-> > I have some minor comments on each patch, but also I don't agree
-> > with the patch splitting: what's the point in splitting and sending
-> > one patch per file?
-> > 
-> > It doesn't make it any easier to review, so why don't you just
-> > send one patch: "Introduce smi2021 driver"?
-> > 
-> > The rule is one patch per change, and I believe this whole patchset
-> > is just one change: adding a new driver.
-> > 
-> 
-> I think I read another patch to this mailinglist, where someone was told
-> to split his patch into one mail per file, but I can't find that thread
-> now :)
-> 
-> I will send the next version as a single mail, and see what happens...
-> 
+"parent" clock should be set in related dtsi file and can be
+overwritten in a board dts file. This way it is ensured the
+SCLK_FIMC clock has correct parent clock set, and the parent
+clock can be selected per each board if required.
 
-As you will soon realize, the patch preparation is equally important as the
-patch content itself. Often, it takes the same time to implement or
-fix something, as it takes to prepare the patchset carefully.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-core.c |   63 ++++++++++++++++++---------
+ drivers/media/platform/s5p-fimc/fimc-core.h |    6 ++-
+ 2 files changed, 46 insertions(+), 23 deletions(-)
 
-When deciding how to prepare your patches you have to keep two main things in mind:
-
-  * The kernel build can never be broken, in any configuration and in any
-    point of the kernel history (in other words, by any patch of a patchset).
-    This is called 'keep the bisectability' because it's essential
-    to make 'git bisect' work properly.
-
-  * Do as much as possible to facilitate reviews from other people.
-    This is also important because patches tend to be accepted quicker
-    if they recieve attention (reviews, testing, etc.).
-
-In this particular case, I think that the easier way to review is to be
-able to see the complete driver in a single patch. Of course, I can be
-wrong, so feel free to correct me.
-
-Please note that the reviews I made where almost nitpicks, and the
-driver looks good in general. I cannot provide any testing for lack of hardware.
-
-Also, for your next patch, add the output of v4l2-compliance tool,
-showing it passes all the tests. This shows your driver is in good shape.
-Get v4l2-compliancefrom the git repo, as distribution often provide
-an outdated version.
-
-(And another thing, please fix your mail client: the reply-to is pointing
-to '20130315120856.GA2989@localhost.arpanet.local'.)
-
-Thanks for your work and best regards,
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
+index d7fe332..c968e80 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.c
++++ b/drivers/media/platform/s5p-fimc/fimc-core.c
+@@ -33,8 +33,8 @@
+ #include "fimc-reg.h"
+ #include "fimc-mdevice.h"
+ 
+-static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
+-	"sclk_fimc", "fimc"
++static char *fimc_clocks[CLK_FIMC_MAX] = {
++	"sclk_fimc", "fimc", "mux", "parent"
+ };
+ 
+ static struct fimc_fmt fimc_formats[] = {
+@@ -787,10 +787,10 @@ struct fimc_fmt *fimc_find_format(const u32 *pixelformat, const u32 *mbus_code,
+ 	return def_fmt;
+ }
+ 
+-static void fimc_clk_put(struct fimc_dev *fimc)
++static void fimc_put_clocks(struct fimc_dev *fimc)
+ {
+ 	int i;
+-	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
++	for (i = 0; i < CLK_FIMC_MAX; i++) {
+ 		if (IS_ERR(fimc->clock[i]))
+ 			continue;
+ 		clk_unprepare(fimc->clock[i]);
+@@ -799,15 +799,21 @@ static void fimc_clk_put(struct fimc_dev *fimc)
+ 	}
+ }
+ 
+-static int fimc_clk_get(struct fimc_dev *fimc)
++static int fimc_get_clocks(struct fimc_dev *fimc)
+ {
++	struct device *dev = &fimc->pdev->dev;
++	unsigned int num_clocks = CLK_FIMC_MAX;
+ 	int i, ret;
+ 
+-	for (i = 0; i < MAX_FIMC_CLOCKS; i++)
++	/* Skip parent and mux clocks for non-dt platforms */
++	if (!dev->of_node)
++		num_clocks -= 2;
++
++	for (i = 0; i < CLK_FIMC_MAX; i++)
+ 		fimc->clock[i] = ERR_PTR(-EINVAL);
+ 
+-	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+-		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
++	for (i = 0; i < num_clocks; i++) {
++		fimc->clock[i] = clk_get(dev, fimc_clocks[i]);
+ 		if (IS_ERR(fimc->clock[i])) {
+ 			ret = PTR_ERR(fimc->clock[i]);
+ 			goto err;
+@@ -821,12 +827,32 @@ static int fimc_clk_get(struct fimc_dev *fimc)
+ 	}
+ 	return 0;
+ err:
+-	fimc_clk_put(fimc);
+-	dev_err(&fimc->pdev->dev, "failed to get clock: %s\n",
+-		fimc_clocks[i]);
++	fimc_put_clocks(fimc);
++	dev_err(dev, "failed to get clock: %s\n", fimc_clocks[i]);
+ 	return -ENXIO;
+ }
+ 
++static int fimc_setup_clocks(struct fimc_dev *fimc, unsigned long freq)
++{
++	int ret;
++
++	if (!IS_ERR(fimc->clock[CLK_PARENT])) {
++		ret = clk_set_parent(fimc->clock[CLK_MUX],
++				     fimc->clock[CLK_PARENT]);
++		if (ret < 0) {
++			dev_err(&fimc->pdev->dev,
++				"%s(): failed to set parent: %d\n",
++				__func__, ret);
++			return ret;
++		}
++	}
++	ret = clk_set_rate(fimc->clock[CLK_BUS], freq);
++	if (ret < 0)
++		return ret;
++
++	return clk_enable(fimc->clock[CLK_BUS]);
++}
++
+ static int fimc_m2m_suspend(struct fimc_dev *fimc)
+ {
+ 	unsigned long flags;
+@@ -968,18 +994,13 @@ static int fimc_probe(struct platform_device *pdev)
+ 		return -ENXIO;
+ 	}
+ 
+-	ret = fimc_clk_get(fimc);
+-	if (ret)
++	ret = fimc_get_clocks(fimc);
++	if (ret < 0)
+ 		return ret;
+-
+ 	if (lclk_freq == 0)
+ 		lclk_freq = fimc->drv_data->lclk_frequency;
+ 
+-	ret = clk_set_rate(fimc->clock[CLK_BUS], lclk_freq);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = clk_enable(fimc->clock[CLK_BUS]);
++	ret = fimc_setup_clocks(fimc, lclk_freq);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -1016,7 +1037,7 @@ err_sd:
+ 	fimc_unregister_capture_subdev(fimc);
+ err_clk:
+ 	clk_disable(fimc->clock[CLK_BUS]);
+-	fimc_clk_put(fimc);
++	fimc_put_clocks(fimc);
+ 	return ret;
+ }
+ 
+@@ -1103,7 +1124,7 @@ static int fimc_remove(struct platform_device *pdev)
+ 	vb2_dma_contig_cleanup_ctx(fimc->alloc_ctx);
+ 
+ 	clk_disable(fimc->clock[CLK_BUS]);
+-	fimc_clk_put(fimc);
++	fimc_put_clocks(fimc);
+ 
+ 	dev_info(&pdev->dev, "driver unloaded\n");
+ 	return 0;
+diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
+index 58b674e..67e3201 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-core.h
++++ b/drivers/media/platform/s5p-fimc/fimc-core.h
+@@ -32,7 +32,6 @@
+ 
+ /* Time to wait for next frame VSYNC interrupt while stopping operation. */
+ #define FIMC_SHUTDOWN_TIMEOUT	((100*HZ)/1000)
+-#define MAX_FIMC_CLOCKS		2
+ #define FIMC_MODULE_NAME	"s5p-fimc"
+ #define FIMC_MAX_DEVS		4
+ #define FIMC_MAX_OUT_BUFS	4
+@@ -51,6 +50,9 @@
+ enum {
+ 	CLK_BUS,
+ 	CLK_GATE,
++	CLK_MUX,
++	CLK_PARENT,
++	CLK_FIMC_MAX,
+ };
+ 
+ enum fimc_dev_flags {
+@@ -446,7 +448,7 @@ struct fimc_dev {
+ 	const struct fimc_variant	*variant;
+ 	const struct fimc_drvdata	*drv_data;
+ 	u16				id;
+-	struct clk			*clock[MAX_FIMC_CLOCKS];
++	struct clk			*clock[CLK_FIMC_MAX];
+ 	void __iomem			*regs;
+ 	wait_queue_head_t		irq_queue;
+ 	struct v4l2_device		*v4l2_dev;
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.7.9.5
+
