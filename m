@@ -1,356 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:59940 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab3C1Ei7 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2451 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754603Ab3CKVBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 00:38:59 -0400
-From: Simon Horman <horms@verge.net.au>
-To: David Miller <davem@davemloft.net>
-Cc: Simon Horman <horms@verge.net.au>, Jesse Gross <jesse@nicira.com>,
-	Karsten Keil <isdn@linux-pingi.de>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Johannes Berg <johannes@sipsolutions.net>,
-	Bart De Schuymer <bart.de.schuymer@pandora.be>,
-	Stephen Hemminger <stephen@networkplumber.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Gustavo Padovan <gustavo@padovan.org>,
-	Johan Hedberg <johan.hedberg@gmail.com>,
-	linux-bluetooth@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	bridge@lists.linux-foundation.org, linux-wireless@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, dev@openvswitch.org
-Subject: [PATCH v2] net: add ETH_P_802_3_MIN
-Date: Thu, 28 Mar 2013 13:38:25 +0900
-Message-Id: <1364445505-9745-1-git-send-email-horms@verge.net.au>
+	Mon, 11 Mar 2013 17:01:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 15/15] au0828: improve firmware loading & locking.
+Date: Mon, 11 Mar 2013 22:00:46 +0100
+Message-Id: <d0b1a102aa80aafd657c9855baff05f2b6fa0aa0.1363035203.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
-an 802.3 frame. Frames with a lower value in the ethernet type field
-are Ethernet II.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Also update all the users of this value that David Miller and
-I could find to use the new constant.
+- open/close/read and poll need to take the core lock as well.
+- when the tuner goes to sleep we should set std_set_in_tuner_core
+  to 0 since the tuner loses the firmware at that time.
+- initialize the tuner if std_set_in_tuner_core == 0 whenever:
+  1) g/s_tuner, s_std or s_frequency is called
+  2) read or poll is called
+  3) streamon is called
 
-Also correct a bug in util.c. The comparison with ETH_P_802_3_MIN
-should be >= not >.
-
-As suggested by Jesse Gross.
-
-Compile tested only.
-
-Cc: David Miller <davem@davemloft.net>
-Cc: Jesse Gross <jesse@nicira.com>
-Cc: Karsten Keil <isdn@linux-pingi.de>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: Bart De Schuymer <bart.de.schuymer@pandora.be>
-Cc: Stephen Hemminger <stephen@networkplumber.org>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: Johan Hedberg <johan.hedberg@gmail.com>
-Cc: linux-bluetooth@vger.kernel.org
-Cc: netfilter-devel@vger.kernel.org
-Cc: bridge@lists.linux-foundation.org
-Cc: linux-wireless@vger.kernel.org
-Cc: linux1394-devel@lists.sourceforge.net
-Cc: linux-media@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Cc: dev@openvswitch.org
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Signed-off-by: Simon Horman <horms@verge.net.au>
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/usb/au0828/au0828-video.c |   66 ++++++++++++++++++++++++-------
+ 1 file changed, 52 insertions(+), 14 deletions(-)
 
-v2
-* Make updates to the following files as suggested by David Miller
-  - drivers/media/dvb-core/dvb_net.c
-  - drivers/net/wireless/ray_cs.c
-  - net/bridge/netfilter/ebtables.c
-  - include/linux/if_vlan.h
-  - net/bluetooth/bnep/netdev.c
-  - net/openvswitch/flow.c
-  - net/mac80211/tx.c
-  - net/wireless/util.c
----
- drivers/firewire/net.c           |    2 +-
- drivers/isdn/i4l/isdn_net.c      |    2 +-
- drivers/media/dvb-core/dvb_net.c |   10 +++++-----
- drivers/net/ethernet/sun/niu.c   |    2 +-
- drivers/net/plip/plip.c          |    2 +-
- drivers/net/wireless/ray_cs.c    |    2 +-
- include/linux/if_vlan.h          |    2 +-
- include/uapi/linux/if_ether.h    |    3 +++
- net/atm/lec.h                    |    2 +-
- net/bluetooth/bnep/netdev.c      |    2 +-
- net/bridge/netfilter/ebtables.c  |    2 +-
- net/ethernet/eth.c               |    2 +-
- net/mac80211/tx.c                |    2 +-
- net/openvswitch/datapath.c       |    2 +-
- net/openvswitch/flow.c           |    6 +++---
- net/wireless/util.c              |    2 +-
- 16 files changed, 24 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
-index 5679633..4d56536 100644
---- a/drivers/firewire/net.c
-+++ b/drivers/firewire/net.c
-@@ -547,7 +547,7 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
- 			if (memcmp(eth->h_dest, net->dev_addr, net->addr_len))
- 				skb->pkt_type = PACKET_OTHERHOST;
- 		}
--		if (ntohs(eth->h_proto) >= 1536) {
-+		if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN) {
- 			protocol = eth->h_proto;
- 		} else {
- 			rawp = (u16 *)skb->data;
-diff --git a/drivers/isdn/i4l/isdn_net.c b/drivers/isdn/i4l/isdn_net.c
-index babc621..88d657d 100644
---- a/drivers/isdn/i4l/isdn_net.c
-+++ b/drivers/isdn/i4l/isdn_net.c
-@@ -1385,7 +1385,7 @@ isdn_net_type_trans(struct sk_buff *skb, struct net_device *dev)
- 		if (memcmp(eth->h_dest, dev->dev_addr, ETH_ALEN))
- 			skb->pkt_type = PACKET_OTHERHOST;
- 	}
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index cc1e861..1aee330 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -998,11 +998,17 @@ static int au0828_v4l2_open(struct file *filp)
+ 	v4l2_fh_init(&fh->fh, vdev);
+ 	filp->private_data = fh;
  
- 	rawp = skb->data;
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index 44225b1..83a23af 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -185,7 +185,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
- 			skb->pkt_type=PACKET_MULTICAST;
+-	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE && dev->users == 0) {
++	if (mutex_lock_interruptible(&dev->lock)) {
++		kfree(fh);
++		return -ERESTARTSYS;
++	}
++	if (dev->users == 0) {
+ 		/* set au0828 interface0 to AS5 here again */
+ 		ret = usb_set_interface(dev->usbdev, 0, 5);
+ 		if (ret < 0) {
++			mutex_unlock(&dev->lock);
+ 			printk(KERN_INFO "Au0828 can't set alternate to 5!\n");
++			kfree(fh);
+ 			return -EBUSY;
+ 		}
+ 
+@@ -1017,6 +1023,7 @@ static int au0828_v4l2_open(struct file *filp)
  	}
  
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
+ 	dev->users++;
++	mutex_unlock(&dev->lock);
  
- 	rawp = skb->data;
-@@ -228,9 +228,9 @@ static int ule_test_sndu( struct dvb_net_priv *p )
- static int ule_bridged_sndu( struct dvb_net_priv *p )
- {
- 	struct ethhdr *hdr = (struct ethhdr*) p->ule_next_hdr;
--	if(ntohs(hdr->h_proto) < 1536) {
-+	if(ntohs(hdr->h_proto) < ETH_P_802_3_MIN) {
- 		int framelen = p->ule_sndu_len - ((p->ule_next_hdr+sizeof(struct ethhdr)) - p->ule_skb->data);
--		/* A frame Type < 1536 for a bridged frame, introduces a LLC Length field. */
-+		/* A frame Type < ETH_P_802_3_MIN for a bridged frame, introduces a LLC Length field. */
- 		if(framelen != ntohs(hdr->h_proto)) {
- 			return -1;
- 		}
-@@ -320,7 +320,7 @@ static int handle_ule_extensions( struct dvb_net_priv *p )
- 			(int) p->ule_sndu_type, l, total_ext_len);
- #endif
+ 	videobuf_queue_vmalloc_init(&fh->vb_vidq, &au0828_video_qops,
+ 				    NULL, &dev->slock,
+@@ -1044,6 +1051,7 @@ static int au0828_v4l2_close(struct file *filp)
  
--	} while (p->ule_sndu_type < 1536);
-+	} while (p->ule_sndu_type < ETH_P_802_3_MIN);
+ 	v4l2_fh_del(&fh->fh);
+ 	v4l2_fh_exit(&fh->fh);
++	mutex_lock(&dev->lock);
+ 	if (res_check(fh, AU0828_RESOURCE_VIDEO)) {
+ 		/* Cancel timeout thread in case they didn't call streamoff */
+ 		dev->vid_timeout_running = 0;
+@@ -1069,6 +1077,7 @@ static int au0828_v4l2_close(struct file *filp)
  
- 	return total_ext_len;
+ 		/* Save some power by putting tuner to sleep */
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
++		dev->std_set_in_tuner_core = 0;
+ 
+ 		/* When close the device, set the usb intf0 into alt0 to free
+ 		   USB bandwidth */
+@@ -1076,6 +1085,7 @@ static int au0828_v4l2_close(struct file *filp)
+ 		if (ret < 0)
+ 			printk(KERN_INFO "Au0828 can't set alternate to 0!\n");
+ 	}
++	mutex_unlock(&dev->lock);
+ 
+ 	videobuf_mmap_free(&fh->vb_vidq);
+ 	videobuf_mmap_free(&fh->vb_vbiq);
+@@ -1085,6 +1095,26 @@ static int au0828_v4l2_close(struct file *filp)
+ 	return 0;
  }
-@@ -712,7 +712,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
- 				}
  
- 				/* Handle ULE Extension Headers. */
--				if (priv->ule_sndu_type < 1536) {
-+				if (priv->ule_sndu_type < ETH_P_802_3_MIN) {
- 					/* There is an extension header.  Handle it accordingly. */
- 					int l = handle_ule_extensions(priv);
- 					if (l < 0) {
-diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/niu.c
-index e4c1c88..95cff98 100644
---- a/drivers/net/ethernet/sun/niu.c
-+++ b/drivers/net/ethernet/sun/niu.c
-@@ -6618,7 +6618,7 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
- 	       (len << TXHDR_LEN_SHIFT) |
- 	       ((l3off / 2) << TXHDR_L3START_SHIFT) |
- 	       (ihl << TXHDR_IHL_SHIFT) |
--	       ((eth_proto_inner < 1536) ? TXHDR_LLC : 0) |
-+	       ((eth_proto_inner < ETH_P_802_3_MIN) ? TXHDR_LLC : 0) |
- 	       ((eth_proto == ETH_P_8021Q) ? TXHDR_VLAN : 0) |
- 	       (ipv6 ? TXHDR_IP_VER : 0) |
- 	       csum_bits);
-diff --git a/drivers/net/plip/plip.c b/drivers/net/plip/plip.c
-index bed62d9..1f7bef9 100644
---- a/drivers/net/plip/plip.c
-+++ b/drivers/net/plip/plip.c
-@@ -560,7 +560,7 @@ static __be16 plip_type_trans(struct sk_buff *skb, struct net_device *dev)
- 	 *	so don't forget to remove it.
- 	 */
- 
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
- 
- 	rawp = skb->data;
-diff --git a/drivers/net/wireless/ray_cs.c b/drivers/net/wireless/ray_cs.c
-index 4775b5d..ebada81 100644
---- a/drivers/net/wireless/ray_cs.c
-+++ b/drivers/net/wireless/ray_cs.c
-@@ -953,7 +953,7 @@ static int translate_frame(ray_dev_t *local, struct tx_msg __iomem *ptx,
- 			   unsigned char *data, int len)
- {
- 	__be16 proto = ((struct ethhdr *)data)->h_proto;
--	if (ntohs(proto) >= 1536) { /* DIX II ethernet frame */
-+	if (ntohs(proto) >= ETH_P_802_3_MIN) { /* DIX II ethernet frame */
- 		pr_debug("ray_cs translate_frame DIX II\n");
- 		/* Copy LLC header to card buffer */
- 		memcpy_toio(&ptx->var, eth2_llc, sizeof(eth2_llc));
-diff --git a/include/linux/if_vlan.h b/include/linux/if_vlan.h
-index 218a3b6..70962f3 100644
---- a/include/linux/if_vlan.h
-+++ b/include/linux/if_vlan.h
-@@ -339,7 +339,7 @@ static inline void vlan_set_encap_proto(struct sk_buff *skb,
- 	 */
- 
- 	proto = vhdr->h_vlan_encapsulated_proto;
--	if (ntohs(proto) >= 1536) {
-+	if (ntohs(proto) >= ETH_P_802_3_MIN) {
- 		skb->protocol = proto;
- 		return;
- 	}
-diff --git a/include/uapi/linux/if_ether.h b/include/uapi/linux/if_ether.h
-index 798032d..ade07f1 100644
---- a/include/uapi/linux/if_ether.h
-+++ b/include/uapi/linux/if_ether.h
-@@ -94,6 +94,9 @@
- #define ETH_P_EDSA	0xDADA		/* Ethertype DSA [ NOT AN OFFICIALLY REGISTERED ID ] */
- #define ETH_P_AF_IUCV   0xFBFB		/* IBM af_iucv [ NOT AN OFFICIALLY REGISTERED ID ] */
- 
-+#define ETH_P_802_3_MIN	0x0600		/* If the value in the ethernet type is less than this value
-+					 * then the frame is Ethernet II. Else it is 802.3 */
++/* Must be called with dev->lock held */
++static void au0828_init_tuner(struct au0828_dev *dev)
++{
++	struct v4l2_frequency f = {
++		.frequency = dev->ctrl_freq,
++		.type = V4L2_TUNER_ANALOG_TV,
++	};
 +
- /*
-  *	Non DIX types. Won't clash for 1500 types.
-  */
-diff --git a/net/atm/lec.h b/net/atm/lec.h
-index a86aff9..4149db1 100644
---- a/net/atm/lec.h
-+++ b/net/atm/lec.h
-@@ -58,7 +58,7 @@ struct lane2_ops {
-  *    field in h_type field. Data follows immediately after header.
-  * 2. LLC Data frames whose total length, including LLC field and data,
-  *    but not padding required to meet the minimum data frame length,
-- *    is less than 1536(0x0600) MUST be encoded by placing that length
-+ *    is less than ETH_P_802_3_MIN MUST be encoded by placing that length
-  *    in the h_type field. The LLC field follows header immediately.
-  * 3. LLC data frames longer than this maximum MUST be encoded by placing
-  *    the value 0 in the h_type field.
-diff --git a/net/bluetooth/bnep/netdev.c b/net/bluetooth/bnep/netdev.c
-index e58c8b3..4b488ec 100644
---- a/net/bluetooth/bnep/netdev.c
-+++ b/net/bluetooth/bnep/netdev.c
-@@ -136,7 +136,7 @@ static u16 bnep_net_eth_proto(struct sk_buff *skb)
- 	struct ethhdr *eh = (void *) skb->data;
- 	u16 proto = ntohs(eh->h_proto);
++	if (dev->std_set_in_tuner_core)
++		return;
++	dev->std_set_in_tuner_core = 1;
++	i2c_gate_ctrl(dev, 1);
++	/* If we've never sent the standard in tuner core, do so now.
++	   We don't do this at device probe because we don't want to
++	   incur the cost of a firmware load */
++	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->std);
++	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, &f);
++	i2c_gate_ctrl(dev, 0);
++}
++
+ static ssize_t au0828_v4l2_read(struct file *filp, char __user *buf,
+ 				size_t count, loff_t *pos)
+ {
+@@ -1096,6 +1126,11 @@ static ssize_t au0828_v4l2_read(struct file *filp, char __user *buf,
+ 	if (rc < 0)
+ 		return rc;
  
--	if (proto >= 1536)
-+	if (proto >= ETH_P_802_3_MIN)
- 		return proto;
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
++	au0828_init_tuner(dev);
++	mutex_unlock(&dev->lock);
++
+ 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		if (res_locked(dev, AU0828_RESOURCE_VIDEO))
+ 			return -EBUSY;
+@@ -1136,6 +1171,11 @@ static unsigned int au0828_v4l2_poll(struct file *filp, poll_table *wait)
+ 	if (!(req_events & (POLLIN | POLLRDNORM)))
+ 		return res;
  
- 	if (get_unaligned((__be16 *) skb->data) == htons(0xFFFF))
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 8d493c9..3d110c4 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -138,7 +138,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct sk_buff *skb,
- 		ethproto = h->h_proto;
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
++	au0828_init_tuner(dev);
++	mutex_unlock(&dev->lock);
++
+ 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		if (!res_get(fh, AU0828_RESOURCE_VIDEO))
+ 			return POLLERR;
+@@ -1319,6 +1359,10 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
  
- 	if (e->bitmask & EBT_802_3) {
--		if (FWINV2(ntohs(ethproto) >= 1536, EBT_IPROTO))
-+		if (FWINV2(ntohs(ethproto) >= ETH_P_802_3_MIN, EBT_IPROTO))
- 			return 1;
- 	} else if (!(e->bitmask & EBT_NOPROTO) &&
- 	   FWINV2(e->ethproto != ethproto, EBT_IPROTO))
-diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
-index a36c85ea..5359560 100644
---- a/net/ethernet/eth.c
-+++ b/net/ethernet/eth.c
-@@ -195,7 +195,7 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
- 	if (netdev_uses_trailer_tags(dev))
- 		return htons(ETH_P_TRAILER);
++	dev->std = *norm;
++
++	au0828_init_tuner(dev);
++
+ 	i2c_gate_ctrl(dev, 1);
  
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		return eth->h_proto;
+ 	/* FIXME: when we support something other than NTSC, we are going to
+@@ -1326,10 +1370,8 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *norm)
+ 	   buffer, which is currently hardcoded at 720x480 */
  
- 	/*
-diff --git a/net/mac80211/tx.c b/net/mac80211/tx.c
-index 8914d2d..4e8a861 100644
---- a/net/mac80211/tx.c
-+++ b/net/mac80211/tx.c
-@@ -2085,7 +2085,7 @@ netdev_tx_t ieee80211_subif_start_xmit(struct sk_buff *skb,
- 		encaps_data = bridge_tunnel_header;
- 		encaps_len = sizeof(bridge_tunnel_header);
- 		skip_header_bytes -= 2;
--	} else if (ethertype >= 0x600) {
-+	} else if (ethertype >= ETH_P_802_3_MIN) {
- 		encaps_data = rfc1042_header;
- 		encaps_len = sizeof(rfc1042_header);
- 		skip_header_bytes -= 2;
-diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
-index d61cd99..8759265 100644
---- a/net/openvswitch/datapath.c
-+++ b/net/openvswitch/datapath.c
-@@ -681,7 +681,7 @@ static int ovs_packet_cmd_execute(struct sk_buff *skb, struct genl_info *info)
- 	/* Normally, setting the skb 'protocol' field would be handled by a
- 	 * call to eth_type_trans(), but it assumes there's a sending
- 	 * device, which we may not have. */
--	if (ntohs(eth->h_proto) >= 1536)
-+	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
- 		packet->protocol = eth->h_proto;
- 	else
- 		packet->protocol = htons(ETH_P_802_2);
-diff --git a/net/openvswitch/flow.c b/net/openvswitch/flow.c
-index fe0e421..3324868 100644
---- a/net/openvswitch/flow.c
-+++ b/net/openvswitch/flow.c
-@@ -466,7 +466,7 @@ static __be16 parse_ethertype(struct sk_buff *skb)
- 	proto = *(__be16 *) skb->data;
- 	__skb_pull(skb, sizeof(__be16));
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, *norm);
+-	dev->std_set_in_tuner_core = 1;
  
--	if (ntohs(proto) >= 1536)
-+	if (ntohs(proto) >= ETH_P_802_3_MIN)
- 		return proto;
+ 	i2c_gate_ctrl(dev, 0);
+-	dev->std = *norm;
  
- 	if (skb->len < sizeof(struct llc_snap_hdr))
-@@ -483,7 +483,7 @@ static __be16 parse_ethertype(struct sk_buff *skb)
+ 	return 0;
+ }
+@@ -1506,7 +1548,11 @@ static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
+ 		return -EINVAL;
  
- 	__skb_pull(skb, sizeof(struct llc_snap_hdr));
+ 	strcpy(t->name, "Auvitek tuner");
++
++	au0828_init_tuner(dev);
++	i2c_gate_ctrl(dev, 1);
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_tuner, t);
++	i2c_gate_ctrl(dev, 0);
+ 	return 0;
+ }
  
--	if (ntohs(llc->ethertype) >= 1536)
-+	if (ntohs(llc->ethertype) >= ETH_P_802_3_MIN)
- 		return llc->ethertype;
+@@ -1519,10 +1565,9 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ 	if (t->index != 0)
+ 		return -EINVAL;
  
- 	return htons(ETH_P_802_2);
-@@ -1038,7 +1038,7 @@ int ovs_flow_from_nlattrs(struct sw_flow_key *swkey, int *key_lenp,
++	au0828_init_tuner(dev);
+ 	i2c_gate_ctrl(dev, 1);
+-
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_tuner, t);
+-
+ 	i2c_gate_ctrl(dev, 0);
  
- 	if (attrs & (1 << OVS_KEY_ATTR_ETHERTYPE)) {
- 		swkey->eth.type = nla_get_be16(a[OVS_KEY_ATTR_ETHERTYPE]);
--		if (ntohs(swkey->eth.type) < 1536)
-+		if (ntohs(swkey->eth.type) < ETH_P_802_3_MIN)
- 			return -EINVAL;
- 		attrs &= ~(1 << OVS_KEY_ATTR_ETHERTYPE);
- 	} else {
-diff --git a/net/wireless/util.c b/net/wireless/util.c
-index 37a56ee..6cbac99 100644
---- a/net/wireless/util.c
-+++ b/net/wireless/util.c
-@@ -511,7 +511,7 @@ int ieee80211_data_from_8023(struct sk_buff *skb, const u8 *addr,
- 		encaps_data = bridge_tunnel_header;
- 		encaps_len = sizeof(bridge_tunnel_header);
- 		skip_header_bytes -= 2;
--	} else if (ethertype > 0x600) {
-+	} else if (ethertype >= ETH_P_802_3_MIN) {
- 		encaps_data = rfc1042_header;
- 		encaps_len = sizeof(rfc1042_header);
- 		skip_header_bytes -= 2;
+ 	dprintk(1, "VIDIOC_S_TUNER: signal = %x, afc = %x\n", t->signal,
+@@ -1553,17 +1598,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	if (freq->tuner != 0)
+ 		return -EINVAL;
+ 
++	au0828_init_tuner(dev);
+ 	i2c_gate_ctrl(dev, 1);
+ 
+-	if (dev->std_set_in_tuner_core == 0) {
+-		/* If we've never sent the standard in tuner core, do so now.
+-		   We don't do this at device probe because we don't want to
+-		   incur the cost of a firmware load */
+-		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std,
+-				     dev->vdev->tvnorms);
+-		dev->std_set_in_tuner_core = 1;
+-	}
+-
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, freq);
+ 	/* Get the actual set (and possibly clamped) frequency */
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, freq);
+@@ -1662,6 +1699,7 @@ static int vidioc_streamon(struct file *file, void *priv,
+ 	if (unlikely(!res_get(fh, get_ressource(fh))))
+ 		return -EBUSY;
+ 
++	au0828_init_tuner(dev);
+ 	if (type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+ 		au0828_analog_stream_enable(dev);
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 1);
 -- 
 1.7.10.4
 
