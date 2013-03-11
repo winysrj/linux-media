@@ -1,67 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:65186 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674Ab3CPGrE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Mar 2013 02:47:04 -0400
-Date: Sat, 16 Mar 2013 07:46:51 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 3/5] v4l2: pass std by value to the write-only
- s_std ioctl.
-In-Reply-To: <968af7abdc8503e5bb59869b2e9a3d9b2b453563.1363342714.git.hans.verkuil@cisco.com>
-Message-ID: <Pine.LNX.4.64.1303160745420.12165@axis700.grange>
-References: <1363343245-23531-1-git-send-email-hverkuil@xs4all.nl>
- <968af7abdc8503e5bb59869b2e9a3d9b2b453563.1363342714.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp206.alice.it ([82.57.200.102]:51634 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752994Ab3CKWt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 18:49:59 -0400
+Date: Mon, 11 Mar 2013 23:49:45 +0100
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] m920x: silence compiler warning
+Message-Id: <20130311234945.8c33a51a5fd74b8386a71faf@studenti.unina.it>
+In-Reply-To: <1363022710-27886-1-git-send-email-crope@iki.fi>
+References: <1363022710-27886-1-git-send-email-crope@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+On Mon, 11 Mar 2013 19:25:10 +0200
+Antti Palosaari <crope@iki.fi> wrote:
 
-On Fri, 15 Mar 2013, Hans Verkuil wrote:
+> drivers/media/usb/dvb-usb/m920x.c: In function ‘m920x_probe’:
+> drivers/media/usb/dvb-usb/m920x.c:91:6: warning: ‘ret’ may be used uninitialized in this function [-Wuninitialized]
+> drivers/media/usb/dvb-usb/m920x.c:70:6: note: ‘ret’ was declared here
+> 
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ioctl is defined as IOW, so pass the argument by value instead of by
-> reference. I could have chosen to add const instead, but this is 1) easier
-> to handle in drivers and 2) consistent with the s_std subdev operation.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Antonio Ospite <ospite@studenti.unina.it>
+
+And thanks.
+
+BTW Antti, there was another patch for this warning:
+http://thread.gmane.org/gmane.linux.kernel/1450717
+but your change is easier to validate.
+
 > ---
+>  drivers/media/usb/dvb-usb/m920x.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+> index 92afeb2..f5e4654 100644
+> --- a/drivers/media/usb/dvb-usb/m920x.c
+> +++ b/drivers/media/usb/dvb-usb/m920x.c
+> @@ -67,7 +67,7 @@ static inline int m920x_write(struct usb_device *udev, u8 request,
+>  static inline int m920x_write_seq(struct usb_device *udev, u8 request,
+>  				  struct m920x_inits *seq)
+>  {
+> -	int ret;
+> +	int ret = 0;
+>  	while (seq->address) {
+>  		ret = m920x_write(udev, request, seq->data, seq->address);
+>  		if (ret != 0)
+> -- 
+> 1.7.11.7
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-[snip]
 
->  drivers/media/platform/sh_vou.c                 |   12 ++++++------
->  drivers/media/platform/soc_camera/soc_camera.c  |    4 ++--
+-- 
+Antonio Ospite
+http://ao2.it
 
-For the above two:
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
