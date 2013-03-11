@@ -1,67 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55842 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752224Ab3CJCEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:44 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 39/41] af9035: check I/O errors on IR polling
-Date: Sun, 10 Mar 2013 04:03:31 +0200
-Message-Id: <1362881013-5271-39-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:33878 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab3CKRzm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 13:55:42 -0400
+Message-ID: <a6da9ec89bbf3e28549a4a25efe3f166.squirrel@www.codeaurora.org>
+In-Reply-To: <3fe50e59b4f7baeda879f4f7b2e5cc1a.squirrel@www.codeaurora.org>
+References: <3fe50e59b4f7baeda879f4f7b2e5cc1a.squirrel@www.codeaurora.org>
+Date: Mon, 11 Mar 2013 10:55:37 -0700
+Subject: Re: Custom device names for v4l2 devices
+From: vkalia@codeaurora.org
+Cc: linux-media@vger.kernel.org, vrajesh@codeaurora.org,
+	laurent.pinchart@ideasonboard.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use more careful error checks.
+Please suggest.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+Thanks
+Vinay
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index ecec69d..a1ae5c5 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -98,6 +98,10 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d, struct usb_req *req)
- 
- 	/* check status */
- 	if (buf[2]) {
-+		/* fw returns status 1 when IR code was not received */
-+		if (req->cmd == CMD_IR_GET || buf[2] == 1)
-+			return 1;
-+
- 		dev_dbg(&d->udev->dev, "%s: command=%02x failed fw error=%d\n",
- 				__func__, req->cmd, buf[2]);
- 		ret = -EIO;
-@@ -1223,7 +1227,9 @@ static int af9035_rc_query(struct dvb_usb_device *d)
- 	struct usb_req req = { CMD_IR_GET, 0, 0, NULL, 4, b };
- 
- 	ret = af9035_ctrl_msg(d, &req);
--	if (ret < 0)
-+	if (ret == 1)
-+		return 0;
-+	else if (ret < 0)
- 		goto err;
- 
- 	if ((b[2] + b[3]) == 0xff) {
-@@ -1240,9 +1246,12 @@ static int af9035_rc_query(struct dvb_usb_device *d)
- 
- 	rc_keydown(d->rc_dev, key, 0);
- 
--err:
--	/* ignore errors */
- 	return 0;
-+
-+err:
-+	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-+
-+	return ret;
- }
- 
- static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
--- 
-1.7.11.7
+> Hi
+>
+> Names of V4L2 device nodes keep on varying depending on target, on some
+> targets, the device node assigned to my device is /dev/video21 and on some
+> it is /dev/video15. In order to determine my device, i am opening it,
+> reading the capabilities, enumerating its formats and then chose the one
+> matching my requirements. This is impacting start-up latency. One way to
+> resolve this without impacting start-up latency is to give custom name to
+> my V4L2 device node (/dev/custom_name instead of /dev/video21). This needs
+> following change in V4L2 framework. Please review this patch. If you have
+> faced similar problem please let me know.
+>
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -676,7 +676,8 @@ int __video_register_device(struct video_device *vdev,
+> int type, int nr,
+>  	vdev->dev.devt = MKDEV(VIDEO_MAJOR, vdev->minor);
+>  	if (vdev->parent)
+>  		vdev->dev.parent = vdev->parent;
+> -	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+> +	if (!dev_name(&vdev->dev))
+> +		dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+>  	ret = device_register(&vdev->dev);
+>  	if (ret < 0) {
+>  		printk(KERN_ERR "%s: device_register failed\n", __func__);
+>
+>
+> Thanks
+> Vinay
+>
+
 
