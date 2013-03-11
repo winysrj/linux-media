@@ -1,96 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2024 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753699Ab3CNG5Q (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3646 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3CKLqn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 02:57:16 -0400
+	Mon, 11 Mar 2013 07:46:43 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Benjamin Schindler <beschindler@gmail.com>
-Subject: Re: msp3400 problem in linux-3.7.0
-Date: Thu, 14 Mar 2013 07:57:10 +0100
-Cc: linux-media@vger.kernel.org
-References: <51410709.5040805@gmail.com>
-In-Reply-To: <51410709.5040805@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303140757.10555.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 05/42] saa7115: improve querystd handling for the saa7115.
+Date: Mon, 11 Mar 2013 12:45:43 +0100
+Message-Id: <dfc8b4b4926bd343cd08f81ba64a42325c748470.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu March 14 2013 00:08:57 Benjamin Schindler wrote:
-> Hi
-> 
-> I recently upgraded from 3.2 to 3.7 and noticed, that I don't get any 
-> sound anymore from my TV-card. tvtime still works fine, just with no 
-> sound. As you can see from the snippet below, I have a hauppage WinTV 
-> card which uses msp3400 for sound
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes, the bttv driver broke around that time and nobody noticed for a long
-time :-(
+The saa7115 has better PAL/NTSC detection, so it can detect PAL even
+though the chip is currently set up for NTSC.
 
-You can try to build the latest code using these instructions:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/saa7115.c |   56 +++++++++++++++++++++----------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index f249b20..d301442 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1360,6 +1360,34 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	 */
+ 
+ 	reg1f = saa711x_read(sd, R_1F_STATUS_BYTE_2_VD_DEC);
++
++	if (state->ident == V4L2_IDENT_SAA7115) {
++		reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
++
++		v4l2_dbg(1, debug, sd, "Status byte 1 (0x1e)=0x%02x\n", reg1e);
++
++		switch (reg1e & 0x03) {
++		case 1:
++			*std &= V4L2_STD_NTSC;
++			break;
++		case 2:
++			/*
++			 * V4L2_STD_PAL just cover the european PAL standards.
++			 * This is wrong, as the device could also be using an
++			 * other PAL standard.
++			 */
++			*std &= V4L2_STD_PAL   | V4L2_STD_PAL_N  | V4L2_STD_PAL_Nc |
++				V4L2_STD_PAL_M | V4L2_STD_PAL_60;
++			break;
++		case 3:
++			*std &= V4L2_STD_SECAM;
++			break;
++		default:
++			/* Can't detect anything */
++			break;
++		}
++	}
++
+ 	v4l2_dbg(1, debug, sd, "Status byte 2 (0x1f)=0x%02x\n", reg1f);
+ 
+ 	/* horizontal/vertical not locked */
+@@ -1371,34 +1399,6 @@ static int saa711x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	else
+ 		*std &= V4L2_STD_625_50;
+ 
+-	if (state->ident != V4L2_IDENT_SAA7115)
+-		goto ret;
+-
+-	reg1e = saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC);
+-
+-	switch (reg1e & 0x03) {
+-	case 1:
+-		*std &= V4L2_STD_NTSC;
+-		break;
+-	case 2:
+-		/*
+-		 * V4L2_STD_PAL just cover the european PAL standards.
+-		 * This is wrong, as the device could also be using an
+-		 * other PAL standard.
+-		 */
+-		*std &= V4L2_STD_PAL   | V4L2_STD_PAL_N  | V4L2_STD_PAL_Nc |
+-			V4L2_STD_PAL_M | V4L2_STD_PAL_60;
+-		break;
+-	case 3:
+-		*std &= V4L2_STD_SECAM;
+-		break;
+-	default:
+-		/* Can't detect anything */
+-		break;
+-	}
+-
+-	v4l2_dbg(1, debug, sd, "Status byte 1 (0x1e)=0x%02x\n", reg1e);
+-
+ ret:
+ 	v4l2_dbg(1, debug, sd, "detected std mask = %08Lx\n", *std);
+ 
+-- 
+1.7.10.4
 
-bttv should now be working again.
-
-Note that you may experience problems building cx231xx. Disable that driver
-for now (run 'make menuconfig' in media_build). Hopefully the fix for that
-cx231xx bug will be merged soon.
-
-Regards,
-
-	Hans
-
-> 
-> Here are the relevant snippets from the dmesg:
-> 
-> [    3.539144] bttv: driver version 0.9.19 loaded
-> [    3.539147] bttv: using 8 buffers with 2080k (520 pages) each for capture
-> [    3.539169] bttv: Bt8xx card found (0)
-> [    3.539184] bttv: 0: Bt878 (rev 2) at 0000:07:01.0, irq: 17, latency: 
-> 32, mmio: 0xfbcff000
-> [    3.539211] bttv: 0: detected: Hauppauge WinTV [card=10], PCI 
-> subsystem ID is 0070:13eb
-> [    3.539212] bttv: 0: using: Hauppauge (bt878) [card=10,autodetected]
-> [    3.541740] bttv: 0: Hauppauge/Voodoo msp34xx: reset line init [5]
-> [    3.570092] nvidia: module license 'NVIDIA' taints kernel.
-> [    3.570095] Disabling lock debugging due to kernel taint
-> [    3.574636] tveeprom 1-0050: Hauppauge model 61344, rev D221, serial# 
-> 3755413
-> [    3.574640] tveeprom 1-0050: tuner model is Philips FM1216 (idx 21, 
-> type 5)
-> [    3.574641] tveeprom 1-0050: TV standards PAL(B/G) (eeprom 0x04)
-> [    3.574643] tveeprom 1-0050: audio processor is MSP3415 (idx 6)
-> [    3.574644] tveeprom 1-0050: has radio
-> [    3.574646] bttv: 0: Hauppauge eeprom indicates model#61344
-> [    3.574647] bttv: 0: tuner type=5
-> [    3.579460] vgaarb: device changed decodes: 
-> PCI:0000:02:00.0,olddecodes=io+mem,decodes=none:owns=io+mem
-> [    2.790332] ACPI: Invalid Power Resource to register!
-> [    3.579550] NVRM: loading NVIDIA UNIX x86_64 Kernel Module  313.26 
-> Wed Feb 27 13:04:31 PST 2013
-> 
-> [    3.581267] alsactl (1392) used greatest stack depth: 5064 bytes left
-> [    3.587405] msp3400 1-0040: MSP3415D-B3 found @ 0x80 (bt878 #0 [sw])
-> [    3.587407] msp3400 1-0040: msp3400 supports nicam, mode is autodetect
-> [    3.594664] tuner 1-0061: Tuner -1 found with type(s) Radio TV.
-> [    3.594972] tuner-simple 1-0061: creating new instance
-> [    3.594974] tuner-simple 1-0061: type set to 5 (Philips PAL_BG 
-> (FI1216 and compatibles))
-> [    3.595734] bttv: 0: registered device video0
-> [    3.595756] bttv: 0: registered device vbi0
-> [    3.595790] bttv: 0: registered device radio0
-> [    3.597514] bttv: 0: Setting PLL: 28636363 => 35468950 (needs up to 
-> 100ms)
-> [    3.619339] bttv: PLL set ok
-> 
-> I'm also attaching my kernel config (self compiled using gentoo). As 
-> this is my first message, I don't know whether I have all the info you 
-> need. If not, just let me know
-> 
-> Regards
-> Benjamin
-> 
