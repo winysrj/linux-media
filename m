@@ -1,100 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38710 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752115Ab3CJCEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:40 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 20/41] it913x: include tuner IDs from af9033.h
-Date: Sun, 10 Mar 2013 04:03:12 +0200
-Message-Id: <1362881013-5271-20-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:40432 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3CKLmw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 07:42:52 -0400
+Received: by mail-wg0-f41.google.com with SMTP id ds1so1954420wgb.0
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 04:42:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1303111208170.21241@axis700.grange>
+References: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com>
+	<962516300.332041.1362658383433.JavaMail.root@advansee.com>
+	<CACKLOr2VOb3GMiX6GVmSchhGs8XeBJ0c7qRSHZwU8e8C+qeWPg@mail.gmail.com>
+	<1201392585.355417.1362743602969.JavaMail.root@advansee.com>
+	<CACKLOr0FEO3wvpZpn=Fg9ZSBYLDnY-hY=KysD72JVbrcVChArg@mail.gmail.com>
+	<1700189562.356790.1362748660082.JavaMail.root@advansee.com>
+	<Pine.LNX.4.64.1303081903250.24912@axis700.grange>
+	<Pine.LNX.4.64.1303111208170.21241@axis700.grange>
+Date: Mon, 11 Mar 2013 12:42:36 +0100
+Message-ID: <CACKLOr2LPL_jG5SAbmsU=Vh_ZhfXQ6ZDoP_+WOUARKm3Mz7QBw@mail.gmail.com>
+Subject: Re: mt9m111/mt9m131: kernel 3.8 issues.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
+	<benoit.thebaudeau@advansee.com>, linux-media@vger.kernel.org,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/it913x.c      | 24 ++++++++++++------------
- drivers/media/tuners/it913x_priv.h | 10 +---------
- 2 files changed, 13 insertions(+), 21 deletions(-)
+Hi Guennadi,
 
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index 6ae9d5a..1cb9709 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -156,22 +156,22 @@ static int it913x_init(struct dvb_frontend *fe)
- 
- 	/* LNA Scripts */
- 	switch (state->tuner_type) {
--	case IT9135_51:
-+	case AF9033_TUNER_IT9135_51:
- 		set_lna = it9135_51;
- 		break;
--	case IT9135_52:
-+	case AF9033_TUNER_IT9135_52:
- 		set_lna = it9135_52;
- 		break;
--	case IT9135_60:
-+	case AF9033_TUNER_IT9135_60:
- 		set_lna = it9135_60;
- 		break;
--	case IT9135_61:
-+	case AF9033_TUNER_IT9135_61:
- 		set_lna = it9135_61;
- 		break;
--	case IT9135_62:
-+	case AF9033_TUNER_IT9135_62:
- 		set_lna = it9135_62;
- 		break;
--	case IT9135_38:
-+	case AF9033_TUNER_IT9135_38:
- 	default:
- 		set_lna = it9135_38;
- 	}
-@@ -444,14 +444,14 @@ struct dvb_frontend *it913x_attach(struct dvb_frontend *fe,
- 	state->i2c_addr = i2c_addr;
- 
- 	switch (config) {
--	case IT9135_38:
--	case IT9135_51:
--	case IT9135_52:
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
- 		state->chip_ver = 0x01;
- 		break;
--	case IT9135_60:
--	case IT9135_61:
--	case IT9135_62:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
- 		state->chip_ver = 0x02;
- 		break;
- 	default:
-diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/it913x_priv.h
-index 315ff6c..1491bf8 100644
---- a/drivers/media/tuners/it913x_priv.h
-+++ b/drivers/media/tuners/it913x_priv.h
-@@ -24,15 +24,7 @@
- #define IT913X_PRIV_H
- 
- #include "it913x.h"
--
--/* Build in tuner types */
--#define IT9137 0x38
--#define IT9135_38 0x38
--#define IT9135_51 0x51
--#define IT9135_52 0x52
--#define IT9135_60 0x60
--#define IT9135_61 0x61
--#define IT9135_62 0x62
-+#include "af9033.h"
- 
- #define PRO_LINK		0x0
- #define PRO_DMOD		0x1
+>> I just tested my mt9m131 camera on a i.MX31 board, if not this your email
+>> I don't think I'd be alarmed by the image quality it's producing, maybe
+>> I'm just less picky:-) And yes, in general I agree, I think, this level of
+>> image quality tuning is difficult to achieve on modern cameras with 100s
+>> of fine-tuning knobs. I'll try to re-test this camera in day light
+>> conditions and post my best shot :)
+>
+> http://download.open-technology.de/mt9m131/
+>
+> .ppm is taken with mt9m131. Note, that I shot 10 frames and took the 3rd
+> one - the first two are much darker, #3 is where autoexposure has kicked
+> in, I suppose. Also note, that the comparison shot has been fired from a
+> much smaller distance to cover a similar area due to obviously different
+> lenses. I'll leave any colour-quality judgement to the reader(s) :-)
+
+Thank you for your feedback. It seems that we all have a similar colour quality.
+If Aptina comes up with better settings or I find them I'll post a
+patch for you to test.
+
+Regards.
 -- 
-1.7.11.7
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
