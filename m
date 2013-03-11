@@ -1,35 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:58097 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751653Ab3CEGXt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Mar 2013 01:23:49 -0500
-Received: from zeta.dmz-ap.st.com (ns6.st.com [138.198.234.13])
-	by beta.dmz-ap.st.com (STMicroelectronics) with ESMTP id B5E7DDA
-	for <linux-media@vger.kernel.org>; Tue,  5 Mar 2013 06:15:34 +0000 (GMT)
-Received: from Webmail-ap.st.com (eapex1hubcas1.st.com [10.80.176.8])
-	by zeta.dmz-ap.st.com (STMicroelectronics) with ESMTP id 1F851D17
-	for <linux-media@vger.kernel.org>; Tue,  5 Mar 2013 06:23:44 +0000 (GMT)
-From: Divneil Rai WADHAWAN <divneil.wadhawan@st.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 5 Mar 2013 14:23:43 +0800
-Subject: DMX_SET_SOURCE documentation
-Message-ID: <2CC2A0A4A178534D93D5159BF3BCB6616AFB3CF680@EAPEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2413 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753751Ab3CKLzl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 07:55:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 19/42] s2250-loader: use usbv2_cypress_load_firmware
+Date: Mon, 11 Mar 2013 12:45:57 +0100
+Message-Id: <400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I have been working on LinuxDVB port, where the application wants to switch dynamically from FRONT0 to DVR0 as DEMUX0 source, time and again.
-The obvious way to handle this is to use DMX_SET_SOURCE which connects/disconnects the FRONT0/DVR0 to DEMUX0.
+The v2 of this function doesn't do DMA to objects on the stack like
+its predecessor does.
 
-Before implementing that, I would like to have the some sort of documentation on this.
-I have LinuxDVB specs V4, which has the equivalent DVB_DEMUX_SET_SOURCE and poses the restriction that device be opened in WRONLY mode.
-The concern is; is there going to some updation on this interface? Can we update and merge the documentation in LinuxDVB doc pages.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/go7007/Makefile       |    4 ++--
+ drivers/staging/media/go7007/s2250-loader.c |    7 ++++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-Regards,
-Divneil
+diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
+index 5bed78b..f9c8e0f 100644
+--- a/drivers/staging/media/go7007/Makefile
++++ b/drivers/staging/media/go7007/Makefile
+@@ -11,8 +11,8 @@ s2250-y := s2250-board.o
+ #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
+ #ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
+ 
+-# S2250 needs cypress ezusb loader from dvb-usb
+-ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb
++# S2250 needs cypress ezusb loader from dvb-usb-v2
++ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
+ 
+ ccflags-y += -Idrivers/media/dvb-frontends
+ ccflags-y += -Idrivers/media/dvb-core
+diff --git a/drivers/staging/media/go7007/s2250-loader.c b/drivers/staging/media/go7007/s2250-loader.c
+index 72e5175..6453ec0 100644
+--- a/drivers/staging/media/go7007/s2250-loader.c
++++ b/drivers/staging/media/go7007/s2250-loader.c
+@@ -19,7 +19,8 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+-#include <dvb-usb.h>
++#include <linux/firmware.h>
++#include <cypress_firmware.h>
+ 
+ #define S2250_LOADER_FIRMWARE	"s2250_loader.fw"
+ #define S2250_FIRMWARE		"s2250.fw"
+@@ -104,7 +105,7 @@ static int s2250loader_probe(struct usb_interface *interface,
+ 			S2250_LOADER_FIRMWARE);
+ 		goto failed2;
+ 	}
+-	ret = usb_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
++	ret = usbv2_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
+ 	release_firmware(fw);
+ 	if (0 != ret) {
+ 		dev_err(&interface->dev, "loader download failed\n");
+@@ -117,7 +118,7 @@ static int s2250loader_probe(struct usb_interface *interface,
+ 			S2250_FIRMWARE);
+ 		goto failed2;
+ 	}
+-	ret = usb_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
++	ret = usbv2_cypress_load_firmware(usbdev, fw, CYPRESS_FX2);
+ 	release_firmware(fw);
+ 	if (0 != ret) {
+ 		dev_err(&interface->dev, "firmware_s2250 download failed\n");
+-- 
+1.7.10.4
+
