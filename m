@@ -1,48 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35570 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751713Ab3CJBnq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 20:43:46 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1717 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754539Ab3CKVBI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 17:01:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [REVIEW PATCH 5/5] it913x: fix pid filter
-Date: Sun, 10 Mar 2013 03:42:35 +0200
-Message-Id: <1362879755-4839-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1362879755-4839-1-git-send-email-crope@iki.fi>
-References: <1362879755-4839-1-git-send-email-crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 05/15] au0828: fix audio input handling.
+Date: Mon, 11 Mar 2013 22:00:36 +0100
+Message-Id: <9c96cd9c23dc28b9165702f73c9cd7b2d3e76cdd.1363035203.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just made commit: "dvb_usb_v2: rework USB streaming logic" that
-breaks that driver PID filter.
-it913x driver checks use of PID filter directly from DVB USB v2 core
-internal variable "adap->pid_filtering" and stores it to own state.
-Calling order of .pid_filter_ctrl() and .pid_filter() was changed
-and due to that state was updated too late. Update state earlier.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-TODO: checking PID filter usage from DVB USB v2 is not very good idea
-as PID filter callbacks are called only when PID filter is enabled.
+- V4L2_CAP_AUDIO was set, but enumaudio was not implemented.
+- audioset was never filled by enum_input
+- ctrl_ainput was never updated when switching the video input
+- g_audio was broken due to faulty logic: g_audio should set the
+  index, it doesn't receive it from the user.
 
-Cc: Malcolm Priestley <tvboxspy@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/dvb-usb-v2/it913x.c | 1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/usb/au0828/au0828-video.c |   35 +++++++++++++++++++++++--------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-index 8338479..e48cdeb 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -218,6 +218,7 @@ static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
+diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
+index e3d8a3c..e4a24fa 100644
+--- a/drivers/media/usb/au0828/au0828-video.c
++++ b/drivers/media/usb/au0828/au0828-video.c
+@@ -1373,10 +1373,13 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	input->index = tmp;
+ 	strcpy(input->name, inames[AUVI_INPUT(tmp).type]);
+ 	if ((AUVI_INPUT(tmp).type == AU0828_VMUX_TELEVISION) ||
+-	    (AUVI_INPUT(tmp).type == AU0828_VMUX_CABLE))
++	    (AUVI_INPUT(tmp).type == AU0828_VMUX_CABLE)) {
+ 		input->type |= V4L2_INPUT_TYPE_TUNER;
+-	else
++		input->audioset = 1;
++	} else {
+ 		input->type |= V4L2_INPUT_TYPE_CAMERA;
++		input->audioset = 2;
++	}
  
- 	deb_info(1, "PID_C  (%02x)", onoff);
+ 	input->std = dev->vdev->tvnorms;
  
-+	st->pid_filter_onoff = adap->pid_filtering;
- 	ret = it913x_wr_reg(d, pro, PID_EN, st->pid_filter_onoff);
+@@ -1408,12 +1411,15 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 	switch (AUVI_INPUT(index).type) {
+ 	case AU0828_VMUX_SVIDEO:
+ 		dev->input_type = AU0828_VMUX_SVIDEO;
++		dev->ctrl_ainput = 1;
+ 		break;
+ 	case AU0828_VMUX_COMPOSITE:
+ 		dev->input_type = AU0828_VMUX_COMPOSITE;
++		dev->ctrl_ainput = 1;
+ 		break;
+ 	case AU0828_VMUX_TELEVISION:
+ 		dev->input_type = AU0828_VMUX_TELEVISION;
++		dev->ctrl_ainput = 0;
+ 		break;
+ 	default:
+ 		dprintk(1, "VIDIOC_S_INPUT unknown input type set [%d]\n",
+@@ -1450,23 +1456,32 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int index)
+ 	return 0;
+ }
  
- 	mutex_unlock(&d->i2c_mutex);
++static int vidioc_enumaudio(struct file *file, void *priv, struct v4l2_audio *a)
++{
++	if (a->index > 1)
++		return -EINVAL;
++
++	if (a->index == 0)
++		strcpy(a->name, "Television");
++	else
++		strcpy(a->name, "Line in");
++
++	a->capability = V4L2_AUDCAP_STEREO;
++	return 0;
++}
++
+ static int vidioc_g_audio(struct file *file, void *priv, struct v4l2_audio *a)
+ {
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
+-	unsigned int index = a->index;
+ 
+-	if (a->index > 1)
+-		return -EINVAL;
+-
+-	index = dev->ctrl_ainput;
+-	if (index == 0)
++	a->index = dev->ctrl_ainput;
++	if (a->index == 0)
+ 		strcpy(a->name, "Television");
+ 	else
+ 		strcpy(a->name, "Line in");
+ 
+ 	a->capability = V4L2_AUDCAP_STEREO;
+-	a->index = index;
+ 	return 0;
+ }
+ 
+@@ -1474,6 +1489,7 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
+ {
+ 	struct au0828_fh *fh = priv;
+ 	struct au0828_dev *dev = fh->dev;
++
+ 	if (a->index != dev->ctrl_ainput)
+ 		return -EINVAL;
+ 	return 0;
+@@ -1876,6 +1892,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_fmt_vid_cap       = vidioc_s_fmt_vid_cap,
+ 	.vidioc_g_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_s_fmt_vbi_cap       = vidioc_g_fmt_vbi_cap,
++	.vidioc_enumaudio           = vidioc_enumaudio,
+ 	.vidioc_g_audio             = vidioc_g_audio,
+ 	.vidioc_s_audio             = vidioc_s_audio,
+ 	.vidioc_cropcap             = vidioc_cropcap,
 -- 
-1.7.11.7
+1.7.10.4
 
