@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:64498 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431Ab3CGHkE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:40:04 -0500
-Received: by mail-pa0-f44.google.com with SMTP id kp1so257752pab.31
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 23:40:03 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com, joshi@samsung.com,
-	linaro-kernel@lists.linaro.org
-Subject: [PATCH v12 2/2] drm/exynos: enable OF_VIDEOMODE and FB_MODE_HELPERS for exynos drm fimd
-Date: Thu,  7 Mar 2013 13:09:44 +0530
-Message-Id: <1362641984-2706-3-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1362641984-2706-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1362641984-2706-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39030 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754370Ab3CKV1s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 17:27:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: vkalia@codeaurora.org
+Cc: linux-media@vger.kernel.org, vrajesh@codeaurora.org
+Subject: Re: Custom device names for v4l2 devices
+Date: Mon, 11 Mar 2013 22:28:21 +0100
+Message-ID: <1672808.rITBMNsUax@avalon>
+In-Reply-To: <a6da9ec89bbf3e28549a4a25efe3f166.squirrel@www.codeaurora.org>
+References: <3fe50e59b4f7baeda879f4f7b2e5cc1a.squirrel@www.codeaurora.org> <a6da9ec89bbf3e28549a4a25efe3f166.squirrel@www.codeaurora.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-patch adds "select OF_VIDEOMODE" and "select FB_MODE_HELPERS" when
-EXYNOS_DRM_FIMD config is selected.
+Hi Vinay,
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+On Monday 11 March 2013 10:55:37 vkalia@codeaurora.org wrote:
+> > Names of V4L2 device nodes keep on varying depending on target, on some
+> > targets, the device node assigned to my device is /dev/video21 and on some
+> > it is /dev/video15. In order to determine my device, i am opening it,
+> > reading the capabilities, enumerating its formats and then chose the one
+> > matching my requirements. This is impacting start-up latency. One way to
+> > resolve this without impacting start-up latency is to give custom name to
+> > my V4L2 device node (/dev/custom_name instead of /dev/video21). This needs
+> > following change in V4L2 framework. Please review this patch. If you have
+> > faced similar problem please let me know.
 
-diff --git a/drivers/gpu/drm/exynos/Kconfig b/drivers/gpu/drm/exynos/Kconfig
-index 046bcda..bb25130 100644
---- a/drivers/gpu/drm/exynos/Kconfig
-+++ b/drivers/gpu/drm/exynos/Kconfig
-@@ -25,6 +25,8 @@ config DRM_EXYNOS_DMABUF
- config DRM_EXYNOS_FIMD
- 	bool "Exynos DRM FIMD"
- 	depends on DRM_EXYNOS && !FB_S3C && !ARCH_MULTIPLATFORM
-+	select OF_VIDEOMODE
-+	select FB_MODE_HELPERS
- 	help
- 	  Choose this option if you want to use Exynos FIMD for DRM.
- 
+Shouldn't this be implemented in userspace as udev rules instead ?
+
+> > --- a/drivers/media/video/v4l2-dev.c
+> > +++ b/drivers/media/video/v4l2-dev.c
+> > @@ -676,7 +676,8 @@ int __video_register_device(struct video_device *vdev,
+> > int type, int nr,
+> > 
+> >  	vdev->dev.devt = MKDEV(VIDEO_MAJOR, vdev->minor);
+> >  	if (vdev->parent)
+> >  	
+> >  		vdev->dev.parent = vdev->parent;
+> > 
+> > -	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+> > +	if (!dev_name(&vdev->dev))
+> > +		dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
+> > 
+> >  	ret = device_register(&vdev->dev);
+> >  	if (ret < 0) {
+> >  	
+> >  		printk(KERN_ERR "%s: device_register failed\n", __func__);
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
