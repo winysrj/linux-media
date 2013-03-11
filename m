@@ -1,109 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2395 "EHLO
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4917 "EHLO
 	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861Ab3CRMcj (ORCPT
+	with ESMTP id S1753886Ab3CKLqj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 08:32:39 -0400
+	Mon, 11 Mar 2013 07:46:39 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 16/19] solo6x10: use V4L2_PIX_FMT_MPEG4, not _FMT_MPEG
-Date: Mon, 18 Mar 2013 13:32:15 +0100
-Message-Id: <1363609938-21735-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 04/42] saa7115: add config flag to change the IDQ polarity.
+Date: Mon, 11 Mar 2013 12:45:42 +0100
+Message-Id: <5188f8de24bcb24f13bb22f36df6291aaf6fe2fc.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-FMT_MPEG is for multiplexed streams, not elementary streams. The same is
-true for the V4L2_CID_MPEG_VIDEO_ENCODING control.
+Needed by the go7007 driver: it assumes a different polarity of the IDQ
+signal, so we need to be able to tell the saa7115 about this.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/solo6x10/v4l2-enc.c |   18 ++++++------------
- 1 file changed, 6 insertions(+), 12 deletions(-)
+ drivers/media/i2c/saa7115.c |    6 ++++++
+ include/media/saa7115.h     |   31 +++++++++++++++++++++----------
+ 2 files changed, 27 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 93f0dc7..ca87fb3 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -516,7 +516,7 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
- 			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 6b6788c..f249b20 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1259,6 +1259,12 @@ static int saa711x_s_routing(struct v4l2_subdev *sd,
+ 				(saa711x_read(sd, R_83_X_PORT_I_O_ENA_AND_OUT_CLK) & 0xfe) |
+ 				(state->output & 0x01));
  	}
++	if (state->ident > V4L2_IDENT_SAA7111A) {
++		if (config & SAA7115_IDQ_IS_DEFAULT)
++			saa711x_write(sd, R_85_I_PORT_SIGNAL_POLAR, 0x20);
++		else
++			saa711x_write(sd, R_85_I_PORT_SIGNAL_POLAR, 0x21);
++	}
+ 	return 0;
+ }
  
--	if (solo_enc->fmt == V4L2_PIX_FMT_MPEG)
-+	if (solo_enc->fmt == V4L2_PIX_FMT_MPEG4)
- 		ret = solo_fill_mpeg(solo_enc, vb, vh);
- 	else
- 		ret = solo_fill_jpeg(solo_enc, vb, vh);
-@@ -779,7 +779,7 @@ static int solo_enc_enum_fmt_cap(struct file *file, void *priv,
- {
- 	switch (f->index) {
- 	case 0:
--		f->pixelformat = V4L2_PIX_FMT_MPEG;
-+		f->pixelformat = V4L2_PIX_FMT_MPEG4;
- 		strcpy(f->description, "MPEG-4 AVC");
- 		break;
- 	case 1:
-@@ -802,7 +802,7 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
+diff --git a/include/media/saa7115.h b/include/media/saa7115.h
+index bab2127..8b2ecc6 100644
+--- a/include/media/saa7115.h
++++ b/include/media/saa7115.h
+@@ -21,6 +21,8 @@
+ #ifndef _SAA7115_H_
+ #define _SAA7115_H_
  
--	if (pix->pixelformat != V4L2_PIX_FMT_MPEG &&
-+	if (pix->pixelformat != V4L2_PIX_FMT_MPEG4 &&
- 	    pix->pixelformat != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
++/* s_routing inputs, outputs, and config */
++
+ /* SAA7111/3/4/5 HW inputs */
+ #define SAA7115_COMPOSITE0 0
+ #define SAA7115_COMPOSITE1 1
+@@ -33,24 +35,33 @@
+ #define SAA7115_SVIDEO2    8
+ #define SAA7115_SVIDEO3    9
  
-@@ -907,7 +907,7 @@ static int solo_enum_framesizes(struct file *file, void *priv,
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-/* SAA7115 v4l2_crystal_freq frequency values */
+-#define SAA7115_FREQ_32_11_MHZ  32110000   /* 32.11 MHz crystal, SAA7114/5 only */
+-#define SAA7115_FREQ_24_576_MHZ 24576000   /* 24.576 MHz crystal */
+-
+-/* SAA7115 v4l2_crystal_freq audio clock control flags */
+-#define SAA7115_FREQ_FL_UCGC   (1 << 0)	   /* SA 3A[7], UCGC, SAA7115 only */
+-#define SAA7115_FREQ_FL_CGCDIV (1 << 1)	   /* SA 3A[6], CGCDIV, SAA7115 only */
+-#define SAA7115_FREQ_FL_APLL   (1 << 2)	   /* SA 3A[3], APLL, SAA7114/5 only */
+-
++/* outputs */
+ #define SAA7115_IPORT_ON    	1
+ #define SAA7115_IPORT_OFF   	0
  
--	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG4 &&
- 	    fsize->pixel_format != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
+-/* SAA7111 specific output flags */
++/* SAA7111 specific outputs. */
+ #define SAA7111_VBI_BYPASS 	2
+ #define SAA7111_FMT_YUV422      0x00
+ #define SAA7111_FMT_RGB 	0x40
+ #define SAA7111_FMT_CCIR 	0x80
+ #define SAA7111_FMT_YUV411 	0xc0
  
-@@ -935,7 +935,7 @@ static int solo_enum_frameintervals(struct file *file, void *priv,
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
++/* config flags */
++/* Register 0x85 should set bit 0 to 0 (it's 1 by default). This bit
++ * controls the IDQ signal polarity which is set to 'inverted' if the bit
++ * it 1 and to 'default' if it is 0. */
++#define SAA7115_IDQ_IS_DEFAULT  (1 << 0)
++
++/* s_crystal_freq values and flags */
++
++/* SAA7115 v4l2_crystal_freq frequency values */
++#define SAA7115_FREQ_32_11_MHZ  32110000   /* 32.11 MHz crystal, SAA7114/5 only */
++#define SAA7115_FREQ_24_576_MHZ 24576000   /* 24.576 MHz crystal */
++
++/* SAA7115 v4l2_crystal_freq audio clock control flags */
++#define SAA7115_FREQ_FL_UCGC   (1 << 0)	   /* SA 3A[7], UCGC, SAA7115 only */
++#define SAA7115_FREQ_FL_CGCDIV (1 << 1)	   /* SA 3A[6], CGCDIV, SAA7115 only */
++#define SAA7115_FREQ_FL_APLL   (1 << 2)	   /* SA 3A[3], APLL, SAA7114/5 only */
++
+ #endif
  
--	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG &&
-+	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG4 &&
- 	    fintv->pixel_format != V4L2_PIX_FMT_MJPEG)
- 		return -EINVAL;
- 	if (fintv->index)
-@@ -1024,8 +1024,6 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_SHARPNESS:
- 		return tw28_set_ctrl_val(solo_dev, ctrl->id, solo_enc->ch,
- 					 ctrl->val);
--	case V4L2_CID_MPEG_VIDEO_ENCODING:
--		return 0;
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
- 		solo_enc->gop = ctrl->val;
- 		return 0;
-@@ -1172,10 +1170,6 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 	if (tw28_has_sharpness(solo_dev, ch))
- 		v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
- 			V4L2_CID_SHARPNESS, 0, 15, 1, 0);
--	v4l2_ctrl_new_std_menu(hdl, &solo_ctrl_ops,
--			V4L2_CID_MPEG_VIDEO_ENCODING,
--			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 3,
--			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC);
- 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
- 			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1, solo_dev->fps);
- 	v4l2_ctrl_new_custom(hdl, &solo_motion_threshold_ctrl, NULL);
-@@ -1191,7 +1185,7 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 	mutex_init(&solo_enc->lock);
- 	spin_lock_init(&solo_enc->av_lock);
- 	INIT_LIST_HEAD(&solo_enc->vidq_active);
--	solo_enc->fmt = V4L2_PIX_FMT_MPEG;
-+	solo_enc->fmt = V4L2_PIX_FMT_MPEG4;
- 	solo_enc->type = SOLO_ENC_TYPE_STD;
- 
- 	solo_enc->qp = SOLO_DEFAULT_QP;
 -- 
 1.7.10.4
 
