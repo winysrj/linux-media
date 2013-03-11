@@ -1,141 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:61588 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489Ab3C1KGc (ORCPT
+Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:50307 "EHLO
+	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753438Ab3CKVaI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 06:06:32 -0400
-MIME-Version: 1.0
-In-Reply-To: <1650338.UonQ4LqB70@avalon>
-References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com> <1650338.UonQ4LqB70@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 28 Mar 2013 15:36:11 +0530
-Message-ID: <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com>
-Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 11 Mar 2013 17:30:08 -0400
+Message-ID: <1363037403.3137.114.camel@x61.thuisdomein>
+Subject: [PATCH] [media] soc_camera: remove two outdated selects
+From: Paul Bolle <pebolle@tiscali.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Mon, 11 Mar 2013 22:30:03 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Release v2.6.30 removed the MT9M001_PCA9536_SWITCH and
+MT9V022_PCA9536_SWITCH Kconfig symbols, in commits
+36034dc325ecab63c8cfb992fbf9a1a8e94738a2 ("V4L/DVB (11032): mt9m001:
+allow setting of bus width from board code") and
+e958e27adeade7fa085dd396a8a0dfaef7e338c1 ("V4L/DVB (11033): mt9v022:
+allow setting of bus width from board code").
 
-Thanks for the quick review!
+These two commits removed all gpio related code from these two drivers.
+But they skipped removing their two selects of GPIO_PCA953X. Remove
+these now as they are outdated. Their dependencies can never evaluate to
+true anyhow.
 
-On Thu, Mar 28, 2013 at 2:39 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thanks for the patch.
->
-> On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> Add pm_runtime support to the TI Davinci VPIF driver.
->> Along side this patch replaces clk_get() with devm_clk_get()
->> to simplify the error handling.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
->>  1 files changed, 11 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpif.c
->> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
->> --- a/drivers/media/platform/davinci/vpif.c
->> +++ b/drivers/media/platform/davinci/vpif.c
->> @@ -25,6 +25,7 @@
->>  #include <linux/io.h>
->>  #include <linux/clk.h>
->>  #include <linux/err.h>
->> +#include <linux/pm_runtime.h>
->>  #include <linux/v4l2-dv-timings.h>
->>
->>  #include <mach/hardware.h>
->> @@ -44,7 +45,6 @@ static struct resource      *res;
->>  spinlock_t vpif_lock;
->>
->>  void __iomem *vpif_base;
->> -struct clk *vpif_clk;
->>
->>  /**
->>   * ch_params: video standard configuration parameters for vpif
->> @@ -421,6 +421,7 @@ EXPORT_SYMBOL(vpif_channel_getfid);
->>
->>  static int vpif_probe(struct platform_device *pdev)
->>  {
->> +     struct clk *vpif_clk;
->>       int status = 0;
->>
->>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
->>               goto fail;
->>       }
->>
->> -     vpif_clk = clk_get(&pdev->dev, "vpif");
->> +     vpif_clk = devm_clk_get(&pdev->dev, "vpif");
->>       if (IS_ERR(vpif_clk)) {
->>               status = PTR_ERR(vpif_clk);
->>               goto clk_fail;
->>       }
->> -     clk_prepare_enable(vpif_clk);
->> +     clk_put(vpif_clk);
->
-> Why do you need to call clk_put() here ?
->
-The above check is to see if the clock is provided, once done
-we free it using clk_put().
+Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+---
+Tested by grepping the tree.
 
->> +     pm_runtime_enable(&pdev->dev);
->> +     pm_runtime_resume(&pdev->dev);
->> +
->> +     pm_runtime_get(&pdev->dev);
->
-> Does runtime PM automatically handle your clock ? If so can't you remove clock
-> handling from the driver completely ?
->
-Yes  pm runtime take care of enabling/disabling the clocks
-so that we don't have to do it in drivers. I believe clock
-handling is removed with this patch, with just  devm_clk_get() remaining ;)
+ drivers/media/i2c/soc_camera/Kconfig | 2 --
+ 1 file changed, 2 deletions(-)
 
-Regards,
---Prabhakar
+diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
+index 6dff2b7..23d352f 100644
+--- a/drivers/media/i2c/soc_camera/Kconfig
++++ b/drivers/media/i2c/soc_camera/Kconfig
+@@ -9,7 +9,6 @@ config SOC_CAMERA_IMX074
+ config SOC_CAMERA_MT9M001
+ 	tristate "mt9m001 support"
+ 	depends on SOC_CAMERA && I2C
+-	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9M001 cameras from Micron, monochrome
+ 	  and colour models.
+@@ -36,7 +35,6 @@ config SOC_CAMERA_MT9T112
+ config SOC_CAMERA_MT9V022
+ 	tristate "mt9v022 and mt9v024 support"
+ 	depends on SOC_CAMERA && I2C
+-	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9V022 cameras from Micron
+ 
+-- 
+1.7.11.7
 
->>       spin_lock_init(&vpif_lock);
->>       dev_info(&pdev->dev, "vpif probe success\n");
->> @@ -459,11 +465,6 @@ fail:
->>
->>  static int vpif_remove(struct platform_device *pdev)
->>  {
->> -     if (vpif_clk) {
->> -             clk_disable_unprepare(vpif_clk);
->> -             clk_put(vpif_clk);
->> -     }
->> -
->>       iounmap(vpif_base);
->>       release_mem_region(res->start, res_len);
->>       return 0;
->> @@ -472,13 +473,13 @@ static int vpif_remove(struct platform_device *pdev)
->>  #ifdef CONFIG_PM
->>  static int vpif_suspend(struct device *dev)
->>  {
->> -     clk_disable_unprepare(vpif_clk);
->> +     pm_runtime_put(dev);
->>       return 0;
->>  }
->>
->>  static int vpif_resume(struct device *dev)
->>  {
->> -     clk_prepare_enable(vpif_clk);
->> +     pm_runtime_get(dev);
->>       return 0;
->>  }
-> --
-> Regards,
->
-> Laurent Pinchart
->
