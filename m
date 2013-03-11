@@ -1,63 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:43224 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932329Ab3CDUwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 15:52:40 -0500
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] media/v4l2: VIDEOBUF2_DMA_CONTIG should depend on HAS_DMA
-Date: Mon,  4 Mar 2013 21:52:36 +0100
-Message-Id: <1362430356-31626-1-git-send-email-geert@linux-m68k.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:40748 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752462Ab3CKR0H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 13:26:07 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] m920x: silence compiler warning
+Date: Mon, 11 Mar 2013 19:25:10 +0200
+Message-Id: <1363022710-27886-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-m68k/sun3:
+drivers/media/usb/dvb-usb/m920x.c: In function ‘m920x_probe’:
+drivers/media/usb/dvb-usb/m920x.c:91:6: warning: ‘ret’ may be used uninitialized in this function [-Wuninitialized]
+drivers/media/usb/dvb-usb/m920x.c:70:6: note: ‘ret’ was declared here
 
-drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_mmap’:
-drivers/media/v4l2-core/videobuf2-dma-contig.c:204: error: implicit declaration of function ‘dma_mmap_coherent’
-drivers/media/v4l2-core/videobuf2-dma-contig.c: In function ‘vb2_dc_get_base_sgt’:
-drivers/media/v4l2-core/videobuf2-dma-contig.c:387: error: implicit declaration of function ‘dma_get_sgtable’
-
-Make VIDEOBUF2_DMA_CONTIG and VIDEO_SH_VEU (which selects the former and
-doesn't have a platform dependency) depend on HAS_DMA to fix this.
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- drivers/media/platform/Kconfig  |    2 +-
- drivers/media/v4l2-core/Kconfig |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/media/usb/dvb-usb/m920x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 05d7b63..42c62aa 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -204,7 +204,7 @@ config VIDEO_SAMSUNG_EXYNOS_GSC
- 
- config VIDEO_SH_VEU
- 	tristate "SuperH VEU mem2mem video processing driver"
--	depends on VIDEO_DEV && VIDEO_V4L2
-+	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	help
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 976d029..8c05565 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -67,6 +67,7 @@ config VIDEOBUF2_MEMOPS
- 
- config VIDEOBUF2_DMA_CONTIG
- 	tristate
-+	depends on HAS_DMA
- 	select VIDEOBUF2_CORE
- 	select VIDEOBUF2_MEMOPS
- 	select DMA_SHARED_BUFFER
+diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+index 92afeb2..f5e4654 100644
+--- a/drivers/media/usb/dvb-usb/m920x.c
++++ b/drivers/media/usb/dvb-usb/m920x.c
+@@ -67,7 +67,7 @@ static inline int m920x_write(struct usb_device *udev, u8 request,
+ static inline int m920x_write_seq(struct usb_device *udev, u8 request,
+ 				  struct m920x_inits *seq)
+ {
+-	int ret;
++	int ret = 0;
+ 	while (seq->address) {
+ 		ret = m920x_write(udev, request, seq->data, seq->address);
+ 		if (ret != 0)
 -- 
-1.7.0.4
+1.7.11.7
 
