@@ -1,514 +1,572 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:57348 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754780Ab3CLOpa (ORCPT
+Received: from mail-ea0-f174.google.com ([209.85.215.174]:41904 "EHLO
+	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549Ab3CKXqr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 10:45:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC PATCH 5/8] s5p-fimc: Add ISP video capture driver stubs
-Date: Tue, 12 Mar 2013 15:44:45 +0100
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, dh09.lee@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-References: <1363031092-29950-1-git-send-email-s.nawrocki@samsung.com> <1363031092-29950-6-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1363031092-29950-6-git-send-email-s.nawrocki@samsung.com>
+	Mon, 11 Mar 2013 19:46:47 -0400
+Received: by mail-ea0-f174.google.com with SMTP id q10so1499183eaj.33
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 16:46:46 -0700 (PDT)
+Message-ID: <513E6CE3.70207@gmail.com>
+Date: Tue, 12 Mar 2013 00:46:43 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v7] [media] Add a V4L2 OF parser
+References: <1362757563-30825-1-git-send-email-s.nawrocki@samsung.com> <Pine.LNX.4.64.1303111442420.21241@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1303111442420.21241@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303121544.45438.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 11 March 2013 20:44:49 Sylwester Nawrocki wrote:
-> This patch adds a video capture node for the FIMC-IS ISP IP block
-> and Makefile/Kconfig to actually enable the driver's compilation.
-> 
-> The ISP video capture driver is still a work in progress.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/s5p-fimc/Kconfig          |   13 +
->  drivers/media/platform/s5p-fimc/Makefile         |    4 +
->  drivers/media/platform/s5p-fimc/fimc-isp-video.c |  414 ++++++++++++++++++++++
->  drivers/media/platform/s5p-fimc/fimc-isp-video.h |   50 +++
->  4 files changed, 481 insertions(+)
->  create mode 100644 drivers/media/platform/s5p-fimc/fimc-isp-video.c
->  create mode 100644 drivers/media/platform/s5p-fimc/fimc-isp-video.h
-> 
-> diff --git a/drivers/media/platform/s5p-fimc/Kconfig b/drivers/media/platform/s5p-fimc/Kconfig
-> index c16b20d..1253e25 100644
-> --- a/drivers/media/platform/s5p-fimc/Kconfig
-> +++ b/drivers/media/platform/s5p-fimc/Kconfig
-> @@ -46,4 +46,17 @@ config VIDEO_EXYNOS_FIMC_LITE
->  	  module will be called exynos-fimc-lite.
->  endif
->  
-> +if (SOC_EXYNOS4212 || SOC_EXYNOS4412) && OF && !ARCH_MULTIPLATFORM
-> +
-> +config VIDEO_EXYNOS4_FIMC_IS
-> +	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
-> +	select VIDEOBUF2_DMA_CONTIG
-> +	help
-> +	  This is a V4L2 driver for Samsung EXYNOS4x12 SoC FIMC-IS
-> +	  (Imaging Subsystem).
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called exynos-fimc-is.
-> +endif
-> +
->  endif # VIDEO_SAMSUNG_S5P_FIMC
-> diff --git a/drivers/media/platform/s5p-fimc/Makefile b/drivers/media/platform/s5p-fimc/Makefile
-> index 4648514..55b171a 100644
-> --- a/drivers/media/platform/s5p-fimc/Makefile
-> +++ b/drivers/media/platform/s5p-fimc/Makefile
-> @@ -1,7 +1,11 @@
->  s5p-fimc-objs := fimc-core.o fimc-reg.o fimc-m2m.o fimc-capture.o fimc-mdevice.o
->  exynos-fimc-lite-objs += fimc-lite-reg.o fimc-lite.o
-> +exynos-fimc-is-objs := fimc-is.o fimc-isp.o fimc-is-sensor.o fimc-is-regs.o
-> +exynos-fimc-is-objs += fimc-is-param.o fimc-is-errno.o fimc-is-i2c.o
-> +exynos-fimc-is-objs += fimc-isp-video.o
->  s5p-csis-objs := mipi-csis.o
->  
->  obj-$(CONFIG_VIDEO_S5P_MIPI_CSIS)	+= s5p-csis.o
->  obj-$(CONFIG_VIDEO_EXYNOS_FIMC_LITE)	+= exynos-fimc-lite.o
-> +obj-$(CONFIG_VIDEO_EXYNOS4_FIMC_IS)	+= exynos-fimc-is.o
->  obj-$(CONFIG_VIDEO_S5P_FIMC)		+= s5p-fimc.o
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-isp-video.c b/drivers/media/platform/s5p-fimc/fimc-isp-video.c
-> new file mode 100644
-> index 0000000..bdeacaa
-> --- /dev/null
-> +++ b/drivers/media/platform/s5p-fimc/fimc-isp-video.c
-> @@ -0,0 +1,414 @@
-> +/*
-> + * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-> + *
-> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/delay.h>
-> +#include <linux/errno.h>
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/types.h>
-> +#include <linux/printk.h>
-> +#include <linux/pm_runtime.h>
-> +#include <linux/slab.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +
-> +#include "fimc-mdevice.h"
-> +#include "fimc-core.h"
-> +#include "fimc-is.h"
-> +
-> +static int isp_video_capture_start_streaming(struct vb2_queue *q,
-> +					unsigned int count)
-> +{
-> +	/* TODO: start ISP output DMA */
-> +	return 0;
-> +}
-> +
-> +static int isp_video_capture_stop_streaming(struct vb2_queue *q)
-> +{
-> +	/* TODO: stop ISP output DMA */
-> +	return 0;
-> +}
-> +
-> +static int isp_video_capture_queue_setup(struct vb2_queue *vq,
-> +			const struct v4l2_format *pfmt,
-> +			unsigned int *num_buffers, unsigned int *num_planes,
-> +			unsigned int sizes[], void *allocators[])
-> +{
-> +	const struct v4l2_pix_format_mplane *pixm = NULL;
-> +	struct fimc_isp *isp = vq->drv_priv;
-> +	struct fimc_isp_frame *frame = &isp->out_frame;
-> +	const struct fimc_fmt *fmt = isp->video_capture_format;
-> +	unsigned long wh;
-> +	int i;
-> +
-> +	if (pfmt) {
-> +		pixm = &pfmt->fmt.pix_mp;
-> +		fmt = fimc_isp_find_format(&pixm->pixelformat, NULL, -1);
-> +		wh = pixm->width * pixm->height;
-> +	} else {
-> +		wh = frame->f_width * frame->f_height;
-> +	}
-> +
-> +	if (fmt == NULL)
-> +		return -EINVAL;
-> +
-> +	*num_planes = fmt->memplanes;
-> +
-> +	for (i = 0; i < fmt->memplanes; i++) {
-> +		unsigned int size = (wh * fmt->depth[i]) / 8;
-> +		if (pixm)
-> +			sizes[i] = max(size, pixm->plane_fmt[i].sizeimage);
-> +		else
-> +			sizes[i] = size;
-> +		allocators[i] = isp->alloc_ctx;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int isp_video_capture_buffer_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_queue *vq = vb->vb2_queue;
-> +	struct fimc_isp *isp = vq->drv_priv;
-> +	int i;
-> +
-> +	if (isp->video_capture_format == NULL)
-> +		return -EINVAL;
-> +
-> +	for (i = 0; i < isp->video_capture_format->memplanes; i++) {
-> +		unsigned long size = isp->payload[i];
-> +
-> +		if (vb2_plane_size(vb, i) < size) {
-> +			v4l2_err(&isp->vfd,
-> +				 "User buffer too small (%ld < %ld)\n",
-> +				 vb2_plane_size(vb, i), size);
-> +			return -EINVAL;
-> +		}
-> +		vb2_set_plane_payload(vb, i, size);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void isp_video_capture_buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	/* TODO: */
-> +}
-> +
-> +static void isp_video_lock(struct vb2_queue *vq)
-> +{
-> +	struct fimc_isp *isp = vb2_get_drv_priv(vq);
-> +	mutex_lock(&isp->video_lock);
-> +}
-> +
-> +static void isp_video_unlock(struct vb2_queue *vq)
-> +{
-> +	struct fimc_isp *isp = vb2_get_drv_priv(vq);
-> +	mutex_unlock(&isp->video_lock);
-> +}
-> +
-> +static const struct vb2_ops isp_video_capture_qops = {
-> +	.queue_setup	 = isp_video_capture_queue_setup,
-> +	.buf_prepare	 = isp_video_capture_buffer_prepare,
-> +	.buf_queue	 = isp_video_capture_buffer_queue,
-> +	.wait_prepare	 = isp_video_unlock,
-> +	.wait_finish	 = isp_video_lock,
-> +	.start_streaming = isp_video_capture_start_streaming,
-> +	.stop_streaming	 = isp_video_capture_stop_streaming,
-> +};
-> +
-> +static int isp_video_capture_open(struct file *file)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	int ret = 0;
-> +
-> +	if (mutex_lock_interruptible(&isp->video_lock))
-> +		return -ERESTARTSYS;
-> +
-> +	/* ret = pm_runtime_get_sync(&isp->pdev->dev); */
-> +	if (ret < 0)
-> +		goto done;
-> +
-> +	ret = v4l2_fh_open(file);
-> +	if (ret < 0)
-> +		goto done;
-> +
-> +	/* TODO: prepare video pipeline */
-> +done:
-> +	mutex_unlock(&isp->video_lock);
-> +	return ret;
-> +}
-> +
-> +static int isp_video_capture_close(struct file *file)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	int ret = 0;
-> +
-> +	mutex_lock(&isp->video_lock);
-> +
-> +	if (isp->out_path == FIMC_IO_DMA) {
-> +		/* TODO: stop capture, cleanup */
-> +	}
-> +
-> +	/* pm_runtime_put(&isp->pdev->dev); */
-> +
-> +	if (isp->ref_count == 0)
-> +		vb2_queue_release(&isp->capture_vb_queue);
-> +
-> +	ret = v4l2_fh_release(file);
-> +
-> +	mutex_unlock(&isp->video_lock);
-> +	return ret;
-> +}
-> +
-> +static unsigned int isp_video_capture_poll(struct file *file,
-> +				   struct poll_table_struct *wait)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	int ret;
-> +
-> +	mutex_lock(&isp->video_lock);
-> +	ret = vb2_poll(&isp->capture_vb_queue, file, wait);
-> +	mutex_unlock(&isp->video_lock);
-> +	return ret;
-> +}
-> +
-> +static int isp_video_capture_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	int ret;
-> +
-> +	if (mutex_lock_interruptible(&isp->video_lock))
-> +		return -ERESTARTSYS;
-> +
-> +	ret = vb2_mmap(&isp->capture_vb_queue, vma);
-> +	mutex_unlock(&isp->video_lock);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_file_operations isp_video_capture_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.open		= isp_video_capture_open,
-> +	.release	= isp_video_capture_close,
-> +	.poll		= isp_video_capture_poll,
-> +	.unlocked_ioctl	= video_ioctl2,
-> +	.mmap		= isp_video_capture_mmap,
+Hi Guennadi,
 
-Can't you use the helper functions vb2_fop_open/release/poll/mmap here?
+On 03/11/2013 04:03 PM, Guennadi Liakhovetski wrote:
+> Hi Sylwester
+>
+> Thanks for continuing this work! You have made a great progress compared
+> to my initial version, and I should really have looked at each your
+> submitted new revision, unfortunately, I haven't managed that. So, sorry
+> for chiming back in so late in the game, but maybe we still manage to get
+> it in on time for 3.10. Let me know if you'd like me to do the next couple
+> of rounds :) Or if you disagree with my comments and prefer your present
+> state.
 
-> +};
-> +
-> +/*
-> + * Video node ioctl operations
-> + */
-> +static int fimc_isp_capture_querycap_capture(struct file *file, void *priv,
-> +					     struct v4l2_capability *cap)
-> +{
-> +
-> +	strlcpy(cap->driver, FIMC_IS_DRV_NAME, sizeof(cap->driver));
-> +	strlcpy(cap->card, FIMC_IS_DRV_NAME, sizeof(cap->card));
-> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
-> +				"platform:exynos4x12-isp");
-> +
-> +	cap->device_caps = V4L2_CAP_STREAMING;
-> +	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
-> +
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_capture_enum_fmt_mplane(struct file *file, void *priv,
-> +					    struct v4l2_fmtdesc *f)
-> +{
-> +	const struct fimc_fmt *fmt;
-> +
-> +	if (f->index >= FIMC_ISP_NUM_FORMATS)
-> +		return -EINVAL;
-> +
-> +	fmt = fimc_isp_find_format(NULL, NULL, f->index);
-> +	if (WARN_ON(fmt == NULL))
-> +		return -EINVAL;
-> +
-> +	strlcpy(f->description, fmt->name, sizeof(f->description));
-> +	f->pixelformat = fmt->fourcc;
-> +
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_capture_g_fmt_mplane(struct file *file, void *fh,
-> +					 struct v4l2_format *f)
-> +{
-> +	/* TODO:  */
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_capture_try_fmt(struct fimc_isp *isp,
-> +				    struct v4l2_pix_format_mplane *pixm,
-> +				    const struct fimc_fmt **ffmt)
-> +{
-> +	/* TODO: */
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_capture_try_fmt_mplane(struct file *file, void *fh,
-> +					   struct v4l2_format *f)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	return fimc_isp_capture_try_fmt(isp, &f->fmt.pix_mp, NULL);
-> +}
-> +
-> +static int fimc_isp_capture_s_fmt_mplane(struct file *file, void *priv,
-> +					 struct v4l2_format *f)
-> +{
-> +	/* TODO: */
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_pipeline_validate(struct fimc_isp *isp)
-> +{
-> +	/* TODO: */
-> +	return 0;
-> +}
-> +
-> +static int fimc_isp_capture_streamon(struct file *file, void *priv,
-> +				     enum v4l2_buf_type type)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	struct v4l2_subdev *sensor = isp->pipeline.subdevs[IDX_SENSOR];
-> +	struct fimc_pipeline *p = &isp->pipeline;
-> +	int ret;
-> +
-> +	/* TODO: check if the OTF interface is not running */
-> +
-> +	ret = media_entity_pipeline_start(&sensor->entity, p->m_pipeline);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	ret = fimc_isp_pipeline_validate(isp);
-> +	if (ret) {
-> +		media_entity_pipeline_stop(&sensor->entity);
-> +		return ret;
-> +	}
-> +
-> +	return vb2_streamon(&isp->capture_vb_queue, type);
-> +}
-> +
-> +static int fimc_isp_capture_streamoff(struct file *file, void *priv,
-> +				      enum v4l2_buf_type type)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	struct v4l2_subdev *sd = isp->pipeline.subdevs[IDX_SENSOR];
-> +	int ret;
-> +
-> +	ret = vb2_streamoff(&isp->capture_vb_queue, type);
-> +	if (ret == 0)
-> +		media_entity_pipeline_stop(&sd->entity);
-> +	return ret;
-> +}
-> +
-> +static int fimc_isp_capture_reqbufs(struct file *file, void *priv,
-> +				    struct v4l2_requestbuffers *reqbufs)
-> +{
-> +	struct fimc_isp *isp = video_drvdata(file);
-> +	int ret;
-> +
-> +	reqbufs->count = max_t(u32, FIMC_IS_REQ_BUFS_MIN, reqbufs->count);
-> +	ret = vb2_reqbufs(&isp->capture_vb_queue, reqbufs);
+I'm glad to hear you can focus on this again. Please feel free to spin
+next improved version of this. :-)
 
-You probably want to call vb2_ioctl_reqbufs here since that does additional
-ownership checks that vb2_reqbufs doesn't.
+And let me hold on predicting in which kernel version this patch has
+a chance to be merged upstream ;) In fact, I couldn't spent as much time
+on this as I would like to..
 
-The same is true for vb2_ioctl_streamon/off, BTW.
+When we are more or less done with the parser I would like to carry on
+with the asynchronous subdev registration support. I have a bit different
+idea on how it could be implemented, comparing to your latest proposal.
+But don't yet have any POC. My feelings are we should integrate it more
+with existing V4L2 data structures, and have the clocks associated with
+struct device, rather than subdev driver. But then come issues at the
+common clock framework, like not implemented clk_unregister() or no
+clk_get/clk_put per a clock provider driver.
 
-> +	if (!ret < 0)
-> +		isp->reqbufs_count = reqbufs->count;
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_ioctl_ops isp_video_capture_ioctl_ops = {
-> +	.vidioc_querycap		= fimc_isp_capture_querycap_capture,
-> +	.vidioc_enum_fmt_vid_cap_mplane	= fimc_isp_capture_enum_fmt_mplane,
-> +	.vidioc_try_fmt_vid_cap_mplane	= fimc_isp_capture_try_fmt_mplane,
-> +	.vidioc_s_fmt_vid_cap_mplane	= fimc_isp_capture_s_fmt_mplane,
-> +	.vidioc_g_fmt_vid_cap_mplane	= fimc_isp_capture_g_fmt_mplane,
-> +	.vidioc_reqbufs			= fimc_isp_capture_reqbufs,
-> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
-> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
-> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-> +	.vidioc_streamon		= fimc_isp_capture_streamon,
-> +	.vidioc_streamoff		= fimc_isp_capture_streamoff,
-> +};
-> +
-> +int fimc_isp_video_device_register(struct fimc_isp *isp,
-> +				   struct v4l2_device *v4l2_dev)
-> +{
-> +	struct vb2_queue *q = &isp->capture_vb_queue;
-> +	struct video_device *vfd = &isp->vfd;
-> +	int ret;
-> +
-> +	mutex_init(&isp->video_lock);
-> +	INIT_LIST_HEAD(&isp->pending_buf_q);
-> +	INIT_LIST_HEAD(&isp->active_buf_q);
-> +
-> +	memset(vfd, 0, sizeof(*vfd));
-> +	snprintf(vfd->name, sizeof(vfd->name), "fimc-is-isp.capture");
-> +
-> +	isp->video_capture_format = fimc_isp_find_format(NULL, NULL, 0);
-> +	isp->out_path = FIMC_IO_DMA;
-> +	isp->ref_count = 0;
-> +	isp->reqbufs_count = 0;
-> +
-> +	memset(q, 0, sizeof(*q));
-> +	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> +	q->io_modes = VB2_MMAP;
-> +	q->ops = &isp_video_capture_qops;
-> +	q->mem_ops = &vb2_dma_contig_memops;
-> +	q->buf_struct_size = sizeof(struct flite_buffer);
-> +	q->drv_priv = isp;
-> +	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-> +
-> +	ret = vb2_queue_init(q);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	vfd->queue = q;
-> +	vfd->fops = &isp_video_capture_fops;
-> +	vfd->ioctl_ops = &isp_video_capture_ioctl_ops;
-> +	vfd->v4l2_dev = v4l2_dev;
-> +	vfd->minor = -1;
-> +	vfd->release = video_device_release_empty;
-> +	vfd->lock = &isp->video_lock;
-> +
-> +	isp->vd_pad.flags = MEDIA_PAD_FL_SINK;
-> +	ret = media_entity_init(&vfd->entity, 1, &isp->vd_pad, 0);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	video_set_drvdata(vfd, isp);
-> +
-> +	ret = video_register_device(vfd, VFL_TYPE_GRABBER, -1);
-> +	if (ret < 0) {
-> +		media_entity_cleanup(&vfd->entity);
-> +		return ret;
-> +	}
-> +
-> +	v4l2_info(v4l2_dev, "Registered %s as /dev/%s\n",
-> +		  vfd->name, video_device_node_name(vfd));
-> +
-> +	return 0;
-> +}
-> +
-> +void fimc_isp_video_device_unregister(struct fimc_isp *isp)
-> +{
-> +	if (isp && video_is_registered(&isp->vfd)) {
-> +		video_unregister_device(&isp->vfd);
-> +		media_entity_cleanup(&isp->vfd.entity);
-> +	}
-> +}
+> On Fri, 8 Mar 2013, Sylwester Nawrocki wrote:
+>
+>> From: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>>
+>> Add a V4L2 OF parser, implementing bindings documented in
+>> Documentation/devicetree/bindings/media/video-interfaces.txt.
+>>
+>> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>> [s.nawrocki@samsung.com: various corrections and improvements
+>> since the initial version]
+>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> ---
+>> The last version of the bindings documentation patch can be found
+>> at: https://patchwork.kernel.org/patch/2074951
+>>
+>> Changes since v6:
+>>   - minor v4l2_of_get_remote_port_parent() function cleanup.
+>>
+>> Changes since v5:
+>>   - renamed v4l2_of_parse_mipi_csi2 ->  v4l2_of_parse_csi_bus,
+>>   - corrected v4l2_of_get_remote_port_parent() function declaration
+>>     for !CONFIG_OF,
+>>   - reworked v4l2_of_get_next_endpoint() function to consider the
+>>     'port' nodes can be grouped under optional 'ports' node,
+>>   - added kerneldoc description for v4l2_of_get_next_endpoint()
+>>     function.
+>>
+>> Changes since v4:
+>>   - reworked v4l2_of_get_remote_port() function to consider cases
+>>     where 'port' nodes are grouped in a parent 'ports' node,
+>>   - rearranged struct v4l2_of_endpoint and related changes added
+>>     in the parser code,
+>>   - added kerneldoc description for struct v4l2_of_endpoint,
+>>   - s/link/endpoint in the comments,
+>> ---
+>>   drivers/media/v4l2-core/Makefile  |    3 +
+>>   drivers/media/v4l2-core/v4l2-of.c |  261 +++++++++++++++++++++++++++++++++++++
+>>   include/media/v4l2-of.h           |   98 ++++++++++++++
+>>   3 files changed, 362 insertions(+)
+>>   create mode 100644 drivers/media/v4l2-core/v4l2-of.c
+>>   create mode 100644 include/media/v4l2-of.h
+>>
+>> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+>> index c2d61d4..00f64d6 100644
+>> --- a/drivers/media/v4l2-core/Makefile
+>> +++ b/drivers/media/v4l2-core/Makefile
+>> @@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+>>   ifeq ($(CONFIG_COMPAT),y)
+>>     videodev-objs += v4l2-compat-ioctl32.o
+>>   endif
+>> +ifeq ($(CONFIG_OF),y)
+>> +  videodev-objs += v4l2-of.o
+>> +endif
+>>
+>>   obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+>>   obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
+>> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+>> new file mode 100644
+>> index 0000000..cbd18f6
+>> --- /dev/null
+>> +++ b/drivers/media/v4l2-core/v4l2-of.c
+>> @@ -0,0 +1,261 @@
+>> +/*
+>> + * V4L2 OF binding parsing library
+>> + *
+>> + * Copyright (C) 2012 Renesas Electronics Corp.
+>> + * Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>> + *
+>> + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+>> + * Sylwester Nawrocki<s.nawrocki@samsung.com>
+>
+> You probably want to put your copyright at the top as the newer one, isn't
+> it the usual order - newest first?
+
+Yes, I guess you're right.
+
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of version 2 of the GNU General Public License as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#include<linux/kernel.h>
+>> +#include<linux/module.h>
+>> +#include<linux/of.h>
+>> +#include<linux/string.h>
+>> +#include<linux/types.h>
+>> +
+>> +#include<media/v4l2-of.h>
+>> +
+>> +/**
+>> + * v4l2_of_parse_csi_bus() - parse MIPI CSI-2 bus properties
+>> + * @node: pointer to endpoint device_node
+>> + * @endpoint: pointer to v4l2_of_endpoint data structure
+>> + *
+>> + * Return: 0 on success or negative error value otherwise.
+>> + */
+>> +int v4l2_of_parse_csi_bus(const struct device_node *node,
+>> +			  struct v4l2_of_endpoint *endpoint)
+>> +{
+>> +	struct v4l2_mbus_mipi_csi2 *mipi_csi2 =&endpoint->mbus.mipi_csi2;
+>> +	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
+>> +	struct property *prop;
+>> +	const __be32 *lane = NULL;
+>> +	u32 v;
+>> +	int i = 0;
+>> +
+>> +	prop = of_find_property(node, "data-lanes", NULL);
+>> +	if (!prop)
+>> +		return -EINVAL;
+>
+> Oh... Well, first - this isn't an error to not specify "data-lanes." Below
+> you also try to continue configuring the CSI-2 properties in this "error"
+> case, but since you return here, you skip parsing all clock-related
+> properties...
+
+Yes, that's indeed a bug I've overlooked, we should not return an error
+here and instead read the array when "data-lanes" is available.
+IIRC I have even noticed something is wrong here but have forgotten to
+correct it afterwards.
+
+>> +	do {
+>> +		lane = of_prop_next_u32(prop, lane,&data_lanes[i]);
+>> +	} while (lane&&  i++<  ARRAY_SIZE(data_lanes));
+>
+> you could do this as a "for" loop, but then you'd have an additional
+> if-break check inside, so, maybe your do-while is a prettier solution
+> here.
+
+Whichever looks more readable is fine by me. The "for" version might
+be indeed a better option.
+
+	for (i = 0; i < ARRAY_SIZE(data_lanes); i++) {
+		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
+		if (!lane)
+			break;
+	}
+
+>> +	mipi_csi2->num_data_lanes = i;
+>> +	while (i--)
+>> +		mipi_csi2->data_lanes[i] = data_lanes[i];
+>> +
+>> +	if (!of_property_read_u32(node, "clock-lanes",&v))
+>> +		mipi_csi2->clock_lane = v;
+>> +
+>> +	if (of_get_property(node, "clock-noncontinuous",&v))
+>> +		endpoint->mbus.flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_of_parse_csi_bus);
+>> +
+>> +/**
+>> + * v4l2_of_parse_parallel_bus() - parse parallel bus properties
+>> + * @node: pointer to endpoint device_node
+>> + * @endpoint: pointer to v4l2_of_endpoint data structure
+>> + */
+>> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>> +				struct v4l2_of_endpoint *endpoint)
+>> +{
+>> +	unsigned int flags = 0;
+>> +	u32 v;
+>> +
+>> +	if (WARN_ON(!endpoint))
+>> +		return;
+>> +
+>> +	if (!of_property_read_u32(node, "hsync-active",&v))
+>> +		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+>> +			V4L2_MBUS_HSYNC_ACTIVE_LOW;
+>> +
+>> +	if (!of_property_read_u32(node, "vsync-active",&v))
+>> +		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+>> +			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+>> +
+>> +	if (!of_property_read_u32(node, "pclk-sample",&v))
+>> +		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+>> +			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+>> +
+>> +	if (!of_property_read_u32(node, "field-even-active",&v))
+>> +		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+>> +			V4L2_MBUS_FIELD_EVEN_LOW;
+>> +	if (flags)
+>> +		endpoint->mbus.type = V4L2_MBUS_PARALLEL;
+>> +	else
+>> +		endpoint->mbus.type = V4L2_MBUS_BT656;
+>> +
+>> +	if (!of_property_read_u32(node, "data-active",&v))
+>> +		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+>> +			V4L2_MBUS_DATA_ACTIVE_LOW;
+>> +
+>> +	if (of_get_property(node, "slave-mode",&v))
+>> +		flags |= V4L2_MBUS_SLAVE;
+>> +
+>> +	if (!of_property_read_u32(node, "bus-width",&v))
+>> +		endpoint->mbus.parallel.bus_width = v;
+>> +
+>> +	if (!of_property_read_u32(node, "data-shift",&v))
+>> +		endpoint->mbus.parallel.data_shift = v;
+>> +
+>> +	endpoint->mbus.flags = flags;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
+>> +
+>> +/**
+>> + * v4l2_of_parse_endpoint() - parse all endpoint node properties
+>> + * @node: pointer to endpoint device_node
+>> + * @endpoint: pointer to v4l2_of_endpoint data structure
+>> + *
+>> + * All properties are optional. If none are found, we don't set any flags.
+>> + * This means the port has a static configuration and no properties have
+>> + * to be specified explicitly.
+>> + * If any properties that identify the bus as parallel are found and
+>> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
+>> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
+>> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
+>> + * The caller should hold a reference to @node.
+>> + */
+>> +void v4l2_of_parse_endpoint(const struct device_node *node,
+>> +			    struct v4l2_of_endpoint *endpoint)
+>> +{
+>> +	const struct device_node *port_node = of_get_parent(node);
+>> +	struct v4l2_of_mbus *mbus =&endpoint->mbus;
+>> +	bool data_lanes_present = false;
+>> +
+>> +	memset(endpoint, 0, sizeof(*endpoint));
+>> +
+>> +	endpoint->local_node = node;
+>> +	/*
+>> +	 * It doesn't matter whether the two calls below succeed. If they
+>> +	 * don't then the default value 0 is used.
+>> +	 */
+>> +	of_property_read_u32(port_node, "reg",&endpoint->port);
+>> +	of_property_read_u32(node, "reg",&endpoint->id);
+>> +
+>> +	v4l2_of_parse_parallel_bus(node, endpoint);
+>
+> I don't really know why you export both these helper functions to parse
+> only parallel or CSI-2 bus properties, but if you do - doesn't the code
+> below belong to parsing the parallel bus too?
+
+Yes, I think this comes from when I wasn't really aware what the SLAVE
+and MASTER flags are exactly for. My bad, it indeed belongs to the function
+above.
+
+As to why I want to have separate functions for parsing the serial and the
+parallel bus properties - there are cases when you know which bus a driver
+is interested in. And parsing several properties of a parallel bus in
+a MIPI CSI-2 receiver driver is something I would prefer to avoid. Even
+though it's "only" about 10 properties.
+
+>> +
+>> +	/* If any parallel bus properties have been found, skip serial ones. */
+>> +	if (mbus->parallel.bus_width || mbus->parallel.data_shift ||
+>> +	    mbus->flags) {
+>> +		/* Default parallel bus-master. */
+>> +		if (!(mbus->flags&  V4L2_MBUS_SLAVE))
+>> +			mbus->flags |= V4L2_MBUS_MASTER;
+>> +		return;
+>> +	}
+>> +
+>> +	mbus->type = V4L2_MBUS_CSI2;
+>
+> For symmetry you can move the above assignment inside the CSI2 parser
+> function.
+
+Agreed.
+
+>> +	if (!v4l2_of_parse_csi_bus(node, endpoint))
+>
+> ditto - don't you want to move setting the continuous clock flag inside
+> the function?
+>
+>> +		data_lanes_present = true;
+>
+> Was this a conscious change in behaviour respective the original version?
+> Your v4l2_of_parse_csi_bus() also returns 0 if no data-lane related
+> properties have been detected, which is different from the original
+> implementation and makes the name of the variable wrong.
+
+Indeed, there is a bug when "data-lanes" is an empty property. Uh, why
+nobody else has noticed it before ?.. :)
+
+>> +	if ((mbus->mipi_csi2.clock_lane || data_lanes_present)&&
+>> +	    !(mbus->flags&  V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
+>
+> superfluous braces
+
+I don't like superfluous braces too, but in this case it really looked more
+readable to me.
+
+>> +		/* Default CSI-2: continuous clock. */
+>> +		mbus->flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+>> +	}
+>> +}
+>> +EXPORT_SYMBOL(v4l2_of_parse_endpoint);
+>> +
+>> +/**
+>> + * v4l2_of_get_next_endpoint() - get next endpoint node
+>> + * @parent: pointer to the parent's device node
+>> + * @prev: previous endpoint node, or NULL to get first
+>> + *
+>> + * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+>> + * of the passed @prev node is not decremented, the caller have to use
+>> + * of_node_put() on it when done.
+>> + */
+>> +struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
+>> +					struct device_node *prev)
+>> +{
+>> +	struct device_node *endpoint, *port = NULL;
+>> +
+>> +	if (!parent)
+>> +		return NULL;
+>> +
+>> +	if (!prev) {
+>> +		/*
+>> +		 * It's the first call, we have to find a port subnode
+>> +		 * within this node or within an optional 'ports' node.
+>> +		 */
+>> +		while ((port = of_get_next_child(parent, port))) {
+>
+> Hm, I think such assignment-within-condition is discouraged.
+
+True, anyway nobody complained about it so far ;) I didn't get too many
+reviews of it either though..
+
+>> +			if (!of_node_cmp(port->name, "port"))
+>> +				break;
+>> +			if (!of_node_cmp(port->name, "ports")) {
+>> +				parent = port;
+>> +				of_node_put(port);
+>> +				port = NULL;
+>
+> Can we do this a bit differently: you shouldn't have both - a "ports"
+> subnode and single "port" subnodes within this node, right? So, why don't
+> we first check for a "ports" subnode. If we find one - use it as a parent
+> for our scan, if we don't - use the parent from the function argument. If
+> we do find "ports" we can also optionally sanity-check for direct "port"
+> subnodes too.
+
+Not sure if such a sanity check is needed. Nevertheless a warning about 
+such
+a broken device tree structure might be useful.
+
+> Then, after this initial parent discovery, we can use the normal
+> for_each_child_of_node() loop - as in the original version.
+
+Yeah, that sounds much more clean. I wasn't trying hard enough to make it
+using for_each_child_of_node() then. :)
+
+>> +		};
+>> +		if (port) {
+>> +			/* Found a port, get an endpoint. */
+>> +			endpoint = of_get_next_child(port, NULL);
+>> +			of_node_put(port);
+>> +		} else {
+>> +			endpoint = NULL;
+>> +		}
+>> +		if (!endpoint)
+>> +			pr_err("%s(): no endpoint nodes specified for %s\n",
+>> +			       __func__, parent->full_name);
+>> +	} else {
+>> +		port = of_get_parent(prev);
+>> +		if (!port)
+>> +			/* Hm, has someone given us the root node ?... */
+>> +			return NULL;
+>> +
+>> +		/* Avoid dropping prev node refcount to 0. */
+>> +		of_node_get(prev);
+>> +		endpoint = of_get_next_child(port, prev);
+>> +		if (endpoint) {
+>> +			of_node_put(port);
+>> +			return endpoint;
+>> +		}
+>> +
+>> +		/* No more endpoints under this port, try the next one. */
+>> +		do {
+>> +			port = of_get_next_child(parent, port);
+>> +			if (!port)
+>> +				return NULL;
+>> +		} while (of_node_cmp(port->name, "port"));
+>> +
+>> +		/* Pick up the first endpoint in this port. */
+>> +		endpoint = of_get_next_child(port, NULL);
+>> +		of_node_put(port);
+>> +	}
+>> +
+>> +	return endpoint;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
+>> +
+>> +/**
+>> + * v4l2_of_get_remote_port_parent() - get remote port's parent node
+>> + * @node: pointer to a local endpoint device_node
+>> + *
+>> + * Return: Remote device node associated with remote endpoint node linked
+>> + *	   to @node. Use of_node_put() on it when done.
+>> + */
+>> +struct device_node *v4l2_of_get_remote_port_parent(
+>> +			       const struct device_node *node)
+>> +{
+>> +	struct device_node *np;
+>> +	unsigned int depth = 3;
+>> +
+>> +	/* Get remote endpoint node. */
+>> +	np = of_parse_phandle(node, "remote-endpoint", 0);
+>> +
+>> +	/* Walk 3 levels up only if there is 'ports' node. */
+>> +	while (np&&  --depth>= 0) {
+>
+> unsigned int depth>= 0 is always true. Why not
+>
+> 	for (depth = 3; depth&&  np; depth--)
+>
+> or similar?
+
+Gah, a similar mistake again :( Definitely this needs a correction.
+
+>> +		np = of_get_next_parent(np);
+>> +		if (depth == 1&&  of_node_cmp(np->name, "ports"))
+>> +			break;
+>> +	}
+>> +	return np;
+>> +}
+>> +EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
+>> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+>> new file mode 100644
+>> index 0000000..458e97b
+>> --- /dev/null
+>> +++ b/include/media/v4l2-of.h
+>> @@ -0,0 +1,98 @@
+>> +/*
+>> + * V4L2 OF binding parsing library
+>> + *
+>> + * Copyright (C) 2012 Renesas Electronics Corp.
+>> + * Author: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>> + *
+>> + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+>> + * Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of version 2 of the GNU General Public License as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#ifndef _V4L2_OF_H
+>> +#define _V4L2_OF_H
+>> +
+>> +#include<linux/list.h>
+>> +#include<linux/types.h>
+>> +#include<linux/errno.h>
+>> +
+>> +#include<media/v4l2-mediabus.h>
+>> +
+>> +struct device_node;
+>> +
+>> +struct v4l2_mbus_mipi_csi2 {
+>> +	unsigned char data_lanes[4];
+>> +	unsigned char clock_lane;
+>> +	unsigned short num_data_lanes;
+>> +};
+>> +
+>> +struct v4l2_mbus_parallel {
+>> +	unsigned char bus_width;
+>> +	unsigned char data_shift;
+>> +};
+>
+> You really need the above two structs? Even if you do - I wouldn't call
+> them "v4l2_mbus_*" - that's a different namespace.
+
+Now that I look at them again they are not that useful and are used in
+the parser code only. Probably it would be OK to move these definitions
+inside the union below and to make them anonymous structs.
+
+>> +/**
+>> + * struct v4l2_of_endpoint - the endpoint data structure
+>> + * @port: identifier (value of reg property) of a port this endpoint belongs to
+>> + * @id: identifier (value of reg property) of this endpoint
+>> + * @head: list head for this structure
+>> + * @local_node: pointer to device_node of this endpoint
+>> + * @remote: phandle to remote endpoint node
+>> + * @type: media bus type
+>> + * @flags: media bus (V4L2_MBUS_*) flags
+>> + * @mipi_csi2: MIPI CSI-2 bus configuration data structure
+>> + * @parallel: parallel bus configuration data structure
+>> + */
+>> +struct v4l2_of_endpoint {
+>> +	unsigned int port;
+>> +	unsigned int id;
+>> +	struct list_head head;
+>> +	const struct device_node *local_node;
+>> +	const __be32 *remote;
+>> +	struct v4l2_of_mbus {
+
+This should probably just be "v4l2_of_bus"
+
+>> +		enum v4l2_mbus_type type;
+>> +		unsigned int flags;
+>> +		union {
+>> +			struct v4l2_mbus_mipi_csi2 mipi_csi2;
+>> +			struct v4l2_mbus_parallel parallel;
+>> +		};
+>> +	} mbus;
+
+...and "bus".
+
+>> +};
+>> +
+>> +#ifdef CONFIG_OF
+>> +int v4l2_of_parse_csi_bus(const struct device_node *node,
+>> +				struct v4l2_of_endpoint *endpoint);
+>> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>> +				struct v4l2_of_endpoint *endpoint);
+>
+> You really need to export these two functions? Then you'd also have to
+> provide non-OF stubs for them?
+
+Yes. I'm not entirely convinced we need stubs for all functions,
+probably we do.
+
+--
 
 Regards,
-
-	Hans
+Sylwester
