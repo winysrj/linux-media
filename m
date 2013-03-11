@@ -1,109 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:44853 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757869Ab3CNNMP (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1281 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753735Ab3CKLqj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 09:12:15 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: [PATCH 09/10] drivers: video: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 14:11:30 +0100
-Message-Id: <1363266691-15757-11-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+	Mon, 11 Mar 2013 07:46:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 03/42] v4l2-ioctl: check if an ioctl is valid.
+Date: Mon, 11 Mar 2013 12:45:41 +0100
+Message-Id: <f0045ea28d59c056fd6d3ce6800b14aa1cd4e32d.1363000605.git.hans.verkuil@cisco.com>
+In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Cc: linux-fbdev@vger.kernel.org
+Just checking if the op exists isn't correct, you should check if the ioctl
+is valid (which implies that the op exists as well).
+
+One exception is g_std: if current_norm is non-zero, then the g_std op may be
+absent. This sort of weird behavior is one of the reasons why I am trying to
+get rid of current_norm.
+
+This patch fixes the case where the g/s_std op is set, but these ioctls are
+disabled. This can happen in drivers supporting multiple models, some that
+have TV input (and support the STD API) and some that have a sensor (and do
+not support the STD API). In the latter case qv4l2 would still show the
+Standards combobox.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/video/backlight/atmel-pwm-bl.c | 12 +-----------
- drivers/video/sh_mipi_dsi.c            | 12 +-----------
- drivers/video/sh_mobile_hdmi.c         | 12 +-----------
- 3 files changed, 3 insertions(+), 33 deletions(-)
+ drivers/media/v4l2-core/v4l2-ioctl.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/video/backlight/atmel-pwm-bl.c b/drivers/video/backlight/atmel-pwm-bl.c
-index de5e5e7..20b330d 100644
---- a/drivers/video/backlight/atmel-pwm-bl.c
-+++ b/drivers/video/backlight/atmel-pwm-bl.c
-@@ -225,17 +225,7 @@ static struct platform_driver atmel_pwm_bl_driver = {
- 	.remove = __exit_p(atmel_pwm_bl_remove),
- };
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index aa6e7c7..b589c34 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -35,6 +35,8 @@
+ 	memset((u8 *)(p) + offsetof(typeof(*(p)), field) + sizeof((p)->field), \
+ 	0, sizeof(*(p)) - offsetof(typeof(*(p)), field) - sizeof((p)->field))
  
--static int __init atmel_pwm_bl_init(void)
--{
--	return platform_driver_probe(&atmel_pwm_bl_driver, atmel_pwm_bl_probe);
--}
--module_init(atmel_pwm_bl_init);
--
--static void __exit atmel_pwm_bl_exit(void)
--{
--	platform_driver_unregister(&atmel_pwm_bl_driver);
--}
--module_exit(atmel_pwm_bl_exit);
-+module_platform_driver_probe(atmel_pwm_bl_driver, atmel_pwm_bl_probe);
++#define is_valid_ioctl(vfd, cmd) test_bit(_IOC_NR(cmd), (vfd)->valid_ioctls)
++
+ struct std_descr {
+ 	v4l2_std_id std;
+ 	const char *descr;
+@@ -997,6 +999,7 @@ static int v4l_s_priority(const struct v4l2_ioctl_ops *ops,
+ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_input *p = arg;
  
- MODULE_AUTHOR("Hans-Christian egtvedt <hans-christian.egtvedt@atmel.com>");
- MODULE_DESCRIPTION("Atmel PWM backlight driver");
-diff --git a/drivers/video/sh_mipi_dsi.c b/drivers/video/sh_mipi_dsi.c
-index 701b461..6cad530 100644
---- a/drivers/video/sh_mipi_dsi.c
-+++ b/drivers/video/sh_mipi_dsi.c
-@@ -581,17 +581,7 @@ static struct platform_driver sh_mipi_driver = {
- 	},
- };
+ 	/*
+@@ -1005,11 +1008,11 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific input, it must override these flags.
+ 	 */
+-	if (ops->vidioc_s_std)
++	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+ 		p->capabilities |= V4L2_IN_CAP_STD;
+-	if (ops->vidioc_s_dv_preset)
++	if (is_valid_ioctl(vfd, VIDIOC_S_DV_PRESET))
+ 		p->capabilities |= V4L2_IN_CAP_PRESETS;
+-	if (ops->vidioc_s_dv_timings)
++	if (is_valid_ioctl(vfd, VIDIOC_S_DV_TIMINGS))
+ 		p->capabilities |= V4L2_IN_CAP_DV_TIMINGS;
  
--static int __init sh_mipi_init(void)
--{
--	return platform_driver_probe(&sh_mipi_driver, sh_mipi_probe);
--}
--module_init(sh_mipi_init);
--
--static void __exit sh_mipi_exit(void)
--{
--	platform_driver_unregister(&sh_mipi_driver);
--}
--module_exit(sh_mipi_exit);
-+module_platform_driver_probe(sh_mipi_driver, sh_mipi_probe);
+ 	return ops->vidioc_enum_input(file, fh, p);
+@@ -1018,6 +1021,7 @@ static int v4l_enuminput(const struct v4l2_ioctl_ops *ops,
+ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_output *p = arg;
  
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile MIPI DSI driver");
-diff --git a/drivers/video/sh_mobile_hdmi.c b/drivers/video/sh_mobile_hdmi.c
-index 930e550..bfe4728 100644
---- a/drivers/video/sh_mobile_hdmi.c
-+++ b/drivers/video/sh_mobile_hdmi.c
-@@ -1445,17 +1445,7 @@ static struct platform_driver sh_hdmi_driver = {
- 	},
- };
+ 	/*
+@@ -1026,11 +1030,11 @@ static int v4l_enumoutput(const struct v4l2_ioctl_ops *ops,
+ 	 * driver. If the driver doesn't support these
+ 	 * for a specific output, it must override these flags.
+ 	 */
+-	if (ops->vidioc_s_std)
++	if (is_valid_ioctl(vfd, VIDIOC_S_STD))
+ 		p->capabilities |= V4L2_OUT_CAP_STD;
+-	if (ops->vidioc_s_dv_preset)
++	if (is_valid_ioctl(vfd, VIDIOC_S_DV_PRESET))
+ 		p->capabilities |= V4L2_OUT_CAP_PRESETS;
+-	if (ops->vidioc_s_dv_timings)
++	if (is_valid_ioctl(vfd, VIDIOC_S_DV_TIMINGS))
+ 		p->capabilities |= V4L2_OUT_CAP_DV_TIMINGS;
  
--static int __init sh_hdmi_init(void)
--{
--	return platform_driver_probe(&sh_hdmi_driver, sh_hdmi_probe);
--}
--module_init(sh_hdmi_init);
--
--static void __exit sh_hdmi_exit(void)
--{
--	platform_driver_unregister(&sh_hdmi_driver);
--}
--module_exit(sh_hdmi_exit);
-+module_platform_driver_probe(sh_hdmi_driver, sh_hdmi_probe);
- 
- MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
- MODULE_DESCRIPTION("SuperH / ARM-shmobile HDMI driver");
+ 	return ops->vidioc_enum_output(file, fh, p);
+@@ -1513,7 +1517,7 @@ static int v4l_g_parm(const struct v4l2_ioctl_ops *ops,
+ 	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		return -EINVAL;
+ 	p->parm.capture.readbuffers = 2;
+-	if (ops->vidioc_g_std)
++	if (is_valid_ioctl(vfd, VIDIOC_G_STD) && ops->vidioc_g_std)
+ 		ret = ops->vidioc_g_std(file, fh, &std);
+ 	if (ret == 0)
+ 		v4l2_video_std_frame_period(std,
+@@ -1873,7 +1877,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 		return -EINVAL;
+ 	if (ops->vidioc_enum_freq_bands)
+ 		return ops->vidioc_enum_freq_bands(file, fh, p);
+-	if (ops->vidioc_g_tuner) {
++	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+ 		struct v4l2_tuner t = {
+ 			.index = p->tuner,
+ 			.type = type,
+@@ -1891,7 +1895,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
+ 		return 0;
+ 	}
+-	if (ops->vidioc_g_modulator) {
++	if (is_valid_ioctl(vfd, VIDIOC_G_MODULATOR)) {
+ 		struct v4l2_modulator m = {
+ 			.index = p->tuner,
+ 		};
 -- 
-1.8.1.5
+1.7.10.4
 
