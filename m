@@ -1,128 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:58448 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965316Ab3CZPXi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 11:23:38 -0400
-Received: by mail-pb0-f42.google.com with SMTP id xb4so4790841pbc.1
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 08:23:35 -0700 (PDT)
-From: Masanari Iida <standby24x7@gmail.com>
-To: manjunath.hadli@ti.com, prabhakar.lad@ti.com,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: gregkh@linuxfoundation.org, Masanari Iida <standby24x7@gmail.com>
-Subject: [PATCH] staging: davinci: Fix typo in staging/media/davinci
-Date: Wed, 27 Mar 2013 00:23:28 +0900
-Message-Id: <1364311408-8710-1-git-send-email-standby24x7@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54441 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753438Ab3CKWMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 18:12:18 -0400
+Message-ID: <513E569A.4030407@iki.fi>
+Date: Tue, 12 Mar 2013 00:11:38 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] block i2c tuner reads for Avermedia Twinstar in the af9035
+ driver
+References: <4261811.IXtDYhFBCx@jar7.dominio> <3480171.KOskcr6aWb@jar7.dominio> <513DD4C1.5070504@iki.fi> <5231183.rT6pVb4eC3@jar7.dominio>
+In-Reply-To: <5231183.rT6pVb4eC3@jar7.dominio>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Correct spelling typo in staging/media/davinci
+On 03/11/2013 10:02 PM, Jose Alberto Reguero wrote:
+> On Lunes, 11 de marzo de 2013 14:57:37 Antti Palosaari escribió:
+>> On 03/11/2013 01:51 PM, Jose Alberto Reguero wrote:
+>>> On Lunes, 11 de febrero de 2013 14:48:18 Jose Alberto Reguero escribió:
+>>>> On Domingo, 10 de febrero de 2013 22:11:53 Antti Palosaari escribió:
+>>>>> On 02/10/2013 09:43 PM, Jose Alberto Reguero wrote:
+>>>>>> This patch block the i2c tuner reads for Avermedia Twinstar. If it's
+>>>>>> needed other pids can be added.
+>>>>>>
+>>>>>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+>>>>>>
+>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c ---
+>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
+>>>>>> 05:45:57.000000000 +0100 +++
+>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-02-08
+>>>>>> 22:55:08.304089054 +0100 @@ -232,7 +232,11 @@ static int
+>>>>>> af9035_i2c_master_xfer(struct
+>>>>>>
+>>>>>>     			buf[3] = 0x00; /* reg addr MSB */
+>>>>>>     			buf[4] = 0x00; /* reg addr LSB */
+>>>>>>     			memcpy(&buf[5], msg[0].buf, msg[0].len);
+>>>>>>
+>>>>>> -			ret = af9035_ctrl_msg(d, &req);
+>>>>>> +			if (state->block_read) {
+>>>>>> +				msg[1].buf[0] = 0x3f;
+>>>>>> +				ret = 0;
+>>>>>> +			} else
+>>>>>> +				ret = af9035_ctrl_msg(d, &req);
+>>>>>>
+>>>>>>     		}
+>>>>>>     	
+>>>>>>     	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
+>>>>>>     	
+>>>>>>     		if (msg[0].len > 40) {
+>>>>>>
+>>>>>> @@ -638,6 +642,17 @@ static int af9035_read_config(struct dvb
+>>>>>>
+>>>>>>     	for (i = 0; i < ARRAY_SIZE(state->af9033_config); i++)
+>>>>>>     	
+>>>>>>     		state->af9033_config[i].clock = clock_lut[tmp];
+>>>>>>
+>>>>>> +	state->block_read = false;
+>>>>>> +
+>>>>>> +	if (le16_to_cpu(d->udev->descriptor.idVendor) == USB_VID_AVERMEDIA &&
+>>>>>> +		le16_to_cpu(d->udev->descriptor.idProduct) ==
+>>>>>> +			USB_PID_AVERMEDIA_TWINSTAR) {
+>>>>>> +		dev_dbg(&d->udev->dev,
+>>>>>> +				"%s: AverMedia Twinstar: block i2c read from tuner\n",
+>>>>>> +				__func__);
+>>>>>> +		state->block_read = true;
+>>>>>> +	}
+>>>>>> +
+>>>>>>
+>>>>>>     	return 0;
+>>>>>>
+>>>>>>     err:
+>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
+>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h ---
+>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07
+>>>>>> 05:45:57.000000000 +0100 +++
+>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-02-08
+>>>>>> 22:52:42.293842710 +0100 @@ -54,6 +54,7 @@ struct usb_req {
+>>>>>>
+>>>>>>     struct state {
+>>>>>>
+>>>>>>     	u8 seq; /* packet sequence number */
+>>>>>>     	bool dual_mode;
+>>>>>>
+>>>>>> +	bool block_read;
+>>>>>>
+>>>>>>     	struct af9033_config af9033_config[2];
+>>>>>>
+>>>>>>     };
+>>>>>
+>>>>> Could you test if faking tuner ID during attach() is enough?
+>>>>>
+>>>>> Also, I would like to know what is returned error code from firmware
+>>>>> when it fails. Enable debugs to see it. It should print something like
+>>>>> that: af9035_ctrl_msg: command=03 failed fw error=2
+>>>>>
+>>>>>
+>>>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> index a1e953a..5a4f28d 100644
+>>>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>>>>> @@ -1082,9 +1082,22 @@ static int af9035_tuner_attach(struct
+>>>>> dvb_usb_adapter *adap)
+>>>>>
+>>>>>                            tuner_addr = 0x60 | 0x80; /* I2C bus hack */
+>>>>>
+>>>>>                    }
+>>>>>
+>>>>> +               // fake used tuner for demod firmware / i2c adapter
+>>>>> +               if (adap->id == 0)
+>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
+>>>>> AF9033_TUNER_FC0011);
+>>>>> +               else
+>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
+>>>>> AF9033_TUNER_FC0011);
+>>>>> +
+>>>>>
+>>>>>                    /* attach tuner */
+>>>>>                    fe = dvb_attach(mxl5007t_attach, adap->fe[0],
+>>>>>                    &d->i2c_adap,
+>>>>>
+>>>>>                                    tuner_addr,
+>>>>>
+>>>>> &af9035_mxl5007t_config[adap->id]);
+>>>>> +
+>>>>> +               // return correct tuner
+>>>>> +               if (adap->id == 0)
+>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
+>>>>> AF9033_TUNER_MXL5007T);
+>>>>> +               else
+>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
+>>>>> AF9033_TUNER_MXL5007T);
+>>>>> +
+>>>>>
+>>>>>                    break;
+>>>>>
+>>>>>            case AF9033_TUNER_TDA18218:
+>>>>>                    /* attach tuner */
+>>>>>
+>>>>> regards
+>>>>> Antti
+>>>>
+>>>> I will try with fake tuner, but I can't test unil next weekend.
+>>>> If I remember, the read operation is performed, and return good value,
+>>>> but after that, all the i2c transfers fail. Seee:
+>>>>
+>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56346.html
+>>>>
+>>>> Jose Alberto
+>>>
+>>> I tried with fake tuner without success:
+>>>
+>>> [ 1346.707405] DVB: registering new adapter (AVerMedia Twinstar (A825))
+>>> [ 1346.959043] i2c i2c-1: af9033: firmware version: LINK=11.5.9.0
+>>> OFDM=5.17.9.1
+>>> [ 1346.962920] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech
+>>> AF9033 (DVB-T))...
+>>> [ 1347.439354] mxl5007t 1-0060: creating new instance
+>>> [ 1347.440644] mxl5007t_get_chip_id: unknown rev (3f)
+>>> [ 1347.440652] mxl5007t_get_chip_id: MxL5007T detected @ 1-0060
+>>> [ 1347.443023] mxl5007t_write_reg: 472: failed!
+>>> [ 1347.443031] mxl5007t_attach: error -121 on line 903
+>>> [ 1347.443790] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error
+>>> while
+>>> loading driver (-19)
+>>> [ 1347.446624] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)'
+>>> successfully deinitialized and disconnected
+>>
+>> I don't see how the hell it could even go to the mxl5007t_write_reg()
+>> during attach. Any idea?
+>>
+>
+> Now with the patches I sent for mxl5007 in the attach function
+> mxl5007t_soft_reset is called, and also  loop_thru_enable is writed. The
+> problem is that the read is performed and it return a good value, but the next
+> writes fail.
+>
+>> I have some thoughts that mxl5007t do not use repeated condition. Driver
+>> still does that. Could you test to perform register read without a
+>> repeated I2C condition?
+>>
+>
+> How I can do that? what it is a repeated i2c condition?
 
-Signed-off-by: Masanari Iida <standby24x7@gmail.com>
----
- drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt | 2 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c        | 6 +++---
- drivers/staging/media/davinci_vpfe/vpfe_video.c        | 8 ++++----
- drivers/staging/media/davinci_vpfe/vpfe_video.h        | 2 +-
- 4 files changed, 9 insertions(+), 9 deletions(-)
+You should take a look for I2C specification.
 
-diff --git a/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt b/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-index 1dbd564..a1e9177 100644
---- a/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-+++ b/drivers/staging/media/davinci_vpfe/davinci-vpfe-mc.txt
-@@ -38,7 +38,7 @@ interface to userspace.
- 	DAVINCI RESIZER A
- 	DAVINCI RESIZER B
- 
--Each possible link in the VPFE is modeled by a link in the Media controller
-+Each possible link in the VPFE is modelled by a link in the Media controller
- interface. For an example program see [1].
- 
- 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index ebeea72..6d4a93c 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -685,7 +685,7 @@ static void isif_config_bclamp(struct vpfe_isif_device *isif,
- 	val = (bc->bc_mode_color & ISIF_BC_MODE_COLOR_MASK) <<
- 		ISIF_BC_MODE_COLOR_SHIFT;
- 
--	/* Enable BC and horizontal clamp caculation paramaters */
-+	/* Enable BC and horizontal clamp calculation paramaters */
- 	val = val | 1 | ((bc->horz.mode & ISIF_HORZ_BC_MODE_MASK) <<
- 	      ISIF_HORZ_BC_MODE_SHIFT);
- 
-@@ -722,7 +722,7 @@ static void isif_config_bclamp(struct vpfe_isif_device *isif,
- 		isif_write(isif->isif_cfg.base_addr, val, CLHWIN2);
- 	}
- 
--	/* vertical clamp caculation paramaters */
-+	/* vertical clamp calculation paramaters */
- 	/* OB H Valid */
- 	val = bc->vert.ob_h_sz_calc & ISIF_VERT_BC_OB_H_SZ_MASK;
- 
-@@ -1569,7 +1569,7 @@ isif_pad_set_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		crop->rect.width = format->width;
- 		crop->rect.height = format->height;
- 	}
--	/* adjust the width to 16 pixel boundry */
-+	/* adjust the width to 16 pixel boundary */
- 	crop->rect.width = ((crop->rect.width + 15) & ~0xf);
- 	vpfe_isif->crop = crop->rect;
- 	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-index 99ccbeb..c91d356 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-@@ -357,7 +357,7 @@ static int vpfe_pipeline_disable(struct vpfe_pipeline *pipe)
-  *
-  * Set the pipeline to the given stream state.
-  *
-- * Return 0 if successfull, or the return value of the failed video::s_stream
-+ * Return 0 if successful, or the return value of the failed video::s_stream
-  * operation otherwise.
-  */
- static int vpfe_pipeline_set_stream(struct vpfe_pipeline *pipe,
-@@ -644,7 +644,7 @@ static int vpfe_g_fmt(struct file *file, void *priv,
-  * fills v4l2_fmtdesc structure with output format set on adjacent subdev,
-  * only one format is enumearted as subdevs are already configured
-  *
-- * Return 0 if successfull, error code otherwise
-+ * Return 0 if successful, error code otherwise
-  */
- static int vpfe_enum_fmt(struct file *file, void  *priv,
- 				   struct v4l2_fmtdesc *fmt)
-@@ -769,7 +769,7 @@ static int vpfe_try_fmt(struct file *file, void *priv,
-  * fills v4l2_input structure with input available on media chain,
-  * only one input is enumearted as media chain is setup by this time
-  *
-- * Return 0 if successfull, -EINVAL is media chain is invalid
-+ * Return 0 if successful, -EINVAL is media chain is invalid
-  */
- static int vpfe_enum_input(struct file *file, void *priv,
- 				 struct v4l2_input *inp)
-@@ -779,7 +779,7 @@ static int vpfe_enum_input(struct file *file, void *priv,
- 	struct vpfe_device *vpfe_dev = video->vpfe_dev;
- 
- 	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_enum_input\n");
--	/* enumerate from the subdev user has choosen through mc */
-+	/* enumerate from the subdev user has chosen through mc */
- 	if (inp->index < sdinfo->num_inputs) {
- 		memcpy(inp, &sdinfo->inputs[inp->index],
- 		       sizeof(struct v4l2_input));
-diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.h b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-index bf8af01..df0aeec 100644
---- a/drivers/staging/media/davinci_vpfe/vpfe_video.h
-+++ b/drivers/staging/media/davinci_vpfe/vpfe_video.h
-@@ -138,7 +138,7 @@ struct vpfe_video_device {
- 	v4l2_std_id				stdid;
- 	/*
- 	 * offset where second field starts from the starting of the
--	 * buffer for field seperated YCbCr formats
-+	 * buffer for field separated YCbCr formats
- 	 */
- 	u32					field_off;
- };
+Please test that:
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_i2c_mxl5007t_test
+
+It fixes similar issue of AF9015 driver :)
+
+I am not able to test AF9035 as I have no hw. It is compile tested only. 
+Try to do some tweaking for AF9035 implementation if it does not work!
+
+regards
+Antti
+
 -- 
-1.8.2.135.g7b592fa
-
+http://palosaari.fi/
