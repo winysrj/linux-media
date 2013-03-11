@@ -1,78 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3074 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756018Ab3C1I2J (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38842 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752994Ab3CKUvE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 04:28:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.10] hdpvr: driver overhaul
-Date: Thu, 28 Mar 2013 09:27:53 +0100
-Cc: Leonid Kegulskiy <leo@lumanate.com>, Janne Grunau <j@jannau.net>
+	Mon, 11 Mar 2013 16:51:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: omap3isp: iommu register problem.
+Date: Mon, 11 Mar 2013 21:51:38 +0100
+Message-ID: <2890206.GE3SX5DoKH@avalon>
+In-Reply-To: <CACKLOr3VojUn2CyVUxyA-6ESkGdx3h-ShmCXLEsD3czeYeQ=bg@mail.gmail.com>
+References: <CACKLOr0DGrULZmrzRuEqdm_Ec0hroCAXrnqLUFrc37YKpQ-Vpw@mail.gmail.com> <2233212.n9eBIia8fu@avalon> <CACKLOr3VojUn2CyVUxyA-6ESkGdx3h-ShmCXLEsD3czeYeQ=bg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303280927.53374.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Javier,
 
-This pull request overhauls the hdpvr driver. It's identical to my earlier
-posted patch series:
+On Monday 11 March 2013 16:28:58 javier Martin wrote:
+> On 11 March 2013 16:01, Laurent Pinchart wrote:
+> > On Monday 11 March 2013 13:18:12 javier Martin wrote:
+> >> I've just found the following thread where te problem is explained:
+> >> http://lists.infradead.org/pipermail/linux-arm-kernel/2012-February/08636
+> >> 4.h tml
+> >> 
+> >> The problem is related with the order iommu and omap3isp are probed
+> >> when both are built-in. If I load omap3isp as a module the problem is
+> >> gone.
+> >> 
+> >> However, according to the previous thread, omap3isp register should
+> >> return error but an oops should not be generated. So I think there is
+> >> a bug here anyway.
+> > 
+> > Does the following patch (compile-tested only) fix the issue ?
+> > 
+> > diff --git a/drivers/media/platform/omap3isp/isp.c
+> > b/drivers/media/platform/omap3isp/isp.c index 6e5ad8e..4d889be 100644
+> > --- a/drivers/media/platform/omap3isp/isp.c
+> > +++ b/drivers/media/platform/omap3isp/isp.c
+> > @@ -2123,6 +2123,7 @@ static int isp_probe(struct platform_device *pdev)
+> >         ret = iommu_attach_device(isp->domain, &pdev->dev);
+> >         if (ret) {
+> >                 dev_err(&pdev->dev, "can't attach iommu device: %d\n",
+> >                 ret);
+> > +               ret = -EPROBE_DEFER;
+> >                 goto free_domain;
+> >         }
+> > 
+> > @@ -2161,6 +2162,7 @@ detach_dev:
+> >         iommu_detach_device(isp->domain, &pdev->dev);
+> >  free_domain:
+> >         iommu_domain_free(isp->domain);
+> > +       isp->domain = NULL;
+> >  error_isp:
+> >         omap3isp_put(isp);
+> >  error:
+>
+> Yes, that solves the problems.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg60040.html
+Great. I'll push the patch to v3.10 then.
 
-except for being rebased to the latest master.
+> [    2.706939] omap3isp omap3isp: Revision 15.0 found
+> [    2.712402] omap_iommu_attach: 1
+> [    2.715942] omap_iommu_attach: 2
+> [    2.719329] omap_iommu_attach: 3
+> [    2.722778] omap_iommu_attach: 4
+> [    2.726135] omap_iommu_attach: 5
+> [    2.729553] iommu_enable: 1
+> [    2.732482] iommu_enable: 2, arch_iommu = c0599adc
+> [    2.737548] iommu_enable: 3
+> [    2.740478] iommu_enable: 5
+> [    2.743652] omap-iommu omap-iommu.0: mmu_isp: version 1.1
+> [    2.749389] omap_iommu_attach: 6
+> [    2.752807] omap_iommu_attach: 7
+> [    2.756195] omap_iommu_attach: 8
+> [    2.759613] omap_iommu_attach: 9
+> [    2.763977] omap3isp omap3isp: hist: DMA channel = 2
+> [    2.770904] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+> [    2.778839] ALSA device list:
+> [    2.781982]   No soundcards found.
+> [    2.799285] mt9m111 2-0048: mt9m111: driver needs platform data
+> [    2.805603] mt9m111: probe of 2-0048 failed with error -22
+> [    2.814849] omap3isp omap3isp: isp_register_subdev_group: Unable to
+> register subdev mt9m111
+> 
+> The error I get now seems more related to the fact that I am trying to
+> use a soc-camera sensor (mt9m111) with a non-soc-camera host
+> (omap3isp) and I probably need some extra platform code.
+> 
+> Do you know any board in mainline in a similar situation?
 
-It's been tested thoroughly on my hdpvr and with a video generator to test all
-the video formats.
+There's none yet I'm afraid.
 
-I've taken care to preserve the current VIDIOC_G_FMT behavior since MythTV
-relies on that. See the last patch for more information on that topic.
+We don't have the necessary infrastructure in place yet to allow this. 
+Guennadi might be able to give you a bit more information about the current 
+status.
 
-Leonid, because of the MythTV behavior your patch (http://patchwork.linuxtv.org/patch/17567/)
-can't be applied.
-
-The way out would be for someone to add support to MythTV for
-VIDIOC_QUERY_DV_TIMINGS as the preferred method of detecting if a signal
-is present on the HDPVR, and once that it in place this legacy hack can
-be removed from this driver.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-The following changes since commit 004e45d736bfe62159bd4dc1549eff414bd27496:
-
-  [media] tuner-core: handle errors when getting signal strength/afc (2013-03-25 15:10:43 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git hdpvr
-
-for you to fetch changes up to 6cb9721190d98e654e1b5ac467565ce7784ed2da:
-
-  hdpvr: add dv_timings support. (2013-03-28 09:16:36 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (11):
-      videodev2.h: fix incorrect V4L2_DV_FL_HALF_LINE bitmask.
-      v4l2-dv-timings.h: add 480i59.94 and 576i50 CEA-861-E timings.
-      hdpvr: convert to the control framework.
-      hdpvr: remove hdpvr_fh and just use v4l2_fh.
-      hdpvr: add prio and control event support.
-      hdpvr: support device_caps in querycap.
-      hdpvr: small fixes
-      hdpvr: register the video node at the end of probe.
-      hdpvr: recognize firmware version 0x1e.
-      hdpvr: add g/querystd, remove deprecated current_norm.
-      hdpvr: add dv_timings support.
-
- drivers/media/usb/hdpvr/hdpvr-core.c  |   14 +-
- drivers/media/usb/hdpvr/hdpvr-video.c |  918 +++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
- drivers/media/usb/hdpvr/hdpvr.h       |   19 +-
- include/uapi/linux/v4l2-dv-timings.h  |   18 ++
- include/uapi/linux/videodev2.h        |    2 +-
- 5 files changed, 473 insertions(+), 498 deletions(-)
