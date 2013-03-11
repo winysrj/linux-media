@@ -1,112 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:52296 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914Ab3CMEXm (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:58366 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab3CKTAw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Mar 2013 00:23:42 -0400
-Received: by mail-la0-f46.google.com with SMTP id fq12so650280lab.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2013 21:23:40 -0700 (PDT)
-Date: Wed, 13 Mar 2013 14:23:36 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: [PATCH] xc5000: fix incorrect debug printnk
-Message-ID: <20130313142336.63cc4d55@glory.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 11 Mar 2013 15:00:52 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 01/11] s5p-fimc: Added error checks for pipeline stream on
+ callbacks
+Date: Mon, 11 Mar 2013 20:00:16 +0100
+Message-id: <1363028426-2771-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+From: Andrzej Hajda <a.hajda@samsung.com>
 
-I found very small bag in xc5000 source.
+set_stream error for pipelines is logged or reported to user
+space if possible.
 
-When set option debug=1 and listen a radio we see in dmesg
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-capture.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-xc5000: xc_SetTVStandard() Standard = M/N-NTSC/PAL-BTSC
-
-at all time.
-
-But true value is "FM Radio-INPUT1_MONO".
-
-It happens because in function xc5000_set_radio_freq get correct value VideoMode and AudioMode for radio and
-call xc_SetTVStandard where name of standard get from incorrect place priv->video_standard .
-
-This incorrect debug message do debugging little difficult.
-
-I found very small bag in xc5000 source.
-
-When set option debug=1 and listen a radio we see in dmesg
-
-xc5000: xc_SetTVStandard() Standard = M/N-NTSC/PAL-BTSC
-
-at all time.
-
-But true value is "FM Radio-INPUT1_MONO".
-
-It happens because in function xc5000_set_radio_freq get correct value VideoMode and AudioMode for radio and
-call xc_SetTVStandard where name of standard get from incorrect place priv->video_standard .
-
-This incorrect debug message do debugging little difficult.
-
-diff --git a/drivers/media/tuners/xc5000.c b/drivers/media/tuners/xc5000.c
-index d6be1b6..5cd09a6 100644
---- a/drivers/media/tuners/xc5000.c
-+++ b/drivers/media/tuners/xc5000.c
-@@ -422,13 +422,19 @@ static int xc_initialize(struct xc5000_priv *priv)
- }
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 2a1da4c..52abc9f 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -286,8 +286,8 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
+ 		fimc_activate_capture(ctx);
  
- static int xc_SetTVStandard(struct xc5000_priv *priv,
--	u16 VideoMode, u16 AudioMode)
-+	u16 VideoMode, u16 AudioMode, u8 RadioMode)
- {
- 	int ret;
- 	dprintk(1, "%s(0x%04x,0x%04x)\n", __func__, VideoMode, AudioMode);
--	dprintk(1, "%s() Standard = %s\n",
--		__func__,
--		XC5000_Standard[priv->video_standard].Name);
-+	if (RadioMode) {
-+		dprintk(1, "%s() Standard = %s\n",
-+			__func__,
-+			XC5000_Standard[RadioMode].Name);
-+	} else {
-+		dprintk(1, "%s() Standard = %s\n",
-+			__func__,
-+			XC5000_Standard[priv->video_standard].Name);
-+	}
+ 		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
+-			fimc_pipeline_call(fimc, set_stream,
+-					   &fimc->pipeline, 1);
++			return fimc_pipeline_call(fimc, set_stream,
++						  &fimc->pipeline, 1);
+ 	}
  
- 	ret = xc_write_reg(priv, XREG_VIDEO_MODE, VideoMode);
- 	if (ret == XC_RESULT_SUCCESS)
-@@ -824,7 +830,7 @@ static int xc5000_set_params(struct dvb_frontend *fe)
+ 	return 0;
+@@ -443,12 +443,17 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	if (vb2_is_streaming(&vid_cap->vbq) &&
+ 	    vid_cap->active_buf_cnt >= min_bufs &&
+ 	    !test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
++		int ret;
++
+ 		fimc_activate_capture(ctx);
+ 		spin_unlock_irqrestore(&fimc->slock, flags);
  
- 	ret = xc_SetTVStandard(priv,
- 		XC5000_Standard[priv->video_standard].VideoMode,
--		XC5000_Standard[priv->video_standard].AudioMode);
-+		XC5000_Standard[priv->video_standard].AudioMode, 0);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
- 		return -EREMOTEIO;
-@@ -940,7 +946,7 @@ tune_channel:
- 
- 	ret = xc_SetTVStandard(priv,
- 		XC5000_Standard[priv->video_standard].VideoMode,
--		XC5000_Standard[priv->video_standard].AudioMode);
-+		XC5000_Standard[priv->video_standard].AudioMode, 0);
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
- 		return -EREMOTEIO;
-@@ -1003,7 +1009,7 @@ static int xc5000_set_radio_freq(struct dvb_frontend *fe,
- 	priv->rf_mode = XC_RF_MODE_AIR;
- 
- 	ret = xc_SetTVStandard(priv, XC5000_Standard[radio_input].VideoMode,
--			       XC5000_Standard[radio_input].AudioMode);
-+			       XC5000_Standard[radio_input].AudioMode, radio_input);
- 
- 	if (ret != XC_RESULT_SUCCESS) {
- 		printk(KERN_ERR "xc5000: xc_SetTVStandard failed\n");
+-		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
+-			fimc_pipeline_call(fimc, set_stream,
+-					   &fimc->pipeline, 1);
++		if (test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
++			return;
++
++		ret = fimc_pipeline_call(fimc, set_stream, &fimc->pipeline, 1);
++		if (ret < 0)
++			v4l2_err(&vid_cap->vfd, "stream on failed: %d\n", ret);
+ 		return;
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+-- 
+1.7.9.5
 
-
-Signed-off-by: Dmitry Belimov <d.belimov@gmail.com>
-
-With my best regards, Dmitry.
