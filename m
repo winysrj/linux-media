@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:61268 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256Ab3CSKBv (ORCPT
+Received: from mail-wg0-f52.google.com ([74.125.82.52]:54376 "EHLO
+	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040Ab3CKFgg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 06:01:51 -0400
-Received: by mail-ob0-f169.google.com with SMTP id ta14so235404obb.0
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 03:01:51 -0700 (PDT)
+	Mon, 11 Mar 2013 01:36:36 -0400
+Received: by mail-wg0-f52.google.com with SMTP id 12so4548996wgh.19
+        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 22:36:34 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1363687193-30893-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1363687193-30893-1-git-send-email-vikas.sajjan@linaro.org>
-Date: Tue, 19 Mar 2013 15:31:50 +0530
-Message-ID: <CAKohpo=wJLq+wZ_yTB_q11440qfpfbA7RJX7OwmWVCGSRXJ4Sg@mail.gmail.com>
-Subject: Re: [PATCH] drm/exynos: enable FIMD clocks
-From: Viresh Kumar <viresh.kumar@linaro.org>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, kgene.kim@samsung.com,
-	jy0922.shim@samsung.com, joshi@samsung.com, inki.dae@samsung.com,
-	linux-samsung-soc@vger.kernel.org, linaro-kernel@lists.linaro.org,
-	linux-media@vger.kernel.org
+In-Reply-To: <CAK9yfHwJMKgGp41BTXmfvQhWviYCZM45c6TKTJ3Zwpb_wLVYbw@mail.gmail.com>
+References: <1362484334-18804-1-git-send-email-sachin.kamat@linaro.org>
+ <CA+V-a8vwiXk+0AcRgRRdOP-qbKrsDKFNQ4DKm+fTGgTSiiwn7g@mail.gmail.com>
+ <CAK9yfHyeoMYiYZUEUY+gPRGOaLf4Qk500R=N4uKNV7n-csqiWQ@mail.gmail.com>
+ <CA+V-a8tEQmabr40j6jWOPDwFRnmH80kKze_G4Ldwr0r3D1ofRg@mail.gmail.com>
+ <CAK9yfHy+OL3=gx5dO-1uzSHQTqXovCzbyokv28yTHD11NOG4hA@mail.gmail.com>
+ <CA+V-a8vAqhBjHYbwCmWd11WdDyZTEyKj27FcDjcz=h+bwdMspA@mail.gmail.com> <CAK9yfHwJMKgGp41BTXmfvQhWviYCZM45c6TKTJ3Zwpb_wLVYbw@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 11 Mar 2013 11:06:13 +0530
+Message-ID: <CA+V-a8uzD9Zra2mraw+uZeowisem0qZ+dqb1d4MS0_52=sLHKg@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] davinci_vpfe: Use module_platform_driver macro
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 March 2013 15:29, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> While migrating to common clock framework (CCF), found that the FIMD clocks
-> were pulled down by the CCF.
-> If CCF finds any clock(s) which has NOT been claimed by any of the
-> drivers, then such clock(s) are PULLed low by CCF.
->
-> By calling clk_prepare_enable() for FIMD clocks fixes the issue.
->
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |    3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index 9537761..d93dd8a 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -934,6 +934,9 @@ static int fimd_probe(struct platform_device *pdev)
->                 return ret;
->         }
->
-> +       clk_prepare_enable(ctx->lcd_clk);
-> +       clk_prepare_enable(ctx->bus_clk);
-> +
+Hi Sachin,
 
-Ideally you should check return values here.
+On Mon, Mar 11, 2013 at 11:01 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+>>>
+>> Queued to my branch
+>> http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/shortlog/refs/heads/for_v3.10
+>
+> Thanks Prabhakar.
+>
+> BTW, Manjunath's mail ID (manjunath.hadli@ti.com) bounces. Probably
+> you need to update the correct ID in the MAINTAINERS file?
+>
+Yeah Manjunath and me have stopped working with TI, but although
+I'll be maintaining Davinci media with my personal Id. I will soon post the
+patch updating the  MAINTAINERS file.
+
+Regards,
+--Prabhakar Lad
+
+> --
+> With warm regards,
+> Sachin
