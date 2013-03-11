@@ -1,45 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-01.mandic.com.br ([200.225.81.132]:34656 "EHLO
-	smtp-01.mandic.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520Ab3CCCA6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 21:00:58 -0500
-From: Cesar Eduardo Barros <cesarb@cesarb.net>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Joe Perches <joe@perches.com>,
-	Cesar Eduardo Barros <cesarb@cesarb.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 09/14] MAINTAINERS: fix Documentation/video4linux/saa7134/
-Date: Sat,  2 Mar 2013 22:53:47 -0300
-Message-Id: <1362275632-20242-10-git-send-email-cesarb@cesarb.net>
-In-Reply-To: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
-References: <1362275632-20242-1-git-send-email-cesarb@cesarb.net>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:55925 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752491Ab3CKFHP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Mar 2013 01:07:15 -0400
+MIME-Version: 1.0
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 11 Mar 2013 10:36:53 +0530
+Message-ID: <CA+V-a8seGgMO_F+bAV-DS6XSvRQ+7+bgNyenJh-oR6WFzhvW=A@mail.gmail.com>
+Subject: [GIT PULL FOR v3.9] DaVinci media driver fixes
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That directory never existed. The intention was probably to match
-CARDLIST.saa7134 and README.saa7134.
+Hi Mauro,
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Cesar Eduardo Barros <cesarb@cesarb.net>
----
- MAINTAINERS | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Please pull the following patches for Davinci.
+The first patch fixes module build for VPBE driver
+and the second patch fixes the module build for VPIF
+driver.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 46c1288..44b9f69 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6741,7 +6741,7 @@ L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org
- T:	git git://linuxtv.org/media_tree.git
- S:	Odd fixes
--F:	Documentation/video4linux/saa7134/
-+F:	Documentation/video4linux/*.saa7134
- F:	drivers/media/pci/saa7134/
- 
- SAA7146 VIDEO4LINUX-2 DRIVER
--- 
-1.7.11.7
+The following changes since commit f6161aa153581da4a3867a2d1a7caf4be19b6ec9:
 
+  Linux 3.9-rc2 (2013-03-10 16:54:19 -0700)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_mauro
+
+Lad, Prabhakar (2):
+      davinci: vpbe: fix module build
+      davinci: vpif: Fix module build for capture and display
+
+ drivers/media/platform/davinci/vpbe_osd.c  |    3 +++
+ drivers/media/platform/davinci/vpbe_venc.c |    3 +++
+ drivers/media/platform/davinci/vpif.c      |    4 ++++
+ 3 files changed, 10 insertions(+), 0 deletions(-)
