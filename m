@@ -1,51 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:46349 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756373Ab3C1Op2 (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:39462 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198Ab3CLEmn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 10:45:28 -0400
-Date: Thu, 28 Mar 2013 10:45:27 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, <linux-usb@vger.kernel.org>,
-	Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH/RFC] uvcvideo: Disable USB autosuspend for Creative Live!
- Cam Optia AF
-In-Reply-To: <1364471612-31792-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.44L0.1303281043140.1652-100000@iolanthe.rowland.org>
+	Tue, 12 Mar 2013 00:42:43 -0400
+Received: by mail-wi0-f174.google.com with SMTP id hi8so1492860wib.13
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 21:42:42 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <CAPgLHd80DXpcUmY69Vcc72ALGh3LrSGPakm0iBeXNUqLY-+Nxg@mail.gmail.com>
+References: <CAPgLHd80DXpcUmY69Vcc72ALGh3LrSGPakm0iBeXNUqLY-+Nxg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 12 Mar 2013 10:12:22 +0530
+Message-ID: <CA+V-a8sxCACzpm1v-daH84rwCfX776dzFXJSTm2mu1A0JSsfmw@mail.gmail.com>
+Subject: Re: [PATCH -next] [media] davinci: vpfe: fix return value check in vpfe_enable_clock()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@redhat.com, gregkh@linuxfoundation.org,
+	sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
+	hans.verkuil@cisco.com, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 28 Mar 2013, Laurent Pinchart wrote:
+Hi Wei,
 
-> The camera fails to start video streaming after having been autosuspend.
-> Add a new quirk to selectively disable autosuspend for devices that
-> don't support it.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks for the patch! I'll queue it up for v3.10
+
+On Mon, Mar 11, 2013 at 7:27 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> In case of error, the function clk_get() returns ERR_PTR()
+> and never returns NULL. The NULL test in the return value
+> check should be replaced with IS_ERR().
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Regards,
+--Prabhakar Lad
+
 > ---
->  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
->  drivers/media/usb/uvc/uvcvideo.h   |  1 +
->  2 files changed, 14 insertions(+), 1 deletion(-)
-> 
-> I've tried to set the reset resume quirk for this device in the USB core but
-> the camera still failed to start video streaming after having been
-> autosuspended. Regardless of whether the reset resume quirk was set, it would
-> respond to control messages but wouldn't send video data.
-
-Presumably the camera won't work after a system suspend, either.
-
-> This solution below is a hack, but I'm not sure what else I can try. Crazy
-> ideas are welcome.
-
-It's not a hack; it's a normal use for a quirk flag.  Of course, if you 
-can figure out what's wrong with the camera and see how to fix it, that 
-would be best.
-
-How does the camera perform on a Windows system after being put to
-sleep and then woken up?
-
-Alan Stern
-
+>  drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> index 7b35171..6a8222c 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
+> @@ -243,7 +243,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
+>
+>                 vpfe_dev->clks[i] =
+>                                 clk_get(vpfe_dev->pdev, vpfe_cfg->clocks[i]);
+> -               if (vpfe_dev->clks[i] == NULL) {
+> +               if (IS_ERR(vpfe_dev->clks[i])) {
+>                         v4l2_err(vpfe_dev->pdev->driver,
+>                                 "Failed to get clock %s\n",
+>                                 vpfe_cfg->clocks[i]);
+> @@ -264,7 +264,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
+>         return 0;
+>  out:
+>         for (i = 0; i < vpfe_cfg->num_clocks; i++)
+> -               if (vpfe_dev->clks[i]) {
+> +               if (!IS_ERR(vpfe_dev->clks[i])) {
+>                         clk_disable_unprepare(vpfe_dev->clks[i]);
+>                         clk_put(vpfe_dev->clks[i]);
+>                 }
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
