@@ -1,146 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13804 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753287Ab3CXKIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 06:08:16 -0400
-Date: Sun, 24 Mar 2013 07:07:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 4/6] v4l2: add const to argument of write-only
- s_register ioctl.
-Message-ID: <20130324070703.63a4e918@redhat.com>
-In-Reply-To: <1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
-References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
-	<1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:28011 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab3CLN0H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Mar 2013 09:26:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH v2 1/6] bttv: audio_mux() use a local variable "gpio_mute" instead of modifying the function parameter "mute"
+Date: Tue, 12 Mar 2013 14:25:22 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com> <1362952434-2974-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1362952434-2974-2-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303121425.22469.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 18 Mar 2013 15:12:03 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun 10 March 2013 22:53:49 Frank Schäfer wrote:
+> Function audio_mux() actually deals with two types of mute: gpio mute and
+> subdevice muting.
+> This patch claryfies the meaning of these values, but mainly prepares the code for
+> the next patch.
 > 
-> This ioctl is defined as IOW, so pass the argument as const.
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
+
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-...
-
-> diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-> index 080f179..15e08aa 100644
-> --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-> +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-> @@ -711,49 +711,50 @@ static int ivtv_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_i
->  }
->  
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> -static int ivtv_itvc(struct ivtv *itv, unsigned int cmd, void *arg)
-> +static volatile u8 __iomem *ivtv_itvc_start(struct ivtv *itv,
-> +		const struct v4l2_dbg_register *regs)
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index 8610b6a..a584d82 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -992,7 +992,7 @@ static char *audio_modes[] = {
+>  static int
+>  audio_mux(struct bttv *btv, int input, int mute)
 >  {
-> -	struct v4l2_dbg_register *regs = arg;
-> -	volatile u8 __iomem *reg_start;
-> -
-> -	if (!capable(CAP_SYS_ADMIN))
-> -		return -EPERM;
->  	if (regs->reg >= IVTV_REG_OFFSET && regs->reg < IVTV_REG_OFFSET + IVTV_REG_SIZE)
-> -		reg_start = itv->reg_mem - IVTV_REG_OFFSET;
-> -	else if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
-> +		return itv->reg_mem - IVTV_REG_OFFSET;
-> +	if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
->  			regs->reg < IVTV_DECODER_OFFSET + IVTV_DECODER_SIZE)
-> -		reg_start = itv->dec_mem - IVTV_DECODER_OFFSET;
-> -	else if (regs->reg < IVTV_ENCODER_SIZE)
-> -		reg_start = itv->enc_mem;
-> -	else
-> -		return -EINVAL;
-> -
-> -	regs->size = 4;
-> -	if (cmd == VIDIOC_DBG_G_REGISTER)
-> -		regs->val = readl(regs->reg + reg_start);
-> -	else
-> -		writel(regs->val, regs->reg + reg_start);
-> -	return 0;
-> +		return itv->dec_mem - IVTV_DECODER_OFFSET;
-> +	if (regs->reg < IVTV_ENCODER_SIZE)
-> +		return itv->enc_mem;
-> +	return NULL;
->  }
+> -	int gpio_val, signal;
+> +	int gpio_val, signal, mute_gpio;
+>  	struct v4l2_ctrl *ctrl;
 >  
->  static int ivtv_g_register(struct file *file, void *fh, struct v4l2_dbg_register *reg)
->  {
->  	struct ivtv *itv = fh2id(fh)->itv;
+>  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
+> @@ -1003,10 +1003,10 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  	btv->audio = input;
 >  
-> -	if (v4l2_chip_match_host(&reg->match))
-> -		return ivtv_itvc(itv, VIDIOC_DBG_G_REGISTER, reg);
-> +	if (v4l2_chip_match_host(&reg->match)) {
-> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
-> +
-> +		if (reg_start == NULL)
-> +			return -EINVAL;
-> +		reg->size = 4;
-> +		reg->val = readl(reg->reg + reg_start);
-> +		return 0;
-> +	}
->  	/* TODO: subdev errors should not be ignored, this should become a
->  	   subdev helper function. */
->  	ivtv_call_all(itv, core, g_register, reg);
->  	return 0;
->  }
+>  	/* automute */
+> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
+> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
+>  				&& !btv->has_radio_tuner);
 >  
-> -static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register *reg)
-> +static int ivtv_s_register(struct file *file, void *fh, const struct v4l2_dbg_register *reg)
->  {
->  	struct ivtv *itv = fh2id(fh)->itv;
+> -	if (mute)
+> +	if (mute_gpio)
+>  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
+>  	else
+>  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
+> @@ -1022,7 +1022,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  	}
 >  
-> -	if (v4l2_chip_match_host(&reg->match))
-> -		return ivtv_itvc(itv, VIDIOC_DBG_S_REGISTER, reg);
-> +	if (v4l2_chip_match_host(&reg->match)) {
-> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
-> +
-> +		if (reg_start == NULL)
-> +			return -EINVAL;
-> +		writel(reg->val, reg->reg + reg_start);
-> +		return 0;
-> +	}
->  	/* TODO: subdev errors should not be ignored, this should become a
->  	   subdev helper function. */
->  	ivtv_call_all(itv, core, s_register, reg);
-
-I'm not convinced about the changes on ivtv. Why do you need volatile there?
-
-Also, as you're doing changes there that aren't that trivial, and are not
-just "add const argument", please split those non-trivial ivtv changes into
-a separate patch, and properly describe what you're doing and why.
-
-Also, having it on a separate patch helps to bisect it, if it ever brings
-any problem.
-
--- 
-
-Cheers,
-Mauro
+>  	if (bttv_gpio)
+> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
+> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
+>  	if (in_interrupt())
+>  		return 0;
+>  
+> 
