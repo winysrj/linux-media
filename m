@@ -1,137 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:44270 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751836Ab3CAXLu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:50 -0500
-Received: by mail-ea0-f182.google.com with SMTP id a12so422985eaa.41
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:48 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 08/11] em28xx: add helper function for reading data blocks from i2c clients
-Date: Sat,  2 Mar 2013 00:12:12 +0100
-Message-Id: <1362179535-18929-9-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:58838 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752701Ab3CLM1R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Mar 2013 08:27:17 -0400
+Date: Tue, 12 Mar 2013 13:27:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] mt9m111: fix Oops - initialise context before dereferencing
+Message-ID: <Pine.LNX.4.64.1303121326451.680@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a helper function for reading data blocks from i2c devices with 8 or 16 bit
-address width and 8 bit register width.
-This allows us to reduce the size of new code added by the following patches.
-Works only for devices with activated register auto incrementation.
+A recent commit "[media] soc-camera: Push probe-time power management to
+drivers" causes an Oops during mt9m111 driver probing because its .ctx
+private data field is now dereferenced before it is initialised. Fix this
+by initialising the field earlier.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Reported-by: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c |   74 ++++++++++++++++++++-------------
- 1 Datei geändert, 46 Zeilen hinzugefügt(+), 28 Zeilen entfernt(-)
+ drivers/media/i2c/soc_camera/mt9m111.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 7185812..a3e9547 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -366,51 +366,69 @@ static inline unsigned long em28xx_hash_mem(char *buf, int length, int bits)
- 	return (hash >> (32 - bits)) & 0xffffffffUL;
- }
+diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
+index ea874ce..cfdda50 100644
+--- a/drivers/media/i2c/soc_camera/mt9m111.c
++++ b/drivers/media/i2c/soc_camera/mt9m111.c
+@@ -784,8 +784,6 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+ 	int ret;
  
-+/* Helper function to read data blocks from i2c clients with 8 or 16 bit
-+ * address width, 8 bit register width and auto incrementation been activated */
-+static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
-+				 u16 len, u8 *data)
-+{
-+	int remain = len, rsize, rsize_max, ret;
-+	u8 buf[2];
-+
-+	/* Sanity check */
-+	if (addr + remain > (256 + addr_w16*256))
-+		return -EINVAL;
-+	/* Select address */
-+	buf[0] = addr >> 8;
-+	buf[1] = addr & 0xff;
-+	ret = i2c_master_send(&dev->i2c_client, buf + !addr_w16, 1 + addr_w16);
-+	if (ret < 0)
-+		return ret;
-+	/* Read data */
-+	if (dev->board.is_em2800)
-+		rsize_max = 4;
-+	else
-+		rsize_max = 64;
-+	while (remain > 0) {
-+		if (remain > rsize_max)
-+			rsize = rsize_max;
-+		else
-+			rsize = remain;
-+
-+		ret = i2c_master_recv(&dev->i2c_client, data, rsize);
-+		if (ret < 0)
-+			return ret;
-+
-+		remain -= rsize;
-+		data += rsize;
-+	}
-+
-+	return len;
-+}
-+
- static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- {
--	unsigned char buf[2], *p = eedata;
-+	unsigned char buf, *p = eedata;
- 	struct em28xx_eeprom *em_eeprom = (void *)eedata;
--	int i, err, size = len, block, block_max;
-+	int i, err;
+-	/* Default HIGHPOWER context */
+-	mt9m111->ctx = &context_b;
+ 	ret = mt9m111_enable(mt9m111);
+ 	if (!ret)
+ 		ret = mt9m111_reset(mt9m111);
+@@ -974,6 +972,9 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	if (!mt9m111)
+ 		return -ENOMEM;
  
- 	dev->i2c_client.addr = 0xa0 >> 1;
- 
- 	/* Check if board has eeprom */
--	err = i2c_master_recv(&dev->i2c_client, buf, 0);
-+	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
- 	if (err < 0) {
- 		em28xx_info("board has no eeprom\n");
- 		memset(eedata, 0, len);
- 		return -ENODEV;
- 	}
- 
--	/* Select address memory address 0x00(00) */
--	buf[0] = 0;
--	buf[1] = 0;
--	err = i2c_master_send(&dev->i2c_client, buf, 1 + dev->eeprom_addrwidth_16bit);
--	if (err != 1 + dev->eeprom_addrwidth_16bit) {
-+	/* Read EEPROM content */
-+	err = em28xx_i2c_read_block(dev, 0x0000, dev->eeprom_addrwidth_16bit,
-+				    len, p);
-+	if (err != len) {
- 		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
- 		return err;
- 	}
- 
--	/* Read eeprom content */
--	if (dev->board.is_em2800)
--		block_max = 4;
--	else
--		block_max = 64;
--	while (size > 0) {
--		if (size > block_max)
--			block = block_max;
--		else
--			block = size;
--
--		if (block !=
--		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
--			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
--			return err;
--		}
--		size -= block;
--		p += block;
--	}
--
- 	/* Display eeprom content */
- 	for (i = 0; i < len; i++) {
- 		if (0 == (i % 16)) {
++	/* Default HIGHPOWER context */
++	mt9m111->ctx = &context_b;
++
+ 	v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
+ 	v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
+ 	v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
 -- 
-1.7.10.4
+1.7.2.5
 
