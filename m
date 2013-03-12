@@ -1,426 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:56885 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757249Ab3CNOKx (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:64592 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825Ab3CLFOo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 10:10:53 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	elezegarcia@gmail.com,
-	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-Subject: [RFC V1 6/8] smi2021: Add smi2021_audio.c
-Date: Thu, 14 Mar 2013 15:07:02 +0100
-Message-Id: <1363270024-12127-7-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	Tue, 12 Mar 2013 01:14:44 -0400
+Received: by mail-wg0-f54.google.com with SMTP id fm10so5566565wgb.21
+        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 22:14:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1363004536-27314-1-git-send-email-nsekhar@ti.com>
+References: <CA+V-a8sMTqU4PkxZ8_EK5yNY1S22G2G=7-bs5j31Umi_Dt97gQ@mail.gmail.com>
+ <1363004536-27314-1-git-send-email-nsekhar@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 12 Mar 2013 10:44:23 +0530
+Message-ID: <CA+V-a8vaNzio4RYqq8xwe=bOS0F+2t_mkwDWcQ99GbChC97Ayg@mail.gmail.com>
+Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This file handles all setup of a new snd_card instance with one pcm_substream.
-It's also responsible for parsing the raw pcm data received in the isoc transfers,
-and passing it to the alsa buffers.
+Hi Sekhar,
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
----
- drivers/media/usb/smi2021/smi2021_audio.c | 385 ++++++++++++++++++++++++++++++
- 1 file changed, 385 insertions(+)
- create mode 100644 drivers/media/usb/smi2021/smi2021_audio.c
+Thanks for the patch! few nits below
 
-diff --git a/drivers/media/usb/smi2021/smi2021_audio.c b/drivers/media/usb/smi2021/smi2021_audio.c
-new file mode 100644
-index 0000000..cd20181
---- /dev/null
-+++ b/drivers/media/usb/smi2021/smi2021_audio.c
-@@ -0,0 +1,385 @@
-+/*******************************************************************************
-+ * smi2021_audio.c                                                             *
-+ *                                                                             *
-+ * USB Driver for SMI2021 - EasyCap                                            *
-+ * USB ID 1c88:003c                                                            *
-+ *                                                                             *
-+ * *****************************************************************************
-+ *
-+ * Copyright 2011-2013 Jon Arne Jørgensen
-+ * <jonjon.arnearne--a.t--gmail.com>
-+ *
-+ * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
-+ *
-+ * This file is part of SMI2021
-+ * http://code.google.com/p/easycap-somagic-linux/
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation, either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ * This driver is heavily influensed by the STK1160 driver.
-+ * Copyright (C) 2012 Ezequiel Garcia
-+ * <elezegarcia--a.t--gmail.com>
-+ *
-+ */
-+
-+#include "smi2021.h"
-+
-+static void pcm_buffer_free(struct snd_pcm_substream *substream)
-+{
-+	vfree(substream->runtime->dma_area);
-+	substream->runtime->dma_area = NULL;
-+	substream->runtime->dma_bytes = 0;
-+}
-+
-+static int pcm_buffer_alloc(struct snd_pcm_substream *substream, int size)
-+{
-+	if (substream->runtime->dma_area) {
-+		if (substream->runtime->dma_bytes > size)
-+			return 0;
-+		pcm_buffer_free(substream);
-+	}
-+
-+	substream->runtime->dma_area = vmalloc(size);
-+	if (substream->runtime->dma_area == NULL)
-+		return -ENOMEM;
-+
-+	substream->runtime->dma_bytes = size;
-+
-+	return 0;
-+}
-+
-+static const struct snd_pcm_hardware smi2021_pcm_hw = {
-+	.info = SNDRV_PCM_INFO_BLOCK_TRANSFER |
-+		SNDRV_PCM_INFO_INTERLEAVED    |
-+		SNDRV_PCM_INFO_MMAP           |
-+		SNDRV_PCM_INFO_MMAP_VALID     |
-+		SNDRV_PCM_INFO_BATCH,
-+
-+	.formats = SNDRV_PCM_FMTBIT_S32_LE,
-+
-+	.rates = SNDRV_PCM_RATE_48000,
-+	.rate_min = 48000,
-+	.rate_max = 48000,
-+	.channels_min = 2,
-+	.channels_max = 2,
-+	.period_bytes_min = 992,	/* 32640 */ /* 15296 */
-+	.period_bytes_max = 15872,	/* 65280 */
-+	.periods_min = 1,		/* 1 */
-+	.periods_max = 16,		/* 2 */
-+	.buffer_bytes_max = 65280,	/* 65280 */
-+};
-+
-+static int smi2021_pcm_open(struct snd_pcm_substream *substream)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+	struct snd_pcm_runtime *runtime = substream->runtime;
-+	int rc;
-+
-+	rc = snd_pcm_hw_constraint_pow2(runtime, 0,
-+					SNDRV_PCM_HW_PARAM_PERIODS);
-+	if (rc < 0)
-+		return rc;
-+
-+	dev->pcm_substream = substream;
-+
-+	runtime->hw = smi2021_pcm_hw;
-+	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
-+
-+	smi2021_dbg("PCM device open!\n");
-+
-+	return 0;
-+}
-+
-+static int smi2021_pcm_close(struct snd_pcm_substream *substream)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+	smi2021_dbg("PCM device closing\n");
-+
-+	if (atomic_read(&dev->adev_capturing)) {
-+		atomic_set(&dev->adev_capturing, 0);
-+		schedule_work(&dev->adev_capture_trigger);
-+	}
-+	return 0;
-+
-+}
-+
-+
-+static int smi2021_pcm_hw_params(struct snd_pcm_substream *substream,
-+				struct snd_pcm_hw_params *hw_params)
-+{
-+	int size, rc;
-+	size = params_period_bytes(hw_params) * params_periods(hw_params);
-+
-+	rc = pcm_buffer_alloc(substream, size);
-+	if (rc < 0)
-+		return rc;
-+
-+
-+	return 0;
-+}
-+
-+static int smi2021_pcm_hw_free(struct snd_pcm_substream *substream)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+
-+	if (atomic_read(&dev->adev_capturing)) {
-+		atomic_set(&dev->adev_capturing, 0);
-+		schedule_work(&dev->adev_capture_trigger);
-+	}
-+
-+	pcm_buffer_free(substream);
-+	return 0;
-+}
-+
-+static int smi2021_pcm_prepare(struct snd_pcm_substream *substream)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+
-+	dev->pcm_complete_samples = 0;
-+	dev->pcm_read_offset = 0;
-+	dev->pcm_write_ptr = 0;
-+
-+	return 0;
-+}
-+
-+static void capture_trigger(struct work_struct *work)
-+{
-+	struct smi2021_dev *dev = container_of(work, struct smi2021_dev,
-+					adev_capture_trigger);
-+
-+	if (atomic_read(&dev->adev_capturing))
-+		smi2021_write_reg(dev, 0, 0x1740, 0x1d);
-+	else
-+		smi2021_write_reg(dev, 0, 0x1740, 0x00);
-+}
-+
-+/* This callback is ATOMIC, must not sleep */
-+static int smi2021_pcm_trigger(struct snd_pcm_substream *substream, int cmd)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+
-+	switch (cmd) {
-+	case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-+	case SNDRV_PCM_TRIGGER_RESUME:
-+	case SNDRV_PCM_TRIGGER_START:
-+		atomic_set(&dev->adev_capturing, 1);
-+		break;
-+	case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-+	case SNDRV_PCM_TRIGGER_SUSPEND:
-+	case SNDRV_PCM_TRIGGER_STOP:
-+		atomic_set(&dev->adev_capturing, 0);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	schedule_work(&dev->adev_capture_trigger);
-+
-+	return 0;
-+}
-+
-+static snd_pcm_uframes_t smi2021_pcm_pointer(
-+					struct snd_pcm_substream *substream)
-+{
-+	struct smi2021_dev *dev = snd_pcm_substream_chip(substream);
-+	return dev->pcm_write_ptr / 8;
-+}
-+
-+static struct page *smi2021_pcm_get_vmalloc_page(struct snd_pcm_substream *subs,
-+						unsigned long offset)
-+{
-+	void *pageptr = subs->runtime->dma_area + offset;
-+
-+	return vmalloc_to_page(pageptr);
-+}
-+
-+static struct snd_pcm_ops smi2021_pcm_ops = {
-+	.open = smi2021_pcm_open,
-+	.close = smi2021_pcm_close,
-+	.ioctl = snd_pcm_lib_ioctl,
-+	.hw_params = smi2021_pcm_hw_params,
-+	.hw_free = smi2021_pcm_hw_free,
-+	.prepare = smi2021_pcm_prepare,
-+	.trigger = smi2021_pcm_trigger,
-+	.pointer = smi2021_pcm_pointer,
-+	.page = smi2021_pcm_get_vmalloc_page,
-+};
-+
-+int smi2021_snd_register(struct smi2021_dev *dev)
-+{
-+	struct snd_card	*card;
-+	struct snd_pcm *pcm;
-+	int rc = 0;
-+
-+	rc = snd_card_create(SNDRV_DEFAULT_IDX1, "smi2021 Audio", THIS_MODULE,
-+				0, &card);
-+	if (rc < 0)
-+		return rc;
-+
-+	rc = snd_pcm_new(card, "smi2021 Audio", 0, 0, 1, &pcm);
-+	if (rc < 0)
-+		goto err_free_card;
-+
-+	snd_pcm_set_ops(pcm, SNDRV_PCM_STREAM_CAPTURE, &smi2021_pcm_ops);
-+	pcm->info_flags = 0;
-+	pcm->private_data = dev;
-+	strcpy(pcm->name, "Somagic smi2021 Capture");
-+
-+	strcpy(card->driver, "smi2021-Audio");
-+	strcpy(card->shortname, "smi2021 Audio");
-+	strcpy(card->longname, "Somagic smi2021 Audio");
-+
-+	INIT_WORK(&dev->adev_capture_trigger, capture_trigger);
-+
-+	rc = snd_card_register(card);
-+	if (rc < 0)
-+		goto err_free_card;
-+
-+	dev->snd_card = card;
-+
-+	return 0;
-+
-+err_free_card:
-+	snd_card_free(card);
-+	return rc;
-+}
-+
-+void smi2021_snd_unregister(struct smi2021_dev *dev)
-+{
-+	if (!dev)
-+		return;
-+
-+	if (!dev->snd_card)
-+		return;
-+
-+	snd_card_free(dev->snd_card);
-+	dev->snd_card = NULL;
-+}
-+
-+void smi2021_audio(struct smi2021_dev *dev, u8 *data, int len)
-+{
-+	struct snd_pcm_runtime *runtime;
-+	u8 offset;
-+	int new_offset = 0;
-+
-+	int skip;
-+	unsigned int stride, oldptr, headptr;
-+
-+	int diff = 0;
-+	int samples = 0;
-+	bool period_elapsed = false;
-+
-+
-+	if (!dev->udev)
-+		return;
-+
-+	if (atomic_read(&dev->adev_capturing) == 0)
-+		return;
-+
-+	if (!dev->pcm_substream)
-+		return;
-+
-+	runtime = dev->pcm_substream->runtime;
-+	if (!runtime || !runtime->dma_area)
-+		return;
-+
-+	offset = dev->pcm_read_offset;
-+	stride = runtime->frame_bits >> 3;
-+
-+	if (stride == 0)
-+		return;
-+
-+	diff = dev->pcm_write_ptr;
-+
-+	/* Check that the end of the last buffer was correct.
-+	 * If not correct, we mark any partial frames in buffer as complete
-+	 */
-+	headptr = dev->pcm_write_ptr - offset - 4;
-+	if (dev->pcm_write_ptr > 10 && runtime->dma_area[headptr] != 0x00) {
-+		skip = stride - (dev->pcm_write_ptr % stride);
-+		snd_pcm_stream_lock(dev->pcm_substream);
-+		dev->pcm_write_ptr += skip;
-+
-+		if (dev->pcm_write_ptr >= runtime->dma_bytes)
-+			dev->pcm_write_ptr -= runtime->dma_bytes;
-+
-+		snd_pcm_stream_unlock(dev->pcm_substream);
-+		offset = dev->pcm_read_offset = 0;
-+	}
-+	/* The device is actually sending 24Bit pcm data
-+	 * with 0x00 as the header byte before each sample.
-+	 * We look for this byte to make sure we did not
-+	 * loose any bytes during transfer.
-+	 */
-+	while (len > stride && (data[offset] != 0x00 ||
-+			data[offset + (stride / 2)] != 0x00)) {
-+		new_offset++;
-+		data++;
-+		len--;
-+	}
-+
-+	if (len <= stride) {
-+		/* We exhausted the buffer looking for 0x00 */
-+		dev->pcm_read_offset = 0;
-+		return;
-+	}
-+	if (new_offset != 0) {
-+		/* This buffer can not be appended to the current buffer,
-+		 * so we mark any partial frames in the buffer as complete.
-+		 */
-+		skip = stride - (dev->pcm_write_ptr % stride);
-+		snd_pcm_stream_lock(dev->pcm_substream);
-+		dev->pcm_write_ptr += skip;
-+
-+		if (dev->pcm_write_ptr >= runtime->dma_bytes)
-+			dev->pcm_write_ptr -= runtime->dma_bytes;
-+
-+		snd_pcm_stream_unlock(dev->pcm_substream);
-+
-+		offset = dev->pcm_read_offset = new_offset % (stride / 2);
-+
-+	}
-+
-+	oldptr = dev->pcm_write_ptr;
-+	if (oldptr + len >= runtime->dma_bytes) {
-+		unsigned int cnt = runtime->dma_bytes - oldptr;
-+		memcpy(runtime->dma_area + oldptr, data, cnt);
-+		memcpy(runtime->dma_area, data + cnt, len - cnt);
-+	} else {
-+		memcpy(runtime->dma_area + oldptr, data, len);
-+	}
-+
-+	snd_pcm_stream_lock(dev->pcm_substream);
-+	dev->pcm_write_ptr += len;
-+
-+	if (dev->pcm_write_ptr >= runtime->dma_bytes)
-+		dev->pcm_write_ptr -= runtime->dma_bytes;
-+
-+	samples = dev->pcm_write_ptr - diff;
-+	if (samples < 0)
-+		samples += runtime->dma_bytes;
-+
-+	samples /= (stride / 2);
-+
-+	dev->pcm_complete_samples += samples;
-+	if (dev->pcm_complete_samples / 2 >= runtime->period_size) {
-+		dev->pcm_complete_samples -= runtime->period_size * 2;
-+		period_elapsed = true;
-+	}
-+	snd_pcm_stream_unlock(dev->pcm_substream);
-+
-+	if (period_elapsed)
-+		snd_pcm_period_elapsed(dev->pcm_substream);
-+
-+}
--- 
-1.8.1.1
+also version number for patch is missing as this should have been v2 :)
+BTW this patch still is not  present in media list.
 
+On Mon, Mar 11, 2013 at 5:52 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+> drivers/media/platform/davinci/Kconfig uses selects where
+> it should be using 'depends on'. This results in warnings of
+> the following sort when doing randconfig builds.
+>
+> warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
+>
+> The VPIF kconfigs had a strange 'select' and 'depends on' cross
+> linkage which have been fixed as well by removing unneeded
+> VIDEO_DAVINCI_VPIF config symbol.
+>
+> Similarly, remove the unnecessary VIDEO_VPSS_SYSTEM and
+> VIDEO_VPFE_CAPTURE. They don't select any independent functionality
+> and were being used to manage code dependencies which can
+> be handled using makefile.
+>
+> Selecting video modules is now dependent on all ARCH_DAVINCI
+> instead of specific EVMs and SoCs earlier. This should help build
+> coverage. Remove unnecessary 'default y' for some config symbols.
+>
+> While at it, fix the Kconfig help text to make it more readable
+> and fix names of modules created.
+>
+> Rename VIDEO_ISIF to VIDEO_DM365_ISIF as per suggestion from
+> Prabhakar.
+>
+> This patch has only been build tested; I have tried to not break
+> any existing assumptions. I do not have the setup to test video,
+> so any test reports welcome.
+>
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  drivers/media/platform/davinci/Kconfig  |   99 +++++++++++--------------------
+>  drivers/media/platform/davinci/Makefile |   17 ++----
+>  2 files changed, 39 insertions(+), 77 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+> index ccfde4e..86f7f34 100644
+> --- a/drivers/media/platform/davinci/Kconfig
+> +++ b/drivers/media/platform/davinci/Kconfig
+> @@ -1,64 +1,33 @@
+>  config VIDEO_DAVINCI_VPIF_DISPLAY
+> -       tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+> +       tristate "TI DaVinci VPIF Video Display"
+> +       depends on VIDEO_DEV && ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+> -       select VIDEO_DAVINCI_VPIF
+>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+>         help
+>           Enables Davinci VPIF module used for display devices.
+> -         This module is common for following DM6467/DA850/OMAPL138
+> -         based display devices.
+> +         This module is used for display on TI DM6467/DA850/OMAPL138
+> +         SoCs.
+>
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif_display.
+> +         To compile this driver as a module, choose M here. There will
+> +         be two modules called vpif.ko and vpif_display.ko
+>
+>  config VIDEO_DAVINCI_VPIF_CAPTURE
+> -       tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+> +       tristate "TI DaVinci VPIF Video Capture"
+> +       depends on VIDEO_DEV && ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+> -       select VIDEO_DAVINCI_VPIF
+>         help
+> -         Enables Davinci VPIF module used for captur devices.
+> -         This module is common for following DM6467/DA850/OMAPL138
+> -         based capture devices.
+> +         Enables Davinci VPIF module used for capture devices.
+> +         This module is used for capture on TI DM6467/DA850/OMAPL138
+> +         SoCs.
+>
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif_capture.
+> -
+> -config VIDEO_DAVINCI_VPIF
+> -       tristate "DaVinci VPIF Driver"
+> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+> -       help
+> -         Support for DaVinci VPIF Driver.
+> -
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif.
+> -
+> -config VIDEO_VPSS_SYSTEM
+> -       tristate "VPSS System module driver"
+> -       depends on ARCH_DAVINCI
+> -       help
+> -         Support for vpss system module for video driver
+> -
+> -config VIDEO_VPFE_CAPTURE
+> -       tristate "VPFE Video Capture Driver"
+> -       depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
+> -       depends on I2C
+> -       select VIDEOBUF_DMA_CONTIG
+> -       help
+> -         Support for DMx/AMx VPFE based frame grabber. This is the
+> -         common V4L2 module for following DMx/AMx SoCs from Texas
+> -         Instruments:- DM6446, DM365, DM355 & AM3517/05.
+> -
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpfe-capture.
+> +         To compile this driver as a module, choose M here. There will
+> +         be two modules called vpif.ko and vpif_capture.ko
+>
+>  config VIDEO_DM6446_CCDC
+>         tristate "DM6446 CCDC HW module"
+> -       depends on VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> +       depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
+> +       select VIDEOBUF_DMA_CONTIG
+>         help
+>            Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
+>            with decoder modules such as TVP5146 over BT656 or
+> @@ -66,14 +35,13 @@ config VIDEO_DM6446_CCDC
+>            module configures the interface and CCDC/ISIF to do
+>            video frame capture from slave decoders.
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and dm644x_ccdc.ko
+>
+>  config VIDEO_DM355_CCDC
+>         tristate "DM355 CCDC HW module"
+> -       depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
+> +       select VIDEOBUF_DMA_CONTIG
+>         help
+>            Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+>            with decoder modules such as TVP5146 over BT656 or
+> @@ -81,31 +49,30 @@ config VIDEO_DM355_CCDC
+>            module configures the interface and CCDC/ISIF to do
+>            video frame capture from a slave decoders
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and dm355_ccdc.ko
+>
+> -config VIDEO_ISIF
+> -       tristate "ISIF HW module"
+> -       depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> +config VIDEO_DM365_ISIF
+> +       tristate "DM365 ISIF HW module"
+> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
+> +       select VIDEOBUF_DMA_CONTIG
+>         help
+>            Enables ISIF hw module. This is the hardware module for
+> -          configuring ISIF in VPFE to capture Raw Bayer RGB data  from
+> +          configuring ISIF in VPFE to capture Raw Bayer RGB data from
+>            a image sensor or YUV data from a YUV source.
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and isif.ko
+>
+>  config VIDEO_DAVINCI_VPBE_DISPLAY
+>         tristate "DM644X/DM365/DM355 VPBE HW module"
+why not change this to 'TI DaVinci VPBE Video Display' as done for vpif ?
+
+> -       depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365
+> -       select VIDEO_VPSS_SYSTEM
+> +       depends on ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+>         help
+>             Enables Davinci VPBE module used for display devices.
+> -           This module is common for following DM644x/DM365/DM355
+> +           This module is used for dipslay on TI DM644x/DM365/DM355
+display
+
+Regards,
+--Prabhakar Lad
+
+>             based display devices.
+>
+> -           To compile this driver as a module, choose M here: the
+> -           module will be called vpbe.
+> +           To compile this driver as a module, choose M here. There will
+> +           be five modules created called vpss.ko, vpbe.ko, vpbe_osd.ko,
+> +           vpbe_venc.ko and vpbe_display.ko
+> diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
+> index f40f521..d74d9ee 100644
+> --- a/drivers/media/platform/davinci/Makefile
+> +++ b/drivers/media/platform/davinci/Makefile
+> @@ -2,19 +2,14 @@
+>  # Makefile for the davinci video device drivers.
+>  #
+>
+> -# VPIF
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
+> -
+>  #VPIF Display driver
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif_display.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif.o vpif_display.o
+>  #VPIF Capture driver
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif_capture.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif.o vpif_capture.o
+>
+>  # Capture: DM6446 and DM355
+> -obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+> -obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+> -obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+> -obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+> -obj-$(CONFIG_VIDEO_ISIF) += isif.o
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpbe.o vpbe_osd.o \
+> +obj-$(CONFIG_VIDEO_DM6446_CCDC) += vpfe_capture.o vpss.o dm644x_ccdc.o
+> +obj-$(CONFIG_VIDEO_DM355_CCDC) += vpfe_capture.o vpss.o dm355_ccdc.o
+> +obj-$(CONFIG_VIDEO_DM365_ISIF) += vpfe_capture.o vpss.o isif.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpss.o vpbe.o vpbe_osd.o \
+>         vpbe_venc.o vpbe_display.o
+> --
+> 1.7.10.1
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
