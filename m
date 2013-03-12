@@ -1,126 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1092 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab3CXLhf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:51058 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754534Ab3CLH7L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 07:37:35 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2OBbVwT026640
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 12:37:34 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9464911E010D
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 12:37:30 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.10] v4l2: add const to argument of write-only s_register ioctl
-Date: Sun, 24 Mar 2013 12:37:32 +0100
+	Tue, 12 Mar 2013 03:59:11 -0400
+Date: Tue, 12 Mar 2013 08:58:57 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Christoph Fritz <chf.fritz@googlemail.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	"Hans J. Koch" <hjk@hansjkoch.de>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] media: i.MX27 camera: fix picture source width
+In-Reply-To: <CACKLOr0smOW2cukSmeoexq3=b=dpGw=CDO3qo=gGm4+28iwb8Q@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1303120847480.680@axis700.grange>
+References: <1360948121.29406.15.camel@mars> <20130215172452.GA27113@kroah.com>
+ <1361009964.5028.3.camel@mars> <Pine.LNX.4.64.1303051845060.25837@axis700.grange>
+ <CACKLOr0smOW2cukSmeoexq3=b=dpGw=CDO3qo=gGm4+28iwb8Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303241237.32379.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's identical to:
+Hi Javier
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/62324
+On Thu, 7 Mar 2013, javier Martin wrote:
 
-except it's rebased and the ivtv changes have been simplified.
+> Hi,
+> sorry for the long delay. I missed this one.
+> 
+> On 5 March 2013 18:56, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > (Javier's opinion requested)
+> >
+> > I'm no expert in i.MX27 hardware, would be great to have an ack from
+> > someone, intensively working in this area. Javier, what do you think? Is
+> > this really correct always for channel 1, or should this calculation
+> > depend on the pixel format?
+> >
+> > Thanks
+> > Guennadi
+> >
+> > On Sat, 16 Feb 2013, Christoph Fritz wrote:
+> >
+> >> While using a mt9m001 (monochrome) camera the final output falsely gets
+> >> horizontally divided into two pictures.
+> >>
+> >> The issue was git bisected to commit f410991dcf1f
+> >>
+> >>   |  [media] i.MX27 camera: add support for YUV420 format
+> >>   |
+> >>   |  This patch uses channel 2 of the eMMa-PrP to convert
+> >>   |  format provided by the sensor to YUV420.
+> >>   |
+> >>   |  This format is very useful since it is used by the
+> >>   |  internal H.264 encoder.
+> >>
+> >> It sets PICTURE_X_SIZE in register PRP_SRC_FRAME_SIZE to its full width
+> >> while before that commit it was divided by two:
+> >>
+> >> -   writel(((bytesperline >> 1) << 16) | icd->user_height,
+> >> +           writel((icd->user_width << 16) | icd->user_height,
+> >>                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >>
+> >> i.mx27 reference manual (41.6.12 PrP Source Frame Size Register) says:
+> >>
+> >>     PICTURE_X_SIZE. These bits set the frame width to be
+> >>     processed in number of pixels. In YUV 4:2:0 mode, Cb and
+> >>     Cr widths are taken as PICTURE_X_SIZE/2 pixels.  In YUV
+> >>     4:2:0 mode, this value should be a multiple of 8-pixels.
+> >>     In other modes (RGB, YUV 4:2:2 and YUV 4:4:4) it should
+> >>     be a multiple of 4 pixels.
+> 
+> Note that, according to the description in the datasheet,
+> PICTURE_X_SIZE is specified in pixels, not bytes. So, it is not
+> dependant on the format used.
 
-Regards,
+Yes, looks like it should operate in pixels, not bytes.
 
-        Hans
+> >> This patch reverts to PICTURE_X_SIZE/2 for channel 1.
+> >>
+> >> Tested on Kernel 3.4, merged to 3.8rc.
+> >>
+> >> Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
+> >> ---
+> >>  drivers/media/platform/soc_camera/mx2_camera.c |    6 ++++--
+> >>  1 file changed, 4 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+> >> index 8bda2c9..795bd3f 100644
+> >> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+> >> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+> >> @@ -778,11 +778,11 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+> >>       struct mx2_camera_dev *pcdev = ici->priv;
+> >>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+> >>
+> >> -     writel((pcdev->s_width << 16) | pcdev->s_height,
+> >> -            pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >>       writel(prp->cfg.src_pixel,
+> >>              pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+> >>       if (prp->cfg.channel == 1) {
+> >> +             writel(((bytesperline >> 1) << 16) | pcdev->s_height,
+> >> +                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> 
+> If you use bytesperline here you are making this operation dependant
+> on the mbus format.
+> You should use s_width instead and there is no reason to divide it by
+> 2 since it is already in pixels, as well as PRP_SRC_FRAME_SIZE.
+> 
+> >>               writel((icd->user_width << 16) | icd->user_height,
+> >>                       pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+> >>               writel(bytesperline,
+> >> @@ -790,6 +790,8 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+> >>               writel(prp->cfg.ch1_pixel,
+> >>                       pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
+> >>       } else { /* channel 2 */
+> >> +             writel((pcdev->s_width << 16) | pcdev->s_height,
+> >> +                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >>               writel((icd->user_width << 16) | icd->user_height,
+> >>                       pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
+> >>       }
+> >> --
+> >> 1.7.10.4
+> 
+> We are using channel 1 here daily for capturing YUV422 and have not
+> experience the problem you point out.
+> 
+> What mbus format are you using? Could you please check if the s_width
+> value that your sensor mt9m001 returns is correct? Remember it should
+> be in pixels, not in bytes.
 
-The following changes since commit 27d5a87cf4b44cbcbd0f4706a433e4a68d496236:
+Thanks for looking at this. But here's my question: for a pass-through 
+mode mx2_camera uses a 16-bpp (RGB565) format. But what if it's actually 
+an 8-bpp format, don't you then have to adjust line-width register 
+settings? If you don't do that, the camera interface would expect a double 
+number of bytes per line, so, it could get confused by HSYNC coming after 
+half-line?
 
-  [media] v4l2-ioctl: add precision when printing names (2013-03-24 07:13:54 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git const2
-
-for you to fetch changes up to 5481fb6abf48e71f544e917f7ba33e3902f147f6:
-
-  v4l2-ioctl: simplify debug code. (2013-03-24 12:29:05 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (3):
-      ivtv: prepare ivtv for adding const to s_register.
-      v4l2: add const to argument of write-only s_register ioctl.
-      v4l2-ioctl: simplify debug code.
-
- drivers/media/dvb-frontends/au8522_decoder.c    |    2 +-
- drivers/media/i2c/ad9389b.c                     |    2 +-
- drivers/media/i2c/adv7183.c                     |    2 +-
- drivers/media/i2c/adv7604.c                     |    2 +-
- drivers/media/i2c/ak881x.c                      |    2 +-
- drivers/media/i2c/cs5345.c                      |    2 +-
- drivers/media/i2c/cx25840/cx25840-core.c        |    2 +-
- drivers/media/i2c/m52790.c                      |    2 +-
- drivers/media/i2c/mt9m032.c                     |    2 +-
- drivers/media/i2c/mt9v011.c                     |    2 +-
- drivers/media/i2c/ov7670.c                      |    2 +-
- drivers/media/i2c/saa7115.c                     |    2 +-
- drivers/media/i2c/saa7127.c                     |    2 +-
- drivers/media/i2c/saa717x.c                     |    2 +-
- drivers/media/i2c/soc_camera/mt9m001.c          |    2 +-
- drivers/media/i2c/soc_camera/mt9m111.c          |    2 +-
- drivers/media/i2c/soc_camera/mt9t031.c          |    2 +-
- drivers/media/i2c/soc_camera/mt9t112.c          |    2 +-
- drivers/media/i2c/soc_camera/mt9v022.c          |    2 +-
- drivers/media/i2c/soc_camera/ov2640.c           |    2 +-
- drivers/media/i2c/soc_camera/ov5642.c           |    2 +-
- drivers/media/i2c/soc_camera/ov6650.c           |    2 +-
- drivers/media/i2c/soc_camera/ov772x.c           |    2 +-
- drivers/media/i2c/soc_camera/ov9640.c           |    2 +-
- drivers/media/i2c/soc_camera/ov9740.c           |    2 +-
- drivers/media/i2c/soc_camera/rj54n1cb0c.c       |    2 +-
- drivers/media/i2c/soc_camera/tw9910.c           |    2 +-
- drivers/media/i2c/ths7303.c                     |    2 +-
- drivers/media/i2c/tvp5150.c                     |    2 +-
- drivers/media/i2c/tvp7002.c                     |    2 +-
- drivers/media/i2c/upd64031a.c                   |    2 +-
- drivers/media/i2c/upd64083.c                    |    2 +-
- drivers/media/i2c/vs6624.c                      |    2 +-
- drivers/media/pci/bt8xx/bttv-driver.c           |    5 ++---
- drivers/media/pci/cx18/cx18-av-core.c           |    2 +-
- drivers/media/pci/cx18/cx18-ioctl.c             |   36 ++++++++++++++----------------------
- drivers/media/pci/cx23885/cx23885-ioctl.c       |    9 +++------
- drivers/media/pci/cx23885/cx23885-ioctl.h       |    2 +-
- drivers/media/pci/cx23885/cx23888-ir.c          |    2 +-
- drivers/media/pci/cx25821/cx25821-video.c       |    2 +-
- drivers/media/pci/cx25821/cx25821-video.h       |    2 +-
- drivers/media/pci/cx88/cx88-video.c             |    2 +-
- drivers/media/pci/ivtv/ivtv-ioctl.c             |   33 ++++++++++++++++++---------------
- drivers/media/pci/saa7134/saa7134-video.c       |    2 +-
- drivers/media/pci/saa7146/mxb.c                 |    3 +--
- drivers/media/pci/saa7164/saa7164-encoder.c     |    2 +-
- drivers/media/platform/blackfin/bfin_capture.c  |    2 +-
- drivers/media/platform/davinci/vpbe_display.c   |    2 +-
- drivers/media/platform/davinci/vpif_capture.c   |    3 ++-
- drivers/media/platform/davinci/vpif_display.c   |    3 ++-
- drivers/media/platform/marvell-ccic/mcam-core.c |    2 +-
- drivers/media/platform/sh_vou.c                 |    2 +-
- drivers/media/platform/soc_camera/soc_camera.c  |    2 +-
- drivers/media/usb/au0828/au0828-video.c         |    2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c       |    2 +-
- drivers/media/usb/cx231xx/cx231xx.h             |    2 +-
- drivers/media/usb/em28xx/em28xx-video.c         |    2 +-
- drivers/media/usb/gspca/gspca.c                 |    2 +-
- drivers/media/usb/gspca/gspca.h                 |    8 +++++---
- drivers/media/usb/gspca/pac7302.c               |    2 +-
- drivers/media/usb/gspca/sn9c20x.c               |    2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c         |    2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.h         |    2 +-
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c        |    2 +-
- drivers/media/usb/stk1160/stk1160-v4l.c         |    2 +-
- drivers/media/usb/usbvision/usbvision-video.c   |    2 +-
- drivers/media/v4l2-core/v4l2-ioctl.c            |   17 +++--------------
- include/media/v4l2-ioctl.h                      |    2 +-
- include/media/v4l2-subdev.h                     |    2 +-
- 69 files changed, 110 insertions(+), 127 deletions(-)
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
