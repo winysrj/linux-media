@@ -1,84 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34939 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645Ab3CGGpg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 01:45:36 -0500
-Received: by mail-pa0-f49.google.com with SMTP id kp6so222001pab.36
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 22:45:35 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com, joshi@samsung.com,
-	linaro-kernel@lists.linaro.org
-Subject: [PATCH v11 0/2] Add display-timing node parsing to exynos drm fimd
-Date: Thu,  7 Mar 2013 12:15:20 +0530
-Message-Id: <1362638722-24112-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:62161 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754704Ab3CLIZS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Mar 2013 04:25:18 -0400
+Received: by mail-ea0-f181.google.com with SMTP id z10so1531180ead.26
+        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2013 01:25:17 -0700 (PDT)
+Subject: Re: [PATCH v2] media: i.MX27 camera: fix picture source width
+From: Christoph Fritz <chf.fritz@googlemail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	javier Martin <javier.martin@vista-silicon.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	"Hans J. Koch" <hjk@hansjkoch.de>,
+	linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1303120847480.680@axis700.grange>
+References: <1360948121.29406.15.camel@mars>
+	 <20130215172452.GA27113@kroah.com> <1361009964.5028.3.camel@mars>
+	 <Pine.LNX.4.64.1303051845060.25837@axis700.grange>
+	 <CACKLOr0smOW2cukSmeoexq3=b=dpGw=CDO3qo=gGm4+28iwb8Q@mail.gmail.com>
+	 <Pine.LNX.4.64.1303120847480.680@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 12 Mar 2013 09:25:13 +0100
+Message-ID: <1363076713.3873.21.camel@mars>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add display-timing node parsing to drm fimd and depends on
-the display helper patchset at
-http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
+On Tue, 2013-03-12 at 08:58 +0100, Guennadi Liakhovetski wrote:
+> On Thu, 7 Mar 2013, javier Martin wrote: 
 
-changes since v10:
-	- abandoned the pinctrl patch, as commented by Linus Walleij
-	<linus.walleij@linaro.org>
-	- added new patch to enable the OF_VIDEOMODE and FB_MODE_HELPERS for
-	EXYNOS DRM FIMD.
+> > What mbus format are you using? Could you please check if the s_width
+> > value that your sensor mt9m001 returns is correct? Remember it should
+> > be in pixels, not in bytes.
+> 
+> Thanks for looking at this. But here's my question: for a pass-through 
+> mode mx2_camera uses a 16-bpp (RGB565) format. But what if it's actually 
+> an 8-bpp format, don't you then have to adjust line-width register 
+> settings? If you don't do that, the camera interface would expect a double 
+> number of bytes per line, so, it could get confused by HSYNC coming after 
+> half-line?
 
-changes since v9:
-        - replaced IS_ERR_OR_NULL() with IS_ERR(), since IS_ERR_OR_NULL()
-        will be depreciated, as discussed at
-        http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/140543.html
-        http://www.mail-archive.com/linux-omap@vger.kernel.org/msg78030.html
+To emphasize this: I'm using here a mt9m001 (monochrome) camera with an
+8-bpp format.
 
-changes since v8:
-        - replaced IS_ERR() with IS_ERR_OR_NULL(),
-        because devm_pinctrl_get_select_default can return NULL,
-        If CONFIG_PINCTRL is disabled.
-        - modified the error log, such that it shall NOT cross 80 column.
-        - added Acked-by.
-
-changes since v7:
-        - addressed comments from Joonyoung Shim <jy0922.shim@samsung.com>
-        to remove a unnecessary variable.
-
-changes since v6:
-        addressed comments from Inki Dae <inki.dae@samsung.com> to
-        separated out the pinctrl functionality and made a separate patch.
-
-changes since v5:
-        - addressed comments from Inki Dae <inki.dae@samsung.com>,
-        to remove the allocation of 'fbmode' and replaced
-        '-1'in "of_get_fb_videomode(dev->of_node, fbmode, -1)" with
-        OF_USE_NATIVE_MODE.
-
-changes since v4:
-        - addressed comments from Paul Menzel
-        <paulepanter@users.sourceforge.net>, to modify the commit message
-
-changes since v3:
-        - addressed comments from Sean Paul <seanpaul@chromium.org>, to modify
-        the return values and print messages.
-
-changes since v2:
-        - moved 'devm_pinctrl_get_select_default' function call under
-	'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
-	(reported by: Rahul Sharma <r.sh.open@gmail.com>)
-
-changes since v1:
-        - addressed comments from Sean Paul <seanpaul@chromium.org>
-
-Vikas Sajjan (2):
-  video: drm: exynos: Add display-timing node parsing using video
-    helper function
-  drm/exynos: enable OF_VIDEOMODE and FB_MODE_HELPERS for exynos drm
-    fimd
-
- drivers/gpu/drm/exynos/Kconfig           |    2 ++
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   27 +++++++++++++++++++++++----
- 2 files changed, 25 insertions(+), 4 deletions(-)
-
--- 
-1.7.9.5
+Thanks
+ -- Christoph
 
