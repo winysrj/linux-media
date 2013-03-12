@@ -1,183 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51545 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760098Ab3CZSiu (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:63471 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755076Ab3CLKHn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 14:38:50 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/5] exynos4-is: Use common driver data for all FIMC-LITE IP
- instances
-Date: Tue, 26 Mar 2013 19:38:16 +0100
-Message-id: <1364323101-22046-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 12 Mar 2013 06:07:43 -0400
+Date: Tue, 12 Mar 2013 11:07:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Libin Yang <lbyang@marvell.com>
+cc: Albert Wang <twang13@marvell.com>,
+	"corbet@lwn.net" <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support
+ for marvell-ccic driver
+In-Reply-To: <A63A0DC671D719488CD1A6CD8BDC16CF230B65F82E@SC-VEXCH4.marvell.com>
+Message-ID: <Pine.LNX.4.64.1303121044490.680@axis700.grange>
+References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
+ <1360238687-15768-2-git-send-email-twang13@marvell.com>
+ <Pine.LNX.4.64.1303042128390.20206@axis700.grange>
+ <A63A0DC671D719488CD1A6CD8BDC16CF230B65F82E@SC-VEXCH4.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to use separate variant data structure for each
-FIMC-LITE IP instance. According to my knowledge there are no
-differences across them on Exynos4 as well as Exynos5 SoCs. Drop
-flite_variant data structure and use struct flite_drvdata instead.
+Hi Libin
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Tue, 12 Mar 2013, Libin Yang wrote:
+
+> Hi Guennadi,
+> 
+> Thanks for your careful review. Please help see my comments below.
+> 
+> >-----Original Message-----
+> >From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> >Sent: Tuesday, March 05, 2013 5:35 AM
+> >To: Albert Wang
+> >Cc: corbet@lwn.net; Linux Media Mailing List; Libin Yang
+> >Subject: Re: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support for
+> >marvell-ccic driver
+> >
+> >Hi Albert
+> >
+> >A general comment first: I have no idea about this hardware, so, feel free
+> >to ignore all my hardware-handling related comments. But just from looking
+> >your handling of the pll1 clock does seem a bit fishy to me. You acquire
+> >and release the clock in the generic mcam code, but only use it in the mmp
+> >driver. Is it really needed centrally? Wouldn't it suffice to only acquire
+> >it in mmp? Same goes for your mcam_config_mipi() function - is it really
+> >needed centrally? But as I said, maybe I'm just missing something.
+> 
+> [Libin] For the mcam_config_mipi() function, it is used to config mipi 
+> in the soc. All boards need to configure it if they are using MIPI based 
+> on Marvell CCIC. So I think this function should be in the mcam-core.
+> 
+> For the pll1, I think you are right. Actually, it is board based. MMP 
+> based boards are using pll1 to calculate the dphy. And I can not 
+> guarantee that all boards need pll1. It seems putting pll1 in the 
+> mmp-driver is more reasonable. But do you remember, in the previous 
+> patch review, you mentioned that it is better to keep the reference to 
+> the clock until clean up, because other components may change it. So 
+> what I design is: get pll1 and hold it in the open and release it 
+> automatically with devm (It may be better to release the pll1 when 
+> closing the camera). The problem is in mmp-driver, there is no such 
+> point to get the pll1. The open action is in the mcam-core. If I move 
+> getting pll1 to the probe function of mmp-driver and putting it in 
+> remove, it means camera driver will hold the pll1 all the time. Do you 
+> have some suggestions?
+
+Wouldn't it be possible to acquire the clock in mmpcam_power_up() like
+
+struct mmp_camera {
+	...
++	struct clk *mipi;
+};
+
+static int mmpcam_probe(struct platform_device *pdev)
+{
+	...
++	cam->mipi = ERR_PTR(-EINVAL);
+	...
+
+-static void mmpcam_power_up(struct mcam_camera *mcam)
++static int mmpcam_power_up(struct mcam_camera *mcam)
+{
+	...
++	if (mcam->bus_type == V4L2_MBUS_CSI2 && IS_ERR(cam->mipi)) {
++		cam->mipi = devm_clk_get(mcam->dev, "mipi");
++		if (IS_ERR(cam->mipi))
++			return PTR_ERR(cam->mipi);
++	}
+
+Yes, it might be good to change the return type of .plat_power_up() to int 
+in a separate patch first. And I think a clock name like "mipi" is better 
+suitable here, since, as you say, not on all hardware it will be pll1.
+
+> [snip]
+> 
+> >
+> >> +	if (ret < 0)
+> >> +		return ret;
+> >>  	mcam_ctlr_irq_enable(cam);
+> >>  	cam->state = S_STREAMING;
+> >>  	if (!test_bit(CF_SG_RESTART, &cam->flags))
+> >> @@ -1551,6 +1602,16 @@ static int mcam_v4l_open(struct file *filp)
+> >>  		mcam_set_config_needed(cam, 1);
+> >>  	}
+> >>  	(cam->users)++;
+> >> +	if (cam->bus_type == V4L2_MBUS_CSI2) {
+> >> +		cam->pll1 = devm_clk_get(cam->dev, "pll1");
+> >> +		if (IS_ERR_OR_NULL(cam->pll1) && cam->dphy[2] == 0) {
+> >
+> >So, is CSI2 mode only supported with enabled CONFIG_HAVE_CLK? It looks a
+> >bit susppicious, but, I think, this might be valid here - you really need
+> >a clock, from which you can read a valid rate to use CSI2, right?
+> >Otherwise you cannot configure dphy.
+> 
+> [Libin] If dphy[2] is initialized, it is OK pll1 is not used. Please see 
+> the related comments below in the function mmpcam_calc_dphy()
+
+yes, ok, makes sense.
+
+> >
+> >> + */
+> >> +void mmpcam_calc_dphy(struct mcam_camera *mcam)
+> >> +{
+> >> +	struct mmp_camera *cam = mcam_to_cam(mcam);
+> >> +	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
+> >> +	struct device *dev = &cam->pdev->dev;
+> 
+> [snip]
+> 
+> >> +	}
+> >> +
+> >> +	/*
+> >> +	 * pll1 will never be changed, it is a fixed value
+> >> +	 */
+> >> +
+> >> +	if (IS_ERR_OR_NULL(mcam->pll1))
+> >> +		return;
+> >
+> >All this function does is calculate dphy[] array values, right? And these
+> >values are only used if CSI2 is activated. And CSI2 can only be activated
+> >if an open() has been successful. And you only succeed a CSI2-mode open()
+> >if a clock can be acquired. So, the above check is redundant?
+> 
+> [Libin] pll1 is used to calculate dphy[2]. If dphy[2] is initialized 
+> then pll1 being NULL is OK. Please see the open function. If pll1 is not 
+> NULL, then we will calculate the dphy[2] based on pll1.
+
+Ok, makes sense too.
+
+> >
+> >> +
+> >> +	/* get the escape clk, this is hard coded */
+> >> +	tx_clk_esc = (clk_get_rate(mcam->pll1) / 1000000) / 12;
+> >> +
+> >> +	/*
+> >> +	 * dphy[2] - CSI2_DPHY6:
+> >> +	 * bit 0 ~ bit 7: CK Term Enable
+> >> +	 *  Time for the Clock Lane receiver to enable the HS line
+> 
+> Regards,
+> Libin
+
+Thanks
+Guennadi
 ---
- drivers/media/platform/exynos4-is/fimc-lite.c |   35 ++++++++++---------------
- drivers/media/platform/exynos4-is/fimc-lite.h |   10 +++----
- 2 files changed, 17 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 70c0cc2..ba35328 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -528,7 +528,7 @@ static const struct fimc_fmt *fimc_lite_try_format(struct fimc_lite *fimc,
- 					u32 *width, u32 *height,
- 					u32 *code, u32 *fourcc, int pad)
- {
--	struct flite_variant *variant = fimc->variant;
-+	struct flite_drvdata *dd = fimc->dd;
- 	const struct fimc_fmt *fmt;
- 
- 	fmt = fimc_lite_find_format(fourcc, code, 0);
-@@ -541,12 +541,12 @@ static const struct fimc_fmt *fimc_lite_try_format(struct fimc_lite *fimc,
- 		*fourcc = fmt->fourcc;
- 
- 	if (pad == FLITE_SD_PAD_SINK) {
--		v4l_bound_align_image(width, 8, variant->max_width,
--				      ffs(variant->out_width_align) - 1,
--				      height, 0, variant->max_height, 0, 0);
-+		v4l_bound_align_image(width, 8, dd->max_width,
-+				      ffs(dd->out_width_align) - 1,
-+				      height, 0, dd->max_height, 0, 0);
- 	} else {
- 		v4l_bound_align_image(width, 8, fimc->inp_frame.rect.width,
--				      ffs(variant->out_width_align) - 1,
-+				      ffs(dd->out_width_align) - 1,
- 				      height, 0, fimc->inp_frame.rect.height,
- 				      0, 0);
- 	}
-@@ -566,7 +566,7 @@ static void fimc_lite_try_crop(struct fimc_lite *fimc, struct v4l2_rect *r)
- 
- 	/* Adjust left/top if cropping rectangle got out of bounds */
- 	r->left = clamp_t(u32, r->left, 0, frame->f_width - r->width);
--	r->left = round_down(r->left, fimc->variant->win_hor_offs_align);
-+	r->left = round_down(r->left, fimc->dd->win_hor_offs_align);
- 	r->top  = clamp_t(u32, r->top, 0, frame->f_height - r->height);
- 
- 	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, sink fmt: %dx%d\n",
-@@ -586,7 +586,7 @@ static void fimc_lite_try_compose(struct fimc_lite *fimc, struct v4l2_rect *r)
- 
- 	/* Adjust left/top if the composing rectangle got out of bounds */
- 	r->left = clamp_t(u32, r->left, 0, frame->f_width - r->width);
--	r->left = round_down(r->left, fimc->variant->out_hor_offs_align);
-+	r->left = round_down(r->left, fimc->dd->out_hor_offs_align);
- 	r->top  = clamp_t(u32, r->top, 0, fimc->out_frame.f_height - r->height);
- 
- 	v4l2_dbg(1, debug, &fimc->subdev, "(%d,%d)/%dx%d, source fmt: %dx%d\n",
-@@ -647,8 +647,8 @@ static int fimc_lite_try_fmt(struct fimc_lite *fimc,
- 			     struct v4l2_pix_format_mplane *pixm,
- 			     const struct fimc_fmt **ffmt)
- {
--	struct flite_variant *variant = fimc->variant;
- 	u32 bpl = pixm->plane_fmt[0].bytesperline;
-+	struct flite_drvdata *dd = fimc->dd;
- 	const struct fimc_fmt *fmt;
- 
- 	fmt = fimc_lite_find_format(&pixm->pixelformat, NULL, 0);
-@@ -656,9 +656,9 @@ static int fimc_lite_try_fmt(struct fimc_lite *fimc,
- 		return -EINVAL;
- 	if (ffmt)
- 		*ffmt = fmt;
--	v4l_bound_align_image(&pixm->width, 8, variant->max_width,
--			      ffs(variant->out_width_align) - 1,
--			      &pixm->height, 0, variant->max_height, 0, 0);
-+	v4l_bound_align_image(&pixm->width, 8, dd->max_width,
-+			      ffs(dd->out_width_align) - 1,
-+			      &pixm->height, 0, dd->max_height, 0, 0);
- 
- 	if ((bpl == 0 || ((bpl * 8) / fmt->depth[0]) < pixm->width))
- 		pixm->plane_fmt[0].bytesperline = (pixm->width *
-@@ -1429,7 +1429,7 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 	if (!drv_data || fimc->index < 0 || fimc->index >= FIMC_LITE_MAX_DEVS)
- 		return -EINVAL;
- 
--	fimc->variant = drv_data->variant[fimc->index];
-+	fimc->dd = drv_data;
- 	fimc->pdev = pdev;
- 
- 	init_waitqueue_head(&fimc->irq_queue);
-@@ -1577,7 +1577,8 @@ static const struct dev_pm_ops fimc_lite_pm_ops = {
- 			   NULL)
- };
- 
--static struct flite_variant fimc_lite0_variant_exynos4 = {
-+/* EXYNOS4212, EXYNOS4412 */
-+static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
- 	.max_width		= 8192,
- 	.max_height		= 8192,
- 	.out_width_align	= 8,
-@@ -1585,14 +1586,6 @@ static struct flite_variant fimc_lite0_variant_exynos4 = {
- 	.out_hor_offs_align	= 8,
- };
- 
--/* EXYNOS4212, EXYNOS4412 */
--static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
--	.variant = {
--		[0] = &fimc_lite0_variant_exynos4,
--		[1] = &fimc_lite0_variant_exynos4,
--	},
--};
--
- static struct platform_device_id fimc_lite_driver_ids[] = {
- 	{
- 		.name		= "exynos-fimc-lite",
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
-index 4c234508..0b6380b 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.h
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.h
-@@ -48,7 +48,7 @@ enum {
- #define FLITE_SD_PAD_SOURCE_ISP	2
- #define FLITE_SD_PADS_NUM	3
- 
--struct flite_variant {
-+struct flite_drvdata {
- 	unsigned short max_width;
- 	unsigned short max_height;
- 	unsigned short out_width_align;
-@@ -56,10 +56,6 @@ struct flite_variant {
- 	unsigned short out_hor_offs_align;
- };
- 
--struct flite_drvdata {
--	struct flite_variant *variant[FIMC_LITE_MAX_DEVS];
--};
--
- #define fimc_lite_get_drvdata(_pdev) \
- 	((struct flite_drvdata *) platform_get_device_id(_pdev)->driver_data)
- 
-@@ -96,7 +92,7 @@ struct flite_buffer {
- /**
-  * struct fimc_lite - fimc lite structure
-  * @pdev: pointer to FIMC-LITE platform device
-- * @variant: variant information for this IP
-+ * @dd: SoC specific driver data structure
-  * @v4l2_dev: pointer to top the level v4l2_device
-  * @vfd: video device node
-  * @fh: v4l2 file handle
-@@ -132,7 +128,7 @@ struct flite_buffer {
-  */
- struct fimc_lite {
- 	struct platform_device	*pdev;
--	struct flite_variant	*variant;
-+	struct flite_drvdata	*dd;
- 	struct v4l2_device	*v4l2_dev;
- 	struct video_device	vfd;
- 	struct v4l2_fh		fh;
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
