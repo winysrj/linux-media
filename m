@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54024 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754075Ab3COMJE (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:40501 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754180Ab3CLHwk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 08:09:04 -0400
-Date: Fri, 15 Mar 2013 09:08:58 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 0/8] Add a driver for somagic smi2021
-Message-ID: <20130315120856.GA2989@localhost>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	Tue, 12 Mar 2013 03:52:40 -0400
+Received: by mail-wg0-f54.google.com with SMTP id fm10so5669333wgb.33
+        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2013 00:52:39 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <2890206.GE3SX5DoKH@avalon>
+References: <CACKLOr0DGrULZmrzRuEqdm_Ec0hroCAXrnqLUFrc37YKpQ-Vpw@mail.gmail.com>
+	<2233212.n9eBIia8fu@avalon>
+	<CACKLOr3VojUn2CyVUxyA-6ESkGdx3h-ShmCXLEsD3czeYeQ=bg@mail.gmail.com>
+	<2890206.GE3SX5DoKH@avalon>
+Date: Tue, 12 Mar 2013 08:52:39 +0100
+Message-ID: <CACKLOr3aLMvdyQb7_=rd0vn4=LsVi+agq82qrYno31DUWxYfbw@mail.gmail.com>
+Subject: Re: omap3isp: iommu register problem.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 14, 2013 at 03:06:56PM +0100, Jon Arne Jørgensen wrote:
-> This patch-set will add a driver for the Somagic SMI2021 chip.
-> 
-> This chip is found inside different usb video-capture devices.
-> Most of them are branded as EasyCap, but there also seems to be
-> some other brands selling devices with this chip.
-> 
-> This driver is split into two modules, where one is called smi2021-bootloader,
-> and the other is just called smi2021.
-> 
-> The bootloader is responsible for the upload of a firmware that is needed by some
-> versions of the devices.
-> 
-> All Somagic devices that need firmware seems to identify themselves
-> with the usb product id 0x0007. There is no way for the kernel to know
-> what firmware to upload to the device without user interaction.
-> 
-> If there is only one firmware present on the computer, the kernel
-> will upload that firmware to any device that identifies as 0x0007.
-> If there are multiple Somagic firmwares present, the user will have to pass
-> a module parameter to the smi2021-bootloader module to tell what firmware to use.
-> 
+Hi Laurent, Guennadi,
 
-Nice job!
+On 11 March 2013 21:51, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Javier,
+>> [    2.706939] omap3isp omap3isp: Revision 15.0 found
+>> [    2.712402] omap_iommu_attach: 1
+>> [    2.715942] omap_iommu_attach: 2
+>> [    2.719329] omap_iommu_attach: 3
+>> [    2.722778] omap_iommu_attach: 4
+>> [    2.726135] omap_iommu_attach: 5
+>> [    2.729553] iommu_enable: 1
+>> [    2.732482] iommu_enable: 2, arch_iommu = c0599adc
+>> [    2.737548] iommu_enable: 3
+>> [    2.740478] iommu_enable: 5
+>> [    2.743652] omap-iommu omap-iommu.0: mmu_isp: version 1.1
+>> [    2.749389] omap_iommu_attach: 6
+>> [    2.752807] omap_iommu_attach: 7
+>> [    2.756195] omap_iommu_attach: 8
+>> [    2.759613] omap_iommu_attach: 9
+>> [    2.763977] omap3isp omap3isp: hist: DMA channel = 2
+>> [    2.770904] drivers/rtc/hctosys.c: unable to open rtc device (rtc0)
+>> [    2.778839] ALSA device list:
+>> [    2.781982]   No soundcards found.
+>> [    2.799285] mt9m111 2-0048: mt9m111: driver needs platform data
+>> [    2.805603] mt9m111: probe of 2-0048 failed with error -22
+>> [    2.814849] omap3isp omap3isp: isp_register_subdev_group: Unable to
+>> register subdev mt9m111
+>>
+>> The error I get now seems more related to the fact that I am trying to
+>> use a soc-camera sensor (mt9m111) with a non-soc-camera host
+>> (omap3isp) and I probably need some extra platform code.
+>>
+>> Do you know any board in mainline in a similar situation?
+>
+> There's none yet I'm afraid.
+>
+> We don't have the necessary infrastructure in place yet to allow this.
+> Guennadi might be able to give you a bit more information about the current
+> status.
 
-I have some minor comments on each patch, but also I don't agree
-with the patch splitting: what's the point in splitting and sending
-one patch per file?
+So what kind of changes are required to make this work? Are we talking
+about migrating each soc-camera sensor separately, soc-camera
+framework changes, both of them?
 
-It doesn't make it any easier to review, so why don't you just
-send one patch: "Introduce smi2021 driver"?
-
-The rule is one patch per change, and I believe this whole patchset
-is just one change: adding a new driver.
 
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
