@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:43686 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655Ab3CWR0b (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:32979 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755157Ab3CLIQn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 13:26:31 -0400
-Received: by mail-ee0-f42.google.com with SMTP id b47so2625637eek.15
-        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 10:26:29 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 4/5] em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
-Date: Sat, 23 Mar 2013 18:27:11 +0100
-Message-Id: <1364059632-29070-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 12 Mar 2013 04:16:43 -0400
+Message-ID: <513EE45E.6050004@ti.com>
+Date: Tue, 12 Mar 2013 13:46:30 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Russell King <rmk+kernel@arm.linux.org.uk>,
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
+References: <CA+V-a8sMTqU4PkxZ8_EK5yNY1S22G2G=7-bs5j31Umi_Dt97gQ@mail.gmail.com> <1363004536-27314-1-git-send-email-nsekhar@ti.com> <CA+V-a8vaNzio4RYqq8xwe=bOS0F+2t_mkwDWcQ99GbChC97Ayg@mail.gmail.com>
+In-Reply-To: <CA+V-a8vaNzio4RYqq8xwe=bOS0F+2t_mkwDWcQ99GbChC97Ayg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Streaming doesn't work with the EM2765 if bit 5 of the output format register
-0x27 is set.
-It's actually not clear if really has to be set for the other chips, but for
-now let's keep it to avoid regressions and add a comment to the code.
+On 3/12/2013 10:44 AM, Prabhakar Lad wrote:
+> Hi Sekhar,
+> 
+> Thanks for the patch! few nits below
+> 
+> also version number for patch is missing as this should have been v2 :)
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |   20 +++++++++++++++-----
- 1 Datei geändert, 15 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+Missed that, sorry.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index b2dcb3d..7b9f76b 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -697,12 +697,22 @@ int em28xx_vbi_supported(struct em28xx *dev)
- int em28xx_set_outfmt(struct em28xx *dev)
- {
- 	int ret;
--	u8 vinctrl;
--
--	ret = em28xx_write_reg_bits(dev, EM28XX_R27_OUTFMT,
--				dev->format->reg | 0x20, 0xff);
-+	u8 fmt, vinctrl;
-+
-+	fmt = dev->format->reg;
-+	if (!dev->is_em25xx)
-+		fmt |= 0x20;
-+	/* NOTE: it's not clear if this is really needed !
-+	 * The datasheets say bit 5 is a reserved bit and devices seem to work
-+	 * fine without it. But the Windows driver sets it for em2710/50+em28xx
-+	 * devices and we've always been setting it, too.
-+	 *
-+	 * em2765 (em25xx, em276x/7x/8x ?) devices do NOT work with this bit set,
-+	 * it's likely used for an additional (compressed ?) format there.
-+	 */
-+	ret = em28xx_write_reg(dev, EM28XX_R27_OUTFMT, fmt);
- 	if (ret < 0)
--			return ret;
-+		return ret;
- 
- 	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
- 	if (ret < 0)
--- 
-1.7.10.4
+> BTW this patch still is not  present in media list.
 
+Not sure what is happening there. Its an open list as far as I can see
+and there is no message I am getting back from list. Most probably vger
+thinks I am spamming, but I am not sure why.
+
+>>
+>>  config VIDEO_DAVINCI_VPBE_DISPLAY
+>>         tristate "DM644X/DM365/DM355 VPBE HW module"
+> why not change this to 'TI DaVinci VPBE Video Display' as done for vpif ?
+
+Okay, will do. I would like to remind that I have not tested this patch
+(not loaded the modules and connected a video device). If you can get
+some testing done on this it will be great.
+
+Thanks,
+Sekhar
