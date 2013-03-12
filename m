@@ -1,183 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4181 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758072Ab3CDNC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 08:02:26 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 2/6] s5p-tv: add dv_timings support for hdmi.
-Date: Mon,  4 Mar 2013 14:02:02 +0100
-Message-Id: <5e5e5149922dadba48b80509e16551481e78d059.1362401530.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <2b361dfb4359134806e6b6d741d9286968c49df6.1362401530.git.hans.verkuil@cisco.com>
-References: <2b361dfb4359134806e6b6d741d9286968c49df6.1362401530.git.hans.verkuil@cisco.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:49175 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932706Ab3CLQDg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Mar 2013 12:03:36 -0400
+Date: Tue, 12 Mar 2013 17:03:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH v4] media: V4L2: add temporary clock helpers
+Message-ID: <Pine.LNX.4.64.1303121658590.680@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Typical video devices like camera sensors require an external clock source.
+Many such devices cannot even access their hardware registers without a
+running clock. These clock sources should be controlled by their consumers.
+This should be performed, using the generic clock framework. Unfortunately
+so far only very few systems have been ported to that framework. This patch
+adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+Platforms, adopting the clock API, should switch to using it. Eventually
+this temporary API should be removed.
 
-This just adds dv_timings support without modifying existing dv_preset
-support.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Tested-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/platform/s5p-tv/hdmi_drv.c |   94 +++++++++++++++++++++++++-----
- 1 file changed, 81 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 8de1b3d..1376577 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -31,6 +31,7 @@
- #include <linux/pm_runtime.h>
- #include <linux/clk.h>
- #include <linux/regulator/consumer.h>
-+#include <linux/v4l2-dv-timings.h>
+v4: replace BUG() with a WARN_ON() - thanks to Sylwester for a geads-up
+
+ drivers/media/v4l2-core/Makefile   |    2 +-
+ drivers/media/v4l2-core/v4l2-clk.c |  175 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-clk.h           |   54 +++++++++++
+ 3 files changed, 230 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-clk.h
+
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index a9d3552..aea7aea 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -5,7 +5,7 @@
+ tuner-objs	:=	tuner-core.o
  
- #include <media/s5p_hdmi.h>
- #include <media/v4l2-common.h>
-@@ -93,6 +94,8 @@ struct hdmi_device {
- 	int cur_conf_dirty;
- 	/** current preset */
- 	u32 cur_preset;
-+	/** current timings */
-+	struct v4l2_dv_timings cur_timings;
- 	/** other resources */
- 	struct hdmi_resources res;
- };
-@@ -477,19 +480,21 @@ static const struct hdmi_timings hdmi_timings_1080p50 = {
- 
- static const struct {
- 	u32 preset;
--	const struct hdmi_timings *timings;
-+	bool reduced_fps;
-+	const struct v4l2_dv_timings dv_timings;
-+	const struct hdmi_timings *hdmi_timings;
- } hdmi_timings[] = {
--	{ V4L2_DV_480P59_94, &hdmi_timings_480p },
--	{ V4L2_DV_576P50, &hdmi_timings_576p50 },
--	{ V4L2_DV_720P50, &hdmi_timings_720p50 },
--	{ V4L2_DV_720P59_94, &hdmi_timings_720p60 },
--	{ V4L2_DV_720P60, &hdmi_timings_720p60 },
--	{ V4L2_DV_1080P24, &hdmi_timings_1080p24 },
--	{ V4L2_DV_1080P30, &hdmi_timings_1080p60 },
--	{ V4L2_DV_1080P50, &hdmi_timings_1080p50 },
--	{ V4L2_DV_1080I50, &hdmi_timings_1080i50 },
--	{ V4L2_DV_1080I60, &hdmi_timings_1080i60 },
--	{ V4L2_DV_1080P60, &hdmi_timings_1080p60 },
-+	{ V4L2_DV_480P59_94, false, V4L2_DV_BT_CEA_720X480P59_94, &hdmi_timings_480p },
-+	{ V4L2_DV_576P50, false, V4L2_DV_BT_CEA_720X576P50, &hdmi_timings_576p50 },
-+	{ V4L2_DV_720P50, false, V4L2_DV_BT_CEA_1280X720P50, &hdmi_timings_720p50 },
-+	{ V4L2_DV_720P59_94, true, V4L2_DV_BT_CEA_1280X720P60, &hdmi_timings_720p60 },
-+	{ V4L2_DV_720P60, false, V4L2_DV_BT_CEA_1280X720P60, &hdmi_timings_720p60 },
-+	{ V4L2_DV_1080P24, false, V4L2_DV_BT_CEA_1920X1080P24, &hdmi_timings_1080p24 },
-+	{ V4L2_DV_1080P30, false, V4L2_DV_BT_CEA_1920X1080P30, &hdmi_timings_1080p60 },
-+	{ V4L2_DV_1080P50, false, V4L2_DV_BT_CEA_1920X1080P50, &hdmi_timings_1080p50 },
-+	{ V4L2_DV_1080I50, false, V4L2_DV_BT_CEA_1920X1080I50, &hdmi_timings_1080i50 },
-+	{ V4L2_DV_1080I60, false, V4L2_DV_BT_CEA_1920X1080I60, &hdmi_timings_1080i60 },
-+	{ V4L2_DV_1080P60, false, V4L2_DV_BT_CEA_1920X1080P60, &hdmi_timings_1080p60 },
- };
- 
- static const struct hdmi_timings *hdmi_preset2timings(u32 preset)
-@@ -498,7 +503,7 @@ static const struct hdmi_timings *hdmi_preset2timings(u32 preset)
- 
- 	for (i = 0; i < ARRAY_SIZE(hdmi_timings); ++i)
- 		if (hdmi_timings[i].preset == preset)
--			return  hdmi_timings[i].timings;
-+			return  hdmi_timings[i].hdmi_timings;
- 	return NULL;
- }
- 
-@@ -647,6 +652,36 @@ static int hdmi_g_dv_preset(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int hdmi_s_dv_timings(struct v4l2_subdev *sd,
-+	struct v4l2_dv_timings *timings)
-+{
-+	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-+	struct device *dev = hdev->dev;
-+	int i;
+ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+-			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
++			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+ ifeq ($(CONFIG_COMPAT),y)
+   videodev-objs += v4l2-compat-ioctl32.o
+ endif
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
+new file mode 100644
+index 0000000..9c714a7
+--- /dev/null
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -0,0 +1,175 @@
++/*
++ * V4L2 clock service
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	for (i = 0; i < ARRAY_SIZE(hdmi_timings); i++)
-+		if (v4l_match_dv_timings(&hdmi_timings[i].dv_timings,
-+					timings, 0))
-+			break;
-+	if (i == ARRAY_SIZE(hdmi_timings)) {
-+		dev_err(dev, "timings not supported\n");
-+		return -EINVAL;
++#include <linux/atomic.h>
++#include <linux/errno.h>
++#include <linux/list.h>
++#include <linux/module.h>
++#include <linux/mutex.h>
++#include <linux/string.h>
++
++#include <media/v4l2-clk.h>
++#include <media/v4l2-subdev.h>
++
++static DEFINE_MUTEX(clk_lock);
++static LIST_HEAD(clk_list);
++
++static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
++{
++	struct v4l2_clk *clk;
++
++	list_for_each_entry(clk, &clk_list, list) {
++		if (strcmp(dev_id, clk->dev_id))
++			continue;
++
++		if (!id || !clk->id || !strcmp(clk->id, id))
++			return clk;
 +	}
-+	hdev->cur_conf = hdmi_timings[i].hdmi_timings;
-+	hdev->cur_conf_dirty = 1;
-+	hdev->cur_timings = *timings;
-+	if (!hdmi_timings[i].reduced_fps)
-+		hdev->cur_timings.bt.flags &= ~V4L2_DV_FL_CAN_REDUCE_FPS;
-+	return 0;
++
++	return ERR_PTR(-ENODEV);
 +}
 +
-+static int hdmi_g_dv_timings(struct v4l2_subdev *sd,
-+	struct v4l2_dv_timings *timings)
++struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id)
 +{
-+	*timings = sd_to_hdmi_dev(sd)->cur_timings;
-+	return 0;
-+}
++	struct v4l2_clk *clk;
 +
- static int hdmi_g_mbus_fmt(struct v4l2_subdev *sd,
- 	  struct v4l2_mbus_framefmt *fmt)
- {
-@@ -679,6 +714,35 @@ static int hdmi_enum_dv_presets(struct v4l2_subdev *sd,
- 		preset);
- }
- 
-+static int hdmi_enum_dv_timings(struct v4l2_subdev *sd,
-+	struct v4l2_enum_dv_timings *timings)
++	mutex_lock(&clk_lock);
++	clk = v4l2_clk_find(sd->name, id);
++
++	if (!IS_ERR(clk) && !try_module_get(clk->ops->owner))
++		clk = ERR_PTR(-ENODEV);
++	mutex_unlock(&clk_lock);
++
++	if (!IS_ERR(clk))
++		atomic_inc(&clk->use_count);
++
++	return clk;
++}
++EXPORT_SYMBOL(v4l2_clk_get);
++
++void v4l2_clk_put(struct v4l2_clk *clk)
 +{
-+	if (timings->index >= ARRAY_SIZE(hdmi_timings))
-+		return -EINVAL;
-+	timings->timings = hdmi_timings[timings->index].dv_timings;
-+	if (!hdmi_timings[timings->index].reduced_fps)
-+		timings->timings.bt.flags &= ~V4L2_DV_FL_CAN_REDUCE_FPS;
-+	return 0;
++	if (!IS_ERR(clk)) {
++		atomic_dec(&clk->use_count);
++		module_put(clk->ops->owner);
++	}
 +}
++EXPORT_SYMBOL(v4l2_clk_put);
 +
-+static int hdmi_dv_timings_cap(struct v4l2_subdev *sd,
-+	struct v4l2_dv_timings_cap *cap)
++int v4l2_clk_enable(struct v4l2_clk *clk)
 +{
-+	struct hdmi_device *hdev = sd_to_hdmi_dev(sd);
-+
-+	/* Let the phy fill in the pixelclock range */
-+	v4l2_subdev_call(hdev->phy_sd, video, dv_timings_cap, 0);
-+	cap->type = V4L2_DV_BT_656_1120;
-+	cap->bt.min_width = 720;
-+	cap->bt.max_width = 1920;
-+	cap->bt.min_height = 480;
-+	cap->bt.max_height = 1080;
-+	cap->bt.standards = V4L2_DV_BT_STD_CEA861;
-+	cap->bt.capabilities = V4L2_DV_BT_CAP_INTERLACED |
-+			       V4L2_DV_BT_CAP_PROGRESSIVE;
-+	return 0;
++	int ret;
++	mutex_lock(&clk->lock);
++	if (++clk->enable == 1 && clk->ops->enable) {
++		ret = clk->ops->enable(clk);
++		if (ret < 0)
++			clk->enable--;
++	} else {
++		ret = 0;
++	}
++	mutex_unlock(&clk->lock);
++	return ret;
 +}
++EXPORT_SYMBOL(v4l2_clk_enable);
 +
- static const struct v4l2_subdev_core_ops hdmi_sd_core_ops = {
- 	.s_power = hdmi_s_power,
- };
-@@ -687,6 +751,10 @@ static const struct v4l2_subdev_video_ops hdmi_sd_video_ops = {
- 	.s_dv_preset = hdmi_s_dv_preset,
- 	.g_dv_preset = hdmi_g_dv_preset,
- 	.enum_dv_presets = hdmi_enum_dv_presets,
-+	.s_dv_timings = hdmi_s_dv_timings,
-+	.g_dv_timings = hdmi_g_dv_timings,
-+	.enum_dv_timings = hdmi_enum_dv_timings,
-+	.dv_timings_cap = hdmi_dv_timings_cap,
- 	.g_mbus_fmt = hdmi_g_mbus_fmt,
- 	.s_stream = hdmi_s_stream,
- };
++void v4l2_clk_disable(struct v4l2_clk *clk)
++{
++	int enable;
++
++	mutex_lock(&clk->lock);
++	enable = --clk->enable;
++	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
++		 clk->dev_id, clk->id))
++		clk->enable++;
++	else if (!enable && clk->ops->disable)
++		clk->ops->disable(clk);
++	mutex_unlock(&clk->lock);
++}
++EXPORT_SYMBOL(v4l2_clk_disable);
++
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
++{
++	if (!clk->ops->get_rate)
++		return -ENOSYS;
++
++	return clk->ops->get_rate(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_get_rate);
++
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
++{
++	if (!clk->ops->set_rate)
++		return -ENOSYS;
++
++	return clk->ops->set_rate(clk, rate);
++}
++EXPORT_SYMBOL(v4l2_clk_set_rate);
++
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_id,
++				   const char *id, void *priv)
++{
++	struct v4l2_clk *clk;
++	int ret;
++
++	if (!ops || !dev_id)
++		return ERR_PTR(-EINVAL);
++
++	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
++	if (!clk)
++		return ERR_PTR(-ENOMEM);
++
++	clk->id = kstrdup(id, GFP_KERNEL);
++	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
++	if ((id && !clk->id) || !clk->dev_id) {
++		ret = -ENOMEM;
++		goto ealloc;
++	}
++	clk->ops = ops;
++	clk->priv = priv;
++	atomic_set(&clk->use_count, 0);
++	mutex_init(&clk->lock);
++
++	mutex_lock(&clk_lock);
++	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
++		mutex_unlock(&clk_lock);
++		ret = -EEXIST;
++		goto eexist;
++	}
++	list_add_tail(&clk->list, &clk_list);
++	mutex_unlock(&clk_lock);
++
++	return clk;
++
++eexist:
++ealloc:
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(v4l2_clk_register);
++
++void v4l2_clk_unregister(struct v4l2_clk *clk)
++{
++	if (WARN(atomic_read(&clk->use_count),
++		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
++		 __func__, clk->dev_id, clk->id))
++		return;
++
++	mutex_lock(&clk_lock);
++	list_del(&clk->list);
++	mutex_unlock(&clk_lock);
++
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_unregister);
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
+new file mode 100644
+index 0000000..9b67472
+--- /dev/null
++++ b/include/media/v4l2-clk.h
+@@ -0,0 +1,54 @@
++/*
++ * V4L2 clock service
++ *
++ * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * ATTENTION: This is a temporary API and it shall be replaced by the generic
++ * clock API, when the latter becomes widely available.
++ */
++
++#ifndef MEDIA_V4L2_CLK_H
++#define MEDIA_V4L2_CLK_H
++
++#include <linux/atomic.h>
++#include <linux/list.h>
++#include <linux/mutex.h>
++
++struct module;
++struct v4l2_subdev;
++
++struct v4l2_clk {
++	struct list_head list;
++	const struct v4l2_clk_ops *ops;
++	const char *dev_id;
++	const char *id;
++	int enable;
++	struct mutex lock; /* Protect the enable count */
++	atomic_t use_count;
++	void *priv;
++};
++
++struct v4l2_clk_ops {
++	struct module	*owner;
++	int		(*enable)(struct v4l2_clk *clk);
++	void		(*disable)(struct v4l2_clk *clk);
++	unsigned long	(*get_rate)(struct v4l2_clk *clk);
++	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
++};
++
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_name,
++				   const char *name, void *priv);
++void v4l2_clk_unregister(struct v4l2_clk *clk);
++struct v4l2_clk *v4l2_clk_get(struct v4l2_subdev *sd, const char *id);
++void v4l2_clk_put(struct v4l2_clk *clk);
++int v4l2_clk_enable(struct v4l2_clk *clk);
++void v4l2_clk_disable(struct v4l2_clk *clk);
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
++
++#endif
 -- 
-1.7.10.4
+1.7.2.5
 
