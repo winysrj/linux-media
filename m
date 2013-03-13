@@ -1,91 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64537 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088Ab3CTPEh (ORCPT
+Received: from c2beaomr10.btconnect.com ([213.123.26.188]:54789 "EHLO
+	mail.btconnect.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755433Ab3CMKBZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 11:04:37 -0400
-Received: by mail-wi0-f172.google.com with SMTP id ez12so5401639wid.5
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 08:04:35 -0700 (PDT)
+	Wed, 13 Mar 2013 06:01:25 -0400
+Message-ID: <51404D1C.1040100@peepo.com>
+Date: Wed, 13 Mar 2013 09:55:40 +0000
+From: Jonathan Chetwynd <jay@peepo.com>
 MIME-Version: 1.0
-Date: Wed, 20 Mar 2013 16:04:35 +0100
-Message-ID: <CACKLOr28HKiEiC6mkhsR2vQGMqVZ1KL_YMc5o0tf=zkroQgwrQ@mail.gmail.com>
-Subject: [RFC] mt9m131/mt9m111 manual exposure control.
-From: javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	=?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
-	<benoit.thebaudeau@advansee.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: VIDIOC_ENUM_FMT bug query
+References: <514046E4.2090302@btconnect.com>
+In-Reply-To: <514046E4.2090302@btconnect.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-the attached patch, adds support for manual exposure control for
-sensor mt9m111.
-For this purpose, the register 0x009 (Shutter width) is written with
-values from 0x0000 to 0xffff.
+dmesg: gspca_sn9c20x: OV7660 sensor detected
 
-In order to test this, an mt9m131 sensor was connected to a DM3730
-(omap3isp). Using yavta to capture some frames, the results are quite
-surprising. Only the second frame read from the sensor has the desired
-exposure time, the other frames just keep the default exposure time.
+regards
 
-Moreover, it seems this behaviour does not change no matter I
-enable/disable autoexposure.
+Jonathan
 
-I just wanted to make it public just in case anyone feels like giving
-a try to the patch.
-Regards.
-
----
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c
-b/drivers/media/i2c/soc_camera/mt9m111.c
-index 9a4b8b0..a752be5 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -710,6 +710,13 @@ static int mt9m111_set_autoexposure(struct
-mt9m111 *mt9m111, int on)
-        return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOEXPO_EN);
- }
-
-+static int mt9m111_set_exposure(struct mt9m111 *mt9m111, int val)
-+{
-+       struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-+
-+       return reg_write(SHUTTER_WIDTH, val);
-+}
-+
- static int mt9m111_set_autowhitebalance(struct mt9m111 *mt9m111, int on)
- {
-        struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-@@ -735,6 +742,8 @@ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
-                return mt9m111_set_global_gain(mt9m111, ctrl->val);
-        case V4L2_CID_EXPOSURE_AUTO:
-                return mt9m111_set_autoexposure(mt9m111, ctrl->val);
-+       case V4L2_CID_EXPOSURE:
-+               return mt9m111_set_exposure(mt9m111, ctrl->val);
-        case V4L2_CID_AUTO_WHITE_BALANCE:
-                return mt9m111_set_autowhitebalance(mt9m111, ctrl->val);
-        }
-@@ -1080,6 +1089,8 @@ static int mt9m111_probe(struct i2c_client *client,
-
-        v4l2_i2c_subdev_init(&mt9m111->subdev, client, &mt9m111_subdev_ops);
-        v4l2_ctrl_handler_init(&mt9m111->hdl, 5);
-+        v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops, V4L2_CID_EXPOSURE,
-+                       1, 0xffff, 1, 0x219);
-        v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-                        V4L2_CID_VFLIP, 0, 1, 1, 0);
-        v4l2_ctrl_new_std(&mt9m111->hdl, &mt9m111_ctrl_ops,
-
+On 13/03/13 09:29, jonathan chetwynd wrote:
+> Is there any further action I can take to discover whether a webcam 
+> can support a format?
+> or to help develop a patch?
+>
+> the Sandberg Nightcam2 specification lists
+> 1280 x 960 up to 15 frames per second
+> but
+> $ v4l2-ctl --list-formats-ext lists no such format as available
+>
+> regards
+>
+> Jonathan Chetwynd
+>
+> http://www.sandberg.it/product/NightCam-2
+>
+> $ v4l2-ctl --list-formats-ext
+> ioctl: VIDIOC_ENUM_FMT
+>     Index       : 0
+>     Type        : Video Capture
+>     Pixel Format: 'S920'
+>     Name        : S920
+>         Size: Discrete 160x120
+>         Size: Discrete 320x240
+>         Size: Discrete 640x480
+>
+>     Index       : 1
+>     Type        : Video Capture
+>     Pixel Format: 'BA81'
+>     Name        : BA81
+>         Size: Discrete 160x120
+>         Size: Discrete 320x240
+>         Size: Discrete 640x480
+>
+>     Index       : 2
+>     Type        : Video Capture
+>     Pixel Format: 'JPEG' (compressed)
+>     Name        : JPEG
+>         Size: Discrete 160x120
+>         Size: Discrete 320x240
+>         Size: Discrete 640x480
+>
 
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Jonathan Chetwynd
+http://www.gnote.org
+Eyetracking in HTML5
+
