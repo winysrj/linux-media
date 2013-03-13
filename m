@@ -1,87 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f44.google.com ([74.125.83.44]:51357 "EHLO
-	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753987Ab3C0R46 convert rfc822-to-8bit (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:38300 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860Ab3CMEJV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 13:56:58 -0400
-Received: by mail-ee0-f44.google.com with SMTP id l10so4577934eei.31
-        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 10:56:57 -0700 (PDT)
-Date: Wed, 27 Mar 2013 19:57:49 +0200
-From: Timo Teras <timo.teras@iki.fi>
-To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Grabby hwrev 2
-Message-ID: <20130327195749.4fbd4ae1@vostro>
-In-Reply-To: <51532E56.9070108@googlemail.com>
-References: <20130325190846.3250fe98@vostro>
-	<51532E56.9070108@googlemail.com>
-Mime-Version: 1.0
+	Wed, 13 Mar 2013 00:09:21 -0400
+MIME-Version: 1.0
+In-Reply-To: <513F5171.40603@samsung.com>
+References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
+	<1362754765-2651-13-git-send-email-arun.kk@samsung.com>
+	<513F5171.40603@samsung.com>
+Date: Wed, 13 Mar 2013 09:39:19 +0530
+Message-ID: <CALt3h7_zXP9M5m+4VXFGhnfpaUO+6F20hTsnR8ATF8+=CNmcrA@mail.gmail.com>
+Subject: Re: [RFC 12/12] mipi-csis: Enable all interrupts for fimc-is usage
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 27 Mar 2013 18:37:26 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
+Hi Sylwester,
 
-> Am 25.03.2013 18:08, schrieb Timo Teras:
-> > I just bought a Terratec Grabby hardware revision 2 in hopes that it
-> > would work on my linux box.
-> >
-> > But alas, I got only sound working. It seems that analog video
-> > picture grabbing does not work.
-> >
-> > I tried kernels 3.4.34-grsec, 3.7.1 (vanilla), 3.8.2-grsec and
-> > 3.9.0-rc4 (vanilla). And all fail the same way - no video data
-> > received.
-> >
-> > The USB ID is same as on the revision 1 board:
-> > Bus 005 Device 002: ID 0ccd:0096 TerraTec Electronic GmbH
-> >
-> > And it is properly detected as Grabby.
-> >
-> > It seems that the videobuf2 changes for 3.9.0-rc4 resulted in better
-> > debug logging, and it implies that the application (ffmpeg 1.1.4) is
-> > behaving well: all buffers are allocated, mmapped, queued, streamon
-> > called. But no data is received from the dongle. I also tested
-> > mencoder and it fails in similar manner.
-> >
-> > Dmesg (on 3.9.0-rc4) tells after module load the following:
-> >  
-> > [ 1249.600246] em28xx: New device TerraTec Electronic GmbH TerraTec
-> > Grabby @ 480 Mbps (0ccd:0096, inte rface 0, class 0)
-> > [ 1249.600258] em28xx: Video interface 0 found: isoc
-> > [ 1249.600264] em28xx: DVB interface 0 found: isoc
-> 
-> Hmm... yet another device where we detect a DVB endpoint (which is
-> obviously wrong)...
-> Could you please post the output of lsusb -v -d 0ccd:0096 ?
+>>
+>>  /* Interrupt mask */
+>>  #define S5PCSIS_INTMSK                       0x10
+>> -#define S5PCSIS_INTMSK_EN_ALL                0xf000103f
+>> +#define S5PCSIS_INTMSK_EN_ALL                0xfc00103f
+>
+> Do you know what interrupts are assigned to the CSIS_INTMSK
+> bits 26, 27 ? In the documentation I have they are marked
+> as reserved. I have tested this patch on Exynos4x12, it seems
+> OK but you might want to merge it to the patch adding compatible
+> property for exynos5.
 
-# lsusb -vvv -d 0ccd:0096
+The bits 26 and 27 are for Frame start and Frame end interrupts.
+Yes this change can be merged with the MIPI-CSIS support for Exynos5.
+Shaik will pick it up and merge it along with his patch series in v2.
 
-Bus 005 Device 028: ID 0ccd:0096 TerraTec Electronic GmbH 
-Couldn't open device, some information will be missing
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x0ccd TerraTec Electronic GmbH
-  idProduct          0x0096 
-  bcdDevice            1.00
-  iManufacturer           2 
-  iProduct                1 
-  iSerial                 0 
-  bNumConfigurations      1
-Couldn't get configuration descriptor 0, some information will be missing
-Couldn't get configuration descriptor 0, some information will be missing
+>
+> It would be good to know what these bits are for. And how
+> enabling the interrupts actually help without modifying the
+> interrupt handler ? Is it enough to just acknowledge those
+> interrupts ? Or how it works ?
+>
 
-The errors are weird. strace gives:
-open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No such file or directory)
-open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No such file or directory)
+These interrupts are used by the FIMC-IS firmware possibly to check if the
+sensor is working. Without enabling these, I get the error from firmware
+on Sensor Open command.
 
-# ls  /dev/bus/usb/005/
-001  003  013
+Regards
+Arun
