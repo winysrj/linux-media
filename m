@@ -1,67 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1727 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754485Ab3CKVBF (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3048 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750807Ab3CNT2h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:01:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 14 Mar 2013 15:28:37 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2EJSXWr066598
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 14 Mar 2013 20:28:36 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1D68011E01A8
+	for <linux-media@vger.kernel.org>; Thu, 14 Mar 2013 20:28:33 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 02/15] au0828: fix querycap.
-Date: Mon, 11 Mar 2013 22:00:33 +0100
-Message-Id: <fe438e0b9c61ba667c44f4903cdd37c68cc7ca94.1363035203.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
-References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130314192833.1D68011E01A8@alastor.dyndns.org>
+Date: Thu, 14 Mar 2013 20:28:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/au0828/au0828-video.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 8b9e826..4254b2c 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1241,20 +1241,25 @@ static int vidioc_queryctrl(struct file *file, void *priv,
- static int vidioc_querycap(struct file *file, void  *priv,
- 			   struct v4l2_capability *cap)
- {
--	struct au0828_fh *fh  = priv;
-+	struct video_device *vdev = video_devdata(file);
-+	struct au0828_fh *fh = priv;
- 	struct au0828_dev *dev = fh->dev;
- 
- 	strlcpy(cap->driver, "au0828", sizeof(cap->driver));
- 	strlcpy(cap->card, dev->board.name, sizeof(cap->card));
--	strlcpy(cap->bus_info, dev->v4l2_dev.name, sizeof(cap->bus_info));
-+	usb_make_path(dev->usbdev, cap->bus_info, sizeof(cap->bus_info));
- 
--	/*set the device capabilities */
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE |
--		V4L2_CAP_VBI_CAPTURE |
--		V4L2_CAP_AUDIO |
-+	/* set the device capabilities */
-+	cap->device_caps = V4L2_CAP_AUDIO |
- 		V4L2_CAP_READWRITE |
- 		V4L2_CAP_STREAMING |
- 		V4L2_CAP_TUNER;
-+	if (vdev->vfl_type == VFL_TYPE_GRABBER)
-+		cap->device_caps |= V4L2_CAP_VIDEO_CAPTURE;
-+	else
-+		cap->device_caps |= V4L2_CAP_VBI_CAPTURE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS |
-+		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_VIDEO_CAPTURE;
- 	return 0;
- }
- 
--- 
-1.7.10.4
+date:		Thu Mar 14 19:00:30 CET 2013
+git branch:	test
+git hash:	4d35435d3ffb853b491f5bb21a62529cd925d660
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
