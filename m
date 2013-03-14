@@ -1,112 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:47235 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757795Ab3CNNLz (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:56879 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756815Ab3CNOKv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 09:11:55 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	"David S. Miller" <davem@davemloft.net>
-Subject: [PATCH 05/10] drivers: ide: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 14:11:26 +0100
-Message-Id: <1363266691-15757-7-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+	Thu, 14 Mar 2013 10:10:51 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
+	elezegarcia@gmail.com
+Subject: [RFC V1 0/8] Add a driver for somagic smi2021 
+Date: Thu, 14 Mar 2013 15:06:56 +0100
+Message-Id: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+This patch-set will add a driver for the Somagic SMI2021 chip.
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: linux-ide@vger.kernel.org
----
- drivers/ide/gayle.c     | 15 +--------------
- drivers/ide/tx4938ide.c | 13 +------------
- drivers/ide/tx4939ide.c | 13 +------------
- 3 files changed, 3 insertions(+), 38 deletions(-)
+This chip is found inside different usb video-capture devices.
+Most of them are branded as EasyCap, but there also seems to be
+some other brands selling devices with this chip.
 
-diff --git a/drivers/ide/gayle.c b/drivers/ide/gayle.c
-index 51beb85..0a8440a 100644
---- a/drivers/ide/gayle.c
-+++ b/drivers/ide/gayle.c
-@@ -183,20 +183,7 @@ static struct platform_driver amiga_gayle_ide_driver = {
- 	},
- };
- 
--static int __init amiga_gayle_ide_init(void)
--{
--	return platform_driver_probe(&amiga_gayle_ide_driver,
--				     amiga_gayle_ide_probe);
--}
--
--module_init(amiga_gayle_ide_init);
--
--static void __exit amiga_gayle_ide_exit(void)
--{
--	platform_driver_unregister(&amiga_gayle_ide_driver);
--}
--
--module_exit(amiga_gayle_ide_exit);
-+module_platform_driver_probe(amiga_gayle_ide_driver, amiga_gayle_ide_probe);
- 
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("platform:amiga-gayle-ide");
-diff --git a/drivers/ide/tx4938ide.c b/drivers/ide/tx4938ide.c
-index 91d49dd..ede8575 100644
---- a/drivers/ide/tx4938ide.c
-+++ b/drivers/ide/tx4938ide.c
-@@ -203,18 +203,7 @@ static struct platform_driver tx4938ide_driver = {
- 	.remove = __exit_p(tx4938ide_remove),
- };
- 
--static int __init tx4938ide_init(void)
--{
--	return platform_driver_probe(&tx4938ide_driver, tx4938ide_probe);
--}
--
--static void __exit tx4938ide_exit(void)
--{
--	platform_driver_unregister(&tx4938ide_driver);
--}
--
--module_init(tx4938ide_init);
--module_exit(tx4938ide_exit);
-+module_platform_driver_probe(tx4938ide_driver, tx4938ide_probe);
- 
- MODULE_DESCRIPTION("TX4938 internal IDE driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/ide/tx4939ide.c b/drivers/ide/tx4939ide.c
-index c0ab800..4ecdee5 100644
---- a/drivers/ide/tx4939ide.c
-+++ b/drivers/ide/tx4939ide.c
-@@ -624,18 +624,7 @@ static struct platform_driver tx4939ide_driver = {
- 	.resume = tx4939ide_resume,
- };
- 
--static int __init tx4939ide_init(void)
--{
--	return platform_driver_probe(&tx4939ide_driver, tx4939ide_probe);
--}
--
--static void __exit tx4939ide_exit(void)
--{
--	platform_driver_unregister(&tx4939ide_driver);
--}
--
--module_init(tx4939ide_init);
--module_exit(tx4939ide_exit);
-+module_platform_driver_probe(tx4939ide_driver, tx4939ide_probe);
- 
- MODULE_DESCRIPTION("TX4939 internal IDE driver");
- MODULE_LICENSE("GPL");
--- 
-1.8.1.5
+This driver is split into two modules, where one is called smi2021-bootloader,
+and the other is just called smi2021.
+
+The bootloader is responsible for the upload of a firmware that is needed by some
+versions of the devices.
+
+All Somagic devices that need firmware seems to identify themselves
+with the usb product id 0x0007. There is no way for the kernel to know
+what firmware to upload to the device without user interaction.
+
+If there is only one firmware present on the computer, the kernel
+will upload that firmware to any device that identifies as 0x0007.
+If there are multiple Somagic firmwares present, the user will have to pass
+a module parameter to the smi2021-bootloader module to tell what firmware to use.
 
