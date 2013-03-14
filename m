@@ -1,81 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f53.google.com ([209.85.214.53]:42930 "EHLO
-	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754401Ab3CZRiA (ORCPT
+Received: from mx21.sysproserver.de ([78.138.89.32]:58718 "EHLO
+	mx21.sysproserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756688Ab3CNLQI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:38:00 -0400
-Received: by mail-bk0-f53.google.com with SMTP id e19so1411763bku.40
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:59 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 5/5] em28xx: write output frame resolution to regs 0x34+0x35 for em25xx family bridges
-Date: Tue, 26 Mar 2013 18:38:40 +0100
-Message-Id: <1364319520-6628-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+	Thu, 14 Mar 2013 07:16:08 -0400
+Received: from srv6.sysproserver.de (srv6.sysproserver.de [78.138.89.61])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mx21.sysproserver.de (Postfix) with ESMTPSA id D2A82E0025
+	for <linux-media@vger.kernel.org>; Thu, 14 Mar 2013 12:16:06 +0100 (CET)
+Received: from wagner-budenheim.de (unknown [78.138.89.62])
+	by srv6.sysproserver.de (Postfix) with ESMTPA id 8E2AB2296056
+	for <linux-media@vger.kernel.org>; Thu, 14 Mar 2013 12:16:06 +0100 (CET)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Thu, 14 Mar 2013 12:16:06 +0100
+From: "Dirk E. Wagner" <linux@wagner-budenheim.de>
+To: <linux-media@vger.kernel.org>
+Subject: Re: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+Message-ID: <0fe4f0152bd7c4627ac1d4728ed763f8@mail.mx6-sysproserver.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Windows driver writes the output resolution to registers 0x34 (width / 16)
-and 0x35 (height / 16) always.
-We don't know yet what these registers are used for.
+Hi Alexey,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
- drivers/media/usb/em28xx/em28xx-reg.h  |    9 ++++++++-
- 2 Dateien geändert, 15 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+indeed your patch breaks Atmega applications which using V-USB
+(http://www.obdev.at/products/vusb/index.html), because 0x16c0, 0x05df 
+are
+the default Ids of V-USB.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 575a46a..a802128 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -767,6 +767,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
- 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
- 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
- 	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
-+
-+	/* FIXME: function/meaning of these registers ? */
-+	/* FIXME: align width+height to multiples of 4 ?! */
-+	if (dev->is_em25xx) {
-+		em28xx_write_reg(dev, 0x34, width >> 4);
-+		em28xx_write_reg(dev, 0x35, height >> 4);
-+	}
- }
- 
- static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 1b0ecd6..622871d 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -48,7 +48,7 @@
- #define EM28XX_CHIPCFG2_TS_PACKETSIZE_752	0x03
- 
- 
--	/* GPIO/GPO registers */
-+/* GPIO/GPO registers */
- #define EM2880_R04_GPO	0x04    /* em2880-em2883 only */
- #define EM28XX_R08_GPIO	0x08	/* em2820 or upper */
- 
-@@ -167,6 +167,13 @@
- 
- #define EM28XX_R34_VBI_START_H	0x34
- #define EM28XX_R35_VBI_START_V	0x35
-+/*
-+ * NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
-+ * registers for a different unknown purpose.
-+ *   => register 0x34 is set to capture width / 16
-+ *   => register 0x35 is set to capture height / 16
-+ */
-+
- #define EM28XX_R36_VBI_WIDTH	0x36
- #define EM28XX_R37_VBI_HEIGHT	0x37
- 
--- 
-1.7.10.4
+Have a look at this FAQ
 
+https://github.com/obdev/v-usb/blob/master/usbdrv/USB-ID-FAQ.txt
+
+It seems that the Masterkit M901 also uses V-USB.
+
+I'm using an IR remote control receiver based on Atmega8 with V-USB. 
+Since
+Kernel 3.8.2 there is no more hidraw device for my receiver, so I had 
+to
+change the Device-ID to 0x27d9. I think there are a lot of other V-USB
+applications with similar problems.
+
+Dirk
+
+Am 12.03.2013 00:25, schrieb Alexey Klimov:
+
+> Hi Jiri and Mauro, all,
+>
+> On Fri, Dec 28, 2012 at 4:29 PM, Mauro Carvalho Chehab
+> wrote:
+>
+>> Hi Jiri, There's another radio device that it is incorrectly 
+>> detected
+>> as an HID driver. As I'll be applying the driver's patch via the 
+>> media
+>> tree, do you mind if I also apply this hid patch there? Thanks! 
+>> Mauro
+>> Forwarded message: Date: Mon, 12 Nov 2012 07:57:03 +0100 From: 
+>> Alexey
+>> Klimov To: linux-media@vger.kernel.org [2] Subject: [patch 02/03 v2]
+>> usb hid quirks for Masterkit MA901 usb radio Don't let Masterkit 
+>> MA901
+>> USB radio be handled by usb hid drivers. This device will be handled 
+>> by
+>> radio-ma901.c driver. Signed-off-by: Alexey Klimov diff --git
+>> a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c index
+>> 5de3bb3..8e06569 100644 --- a/drivers/hid/hid-core.c +++
+>> b/drivers/hid/hid-core.c @@ -2025,6 +2025,7 @@ static const struct
+>> hid_device_id hid_ignore_list[] = { { 
+>> HID_USB_DEVICE(USB_VENDOR_ID_LD,
+>> USB_DEVICE_ID_LD_HYBRID) }, { HID_USB_DEVICE(USB_VENDOR_ID_LD,
+>> USB_DEVICE_ID_LD_HEATCONTROL) }, {
+>> HID_USB_DEVICE(USB_VENDOR_ID_MADCATZ, USB_DEVICE_ID_MADCATZ_BEATPAD) 
+>> },
+>> + { HID_USB_DEVICE(USB_VENDOR_ID_MASTERKIT,
+>> USB_DEVICE_ID_MASTERKIT_MA901RADIO) }, {
+>> HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1024LS) }, {
+>> HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1208LS) }, {
+>> HID_USB_DEVICE(USB_VENDOR_ID_MICROCHIP, USB_DEVICE_ID_PICKIT1) }, 
+>> diff
+>> --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h index
+>> 1dcb76f..17aa4f6 100644 --- a/drivers/hid/hid-ids.h +++
+>> b/drivers/hid/hid-ids.h @@ -533,6 +533,9 @@ #define
+>> USB_VENDOR_ID_MADCATZ 0x0738 #define USB_DEVICE_ID_MADCATZ_BEATPAD
+>> 0x4540 +#define USB_VENDOR_ID_MASTERKIT 0x16c0 +#define
+>> USB_DEVICE_ID_MASTERKIT_MA901RADIO 0x05df + #define 
+>> USB_VENDOR_ID_MCC
+>> 0x09db #define USB_DEVICE_ID_MCC_PMD1024LS 0x0076 #define
+>> USB_DEVICE_ID_MCC_PMD1208LS 0x007a
+>
+> Well, since patch also was pushed to stable trees like 3.5, 3.8, 3.2
+> and this fact made me look a little closer to usb ids. Actually, i
+> googled these usb ids: 16c0 05df, link:
+> http://www.google.com/search?q=16c0+05df [5]
+> and here comes some doubts.
+>
+> For my eyes it looks like this usb radio consists of two chips: atmel
+> tiny85 + actually fm tuner KT0830EG. It looks like tiny85 is used in
+> many devices with the same usb ids like in our patch and people works
+> with tiny85 using some software under linux. I don't know if linux
+> software using hiddev/hidraw devices but this patch doesn't allow
+> appearing of /dev/hiddev or /dev/hidraw files for any usb device with
+> ids 0x16c0 0x05df, right? Is there any chance that using such patch 
+> we
+> can break some linux software that uses /dev/hid* files and related
+> functionality to communicate with tiny85?
+>
+> Please note that i'm not expert in tiny85 chip and i don't have any
+> deep knowledges on how usb ids are allocated for every device in the
+> world.
+> Masterkit company changed (or was able to change?) only Manufacturer,
+> Product, Serial fields in ma901 usb radio. I attached lsusb output in
+> the end of letter. Bad thing here is that Masterkit has other usb not
+> radio devices with the same usb ids based on tiny85 on the market.
+>
+> Sorry if i'm over-alarmed, i just really dont want to break any
+> userspace programs by this patch.
+>
+> If everything above is correct then i can use some dev->product,
+> dev->manufacturer, dev->serial checks in probe() function in
+> radio-ma901.c driver in the way like it's done in radio-keene.c 
+> driver
+> in probe function. If for example probe will discover that product
+> doesn't match then i can return -ENODEV. It's just an idea. But i
+> don't know if it is possible to do something with hid quirks: revert
+> and put comments somewhere or workaround and additional checks?
+> Well, any comments are welcome.
+>
+> --
+> Best regards, Klimov Alexey
+>
+> lsusb output:
+>
+> Bus 003 Device 002: ID 16c0:05df VOTI
+> Device Descriptor:
+> bLength 18
+> bDescriptorType 1
+> bcdUSB 1.10
+> bDeviceClass 0 (Defined at Interface level)
+> bDeviceSubClass 0
+> bDeviceProtocol 0
+> bMaxPacketSize0 8
+> idVendor 0x16c0 VOTI
+> idProduct 0x05df
+> bcdDevice 1.00
+> iManufacturer 1 www.masterkit.ru [6]
+> iProduct 2 MA901
+> iSerial 3 SHS
+> bNumConfigurations 1
+> Configuration Descriptor:
+> bLength 9
+> bDescriptorType 2
+> wTotalLength 34
+> bNumInterfaces 1
+> bConfigurationValue 1
+> iConfiguration 0
+> bmAttributes 0x80
+> (Bus Powered)
+> MaxPower 250mA
+> Interface Descriptor:
+> bLength 9
+> bDescriptorType 4
+> bInterfaceNumber 0
+> bAlternateSetting 0
+> bNumEndpoints 1
+> bInterfaceClass 3 Human Interface Device
+> bInterfaceSubClass 0 No Subclass
+> bInterfaceProtocol 0 None
+> iInterface 0
+> HID Device Descriptor:
+> bLength 9
+> bDescriptorType 33
+> bcdHID 1.01
+> bCountryCode 0 Not supported
+> bNumDescriptors 1
+> bDescriptorType 34 Report
+> wDescriptorLength 22
+> Report Descriptors:
+> ** UNAVAILABLE **
+> Endpoint Descriptor:
+> bLength 7
+> bDescriptorType 5
+> bEndpointAddress 0x81 EP 1 IN
+> bmAttributes 3
+> Transfer Type Interrupt
+> Synch Type None
+> Usage Type Data
+> wMaxPacketSize 0x0008 1x 8 bytes
+> bInterval 100
+> Device Status: 0x0000
+> (Bus Powered)
+> --
+> To unsubscribe from this list: send the line "unsubscribe 
+> linux-media" in
+> the body of a message to majordomo@vger.kernel.org [7]
+> More majordomo info at http://vger.kernel.org/majordomo-info.html [8]
+
+
+
+Links:
+------
+[1] mailto:klimov.linux@gmail.com
+[2] mailto:linux-media@vger.kernel.org
+[3] mailto:klimov.linux@gmail.com
+[4] mailto:mchehab@redhat.com
+[5] http://www.google.com/search?q=16c0+05df
+[6] http://www.masterkit.ru
+[7] mailto:majordomo@vger.kernel.org
+[8] http://vger.kernel.org/majordomo-info.html
