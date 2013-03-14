@@ -1,46 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:57652 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754737Ab3C0Crz (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:47235 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757795Ab3CNNLz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 22:47:55 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: mchehab@redhat.com
-Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v8 8/9] v4l2: Add private controls base for SI476X
-Date: Tue, 26 Mar 2013 19:47:25 -0700
-Message-Id: <1364352446-28572-9-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
+	Thu, 14 Mar 2013 09:11:55 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
+	linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"David S. Miller" <davem@davemloft.net>
+Subject: [PATCH 05/10] drivers: ide: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 14:11:26 +0100
+Message-Id: <1363266691-15757-7-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a base to be used for allocation of all the SI476X specific
-controls in the corresponding driver.
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: linux-ide@vger.kernel.org
 ---
- include/uapi/linux/v4l2-controls.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/ide/gayle.c     | 15 +--------------
+ drivers/ide/tx4938ide.c | 13 +------------
+ drivers/ide/tx4939ide.c | 13 +------------
+ 3 files changed, 3 insertions(+), 38 deletions(-)
 
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 3e985be..22e5170 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -147,6 +147,10 @@ enum v4l2_colorfx {
-  * of controls. We reserve 16 controls for this driver. */
- #define V4L2_CID_USER_MEYE_BASE			(V4L2_CID_USER_BASE + 0x1000)
+diff --git a/drivers/ide/gayle.c b/drivers/ide/gayle.c
+index 51beb85..0a8440a 100644
+--- a/drivers/ide/gayle.c
++++ b/drivers/ide/gayle.c
+@@ -183,20 +183,7 @@ static struct platform_driver amiga_gayle_ide_driver = {
+ 	},
+ };
  
-+/* The base for the si476x driver controls. See include/media/si476x.h for the list
-+ * of controls. Total of 16 controls is reserved for that driver */
-+#define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1010)
-+
- /* MPEG-class control IDs */
+-static int __init amiga_gayle_ide_init(void)
+-{
+-	return platform_driver_probe(&amiga_gayle_ide_driver,
+-				     amiga_gayle_ide_probe);
+-}
+-
+-module_init(amiga_gayle_ide_init);
+-
+-static void __exit amiga_gayle_ide_exit(void)
+-{
+-	platform_driver_unregister(&amiga_gayle_ide_driver);
+-}
+-
+-module_exit(amiga_gayle_ide_exit);
++module_platform_driver_probe(amiga_gayle_ide_driver, amiga_gayle_ide_probe);
  
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:amiga-gayle-ide");
+diff --git a/drivers/ide/tx4938ide.c b/drivers/ide/tx4938ide.c
+index 91d49dd..ede8575 100644
+--- a/drivers/ide/tx4938ide.c
++++ b/drivers/ide/tx4938ide.c
+@@ -203,18 +203,7 @@ static struct platform_driver tx4938ide_driver = {
+ 	.remove = __exit_p(tx4938ide_remove),
+ };
+ 
+-static int __init tx4938ide_init(void)
+-{
+-	return platform_driver_probe(&tx4938ide_driver, tx4938ide_probe);
+-}
+-
+-static void __exit tx4938ide_exit(void)
+-{
+-	platform_driver_unregister(&tx4938ide_driver);
+-}
+-
+-module_init(tx4938ide_init);
+-module_exit(tx4938ide_exit);
++module_platform_driver_probe(tx4938ide_driver, tx4938ide_probe);
+ 
+ MODULE_DESCRIPTION("TX4938 internal IDE driver");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/ide/tx4939ide.c b/drivers/ide/tx4939ide.c
+index c0ab800..4ecdee5 100644
+--- a/drivers/ide/tx4939ide.c
++++ b/drivers/ide/tx4939ide.c
+@@ -624,18 +624,7 @@ static struct platform_driver tx4939ide_driver = {
+ 	.resume = tx4939ide_resume,
+ };
+ 
+-static int __init tx4939ide_init(void)
+-{
+-	return platform_driver_probe(&tx4939ide_driver, tx4939ide_probe);
+-}
+-
+-static void __exit tx4939ide_exit(void)
+-{
+-	platform_driver_unregister(&tx4939ide_driver);
+-}
+-
+-module_init(tx4939ide_init);
+-module_exit(tx4939ide_exit);
++module_platform_driver_probe(tx4939ide_driver, tx4939ide_probe);
+ 
+ MODULE_DESCRIPTION("TX4939 internal IDE driver");
+ MODULE_LICENSE("GPL");
 -- 
-1.7.10.4
+1.8.1.5
 
