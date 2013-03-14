@@ -1,43 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2647 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751889Ab3CRMcl (ORCPT
+Received: from mail-ea0-f182.google.com ([209.85.215.182]:50733 "EHLO
+	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757766Ab3CNNLr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 08:32:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 12/19] solo6x10: add call to pci_dma_mapping_error.
-Date: Mon, 18 Mar 2013 13:32:11 +0100
-Message-Id: <1363609938-21735-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 14 Mar 2013 09:11:47 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
+	linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] drivers: misc: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 14:11:22 +0100
+Message-Id: <1363266691-15757-3-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-Check the result of the dma mapping.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/staging/media/solo6x10/p2m.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/misc/arm-charlcd.c | 13 +------------
+ drivers/misc/atmel_pwm.c   | 12 +-----------
+ drivers/misc/ep93xx_pwm.c  | 13 +------------
+ 3 files changed, 3 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/p2m.c b/drivers/staging/media/solo6x10/p2m.c
-index 3ed4d58..2292061 100644
---- a/drivers/staging/media/solo6x10/p2m.c
-+++ b/drivers/staging/media/solo6x10/p2m.c
-@@ -51,6 +51,8 @@ int solo_p2m_dma(struct solo_dev *solo_dev, int wr,
+diff --git a/drivers/misc/arm-charlcd.c b/drivers/misc/arm-charlcd.c
+index fe8616a..48651ef 100644
+--- a/drivers/misc/arm-charlcd.c
++++ b/drivers/misc/arm-charlcd.c
+@@ -378,18 +378,7 @@ static struct platform_driver charlcd_driver = {
+ 	.remove = __exit_p(charlcd_remove),
+ };
  
- 	dma_addr = pci_map_single(solo_dev->pdev, sys_addr, size,
- 				  wr ? PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
-+	if (pci_dma_mapping_error(solo_dev->pdev, dma_addr))
-+		return -ENOMEM;
+-static int __init charlcd_init(void)
+-{
+-	return platform_driver_probe(&charlcd_driver, charlcd_probe);
+-}
+-
+-static void __exit charlcd_exit(void)
+-{
+-	platform_driver_unregister(&charlcd_driver);
+-}
+-
+-module_init(charlcd_init);
+-module_exit(charlcd_exit);
++module_platform_driver_probe(charlcd_driver, charlcd_probe);
  
- 	ret = solo_p2m_dma_t(solo_dev, wr, dma_addr, ext_addr, size,
- 			     repeat, ext_size);
+ MODULE_AUTHOR("Linus Walleij <triad@df.lth.se>");
+ MODULE_DESCRIPTION("ARM Character LCD Driver");
+diff --git a/drivers/misc/atmel_pwm.c b/drivers/misc/atmel_pwm.c
+index 28f5aaa..494d050 100644
+--- a/drivers/misc/atmel_pwm.c
++++ b/drivers/misc/atmel_pwm.c
+@@ -393,17 +393,7 @@ static struct platform_driver atmel_pwm_driver = {
+ 	 */
+ };
+ 
+-static int __init pwm_init(void)
+-{
+-	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
+-}
+-module_init(pwm_init);
+-
+-static void __exit pwm_exit(void)
+-{
+-	platform_driver_unregister(&atmel_pwm_driver);
+-}
+-module_exit(pwm_exit);
++module_platform_driver_probe(atmel_pwm_driver, pwm_probe);
+ 
+ MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/misc/ep93xx_pwm.c b/drivers/misc/ep93xx_pwm.c
+index 16d7179..96787ec 100644
+--- a/drivers/misc/ep93xx_pwm.c
++++ b/drivers/misc/ep93xx_pwm.c
+@@ -365,18 +365,7 @@ static struct platform_driver ep93xx_pwm_driver = {
+ 	.remove		= __exit_p(ep93xx_pwm_remove),
+ };
+ 
+-static int __init ep93xx_pwm_init(void)
+-{
+-	return platform_driver_probe(&ep93xx_pwm_driver, ep93xx_pwm_probe);
+-}
+-
+-static void __exit ep93xx_pwm_exit(void)
+-{
+-	platform_driver_unregister(&ep93xx_pwm_driver);
+-}
+-
+-module_init(ep93xx_pwm_init);
+-module_exit(ep93xx_pwm_exit);
++module_platform_driver_probe(ep93xx_pwm_driver, ep93xx_pwm_probe);
+ 
+ MODULE_AUTHOR("Matthieu Crapet <mcrapet@gmail.com>, "
+ 	      "H Hartley Sweeten <hsweeten@visionengravers.com>");
 -- 
-1.7.10.4
+1.8.1.5
 
