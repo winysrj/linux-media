@@ -1,55 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62531 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752522Ab3CHLZ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 06:25:29 -0500
-Date: Fri, 8 Mar 2013 12:25:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] soc-camera: fix typos in the default format-conversion table
-Message-ID: <Pine.LNX.4.64.1303081222490.24912@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:60947 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964942Ab3CNRJ4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Mar 2013 13:09:56 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: [PATCH v2 6/8] drivers: mfd: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 18:09:36 +0100
+Message-Id: <1363280978-24051-7-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The default format conversion table mbus_fmt[] in soc_mediabus.c lists
-"natural" conversions between media-bus and fourcc pixel formats, that are
-achieved by storing data from the bus in RAM exactly as it arrives, only
-possibly padding missing high or low bits. Such data acquisition mode
-cannot change data endianness, therefore two locations with opposite
-endianness are erroneous. This change might affest the omap1-camera driver,
-existing configurations should be verified.
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-arm-kernel@lists.infradead.org
 ---
- drivers/media/platform/soc_camera/soc_mediabus.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/davinci_voicecodec.c | 12 +-----------
+ drivers/mfd/htc-pasic3.c         | 13 +------------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-index a397812..1f6d695 100644
---- a/drivers/media/platform/soc_camera/soc_mediabus.c
-+++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-@@ -73,7 +73,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.name			= "RGB555X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
--		.order			= SOC_MBUS_ORDER_LE,
-+		.order			= SOC_MBUS_ORDER_BE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
-@@ -93,7 +93,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.name			= "RGB565X",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
--		.order			= SOC_MBUS_ORDER_LE,
-+		.order			= SOC_MBUS_ORDER_BE,
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
+diff --git a/drivers/mfd/davinci_voicecodec.c b/drivers/mfd/davinci_voicecodec.c
+index c0bcc87..c60ab0c 100644
+--- a/drivers/mfd/davinci_voicecodec.c
++++ b/drivers/mfd/davinci_voicecodec.c
+@@ -177,17 +177,7 @@ static struct platform_driver davinci_vc_driver = {
+ 	.remove	= davinci_vc_remove,
+ };
+ 
+-static int __init davinci_vc_init(void)
+-{
+-	return platform_driver_probe(&davinci_vc_driver, davinci_vc_probe);
+-}
+-module_init(davinci_vc_init);
+-
+-static void __exit davinci_vc_exit(void)
+-{
+-	platform_driver_unregister(&davinci_vc_driver);
+-}
+-module_exit(davinci_vc_exit);
++module_platform_driver_probe(davinci_vc_driver, davinci_vc_probe);
+ 
+ MODULE_AUTHOR("Miguel Aguilar");
+ MODULE_DESCRIPTION("Texas Instruments DaVinci Voice Codec Core Interface");
+diff --git a/drivers/mfd/htc-pasic3.c b/drivers/mfd/htc-pasic3.c
+index 9e5453d..0285fce 100644
+--- a/drivers/mfd/htc-pasic3.c
++++ b/drivers/mfd/htc-pasic3.c
+@@ -208,18 +208,7 @@ static struct platform_driver pasic3_driver = {
+ 	.remove		= pasic3_remove,
+ };
+ 
+-static int __init pasic3_base_init(void)
+-{
+-	return platform_driver_probe(&pasic3_driver, pasic3_probe);
+-}
+-
+-static void __exit pasic3_base_exit(void)
+-{
+-	platform_driver_unregister(&pasic3_driver);
+-}
+-
+-module_init(pasic3_base_init);
+-module_exit(pasic3_base_exit);
++module_platform_driver_probe(pasic3_driver, pasic3_probe);
+ 
+ MODULE_AUTHOR("Philipp Zabel <philipp.zabel@gmail.com>");
+ MODULE_DESCRIPTION("Core driver for HTC PASIC3");
 -- 
-1.7.2.5
+1.8.1.5
 
