@@ -1,111 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61138 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933734Ab3CHMGg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 07:06:36 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MJC007T7CAXJ990@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:06:34 +0000 (GMT)
-Received: from [127.0.0.1] ([106.116.147.30])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MJC000CRCAWTP20@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:06:33 +0000 (GMT)
-Message-id: <5139D448.5030007@samsung.com>
-Date: Fri, 08 Mar 2013 13:06:32 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Federico Vaga <federico.vaga@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 2/2] vb2-dma-sg: add debug module option.
-References: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
- <552bc620da0483a6bd5a41604759c7f86abfd058.1362734097.git.hans.verkuil@cisco.com>
-In-reply-to: <552bc620da0483a6bd5a41604759c7f86abfd058.1362734097.git.hans.verkuil@cisco.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:56883 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757066Ab3CNOKv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Mar 2013 10:10:51 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
+	elezegarcia@gmail.com,
+	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+Subject: [RFC V1 3/8] smi2021: Add smi2021_i2c.c
+Date: Thu, 14 Mar 2013 15:06:59 +0100
+Message-Id: <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This file is responsible for registering the device
+with the kernel i2c subsystem.
+v4l2 talks to the saa7113 chip of the device via i2c.
 
-On 3/8/2013 10:21 AM, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This prevents the kernel log from being spammed with these messages.
-> By turning on the debug option you will see them again.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+---
+ drivers/media/usb/smi2021/smi2021_i2c.c | 160 ++++++++++++++++++++++++++++++++
+ 1 file changed, 160 insertions(+)
+ create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
->   drivers/media/v4l2-core/videobuf2-dma-sg.c |   17 +++++++++++++----
->   1 file changed, 13 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> index 952776f..59522b2 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -21,6 +21,15 @@
->   #include <media/videobuf2-memops.h>
->   #include <media/videobuf2-dma-sg.h>
->   
-> +static int debug;
-> +module_param(debug, int, 0644);
-> +
-> +#define dprintk(level, fmt, arg...)					\
-> +	do {								\
-> +		if (debug >= level)					\
-> +			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
-> +	} while (0)
-> +
->   struct vb2_dma_sg_buf {
->   	void				*vaddr;
->   	struct page			**pages;
-> @@ -74,7 +83,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
->   
->   	atomic_inc(&buf->refcount);
->   
-> -	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
-> +	dprintk(1, "%s: Allocated buffer of %d pages\n",
->   		__func__, buf->sg_desc.num_pages);
->   	return buf;
->   
-> @@ -97,7 +106,7 @@ static void vb2_dma_sg_put(void *buf_priv)
->   	int i = buf->sg_desc.num_pages;
->   
->   	if (atomic_dec_and_test(&buf->refcount)) {
-> -		printk(KERN_DEBUG "%s: Freeing buffer of %d pages\n", __func__,
-> +		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
->   			buf->sg_desc.num_pages);
->   		if (buf->vaddr)
->   			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
-> @@ -163,7 +172,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
->   	return buf;
->   
->   userptr_fail_get_user_pages:
-> -	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
-> +	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
->   	       num_pages_from_user, buf->sg_desc.num_pages);
->   	while (--num_pages_from_user >= 0)
->   		put_page(buf->pages[num_pages_from_user]);
-> @@ -186,7 +195,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
->   	struct vb2_dma_sg_buf *buf = buf_priv;
->   	int i = buf->sg_desc.num_pages;
->   
-> -	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
-> +	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
->   	       __func__, buf->sg_desc.num_pages);
->   	if (buf->vaddr)
->   		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
-
-Best regards
+diff --git a/drivers/media/usb/smi2021/smi2021_i2c.c b/drivers/media/usb/smi2021/smi2021_i2c.c
+new file mode 100644
+index 0000000..5b6f3f5
+--- /dev/null
++++ b/drivers/media/usb/smi2021/smi2021_i2c.c
+@@ -0,0 +1,160 @@
++/*******************************************************************************
++ * smi2021_i2c.c                                                               *
++ *                                                                             *
++ * USB Driver for SMI2021 - EasyCAP                                            *
++ * USB ID 1c88:003c                                                            *
++ *                                                                             *
++ * *****************************************************************************
++ *
++ * Copyright 2011-2013 Jon Arne Jørgensen
++ * <jonjon.arnearne--a.t--gmail.com>
++ *
++ * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
++ *
++ * This file is part of SMI2021
++ * http://code.google.com/p/easycap-somagic-linux/
++ *
++ * This program is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ *
++ * This driver is heavily influensed by the STK1160 driver.
++ * Copyright (C) 2012 Ezequiel Garcia
++ * <elezegarcia--a.t--gmail.com>
++ *
++ */
++
++#include "smi2021.h"
++
++/* The device will not return the chip_name on address 0x00.
++ * But the saa7115 i2c driver needs the chip id to match "f7113"
++ * if we want to use it,
++ * so we have to fake the return of this value
++ */
++
++static char chip_id[] = { 'x', 255, 55, 49, 49, 115, 0 };
++static int id_ptr;
++
++static unsigned int i2c_debug;
++module_param(i2c_debug, int, 0644);
++MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
++
++#define dprint_i2c(fmt, args...)					\
++do {									\
++	if (i2c_debug)							\
++		pr_debug("smi2021[i2c]::%s: " fmt, __func__, ##args);	\
++} while (0)
++
++
++static int i2c_xfer(struct i2c_adapter *i2c_adap,
++				struct i2c_msg msgs[], int num)
++{
++	struct smi2021_dev *dev = i2c_adap->algo_data;
++
++	switch (num) {
++	case 2: { /* Read reg */
++		if (msgs[0].len != 1 || msgs[1].len != 1) {
++			dprint_i2c("both messages must be 1 byte\n");
++			goto err_out;
++
++		if ((msgs[1].flags & I2C_M_RD) != I2C_M_RD)
++			dprint_i2c("last message should have rd flag\n");
++			goto err_out;
++		}
++
++		if (msgs[0].buf[0] == 0) {
++			msgs[1].buf[0] = chip_id[id_ptr];
++			if (chip_id[id_ptr] != 0)
++				id_ptr += 1;
++		} else {
++			smi2021_read_reg(dev, msgs[0].addr, msgs[0].buf[0],
++						msgs[1].buf);
++		}
++		break;
++	}
++	case 1: { /* Write reg */
++		if (msgs[0].len == 0) {
++			break;
++		} else if (msgs[0].len != 2) {
++			dprint_i2c("unsupported len\n");
++			goto err_out;
++		}
++		if (msgs[0].buf[0] == 0) {
++			/* We don't handle writing to addr 0x00 */
++			break;
++		}
++
++		smi2021_write_reg(dev, msgs[0].addr, msgs[0].buf[0],
++						msgs[0].buf[1]);
++		break;
++	}
++	default: {
++		dprint_i2c("driver can only handle 1 or 2 messages\n");
++		goto err_out;
++	}
++	}
++	return num;
++
++err_out:
++	return -EOPNOTSUPP;
++}
++
++static u32 functionality(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_SMBUS_EMUL;
++}
++
++static struct i2c_algorithm algo = {
++	.master_xfer = i2c_xfer,
++	.functionality = functionality,
++};
++
++static struct i2c_adapter adap_template = {
++	.owner = THIS_MODULE,
++	.name = "smi2021_easycap_dc60",
++	.algo = &algo,
++};
++
++static struct i2c_client client_template = {
++	.name = "smi2021 internal",
++};
++
++int smi2021_i2c_register(struct smi2021_dev *dev)
++{
++	int rc;
++
++	id_ptr = 0;
++
++	dev->i2c_adap = adap_template;
++	dev->i2c_adap.dev.parent = dev->dev;
++	strcpy(dev->i2c_adap.name, "smi2021");
++	dev->i2c_adap.algo_data = dev;
++
++	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
++
++	rc = i2c_add_adapter(&dev->i2c_adap);
++	if (rc < 0) {
++		smi2021_err("can't add i2c adapter, errno: %d\n", rc);
++		return rc;
++	}
++
++	dev->i2c_client = client_template;
++	dev->i2c_client.adapter = &dev->i2c_adap;
++
++	return 0;
++}
++
++int smi2021_i2c_unregister(struct smi2021_dev *dev)
++{
++	i2c_del_adapter(&dev->i2c_adap);
++	return 0;
++}
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.8.1.1
 
