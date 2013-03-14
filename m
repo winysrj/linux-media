@@ -1,90 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2946 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537Ab3CKVBH (ORCPT
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:41231 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757724Ab3CNNLt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:01:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 03/15] au0828: frequency handling fixes.
-Date: Mon, 11 Mar 2013 22:00:34 +0100
-Message-Id: <21220067752604811eaef324d0cade0d6e6ab4e0.1363035203.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
-References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+	Thu, 14 Mar 2013 09:11:49 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
+	linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jeff Garzik <jgarzik@pobox.com>
+Subject: [PATCH 02/10] drivers: ata: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 14:11:23 +0100
+Message-Id: <1363266691-15757-4-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-- define an initial frequency
-- return an error if g_frequency is called for an invalid tuner index
-- get the clamped frequency value after setting it: i.e. the tuner driver
-  may clamp the given frequency to a valid frequency range and ctrl_freq
-  should get that actual clamped frequency.
-- remove obsolete tuner type checks (done by the core).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: linux-ide@vger.kernel.org
 ---
- drivers/media/usb/au0828/au0828-video.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ drivers/ata/pata_at32.c       | 13 +------------
+ drivers/ata/pata_samsung_cf.c | 13 +------------
+ 2 files changed, 2 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 4254b2c..25b18d397 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1521,8 +1521,6 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 	if (t->index != 0)
- 		return -EINVAL;
+diff --git a/drivers/ata/pata_at32.c b/drivers/ata/pata_at32.c
+index 36f189c..8d493b4 100644
+--- a/drivers/ata/pata_at32.c
++++ b/drivers/ata/pata_at32.c
+@@ -393,18 +393,7 @@ static struct platform_driver pata_at32_driver = {
+ 	},
+ };
  
--	t->type = V4L2_TUNER_ANALOG_TV;
+-static int __init pata_at32_init(void)
+-{
+-	return platform_driver_probe(&pata_at32_driver, pata_at32_probe);
+-}
 -
- 	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
- 		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 1);
- 
-@@ -1544,7 +1542,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	struct au0828_fh *fh = priv;
- 	struct au0828_dev *dev = fh->dev;
- 
--	freq->type = V4L2_TUNER_ANALOG_TV;
-+	if (freq->tuner != 0)
-+		return -EINVAL;
- 	freq->frequency = dev->ctrl_freq;
- 	return 0;
- }
-@@ -1557,10 +1556,6 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 
- 	if (freq->tuner != 0)
- 		return -EINVAL;
--	if (freq->type != V4L2_TUNER_ANALOG_TV)
--		return -EINVAL;
+-static void __exit pata_at32_exit(void)
+-{
+-	platform_driver_unregister(&pata_at32_driver);
+-}
 -
--	dev->ctrl_freq = freq->frequency;
+-module_init(pata_at32_init);
+-module_exit(pata_at32_exit);
++module_platform_driver_probe(pata_at32_driver, pata_at32_probe);
  
- 	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
- 		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 1);
-@@ -1575,6 +1570,9 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	}
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("AVR32 SMC/CFC PATA Driver");
+diff --git a/drivers/ata/pata_samsung_cf.c b/drivers/ata/pata_samsung_cf.c
+index 70b0e01..6ef27e9 100644
+--- a/drivers/ata/pata_samsung_cf.c
++++ b/drivers/ata/pata_samsung_cf.c
+@@ -661,18 +661,7 @@ static struct platform_driver pata_s3c_driver = {
+ 	},
+ };
  
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_frequency, freq);
-+	/* Get the actual set (and possibly clamped) frequency */
-+	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, g_frequency, freq);
-+	dev->ctrl_freq = freq->frequency;
+-static int __init pata_s3c_init(void)
+-{
+-	return platform_driver_probe(&pata_s3c_driver, pata_s3c_probe);
+-}
+-
+-static void __exit pata_s3c_exit(void)
+-{
+-	platform_driver_unregister(&pata_s3c_driver);
+-}
+-
+-module_init(pata_s3c_init);
+-module_exit(pata_s3c_exit);
++module_platform_driver_probe(pata_s3c_driver, pata_s3c_probe);
  
- 	if (dev->dvb.frontend && dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl)
- 		dev->dvb.frontend->ops.analog_ops.i2c_gate_ctrl(dev->dvb.frontend, 0);
-@@ -1978,6 +1976,7 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->frame_size = dev->field_size << 1;
- 	dev->bytesperline = dev->width << 1;
- 	dev->ctrl_ainput = 0;
-+	dev->ctrl_freq = 960;
- 
- 	/* allocate and fill v4l2 video struct */
- 	dev->vdev = video_device_alloc();
+ MODULE_AUTHOR("Abhilash Kesavan, <a.kesavan@samsung.com>");
+ MODULE_DESCRIPTION("low-level driver for Samsung PATA controller");
 -- 
-1.7.10.4
+1.8.1.5
 
