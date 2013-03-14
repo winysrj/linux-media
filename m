@@ -1,112 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9991 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753426Ab3CXRvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 13:51:24 -0400
-Date: Sun, 24 Mar 2013 14:51:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.10] au0828 driver overhaul
-Message-ID: <20130324145117.48bdab45@redhat.com>
-In-Reply-To: <CAGoCfiwjF-C_sbivVi_+JST32BykFXSnKzpmZ0q5W3H-pGOzsw@mail.gmail.com>
-References: <201303221738.16145.hverkuil@xs4all.nl>
-	<CAGoCfiwjF-C_sbivVi_+JST32BykFXSnKzpmZ0q5W3H-pGOzsw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-oa0-f53.google.com ([209.85.219.53]:61020 "EHLO
+	mail-oa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933590Ab3CNQlT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Mar 2013 12:41:19 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1303141424390.22728@axis700.grange>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <1363266691-15757-2-git-send-email-fabio.porcedda@gmail.com> <Pine.LNX.4.64.1303141424390.22728@axis700.grange>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Thu, 14 Mar 2013 17:40:58 +0100
+Message-ID: <CAHkwnC8cGMi83wTWG8C7kOdhHB3O-ZktzmU12qw3f9cTxTYvrg@mail.gmail.com>
+Subject: Re: [PATCH 01/10] drivers: media: use module_platform_driver_probe()
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
+	linux-fbdev@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Josh Wu <josh.wu@atmel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 22 Mar 2013 14:50:28 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+On Thu, Mar 14, 2013 at 2:25 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Fabio
+>
+> On Thu, 14 Mar 2013, Fabio Porcedda wrote:
+>
+>> This patch converts the drivers to use the
+>> module_platform_driver_probe() macro which makes the code smaller and
+>> a bit simpler.
+>>
+>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: Josh Wu <josh.wu@atmel.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: linux-media@vger.kernel.org
+>
+> Thanks for the patch. Subtracting this series
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/61403
+> you only need to convert atmel-isi.c. Please, respin.
 
-> On Fri, Mar 22, 2013 at 12:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > It works fine with qv4l2, but there is still a bug causing tvtime to fail.
-> > That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
-> > August last year, that broke g_tuner: after that 'signal' would always be 0
-> > and tvtime expects signal to be non-zero for a valid frequency. 
+Ok, I'll send a updated one.
 
-I don't think so: tvtime has a way to either honor signal or to ignore it
-via GUI. As there are tuners that can't provide any signal level, I suspect
-that this is the reason why it was coded this way.
+Thanks for the reviewing the patch.
 
-> > The signal
-> > field is set by the au8522, but g_tuner is only called for the tuner (well,
-> > also for au8522 but since the i2c gate is set for the tuner that won't do
-> > anything).
+Best regards
+Fabio Porcedda
 
-As far as I remember, there are a few drivers or boards whose signal
-information is provided by the bridge and not by the tuner. I think
-that this still works. For example:
+> Thanks
+> Guennadi
+>
+>> ---
+>>  drivers/media/platform/sh_vou.c                | 13 +------------
+>>  drivers/media/platform/soc_camera/atmel-isi.c  | 12 +-----------
+>>  drivers/media/platform/soc_camera/mx1_camera.c | 13 +------------
+>>  3 files changed, 3 insertions(+), 35 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+>> index 66c8da1..d853162 100644
+>> --- a/drivers/media/platform/sh_vou.c
+>> +++ b/drivers/media/platform/sh_vou.c
+>> @@ -1485,18 +1485,7 @@ static struct platform_driver __refdata sh_vou = {
+>>       },
+>>  };
+>>
+>> -static int __init sh_vou_init(void)
+>> -{
+>> -     return platform_driver_probe(&sh_vou, sh_vou_probe);
+>> -}
+>> -
+>> -static void __exit sh_vou_exit(void)
+>> -{
+>> -     platform_driver_unregister(&sh_vou);
+>> -}
+>> -
+>> -module_init(sh_vou_init);
+>> -module_exit(sh_vou_exit);
+>> +module_platform_driver_probe(sh_vou, sh_vou_probe);
+>>
+>>  MODULE_DESCRIPTION("SuperH VOU driver");
+>>  MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
+>> diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+>> index 82dbf99..12ba31d 100644
+>> --- a/drivers/media/platform/soc_camera/atmel-isi.c
+>> +++ b/drivers/media/platform/soc_camera/atmel-isi.c
+>> @@ -1081,17 +1081,7 @@ static struct platform_driver atmel_isi_driver = {
+>>       },
+>>  };
+>>
+>> -static int __init atmel_isi_init_module(void)
+>> -{
+>> -     return  platform_driver_probe(&atmel_isi_driver, &atmel_isi_probe);
+>> -}
+>> -
+>> -static void __exit atmel_isi_exit(void)
+>> -{
+>> -     platform_driver_unregister(&atmel_isi_driver);
+>> -}
+>> -module_init(atmel_isi_init_module);
+>> -module_exit(atmel_isi_exit);
+>> +module_platform_driver_probe(atmel_isi_driver, atmel_isi_probe);
+>>
+>>  MODULE_AUTHOR("Josh Wu <josh.wu@atmel.com>");
+>>  MODULE_DESCRIPTION("The V4L2 driver for Atmel Linux");
+>> diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
+>> index 25b2a28..4389f43 100644
+>> --- a/drivers/media/platform/soc_camera/mx1_camera.c
+>> +++ b/drivers/media/platform/soc_camera/mx1_camera.c
+>> @@ -859,18 +859,7 @@ static struct platform_driver mx1_camera_driver = {
+>>       .remove         = __exit_p(mx1_camera_remove),
+>>  };
+>>
+>> -static int __init mx1_camera_init(void)
+>> -{
+>> -     return platform_driver_probe(&mx1_camera_driver, mx1_camera_probe);
+>> -}
+>> -
+>> -static void __exit mx1_camera_exit(void)
+>> -{
+>> -     return platform_driver_unregister(&mx1_camera_driver);
+>> -}
+>> -
+>> -module_init(mx1_camera_init);
+>> -module_exit(mx1_camera_exit);
+>> +module_platform_driver_probe(mx1_camera_driver, mx1_camera_probe);
+>>
+>>  MODULE_DESCRIPTION("i.MX1/i.MXL SoC Camera Host driver");
+>>  MODULE_AUTHOR("Paulius Zaleckas <paulius.zaleckas@teltonika.lt>");
+>> --
+>> 1.8.1.5
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-drivers/media/pci/bt8xx/bttv-driver.c:static int bttv_g_tuner(struct file *file, void *priv,
-drivers/media/pci/bt8xx/bttv-driver.c-                            struct v4l2_tuner *t)
-drivers/media/pci/bt8xx/bttv-driver.c-{
-drivers/media/pci/bt8xx/bttv-driver.c-    struct bttv_fh *fh = priv;
-drivers/media/pci/bt8xx/bttv-driver.c-    struct bttv *btv = fh->btv;
-drivers/media/pci/bt8xx/bttv-driver.c-
-drivers/media/pci/bt8xx/bttv-driver.c-    if (0 != t->index)
-drivers/media/pci/bt8xx/bttv-driver.c-            return -EINVAL;
-drivers/media/pci/bt8xx/bttv-driver.c-
-drivers/media/pci/bt8xx/bttv-driver.c-    t->rxsubchans = V4L2_TUNER_SUB_MONO;
-drivers/media/pci/bt8xx/bttv-driver.c-    t->capability = V4L2_TUNER_CAP_NORM;
-drivers/media/pci/bt8xx/bttv-driver.c-    bttv_call_all(btv, tuner, g_tuner, t);
-drivers/media/pci/bt8xx/bttv-driver.c-    strcpy(t->name, "Television");
-drivers/media/pci/bt8xx/bttv-driver.c-    t->type       = V4L2_TUNER_ANALOG_TV;
-drivers/media/pci/bt8xx/bttv-driver.c-    if (btread(BT848_DSTATUS)&BT848_DSTATUS_HLOC)
-drivers/media/pci/bt8xx/bttv-driver.c-            t->signal = 0xffff;
-drivers/media/pci/bt8xx/bttv-driver.c-
-drivers/media/pci/bt8xx/bttv-driver.c-    if (btv->audio_mode_gpio)
-drivers/media/pci/bt8xx/bttv-driver.c-            btv->audio_mode_gpio(btv, t, 0);
-drivers/media/pci/bt8xx/bttv-driver.c-
-drivers/media/pci/bt8xx/bttv-driver.c-    return 0;
 
-changeset e58071f024aa337b7ce41682578b33895b024f8b doesn't affect it.
 
-> Wait, are you saying that the G_TUNER call is no longer being routed
-> to the au8522 driver?  The signal level has always been set to a
-> nonzero value by au8522 if a signal is present, and thus the state of
-> the i2c gate isn't relevant.
-
-The logic there seems to need a proper I2C gate setting:
-
-drivers/media/dvb-frontends/au8522_decoder.c:static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
-drivers/media/dvb-frontends/au8522_decoder.c-{
-drivers/media/dvb-frontends/au8522_decoder.c-     int val = 0;
-drivers/media/dvb-frontends/au8522_decoder.c-     struct au8522_state *state = to_state(sd);
-drivers/media/dvb-frontends/au8522_decoder.c-     u8 lock_status;
-drivers/media/dvb-frontends/au8522_decoder.c-
-drivers/media/dvb-frontends/au8522_decoder.c-     /* Interrogate the decoder to see if we are getting a real signal */
-drivers/media/dvb-frontends/au8522_decoder.c-     lock_status = au8522_readreg(state, 0x00);
-drivers/media/dvb-frontends/au8522_decoder.c-     if (lock_status == 0xa2)
-drivers/media/dvb-frontends/au8522_decoder.c-             vt->signal = 0xffff;
-drivers/media/dvb-frontends/au8522_decoder.c-     else
-drivers/media/dvb-frontends/au8522_decoder.c-             vt->signal = 0x00;
-drivers/media/dvb-frontends/au8522_decoder.c-
-drivers/media/dvb-frontends/au8522_decoder.c-     vt->capability |=
-drivers/media/dvb-frontends/au8522_decoder.c-             V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LANG1 |
-drivers/media/dvb-frontends/au8522_decoder.c-             V4L2_TUNER_CAP_LANG2 | V4L2_TUNER_CAP_SAP;
-drivers/media/dvb-frontends/au8522_decoder.c-
-drivers/media/dvb-frontends/au8522_decoder.c-     val = V4L2_TUNER_SUB_MONO;
-drivers/media/dvb-frontends/au8522_decoder.c-     vt->rxsubchans = val;
-drivers/media/dvb-frontends/au8522_decoder.c-     vt->audmode = V4L2_TUNER_MODE_STEREO;
-drivers/media/dvb-frontends/au8522_decoder.c-     return 0;
-
-As if the i2c gate is on a wrong state, au8522_readreg() won't
-work anymore.
-
-> This is because the xc5000 driver didn't
-> actually have implemented a call to return the signal level.
-> 
-> If what you're saying is true, then the behavior of the framework
-> itself changed, and who knows what else is broken.
-
-I don't think that the framework behavior has changed with that
-regards.
-
-Anyway, until we have this issue fixed, I'll mark this patch
-as "changes requested".
-
-Regards,
-Mauro
+-- 
+Fabio Porcedda
