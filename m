@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3845 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933439Ab3CHJWV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 04:22:21 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 2/2] vb2-dma-sg: add debug module option.
-Date: Fri,  8 Mar 2013 10:21:57 +0100
-Message-Id: <552bc620da0483a6bd5a41604759c7f86abfd058.1362734097.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <6b64252b870ca5f3433b1d5ed2a2d1f977cd8f48.1362734097.git.hans.verkuil@cisco.com>
-References: <6b64252b870ca5f3433b1d5ed2a2d1f977cd8f48.1362734097.git.hans.verkuil@cisco.com>
+Received: from mail-ee0-f50.google.com ([74.125.83.50]:46028 "EHLO
+	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757858Ab3CNNMM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Mar 2013 09:12:12 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
+	linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Subject: [PATCH 08/10] drivers: mfd: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 14:11:29 +0100
+Message-Id: <1363266691-15757-10-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-This prevents the kernel log from being spammed with these messages.
-By turning on the debug option you will see them again.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-arm-kernel@lists.infradead.org
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ drivers/mfd/davinci_voicecodec.c | 12 +-----------
+ drivers/mfd/htc-pasic3.c         | 13 +------------
+ 2 files changed, 2 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 952776f..59522b2 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -21,6 +21,15 @@
- #include <media/videobuf2-memops.h>
- #include <media/videobuf2-dma-sg.h>
+diff --git a/drivers/mfd/davinci_voicecodec.c b/drivers/mfd/davinci_voicecodec.c
+index c0bcc87..c60ab0c 100644
+--- a/drivers/mfd/davinci_voicecodec.c
++++ b/drivers/mfd/davinci_voicecodec.c
+@@ -177,17 +177,7 @@ static struct platform_driver davinci_vc_driver = {
+ 	.remove	= davinci_vc_remove,
+ };
  
-+static int debug;
-+module_param(debug, int, 0644);
-+
-+#define dprintk(level, fmt, arg...)					\
-+	do {								\
-+		if (debug >= level)					\
-+			printk(KERN_DEBUG "vb2-dma-sg: " fmt, ## arg);	\
-+	} while (0)
-+
- struct vb2_dma_sg_buf {
- 	void				*vaddr;
- 	struct page			**pages;
-@@ -74,7 +83,7 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+-static int __init davinci_vc_init(void)
+-{
+-	return platform_driver_probe(&davinci_vc_driver, davinci_vc_probe);
+-}
+-module_init(davinci_vc_init);
+-
+-static void __exit davinci_vc_exit(void)
+-{
+-	platform_driver_unregister(&davinci_vc_driver);
+-}
+-module_exit(davinci_vc_exit);
++module_platform_driver_probe(davinci_vc_driver, davinci_vc_probe);
  
- 	atomic_inc(&buf->refcount);
+ MODULE_AUTHOR("Miguel Aguilar");
+ MODULE_DESCRIPTION("Texas Instruments DaVinci Voice Codec Core Interface");
+diff --git a/drivers/mfd/htc-pasic3.c b/drivers/mfd/htc-pasic3.c
+index 9e5453d..0285fce 100644
+--- a/drivers/mfd/htc-pasic3.c
++++ b/drivers/mfd/htc-pasic3.c
+@@ -208,18 +208,7 @@ static struct platform_driver pasic3_driver = {
+ 	.remove		= pasic3_remove,
+ };
  
--	printk(KERN_DEBUG "%s: Allocated buffer of %d pages\n",
-+	dprintk(1, "%s: Allocated buffer of %d pages\n",
- 		__func__, buf->sg_desc.num_pages);
- 	return buf;
+-static int __init pasic3_base_init(void)
+-{
+-	return platform_driver_probe(&pasic3_driver, pasic3_probe);
+-}
+-
+-static void __exit pasic3_base_exit(void)
+-{
+-	platform_driver_unregister(&pasic3_driver);
+-}
+-
+-module_init(pasic3_base_init);
+-module_exit(pasic3_base_exit);
++module_platform_driver_probe(pasic3_driver, pasic3_probe);
  
-@@ -97,7 +106,7 @@ static void vb2_dma_sg_put(void *buf_priv)
- 	int i = buf->sg_desc.num_pages;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
--		printk(KERN_DEBUG "%s: Freeing buffer of %d pages\n", __func__,
-+		dprintk(1, "%s: Freeing buffer of %d pages\n", __func__,
- 			buf->sg_desc.num_pages);
- 		if (buf->vaddr)
- 			vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
-@@ -163,7 +172,7 @@ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	return buf;
- 
- userptr_fail_get_user_pages:
--	printk(KERN_DEBUG "get_user_pages requested/got: %d/%d]\n",
-+	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
- 	       num_pages_from_user, buf->sg_desc.num_pages);
- 	while (--num_pages_from_user >= 0)
- 		put_page(buf->pages[num_pages_from_user]);
-@@ -186,7 +195,7 @@ static void vb2_dma_sg_put_userptr(void *buf_priv)
- 	struct vb2_dma_sg_buf *buf = buf_priv;
- 	int i = buf->sg_desc.num_pages;
- 
--	printk(KERN_DEBUG "%s: Releasing userspace buffer of %d pages\n",
-+	dprintk(1, "%s: Releasing userspace buffer of %d pages\n",
- 	       __func__, buf->sg_desc.num_pages);
- 	if (buf->vaddr)
- 		vm_unmap_ram(buf->vaddr, buf->sg_desc.num_pages);
+ MODULE_AUTHOR("Philipp Zabel <philipp.zabel@gmail.com>");
+ MODULE_DESCRIPTION("Core driver for HTC PASIC3");
 -- 
-1.7.10.4
+1.8.1.5
 
