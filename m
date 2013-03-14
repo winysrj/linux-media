@@ -1,79 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:38502 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab3CWM0D (ORCPT
+Received: from mail-ob0-f170.google.com ([209.85.214.170]:57514 "EHLO
+	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934608Ab3CNRwT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 08:26:03 -0400
-Message-ID: <514D9D7A.5060000@gmail.com>
-Date: Sat, 23 Mar 2013 13:18:02 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 14 Mar 2013 13:52:19 -0400
 MIME-Version: 1.0
-To: Shaik Ameer Basha <shaik.ameer@samsung.com>
-CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com,
-	shaik.samsung@gmail.com
-Subject: Re: [RFC 12/12] ARM: dts: Add camera node to exynos5250-smdk5250.dts
-References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com> <1362570838-4737-13-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1362570838-4737-13-git-send-email-shaik.ameer@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <3681471.ufqahH3gTF@dtor-d630.eng.vmware.com>
+References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+ <1363280978-24051-5-git-send-email-fabio.porcedda@gmail.com> <3681471.ufqahH3gTF@dtor-d630.eng.vmware.com>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Thu, 14 Mar 2013 18:51:58 +0100
+Message-ID: <CAHkwnC-vOPxqWq3jF=sbDrhvyWhNYvV5rAd69K8b5iH3KyqyPQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/8] drivers: input: use module_platform_driver_probe()
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-ide <linux-ide@vger.kernel.org>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Liam Girdwood <lrg@slimlogic.co.uk>,
+	Bill Pemberton <wfp5p@virginia.edu>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	David Howells <dhowells@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
-> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
-> ---
->   arch/arm/boot/dts/exynos5250-smdk5250.dts |   43 ++++++++++++++++++++++++++++-
->   1 file changed, 42 insertions(+), 1 deletion(-)
+On Thu, Mar 14, 2013 at 6:30 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> Hi Fabio,
 >
-> diff --git a/arch/arm/boot/dts/exynos5250-smdk5250.dts b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-> index 4b10744..7fbc236 100644
-> --- a/arch/arm/boot/dts/exynos5250-smdk5250.dts
-> +++ b/arch/arm/boot/dts/exynos5250-smdk5250.dts
-> @@ -85,9 +85,26 @@
->   	};
+> On Thursday, March 14, 2013 06:09:34 PM Fabio Porcedda wrote:
+>> This patch converts the drivers to use the
+>> module_platform_driver_probe() macro which makes the code smaller and
+>> a bit simpler.
 >
->   	i2c@12CA0000 {
-> -		status = "disabled";
-> +		samsung,i2c-sda-delay =<100>;
-> +		samsung,i2c-max-bus-freq =<100000>;
->   		pinctrl-0 =<&i2c4_bus>;
->   		pinctrl-names = "default";
-> +
-> +		m5mols@1f {
-> +			compatible = "fujitsu,m-5mols";
-> +			reg =<0x1F>;
-> +			gpios =<&gpx3 3 0xf>,<&gpx1 2 1>;
-> +			clock-frequency =<24000000>;
-> +			pinctrl-0 =<&cam_port_a_clk_active>;
-> +			pinctrl-names = "default";
+> I already have patches from Sachin Kamat for this, I am waiting for -rc3
+> to sync up with mainline and pick up the macro before applying them.
 
-Ah, so it's that way... I don't think that is correct. What you're doing
-here is assigning an SoC clock output pin pinctrl node to pinctrl property
-of an image sensor device that is external to an SoC. Why don't you put
-this pinctrl properties in the common "camera" node ?
+Thank for reviewing.
 
-> +
-> +			port {
-> +				m5mols_ep: endpoint {
-> +					remote-endpoint =<&csis0_ep>;
-> +				};
-> +			};
-> +
-> +		};
->   	};
+I've sent a updated patch without the patch already sent by Sachin Kamat.
+
+Best regards
+Fabio Porcedda
+
+> Thanks.
 >
->   	i2c@12CB0000 {
-> @@ -214,4 +231,28 @@
->   		samsung,mfc-r =<0x43000000 0x800000>;
->   		samsung,mfc-l =<0x51000000 0x800000>;
->   	};
-> +
-> +	camera {
-> +		compatible = "samsung,exynos5-fimc", "simple-bus";
-
-Shouldn't it be "samsung,exynos5-is" (Imaging Subsystem), or something
-more relevant to exynos5 ? Or what would be reasons to use "fimc" for
-exynos5 ?
-
-
+> --
+> Dmitry
