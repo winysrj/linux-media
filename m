@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:42438 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab3CWR0d (ORCPT
+Received: from mail-ea0-f176.google.com ([209.85.215.176]:62552 "EHLO
+	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964868Ab3CNRJy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 13:26:33 -0400
-Received: by mail-ea0-f172.google.com with SMTP id z7so91300eaf.31
-        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 10:26:31 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 5/5] em28xx: write output frame resolution to regs 0x34+0x35 for em25xx family bridges
-Date: Sat, 23 Mar 2013 18:27:12 +0100
-Message-Id: <1364059632-29070-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Thu, 14 Mar 2013 13:09:54 -0400
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Benoit Cousson <b-cousson@ti.com>, Aneesh V <aneesh@ti.com>
+Subject: [PATCH v2 5/8] drivers: memory: use module_platform_driver_probe()
+Date: Thu, 14 Mar 2013 18:09:35 +0100
+Message-Id: <1363280978-24051-6-git-send-email-fabio.porcedda@gmail.com>
+In-Reply-To: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Windows driver writes the output resolution to registers 0x34 (width / 16)
-and 0x35 (height / 16) always.
-We don't know yet what these registers are used for.
+This patch converts the drivers to use the
+module_platform_driver_probe() macro which makes the code smaller and
+a bit simpler.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Benoit Cousson <b-cousson@ti.com>
+Cc: Aneesh V <aneesh@ti.com>
 ---
- drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
- drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
- 2 Dateien geändert, 13 Zeilen hinzugefügt(+)
+ drivers/memory/emif.c | 12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 7b9f76b..0ce6b0f 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
- 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
- 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
- 	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
-+
-+	if (dev->is_em25xx) {
-+		em28xx_write_reg(dev, 0x34, width >> 4);
-+		em28xx_write_reg(dev, 0x35, height >> 4);
-+	}
-+	/* FIXME: function/meaning of these registers ? */
-+	/* FIXME: align width+height to multiples of 4 ?! */
- }
+diff --git a/drivers/memory/emif.c b/drivers/memory/emif.c
+index df08736..ecbc1a9 100644
+--- a/drivers/memory/emif.c
++++ b/drivers/memory/emif.c
+@@ -1841,18 +1841,8 @@ static struct platform_driver emif_driver = {
+ 	},
+ };
  
- static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 1b0ecd6..e08982a 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -167,6 +167,12 @@
+-static int __init_or_module emif_register(void)
+-{
+-	return platform_driver_probe(&emif_driver, emif_probe);
+-}
+-
+-static void __exit emif_unregister(void)
+-{
+-	platform_driver_unregister(&emif_driver);
+-}
++module_platform_driver_probe(emif_driver, emif_probe);
  
- #define EM28XX_R34_VBI_START_H	0x34
- #define EM28XX_R35_VBI_START_V	0x35
-+/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
-+ * registers for a different unknown purpose.
-+ *   => register 0x34 is set to capture width / 16
-+ *   => register 0x35 is set to capture height / 16
-+ */
-+
- #define EM28XX_R36_VBI_WIDTH	0x36
- #define EM28XX_R37_VBI_HEIGHT	0x37
- 
+-module_init(emif_register);
+-module_exit(emif_unregister);
+ MODULE_DESCRIPTION("TI EMIF SDRAM Controller Driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("platform:emif");
 -- 
-1.7.10.4
+1.8.1.5
 
