@@ -1,53 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3127 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288Ab3CNHom (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 03:44:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Benjamin Schindler <beschindler@gmail.com>
-Subject: Re: msp3400 problem in linux-3.7.0
-Date: Thu, 14 Mar 2013 08:44:37 +0100
-Cc: linux-media@vger.kernel.org
-References: <51410709.5040805@gmail.com> <201303140757.10555.hverkuil@xs4all.nl> <51417899.2070201@gmail.com>
-In-Reply-To: <51417899.2070201@gmail.com>
+Received: from mail1.bemta8.messagelabs.com ([216.82.243.207]:16004 "EHLO
+	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751724Ab3CORuf convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Mar 2013 13:50:35 -0400
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+To: Arnd Bergmann <arnd@arndb.de>,
+	Fabio Porcedda <fabio.porcedda@gmail.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Date: Fri, 15 Mar 2013 12:43:48 -0500
+Subject: RE: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+Message-ID: <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <1363266691-15757-12-git-send-email-fabio.porcedda@gmail.com>
+ <201303141358.05616.arnd@arndb.de>
+In-Reply-To: <201303141358.05616.arnd@arndb.de>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303140844.37378.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu March 14 2013 08:13:29 Benjamin Schindler wrote:
-> Hi Hans
-> 
-> Thank you for the prompt response. I will try this once I'm home again.
-> Which patch is responsible for fixing it? Just so I can track it once it
-> lands upstream.
+On Thursday, March 14, 2013 6:58 AM, Arnd Bergmann wrote:
+> On Thursday 14 March 2013, Fabio Porcedda wrote:
+>> This patch converts the drivers to use the
+>> module_platform_driver_probe() macro which makes the code smaller and
+>> a bit simpler.
+>> 
+>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>  drivers/misc/atmel_pwm.c  | 12 +-----------
+>>  drivers/misc/ep93xx_pwm.c | 13 +------------
+>>  2 files changed, 2 insertions(+), 23 deletions(-)
+>
+> The patch itself seems fine, but there are two issues around it:
+>
+> * The PWM drivers should really get moved to drivers/pwm and converted to the new
+>   PWM subsystem. I don't know if Hartley or Hans-Christian have plans to do
+>   that already.
 
-There is a whole series of bttv fixes that I did that will appear in 3.10.
+Arnd,
 
-But the patch that is probably responsible for fixing it is this one:
+Ill look at converting the ep93xx pwm driver to the PWM subsystem. The only issue is
+the current driver exposes a sysfs interface that I think is not available in that subsystem.
 
-http://git.linuxtv.org/media_tree.git/commit/76ea992a036c4a5d3bc606a79ef775dd32fd3daa
+>* Regarding the use of module_platform_driver_probe, I'm a little worried about
+>  the interactions with deferred probing. I don't think there are any regressions,
+>  but we should probably make people aware that one cannot return -EPROBE_DEFER
+>  from a platform_driver_probe function.
 
-I say 'probably' because I am not 100% certain that that is the main fix.
-I'm 99% certain, though :-)
+The ep93xx pwm driver does not need to use platform_driver_probe(). It can be changed
+to use module_platform_driver() by just moving the .probe to the platform_driver. This
+driver was added before module_platform_driver() was available and I used the
+platform_driver_probe() thinking it would save a couple lines of code.
 
-As mentioned, it was part of a much longer patch series, so there may be other
-patches involved in this particular problem, but I don't think so.
-
-If you can perhaps test just that single patch then that would be useful
-information. If that fixes the problem then that's a candidate for 'stable'
-kernels.
-
-> I have one more question - the wiki states the the WinTV-HVR-5500 is not
-> yet supported (as of June 2011) - is there an update on this? It's the
-> only DVB-C card I can buy in the local stores here
-
-No idea. I do V4L2, not DVB :-) Hopefully someone else knows.
+I'll change this in a bit. Right now I'm trying to work out why kernel 3.8 is not booting
+on the ep93xx. I had 3.6.6 on my development board and 3.7 works fine but 3.8 hangs
+without uncompressing the kernel.
 
 Regards,
+Hartley
 
-	Hans
+
+
