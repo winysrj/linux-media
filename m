@@ -1,926 +1,407 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:49841 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575Ab3C0Cxv (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:54613 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751822Ab3COGYb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 22:53:51 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: mchehab@redhat.com
-Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	sameo@linux.intel.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH v8 2/9] mfd: Add the main bulk of core driver for SI476x code
-Date: Tue, 26 Mar 2013 19:47:19 -0700
-Message-Id: <1364352446-28572-3-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
+	Fri, 15 Mar 2013 02:24:31 -0400
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MJO002XDV4FSIO0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Mar 2013 15:24:29 +0900 (KST)
+Received: from chrome-ubuntu.sisodomain.com ([107.108.73.106])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0MJO00MV8V4JLA50@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Mar 2013 15:24:29 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	a.hajda@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH] [media] s5p-mfc: Modify encoder buffer alloc sequence
+Date: Fri, 15 Mar 2013 02:44:36 -0400
+Message-id: <1363329876-9021-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrey Smirnov <andreysm@charmander.(none)>
+MFC v6 needs minimum number of capture buffers to be queued
+for encoder depending on the stream type and profile.
+For achieving this the sequence for allocating buffers at
+the encoder is modified similar to that of decoder.
+The new sequence is as follows:
 
-This patch adds main part(out of three) of the I2C driver for the
-"core" of MFD device.
+1) Set format on CAPTURE plane
+2) REQBUF on CAPTURE
+3) QBUFS and STREAMON on CAPTURE
+4) G_CTRL to get minimum buffers for OUTPUT plane
+5) REQBUF on OUTPUT with the minimum buffers given by driver
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+This also fixes the crash happeninig during multi instance encoder-
+decoder simultaneous run due to memory allocation happening from
+interrupt context.
+
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/mfd/si476x-i2c.c |  886 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 886 insertions(+)
- create mode 100644 drivers/mfd/si476x-i2c.c
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   98 +++++++++++++++++++----
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    7 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   95 +++++++++++++---------
+ 4 files changed, 147 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/mfd/si476x-i2c.c b/drivers/mfd/si476x-i2c.c
-new file mode 100644
-index 0000000..118c6b1
---- /dev/null
-+++ b/drivers/mfd/si476x-i2c.c
-@@ -0,0 +1,886 @@
-+/*
-+ * drivers/mfd/si476x-i2c.c -- Core device driver for si476x MFD
-+ * device
-+ *
-+ * Copyright (C) 2012 Innovative Converged Devices(ICD)
-+ * Copyright (C) 2013 Andrey Smirnov
-+ *
-+ * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ */
-+#include <linux/module.h>
-+
-+#include <linux/slab.h>
-+#include <linux/interrupt.h>
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/i2c.h>
-+#include <linux/err.h>
-+
-+#include <linux/mfd/si476x-core.h>
-+
-+#define SI476X_MAX_IO_ERRORS		10
-+#define SI476X_DRIVER_RDS_FIFO_DEPTH	128
-+
-+/**
-+ * si476x_core_config_pinmux() - pin function configuration function
-+ *
-+ * @core: Core device structure
-+ *
-+ * Configure the functions of the pins of the radio chip.
-+ *
-+ * The function returns zero in case of succes or negative error code
-+ * otherwise.
-+ */
-+static int si476x_core_config_pinmux(struct si476x_core *core)
-+{
-+	int err;
-+	dev_dbg(&core->client->dev, "Configuring pinmux\n");
-+	err = si476x_core_cmd_dig_audio_pin_cfg(core,
-+						core->pinmux.dclk,
-+						core->pinmux.dfs,
-+						core->pinmux.dout,
-+						core->pinmux.xout);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure digital audio pins(err = %d)\n",
-+			err);
-+		return err;
-+	}
-+
-+	err = si476x_core_cmd_zif_pin_cfg(core,
-+					  core->pinmux.iqclk,
-+					  core->pinmux.iqfs,
-+					  core->pinmux.iout,
-+					  core->pinmux.qout);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure ZIF pins(err = %d)\n",
-+			err);
-+		return err;
-+	}
-+
-+	err = si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(core,
-+						      core->pinmux.icin,
-+						      core->pinmux.icip,
-+						      core->pinmux.icon,
-+						      core->pinmux.icop);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure IC-Link/GPO pins(err = %d)\n",
-+			err);
-+		return err;
-+	}
-+
-+	err = si476x_core_cmd_ana_audio_pin_cfg(core,
-+						core->pinmux.lrout);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure analog audio pins(err = %d)\n",
-+			err);
-+		return err;
-+	}
-+
-+	err = si476x_core_cmd_intb_pin_cfg(core,
-+					   core->pinmux.intb,
-+					   core->pinmux.a1);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure interrupt pins(err = %d)\n",
-+			err);
-+		return err;
-+	}
-+
-+	return 0;
-+}
-+
-+static inline void si476x_core_schedule_polling_work(struct si476x_core *core)
-+{
-+	schedule_delayed_work(&core->status_monitor,
-+			      usecs_to_jiffies(SI476X_STATUS_POLL_US));
-+}
-+
-+/**
-+ * si476x_core_start() - early chip startup function
-+ * @core: Core device structure
-+ * @soft: When set, this flag forces "soft" startup, where "soft"
-+ * power down is the one done by sending appropriate command instead
-+ * of using reset pin of the tuner
-+ *
-+ * Perform required startup sequence to correctly power
-+ * up the chip and perform initial configuration. It does the
-+ * following sequence of actions:
-+ *       1. Claims and enables the power supplies VD and VIO1 required
-+ *          for I2C interface of the chip operation.
-+ *       2. Waits for 100us, pulls the reset line up, enables irq,
-+ *          waits for another 100us as it is specified by the
-+ *          datasheet.
-+ *       3. Sends 'POWER_UP' command to the device with all provided
-+ *          information about power-up parameters.
-+ *       4. Configures, pin multiplexor, disables digital audio and
-+ *          configures interrupt sources.
-+ *
-+ * The function returns zero in case of succes or negative error code
-+ * otherwise.
-+ */
-+int si476x_core_start(struct si476x_core *core, bool soft)
-+{
-+	struct i2c_client *client = core->client;
-+	int err;
-+
-+	if (!soft) {
-+		if (gpio_is_valid(core->gpio_reset))
-+			gpio_set_value_cansleep(core->gpio_reset, 1);
-+
-+		if (client->irq)
-+			enable_irq(client->irq);
-+
-+		udelay(100);
-+
-+		if (!client->irq) {
-+			atomic_set(&core->is_alive, 1);
-+			si476x_core_schedule_polling_work(core);
-+		}
-+	} else {
-+		if (client->irq)
-+			enable_irq(client->irq);
-+		else {
-+			atomic_set(&core->is_alive, 1);
-+			si476x_core_schedule_polling_work(core);
-+		}
-+	}
-+
-+	err = si476x_core_cmd_power_up(core,
-+				       &core->power_up_parameters);
-+
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Power up failure(err = %d)\n",
-+			err);
-+		goto disable_irq;
-+	}
-+
-+	if (client->irq)
-+		atomic_set(&core->is_alive, 1);
-+
-+	err = si476x_core_config_pinmux(core);
-+	if (err < 0) {
-+		dev_err(&core->client->dev,
-+			"Failed to configure pinmux(err = %d)\n",
-+			err);
-+		goto disable_irq;
-+	}
-+
-+	if (client->irq) {
-+		err = regmap_write(core->regmap,
-+				   SI476X_PROP_INT_CTL_ENABLE,
-+				   SI476X_RDSIEN |
-+				   SI476X_STCIEN |
-+				   SI476X_CTSIEN);
-+		if (err < 0) {
-+			dev_err(&core->client->dev,
-+				"Failed to configure interrupt sources"
-+				"(err = %d)\n", err);
-+			goto disable_irq;
-+		}
-+	}
-+
-+	return 0;
-+
-+disable_irq:
-+	if (err == -ENODEV)
-+		atomic_set(&core->is_alive, 0);
-+
-+	if (client->irq)
-+		disable_irq(client->irq);
-+	else
-+		cancel_delayed_work_sync(&core->status_monitor);
-+
-+	if (gpio_is_valid(core->gpio_reset))
-+		gpio_set_value_cansleep(core->gpio_reset, 0);
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_start);
-+
-+/**
-+ * si476x_core_stop() - chip power-down function
-+ * @core: Core device structure
-+ * @soft: When set, function sends a POWER_DOWN command instead of
-+ * bringing reset line low
-+ *
-+ * Power down the chip by performing following actions:
-+ * 1. Disable IRQ or stop the polling worker
-+ * 2. Send the POWER_DOWN command if the power down is soft or bring
-+ *    reset line low if not.
-+ *
-+ * The function returns zero in case of succes or negative error code
-+ * otherwise.
-+ */
-+int si476x_core_stop(struct si476x_core *core, bool soft)
-+{
-+	int err = 0;
-+	atomic_set(&core->is_alive, 0);
-+
-+	if (soft) {
-+		/* TODO: This probably shoud be a configurable option,
-+		 * so it is possible to have the chips keep their
-+		 * oscillators running
-+		 */
-+		struct si476x_power_down_args args = {
-+			.xosc = false,
-+		};
-+		err = si476x_core_cmd_power_down(core, &args);
-+	}
-+
-+	/* We couldn't disable those before
-+	 * 'si476x_core_cmd_power_down' since we expect to get CTS
-+	 * interrupt */
-+	if (core->client->irq)
-+		disable_irq(core->client->irq);
-+	else
-+		cancel_delayed_work_sync(&core->status_monitor);
-+
-+	if (!soft) {
-+		if (gpio_is_valid(core->gpio_reset))
-+			gpio_set_value_cansleep(core->gpio_reset, 0);
-+	}
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_stop);
-+
-+/**
-+ * si476x_core_set_power_state() - set the level at which the power is
-+ * supplied for the chip.
-+ * @core: Core device structure
-+ * @next_state: enum si476x_power_state describing power state to
-+ *              switch to.
-+ *
-+ * Switch on all the required power supplies
-+ *
-+ * This function returns 0 in case of suvccess and negative error code
-+ * otherwise.
-+ */
-+int si476x_core_set_power_state(struct si476x_core *core,
-+				enum si476x_power_state next_state)
-+{
-+	/*
-+	   It is not clear form the datasheet if it is possible to
-+	   work with device if not all power domains are operational.
-+	   So for now the power-up policy is "power-up all the things!"
-+	 */
-+	int err = 0;
-+
-+	if (core->power_state == SI476X_POWER_INCONSISTENT) {
-+		dev_err(&core->client->dev,
-+			"The device in inconsistent power state\n");
-+		return -EINVAL;
-+	}
-+
-+	if (next_state != core->power_state) {
-+		switch (next_state) {
-+		case SI476X_POWER_UP_FULL:
-+			err = regulator_bulk_enable(ARRAY_SIZE(core->supplies),
-+						    core->supplies);
-+			if (err < 0) {
-+				core->power_state = SI476X_POWER_INCONSISTENT;
-+				break;
-+			}
-+			/*
-+			 * Startup timing diagram recommends to have a
-+			 * 100 us delay between enabling of the power
-+			 * supplies and turning the tuner on.
-+			 */
-+			udelay(100);
-+
-+			err = si476x_core_start(core, false);
-+			if (err < 0)
-+				goto disable_regulators;
-+
-+			core->power_state = next_state;
-+			break;
-+
-+		case SI476X_POWER_DOWN:
-+			core->power_state = next_state;
-+			err = si476x_core_stop(core, false);
-+			if (err < 0)
-+				core->power_state = SI476X_POWER_INCONSISTENT;
-+disable_regulators:
-+			err = regulator_bulk_disable(ARRAY_SIZE(core->supplies),
-+						     core->supplies);
-+			if (err < 0)
-+				core->power_state = SI476X_POWER_INCONSISTENT;
-+			break;
-+		default:
-+			BUG();
-+		}
-+	}
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_set_power_state);
-+
-+/**
-+ * si476x_core_report_drainer_stop() - mark the completion of the RDS
-+ * buffer drain porcess by the worker.
-+ *
-+ * @core: Core device structure
-+ */
-+static inline void si476x_core_report_drainer_stop(struct si476x_core *core)
-+{
-+	mutex_lock(&core->rds_drainer_status_lock);
-+	core->rds_drainer_is_working = false;
-+	mutex_unlock(&core->rds_drainer_status_lock);
-+}
-+
-+/**
-+ * si476x_core_start_rds_drainer_once() - start RDS drainer worker if
-+ * ther is none working, do nothing otherwise
-+ *
-+ * @core: Datastructure corresponding to the chip.
-+ */
-+static inline void si476x_core_start_rds_drainer_once(struct si476x_core *core)
-+{
-+	mutex_lock(&core->rds_drainer_status_lock);
-+	if (!core->rds_drainer_is_working) {
-+		core->rds_drainer_is_working = true;
-+		schedule_work(&core->rds_fifo_drainer);
-+	}
-+	mutex_unlock(&core->rds_drainer_status_lock);
-+}
-+/**
-+ * si476x_drain_rds_fifo() - RDS buffer drainer.
-+ * @work: struct work_struct being ppassed to the function by the
-+ * kernel.
-+ *
-+ * Drain the contents of the RDS FIFO of
-+ */
-+static void si476x_core_drain_rds_fifo(struct work_struct *work)
-+{
-+	int err;
-+
-+	struct si476x_core *core = container_of(work, struct si476x_core,
-+						rds_fifo_drainer);
-+
-+	struct si476x_rds_status_report report;
-+
-+	si476x_core_lock(core);
-+	err = si476x_core_cmd_fm_rds_status(core, true, false, false, &report);
-+	if (!err) {
-+		int i = report.rdsfifoused;
-+		dev_dbg(&core->client->dev,
-+			"%d elements in RDS FIFO. Draining.\n", i);
-+		for (; i > 0; --i) {
-+			err = si476x_core_cmd_fm_rds_status(core, false, false,
-+							    (i == 1), &report);
-+			if (err < 0)
-+				goto unlock;
-+
-+			kfifo_in(&core->rds_fifo, report.rds,
-+				 sizeof(report.rds));
-+			dev_dbg(&core->client->dev, "RDS data:\n %*ph\n",
-+				sizeof(report.rds), report.rds);
-+		}
-+		dev_dbg(&core->client->dev, "Drrrrained!\n");
-+		wake_up_interruptible(&core->rds_read_queue);
-+	}
-+
-+unlock:
-+	si476x_core_unlock(core);
-+	si476x_core_report_drainer_stop(core);
-+}
-+
-+/**
-+ * si476x_core_pronounce_dead()
-+ *
-+ * @core: Core device structure
-+ *
-+ * Mark the device as being dead and wake up all potentially waiting
-+ * threads of execution.
-+ *
-+ */
-+static void si476x_core_pronounce_dead(struct si476x_core *core)
-+{
-+	dev_info(&core->client->dev, "Core device is dead.\n");
-+
-+	atomic_set(&core->is_alive, 0);
-+
-+	/* Wake up al possible waiting processes */
-+	wake_up_interruptible(&core->rds_read_queue);
-+
-+	atomic_set(&core->cts, 1);
-+	wake_up(&core->command);
-+
-+	atomic_set(&core->stc, 1);
-+	wake_up(&core->tuning);
-+}
-+
-+/**
-+ * si476x_core_i2c_xfer()
-+ *
-+ * @core: Core device structure
-+ * @type: Transfer type
-+ * @buf: Transfer buffer for/with data
-+ * @count: Transfer buffer size
-+ *
-+ * Perfrom and I2C transfer(either read or write) and keep a counter
-+ * of I/O errors. If the error counter rises above the threshold
-+ * pronounce device dead.
-+ *
-+ * The function returns zero on succes or negative error code on
-+ * failure.
-+ */
-+int si476x_core_i2c_xfer(struct si476x_core *core,
-+		    enum si476x_i2c_type type,
-+		    char *buf, int count)
-+{
-+	static int io_errors_count;
-+	int err;
-+	if (type == SI476X_I2C_SEND)
-+		err = i2c_master_send(core->client, buf, count);
-+	else
-+		err = i2c_master_recv(core->client, buf, count);
-+
-+	if (err < 0) {
-+		if (io_errors_count++ > SI476X_MAX_IO_ERRORS)
-+			si476x_core_pronounce_dead(core);
-+	} else {
-+		io_errors_count = 0;
-+	}
-+
-+	return err;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_i2c_xfer);
-+
-+/**
-+ * si476x_get_status()
-+ * @core: Core device structure
-+ *
-+ * Get the status byte of the core device by berforming one byte I2C
-+ * read.
-+ *
-+ * The function returns a status value or a negative error code on
-+ * error.
-+ */
-+static int si476x_core_get_status(struct si476x_core *core)
-+{
-+	u8 response;
-+	int err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV,
-+				  &response, sizeof(response));
-+
-+	return (err < 0) ? err : response;
-+}
-+
-+/**
-+ * si476x_get_and_signal_status() - IRQ dispatcher
-+ * @core: Core device structure
-+ *
-+ * Dispatch the arrived interrupt request based on the value of the
-+ * status byte reported by the tuner.
-+ *
-+ */
-+static void si476x_core_get_and_signal_status(struct si476x_core *core)
-+{
-+	int status = si476x_core_get_status(core);
-+	if (status < 0) {
-+		dev_err(&core->client->dev, "Failed to get status\n");
-+		return;
-+	}
-+
-+	if (status & SI476X_CTS) {
-+		/* Unfortunately completions could not be used for
-+		 * signalling CTS since this flag cannot be cleared
-+		 * in status byte, and therefore once it becomes true
-+		 * multiple calls to 'complete' would cause the
-+		 * commands following the current one to be completed
-+		 * before they actually are */
-+		dev_dbg(&core->client->dev, "[interrupt] CTSINT\n");
-+		atomic_set(&core->cts, 1);
-+		wake_up(&core->command);
-+	}
-+
-+	if (status & SI476X_FM_RDS_INT) {
-+		dev_dbg(&core->client->dev, "[interrupt] RDSINT\n");
-+		si476x_core_start_rds_drainer_once(core);
-+	}
-+
-+	if (status & SI476X_STC_INT) {
-+		dev_dbg(&core->client->dev, "[interrupt] STCINT\n");
-+		atomic_set(&core->stc, 1);
-+		wake_up(&core->tuning);
-+	}
-+}
-+
-+static void si476x_core_poll_loop(struct work_struct *work)
-+{
-+	struct si476x_core *core = SI476X_WORK_TO_CORE(work);
-+
-+	si476x_core_get_and_signal_status(core);
-+
-+	if (atomic_read(&core->is_alive))
-+		si476x_core_schedule_polling_work(core);
-+}
-+
-+static irqreturn_t si476x_core_interrupt(int irq, void *dev)
-+{
-+	struct si476x_core *core = dev;
-+
-+	si476x_core_get_and_signal_status(core);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+/**
-+ * si476x_firmware_version_to_revision()
-+ * @core: Core device structure
-+ * @major:  Firmware major number
-+ * @minor1: Firmware first minor number
-+ * @minor2: Firmware second minor number
-+ *
-+ * Convert a chip's firmware version number into an offset that later
-+ * will be used to as offset in "vtable" of tuner functions
-+ *
-+ * This function returns a positive offset in case of success and a -1
-+ * in case of failure.
-+ */
-+static int si476x_core_fwver_to_revision(struct si476x_core *core,
-+					 int func, int major,
-+					 int minor1, int minor2)
-+{
-+	switch (func) {
-+	case SI476X_FUNC_FM_RECEIVER:
-+		switch (major) {
-+		case 5:
-+			return SI476X_REVISION_A10;
-+		case 8:
-+			return SI476X_REVISION_A20;
-+		case 10:
-+			return SI476X_REVISION_A30;
-+		default:
-+			goto unknown_revision;
-+		}
-+	case SI476X_FUNC_AM_RECEIVER:
-+		switch (major) {
-+		case 5:
-+			return SI476X_REVISION_A10;
-+		case 7:
-+			return SI476X_REVISION_A20;
-+		case 9:
-+			return SI476X_REVISION_A30;
-+		default:
-+			goto unknown_revision;
-+		}
-+	case SI476X_FUNC_WB_RECEIVER:
-+		switch (major) {
-+		case 3:
-+			return SI476X_REVISION_A10;
-+		case 5:
-+			return SI476X_REVISION_A20;
-+		case 7:
-+			return SI476X_REVISION_A30;
-+		default:
-+			goto unknown_revision;
-+		}
-+	case SI476X_FUNC_BOOTLOADER:
-+	default:		/* FALLTHROUG */
-+		BUG();
-+		return -1;
-+	}
-+
-+unknown_revision:
-+	dev_err(&core->client->dev,
-+		"Unsupported version of the firmware: %d.%d.%d, "
-+		"reverting to A10 comptible functions\n",
-+		major, minor1, minor2);
-+
-+	return SI476X_REVISION_A10;
-+}
-+
-+/**
-+ * si476x_get_revision_info()
-+ * @core: Core device structure
-+ *
-+ * Get the firmware version number of the device. It is done in
-+ * following three steps:
-+ *    1. Power-up the device
-+ *    2. Send the 'FUNC_INFO' command
-+ *    3. Powering the device down.
-+ *
-+ * The function return zero on success and a negative error code on
-+ * failure.
-+ */
-+static int si476x_core_get_revision_info(struct si476x_core *core)
-+{
-+	int rval;
-+	struct si476x_func_info info;
-+
-+	si476x_core_lock(core);
-+	rval = si476x_core_set_power_state(core, SI476X_POWER_UP_FULL);
-+	if (rval < 0)
-+		goto exit;
-+
-+	rval = si476x_core_cmd_func_info(core, &info);
-+	if (rval < 0)
-+		goto power_down;
-+
-+	core->revision = si476x_core_fwver_to_revision(core, info.func,
-+						       info.firmware.major,
-+						       info.firmware.minor[0],
-+						       info.firmware.minor[1]);
-+power_down:
-+	si476x_core_set_power_state(core, SI476X_POWER_DOWN);
-+exit:
-+	si476x_core_unlock(core);
-+
-+	return rval;
-+}
-+
-+bool si476x_core_has_am(struct si476x_core *core)
-+{
-+	return core->chip_id == SI476X_CHIP_SI4761 ||
-+		core->chip_id == SI476X_CHIP_SI4764;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_has_am);
-+
-+bool si476x_core_has_diversity(struct si476x_core *core)
-+{
-+	return core->chip_id == SI476X_CHIP_SI4764;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_has_diversity);
-+
-+bool si476x_core_is_a_secondary_tuner(struct si476x_core *core)
-+{
-+	return si476x_core_has_diversity(core) &&
-+		(core->diversity_mode == SI476X_PHDIV_SECONDARY_ANTENNA ||
-+		 core->diversity_mode == SI476X_PHDIV_SECONDARY_COMBINING);
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_is_a_secondary_tuner);
-+
-+bool si476x_core_is_a_primary_tuner(struct si476x_core *core)
-+{
-+	return si476x_core_has_diversity(core) &&
-+		(core->diversity_mode == SI476X_PHDIV_PRIMARY_ANTENNA ||
-+		 core->diversity_mode == SI476X_PHDIV_PRIMARY_COMBINING);
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_is_a_primary_tuner);
-+
-+bool si476x_core_is_in_am_receiver_mode(struct si476x_core *core)
-+{
-+	return si476x_core_has_am(core) &&
-+		(core->power_up_parameters.func == SI476X_FUNC_AM_RECEIVER);
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_is_in_am_receiver_mode);
-+
-+bool si476x_core_is_powered_up(struct si476x_core *core)
-+{
-+	return core->power_state == SI476X_POWER_UP_FULL;
-+}
-+EXPORT_SYMBOL_GPL(si476x_core_is_powered_up);
-+
-+static int si476x_core_probe(struct i2c_client *client,
-+			     const struct i2c_device_id *id)
-+{
-+	int rval;
-+	struct si476x_core          *core;
-+	struct si476x_platform_data *pdata;
-+	struct mfd_cell *cell;
-+	int              cell_num;
-+
-+	core = devm_kzalloc(&client->dev, sizeof(*core), GFP_KERNEL);
-+	if (!core) {
-+		dev_err(&client->dev,
-+			"failed to allocate 'struct si476x_core'\n");
-+		return -ENOMEM;
-+	}
-+	core->client = client;
-+
-+	core->regmap = devm_regmap_init_si476x(core);
-+	if (IS_ERR(core->regmap)) {
-+		rval = PTR_ERR(core->regmap);
-+		dev_err(&client->dev,
-+			"Failed to allocate register map: %d\n",
-+			rval);
-+		return rval;
-+	}
-+
-+	i2c_set_clientdata(client, core);
-+
-+	atomic_set(&core->is_alive, 0);
-+	core->power_state = SI476X_POWER_DOWN;
-+
-+	pdata = client->dev.platform_data;
-+	if (pdata) {
-+		memcpy(&core->power_up_parameters,
-+		       &pdata->power_up_parameters,
-+		       sizeof(core->power_up_parameters));
-+
-+		core->gpio_reset = -1;
-+		if (gpio_is_valid(pdata->gpio_reset)) {
-+			rval = gpio_request(pdata->gpio_reset, "si476x reset");
-+			if (rval) {
-+				dev_err(&client->dev,
-+					"Failed to request gpio: %d\n", rval);
-+				return rval;
-+			}
-+			core->gpio_reset = pdata->gpio_reset;
-+			gpio_direction_output(core->gpio_reset, 0);
-+		}
-+
-+		core->diversity_mode = pdata->diversity_mode;
-+		memcpy(&core->pinmux, &pdata->pinmux,
-+		       sizeof(struct si476x_pinmux));
-+	} else {
-+		dev_err(&client->dev, "No platform data provided\n");
-+		return -EINVAL;
-+	}
-+
-+	core->supplies[0].supply = "vd";
-+	core->supplies[1].supply = "va";
-+	core->supplies[2].supply = "vio1";
-+	core->supplies[3].supply = "vio2";
-+
-+	rval = devm_regulator_bulk_get(&client->dev,
-+				       ARRAY_SIZE(core->supplies),
-+				       core->supplies);
-+	if (rval) {
-+		dev_err(&client->dev, "Failet to gett all of the regulators\n");
-+		goto free_gpio;
-+	}
-+
-+	mutex_init(&core->cmd_lock);
-+	init_waitqueue_head(&core->command);
-+	init_waitqueue_head(&core->tuning);
-+
-+	rval = kfifo_alloc(&core->rds_fifo,
-+			   SI476X_DRIVER_RDS_FIFO_DEPTH *
-+			   sizeof(struct v4l2_rds_data),
-+			   GFP_KERNEL);
-+	if (rval) {
-+		dev_err(&client->dev, "Could not alloate the FIFO\n");
-+		goto free_gpio;
-+	}
-+	mutex_init(&core->rds_drainer_status_lock);
-+	init_waitqueue_head(&core->rds_read_queue);
-+	INIT_WORK(&core->rds_fifo_drainer, si476x_core_drain_rds_fifo);
-+
-+	if (client->irq) {
-+		rval = devm_request_threaded_irq(&client->dev,
-+						 client->irq, NULL,
-+						 si476x_core_interrupt,
-+						 IRQF_TRIGGER_FALLING,
-+						 client->name, core);
-+		if (rval < 0) {
-+			dev_err(&client->dev, "Could not request IRQ %d\n",
-+				client->irq);
-+			goto free_kfifo;
-+		}
-+		disable_irq(client->irq);
-+		dev_dbg(&client->dev, "IRQ requested.\n");
-+
-+		core->rds_fifo_depth = 20;
-+	} else {
-+		INIT_DELAYED_WORK(&core->status_monitor,
-+				  si476x_core_poll_loop);
-+		dev_info(&client->dev,
-+			 "No IRQ number specified, will use polling\n");
-+
-+		core->rds_fifo_depth = 5;
-+	}
-+
-+	core->chip_id = id->driver_data;
-+
-+	rval = si476x_core_get_revision_info(core);
-+	if (rval < 0) {
-+		rval = -ENODEV;
-+		goto free_kfifo;
-+	}
-+
-+	cell_num = 0;
-+
-+	cell = &core->cells[SI476X_RADIO_CELL];
-+	cell->name = "si476x-radio";
-+	cell_num++;
-+
-+#ifdef CONFIG_SND_SOC_SI476X
-+	if ((core->chip_id == SI476X_CHIP_SI4761 ||
-+	     core->chip_id == SI476X_CHIP_SI4764)	&&
-+	    core->pinmux.dclk == SI476X_DCLK_DAUDIO     &&
-+	    core->pinmux.dfs  == SI476X_DFS_DAUDIO      &&
-+	    core->pinmux.dout == SI476X_DOUT_I2S_OUTPUT &&
-+	    core->pinmux.xout == SI476X_XOUT_TRISTATE) {
-+		cell = &core->cells[SI476X_CODEC_CELL];
-+		cell->name          = "si476x-codec";
-+		cell_num++;
-+	}
-+#endif
-+	rval = mfd_add_devices(&client->dev,
-+			       (client->adapter->nr << 8) + client->addr,
-+			       core->cells, cell_num,
-+			       NULL, 0, NULL);
-+	if (!rval)
-+		return 0;
-+
-+free_kfifo:
-+	kfifo_free(&core->rds_fifo);
-+
-+free_gpio:
-+	if (gpio_is_valid(core->gpio_reset))
-+		gpio_free(core->gpio_reset);
-+
-+	return rval;
-+}
-+
-+static int si476x_core_remove(struct i2c_client *client)
-+{
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	si476x_core_pronounce_dead(core);
-+	mfd_remove_devices(&client->dev);
-+
-+	if (client->irq)
-+		disable_irq(client->irq);
-+	else
-+		cancel_delayed_work_sync(&core->status_monitor);
-+
-+	kfifo_free(&core->rds_fifo);
-+
-+	if (gpio_is_valid(core->gpio_reset))
-+		gpio_free(core->gpio_reset);
-+
-+	return 0;
-+}
-+
-+
-+static const struct i2c_device_id si476x_id[] = {
-+	{ "si4761", SI476X_CHIP_SI4761 },
-+	{ "si4764", SI476X_CHIP_SI4764 },
-+	{ "si4768", SI476X_CHIP_SI4768 },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(i2c, si476x_id);
-+
-+static struct i2c_driver si476x_core_driver = {
-+	.driver		= {
-+		.name	= "si476x-core",
-+		.owner  = THIS_MODULE,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4f6b553..46ca986 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -557,6 +557,16 @@ static struct mfc_control controls[] = {
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
++	{
++		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.name = "Minimum number of output bufs",
++		.minimum = 1,
++		.maximum = 32,
++		.step = 1,
++		.default_value = 1,
++		.is_volatile = 1,
 +	},
-+	.probe		= si476x_core_probe,
-+	.remove         = si476x_core_remove,
-+	.id_table       = si476x_id,
-+};
-+module_i2c_driver(si476x_core_driver);
+ };
+ 
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -661,18 +671,17 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
+ 		vb2_buffer_done(dst_mb->b, VB2_BUF_STATE_DONE);
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	}
+-	if (IS_MFCV6(dev)) {
+-		ctx->state = MFCINST_HEAD_PARSED; /* for INIT_BUFFER cmd */
+-	} else {
 +
++	if (!IS_MFCV6(dev)) {
+ 		ctx->state = MFCINST_RUNNING;
+ 		if (s5p_mfc_ctx_ready(ctx))
+ 			set_work_bit_irqsave(ctx);
+ 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
+-	}
+-
+-	if (IS_MFCV6(dev))
++	} else {
+ 		ctx->dpb_count = s5p_mfc_hw_call(dev->mfc_ops,
+ 				get_enc_dpb_count, dev);
++		ctx->state = MFCINST_HEAD_PARSED;
++	}
+ 
+ 	return 0;
+ }
+@@ -1055,15 +1064,13 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 		}
+ 		ctx->capture_state = QUEUE_BUFS_REQUESTED;
+ 
+-		if (!IS_MFCV6(dev)) {
+-			ret = s5p_mfc_hw_call(ctx->dev->mfc_ops,
+-					alloc_codec_buffers, ctx);
+-			if (ret) {
+-				mfc_err("Failed to allocate encoding buffers\n");
+-				reqbufs->count = 0;
+-				ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
+-				return -ENOMEM;
+-			}
++		ret = s5p_mfc_hw_call(ctx->dev->mfc_ops,
++				alloc_codec_buffers, ctx);
++		if (ret) {
++			mfc_err("Failed to allocate encoding buffers\n");
++			reqbufs->count = 0;
++			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
++			return -ENOMEM;
+ 		}
+ 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
+ 		if (ctx->output_state != QUEUE_FREE) {
+@@ -1071,12 +1078,35 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 							ctx->output_state);
+ 			return -EINVAL;
+ 		}
 +
-+MODULE_AUTHOR("Andrey Smirnov <andrew.smirnov@gmail.com>");
-+MODULE_DESCRIPTION("Si4761/64/68 AM/FM MFD core device driver");
-+MODULE_LICENSE("GPL");
++		if (IS_MFCV6(dev)) {
++			if (!ctx->dpb_count) {
++				mfc_err("Streamon on CAPTURE plane should be\n"
++						"done first\n");
++				return -EINVAL;
++			}
++			/* Check for min encoder buffers */
++			if (reqbufs->count < ctx->dpb_count) {
++				mfc_err("Minimum %d output buffers needed\n",
++						ctx->dpb_count);
++				return -EINVAL;
++			}
++		}
++
+ 		ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
+ 		if (ret != 0) {
+ 			mfc_err("error in vb2_reqbufs() for E(S)\n");
+ 			return ret;
+ 		}
+ 		ctx->output_state = QUEUE_BUFS_REQUESTED;
++
++		if (IS_MFCV6(dev)) {
++			/* Run init encoder buffers */
++			s5p_mfc_hw_call(dev->mfc_ops, init_enc_buffers, ctx);
++			set_work_bit_irqsave(ctx);
++			s5p_mfc_clean_ctx_int_flags(ctx);
++			s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
++		}
+ 	} else {
+ 		mfc_err("invalid buf type\n");
+ 		return -EINVAL;
+@@ -1095,7 +1125,8 @@ static int vidioc_querybuf(struct file *file, void *priv,
+ 		(buf->memory != V4L2_MEMORY_USERPTR))
+ 		return -EINVAL;
+ 	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
+-		if (ctx->state != MFCINST_GOT_INST) {
++		if ((ctx->state != MFCINST_GOT_INST) &&
++			(ctx->state != MFCINST_HEAD_PARSED)) {
+ 			mfc_err("invalid context state: %d\n", ctx->state);
+ 			return -EINVAL;
+ 		}
+@@ -1477,8 +1508,40 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return ret;
+ }
+ 
++static int s5p_mfc_enc_g_v_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct s5p_mfc_ctx *ctx = ctrl_to_ctx(ctrl);
++	struct s5p_mfc_dev *dev = ctx->dev;
++
++	switch (ctrl->id) {
++	case V4L2_CID_MIN_BUFFERS_FOR_OUTPUT:
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->dpb_count;
++			break;
++		} else if (ctx->state <= MFCINST_INIT) {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		/* Should proceed if sequnce header is done */
++		s5p_mfc_clean_ctx_int_flags(ctx);
++		s5p_mfc_wait_for_done_ctx(ctx,
++				S5P_MFC_R2H_CMD_SEQ_DONE_RET, 0);
++		if (ctx->state >= MFCINST_HEAD_PARSED &&
++		    ctx->state < MFCINST_ABORT) {
++			ctrl->val = ctx->dpb_count;
++		} else {
++			v4l2_err(&dev->v4l2_dev, "Encoding not initialised\n");
++			return -EINVAL;
++		}
++		break;
++	}
++	return 0;
++}
++
+ static const struct v4l2_ctrl_ops s5p_mfc_enc_ctrl_ops = {
+ 	.s_ctrl = s5p_mfc_enc_s_ctrl,
++	.g_volatile_ctrl = s5p_mfc_enc_g_v_ctrl,
+ };
+ 
+ static int vidioc_s_parm(struct file *file, void *priv,
+@@ -1624,7 +1687,8 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(vq->drv_priv);
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+-	if (ctx->state != MFCINST_GOT_INST) {
++	if ((ctx->state != MFCINST_GOT_INST) &&
++		(ctx->state != MFCINST_HEAD_PARSED)) {
+ 		mfc_err("inavlid state: %d\n", ctx->state);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 754c540..2464223 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -41,6 +41,7 @@ struct s5p_mfc_hw_ops {
+ 	int (*set_enc_ref_buffer)(struct s5p_mfc_ctx *ctx);
+ 	int (*init_decode)(struct s5p_mfc_ctx *ctx);
+ 	int (*init_encode)(struct s5p_mfc_ctx *ctx);
++	int (*init_enc_buffers)(struct s5p_mfc_ctx *ctx);
+ 	int (*encode_one_frame)(struct s5p_mfc_ctx *ctx);
+ 	void (*try_run)(struct s5p_mfc_dev *dev);
+ 	void (*cleanup_queue)(struct list_head *lh,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+index f61dba8..51e7ce0e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c
+@@ -1352,6 +1352,12 @@ static int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
+ 	return ret;
+ }
+ 
++static int s5p_mfc_run_init_enc_buffers_v5(struct s5p_mfc_ctx *ctx)
++{
++	/* Needed for v6 only */
++	return -1;
++}
++
+ /* Try running an operation on hardware */
+ void s5p_mfc_try_run_v5(struct s5p_mfc_dev *dev)
+ {
+@@ -1692,6 +1698,7 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v5 = {
+ 	.set_enc_ref_buffer = s5p_mfc_set_enc_ref_buffer_v5,
+ 	.init_decode = s5p_mfc_init_decode_v5,
+ 	.init_encode = s5p_mfc_init_encode_v5,
++	.init_enc_buffers = s5p_mfc_run_init_enc_buffers_v5,
+ 	.encode_one_frame = s5p_mfc_encode_one_frame_v5,
+ 	.try_run = s5p_mfc_try_run_v5,
+ 	.cleanup_queue = s5p_mfc_cleanup_queue_v5,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index beb6dba..6dbec0e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -158,39 +158,12 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+-	case S5P_MFC_CODEC_H264_ENC:
+-		ctx->scratch_buf_size =
+-			S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V6(
+-					mb_width,
+-					mb_height);
+-		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+-				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1.size =
+-			ctx->scratch_buf_size + ctx->tmv_buffer_size +
+-			(ctx->dpb_count * (ctx->luma_dpb_size +
+-			ctx->chroma_dpb_size + ctx->me_buffer_size));
+-		ctx->bank2.size = 0;
+-		break;
+-	case S5P_MFC_CODEC_MPEG4_ENC:
+-	case S5P_MFC_CODEC_H263_ENC:
+-		ctx->scratch_buf_size =
+-			S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
+-					mb_width,
+-					mb_height);
+-		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+-				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+-		ctx->bank1.size =
+-			ctx->scratch_buf_size + ctx->tmv_buffer_size +
+-			(ctx->dpb_count * (ctx->luma_dpb_size +
+-			ctx->chroma_dpb_size + ctx->me_buffer_size));
+-		ctx->bank2.size = 0;
+-		break;
+ 	default:
+ 		break;
+ 	}
+ 
+ 	/* Allocate only if memory from bank 1 is necessary */
+-	if (ctx->bank1.size > 0) {
++	if ((ctx->bank1.size > 0) && (ctx->type == MFCINST_DECODER)) {
+ 		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->bank1);
+ 		if (ret) {
+ 			mfc_err("Failed to allocate Bank1 memory\n");
+@@ -198,7 +171,6 @@ int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		}
+ 		BUG_ON(ctx->bank1.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
+ 	}
+-
+ 	return 0;
+ }
+ 
+@@ -1508,17 +1480,57 @@ static inline int s5p_mfc_run_init_dec_buffers(struct s5p_mfc_ctx *ctx)
+ 	return ret;
+ }
+ 
+-static inline int s5p_mfc_run_init_enc_buffers(struct s5p_mfc_ctx *ctx)
++static int s5p_mfc_run_init_enc_buffers_v6(struct s5p_mfc_ctx *ctx)
+ {
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+-	int ret;
++	int ret = 0;
++	unsigned int mb_width, mb_height;
+ 
+-	ret = s5p_mfc_alloc_codec_buffers_v6(ctx);
+-	if (ret) {
+-		mfc_err("Failed to allocate encoding buffers.\n");
+-		return -ENOMEM;
++	mb_width = MB_WIDTH(ctx->img_width);
++	mb_height = MB_HEIGHT(ctx->img_height);
++
++	/* Codecs have different memory requirements */
++	switch (ctx->codec_mode) {
++	case S5P_MFC_CODEC_H264_ENC:
++		ctx->scratch_buf_size =
++			S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V6(
++					mb_width,
++					mb_height);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
++				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
++		ctx->bank1.size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->dpb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2.size = 0;
++		break;
++	case S5P_MFC_CODEC_MPEG4_ENC:
++	case S5P_MFC_CODEC_H263_ENC:
++		ctx->scratch_buf_size =
++			S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
++					mb_width,
++					mb_height);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
++				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
++		ctx->bank1.size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->dpb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2.size = 0;
++		break;
++	default:
++		break;
+ 	}
+ 
++	/* Allocate bank1 memory */
++	if (ctx->bank1.size > 0) {
++		ret = s5p_mfc_alloc_priv_buf(dev->mem_dev_l, &ctx->bank1);
++		if (ret) {
++			mfc_err("Failed to allocate Bank1 memory\n");
++			return ret;
++		}
++		BUG_ON(ctx->bank1.dma & ((1 << MFC_BANK1_ALIGN_ORDER) - 1));
++	}
+ 	/* Header was generated now starting processing
+ 	 * First set the reference frame buffers
+ 	 */
+@@ -1529,6 +1541,14 @@ static inline int s5p_mfc_run_init_enc_buffers(struct s5p_mfc_ctx *ctx)
+ 		return -EAGAIN;
+ 	}
+ 
++	return 0;
++}
++
++static int s5p_mfc_init_enc_buffers_cmd(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	int ret = 0;
++
+ 	dev->curr_ctx = ctx->num;
+ 	s5p_mfc_clean_ctx_int_flags(ctx);
+ 	ret = s5p_mfc_set_enc_ref_buffer_v6(ctx);
+@@ -1638,8 +1658,8 @@ void s5p_mfc_try_run_v6(struct s5p_mfc_dev *dev)
+ 		case MFCINST_GOT_INST:
+ 			s5p_mfc_run_init_enc(ctx);
+ 			break;
+-		case MFCINST_HEAD_PARSED: /* Only for MFC6.x */
+-			ret = s5p_mfc_run_init_enc_buffers(ctx);
++		case MFCINST_HEAD_PARSED:
++			ret = s5p_mfc_init_enc_buffers_cmd(ctx);
+ 			break;
+ 		default:
+ 			ret = -EAGAIN;
+@@ -1865,6 +1885,7 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 	.set_enc_ref_buffer = s5p_mfc_set_enc_ref_buffer_v6,
+ 	.init_decode = s5p_mfc_init_decode_v6,
+ 	.init_encode = s5p_mfc_init_encode_v6,
++	.init_enc_buffers = s5p_mfc_run_init_enc_buffers_v6,
+ 	.encode_one_frame = s5p_mfc_encode_one_frame_v6,
+ 	.try_run = s5p_mfc_try_run_v6,
+ 	.cleanup_queue = s5p_mfc_cleanup_queue_v6,
 -- 
-1.7.10.4
+1.7.9.5
 
