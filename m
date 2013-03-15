@@ -1,136 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1311 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253Ab3CJN4a convert rfc822-to-8bit (ORCPT
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:49794 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753909Ab3COI46 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 09:56:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH 2/2] bttv: fix audio mute on device close for the radio device node
-Date: Sun, 10 Mar 2013 14:56:21 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1362915635-5431-1-git-send-email-fschaefer.oss@googlemail.com> <201303101259.42692.hverkuil@xs4all.nl> <513C8F04.70809@googlemail.com>
-In-Reply-To: <513C8F04.70809@googlemail.com>
+	Fri, 15 Mar 2013 04:56:58 -0400
+Received: by mail-ea0-f169.google.com with SMTP id z7so1378214eaf.14
+        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2013 01:56:56 -0700 (PDT)
+Message-ID: <5142F063.5000007@gmail.com>
+Date: Fri, 15 Mar 2013 10:56:51 +0100
+From: Benjamin Schindler <beschindler@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303101456.21102.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: msp3400 problem in linux-3.7.0
+References: <51410709.5040805@gmail.com> <201303140757.10555.hverkuil@xs4all.nl> <51417899.2070201@gmail.com> <201303140844.37378.hverkuil@xs4all.nl>
+In-Reply-To: <201303140844.37378.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun March 10 2013 14:47:48 Frank Schäfer wrote:
-> Am 10.03.2013 12:59, schrieb Hans Verkuil:
-> > On Sun March 10 2013 12:40:35 Frank Schäfer wrote:
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> ---
-> >>  drivers/media/pci/bt8xx/bttv-driver.c |    5 ++++-
-> >>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
-> >>
-> >> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> >> index 2c09bc5..74977f7 100644
-> >> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> >> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> >> @@ -3227,6 +3227,7 @@ static int radio_open(struct file *file)
-> >>  	v4l2_fh_init(&fh->fh, vdev);
-> >>  
-> >>  	btv->radio_user++;
-> >> +	audio_mute(btv, btv->mute);
-> >>  
-> >>  	v4l2_fh_add(&fh->fh);
-> >>  
-> >> @@ -3248,8 +3249,10 @@ static int radio_release(struct file *file)
-> >>  
-> >>  	bttv_call_all(btv, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
-> >>  
-> >> -	if (btv->radio_user == 0)
-> >> +	if (btv->radio_user == 0) {
-> >>  		btv->has_radio_tuner = 0;
-> >> +		audio_mute(btv, 1);
-> >> +	}
-> >>  	return 0;
-> >>  }
-> >>  
-> >>
-> > Sorry, but this isn't right.
-> >
-> > You should be able to just set the radio to a frequency and then exit. Since
-> > most cards have an audio out that loops to an audio input you don't want to
-> > have to keep the radio device open.
-> 
-> Ok, so I will drop this patch.
-> 
-> AFAICS the above said also applies to the video device part, so it's
-> still not clear to me why both devices should be handled differently.
-> Anyway, I will regard it as a kind of "tradition".
+I just tried to apply the patch, but it does not apply cleanly:
 
-It is legacy. I doubt we would design it like that today. Also note that
-there is generally little point in just listening to TV without actually
-watching it (although some people do :-) ), so it makes sense to mute the
-audio when you stop watching TV.
+metis linux # patch -p1 < /home/benjamin/Downloads/bttv-patch.txt
+patching file drivers/media/pci/bt8xx/bttv-driver.c
+Hunk #1 FAILED at 2007.
+Hunk #2 FAILED at 2024.
+Hunk #3 succeeded at 4269 with fuzz 2 (offset 34 lines).
+Hunk #4 succeeded at 4414 (offset 34 lines).
+2 out of 4 hunks FAILED -- saving rejects to file 
+drivers/media/pci/bt8xx/bttv-driver.c.rej
+patching file drivers/media/pci/bt8xx/bttvp.h
 
-But radio has traditionally been implemented this way and we have to keep
-that.
+I then tried applying it manually, which I think worked. But it did not 
+fix the problem. Given that the patch did not apply cleanly, may be I 
+should either use the media git tree or wait for 3.10.
 
-Regards,
+I just realized that this was on a 3.7.10 kernel (not 3.7.0, but that 
+probably does not make much of a difference)
 
-	Hans
+Regards
+Benjamin
 
-> 
-> >
-> > Audio should be muted when the module is unloaded, though.
-> >
-> > The relationship between TV and radio tuners was discussed last year. The
-> > following proposal was accepted:
-> >
-> > ------- start -----------
-> > How to handle tuner ownership if both a video and radio node share the same
-> > tuner?
-> >
-> > Calling S_FREQ, S_TUNER, S_MODULATOR or S_HW_FREQ_SEEK will make the filehandle
-> > the owner if possible. EBUSY is returned if someone else owns the tuner and you
-> > would need to switch the tuner mode.
-> >
-> > Ditto for ioctls that expect a valid tuner configuration like QUERYSTD. This is
-> > likely to be driver dependent, though. Just opening a device node should not
-> > switch ownership.
-> >
-> > G_FREQUENCY: should just return the last set frequency for radio or TV: requires
-> > that that is remembered when switching ownership. This is what happens today, so
-> > G_FREQUENCY does not have to switch ownership.
-> >
-> > G_TUNER: the rxsubchans, signal and afc fields all require ownership of the tuner.
-> > So in principle you would want to switch ownership when G_TUNER is called. On the
-> > other hand, that would mean that calling v4l2-ctl --all -d /dev/radio0 would change
-> > tuner ownership to radio for /dev/video0. That's rather unexpected.
-> >
-> > So just set rxsubchans, signal and afc to 0 if the device node doesn't own the tuner.
-> >
-> > Closing a device node should not switch ownership. E.g. if nobody has a radio device
-> > open, should the tuner switch back to TV mode automatically? The answer is that it
-> > shouldn't.
-> >
-> > How about hybrid tuners? The code to handle tuner ownership should be shared between
-> > DVB and V4L2.
-> > ----------- end --------------
-> >
-> > All very nice, but nobody had the chance to actually work on this.
-> >
-> > But this is how it should work.
-> 
-> Interesting, thanks !
-> 
+On 14.03.2013 08:44, Hans Verkuil wrote:
+> On Thu March 14 2013 08:13:29 Benjamin Schindler wrote:
+>> Hi Hans
+>>
+>> Thank you for the prompt response. I will try this once I'm home again.
+>> Which patch is responsible for fixing it? Just so I can track it once it
+>> lands upstream.
+>
+> There is a whole series of bttv fixes that I did that will appear in 3.10.
+>
+> But the patch that is probably responsible for fixing it is this one:
+>
+> http://git.linuxtv.org/media_tree.git/commit/76ea992a036c4a5d3bc606a79ef775dd32fd3daa
+>
+> I say 'probably' because I am not 100% certain that that is the main fix.
+> I'm 99% certain, though :-)
+>
+> As mentioned, it was part of a much longer patch series, so there may be other
+> patches involved in this particular problem, but I don't think so.
+>
+> If you can perhaps test just that single patch then that would be useful
+> information. If that fixes the problem then that's a candidate for 'stable'
+> kernels.
+>
+>> I have one more question - the wiki states the the WinTV-HVR-5500 is not
+>> yet supported (as of June 2011) - is there an update on this? It's the
+>> only DVB-C card I can buy in the local stores here
+>
+> No idea. I do V4L2, not DVB :-) Hopefully someone else knows.
+>
 > Regards,
-> Frank
-> 
-> >
-> > Regards,
-> >
-> > 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
+> 	Hans
+>
+
