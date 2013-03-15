@@ -1,236 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1511 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867Ab3CRMxO (ORCPT
+Received: from mail.free-electrons.com ([94.23.35.102]:54117 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754331Ab3COM2B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 08:53:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFC PATCH 5/8] s5p-fimc: Add ISP video capture driver stubs
-Date: Mon, 18 Mar 2013 13:51:31 +0100
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, dh09.lee@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-References: <1363031092-29950-1-git-send-email-s.nawrocki@samsung.com> <201303121544.45438.hverkuil@xs4all.nl> <51462FAA.1060400@gmail.com>
-In-Reply-To: <51462FAA.1060400@gmail.com>
+	Fri, 15 Mar 2013 08:28:01 -0400
+Date: Fri, 15 Mar 2013 09:27:54 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hverkuil@xs4all.nl, elezegarcia@gmail.com
+Subject: Re: [RFC V1 3/8] smi2021: Add smi2021_i2c.c
+Message-ID: <20130315122753.GD2989@localhost>
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+ <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303181351.31384.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun March 17 2013 22:03:38 Sylwester Nawrocki wrote:
-> On 03/12/2013 03:44 PM, Hans Verkuil wrote:
-> > On Mon 11 March 2013 20:44:49 Sylwester Nawrocki wrote:
-> [...]
-> >> +static int isp_video_capture_open(struct file *file)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	int ret = 0;
-> >> +
-> >> +	if (mutex_lock_interruptible(&isp->video_lock))
-> >> +		return -ERESTARTSYS;
-> >> +
-> >> +	/* ret = pm_runtime_get_sync(&isp->pdev->dev); */
-> >> +	if (ret<  0)
-> >> +		goto done;
-> >> +
-> >> +	ret = v4l2_fh_open(file);
-> >> +	if (ret<  0)
-> >> +		goto done;
-> >> +
-> >> +	/* TODO: prepare video pipeline */
-> >> +done:
-> >> +	mutex_unlock(&isp->video_lock);
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int isp_video_capture_close(struct file *file)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	int ret = 0;
-> >> +
-> >> +	mutex_lock(&isp->video_lock);
-> >> +
-> >> +	if (isp->out_path == FIMC_IO_DMA) {
-> >> +		/* TODO: stop capture, cleanup */
-> >> +	}
-> >> +
-> >> +	/* pm_runtime_put(&isp->pdev->dev); */
-> >> +
-> >> +	if (isp->ref_count == 0)
-> >> +		vb2_queue_release(&isp->capture_vb_queue);
-> >> +
-> >> +	ret = v4l2_fh_release(file);
-> >> +
-> >> +	mutex_unlock(&isp->video_lock);
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static unsigned int isp_video_capture_poll(struct file *file,
-> >> +				   struct poll_table_struct *wait)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	int ret;
-> >> +
-> >> +	mutex_lock(&isp->video_lock);
-> >> +	ret = vb2_poll(&isp->capture_vb_queue, file, wait);
-> >> +	mutex_unlock(&isp->video_lock);
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int isp_video_capture_mmap(struct file *file, struct vm_area_struct *vma)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	int ret;
-> >> +
-> >> +	if (mutex_lock_interruptible(&isp->video_lock))
-> >> +		return -ERESTARTSYS;
-> >> +
-> >> +	ret = vb2_mmap(&isp->capture_vb_queue, vma);
-> >> +	mutex_unlock(&isp->video_lock);
-> >> +
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static const struct v4l2_file_operations isp_video_capture_fops = {
-> >> +	.owner		= THIS_MODULE,
-> >> +	.open		= isp_video_capture_open,
-> >> +	.release	= isp_video_capture_close,
-> >> +	.poll		= isp_video_capture_poll,
-> >> +	.unlocked_ioctl	= video_ioctl2,
-> >> +	.mmap		= isp_video_capture_mmap,
-> >
-> > Can't you use the helper functions vb2_fop_open/release/poll/mmap here?
+On Thu, Mar 14, 2013 at 03:06:59PM +0100, Jon Arne Jørgensen wrote:
+> This file is responsible for registering the device
+> with the kernel i2c subsystem.
+> v4l2 talks to the saa7113 chip of the device via i2c.
 > 
-> It seems vb2_fop_mmap/poll can be used directly, open(), release() are
-> a bit more complicated as some media pipeline operations need to
-> additionally be done within these callbacks. There is no vb2_fop_open(),
-> and AFAICS v4l2_fh_open() is sufficient and intended as open() helper.
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> ---
+>  drivers/media/usb/smi2021/smi2021_i2c.c | 160 ++++++++++++++++++++++++++++++++
+>  1 file changed, 160 insertions(+)
+>  create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
+> 
+> diff --git a/drivers/media/usb/smi2021/smi2021_i2c.c b/drivers/media/usb/smi2021/smi2021_i2c.c
+> new file mode 100644
+> index 0000000..5b6f3f5
+> --- /dev/null
+> +++ b/drivers/media/usb/smi2021/smi2021_i2c.c
+> @@ -0,0 +1,160 @@
+> +/*******************************************************************************
+> + * smi2021_i2c.c                                                               *
+> + *                                                                             *
+> + * USB Driver for SMI2021 - EasyCAP                                            *
+> + * USB ID 1c88:003c                                                            *
+> + *                                                                             *
+> + * *****************************************************************************
+> + *
+> + * Copyright 2011-2013 Jon Arne Jørgensen
+> + * <jonjon.arnearne--a.t--gmail.com>
+> + *
+> + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
+> + *
+> + * This file is part of SMI2021
+> + * http://code.google.com/p/easycap-somagic-linux/
+> + *
+> + * This program is free software: you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation, either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
+> + *
+> + * This driver is heavily influensed by the STK1160 driver.
+> + * Copyright (C) 2012 Ezequiel Garcia
+> + * <elezegarcia--a.t--gmail.com>
+> + *
+> + */
+> +
+> +#include "smi2021.h"
+> +
+> +/* The device will not return the chip_name on address 0x00.
+> + * But the saa7115 i2c driver needs the chip id to match "f7113"
+> + * if we want to use it,
+> + * so we have to fake the return of this value
+> + */
 
-That's correct. Sorry for the misinformation about the non-existant
-vb2_fop_open.
+This comment style is wrong, check Documentation/CodingStyle.
 
-> For the next iteration I have used vb2_fop_release(), called indirectly,
-> as it nicely simplifies things a bit.
-> 
-> BTW, shouldn't vb2_fop_release() also be taking the lock ? Actually it is
-> more useful for me in current form, but the drivers that directly assign
-> it to struct v4l2_file_operations::open might be in trouble, unless I'm
-> missing something.
+BTW, Did you check the patches with checkpatch.pl?
+(you can add checkpatch.pl as a git pre-commit hook, which I find very useful)
 
-I don't see where a lock would be needed. I don't see any concurrency here.
-Nobody else can mess with the queue as long as they are not the owner.
+> +
+> +static char chip_id[] = { 'x', 255, 55, 49, 49, 115, 0 };
+> +static int id_ptr;
+> +
+> +static unsigned int i2c_debug;
+> +module_param(i2c_debug, int, 0644);
+> +MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+> +
+> +#define dprint_i2c(fmt, args...)					\
+> +do {									\
+> +	if (i2c_debug)							\
+> +		pr_debug("smi2021[i2c]::%s: " fmt, __func__, ##args);	\
+> +} while (0)
+> +
+> +
+> +static int i2c_xfer(struct i2c_adapter *i2c_adap,
+> +				struct i2c_msg msgs[], int num)
+> +{
+> +	struct smi2021_dev *dev = i2c_adap->algo_data;
+> +
+> +	switch (num) {
+> +	case 2: { /* Read reg */
 
-> 
-> >> +};
-> >> +
-> >> +/*
-> >> + * Video node ioctl operations
-> >> + */
-> [...]
-> >> +static int fimc_isp_capture_streamon(struct file *file, void *priv,
-> >> +				     enum v4l2_buf_type type)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	struct v4l2_subdev *sensor = isp->pipeline.subdevs[IDX_SENSOR];
-> >> +	struct fimc_pipeline *p =&isp->pipeline;
-> >> +	int ret;
-> >> +
-> >> +	/* TODO: check if the OTF interface is not running */
-> >> +
-> >> +	ret = media_entity_pipeline_start(&sensor->entity, p->m_pipeline);
-> >> +	if (ret<  0)
-> >> +		return ret;
-> >> +
-> >> +	ret = fimc_isp_pipeline_validate(isp);
-> >> +	if (ret) {
-> >> +		media_entity_pipeline_stop(&sensor->entity);
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	return vb2_streamon(&isp->capture_vb_queue, type);
-> >> +}
-> >> +
-> >> +static int fimc_isp_capture_streamoff(struct file *file, void *priv,
-> >> +				      enum v4l2_buf_type type)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	struct v4l2_subdev *sd = isp->pipeline.subdevs[IDX_SENSOR];
-> >> +	int ret;
-> >> +
-> >> +	ret = vb2_streamoff(&isp->capture_vb_queue, type);
-> >> +	if (ret == 0)
-> >> +		media_entity_pipeline_stop(&sd->entity);
-> >> +	return ret;
-> >> +}
-> >> +
-> >> +static int fimc_isp_capture_reqbufs(struct file *file, void *priv,
-> >> +				    struct v4l2_requestbuffers *reqbufs)
-> >> +{
-> >> +	struct fimc_isp *isp = video_drvdata(file);
-> >> +	int ret;
-> >> +
-> >> +	reqbufs->count = max_t(u32, FIMC_IS_REQ_BUFS_MIN, reqbufs->count);
-> >> +	ret = vb2_reqbufs(&isp->capture_vb_queue, reqbufs);
-> >
-> > You probably want to call vb2_ioctl_reqbufs here since that does additional
-> > ownership checks that vb2_reqbufs doesn't.
-> 
-> Yes, thanks for the suggestion. That was actually helpful, previously
-> it wasn't immediately clear to me one can still take advantage of those
-> vb2_ioctl_* helpers, mainly have the ownership handling in the core,
-> and have some handlers assigned directly to v4l2_ioctl_ops an some called
-> indirectly from the driver's own callbacks, should they need something
-> else that is done in the helpers.
-> 
-> I found those helpers really useful, especially in drivers that need to
-> support several video nodes. Lots of boilerplate can be eliminated. And
-> also vb2_ops_wait_prepare/finish are a simple and nice improvement.
+Do you need a local scope in here?
 
-Glad to hear!
+> +		if (msgs[0].len != 1 || msgs[1].len != 1) {
+> +			dprint_i2c("both messages must be 1 byte\n");
+> +			goto err_out;
+> +
 
-I still think there are some more improvements that could be made with some
-helper functions and perhaps some more fields: most (all?) drivers need a
-list for their active buffers, so I really think adding a struct list to
-vb2_buffer and a list for active buffers + a spinlock to vb2_queue would
-help.
+I think you missed a closing } here. And an opening { below...
 
-Helper functions could then be added to handle that queue and also to set
-the timestamp and sequence fields. I would need to think more about the
-details, but after using vb2 for a while I see a lot of shared code between
-the various drivers.
+> +		if ((msgs[1].flags & I2C_M_RD) != I2C_M_RD)
+> +			dprint_i2c("last message should have rd flag\n");
+> +			goto err_out;
+> +		}
+> +
+> +		if (msgs[0].buf[0] == 0) {
+> +			msgs[1].buf[0] = chip_id[id_ptr];
+> +			if (chip_id[id_ptr] != 0)
+> +				id_ptr += 1;
+> +		} else {
+> +			smi2021_read_reg(dev, msgs[0].addr, msgs[0].buf[0],
+> +						msgs[1].buf);
+> +		}
+> +		break;
+> +	}
+> +	case 1: { /* Write reg */
+> +		if (msgs[0].len == 0) {
+> +			break;
+> +		} else if (msgs[0].len != 2) {
+> +			dprint_i2c("unsupported len\n");
+> +			goto err_out;
+> +		}
+> +		if (msgs[0].buf[0] == 0) {
+> +			/* We don't handle writing to addr 0x00 */
+> +			break;
+> +		}
+> +
+> +		smi2021_write_reg(dev, msgs[0].addr, msgs[0].buf[0],
+> +						msgs[0].buf[1]);
+> +		break;
+> +	}
+> +	default: {
+> +		dprint_i2c("driver can only handle 1 or 2 messages\n");
+> +		goto err_out;
+> +	}
+> +	}
+> +	return num;
+> +
+> +err_out:
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +static u32 functionality(struct i2c_adapter *adap)
+> +{
+> +	return I2C_FUNC_SMBUS_EMUL;
+> +}
+> +
+> +static struct i2c_algorithm algo = {
+> +	.master_xfer = i2c_xfer,
+> +	.functionality = functionality,
+> +};
+> +
+> +static struct i2c_adapter adap_template = {
+> +	.owner = THIS_MODULE,
+> +	.name = "smi2021_easycap_dc60",
+> +	.algo = &algo,
+> +};
+> +
+> +static struct i2c_client client_template = {
+> +	.name = "smi2021 internal",
+> +};
+> +
+> +int smi2021_i2c_register(struct smi2021_dev *dev)
+> +{
+> +	int rc;
+> +
+> +	id_ptr = 0;
 
-Regards,
+You don't need to initialize id_ptr here.
 
-	Hans
+> +
+> +	dev->i2c_adap = adap_template;
+> +	dev->i2c_adap.dev.parent = dev->dev;
+> +	strcpy(dev->i2c_adap.name, "smi2021");
+> +	dev->i2c_adap.algo_data = dev;
+> +
+> +	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
+> +
+> +	rc = i2c_add_adapter(&dev->i2c_adap);
+> +	if (rc < 0) {
+> +		smi2021_err("can't add i2c adapter, errno: %d\n", rc);
+> +		return rc;
+> +	}
+> +
+> +	dev->i2c_client = client_template;
+> +	dev->i2c_client.adapter = &dev->i2c_adap;
+> +
+> +	return 0;
+> +}
+> +
+> +int smi2021_i2c_unregister(struct smi2021_dev *dev)
+> +{
+> +	i2c_del_adapter(&dev->i2c_adap);
+> +	return 0;
+> +}
+> -- 
+> 1.8.1.1
+> 
 
-> > The same is true for vb2_ioctl_streamon/off, BTW.
-> 
-> Indeed. I have already applied all possible helpers for the next iteration.
-> 
-> I need to yet resolve an issue with locking order, as I previously missed
-> that media_entity_pipeline_start/stop() also takes the graph mutex.
-> 
-> And currently the driver is supposed to take the graph mutex first and
-> then the video mutex. Since the link_notify callback of the media device
-> is called with the graph mutex already held.
-> 
-> The only solution I came up so far is to provide unlocked versions of
-> media_entity_pipeline_start/stop().
-> 
-> Ideally using video mutex in link_notify() callback should not be needed,
-> but there are things done there needed for backward video device
-> compatibility.
-> 
-> --
-> 
-> Regards,
-> Sylwester
-> 
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
