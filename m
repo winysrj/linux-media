@@ -1,81 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-04-ewr.mailhop.org ([204.13.248.74]:23994 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753291Ab3CFRlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 12:41:20 -0500
-Date: Wed, 6 Mar 2013 09:16:13 -0800
-From: Tony Lindgren <tony@atomide.com>
-To: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, arm@kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/9] [media] ir-rx51: fix clock API related build issues
-Message-ID: <20130306171612.GL11806@atomide.com>
-References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
- <1362521809-22989-7-git-send-email-arnd@arndb.de>
- <20130305212351.4993d8c6@redhat.com>
- <20130306010952.GJ11806@atomide.com>
- <20130306062218.GA1638@itanic.dhcp.inet.fi>
+Received: from mail-ee0-f43.google.com ([74.125.83.43]:57888 "EHLO
+	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754042Ab3CORh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Mar 2013 13:37:26 -0400
+Received: by mail-ee0-f43.google.com with SMTP id c50so1686819eek.30
+        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2013 10:37:25 -0700 (PDT)
+Message-ID: <51435C87.6050405@googlemail.com>
+Date: Fri, 15 Mar 2013 18:38:15 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130306062218.GA1638@itanic.dhcp.inet.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH v2 2/6] bttv: audio_mux(): do not change the value
+ of the v4l2 mute control
+References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com> <1362952434-2974-3-git-send-email-fschaefer.oss@googlemail.com> <201303121441.16715.hverkuil@xs4all.nl>
+In-Reply-To: <201303121441.16715.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Timo Kokkonen <timo.t.kokkonen@iki.fi> [130305 22:26]:
-> On 03.05 2013 17:09:53, Tony Lindgren wrote:
-> > * Mauro Carvalho Chehab <mchehab@redhat.com> [130305 16:28]:
-> > > Em Tue,  5 Mar 2013 23:16:46 +0100
-> > > Arnd Bergmann <arnd@arndb.de> escreveu:
-> > > 
-> > > > OMAP1 no longer provides its own clock interfaces since patch
-> > > > a135eaae52 "ARM: OMAP: remove plat/clock.h". This is great, but
-> > > > we now have to convert the ir-rx51 driver to use the generic
-> > > > interface from linux/clk.h.
-> > > > 
-> > > > The driver also uses the omap_dm_timer_get_fclk() function,
-> > > > which is not exported for OMAP1, so we have to move the
-> > > > definition out of the OMAP2 specific section.
-> > > > 
-> > > > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > > > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > > 
-> > > From my side:
-> > > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > There's just one issue, this driver most likely only needed on
-> > rx51 board.. So I suggest we just mark the driver depends on
-> > ARCH_OMAP2PLUS and let's drop this patch.
-> > 
-> > This driver is already disabled for ARCH_MULTIPLATFORM
-> > as we need to move dmtimer.c to drivers and have some minimal
-> > include/linux/timer-omap.h for it.
-> >  
-> 
-> I've also had this cunning plan that if or when the PWM subsystem
-> starts supporting the PWM output in OMAP3, I could convert this driver
-> to generate the IR carrier wave through the PWM subsystem and then use
-> HR timers to generate the pulses. I think that's much better approach
-> than trying to depend on interfaces that are not easily
-> available. Should be possible, but I haven't proven yet that it will
-> work :)
+Hi Hans,
 
-Sounds good to me.
- 
-> Unfortunately I haven't got into executing on that plan yet. In
-> addition to the challenge of scheduling some of my free time for doing
-> this, my RX51 device is not enumerating the USB with the latest kernel
-> and I haven't figured out that yet. And because of that, I haven't
-> been able to get my user space running over nfsroot setup I've been
-> using..
+thank you for reviewing and sorry for the delayed reply !
 
-Git bisect might help there. Maybe post the output and cc the usb
-people?
+Am 12.03.2013 14:41, schrieb Hans Verkuil:
+> On Sun 10 March 2013 22:53:50 Frank Schäfer wrote:
+>> There are cases where we want to call audio_mux() without changing the value of
+>> the v4l2 mute control, for example
+>> - mute mute on last close
+>> - mute on device probing
+>>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> I think it might be a good idea to take this one step further: pull the
+> btv->audio assignment out of audio_mux as well. In other words, audio_mux
+> no longer changes the bttv state.
+
+Yes, that should be easy to do.
+
+> I also think that the audio_mute and audio_input functions should be
+> removed, just let the code call audio_mux directly. I think that is more
+> transparent and one less intermediate call.
+
+OTOH I think they improve readability.
+Anyway, this will become obsolete with the next step you're suggesting:
+
+> A next step would be to untangle the audio routing code and mute code
+> from audio_mux: that's probably the core of all the confusion. The code
+> relating to the input selection should be put in a separate function that
+> is called only when you really want to switch inputs.
+
+Yeah, it would be nice if we could do that, but I'm not sure if it's
+entirely possible.
+Mute + automute and the selected input seem to be coupled via gpio
+settings. See the first third
+of function audio_mux().
+I will have to take a deeper look into the code to see if splitting the
+function really makes sense...
+
+> I'm not sure if you want to spend time on that last step, if not, then just
+> do the first two suggestions and I'll test the result. But without really
+> going to the core of the problem (one function mixing up muting and input
+> selection) it remains hard to prove correctness of the code. If you have
+> some time, then it would be very nice if this mess can be resolved once and
+> for all.
+
+I've put it on my TODO list, but I'm not sure if I'll find some time for
+it this weekend.
 
 Regards,
+Frank
 
-Tony
+> Regards,
+>
+> 	Hans
+>
+>> ---
+>>  drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+>>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>> index a584d82..a082ab4 100644
+>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>> @@ -999,7 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  		   bttv_tvcards[btv->c.type].gpiomask);
+>>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+>>  
+>> -	btv->mute = mute;
+>>  	btv->audio = input;
+>>  
+>>  	/* automute */
+>> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  
+>>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  
+>>  		/* Note: the inputs tuner/radio/extern/intern are translated
+>>  		   to msp routings. This assumes common behavior for all msp3400
+>> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+>>  				input, 0, 0);
+>>  	}
+>> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>>  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>>  
+>>  		if (ctrl)
+>> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+>> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>>  	}
+>>  	return 0;
+>>  }
+>> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+>>  		break;
+>>  	case V4L2_CID_AUDIO_MUTE:
+>>  		audio_mute(btv, c->val);
+>> +		btv->mute = c->val;
+>>  		break;
+>>  	case V4L2_CID_AUDIO_VOLUME:
+>>  		btv->volume_gpio(btv, c->val);
+>>
+
