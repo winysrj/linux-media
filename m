@@ -1,88 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog101.obsmtp.com ([74.125.149.67]:52182 "EHLO
-	na3sys009aog101.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757481Ab3CFPNg convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Mar 2013 10:13:36 -0500
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "corbet@lwn.net" <corbet@lwn.net>,
+Received: from moutng.kundenserver.de ([212.227.126.186]:56804 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754856Ab3COUTA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Mar 2013 16:19:00 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: H Hartley Sweeten <hartleys@visionengravers.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+Date: Fri, 15 Mar 2013 20:18:08 +0000
+Cc: Fabio Porcedda <fabio.porcedda@gmail.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Libin Yang <lbyang@marvell.com>
-Date: Wed, 6 Mar 2013 07:12:30 -0800
-Subject: RE: [REVIEW PATCH V4 02/12] [media] marvell-ccic: add clock tree
- support for marvell-ccic driver
-Message-ID: <477F20668A386D41ADCC57781B1F70430D9D8DAA93@SC-VEXCH1.marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
- <1360238687-15768-3-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1303051047120.25837@axis700.grange>
- <477F20668A386D41ADCC57781B1F70430D9D8DAA88@SC-VEXCH1.marvell.com>
- <Pine.LNX.4.64.1303061557350.7010@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1303061557350.7010@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	"Hans-Christian Egtvedt" <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com> <201303141358.05616.arnd@arndb.de> <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
+In-Reply-To: <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303152018.09094.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
+On Friday 15 March 2013, H Hartley Sweeten wrote:
+> Arnd,
+> 
+> Ill look at converting the ep93xx pwm driver to the PWM subsystem. The only issue is
+> the current driver exposes a sysfs interface that I think is not available in that subsystem.
 
+You can probably keep providing that interface if you have active users.
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Wednesday, 06 March, 2013 23:00
->To: Albert Wang
->Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->Subject: RE: [REVIEW PATCH V4 02/12] [media] marvell-ccic: add clock tree support for
->marvell-ccic driver
->
->Hi Albert
->
->On Wed, 6 Mar 2013, Albert Wang wrote:
->
->> Hi, Guennadi
->>
->>
->> >-----Original Message-----
->> >From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->> >Sent: Tuesday, 05 March, 2013 17:51
->> >To: Albert Wang
->> >Cc: corbet@lwn.net; linux-media@vger.kernel.org; Libin Yang
->> >Subject: Re: [REVIEW PATCH V4 02/12] [media] marvell-ccic: add clock tree support
->for
->> >marvell-ccic driver
->
->[snip]
->
->> >> @@ -331,6 +374,10 @@ static int mmpcam_probe(struct platform_device *pdev)
->> >>  		ret = -ENODEV;
->> >>  		goto out_unmap1;
->> >>  	}
->> >> +
->> >> +	ret = mcam_init_clk(mcam, pdata);
->> >> +	if (ret)
->> >> +		goto out_unmap2;
->> >
->> >Now, I'm confused again: doesn't this mean, that all existing users of
->> >this driver will fail?
->> >
->> Sorry, I don't understand what's your concern?
->
->I mean - wouldn't the above function fail for all existing users, because
->they don't provide the clocks, that you're requesting here?
->
-OK, I see. We will update it.
+> >* Regarding the use of module_platform_driver_probe, I'm a little worried about
+> >  the interactions with deferred probing. I don't think there are any regressions,
+> >  but we should probably make people aware that one cannot return -EPROBE_DEFER
+> >  from a platform_driver_probe function.
+> 
+> The ep93xx pwm driver does not need to use platform_driver_probe(). It can be changed
+> to use module_platform_driver() by just moving the .probe to the platform_driver. This
+> driver was added before module_platform_driver() was available and I used the
+> platform_driver_probe() thinking it would save a couple lines of code.
+> 
+> I'll change this in a bit. Right now I'm trying to work out why kernel 3.8 is not booting
+> on the ep93xx. I had 3.6.6 on my development board and 3.7 works fine but 3.8 hangs
+> without uncompressing the kernel.
 
+Ok, thanks!
 
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
-
-
-Thanks
-Albert Wang
-86-21-61092656
+	Arnd
