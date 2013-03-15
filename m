@@ -1,279 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51831 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751655Ab3CEK35 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 05:29:57 -0500
-Date: Tue, 5 Mar 2013 11:29:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: corbet@lwn.net, linux-media@vger.kernel.org,
-	Libin Yang <lbyang@marvell.com>
-Subject: Re: [REVIEW PATCH V4 08/12] [media] marvell-ccic: rename B_DMA* to
- avoid CamelCase warning
-In-Reply-To: <1360238687-15768-9-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1303051129280.25837@axis700.grange>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
- <1360238687-15768-9-git-send-email-twang13@marvell.com>
+Received: from mta-out.inet.fi ([195.156.147.13]:50946 "EHLO kirsi1.inet.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751429Ab3COGjS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Mar 2013 02:39:18 -0400
+Date: Fri, 15 Mar 2013 08:39:13 +0200
+From: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Tony Lindgren <tony@atomide.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] ir: IR_RX51 only works on OMAP2
+Message-ID: <20130315063913.GC1638@itanic.dhcp.inet.fi>
+References: <1363298204-8014-1-git-send-email-arnd@arndb.de>
+ <1363298204-8014-7-git-send-email-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1363298204-8014-7-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 7 Feb 2013, Albert Wang wrote:
-
-> This patch renames the B_vmalloc/B_DMA_contig/B_DMA_sg to
-> B_VMALLOC/B_DMA_CONTIG/B_DMA_SG variables to avoid CamelCase warning
-> reported by the checkpatch.pl script.
+On 03.14 2013 22:56:44, Arnd Bergmann wrote:
+> This driver can be enabled on OMAP1 at the moment, which breaks
+> allyesconfig for that platform. Let's mark it OMAP2PLUS-only
+> in Kconfig, since that is the only thing it builds on.
 > 
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> Signed-off-by: Libin Yang <lbyang@marvell.com>
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Timo Kokkonen <timo.t.kokkonen@iki.fi>
 
-Thanks
-Guennadi
+Thanks!
 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
+> Cc: Tony Lindgren <tony@atomide.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
 > ---
->  drivers/media/platform/marvell-ccic/cafe-driver.c |    2 +-
->  drivers/media/platform/marvell-ccic/mcam-core.c   |   38 ++++++++++-----------
->  drivers/media/platform/marvell-ccic/mcam-core.h   |   12 +++----
->  drivers/media/platform/marvell-ccic/mmp-driver.c  |    2 +-
->  4 files changed, 27 insertions(+), 27 deletions(-)
+> Mauro, please apply for 3.9
 > 
-> diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
-> index d030f9b..f85f119 100755
-> --- a/drivers/media/platform/marvell-ccic/cafe-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
-> @@ -486,7 +486,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
->  	 * We *might* be able to run DMA_contig, especially on a system
->  	 * with CMA in it.
->  	 */
-> -	mcam->buffer_mode = B_vmalloc;
-> +	mcam->buffer_mode = B_VMALLOC;
->  	/*
->  	 * Get set up on the PCI bus.
->  	 */
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-> index 29c68f1..939c430 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-> @@ -554,7 +554,7 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
->  }
+>  drivers/media/rc/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+> index 19f3563..5a79c33 100644
+> --- a/drivers/media/rc/Kconfig
+> +++ b/drivers/media/rc/Kconfig
+> @@ -291,7 +291,7 @@ config IR_TTUSBIR
 >  
->  /*
-> - * Initial B_DMA_contig setup.
-> + * Initial B_DMA_CONTIG setup.
->   */
->  static void mcam_ctlr_dma_contig(struct mcam_camera *cam)
->  {
-> @@ -611,7 +611,7 @@ static void mcam_sg_next_buffer(struct mcam_camera *cam)
->  }
->  
->  /*
-> - * Initial B_DMA_sg setup
-> + * Initial B_DMA_SG setup
->   */
->  static void mcam_ctlr_dma_sg(struct mcam_camera *cam)
->  {
-> @@ -1005,7 +1005,7 @@ static int mcam_read_setup(struct mcam_camera *cam)
->  	 * Configuration.  If we still don't have DMA buffers,
->  	 * make one last, desperate attempt.
->  	 */
-> -	if (cam->buffer_mode == B_vmalloc && cam->nbufs == 0 &&
-> +	if (cam->buffer_mode == B_VMALLOC && cam->nbufs == 0 &&
->  			mcam_alloc_dma_bufs(cam, 0))
->  		return -ENOMEM;
->  
-> @@ -1051,13 +1051,13 @@ static int mcam_vb_queue_setup(struct vb2_queue *vq,
->  		void *alloc_ctxs[])
->  {
->  	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-> -	int minbufs = (cam->buffer_mode == B_DMA_contig) ? 3 : 2;
-> +	int minbufs = (cam->buffer_mode == B_DMA_CONTIG) ? 3 : 2;
->  
->  	sizes[0] = cam->pix_format.sizeimage;
->  	*num_planes = 1; /* Someday we have to support planar formats... */
->  	if (*nbufs < minbufs)
->  		*nbufs = minbufs;
-> -	if (cam->buffer_mode == B_DMA_contig)
-> +	if (cam->buffer_mode == B_DMA_CONTIG)
->  		alloc_ctxs[0] = cam->vb_alloc_ctx;
->  	return 0;
->  }
-> @@ -1144,7 +1144,7 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
->  	 * destination.  So go into a wait state and hope they
->  	 * give us buffers soon.
->  	 */
-> -	if (cam->buffer_mode != B_vmalloc && list_empty(&cam->buffers)) {
-> +	if (cam->buffer_mode != B_VMALLOC && list_empty(&cam->buffers)) {
->  		cam->state = S_BUFWAIT;
->  		return 0;
->  	}
-> @@ -1285,7 +1285,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
->  	vq->drv_priv = cam;
->  	INIT_LIST_HEAD(&cam->buffers);
->  	switch (cam->buffer_mode) {
-> -	case B_DMA_contig:
-> +	case B_DMA_CONTIG:
->  #ifdef MCAM_MODE_DMA_CONTIG
->  		vq->ops = &mcam_vb2_ops;
->  		vq->mem_ops = &vb2_dma_contig_memops;
-> @@ -1295,7 +1295,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
->  		cam->frame_complete = mcam_dma_contig_done;
->  #endif
->  		break;
-> -	case B_DMA_sg:
-> +	case B_DMA_SG:
->  #ifdef MCAM_MODE_DMA_SG
->  		vq->ops = &mcam_vb2_sg_ops;
->  		vq->mem_ops = &vb2_dma_sg_memops;
-> @@ -1304,7 +1304,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
->  		cam->frame_complete = mcam_dma_sg_done;
->  #endif
->  		break;
-> -	case B_vmalloc:
-> +	case B_VMALLOC:
->  #ifdef MCAM_MODE_VMALLOC
->  		tasklet_init(&cam->s_tasklet, mcam_frame_tasklet,
->  				(unsigned long) cam);
-> @@ -1324,7 +1324,7 @@ static void mcam_cleanup_vb2(struct mcam_camera *cam)
->  {
->  	vb2_queue_release(&cam->vb_queue);
->  #ifdef MCAM_MODE_DMA_CONTIG
-> -	if (cam->buffer_mode == B_DMA_contig)
-> +	if (cam->buffer_mode == B_DMA_CONTIG)
->  		vb2_dma_contig_cleanup_ctx(cam->vb_alloc_ctx);
->  #endif
->  }
-> @@ -1536,7 +1536,7 @@ static int mcam_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
->  	/*
->  	 * Make sure we have appropriate DMA buffers.
->  	 */
-> -	if (cam->buffer_mode == B_vmalloc) {
-> +	if (cam->buffer_mode == B_VMALLOC) {
->  		ret = mcam_check_dma_buffers(cam);
->  		if (ret)
->  			goto out;
-> @@ -1774,7 +1774,7 @@ static int mcam_v4l_release(struct file *filp)
->  		mcam_cleanup_vb2(cam);
->  		mcam_config_mipi(cam, 0);
->  		mcam_ctlr_power_down(cam);
-> -		if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
-> +		if (cam->buffer_mode == B_VMALLOC && alloc_bufs_at_read)
->  			mcam_free_dma_bufs(cam);
->  	}
->  	if (cam->bus_type == V4L2_MBUS_CSI2) {
-> @@ -1902,7 +1902,7 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
->  			mcam_frame_complete(cam, frame);
->  			handled = 1;
->  			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-> -			if (cam->buffer_mode == B_DMA_sg)
-> +			if (cam->buffer_mode == B_DMA_SG)
->  				break;
->  		}
->  	/*
-> @@ -1919,7 +1919,7 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
->  
->  	if (handled == IRQ_HANDLED) {
->  		set_bit(CF_DMA_ACTIVE, &cam->flags);
-> -		if (cam->buffer_mode == B_DMA_sg)
-> +		if (cam->buffer_mode == B_DMA_SG)
->  			mcam_ctlr_stop(cam);
->  	}
->  	return handled;
-> @@ -1953,11 +1953,11 @@ int mccic_register(struct mcam_camera *cam)
->  	 */
->  	if (buffer_mode >= 0)
->  		cam->buffer_mode = buffer_mode;
-> -	if (cam->buffer_mode == B_DMA_sg &&
-> +	if (cam->buffer_mode == B_DMA_SG &&
->  			cam->chip_id == V4L2_IDENT_CAFE) {
->  		printk(KERN_ERR "marvell-cam: Cafe can't do S/G I/O, "
->  			"attempting vmalloc mode instead\n");
-> -		cam->buffer_mode = B_vmalloc;
-> +		cam->buffer_mode = B_VMALLOC;
->  	}
->  	if (!mcam_buffer_mode_supported(cam->buffer_mode)) {
->  		printk(KERN_ERR "marvell-cam: buffer mode %d unsupported\n",
-> @@ -2010,7 +2010,7 @@ int mccic_register(struct mcam_camera *cam)
->  	/*
->  	 * If so requested, try to get our DMA buffers now.
->  	 */
-> -	if (cam->buffer_mode == B_vmalloc && !alloc_bufs_at_read) {
-> +	if (cam->buffer_mode == B_VMALLOC && !alloc_bufs_at_read) {
->  		if (mcam_alloc_dma_bufs(cam, 1))
->  			cam_warn(cam, "Unable to alloc DMA buffers at load"
->  					" will try again later.");
-> @@ -2038,7 +2038,7 @@ void mccic_shutdown(struct mcam_camera *cam)
->  		mcam_ctlr_power_down(cam);
->  	}
->  	vb2_queue_release(&cam->vb_queue);
-> -	if (cam->buffer_mode == B_vmalloc)
-> +	if (cam->buffer_mode == B_VMALLOC)
->  		mcam_free_dma_bufs(cam);
->  	video_unregister_device(&cam->vdev);
->  	v4l2_device_unregister(&cam->v4l2_dev);
-> @@ -2081,7 +2081,7 @@ int mccic_resume(struct mcam_camera *cam)
->  		 * If there was a buffer in the DMA engine at suspend
->  		 * time, put it back on the queue or we'll forget about it.
->  		 */
-> -		if (cam->buffer_mode == B_DMA_sg && cam->vb_bufs[0])
-> +		if (cam->buffer_mode == B_DMA_SG && cam->vb_bufs[0])
->  			list_add(&cam->vb_bufs[0]->queue, &cam->buffers);
->  		ret = mcam_read_setup(cam);
->  	}
-> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-> index 692727d..263767e 100755
-> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
-> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-> @@ -47,9 +47,9 @@ enum mcam_state {
->   * let the platform pick.
->   */
->  enum mcam_buffer_mode {
-> -	B_vmalloc = 0,
-> -	B_DMA_contig = 1,
-> -	B_DMA_sg = 2
-> +	B_VMALLOC = 0,
-> +	B_DMA_CONTIG = 1,
-> +	B_DMA_SG = 2
->  };
->  
->  /*
-> @@ -59,13 +59,13 @@ static inline int mcam_buffer_mode_supported(enum mcam_buffer_mode mode)
->  {
->  	switch (mode) {
->  #ifdef MCAM_MODE_VMALLOC
-> -	case B_vmalloc:
-> +	case B_VMALLOC:
->  #endif
->  #ifdef MCAM_MODE_DMA_CONTIG
-> -	case B_DMA_contig:
-> +	case B_DMA_CONTIG:
->  #endif
->  #ifdef MCAM_MODE_DMA_SG
-> -	case B_DMA_sg:
-> +	case B_DMA_SG:
->  #endif
->  		return 1;
->  	default:
-> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> index d355840..89dd078 100755
-> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
-> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
-> @@ -365,7 +365,7 @@ static int mmpcam_probe(struct platform_device *pdev)
->  	mcam->mipi_enabled = 0;
->  	mcam->lane = pdata->lane;
->  	mcam->chip_id = V4L2_IDENT_ARMADA610;
-> -	mcam->buffer_mode = B_DMA_sg;
-> +	mcam->buffer_mode = B_DMA_SG;
->  	spin_lock_init(&mcam->dev_lock);
->  	/*
->  	 * Get our I/O memory.
+>  config IR_RX51
+>  	tristate "Nokia N900 IR transmitter diode"
+> -	depends on OMAP_DM_TIMER && LIRC && !ARCH_MULTIPLATFORM
+> +	depends on OMAP_DM_TIMER && ARCH_OMAP2PLUS && LIRC && !ARCH_MULTIPLATFORM
+>  	---help---
+>  	   Say Y or M here if you want to enable support for the IR
+>  	   transmitter diode built in the Nokia N900 (RX51) device.
 > -- 
-> 1.7.9.5
+> 1.8.1.2
 > 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
