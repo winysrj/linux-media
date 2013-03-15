@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:49076 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757044Ab3CTBKd (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:46928 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754389Ab3COSJl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 21:10:33 -0400
+	Fri, 15 Mar 2013 14:09:41 -0400
 MIME-Version: 1.0
-In-Reply-To: <20130318171140.4f5fddbc@redhat.com>
-References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
-	<1361945213-4280-2-git-send-email-andrew.smirnov@gmail.com>
-	<20130318171140.4f5fddbc@redhat.com>
-Date: Tue, 19 Mar 2013 18:10:32 -0700
-Message-ID: <CAHQ1cqHviVN1cwTYvG7AuF4Fqj86LWvwxnGKT0hUVfearoOwCw@mail.gmail.com>
-Subject: Re: [PATCH v7 1/9] mfd: Add commands abstraction layer for SI476X MFD
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, sameo@linux.intel.com,
-	sam@ravnborg.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
+In-Reply-To: <201303151128.48432.arnd@arndb.de>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <20130314140631.GM1906@pengutronix.de> <CAHkwnC9nGsdgOTQZ6VpeDyPWXw7tpP+2oHvnLv6LEr1cNdnrsg@mail.gmail.com>
+ <201303151128.48432.arnd@arndb.de>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Fri, 15 Mar 2013 19:09:18 +0100
+Message-ID: <CAHkwnC_4kVGcs03_6RVNrye21aUHsCWf9rQe=2JP_Nkjk8Yczw@mail.gmail.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-ide <linux-ide@vger.kernel.org>,
+	lm-sensors <lm-sensors@lm-sensors.org>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	H Hartley Sweeten <hsweeten@visionengravers.com>,
+	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 18, 2013 at 1:11 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em Tue, 26 Feb 2013 22:06:45 -0800
-> Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
+On Fri, Mar 15, 2013 at 12:28 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 15 March 2013, Fabio Porcedda wrote:
+>> >> * Regarding the use of module_platform_driver_probe, I'm a little worried about
+>> >>   the interactions with deferred probing. I don't think there are any regressions,
+>> >>   but we should probably make people aware that one cannot return -EPROBE_DEFER
+>> >>   from a platform_driver_probe function.
+>>
+>> The use of module_platform_driver_probe() doesn't change anything about that,
+>> it's exactly the same thing as using "return platform_driver_probe()".
+>> I'm right or I'm missing something? Maybe are you just speaking about
+>> the misuse of "platform_driver_probe"?
 >
->> This patch adds all the functions used for exchanging commands with
->> the chip.
->
-> Please run checkpatch.pl over those patches. There are a number of compliants
-> on those patches:
->
+> Yes, that was what I meant. The point is that if we need to review or remove
+> all uses of platform_driver_probe, it would be better not to introduce a
+> module_platform_driver_probe() interface to make it easier to use.
 
-OK, will do shortly and send updated patch-set.
+Just to let you know, the module_platform_driver_probe() macro is
+already in v3.9-rc1 and is already used by some drivers.
+In linux-next there are already many patches that use that macro.
 
-> WARNING: line over 80 characters
-> #328: FILE: drivers/mfd/si476x-cmd.c:298:
-> +       err = si476x_core_i2c_xfer(core, SI476X_I2C_SEND, (char *) data, argn + 1);
->
-> WARNING: line over 80 characters
-> #378: FILE: drivers/mfd/si476x-cmd.c:348:
-> +               dev_err(&core->client->dev, "[CMD 0x%02x] Chip set error flag\n", command);
->
-
-I do have a question about this particular warning though. Weird
-indentation that I had to use in order to calm checkpatch.pl about
-that issue has been a topic of discussion and complaints once
-already(see https://lkml.org/lkml/2012/9/21/67) To my understanding
-the consensus was as far as it improves readability > 80 character
-lines are OK. What would you like me do with those extra long lines
-ignore all/fix all/use discretion and fix some?
+Best regards
+--
+Fabio Porcedda
