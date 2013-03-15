@@ -1,143 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33326 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030Ab3CRXTT (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:55473 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932531Ab3COV2G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 19:19:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 4/6] v4l2: add const to argument of write-only s_register ioctl.
-Date: Tue, 19 Mar 2013 00:20 +0100
-Message-ID: <3012858.ncv28K4OCe@avalon>
-In-Reply-To: <1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
-References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl> <1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 15 Mar 2013 17:28:06 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v6 6/7] imx074: support asynchronous probing
+Date: Fri, 15 Mar 2013 22:27:52 +0100
+Message-Id: <1363382873-20077-7-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Both synchronous and asynchronous imx074 subdevice probing is supported by
+this patch.
 
-Thanks for the patch.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-On Monday 18 March 2013 15:12:03 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This ioctl is defined as IOW, so pass the argument as const.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+v6: update to new v4l2-async API, use soc_camera_power_init()
 
-[snip]
+ drivers/media/i2c/soc_camera/imx074.c |   24 +++++++++++++++++++++---
+ 1 files changed, 21 insertions(+), 3 deletions(-)
 
-> diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c
-> b/drivers/media/pci/ivtv/ivtv-ioctl.c index 080f179..15e08aa 100644
-> --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-> +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-> @@ -711,49 +711,50 @@ static int ivtv_g_chip_ident(struct file *file, void
-> *fh, struct v4l2_dbg_chip_i }
-> 
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> -static int ivtv_itvc(struct ivtv *itv, unsigned int cmd, void *arg)
-> +static volatile u8 __iomem *ivtv_itvc_start(struct ivtv *itv,
-> +		const struct v4l2_dbg_register *regs)
-
-I haven't changed my mind since v1, I still don't think you need a volatile 
-here :-)
-
->  {
-> -	struct v4l2_dbg_register *regs = arg;
-> -	volatile u8 __iomem *reg_start;
-> -
-> -	if (!capable(CAP_SYS_ADMIN))
-> -		return -EPERM;
->  	if (regs->reg >= IVTV_REG_OFFSET && regs->reg < IVTV_REG_OFFSET +
-> IVTV_REG_SIZE) -		reg_start = itv->reg_mem - IVTV_REG_OFFSET;
-> -	else if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
-> +		return itv->reg_mem - IVTV_REG_OFFSET;
-> +	if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
->  			regs->reg < IVTV_DECODER_OFFSET + IVTV_DECODER_SIZE)
-> -		reg_start = itv->dec_mem - IVTV_DECODER_OFFSET;
-> -	else if (regs->reg < IVTV_ENCODER_SIZE)
-> -		reg_start = itv->enc_mem;
-> -	else
-> -		return -EINVAL;
-> -
-> -	regs->size = 4;
-> -	if (cmd == VIDIOC_DBG_G_REGISTER)
-> -		regs->val = readl(regs->reg + reg_start);
-> -	else
-> -		writel(regs->val, regs->reg + reg_start);
-> -	return 0;
-> +		return itv->dec_mem - IVTV_DECODER_OFFSET;
-> +	if (regs->reg < IVTV_ENCODER_SIZE)
-> +		return itv->enc_mem;
-> +	return NULL;
->  }
-> 
->  static int ivtv_g_register(struct file *file, void *fh, struct
-> v4l2_dbg_register *reg) {
->  	struct ivtv *itv = fh2id(fh)->itv;
-> 
-> -	if (v4l2_chip_match_host(&reg->match))
-> -		return ivtv_itvc(itv, VIDIOC_DBG_G_REGISTER, reg);
-> +	if (v4l2_chip_match_host(&reg->match)) {
-> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
-> +
-> +		if (reg_start == NULL)
-> +			return -EINVAL;
-> +		reg->size = 4;
-> +		reg->val = readl(reg->reg + reg_start);
-> +		return 0;
-> +	}
->  	/* TODO: subdev errors should not be ignored, this should become a
->  	   subdev helper function. */
->  	ivtv_call_all(itv, core, g_register, reg);
->  	return 0;
->  }
-> 
-> -static int ivtv_s_register(struct file *file, void *fh, struct
-> v4l2_dbg_register *reg) +static int ivtv_s_register(struct file *file, void
-> *fh, const struct v4l2_dbg_register *reg) {
->  	struct ivtv *itv = fh2id(fh)->itv;
-> 
-> -	if (v4l2_chip_match_host(&reg->match))
-> -		return ivtv_itvc(itv, VIDIOC_DBG_S_REGISTER, reg);
-> +	if (v4l2_chip_match_host(&reg->match)) {
-> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
-> +
-> +		if (reg_start == NULL)
-> +			return -EINVAL;
-> +		writel(reg->val, reg->reg + reg_start);
-> +		return 0;
-> +	}
->  	/* TODO: subdev errors should not be ignored, this should become a
->  	   subdev helper function. */
->  	ivtv_call_all(itv, core, s_register, reg);
-
+diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+index cee5345..74a5c3a 100644
+--- a/drivers/media/i2c/soc_camera/imx074.c
++++ b/drivers/media/i2c/soc_camera/imx074.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ 
+ #include <media/soc_camera.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -79,6 +80,7 @@ struct imx074 {
+ 	struct v4l2_subdev		subdev;
+ 	const struct imx074_datafmt	*fmt;
+ 	struct v4l2_clk			*clk;
++	struct v4l2_async_subdev_list	asdl;
+ };
+ 
+ static const struct imx074_datafmt imx074_colour_fmts[] = {
+@@ -455,14 +457,28 @@ static int imx074_probe(struct i2c_client *client,
+ 
+ 	priv->fmt	= &imx074_colour_fmts[0];
+ 
++	priv->asdl.subdev = &priv->subdev;
++	priv->asdl.dev = &client->dev;
++
+ 	priv->clk = v4l2_clk_get(&priv->subdev, "mclk");
+-	if (IS_ERR(priv->clk))
+-		return PTR_ERR(priv->clk);
++	if (IS_ERR(priv->clk)) {
++		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv->clk));
++		return -EPROBE_DEFER;
++	}
++
++	ret = soc_camera_power_init(&client->dev, ssdd);
++	if (ret < 0)
++		goto epwrinit;
+ 
+ 	ret = imx074_video_probe(client);
+ 	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
++		goto eprobe;
+ 
++	return v4l2_async_subdev_register(&priv->asdl);
++
++epwrinit:
++eprobe:
++	v4l2_clk_put(priv->clk);
+ 	return ret;
+ }
+ 
+@@ -471,7 +487,9 @@ static int imx074_remove(struct i2c_client *client)
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct imx074 *priv = to_imx074(client);
+ 
++	v4l2_async_subdev_unregister(&priv->asdl);
+ 	v4l2_clk_put(priv->clk);
++
+ 	if (ssdd->free_bus)
+ 		ssdd->free_bus(ssdd);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
