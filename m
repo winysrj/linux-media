@@ -1,80 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62973 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754780Ab3CLJjS (ORCPT
+Received: from mail-qe0-f48.google.com ([209.85.128.48]:60160 "EHLO
+	mail-qe0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753979Ab3COTWW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 05:39:18 -0400
-Date: Tue, 12 Mar 2013 10:39:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Christoph Fritz <chf.fritz@googlemail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	"Hans J. Koch" <hjk@hansjkoch.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2] media: i.MX27 camera: fix picture source width
-In-Reply-To: <CACKLOr2oFe-ME47UV_Osme4=-7nErYts6UpE8dCAN2E2Yi+q0A@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1303121031200.680@axis700.grange>
-References: <1360948121.29406.15.camel@mars> <20130215172452.GA27113@kroah.com>
- <1361009964.5028.3.camel@mars> <Pine.LNX.4.64.1303051845060.25837@axis700.grange>
- <CACKLOr0smOW2cukSmeoexq3=b=dpGw=CDO3qo=gGm4+28iwb8Q@mail.gmail.com>
- <Pine.LNX.4.64.1303120847480.680@axis700.grange> <1363076713.3873.21.camel@mars>
- <CACKLOr2oFe-ME47UV_Osme4=-7nErYts6UpE8dCAN2E2Yi+q0A@mail.gmail.com>
+	Fri, 15 Mar 2013 15:22:22 -0400
+Received: by mail-qe0-f48.google.com with SMTP id 9so2123093qea.7
+        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2013 12:22:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <d5e07f9e-2bc6-4684-b00e-ea8ffbd556b9@zimbra.mdabbs.org>
+References: <CAGoCfixans=6fOCDivGFw1yauOp-J9mrg3G+ENV5B4a7j_FfZQ@mail.gmail.com>
+	<d5e07f9e-2bc6-4684-b00e-ea8ffbd556b9@zimbra.mdabbs.org>
+Date: Fri, 15 Mar 2013 15:22:18 -0400
+Message-ID: <CAGoCfiwM4NKO8qhBswWmYDtMFyF0PkQ0S7k-rn=5vGooOD5y=w@mail.gmail.com>
+Subject: Re: DVB memory leak?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Moasat <moasat@moasat.dyndns.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 12 Mar 2013, javier Martin wrote:
+On Fri, Mar 15, 2013 at 2:45 PM, Moasat <moasat@moasat.dyndns.org> wrote:
+> Thanks for looking into it.  It wouldn't surprise me to find out that Myth is not checking the error condition.  But even if it did, would that keep the card functioning?
 
-> Hi Guernnadi, Christoph,
-> 
-> On 12 March 2013 09:25, Christoph Fritz <chf.fritz@googlemail.com> wrote:
-> > On Tue, 2013-03-12 at 08:58 +0100, Guennadi Liakhovetski wrote:
-> >> On Thu, 7 Mar 2013, javier Martin wrote:
-> >
-> >> > What mbus format are you using? Could you please check if the s_width
-> >> > value that your sensor mt9m001 returns is correct? Remember it should
-> >> > be in pixels, not in bytes.
-> >>
-> >> Thanks for looking at this. But here's my question: for a pass-through
-> >> mode mx2_camera uses a 16-bpp (RGB565) format. But what if it's actually
-> >> an 8-bpp format, don't you then have to adjust line-width register
-> >> settings? If you don't do that, the camera interface would expect a double
-> >> number of bytes per line, so, it could get confused by HSYNC coming after
-> >> half-line?
-> 
-> You are right.
-> 
-> > To emphasize this: I'm using here a mt9m001 (monochrome) camera with an
-> > 8-bpp format.
-> 
-> Ok, now that makes sense.
-> 
-> Then, what you should do is apply your patch conditionally so that you
-> don't break other working cases:
-> - Channel 1 is being used.
-> - Channel 1 is in pass-through mode.
+No, it would not keep the card functioning.  But you would at least
+not get zero length recordings and instead you would get an error that
+something went wrong and that action was required.
 
-which would be
+The underlying problem of course is the leak - the fact that MythTV
+doesn't tell you something went wrong just exacerbates the problem.
 
-	if (!prp->in_fmt && !prp->out_fmt)
+Devin
 
-> - The sensor uses an 8-bpp format.
-
-No, the format in unimportant - you pretend to use a 16-bit format, so, 
-your "simulated" line is always bytesperline / 2 pseudo-pixels long. 
-Christoph, in your next comment please add a comment something like
-
-	/*
-	 * In pass-through we configure EMMA with a 16-bpp format,
-	 * set the line-width accordingly.
-	 */
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
