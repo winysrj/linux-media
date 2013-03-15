@@ -1,93 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f178.google.com ([209.85.215.178]:45209 "EHLO
-	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753624Ab3CXMzX (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:58466 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932657Ab3COV2Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 08:55:23 -0400
-Received: by mail-ea0-f178.google.com with SMTP id g14so2012276eak.23
-        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 05:55:22 -0700 (PDT)
-Message-ID: <514EF7F2.9000405@googlemail.com>
-Date: Sun, 24 Mar 2013 13:56:18 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 5/5] em28xx: write output frame resolution to regs
- 0x34+0x35 for em25xx family bridges
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com> <1364059632-29070-6-git-send-email-fschaefer.oss@googlemail.com> <20130324084436.76968b9e@redhat.com>
-In-Reply-To: <20130324084436.76968b9e@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 15 Mar 2013 17:28:16 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v6 7/7] ARM: shmobile: convert ap4evb to asynchronously register camera subdevices
+Date: Fri, 15 Mar 2013 22:27:53 +0100
+Message-Id: <1363382873-20077-8-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 24.03.2013 12:44, schrieb Mauro Carvalho Chehab:
-> Em Sat, 23 Mar 2013 18:27:12 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> The Windows driver writes the output resolution to registers 0x34 (width / 16)
->> and 0x35 (height / 16) always.
->> We don't know yet what these registers are used for.
->>
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
->>  drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
->>  2 Dateien geändert, 13 Zeilen hinzugefügt(+)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
->> index 7b9f76b..0ce6b0f 100644
->> --- a/drivers/media/usb/em28xx/em28xx-core.c
->> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->> @@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
->>  	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
->>  	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
->>  	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
->> +
->> +	if (dev->is_em25xx) {
->> +		em28xx_write_reg(dev, 0x34, width >> 4);
->> +		em28xx_write_reg(dev, 0x35, height >> 4);
->> +	}
->> +	/* FIXME: function/meaning of these registers ? */
->> +	/* FIXME: align width+height to multiples of 4 ?! */
-> Please move those comments to be _before_ the code you're commenting.
->
-> E. g. something like:
->
-> 	if (dev->is_em25xx) {
-> 		/*
-> 		 * FIXME:
->  		 *	- function/meaning of these registers are unknown;
-> 		 *	- align width+height to multiples of 4 ?! 
-> 		 */
-> 		em28xx_write_reg(dev, 0x34, width >> 4);
-> 		em28xx_write_reg(dev, 0x35, height >> 4);
-> 	}
+Register the imx074 camera I2C and the CSI-2 platform devices directly
+in board platform data instead of letting the sh_mobile_ceu_camera driver
+and the soc-camera framework register them at their run-time. This uses
+the V4L2 asynchronous subdevice probing capability.
 
-Ok, no problem.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Frank
+v6: no change
 
->
->>  }
->>  
->>  static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
->> diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
->> index 1b0ecd6..e08982a 100644
->> --- a/drivers/media/usb/em28xx/em28xx-reg.h
->> +++ b/drivers/media/usb/em28xx/em28xx-reg.h
->> @@ -167,6 +167,12 @@
->>  
->>  #define EM28XX_R34_VBI_START_H	0x34
->>  #define EM28XX_R35_VBI_START_V	0x35
->> +/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
->> + * registers for a different unknown purpose.
->> + *   => register 0x34 is set to capture width / 16
->> + *   => register 0x35 is set to capture height / 16
->> + */
->> +
->>  #define EM28XX_R36_VBI_WIDTH	0x36
->>  #define EM28XX_R37_VBI_HEIGHT	0x37
->>  
->
+ arch/arm/mach-shmobile/board-ap4evb.c |  103 +++++++++++++++++++-------------
+ arch/arm/mach-shmobile/clock-sh7372.c |    1 +
+ 2 files changed, 62 insertions(+), 42 deletions(-)
+
+diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+index 38f1259..450e06b 100644
+--- a/arch/arm/mach-shmobile/board-ap4evb.c
++++ b/arch/arm/mach-shmobile/board-ap4evb.c
+@@ -50,6 +50,7 @@
+ #include <media/sh_mobile_ceu.h>
+ #include <media/sh_mobile_csi2.h>
+ #include <media/soc_camera.h>
++#include <media/v4l2-async.h>
+ 
+ #include <sound/sh_fsi.h>
+ #include <sound/simple_card.h>
+@@ -871,22 +872,32 @@ static struct platform_device leds_device = {
+ 	},
+ };
+ 
+-static struct i2c_board_info imx074_info = {
+-	I2C_BOARD_INFO("imx074", 0x1a),
++/* I2C */
++static struct soc_camera_subdev_desc imx074_desc;
++static struct i2c_board_info i2c0_devices[] = {
++	{
++		I2C_BOARD_INFO("ak4643", 0x13),
++	}, {
++		I2C_BOARD_INFO("imx074", 0x1a),
++		.platform_data = &imx074_desc,
++	},
+ };
+ 
+-static struct soc_camera_link imx074_link = {
+-	.bus_id		= 0,
+-	.board_info	= &imx074_info,
+-	.i2c_adapter_id	= 0,
+-	.module_name	= "imx074",
++static struct i2c_board_info i2c1_devices[] = {
++	{
++		I2C_BOARD_INFO("r2025sd", 0x32),
++	},
+ };
+ 
+-static struct platform_device ap4evb_camera = {
+-	.name   = "soc-camera-pdrv",
+-	.id     = 0,
+-	.dev    = {
+-		.platform_data = &imx074_link,
++static struct resource csi2_resources[] = {
++	{
++		.name	= "CSI2",
++		.start	= 0xffc90000,
++		.end	= 0xffc90fff,
++		.flags	= IORESOURCE_MEM,
++	}, {
++		.start	= intcs_evt2irq(0x17a0),
++		.flags  = IORESOURCE_IRQ,
+ 	},
+ };
+ 
+@@ -895,7 +906,7 @@ static struct sh_csi2_client_config csi2_clients[] = {
+ 		.phy		= SH_CSI2_PHY_MAIN,
+ 		.lanes		= 0,		/* default: 2 lanes */
+ 		.channel	= 0,
+-		.pdev		= &ap4evb_camera,
++		.name		= "imx074",
+ 	},
+ };
+ 
+@@ -906,31 +917,50 @@ static struct sh_csi2_pdata csi2_info = {
+ 	.flags		= SH_CSI2_ECC | SH_CSI2_CRC,
+ };
+ 
+-static struct resource csi2_resources[] = {
+-	[0] = {
+-		.name	= "CSI2",
+-		.start	= 0xffc90000,
+-		.end	= 0xffc90fff,
+-		.flags	= IORESOURCE_MEM,
++static struct platform_device csi2_device = {
++	.name		= "sh-mobile-csi2",
++	.id		= 0,
++	.num_resources	= ARRAY_SIZE(csi2_resources),
++	.resource	= csi2_resources,
++	.dev		= {
++		.platform_data = &csi2_info,
+ 	},
+-	[1] = {
+-		.start	= intcs_evt2irq(0x17a0),
+-		.flags  = IORESOURCE_IRQ,
++};
++
++static struct soc_camera_async_subdev csi2_sd = {
++	.asd.hw = {
++		.bus_type = V4L2_ASYNC_BUS_PLATFORM,
++		.match.platform.name = "sh-mobile-csi2.0",
+ 	},
++	.role = SOCAM_SUBDEV_DATA_PROCESSOR,
+ };
+ 
+-static struct sh_mobile_ceu_companion csi2 = {
+-	.id		= 0,
+-	.num_resources	= ARRAY_SIZE(csi2_resources),
+-	.resource	= csi2_resources,
+-	.platform_data	= &csi2_info,
++static struct soc_camera_async_subdev imx074_sd = {
++	.asd.hw = {
++		.bus_type = V4L2_ASYNC_BUS_I2C,
++		.match.i2c = {
++			.adapter_id = 0,
++			.address = 0x1a,
++		},
++	},
++	.role = SOCAM_SUBDEV_DATA_SOURCE,
+ };
+ 
++static struct v4l2_async_subdev *ceu_subdevs[] = {
++	/* Single 2-element group */
++	&csi2_sd.asd,
++	&imx074_sd.asd,
++};
++
++/* 0-terminated array of group-sizes */
++static int ceu_subdev_sizes[] = {ARRAY_SIZE(ceu_subdevs), 0};
++
+ static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+ 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+ 	.max_width = 8188,
+ 	.max_height = 8188,
+-	.csi2 = &csi2,
++	.asd = ceu_subdevs,
++	.asd_sizes = ceu_subdev_sizes,
+ };
+ 
+ static struct resource ceu_resources[] = {
+@@ -975,7 +1005,7 @@ static struct platform_device *ap4evb_devices[] __initdata = {
+ 	&lcdc_device,
+ 	&lcdc1_device,
+ 	&ceu_device,
+-	&ap4evb_camera,
++	&csi2_device,
+ 	&meram_device,
+ };
+ 
+@@ -1070,19 +1100,6 @@ static struct i2c_board_info tsc_device = {
+ 	/*.irq is selected on ap4evb_init */
+ };
+ 
+-/* I2C */
+-static struct i2c_board_info i2c0_devices[] = {
+-	{
+-		I2C_BOARD_INFO("ak4643", 0x13),
+-	},
+-};
+-
+-static struct i2c_board_info i2c1_devices[] = {
+-	{
+-		I2C_BOARD_INFO("r2025sd", 0x32),
+-	},
+-};
+-
+ 
+ #define GPIO_PORT9CR	IOMEM(0xE6051009)
+ #define GPIO_PORT10CR	IOMEM(0xE605100A)
+@@ -1097,6 +1114,7 @@ static void __init ap4evb_init(void)
+ 		{ "A3SP", &sdhi0_device, },
+ 		{ "A3SP", &sdhi1_device, },
+ 		{ "A4R", &ceu_device, },
++		{ "A4R", &csi2_device, },
+ 	};
+ 	u32 srcr4;
+ 	struct clk *clk;
+@@ -1324,6 +1342,7 @@ static void __init ap4evb_init(void)
+ 	sh7372_pm_init();
+ 	pm_clk_add(&fsi_device.dev, "spu2");
+ 	pm_clk_add(&lcdc1_device.dev, "hdmi");
++	pm_clk_add(&csi2_device.dev, "csir");
+ }
+ 
+ MACHINE_START(AP4EVB, "ap4evb")
+diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
+index 45d21fe..2e8cb42 100644
+--- a/arch/arm/mach-shmobile/clock-sh7372.c
++++ b/arch/arm/mach-shmobile/clock-sh7372.c
+@@ -617,6 +617,7 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_ICK_ID("divb", "sh_fsi2", &fsidivs[FSIDIV_B]),
+ 	CLKDEV_ICK_ID("xcka", "sh_fsi2", &fsiack_clk),
+ 	CLKDEV_ICK_ID("xckb", "sh_fsi2", &fsibck_clk),
++	CLKDEV_ICK_ID("csir", "sh-mobile-csi2.0", &div4_clks[DIV4_CSIR]),
+ };
+ 
+ void __init sh7372_clock_init(void)
+-- 
+1.7.2.5
 
