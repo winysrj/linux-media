@@ -1,86 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3161 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1160999Ab3CVQiW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 12:38:22 -0400
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.10] au0828 driver overhaul
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Fri, 22 Mar 2013 17:38:16 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from ct35.7wei.com ([199.192.200.35]:35728 "EHLO ct35.911domain.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755375Ab3COS5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Mar 2013 14:57:24 -0400
+Date: Fri, 15 Mar 2013 12:45:39 -0600 (CST)
+From: Moasat <moasat@moasat.dyndns.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: DVB memory leak?
+Message-ID: <d5e07f9e-2bc6-4684-b00e-ea8ffbd556b9@zimbra.mdabbs.org>
+In-Reply-To: <CAGoCfixans=6fOCDivGFw1yauOp-J9mrg3G+ENV5B4a7j_FfZQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303221738.16145.hverkuil@xs4all.nl>
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+>From: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+>To: moasat@moasat.dyndns.org
+>Cc: linux-media@vger.kernel.org
+>Sent: Friday, March 15, 2013 11:06:28 AM
+>Subject: Re: DVB memory leak?
+>
+>On Fri, Mar 15, 2013 at 11:19 AM,  <moasat@moasat.dyndns.org> wrote:
+>> I've been fighting a situation where the kernel appears to be running out of memory over a period of time.  I originally had my >low address space reserve set to 4096 and memory compaction on.  I would get this error within a few days of reboot:
+>>
+>
+>There are probably a couple of different issues here.  It's possible
+>I've got a leak in the DVB side of the au0828 where we aren't properly
+>deallocating all the URBs.  Separate from that though, the allocation
+>failure should be returned up the stack and the application should
+>note the failure condition.  Either I've got a bug in the driver where
+>it doesn't get back to userland, or MythTV doesn't actually check the
+>error condition and report the failure.
+>
+>I've got some other fixes coming down the pipe for that driver.  Will
+>take a look over the next couple of weeks and see if I can spot the
+>leak.
 
-This pull request converts the au0828/au8522 drivers to the latest frameworks,
-except for vb2 as usual.
+Thanks for looking into it.  It wouldn't surprise me to find out that Myth is not checking the error condition.  But even if it did, would that keep the card functioning?  As it is, the card is useless from this point on until I reboot.  I might have to just watch logs and schedule a reboot or something until something changes.  If I was convinced that reloading the module would work I would do just that but there are some dependencies that I haven't worked out yet.  I will probably try this at some point to keep from having to reboot the entire machine.
 
-Tested with a WinTV aero generously donated by Hauppauge some time ago.
+If there's something I can help with, let me know.  I have two of these devices in the machine right now.  I can isolate one of them to another machine for testing if it would help.  I've done some kernel module development in the past so I sort of know my way around if you need me to try a patch or something.
 
-I also did a lot of fixes in the disconnect handling and setting up the
-right routing/std information at the right time.
+Thanks!
 
-It works fine with qv4l2, but there is still a bug causing tvtime to fail.
-That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
-August last year, that broke g_tuner: after that 'signal' would always be 0
-and tvtime expects signal to be non-zero for a valid frequency. The signal
-field is set by the au8522, but g_tuner is only called for the tuner (well,
-also for au8522 but since the i2c gate is set for the tuner that won't do
-anything).
 
-I have a patch for that but I want to convert that to using an i2c mux instead.
-
-For the time being I'd like to get this merged since at least it is in a
-lot better shape.
-
-Note: this pull request sits on top of this 'const' pull request:
-
-http://patchwork.linuxtv.org/patch/17568/
-
-Regards,
-
-        Hans
-
-The following changes since commit 8bf1a5a826d06a9b6f65b3e8dffb9be59d8937c3:
-
-  v4l2-ioctl: add precision when printing names. (2013-03-22 11:59:21 +0100)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git au0828c
-
-for you to fetch changes up to fbb5b69d62a7eb9b1dc4783a52ebe45c850c510a:
-
-  au0828: improve firmware loading & locking. (2013-03-22 17:34:15 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (15):
-      au8522_decoder: convert to the control framework.
-      au0828: fix querycap.
-      au0828: frequency handling fixes.
-      au0828: fix intendation coding style issue.
-      au0828: fix audio input handling.
-      au0828: convert to the control framework.
-      au0828: add prio, control event and log_status support
-      au0828: add try_fmt_vbi support, zero vbi.reserved, pix.priv.
-      au0828: replace deprecated current_norm by g_std.
-      au8522_decoder: remove obsolete control ops.
-      au0828: fix disconnect sequence.
-      au0828: simplify i2c_gate_ctrl.
-      au0828: don't change global state information on open().
-      au0828: fix initial video routing.
-      au0828: improve firmware loading & locking.
-
- drivers/media/dvb-frontends/au8522_decoder.c |  123 ++++++++------------------
- drivers/media/dvb-frontends/au8522_priv.h    |    6 +-
- drivers/media/usb/au0828/au0828-core.c       |   61 +++++++++----
- drivers/media/usb/au0828/au0828-video.c      |  287 ++++++++++++++++++++++++++++++++++++------------------------
- drivers/media/usb/au0828/au0828.h            |    7 ++
- 5 files changed, 261 insertions(+), 223 deletions(-)
