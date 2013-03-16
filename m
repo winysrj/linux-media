@@ -1,63 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33088 "EHLO mail.kapsi.fi"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:42347 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752131Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 24/41] af9035: select firmware loader according to firmware
-Date: Sun, 10 Mar 2013 04:03:16 +0200
-Message-Id: <1362881013-5271-24-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S1753286Ab3CPSSh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Mar 2013 14:18:37 -0400
+Message-ID: <5144B7C0.1080402@schinagl.nl>
+Date: Sat, 16 Mar 2013 19:19:44 +0100
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Dmitry Katsubo <dmitry.katsubo@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvb-apps: Additional channels for Netherlands
+References: <513B4B24.5000605@gmail.com> <513DC999.2090203@schinagl.nl> <51425E3D.7080003@gmail.com> <51430F15.6090706@schinagl.nl> <51448C15.9090204@gmail.com>
+In-Reply-To: <51448C15.9090204@gmail.com>
+Content-Type: text/plain; charset=windows-1251; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-AF9035 and IT9135 supports two different firmware format. Select
-correct loader according to first byte of firmware file.
-
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index a220a12..0399062 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -344,7 +344,7 @@ err:
- 	return ret;
- }
- 
--static int af9035_download_firmware_af9035(struct dvb_usb_device *d,
-+static int af9035_download_firmware_old(struct dvb_usb_device *d,
- 		const struct firmware *fw)
- {
- 	int ret, i, j, len;
-@@ -430,7 +430,7 @@ err:
- 	return ret;
- }
- 
--static int af9035_download_firmware_it9135(struct dvb_usb_device *d,
-+static int af9035_download_firmware_new(struct dvb_usb_device *d,
- 		const struct firmware *fw)
- {
- 	int ret, i, i_prev;
-@@ -540,10 +540,10 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 		}
- 	}
- 
--	if (state->chip_type == 0x9135)
--		ret = af9035_download_firmware_it9135(d, fw);
-+	if (fw->data[0] == 0x01)
-+		ret = af9035_download_firmware_old(d, fw);
- 	else
--		ret = af9035_download_firmware_af9035(d, fw);
-+		ret = af9035_download_firmware_new(d, fw);
- 	if (ret < 0)
- 		goto err;
- 
--- 
-1.7.11.7
+On 16-03-13 16:13, Dmitry Katsubo wrote:
+> On 15.03.2013 13:07, Oliver Schinagl wrote:
+>>>> On 698 MHz we have NTS1 (Bouquet 2) which is on a code rate of 1/2.
+>>> Still I cannot make them working. More exactly:
+>>>
+>>> This works (722 MHz):
+>>> xine "dvb://Nederland 1"
+>>> xine "dvb://Nederland 2"
+>>> xine "dvb://Nederland 3"
+>>>
+>>> These do not (522 MHz and 698 MHz):
+>>> xine "dvb://Nickelodeon"
+>>> xine "dvb://RTL 4"
+>>> ...
+>>
+>> I don't 522 or 698 MHz, RTL4 is on 768 MHz here in Eindhoven.
+>>
+>> Try scanning with w_scan; wscan tells you exactly where what exactly 
+>> is. It can produce an inital scanning file. Send me and I'll fix it 
+>> up for you.
+> Thanks for hint. I have tried w_scan, it also does not show the signal 
+> level:
+>
+>     tune to: QAM_AUTO f = 722000 kHz I999B8C999D999T999G999Y999
+>     (time: 04:48)   service = Nederland 1 (Digitenne)
+>             service = Nederland 2 (Digitenne)
+>             service = Nederland 3 (Digitenne)
+>             service = TV West (Digitenne)
+>             service = Radio West (Digitenne)
+>             service = Radio 1 (Digitenne)
+>             service = Radio 2 (Digitenne)
+>             service = 3FM (Digitenne)
+>             service = Radio 4 (Digitenne)
+>             service = Radio 5 (Digitenne)
+>             service = Radio 6 (Digitenne)
+>             service = FunX (Digitenne)
+>             new transponder:
+>                (QAM_64   f = 546000 kHz I999B8C12D0T8G4Y0) 0x405A
+>             new transponder:
+>                (QAM_64   f = 490000 kHz I999B8C23D0T8G4Y0) 0x405A
+>             new transponder:
+>                (QAM_64   f = 474000 kHz I999B8C23D0T8G4Y0) 0x405A
+>             updating transponder:
+>                (QAM_64   f = 474000 kHz I999B8C23D0T8G4Y0) 0x405A
+>             to (QAM_64   f = 474000 kHz I999B8C12D0T8G4Y0) 0x405A
+>             new transponder:
+>                (QAM_64   f = 506000 kHz I999B8C12D0T8G4Y0) 0x405A
+>
+> I attach my channels.conf, generated by "scan" utility. It looks to be 
+> complete.
+>>> It can be the case the signal is better on 722 MHz... Could you share
+>>> your channels.conf? Are there any specific options you pass to scan
+>>> utility? But it's likely I need to buy better antenna. Can scan utility
+>>> show the signal level?
+>> Try tzap to tune to a channel, depending on your driver, it should 
+>> output some rudimentary signal strength.
+> tzap shows something in column "signal" but it is so cryptic:
+Yes, signal strenght isn't the best to read, but let it run for a little 
+bit. Your ber isn't great but you have unc's UNC = Unrecoverable Error. 
+This can usually be seen on screen or heard. unc should be 0 for 
+'perfect' image. So it looks like a bad signal reception to me, which 
+could be the reason you are not receiving everything.
+>
+>     $ tzap -c channels.conf "Nederland 1"
+>     using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>     reading channels from file 'channels.conf'
+>     tuning to 722000000 Hz
+>     video pid 0x1b63, audio pid 0x1b64
+>     status 0f | signal 8f7d | snr 006e | ber 001fffff | unc 0000010a |
+>     status 1f | signal 8e9f | snr 007b | ber 000a5010 | unc 0000000c |
+>     FE_HAS_LOCK
+>     status 1f | signal 8e2e | snr 0078 | ber 00084ed0 | unc 00000005 |
+>     FE_HAS_LOCK
+>
+>> Signal is indeed important, Remember that RTL4 etc are all encrypted 
+>> and need  a hardware cam or softcam (oscam) to properly work.
+> Now I see! What channels are open? For example, are "Nickelodeon" and 
+> "Investigation Discovery" opened? What about radio (BBC/Radio West/...)?
+Nou, only Boequet 1 is Free to Air, that is NL1, NL2, NL3 and Omroep 
+West in your case. The rest is all encrypted!
+>
+> I have found a description about how to watch encrypted DVB-T 
+> broadcasts in the Netherlands 
+> <https://wiki.archlinux.org/index.php/Digitenne> and also good oscam 
+> tips <http://openpli.org/wiki/OScam>. The first one reads that I need 
+> smartreader + Digitenne smartcard. I see that smartcards are sold on 
+> marktplaats for ˆ10 
+> <http://www.marktplaats.nl/z/audio-tv-en-foto/smartcard-digitenne.html?query=smartcard+digitenne&categoryId=31&numberOfResultsPerPage=100>. 
+> Digitenne claims that there are these channels available:
+>
+> but I don't see even half of them in my channels list. In general 
+> that's is a big challenge to make it running on Linux. Perhaps buying 
+> a receiver is easier. Have you any experience?
+Answering this off list, as its too offtopic.
+>
+> Thanks!
+> -- 
+> With best regards,
+> Dmitry
 
