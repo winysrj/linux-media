@@ -1,75 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:57409 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751552Ab3CIWEr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 17:04:47 -0500
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1UERt2-0003A1-92
-	for linux-media@vger.kernel.org; Sat, 09 Mar 2013 23:05:05 +0100
-Received: from d173-181-122-224.abhsia.telus.net ([173.181.122.224])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 09 Mar 2013 23:05:04 +0100
-Received: from dixonjnk by d173-181-122-224.abhsia.telus.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 09 Mar 2013 23:05:04 +0100
-To: linux-media@vger.kernel.org
-From: Dixon Craig <dixonjnk@gmail.com>
-Subject: cannot unload =?utf-8?b?Y3gxOF9hbHNh?= to hibernate Mint13 64 computer
-Date: Sat, 9 Mar 2013 21:57:48 +0000 (UTC)
-Message-ID: <loom.20130309T225537-954@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:35520 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981Ab3CPIg4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Mar 2013 04:36:56 -0400
+Received: by mail-wi0-f175.google.com with SMTP id l13so1175021wie.8
+        for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 01:36:54 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1363079692-16683-1-git-send-email-nsekhar@ti.com>
+References: <513EE45E.6050004@ti.com> <1363079692-16683-1-git-send-email-nsekhar@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 16 Mar 2013 14:06:34 +0530
+Message-ID: <CA+V-a8v2-yGsfs_PXsq1OmcJmfYZzcjP2nO5DubdE_TLfghQ8g@mail.gmail.com>
+Subject: Re: [PATCH v3] media: davinci: kconfig: fix incorrect selects
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello and thank you to all linuxtv developers!
+Hi Sekhar,
 
-I have my hauppuage pvr-1600 working very nicely for us-cable analog and 
-composite inputs using cx18 from original linuxmint 13 MATE 64 and I also tried 
-newest drivers from git.linuxtv.org.
+Thanks for the patch!
 
-My problem is cx18_alsa prevents successful suspend to disk when I run hibernate 
-script.
+On Tue, Mar 12, 2013 at 2:44 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+> drivers/media/platform/davinci/Kconfig uses selects where
+> it should be using 'depends on'. This results in warnings of
+> the following sort when doing randconfig builds.
+>
+> warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
+>
+> The VPIF kconfigs had a strange 'select' and 'depends on' cross
+> linkage which have been fixed as well by removing unneeded
+> VIDEO_DAVINCI_VPIF config symbol.
+>
+> Similarly, remove the unnecessary VIDEO_VPSS_SYSTEM and
+> VIDEO_VPFE_CAPTURE. They don't select any independent functionality
+> and were being used to manage code dependencies which can
+> be handled using makefile.
+>
+> Selecting video modules is now dependent on all ARCH_DAVINCI
+> instead of specific EVMs and SoCs earlier. This should help build
+> coverage. Remove unnecessary 'default y' for some config symbols.
+>
+> While at it, fix the Kconfig help text to make it more readable
+> and fix names of modules created during module build.
+>
+> Rename VIDEO_ISIF to VIDEO_DM365_ISIF as per suggestion from
+> Prabhakar.
+>
+> This patch has only been build tested; I have tried to not break
+> any existing assumptions. I do not have the setup to test video,
+> so any test reports welcome.
+>
+The series which I posted yesterday [1] for DM365 VPBE, uses a exported
+symbol 'vpss_enable_clock' so If I build vpbe as module it complains
+for following,
 
-I cannot unload module before hibernating because modprobe -r returns "FATAL: 
-Module cx18_alsa is in use." 
+arch/arm/mach-davinci/built-in.o: In function `dm365_venc_setup_clock':
+pm_domain.c:(.text+0x302c): undefined reference to `vpss_enable_clock'
+pm_domain.c:(.text+0x3038): undefined reference to `vpss_enable_clock'
+pm_domain.c:(.text+0x3060): undefined reference to `vpss_enable_clock'
+pm_domain.c:(.text+0x306c): undefined reference to `vpss_enable_clock'
 
-lsmod does not list dependancies but lists 1 in use. here is my lsmod output:
+So how would you suggest to handle this VPSS config ?
 
-dixon2@phenom ~ $ lsmod | grep cx
-cx18_alsa              13730  1 
-cx18                  131960  1 cx18_alsa
-dvb_core              105885  1 cx18
-cx2341x                28283  1 cx18
-i2c_algo_bit           13423  1 cx18
-videobuf_vmalloc       13589  1 cx18
-videobuf_core          26022  2 cx18,videobuf_vmalloc
-tveeprom               21249  1 cx18
-v4l2_common            21560  4 cs5345,tuner,cx18,cx2341x
-videodev              135159  5 cs5345,tuner,cx18,cx2341x,v4l2_common
-snd_pcm                97275  3 cx18_alsa,snd_hda_intel,snd_hda_codec
-snd                    79041  18 
-cx18_alsa,snd_hda_codec_via,snd_hda_intel,snd_hda_codec,snd_hwdep,snd_pcm,snd_ra
-wmidi,snd_seq,snd_timer,snd_seq_device
+[1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg25443.html
 
+Regards,
+--Prabhakar
 
-I have tried stopping all sound services (alsa-restore, alsa-store, and 
-pulseaudio) then running modprobe -r on all the above listed modules but they 
-all return the same "in use" error.
-
-I have tried Lubuntu 12.04 with the same hardware and nvidia graphics driver
-using same kernel 3.2.0-38 and I can successfully rmmod cx18_alsa and hibernate
-computer. In Lubuntu, lsmod reports cx18_alsa is used by "0" other modules and
-it rmmods without a problem.
-
-
-Is there any other trick I can use to remove cx18_alsa module from kernel?
-
-Thank you
-
-Dixon 
-
-
+> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
+> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
+> ---
+> Since v2, revisited config prompt texts and made them
+> more meaningful/consistent.
+>
+>  drivers/media/platform/davinci/Kconfig  |  103 +++++++++++--------------------
+>  drivers/media/platform/davinci/Makefile |   17 ++---
+>  2 files changed, 41 insertions(+), 79 deletions(-)
+>
+> diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
+> index ccfde4e..c50d31d 100644
+> --- a/drivers/media/platform/davinci/Kconfig
+> +++ b/drivers/media/platform/davinci/Kconfig
+> @@ -1,79 +1,47 @@
+>  config VIDEO_DAVINCI_VPIF_DISPLAY
+> -       tristate "DM646x/DA850/OMAPL138 EVM Video Display"
+> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+> +       tristate "TI DaVinci VPIF V4L2-Display driver"
+> +       depends on VIDEO_DEV && ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+> -       select VIDEO_DAVINCI_VPIF
+>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
+>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
+>         help
+>           Enables Davinci VPIF module used for display devices.
+> -         This module is common for following DM6467/DA850/OMAPL138
+> -         based display devices.
+> +         This module is used for display on TI DM6467/DA850/OMAPL138
+> +         SoCs.
+>
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif_display.
+> +         To compile this driver as a module, choose M here. There will
+> +         be two modules called vpif.ko and vpif_display.ko
+>
+>  config VIDEO_DAVINCI_VPIF_CAPTURE
+> -       tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
+> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
+> +       tristate "TI DaVinci VPIF video capture driver"
+> +       depends on VIDEO_DEV && ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+> -       select VIDEO_DAVINCI_VPIF
+>         help
+> -         Enables Davinci VPIF module used for captur devices.
+> -         This module is common for following DM6467/DA850/OMAPL138
+> -         based capture devices.
+> +         Enables Davinci VPIF module used for capture devices.
+> +         This module is used for capture on TI DM6467/DA850/OMAPL138
+> +         SoCs.
+>
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif_capture.
+> +         To compile this driver as a module, choose M here. There will
+> +         be two modules called vpif.ko and vpif_capture.ko
+>
+> -config VIDEO_DAVINCI_VPIF
+> -       tristate "DaVinci VPIF Driver"
+> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
+> -       help
+> -         Support for DaVinci VPIF Driver.
+> -
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpif.
+> -
+> -config VIDEO_VPSS_SYSTEM
+> -       tristate "VPSS System module driver"
+> -       depends on ARCH_DAVINCI
+> -       help
+> -         Support for vpss system module for video driver
+> -
+> -config VIDEO_VPFE_CAPTURE
+> -       tristate "VPFE Video Capture Driver"
+> +config VIDEO_DM6446_CCDC
+> +       tristate "TI DM6446 CCDC video capture driver"
+>         depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
+> -       depends on I2C
+>         select VIDEOBUF_DMA_CONTIG
+>         help
+> -         Support for DMx/AMx VPFE based frame grabber. This is the
+> -         common V4L2 module for following DMx/AMx SoCs from Texas
+> -         Instruments:- DM6446, DM365, DM355 & AM3517/05.
+> -
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called vpfe-capture.
+> -
+> -config VIDEO_DM6446_CCDC
+> -       tristate "DM6446 CCDC HW module"
+> -       depends on VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> -       help
+>            Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
+>            with decoder modules such as TVP5146 over BT656 or
+>            sensor module such as MT9T001 over a raw interface. This
+>            module configures the interface and CCDC/ISIF to do
+>            video frame capture from slave decoders.
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and dm644x_ccdc.ko
+>
+>  config VIDEO_DM355_CCDC
+> -       tristate "DM355 CCDC HW module"
+> -       depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> +       tristate "TI DM355 CCDC video capture driver"
+> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
+> +       select VIDEOBUF_DMA_CONTIG
+>         help
+>            Enables DM355 CCD hw module. DM355 CCDC hw interfaces
+>            with decoder modules such as TVP5146 over BT656 or
+> @@ -81,31 +49,30 @@ config VIDEO_DM355_CCDC
+>            module configures the interface and CCDC/ISIF to do
+>            video frame capture from a slave decoders
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and dm355_ccdc.ko
+>
+> -config VIDEO_ISIF
+> -       tristate "ISIF HW module"
+> -       depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
+> -       select VIDEO_VPSS_SYSTEM
+> -       default y
+> +config VIDEO_DM365_ISIF
+> +       tristate "TI DM365 ISIF video capture driver"
+> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
+> +       select VIDEOBUF_DMA_CONTIG
+>         help
+>            Enables ISIF hw module. This is the hardware module for
+> -          configuring ISIF in VPFE to capture Raw Bayer RGB data  from
+> +          configuring ISIF in VPFE to capture Raw Bayer RGB data from
+>            a image sensor or YUV data from a YUV source.
+>
+> -          To compile this driver as a module, choose M here: the
+> -          module will be called vpfe.
+> +          To compile this driver as a module, choose M here. There will
+> +          be three modules called vpfe_capture.ko, vpss.ko and isif.ko
+>
+>  config VIDEO_DAVINCI_VPBE_DISPLAY
+> -       tristate "DM644X/DM365/DM355 VPBE HW module"
+> -       depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365
+> -       select VIDEO_VPSS_SYSTEM
+> +       tristate "TI DaVinci VPBE V4L2-Display driver"
+> +       depends on ARCH_DAVINCI
+>         select VIDEOBUF2_DMA_CONTIG
+>         help
+>             Enables Davinci VPBE module used for display devices.
+> -           This module is common for following DM644x/DM365/DM355
+> +           This module is used for dipslay on TI DM644x/DM365/DM355
+>             based display devices.
+>
+> -           To compile this driver as a module, choose M here: the
+> -           module will be called vpbe.
+> +           To compile this driver as a module, choose M here. There will
+> +           be five modules created called vpss.ko, vpbe.ko, vpbe_osd.ko,
+> +           vpbe_venc.ko and vpbe_display.ko
+> diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
+> index f40f521..d74d9ee 100644
+> --- a/drivers/media/platform/davinci/Makefile
+> +++ b/drivers/media/platform/davinci/Makefile
+> @@ -2,19 +2,14 @@
+>  # Makefile for the davinci video device drivers.
+>  #
+>
+> -# VPIF
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
+> -
+>  #VPIF Display driver
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif_display.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif.o vpif_display.o
+>  #VPIF Capture driver
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif_capture.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif.o vpif_capture.o
+>
+>  # Capture: DM6446 and DM355
+> -obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
+> -obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
+> -obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
+> -obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+> -obj-$(CONFIG_VIDEO_ISIF) += isif.o
+> -obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpbe.o vpbe_osd.o \
+> +obj-$(CONFIG_VIDEO_DM6446_CCDC) += vpfe_capture.o vpss.o dm644x_ccdc.o
+> +obj-$(CONFIG_VIDEO_DM355_CCDC) += vpfe_capture.o vpss.o dm355_ccdc.o
+> +obj-$(CONFIG_VIDEO_DM365_ISIF) += vpfe_capture.o vpss.o isif.o
+> +obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpss.o vpbe.o vpbe_osd.o \
+>         vpbe_venc.o vpbe_display.o
+> --
+> 1.7.10.1
+>
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
