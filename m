@@ -1,54 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:65006 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475Ab3CAXLm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:42 -0500
-Received: by mail-ee0-f50.google.com with SMTP id e51so2830137eek.9
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:41 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 04/11] em28xx: do not interpret eeprom content if eeprom key is invalid
-Date: Sat,  2 Mar 2013 00:12:08 +0100
-Message-Id: <1362179535-18929-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:39388 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755333Ab3CPMSj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 Mar 2013 08:18:39 -0400
+Received: by mail-ve0-f175.google.com with SMTP id cy12so3229533veb.6
+        for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 05:18:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <097e3e28dc8fbe8105fa3b2a489e18a5c5eca7bb.1363342714.git.hans.verkuil@cisco.com>
+References: <9ae3227f74816dbf699bbc8b1ce6202a5de1582f.1363342714.git.hans.verkuil@cisco.com>
+	<1363343245-23531-1-git-send-email-hverkuil@xs4all.nl>
+	<097e3e28dc8fbe8105fa3b2a489e18a5c5eca7bb.1363342714.git.hans.verkuil@cisco.com>
+Date: Sat, 16 Mar 2013 16:18:38 +0400
+Message-ID: <CALW4P+KY8iXrVm5GEPQ=_8O2qYxOqStxE15_Gifo-Hwkuy=ozw@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 2/5] v4l2: add const to argument of write-only
+ s_tuner ioctl.
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Huang Shijie <shijie8@gmail.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Takashi Iwai <tiwai@suse.de>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the eeprom key isn't valid, either a different (currently unknown) format
-is used or the eeprom is corrupted.
-In both cases it doesn't make sense to interpret the data.
-Also print an error message.
+Hi Hans,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |    8 ++++++--
- 1 Datei geändert, 6 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+On Fri, Mar 15, 2013 at 2:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> This ioctl is defined as IOW, so pass the argument as const.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index d765567..9612086 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -434,8 +434,12 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 			printk("\n");
- 	}
- 
--	if (em_eeprom->id == 0x9567eb1a)
--		dev->hash = em28xx_hash_mem(eedata, len, 32);
-+	if (em_eeprom->id != 0x9567eb1a) {
-+		em28xx_errdev("Unknown eeprom type or eeprom corrupted !");
-+		return -ENODEV;
-+	}
-+
-+	dev->hash = em28xx_hash_mem(eedata, len, 32);
- 
- 	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
- 		    em_eeprom->id, dev->hash);
+[snip]
+
+>  drivers/media/radio/dsbr100.c                    |    2 +-
+
+>  drivers/media/radio/radio-ma901.c                |    2 +-
+
+>  drivers/media/radio/radio-mr800.c                |    2 +-
+
+Acked-by: Alexey Klimov <klimov.linux@gmail.com>
+
+for this three radio drivers.
+Thanks.
+
 -- 
-1.7.10.4
-
+Best regards, Klimov Alexey
