@@ -1,64 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51959 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab3CUMkl convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1354 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092Ab3CPT3s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 08:40:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>,
-	linux-media@vger.kernel.org
-Subject: Re: uvcvideo USERPTR mode busted?
-Date: Thu, 21 Mar 2013 13:41:25 +0100
-Message-ID: <151543510.hNXiaIfEAr@avalon>
-In-Reply-To: <CAGoCfixOsn4eTp7NYmJSK-LJTqF677LXf8fgTzrz4KFgPN7znw@mail.gmail.com>
-References: <201303031137.44917@leon.remlab.net> <CAGoCfixOsn4eTp7NYmJSK-LJTqF677LXf8fgTzrz4KFgPN7znw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Sat, 16 Mar 2013 15:29:48 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2GJTiid042940
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 20:29:46 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id EBA1511E0160
+	for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 20:29:43 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130316192943.EBA1511E0160@alastor.dyndns.org>
+Date: Sat, 16 Mar 2013 20:29:43 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 03 March 2013 09:57:14 Devin Heitmueller wrote:
-> On Sun, Mar 3, 2013 at 4:37 AM, Rémi Denis-Courmont <remi@remlab.net> wrote:
-> >         Hello,
-> > 
-> > Trying to use USERPTR buffers with UVC, user space gets stuck either in
-> > poll(POLLIN) or in ioctl(VIDIOC_DQBUF). It seems the UVC driver never ever
-> > returns a frame in USERPTR mode. The symptoms are identical with kernel
-> > versions 3.6, 3.7 and 3.8. I also tested 3.2, but it did not support
-> > USERPTR.
-> > 
-> > Tested hardware was Logitech HD Pro Webcam C920 with YUY2 pixel format.
-> > The same hardware and the same driver work fine with MMAP buffers.
-> > The same USERPTR userspace code works fine with the vivi test device...
-> > 
-> > Did any have any better luck?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I've just tested USERPTR with a Logitech C905 on a 3.7.10 kernel using yavta 
-without any issue.
+Results of the daily build of media_tree:
 
-> Hi Remi,
-> 
-> I've used userptr mode with the C920 on an ARM platform (with YUYV mode and
-> not MPEG).  It's worth noting that there is actually a bug I hit where if
-> the memory you pass is not aligned on a page boundary then you will get
-> garbage video.  I have a fix or this but haven't submitted it upstream yet.
+date:		Sat Mar 16 19:01:50 CET 2013
+git branch:	test
+git hash:	4d35435d3ffb853b491f5bb21a62529cd925d660
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-Please submit it at some point :-)
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Is it a uvcvideo issue or a videobuf2 issue ?
+Detailed results are available here:
 
-> So it should work, aside from the bug I found.
-> 
-> Have you tried testing with v42l-ctl's streaming command?  That would help
-> identify whether it's something special about your code or whether it's the
-> driver.  Don't get me wrong, it's almost certainly a driver issue in either
-> case, but it would help narrow down the issue if you're using v4l2-ctl as
-> that app is really simple and readily available to the driver developers.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-Regards,
+Full logs are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
