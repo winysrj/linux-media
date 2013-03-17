@@ -1,66 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:50716 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab3CHKWZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 05:22:25 -0500
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH] davinci: vpbe: fix module build
-Date: Fri,  8 Mar 2013 15:52:10 +0530
-Message-Id: <1362738130-24543-1-git-send-email-prabhakar.lad@ti.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2409 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756434Ab3CQT2K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Mar 2013 15:28:10 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2HJS6uQ065124
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 17 Mar 2013 20:28:09 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 8A1F611E0428
+	for <linux-media@vger.kernel.org>; Sun, 17 Mar 2013 20:28:05 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130317192805.8A1F611E0428@alastor.dyndns.org>
+Date: Sun, 17 Mar 2013 20:28:05 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-add a null entry in platform_device_id {}.
+Results of the daily build of media_tree:
 
-This patch fixes following error:
-drivers/media/platform/davinci/vpbe_venc: struct platform_device_id is 24 bytes.  The last of 3 is:
-0x64 0x6d 0x33 0x35 0x35 0x2c 0x76 0x70 0x62 0x65 0x2d 0x76 0x65 0x6e 0x63 0x00 0x00 0x00 0x00 0x00 0x03 0x00 0x00 0x00
-FATAL: drivers/media/platform/davinci/vpbe_venc: struct platform_device_id is not terminated with a NULL entry!
-make[1]: *** [__modpost] Error 1
+date:		Sun Mar 17 19:00:18 CET 2013
+git branch:	test
+git hash:	4d35435d3ffb853b491f5bb21a62529cd925d660
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
-Reported-by: Sekhar Nori <nsekhar@ti.com>
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_osd.c  |    3 +++
- drivers/media/platform/davinci/vpbe_venc.c |    3 +++
- 2 files changed, 6 insertions(+), 0 deletions(-)
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index 12ad17c..396a51c 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -52,6 +52,9 @@ static struct platform_device_id vpbe_osd_devtype[] = {
- 		.name = DM355_VPBE_OSD_SUBDEV_NAME,
- 		.driver_data = VPBE_VERSION_3,
- 	},
-+	{
-+		/* sentinel */
-+	}
- };
- 
- MODULE_DEVICE_TABLE(platform, vpbe_osd_devtype);
-diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-index bdbebd5..34c704b 100644
---- a/drivers/media/platform/davinci/vpbe_venc.c
-+++ b/drivers/media/platform/davinci/vpbe_venc.c
-@@ -51,6 +51,9 @@ static struct platform_device_id vpbe_venc_devtype[] = {
- 		.name = DM355_VPBE_VENC_SUBDEV_NAME,
- 		.driver_data = VPBE_VERSION_3,
- 	},
-+	{
-+		/* sentinel */
-+	}
- };
- 
- MODULE_DEVICE_TABLE(platform, vpbe_venc_devtype);
--- 
-1.7.4.1
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
