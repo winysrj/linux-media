@@ -1,65 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2426 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750732Ab3C0KU5 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1055 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756246Ab3CQOJa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 06:20:57 -0400
+	Sun, 17 Mar 2013 10:09:30 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 2/6] v4l2: add new VIDIOC_DBG_G_CHIP_NAME ioctl.
-Date: Wed, 27 Mar 2013 11:20:40 +0100
-Cc: linux-media@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Frank Schaefer <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl> <201303270941.33211.hverkuil@xs4all.nl> <3447822.JyctDNubxl@avalon>
-In-Reply-To: <3447822.JyctDNubxl@avalon>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [REVIEW PATCH] v4l2-ctrls: add V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER control
+Date: Sun, 17 Mar 2013 15:09:21 +0100
+Cc: Volokh Konstantin <volokh84@gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303271120.40328.hverkuil@xs4all.nl>
+Message-Id: <201303171509.21925.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed March 27 2013 11:11:53 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Wednesday 27 March 2013 09:41:33 Hans Verkuil wrote:
-> > On Wed March 27 2013 02:11:23 Laurent Pinchart wrote:
-> > > On Monday 18 March 2013 17:38:16 Hans Verkuil wrote:
-> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > 
-> > > > Simplify the debugging ioctls by creating the VIDIOC_DBG_G_CHIP_NAME
-> > > > ioctl. This will eventually replace VIDIOC_DBG_G_CHIP_IDENT. Chip
-> > > > matching is done by the name or index of subdevices or an index to a
-> > > > bridge chip. Most of this can all be done automatically, so most drivers
-> > > > just need to provide get/set register ops.
-> > > > 
-> > > > In particular, it is now possible to get/set subdev registers without
-> > > > requiring assistance of the bridge driver.
-> > > 
-> > > My biggest question is why don't we use the media controller API to get
-> > > the information provided by this new ioctl ?
-> > 
-> > Because the media controller is implemented by only a handful of drivers,
-> > and this debug API is used by many more drivers.
-> 
-> Shouldn't we then fix that instead of adding a new ioctl ?
+This new control determines whether video sequence headers in an MPEG elementary
+stream are repeated or not. Repeating them improves random access in the stream.
 
-Mauro was opposed to making the MC available for all drivers. So besides the
-technical issues which would take a lot of time (which I don't have), there is
-also a whole discussion about whether or not the MC should be there at all for
-'simple' drivers.
-
-My main goal at the moment is to make this API more powerful and simplify the
-drivers. It is also my intention to get rid of G_CHIP_IDENT as soon as possible.
-
-Should we get the MC available for all drivers in the future, then it should be
-quite easy to adapt the code to the MC once G_CHIP_IDENT has been removed.
-Consider this a first step into the right direction.
+Added this since the go7007 support this feature. I've checked the MPEG-1/2/4
+standards and it is a valid feature for all three.
 
 Regards,
 
 	Hans
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    6 ++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    2 ++
+ include/uapi/linux/v4l2-controls.h           |    1 +
+ 3 files changed, 9 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 9e8f854..b4952e2 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2300,6 +2300,12 @@ Possible values are:</entry>
+ 	      </row>
+ 	      <row><entry></entry></row>
+ 	      <row>
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER</constant>&nbsp;</entry>
++		<entry>boolean</entry>
++	      </row><row><entry spanname="descr">Repeat the video sequence headers. Repeating these
++headers makes random access to the video stream easier. Applicable to the MPEG1, 2 and 4 encoder.</entry>
++	      </row>
++	      <row>
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DECODER_MPEG4_DEBLOCK_FILTER</constant>&nbsp;</entry>
+ 		<entry>boolean</entry>
+ 	      </row><row><entry spanname="descr">Enabled the deblocking post processing filter for MPEG4 decoder.
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index b36d1ec..f662df3 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -695,6 +695,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
+ 	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
+ 	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Control";
++	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+ 
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -844,6 +845,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
++	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 7eab0b9..844dc02 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -360,6 +360,7 @@ enum v4l2_mpeg_video_multi_slice_mode {
+ #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
+ #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
+ #define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
++#define V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER		(V4L2_CID_MPEG_BASE+226)
+ 
+ #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+ #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+-- 
+1.7.10.4
+
