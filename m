@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:43304 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751624Ab3CBEAY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 23:00:24 -0500
-Message-ID: <51317952.9040402@gmail.com>
-Date: Sat, 02 Mar 2013 12:00:18 +0800
-From: Lonsn <lonsn2005@gmail.com>
-MIME-Version: 1.0
-To: linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org
-CC: k.debski@samsung.com,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: MFC decode failed in S5PV210 in kernel 3.8
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:36704 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab3CQNjY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 Mar 2013 09:39:24 -0400
+Received: by mail-pd0-f169.google.com with SMTP id 3so599837pdj.0
+        for <linux-media@vger.kernel.org>; Sun, 17 Mar 2013 06:39:22 -0700 (PDT)
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: staging: davinci_vpfe: fix build error
+Date: Sun, 17 Mar 2013 19:02:30 +0530
+Message-Id: <1363527150-6371-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I tested the MFC decode example v4l2_decode from
-http://git.infradead.org/users/kmpark/public-apps and meet some problems
-as following:
-# ./v4l2_decode -f /dev/video5 -m /dev/video9 -d /dev/fb0 -c mpeg4 -i
-shrek.m4v
-V4L2 Codec decoding example application
-Kamil Debski <k.debski@samsung.com>
-Copyright 2012 Samsung Electronics Co., Ltd.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-(fb.c:fb_open:51): Framebuffer properties: xres=1024, yres=768, bpp=32
-(fb.c:fb_open:53): Virtual resolution: vxres=1024 vyres=768
-(fimc.c:fimc_open:56): FIMC Info (/dev/video5): driver="s5pv210-fimc"
-bus_info="" card="s5pv210-fimc" fd=0x5
-(mfc.c:mfc_open:57): MFC Info (/dev/video9): driver="s5p-mfc"
-bus_info="" card="s5p-mfc" fd=0x6
-(main.c:main:415): Successfully opened all necessary files and devices
-(mfc.c:mfc_dec_setup_output:101): Setup MFC decoding OUTPUT buffer
-size=1048576 (requested=1048576)
-(mfc.c:mfc_dec_setup_output:118): Number of MFC OUTPUT buffers is 2
-(requested 2)
-(mfc.c:mfc_dec_setup_output:148): Succesfully mmapped 2 MFC OUTPUT buffers
-(main.c:extract_and_process_header:84): Extracted header of size 13089
-(mfc.c:mfc_dec_queue_buf:178): Queued buffer on OUTPUT queue with index 0
-(mfc.c:mfc_stream:236): Stream ON on OUTPUT queue
-(mfc.c:mfc_dec_setup_capture:277): MFC buffer parameters: 0x0 plane[0]=0
-plane[1]=0
-Error (mfc.c:mfc_dec_setup_capture:283): Failed to get crop information
+add missing header file delay.h required for msleep().
+This patch fixes following build error:
 
-And kernel print:
- s5p_mfc_handle_error:420: Interrupt Error: 00000035
-vidioc_g_crop:782: Cannont set crop
+drivers/staging/media/davinci_vpfe/dm365_isif.c: In function 'isif_enable':
+drivers/staging/media/davinci_vpfe/dm365_isif.c:129: error: implicit declaration of function 'msleep'
+make[4]: *** [drivers/staging/media/davinci_vpfe/dm365_isif.o] Error 1
 
-It seems MFC buffer parameters error first.
-The shrek.m4v comes from http://www.uky.edu/~drlane/com351/shrek.m4v and
-is H264 format. But if I use -c h264, then v4l2_decode will print:
-Error (parser.c:parse_h264_stream:337): Output buffer too small for
-current frame
-Error (main.c:extract_and_process_header:71): Failed to extract header
-from stream
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: devel@driverdev.osuosl.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/staging/media/davinci_vpfe/dm365_isif.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Any suggestions?
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+index ebeea72..e4e6fcc 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+@@ -19,6 +19,8 @@
+  *      Prabhakar Lad <prabhakar.lad@ti.com>
+  */
+ 
++#include <linux/delay.h>
++
+ #include "dm365_isif.h"
+ #include "vpfe_mc_capture.h"
+ 
+-- 
+1.7.0.4
 
-Thanks.
