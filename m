@@ -1,75 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:28011 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751749Ab3CLN0H convert rfc822-to-8bit (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:58187 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753749Ab3CRJb2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 09:26:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: Re: [RFC PATCH v2 1/6] bttv: audio_mux() use a local variable "gpio_mute" instead of modifying the function parameter "mute"
-Date: Tue, 12 Mar 2013 14:25:22 +0100
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
-References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com> <1362952434-2974-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362952434-2974-2-git-send-email-fschaefer.oss@googlemail.com>
+	Mon, 18 Mar 2013 05:31:28 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hverkuil@xs4all.nl, elezegarcia@gmail.com
+Subject: Re: [RFC V1 7/8] smi2021: Add smi2021_bl.c
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	<1363270024-12127-8-git-send-email-jonarne@jonarne.no>
+Date: Mon, 18 Mar 2013 10:31:14 +0100
+In-Reply-To: <1363270024-12127-8-git-send-email-jonarne@jonarne.no> ("Jon
+ Arne
+	=?utf-8?Q?J=C3=B8rgensen=22's?= message of "Thu, 14 Mar 2013 15:07:03
+ +0100")
+Message-ID: <871ubd3vh9.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201303121425.22469.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun 10 March 2013 22:53:49 Frank Schäfer wrote:
-> Function audio_mux() actually deals with two types of mute: gpio mute and
-> subdevice muting.
-> This patch claryfies the meaning of these values, but mainly prepares the code for
-> the next patch.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Jon Arne Jørgensen <jonarne@jonarne.no> writes:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> This is the smi2021-bootloader module.
+> This module will upload the firmware for the different somagic devices.
 
-Regards,
+I really don't understand why you want to make that a separate module.
+Building both the bootlader driver and the real driver into the same
+module will make sure that either both or none are available, document
+the relationship to the end user, and allow you to tell the user that
+firmware files may be needed for the real driver by using the
+MODULE_FIRMWARE macro (which you should do, IMHO).
 
-	Hans
+> +static unsigned int firmware_version;
+> +module_param(firmware_version, int, 0644);
+> +MODULE_PARM_DESC(firmware_version,
+> +			"Firmware version to be uploaded to device\n"
+> +			"if there are more than one firmware present");
+> +
+> +struct usb_device_id smi2021_bootloader_id_table[] = {
+> +	{ USB_DEVICE(0x1c88, 0x0007) },
+> +	{ }
+> +};
+> +
+> +struct smi2021_firmware {
+> +	int		id;
+> +	const char	*name;
+> +	int		found;
+> +};
+> +
+> +struct smi2021_firmware available_fw[] = {
+> +	{
+> +		.id = 0x3c,
+> +		.name = "smi2021_3c.bin",
+> +	},
+> +	{
+> +		.id = 0x3e,
+> +		.name = "smi2021_3e.bin",
+> +	},
+> +	{
+> +		.id = 0x3f,
+> +		.name = "smi2021_3f.bin",
+> +	}
+> +};
 
-> ---
->  drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
->  1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-> index 8610b6a..a584d82 100644
-> --- a/drivers/media/pci/bt8xx/bttv-driver.c
-> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
-> @@ -992,7 +992,7 @@ static char *audio_modes[] = {
->  static int
->  audio_mux(struct bttv *btv, int input, int mute)
->  {
-> -	int gpio_val, signal;
-> +	int gpio_val, signal, mute_gpio;
->  	struct v4l2_ctrl *ctrl;
->  
->  	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
-> @@ -1003,10 +1003,10 @@ audio_mux(struct bttv *btv, int input, int mute)
->  	btv->audio = input;
->  
->  	/* automute */
-> -	mute = mute || (btv->opt_automute && (!signal || !btv->users)
-> +	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
->  				&& !btv->has_radio_tuner);
->  
-> -	if (mute)
-> +	if (mute_gpio)
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
->  	else
->  		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
-> @@ -1022,7 +1022,7 @@ audio_mux(struct bttv *btv, int input, int mute)
->  	}
->  
->  	if (bttv_gpio)
-> -		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
-> +		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
->  	if (in_interrupt())
->  		return 0;
->  
-> 
+
+How does the user know which firmware to select?  Will any of them work,
+or are they device specific? Either way I believe you should publish all
+three names using MODULE_FIRMWARE.
+
+
+> +static int smi2021_load_firmware(struct usb_device *udev,
+> +					const struct firmware *firmware)
+> +{
+> +	int i, size, rc = 0;
+> +	u8 *chunk;
+> +	u16 ack = 0x0000;
+> +
+> +	if (udev == NULL)
+> +		goto end_out;
+
+Is this possible? 
+
+
+
+> +	size = FIRMWARE_CHUNK_SIZE + FIRMWARE_HEADER_SIZE;
+> +	chunk = kzalloc(size, GFP_KERNEL);
+> +	chunk[0] = 0x05;
+> +	chunk[1] = 0xff;
+> +
+> +	if (chunk == NULL) {
+
+This on the other hand, will happen.  But you have already oopsed when
+you test it here...
+
+
+Bjørn
