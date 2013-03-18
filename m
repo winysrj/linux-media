@@ -1,62 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:55892 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755505Ab3CDJ3r convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:29:47 -0500
-Received: by mail-wg0-f49.google.com with SMTP id 15so4066078wgd.16
-        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 01:29:46 -0800 (PST)
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3598 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751376Ab3CRHtF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 03:49:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v6 3/7] media: soc-camera: switch I2C subdevice drivers to use v4l2-clk
+Date: Mon, 18 Mar 2013 08:47:20 +0100
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de> <1363382873-20077-4-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1363382873-20077-4-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <82ceff23cb7321a9f84f76ae1ed956b2829a45d6.1362387265.git.hans.verkuil@cisco.com>
-References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
- <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl> <82ceff23cb7321a9f84f76ae1ed956b2829a45d6.1362387265.git.hans.verkuil@cisco.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 4 Mar 2013 14:59:26 +0530
-Message-ID: <CA+V-a8t_ri8qJoc=KwE6kMCXwPxqkpbMoV3UsjZ9mJ_zgRFORQ@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 10/11] davinci/dm644x_ccdc: fix compiler warning
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303180847.20708.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Fri March 15 2013 22:27:49 Guennadi Liakhovetski wrote:
+> Instead of centrally enabling and disabling subdevice master clocks in
+> soc-camera core, let subdevice drivers do that themselves, using the
+> V4L2 clock API and soc-camera convenience wrappers.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> v6: clock name update
+> 
+>  drivers/media/i2c/soc_camera/imx074.c              |   18 ++-
+>  drivers/media/i2c/soc_camera/mt9m001.c             |   17 ++-
+>  drivers/media/i2c/soc_camera/mt9m111.c             |   20 ++-
+>  drivers/media/i2c/soc_camera/mt9t031.c             |   19 ++-
+>  drivers/media/i2c/soc_camera/mt9t112.c             |   19 ++-
+>  drivers/media/i2c/soc_camera/mt9v022.c             |   17 ++-
+>  drivers/media/i2c/soc_camera/ov2640.c              |   19 ++-
+>  drivers/media/i2c/soc_camera/ov5642.c              |   20 ++-
+>  drivers/media/i2c/soc_camera/ov6650.c              |   17 ++-
+>  drivers/media/i2c/soc_camera/ov772x.c              |   15 ++-
+>  drivers/media/i2c/soc_camera/ov9640.c              |   17 ++-
+>  drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+>  drivers/media/i2c/soc_camera/ov9740.c              |   18 ++-
+>  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 ++-
+>  drivers/media/i2c/soc_camera/tw9910.c              |   18 ++-
+>  drivers/media/platform/soc_camera/soc_camera.c     |  172 +++++++++++++++-----
+>  .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+>  include/media/soc_camera.h                         |   13 +-
+>  18 files changed, 355 insertions(+), 84 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+> index a2a5cbb..cee5345 100644
+> --- a/drivers/media/i2c/soc_camera/imx074.c
+> +++ b/drivers/media/i2c/soc_camera/imx074.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/module.h>
+>  
+>  #include <media/soc_camera.h>
+> +#include <media/v4l2-clk.h>
+>  #include <media/v4l2-subdev.h>
+>  #include <media/v4l2-chip-ident.h>
+>  
+> @@ -77,6 +78,7 @@ struct imx074_datafmt {
+>  struct imx074 {
+>  	struct v4l2_subdev		subdev;
+>  	const struct imx074_datafmt	*fmt;
+> +	struct v4l2_clk			*clk;
+>  };
+>  
+>  static const struct imx074_datafmt imx074_colour_fmts[] = {
+> @@ -272,8 +274,9 @@ static int imx074_s_power(struct v4l2_subdev *sd, int on)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> +	struct imx074 *priv = to_imx074(client);
+>  
+> -	return soc_camera_set_power(&client->dev, ssdd, on);
+> +	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
+>  }
+>  
+>  static int imx074_g_mbus_config(struct v4l2_subdev *sd,
+> @@ -431,6 +434,7 @@ static int imx074_probe(struct i2c_client *client,
+>  	struct imx074 *priv;
+>  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+>  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> +	int ret;
+>  
+>  	if (!ssdd) {
+>  		dev_err(&client->dev, "IMX074: missing platform data!\n");
+> @@ -451,13 +455,23 @@ static int imx074_probe(struct i2c_client *client,
+>  
+>  	priv->fmt	= &imx074_colour_fmts[0];
+>  
+> -	return imx074_video_probe(client);
+> +	priv->clk = v4l2_clk_get(&priv->subdev, "mclk");
+> +	if (IS_ERR(priv->clk))
+> +		return PTR_ERR(priv->clk);
+> +
+> +	ret = imx074_video_probe(client);
+> +	if (ret < 0)
+> +		v4l2_clk_put(priv->clk);
+> +
 
-On Mon, Mar 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
-> drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between ‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
->
-please refer this discussion [1], where Mauro has suggested
-few options for fixing it.
+I feel uneasy about this. It's not the clock part as such but the fact that
+assumptions are made about the usage of this sensor driver. It basically
+comes down to the fact that these drivers are *still* tied to the soc-camera
+framework. I think I am going to work on this in a few weeks time to cut
+these drivers loose from soc-camera. We discussed how to do that in the past.
+
+The whole point of the subdev API is to make drivers independent of bridge
+drivers, and these soc-camera subdev drivers are the big exception and they
+stick out like a sore thumb.
+
+Anyway, w.r.t. the clock use: what happens if these drivers are used in e.g.
+a USB webcam driver? In that case there probably won't be a clock involved
+(well, there is one, but that is likely to be setup by the firmware/hardware
+itself).
+
+Wouldn't it be better if the clock name is passed on through the platform data
+(or device tree)? And if no clock name was specified, then there is no need to
+get a clock either and the driver can assume that it will always have a clock.
+That would solve this problem when this sensor driver is no longer soc-camera
+dependent.
+
+Sorry if this was discussed in earlier patches, I haven't been following this
+very closely before.
 
 Regards,
---Prabhakar Lad
 
-[1] https://patchwork.kernel.org/patch/1923091/
+	Hans
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/davinci/dm644x_ccdc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-> index 318e805..41f0a80 100644
-> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
-> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-> @@ -230,7 +230,7 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
->         if (ccdcparam->alaw.enable) {
->                 if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
->                     (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
-> -                   (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
-> +                   (ccdcparam->alaw.gama_wd < (unsigned)ccdcparam->data_sz)) {
->                         dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
->                         return -1;
->                 }
-> --
-> 1.7.10.4
->
+> +	return ret;
+>  }
+>  
+>  static int imx074_remove(struct i2c_client *client)
+>  {
+>  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> +	struct imx074 *priv = to_imx074(client);
+>  
+> +	v4l2_clk_put(priv->clk);
+>  	if (ssdd->free_bus)
+>  		ssdd->free_bus(ssdd);
+>  
