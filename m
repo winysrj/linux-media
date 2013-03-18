@@ -1,130 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f171.google.com ([74.125.82.171]:47954 "EHLO
-	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757736Ab3CIOpr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Mar 2013 09:45:47 -0500
-Received: by mail-we0-f171.google.com with SMTP id u54so2030252wey.2
-        for <linux-media@vger.kernel.org>; Sat, 09 Mar 2013 06:45:45 -0800 (PST)
-Received: from [127.0.0.1] (Tanja.home [192.168.1.32])
-	(using TLSv1 with cipher ECDHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by centurion (Postfix) with ESMTPSA id EF7ED60016A8
-	for <linux-media@vger.kernel.org>; Sat,  9 Mar 2013 15:45:46 +0100 (CET)
-Message-ID: <513B4B24.5000605@gmail.com>
-Date: Sat, 09 Mar 2013 15:45:56 +0100
-From: Dmitry Katsubo <dmitry.katsubo@gmail.com>
-MIME-Version: 1.0
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4493 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856Ab3CRQig (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 12:38:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: dvb-apps: Additional channels for Netherlands
-Content-Type: multipart/mixed;
- boundary="------------050809070509010506040301"
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Frank Schaefer <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/6] stk1160: remove V4L2_CHIP_MATCH_AC97 placeholder.
+Date: Mon, 18 Mar 2013 17:38:17 +0100
+Message-Id: <1363624700-29270-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050809070509010506040301
-Content-Type: text/plain; charset=windows-1251
-Content-Transfer-Encoding: 7bit
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Dear LinuxTV developers,
+It was just a placeholder and we want to get rid of the AC97 matching
+define.
 
-When I was playing with "scan" utility, I paid attention to comments in
-file /usr/share/dvb/dvb-t/nl-All
+Also replace MATCH_HOST with MATCH_BRIDGE since we are here anyway.
 
-> # The Netherlands, whole country
-> # Created from http://radio-tv-nederland.nl/TV%20zenderlijst%20Nederland.xls
-> # and http://radio-tv-nederland.nl/dvbt/dvbt-lokaal.html
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/stk1160/stk1160-v4l.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-and what is interesting the comments refer to radio-stations only.
-
-After I have completed the scan (I leave in the Netherlands in Delft
-area) I have not found few TV stations. I think that the list is missing
-522MHz and 698MHz. After I have added them (see patch file), I was able
-to complete the scan. However I think that I have made an error, because
-I can't watch TV channels fount on the newly added frequencies.
-
-Can somebody help me to improve "nl-All" file?
-
-Thanks.
-
-Additional links:
-
-http://dvbt4all.nl/digitenne/zenders/zuid-holland-noord/delft/
-http://nl.wikipedia.org/wiki/DVB-T-frequenties
-
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index 5307a63..ef0ca2d 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -458,7 +458,7 @@ static int vidioc_g_chip_ident(struct file *file, void *priv,
+ 	       struct v4l2_dbg_chip_ident *chip)
+ {
+ 	switch (chip->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
++	case V4L2_CHIP_MATCH_BRIDGE:
+ 		chip->ident = V4L2_IDENT_NONE;
+ 		chip->revision = 0;
+ 		return 0;
+@@ -476,9 +476,6 @@ static int vidioc_g_register(struct file *file, void *priv,
+ 	u8 val;
+ 
+ 	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_AC97:
+-		/* TODO: Support me please :-( */
+-		return -EINVAL;
+ 	case V4L2_CHIP_MATCH_I2C_DRIVER:
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, g_register, reg);
+ 		return 0;
+@@ -505,8 +502,6 @@ static int vidioc_s_register(struct file *file, void *priv,
+ 	struct stk1160 *dev = video_drvdata(file);
+ 
+ 	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_AC97:
+-		return -EINVAL;
+ 	case V4L2_CHIP_MATCH_I2C_DRIVER:
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_register, reg);
+ 		return 0;
 -- 
-With best regards,
-Dmitry
+1.7.10.4
 
---------------050809070509010506040301
-Content-Type: text/plain; charset=windows-1251;
- name="nl.All.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="nl.All.patch"
-
---- /usr/share/dvb/dvb-t/nl-All	2013-01-02 23:56:21.000000000 +0100
-+++ nl-All	2013-03-08 18:54:17.676994036 +0100
-@@ -8,6 +8,7 @@
- T 490000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
- T 498000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
- T 514000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
-+T 522000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
- T 538000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
- T 538000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
- T 546000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
-@@ -24,6 +25,7 @@
- T 666000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
- T 682000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
- T 690000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
-+T 698000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
- T 706000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
- T 714000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
- T 722000000 8MHz 1/2 NONE QAM64 8k 1/4 NONE
-
---------------050809070509010506040301
-Content-Type: text/plain; charset=windows-1251;
- name="channels.conf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="channels.conf"
-
-Nickelodeon:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4011:4012:41
-13th Street:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4021:4022:42
-Xite:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4031:4032:43
-Investigation Discovery:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4041:4042:44
-BBC Radio 1:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4112:411
-BBC Radio 2:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4122:412
-BBC Radio 3:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4132:413
-BBC Radio 4:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4142:414
-SubLime FM:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:4152:415
-CNN:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4051:4052:45
-TBC6500:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:0:6211
-TF5300K 10436:522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:0:6212
-and 1:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:7011:7012:1101
-RTL 4:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1011:1012:11
-RTL 5:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1021:1022:12
-RTL 7:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1031:1032:13
-SBS 6:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1041:1042:14
-NET5:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1051:1052:15
-SLAM!FM:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1112:111
-Radio 10 Gold:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1122:112
-Q-Music:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1132:113
-100%NL:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1142:114
-Classic FM:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1152:115
-SkyRadio 101 FM:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1162:116
-Radio Veronica:698000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:1172:117
-Nederland 1:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:7011:7012:1101
-Nederland 2:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:7021:7022:1102
-Nederland 3:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:7031:7032:1103
-TV West:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:7041:7042:1104
-Radio West:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7112:1111
-Radio 1:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7122:1112
-Radio 2:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7132:1113
-3FM:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7142:1114
-Radio 4:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7152:1115
-Radio 5:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7162:1116
-Radio 6:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7172:1117
-FunX:722000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:7192:1119
-
---------------050809070509010506040301--
