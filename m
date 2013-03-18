@@ -1,50 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33880 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752220Ab3CJCEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:43 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1066 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330Ab3CROYY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 10:24:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 37/41] af9033: sleep on attach()
-Date: Sun, 10 Mar 2013 04:03:29 +0200
-Message-Id: <1362881013-5271-37-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Subject: Re: [REVIEW PATCH 0/6] s5p-tv: replace dv_preset by dv_timings
+Date: Mon, 18 Mar 2013 15:24:12 +0100
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1362402126-13149-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303181524.12891.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+On Mon March 4 2013 14:02:00 Hans Verkuil wrote:
+> Hi Tomasz,
+> 
+> Here is what I hope is the final patch series for this. I've incorporated
+> your suggestions and it's split off from the davinci/blackfin changes into
+> its own patch series to keep things better organized.
+> 
+> The changes since the previous version are:
+> 
+> - changed the order of the first three patches as per your suggestion.
+> - the patch named "[RFC PATCH 08/18] s5p-tv: add dv_timings support for
+>   mixer_video." had two changes that rightfully belonged to the 'add
+>   dv_timings support for mixer_video.' patch. Moved them accordingly.
+> - hdmiphy now also supports dv_timings_cap and sets the pixelclock range
+>   accordingly. The hdmi driver chains hdmiphy to get those values.
+> - updating the minimum width to 720.
+> 
+> I didn't add a comment to clarify the pixclk handling hdmiphy_s_dv_preset
+> because 1) I forgot, 2) it's not a bug, and 3) that whole function is
+> removed anyway a few patches later :-)
+> 
+> The only functional change is the handling of dv_timings_cap. Can you
+> verify that that works as it should?
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 8e3a99d..2dba516 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -985,10 +985,17 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
- 			"OFDM=%d.%d.%d.%d\n", KBUILD_MODNAME, buf[0], buf[1],
- 			buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
- 
--
--	/* FIXME: Do not abuse adc_multiplier for detecting IT9135 */
--	if (state->cfg.adc_multiplier != AF9033_ADC_MULTIPLIER_2X) {
--		/* sleep */
-+	/* sleep */
-+	switch (state->cfg.tuner) {
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+		/* IT9135 did not like to sleep at that early */
-+		break;
-+	default:
- 		ret = af9033_wr_reg(state, 0x80004c, 1);
- 		if (ret < 0)
- 			goto err;
--- 
-1.7.11.7
+Tomasz,
 
+Should I wait for feedback from you, or can I go ahead and make a pull
+request for this?
+
+Regards,
+
+	Hans
