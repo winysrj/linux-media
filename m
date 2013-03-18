@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:59409 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753313Ab3CJVxU (ORCPT
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:61679 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412Ab3CRLU2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 17:53:20 -0400
-Received: by mail-ea0-f169.google.com with SMTP id z7so878368eaf.14
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:19 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFC PATCH v2 4/6] bttv: do not unmute the device before the first open
-Date: Sun, 10 Mar 2013 22:53:52 +0100
-Message-Id: <1362952434-2974-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
+	Mon, 18 Mar 2013 07:20:28 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <201303181058.51641.arnd@arndb.de>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <201303152018.09094.arnd@arndb.de> <CAHkwnC9YFTw8gVzyZB3_gZCgM5zMA6tLch15EDqcA2F4CAOpAQ@mail.gmail.com>
+ <201303181058.51641.arnd@arndb.de>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Mon, 18 Mar 2013 12:20:07 +0100
+Message-ID: <CAHkwnC-aHwd24S5MyLhnVzTqqQj2L7MMuVX9dirhS-G830jZcw@mail.gmail.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |    8 +++++---
- 1 Datei geändert, 5 Zeilen hinzugefügt(+), 3 Zeilen entfernt(-)
+On Mon, Mar 18, 2013 at 11:58 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 18 March 2013, Fabio Porcedda wrote:
+>> Since by using platform_driver_probe() the  function
+>> ep93xx_pwm_probe() is freed after initialization,
+>> is better to use module_platform_drive_probe().
+>> IMHO i don't see any good reason to use module_platform_driver() for
+>> this driver.
+>
+> As I commented earlier, the platform_driver_probe() and
+> module_platform_drive_probe() interfaces are rather dangerous in combination
+> with deferred probing, I would much prefer Harley's patch.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 945ecd2..6432bfe 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -3062,8 +3062,7 @@ static int bttv_open(struct file *file)
- 			    sizeof(struct bttv_buffer),
- 			    fh, &btv->lock);
- 	set_tvnorm(btv,btv->tvnorm);
--	set_input(btv, btv->input, btv->tvnorm);
--
-+	set_input(btv, btv->input, btv->tvnorm); /* also (un)mutes audio */
- 
- 	/* The V4L2 spec requires one global set of cropping parameters
- 	   which only change on request. These are stored in btv->crop[1].
-@@ -4209,11 +4208,14 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	btv->std = V4L2_STD_PAL;
- 	init_irqreg(btv);
- 	v4l2_ctrl_handler_setup(hdl);
--
- 	if (hdl->error) {
- 		result = hdl->error;
- 		goto fail2;
- 	}
-+
-+	/* mute device */
-+	audio_mute(btv, 1);
-+
- 	/* register video4linux + input */
- 	if (!bttv_tvcards[btv->c.type].no_video) {
- 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
--- 
-1.7.10.4
+Since those drivers don't use -EPROBE_DEFER i was thinking that they don't use
+deferred probing.
+I'm missing something?
 
+Best regards
+Fabio Porcedda
+
+>         Arnd
