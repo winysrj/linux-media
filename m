@@ -1,132 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:46197 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab3CCTkZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:25 -0500
-Received: by mail-ea0-f174.google.com with SMTP id 1so666065eaa.33
-        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:22 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/5] em28xx: add support for em25xx/em276x/em277x/em278x frame data processing
-Date: Sun,  3 Mar 2013 20:40:59 +0100
-Message-Id: <1362339661-3446-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1568 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab3CRMcl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 08:32:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/19] solo6x10: fix 'BUG: key ffff88081a2a9b58 not in .data!'
+Date: Mon, 18 Mar 2013 13:32:10 +0100
+Message-Id: <1363609938-21735-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The em25xx/em276x/em277x/em278x frame data format is different to the one used
-by the em2710/em2750/em28xx chips.
-With the recent cleanups and reorganization of the frame data processing code it
-can be easily extended to support these devices.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Caused by a missing sysfs_attr_init().
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-video.c |   72 ++++++++++++++++++++++++++++++-
- 1 Datei geändert, 71 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+ drivers/staging/media/solo6x10/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 93fc620..2e8681f 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -76,6 +76,16 @@ MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
- MODULE_VERSION(EM28XX_VERSION);
- 
-+
-+#define EM25XX_FRMDATAHDR_BYTE1			0x02
-+#define EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE	0x20
-+#define EM25XX_FRMDATAHDR_BYTE2_FRAME_END	0x02
-+#define EM25XX_FRMDATAHDR_BYTE2_FRAME_ID	0x01
-+#define EM25XX_FRMDATAHDR_BYTE2_MASK	(EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE | \
-+					 EM25XX_FRMDATAHDR_BYTE2_FRAME_END |   \
-+					 EM25XX_FRMDATAHDR_BYTE2_FRAME_ID)
-+
-+
- static unsigned int video_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
- static unsigned int vbi_nr[]   = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
- static unsigned int radio_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
-@@ -408,6 +418,62 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
- 		em28xx_copy_video(dev, buf, data_pkt, data_len);
- }
- 
-+/*
-+ * Process data packet according to the em25xx/em276x/7x/8x frame data format
-+ */
-+static inline void process_frame_data_em25xx(struct em28xx *dev,
-+					     unsigned char *data_pkt,
-+					     unsigned int  data_len)
-+{
-+	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
-+	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
-+	bool frame_end = 0;
-+
-+	/* Check for header */
-+	/* NOTE: at least with bulk transfers, only the first packet
-+	 * has a header and has always set the FRAME_END bit         */
-+	if (data_len >= 2) {	/* em25xx header is only 2 bytes long */
-+		if ((data_pkt[0] == EM25XX_FRMDATAHDR_BYTE1) &&
-+		    ((data_pkt[1] & ~EM25XX_FRMDATAHDR_BYTE2_MASK) == 0x00)) {
-+			dev->top_field = !(data_pkt[1] &
-+					   EM25XX_FRMDATAHDR_BYTE2_FRAME_ID);
-+			frame_end = data_pkt[1] &
-+				    EM25XX_FRMDATAHDR_BYTE2_FRAME_END;
-+			data_pkt += 2;
-+			data_len -= 2;
-+		}
-+
-+		/* Finish field and prepare next (BULK only) */
-+		if (dev->analog_xfer_bulk && frame_end) {
-+			buf = finish_field_prepare_next(dev, buf, dmaq);
-+			dev->usb_ctl.vid_buf = buf;
-+		}
-+		/* NOTE: in ISOC mode when a new frame starts and buf==NULL,
-+		 * we COULD already prepare a buffer here to avoid skipping the
-+		 * first frame.
-+		 */
-+	}
-+
-+	/* Copy data */
-+	if (buf != NULL && data_len > 0)
-+		em28xx_copy_video(dev, buf, data_pkt, data_len);
-+
-+	/* Finish frame (ISOC only) => avoids lag of 1 frame */
-+	if (!dev->analog_xfer_bulk && frame_end) {
-+		buf = finish_field_prepare_next(dev, buf, dmaq);
-+		dev->usb_ctl.vid_buf = buf;
-+	}
-+
-+	/* NOTE: Tested with USB bulk transfers only !
-+	 * The wording in the datasheet suggests that isoc might work different.
-+	 * The current code assumes that with isoc transfers each packet has a
-+	 * header like with the other em28xx devices.
-+	 */
-+	/* NOTE: Support for interlaced mode is pure theory. It has not been
-+	 * tested and it is unknown if these devices actually support it. */
-+	/* NOTE: No VBI support yet (these chips likely do not support VBI). */
-+}
-+
- /* Processes and copies the URB data content (video and VBI data) */
- static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- {
-@@ -460,7 +526,11 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
- 			continue;
+diff --git a/drivers/staging/media/solo6x10/core.c b/drivers/staging/media/solo6x10/core.c
+index 271759f..b7e5d5e 100644
+--- a/drivers/staging/media/solo6x10/core.c
++++ b/drivers/staging/media/solo6x10/core.c
+@@ -480,6 +480,7 @@ static int solo_sysfs_init(struct solo_dev *solo_dev)
  		}
- 
--		process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
-+		if (dev->is_em25xx)
-+			process_frame_data_em25xx(dev, usb_data_pkt, usb_data_len);
-+		else
-+			process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
-+
  	}
- 	return 1;
- }
+ 
++	sysfs_attr_init(&sdram_attr->attr);
+ 	sdram_attr->attr.name = "sdram";
+ 	sdram_attr->attr.mode = 0440;
+ 	sdram_attr->read = sdram_show;
 -- 
 1.7.10.4
 
