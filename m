@@ -1,175 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31983 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758478Ab3CDSJh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 13:09:37 -0500
-Date: Mon, 4 Mar 2013 15:09:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 01/11] em28xx-i2c: replace printk() with the
- corresponding em28xx macros
-Message-ID: <20130304150931.050dd815@redhat.com>
-In-Reply-To: <1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2074 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab3CRIFH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 04:05:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jon Arne =?utf-8?q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Subject: Re: [RFC V1 3/8] smi2021: Add smi2021_i2c.c
+Date: Mon, 18 Mar 2013 09:04:56 +0100
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	elezegarcia@gmail.com
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no> <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201303180904.56218.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun,  3 Mar 2013 20:37:34 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+On Thu March 14 2013 15:06:59 Jon Arne Jørgensen wrote:
+> This file is responsible for registering the device
+> with the kernel i2c subsystem.
+> v4l2 talks to the saa7113 chip of the device via i2c.
+> 
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> ---
+>  drivers/media/usb/smi2021/smi2021_i2c.c | 160 ++++++++++++++++++++++++++++++++
+>  1 file changed, 160 insertions(+)
+>  create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
+> 
+> diff --git a/drivers/media/usb/smi2021/smi2021_i2c.c b/drivers/media/usb/smi2021/smi2021_i2c.c
+> new file mode 100644
+> index 0000000..5b6f3f5
+> --- /dev/null
+> +++ b/drivers/media/usb/smi2021/smi2021_i2c.c
+> @@ -0,0 +1,160 @@
+> +/*******************************************************************************
+> + * smi2021_i2c.c                                                               *
+> + *                                                                             *
+> + * USB Driver for SMI2021 - EasyCAP                                            *
+> + * USB ID 1c88:003c                                                            *
+> + *                                                                             *
+> + * *****************************************************************************
+> + *
+> + * Copyright 2011-2013 Jon Arne Jørgensen
+> + * <jonjon.arnearne--a.t--gmail.com>
+> + *
+> + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
+> + *
+> + * This file is part of SMI2021
+> + * http://code.google.com/p/easycap-somagic-linux/
+> + *
+> + * This program is free software: you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation, either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
+> + *
+> + * This driver is heavily influensed by the STK1160 driver.
+> + * Copyright (C) 2012 Ezequiel Garcia
+> + * <elezegarcia--a.t--gmail.com>
+> + *
+> + */
+> +
+> +#include "smi2021.h"
+> +
+> +/* The device will not return the chip_name on address 0x00.
+> + * But the saa7115 i2c driver needs the chip id to match "f7113"
+> + * if we want to use it,
+> + * so we have to fake the return of this value
+> + */
+> +
+> +static char chip_id[] = { 'x', 255, 55, 49, 49, 115, 0 };
+> +static int id_ptr;
 
-> Reduces the number of characters/lines, unifies the code and improves readability.
+Don't do this! Instead modify saa7115.c and add a new chip_id (the name of
+this saa7113 clone) and specify that in v4l2_i2c_new_subdev instead of "saa7113".
+The saa7115.c driver should skip the chip ID test if that name is specified.
 
-Had you actually test this patch? The reason why printk() is used on some
-places is because dev->name is not available early.
+Then you don't need this hack anymore and everything will look much cleaner.
 
-That's said, it makes sense to replace all those em28xx-specific printk
-functions by the standard pr_fmt-based ones (pr_err, pr_info, pr_debug, etc).
+> +
+> +static unsigned int i2c_debug;
+> +module_param(i2c_debug, int, 0644);
+> +MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+> +
+> +#define dprint_i2c(fmt, args...)					\
+> +do {									\
+> +	if (i2c_debug)							\
+> +		pr_debug("smi2021[i2c]::%s: " fmt, __func__, ##args);	\
+> +} while (0)
+> +
+> +
+> +static int i2c_xfer(struct i2c_adapter *i2c_adap,
+> +				struct i2c_msg msgs[], int num)
+> +{
+> +	struct smi2021_dev *dev = i2c_adap->algo_data;
+> +
+> +	switch (num) {
+> +	case 2: { /* Read reg */
+> +		if (msgs[0].len != 1 || msgs[1].len != 1) {
+> +			dprint_i2c("both messages must be 1 byte\n");
+> +			goto err_out;
+> +
+> +		if ((msgs[1].flags & I2C_M_RD) != I2C_M_RD)
+> +			dprint_i2c("last message should have rd flag\n");
+> +			goto err_out;
+> +		}
+> +
+> +		if (msgs[0].buf[0] == 0) {
+> +			msgs[1].buf[0] = chip_id[id_ptr];
+> +			if (chip_id[id_ptr] != 0)
+> +				id_ptr += 1;
+> +		} else {
+> +			smi2021_read_reg(dev, msgs[0].addr, msgs[0].buf[0],
+> +						msgs[1].buf);
+> +		}
+> +		break;
+> +	}
+> +	case 1: { /* Write reg */
+> +		if (msgs[0].len == 0) {
+> +			break;
+> +		} else if (msgs[0].len != 2) {
+> +			dprint_i2c("unsupported len\n");
+> +			goto err_out;
+> +		}
+> +		if (msgs[0].buf[0] == 0) {
+> +			/* We don't handle writing to addr 0x00 */
+> +			break;
+> +		}
+> +
+> +		smi2021_write_reg(dev, msgs[0].addr, msgs[0].buf[0],
+> +						msgs[0].buf[1]);
+> +		break;
+> +	}
+> +	default: {
+> +		dprint_i2c("driver can only handle 1 or 2 messages\n");
+> +		goto err_out;
+> +	}
+> +	}
+> +	return num;
+> +
+> +err_out:
+> +	return -EOPNOTSUPP;
+> +}
+> +
+> +static u32 functionality(struct i2c_adapter *adap)
+> +{
+> +	return I2C_FUNC_SMBUS_EMUL;
+> +}
+> +
+> +static struct i2c_algorithm algo = {
+> +	.master_xfer = i2c_xfer,
+> +	.functionality = functionality,
+> +};
+> +
+> +static struct i2c_adapter adap_template = {
+> +	.owner = THIS_MODULE,
+> +	.name = "smi2021_easycap_dc60",
+> +	.algo = &algo,
+> +};
+> +
+> +static struct i2c_client client_template = {
+> +	.name = "smi2021 internal",
+> +};
+> +
+> +int smi2021_i2c_register(struct smi2021_dev *dev)
+> +{
+> +	int rc;
+> +
+> +	id_ptr = 0;
+> +
+> +	dev->i2c_adap = adap_template;
+> +	dev->i2c_adap.dev.parent = dev->dev;
+> +	strcpy(dev->i2c_adap.name, "smi2021");
+> +	dev->i2c_adap.algo_data = dev;
+> +
+> +	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
+> +
+> +	rc = i2c_add_adapter(&dev->i2c_adap);
+> +	if (rc < 0) {
+> +		smi2021_err("can't add i2c adapter, errno: %d\n", rc);
+> +		return rc;
+> +	}
+> +
+> +	dev->i2c_client = client_template;
+> +	dev->i2c_client.adapter = &dev->i2c_adap;
+> +
+> +	return 0;
+> +}
+> +
+> +int smi2021_i2c_unregister(struct smi2021_dev *dev)
+> +{
+> +	i2c_del_adapter(&dev->i2c_adap);
+> +	return 0;
+> +}
+> 
 
 Regards,
-Mauro
 
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
->  1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 8532c1d..8819b54 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
->  	/* Check if board has eeprom */
->  	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
->  	if (err < 0) {
-> -		em28xx_errdev("board has no eeprom\n");
-> +		em28xx_info("board has no eeprom\n");
->  		memset(eedata, 0, len);
->  		return -ENODEV;
->  	}
-> @@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
->  
->  	err = i2c_master_send(&dev->i2c_client, &buf, 1);
->  	if (err != 1) {
-> -		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
-> -		       dev->name, err);
-> +		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
->  		return err;
->  	}
->  
-> @@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
->  
->  		if (block !=
->  		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
-> -			printk(KERN_WARNING
-> -			       "%s: i2c eeprom read error (err=%d)\n",
-> -			       dev->name, err);
-> +			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
->  			return err;
->  		}
->  		size -= block;
-> @@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
->  	}
->  	for (i = 0; i < len; i++) {
->  		if (0 == (i % 16))
-> -			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
-> +			em28xx_info("i2c eeprom %02x:", i);
->  		printk(" %02x", eedata[i]);
->  		if (15 == (i % 16))
->  			printk("\n");
-> @@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
->  	if (em_eeprom->id == 0x9567eb1a)
->  		dev->hash = em28xx_hash_mem(eedata, len, 32);
->  
-> -	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
-> -	       dev->name, em_eeprom->id, dev->hash);
-> +	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
-> +		    em_eeprom->id, dev->hash);
->  
-> -	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
-> +	em28xx_info("EEPROM info:\n");
->  
->  	switch (em_eeprom->chip_conf >> 4 & 0x3) {
->  	case 0:
-> -		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
-> +		em28xx_info("\tNo audio on board.\n");
->  		break;
->  	case 1:
-> -		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
-> -				 dev->name);
-> +		em28xx_info("\tAC97 audio (5 sample rates)\n");
->  		break;
->  	case 2:
-> -		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
-> -				 dev->name);
-> +		em28xx_info("\tI2S audio, sample rate=32k\n");
->  		break;
->  	case 3:
-> -		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
-> -				 dev->name);
-> +		em28xx_info("\tI2S audio, 3 sample rates\n");
->  		break;
->  	}
->  
->  	if (em_eeprom->chip_conf & 1 << 3)
-> -		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
-> +		em28xx_info("\tUSB Remote wakeup capable\n");
->  
->  	if (em_eeprom->chip_conf & 1 << 2)
-> -		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
-> +		em28xx_info("\tUSB Self power capable\n");
->  
->  	switch (em_eeprom->chip_conf & 0x3) {
->  	case 0:
-> -		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
-> +		em28xx_info("\t500mA max power\n");
->  		break;
->  	case 1:
-> -		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
-> +		em28xx_info("\t400mA max power\n");
->  		break;
->  	case 2:
-> -		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
-> +		em28xx_info("\t300mA max power\n");
->  		break;
->  	case 3:
-> -		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
-> +		em28xx_info("\t200mA max power\n");
->  		break;
->  	}
-> -	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
-> -				dev->name,
-> -				em_eeprom->string_idx_table,
-> -				em_eeprom->string1,
-> -				em_eeprom->string2,
-> -				em_eeprom->string3);
-> +	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
-> +		    em_eeprom->string_idx_table,
-> +		    em_eeprom->string1,
-> +		    em_eeprom->string2,
-> +		    em_eeprom->string3);
->  
->  	return 0;
->  }
-> @@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
->  		if (rc < 0)
->  			continue;
->  		i2c_devicelist[i] = i;
-> -		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
-> -		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-> +		em28xx_info("found i2c device @ 0x%x [%s]\n",
-> +			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
->  	}
->  
->  	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
-
-
--- 
-
-Cheers,
-Mauro
+	Hans
