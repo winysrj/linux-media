@@ -1,251 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33617 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752050Ab3CJCEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:40 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2933 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753355Ab3CRONP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 10:13:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 16/41] it913x: rename functions and variables
-Date: Sun, 10 Mar 2013 04:03:08 +0200
-Message-Id: <1362881013-5271-16-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Huang Shijie <shijie8@gmail.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Takashi Iwai <tiwai@suse.de>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 6/6] v4l2-ioctl: add precision when printing names.
+Date: Mon, 18 Mar 2013 15:12:05 +0100
+Message-Id: <1363615925-19507-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/tuners/it913x.c | 72 +++++++++++++++++++++++--------------------
- 1 file changed, 38 insertions(+), 34 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index 6eb3afa..82cc053 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -22,7 +22,7 @@
- 
- #include "it913x_priv.h"
- 
--struct it913x_fe_state {
-+struct it913x_state {
- 	struct dvb_frontend frontend;
- 	struct i2c_adapter *i2c_adap;
- 	struct ite_config *config;
-@@ -43,7 +43,8 @@ struct it913x_fe_state {
- 	u32 ucblocks;
- };
- 
--static int it913x_read_reg(struct it913x_fe_state *state,
-+/* read multiple registers */
-+static int it913x_rd_regs(struct it913x_state *state,
- 		u32 reg, u8 *data, u8 count)
+Never print more than the size of the buffer containing the name.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c |   60 +++++++++++++++++++---------------
+ 1 file changed, 34 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index b3fe148..168b51e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -167,9 +167,11 @@ static void v4l_print_querycap(const void *arg, bool write_only)
  {
- 	int ret;
-@@ -64,15 +65,17 @@ static int it913x_read_reg(struct it913x_fe_state *state,
- 	return ret;
+ 	const struct v4l2_capability *p = arg;
+ 
+-	pr_cont("driver=%s, card=%s, bus=%s, version=0x%08x, "
++	pr_cont("driver=%.*s, card=%.*s, bus=%.*s, version=0x%08x, "
+ 		"capabilities=0x%08x, device_caps=0x%08x\n",
+-		p->driver, p->card, p->bus_info,
++		(int)sizeof(p->driver), p->driver,
++		(int)sizeof(p->card), p->card,
++		(int)sizeof(p->bus_info), p->bus_info,
+ 		p->version, p->capabilities, p->device_caps);
  }
  
--static int it913x_read_reg_u8(struct it913x_fe_state *state, u32 reg)
-+/* read single register */
-+static int it913x_rd_reg(struct it913x_state *state, u32 reg)
+@@ -177,20 +179,21 @@ static void v4l_print_enuminput(const void *arg, bool write_only)
  {
- 	int ret;
- 	u8 b[1];
--	ret = it913x_read_reg(state, reg, &b[0], sizeof(b));
-+	ret = it913x_rd_regs(state, reg, &b[0], sizeof(b));
- 	return (ret < 0) ? -ENODEV : b[0];
+ 	const struct v4l2_input *p = arg;
+ 
+-	pr_cont("index=%u, name=%s, type=%u, audioset=0x%x, tuner=%u, "
++	pr_cont("index=%u, name=%.*s, type=%u, audioset=0x%x, tuner=%u, "
+ 		"std=0x%08Lx, status=0x%x, capabilities=0x%x\n",
+-		p->index, p->name, p->type, p->audioset, p->tuner,
+-		(unsigned long long)p->std, p->status, p->capabilities);
++		p->index, (int)sizeof(p->name), p->name, p->type, p->audioset,
++		p->tuner, (unsigned long long)p->std, p->status,
++		p->capabilities);
  }
  
--static int it913x_write(struct it913x_fe_state *state,
-+/* write multiple registers */
-+static int it913x_wr_regs(struct it913x_state *state,
- 		u8 pro, u32 reg, u8 buf[], u8 count)
+ static void v4l_print_enumoutput(const void *arg, bool write_only)
  {
- 	u8 b[256];
-@@ -97,7 +100,8 @@ static int it913x_write(struct it913x_fe_state *state,
- 	return 0;
+ 	const struct v4l2_output *p = arg;
+ 
+-	pr_cont("index=%u, name=%s, type=%u, audioset=0x%x, "
++	pr_cont("index=%u, name=%.*s, type=%u, audioset=0x%x, "
+ 		"modulator=%u, std=0x%08Lx, capabilities=0x%x\n",
+-		p->index, p->name, p->type, p->audioset, p->modulator,
+-		(unsigned long long)p->std, p->capabilities);
++		p->index, (int)sizeof(p->name), p->name, p->type, p->audioset,
++		p->modulator, (unsigned long long)p->std, p->capabilities);
  }
  
--static int it913x_write_reg(struct it913x_fe_state *state,
-+/* write single register */
-+static int it913x_wr_reg(struct it913x_state *state,
- 		u8 pro, u32 reg, u32 data)
- {
- 	int ret;
-@@ -118,12 +122,12 @@ static int it913x_write_reg(struct it913x_fe_state *state,
+ static void v4l_print_audio(const void *arg, bool write_only)
+@@ -200,8 +203,9 @@ static void v4l_print_audio(const void *arg, bool write_only)
+ 	if (write_only)
+ 		pr_cont("index=%u, mode=0x%x\n", p->index, p->mode);
  	else
- 		s = 0;
- 
--	ret = it913x_write(state, pro, reg, &b[s], sizeof(b) - s);
-+	ret = it913x_wr_regs(state, pro, reg, &b[s], sizeof(b) - s);
- 
- 	return ret;
+-		pr_cont("index=%u, name=%s, capability=0x%x, mode=0x%x\n",
+-			p->index, p->name, p->capability, p->mode);
++		pr_cont("index=%u, name=%.*s, capability=0x%x, mode=0x%x\n",
++			p->index, (int)sizeof(p->name), p->name,
++			p->capability, p->mode);
  }
  
--static int it913x_fe_script_loader(struct it913x_fe_state *state,
-+static int it913x_script_loader(struct it913x_state *state,
- 		struct it913xset *loadscript)
- {
- 	int ret, i;
-@@ -133,7 +137,7 @@ static int it913x_fe_script_loader(struct it913x_fe_state *state,
- 	for (i = 0; i < 1000; ++i) {
- 		if (loadscript[i].pro == 0xff)
- 			break;
--		ret = it913x_write(state, loadscript[i].pro,
-+		ret = it913x_wr_regs(state, loadscript[i].pro,
- 			loadscript[i].address,
- 			loadscript[i].reg, loadscript[i].count);
- 		if (ret < 0)
-@@ -142,9 +146,9 @@ static int it913x_fe_script_loader(struct it913x_fe_state *state,
- 	return 0;
- }
- 
--static int it913x_init_tuner(struct dvb_frontend *fe)
-+static int it913x_init(struct dvb_frontend *fe)
- {
--	struct it913x_fe_state *state = fe->tuner_priv;
-+	struct it913x_state *state = fe->tuner_priv;
- 	int ret, i, reg;
- 	struct it913xset *set_lna;
- 	u8 val, nv_val;
-@@ -153,9 +157,9 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 
- 	/* v1 or v2 tuner script */
- 	if (state->config->chip_ver > 1)
--		ret = it913x_fe_script_loader(state, it9135_v2);
-+		ret = it913x_script_loader(state, it9135_v2);
+ static void v4l_print_audioout(const void *arg, bool write_only)
+@@ -211,21 +215,22 @@ static void v4l_print_audioout(const void *arg, bool write_only)
+ 	if (write_only)
+ 		pr_cont("index=%u\n", p->index);
  	else
--		ret = it913x_fe_script_loader(state, it9135_v1);
-+		ret = it913x_script_loader(state, it9135_v1);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -182,19 +186,19 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 	}
- 	pr_info("Tuner LNA type :%02x\n", state->tuner_type);
- 
--	ret = it913x_fe_script_loader(state, set_lna);
-+	ret = it913x_script_loader(state, set_lna);
- 	if (ret < 0)
- 		return ret;
- 
- 	if (state->config->chip_ver == 2) {
--		ret = it913x_write_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x1);
--		ret |= it913x_write_reg(state, PRO_LINK, PADODPU, 0x0);
--		ret |= it913x_write_reg(state, PRO_LINK, AGC_O_D, 0x0);
-+		ret = it913x_wr_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x1);
-+		ret |= it913x_wr_reg(state, PRO_LINK, PADODPU, 0x0);
-+		ret |= it913x_wr_reg(state, PRO_LINK, AGC_O_D, 0x0);
- 	}
- 	if (ret < 0)
- 		return -ENODEV;
- 
--	reg = it913x_read_reg_u8(state, 0xec86);
-+	reg = it913x_rd_reg(state, 0xec86);
- 	switch (reg) {
- 	case 0:
- 		state->tun_clk_mode = reg;
-@@ -213,7 +217,7 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	reg = it913x_read_reg_u8(state, 0xed03);
-+	reg = it913x_rd_reg(state, 0xed03);
- 
- 	if (reg < 0)
- 		return -ENODEV;
-@@ -223,7 +227,7 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 		nv_val = 2;
- 
- 	for (i = 0; i < 50; i++) {
--		ret = it913x_read_reg(state, 0xed23, &b[0], sizeof(b));
-+		ret = it913x_rd_regs(state, 0xed23, &b[0], sizeof(b));
- 		reg = (b[1] << 8) + b[0];
- 		if (reg > 0)
- 			break;
-@@ -239,7 +243,7 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 		msleep(50);
- 	else {
- 		for (i = 0; i < 50; i++) {
--			reg = it913x_read_reg_u8(state, 0xec82);
-+			reg = it913x_rd_reg(state, 0xec82);
- 			if (reg > 0)
- 				break;
- 			if (reg < 0)
-@@ -248,12 +252,12 @@ static int it913x_init_tuner(struct dvb_frontend *fe)
- 		}
- 	}
- 
--	return it913x_write_reg(state, PRO_DMOD, 0xed81, val);
-+	return it913x_wr_reg(state, PRO_DMOD, 0xed81, val);
+-		pr_cont("index=%u, name=%s, capability=0x%x, mode=0x%x\n",
+-			p->index, p->name, p->capability, p->mode);
++		pr_cont("index=%u, name=%.*s, capability=0x%x, mode=0x%x\n",
++			p->index, (int)sizeof(p->name), p->name,
++			p->capability, p->mode);
  }
  
--static int it9137_set_tuner(struct dvb_frontend *fe)
-+static int it9137_set_params(struct dvb_frontend *fe)
+ static void v4l_print_fmtdesc(const void *arg, bool write_only)
  {
--	struct it913x_fe_state *state = fe->tuner_priv;
-+	struct it913x_state *state = fe->tuner_priv;
- 	struct it913xset *set_tuner = set_it9137_template;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u32 bandwidth = p->bandwidth_hz;
-@@ -358,7 +362,7 @@ static int it9137_set_tuner(struct dvb_frontend *fe)
- 	} else
- 		return -EINVAL;
+ 	const struct v4l2_fmtdesc *p = arg;
  
--	reg = it913x_read_reg_u8(state, 0xed81);
-+	reg = it913x_rd_reg(state, 0xed81);
- 	iqik_m_cal = (u16)reg * n_div;
- 
- 	if (reg < 0x20) {
-@@ -396,7 +400,7 @@ static int it9137_set_tuner(struct dvb_frontend *fe)
- 
- 	pr_debug("low Frequency = %04x\n", freq);
- 
--	ret = it913x_fe_script_loader(state, set_tuner);
-+	ret = it913x_script_loader(state, set_tuner);
- 
- 	return (ret < 0) ? -ENODEV : 0;
- }
-@@ -405,10 +409,10 @@ static int it9137_set_tuner(struct dvb_frontend *fe)
- /* Power Up	Tuner on -> Frontend suspend off -> Tuner clk on */
- /* Power Down	Frontend suspend on -> Tuner clk off -> Tuner off */
- 
--static int it913x_fe_sleep(struct dvb_frontend *fe)
-+static int it913x_sleep(struct dvb_frontend *fe)
- {
--	struct it913x_fe_state *state = fe->tuner_priv;
--	return it913x_fe_script_loader(state, it9137_tuner_off);
-+	struct it913x_state *state = fe->tuner_priv;
-+	return it913x_script_loader(state, it9137_tuner_off);
+-	pr_cont("index=%u, type=%s, flags=0x%x, pixelformat=%c%c%c%c, description='%s'\n",
++	pr_cont("index=%u, type=%s, flags=0x%x, pixelformat=%c%c%c%c, description='%.*s'\n",
+ 		p->index, prt_names(p->type, v4l2_type_names),
+ 		p->flags, (p->pixelformat & 0xff),
+ 		(p->pixelformat >>  8) & 0xff,
+ 		(p->pixelformat >> 16) & 0xff,
+ 		(p->pixelformat >> 24) & 0xff,
+-		p->description);
++		(int)sizeof(p->description), p->description);
  }
  
- static int it913x_release(struct dvb_frontend *fe)
-@@ -426,19 +430,19 @@ static const struct dvb_tuner_ops it913x_tuner_ops = {
+ static void v4l_print_format(const void *arg, bool write_only)
+@@ -348,9 +353,9 @@ static void v4l_print_modulator(const void *arg, bool write_only)
+ 	if (write_only)
+ 		pr_cont("index=%u, txsubchans=0x%x", p->index, p->txsubchans);
+ 	else
+-		pr_cont("index=%u, name=%s, capability=0x%x, "
++		pr_cont("index=%u, name=%.*s, capability=0x%x, "
+ 			"rangelow=%u, rangehigh=%u, txsubchans=0x%x\n",
+-			p->index, p->name, p->capability,
++			p->index, (int)sizeof(p->name), p->name, p->capability,
+ 			p->rangelow, p->rangehigh, p->txsubchans);
+ }
  
- 	.release = it913x_release,
- 
--	.init = it913x_init_tuner,
--	.sleep = it913x_fe_sleep,
--	.set_params = it9137_set_tuner,
-+	.init = it913x_init,
-+	.sleep = it913x_sleep,
-+	.set_params = it9137_set_params,
- };
- 
- struct dvb_frontend *it913x_attach(struct dvb_frontend *fe,
- 	struct i2c_adapter *i2c_adap, u8 i2c_addr, struct ite_config *config)
+@@ -361,10 +366,10 @@ static void v4l_print_tuner(const void *arg, bool write_only)
+ 	if (write_only)
+ 		pr_cont("index=%u, audmode=%u\n", p->index, p->audmode);
+ 	else
+-		pr_cont("index=%u, name=%s, type=%u, capability=0x%x, "
++		pr_cont("index=%u, name=%.*s, type=%u, capability=0x%x, "
+ 			"rangelow=%u, rangehigh=%u, signal=%u, afc=%d, "
+ 			"rxsubchans=0x%x, audmode=%u\n",
+-			p->index, p->name, p->type,
++			p->index, (int)sizeof(p->name), p->name, p->type,
+ 			p->capability, p->rangelow,
+ 			p->rangehigh, p->signal, p->afc,
+ 			p->rxsubchans, p->audmode);
+@@ -382,9 +387,9 @@ static void v4l_print_standard(const void *arg, bool write_only)
  {
--	struct it913x_fe_state *state = NULL;
-+	struct it913x_state *state = NULL;
- 	int ret;
+ 	const struct v4l2_standard *p = arg;
  
- 	/* allocate memory for the internal state */
--	state = kzalloc(sizeof(struct it913x_fe_state), GFP_KERNEL);
-+	state = kzalloc(sizeof(struct it913x_state), GFP_KERNEL);
- 	if (state == NULL)
- 		return NULL;
- 	if (config == NULL)
+-	pr_cont("index=%u, id=0x%Lx, name=%s, fps=%u/%u, "
++	pr_cont("index=%u, id=0x%Lx, name=%.*s, fps=%u/%u, "
+ 		"framelines=%u\n", p->index,
+-		(unsigned long long)p->id, p->name,
++		(unsigned long long)p->id, (int)sizeof(p->name), p->name,
+ 		p->frameperiod.numerator,
+ 		p->frameperiod.denominator,
+ 		p->framelines);
+@@ -504,9 +509,9 @@ static void v4l_print_queryctrl(const void *arg, bool write_only)
+ {
+ 	const struct v4l2_queryctrl *p = arg;
+ 
+-	pr_cont("id=0x%x, type=%d, name=%s, min/max=%d/%d, "
++	pr_cont("id=0x%x, type=%d, name=%.*s, min/max=%d/%d, "
+ 		"step=%d, default=%d, flags=0x%08x\n",
+-			p->id, p->type, p->name,
++			p->id, p->type, (int)sizeof(p->name), p->name,
+ 			p->minimum, p->maximum,
+ 			p->step, p->default_value, p->flags);
+ }
+@@ -623,7 +628,8 @@ static void v4l_print_dbg_chip_ident(const void *arg, bool write_only)
+ 
+ 	pr_cont("type=%u, ", p->match.type);
+ 	if (p->match.type == V4L2_CHIP_MATCH_I2C_DRIVER)
+-		pr_cont("name=%s, ", p->match.name);
++		pr_cont("name=%.*s, ",
++				(int)sizeof(p->match.name), p->match.name);
+ 	else
+ 		pr_cont("addr=%u, ", p->match.addr);
+ 	pr_cont("chip_ident=%u, revision=0x%x\n",
+@@ -636,7 +642,8 @@ static void v4l_print_dbg_register(const void *arg, bool write_only)
+ 
+ 	pr_cont("type=%u, ", p->match.type);
+ 	if (p->match.type == V4L2_CHIP_MATCH_I2C_DRIVER)
+-		pr_cont("name=%s, ", p->match.name);
++		pr_cont("name=%.*s, ",
++				(int)sizeof(p->match.name), p->match.name);
+ 	else
+ 		pr_cont("addr=%u, ", p->match.addr);
+ 	pr_cont("reg=0x%llx, val=0x%llx\n",
+@@ -647,8 +654,9 @@ static void v4l_print_dv_enum_presets(const void *arg, bool write_only)
+ {
+ 	const struct v4l2_dv_enum_preset *p = arg;
+ 
+-	pr_cont("index=%u, preset=%u, name=%s, width=%u, height=%u\n",
+-			p->index, p->preset, p->name, p->width, p->height);
++	pr_cont("index=%u, preset=%u, name=%.*s, width=%u, height=%u\n",
++			p->index, p->preset,
++			(int)sizeof(p->name), p->name, p->width, p->height);
+ }
+ 
+ static void v4l_print_dv_preset(const void *arg, bool write_only)
 -- 
-1.7.11.7
+1.7.10.4
 
