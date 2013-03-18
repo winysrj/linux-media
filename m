@@ -1,15 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60552 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.186]:56742 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617Ab3CTLqq (ORCPT
+	with ESMTP id S1752471Ab3CRL24 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 07:46:46 -0400
+	Mon, 18 Mar 2013 07:28:56 -0400
 From: Arnd Bergmann <arnd@arndb.de>
 To: Fabio Porcedda <fabio.porcedda@gmail.com>
 Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Date: Wed, 20 Mar 2013 11:46:07 +0000
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	H Hartley Sweeten <hartleys@visionengravers.com>,
+Date: Mon, 18 Mar 2013 11:28:45 +0000
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>,
 	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
 	"linux-arm-kernel@lists.infradead.org"
 	<linux-arm-kernel@lists.infradead.org>,
@@ -19,52 +18,39 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
 	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
 	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
 	"Greg Kroah-Hartman" <gregkh@linuxfoundation.org>,
+	"Hans-Christian Egtvedt" <hans-christian.egtvedt@atmel.com>,
 	Grant Likely <grant.likely@secretlab.ca>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com> <201303201020.14654.arnd@arndb.de> <CAHkwnC-8FH0nyJ+eT=+7doP+fSdZjNYUW4zzs_r6e9wt3Yt4Fg@mail.gmail.com>
-In-Reply-To: <CAHkwnC-8FH0nyJ+eT=+7doP+fSdZjNYUW4zzs_r6e9wt3Yt4Fg@mail.gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com> <201303181058.51641.arnd@arndb.de> <CAHkwnC-aHwd24S5MyLhnVzTqqQj2L7MMuVX9dirhS-G830jZcw@mail.gmail.com>
+In-Reply-To: <CAHkwnC-aHwd24S5MyLhnVzTqqQj2L7MMuVX9dirhS-G830jZcw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303201146.07987.arnd@arndb.de>
+Message-Id: <201303181128.45215.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 20 March 2013, Fabio Porcedda wrote:
+On Monday 18 March 2013, Fabio Porcedda wrote:
 > 
-> On Wed, Mar 20, 2013 at 11:20 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > On Wednesday 20 March 2013, Fabio Porcedda wrote:
-> >> I think we can check inside the  deferred_probe_work_func()
-> >> if the dev->probe function pointer is equal to platform_drv_probe_fail().
+> On Mon, Mar 18, 2013 at 11:58 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Monday 18 March 2013, Fabio Porcedda wrote:
+> >> Since by using platform_driver_probe() the  function
+> >> ep93xx_pwm_probe() is freed after initialization,
+> >> is better to use module_platform_drive_probe().
+> >> IMHO i don't see any good reason to use module_platform_driver() for
+> >> this driver.
 > >
-> > I think it's too late by then, because that would only warn if we try to probe
-> > it again, but when platform_driver_probe() does not succeed immediately, it
+> > As I commented earlier, the platform_driver_probe() and
+> > module_platform_drive_probe() interfaces are rather dangerous in combination
+> > with deferred probing, I would much prefer Harley's patch.
 > 
-> Maybe you mean "does succeed immediately" ?
+> Since those drivers don't use -EPROBE_DEFER i was thinking that they don't use
+> deferred probing.
+> I'm missing something?
 
-I mean in this code (simplified for the sake of discussion)
-
-int __init_or_module platform_driver_probe(struct platform_driver *drv,
-                int (*probe)(struct platform_device *))
-{
-        int retval, code;
-
-        drv->probe = probe;
-        retval = code = platform_driver_register(drv);
-
-        drv->probe = NULL;
-        if (code == 0 && list_empty(&drv->driver.p->klist_devices.k_list))
-                retval = -ENODEV;
-        drv->driver.probe = platform_drv_probe_fail;
-
-        if (code != retval)
-                platform_driver_unregister(drv);
-        return retval;
-}
-
-we assume that all devices are bound to drivers during the call to
-platform_driver_register, and if the device list is empty afterwards,
-we unregister the driver and will never get to the deferred probing
-stage.
+clk_get() may return -EPROBE_DEFER after ep93xx is converted to use the
+common clk API. We currently return the value of clk_get from the probe()
+function, which will automatically do the right thing as long as the probe
+function remains reachable.
 
 	Arnd
