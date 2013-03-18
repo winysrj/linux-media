@@ -1,99 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4228 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754552Ab3C2TS3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 15:18:29 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2TJIPJx016783
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 29 Mar 2013 20:18:27 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 8343D11E0166
-	for <linux-media@vger.kernel.org>; Fri, 29 Mar 2013 20:18:23 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130329191823.8343D11E0166@alastor.dyndns.org>
-Date: Fri, 29 Mar 2013 20:18:23 +0100 (CET)
+Received: from cantor2.suse.de ([195.135.220.15]:43787 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751419Ab3CRNvi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 09:51:38 -0400
+Date: Mon, 18 Mar 2013 14:51:35 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: "Dirk E. Wagner" <linux@wagner-budenheim.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb
+ radio
+In-Reply-To: <CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz>
+References: <20121228102928.4103390e@redhat.com> <CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com> <63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de> <CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, 15 Mar 2013, Alexey Klimov wrote:
 
-Results of the daily build of media_tree:
+> > indeed your patch breaks Atmega applications which using V-USB
+> > (http://www.obdev.at/products/vusb/index.html), because 0x16c0, 0x05df are
+> > the default Ids of V-USB.
+> >
+> > Have a look at this FAQ
+> >
+> > https://github.com/obdev/v-usb/blob/master/usbdrv/USB-ID-FAQ.txt
+> >
+> > It seems that the Masterkit M901 also uses V-USB.
+> >
+> > I'm using an IR remote control receiver based on Atmega8 with V-USB. Since
+> > Kernel 3.8.2 there is no more hidraw device for my receiver, so I had to
+> > change the Device-ID to 0x27d9. I think there are a lot of other V-USB
+> > applications with similar problems.
+> >
+> > Dirk
+> 
+> Exactly. That's why i tried to point it out. Thanks for explaining
+> this in simplier words.
+> 
+> It's difficult to answer on top posting emails.
+> 
+> I don't understand one thing about your letter. Did you put
+> linux-media kernel list in bcc (hide copy)? Is there any reason for
+> this? http://www.mail-archive.com/linux-media@vger.kernel.org/msg59714.html
+> 
+> Mauro, Jiri,
+> can we revert this patch? If you need any ack or sign from me i'm
+> ready to send it.
+> 
+> I can contact people who cares about stable trees and ask them to
+> revert this patch from stable trees.
+> 
+> During 3.9-rcX cycle i can try to figure out some fix or additional
+> checks for radio-ma901.c driver.
 
-date:		Fri Mar 29 19:00:30 CET 2013
-git branch:	test
-git hash:	79a63c60a6a2ae589e44529401e0ab1150e9408a
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+I can revert 0322bd3980 and push it out to Linus for 3.9 still, Ccing 
+stable.
 
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Or Mauro, as the original patch went in through your tree, are you 
+handling that?
 
-Detailed results are available here:
+Also additional work will be needed later to properly detect the 
+underlying device ... the best thing to do here is to put an entry into 
+hid_ignore(), similar to what we do for example for Keene FM vs. Logitech 
+AudioHub.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jiri Kosina
+SUSE Labs
