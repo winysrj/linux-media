@@ -1,82 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25705 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932135Ab3CSSax (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 14:30:53 -0400
-Date: Tue, 19 Mar 2013 15:30:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Prabhakar lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Sekhar Nori <nsekhar@ti.com>
-Subject: Re: [PATCH v2] davinci: vpif: Fix module build for capture and
- display
-Message-ID: <20130319153043.23f7d127@redhat.com>
-In-Reply-To: <1362739747-4166-1-git-send-email-prabhakar.lad@ti.com>
-References: <1362739747-4166-1-git-send-email-prabhakar.lad@ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1741 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751070Ab3CRT2O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 15:28:14 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2IJSAPx091381
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 20:28:13 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4699411E0194
+	for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 20:28:10 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130318192810.4699411E0194@alastor.dyndns.org>
+Date: Mon, 18 Mar 2013 20:28:10 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri,  8 Mar 2013 16:19:07 +0530
-Prabhakar lad <prabhakar.csengg@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> export the symbols which are used by two modules vpif_capture and
-> vpif_display.
-> 
-> This patch fixes following error:
-> ERROR: "ch_params" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-> ERROR: "vpif_ch_params_count" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-> ERROR: "vpif_base" [drivers/media/platform/davinci/vpif_display.ko] undefined!
-> ERROR: "ch_params" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-> ERROR: "vpif_ch_params_count" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-> ERROR: "vpif_base" [drivers/media/platform/davinci/vpif_capture.ko] undefined!
-> make[1]: *** [__modpost] Error 1
-> 
-> Reported-by: Sekhar Nori <nsekhar@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  Changes for v2:
->  1: use EXPORT_SYMBOL_GPL instead of EXPORT_SYMBOL() as pointed by
->     Sekhar.
-> 
->  drivers/media/platform/davinci/vpif.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-> index 28638a8..42c7eba 100644
-> --- a/drivers/media/platform/davinci/vpif.c
-> +++ b/drivers/media/platform/davinci/vpif.c
-> @@ -44,6 +44,8 @@ static struct resource	*res;
->  spinlock_t vpif_lock;
->  
->  void __iomem *vpif_base;
-> +EXPORT_SYMBOL_GPL(vpif_base);
-> +
->  struct clk *vpif_clk;
->  
->  /**
-> @@ -220,8 +222,10 @@ const struct vpif_channel_config_params ch_params[] = {
->  		.stdid = V4L2_STD_625_50,
->  	},
->  };
-> +EXPORT_SYMBOL_GPL(ch_params);
+Results of the daily build of media_tree:
 
-Please don't use simple names like that. It would be very easy that some
-other driver could try to declare the same symbol. Instead, prefix it
-with the driver name (vpif_ch_params).
+date:		Mon Mar 18 19:00:23 CET 2013
+git branch:	test
+git hash:	4d35435d3ffb853b491f5bb21a62529cd925d660
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8.03-marune
 
->  
->  const unsigned int vpif_ch_params_count = ARRAY_SIZE(ch_params);
-> +EXPORT_SYMBOL_GPL(vpif_ch_params_count);
->  
->  static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
->  {
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: WARNINGS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Regards,
-Mauro
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
