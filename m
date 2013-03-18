@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49535 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932935Ab3CSQuG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:06 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 40/46] [media] siano: honour per-card default mode
-Date: Tue, 19 Mar 2013 13:49:29 -0300
-Message-Id: <1363711775-2120-41-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:35020 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753144Ab3CRKDj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 06:03:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <201303152018.09094.arnd@arndb.de>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <201303141358.05616.arnd@arndb.de> <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
+ <201303152018.09094.arnd@arndb.de>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Mon, 18 Mar 2013 11:03:18 +0100
+Message-ID: <CAHkwnC9YFTw8gVzyZB3_gZCgM5zMA6tLch15EDqcA2F4CAOpAQ@mail.gmail.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using a global default_mode, passed via modprobe
-parameter, use the one defined inside the cards struct.
+On Fri, Mar 15, 2013 at 9:18 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Friday 15 March 2013, H Hartley Sweeten wrote:
+>> Arnd,
+>>
+>> Ill look at converting the ep93xx pwm driver to the PWM subsystem. The only issue is
+>> the current driver exposes a sysfs interface that I think is not available in that subsystem.
+>
+> You can probably keep providing that interface if you have active users.
+>
+>> >* Regarding the use of module_platform_driver_probe, I'm a little worried about
+>> >  the interactions with deferred probing. I don't think there are any regressions,
+>> >  but we should probably make people aware that one cannot return -EPROBE_DEFER
+>> >  from a platform_driver_probe function.
+>>
+>> The ep93xx pwm driver does not need to use platform_driver_probe(). It can be changed
+>> to use module_platform_driver() by just moving the .probe to the platform_driver. This
+>> driver was added before module_platform_driver() was available and I used the
+>> platform_driver_probe() thinking it would save a couple lines of code.
 
-That will prevent the need of manually specify it for each
-board, except, of course, if the user wants to do something
-different, on boards that accept multiple types.
+Since by using platform_driver_probe() the  function
+ep93xx_pwm_probe() is freed after initialization,
+is better to use module_platform_drive_probe().
+IMHO i don't see any good reason to use module_platform_driver() for
+this driver.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/siano/smscoreapi.c | 23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+Best regards
+Fabio Porcedda
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 6db7fe5..4fa3df2 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -434,7 +434,7 @@ static struct mutex g_smscore_deviceslock;
- static struct list_head g_smscore_registry;
- static struct mutex g_smscore_registrylock;
- 
--static int default_mode = 4;
-+static int default_mode = DEVICE_MODE_NONE;
- 
- module_param(default_mode, int, 0644);
- MODULE_PARM_DESC(default_mode, "default firmware id (device mode)");
-@@ -880,8 +880,15 @@ int smscore_configure_board(struct smscore_device_t *coredev)
-  */
- int smscore_start_device(struct smscore_device_t *coredev)
- {
--	int rc = smscore_set_device_mode(
--			coredev, smscore_registry_getmode(coredev->devpath));
-+	int rc;
-+	int board_id = smscore_get_board_id(coredev);
-+	int mode = smscore_registry_getmode(coredev->devpath);
-+
-+	/* Device is initialized as DEVICE_MODE_NONE */
-+	if (board_id != SMS_BOARD_UNKNOWN && mode == DEVICE_MODE_NONE)
-+		mode = sms_get_board(board_id)->default_mode;
-+
-+	rc = smscore_set_device_mode(coredev, mode);
- 	if (rc < 0) {
- 		sms_info("set device mode faile , rc %d", rc);
- 		return rc;
-@@ -1270,6 +1277,12 @@ static char *smscore_get_fw_filename(struct smscore_device_t *coredev,
- 
- 	type = smscore_registry_gettype(coredev->devpath);
- 
-+	/* Prevent looking outside the smscore_fw_lkup table */
-+	if (type <= SMS_UNKNOWN_TYPE || type >= SMS_NUM_OF_DEVICE_TYPES)
-+		return NULL;
-+	if (mode <= DEVICE_MODE_NONE || mode >= DEVICE_MODE_MAX)
-+		return NULL;
-+
- 	if ((board_id == SMS_BOARD_UNKNOWN) || (lookup == 1)) {
- 		sms_debug("trying to get fw name from lookup table mode %d type %d",
- 			  mode, type);
-@@ -1339,7 +1352,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
- 
- 	sms_debug("set device mode to %d", mode);
- 	if (coredev->device_flags & SMS_DEVICE_FAMILY2) {
--		if (mode < DEVICE_MODE_DVBT || mode >= DEVICE_MODE_RAW_TUNER) {
-+		if (mode <= DEVICE_MODE_NONE || mode >= DEVICE_MODE_MAX) {
- 			sms_err("invalid mode specified %d", mode);
- 			return -EINVAL;
- 		}
-@@ -1391,7 +1404,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
- 				sms_err("device init failed, rc %d.", rc);
- 		}
- 	} else {
--		if (mode < DEVICE_MODE_DVBT || mode > DEVICE_MODE_MAX) {
-+		if (mode <= DEVICE_MODE_NONE || mode >= DEVICE_MODE_MAX) {
- 			sms_err("invalid mode specified %d", mode);
- 			return -EINVAL;
- 		}
--- 
-1.8.1.4
-
+>> I'll change this in a bit. Right now I'm trying to work out why kernel 3.8 is not booting
+>> on the ep93xx. I had 3.6.6 on my development board and 3.7 works fine but 3.8 hangs
+>> without uncompressing the kernel.
+>
+> Ok, thanks!
+>
+>         Arnd
