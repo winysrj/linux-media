@@ -1,54 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:41139 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753793Ab3CCThI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:37:08 -0500
-Received: by mail-ee0-f41.google.com with SMTP id c13so3529951eek.28
-        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:37:07 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 04/11] em28xx: do not interpret eeprom content if eeprom key is invalid
-Date: Sun,  3 Mar 2013 20:37:37 +0100
-Message-Id: <1362339464-3373-5-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35862 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754454Ab3CRU2n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 16:28:43 -0400
+Received: from dyn3-82-128-189-172.psoas.suomi.net ([82.128.189.172] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1UHgfh-0002MA-DP
+	for linux-media@vger.kernel.org; Mon, 18 Mar 2013 22:28:41 +0200
+Message-ID: <514778D5.1090800@iki.fi>
+Date: Mon, 18 Mar 2013 22:28:05 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] dvb_usb_v2: PID filter and streaming ctrl related changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the eeprom key isn't valid, either a different (currently unknown) format
-is used or the eeprom is corrupted.
-In both cases it doesn't make sense to interpret the data.
-Also print an error message.
+This fix one bug where sync lock is hold over the userspace. Also it 
+changes dvb_usb_v2 PID filter logic a little bit.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |    8 ++++++--
- 1 Datei geändert, 6 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+regards
+Antti
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index d765567..9612086 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -434,8 +434,12 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 			printk("\n");
- 	}
- 
--	if (em_eeprom->id == 0x9567eb1a)
--		dev->hash = em28xx_hash_mem(eedata, len, 32);
-+	if (em_eeprom->id != 0x9567eb1a) {
-+		em28xx_errdev("Unknown eeprom type or eeprom corrupted !");
-+		return -ENODEV;
-+	}
-+
-+	dev->hash = em28xx_hash_mem(eedata, len, 32);
- 
- 	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
- 		    em_eeprom->id, dev->hash);
+
+The following changes since commit 4ca286610f664acf3153634f3930acd2de993a9f:
+
+   [media] radio-rtrack2: fix mute bug (2013-03-05 15:20:07 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/anttip/media_tree.git dvb_usb_v2_pid_filter
+
+for you to fetch changes up to 0d3f7b6d19f230fd73ceefbe370844c7e0b67357:
+
+   it913x: fix pid filter (2013-03-18 22:21:31 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (5):
+       dvb_usb_v2: replace Kernel userspace lock with wait queue
+       dvb_usb_v2: make checkpatch.pl happy
+       cypress_firmware: make checkpatch.pl happy
+       dvb_usb_v2: rework USB streaming logic
+       it913x: fix pid filter
+
+  drivers/media/usb/dvb-usb-v2/cypress_firmware.c |   5 +--
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h          |   5 ++-
+  drivers/media/usb/dvb-usb-v2/dvb_usb_core.c     | 311 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c      |   5 ++-
+  drivers/media/usb/dvb-usb-v2/it913x.c           |   1 +
+  drivers/media/usb/dvb-usb-v2/usb_urb.c          |  36 ++++++++-------
+  6 files changed, 206 insertions(+), 157 deletions(-)
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
