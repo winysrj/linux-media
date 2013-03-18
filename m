@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:46928 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754389Ab3COSJl (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:41805 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753176Ab3CRJoB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 14:09:41 -0400
-MIME-Version: 1.0
-In-Reply-To: <201303151128.48432.arnd@arndb.de>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
- <20130314140631.GM1906@pengutronix.de> <CAHkwnC9nGsdgOTQZ6VpeDyPWXw7tpP+2oHvnLv6LEr1cNdnrsg@mail.gmail.com>
- <201303151128.48432.arnd@arndb.de>
+	Mon, 18 Mar 2013 05:44:01 -0400
+Received: by mail-bk0-f52.google.com with SMTP id jk13so2373036bkc.11
+        for <linux-media@vger.kernel.org>; Mon, 18 Mar 2013 02:44:00 -0700 (PDT)
 From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Fri, 15 Mar 2013 19:09:18 +0100
-Message-ID: <CAHkwnC_4kVGcs03_6RVNrye21aUHsCWf9rQe=2JP_Nkjk8Yczw@mail.gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-ide <linux-ide@vger.kernel.org>,
-	lm-sensors <lm-sensors@lm-sensors.org>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	H Hartley Sweeten <hsweeten@visionengravers.com>,
-	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] mx2_camera: use module_platform_driver_probe()
+Date: Mon, 18 Mar 2013 10:43:56 +0100
+Message-Id: <1363599836-15824-1-git-send-email-fabio.porcedda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 15, 2013 at 12:28 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 15 March 2013, Fabio Porcedda wrote:
->> >> * Regarding the use of module_platform_driver_probe, I'm a little worried about
->> >>   the interactions with deferred probing. I don't think there are any regressions,
->> >>   but we should probably make people aware that one cannot return -EPROBE_DEFER
->> >>   from a platform_driver_probe function.
->>
->> The use of module_platform_driver_probe() doesn't change anything about that,
->> it's exactly the same thing as using "return platform_driver_probe()".
->> I'm right or I'm missing something? Maybe are you just speaking about
->> the misuse of "platform_driver_probe"?
->
-> Yes, that was what I meant. The point is that if we need to review or remove
-> all uses of platform_driver_probe, it would be better not to introduce a
-> module_platform_driver_probe() interface to make it easier to use.
+The commit 39793c6 "[media] mx2_camera: Convert it to platform driver"
+used module_platform_driver() to make code smaller,
+but since the driver used platform_driver_probe is more appropriate
+to use module_platform_driver_probe().
 
-Just to let you know, the module_platform_driver_probe() macro is
-already in v3.9-rc1 and is already used by some drivers.
-In linux-next there are already many patches that use that macro.
+Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/soc_camera/mx2_camera.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Best regards
---
-Fabio Porcedda
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index ffba7d9..848dff9 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -1619,10 +1619,9 @@ static struct platform_driver mx2_camera_driver = {
+ 	},
+ 	.id_table	= mx2_camera_devtype,
+ 	.remove		= mx2_camera_remove,
+-	.probe		= mx2_camera_probe,
+ };
+ 
+-module_platform_driver(mx2_camera_driver);
++module_platform_driver_probe(mx2_camera_driver, mx2_camera_probe);
+ 
+ MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
+ MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+-- 
+1.8.2
+
