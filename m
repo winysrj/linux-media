@@ -1,64 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2636 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750708Ab3CAJ7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 04:59:52 -0500
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2545 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752639Ab3CRQif (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 12:38:35 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] s2255: v4l2-compliance and big-endian fixes
-Date: Fri, 1 Mar 2013 10:59:44 +0100
-Cc: Pete Eberlein <pete@sensoray.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303011059.44601.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	Frank Schaefer <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [RFC PATCH 0/6] Add VIDIOC_DBG_G_CHIP_NAME ioctl.
+Date: Mon, 18 Mar 2013 17:38:14 +0100
+Message-Id: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Retry: the first pull request didn't end up in patchwork for some reason,
-let's see if this works better)
+This is a patch series implementing this proposal:
 
-Hi Mauro,
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/61539
 
-This pull request updates the s2255 driver with the usual v4l2-compliance and
-big-endian fixes.
+It keeps the old CHIP_IDENT around for now. My plan is to start removing
+support for VIDIOC_G_CHIP_IDENT and the match types V4L2_CHIP_MATCH_I2C_DRIVER,
+V4L2_CHIP_MATCH_I2C_ADDR and V4L2_CHIP_MATCH_AC97 for 3.11. Once it's all
+removed we can also ditch the v4l2-chip-ident.h header.
 
-Tested on my s2255 device, generously supplied by Sensoray.
+These debugging ioctls have always been a bit problematic, but sub-devices
+are a much better fit and greatly simplify the implementation.
 
-The patches in this pull request are unchanged from my review patch series
-posted Tuesday.
+Comments are welcome!
 
 Regards,
 
-        Hans
+	Hans
 
-The following changes since commit ed72d37a33fdf43dc47787fe220532cdec9da528:
-
-  [media] media: Add 0x3009 USB PID to ttusb2 driver (fixed diff) (2013-02-13 18:05:29 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git s2255
-
-for you to fetch changes up to 73aace6ab8b80cfda30fa99a1bd02f359b7dad1f:
-
-  s2255: fix big-endian support. (2013-02-26 18:32:04 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (11):
-      s2255: convert to the control framework.
-      s2255: add V4L2_CID_JPEG_COMPRESSION_QUALITY
-      s2255: add support for control events and prio handling.
-      s2255: add device_caps support to querycap.
-      s2255: fixes in the way standards are handled.
-      s2255: zero priv and set colorspace.
-      s2255: fix field handling
-      s2255: don't zero struct v4l2_streamparm
-      s2255: Add ENUM_FRAMESIZES support.
-      s2255: choose YUYV as the default format, not YUV422P
-      s2255: fix big-endian support.
-
- drivers/media/usb/s2255/s2255drv.c |  439 ++++++++++++++++++++++++++++++++++++++------------------------------------------
- include/uapi/linux/v4l2-controls.h |    4 +
- 2 files changed, 215 insertions(+), 228 deletions(-)
