@@ -1,160 +1,210 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:44682 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab3CAXLg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:36 -0500
-Received: by mail-ea0-f169.google.com with SMTP id d13so423818eaa.28
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:35 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 01/11] em28xx-i2c: replace printk() with the corresponding em28xx macros
-Date: Sat,  2 Mar 2013 00:12:05 +0100
-Message-Id: <1362179535-18929-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1999 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752229Ab3CRIas convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 04:30:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jon Arne =?utf-8?q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Subject: Re: [RFC V1 2/8] smi2021: Add smi2021_main.c
+Date: Mon, 18 Mar 2013 09:30:38 +0100
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	elezegarcia@gmail.com
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no> <1363270024-12127-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1363270024-12127-3-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303180930.38323.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reduces the number of characters/lines, unifies the code and improves readability.
+On Thu March 14 2013 15:06:58 Jon Arne Jørgensen wrote:
+> This is the core of the smi2021 module.
+> It will register the module with the kernel, and register the
+> usb probe function.
+> 
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> ---
+>  drivers/media/usb/smi2021/smi2021_main.c | 339 +++++++++++++++++++++++++++++++
+>  1 file changed, 339 insertions(+)
+>  create mode 100644 drivers/media/usb/smi2021/smi2021_main.c
+> 
+> diff --git a/drivers/media/usb/smi2021/smi2021_main.c b/drivers/media/usb/smi2021/smi2021_main.c
+> new file mode 100644
+> index 0000000..cc600e7
+> --- /dev/null
+> +++ b/drivers/media/usb/smi2021/smi2021_main.c
+> @@ -0,0 +1,339 @@
+> +/*******************************************************************************
+> + * smi2021_main.c                                                              *
+> + *                                                                             *
+> + * USB Driver for SMI2021 - EasyCAP                                            *
+> + * USB ID 1c88:003c                                                            *
+> + *                                                                             *
+> + * *****************************************************************************
+> + *
+> + * Copyright 2011-2013 Jon Arne Jørgensen
+> + * <jonjon.arnearne--a.t--gmail.com>
+> + *
+> + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
+> + *
+> + * This file is part of SMI2021
+> + * http://code.google.com/p/easycap-somagic-linux/
+> + *
+> + * This program is free software: you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation, either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
+> + *
+> + * This driver is heavily influensed by the STK1160 driver.
+> + * Copyright (C) 2012 Ezequiel Garcia
+> + * <elezegarcia--a.t--gmail.com>
+> + *
+> + */
+> +
+> +#include "smi2021.h"
+> +
+> +#define VENDOR_ID 0x1c88
+> +
+> +static unsigned int imput;
+> +module_param(imput, int, 0644);
+> +MODULE_PARM_DESC(input, "Set default input");
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Jon Arne Jørgensen <jonjon.arnearne--a.t--gmail.com>");
+> +MODULE_DESCRIPTION("SMI2021 - EasyCap");
+> +MODULE_VERSION(SMI2021_DRIVER_VERSION);
+> +
+> +
+> +struct usb_device_id smi2021_usb_device_id_table[] = {
+> +	{ USB_DEVICE(VENDOR_ID, 0x003c) },
+> +	{ USB_DEVICE(VENDOR_ID, 0x003d) },
+> +	{ USB_DEVICE(VENDOR_ID, 0x003e) },
+> +	{ USB_DEVICE(VENDOR_ID, 0x003f) },
+> +	{ }
+> +};
+> +
+> +MODULE_DEVICE_TABLE(usb, smi2021_usb_device_id_table);
+> +
+> +static unsigned short saa7113_addrs[] = {
+> +	0x4a,
+> +	I2C_CLIENT_END
+> +};
+> +
+> +/******************************************************************************/
+> +/*                                                                            */
+> +/*          Write to saa7113                                                  */
+> +/*                                                                            */
+> +/******************************************************************************/
+> +
+> +inline int transfer_usb_ctrl(struct smi2021_dev *dev, u8 *data, int len)
+> +{
+> +	return usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0x00),
+> +			0x01, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> +			0x0b, 0x00,
+> +			data, len, 1000);
+> +}
+> +
+> +int smi2021_write_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 val)
+> +{
+> +	int rc;
+> +	u8 snd_data[8];
+> +
+> +	memset(snd_data, 0x00, 8);
+> +
+> +	snd_data[SMI2021_CTRL_HEAD] = 0x0b;
+> +	snd_data[SMI2021_CTRL_ADDR] = addr;
+> +	snd_data[SMI2021_CTRL_DATA_SIZE] = 0x01;
+> +
+> +	if (addr) {
+> +		/* This is I2C data for the saa7113 chip */
+> +		snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0xc0;
+> +		snd_data[SMI2021_CTRL_BM_DATA_OFFSET] = 0x01;
+> +
+> +		snd_data[SMI2021_CTRL_I2C_REG] = reg;
+> +		snd_data[SMI2021_CTRL_I2C_VAL] = val;
+> +	} else {
+> +		/* This is register settings for the smi2021 chip */
+> +		snd_data[SMI2021_CTRL_BM_DATA_OFFSET] = 0x82;
+> +
+> +		snd_data[SMI2021_CTRL_REG_HI] = __cpu_to_be16(reg) >> 8;
+> +		snd_data[SMI2021_CTRL_REG_LO] = __cpu_to_be16(reg);
+> +
+> +	}
+> +
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
- 1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
+Don't transfer memory from the stack. It always has to be k[mz]alloced memory.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 8532c1d..8819b54 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 	/* Check if board has eeprom */
- 	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
- 	if (err < 0) {
--		em28xx_errdev("board has no eeprom\n");
-+		em28xx_info("board has no eeprom\n");
- 		memset(eedata, 0, len);
- 		return -ENODEV;
- 	}
-@@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 
- 	err = i2c_master_send(&dev->i2c_client, &buf, 1);
- 	if (err != 1) {
--		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
--		       dev->name, err);
-+		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
- 		return err;
- 	}
- 
-@@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 
- 		if (block !=
- 		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
--			printk(KERN_WARNING
--			       "%s: i2c eeprom read error (err=%d)\n",
--			       dev->name, err);
-+			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
- 			return err;
- 		}
- 		size -= block;
-@@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 	}
- 	for (i = 0; i < len; i++) {
- 		if (0 == (i % 16))
--			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
-+			em28xx_info("i2c eeprom %02x:", i);
- 		printk(" %02x", eedata[i]);
- 		if (15 == (i % 16))
- 			printk("\n");
-@@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
- 	if (em_eeprom->id == 0x9567eb1a)
- 		dev->hash = em28xx_hash_mem(eedata, len, 32);
- 
--	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
--	       dev->name, em_eeprom->id, dev->hash);
-+	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
-+		    em_eeprom->id, dev->hash);
- 
--	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
-+	em28xx_info("EEPROM info:\n");
- 
- 	switch (em_eeprom->chip_conf >> 4 & 0x3) {
- 	case 0:
--		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
-+		em28xx_info("\tNo audio on board.\n");
- 		break;
- 	case 1:
--		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
--				 dev->name);
-+		em28xx_info("\tAC97 audio (5 sample rates)\n");
- 		break;
- 	case 2:
--		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
--				 dev->name);
-+		em28xx_info("\tI2S audio, sample rate=32k\n");
- 		break;
- 	case 3:
--		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
--				 dev->name);
-+		em28xx_info("\tI2S audio, 3 sample rates\n");
- 		break;
- 	}
- 
- 	if (em_eeprom->chip_conf & 1 << 3)
--		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
-+		em28xx_info("\tUSB Remote wakeup capable\n");
- 
- 	if (em_eeprom->chip_conf & 1 << 2)
--		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
-+		em28xx_info("\tUSB Self power capable\n");
- 
- 	switch (em_eeprom->chip_conf & 0x3) {
- 	case 0:
--		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
-+		em28xx_info("\t500mA max power\n");
- 		break;
- 	case 1:
--		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
-+		em28xx_info("\t400mA max power\n");
- 		break;
- 	case 2:
--		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
-+		em28xx_info("\t300mA max power\n");
- 		break;
- 	case 3:
--		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
-+		em28xx_info("\t200mA max power\n");
- 		break;
- 	}
--	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
--				dev->name,
--				em_eeprom->string_idx_table,
--				em_eeprom->string1,
--				em_eeprom->string2,
--				em_eeprom->string3);
-+	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
-+		    em_eeprom->string_idx_table,
-+		    em_eeprom->string1,
-+		    em_eeprom->string2,
-+		    em_eeprom->string3);
- 
- 	return 0;
- }
-@@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
- 		if (rc < 0)
- 			continue;
- 		i2c_devicelist[i] = i;
--		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
--		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-+		em28xx_info("found i2c device @ 0x%x [%s]\n",
-+			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
- 	}
- 
- 	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
--- 
-1.7.10.4
+> +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> +	if (rc < 0) {
+> +		smi2021_warn("write failed on register 0x%x, errno: %d\n",
+> +			reg, rc);
+> +		return rc;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +int smi2021_read_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 *val)
+> +{
+> +	int rc;
+> +	u8 rcv_data[13];
+> +	u8 snd_data[8];
+> +	memset(rcv_data, 0x00, 13);
+> +	memset(snd_data, 0x00, 8);
+> +
+> +	snd_data[SMI2021_CTRL_HEAD] = 0x0b;
+> +	snd_data[SMI2021_CTRL_ADDR] = addr;
+> +	snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0x84;
+> +	snd_data[SMI2021_CTRL_DATA_SIZE] = 0x01;
+> +	snd_data[SMI2021_CTRL_I2C_REG] = reg;
+> +
+> +	*val = 0;
+> +
 
+Ditto.
+
+> +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> +	if (rc < 0) {
+> +		smi2021_warn(
+> +			"1st pass failing to read reg 0x%x, usb-errno: %d\n",
+> +			reg, rc);
+> +		return rc;
+> +	}
+> +
+> +	snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0xa0;
+> +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> +	if (rc < 0) {
+> +		smi2021_warn(
+> +			"2nd pass failing to read reg 0x%x, usb-errno: %d\n",
+> +			reg, rc);
+> +		return rc;
+> +	}
+> +
+> +	rc = usb_control_msg(dev->udev,
+> +		usb_rcvctrlpipe(dev->udev, 0x80), 0x01,
+> +		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> +		0x0b, 0x00, rcv_data, 13, 1000);
+> +	if (rc < 0) {
+> +		smi2021_warn("Failed to read reg 0x%x, usb-errno: %d\n",
+> +			reg, rc);
+> +		return rc;
+> +	}
+> +
+> +	*val = rcv_data[SMI2021_CTRL_I2C_RCV_VAL];
+> +	return 0;
+> +}
+
+Regards,
+
+	Hans
