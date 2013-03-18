@@ -1,86 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43993 "EHLO
+Received: from mailout3.samsung.com ([203.254.224.33]:65527 "EHLO
 	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463Ab3CKTBZ (ORCPT
+	with ESMTP id S1750913Ab3CRDNP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:01:25 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 11/11] V4L: Add MATRIX option to V4L2_CID_EXPOSURE_METERING
- control
-Date: Mon, 11 Mar 2013 20:00:26 +0100
-Message-id: <1363028426-2771-12-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 17 Mar 2013 23:13:15 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: 'Fabio Porcedda' <fabio.porcedda@gmail.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
+	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
+Cc: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>,
+	'Jeff Garzik' <jgarzik@pobox.com>,
+	'Jingoo Han' <jg1.han@samsung.com>
+References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
+ <1363280978-24051-3-git-send-email-fabio.porcedda@gmail.com>
+In-reply-to: <1363280978-24051-3-git-send-email-fabio.porcedda@gmail.com>
+Subject: Re: [PATCH v2 2/8] drivers: ata: use module_platform_driver_probe()
+Date: Mon, 18 Mar 2013 12:13:13 +0900
+Message-id: <018c01ce2386$86c8f5f0$945ae1d0$%han@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a menu option to the V4L2_CID_EXPOSURE_METERING
-control for multi-zone metering.
+On Friday, March 15, 2013 2:10 AM, Fabio Porcedda wrote:
+> 
+> This patch converts the drivers to use the
+> module_platform_driver_probe() macro which makes the code smaller and
+> a bit simpler.
+> 
+> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Jeff Garzik <jgarzik@pobox.com>
+> Cc: linux-ide@vger.kernel.org
+> ---
+>  drivers/ata/pata_at32.c | 13 +------------
+>  1 file changed, 1 insertion(+), 12 deletions(-)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |    9 ++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |    1 +
- include/uapi/linux/v4l2-controls.h           |    1 +
- 3 files changed, 10 insertions(+), 1 deletion(-)
+I already submitted the patch 2 weeks ago.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 7fe5be1..0484a7d 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3159,6 +3159,13 @@ giving priority to the center of the metered area.</entry>
- 		  <entry><constant>V4L2_EXPOSURE_METERING_SPOT</constant>&nbsp;</entry>
- 		  <entry>Measure only very small area at the center of the frame.</entry>
- 		</row>
-+		<row>
-+		  <entry><constant>V4L2_EXPOSURE_METERING_MATRIX</constant>&nbsp;</entry>
-+		  <entry>A multi-zone metering. The light intensity is measured
-+in several points of the frame and the the results are combined. The
-+algorithm of the zones selection and their significance in calculating the
-+final value is device dependant.</entry>
-+		</row>
- 	      </tbody>
- 	    </entrytbl>
- 	  </row>
-@@ -3986,7 +3993,7 @@ interface and may change in the future.</para>
- 
-           <table pgwide="1" frame="none" id="flash-control-id">
-           <title>Flash Control IDs</title>
--    
-+
-           <tgroup cols="4">
-     	<colspec colname="c1" colwidth="1*" />
-     	<colspec colname="c2" colwidth="6*" />
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 4b45d49..6b56d7b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -234,6 +234,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Average",
- 		"Center Weighted",
- 		"Spot",
-+		"Matrix",
- 		NULL
- 	};
- 	static const char * const camera_auto_focus_range[] = {
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index f56c945..22556a2 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -642,6 +642,7 @@ enum v4l2_exposure_metering {
- 	V4L2_EXPOSURE_METERING_AVERAGE		= 0,
- 	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED	= 1,
- 	V4L2_EXPOSURE_METERING_SPOT		= 2,
-+	V4L2_EXPOSURE_METERING_MATRIX		= 3,
- };
- 
- #define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
--- 
-1.7.9.5
+http://www.spinics.net/lists/linux-ide/msg45141.html
+
+Best regards,
+Jingoo Han
+
+> 
+> diff --git a/drivers/ata/pata_at32.c b/drivers/ata/pata_at32.c
+> index 36f189c..8d493b4 100644
+> --- a/drivers/ata/pata_at32.c
+> +++ b/drivers/ata/pata_at32.c
+> @@ -393,18 +393,7 @@ static struct platform_driver pata_at32_driver = {
+>  	},
+>  };
+> 
+> -static int __init pata_at32_init(void)
+> -{
+> -	return platform_driver_probe(&pata_at32_driver, pata_at32_probe);
+> -}
+> -
+> -static void __exit pata_at32_exit(void)
+> -{
+> -	platform_driver_unregister(&pata_at32_driver);
+> -}
+> -
+> -module_init(pata_at32_init);
+> -module_exit(pata_at32_exit);
+> +module_platform_driver_probe(pata_at32_driver, pata_at32_probe);
+> 
+>  MODULE_LICENSE("GPL");
+>  MODULE_DESCRIPTION("AVR32 SMC/CFC PATA Driver");
+> --
+> 1.8.1.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
