@@ -1,90 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53887 "EHLO mail.kapsi.fi"
+Received: from canardo.mork.no ([148.122.252.1]:57770 "EHLO canardo.mork.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab3CJCEl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:41 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 25/41] af9035: use already detected eeprom base addr
-Date: Sun, 10 Mar 2013 04:03:17 +0200
-Message-Id: <1362881013-5271-25-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S1751394Ab3CRI7M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Mar 2013 04:59:12 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	elezegarcia@gmail.com
+Subject: Re: [RFC V1 5/8] smi2021: Add smi2021_video.c
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	<1363270024-12127-6-git-send-email-jonarne@jonarne.no>
+	<201303180917.03572.hverkuil@xs4all.nl>
+Date: Mon, 18 Mar 2013 09:58:32 +0100
+In-Reply-To: <201303180917.03572.hverkuil@xs4all.nl> (Hans Verkuil's message
+	of "Mon, 18 Mar 2013 09:17:03 +0100")
+Message-ID: <87620p3wzr.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-eeprom memory mapped base address is detected at the very first.
-Use it everywhere.
+Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+>> +/*
+>> + *
+>> + * The device delivers data in chunks of 0x400 bytes.
+>> + * The four first bytes is a magic header to identify the chunks.
+>> + *	0xaa 0xaa 0x00 0x00 = saa7113 Active Video Data
+>> + *	0xaa 0xaa 0x00 0x01 = PCM - 24Bit 2 Channel audio data
+>> + */
+>> +static void process_packet(struct smi2021_dev *dev, u8 *p, int len)
+>> +{
+>> +	int i;
+>> +	u32 *header;
+>> +
+>> +	if (len % 0x400 != 0) {
+>> +		printk_ratelimited(KERN_INFO "smi2021::%s: len: %d\n",
+>> +				__func__, len);
+>> +		return;
+>> +	}
+>> +
+>> +	for (i = 0; i < len; i += 0x400) {
+>> +		header = (u32 *)(p + i);
+>> +		switch (__cpu_to_be32(*header)) {
+>
+> That's not right. You probably mean __be32_to_cpu, that makes more sense.
+>
+>> +		case 0xaaaa0000: {
+>> +			parse_video(dev, p+i+4, 0x400-4);
+>> +			break;
+>> +		}
+>> +		case 0xaaaa0001: {
+>> +			smi2021_audio(dev, p+i+4, 0x400-4);
+>> +			break;
+>> +		}
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 0399062..a29169f 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -606,18 +606,14 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 		if (ret < 0)
- 			goto err;
- 
--		if (tmp) {
--			addr = EEPROM_BASE_IT9135;
--		} else {
-+		if (tmp == 0x00) {
- 			dev_dbg(&d->udev->dev, "%s: no eeprom\n", __func__);
- 			goto skip_eeprom;
- 		}
--	} else {
--		addr = EEPROM_BASE_AF9035;
- 	}
- 
- 	/* check if there is dual tuners */
--	ret = af9035_rd_reg(d, addr + EEPROM_DUAL_MODE, &tmp);
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_DUAL_MODE, &tmp);
- 	if (ret < 0)
- 		goto err;
- 
-@@ -627,7 +623,9 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 
- 	if (state->dual_mode) {
- 		/* read 2nd demodulator I2C address */
--		ret = af9035_rd_reg(d, addr + EEPROM_2ND_DEMOD_ADDR, &tmp);
-+		ret = af9035_rd_reg(d,
-+				state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR,
-+				&tmp);
- 		if (ret < 0)
- 			goto err;
- 
-@@ -636,6 +634,8 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 				__func__, tmp);
- 	}
- 
-+	addr = state->eeprom_addr;
-+
- 	for (i = 0; i < state->dual_mode + 1; i++) {
- 		/* tuner */
- 		ret = af9035_rd_reg(d, addr + EEPROM_1_TUNER_ID, &tmp);
-@@ -1258,7 +1258,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
- 	if (state->chip_type == 0x9135)
- 		return 0;
- 
--	ret = af9035_rd_reg(d, EEPROM_BASE_AF9035 + EEPROM_IR_MODE, &tmp);
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_MODE, &tmp);
- 	if (ret < 0)
- 		goto err;
- 
-@@ -1266,7 +1266,7 @@ static int af9035_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
- 
- 	/* don't activate rc if in HID mode or if not available */
- 	if (tmp == 5) {
--		ret = af9035_rd_reg(d, EEPROM_BASE_AF9035 + EEPROM_IR_TYPE,
-+		ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_IR_TYPE,
- 				&tmp);
- 		if (ret < 0)
- 			goto err;
--- 
-1.7.11.7
+This could be just me, but I would have done it like this to take
+advantage of compile time constant conversions (and also dropping the
+noisy extra {}s):
 
+		switch (*header) {
+		case cpu_to_be32(0xaaaa0000):
+			parse_video(dev, p+i+4, 0x400-4);
+			break;
+		case cpu_to_be32(0xaaaa0001):
+			smi2021_audio(dev, p+i+4, 0x400-4);
+			break;
+                ..
+
+
+>From the name of the function I assume the difference may actually be
+measurable here if this runs for every processed packet.
+
+
+Bjørn
