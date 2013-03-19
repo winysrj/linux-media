@@ -1,41 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f43.google.com ([209.85.128.43]:52275 "EHLO
-	mail-qe0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753549Ab3CLCFv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 22:05:51 -0400
-Received: by mail-qe0-f43.google.com with SMTP id 1so2661362qee.2
-        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 19:05:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <6d4b25c7bfc65cfff4937133bed3e60828c20174.1363035203.git.hans.verkuil@cisco.com>
-References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
-	<1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-	<6d4b25c7bfc65cfff4937133bed3e60828c20174.1363035203.git.hans.verkuil@cisco.com>
-Date: Mon, 11 Mar 2013 22:05:50 -0400
-Message-ID: <CAGoCfiyYRwjb-+i84MrxBXaxJT=Fy7ucj02N1Lvy8n4LC0FBKw@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 11/15] au0828: fix disconnect sequence.
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:28244 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933225Ab3CSQuk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:40 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 17/46] [media] siano: use a separate completion for stats
+Date: Tue, 19 Mar 2013 13:49:06 -0300
+Message-Id: <1363711775-2120-18-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 11, 2013 at 5:00 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> The driver crashed when the device was disconnected while an application
-> still had a device node open. Fixed by using the release() callback of struct
-> v4l2_device.
+Instead of re-use tune_done also for stats, the better is to use
+a different completion.
 
-This is all obviously good stuff.  I actually spent a couple of days
-working through various disconnect scenarios, but hadn't had a chance
-to do a PULL request.  I will review my tree and see if you missed any
-other cases that I took care of.
+Also, it was noticed that sometimes, the driver answers with
+MSG_SMS_SIGNAL_DETECTED_IND for status request. Fix the code to
+also handle those other signal indicators.
 
-Devin
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smsdvb.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/common/siano/smsdvb.c b/drivers/media/common/siano/smsdvb.c
+index 57f3560..f4fd670 100644
+--- a/drivers/media/common/siano/smsdvb.c
++++ b/drivers/media/common/siano/smsdvb.c
+@@ -48,6 +48,7 @@ struct smsdvb_client_t {
+ 	fe_status_t             fe_status;
+ 
+ 	struct completion       tune_done;
++	struct completion       stats_done;
+ 
+ 	struct SMSHOSTLIB_STATISTICS_DVB_S sms_stat_dvb;
+ 	int event_fe_state;
+@@ -349,7 +350,6 @@ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
+ 			pReceptionData->ErrorTSPackets = 0;
+ 		}
+ 
+-		complete(&client->tune_done);
+ 		break;
+ 	}
+ 	default:
+@@ -376,6 +376,7 @@ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
+ 				client->fe_status = 0;
+ 			sms_board_dvb3_event(client, DVB3_EVENT_FE_UNLOCK);
+ 		}
++		complete(&client->stats_done);
+ 	}
+ 
+ 	return 0;
+@@ -471,7 +472,7 @@ static int smsdvb_send_statistics_request(struct smsdvb_client_t *client)
+ 				    sizeof(struct SmsMsgHdr_ST), 0 };
+ 
+ 	rc = smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
+-					  &client->tune_done);
++					 &client->stats_done);
+ 
+ 	return rc;
+ }
+@@ -1002,6 +1003,7 @@ static int smsdvb_hotplug(struct smscore_device_t *coredev,
+ 	client->coredev = coredev;
+ 
+ 	init_completion(&client->tune_done);
++	init_completion(&client->stats_done);
+ 
+ 	kmutex_lock(&g_smsdvb_clientslock);
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.8.1.4
+
