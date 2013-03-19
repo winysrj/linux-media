@@ -1,67 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58968 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750712Ab3CEGk3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 01:40:29 -0500
-Date: Tue, 5 Mar 2013 07:40:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] [media] sh_veu: Use module_platform_driver_probe
- macro
-In-Reply-To: <1362459218-13314-1-git-send-email-sachin.kamat@linaro.org>
-Message-ID: <Pine.LNX.4.64.1303050740080.24699@axis700.grange>
-References: <1362459218-13314-1-git-send-email-sachin.kamat@linaro.org>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3863 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757575Ab3CSHIa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 03:08:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [REVIEWv2 PATCH 4/6] v4l2: add const to argument of write-only s_register ioctl.
+Date: Tue, 19 Mar 2013 08:07:36 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Huang Shijie <shijie8@gmail.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Takashi Iwai <tiwai@suse.de>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl> <1363615925-19507-5-git-send-email-hverkuil@xs4all.nl> <3012858.ncv28K4OCe@avalon>
+In-Reply-To: <3012858.ncv28K4OCe@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303190807.36752.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 5 Mar 2013, Sachin Kamat wrote:
-
-> module_platform_driver_probe() eliminates the boilerplate and simplifies
-> the code.
+On Tue March 19 2013 00:20:00 Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Thanks, all 3 queued for 3.10
-
-Regards
-Guennadi
-
-> ---
->  drivers/media/platform/sh_veu.c |   13 +------------
->  1 files changed, 1 insertions(+), 12 deletions(-)
+> Thanks for the patch.
 > 
-> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-> index 362d88e..0b32cc3 100644
-> --- a/drivers/media/platform/sh_veu.c
-> +++ b/drivers/media/platform/sh_veu.c
-> @@ -1249,18 +1249,7 @@ static struct platform_driver __refdata sh_veu_pdrv = {
->  	},
->  };
->  
-> -static int __init sh_veu_init(void)
-> -{
-> -	return platform_driver_probe(&sh_veu_pdrv, sh_veu_probe);
-> -}
-> -
-> -static void __exit sh_veu_exit(void)
-> -{
-> -	platform_driver_unregister(&sh_veu_pdrv);
-> -}
-> -
-> -module_init(sh_veu_init);
-> -module_exit(sh_veu_exit);
-> +module_platform_driver_probe(sh_veu_pdrv, sh_veu_probe);
->  
->  MODULE_DESCRIPTION("sh-mobile VEU mem2mem driver");
->  MODULE_AUTHOR("Guennadi Liakhovetski, <g.liakhovetski@gmx.de>");
-> -- 
-> 1.7.4.1
+> On Monday 18 March 2013 15:12:03 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > This ioctl is defined as IOW, so pass the argument as const.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
+> [snip]
+> 
+> > diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c
+> > b/drivers/media/pci/ivtv/ivtv-ioctl.c index 080f179..15e08aa 100644
+> > --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
+> > +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+> > @@ -711,49 +711,50 @@ static int ivtv_g_chip_ident(struct file *file, void
+> > *fh, struct v4l2_dbg_chip_i }
+> > 
+> >  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -static int ivtv_itvc(struct ivtv *itv, unsigned int cmd, void *arg)
+> > +static volatile u8 __iomem *ivtv_itvc_start(struct ivtv *itv,
+> > +		const struct v4l2_dbg_register *regs)
+> 
+> I haven't changed my mind since v1, I still don't think you need a volatile 
+> here :-)
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I agree with you, but changing this requires changing things not just in this
+function but also in a header. Basically, it just adds noise to this patch.
+This patch is about making s_register const and I don't want to mix it with
+other changes unless absolutely necessary.
+
+Regards,
+
+	Hans
