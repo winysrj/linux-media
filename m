@@ -1,126 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45643 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754890Ab3C1JIi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 05:08:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar lad <prabhakar.csengg@gmail.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
+Received: from mx1.redhat.com ([209.132.183.28]:59870 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933214Ab3CSQuc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:32 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
-Date: Thu, 28 Mar 2013 10:09:27 +0100
-Message-ID: <1650338.UonQ4LqB70@avalon>
-In-Reply-To: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 26/46] [media] siano: split debug logic from the status update routine
+Date: Tue, 19 Mar 2013 13:49:15 -0300
+Message-Id: <1363711775-2120-27-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+It is confusing to merge both status updates with debug stuff.
+Also, it is a better idea to move those status updates to
+debugfs, instead of doing a large amount of printk's like that.
 
-Thanks for the patch.
+So, break them into a separate block of routines.
 
-On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> Add pm_runtime support to the TI Davinci VPIF driver.
-> Along side this patch replaces clk_get() with devm_clk_get()
-> to simplify the error handling.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
->  1 files changed, 11 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif.c
-> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
-> --- a/drivers/media/platform/davinci/vpif.c
-> +++ b/drivers/media/platform/davinci/vpif.c
-> @@ -25,6 +25,7 @@
->  #include <linux/io.h>
->  #include <linux/clk.h>
->  #include <linux/err.h>
-> +#include <linux/pm_runtime.h>
->  #include <linux/v4l2-dv-timings.h>
-> 
->  #include <mach/hardware.h>
-> @@ -44,7 +45,6 @@ static struct resource	*res;
->  spinlock_t vpif_lock;
-> 
->  void __iomem *vpif_base;
-> -struct clk *vpif_clk;
-> 
->  /**
->   * ch_params: video standard configuration parameters for vpif
-> @@ -421,6 +421,7 @@ EXPORT_SYMBOL(vpif_channel_getfid);
-> 
->  static int vpif_probe(struct platform_device *pdev)
->  {
-> +	struct clk *vpif_clk;
->  	int status = 0;
-> 
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
->  		goto fail;
->  	}
-> 
-> -	vpif_clk = clk_get(&pdev->dev, "vpif");
-> +	vpif_clk = devm_clk_get(&pdev->dev, "vpif");
->  	if (IS_ERR(vpif_clk)) {
->  		status = PTR_ERR(vpif_clk);
->  		goto clk_fail;
->  	}
-> -	clk_prepare_enable(vpif_clk);
-> +	clk_put(vpif_clk);
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smsdvb.c | 250 +++++++++++++++++++-----------------
+ 1 file changed, 135 insertions(+), 115 deletions(-)
 
-Why do you need to call clk_put() here ?
-
-> +	pm_runtime_enable(&pdev->dev);
-> +	pm_runtime_resume(&pdev->dev);
-> +
-> +	pm_runtime_get(&pdev->dev);
-
-Does runtime PM automatically handle your clock ? If so can't you remove clock 
-handling from the driver completely ?
-
->  	spin_lock_init(&vpif_lock);
->  	dev_info(&pdev->dev, "vpif probe success\n");
-> @@ -459,11 +465,6 @@ fail:
-> 
->  static int vpif_remove(struct platform_device *pdev)
->  {
-> -	if (vpif_clk) {
-> -		clk_disable_unprepare(vpif_clk);
-> -		clk_put(vpif_clk);
-> -	}
-> -
->  	iounmap(vpif_base);
->  	release_mem_region(res->start, res_len);
->  	return 0;
-> @@ -472,13 +473,13 @@ static int vpif_remove(struct platform_device *pdev)
->  #ifdef CONFIG_PM
->  static int vpif_suspend(struct device *dev)
->  {
-> -	clk_disable_unprepare(vpif_clk);
-> +	pm_runtime_put(dev);
->  	return 0;
->  }
-> 
->  static int vpif_resume(struct device *dev)
->  {
-> -	clk_prepare_enable(vpif_clk);
-> +	pm_runtime_get(dev);
->  	return 0;
->  }
+diff --git a/drivers/media/common/siano/smsdvb.c b/drivers/media/common/siano/smsdvb.c
+index 1d6b8df..04544f5 100644
+--- a/drivers/media/common/siano/smsdvb.c
++++ b/drivers/media/common/siano/smsdvb.c
+@@ -61,6 +61,136 @@ static int sms_dbg;
+ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
+ 
++static void smsdvb_print_dvb_stats(struct SMSHOSTLIB_STATISTICS_ST *p)
++{
++	if (!(sms_dbg & 2))
++		return;
++
++	printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
++	printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
++	printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
++	printk(KERN_DEBUG "SNR = %d", p->SNR);
++	printk(KERN_DEBUG "BER = %d", p->BER);
++	printk(KERN_DEBUG "FIB_CRC = %d", p->FIB_CRC);
++	printk(KERN_DEBUG "TS_PER = %d", p->TS_PER);
++	printk(KERN_DEBUG "MFER = %d", p->MFER);
++	printk(KERN_DEBUG "RSSI = %d", p->RSSI);
++	printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
++	printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
++	printk(KERN_DEBUG "ModemState = %d", p->ModemState);
++	printk(KERN_DEBUG "Frequency = %d", p->Frequency);
++	printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
++	printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
++	printk(KERN_DEBUG "ModemState = %d", p->ModemState);
++	printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
++	printk(KERN_DEBUG "CodeRate = %d", p->CodeRate);
++	printk(KERN_DEBUG "LPCodeRate = %d", p->LPCodeRate);
++	printk(KERN_DEBUG "Hierarchy = %d", p->Hierarchy);
++	printk(KERN_DEBUG "Constellation = %d", p->Constellation);
++	printk(KERN_DEBUG "BurstSize = %d", p->BurstSize);
++	printk(KERN_DEBUG "BurstDuration = %d", p->BurstDuration);
++	printk(KERN_DEBUG "BurstCycleTime = %d", p->BurstCycleTime);
++	printk(KERN_DEBUG "CalculatedBurstCycleTime = %d", p->CalculatedBurstCycleTime);
++	printk(KERN_DEBUG "NumOfRows = %d", p->NumOfRows);
++	printk(KERN_DEBUG "NumOfPaddCols = %d", p->NumOfPaddCols);
++	printk(KERN_DEBUG "NumOfPunctCols = %d", p->NumOfPunctCols);
++	printk(KERN_DEBUG "ErrorTSPackets = %d", p->ErrorTSPackets);
++	printk(KERN_DEBUG "TotalTSPackets = %d", p->TotalTSPackets);
++	printk(KERN_DEBUG "NumOfValidMpeTlbs = %d", p->NumOfValidMpeTlbs);
++	printk(KERN_DEBUG "NumOfInvalidMpeTlbs = %d", p->NumOfInvalidMpeTlbs);
++	printk(KERN_DEBUG "NumOfCorrectedMpeTlbs = %d", p->NumOfCorrectedMpeTlbs);
++	printk(KERN_DEBUG "BERErrorCount = %d", p->BERErrorCount);
++	printk(KERN_DEBUG "BERBitCount = %d", p->BERBitCount);
++	printk(KERN_DEBUG "SmsToHostTxErrors = %d", p->SmsToHostTxErrors);
++	printk(KERN_DEBUG "PreBER = %d", p->PreBER);
++	printk(KERN_DEBUG "CellId = %d", p->CellId);
++	printk(KERN_DEBUG "DvbhSrvIndHP = %d", p->DvbhSrvIndHP);
++	printk(KERN_DEBUG "DvbhSrvIndLP = %d", p->DvbhSrvIndLP);
++	printk(KERN_DEBUG "NumMPEReceived = %d", p->NumMPEReceived);
++}
++
++static void smsdvb_print_isdb_stats(struct SMSHOSTLIB_STATISTICS_ISDBT_ST *p)
++{
++	int i;
++
++	if (!(sms_dbg & 2))
++		return;
++
++	printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
++	printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
++	printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
++	printk(KERN_DEBUG "SNR = %d", p->SNR);
++	printk(KERN_DEBUG "RSSI = %d", p->RSSI);
++	printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
++	printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
++	printk(KERN_DEBUG "Frequency = %d", p->Frequency);
++	printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
++	printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
++	printk(KERN_DEBUG "ModemState = %d", p->ModemState);
++	printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
++	printk(KERN_DEBUG "SystemType = %d", p->SystemType);
++	printk(KERN_DEBUG "PartialReception = %d", p->PartialReception);
++	printk(KERN_DEBUG "NumOfLayers = %d", p->NumOfLayers);
++	printk(KERN_DEBUG "SmsToHostTxErrors = %d", p->SmsToHostTxErrors);
++
++	for (i = 0; i < 3; i++) {
++		printk(KERN_DEBUG "%d: CodeRate = %d", i, p->LayerInfo[i].CodeRate);
++		printk(KERN_DEBUG "%d: Constellation = %d", i, p->LayerInfo[i].Constellation);
++		printk(KERN_DEBUG "%d: BER = %d", i, p->LayerInfo[i].BER);
++		printk(KERN_DEBUG "%d: BERErrorCount = %d", i, p->LayerInfo[i].BERErrorCount);
++		printk(KERN_DEBUG "%d: BERBitCount = %d", i, p->LayerInfo[i].BERBitCount);
++		printk(KERN_DEBUG "%d: PreBER = %d", i, p->LayerInfo[i].PreBER);
++		printk(KERN_DEBUG "%d: TS_PER = %d", i, p->LayerInfo[i].TS_PER);
++		printk(KERN_DEBUG "%d: ErrorTSPackets = %d", i, p->LayerInfo[i].ErrorTSPackets);
++		printk(KERN_DEBUG "%d: TotalTSPackets = %d", i, p->LayerInfo[i].TotalTSPackets);
++		printk(KERN_DEBUG "%d: TILdepthI = %d", i, p->LayerInfo[i].TILdepthI);
++		printk(KERN_DEBUG "%d: NumberOfSegments = %d", i, p->LayerInfo[i].NumberOfSegments);
++		printk(KERN_DEBUG "%d: TMCCErrors = %d", i, p->LayerInfo[i].TMCCErrors);
++	}
++}
++
++static void
++smsdvb_print_isdb_stats_ex(struct SMSHOSTLIB_STATISTICS_ISDBT_EX_ST *p)
++{
++	int i;
++
++	if (!(sms_dbg & 2))
++		return;
++
++	printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
++	printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
++	printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
++	printk(KERN_DEBUG "SNR = %d", p->SNR);
++	printk(KERN_DEBUG "RSSI = %d", p->RSSI);
++	printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
++	printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
++	printk(KERN_DEBUG "Frequency = %d", p->Frequency);
++	printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
++	printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
++	printk(KERN_DEBUG "ModemState = %d", p->ModemState);
++	printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
++	printk(KERN_DEBUG "SystemType = %d", p->SystemType);
++	printk(KERN_DEBUG "PartialReception = %d", p->PartialReception);
++	printk(KERN_DEBUG "NumOfLayers = %d", p->NumOfLayers);
++	printk(KERN_DEBUG "SegmentNumber = %d", p->SegmentNumber);
++	printk(KERN_DEBUG "TuneBW = %d", p->TuneBW);
++
++	for (i = 0; i < 3; i++) {
++		printk(KERN_DEBUG "%d: CodeRate = %d", i, p->LayerInfo[i].CodeRate);
++		printk(KERN_DEBUG "%d: Constellation = %d", i, p->LayerInfo[i].Constellation);
++		printk(KERN_DEBUG "%d: BER = %d", i, p->LayerInfo[i].BER);
++		printk(KERN_DEBUG "%d: BERErrorCount = %d", i, p->LayerInfo[i].BERErrorCount);
++		printk(KERN_DEBUG "%d: BERBitCount = %d", i, p->LayerInfo[i].BERBitCount);
++		printk(KERN_DEBUG "%d: PreBER = %d", i, p->LayerInfo[i].PreBER);
++		printk(KERN_DEBUG "%d: TS_PER = %d", i, p->LayerInfo[i].TS_PER);
++		printk(KERN_DEBUG "%d: ErrorTSPackets = %d", i, p->LayerInfo[i].ErrorTSPackets);
++		printk(KERN_DEBUG "%d: TotalTSPackets = %d", i, p->LayerInfo[i].TotalTSPackets);
++		printk(KERN_DEBUG "%d: TILdepthI = %d", i, p->LayerInfo[i].TILdepthI);
++		printk(KERN_DEBUG "%d: NumberOfSegments = %d", i, p->LayerInfo[i].NumberOfSegments);
++		printk(KERN_DEBUG "%d: TMCCErrors = %d", i, p->LayerInfo[i].TMCCErrors);
++	}
++}
++
+ /* Events that may come from DVB v3 adapter */
+ static void sms_board_dvb3_event(struct smsdvb_client_t *client,
+ 		enum SMS_DVB3_EVENTS event) {
+@@ -115,51 +245,9 @@ static void sms_board_dvb3_event(struct smsdvb_client_t *client,
+ }
+ 
+ static void smsdvb_update_dvb_stats(struct RECEPTION_STATISTICS_EX_S *pReceptionData,
+-				   struct SMSHOSTLIB_STATISTICS_ST *p)
++				    struct SMSHOSTLIB_STATISTICS_ST *p)
+ {
+-	if (sms_dbg & 2) {
+-		printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
+-		printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
+-		printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
+-		printk(KERN_DEBUG "SNR = %d", p->SNR);
+-		printk(KERN_DEBUG "BER = %d", p->BER);
+-		printk(KERN_DEBUG "FIB_CRC = %d", p->FIB_CRC);
+-		printk(KERN_DEBUG "TS_PER = %d", p->TS_PER);
+-		printk(KERN_DEBUG "MFER = %d", p->MFER);
+-		printk(KERN_DEBUG "RSSI = %d", p->RSSI);
+-		printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
+-		printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
+-		printk(KERN_DEBUG "ModemState = %d", p->ModemState);
+-		printk(KERN_DEBUG "Frequency = %d", p->Frequency);
+-		printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
+-		printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
+-		printk(KERN_DEBUG "ModemState = %d", p->ModemState);
+-		printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
+-		printk(KERN_DEBUG "CodeRate = %d", p->CodeRate);
+-		printk(KERN_DEBUG "LPCodeRate = %d", p->LPCodeRate);
+-		printk(KERN_DEBUG "Hierarchy = %d", p->Hierarchy);
+-		printk(KERN_DEBUG "Constellation = %d", p->Constellation);
+-		printk(KERN_DEBUG "BurstSize = %d", p->BurstSize);
+-		printk(KERN_DEBUG "BurstDuration = %d", p->BurstDuration);
+-		printk(KERN_DEBUG "BurstCycleTime = %d", p->BurstCycleTime);
+-		printk(KERN_DEBUG "CalculatedBurstCycleTime = %d", p->CalculatedBurstCycleTime);
+-		printk(KERN_DEBUG "NumOfRows = %d", p->NumOfRows);
+-		printk(KERN_DEBUG "NumOfPaddCols = %d", p->NumOfPaddCols);
+-		printk(KERN_DEBUG "NumOfPunctCols = %d", p->NumOfPunctCols);
+-		printk(KERN_DEBUG "ErrorTSPackets = %d", p->ErrorTSPackets);
+-		printk(KERN_DEBUG "TotalTSPackets = %d", p->TotalTSPackets);
+-		printk(KERN_DEBUG "NumOfValidMpeTlbs = %d", p->NumOfValidMpeTlbs);
+-		printk(KERN_DEBUG "NumOfInvalidMpeTlbs = %d", p->NumOfInvalidMpeTlbs);
+-		printk(KERN_DEBUG "NumOfCorrectedMpeTlbs = %d", p->NumOfCorrectedMpeTlbs);
+-		printk(KERN_DEBUG "BERErrorCount = %d", p->BERErrorCount);
+-		printk(KERN_DEBUG "BERBitCount = %d", p->BERBitCount);
+-		printk(KERN_DEBUG "SmsToHostTxErrors = %d", p->SmsToHostTxErrors);
+-		printk(KERN_DEBUG "PreBER = %d", p->PreBER);
+-		printk(KERN_DEBUG "CellId = %d", p->CellId);
+-		printk(KERN_DEBUG "DvbhSrvIndHP = %d", p->DvbhSrvIndHP);
+-		printk(KERN_DEBUG "DvbhSrvIndLP = %d", p->DvbhSrvIndLP);
+-		printk(KERN_DEBUG "NumMPEReceived = %d", p->NumMPEReceived);
+-	}
++	smsdvb_print_dvb_stats(p);
+ 
+ 	/* update reception data */
+ 	pReceptionData->IsRfLocked = p->IsRfLocked;
+@@ -179,43 +267,9 @@ static void smsdvb_update_dvb_stats(struct RECEPTION_STATISTICS_EX_S *pReception
+ };
+ 
+ static void smsdvb_update_isdbt_stats(struct RECEPTION_STATISTICS_EX_S *pReceptionData,
+-				    struct SMSHOSTLIB_STATISTICS_ISDBT_ST *p)
++				      struct SMSHOSTLIB_STATISTICS_ISDBT_ST *p)
+ {
+-	int i;
+-
+-	if (sms_dbg & 2) {
+-		printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
+-		printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
+-		printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
+-		printk(KERN_DEBUG "SNR = %d", p->SNR);
+-		printk(KERN_DEBUG "RSSI = %d", p->RSSI);
+-		printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
+-		printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
+-		printk(KERN_DEBUG "Frequency = %d", p->Frequency);
+-		printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
+-		printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
+-		printk(KERN_DEBUG "ModemState = %d", p->ModemState);
+-		printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
+-		printk(KERN_DEBUG "SystemType = %d", p->SystemType);
+-		printk(KERN_DEBUG "PartialReception = %d", p->PartialReception);
+-		printk(KERN_DEBUG "NumOfLayers = %d", p->NumOfLayers);
+-		printk(KERN_DEBUG "SmsToHostTxErrors = %d", p->SmsToHostTxErrors);
+-
+-		for (i = 0; i < 3; i++) {
+-			printk(KERN_DEBUG "%d: CodeRate = %d", i, p->LayerInfo[i].CodeRate);
+-			printk(KERN_DEBUG "%d: Constellation = %d", i, p->LayerInfo[i].Constellation);
+-			printk(KERN_DEBUG "%d: BER = %d", i, p->LayerInfo[i].BER);
+-			printk(KERN_DEBUG "%d: BERErrorCount = %d", i, p->LayerInfo[i].BERErrorCount);
+-			printk(KERN_DEBUG "%d: BERBitCount = %d", i, p->LayerInfo[i].BERBitCount);
+-			printk(KERN_DEBUG "%d: PreBER = %d", i, p->LayerInfo[i].PreBER);
+-			printk(KERN_DEBUG "%d: TS_PER = %d", i, p->LayerInfo[i].TS_PER);
+-			printk(KERN_DEBUG "%d: ErrorTSPackets = %d", i, p->LayerInfo[i].ErrorTSPackets);
+-			printk(KERN_DEBUG "%d: TotalTSPackets = %d", i, p->LayerInfo[i].TotalTSPackets);
+-			printk(KERN_DEBUG "%d: TILdepthI = %d", i, p->LayerInfo[i].TILdepthI);
+-			printk(KERN_DEBUG "%d: NumberOfSegments = %d", i, p->LayerInfo[i].NumberOfSegments);
+-			printk(KERN_DEBUG "%d: TMCCErrors = %d", i, p->LayerInfo[i].TMCCErrors);
+-		}
+-	}
++	smsdvb_print_isdb_stats(p);
+ 
+ 	/* update reception data */
+ 	pReceptionData->IsRfLocked = p->IsRfLocked;
+@@ -249,41 +303,7 @@ static void smsdvb_update_isdbt_stats(struct RECEPTION_STATISTICS_EX_S *pRecepti
+ static void smsdvb_update_isdbt_stats_ex(struct RECEPTION_STATISTICS_EX_S *pReceptionData,
+ 				    struct SMSHOSTLIB_STATISTICS_ISDBT_EX_ST *p)
+ {
+-	int i;
+-
+-	if (sms_dbg & 2) {
+-		printk(KERN_DEBUG "IsRfLocked = %d", p->IsRfLocked);
+-		printk(KERN_DEBUG "IsDemodLocked = %d", p->IsDemodLocked);
+-		printk(KERN_DEBUG "IsExternalLNAOn = %d", p->IsExternalLNAOn);
+-		printk(KERN_DEBUG "SNR = %d", p->SNR);
+-		printk(KERN_DEBUG "RSSI = %d", p->RSSI);
+-		printk(KERN_DEBUG "InBandPwr = %d", p->InBandPwr);
+-		printk(KERN_DEBUG "CarrierOffset = %d", p->CarrierOffset);
+-		printk(KERN_DEBUG "Frequency = %d", p->Frequency);
+-		printk(KERN_DEBUG "Bandwidth = %d", p->Bandwidth);
+-		printk(KERN_DEBUG "TransmissionMode = %d", p->TransmissionMode);
+-		printk(KERN_DEBUG "ModemState = %d", p->ModemState);
+-		printk(KERN_DEBUG "GuardInterval = %d", p->GuardInterval);
+-		printk(KERN_DEBUG "SystemType = %d", p->SystemType);
+-		printk(KERN_DEBUG "PartialReception = %d", p->PartialReception);
+-		printk(KERN_DEBUG "NumOfLayers = %d", p->NumOfLayers);
+-		printk(KERN_DEBUG "SegmentNumber = %d", p->SegmentNumber);
+-		printk(KERN_DEBUG "TuneBW = %d", p->TuneBW);
+-		for (i = 0; i < 3; i++) {
+-			printk(KERN_DEBUG "%d: CodeRate = %d", i, p->LayerInfo[i].CodeRate);
+-			printk(KERN_DEBUG "%d: Constellation = %d", i, p->LayerInfo[i].Constellation);
+-			printk(KERN_DEBUG "%d: BER = %d", i, p->LayerInfo[i].BER);
+-			printk(KERN_DEBUG "%d: BERErrorCount = %d", i, p->LayerInfo[i].BERErrorCount);
+-			printk(KERN_DEBUG "%d: BERBitCount = %d", i, p->LayerInfo[i].BERBitCount);
+-			printk(KERN_DEBUG "%d: PreBER = %d", i, p->LayerInfo[i].PreBER);
+-			printk(KERN_DEBUG "%d: TS_PER = %d", i, p->LayerInfo[i].TS_PER);
+-			printk(KERN_DEBUG "%d: ErrorTSPackets = %d", i, p->LayerInfo[i].ErrorTSPackets);
+-			printk(KERN_DEBUG "%d: TotalTSPackets = %d", i, p->LayerInfo[i].TotalTSPackets);
+-			printk(KERN_DEBUG "%d: TILdepthI = %d", i, p->LayerInfo[i].TILdepthI);
+-			printk(KERN_DEBUG "%d: NumberOfSegments = %d", i, p->LayerInfo[i].NumberOfSegments);
+-			printk(KERN_DEBUG "%d: TMCCErrors = %d", i, p->LayerInfo[i].TMCCErrors);
+-		}
+-	}
++	smsdvb_print_isdb_stats_ex(p);
+ 
+ 	/* update reception data */
+ 	pReceptionData->IsRfLocked = p->IsRfLocked;
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.4
 
