@@ -1,167 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:63049 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753634Ab3CXNDx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 09:03:53 -0400
-Received: by mail-ea0-f173.google.com with SMTP id h14so1934498eak.4
-        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 06:03:52 -0700 (PDT)
-Message-ID: <514EF9EF.9050908@googlemail.com>
-Date: Sun, 24 Mar 2013 14:04:47 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B read/write/check
- device operations
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com> <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com> <20130324082253.54dfc1c1@redhat.com>
-In-Reply-To: <20130324082253.54dfc1c1@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:55955 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933145Ab3CSQuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:25 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 46/46] [media] siano: Remove bogus complain about MSG_SMS_DVBT_BDA_DATA
+Date: Tue, 19 Mar 2013 13:49:35 -0300
+Message-Id: <1363711775-2120-47-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-...
+When the driver is tuned into chanel, and it is removed/reinserted,
+the message stream data may be arriving during device probe:
 
-Am 24.03.2013 12:22, schrieb Mauro Carvalho Chehab:
-> Please stick with Kernel's coding style, as described on
-> Documentation/CodingStyle and on the common practices.
->
-> Multi-line comments are like:
-> 	/*
-> 	 * Foo
-> 	 * bar
-> 	 */
->
-> There are also a bunch of scripts/checkpatch.pl complains for this patch: 
->
-> WARNING: please, no spaces at the start of a line
-> #69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>$
->
-> WARNING: space prohibited between function name and open parenthesis '('
-> #69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
->
-> WARNING: Avoid CamelCase: <Copyright>
-> #69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
->
-> WARNING: Avoid CamelCase: <Frank>
-> #69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
->
-> WARNING: Avoid CamelCase: <Sch>
-> #69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+	[ 5680.162004] smscore_set_device_mode: set device mode to 6
+	[ 5680.162267] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.162391] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.162641] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.162891] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.163016] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.163266] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.163516] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.163640] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.163891] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.164016] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.164265] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.164515] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.164519] smscore_onresponse: Firmware id 6 prots 0x40 ver 8.1
+	[ 5680.164766] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.166018] smscore_onresponse: message MSG_SMS_DVBT_BDA_DATA(693) not handled.
+	[ 5680.166438] DVB: registering new adapter (Siano Rio Digital Receiver)
 
-The "space prohibited between function name and open parenthesis" and
-"CamelCase" warnings are pure nonsense.
-The "spaces at start of a line thing" applies to the whole and
-licences/copyright headers of the em28xx driver.
-If you think we should change that - fine - but it really doesn't make
-sense to do this as part of this patch series.
+Instead of complaining, just silently discard those messages, instead of
+complaining.
 
+A proper fix is to put the device on suspend/power down mode when the module
+is removed.
 
-> WARNING: quoted string split across lines
-> #97: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:298:
-> +			em28xx_warn("writing to i2c device at 0x%x failed "
-> +				    "(error=%i)\n", addr, ret);
->
-> WARNING: quoted string split across lines
-> #101: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:302:
-> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
-> +				    "requested, but %i bytes written\n",
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smscoreapi.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Yes, these two are discussible.
-AFAIK, strings should not be split across lines to avoid breaking
-grepping for strings.
-In this case I decided for the "80 characters per line rule" instead,
-because grepping for strings containing placeholders IMHO doesn't make
-much sense.
-We do exactly the same in the existing i2c functions.
-
-> WARNING: braces {} are not necessary for any arm of this statement
-> #110: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:311:
-> +	if (ret == 0x00) {
-> [...]
-> +	} else if (ret > 0) {
-> [...]
->
-> WARNING: braces {} are not necessary for any arm of this statement
-> #156: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:357:
-> +	if (ret == 0x00) {
-> [...]
-> +	} else if (ret > 0) {
-> [...]
->
-> WARNING: braces {} are not necessary for any arm of this statement
-> #190: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:391:
-> +	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> [...]
-
-The patch perfectly matches the kernel coding style rules here !?
-What do you want me to change ?
-Do you really think the code looks better without some of these braces ?
-
-> WARNING: printk() should include KERN_ facility level
-> #199: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:400:
-> +			printk(" no device\n");
-
-I only moved this piece of code around, but yes, that should really be
-fixed !
-
-> WARNING: braces {} are not necessary for any arm of this statement
-> #211: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:412:
-> +	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> [...]
-
-See above.
-
-> WARNING: printk() should include KERN_ facility level
-> #220: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:421:
-> +			printk(" %02x", msg.buf[byte]);
-
-Same here, should indeed be fixed.
-
-> WARNING: braces {} are not necessary for any arm of this statement
-> #236: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:437:
-> +	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-> [...]
-> +	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> [...]
-
-See above.
-
-Except for the two printk warnings, please tell me which changes you
-would like to see exactly.
-I will send an updated version of this series then.
-
-Regards,
-Frank
-
-> total: 0 errors, 14 warnings, 333 lines checked
->
-> Your patch has style problems, please review.
->
-> If any of these errors are false positives, please report
-> them to the maintainer, see CHECKPATCH in MAINTAINERS.
->
-> PS.: I'll write a separate email if I find any non-coding style issue on
-> this patch series. Won't comment anymore about coding style, as I'm
-> assuming that you'll be fixing it on the other patches of this series
-> if needed.
->
-> Regards,
-> Mauro
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 244928b..c260974 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -1606,6 +1606,15 @@ void smscore_onresponse(struct smscore_device_t *coredev,
+ 				- sizeof(struct SmsMsgHdr_ST));
+ 			break;
+ 
++		case MSG_SMS_DVBT_BDA_DATA:
++			/*
++			 * It can be received here, if the frontend is
++			 * tuned into a valid channel and the proper firmware
++			 * is loaded. That happens when the module got removed
++			 * and re-inserted, without powering the device off
++			 */
++			break;
++
+ 		default:
+ 			sms_debug("message %s(%d) not handled.",
+ 				  smscore_translate_msg(phdr->msgType),
+-- 
+1.8.1.4
 
