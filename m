@@ -1,55 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:52292 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754027Ab3CMKwc (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:38947 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755744Ab3CSDgN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Mar 2013 06:52:32 -0400
-Received: by mail-pb0-f48.google.com with SMTP id wy12so889352pbc.21
-        for <linux-media@vger.kernel.org>; Wed, 13 Mar 2013 03:52:31 -0700 (PDT)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	joshi@samsung.com, inki.dae@samsung.com,
-	linaro-kernel@lists.linaro.org, jy0922.shim@samsung.com
-Subject: [PATCH] drm/exynos: change the method for getting the interrupt resource of FIMD
-Date: Wed, 13 Mar 2013 16:22:19 +0530
-Message-Id: <1363171939-9672-1-git-send-email-vikas.sajjan@linaro.org>
+	Mon, 18 Mar 2013 23:36:13 -0400
+Date: Tue, 19 Mar 2013 12:36:10 +0900
+From: Simon Horman <horms@verge.net.au>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v6 7/7] ARM: shmobile: convert ap4evb to asynchronously
+ register camera subdevices
+Message-ID: <20130319033610.GA21444@verge.net.au>
+References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
+ <1363382873-20077-8-git-send-email-g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1363382873-20077-8-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replaces the "platform_get_resource() for IORESOURCE_IRQ" with
-platform_get_resource_byname().
-Both in exynos4 and exynos5, FIMD IP has 3 interrupts in the order: "fifo",
-"vsync", and "lcd_sys".
-But The FIMD driver expects the "vsync" interrupt to be mentioned as the
-1st parameter in the FIMD DT node. So to meet this expectation of the
-driver, the FIMD DT node was forced to be made by keeping "vsync" as the
-1st paramter.
-For example in exynos4, the FIMD DT node has interrupt numbers
-mentioned as <11, 1> <11, 0> <11, 2> keeping "vsync" as the 1st paramter.
+On Fri, Mar 15, 2013 at 10:27:53PM +0100, Guennadi Liakhovetski wrote:
+> Register the imx074 camera I2C and the CSI-2 platform devices directly
+> in board platform data instead of letting the sh_mobile_ceu_camera driver
+> and the soc-camera framework register them at their run-time. This uses
+> the V4L2 asynchronous subdevice probing capability.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> v6: no change
+> 
+>  arch/arm/mach-shmobile/board-ap4evb.c |  103 +++++++++++++++++++-------------
+>  arch/arm/mach-shmobile/clock-sh7372.c |    1 +
+>  2 files changed, 62 insertions(+), 42 deletions(-)
+> 
+> diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+> index 38f1259..450e06b 100644
+> --- a/arch/arm/mach-shmobile/board-ap4evb.c
+> +++ b/arch/arm/mach-shmobile/board-ap4evb.c
+> @@ -50,6 +50,7 @@
+>  #include <media/sh_mobile_ceu.h>
+>  #include <media/sh_mobile_csi2.h>
+>  #include <media/soc_camera.h>
+> +#include <media/v4l2-async.h>
+>  
+>  #include <sound/sh_fsi.h>
+>  #include <sound/simple_card.h>
+> @@ -871,22 +872,32 @@ static struct platform_device leds_device = {
+>  	},
+>  };
+>  
+> -static struct i2c_board_info imx074_info = {
+> -	I2C_BOARD_INFO("imx074", 0x1a),
+> +/* I2C */
+> +static struct soc_camera_subdev_desc imx074_desc;
+> +static struct i2c_board_info i2c0_devices[] = {
+> +	{
+> +		I2C_BOARD_INFO("ak4643", 0x13),
+> +	}, {
+> +		I2C_BOARD_INFO("imx074", 0x1a),
+> +		.platform_data = &imx074_desc,
+> +	},
+>  };
+>  
+> -static struct soc_camera_link imx074_link = {
+> -	.bus_id		= 0,
+> -	.board_info	= &imx074_info,
+> -	.i2c_adapter_id	= 0,
+> -	.module_name	= "imx074",
+> +static struct i2c_board_info i2c1_devices[] = {
+> +	{
+> +		I2C_BOARD_INFO("r2025sd", 0x32),
+> +	},
+>  };
+>  
+> -static struct platform_device ap4evb_camera = {
+> -	.name   = "soc-camera-pdrv",
+> -	.id     = 0,
+> -	.dev    = {
+> -		.platform_data = &imx074_link,
+> +static struct resource csi2_resources[] = {
+> +	{
+> +		.name	= "CSI2",
+> +		.start	= 0xffc90000,
+> +		.end	= 0xffc90fff,
+> +		.flags	= IORESOURCE_MEM,
+> +	}, {
+> +		.start	= intcs_evt2irq(0x17a0),
+> +		.flags  = IORESOURCE_IRQ,
+>  	},
+>  };
+>  
+> @@ -895,7 +906,7 @@ static struct sh_csi2_client_config csi2_clients[] = {
+>  		.phy		= SH_CSI2_PHY_MAIN,
+>  		.lanes		= 0,		/* default: 2 lanes */
+>  		.channel	= 0,
+> -		.pdev		= &ap4evb_camera,
+> +		.name		= "imx074",
+>  	},
+>  };
+>  
+> @@ -906,31 +917,50 @@ static struct sh_csi2_pdata csi2_info = {
+>  	.flags		= SH_CSI2_ECC | SH_CSI2_CRC,
+>  };
+>  
+> -static struct resource csi2_resources[] = {
+> -	[0] = {
+> -		.name	= "CSI2",
+> -		.start	= 0xffc90000,
+> -		.end	= 0xffc90fff,
+> -		.flags	= IORESOURCE_MEM,
+> +static struct platform_device csi2_device = {
+> +	.name		= "sh-mobile-csi2",
+> +	.id		= 0,
 
-This patch fixes the above mentioned "hack" of re-ordering of the
-FIMD interrupt numbers by getting interrupt resource of FIMD by using
-platform_get_resource_byname().
+Is it more appropriate to use id = -1 here?
+I am entirely unsure.
 
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 1ea173a..cd79d38 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -945,7 +945,7 @@ static int fimd_probe(struct platform_device *pdev)
- 		return -ENXIO;
- 	}
- 
--	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_IRQ, "vsync");
- 	if (!res) {
- 		dev_err(dev, "irq request failed.\n");
- 		return -ENXIO;
--- 
-1.7.9.5
-
+> +	.num_resources	= ARRAY_SIZE(csi2_resources),
+> +	.resource	= csi2_resources,
+> +	.dev		= {
+> +		.platform_data = &csi2_info,
+>  	},
+> -	[1] = {
+> -		.start	= intcs_evt2irq(0x17a0),
+> -		.flags  = IORESOURCE_IRQ,
+> +};
+> +
+> +static struct soc_camera_async_subdev csi2_sd = {
+> +	.asd.hw = {
+> +		.bus_type = V4L2_ASYNC_BUS_PLATFORM,
+> +		.match.platform.name = "sh-mobile-csi2.0",
+>  	},
+> +	.role = SOCAM_SUBDEV_DATA_PROCESSOR,
+>  };
+>  
+> -static struct sh_mobile_ceu_companion csi2 = {
+> -	.id		= 0,
+> -	.num_resources	= ARRAY_SIZE(csi2_resources),
+> -	.resource	= csi2_resources,
+> -	.platform_data	= &csi2_info,
+> +static struct soc_camera_async_subdev imx074_sd = {
+> +	.asd.hw = {
+> +		.bus_type = V4L2_ASYNC_BUS_I2C,
+> +		.match.i2c = {
+> +			.adapter_id = 0,
+> +			.address = 0x1a,
+> +		},
+> +	},
+> +	.role = SOCAM_SUBDEV_DATA_SOURCE,
+>  };
+>  
+> +static struct v4l2_async_subdev *ceu_subdevs[] = {
+> +	/* Single 2-element group */
+> +	&csi2_sd.asd,
+> +	&imx074_sd.asd,
+> +};
+> +
+> +/* 0-terminated array of group-sizes */
+> +static int ceu_subdev_sizes[] = {ARRAY_SIZE(ceu_subdevs), 0};
+> +
+>  static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+>  	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+>  	.max_width = 8188,
+>  	.max_height = 8188,
+> -	.csi2 = &csi2,
+> +	.asd = ceu_subdevs,
+> +	.asd_sizes = ceu_subdev_sizes,
+>  };
+>  
+>  static struct resource ceu_resources[] = {
+> @@ -975,7 +1005,7 @@ static struct platform_device *ap4evb_devices[] __initdata = {
+>  	&lcdc_device,
+>  	&lcdc1_device,
+>  	&ceu_device,
+> -	&ap4evb_camera,
+> +	&csi2_device,
+>  	&meram_device,
+>  };
+>  
+> @@ -1070,19 +1100,6 @@ static struct i2c_board_info tsc_device = {
+>  	/*.irq is selected on ap4evb_init */
+>  };
+>  
+> -/* I2C */
+> -static struct i2c_board_info i2c0_devices[] = {
+> -	{
+> -		I2C_BOARD_INFO("ak4643", 0x13),
+> -	},
+> -};
+> -
+> -static struct i2c_board_info i2c1_devices[] = {
+> -	{
+> -		I2C_BOARD_INFO("r2025sd", 0x32),
+> -	},
+> -};
+> -
+>  
+>  #define GPIO_PORT9CR	IOMEM(0xE6051009)
+>  #define GPIO_PORT10CR	IOMEM(0xE605100A)
+> @@ -1097,6 +1114,7 @@ static void __init ap4evb_init(void)
+>  		{ "A3SP", &sdhi0_device, },
+>  		{ "A3SP", &sdhi1_device, },
+>  		{ "A4R", &ceu_device, },
+> +		{ "A4R", &csi2_device, },
+>  	};
+>  	u32 srcr4;
+>  	struct clk *clk;
+> @@ -1324,6 +1342,7 @@ static void __init ap4evb_init(void)
+>  	sh7372_pm_init();
+>  	pm_clk_add(&fsi_device.dev, "spu2");
+>  	pm_clk_add(&lcdc1_device.dev, "hdmi");
+> +	pm_clk_add(&csi2_device.dev, "csir");
+>  }
+>  
+>  MACHINE_START(AP4EVB, "ap4evb")
+> diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
+> index 45d21fe..2e8cb42 100644
+> --- a/arch/arm/mach-shmobile/clock-sh7372.c
+> +++ b/arch/arm/mach-shmobile/clock-sh7372.c
+> @@ -617,6 +617,7 @@ static struct clk_lookup lookups[] = {
+>  	CLKDEV_ICK_ID("divb", "sh_fsi2", &fsidivs[FSIDIV_B]),
+>  	CLKDEV_ICK_ID("xcka", "sh_fsi2", &fsiack_clk),
+>  	CLKDEV_ICK_ID("xckb", "sh_fsi2", &fsibck_clk),
+> +	CLKDEV_ICK_ID("csir", "sh-mobile-csi2.0", &div4_clks[DIV4_CSIR]),
+>  };
+>  
+>  void __init sh7372_clock_init(void)
+> -- 
+> 1.7.2.5
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-sh" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
