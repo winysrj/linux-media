@@ -1,269 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55700 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:22576 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175Ab3CJCEm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:42 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 30/41] af9033: add IT9135 tuner config "51" init table
-Date: Sun, 10 Mar 2013 04:03:22 +0200
-Message-Id: <1362881013-5271-30-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S932483Ab3CSRBq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 13:01:46 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 38/46] [media] siano: add support for .poll on debugfs
+Date: Tue, 19 Mar 2013 13:49:27 -0300
+Message-Id: <1363711775-2120-39-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dumped out from the Windows driver version 12.07.06.1
+Implement poll() method for debugfs and be sure that the
+debug_data won't be freed on ir or on read().
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+With this change, poll() will return POLLIN if either data was
+filled or if data was read. That allows read() to return 0
+to indicate EOF in the latter case.
+
+As poll() is now provided, fix support for non-block mode.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb-frontends/af9033.c      |   3 +
- drivers/media/dvb-frontends/af9033_priv.h | 217 ++++++++++++++++++++++++++++++
- 2 files changed, 220 insertions(+)
+ drivers/media/common/siano/smsdvb-debugfs.c | 77 ++++++++++++++++++++++-------
+ 1 file changed, 59 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 1386d29..d6fc566 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -351,6 +351,9 @@ static int af9033_init(struct dvb_frontend *fe)
- 		init = tuner_init_it9135_38;
- 		break;
- 	case AF9033_TUNER_IT9135_51:
-+		len = ARRAY_SIZE(tuner_init_it9135_51);
-+		init = tuner_init_it9135_51;
-+		break;
- 	case AF9033_TUNER_IT9135_52:
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
-diff --git a/drivers/media/dvb-frontends/af9033_priv.h b/drivers/media/dvb-frontends/af9033_priv.h
-index 0dc13eb..5e35ef6 100644
---- a/drivers/media/dvb-frontends/af9033_priv.h
-+++ b/drivers/media/dvb-frontends/af9033_priv.h
-@@ -875,6 +875,223 @@ static const struct reg_val tuner_init_it9135_38[] = {
- 	{ 0x80fd8b, 0x00 },
- };
+diff --git a/drivers/media/common/siano/smsdvb-debugfs.c b/drivers/media/common/siano/smsdvb-debugfs.c
+index 59c7323..0219be3 100644
+--- a/drivers/media/common/siano/smsdvb-debugfs.c
++++ b/drivers/media/common/siano/smsdvb-debugfs.c
+@@ -352,6 +352,14 @@ static int smsdvb_stats_open(struct inode *inode, struct file *file)
+ 	return 0;
+ }
  
-+/* ITE Tech IT9135 Omega LNA config 1 tuner init
-+   AF9033_TUNER_IT9135_51   = 0x51 */
-+static const struct reg_val tuner_init_it9135_51[] = {
-+	{ 0x800043, 0x00 },
-+	{ 0x800046, 0x51 },
-+	{ 0x800051, 0x01 },
-+	{ 0x80005f, 0x00 },
-+	{ 0x800060, 0x00 },
-+	{ 0x800068, 0x0a },
-+	{ 0x800070, 0x0a },
-+	{ 0x800071, 0x06 },
-+	{ 0x800072, 0x02 },
-+	{ 0x800075, 0x8c },
-+	{ 0x800076, 0x8c },
-+	{ 0x800077, 0x8c },
-+	{ 0x800078, 0xc8 },
-+	{ 0x800079, 0x01 },
-+	{ 0x80007e, 0x04 },
-+	{ 0x80007f, 0x00 },
-+	{ 0x800081, 0x0a },
-+	{ 0x800082, 0x12 },
-+	{ 0x800083, 0x02 },
-+	{ 0x800084, 0x0a },
-+	{ 0x800085, 0x03 },
-+	{ 0x800086, 0xc0 },
-+	{ 0x800087, 0x96 },
-+	{ 0x800088, 0xcf },
-+	{ 0x800089, 0xc3 },
-+	{ 0x80008a, 0x01 },
-+	{ 0x80008e, 0x01 },
-+	{ 0x800092, 0x06 },
-+	{ 0x800093, 0x00 },
-+	{ 0x800094, 0x00 },
-+	{ 0x800095, 0x00 },
-+	{ 0x800096, 0x00 },
-+	{ 0x800099, 0x01 },
-+	{ 0x80009b, 0x3c },
-+	{ 0x80009c, 0x28 },
-+	{ 0x80009f, 0xe1 },
-+	{ 0x8000a0, 0xcf },
-+	{ 0x8000a3, 0x01 },
-+	{ 0x8000a4, 0x5a },
-+	{ 0x8000a5, 0x01 },
-+	{ 0x8000a6, 0x01 },
-+	{ 0x8000a9, 0x00 },
-+	{ 0x8000aa, 0x01 },
-+	{ 0x8000b0, 0x01 },
-+	{ 0x8000b3, 0x02 },
-+	{ 0x8000b4, 0x3c },
-+	{ 0x8000b6, 0x14 },
-+	{ 0x8000c0, 0x11 },
-+	{ 0x8000c1, 0x00 },
-+	{ 0x8000c2, 0x05 },
-+	{ 0x8000c4, 0x00 },
-+	{ 0x8000c6, 0x19 },
-+	{ 0x8000c7, 0x00 },
-+	{ 0x8000cc, 0x2e },
-+	{ 0x8000cd, 0x51 },
-+	{ 0x8000ce, 0x33 },
-+	{ 0x8000f3, 0x05 },
-+	{ 0x8000f4, 0x8c },
-+	{ 0x8000f5, 0x8c },
-+	{ 0x8000f8, 0x03 },
-+	{ 0x8000f9, 0x06 },
-+	{ 0x8000fa, 0x06 },
-+	{ 0x8000fc, 0x03 },
-+	{ 0x8000fd, 0x02 },
-+	{ 0x8000fe, 0x02 },
-+	{ 0x8000ff, 0x09 },
-+	{ 0x800100, 0x50 },
-+	{ 0x800101, 0x7a },
-+	{ 0x800102, 0x77 },
-+	{ 0x800103, 0x01 },
-+	{ 0x800104, 0x02 },
-+	{ 0x800105, 0xb0 },
-+	{ 0x800106, 0x02 },
-+	{ 0x800107, 0x7a },
-+	{ 0x800109, 0x02 },
-+	{ 0x800115, 0x0a },
-+	{ 0x800116, 0x03 },
-+	{ 0x800117, 0x02 },
-+	{ 0x800118, 0x80 },
-+	{ 0x80011a, 0xc0 },
-+	{ 0x80011b, 0x7a },
-+	{ 0x80011c, 0xac },
-+	{ 0x80011d, 0x8c },
-+	{ 0x800122, 0x02 },
-+	{ 0x800123, 0x70 },
-+	{ 0x800124, 0xa4 },
-+	{ 0x800127, 0x00 },
-+	{ 0x800128, 0x07 },
-+	{ 0x80012a, 0x53 },
-+	{ 0x80012b, 0x51 },
-+	{ 0x80012c, 0x4e },
-+	{ 0x80012d, 0x43 },
-+	{ 0x800137, 0x01 },
-+	{ 0x800138, 0x00 },
-+	{ 0x800139, 0x07 },
-+	{ 0x80013a, 0x00 },
-+	{ 0x80013b, 0x06 },
-+	{ 0x80013d, 0x00 },
-+	{ 0x80013e, 0x01 },
-+	{ 0x80013f, 0x5b },
-+	{ 0x800140, 0xc0 },
-+	{ 0x800141, 0x59 },
-+	{ 0x80f000, 0x0f },
-+	{ 0x80f016, 0x10 },
-+	{ 0x80f017, 0x04 },
-+	{ 0x80f018, 0x05 },
-+	{ 0x80f019, 0x04 },
-+	{ 0x80f01a, 0x05 },
-+	{ 0x80f01f, 0x8c },
-+	{ 0x80f020, 0x00 },
-+	{ 0x80f021, 0x03 },
-+	{ 0x80f022, 0x0a },
-+	{ 0x80f023, 0x0a },
-+	{ 0x80f029, 0x8c },
-+	{ 0x80f02a, 0x00 },
-+	{ 0x80f02b, 0x00 },
-+	{ 0x80f02c, 0x01 },
-+	{ 0x80f064, 0x03 },
-+	{ 0x80f065, 0xf9 },
-+	{ 0x80f066, 0x03 },
-+	{ 0x80f067, 0x01 },
-+	{ 0x80f06f, 0xe0 },
-+	{ 0x80f070, 0x03 },
-+	{ 0x80f072, 0x0f },
-+	{ 0x80f073, 0x03 },
-+	{ 0x80f077, 0x01 },
-+	{ 0x80f078, 0x00 },
-+	{ 0x80f085, 0xc0 },
-+	{ 0x80f086, 0x01 },
-+	{ 0x80f087, 0x00 },
-+	{ 0x80f09b, 0x3f },
-+	{ 0x80f09c, 0x00 },
-+	{ 0x80f09d, 0x20 },
-+	{ 0x80f09e, 0x00 },
-+	{ 0x80f09f, 0x0c },
-+	{ 0x80f0a0, 0x00 },
-+	{ 0x80f130, 0x04 },
-+	{ 0x80f132, 0x04 },
-+	{ 0x80f144, 0x1a },
-+	{ 0x80f146, 0x00 },
-+	{ 0x80f14a, 0x01 },
-+	{ 0x80f14c, 0x00 },
-+	{ 0x80f14d, 0x00 },
-+	{ 0x80f14f, 0x04 },
-+	{ 0x80f158, 0x7f },
-+	{ 0x80f15a, 0x00 },
-+	{ 0x80f15b, 0x08 },
-+	{ 0x80f15d, 0x03 },
-+	{ 0x80f15e, 0x05 },
-+	{ 0x80f163, 0x05 },
-+	{ 0x80f166, 0x01 },
-+	{ 0x80f167, 0x40 },
-+	{ 0x80f168, 0x0f },
-+	{ 0x80f17a, 0x00 },
-+	{ 0x80f17b, 0x00 },
-+	{ 0x80f183, 0x01 },
-+	{ 0x80f19d, 0x40 },
-+	{ 0x80f1bc, 0x36 },
-+	{ 0x80f1bd, 0x00 },
-+	{ 0x80f1cb, 0xa0 },
-+	{ 0x80f1cc, 0x01 },
-+	{ 0x80f204, 0x10 },
-+	{ 0x80f214, 0x00 },
-+	{ 0x80f24c, 0x88 },
-+	{ 0x80f24d, 0x95 },
-+	{ 0x80f24e, 0x9a },
-+	{ 0x80f24f, 0x90 },
-+	{ 0x80f25a, 0x07 },
-+	{ 0x80f25b, 0xe8 },
-+	{ 0x80f25c, 0x03 },
-+	{ 0x80f25d, 0xb0 },
-+	{ 0x80f25e, 0x04 },
-+	{ 0x80f270, 0x01 },
-+	{ 0x80f271, 0x02 },
-+	{ 0x80f272, 0x01 },
-+	{ 0x80f273, 0x02 },
-+	{ 0x80f40e, 0x0a },
-+	{ 0x80f40f, 0x40 },
-+	{ 0x80f410, 0x08 },
-+	{ 0x80f55f, 0x0a },
-+	{ 0x80f561, 0x15 },
-+	{ 0x80f562, 0x20 },
-+	{ 0x80f5df, 0xfb },
-+	{ 0x80f5e0, 0x00 },
-+	{ 0x80f5e3, 0x09 },
-+	{ 0x80f5e4, 0x01 },
-+	{ 0x80f5e5, 0x01 },
-+	{ 0x80f5f8, 0x01 },
-+	{ 0x80f5fd, 0x01 },
-+	{ 0x80f600, 0x05 },
-+	{ 0x80f601, 0x08 },
-+	{ 0x80f602, 0x0b },
-+	{ 0x80f603, 0x0e },
-+	{ 0x80f604, 0x11 },
-+	{ 0x80f605, 0x14 },
-+	{ 0x80f606, 0x17 },
-+	{ 0x80f607, 0x1f },
-+	{ 0x80f60e, 0x00 },
-+	{ 0x80f60f, 0x04 },
-+	{ 0x80f610, 0x32 },
-+	{ 0x80f611, 0x10 },
-+	{ 0x80f707, 0xfc },
-+	{ 0x80f708, 0x00 },
-+	{ 0x80f709, 0x37 },
-+	{ 0x80f70a, 0x00 },
-+	{ 0x80f78b, 0x01 },
-+	{ 0x80f80f, 0x40 },
-+	{ 0x80f810, 0x54 },
-+	{ 0x80f811, 0x5a },
-+	{ 0x80f905, 0x01 },
-+	{ 0x80fb06, 0x03 },
-+	{ 0x80fd8b, 0x00 },
-+};
++static void smsdvb_debugfs_data_release(struct kref *ref)
++{
++	struct smsdvb_debugfs *debug_data;
 +
- static const struct reg_val ofsm_init_it9135_v2[] = {
- 	{ 0x800051, 0x01 },
- 	{ 0x800070, 0x0a },
++	debug_data = container_of(ref, struct smsdvb_debugfs, refcount);
++	kfree(debug_data);
++}
++
+ static int smsdvb_stats_wait_read(struct smsdvb_debugfs *debug_data)
+ {
+ 	int rc = 1;
+@@ -368,33 +376,65 @@ exit:
+ 	return rc;
+ }
+ 
+-static ssize_t smsdvb_stats_read(struct file *file, char __user *user_buf,
+-				      size_t nbytes, loff_t *ppos)
++static unsigned int smsdvb_stats_poll(struct file *file, poll_table *wait)
+ {
+-	int rc = 0;
+ 	struct smsdvb_debugfs *debug_data = file->private_data;
++	int rc;
+ 
+-	rc = wait_event_interruptible(debug_data->stats_queue,
+-				      smsdvb_stats_wait_read(debug_data));
+-	if (rc < 0)
+-		return rc;
++	kref_get(&debug_data->refcount);
+ 
+-	rc = simple_read_from_buffer(user_buf, nbytes, ppos,
+-				     debug_data->stats_data,
+-				     debug_data->stats_count);
+-	spin_lock(&debug_data->lock);
+-	debug_data->stats_was_read = true;
+-	spin_unlock(&debug_data->lock);
++	poll_wait(file, &debug_data->stats_queue, wait);
++
++	rc = smsdvb_stats_wait_read(debug_data);
++	if (rc > 0)
++		rc = POLLIN | POLLRDNORM;
++
++	kref_put(&debug_data->refcount, smsdvb_debugfs_data_release);
+ 
+ 	return rc;
+ }
+ 
+-static void smsdvb_debugfs_data_release(struct kref *ref)
++static ssize_t smsdvb_stats_read(struct file *file, char __user *user_buf,
++				      size_t nbytes, loff_t *ppos)
+ {
+-	struct smsdvb_debugfs *debug_data;
++	int rc = 0, len;
++	struct smsdvb_debugfs *debug_data = file->private_data;
+ 
+-	debug_data = container_of(ref, struct smsdvb_debugfs, refcount);
+-	kfree(debug_data);
++	kref_get(&debug_data->refcount);
++
++	if (file->f_flags & O_NONBLOCK) {
++		rc = smsdvb_stats_wait_read(debug_data);
++		if (!rc) {
++			rc = -EWOULDBLOCK;
++			goto ret;
++		}
++	} else {
++		rc = wait_event_interruptible(debug_data->stats_queue,
++				      smsdvb_stats_wait_read(debug_data));
++		if (rc < 0)
++			goto ret;
++	}
++
++	if (debug_data->stats_was_read) {
++		rc = 0;	/* EOF */
++		goto ret;
++	}
++
++	len = debug_data->stats_count - *ppos;
++	if (len >= 0)
++		rc = simple_read_from_buffer(user_buf, nbytes, ppos,
++					     debug_data->stats_data, len);
++	else
++		rc = 0;
++
++	if (*ppos >= debug_data->stats_count) {
++		spin_lock(&debug_data->lock);
++		debug_data->stats_was_read = true;
++		spin_unlock(&debug_data->lock);
++	}
++ret:
++	kref_put(&debug_data->refcount, smsdvb_debugfs_data_release);
++	return rc;
+ }
+ 
+ static int smsdvb_stats_release(struct inode *inode, struct file *file)
+@@ -402,7 +442,7 @@ static int smsdvb_stats_release(struct inode *inode, struct file *file)
+ 	struct smsdvb_debugfs *debug_data = file->private_data;
+ 
+ 	spin_lock(&debug_data->lock);
+-	debug_data->stats_was_read = true;
++	debug_data->stats_was_read = true;	/* return EOF to read() */
+ 	spin_unlock(&debug_data->lock);
+ 	wake_up_interruptible_sync(&debug_data->stats_queue);
+ 
+@@ -414,6 +454,7 @@ static int smsdvb_stats_release(struct inode *inode, struct file *file)
+ 
+ static const struct file_operations debugfs_stats_ops = {
+ 	.open = smsdvb_stats_open,
++	.poll = smsdvb_stats_poll,
+ 	.read = smsdvb_stats_read,
+ 	.release = smsdvb_stats_release,
+ 	.llseek = generic_file_llseek,
 -- 
-1.7.11.7
+1.8.1.4
 
