@@ -1,77 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44593 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933261Ab3CSRYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 13:24:00 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3352 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933297Ab3CSHNP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 03:13:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [REVIEWv2 PATCH 1/6] v4l2: add const to argument of write-only s_frequency ioctl.
+Date: Tue, 19 Mar 2013 08:12:40 +0100
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 35/46] [media] siano: Fix bandwidth report
-Date: Tue, 19 Mar 2013 13:49:24 -0300
-Message-Id: <1363711775-2120-36-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Huang Shijie <shijie8@gmail.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Takashi Iwai <tiwai@suse.de>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl> <1363615925-19507-2-git-send-email-hverkuil@xs4all.nl> <38963986.sdyc1budE1@avalon>
+In-Reply-To: <38963986.sdyc1budE1@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303190812.40330.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was expected that the bandwidth would be following the defines
-at smscoreapi.h. However, this doesn't work. Instead, this field
-brings just the bandwidth in MHz. Convert it to Hertz.
+On Tue March 19 2013 00:17:32 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Monday 18 March 2013 15:12:00 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > This ioctl is defined as IOW, so pass the argument as const.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/radio/radio-keene.c
+> > b/drivers/media/radio/radio-keene.c index 296941a..a598852 100644
+> > --- a/drivers/media/radio/radio-keene.c
+> > +++ b/drivers/media/radio/radio-keene.c
+> > @@ -82,9 +82,12 @@ static inline struct keene_device *to_keene_dev(struct
+> > v4l2_device *v4l2_dev) /* Set frequency (if non-0), PA, mute and turn
+> > on/off the FM transmitter. */ static int keene_cmd_main(struct keene_device
+> > *radio, unsigned freq, bool play) {
+> > -	unsigned short freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
+> > +	unsigned short freq_send;
+> >  	int ret;
+> > 
+> > +	if (freq)
+> > +		freq = clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+> > +	freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
+> >  	radio->buffer[0] = 0x00;
+> >  	radio->buffer[1] = 0x50;
+> >  	radio->buffer[2] = (freq_send >> 8) & 0xff;
+> > @@ -215,15 +218,15 @@ static int vidioc_s_modulator(struct file *file, void
+> > *priv, }
+> > 
+> >  static int vidioc_s_frequency(struct file *file, void *priv,
+> > -				struct v4l2_frequency *f)
+> > +				const struct v4l2_frequency *f)
+> >  {
+> >  	struct keene_device *radio = video_drvdata(file);
+> > 
+> >  	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+> >  		return -EINVAL;
+> > -	f->frequency = clamp(f->frequency,
+> > -			FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+> > -	return keene_cmd_main(radio, f->frequency, true);
+> > +	/* Take care: keene_cmd_main handles a frequency of 0 as a
+> > +	 * special case, so make sure we never give that from here. */
+> > +	return keene_cmd_main(radio, f->frequency ? f->frequency : 1, true);
+> 
+> Can't you keep the clamp() here ? That looks easier.
 
-It should be noticed that, on ISDB, using the _EX request, the
-field TuneBW seems to show the value that matches the bandwidth
-code.
+Grrr. Sometimes you get so bogged down in details that you forget the big
+picture.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/siano/smsdvb-main.c | 18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+I've updated my patch for radio-keene.c to this:
 
-diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-index 632a250..b146064 100644
---- a/drivers/media/common/siano/smsdvb-main.c
-+++ b/drivers/media/common/siano/smsdvb-main.c
-@@ -43,18 +43,6 @@ module_param_named(debug, sms_dbg, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
- 
- 
--u32 sms_to_bw_table[] = {
--	[BW_8_MHZ]		= 8000000,
--	[BW_7_MHZ]		= 7000000,
--	[BW_6_MHZ]		= 6000000,
--	[BW_5_MHZ]		= 5000000,
--	[BW_2_MHZ]		= 2000000,
--	[BW_1_5_MHZ]		= 1500000,
--	[BW_ISDBT_1SEG]		= 6000000,
--	[BW_ISDBT_3SEG]		= 6000000,
--	[BW_ISDBT_13SEG]	= 6000000,
--};
--
- u32 sms_to_guard_interval_table[] = {
- 	[0] = GUARD_INTERVAL_1_32,
- 	[1] = GUARD_INTERVAL_1_16,
-@@ -204,6 +192,9 @@ static inline int sms_to_status(u32 is_demod_locked, u32 is_rf_locked)
- 	return 0;
+diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
+index 296941a..4c9ae76 100644
+--- a/drivers/media/radio/radio-keene.c
++++ b/drivers/media/radio/radio-keene.c
+@@ -215,15 +215,15 @@ static int vidioc_s_modulator(struct file *file, void *priv,
  }
- 
-+static inline u32 sms_to_bw(u32 value) {
-+	return value * 1000000;
-+}
- 
- #define convert_from_table(value, table, defval) ({			\
- 	u32 __ret;							\
-@@ -214,9 +205,6 @@ static inline int sms_to_status(u32 is_demod_locked, u32 is_rf_locked)
- 	__ret;								\
- })
- 
--#define sms_to_bw(value)						\
--	convert_from_table(value, sms_to_bw_table, 0);
--
- #define sms_to_guard_interval(value)					\
- 	convert_from_table(value, sms_to_guard_interval_table,		\
- 			   GUARD_INTERVAL_AUTO);
--- 
-1.8.1.4
 
+ static int vidioc_s_frequency(struct file *file, void *priv,
+-                               struct v4l2_frequency *f)
++                               const struct v4l2_frequency *f)
+ {
+        struct keene_device *radio = video_drvdata(file);
++       unsigned freq = f->frequency;
+
+        if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+                return -EINVAL;
+-       f->frequency = clamp(f->frequency,
+-                       FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+-       return keene_cmd_main(radio, f->frequency, true);
++       freq = clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
++       return keene_cmd_main(radio, freq, true);
+ }
+
+ static int vidioc_g_frequency(struct file *file, void *priv,
+
+Much cleaner. Thanks!
+
+Regards,
+
+	Hans
