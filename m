@@ -1,63 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6063 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:64111 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751867Ab3CUTjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 15:39:16 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2LJdGZr031158
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 15:39:16 -0400
+	id S1755440Ab3CSQtq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:49:46 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/4] [media] cx23885: use IS_ENABLED
-Date: Thu, 21 Mar 2013 16:39:07 -0300
-Message-Id: <1363894748-28000-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
-References: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH 07/46] [media] siano: Properly initialize board information
+Date: Tue, 19 Mar 2013 13:48:56 -0300
+Message-Id: <1363711775-2120-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of checking everywhere there for 3 symbols, use instead
-IS_ENABLED macro.
-
-This replacement was done using this small perl script:
-
-my $data;
-$data .= $_ while (<>);
-if ($data =~ m/CONFIG_([A-Z\_\d]*)_MODULE/) {
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)\!]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-        $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-}
-print $data;
+Board #0 is an existing one. Instead of initializing the driver
+with it, use a different value to detect if board is unknown.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/pci/cx23885/altera-ci.h | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/common/siano/smscoreapi.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/cx23885/altera-ci.h b/drivers/media/pci/cx23885/altera-ci.h
-index 70e4fd6..7ac6d64 100644
---- a/drivers/media/pci/cx23885/altera-ci.h
-+++ b/drivers/media/pci/cx23885/altera-ci.h
-@@ -41,8 +41,7 @@ struct altera_ci_config {
- 	int (*fpga_rw) (void *dev, int ad_rg, int val, int rw);
- };
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 4c83d3c..7377c16 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -723,6 +723,7 @@ int smscore_register_device(struct smsdevice_params_t *params,
+ 	sms_info("allocated %d buffers", dev->num_buffers);
  
--#if defined(CONFIG_MEDIA_ALTERA_CI) || (defined(CONFIG_MEDIA_ALTERA_CI_MODULE) \
--							&& defined(MODULE))
-+#if IS_ENABLED(CONFIG_MEDIA_ALTERA_CI)
- 
- extern int altera_ci_init(struct altera_ci_config *config, int ci_nr);
- extern void altera_ci_release(void *dev, int ci_nr);
+ 	dev->mode = DEVICE_MODE_NONE;
++	dev->board_id = SMS_BOARD_UNKNOWN;
+ 	dev->context = params->context;
+ 	dev->device = params->device;
+ 	dev->setmode_handler = params->setmode_handler;
 -- 
 1.8.1.4
 
