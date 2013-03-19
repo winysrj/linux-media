@@ -1,85 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:24364 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754451Ab3CKTBQ (ORCPT
+Received: from mail-vb0-f50.google.com ([209.85.212.50]:46518 "EHLO
+	mail-vb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932549Ab3CSPmG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:01:16 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 08/11] s5p-fimc: Ensure proper s_stream() call order in the
- ISP datapaths
-Date: Mon, 11 Mar 2013 20:00:23 +0100
-Message-id: <1363028426-2771-9-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 19 Mar 2013 11:42:06 -0400
+Received: by mail-vb0-f50.google.com with SMTP id ft2so401547vbb.37
+        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 08:42:04 -0700 (PDT)
+From: Eduardo Valentin <edubezval@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 3/4] media: radio: add driver owner entry for radio-si4713
+Date: Tue, 19 Mar 2013 11:41:33 -0400
+Message-Id: <1363707694-27224-4-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the FIMC-IS firmware communicates with an image sensor directly
-through the ISP I2C bus controllers data streaming cannot be simply
-enabled from left to right or disabled from right to left along the
-processing pipeline. Thus a subdev index to call s_stream() on is
-looked up from a table, rather than doing the op call based on
-increasing/decreasing indexes.
+Simple addition of platform_driver->driver->owner for radio-si4713.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ drivers/media/radio/radio-si4713.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index c336ed1..c99802d 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -194,28 +194,36 @@ static int __fimc_pipeline_close(struct fimc_pipeline *p)
- }
- 
- /**
-- * __fimc_pipeline_s_stream - invoke s_stream on pipeline subdevs
-+ * __fimc_pipeline_s_stream - call s_stream() on pipeline subdevs
-  * @pipeline: video pipeline structure
-- * @on: passed as the s_stream call argument
-+ * @on: passed as the s_stream() callback argument
-  */
- static int __fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
- {
--	int i, ret;
-+	static const u8 seq[2][IDX_MAX] = {
-+		{ IDX_FIMC, IDX_SENSOR, IDX_IS_ISP, IDX_CSIS, IDX_FLITE },
-+		{ IDX_CSIS, IDX_FLITE, IDX_FIMC, IDX_SENSOR, IDX_IS_ISP },
-+	};
-+	int i, ret = 0;
- 
- 	if (p->subdevs[IDX_SENSOR] == NULL)
- 		return -ENODEV;
- 
- 	for (i = 0; i < IDX_MAX; i++) {
--		unsigned int idx = on ? (IDX_MAX - 1) - i : i;
-+		unsigned int idx = seq[on][i];
- 
- 		ret = v4l2_subdev_call(p->subdevs[idx], video, s_stream, on);
- 
- 		if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
--			return ret;
-+			goto error;
- 	}
--
- 	return 0;
--
-+error:
-+	for (; i >= 0; i--) {
-+		unsigned int idx = seq[on][i];
-+		v4l2_subdev_call(p->subdevs[idx], video, s_stream, !on);
-+	}
-+	return ret;
- }
- 
- /* Media pipeline operations for the FIMC/FIMC-LITE video device driver */
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index cd30a89..ae70930 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -347,6 +347,7 @@ static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
+ static struct platform_driver radio_si4713_pdriver = {
+ 	.driver		= {
+ 		.name	= "radio-si4713",
++		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= radio_si4713_pdriver_probe,
+ 	.remove         = __exit_p(radio_si4713_pdriver_remove),
 -- 
-1.7.9.5
+1.7.7.1.488.ge8e1c
 
