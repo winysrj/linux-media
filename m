@@ -1,77 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27043 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:48032 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756580Ab3CUNUY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 09:20:24 -0400
-Date: Thu, 21 Mar 2013 10:20:16 -0300
+	id S933235Ab3CSQur (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:47 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: =?UTF-8?B?QmrDuHJu?= Mork <bjorn@mork.no>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] siano: get rid of CammelCase from smscoreapi.h
-Message-ID: <20130321102016.07c8e31e@redhat.com>
-In-Reply-To: <87hak4j3ue.fsf@nemi.mork.no>
-References: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
-	<87hak4j3ue.fsf@nemi.mork.no>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 14/46] [media] siano: always load smsdvb
+Date: Tue, 19 Mar 2013 13:49:03 -0300
+Message-Id: <1363711775-2120-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Mar 2013 14:10:33 +0100
-Bjørn Mork <bjorn@mork.no> escreveu:
+Without smsdvb, the driver actually does nothing, as it
+lacks the userspace API.
 
-> Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> 
-> > It is almost impossible to see a compliant with checkpatch.pl
-> > on those Siano drivers, as there are simply too much violations
-> > on it. So, now that a big change was done, the better is to
-> > cleanup the checkpatch compliants.
-> >
-> > Let's first replace all CammelCase symbols found at smscoreapi.h
-> > using camel_case namespace. That removed 144 checkpatch.pl
-> > compliants on this file. Of course, the other files need to be
-> > fixed accordingly.
-> [..]
-> > @@ -840,14 +840,14 @@ int smscore_configure_board(struct smscore_device_t *coredev)
-> >  	}
-> >  
-> >  	if (board->mtu) {
-> > -		struct SmsMsgData_ST MtuMsg;
-> > +		struct sms_msg_data MtuMsg;
-> >  		sms_debug("set max transmit unit %d", board->mtu);
-> >  
-> > -		MtuMsg.xMsgHeader.msgSrcId = 0;
-> > -		MtuMsg.xMsgHeader.msgDstId = HIF_TASK;
-> > -		MtuMsg.xMsgHeader.msgFlags = 0;
-> > -		MtuMsg.xMsgHeader.msgType = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> > -		MtuMsg.xMsgHeader.msgLength = sizeof(MtuMsg);
-> > +		MtuMsg.x_msg_header.msg_src_id = 0;
-> > +		MtuMsg.x_msg_header.msg_dst_id = HIF_TASK;
-> > +		MtuMsg.x_msg_header.msg_flags = 0;
-> > +		MtuMsg.x_msg_header.msg_type = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> > +		MtuMsg.x_msg_header.msg_length = sizeof(MtuMsg);
-> >  		MtuMsg.msgData[0] = board->mtu;
-> >  
-> >  		coredev->sendrequest_handler(coredev->context, &MtuMsg,
-> 
-> 
-> 
-> etc.  This didn't help one bit, did it?  There are exacly the same
-> number of CamelCased lines here as before your patch.  Why is that?
+While I wrote it independently, in order to make a sms2270 board
+I have here to work, this patch is functionally identical to this
+patch from Doron Cohen:
+	http://patchwork.linuxtv.org/patch/7894/
 
-I did this change in parts. This first patch changes only the symbols at
-the structures defined in smscoreapi.h. Latter patches in this series fix
-the rest.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/sms-cards.c | 14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
-I decided to do this way as not all CamelCase issues can be solved: there are
-lots of CamelCase on Kernel's USB API (probably to match the USB standard?).
-
-So, I can't simply blind run my CamelCase fix script when fixing the
-remaining issues.
-
+diff --git a/drivers/media/common/siano/sms-cards.c b/drivers/media/common/siano/sms-cards.c
+index b22b61d..04bb04c 100644
+--- a/drivers/media/common/siano/sms-cards.c
++++ b/drivers/media/common/siano/sms-cards.c
+@@ -293,19 +293,7 @@ EXPORT_SYMBOL_GPL(sms_board_lna_control);
+ 
+ int sms_board_load_modules(int id)
+ {
+-	switch (id) {
+-	case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
+-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+-	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+-		request_module("smsdvb");
+-		break;
+-	default:
+-		/* do nothing */
+-		break;
+-	}
++	request_module("smsdvb");
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(sms_board_load_modules);
 -- 
+1.8.1.4
 
-Cheers,
-Mauro
