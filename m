@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f169.google.com ([209.85.216.169]:47684 "EHLO
-	mail-qc0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754686Ab3CVSph (ORCPT
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:50414 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932549Ab3CSPmI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 14:45:37 -0400
-Received: by mail-qc0-f169.google.com with SMTP id t2so2033866qcq.14
-        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2013 11:45:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201303221738.16145.hverkuil@xs4all.nl>
-References: <201303221738.16145.hverkuil@xs4all.nl>
-Date: Fri, 22 Mar 2013 14:45:34 -0400
-Message-ID: <CAGoCfiyho+--cobfWcFwC-zgpQxbuE_3bJozzRKhqqcXnRyA0w@mail.gmail.com>
-Subject: Re: [GIT PULL FOR v3.10] au0828 driver overhaul
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 19 Mar 2013 11:42:08 -0400
+Received: by mail-vc0-f173.google.com with SMTP id gd11so497729vcb.32
+        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 08:42:07 -0700 (PDT)
+From: Eduardo Valentin <edubezval@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduardo Valentin <edubezval@gmail.com>
+Subject: [PATCH 4/4] media: radio: add module alias entry for radio-si4713
+Date: Tue, 19 Mar 2013 11:41:34 -0400
+Message-Id: <1363707694-27224-5-git-send-email-edubezval@gmail.com>
+In-Reply-To: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 22, 2013 at 12:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> It works fine with qv4l2, but there is still a bug causing tvtime to fail.
-> That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
-> August last year, that broke g_tuner: after that 'signal' would always be 0
-> and tvtime expects signal to be non-zero for a valid frequency. The signal
-> field is set by the au8522, but g_tuner is only called for the tuner (well,
-> also for au8522 but since the i2c gate is set for the tuner that won't do
-> anything).
+Add MODULE_ALIAS entry for radio-si4713 platform driver.
 
-During your testing, did you bisect the entire media tree or just the
-au0828/au8522 driver.  This discovery is pretty damn surprising since
-I actively test with tvtime whenever I do any work on that driver.
-Are you sure something else in the framework didn't change which
-caused breakage for this driver?
+Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+---
+ drivers/media/radio/radio-si4713.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index ae70930..9dda9c3 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -43,6 +43,7 @@ MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
+ MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
+ MODULE_VERSION("0.0.1");
++MODULE_ALIAS("platform:radio-si4713");
+ 
+ /* Driver state struct */
+ struct radio_si4713_device {
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.7.1.488.ge8e1c
+
