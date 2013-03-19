@@ -1,80 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:55514 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491Ab3CHUal (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 15:30:41 -0500
-Received: by mail-we0-f180.google.com with SMTP id k14so1467493wer.39
-        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 12:30:40 -0800 (PST)
-Message-ID: <513A4A6C.3090408@gmail.com>
-Date: Fri, 08 Mar 2013 21:30:36 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Andrzej Hajda <a.hajda@samsung.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>
-Subject: [GIT PULL FOR 3.9] Samsung media driver fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:37344 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757091Ab3CSQtr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:49:47 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 01/46] [media] siano: Change GPIO voltage setting names
+Date: Tue, 19 Mar 2013 13:48:50 -0300
+Message-Id: <1363711775-2120-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Siano changed the namespace on more recent API, and re-used some
+of the old names. In order to be able to update the API to support
+newer chips, the better is to follow this change.
 
-The following changes since commit 9f225788cc047fb7c2ef2326eb4f86dee890e2ef:
-
-   Merge branch 'merge' of 
-git://git.kernel.org/pub/scm/linux/kernel/git/benh/powerpc (2013-03-05 
-18:56:22 -0800)
-
-are available in the git repository at:
-
-   git://linuxtv.org/snawrocki/samsung.git v3.9-fixes
-
-Andrzej Hajda (1):
-       m5mols: Fix bug in stream on handler
-
-Arun Kumar K (2):
-       s5p-mfc: Fix frame skip bug
-       s5p-mfc: Fix encoder control 15 issue
-
-Shaik Ameer Basha (4):
-       fimc-lite: Initialize 'step' field in fimc_lite_ctrl structure
-       fimc-lite: Fix the variable type to avoid possible crash
-       exynos-gsc: send valid m2m ctx to gsc_m2m_job_finish
-       s5p-fimc: send valid m2m ctx to fimc_m2m_job_finish
-
-Sylwester Nawrocki (1):
-       s5p-fimc: Do not attempt to disable not enabled media pipeline
-
-  drivers/media/i2c/m5mols/m5mols_core.c          |    2 +-
-  drivers/media/platform/exynos-gsc/gsc-core.c    |    8 +++--
-  drivers/media/platform/s5p-fimc/fimc-core.c     |    6 ++-
-  drivers/media/platform/s5p-fimc/fimc-lite-reg.c |    8 ++--
-  drivers/media/platform/s5p-fimc/fimc-lite.c     |    1 +
-  drivers/media/platform/s5p-fimc/fimc-mdevice.c  |   39 
-+++++++++++------------
-  drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +-
-  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |    1 +
-  8 files changed, 36 insertions(+), 31 deletions(-)
-
-The pwclient commands:
-
-pwclient update -s accepted 17149
-pwclient update -s accepted 16930
-pwclient update -s accepted 16931
-pwclient update -s superseded 17153
-pwclient update -s accepted 16652
-pwclient update -s accepted 16653
-pwclient update -s accepted 16954
-pwclient update -s accepted 17134
-pwclient update -s accepted 17150
-
-I hope these all patches can be applied to 3.9.
-
-Thank you.
-
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
+ drivers/media/common/siano/sms-cards.c  | 2 +-
+ drivers/media/common/siano/smscoreapi.c | 8 ++++----
+ drivers/media/common/siano/smscoreapi.h | 8 ++++----
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/common/siano/sms-cards.c b/drivers/media/common/siano/sms-cards.c
+index 680c781..8ee2e92 100644
+--- a/drivers/media/common/siano/sms-cards.c
++++ b/drivers/media/common/siano/sms-cards.c
+@@ -183,7 +183,7 @@ static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
+ 		.pullupdown           = SMS_GPIO_PULLUPDOWN_NONE,
+ 		.inputcharacteristics = SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
+ 		.outputslewrate       = SMS_GPIO_OUTPUTSLEWRATE_FAST,
+-		.outputdriving        = SMS_GPIO_OUTPUTDRIVING_4mA,
++		.outputdriving        = SMS_GPIO_OUTPUTDRIVING_S_4mA,
+ 	};
+ 
+ 	if (pin == 0)
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 1842e64..d0592b5 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -1306,16 +1306,16 @@ int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
+ 		msg.data[2] = pinconfig->outputslewrate == 0 ? 3 : 0;
+ 
+ 		switch (pinconfig->outputdriving) {
+-		case SMS_GPIO_OUTPUTDRIVING_16mA:
++		case SMS_GPIO_OUTPUTDRIVING_S_16mA:
+ 			msg.data[3] = 7; /* Nova - 16mA */
+ 			break;
+-		case SMS_GPIO_OUTPUTDRIVING_12mA:
++		case SMS_GPIO_OUTPUTDRIVING_S_12mA:
+ 			msg.data[3] = 5; /* Nova - 11mA */
+ 			break;
+-		case SMS_GPIO_OUTPUTDRIVING_8mA:
++		case SMS_GPIO_OUTPUTDRIVING_S_8mA:
+ 			msg.data[3] = 3; /* Nova - 7mA */
+ 			break;
+-		case SMS_GPIO_OUTPUTDRIVING_4mA:
++		case SMS_GPIO_OUTPUTDRIVING_S_4mA:
+ 		default:
+ 			msg.data[3] = 2; /* Nova - 4mA */
+ 			break;
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index c592ae0..a6d29a2 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -642,10 +642,10 @@ struct smscore_config_gpio {
+ #define SMS_GPIO_OUTPUTSLEWRATE_SLOW 1
+ 	u8 outputslewrate;
+ 
+-#define SMS_GPIO_OUTPUTDRIVING_4mA  0
+-#define SMS_GPIO_OUTPUTDRIVING_8mA  1
+-#define SMS_GPIO_OUTPUTDRIVING_12mA 2
+-#define SMS_GPIO_OUTPUTDRIVING_16mA 3
++#define SMS_GPIO_OUTPUTDRIVING_S_4mA  0
++#define SMS_GPIO_OUTPUTDRIVING_S_8mA  1
++#define SMS_GPIO_OUTPUTDRIVING_S_12mA 2
++#define SMS_GPIO_OUTPUTDRIVING_S_16mA 3
+ 	u8 outputdriving;
+ };
+ 
+-- 
+1.8.1.4
+
