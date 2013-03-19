@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:39483 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934095Ab3CZIar (ORCPT
+Received: from mail-da0-f50.google.com ([209.85.210.50]:35241 "EHLO
+	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750758Ab3CSKAU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 04:30:47 -0400
-Received: by mail-bk0-f52.google.com with SMTP id it16so792080bkc.25
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 01:30:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201303260918.36511.hverkuil@xs4all.nl>
-References: <CAPgLHd-+DNxxVHsXiJpk2KFk8mzrQUkwaYPUFeWHyAmz-H6=4Q@mail.gmail.com>
-	<20130326070415.GH9138@mwanda>
-	<20130326073557.GI9138@mwanda>
-	<201303260918.36511.hverkuil@xs4all.nl>
-Date: Tue, 26 Mar 2013 16:30:45 +0800
-Message-ID: <CAPgLHd-faL5S2ztdKfhKDHrmm5FMrk8hFOeWpt6xOvBiRsJ9=w@mail.gmail.com>
-Subject: Re: [PATCH -next] [media] go7007: fix invalid use of sizeof in go7007_usb_i2c_master_xfer()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: hverkuil@xs4all.nl
-Cc: dan.carpenter@oracle.com, devel@driverdev.osuosl.org,
-	mchehab@redhat.com, gregkh@linuxfoundation.org,
-	yongjun_wei@trendmicro.com.cn, hans.verkuil@cisco.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 19 Mar 2013 06:00:20 -0400
+Received: by mail-da0-f50.google.com with SMTP id t1so216963dae.9
+        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 03:00:20 -0700 (PDT)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	joshi@samsung.com, inki.dae@samsung.com,
+	linaro-kernel@lists.linaro.org, jy0922.shim@samsung.com,
+	linux-samsung-soc@vger.kernel.org, thomas.abraham@linaro.org
+Subject: [PATCH] drm/exynos: enable FIMD clocks
+Date: Tue, 19 Mar 2013 15:29:53 +0530
+Message-Id: <1363687193-30893-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans and Dan Carpenter,
+While migrating to common clock framework (CCF), found that the FIMD clocks
+were pulled down by the CCF.
+If CCF finds any clock(s) which has NOT been claimed by any of the
+drivers, then such clock(s) are PULLed low by CCF.
 
-On 03/26/2013 04:18 PM, Hans Verkuil wrote:
-> On Tue March 26 2013 08:35:57 Dan Carpenter wrote:
->> On Tue, Mar 26, 2013 at 10:04:15AM +0300, Dan Carpenter wrote:
->>> On Tue, Mar 26, 2013 at 02:42:47PM +0800, Wei Yongjun wrote:
->>>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->>>>
->>>> sizeof() when applied to a pointer typed expression gives the
->>>> size of the pointer, not that of the pointed data.
->>>>
->>> This fix isn't right.  "buf" is a char pointer.  I don't know what
->>> this code is doing.  Instead of sizeof(*buf) it should be something
->>> like "buflen", "msg[i].len", "msg[i].len + 1" or "msg[i].len + 3".
->> It should be "msg[i].len + 1", I think.
-> Yes, that's correct.
->
-> 'buf' used to be a local array, so the memset was fine. I changed it to an
-> array that was kmalloc()ed but forgot about the memset. I never noticed
-> the bug because the sizeof the message is typically quite small, certainly
-> smaller than sizeof(pointer) on a 64-bit system.
->
-> Wei Yongjun, can you post a new patch fixing this?
+By calling clk_prepare_enable() for FIMD clocks fixes the issue.
 
-Thanks very much, I will send the v2 of this patch soon.
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-Regards,
-Yongjun
-
-
-
-
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..d93dd8a 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -934,6 +934,9 @@ static int fimd_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	clk_prepare_enable(ctx->lcd_clk);
++	clk_prepare_enable(ctx->bus_clk);
++
+ 	ctx->vidcon0 = pdata->vidcon0;
+ 	ctx->vidcon1 = pdata->vidcon1;
+ 	ctx->default_win = pdata->default_win;
+-- 
+1.7.9.5
 
