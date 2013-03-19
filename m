@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:34957 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679Ab3CVHxY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 03:53:24 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+Received: from mx1.redhat.com ([209.132.183.28]:50103 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932942Ab3CSQt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:49:59 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/2] davinci: vpss: clock cleanup
-Date: Fri, 22 Mar 2013 13:23:11 +0530
-Message-Id: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 44/46] [media] siano: remove a bogus printk line
+Date: Tue, 19 Mar 2013 13:49:33 -0300
+Message-Id: <1363711775-2120-45-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+The logic that detects the types of sms devices is bogus. It returns
+	[ 4645.187790] smsusb_init_device: line: 372: Unspecified sms device type!
 
-This patch series cleanup's the VPSS clock enabling.
-The first patch removes vpss clock enabling from the capture
-drivers and moves it to the VPSS driver itself.
-The second patch moves the venc_enable_vpss_clock() to the driver
-which was being done in platform code.
+For several devices, including the one I have (SMS_RIO). In a matter
+of fact, the right thing to do there is to print an error only if
+the device is really unknown (SMS_UNKNOWN_TYPE).
 
-Lad, Prabhakar (2):
-  media: davinci: vpss: enable vpss clocks
-  media: davinci: vpbe: venc: move the enabling of vpss clocks to
-    driver
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/siano/smsusb.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
- arch/arm/mach-davinci/dm355.c                |    3 -
- arch/arm/mach-davinci/dm365.c                |    9 +++-
- arch/arm/mach-davinci/dm644x.c               |    5 --
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 -------------------
- drivers/media/platform/davinci/isif.c        |   28 ++----------
- drivers/media/platform/davinci/vpbe_venc.c   |   26 +++++++++++
- drivers/media/platform/davinci/vpss.c        |   60 ++++++++++++++++++++++++++
- 8 files changed, 98 insertions(+), 116 deletions(-)
-
+diff --git a/drivers/media/usb/siano/smsusb.c b/drivers/media/usb/siano/smsusb.c
+index def5e41..01a0f39 100644
+--- a/drivers/media/usb/siano/smsusb.c
++++ b/drivers/media/usb/siano/smsusb.c
+@@ -368,14 +368,10 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 		params.setmode_handler = smsusb1_setmode;
+ 		params.detectmode_handler = smsusb1_detectmode;
+ 		break;
+-	default:
++	case SMS_UNKNOWN_TYPE:
+ 		sms_err("Unspecified sms device type!");
+ 		/* fall-thru */
+-	case SMS_NOVA_A0:
+-	case SMS_NOVA_B0:
+-	case SMS_VEGA:
+-	case SMS_VENICE:
+-	case SMS_DENVER_1530:
++	default:
+ 		dev->buffer_size = USB2_BUFFER_SIZE;
+ 		dev->response_alignment =
+ 		    le16_to_cpu(dev->udev->ep_in[1]->desc.wMaxPacketSize) -
 -- 
-1.7.4.1
+1.8.1.4
 
