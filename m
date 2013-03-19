@@ -1,71 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:53288 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932109Ab3CLIeQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 04:34:16 -0400
-Received: by mail-we0-f179.google.com with SMTP id p43so4320777wea.38
-        for <linux-media@vger.kernel.org>; Tue, 12 Mar 2013 01:34:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1363076713.3873.21.camel@mars>
-References: <1360948121.29406.15.camel@mars>
-	<20130215172452.GA27113@kroah.com>
-	<1361009964.5028.3.camel@mars>
-	<Pine.LNX.4.64.1303051845060.25837@axis700.grange>
-	<CACKLOr0smOW2cukSmeoexq3=b=dpGw=CDO3qo=gGm4+28iwb8Q@mail.gmail.com>
-	<Pine.LNX.4.64.1303120847480.680@axis700.grange>
-	<1363076713.3873.21.camel@mars>
-Date: Tue, 12 Mar 2013 09:34:14 +0100
-Message-ID: <CACKLOr2oFe-ME47UV_Osme4=-7nErYts6UpE8dCAN2E2Yi+q0A@mail.gmail.com>
-Subject: Re: [PATCH v2] media: i.MX27 camera: fix picture source width
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Christoph Fritz <chf.fritz@googlemail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Greg KH <gregkh@linuxfoundation.org>,
+Received: from mx1.redhat.com ([209.132.183.28]:51902 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932935Ab3CSQt7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:49:59 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	"Hans J. Koch" <hjk@hansjkoch.de>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 37/46] [media] siano: fix status report with old firmware and ISDB-T
+Date: Tue, 19 Mar 2013 13:49:26 -0300
+Message-Id: <1363711775-2120-38-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guernnadi, Christoph,
+This seems to be ever broken. That's the status report with
+Firmware 2.1, before adding support for sms2270 is:
 
-On 12 March 2013 09:25, Christoph Fritz <chf.fritz@googlemail.com> wrote:
-> On Tue, 2013-03-12 at 08:58 +0100, Guennadi Liakhovetski wrote:
->> On Thu, 7 Mar 2013, javier Martin wrote:
->
->> > What mbus format are you using? Could you please check if the s_width
->> > value that your sensor mt9m001 returns is correct? Remember it should
->> > be in pixels, not in bytes.
->>
->> Thanks for looking at this. But here's my question: for a pass-through
->> mode mx2_camera uses a 16-bpp (RGB565) format. But what if it's actually
->> an 8-bpp format, don't you then have to adjust line-width register
->> settings? If you don't do that, the camera interface would expect a double
->> number of bytes per line, so, it could get confused by HSYNC coming after
->> half-line?
+[22273.787218] smsdvb_onresponse: MSG_SMS_GET_STATISTICS_RES
+[22273.792592] IsRfLocked = 1
+[22273.792592] IsDemodLocked = 1
+...
+[22273.792598] TransmissionMode = -64
+...
+(all unshown fields are filled with zeros)
 
-You are right.
+Of course, transmission mode being a negative number is wrong.
+So, we need to take a deeper look on it.
 
-> To emphasize this: I'm using here a mt9m001 (monochrome) camera with an
-> 8-bpp format.
+With the debugfs patches applied, it is possible to see that, instead
+of filling StatisticsType with 5, and FullSize with the size of the
+payload (this is what happens with sms2270 and firmware 8.1),
+those fields are also initialized with zero:
 
-Ok, now that makes sense.
+StatisticsType = 0	FullSize = 0
+IsRfLocked = 1		IsDemodLocked = 1	IsExternalLNAOn = 0
+SNR = 0 dB		RSSI = 0 dBm		InBandPwr = 0 dBm
+CarrierOffset = 0	Bandwidth = 0		Frequency = 0 Hz
+TransmissionMode = -64	ModemState = 0		GuardInterval = 0
+SystemType = 0		PartialReception = 0	NumOfLayers = 0
+SmsToHostTxErrors = 0
 
-Then, what you should do is apply your patch conditionally so that you
-don't break other working cases:
-- Channel 1 is being used.
-- Channel 1 is in pass-through mode.
-- The sensor uses an 8-bpp format.
+The data under "TransmissionMode" varies according with the signal,
+and it is negative. It also matches the value for InBandPwr when
+the tuner is on DVB-T (ok, signal doesn't lock, but the power level
+should be about the same with the antena fixed, and measured at about
+the same time).
 
-Regards.
+So, there's a very high chance that, when StatisticsType is zero, the
+signal strength is at the same position as Transmission Mode.
+
+So, discard all other parameters, and provide only signal/rf lock and
+signal strength if StatisticsType is 0, for ISDB-T.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smsdvb-main.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index 114fe57..ce6ba7b 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -338,9 +338,21 @@ static void smsdvb_update_isdbt_stats(struct smsdvb_client_t *client,
+ 	if (client->prt_isdb_stats)
+ 		client->prt_isdb_stats(client->debug_data, p);
+ 
++	client->fe_status = sms_to_status(p->IsDemodLocked, p->IsRfLocked);
++
++	/*
++	 * Firmware 2.1 seems to report only lock status and
++	 * Signal strength. The signal strength indicator is at the
++	 * wrong field.
++	 */
++	if (p->StatisticsType == 0) {
++		c->strength.stat[0].uvalue = ((s32)p->TransmissionMode) * 1000;
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return;
++	}
++
+ 	/* Update ISDB-T transmission parameters */
+ 	c->frequency = p->Frequency;
+-	client->fe_status = sms_to_status(p->IsDemodLocked, 0);
+ 	c->bandwidth_hz = sms_to_bw(p->Bandwidth);
+ 	c->transmission_mode = sms_to_mode(p->TransmissionMode);
+ 	c->guard_interval = sms_to_guard_interval(p->GuardInterval);
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.8.1.4
+
