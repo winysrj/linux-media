@@ -1,38 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback-out2.mxes.net ([216.86.168.191]:20404 "EHLO
-	fallback-in2.mxes.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754027Ab3CLOsg (ORCPT
+Received: from mail-ia0-f170.google.com ([209.85.210.170]:47199 "EHLO
+	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754788Ab3CSJEd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 10:48:36 -0400
-Received: from mxout-08.mxes.net (mxout-08.mxes.net [216.86.168.183])
-	by fallback-in1.mxes.net (Postfix) with ESMTP id EA8642FDBF2
-	for <linux-media@vger.kernel.org>; Tue, 12 Mar 2013 10:38:34 -0400 (EDT)
-Message-ID: <42459.207.87.255.226.1363099023.squirrel@webmail.tuffmail.net>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-Date: Tue, 12 Mar 2013 10:37:03 -0400 (EDT)
-Subject: Re: [REVIEW PATCH 00/42] go7007: complete overhaul
-From: "Darrick Burch" <darrick@tuffmail.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
+	Tue, 19 Mar 2013 05:04:33 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <CAHkwnC9fg7_uhLM2KD3vvj_oFx3EBoQfw8mCN=V9pyV5=k37aA@mail.gmail.com>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+	<201303181058.51641.arnd@arndb.de>
+	<CAHkwnC-aHwd24S5MyLhnVzTqqQj2L7MMuVX9dirhS-G830jZcw@mail.gmail.com>
+	<201303181128.45215.arnd@arndb.de>
+	<CAHkwnC9fg7_uhLM2KD3vvj_oFx3EBoQfw8mCN=V9pyV5=k37aA@mail.gmail.com>
+Date: Tue, 19 Mar 2013 10:04:32 +0100
+Message-ID: <CAMuHMdVS56HRDSvr7XCpVEjEWnGti+V=J_m4qQzEid=23ON_fQ@mail.gmail.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Fabio Porcedda <fabio.porcedda@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>
+Cc: H Hartley Sweeten <hartleys@visionengravers.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> This week I'll also receive a Plextor PX-M402U to test with and an ADS DVD
-> XPress DX2 is also on its way (I did some ebay shopping!).
+On Tue, Mar 19, 2013 at 9:55 AM, Fabio Porcedda
+<fabio.porcedda@gmail.com> wrote:
+> On Mon, Mar 18, 2013 at 12:28 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> On Monday 18 March 2013, Fabio Porcedda wrote:
+>>> On Mon, Mar 18, 2013 at 11:58 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+>>> > On Monday 18 March 2013, Fabio Porcedda wrote:
+>>> >> Since by using platform_driver_probe() the  function
+>>> >> ep93xx_pwm_probe() is freed after initialization,
+>>> >> is better to use module_platform_drive_probe().
+>>> >> IMHO i don't see any good reason to use module_platform_driver() for
+>>> >> this driver.
+>>> >
+>>> > As I commented earlier, the platform_driver_probe() and
+>>> > module_platform_drive_probe() interfaces are rather dangerous in combination
+>>> > with deferred probing, I would much prefer Harley's patch.
+>>>
+>>> Since those drivers don't use -EPROBE_DEFER i was thinking that they don't use
+>>> deferred probing.
+>>> I'm missing something?
+>>
+>> clk_get() may return -EPROBE_DEFER after ep93xx is converted to use the
+>> common clk API. We currently return the value of clk_get from the probe()
+>> function, which will automatically do the right thing as long as the probe
+>> function remains reachable.
+>
+> Thanks for the explanation.
 
-As it happens I've been working with the DVD Xpress DX2.  I found a patch
-floating around the Internet, with the needed code to add support for it,
-but I was chagrined to discover (on 3.6.28) that v4l2 subdevice support
-was simply not implemented correctly and I couldn't get very far with it.
+Hmm, so we may have drivers that (now) work perfectly fine with
+module_platform_driver_probe()/platform_driver_probe(), but will start
+failing suddenly in the future?
 
-I have cloned your go7007 branch and I am in the process of trying to
-apply the changes again.  My only question about this device is that it
-uses a tw9906 and not a tw9903 (for which there is already an i2c module).
- Do you know much about either decoder?  The tw9906 code in the patch
-looked very similar to what was in the tw9903 save for a few initial
-register differences.
+I guess we need a big fat WARN_ON(-EPROBE_DEFER) in
+platform_driver_probe() to catch these?
 
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
