@@ -1,166 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3740 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754587Ab3CKVBJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:01:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 06/15] au0828: convert to the control framework.
-Date: Mon, 11 Mar 2013 22:00:37 +0100
-Message-Id: <96c72244bb34976b5a877f3cf71a2cf7bffeb300.1363035203.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363035646-25244-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
-References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40676 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933058Ab3CSRYA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 13:24:00 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 39/46] [media] siano: simplify firmware lookup logic
+Date: Tue, 19 Mar 2013 13:49:28 -0300
+Message-Id: <1363711775-2120-40-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There are two ways to specify firmware for siano devices: a
+per-device ID and a per-device type.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+The per-device type logic is currently made by a 11x9 string
+table, sparsely filled. It is very hard to read the table at
+the source code, as there are too much "none" filling there
+("none" there is a way to tell NULL).
+
+Instead of using such problematic table, convert it into an
+easy to read table, where the unused values will be defaulted
+to NULL.
+
+While here, also simplifies a little bit the logic and print
+a message if an user-selected mode doesn't exist.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/usb/au0828/au0828-core.c  |   15 ++++++++++--
- drivers/media/usb/au0828/au0828-video.c |   39 ++-----------------------------
- drivers/media/usb/au0828/au0828.h       |    2 ++
- 3 files changed, 17 insertions(+), 39 deletions(-)
+ drivers/media/common/siano/smscoreapi.c | 91 +++++++++++++++++++--------------
+ 1 file changed, 54 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-core.c b/drivers/media/usb/au0828/au0828-core.c
-index 1e6f40e..ffd3bcb 100644
---- a/drivers/media/usb/au0828/au0828-core.c
-+++ b/drivers/media/usb/au0828/au0828-core.c
-@@ -143,6 +143,7 @@ static void au0828_usb_disconnect(struct usb_interface *interface)
- 	au0828_i2c_unregister(dev);
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index 029dd6a..6db7fe5 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -1063,9 +1063,11 @@ static int smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+ 	const struct firmware *fw;
  
- #ifdef CONFIG_VIDEO_AU0828_V4L2
-+	v4l2_ctrl_handler_free(&dev->v4l2_ctrl_hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
- #endif
- 
-@@ -205,12 +206,22 @@ static int au0828_usb_probe(struct usb_interface *interface,
- 	/* Create the v4l2_device */
- 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
- 	if (retval) {
--		printk(KERN_ERR "%s() v4l2_device_register failed\n",
-+		pr_err("%s() v4l2_device_register failed\n",
- 		       __func__);
- 		mutex_unlock(&dev->lock);
- 		kfree(dev);
--		return -EIO;
-+		return retval;
- 	}
-+	/* This control handler will inherit the controls from au8522 */
-+	retval = v4l2_ctrl_handler_init(&dev->v4l2_ctrl_hdl, 4);
-+	if (retval) {
-+		pr_err("%s() v4l2_ctrl_handler_init failed\n",
-+		       __func__);
-+		mutex_unlock(&dev->lock);
-+		kfree(dev);
-+		return retval;
+ 	char *fw_filename = smscore_get_fw_filename(coredev, mode, lookup);
+-	sms_debug("Firmware name: %s\n", fw_filename);
+-	if (!strcmp(fw_filename, "none"))
++	if (!fw_filename) {
++		sms_info("mode %d not supported on this device", mode);
+ 		return -ENOENT;
 +	}
-+	dev->v4l2_dev.ctrl_handler = &dev->v4l2_ctrl_hdl;
- #endif
++	sms_debug("Firmware name: %s", fw_filename);
  
- 	/* Power Up the bridge */
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index e4a24fa..7d762c0 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1226,18 +1226,6 @@ static int au0828_set_format(struct au0828_dev *dev, unsigned int cmd,
+ 	if (loadfirmware_handler == NULL && !(coredev->device_flags
+ 			& SMS_DEVICE_FAMILY2))
+@@ -1199,32 +1201,53 @@ static int smscore_detect_mode(struct smscore_device_t *coredev)
+ 	return rc;
  }
  
+-static char *smscore_fw_lkup[][SMS_NUM_OF_DEVICE_TYPES] = {
+-	/*Stellar, NOVA A0, Nova B0, VEGA, VENICE, MING, PELE, RIO, DENVER_1530, DENVER_2160 */
+-		/*DVBT*/
+-	{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none", "none", "none", "none", "dvb_rio.inp", "none", "none" },
+-		/*DVBH*/
+-	{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none", "none", "none", "none", "dvbh_rio.inp", "none", "none" },
+-		/*TDMB*/
+-	{ "none", "tdmb_nova_12mhz.inp", "tdmb_nova_12mhz_b0.inp", "none", "none", "none", "none", "none", "none", "tdmb_denver.inp" },
+-		/*DABIP*/
+-	{ "none", "none", "none", "none", "none", "none", "none", "none", "none", "none" },
+-		/*DVBT_BDA*/
+-	{ "none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none", "none", "none", "none", "dvb_rio.inp", "none", "none" },
+-		/*ISDBT*/
+-	{ "none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none", "none", "none", "isdbt_pele.inp", "isdbt_rio.inp", "none", "none" },
+-		/*ISDBT_BDA*/
+-	{ "none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none", "none", "none", "isdbt_pele.inp", "isdbt_rio.inp", "none", "none" },
+-		/*CMMB*/
+-	{ "none", "none", "none", "cmmb_vega_12mhz.inp", "cmmb_venice_12mhz.inp", "cmmb_ming_app.inp", "none", "none", "none", 	"none" },
+-		/*RAW - not supported*/
+-	{ "none", "none", "none", "none", "none", "none", "none", "none", "none", "none" },
+-		/*FM*/
+-	{ "none", "none", "fm_radio.inp", "none", "none", "none", "none", "fm_radio_rio.inp", "none", "none" },
+-		/*FM_BDA*/
+-	{ "none", "none", "fm_radio.inp", "none", "none", "none", "none", "fm_radio_rio.inp", "none", "none" },
+-		/*ATSC*/
+-	{ "none", "none", "none", "none", "none", "none", "none", "none", "atsc_denver.inp", "none" }
++static char *smscore_fw_lkup[][DEVICE_MODE_MAX] = {
++	[SMS_NOVA_A0] = {
++		[DEVICE_MODE_DVBT]		= "dvb_nova_12mhz.inp",
++		[DEVICE_MODE_DVBH]		= "dvb_nova_12mhz.inp",
++		[DEVICE_MODE_DAB_TDMB]		= "tdmb_nova_12mhz.inp",
++		[DEVICE_MODE_DVBT_BDA]		= "dvb_nova_12mhz.inp",
++		[DEVICE_MODE_ISDBT]		= "isdbt_nova_12mhz.inp",
++		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_nova_12mhz.inp",
++	},
++	[SMS_NOVA_B0] = {
++		[DEVICE_MODE_DVBT]		= "dvb_nova_12mhz_b0.inp",
++		[DEVICE_MODE_DVBH]		= "dvb_nova_12mhz_b0.inp",
++		[DEVICE_MODE_DAB_TDMB]		= "tdmb_nova_12mhz_b0.inp",
++		[DEVICE_MODE_DVBT_BDA]		= "dvb_nova_12mhz_b0.inp",
++		[DEVICE_MODE_ISDBT]		= "isdbt_nova_12mhz_b0.inp",
++		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_nova_12mhz_b0.inp",
++		[DEVICE_MODE_FM_RADIO]		= "fm_radio.inp",
++		[DEVICE_MODE_FM_RADIO_BDA]	= "fm_radio.inp",
++	},
++	[SMS_VEGA] = {
++		[DEVICE_MODE_CMMB]		= "cmmb_vega_12mhz.inp",
++	},
++	[SMS_VENICE] = {
++		[DEVICE_MODE_CMMB]		= "cmmb_venice_12mhz.inp",
++	},
++	[SMS_MING] = {
++		[DEVICE_MODE_CMMB]		= "cmmb_ming_app.inp",
++	},
++	[SMS_PELE] = {
++		[DEVICE_MODE_ISDBT]		= "isdbt_pele.inp",
++		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_pele.inp",
++	},
++	[SMS_RIO] = {
++		[DEVICE_MODE_DVBT]		= "dvb_rio.inp",
++		[DEVICE_MODE_DVBH]		= "dvbh_rio.inp",
++		[DEVICE_MODE_DVBT_BDA]		= "dvb_rio.inp",
++		[DEVICE_MODE_ISDBT]		= "isdbt_rio.inp",
++		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_rio.inp",
++		[DEVICE_MODE_FM_RADIO]		= "fm_radio_rio.inp",
++		[DEVICE_MODE_FM_RADIO_BDA]	= "fm_radio_rio.inp",
++	},
++	[SMS_DENVER_1530] = {
++		[DEVICE_MODE_ATSC]		= "atsc_denver.inp",
++	},
++	[SMS_DENVER_2160] = {
++		[DEVICE_MODE_DAB_TDMB]		= "tdmb_denver.inp",
++	},
+ };
  
--static int vidioc_queryctrl(struct file *file, void *priv,
--			    struct v4l2_queryctrl *qc)
--{
--	struct au0828_fh *fh = priv;
--	struct au0828_dev *dev = fh->dev;
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, queryctrl, qc);
--	if (qc->type)
--		return 0;
--	else
--		return -EINVAL;
--}
+ /**
+@@ -1250,22 +1273,16 @@ static char *smscore_get_fw_filename(struct smscore_device_t *coredev,
+ 	if ((board_id == SMS_BOARD_UNKNOWN) || (lookup == 1)) {
+ 		sms_debug("trying to get fw name from lookup table mode %d type %d",
+ 			  mode, type);
+-		return smscore_fw_lkup[mode][type];
++		return smscore_fw_lkup[type][mode];
+ 	}
+ 
+ 	sms_debug("trying to get fw name from sms_boards board_id %d mode %d",
+ 		  board_id, mode);
+ 	fw = sms_get_board(board_id)->fw;
+-	if (fw == NULL) {
+-		sms_debug("cannot find fw name in sms_boards, getting from lookup table mode %d type %d",
+-			  mode, type);
+-		return smscore_fw_lkup[mode][type];
+-	}
 -
- static int vidioc_querycap(struct file *file, void  *priv,
- 			   struct v4l2_capability *cap)
- {
-@@ -1495,26 +1483,6 @@ static int vidioc_s_audio(struct file *file, void *priv, const struct v4l2_audio
- 	return 0;
- }
+-	if (fw[mode] == NULL) {
++	if (!fw || !fw[mode]) {
+ 		sms_debug("cannot find fw name in sms_boards, getting from lookup table mode %d type %d",
+ 			  mode, type);
+-		return smscore_fw_lkup[mode][type];
++		return smscore_fw_lkup[type][mode];
+ 	}
  
--static int vidioc_g_ctrl(struct file *file, void *priv,
--			 struct v4l2_control *ctrl)
--{
--	struct au0828_fh *fh = priv;
--	struct au0828_dev *dev = fh->dev;
--
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, g_ctrl, ctrl);
--	return 0;
--
--}
--
--static int vidioc_s_ctrl(struct file *file, void *priv,
--				struct v4l2_control *ctrl)
--{
--	struct au0828_fh *fh = priv;
--	struct au0828_dev *dev = fh->dev;
--	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
--	return 0;
--}
--
- static int vidioc_g_tuner(struct file *file, void *priv, struct v4l2_tuner *t)
- {
- 	struct au0828_fh *fh = priv;
-@@ -1904,9 +1872,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_enum_input          = vidioc_enum_input,
- 	.vidioc_g_input             = vidioc_g_input,
- 	.vidioc_s_input             = vidioc_s_input,
--	.vidioc_queryctrl           = vidioc_queryctrl,
--	.vidioc_g_ctrl              = vidioc_g_ctrl,
--	.vidioc_s_ctrl              = vidioc_s_ctrl,
- 	.vidioc_streamon            = vidioc_streamon,
- 	.vidioc_streamoff           = vidioc_streamoff,
- 	.vidioc_g_tuner             = vidioc_g_tuner,
-@@ -2012,13 +1977,13 @@ int au0828_analog_register(struct au0828_dev *dev,
- 
- 	/* Fill the video capture device struct */
- 	*dev->vdev = au0828_video_template;
--	dev->vdev->parent = &dev->usbdev->dev;
-+	dev->vdev->v4l2_dev = &dev->v4l2_dev;
- 	dev->vdev->lock = &dev->lock;
- 	strcpy(dev->vdev->name, "au0828a video");
- 
- 	/* Setup the VBI device */
- 	*dev->vbi_dev = au0828_video_template;
--	dev->vbi_dev->parent = &dev->usbdev->dev;
-+	dev->vbi_dev->v4l2_dev = &dev->v4l2_dev;
- 	dev->vbi_dev->lock = &dev->lock;
- 	strcpy(dev->vbi_dev->name, "au0828a vbi");
- 
-diff --git a/drivers/media/usb/au0828/au0828.h b/drivers/media/usb/au0828/au0828.h
-index e579ff6..803af10 100644
---- a/drivers/media/usb/au0828/au0828.h
-+++ b/drivers/media/usb/au0828/au0828.h
-@@ -28,6 +28,7 @@
- #include <linux/videodev2.h>
- #include <media/videobuf-vmalloc.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- 
- /* DVB */
- #include "demux.h"
-@@ -202,6 +203,7 @@ struct au0828_dev {
- #ifdef CONFIG_VIDEO_AU0828_V4L2
- 	/* Analog */
- 	struct v4l2_device v4l2_dev;
-+	struct v4l2_ctrl_handler v4l2_ctrl_hdl;
- #endif
- 	int users;
- 	unsigned int resources;	/* resources in use */
+ 	return fw[mode];
 -- 
-1.7.10.4
+1.8.1.4
 
