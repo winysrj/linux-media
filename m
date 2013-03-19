@@ -1,53 +1,292 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33765 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:8797 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932206Ab3CVKkO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 06:40:14 -0400
-Message-ID: <514C34E0.6030206@iki.fi>
-Date: Fri, 22 Mar 2013 12:39:28 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Wei Yongjun <weiyj.lk@gmail.com>
-CC: mchehab@redhat.com, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH -next] [media] dvb_usb_v2: make local function dvb_usb_v2_generic_io()
- static
-References: <CAPgLHd_EgofJ+x4EdB-E4Fx8wm9Z5e7cyvde044SiXS0X-OBzg@mail.gmail.com>
-In-Reply-To: <CAPgLHd_EgofJ+x4EdB-E4Fx8wm9Z5e7cyvde044SiXS0X-OBzg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S933152Ab3CSQuV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:21 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 25/46] [media] siano: split get_frontend into per-std functions
+Date: Tue, 19 Mar 2013 13:49:14 -0300
+Message-Id: <1363711775-2120-26-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/22/2013 05:17 AM, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> dvb_usb_v2_generic_io() was not declared. It should be static.
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Instead of handling both DVB-T and ISDB-T at the same get_frontend
+function, break it intow one function per-delivery system.
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+That makes the code clearer as we start to add support for DVBv5
+statistics, and for ISDB-T get frontend stuff.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smsdvb.c | 229 +++++++++++++++++++-----------------
+ 1 file changed, 124 insertions(+), 105 deletions(-)
 
-> ---
->   drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> index 74c911f..aa0c35e 100644
-> --- a/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> +++ b/drivers/media/usb/dvb-usb-v2/dvb_usb_urb.c
-> @@ -21,7 +21,7 @@
->
->   #include "dvb_usb_common.h"
->
-> -int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
-> +static int dvb_usb_v2_generic_io(struct dvb_usb_device *d,
->   		u8 *wbuf, u16 wlen, u8 *rbuf, u16 rlen)
->   {
->   	int ret, actual_length;
->
-
-
+diff --git a/drivers/media/common/siano/smsdvb.c b/drivers/media/common/siano/smsdvb.c
+index 6335574..1d6b8df 100644
+--- a/drivers/media/common/siano/smsdvb.c
++++ b/drivers/media/common/siano/smsdvb.c
+@@ -863,131 +863,150 @@ static int smsdvb_set_frontend(struct dvb_frontend *fe)
+ 	}
+ }
+ 
+-static int smsdvb_get_frontend(struct dvb_frontend *fe)
++static int smsdvb_get_frontend_dvb(struct dvb_frontend *fe)
+ {
+ 	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct smsdvb_client_t *client =
+ 		container_of(fe, struct smsdvb_client_t, frontend);
+-	struct smscore_device_t *coredev = client->coredev;
+ 	struct TRANSMISSION_STATISTICS_S *td =
+ 		&client->sms_stat_dvb.TransmissionData;
+ 
+-	switch (smscore_get_device_mode(coredev)) {
+-	case DEVICE_MODE_DVBT:
+-	case DEVICE_MODE_DVBT_BDA:
+-		fep->frequency = td->Frequency;
+-
+-		switch (td->Bandwidth) {
+-		case 6:
+-			fep->bandwidth_hz = 6000000;
+-			break;
+-		case 7:
+-			fep->bandwidth_hz = 7000000;
+-			break;
+-		case 8:
+-			fep->bandwidth_hz = 8000000;
+-			break;
+-		}
++	fep->frequency = td->Frequency;
+ 
+-		switch (td->TransmissionMode) {
+-		case 2:
+-			fep->transmission_mode = TRANSMISSION_MODE_2K;
+-			break;
+-		case 8:
+-			fep->transmission_mode = TRANSMISSION_MODE_8K;
+-		}
++	switch (td->Bandwidth) {
++	case 6:
++		fep->bandwidth_hz = 6000000;
++		break;
++	case 7:
++		fep->bandwidth_hz = 7000000;
++		break;
++	case 8:
++		fep->bandwidth_hz = 8000000;
++		break;
++	}
+ 
+-		switch (td->GuardInterval) {
+-		case 0:
+-			fep->guard_interval = GUARD_INTERVAL_1_32;
+-			break;
+-		case 1:
+-			fep->guard_interval = GUARD_INTERVAL_1_16;
+-			break;
+-		case 2:
+-			fep->guard_interval = GUARD_INTERVAL_1_8;
+-			break;
+-		case 3:
+-			fep->guard_interval = GUARD_INTERVAL_1_4;
+-			break;
+-		}
++	switch (td->TransmissionMode) {
++	case 2:
++		fep->transmission_mode = TRANSMISSION_MODE_2K;
++		break;
++	case 8:
++		fep->transmission_mode = TRANSMISSION_MODE_8K;
++	}
+ 
+-		switch (td->CodeRate) {
+-		case 0:
+-			fep->code_rate_HP = FEC_1_2;
+-			break;
+-		case 1:
+-			fep->code_rate_HP = FEC_2_3;
+-			break;
+-		case 2:
+-			fep->code_rate_HP = FEC_3_4;
+-			break;
+-		case 3:
+-			fep->code_rate_HP = FEC_5_6;
+-			break;
+-		case 4:
+-			fep->code_rate_HP = FEC_7_8;
+-			break;
+-		}
++	switch (td->GuardInterval) {
++	case 0:
++		fep->guard_interval = GUARD_INTERVAL_1_32;
++		break;
++	case 1:
++		fep->guard_interval = GUARD_INTERVAL_1_16;
++		break;
++	case 2:
++		fep->guard_interval = GUARD_INTERVAL_1_8;
++		break;
++	case 3:
++		fep->guard_interval = GUARD_INTERVAL_1_4;
++		break;
++	}
+ 
+-		switch (td->LPCodeRate) {
+-		case 0:
+-			fep->code_rate_LP = FEC_1_2;
+-			break;
+-		case 1:
+-			fep->code_rate_LP = FEC_2_3;
+-			break;
+-		case 2:
+-			fep->code_rate_LP = FEC_3_4;
+-			break;
+-		case 3:
+-			fep->code_rate_LP = FEC_5_6;
+-			break;
+-		case 4:
+-			fep->code_rate_LP = FEC_7_8;
+-			break;
+-		}
++	switch (td->CodeRate) {
++	case 0:
++		fep->code_rate_HP = FEC_1_2;
++		break;
++	case 1:
++		fep->code_rate_HP = FEC_2_3;
++		break;
++	case 2:
++		fep->code_rate_HP = FEC_3_4;
++		break;
++	case 3:
++		fep->code_rate_HP = FEC_5_6;
++		break;
++	case 4:
++		fep->code_rate_HP = FEC_7_8;
++		break;
++	}
+ 
+-		switch (td->Constellation) {
+-		case 0:
+-			fep->modulation = QPSK;
+-			break;
+-		case 1:
+-			fep->modulation = QAM_16;
+-			break;
+-		case 2:
+-			fep->modulation = QAM_64;
+-			break;
+-		}
++	switch (td->LPCodeRate) {
++	case 0:
++		fep->code_rate_LP = FEC_1_2;
++		break;
++	case 1:
++		fep->code_rate_LP = FEC_2_3;
++		break;
++	case 2:
++		fep->code_rate_LP = FEC_3_4;
++		break;
++	case 3:
++		fep->code_rate_LP = FEC_5_6;
++		break;
++	case 4:
++		fep->code_rate_LP = FEC_7_8;
++		break;
++	}
+ 
+-		switch (td->Hierarchy) {
+-		case 0:
+-			fep->hierarchy = HIERARCHY_NONE;
+-			break;
+-		case 1:
+-			fep->hierarchy = HIERARCHY_1;
+-			break;
+-		case 2:
+-			fep->hierarchy = HIERARCHY_2;
+-			break;
+-		case 3:
+-			fep->hierarchy = HIERARCHY_4;
+-			break;
+-		}
++	switch (td->Constellation) {
++	case 0:
++		fep->modulation = QPSK;
++		break;
++	case 1:
++		fep->modulation = QAM_16;
++		break;
++	case 2:
++		fep->modulation = QAM_64;
++		break;
++	}
+ 
+-		fep->inversion = INVERSION_AUTO;
++	switch (td->Hierarchy) {
++	case 0:
++		fep->hierarchy = HIERARCHY_NONE;
+ 		break;
++	case 1:
++		fep->hierarchy = HIERARCHY_1;
++		break;
++	case 2:
++		fep->hierarchy = HIERARCHY_2;
++		break;
++	case 3:
++		fep->hierarchy = HIERARCHY_4;
++		break;
++	}
++
++	fep->inversion = INVERSION_AUTO;
++
++	return 0;
++}
++
++static int smsdvb_get_frontend_isdb(struct dvb_frontend *fe)
++{
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
++	struct smsdvb_client_t *client =
++		container_of(fe, struct smsdvb_client_t, frontend);
++	struct TRANSMISSION_STATISTICS_S *td =
++		&client->sms_stat_dvb.TransmissionData;
++
++	fep->frequency = td->Frequency;
++	fep->bandwidth_hz = 6000000;
++	/* todo: retrive the other parameters */
++
++	return 0;
++}
++
++static int smsdvb_get_frontend(struct dvb_frontend *fe)
++{
++	struct smsdvb_client_t *client =
++		container_of(fe, struct smsdvb_client_t, frontend);
++	struct smscore_device_t *coredev = client->coredev;
++
++	switch (smscore_get_device_mode(coredev)) {
++	case DEVICE_MODE_DVBT:
++	case DEVICE_MODE_DVBT_BDA:
++		return smsdvb_get_frontend_dvb(fe);
+ 	case DEVICE_MODE_ISDBT:
+ 	case DEVICE_MODE_ISDBT_BDA:
+-		fep->frequency = td->Frequency;
+-		fep->bandwidth_hz = 6000000;
+-		/* todo: retrive the other parameters */
+-		break;
++		return smsdvb_get_frontend_isdb(fe);
+ 	default:
+ 		return -EINVAL;
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int smsdvb_init(struct dvb_frontend *fe)
 -- 
-http://palosaari.fi/
+1.8.1.4
+
