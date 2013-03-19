@@ -1,74 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:39693 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631Ab3CHKsl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 05:48:41 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so925426eek.39
-        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 02:48:40 -0800 (PST)
-Message-ID: <5139C206.3070700@kotsbak.com>
-Date: Fri, 08 Mar 2013 11:48:38 +0100
-From: Marius Kotsbak <marius@kotsbak.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: 694728@bugs.debian.org
-Subject: [media-ctl] Patch to Debian packaging
-Content-Type: multipart/mixed;
- boundary="------------040306090602070306010204"
+Received: from mx1.redhat.com ([209.132.183.28]:25216 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933225Ab3CSQue (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:50:34 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 00/46] Add sms2270 support to siano driver
+Date: Tue, 19 Mar 2013 13:48:49 -0300
+Message-Id: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040306090602070306010204
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Back in September, 2011, Doron Cohen <doronc@siano-ms.com> submitted
+a series of patches meant to add support for newer siano chipsets.
 
+That series of patches had several pointed issues:
+	- It were just a diff from Siano's internal git tree and
+	  upstreamed one. Due to that, applying it would cause
+	  regressions;
 
-Patch attached to get the provided Debian packaging working again.
+	- Among the regressions, the newer code would break
+	  rc_core support, causing regressions for IR;
 
---
-Marius
+	- It also breaks support for Hauppauge devices with old
+	  firmware (version 2.1);
 
---------------040306090602070306010204
-Content-Type: text/x-patch;
- name="0001-debian-update-according-to-renames-done-in-commit-9a.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-debian-update-according-to-renames-done-in-commit-9a.pa";
- filename*1="tch"
+	- It added support for a Siano proprietary API.
 
->From 3f33eb034a2b2e0bcc52960b694a33b7347cb8b0 Mon Sep 17 00:00:00 2001
-From: "Marius B. Kotsbak" <marius@geneseque.com>
-Date: Fri, 8 Mar 2013 11:32:17 +0100
-Subject: [PATCH] debian: update according to renames done in commit
- 9a5f1e0365265310545abdd43da7d28a44fd43a6.
+On that time, I waited for Doron to submit a newer patch series.
+Unfortunately, this never happened.
 
----
- debian/libmediactl-dev.install   |    2 +-
- debian/libv4l2subdev-dev.install |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+As I received a sms2270 device, I decided to take some time
+to understand the changes proposed by Dohen, port the ones that
+are pertinent to upstream, and make it to work. I also took
+care to fix it for older devices.
 
-diff --git a/debian/libmediactl-dev.install b/debian/libmediactl-dev.install
-index 002caa4..4180102 100644
---- a/debian/libmediactl-dev.install
-+++ b/debian/libmediactl-dev.install
-@@ -1,4 +1,4 @@
--usr/include/mediactl/media.h
-+usr/include/mediactl/mediactl.h
- usr/lib/libmediactl.a
- usr/lib/libmediactl.so
- usr/lib/libmediactl.la
-diff --git a/debian/libv4l2subdev-dev.install b/debian/libv4l2subdev-dev.install
-index b7dde11..4da3669 100644
---- a/debian/libv4l2subdev-dev.install
-+++ b/debian/libv4l2subdev-dev.install
-@@ -1,4 +1,4 @@
--usr/include/mediactl/subdev.h
-+usr/include/mediactl/v4l2subdev.h
- usr/lib/libv4l2subdev.a
- usr/lib/libv4l2subdev.so
- usr/lib/libv4l2subdev.la
+I also did a few clean ups on some bad things on it, and added
+an experimental debugfs support, to allow displaying the complete
+data inside the device's statistics reports. That helped to port
+it to use the new DVBv5 stats.
+
+There are still plenty of space to clean it up, like removing
+the CamelCase and cleaning its structures. I won't doubt that
+there are lots of unused stuff there at the core.
+
+Anyway, with this patchset, both Hauppauge model 55009 Rev B1F7-02D
+and an unbranded Siano Rio (187f:0600) device are working fine
+on a x86, via USB interface. I didn't test it with arm or with
+a big endian system.
+
+As nobody is currently maintaining this driver, I'm also adding
+a MAINTAINERS entry on this series, with "Odd fixes".
+
+Mauro Carvalho Chehab (46):
+  [media] siano: Change GPIO voltage setting names
+  [media] siano: Add the new voltage definitions for GPIO
+  [media] siano: remove a duplicated structure definition
+  [media] siano: update message macros
+  [media] siano: better debug send/receive messages
+  [media] siano: add the remaining new defines from new driver
+  [media] siano: Properly initialize board information
+  [media] siano: add additional attributes to cards entries
+  [media] siano: use USB endpoint descriptors for in/out endp
+  [media] siano: store firmware version
+  [media] siano: make load firmware logic to work with newer firmwares
+  [media] siano: report the choosed firmware in debug
+  [media] siano: fix the debug message
+  [media] siano: always load smsdvb
+  [media] siano: cleanups at smscoreapi.c
+  [media] siano: add some new messages to the smscoreapi
+  [media] siano: use a separate completion for stats
+  [media] siano: add support for ISDB-T full-seg
+  [media] siano: add support for LNA on ISDB-T
+  [media] siano: use the newer stats message for recent firmwares
+  [media] siano: add new devices to the Siano Driver
+  [media] siano: Configure board's mtu and xtal
+  [media] siano: call MSG_SMS_INIT_DEVICE_REQ
+  [media] siano: simplify message endianness logic
+  [media] siano: split get_frontend into per-std functions
+  [media] siano: split debug logic from the status update routine
+  [media] siano: Convert it to report DVBv5 stats
+  [media] siano: fix start of statistics
+  [media] siano: allow showing the complete statistics via debugfs
+  [media] siano: split debugfs code into a separate file
+  [media] siano: add two missing fields to ISDB-T stats debugfs
+  [media] siano: don't request statistics too fast
+  [media] siano: fix signal strength and CNR stats measurements
+  [media] siano: fix PER/BER report on DVBv5
+  [media] siano: Fix bandwidth report
+  [media] siano: Only feed DVB data when there's a feed
+  [media] siano: fix status report with old firmware and ISDB-T
+  [media] siano: add support for .poll on debugfs
+  [media] siano: simplify firmware lookup logic
+  [media] siano: honour per-card default mode
+  [media] siano: remove the bogus firmware lookup code
+  [media] siano: reorder smscore_get_fw_filename() function
+  [media] siano: add a MAINTAINERS entry for it
+  [media] siano: remove a bogus printk line
+  [media] siano: remove doubled new line
+  [media] siano: Remove bogus complain about MSG_SMS_DVBT_BDA_DATA
+
+ MAINTAINERS                                 |   11 +
+ drivers/media/common/siano/Kconfig          |   12 +
+ drivers/media/common/siano/Makefile         |    5 +
+ drivers/media/common/siano/sms-cards.c      |   99 ++-
+ drivers/media/common/siano/sms-cards.h      |   14 +
+ drivers/media/common/siano/smscoreapi.c     |  918 +++++++++++++++-----
+ drivers/media/common/siano/smscoreapi.h     |  607 ++++++++++---
+ drivers/media/common/siano/smsdvb-debugfs.c |  554 ++++++++++++
+ drivers/media/common/siano/smsdvb-main.c    | 1226 +++++++++++++++++++++++++++
+ drivers/media/common/siano/smsdvb.c         | 1078 -----------------------
+ drivers/media/common/siano/smsdvb.h         |  129 +++
+ drivers/media/mmc/siano/smssdio.c           |   13 +
+ drivers/media/usb/siano/smsusb.c            |  130 ++-
+ 13 files changed, 3373 insertions(+), 1423 deletions(-)
+ create mode 100644 drivers/media/common/siano/smsdvb-debugfs.c
+ create mode 100644 drivers/media/common/siano/smsdvb-main.c
+ delete mode 100644 drivers/media/common/siano/smsdvb.c
+ create mode 100644 drivers/media/common/siano/smsdvb.h
+
 -- 
-1.7.10.4
+1.8.1.4
 
-
---------------040306090602070306010204--
