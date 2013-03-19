@@ -1,296 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f46.google.com ([209.85.219.46]:43912 "EHLO
-	mail-oa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523Ab3C0Ggd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 02:36:33 -0400
-Received: by mail-oa0-f46.google.com with SMTP id k1so8512212oag.33
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 23:36:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1447681.bSpIR8Dx74@avalon>
-References: <1364210447-8125-1-git-send-email-sumit.semwal@linaro.org>
- <1364210447-8125-3-git-send-email-sumit.semwal@linaro.org> <1447681.bSpIR8Dx74@avalon>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 27 Mar 2013 12:06:11 +0530
-Message-ID: <CAO_48GGAffPW=qFftu7qVWVhdxY=hvERDCo+ExyLHnVBTeF=qg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] dma-buf: Add debugfs support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linux-media@vger.kernel.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Patch Tracking <patches@linaro.org>,
-	linaro-kernel@lists.linaro.org, Dave Airlie <airlied@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:43776 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933233Ab3CSQvT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Mar 2013 12:51:19 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Doron Cohen <doronc@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 03/46] [media] siano: remove a duplicated structure definition
+Date: Tue, 19 Mar 2013 13:48:52 -0300
+Message-Id: <1363711775-2120-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent!
+The same GPIO config struct was declared twice at the
+driver, with different names and different macros:
+	struct smscore_config_gpio
+	struct smscore_config_gpio
 
-Thanks for the review:
+Remove the one that uses CamelCase and fix the references to
+its attributes/macros.
 
-On 27 March 2013 05:38, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sumit,
->
-> Thanks for the patch.
->
-> On Monday 25 March 2013 16:50:46 Sumit Semwal wrote:
->> Add debugfs support to make it easier to print debug information
->> about the dma-buf buffers.
->>
->> Cc: Dave Airlie <airlied@redhat.com>
->>  [minor fixes on init and warning fix]
->> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
->> ---
->> changes since v1:
->>  - fixes on init and warnings as reported and corrected by Dave Airlie.
->>  - add locking while walking attachment list - reported by Daniel Vetter.
->>
->>  drivers/base/dma-buf.c  |  162 ++++++++++++++++++++++++++++++++++++++++++++
->>  include/linux/dma-buf.h |    5 +-
->>  2 files changed, 166 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index d89102a..7d867ed 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->> @@ -27,9 +27,18 @@
->>  #include <linux/dma-buf.h>
->>  #include <linux/anon_inodes.h>
->>  #include <linux/export.h>
->> +#include <linux/debugfs.h>
->> +#include <linux/seq_file.h>
->>
->>  static inline int is_dma_buf_file(struct file *);
->>
->> +struct dma_buf_list {
->> +     struct list_head head;
->> +     struct mutex lock;
->> +};
->> +
->> +static struct dma_buf_list db_list;
->> +
->>  static int dma_buf_release(struct inode *inode, struct file *file)
->>  {
->>       struct dma_buf *dmabuf;
->> @@ -42,6 +51,11 @@ static int dma_buf_release(struct inode *inode, struct
->> file *file) BUG_ON(dmabuf->vmapping_counter);
->>
->>       dmabuf->ops->release(dmabuf);
->> +
->> +     mutex_lock(&db_list.lock);
->> +     list_del(&dmabuf->list_node);
->> +     mutex_unlock(&db_list.lock);
->> +
->>       kfree(dmabuf);
->>       return 0;
->>  }
->> @@ -125,6 +139,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const
->> struct dma_buf_ops *ops, mutex_init(&dmabuf->lock);
->>       INIT_LIST_HEAD(&dmabuf->attachments);
->>
->> +     mutex_lock(&db_list.lock);
->> +     list_add(&dmabuf->list_node, &db_list.head);
->> +     mutex_unlock(&db_list.lock);
->> +
->>       return dmabuf;
->>  }
->>  EXPORT_SYMBOL_GPL(dma_buf_export_named);
->> @@ -551,3 +569,147 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void
->> *vaddr) mutex_unlock(&dmabuf->lock);
->>  }
->>  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
->> +
->> +static int dma_buf_init_debugfs(void);
->> +static void dma_buf_uninit_debugfs(void);
->> +
->> +static int __init dma_buf_init(void)
->> +{
->> +     mutex_init(&db_list.lock);
->> +     INIT_LIST_HEAD(&db_list.head);
->> +     dma_buf_init_debugfs();
->> +     return 0;
->> +}
->> +
->> +subsys_initcall(dma_buf_init);
->> +
->> +static void __exit dma_buf_deinit(void)
->
-> This function is never called.
->
-You're right; it's missing an __exitcall() - I will add it!
->> +{
->> +     dma_buf_uninit_debugfs();
->> +}
->
-> If you moved those two functions at the end of the file you could get rid of
-> the forward declarations above.
->
-Sure - will do that.
->> +
->> +#ifdef CONFIG_DEBUG_FS
->> +static int dma_buf_describe(struct seq_file *s)
->> +{
->> +     int ret;
->> +     struct dma_buf *buf_obj;
->> +     struct dma_buf_attachment *attach_obj;
->> +     int count = 0, attach_count;
->> +     size_t size = 0;
->> +
->> +     ret = mutex_lock_interruptible(&db_list.lock);
->> +
->> +     if (ret)
->> +             return ret;
->> +
->> +     seq_printf(s, "\nDma-buf Objects:\n");
->> +     seq_printf(s, "\texp_name\tsize\tflags\tmode\tcount\n");
->> +
->> +     list_for_each_entry(buf_obj, &db_list.head, list_node) {
->> +             ret = mutex_lock_interruptible(&buf_obj->lock);
->> +
->> +             if (ret) {
->> +                     seq_printf(s,
->> +                               "\tERROR locking buffer object: skipping\n");
->> +                     goto skip_buffer;
->> +             }
->> +
->> +             seq_printf(s, "\t");
->> +
->> +             seq_printf(s, "\t%s\t%08zu\t%08x\t%08x\t%08d\n",
->> +                             buf_obj->exp_name, buf_obj->size,
->> +                             buf_obj->file->f_flags, buf_obj->file->f_mode,
->> +                             buf_obj->file->f_count.counter);
->> +
->> +             seq_printf(s, "\t\tAttached Devices:\n");
->> +             attach_count = 0;
->> +
->> +             list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
->> +                     seq_printf(s, "\t\t");
->> +
->> +                     seq_printf(s, "%s\n", attach_obj->dev->init_name);
->> +                     attach_count++;
->> +             }
->> +
->> +             seq_printf(s, "\n\t\tTotal %d devices attached\n",
->> +                             attach_count);
->> +
->> +             count++;
->> +             size += buf_obj->size;
->> +skip_buffer:
->> +             mutex_unlock(&buf_obj->lock);
->> +     }
->> +
->> +     seq_printf(s, "\nTotal %d objects, %zu bytes\n", count, size);
->> +
->> +     mutex_unlock(&db_list.lock);
->> +     return 0;
->> +}
->> +
->> +static int dma_buf_show(struct seq_file *s, void *unused)
->> +{
->> +     void (*func)(struct seq_file *) = s->private;
->> +     func(s);
->> +     return 0;
->> +}
->> +
->> +static int dma_buf_debug_open(struct inode *inode, struct file *file)
->> +{
->> +     return single_open(file, dma_buf_show, inode->i_private);
->> +}
->> +
->> +static const struct file_operations dma_buf_debug_fops = {
->> +     .open           = dma_buf_debug_open,
->> +     .read           = seq_read,
->> +     .llseek         = seq_lseek,
->> +     .release        = single_release,
->> +};
->> +
->> +static struct dentry *dma_buf_debugfs_dir;
->> +
->> +static int dma_buf_init_debugfs(void)
->> +{
->> +     int err = 0;
->> +     dma_buf_debugfs_dir = debugfs_create_dir("dma_buf", NULL);
->> +     if (IS_ERR(dma_buf_debugfs_dir)) {
->> +             err = PTR_ERR(dma_buf_debugfs_dir);
->> +             dma_buf_debugfs_dir = NULL;
->> +             return err;
->> +     }
->> +
->> +     err = dma_buf_debugfs_create_file("bufinfo", dma_buf_describe);
->> +
->> +     if (err)
->> +             pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
->> +
->> +     return err;
->> +}
->> +
->> +static void dma_buf_uninit_debugfs(void)
->> +{
->> +     if (dma_buf_debugfs_dir)
->> +             debugfs_remove_recursive(dma_buf_debugfs_dir);
->> +}
->> +
->> +int dma_buf_debugfs_create_file(const char *name,
->> +                             int (*write)(struct seq_file *))
->> +{
->> +     struct dentry *d;
->> +
->> +     d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
->> +                     write, &dma_buf_debug_fops);
->> +
->> +     if (IS_ERR(d))
->> +             return PTR_ERR(d);
->> +
->> +     return 0;
->> +}
->> +#else
->> +static inline int dma_buf_init_debugfs(void)
->> +{
->> +     return 0;
->> +}
->> +static inline void dma_buf_uninit_debugfs(void)
->> +{
->> +}
->> +#endif
->> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
->> index 6f55c04..dfac5ed 100644
->> --- a/include/linux/dma-buf.h
->> +++ b/include/linux/dma-buf.h
->> @@ -113,6 +113,7 @@ struct dma_buf_ops {
->>   * @attachments: list of dma_buf_attachment that denotes all devices
->> attached. * @ops: dma_buf_ops associated with this buffer object.
->>   * @exp_name: name of the exporter; useful for debugging.
->> + * @list_node: node for dma_buf accounting and debugging.
->>   * @priv: exporter specific private data for this buffer object.
->>   */
->>  struct dma_buf {
->> @@ -125,6 +126,7 @@ struct dma_buf {
->>       unsigned vmapping_counter;
->>       void *vmap_ptr;
->>       const char *exp_name;
->> +     struct list_head list_node;
->>       void *priv;
->>  };
->>
->> @@ -192,5 +194,6 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct
->> *, unsigned long);
->>  void *dma_buf_vmap(struct dma_buf *);
->>  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
->> -
->> +int dma_buf_debugfs_create_file(const char *name,
->> +                             int (*write)(struct seq_file *));
->
-> This function is only called internally from the same file, could it be
-> declared as static ?
->
->>  #endif /* __DMA_BUF_H__ */
-> --
-> Regards,
->
-> Laurent Pinchart
->
+No functional changes.
 
---
-Thanks and regards,
-Sumit Semwal
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/sms-cards.c  | 18 +++++------
+ drivers/media/common/siano/smscoreapi.c | 20 ++++++------
+ drivers/media/common/siano/smscoreapi.h | 55 +++++++--------------------------
+ 3 files changed, 30 insertions(+), 63 deletions(-)
+
+diff --git a/drivers/media/common/siano/sms-cards.c b/drivers/media/common/siano/sms-cards.c
+index 8ee2e92..b22b61d 100644
+--- a/drivers/media/common/siano/sms-cards.c
++++ b/drivers/media/common/siano/sms-cards.c
+@@ -109,18 +109,18 @@ struct sms_board *sms_get_board(unsigned id)
+ }
+ EXPORT_SYMBOL_GPL(sms_get_board);
+ static inline void sms_gpio_assign_11xx_default_led_config(
+-		struct smscore_gpio_config *pGpioConfig) {
+-	pGpioConfig->Direction = SMS_GPIO_DIRECTION_OUTPUT;
+-	pGpioConfig->InputCharacteristics =
+-		SMS_GPIO_INPUT_CHARACTERISTICS_NORMAL;
+-	pGpioConfig->OutputDriving = SMS_GPIO_OUTPUT_DRIVING_4mA;
+-	pGpioConfig->OutputSlewRate = SMS_GPIO_OUTPUT_SLEW_RATE_0_45_V_NS;
+-	pGpioConfig->PullUpDown = SMS_GPIO_PULL_UP_DOWN_NONE;
++		struct smscore_config_gpio *pGpioConfig) {
++	pGpioConfig->direction = SMS_GPIO_DIRECTION_OUTPUT;
++	pGpioConfig->inputcharacteristics =
++		SMS_GPIO_INPUTCHARACTERISTICS_NORMAL;
++	pGpioConfig->outputdriving = SMS_GPIO_OUTPUTDRIVING_4mA;
++	pGpioConfig->outputslewrate = SMS_GPIO_OUTPUT_SLEW_RATE_0_45_V_NS;
++	pGpioConfig->pullupdown = SMS_GPIO_PULLUPDOWN_NONE;
+ }
+ 
+ int sms_board_event(struct smscore_device_t *coredev,
+ 		enum SMS_BOARD_EVENTS gevent) {
+-	struct smscore_gpio_config MyGpioConfig;
++	struct smscore_config_gpio MyGpioConfig;
+ 
+ 	sms_gpio_assign_11xx_default_led_config(&MyGpioConfig);
+ 
+@@ -182,7 +182,7 @@ static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
+ 		.direction            = SMS_GPIO_DIRECTION_OUTPUT,
+ 		.pullupdown           = SMS_GPIO_PULLUPDOWN_NONE,
+ 		.inputcharacteristics = SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
+-		.outputslewrate       = SMS_GPIO_OUTPUTSLEWRATE_FAST,
++		.outputslewrate       = SMS_GPIO_OUTPUT_SLEW_RATE_FAST,
+ 		.outputdriving        = SMS_GPIO_OUTPUTDRIVING_S_4mA,
+ 	};
+ 
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index d0592b5..58371c3 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -1406,7 +1406,7 @@ static int GetGpioPinParams(u32 PinNum, u32 *pTranslatedPinNum,
+ }
+ 
+ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+-		struct smscore_gpio_config *pGpioConfig) {
++		struct smscore_config_gpio *pGpioConfig) {
+ 
+ 	u32 totalLen;
+ 	u32 TranslatedPinNum = 0;
+@@ -1453,19 +1453,19 @@ int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+ 
+ 		pMsg->msgData[1] = TranslatedPinNum;
+ 		pMsg->msgData[2] = GroupNum;
+-		ElectricChar = (pGpioConfig->PullUpDown)
+-				| (pGpioConfig->InputCharacteristics << 2)
+-				| (pGpioConfig->OutputSlewRate << 3)
+-				| (pGpioConfig->OutputDriving << 4);
++		ElectricChar = (pGpioConfig->pullupdown)
++				| (pGpioConfig->inputcharacteristics << 2)
++				| (pGpioConfig->outputslewrate << 3)
++				| (pGpioConfig->outputdriving << 4);
+ 		pMsg->msgData[3] = ElectricChar;
+-		pMsg->msgData[4] = pGpioConfig->Direction;
++		pMsg->msgData[4] = pGpioConfig->direction;
+ 		pMsg->msgData[5] = groupCfg;
+ 	} else {
+ 		pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_CONFIG_EX_REQ;
+-		pMsg->msgData[1] = pGpioConfig->PullUpDown;
+-		pMsg->msgData[2] = pGpioConfig->OutputSlewRate;
+-		pMsg->msgData[3] = pGpioConfig->OutputDriving;
+-		pMsg->msgData[4] = pGpioConfig->Direction;
++		pMsg->msgData[1] = pGpioConfig->pullupdown;
++		pMsg->msgData[2] = pGpioConfig->outputslewrate;
++		pMsg->msgData[3] = pGpioConfig->outputdriving;
++		pMsg->msgData[4] = pGpioConfig->direction;
+ 		pMsg->msgData[5] = 0;
+ 	}
+ 
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index 62f05e8..f2510f5 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -638,8 +638,16 @@ struct smscore_config_gpio {
+ #define SMS_GPIO_INPUTCHARACTERISTICS_SCHMITT 1
+ 	u8 inputcharacteristics;
+ 
+-#define SMS_GPIO_OUTPUTSLEWRATE_FAST 0
+-#define SMS_GPIO_OUTPUTSLEWRATE_SLOW 1
++	/* 10xx */
++#define SMS_GPIO_OUTPUT_SLEW_RATE_FAST 0
++#define SMS_GPIO_OUTPUT_SLEW_WRATE_SLOW 1
++
++	/* 11xx */
++#define SMS_GPIO_OUTPUT_SLEW_RATE_0_45_V_NS	0
++#define SMS_GPIO_OUTPUT_SLEW_RATE_0_9_V_NS	1
++#define SMS_GPIO_OUTPUT_SLEW_RATE_1_7_V_NS	2
++#define SMS_GPIO_OUTPUT_SLEW_RATE_3_3_V_NS	3
++
+ 	u8 outputslewrate;
+ 
+ 	/* 10xx */
+@@ -661,47 +669,6 @@ struct smscore_config_gpio {
+ 	u8 outputdriving;
+ };
+ 
+-struct smscore_gpio_config {
+-#define SMS_GPIO_DIRECTION_INPUT  0
+-#define SMS_GPIO_DIRECTION_OUTPUT 1
+-	u8 Direction;
+-
+-#define SMS_GPIO_PULL_UP_DOWN_NONE     0
+-#define SMS_GPIO_PULL_UP_DOWN_PULLDOWN 1
+-#define SMS_GPIO_PULL_UP_DOWN_PULLUP   2
+-#define SMS_GPIO_PULL_UP_DOWN_KEEPER   3
+-	u8 PullUpDown;
+-
+-#define SMS_GPIO_INPUT_CHARACTERISTICS_NORMAL  0
+-#define SMS_GPIO_INPUT_CHARACTERISTICS_SCHMITT 1
+-	u8 InputCharacteristics;
+-
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_SLOW		1 /* 10xx */
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_FAST		0 /* 10xx */
+-
+-
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_0_45_V_NS	0 /* 11xx */
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_0_9_V_NS	1 /* 11xx */
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_1_7_V_NS	2 /* 11xx */
+-#define SMS_GPIO_OUTPUT_SLEW_RATE_3_3_V_NS	3 /* 11xx */
+-	u8 OutputSlewRate;
+-
+-#define SMS_GPIO_OUTPUT_DRIVING_S_4mA		0 /* 10xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_S_8mA		1 /* 10xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_S_12mA		2 /* 10xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_S_16mA		3 /* 10xx */
+-
+-#define SMS_GPIO_OUTPUT_DRIVING_1_5mA		0 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_2_8mA		1 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_4mA		2 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_7mA		3 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_10mA		4 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_11mA		5 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_14mA		6 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_16mA		7 /* 11xx */
+-	u8 OutputDriving;
+-};
+-
+ extern void smscore_registry_setmode(char *devpath, int mode);
+ extern int smscore_registry_getmode(char *devpath);
+ 
+@@ -750,7 +717,7 @@ int smscore_set_gpio(struct smscore_device_t *coredev, u32 pin, int level);
+ 
+ /* new GPIO management */
+ extern int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+-		struct smscore_gpio_config *pGpioConfig);
++		struct smscore_config_gpio *pGpioConfig);
+ extern int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 PinNum,
+ 		u8 NewLevel);
+ extern int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 PinNum,
+-- 
+1.8.1.4
+
