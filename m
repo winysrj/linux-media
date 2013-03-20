@@ -1,77 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:43300 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756333Ab3CUNKh (ORCPT
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:63527 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932983Ab3CTTYU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 09:10:37 -0400
+	Wed, 20 Mar 2013 15:24:20 -0400
+Received: by mail-ee0-f42.google.com with SMTP id b47so1307549eek.1
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 12:24:19 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH 09/10] bttv: fix mute on last close of the video device node
+Date: Wed, 20 Mar 2013 20:24:49 +0100
+Message-Id: <1363807490-3906-10-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <201303201146.07987.arnd@arndb.de>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
- <201303201020.14654.arnd@arndb.de> <CAHkwnC-8FH0nyJ+eT=+7doP+fSdZjNYUW4zzs_r6e9wt3Yt4Fg@mail.gmail.com>
- <201303201146.07987.arnd@arndb.de>
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Thu, 21 Mar 2013 14:10:17 +0100
-Message-ID: <CAHkwnC-u=34CnHR5dH3qu6YeYyNcsmPfVORZFwtS4RYSjrVJ2g@mail.gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	H Hartley Sweeten <hartleys@visionengravers.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Grant Likely <grant.likely@secretlab.ca>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 20, 2013 at 12:46 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Wednesday 20 March 2013, Fabio Porcedda wrote:
->>
->> On Wed, Mar 20, 2013 at 11:20 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> > On Wednesday 20 March 2013, Fabio Porcedda wrote:
->> >> I think we can check inside the  deferred_probe_work_func()
->> >> if the dev->probe function pointer is equal to platform_drv_probe_fail().
->> >
->> > I think it's too late by then, because that would only warn if we try to probe
->> > it again, but when platform_driver_probe() does not succeed immediately, it
->>
->> Maybe you mean "does succeed immediately" ?
->
-> I mean in this code (simplified for the sake of discussion)
->
-> int __init_or_module platform_driver_probe(struct platform_driver *drv,
->                 int (*probe)(struct platform_device *))
-> {
->         int retval, code;
->
->         drv->probe = probe;
->         retval = code = platform_driver_register(drv);
->
->         drv->probe = NULL;
->         if (code == 0 && list_empty(&drv->driver.p->klist_devices.k_list))
->                 retval = -ENODEV;
->         drv->driver.probe = platform_drv_probe_fail;
->
->         if (code != retval)
->                 platform_driver_unregister(drv);
->         return retval;
-> }
->
-> we assume that all devices are bound to drivers during the call to
-> platform_driver_register, and if the device list is empty afterwards,
-> we unregister the driver and will never get to the deferred probing
-> stage.
+Instead of applying the current mute setting on last device node close, always
+mute the device.
 
-Thanks for the explanation, I understand now that is not that simple.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |    2 +-
+ 1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
 
-I was hoping it was easier.
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 2fb2168..469ea06 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -3126,7 +3126,7 @@ static int bttv_release(struct file *file)
+ 	bttv_field_count(btv);
+ 
+ 	if (!btv->users)
+-		audio_mute(btv, btv->mute);
++		audio_mute(btv, 1);
+ 
+ 	v4l2_fh_del(&fh->fh);
+ 	v4l2_fh_exit(&fh->fh);
+-- 
+1.7.10.4
 
-Regards
---
-Fabio Porcedda
