@@ -1,81 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:65527 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913Ab3CRDNP (ORCPT
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:37825 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755824Ab3CTLcM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Mar 2013 23:13:15 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Fabio Porcedda' <fabio.porcedda@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org
-Cc: 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>,
-	'Jeff Garzik' <jgarzik@pobox.com>,
-	'Jingoo Han' <jg1.han@samsung.com>
-References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
- <1363280978-24051-3-git-send-email-fabio.porcedda@gmail.com>
-In-reply-to: <1363280978-24051-3-git-send-email-fabio.porcedda@gmail.com>
-Subject: Re: [PATCH v2 2/8] drivers: ata: use module_platform_driver_probe()
-Date: Mon, 18 Mar 2013 12:13:13 +0900
-Message-id: <018c01ce2386$86c8f5f0$945ae1d0$%han@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Wed, 20 Mar 2013 07:32:12 -0400
+Received: by mail-pb0-f42.google.com with SMTP id xb4so1283671pbc.29
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 04:32:12 -0700 (PDT)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, linaro-kernel@lists.linaro.org,
+	jy0922.shim@samsung.com, linux-samsung-soc@vger.kernel.org,
+	thomas.abraham@linaro.org
+Subject: [PATCH v2] drm/exynos: enable FIMD clocks
+Date: Wed, 20 Mar 2013 17:01:59 +0530
+Message-Id: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, March 15, 2013 2:10 AM, Fabio Porcedda wrote:
-> 
-> This patch converts the drivers to use the
-> module_platform_driver_probe() macro which makes the code smaller and
-> a bit simpler.
-> 
-> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Jeff Garzik <jgarzik@pobox.com>
-> Cc: linux-ide@vger.kernel.org
-> ---
->  drivers/ata/pata_at32.c | 13 +------------
->  1 file changed, 1 insertion(+), 12 deletions(-)
+While migrating to common clock framework (CCF), found that the FIMD clocks
+were pulled down by the CCF.
+If CCF finds any clock(s) which has NOT been claimed by any of the
+drivers, then such clock(s) are PULLed low by CCF.
 
-I already submitted the patch 2 weeks ago.
+By calling clk_prepare_enable() for FIMD clocks fixes the issue.
 
-http://www.spinics.net/lists/linux-ide/msg45141.html
+this patch also replaces clk_disable() with clk_disable_unprepare()
+during exit.
 
-Best regards,
-Jingoo Han
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+Changes since v1:
+	- added error checking for clk_prepare_enable() and also replaced 
+	clk_disable() with clk_disable_unprepare() during exit.
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-> 
-> diff --git a/drivers/ata/pata_at32.c b/drivers/ata/pata_at32.c
-> index 36f189c..8d493b4 100644
-> --- a/drivers/ata/pata_at32.c
-> +++ b/drivers/ata/pata_at32.c
-> @@ -393,18 +393,7 @@ static struct platform_driver pata_at32_driver = {
->  	},
->  };
-> 
-> -static int __init pata_at32_init(void)
-> -{
-> -	return platform_driver_probe(&pata_at32_driver, pata_at32_probe);
-> -}
-> -
-> -static void __exit pata_at32_exit(void)
-> -{
-> -	platform_driver_unregister(&pata_at32_driver);
-> -}
-> -
-> -module_init(pata_at32_init);
-> -module_exit(pata_at32_exit);
-> +module_platform_driver_probe(pata_at32_driver, pata_at32_probe);
-> 
->  MODULE_LICENSE("GPL");
->  MODULE_DESCRIPTION("AVR32 SMC/CFC PATA Driver");
-> --
-> 1.8.1.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..014d750 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -934,6 +934,19 @@ static int fimd_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	ret = clk_prepare_enable(ctx->lcd_clk);
++	if (ret) {
++		dev_err(dev, "failed to enable 'sclk_fimd' clock\n");
++		return ret;
++	}
++
++	ret = clk_prepare_enable(ctx->bus_clk);
++	if (ret) {
++		clk_disable_unprepare(ctx->lcd_clk);
++		dev_err(dev, "failed to enable 'fimd' clock\n");
++		return ret;
++	}
++
+ 	ctx->vidcon0 = pdata->vidcon0;
+ 	ctx->vidcon1 = pdata->vidcon1;
+ 	ctx->default_win = pdata->default_win;
+@@ -981,8 +994,8 @@ static int fimd_remove(struct platform_device *pdev)
+ 	if (ctx->suspended)
+ 		goto out;
+ 
+-	clk_disable(ctx->lcd_clk);
+-	clk_disable(ctx->bus_clk);
++	clk_disable_unprepare(ctx->lcd_clk);
++	clk_disable_unprepare(ctx->bus_clk);
+ 
+ 	pm_runtime_set_suspended(dev);
+ 	pm_runtime_put_sync(dev);
+-- 
+1.7.9.5
 
