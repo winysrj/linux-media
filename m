@@ -1,94 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1282 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753749Ab3C2NBZ (ORCPT
+Received: from mail-qa0-f52.google.com ([209.85.216.52]:49958 "EHLO
+	mail-qa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752021Ab3CTW7L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 09:01:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PULL FOR v3.10] Move cypress_firmware to common
-Date: Fri, 29 Mar 2013 14:01:00 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>
-References: <201303291246.39331.hverkuil@xs4all.nl> <20130329095142.5856e961@redhat.com>
-In-Reply-To: <20130329095142.5856e961@redhat.com>
+	Wed, 20 Mar 2013 18:59:11 -0400
+Received: by mail-qa0-f52.google.com with SMTP id bs12so1360548qab.18
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 15:59:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303291401.00737.hverkuil@xs4all.nl>
+In-Reply-To: <201303202020.09575.hverkuil@xs4all.nl>
+References: <0e2409cf677013b9cad1ba4aee17fe434dae7146.1363035203.git.hans.verkuil@cisco.com>
+	<6d4b25c7bfc65cfff4937133bed3e60828c20174.1363035203.git.hans.verkuil@cisco.com>
+	<CAGoCfiyYRwjb-+i84MrxBXaxJT=Fy7ucj02N1Lvy8n4LC0FBKw@mail.gmail.com>
+	<201303202020.09575.hverkuil@xs4all.nl>
+Date: Wed, 20 Mar 2013 18:59:10 -0400
+Message-ID: <CAGoCfiwv7YmMy1UJk2FuPT1ACxX=tke8ccAqAiWWYqqs9RTTyg@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 11/15] au0828: fix disconnect sequence.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Steven Toth <stoth@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 29 2013 13:51:42 Mauro Carvalho Chehab wrote:
-> Em Fri, 29 Mar 2013 12:46:39 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > As discussed earlier (http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/62438)
-> > let's move this to common. It's a nice cleanup for go7007 as well which had a weird DVB
-> > dependency.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit 9e7664e0827528701074875eef872f2be1dfaab8:
-> > 
-> >   [media] solo6x10: The size of the thresholds ioctls was too large (2013-03-29 08:34:23 -0300)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://linuxtv.org/hverkuil/media_tree.git cypress-common
-> > 
-> > for you to fetch changes up to 6e69c66b2dafc4927b88a15801e0f84585a28336:
-> > 
-> >   media: move dvb-usb-v2/cypress_firmware.c to media/common. (2013-03-29 12:42:32 +0100)
-> > 
-> > ----------------------------------------------------------------
-> > Hans Verkuil (1):
-> >       media: move dvb-usb-v2/cypress_firmware.c to media/common.
-> 
-> That broke compilation:
-> 
-> drivers/media/usb/dvb-usb-v2/az6007.c: In function 'az6007_download_firmware':
-> drivers/media/usb/dvb-usb-v2/az6007.c:845:2: error: implicit declaration of function 'cypress_load_firmware' [-Werror=implicit-function-declaration]
-> cc1: some warnings being treated as errors
+On Wed, Mar 20, 2013 at 3:20 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> I want to make a pull request for this. Can I have your Acked-by or do you
+> want to look at this some more?
 
-Are you sure you don't have an old cypress_firmware.h lying around? It
-compiles fine for me.
+I *looked* at all the patches, and they all look fine.  That said, I
+haven't actually installed them at all and seen if anything got
+broken.  The logic is so convoluted that it's entirely possible there
+is breakage that wouldn't be obvious simply by reviewing the patches
+without actual testing with real application (and no, v4l-2ctl and
+v4l2-compliance do *not* count as real applications).
 
-> 
-> > 
-> >  drivers/media/common/Kconfig                                |    3 +++
-> >  drivers/media/common/Makefile                               |    2 ++
-> >  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c |   77 +++++++++++++++++++++++++++++++++---------------------------------
-> >  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h |    9 +++-----
-> >  drivers/media/usb/dvb-usb-v2/Kconfig                        |    6 +-----
-> >  drivers/media/usb/dvb-usb-v2/Makefile                       |    5 +----
-> >  drivers/media/usb/dvb-usb-v2/az6007.c                       |    2 +-
-> >  drivers/staging/media/go7007/Kconfig                        |    3 ++-
-> >  drivers/staging/media/go7007/Makefile                       |    6 +-----
-> >  drivers/staging/media/go7007/go7007-loader.c                |    4 ++--
-> >  10 files changed, 54 insertions(+), 63 deletions(-)
-> 
-> >  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c (88%)
-> >  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h (68%)
-> 
-> Why are out there so many changes? 
+Did you try the resulting patches with anything other than
+v4l2-compliance/v4l2-ctl?  tvtime?  xawtv?  mythtv?
 
-There were lots of 'dvb_usbv2_' prefixes that had to be renamed, and I made
-the get_hexline() function static since it was only used internally. Because
-of that I had to move the function up in the code.
+Hence, for what it's worth:
 
-Regards,
+Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-	Hans
+Devin
 
-> 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
