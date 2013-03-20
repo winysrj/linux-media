@@ -1,325 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6329 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932255Ab3CDUXv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 15:23:51 -0500
-Date: Mon, 4 Mar 2013 17:23:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/5] em28xx: add support for em25xx i2c bus B
- read/write/check device operations
-Message-ID: <20130304172341.630de7e6@redhat.com>
-In-Reply-To: <20130304172005.58590d43@redhat.com>
-References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1362339661-3446-2-git-send-email-fschaefer.oss@googlemail.com>
-	<20130304172005.58590d43@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1955 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751667Ab3CTSjP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 14:39:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 04/11] hdpvr: remove hdpvr_fh and just use v4l2_fh.
+Date: Wed, 20 Mar 2013 19:38:55 +0100
+Message-Id: <1363804742-5355-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 4 Mar 2013 17:20:05 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Em Sun,  3 Mar 2013 20:40:57 +0100
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> 
-> > The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
-> > for i2c communication with the sensor, which is connected to a second i2c bus.
-> > 
-> > We don't know yet how to find out which devices support/use it.
-> > It's very likely used by all em25xx and em276x+ bridges.
-> > Tests with other em28xx chips (em2820, em2882/em2883) show, that this
-> > algorithm always succeeds there although no slave device is connected.
-> > 
-> > The algorithm likely also works for real I2C client devices (OV2640 uses SCCB),
-> > because the Windows driver seems to use it for probing Samsung and Kodak
-> > sensors.
-> > 
-> > Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> > ---
-> >  drivers/media/usb/em28xx/em28xx-cards.c |    6 +-
-> >  drivers/media/usb/em28xx/em28xx-i2c.c   |  164 +++++++++++++++++++++++++++----
-> >  drivers/media/usb/em28xx/em28xx.h       |    7 ++
-> >  3 Dateien geändert, 159 Zeilen hinzugefügt(+), 18 Zeilen entfernt(-)
-> > 
-> > diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> > index 5a5b637..75d4aef 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> > @@ -3103,7 +3103,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
-> >  		return retval;
-> >  	}
-> >  	/* Configure i2c bus */
-> > -	if (!dev->board.is_em2800) {
-> > +	if (dev->board.is_em2800) {
-> > +		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM2800;
-> > +	} else {
-> > +		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM28XX;
-> > +
-> >  		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
-> >  		if (retval < 0) {
-> >  			em28xx_errdev("%s: em28xx_write_reg failed!"
-> > diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> > index 44bef43..6e86ffc 100644
-> > --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> > +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> > @@ -5,6 +5,7 @@
-> >  		      Markus Rechberger <mrechberger@gmail.com>
-> >  		      Mauro Carvalho Chehab <mchehab@infradead.org>
-> >  		      Sascha Sommer <saschasommer@freenet.de>
-> > +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
-> >  
-> >     This program is free software; you can redistribute it and/or modify
-> >     it under the terms of the GNU General Public License as published by
-> > @@ -270,6 +271,114 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
-> >  }
-> >  
-> >  /*
-> > + * em25xx_bus_B_send_bytes
-> > + * write bytes to the i2c device
-> > + */
-> > +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> > +				   u16 len)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (len < 1 || len > 64)
-> > +		return -EOPNOTSUPP;
-> > +	/* NOTE: limited by the USB ctrl message constraints
-> > +	 * Zero length reads always succeed, even if no device is connected */
-> > +
-> > +	/* Set register and write value */
-> > +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
-> > +	/* NOTE:
-> > +	 * 0 byte writes always succeed, even if no device is connected. */
-> > +	if (ret != len) {
-> > +		if (ret < 0) {
-> > +			em28xx_warn("writing to i2c device at 0x%x failed "
-> > +				    "(error=%i)\n", addr, ret);
-> > +			return ret;
-> > +		} else {
-> > +			em28xx_warn("%i bytes write to i2c device at 0x%x "
-> > +				    "requested, but %i bytes written\n",
-> > +				    len, addr, ret);
-> > +			return -EIO;
-> > +		}
-> > +	}
-> > +	/* Check success */
-> > +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-> > +	/* NOTE: the only error we've seen so far is
-> > +	 * 0x01 when the slave device is not present */
-> > +	if (ret == 0x00) {
-> > +		return len;
-> > +	} else if (ret > 0) {
-> > +		return -ENODEV;
-> > +	}
-> > +
-> > +	return ret;
-> > +	/* NOTE: With chips which do not support this operation,
-> > +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-> > +}
-> > +
-> > +/*
-> > + * em25xx_bus_B_recv_bytes
-> > + * read bytes from the i2c device
-> > + */
-> > +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> > +				   u16 len)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (len < 1 || len > 64)
-> > +		return -EOPNOTSUPP;
-> > +	/* NOTE: limited by the USB ctrl message constraints
-> > +	 * Zero length reads always succeed, even if no device is connected */
-> > +
-> > +	/* Read value */
-> > +	ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
-> > +	/* NOTE:
-> > +	 * 0 byte reads always succeed, even if no device is connected. */
-> > +	if (ret != len) {
-> > +		if (ret < 0) {
-> > +			em28xx_warn("reading from i2c device at 0x%x failed "
-> > +				    "(error=%i)\n", addr, ret);
-> > +			return ret;
-> > +		} else {
-> > +			em28xx_warn("%i bytes requested from i2c device at "
-> > +				    "0x%x, but %i bytes received\n",
-> > +				    len, addr, ret);
-> > +			return -EIO;
-> > +		}
-> > +	}
-> > +	/* Check success */
-> > +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-> > +	/* NOTE: the only error we've seen so far is
-> > +	 * 0x01 when the slave device is not present */
-> > +	if (ret == 0x00) {
-> > +		return len;
-> > +	} else if (ret > 0) {
-> > +		return -ENODEV;
-> > +	}
-> > +
-> > +	return ret;
-> > +	/* NOTE: With chips which do not support this operation,
-> > +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-> > +}
-> > +
-> > +/*
-> > + * em25xx_bus_B_check_for_device()
-> > + * check if there is a i2c device at the supplied address
-> > + */
-> > +static int em25xx_bus_B_check_for_device(struct em28xx *dev, u16 addr)
-> > +{
-> > +	u8 buf;
-> > +	int ret;
-> > +
-> > +	ret = em25xx_bus_B_recv_bytes(dev, addr, &buf, 1);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	return 0;
-> > +	/* NOTE: With chips which do not support this operation,
-> > +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-> > +}
-> > +
-> > +/*
-> >   * em28xx_i2c_xfer()
-> >   * the main i2c transfer function
-> >   */
-> > @@ -277,7 +386,9 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
-> >  			   struct i2c_msg msgs[], int num)
-> >  {
-> >  	struct em28xx *dev = i2c_adap->algo_data;
-> > -	int addr, rc, i, byte;
-> > +	int addr, i, byte;
-> > +	int rc = -EOPNOTSUPP;
-> > +	enum em28xx_i2c_algo_type algo_type = dev->i2c_algo_type;
-> >  
-> >  	if (num <= 0)
-> >  		return 0;
-> > @@ -290,10 +401,13 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
-> >  			       i == num - 1 ? "stop" : "nonstop",
-> >  			       addr, msgs[i].len			     );
-> >  		if (!msgs[i].len) { /* no len: check only for device presence */
-> > -			if (dev->board.is_em2800)
-> > -				rc = em2800_i2c_check_for_device(dev, addr);
-> > -			else
-> > +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> >  				rc = em28xx_i2c_check_for_device(dev, addr);
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
-> > +				rc = em2800_i2c_check_for_device(dev, addr);
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> > +				rc = em25xx_bus_B_check_for_device(dev, addr);
-> > +			}
-> 
-> That seems too messy. 
-> 
-> IMO, the best is to create 3 different em28xx_i2c_xfer() routines:
-> one for em2800, one for "standard" I2c protocol, and another one for
-> this em25xx one. Then, all you need to do is to embed 
-> static struct i2c_algorithm into struct em28xx and fill
-> em28xx_algo.master_transfer to point to the correct xfer.
-> 
-> That makes the code more readable and remove a little faster by removing
-> the unneeded ifs from the code.
-> 
-> >  			if (rc == -ENODEV) {
-> >  				if (i2c_debug)
-> >  					printk(" no device\n");
-> > @@ -301,14 +415,19 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
-> >  			}
-> >  		} else if (msgs[i].flags & I2C_M_RD) {
-> >  			/* read bytes */
-> > -			if (dev->board.is_em2800)
-> > -				rc = em2800_i2c_recv_bytes(dev, addr,
-> > +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> > +				rc = em28xx_i2c_recv_bytes(dev, addr,
-> >  							   msgs[i].buf,
-> >  							   msgs[i].len);
-> > -			else
-> > -				rc = em28xx_i2c_recv_bytes(dev, addr,
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
-> > +				rc = em2800_i2c_recv_bytes(dev, addr,
-> >  							   msgs[i].buf,
-> >  							   msgs[i].len);
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> > +				rc = em25xx_bus_B_recv_bytes(dev, addr,
-> > +							    msgs[i].buf,
-> > +							    msgs[i].len);
-> > +			}
-> >  			if (i2c_debug) {
-> >  				for (byte = 0; byte < msgs[i].len; byte++)
-> >  					printk(" %02x", msgs[i].buf[byte]);
-> > @@ -319,15 +438,20 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
-> >  				for (byte = 0; byte < msgs[i].len; byte++)
-> >  					printk(" %02x", msgs[i].buf[byte]);
-> >  			}
-> > -			if (dev->board.is_em2800)
-> > -				rc = em2800_i2c_send_bytes(dev, addr,
-> > -							   msgs[i].buf,
-> > -							   msgs[i].len);
-> > -			else
-> > +			if (algo_type == EM28XX_I2C_ALGO_EM28XX) {
-> >  				rc = em28xx_i2c_send_bytes(dev, addr,
-> >  							   msgs[i].buf,
-> >  							   msgs[i].len,
-> >  							   i == num - 1);
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM2800) {
-> > +				rc = em2800_i2c_send_bytes(dev, addr,
-> > +							   msgs[i].buf,
-> > +							   msgs[i].len);
-> > +			} else if (algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-> > +				rc = em25xx_bus_B_send_bytes(dev, addr,
-> > +							    msgs[i].buf,
-> > +							    msgs[i].len);
-> > +			}
-> >  		}
-> >  		if (rc < 0) {
-> >  			if (i2c_debug)
-> > @@ -589,10 +713,16 @@ error:
-> >  static u32 functionality(struct i2c_adapter *adap)
-> >  {
-> >  	struct em28xx *dev = adap->algo_data;
-> > -	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-> > -	if (dev->board.is_em2800)
-> > -		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
-> > -	return func_flags;
-> > +
-> > +	if ((dev->i2c_algo_type == EM28XX_I2C_ALGO_EM28XX) ||
-> > +	    (dev->i2c_algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)) {
-> > +		return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-> > +	} else if (dev->i2c_algo_type == EM28XX_I2C_ALGO_EM2800)  {
-> > +		return (I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL) &
-> > +			~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
-> > +	}
-> > +
-> > +	return 0; /* BUG */
-> 
-> Please create a separate I2C register logic for bus B. It was a mistake
-> to reuse the existing I2C bus for logic for both buses (ok, actually,
-> no device currently uses 2 buses, as they simply don't read eeproms on
-> 2 bus devices). 
-> 
-> Btw, cx231xx has a similar issue: it has 3 buses. See how it was solved there:
-> 
-> drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[0]);
-> drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[1]);
-> drivers/media/usb/cx231xx/cx231xx-core.c: cx231xx_i2c_register(&dev->i2c_bus[2]);
-> 
-> Of course, the em28xx-cards will need to tell on what bus the tuner and
-> demods are. The em28xx I2C logic will also need to write to EM28XX_R06_I2C_CLK
-> if the bus is different - the windows driver is just stupid: it just precedes all
-> I2C writes by a write at reg 0x06 - we can certainly do better than that ;).
-> 
-> If you're in doubt on how to do it, I can seek for some time to address it
-> properly.
+This prepares the driver for priority and control event handling.
 
-FYI, The other patches in this series are OK. I'm tagging them as
-changes_requested just because they depend on this one.
+This patch also checks for correct streaming ownership and it makes a
+small improvement to the encoder_cmd ioctls: always zero 'flags' and
+drop the memset of 'raw' as that is already done by the v4l2 core.
 
-Regards,
-Mauro
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |  116 +++++++++++++--------------------
+ drivers/media/usb/hdpvr/hdpvr.h       |    4 +-
+ 2 files changed, 46 insertions(+), 74 deletions(-)
+
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 9f03add..873bb23 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -34,10 +34,6 @@
+ 			 list_size(&dev->free_buff_list),		\
+ 			 list_size(&dev->rec_buff_list)); }
+ 
+-struct hdpvr_fh {
+-	struct hdpvr_device	*dev;
+-};
+-
+ static uint list_size(struct list_head *list)
+ {
+ 	struct list_head *tmp;
+@@ -357,55 +353,21 @@ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
+  * video 4 linux 2 file operations
+  */
+ 
+-static int hdpvr_open(struct file *file)
+-{
+-	struct hdpvr_device *dev;
+-	struct hdpvr_fh *fh;
+-	int retval = -ENOMEM;
+-
+-	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
+-	if (!dev) {
+-		pr_err("open failing with with ENODEV\n");
+-		retval = -ENODEV;
+-		goto err;
+-	}
+-
+-	fh = kzalloc(sizeof(struct hdpvr_fh), GFP_KERNEL);
+-	if (!fh) {
+-		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+-		goto err;
+-	}
+-	/* lock the device to allow correctly handling errors
+-	 * in resumption */
+-	mutex_lock(&dev->io_mutex);
+-	dev->open_count++;
+-	mutex_unlock(&dev->io_mutex);
+-
+-	fh->dev = dev;
+-
+-	/* save our object in the file's private structure */
+-	file->private_data = fh;
+-
+-	retval = 0;
+-err:
+-	return retval;
+-}
+-
+ static int hdpvr_release(struct file *file)
+ {
+-	struct hdpvr_fh		*fh  = file->private_data;
+-	struct hdpvr_device	*dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	if (!dev)
+ 		return -ENODEV;
+ 
+ 	mutex_lock(&dev->io_mutex);
+-	if (!(--dev->open_count) && dev->status == STATUS_STREAMING)
++	if (file->private_data == dev->owner) {
+ 		hdpvr_stop_streaming(dev);
+-
++		dev->owner = NULL;
++	}
+ 	mutex_unlock(&dev->io_mutex);
+ 
+-	return 0;
++	return v4l2_fh_release(file);
+ }
+ 
+ /*
+@@ -415,8 +377,7 @@ static int hdpvr_release(struct file *file)
+ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 			  loff_t *pos)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_buffer *buf = NULL;
+ 	struct urb *urb;
+ 	unsigned int ret = 0;
+@@ -439,6 +400,7 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 			mutex_unlock(&dev->io_mutex);
+ 			goto err;
+ 		}
++		dev->owner = file->private_data;
+ 		print_buffer_status();
+ 	}
+ 	mutex_unlock(&dev->io_mutex);
+@@ -517,8 +479,7 @@ err:
+ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ {
+ 	struct hdpvr_buffer *buf = NULL;
+-	struct hdpvr_fh *fh = filp->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(filp);
+ 	unsigned int mask = 0;
+ 
+ 	mutex_lock(&dev->io_mutex);
+@@ -533,6 +494,8 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 			v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+ 				 "start_streaming failed\n");
+ 			dev->status = STATUS_IDLE;
++		} else {
++			dev->owner = filp->private_data;
+ 		}
+ 
+ 		print_buffer_status();
+@@ -554,7 +517,7 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 
+ static const struct v4l2_file_operations hdpvr_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= hdpvr_open,
++	.open		= v4l2_fh_open,
+ 	.release	= hdpvr_release,
+ 	.read		= hdpvr_read,
+ 	.poll		= hdpvr_poll,
+@@ -583,8 +546,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ static int vidioc_s_std(struct file *file, void *private_data,
+ 			v4l2_std_id *std)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	u8 std_type = 1;
+ 
+ 	if (*std & (V4L2_STD_NTSC | V4L2_STD_PAL_60))
+@@ -602,8 +564,7 @@ static const char *iname[] = {
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 				struct v4l2_input *i)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	unsigned int n;
+ 
+ 	n = i->index;
+@@ -625,8 +586,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ static int vidioc_s_input(struct file *file, void *private_data,
+ 			  unsigned int index)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	int retval;
+ 
+ 	if (index >= HDPVR_VIDEO_INPUTS)
+@@ -645,8 +605,7 @@ static int vidioc_s_input(struct file *file, void *private_data,
+ static int vidioc_g_input(struct file *file, void *private_data,
+ 			  unsigned int *index)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	*index = dev->options.video_input;
+ 	return 0;
+@@ -679,8 +638,7 @@ static int vidioc_enumaudio(struct file *file, void *priv,
+ static int vidioc_s_audio(struct file *file, void *private_data,
+ 			  const struct v4l2_audio *audio)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	int retval;
+ 
+ 	if (audio->index >= HDPVR_AUDIO_INPUTS)
+@@ -699,8 +657,7 @@ static int vidioc_s_audio(struct file *file, void *private_data,
+ static int vidioc_g_audio(struct file *file, void *private_data,
+ 			  struct v4l2_audio *audio)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	audio->index = dev->options.audio_input;
+ 	audio->capability = V4L2_AUDCAP_STEREO;
+@@ -832,8 +789,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
+ static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
+ 				struct v4l2_format *f)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_video_info *vid_info;
+ 
+ 	if (!dev)
+@@ -859,26 +815,43 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
+ static int vidioc_encoder_cmd(struct file *filp, void *priv,
+ 			       struct v4l2_encoder_cmd *a)
+ {
+-	struct hdpvr_fh *fh = filp->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int res;
++	struct hdpvr_device *dev = video_drvdata(filp);
++	int res = 0;
+ 
+ 	mutex_lock(&dev->io_mutex);
++	a->flags = 0;
+ 
+-	memset(&a->raw, 0, sizeof(a->raw));
+ 	switch (a->cmd) {
+-	case V4L2_ENC_CMD_START:
+-		a->flags = 0;
++		if (dev->owner && filp->private_data != dev->owner) {
++			res = -EBUSY;
++			break;
++		}
++		if (dev->status == STATUS_STREAMING)
++			break;
+ 		res = hdpvr_start_streaming(dev);
++		if (!res)
++			dev->owner = filp->private_data;
++		else
++			dev->status = STATUS_IDLE;
+ 		break;
+ 	case V4L2_ENC_CMD_STOP:
++		if (dev->owner && filp->private_data != dev->owner) {
++			res = -EBUSY;
++			break;
++		}
++		if (dev->status == STATUS_IDLE)
++			break;
+ 		res = hdpvr_stop_streaming(dev);
++		if (!res)
++			dev->owner = NULL;
+ 		break;
+ 	default:
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+ 			 "Unsupported encoder cmd %d\n", a->cmd);
+ 		res = -EINVAL;
++		break;
+ 	}
++
+ 	mutex_unlock(&dev->io_mutex);
+ 	return res;
+ }
+@@ -886,6 +859,7 @@ static int vidioc_encoder_cmd(struct file *filp, void *priv,
+ static int vidioc_try_encoder_cmd(struct file *filp, void *priv,
+ 					struct v4l2_encoder_cmd *a)
+ {
++	a->flags = 0;
+ 	switch (a->cmd) {
+ 	case V4L2_ENC_CMD_START:
+ 	case V4L2_ENC_CMD_STOP:
+@@ -934,8 +908,6 @@ static void hdpvr_device_release(struct video_device *vdev)
+ }
+ 
+ static const struct video_device hdpvr_video_template = {
+-/* 	.type			= VFL_TYPE_GRABBER, */
+-/* 	.type2			= VID_TYPE_CAPTURE | VID_TYPE_MPEG_ENCODER, */
+ 	.fops			= &hdpvr_fops,
+ 	.release		= hdpvr_device_release,
+ 	.ioctl_ops 		= &hdpvr_ioctl_ops,
+@@ -1030,9 +1002,9 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 		goto error;
+ 	}
+ 
+-	*(dev->video_dev) = hdpvr_video_template;
++	*dev->video_dev = hdpvr_video_template;
+ 	strcpy(dev->video_dev->name, "Hauppauge HD PVR");
+-	dev->video_dev->parent = parent;
++	dev->video_dev->v4l2_dev = &dev->v4l2_dev;
+ 	video_set_drvdata(dev->video_dev, dev);
+ 
+ 	res = video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum);
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index 2a4deab..9450093 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -85,8 +85,6 @@ struct hdpvr_device {
+ 
+ 	/* holds the current device status */
+ 	__u8			status;
+-	/* count the number of openers */
+-	uint			open_count;
+ 
+ 	/* holds the cureent set options */
+ 	struct hdpvr_options	options;
+@@ -107,6 +105,8 @@ struct hdpvr_device {
+ 	struct workqueue_struct	*workqueue;
+ 	/**/
+ 	struct work_struct	worker;
++	/* current stream owner */
++	struct v4l2_fh		*owner;
+ 
+ 	/* I2C adapter */
+ 	struct i2c_adapter	i2c_adapter;
+-- 
+1.7.10.4
+
