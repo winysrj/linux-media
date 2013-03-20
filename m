@@ -1,195 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56385 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752355Ab3CRKIg (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:45614 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757893Ab3CTTYQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 06:08:36 -0400
-Date: Mon, 18 Mar 2013 11:08:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v6 3/7] media: soc-camera: switch I2C subdevice drivers
- to use v4l2-clk
-In-Reply-To: <201303180847.20708.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1303181044550.30957@axis700.grange>
-References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
- <1363382873-20077-4-git-send-email-g.liakhovetski@gmx.de>
- <201303180847.20708.hverkuil@xs4all.nl>
+	Wed, 20 Mar 2013 15:24:16 -0400
+Received: by mail-ee0-f45.google.com with SMTP id b57so1375529eek.32
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 12:24:15 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH 06/10] bttv: untangle audio input and mute setting
+Date: Wed, 20 Mar 2013 20:24:46 +0100
+Message-Id: <1363807490-3906-7-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 18 Mar 2013, Hans Verkuil wrote:
+Split function audio_mux():
+move the mute setting part to function audio_mute() and the input setting part
+to function audio_input().
 
-> On Fri March 15 2013 22:27:49 Guennadi Liakhovetski wrote:
-> > Instead of centrally enabling and disabling subdevice master clocks in
-> > soc-camera core, let subdevice drivers do that themselves, using the
-> > V4L2 clock API and soc-camera convenience wrappers.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > v6: clock name update
-> > 
-> >  drivers/media/i2c/soc_camera/imx074.c              |   18 ++-
-> >  drivers/media/i2c/soc_camera/mt9m001.c             |   17 ++-
-> >  drivers/media/i2c/soc_camera/mt9m111.c             |   20 ++-
-> >  drivers/media/i2c/soc_camera/mt9t031.c             |   19 ++-
-> >  drivers/media/i2c/soc_camera/mt9t112.c             |   19 ++-
-> >  drivers/media/i2c/soc_camera/mt9v022.c             |   17 ++-
-> >  drivers/media/i2c/soc_camera/ov2640.c              |   19 ++-
-> >  drivers/media/i2c/soc_camera/ov5642.c              |   20 ++-
-> >  drivers/media/i2c/soc_camera/ov6650.c              |   17 ++-
-> >  drivers/media/i2c/soc_camera/ov772x.c              |   15 ++-
-> >  drivers/media/i2c/soc_camera/ov9640.c              |   17 ++-
-> >  drivers/media/i2c/soc_camera/ov9640.h              |    1 +
-> >  drivers/media/i2c/soc_camera/ov9740.c              |   18 ++-
-> >  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 ++-
-> >  drivers/media/i2c/soc_camera/tw9910.c              |   18 ++-
-> >  drivers/media/platform/soc_camera/soc_camera.c     |  172 +++++++++++++++-----
-> >  .../platform/soc_camera/soc_camera_platform.c      |    2 +-
-> >  include/media/soc_camera.h                         |   13 +-
-> >  18 files changed, 355 insertions(+), 84 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
-> > index a2a5cbb..cee5345 100644
-> > --- a/drivers/media/i2c/soc_camera/imx074.c
-> > +++ b/drivers/media/i2c/soc_camera/imx074.c
-> > @@ -18,6 +18,7 @@
-> >  #include <linux/module.h>
-> >  
-> >  #include <media/soc_camera.h>
-> > +#include <media/v4l2-clk.h>
-> >  #include <media/v4l2-subdev.h>
-> >  #include <media/v4l2-chip-ident.h>
-> >  
-> > @@ -77,6 +78,7 @@ struct imx074_datafmt {
-> >  struct imx074 {
-> >  	struct v4l2_subdev		subdev;
-> >  	const struct imx074_datafmt	*fmt;
-> > +	struct v4l2_clk			*clk;
-> >  };
-> >  
-> >  static const struct imx074_datafmt imx074_colour_fmts[] = {
-> > @@ -272,8 +274,9 @@ static int imx074_s_power(struct v4l2_subdev *sd, int on)
-> >  {
-> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> >  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	struct imx074 *priv = to_imx074(client);
-> >  
-> > -	return soc_camera_set_power(&client->dev, ssdd, on);
-> > +	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-> >  }
-> >  
-> >  static int imx074_g_mbus_config(struct v4l2_subdev *sd,
-> > @@ -431,6 +434,7 @@ static int imx074_probe(struct i2c_client *client,
-> >  	struct imx074 *priv;
-> >  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-> >  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	int ret;
-> >  
-> >  	if (!ssdd) {
-> >  		dev_err(&client->dev, "IMX074: missing platform data!\n");
-> > @@ -451,13 +455,23 @@ static int imx074_probe(struct i2c_client *client,
-> >  
-> >  	priv->fmt	= &imx074_colour_fmts[0];
-> >  
-> > -	return imx074_video_probe(client);
-> > +	priv->clk = v4l2_clk_get(&priv->subdev, "mclk");
-> > +	if (IS_ERR(priv->clk))
-> > +		return PTR_ERR(priv->clk);
-> > +
-> > +	ret = imx074_video_probe(client);
-> > +	if (ret < 0)
-> > +		v4l2_clk_put(priv->clk);
-> > +
-> 
-> I feel uneasy about this. It's not the clock part as such but the fact that
-> assumptions are made about the usage of this sensor driver. It basically
-> comes down to the fact that these drivers are *still* tied to the soc-camera
-> framework. I think I am going to work on this in a few weeks time to cut
-> these drivers loose from soc-camera. We discussed how to do that in the past.
-
-Sorry, not sure I understand. This is a generic (V4L2) clock, it has 
-nothing specific to soc-camera.
-
-> The whole point of the subdev API is to make drivers independent of bridge
-> drivers, and these soc-camera subdev drivers are the big exception and they
-> stick out like a sore thumb.
-
-We are moving towards complete driver independency from the soc-camera 
-framework, and, afaics, there's not much left. Simply noone is interested 
-enough to do the work or to pay for it, noone has a really burning 
-use-case. And without one it's not very easy to implement things with no 
-test case. But sure, you're most welcome to work on this :)
-
-> Anyway, w.r.t. the clock use: what happens if these drivers are used in e.g.
-> a USB webcam driver? In that case there probably won't be a clock involved
-> (well, there is one, but that is likely to be setup by the firmware/hardware
-> itself).
-
-Well, from the sensor driver PoV if the sensor needs a clock it seems 
-logical for the driver to request it and to fail if it's not available. 
-USB cameras could provide a dummy clock, or we could implement one 
-centrally, however, this will lead to an undesirable result, that everyone 
-will just use that dummy clock... If we make clock support optional the 
-same thing will happen - noone will implement them. BTW, you're looking at 
-an intermediate patch in this series, which only adds clock support. In a 
-later patch the return error code for missing clock will be replaced with 
--EPROBE_DEFER which serves as a sign, that no bridge driver is available 
-yes and _is_ required to support asynchronous probing.
-
-> Wouldn't it be better if the clock name is passed on through the platform data
-> (or device tree)? And if no clock name was specified, then there is no need to
-> get a clock either and the driver can assume that it will always have a clock.
-> That would solve this problem when this sensor driver is no longer soc-camera
-> dependent.
-
-No. Yes, this has been discussed many times - in the context of the 
-generic clock API. I also proposed a patch, that did such a thing and was 
-"kindly" explained, why that wasn't a good idea :-) Clock names are names 
-of clock _inputs_ on the consumer. I.e. a sensor driver should request a 
-clock according to its datasheet. For the clock provider it's different, 
-say, a bridge driver cannot know what sensor will be connected to it and 
-clock it will be expecting. That's why we have clock lookup tables, that 
-connect physical clock objects (providers) with consumer clock names in 
-platform data (perhaps, a similar thing is done in DT, haven't looked 
-yet). I think, we could accept a compromise by using a common name for all 
-clocks with the same function. I'm using "mclk" as an abbreviation for 
-"master clock."
-
-Thanks
-Guennadi
-
-> Sorry if this was discussed in earlier patches, I haven't been following this
-> very closely before.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > +	return ret;
-> >  }
-> >  
-> >  static int imx074_remove(struct i2c_client *client)
-> >  {
-> >  	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-> > +	struct imx074 *priv = to_imx074(client);
-> >  
-> > +	v4l2_clk_put(priv->clk);
-> >  	if (ssdd->free_bus)
-> >  		ssdd->free_bus(ssdd);
-> >  
-> 
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/pci/bt8xx/bttv-driver.c |   51 ++++++++++++++++-----------------
+ 1 Datei geändert, 24 Zeilen hinzugefügt(+), 27 Zeilen entfernt(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index f1cb0db..0df4a16 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1022,18 +1022,37 @@ audio_mux_gpio(struct bttv *btv, int input, int mute)
+ }
+ 
+ static int
+-audio_mux(struct bttv *btv, int input, int mute)
++audio_mute(struct bttv *btv, int mute)
+ {
+ 	struct v4l2_ctrl *ctrl;
+ 
+-	audio_mux_gpio(btv, input, mute);
++	audio_mux_gpio(btv, btv->audio_input, mute);
+ 
+ 	if (btv->sd_msp34xx) {
+-		u32 in;
+-
+ 		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 		if (ctrl)
+ 			v4l2_ctrl_s_ctrl(ctrl, mute);
++	}
++	if (btv->sd_tvaudio) {
++		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
++		if (ctrl)
++			v4l2_ctrl_s_ctrl(ctrl, mute);
++	}
++	if (btv->sd_tda7432) {
++		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
++		if (ctrl)
++			v4l2_ctrl_s_ctrl(ctrl, mute);
++	}
++	return 0;
++}
++
++static int
++audio_input(struct bttv *btv, int input)
++{
++	audio_mux_gpio(btv, input, btv->mute);
++
++	if (btv->sd_msp34xx) {
++		u32 in;
+ 
+ 		/* Note: the inputs tuner/radio/extern/intern are translated
+ 		   to msp routings. This assumes common behavior for all msp3400
+@@ -1079,34 +1098,12 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 			       in, MSP_OUTPUT_DEFAULT, 0);
+ 	}
+ 	if (btv->sd_tvaudio) {
+-		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+-
+-		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+-				input, 0, 0);
+-	}
+-	if (btv->sd_tda7432) {
+-		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+-
+-		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, mute);
++				 input, 0, 0);
+ 	}
+ 	return 0;
+ }
+ 
+-static inline int
+-audio_mute(struct bttv *btv, int mute)
+-{
+-	return audio_mux(btv, btv->audio_input, mute);
+-}
+-
+-static inline int
+-audio_input(struct bttv *btv, int input)
+-{
+-	return audio_mux(btv, input, btv->mute);
+-}
+-
+ static void
+ bttv_crop_calc_limits(struct bttv_crop *c)
+ {
+-- 
+1.7.10.4
+
