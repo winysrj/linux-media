@@ -1,81 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:50249 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756879Ab3CHMhq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 07:37:46 -0500
-Received: by mail-wi0-f170.google.com with SMTP id hm11so4196967wib.5
-        for <linux-media@vger.kernel.org>; Fri, 08 Mar 2013 04:37:44 -0800 (PST)
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:47248 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750835Ab3CTKI1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 06:08:27 -0400
+Date: Wed, 20 Mar 2013 11:11:46 +0100
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hverkuil@xs4all.nl, elezegarcia@gmail.com
+Subject: Re: [RFC V1 0/8] Add a driver for somagic smi2021
+Message-ID: <20130320101146.GN17291@dell.arpanet.local>
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+ <20130315120856.GA2989@localhost>
+ <20130317200158.GB17291@dell.arpanet.local>
+ <20130318000507.GA2456@localhost>
 MIME-Version: 1.0
-In-Reply-To: <1201392585.355417.1362743602969.JavaMail.root@advansee.com>
-References: <CACKLOr22R45bCbfntvhLVh=kf2fGq6umXZtDsKjsNVbNHAK6Rw@mail.gmail.com>
-	<962516300.332041.1362658383433.JavaMail.root@advansee.com>
-	<CACKLOr2VOb3GMiX6GVmSchhGs8XeBJ0c7qRSHZwU8e8C+qeWPg@mail.gmail.com>
-	<1201392585.355417.1362743602969.JavaMail.root@advansee.com>
-Date: Fri, 8 Mar 2013 13:37:38 +0100
-Message-ID: <CACKLOr0FEO3wvpZpn=Fg9ZSBYLDnY-hY=KysD72JVbrcVChArg@mail.gmail.com>
-Subject: Re: mt9m111/mt9m131: kernel 3.8 issues.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: =?ISO-8859-1?Q?Beno=EEt_Th=E9baudeau?=
-	<benoit.thebaudeau@advansee.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130318000507.GA2456@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Benoît,
-
-On 8 March 2013 12:53, Benoît Thébaudeau <benoit.thebaudeau@advansee.com> wrote:
+On Sun, Mar 17, 2013 at 09:05:08PM -0300, Ezequiel Garcia wrote:
+> Hi Jon,
+> 
+> On Sun, Mar 17, 2013 at 09:01:58PM +0100, Jon Arne JÃ¸rgensen wrote:
+> > On Fri, Mar 15, 2013 at 09:08:58AM -0300, Ezequiel Garcia wrote:
+> > > On Thu, Mar 14, 2013 at 03:06:56PM +0100, Jon Arne JÃ¸rgensen wrote:
+> > > > This patch-set will add a driver for the Somagic SMI2021 chip.
+> > > > 
+> > > > This chip is found inside different usb video-capture devices.
+> > > > Most of them are branded as EasyCap, but there also seems to be
+> > > > some other brands selling devices with this chip.
+> > > > 
+> > > > This driver is split into two modules, where one is called smi2021-bootloader,
+> > > > and the other is just called smi2021.
+> > > > 
+> > > > The bootloader is responsible for the upload of a firmware that is needed by some
+> > > > versions of the devices.
+> > > > 
+> > > > All Somagic devices that need firmware seems to identify themselves
+> > > > with the usb product id 0x0007. There is no way for the kernel to know
+> > > > what firmware to upload to the device without user interaction.
+> > > > 
+> > > > If there is only one firmware present on the computer, the kernel
+> > > > will upload that firmware to any device that identifies as 0x0007.
+> > > > If there are multiple Somagic firmwares present, the user will have to pass
+> > > > a module parameter to the smi2021-bootloader module to tell what firmware to use.
+> > > > 
+> > > 
+> > > Nice job!
+> > >
+> > Thanks :)
+> >  
+> > > I have some minor comments on each patch, but also I don't agree
+> > > with the patch splitting: what's the point in splitting and sending
+> > > one patch per file?
+> > > 
+> > > It doesn't make it any easier to review, so why don't you just
+> > > send one patch: "Introduce smi2021 driver"?
+> > > 
+> > > The rule is one patch per change, and I believe this whole patchset
+> > > is just one change: adding a new driver.
+> > > 
+> > 
+> > I think I read another patch to this mailinglist, where someone was told
+> > to split his patch into one mail per file, but I can't find that thread
+> > now :)
+> > 
+> > I will send the next version as a single mail, and see what happens...
+> > 
+> 
+> As you will soon realize, the patch preparation is equally important as the
+> patch content itself. Often, it takes the same time to implement or
+> fix something, as it takes to prepare the patchset carefully.
 >
->> Regarding 3, you say it works nicely for you in kernel 3.4.5. I've
->> migrated my code to that version but I still get colours that lack
->> enough intensity.
->> This is a snapshot "a" taken with my mobile which is much more similar
->> to what I can really see with my eyes:
->> http://img96.imageshack.us/img96/1451/20130307171334.jpg
->>
->> This is a similar snapshot "b" taken with mt9m131 in my board. It
->> shows that colours tend to be dull and darker, specially green:
->> http://img703.imageshack.us/img703/6025/testgo.jpg
->>
->> Are the snapshots you take with your HW  more similar to "a" or to
->> "b"? Perhaps I am being too picky with the image quality and this is
->> all what mt9m131 can do?
+
+I'm beginning to realize that yes :)
+ 
+> When deciding how to prepare your patches you have to keep two main things in mind:
+> 
+>   * The kernel build can never be broken, in any configuration and in any
+>     point of the kernel history (in other words, by any patch of a patchset).
+>     This is called 'keep the bisectability' because it's essential
+>     to make 'git bisect' work properly.
 >
-> I fear that my captures are closer to "b". Your description of "3" was giving
-> the impression of flashy colors. But the impression that this sensor gives me is
-> rather a superimposed gray film. This effect is more or less visible depending
-> on the lighting conditions, but it never seems to produce high quality colors.
 
-Yes, yours is probably is the best description for the image quality
-this sensor provides with the current settings.
-Well, this is a bit disappointing. Let's see if some other user has a
-similar experience with it or comes up with a way to improve it.
+Then it does make good sense to send this whole driver as a singe email.
+ 
+>   * Do as much as possible to facilitate reviews from other people.
+>     This is also important because patches tend to be accepted quicker
+>     if they recieve attention (reviews, testing, etc.).
+> 
+> In this particular case, I think that the easier way to review is to be
+> able to see the complete driver in a single patch. Of course, I can be
+> wrong, so feel free to correct me.
+> 
+> Please note that the reviews I made where almost nitpicks, and the
+> driver looks good in general. I cannot provide any testing for lack of hardware.
+> 
+> Also, for your next patch, add the output of v4l2-compliance tool,
+> showing it passes all the tests. This shows your driver is in good shape.
+> Get v4l2-compliancefrom the git repo, as distribution often provide
+> an outdated version.
+> 
 
-I've tested several things such as disabling auto white balance and
-auto exposure and try to manually change colour gains but it seems the
-sensor simply ignores the latter.
+I'll do this.
 
-There is an evaluation board  from Aptina
-(http://www.digikey.com/product-detail/es/MT9M131C12STCH%20ES/557-1251-ND/1643271)
-but, unfortunately, I don't have one of these available. It could be
-very useful to test the sensor with this board with the configuration
-Aptina recommends and see whether the "grey layer effect" still
-persists.
+> (And another thing, please fix your mail client: the reply-to is pointing
+> to '20130315120856.GA2989@localhost.arpanet.local'.)
+>
 
-I will try to contact Aptina's technical support but, according to my
-previous experience, there is no guarantee we get a clarifying answer.
-I'll keep you updated nevertheless.
+Yes, my first attempts to send mail from mutt, classic PEBCAP...
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Again, thank you for your time.
+
+> Thanks for your work and best regards,
+> -- 
+> Ezequiel GarcÃ­a, Free Electrons
+> Embedded Linux, Kernel and Android Engineering
+> http://free-electrons.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
