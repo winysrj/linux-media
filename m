@@ -1,146 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1419 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919Ab3CDLTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 06:19:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from p3plsmtp18-05-2.prod.phx3.secureserver.net ([173.201.193.190]:34435
+	"EHLO p3plwbeout18-05.prod.phx3.secureserver.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750709Ab3CTPRu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 11:17:50 -0400
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Message-Id: <20130320081748.e7c3a0fec861aa4693105436139f36a5.bc86de8fba.wbe@email18.secureserver.net>
+From: <leo@lumanate.com>
 To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 1/2] davinci/dm644x_ccdc: fix compiler warning
-Date: Mon,  4 Mar 2013 12:19:22 +0100
-Message-Id: <ea9d6410777ee7ed06cd2869b20ce0f03b1bb8d7.1362395861.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362395963-14266-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362395963-14266-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: "./build --main-git" failed
+Date: Wed, 20 Mar 2013 08:17:48 -0700
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Dear linux-media,
 
-drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
-drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between ‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
+I'm getting a fatal error with the "./build --main-git" command (see log
+below).
+Please help!
 
-It took a bit of work, see this thread of an earlier attempt to fix this:
+Thank you,
+-Leo.
 
-https://patchwork.kernel.org/patch/1923091/
 
-I've chosen not to follow the suggestions in that thread since gamma_width is
-really a different property from data_size. What you really want is to know if
-gamma_width fits inside data_size and for that you need to translate each
-enum into a maximum bit number so you can safely compare the two.
 
-So I put in two static inline translation functions instead, keeping the rest
-of the code the same (except for fixing the 'gama' typo).
+leo@ubaduba:~/ltv3$ git clone git://linuxtv.org/media_build.git
+Cloning into 'media_build'...
+remote: Counting objects: 1859, done.
+remote: Compressing objects: 100% (567/567), done.
+remote: Total 1859 (delta 1259), reused 1846 (delta 1253)
+Receiving objects: 100% (1859/1859), 426.07 KiB | 216 KiB/s, done.
+Resolving deltas: 100% (1259/1259), done.
+leo@ubaduba:~/ltv3$ cd media_build/
+leo@ubaduba:~/ltv3/media_build$ ./build --main-git --verbose
+Checking if the needed tools for Ubuntu 12.10 are available
+Needed package dependencies are met.
+************************************************************
+* building git://linuxtv.org/media_tree.git       git tree *
+************************************************************
+************************************************************
+* All drivers and build system are under GPLv2 License     *
+* Firmware files are under the license terms found at:     *
+* http://www.linuxtv.org/downloads/firmware/               *
+* Please abort if you don't agree with the license         *
+************************************************************
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/davinci/dm644x_ccdc.c      |   13 ++++++-----
- drivers/media/platform/davinci/dm644x_ccdc_regs.h |    2 +-
- include/media/davinci/dm644x_ccdc.h               |   24 +++++++++++++++------
- 3 files changed, 27 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-index 318e805..971d639 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc.c
-+++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-@@ -228,9 +228,12 @@ static void ccdc_readregs(void)
- static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
- {
- 	if (ccdcparam->alaw.enable) {
--		if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
--		    (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
--		    (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
-+		u8 max_gamma = ccdc_gamma_width_max_bit(ccdcparam->alaw.gamma_wd);
-+		u8 max_data = ccdc_data_size_max_bit(ccdcparam->data_sz);
-+
-+		if ((ccdcparam->alaw.gamma_wd > CCDC_GAMMA_BITS_09_0) ||
-+		    (ccdcparam->alaw.gamma_wd < CCDC_GAMMA_BITS_15_6) ||
-+		    (max_gamma > max_data)) {
- 			dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
- 			return -1;
- 		}
-@@ -560,8 +563,8 @@ void ccdc_config_raw(void)
- 
- 	/* Enable and configure aLaw register if needed */
- 	if (config_params->alaw.enable) {
--		val = ((config_params->alaw.gama_wd &
--		      CCDC_ALAW_GAMA_WD_MASK) | CCDC_ALAW_ENABLE);
-+		val = ((config_params->alaw.gamma_wd &
-+		      CCDC_ALAW_GAMMA_WD_MASK) | CCDC_ALAW_ENABLE);
- 		regw(val, CCDC_ALAW);
- 		dev_dbg(ccdc_cfg.dev, "\nWriting 0x%x to ALAW...\n", val);
- 	}
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc_regs.h b/drivers/media/platform/davinci/dm644x_ccdc_regs.h
-index 90370e4..2b0aca5 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc_regs.h
-+++ b/drivers/media/platform/davinci/dm644x_ccdc_regs.h
-@@ -84,7 +84,7 @@
- #define CCDC_VDHDEN_ENABLE			(1 << 16)
- #define CCDC_LPF_ENABLE				(1 << 14)
- #define CCDC_ALAW_ENABLE			(1 << 3)
--#define CCDC_ALAW_GAMA_WD_MASK			7
-+#define CCDC_ALAW_GAMMA_WD_MASK			7
- #define CCDC_BLK_CLAMP_ENABLE			(1 << 31)
- #define CCDC_BLK_SGAIN_MASK			0x1F
- #define CCDC_BLK_ST_PXL_MASK			0x7FFF
-diff --git a/include/media/davinci/dm644x_ccdc.h b/include/media/davinci/dm644x_ccdc.h
-index 3e178eb..852e96c 100644
---- a/include/media/davinci/dm644x_ccdc.h
-+++ b/include/media/davinci/dm644x_ccdc.h
-@@ -38,17 +38,23 @@ enum ccdc_sample_line {
- 	CCDC_SAMPLE_16LINES
- };
- 
--/* enum for Alaw gama width */
--enum ccdc_gama_width {
--	CCDC_GAMMA_BITS_15_6,
-+/* enum for Alaw gamma width */
-+enum ccdc_gamma_width {
-+	CCDC_GAMMA_BITS_15_6,	/* use bits 15-6 for gamma */
- 	CCDC_GAMMA_BITS_14_5,
- 	CCDC_GAMMA_BITS_13_4,
- 	CCDC_GAMMA_BITS_12_3,
- 	CCDC_GAMMA_BITS_11_2,
- 	CCDC_GAMMA_BITS_10_1,
--	CCDC_GAMMA_BITS_09_0
-+	CCDC_GAMMA_BITS_09_0	/* use bits 9-0 for gamma */
- };
- 
-+/* returns the highest bit used for the gamma */
-+static inline u8 ccdc_gamma_width_max_bit(enum ccdc_gamma_width width)
-+{
-+	return 15 - width;
-+}
-+
- enum ccdc_data_size {
- 	CCDC_DATA_16BITS,
- 	CCDC_DATA_15BITS,
-@@ -60,12 +66,18 @@ enum ccdc_data_size {
- 	CCDC_DATA_8BITS
- };
- 
-+/* returns the highest bit used for this data size */
-+static inline u8 ccdc_data_size_max_bit(enum ccdc_data_size sz)
-+{
-+	return sz == CCDC_DATA_8BITS ? 7 : 15 - sz;
-+}
-+
- /* structure for ALaw */
- struct ccdc_a_law {
- 	/* Enable/disable A-Law */
- 	unsigned char enable;
--	/* Gama Width Input */
--	enum ccdc_gama_width gama_wd;
-+	/* Gamma Width Input */
-+	enum ccdc_gamma_width gamma_wd;
- };
- 
- /* structure for Black Clamping */
--- 
-1.7.10.4
+Getting the latest Kernel tree. This will take some time
+Cloning into 'media'...
+remote: Counting objects: 2938065, done.
+remote: Compressing objects: 100% (455617/455617), done.
+Receiving objects: 100% (2938065/2938065), 607.66 MiB | 1.63 MiB/s,
+done.
+remote: Total 2938065 (delta 2468257), reused 2924194 (delta 2454627)
+Resolving deltas: 100% (2468257/2468257), done.
+Checking out files: 100% (42425/42425), done.
+$ git --git-dir media/.git remote
+adding remote r_media_tree to track git://linuxtv.org/media_tree.git,
+staging/for_v3.9
+$ git --git-dir media/.git remote add r_media_tree
+git://linuxtv.org/media_tree.git staging/for_v3.9
+updating remote media_tree
+Fetching r_media_tree
+remote: Counting objects: 1847, done.
+remote: Compressing objects: 100% (617/617), done.
+remote: Total 1549 (delta 1376), reused 1044 (delta 932)
+Receiving objects: 100% (1549/1549), 229.24 KiB | 116 KiB/s, done.
+Resolving deltas: 100% (1376/1376), completed with 211 local objects.
+>From git://linuxtv.org/media_tree
+ * [new branch]      master     -> r_media_tree/master
+ * [new branch]      origin     -> r_media_tree/origin
+ * [new tag]         staging/for_v2.6.37-rc1 -> staging/for_v2.6.37-rc1
+ * [new tag]         staging/for_v3.3 -> staging/for_v3.3
+ * [new tag]         staging/for_v3.5 -> staging/for_v3.5
+ * [new tag]         staging/for_v3.6 -> staging/for_v3.6
+ * [new tag]         staging/for_v3.7 -> staging/for_v3.7
+ * [new tag]         staging/for_v3.8 -> staging/for_v3.8
+ * [new tag]         staging/for_v3.9 -> staging/for_v3.9
+ * [new tag]         staging/v2.6.35 -> staging/v2.6.35
+creating a local branch media_tree
+$ git --git-dir media/.git branch
+$ (cd media; git checkout -b media_tree/staging/for_v3.9
+remotes/r_media_tree/staging/for_v3.9)
+fatal: git checkout: updating paths is incompatible with switching
+branches.
+Did you intend to checkout 'remotes/r_media_tree/staging/for_v3.9' which
+can not be resolved as commit?
+Can't create local branch media_tree at ./build line 405.
 
