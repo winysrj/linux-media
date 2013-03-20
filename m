@@ -1,95 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2904 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755980Ab3C1OOf (ORCPT
+Received: from mail-ve0-f176.google.com ([209.85.128.176]:36317 "EHLO
+	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755469Ab3CTLLM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Mar 2013 10:14:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.10] hdpvr: driver overhaul
-Date: Thu, 28 Mar 2013 15:14:25 +0100
-Cc: Leonid Kegulskiy <leo@lumanate.com>, Janne Grunau <j@jannau.net>
-References: <201303280927.53374.hverkuil@xs4all.nl>
-In-Reply-To: <201303280927.53374.hverkuil@xs4all.nl>
+	Wed, 20 Mar 2013 07:11:12 -0400
+Received: by mail-ve0-f176.google.com with SMTP id cz10so1242251veb.21
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 04:11:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303281514.25282.hverkuil@xs4all.nl>
+In-Reply-To: <201303201004.05563.hverkuil@xs4all.nl>
+References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+	<201303201004.05563.hverkuil@xs4all.nl>
+Date: Wed, 20 Mar 2013 07:11:11 -0400
+Message-ID: <CAC-25o-rJGeYnQ91E4W888Ak6GxVe9u6e0ZY-qcpfoaKNkU0hw@mail.gmail.com>
+Subject: Re: [PATCH 0/4] media: si4713: minor updates
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu March 28 2013 09:27:53 Hans Verkuil wrote:
-> Hi Mauro,
-> 
-> This pull request overhauls the hdpvr driver. It's identical to my earlier
-> posted patch series:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg60040.html
-> 
-> except for being rebased to the latest master.
-> 
-> It's been tested thoroughly on my hdpvr and with a video generator to test all
-> the video formats.
-> 
-> I've taken care to preserve the current VIDIOC_G_FMT behavior since MythTV
-> relies on that. See the last patch for more information on that topic.
-> 
-> Leonid, because of the MythTV behavior your patch (http://patchwork.linuxtv.org/patch/17567/)
-> can't be applied.
-> 
-> The way out would be for someone to add support to MythTV for
-> VIDIOC_QUERY_DV_TIMINGS as the preferred method of detecting if a signal
-> is present on the HDPVR, and once that it in place this legacy hack can
-> be removed from this driver.
-> 
+Hi Hans,
+
+My last email didn't reach the list, so re-sending.
+
+On Wed, Mar 20, 2013 at 5:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+> Hi Eduardo!
+>
+> On Tue 19 March 2013 16:41:30 Eduardo Valentin wrote:
+> > Hello Mauro and Hans,
+> >
+> > Here are a couple of minor changes for si4713 FM transmitter driver.
+>
+> Thanks!
+
+No problem!
+
+>
+> Patches 2-4 are fine, but I don't really see the point of the first patch
+> (except for the last chunk which is a real improvement).
+>
+> The Codingstyle doesn't require such alignment, and in fact it says:
+>
+> "Descendants are always substantially shorter than the parent and
+> are placed substantially to the right. The same applies to function
+> headers
+> with a long argument list."
+>
+> Unless Mauro thinks otherwise, I would leave all the alignment stuff alone
+> and just post a version with the last chunk.
+>
+
+OK. The chunks on patch 01 are mostly to get rid of these outputs out
+of checkpatch.pl --strict -f drivers/media/radio/radio-si4713.c:
+CHECK: Alignment should match open parenthesis
+#97: FILE: media/radio/radio-si4713.c:97:
++       strlcpy(capability->card, "Silicon Labs Si4713 Modulator",
++                               sizeof(capability->card));
+
+
+> For patches 2-4:
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+
+
+Nice! I will add your Acked-by.
+
+
+> Are you still able to test the si4713 driver? Because I have patches
+
+
+
+I see. In fact that is my next step on my todo list for si4713. I
+still have an n900 that I can fetch from my drobe, so just a matter of
+booting it with newer kernel.
+
+> outstanding that I would love for someone to test for me:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/si4713
+>
+> In particular, run the latest v4l2-compliance test over it.
+>
+
+
+OK. I will check your branch once I get my setup done and let you know.
+
 > Regards,
-> 
-> 	Hans
-> 
+>
+>         Hans
+>
+> >
+> > These changes are also available here:
+> > https://git.gitorious.org/si4713/si4713.git
+> >
+> > All best,
+> >
+> > Eduardo Valentin (4):
+> >   media: radio: CodingStyle changes on si4713
+> >   media: radio: correct module license (==> GPL v2)
+> >   media: radio: add driver owner entry for radio-si4713
+> >   media: radio: add module alias entry for radio-si4713
+> >
+> >  drivers/media/radio/radio-si4713.c |   57
+> > ++++++++++++++++++-----------------
+> >  1 files changed, 29 insertions(+), 28 deletions(-)
+> >
+> >
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Leonid found some issues that I want to address first.
 
-Regards,
 
-	Hans
-
-> The following changes since commit 004e45d736bfe62159bd4dc1549eff414bd27496:
-> 
->   [media] tuner-core: handle errors when getting signal strength/afc (2013-03-25 15:10:43 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git hdpvr
-> 
-> for you to fetch changes up to 6cb9721190d98e654e1b5ac467565ce7784ed2da:
-> 
->   hdpvr: add dv_timings support. (2013-03-28 09:16:36 +0100)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (11):
->       videodev2.h: fix incorrect V4L2_DV_FL_HALF_LINE bitmask.
->       v4l2-dv-timings.h: add 480i59.94 and 576i50 CEA-861-E timings.
->       hdpvr: convert to the control framework.
->       hdpvr: remove hdpvr_fh and just use v4l2_fh.
->       hdpvr: add prio and control event support.
->       hdpvr: support device_caps in querycap.
->       hdpvr: small fixes
->       hdpvr: register the video node at the end of probe.
->       hdpvr: recognize firmware version 0x1e.
->       hdpvr: add g/querystd, remove deprecated current_norm.
->       hdpvr: add dv_timings support.
-> 
->  drivers/media/usb/hdpvr/hdpvr-core.c  |   14 +-
->  drivers/media/usb/hdpvr/hdpvr-video.c |  918 +++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
->  drivers/media/usb/hdpvr/hdpvr.h       |   19 +-
->  include/uapi/linux/v4l2-dv-timings.h  |   18 ++
->  include/uapi/linux/videodev2.h        |    2 +-
->  5 files changed, 473 insertions(+), 498 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+--
+Eduardo Bezerra Valentin
