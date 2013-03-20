@@ -1,201 +1,437 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3633 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750696Ab3CAHwr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 02:52:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matt Gomboc" <gomboc0@gmail.com>
-Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
-Date: Fri, 1 Mar 2013 08:52:36 +0100
-Cc: linux-media@vger.kernel.org
-References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt>
-In-Reply-To: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:47121 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758177Ab3CTJ1i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 05:27:38 -0400
+Date: Wed, 20 Mar 2013 10:30:57 +0100
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	elezegarcia@gmail.com
+Subject: Re: [RFC V1 2/8] smi2021: Add smi2021_main.c
+Message-ID: <20130320093056.GH17291@dell.arpanet.local>
+References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+ <1363270024-12127-3-git-send-email-jonarne@jonarne.no>
+ <201303180858.47329.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303010852.36574.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201303180858.47329.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 1 2013 00:34:38 Matt Gomboc wrote:
-> This is a patch I have created that enables basic support for a product
-> marketed as EZGrabber2, which is identified as an OTG102 board by dmesg and
-> lsusb.
+On Mon, Mar 18, 2013 at 08:58:47AM +0100, Hans Verkuil wrote:
+> Hi Jon Arne,
 > 
-> I have documented some detail about the product and this patch at
-> http://linuxtv.org/wiki/index.php/OTG102. In summary, it has a peculiarly
-> marked chipset, CX78921-11z, although the packaged windows drivers looked
-> similar enough to the cx23100 series. With some experimentation, was able to
-> get the device to operate properly by replicating much of the code for the
-> CX231XX_BOARD_CNXT_VIDEO_GRABBER, but with the
-> agc_analog_digital_select_gpio information from the windows driver inf file
-> and defining .dont_use_port_3.
+> Here is my review of this driver.
+>
+
+Great, thank you.
+
+> Regards,
 > 
-> The vendor documentation states the device supports hardware encoding of
-> MPEG1/2/4. If I don't include the .has_417=1 option in the device
-> definition, it creates a single /dev/video0 device which works and provides
-> uncompressed video. If I do include that option, the working device is moved
-> to video1, and video0 is created but no data comes out of it. The Geniatech
-> driver also contains a firmware image called cx416enc.rom which is very
-> similar (in binary comparison) to the v4l-cx23885-enc.fw/ hcw85enc.rom. 
-
-Yeah, I never was able to get the 417 part working either. The code for
-that seems to be highly unstable.
-
-> The patch is against my local gentoo-3.6 kernel. As I am a first time
-> contributor to this mailing list, and only have a superficial understanding
-> of the cx231xx and related drivers and the v4l2 framework (and c programming
-> in general), any stylistic or procedural guidance for improving the patch
-> for eventual submission, information posted to the linuxtv wiki, etc, would
-> be welcome.
-
-It's not bad for a first time :-)
-
-The main thing to remember is to post the patch as part of the email, not as
-an attachment. That makes it easier for us to review.
-
-I also need a 'Signed-of-by' line before a patch can be submitted. See:
-
-http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-
-> Also considering the recently submitted patch for the "Elgato Video Capture
-> V2" which also adds device 16 to cx2311.h and the many recent patches by
-> Hans Verkuil, this may take some further working to align it with a moving
-> target.
-
-It shouldn't be too bad, but it probably makes life easier if we wait with
-applying this patch until after my patch series has been merged.
-
-> If you desire any further information, let me know. Thanks.
+> 	Hans
 > 
-> Matt 
+> On Thu March 14 2013 15:06:58 Jon Arne Jørgensen wrote:
+> > This is the core of the smi2021 module.
+> > It will register the module with the kernel, and register the
+> > usb probe function.
+> > 
+> > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> > ---
+> >  drivers/media/usb/smi2021/smi2021_main.c | 339 +++++++++++++++++++++++++++++++
+> >  1 file changed, 339 insertions(+)
+> >  create mode 100644 drivers/media/usb/smi2021/smi2021_main.c
+> > 
+> > diff --git a/drivers/media/usb/smi2021/smi2021_main.c b/drivers/media/usb/smi2021/smi2021_main.c
+> > new file mode 100644
+> > index 0000000..cc600e7
+> > --- /dev/null
+> > +++ b/drivers/media/usb/smi2021/smi2021_main.c
+> > @@ -0,0 +1,339 @@
+> > +/*******************************************************************************
+> > + * smi2021_main.c                                                              *
+> > + *                                                                             *
+> > + * USB Driver for SMI2021 - EasyCAP                                            *
+> > + * USB ID 1c88:003c                                                            *
+> > + *                                                                             *
+> > + * *****************************************************************************
+> > + *
+> > + * Copyright 2011-2013 Jon Arne Jørgensen
+> > + * <jonjon.arnearne--a.t--gmail.com>
+> > + *
+> > + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
+> > + *
+> > + * This file is part of SMI2021
+> > + * http://code.google.com/p/easycap-somagic-linux/
+> > + *
+> > + * This program is free software: you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License as published by
+> > + * the Free Software Foundation, either version 2 of the License, or
+> > + * (at your option) any later version.
+> > + *
+> > + * This program is distributed in the hope that it will be useful,
+> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, see <http://www.gnu.org/licenses/>.
+> > + *
+> > + * This driver is heavily influensed by the STK1160 driver.
+> > + * Copyright (C) 2012 Ezequiel Garcia
+> > + * <elezegarcia--a.t--gmail.com>
+> > + *
+> > + */
+> > +
+> > +#include "smi2021.h"
+> > +
+> > +#define VENDOR_ID 0x1c88
+> > +
+> > +static unsigned int imput;
+> > +module_param(imput, int, 0644);
+> > +MODULE_PARM_DESC(input, "Set default input");
+> > +
+> > +MODULE_LICENSE("GPL");
+> > +MODULE_AUTHOR("Jon Arne Jørgensen <jonjon.arnearne--a.t--gmail.com>");
+> > +MODULE_DESCRIPTION("SMI2021 - EasyCap");
+> > +MODULE_VERSION(SMI2021_DRIVER_VERSION);
+> > +
+> > +
+> > +struct usb_device_id smi2021_usb_device_id_table[] = {
+> 
+> Should be static const
+>
 
-Some small comments regarding this patch:
+Ok.
+ 
+> > +	{ USB_DEVICE(VENDOR_ID, 0x003c) },
+> > +	{ USB_DEVICE(VENDOR_ID, 0x003d) },
+> > +	{ USB_DEVICE(VENDOR_ID, 0x003e) },
+> > +	{ USB_DEVICE(VENDOR_ID, 0x003f) },
+> > +	{ }
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(usb, smi2021_usb_device_id_table);
+> > +
+> > +static unsigned short saa7113_addrs[] = {
+> > +	0x4a,
+> > +	I2C_CLIENT_END
+> > +};
+> 
+> Don't use this. See below for more info.
+>
 
-> diff -uprN linux-3.6/drivers/media/video/cx231xx/cx231xx-avcore.c linux-3.6.new/drivers/media/video/cx231xx/cx231xx-avcore.c
-> --- linux-3.6/drivers/media/video/cx231xx/cx231xx-avcore.c	2012-09-30 17:47:46.000000000 -0600
-> +++ linux-3.6.new/drivers/media/video/cx231xx/cx231xx-avcore.c	2013-02-26 19:58:51.096793077 -0700
-> @@ -352,6 +352,7 @@ int cx231xx_afe_update_power_control(str
->  	case CX231XX_BOARD_CNXT_RDE_253S:
->  	case CX231XX_BOARD_CNXT_RDU_253S:
->  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
-> +	case CX231XX_BOARD_OTG102:
->  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
->  	case CX231XX_BOARD_HAUPPAUGE_USBLIVE2:
->  	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
-> @@ -1719,6 +1720,7 @@ int cx231xx_dif_set_standard(struct cx23
->  	case CX231XX_BOARD_CNXT_SHELBY:
->  	case CX231XX_BOARD_CNXT_RDU_250:
->  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
-> +	case CX231XX_BOARD_OTG102:
->  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
->  		func_mode = 0x03;
->  		break;
-> diff -uprN linux-3.6/drivers/media/video/cx231xx/cx231xx-cards.c linux-3.6.new/drivers/media/video/cx231xx/cx231xx-cards.c
-> --- linux-3.6/drivers/media/video/cx231xx/cx231xx-cards.c	2012-09-30 17:47:46.000000000 -0600
-> +++ linux-3.6.new/drivers/media/video/cx231xx/cx231xx-cards.c	2013-02-28 12:23:58.925869674 -0700
-> @@ -280,6 +280,37 @@ struct cx231xx_board cx231xx_boards[] =
->  			}
->  		},
->  	},
-> +	[CX231XX_BOARD_OTG102] = {
-> +                .name = "Geniatech OTG102",
-> +                .tuner_type = TUNER_ABSENT,
-> +                .decoder = CX231XX_AVDECODER,
-> +                .output_mode = OUT_MODE_VIP11,
-> +                .ctl_pin_status_mask = 0xFFFFFFC4,
-> +                .agc_analog_digital_select_gpio = 0x0c, /* According with PV CxPlrCAP.inf file */
-> +                .gpio_pin_status_mask = 0x4001000,
-> +                .norm = V4L2_STD_NTSC,
-> +                .no_alt_vanc = 1,
-> +                .external_av = 1,
-> +                .dont_use_port_3 = 1,
-> +		//.has_417 = 1,
+Removed.
 
-Don't use //, always use /* */ (coding style issue).
+> > +
+> > +/******************************************************************************/
+> > +/*                                                                            */
+> > +/*          Write to saa7113                                                  */
+> > +/*                                                                            */
+> > +/******************************************************************************/
+> > +
+> > +inline int transfer_usb_ctrl(struct smi2021_dev *dev, u8 *data, int len)
+> > +{
+> > +	return usb_control_msg(dev->udev, usb_sndctrlpipe(dev->udev, 0x00),
+> > +			0x01, USB_DIR_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > +			0x0b, 0x00,
+> > +			data, len, 1000);
+> > +}
+> > +
+> > +int smi2021_write_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 val)
+> > +{
+> > +	int rc;
+> > +	u8 snd_data[8];
+> > +
+> > +	memset(snd_data, 0x00, 8);
+> > +
+> > +	snd_data[SMI2021_CTRL_HEAD] = 0x0b;
+> > +	snd_data[SMI2021_CTRL_ADDR] = addr;
+> > +	snd_data[SMI2021_CTRL_DATA_SIZE] = 0x01;
+> > +
+> > +	if (addr) {
+> > +		/* This is I2C data for the saa7113 chip */
+> > +		snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0xc0;
+> > +		snd_data[SMI2021_CTRL_BM_DATA_OFFSET] = 0x01;
+> > +
+> > +		snd_data[SMI2021_CTRL_I2C_REG] = reg;
+> > +		snd_data[SMI2021_CTRL_I2C_VAL] = val;
+> > +	} else {
+> > +		/* This is register settings for the smi2021 chip */
+> > +		snd_data[SMI2021_CTRL_BM_DATA_OFFSET] = 0x82;
+> > +
+> > +		snd_data[SMI2021_CTRL_REG_HI] = __cpu_to_be16(reg) >> 8;
+> > +		snd_data[SMI2021_CTRL_REG_LO] = __cpu_to_be16(reg);
+> 
+> This looks really weird. On a little endian system REG_HI is now initialized
+> with the LSB, not MSB and the other way around on a big endian system.
+> The _cpu_to_be16 certainly doesn't belong here.
+>
 
-> +		/* this board has hardware encoding chip supporting mpeg1/2/4, but as the 417 is apparently not working for the
-> +		   reference board it is not on this one either. building the driver with this option and then loading the module
-> +		   creates a second video device node, but nothing comes out of it.  */
+The device expects the register address as a 16bit Big Endian number.
+I though this code would move the HIGH byte of a big endian number into
+REG_HI, and the LOW byte into REG_LO.
 
-These comments shouldn't go over column 80.
+This works as expected on my little endian intel I7, but I will have
+take a second look at my code, I guesss I can do this without the
+conversion into be16.
 
+> > +
+> > +	}
+> > +
+> > +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> > +	if (rc < 0) {
+> > +		smi2021_warn("write failed on register 0x%x, errno: %d\n",
+> > +			reg, rc);
+> > +		return rc;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +int smi2021_read_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 *val)
+> > +{
+> > +	int rc;
+> > +	u8 rcv_data[13];
+> > +	u8 snd_data[8];
+> > +	memset(rcv_data, 0x00, 13);
+> > +	memset(snd_data, 0x00, 8);
+> > +
+> > +	snd_data[SMI2021_CTRL_HEAD] = 0x0b;
+> > +	snd_data[SMI2021_CTRL_ADDR] = addr;
+> > +	snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0x84;
+> > +	snd_data[SMI2021_CTRL_DATA_SIZE] = 0x01;
+> > +	snd_data[SMI2021_CTRL_I2C_REG] = reg;
+> > +
+> > +	*val = 0;
+> > +
+> > +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> > +	if (rc < 0) {
+> > +		smi2021_warn(
+> > +			"1st pass failing to read reg 0x%x, usb-errno: %d\n",
+> > +			reg, rc);
+> > +		return rc;
+> > +	}
+> > +
+> > +	snd_data[SMI2021_CTRL_BM_DATA_TYPE] = 0xa0;
+> > +	rc = transfer_usb_ctrl(dev, snd_data, 8);
+> > +	if (rc < 0) {
+> > +		smi2021_warn(
+> > +			"2nd pass failing to read reg 0x%x, usb-errno: %d\n",
+> > +			reg, rc);
+> > +		return rc;
+> > +	}
+> > +
+> > +	rc = usb_control_msg(dev->udev,
+> > +		usb_rcvctrlpipe(dev->udev, 0x80), 0x01,
+> > +		USB_DIR_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > +		0x0b, 0x00, rcv_data, 13, 1000);
+> > +	if (rc < 0) {
+> > +		smi2021_warn("Failed to read reg 0x%x, usb-errno: %d\n",
+> > +			reg, rc);
+> > +		return rc;
+> > +	}
+> > +
+> > +	*val = rcv_data[SMI2021_CTRL_I2C_RCV_VAL];
+> > +	return 0;
+> > +}
+> > +
+> > +static void smi2021_reset_device(struct smi2021_dev *dev)
+> > +{
+> > +	smi2021_write_reg(dev, 0, 0x3a, 0x80);
+> > +	smi2021_write_reg(dev, 0, 0x3b, 0x80);
+> > +	smi2021_write_reg(dev, 0, 0x3b, 0x00);
+> > +}
+> > +
+> > +static void release_v4l2_dev(struct v4l2_device *v4l2_dev)
+> > +{
+> > +	struct smi2021_dev *dev = container_of(v4l2_dev, struct smi2021_dev,
+> > +								v4l2_dev);
+> > +	smi2021_dbg("Releasing all resources\n");
+> > +
+> > +	smi2021_i2c_unregister(dev);
+> > +
+> > +	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+> > +	v4l2_device_unregister(&dev->v4l2_dev);
+> > +	kfree(dev);
+> > +}
+> > +
+> > +#define hb_mult(w_max_packet_size) (1 + (((w_max_packet_size) >> 11) & 0x03))
+> > +
+> > +static int smi2021_scan_usb(struct usb_interface *intf, struct usb_device *udev)
+> > +{
+> > +	int i, e, ifnum, sizedescr, size;
+> > +	const struct usb_endpoint_descriptor *desc;
+> > +	ifnum = intf->altsetting[0].desc.bInterfaceNumber;
+> > +
+> > +	for (i = 0; i < intf->num_altsetting; i++) {
+> > +		for (e = 0; e < intf->altsetting[i].desc.bNumEndpoints; e++) {
+> > +			desc = &intf->altsetting[i].endpoint[e].desc;
+> > +			sizedescr = le16_to_cpu(desc->wMaxPacketSize);
+> > +			size = sizedescr & 0x7ff;
+> > +
+> > +			if (udev->speed == USB_SPEED_HIGH)
+> > +				size = size * hb_mult(sizedescr);
+> > +		}
+> > +	}
+> > +	return 0;
+> > +}
+> > +
+> > +/******************************************************************************/
+> > +/*                                                                            */
+> > +/*          DEVICE  -  PROBE   &   DISCONNECT                                 */
+> > +/*                                                                            */
+> > +/******************************************************************************/
+> > +static int smi2021_usb_probe(struct usb_interface *intf,
+> > +					const struct usb_device_id *devid)
+> > +{
+> > +	int rc = 0;
+> > +	struct usb_device *udev = interface_to_usbdev(intf);
+> > +	struct smi2021_dev *dev;
+> > +
+> > +	if (udev == (struct usb_device *)NULL) {
+> > +		smi2021_err("device is NULL\n");
+> > +		return -EFAULT;
+> > +	}
+> > +
+> > +	smi2021_scan_usb(intf, udev);
+> > +
+> > +	dev = kzalloc(sizeof(struct smi2021_dev), GFP_KERNEL);
+> > +	if (dev == NULL)
+> > +		return -ENOMEM;
+> > +
+> > +	dev->udev = udev;
+> > +	dev->dev = &intf->dev;
+> > +	usb_set_intfdata(intf, dev);
+> > +
+> > +	/* Initialize videobuf2 stuff */
+> > +	rc = smi2021_vb2_setup(dev);
+> > +	if (rc < 0)
+> > +		goto free_err;
+> > +
+> > +	spin_lock_init(&dev->buf_lock);
+> > +	mutex_init(&dev->v4l2_lock);
+> > +	mutex_init(&dev->vb_queue_lock);
+> > +
+> > +	rc = v4l2_ctrl_handler_init(&dev->ctrl_handler, 0);
+> > +	if (rc) {
+> > +		smi2021_err("v4l2_ctrl_handler_init failed with: %d\n", rc);
+> > +		goto free_err;
+> > +	}
+> > +
+> > +	dev->v4l2_dev.release = release_v4l2_dev;
+> > +	dev->v4l2_dev.ctrl_handler = &dev->ctrl_handler;
+> > +	rc = v4l2_device_register(dev->dev, &dev->v4l2_dev);
+> > +	if (rc) {
+> > +		smi2021_err("v4l2_device_register failed with %d\n", rc);
+> > +		goto free_ctrl;
+> > +	}
+> > +
+> > +	smi2021_reset_device(dev);
+> > +
+> > +	rc = smi2021_i2c_register(dev);
+> > +	if (rc < 0)
+> > +		goto unreg_v4l2;
+> > +
+> > +	dev->sd_saa7113 = v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+> > +		"saa7113", 0, saa7113_addrs);
+> 
+> Fill in the addr argument directly and use NULL for probe_addrs. Probing is
+> not something new drivers should do.
+> 
+> See also my comments in the i2c.c review.
+> 
 
-> +                .input = {{
-> +                                .type = CX231XX_VMUX_COMPOSITE1,
-> +                                .vmux = CX231XX_VIN_2_1,
-> +                                .amux = CX231XX_AMUX_LINE_IN,
-> +                                .gpio = NULL,
-> +                        }, {
-> +                                .type = CX231XX_VMUX_SVIDEO,
-> +                                .vmux = CX231XX_VIN_1_1 |
-> +                                        (CX231XX_VIN_1_2 << 8) |
-> +                                        CX25840_SVIDEO_ON,
-> +                                .amux = CX231XX_AMUX_LINE_IN,
-> +                                .gpio = NULL,
-> +                        }
-> +                },
-> +        },
->  	[CX231XX_BOARD_CNXT_RDE_250] = {
->  		.name = "Conexant Hybrid TV - rde 250",
->  		.tuner_type = TUNER_XC5000,
-> @@ -620,6 +651,8 @@ struct usb_device_id cx231xx_id_table[]
->  	 .driver_info = CX231XX_BOARD_CNXT_RDU_253S},
->  	{USB_DEVICE(0x0572, 0x58A6),
->  	 .driver_info = CX231XX_BOARD_CNXT_VIDEO_GRABBER},
-> +	{USB_DEVICE(0x1F4D, 0x0102),
-> +	 .driver_info = CX231XX_BOARD_OTG102},
->  	{USB_DEVICE(0x0572, 0x589E),
->  	 .driver_info = CX231XX_BOARD_CNXT_RDE_250},
->  	{USB_DEVICE(0x0572, 0x58A0),
-> @@ -904,6 +937,12 @@ static int cx231xx_init_dev(struct cx231
->  		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
->  		cx231xx_set_alt_setting(dev, INDEX_VANC, 1);
->  	}
-> +/*
+I will do this as you suggested in the ic2 review.
 
-Why is this commented out? Can't this just be removed?
-
-> +	if (dev->model == CX231XX_OTG102) {
-> +		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
-> +		cx231xx_set_alt_setting(dev, INDEX_VANC, 1);
-> +	}
-> +*/
->  	/* Cx231xx pre card setup */
->  	cx231xx_pre_card_setup(dev);
->  
-> @@ -1295,6 +1334,12 @@ static int cx231xx_usb_probe(struct usb_
->  		cx231xx_enable_OSC(dev);
->  		cx231xx_reset_out(dev);
->  		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
-> +	}
-> +	
-> +	if (dev->model == CX231XX_BOARD_OTG102) {
-> +		cx231xx_enable_OSC(dev);
-> +		cx231xx_reset_out(dev);
-> +		cx231xx_set_alt_setting(dev, INDEX_VIDEO, 3);
->  	}
->  
->  	if (dev->model == CX231XX_BOARD_CNXT_RDE_253S)
-> diff -uprN linux-3.6/drivers/media/video/cx231xx/cx231xx.h linux-3.6.new/drivers/media/video/cx231xx/cx231xx.h
-> --- linux-3.6/drivers/media/video/cx231xx/cx231xx.h	2012-09-30 17:47:46.000000000 -0600
-> +++ linux-3.6.new/drivers/media/video/cx231xx/cx231xx.h	2013-02-26 16:01:58.924653199 -0700
-> @@ -68,6 +68,7 @@
->  #define CX231XX_BOARD_ICONBIT_U100 13
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
-> +#define CX231XX_BOARD_OTG102 16
->  
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
-
-I recommend creating your patch on top of my patch series which is available
-here: http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx
-
-That way I can just add your patch to my patch series and the whole lot will
-be merged in one go by Mauro.
-
-Regards,
-
-	Hans
+> > +
+> > +	smi2021_dbg("Driver version %s successfully loaded\n",
+> > +			SMI2021_DRIVER_VERSION);
+> > +
+> > +	v4l2_device_call_all(&dev->v4l2_dev, 0, core, reset, 0);
+> > +	v4l2_device_call_all(&dev->v4l2_dev, 0, video, s_stream, 0);
+> > +
+> > +	rc = smi2021_snd_register(dev);
+> > +	if (rc < 0)
+> > +		goto unreg_i2c;
+> > +
+> > +	rc = smi2021_video_register(dev);
+> > +	if (rc < 0)
+> > +		goto unreg_snd;
+> > +
+> > +	return 0;
+> > +
+> > +unreg_snd:
+> > +	smi2021_snd_unregister(dev);
+> > +unreg_i2c:
+> > +	smi2021_i2c_unregister(dev);
+> > +unreg_v4l2:
+> > +	v4l2_device_unregister(&dev->v4l2_dev);
+> > +free_ctrl:
+> > +	v4l2_ctrl_handler_free(&dev->ctrl_handler);
+> > +free_err:
+> > +	kfree(dev);
+> > +
+> > +	return rc;
+> > +}
+> > +
+> > +static void smi2021_usb_disconnect(struct usb_interface *intf)
+> > +{
+> > +	struct smi2021_dev *dev = usb_get_intfdata(intf);
+> > +
+> > +	smi2021_dbg("Going for release!\n");
+> > +
+> > +	usb_set_intfdata(intf, NULL);
+> > +
+> > +	mutex_lock(&dev->vb_queue_lock);
+> > +	mutex_lock(&dev->v4l2_lock);
+> > +
+> > +	smi2021_uninit_isoc(dev);
+> > +	smi2021_clear_queue(dev);
+> > +
+> > +	video_unregister_device(&dev->vdev);
+> > +	v4l2_device_disconnect(&dev->v4l2_dev);
+> > +
+> > +	/* This way current users can detect device is gone */
+> > +	dev->udev = NULL;
+> > +
+> > +	mutex_unlock(&dev->v4l2_lock);
+> > +	mutex_unlock(&dev->vb_queue_lock);
+> > +
+> > +	smi2021_snd_unregister(dev);
+> > +
+> > +	/*
+> > +	 * This calls release_v4l2_dev if it's the last reference.
+> > +	 * Otherwise, the release is postponed until there are no users left.
+> > +	 */
+> > +	v4l2_device_put(&dev->v4l2_dev);
+> > +}
+> > +
+> > +/******************************************************************************/
+> > +/*                                                                            */
+> > +/*            MODULE  -  INIT  &  EXIT                                        */
+> > +/*                                                                            */
+> > +/******************************************************************************/
+> > +
+> > +struct usb_driver smi2021_usb_driver = {
+> > +	.name = "smi2021",
+> > +	.id_table = smi2021_usb_device_id_table,
+> > +	.probe = smi2021_usb_probe,
+> > +	.disconnect = smi2021_usb_disconnect
+> > +};
+> > +
+> > +module_usb_driver(smi2021_usb_driver);
+> > +
+> > 
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
