@@ -1,74 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2072 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755026Ab3CLG4c (ORCPT
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:62380 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755883Ab3CTJCo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 02:56:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH RFC v3 2/6] v4l2-ctrl: Add helper function for control range update
-Date: Tue, 12 Mar 2013 07:56:25 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-References: <1358979721-17473-1-git-send-email-sylvester.nawrocki@gmail.com> <1358979721-17473-3-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1358979721-17473-3-git-send-email-sylvester.nawrocki@gmail.com>
+	Wed, 20 Mar 2013 05:02:44 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303120756.25167.hverkuil@xs4all.nl>
+In-Reply-To: <201303191759.27762.arnd@arndb.de>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <201303191648.31527.arnd@arndb.de> <CAHkwnC9FL9W07=n6bWvcwiE058zcBZwqUwtRB-VVNpU0gv0mNw@mail.gmail.com>
+ <201303191759.27762.arnd@arndb.de>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Wed, 20 Mar 2013 10:02:23 +0100
+Message-ID: <CAHkwnC-3_dDM3JO8y3yeNFz7=fpP=MtZ9D-3cMH8rNF9C1NZBA@mail.gmail.com>
+Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	H Hartley Sweeten <hartleys@visionengravers.com>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
+	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Grant Likely <grant.likely@secretlab.ca>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Tue, Mar 19, 2013 at 6:59 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 19 March 2013, Fabio Porcedda wrote:
+>> On Tue, Mar 19, 2013 at 5:48 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> > On Tuesday 19 March 2013, Geert Uytterhoeven wrote:
+>> >> Hmm, so we may have drivers that (now) work perfectly fine with
+>> >> module_platform_driver_probe()/platform_driver_probe(), but will start
+>> >> failing suddenly in the future?
+>> >
+>> > They will fail if someone changes the initialization order. That would
+>> > already break drivers before deferred probing support (and was the reason
+>> > we added feature in the first place), but now we can be much more liberal
+>> > with the order in which drivers are initialized, except when they are
+>> > using platform_driver_probe()
+>> >
+>> >> I guess we need a big fat WARN_ON(-EPROBE_DEFER) in
+>> >> platform_driver_probe() to catch these?
+>> >
+>> > Yes, very good idea.
+>>
+>> If it's fine, I'll send a patch for that.
+>
+> That would be cool, yes. I looked at it earlier (after sending my email above)
+> and couldn't find an easy way to do it though, because platform_drv_probe
+> does not know whether it is called from platform_driver_probe or not.
+>
+> Maybe using something other than platform_driver_register would work here.
+>
+>         Arnd
 
-On Wed January 23 2013 23:21:57 Sylwester Nawrocki wrote:
-> This patch adds a helper function that allows to modify range,
-> i.e. minimum, maximum, step and default value of a v4l2 control,
-> after the control has been created and initialized. This is helpful
-> in situations when range of a control depends on user configurable
-> parameters, e.g. camera sensor absolute exposure time depending on
-> an output image resolution and frame rate.
-> 
-> v4l2_ctrl_modify_range() function allows to modify range of an
-> INTEGER, BOOL, MENU, INTEGER_MENU and BITMASK type controls.
-> 
-> Based on a patch from Hans Verkuil http://patchwork.linuxtv.org/patch/8654.
-> 
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+I think we can check inside the  deferred_probe_work_func()
+if the dev->probe function pointer is equal to platform_drv_probe_fail().
 
-I've been playing around with this a bit, using this vivi patch:
-
-diff --git a/drivers/media/platform/vivi.c b/drivers/media/platform/vivi.c
-index c46d2e8..85bc314 100644
---- a/drivers/media/platform/vivi.c
-+++ b/drivers/media/platform/vivi.c
-@@ -1093,6 +1093,15 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 		return 0;
- 
- 	dev->input = i;
-+	/*
-+	 * Modify the brightness range depending on the input.
-+	 * This makes it easy to use vivi to test if applications can
-+	 * handle control range modifications and is also how this is
-+	 * typically used in practice as different inputs may be hooked
-+	 * up to different receivers with different control ranges.
-+	 */
-+	v4l2_ctrl_modify_range(dev->brightness,
-+			128 * i, 255 + 128 * i, 1, 127 + 128 * i);
- 	precalculate_bars(dev);
- 	precalculate_line(dev);
- 	return 0;
-
-And it made me wonder if it wouldn't be more sensible if modify_range would
-also update the current value to the new default value?
-
-You get weird effects otherwise where the new value is clamped to either
-the minimum or maximum value if the current value falls outside the new
-range.
-
-Regards,
-
-	Hans
-
-PS: qv4l2 has been updated to support range update events.
+Regards
+--
+Fabio Porcedda
