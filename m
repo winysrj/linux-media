@@ -1,60 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:50784 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965689Ab3CZQkN (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2011 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381Ab3CTSjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 12:40:13 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Wed, 20 Mar 2013 14:39:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 0/6] Device tree support for Exynos SoC camera subsystem
-Date: Tue, 26 Mar 2013 17:39:52 +0100
-Message-id: <1364315998-19372-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 05/11] hdpvr: add prio and control event support.
+Date: Wed, 20 Mar 2013 19:38:56 +0100
+Message-Id: <1363804742-5355-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes in this iteration include mostly adaptation to changes at the
-V4L2 OF parser lib and an addition of clocks/clock-names properties
-in the bindings of the IP blocks.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-If there is no more comments I intend to send a pull request including
-the DT bindings documentation, the V4L2 OF parser and these patches at
-end of this week.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |   20 ++++++++++++--------
+ 1 file changed, 12 insertions(+), 8 deletions(-)
 
-This patch series with all dependencies can be found at:
-http://git.linuxtv.org/snawrocki/samsung.git/devicetree-fimc-v5
-
-Sylwester Nawrocki (6):
-  s5p-csis: Add device tree support
-  s5p-fimc: Add device tree support for FIMC device driver
-  s5p-fimc: Add device tree support for FIMC-LITE device driver
-  s5p-fimc: Add device tree support for the media device driver
-  s5p-fimc: Add device tree based sensors registration
-  s5p-fimc: Use pinctrl API for camera ports configuration
-
- .../devicetree/bindings/media/exynos-fimc-lite.txt |   14 +
- .../devicetree/bindings/media/samsung-fimc.txt     |  200 +++++++++++
- .../bindings/media/samsung-mipi-csis.txt           |   81 +++++
- drivers/media/platform/s5p-fimc/fimc-capture.c     |    6 +-
- drivers/media/platform/s5p-fimc/fimc-core.c        |  239 +++++++------
- drivers/media/platform/s5p-fimc/fimc-core.h        |   21 +-
- drivers/media/platform/s5p-fimc/fimc-lite.c        |   63 +++-
- drivers/media/platform/s5p-fimc/fimc-m2m.c         |    2 +-
- drivers/media/platform/s5p-fimc/fimc-mdevice.c     |  370 +++++++++++++++++---
- drivers/media/platform/s5p-fimc/fimc-mdevice.h     |   16 +
- drivers/media/platform/s5p-fimc/fimc-reg.c         |    6 +-
- drivers/media/platform/s5p-fimc/mipi-csis.c        |  155 ++++++--
- drivers/media/platform/s5p-fimc/mipi-csis.h        |    1 +
- include/media/s5p_fimc.h                           |   17 +
- 14 files changed, 982 insertions(+), 209 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-fimc.txt
- create mode 100644 Documentation/devicetree/bindings/media/samsung-mipi-csis.txt
-
---
-1.7.9.5
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 873bb23..789d808 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -23,6 +23,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
+ #include "hdpvr.h"
+ 
+ #define BULK_URB_TIMEOUT   90 /* 0.09 seconds */
+@@ -478,16 +479,15 @@ err:
+ 
+ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct hdpvr_buffer *buf = NULL;
+ 	struct hdpvr_device *dev = video_drvdata(filp);
+-	unsigned int mask = 0;
++	unsigned int mask = v4l2_ctrl_poll(filp, wait);
+ 
+-	mutex_lock(&dev->io_mutex);
++	if (!(req_events & (POLLIN | POLLRDNORM)))
++		return mask;
+ 
+-	if (!video_is_registered(dev->video_dev)) {
+-		mutex_unlock(&dev->io_mutex);
+-		return -EIO;
+-	}
++	mutex_lock(&dev->io_mutex);
+ 
+ 	if (dev->status == STATUS_IDLE) {
+ 		if (hdpvr_start_streaming(dev)) {
+@@ -878,10 +878,13 @@ static const struct v4l2_ioctl_ops hdpvr_ioctl_ops = {
+ 	.vidioc_enumaudio	= vidioc_enumaudio,
+ 	.vidioc_g_audio		= vidioc_g_audio,
+ 	.vidioc_s_audio		= vidioc_s_audio,
+-	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt_vid_cap,
+-	.vidioc_g_fmt_vid_cap		= vidioc_g_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap= vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
+ 	.vidioc_encoder_cmd	= vidioc_encoder_cmd,
+ 	.vidioc_try_encoder_cmd	= vidioc_try_encoder_cmd,
++	.vidioc_log_status	= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ static void hdpvr_device_release(struct video_device *vdev)
+@@ -1006,6 +1009,7 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 	strcpy(dev->video_dev->name, "Hauppauge HD PVR");
+ 	dev->video_dev->v4l2_dev = &dev->v4l2_dev;
+ 	video_set_drvdata(dev->video_dev, dev);
++	set_bit(V4L2_FL_USE_FH_PRIO, &dev->video_dev->flags);
+ 
+ 	res = video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum);
+ 	if (res < 0) {
+-- 
+1.7.10.4
 
