@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4374 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab3CTRUB (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:49076 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757044Ab3CTBKd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 13:20:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Remove the dv_preset API from s5p-tv
-Date: Wed, 20 Mar 2013 18:19:47 +0100
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+	Tue, 19 Mar 2013 21:10:33 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303201819.48031.hverkuil@xs4all.nl>
+In-Reply-To: <20130318171140.4f5fddbc@redhat.com>
+References: <1361945213-4280-1-git-send-email-andrew.smirnov@gmail.com>
+	<1361945213-4280-2-git-send-email-andrew.smirnov@gmail.com>
+	<20130318171140.4f5fddbc@redhat.com>
+Date: Tue, 19 Mar 2013 18:10:32 -0700
+Message-ID: <CAHQ1cqHviVN1cwTYvG7AuF4Fqj86LWvwxnGKT0hUVfearoOwCw@mail.gmail.com>
+Subject: Re: [PATCH v7 1/9] mfd: Add commands abstraction layer for SI476X MFD
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, sameo@linux.intel.com,
+	sam@ravnborg.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This removes the dv_preset API from s5p-tv.
+On Mon, Mar 18, 2013 at 1:11 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Tue, 26 Feb 2013 22:06:45 -0800
+> Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
+>
+>> This patch adds all the functions used for exchanging commands with
+>> the chip.
+>
+> Please run checkpatch.pl over those patches. There are a number of compliants
+> on those patches:
+>
 
-Tested and acked by Tomasz. Thank you very much for testing!
+OK, will do shortly and send updated patch-set.
 
-After this patch series is applied there should be no more users of the
-DV_PRESET API and I'll post another patch series completely removing the API.
+> WARNING: line over 80 characters
+> #328: FILE: drivers/mfd/si476x-cmd.c:298:
+> +       err = si476x_core_i2c_xfer(core, SI476X_I2C_SEND, (char *) data, argn + 1);
+>
+> WARNING: line over 80 characters
+> #378: FILE: drivers/mfd/si476x-cmd.c:348:
+> +               dev_err(&core->client->dev, "[CMD 0x%02x] Chip set error flag\n", command);
+>
 
-Regards,
-
-	Hans
-
-The following changes since commit 72873e51c578ae29463a5d146f68881fcd0924c0:
-
-  [media] lmedm04: Remove redundant NULL check before kfree (2013-03-19 15:19:29 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git s5p
-
-for you to fetch changes up to 6cb8bd1f2dd2da98abedd33ef03b4e5b2ddbc301:
-
-  s5p-tv: remove the dv_preset API from hdmiphy. (2013-03-20 18:14:53 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      s5p-tv: add dv_timings support for hdmiphy.
-      s5p-tv: add dv_timings support for hdmi.
-      s5p-tv: add dv_timings support for mixer_video.
-      s5p-tv: remove dv_preset support from mixer_video.
-      s5p-tv: remove the dv_preset API from hdmi.
-      s5p-tv: remove the dv_preset API from hdmiphy.
-
- drivers/media/platform/s5p-tv/hdmi_drv.c    |  129 ++++++++++++++++++++++++++++++++++++++++-------------------------------
- drivers/media/platform/s5p-tv/hdmiphy_drv.c |   55 ++++++++++++------------------
- drivers/media/platform/s5p-tv/mixer_video.c |   48 ++++++++++++++++++---------
- 3 files changed, 127 insertions(+), 105 deletions(-)
+I do have a question about this particular warning though. Weird
+indentation that I had to use in order to calm checkpatch.pl about
+that issue has been a topic of discussion and complaints once
+already(see https://lkml.org/lkml/2012/9/21/67) To my understanding
+the consensus was as far as it improves readability > 80 character
+lines are OK. What would you like me do with those extra long lines
+ignore all/fix all/use discretion and fix some?
