@@ -1,82 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25367 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757601Ab3CYM4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 08:56:06 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2PCu67g009004
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 08:56:06 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/3] tuner-core: Remove the now uneeded checks at fe_has_signal/get_afc
-Date: Mon, 25 Mar 2013 09:55:58 -0300
-Message-Id: <1364216159-12707-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1364216159-12707-1-git-send-email-mchehab@redhat.com>
-References: <201303251232.31456.hverkuil@xs4all.nl>
- <1364216159-12707-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3323 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756125Ab3CTSjO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 14:39:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 02/11] v4l2-dv-timings.h: add 480i59.94 and 576i50 CEA-861-E timings.
+Date: Wed, 20 Mar 2013 19:38:53 +0100
+Message-Id: <1363804742-5355-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
+References: <1363804742-5355-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that those functions are only used when the corresponding
-function calls are defined, we don't need to check if those
-function calls are present at the structure before using it.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+These formats are supported by the HDPVR, but they were missing in the list.
+Note that these formats are different from the common PAL/NTSC/SECAM formats
+since all color channels are transmitted separately and so there is no PAL
+or NTSC or SECAM color encoding involved.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/tuner-core.c | 16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ include/uapi/linux/v4l2-dv-timings.h |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index 5e18f44..f1e8b40 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -222,8 +222,7 @@ static int fe_has_signal(struct dvb_frontend *fe)
- {
- 	u16 strength = 0;
- 
--	if (fe->ops.tuner_ops.get_rf_strength)
--		fe->ops.tuner_ops.get_rf_strength(fe, &strength);
-+	fe->ops.tuner_ops.get_rf_strength(fe, &strength);
- 
- 	return strength;
+diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
+index 9ef8172..4e0c58d 100644
+--- a/include/uapi/linux/v4l2-dv-timings.h
++++ b/include/uapi/linux/v4l2-dv-timings.h
+@@ -42,6 +42,15 @@
+ 		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, 0) \
  }
-@@ -232,8 +231,7 @@ static int fe_get_afc(struct dvb_frontend *fe)
- {
- 	s32 afc = 0;
  
--	if (fe->ops.tuner_ops.get_afc)
--		fe->ops.tuner_ops.get_afc(fe, &afc);
-+	fe->ops.tuner_ops.get_afc(fe, &afc);
- 
- 	return afc;
++/* Note: these are the nominal timings, for HDMI links this format is typically
++ * double-clocked to meet the minimum pixelclock requirements.  */
++#define V4L2_DV_BT_CEA_720X480I59_94 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 480, 1, 0, \
++		13500000, 19, 62, 57, 4, 3, 15, 4, 3, 16, \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
++}
++
+ #define V4L2_DV_BT_CEA_720X480P59_94 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 480, 0, 0, \
+@@ -49,6 +58,15 @@
+ 		V4L2_DV_BT_STD_CEA861, 0) \
  }
-@@ -256,8 +254,6 @@ static void tuner_status(struct dvb_frontend *fe);
- static const struct analog_demod_ops tuner_analog_ops = {
- 	.set_params     = fe_set_params,
- 	.standby        = fe_standby,
--	.has_signal     = fe_has_signal,
--	.get_afc        = fe_get_afc,
- 	.set_config     = fe_set_config,
- 	.tuner_status   = tuner_status
- };
-@@ -453,10 +449,10 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		memcpy(analog_ops, &tuner_analog_ops,
- 		       sizeof(struct analog_demod_ops));
  
--		if (fe_tuner_ops->get_rf_strength == NULL)
--			analog_ops->has_signal = NULL;
--		if (fe_tuner_ops->get_afc == NULL)
--			analog_ops->get_afc = NULL;
-+		if (fe_tuner_ops->get_rf_strength)
-+			analog_ops->has_signal = fe_has_signal;
-+		if (fe_tuner_ops->get_afc)
-+			analog_ops->get_afc = fe_get_afc;
- 
- 	} else {
- 		t->name = analog_ops->info.name;
++/* Note: these are the nominal timings, for HDMI links this format is typically
++ * double-clocked to meet the minimum pixelclock requirements.  */
++#define V4L2_DV_BT_CEA_720X576I50 { \
++	.type = V4L2_DV_BT_656_1120, \
++	V4L2_INIT_BT_TIMINGS(720, 576, 1, 0, \
++		13500000, 12, 63, 69, 2, 3, 19, 2, 3, 20, \
++		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
++}
++
+ #define V4L2_DV_BT_CEA_720X576P50 { \
+ 	.type = V4L2_DV_BT_656_1120, \
+ 	V4L2_INIT_BT_TIMINGS(720, 576, 0, 0, \
 -- 
-1.8.1.4
+1.7.10.4
 
