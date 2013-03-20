@@ -1,105 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f170.google.com ([209.85.220.170]:59229 "EHLO
-	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137Ab3CXQpI (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:45328 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757387Ab3CTTYI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 12:45:08 -0400
-Received: by mail-vc0-f170.google.com with SMTP id lf10so4306284vcb.1
-        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 09:45:07 -0700 (PDT)
+	Wed, 20 Mar 2013 15:24:08 -0400
+Received: by mail-ee0-f51.google.com with SMTP id d17so1311683eek.38
+        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 12:24:07 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [RFC PATCH 02/10] bttv: audio_mux(): do not change the value of the v4l2 mute control
+Date: Wed, 20 Mar 2013 20:24:42 +0100
+Message-Id: <1363807490-3906-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1363894748-28000-4-git-send-email-mchehab@redhat.com>
-References: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
-	<1363894748-28000-4-git-send-email-mchehab@redhat.com>
-Date: Sun, 24 Mar 2013 12:45:07 -0400
-Message-ID: <CAOcJUbx6MFDmP-6V2T0LQ-RQ_DWEG9uqvo559w9jD9qmAQa73A@mail.gmail.com>
-Subject: Re: [PATCH 4/4] [media] dvb-usb/dvb-usb-v2: use IS_ENABLED
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+There are cases where we want to call audio_mux() without changing the value of
+the v4l2 mute control, for example
+- mute mute on last close
+- mute on device probing
 
-On Thu, Mar 21, 2013 at 3:39 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Instead of checking everywhere there for 3 symbols, use instead
-> IS_ENABLED macro.
->
-> This replacement was done using this small perl script:
->
-> my $data;
-> $data .= $_ while (<>);
-> if ($data =~ m/CONFIG_([A-Z\_\d]*)_MODULE/) {
->         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)\!]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
->
->         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
->         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
-> }
-> print $data;
->
-> Cc: Michael Krufky <mkrufky@linuxtv.org>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h | 3 +--
->  drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h | 3 +--
->  drivers/media/usb/dvb-usb/dibusb-common.c     | 3 +--
->  3 files changed, 3 insertions(+), 6 deletions(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> index 432706a..40dd409 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
-> @@ -31,8 +31,7 @@ struct mxl111sf_demod_config {
->                             struct mxl111sf_reg_ctrl_info *ctrl_reg_info);
->  };
->
-> -#if defined(CONFIG_DVB_USB_MXL111SF) || \
-> -       (defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
-> +#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
->  extern
->  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
->                                            struct mxl111sf_demod_config *cfg);
-> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> index ff33396..634eee3 100644
-> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
-> @@ -60,8 +60,7 @@ struct mxl111sf_tuner_config {
->
->  /* ------------------------------------------------------------------------ */
->
-> -#if defined(CONFIG_DVB_USB_MXL111SF) || \
-> -       (defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
-> +#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
->  extern
->  struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
->                                            struct mxl111sf_state *mxl_state,
-> diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
-> index af0d432..ecb9360 100644
-> --- a/drivers/media/usb/dvb-usb/dibusb-common.c
-> +++ b/drivers/media/usb/dvb-usb/dibusb-common.c
-> @@ -232,8 +232,7 @@ static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
->         .agc2_slope2 = 0x1e,
->  };
->
-> -#if defined(CONFIG_DVB_DIB3000MC) ||                                   \
-> -       (defined(CONFIG_DVB_DIB3000MC_MODULE) && defined(MODULE))
-> +#if IS_ENABLED(CONFIG_DVB_DIB3000MC)
->
->  static struct dib3000mc_config mod3000p_dib3000p_config = {
->         &dib3000p_panasonic_agc_config,
-> --
-> 1.8.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
+
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index a584d82..a082ab4 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -999,7 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		   bttv_tvcards[btv->c.type].gpiomask);
+ 	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+ 
+-	btv->mute = mute;
+ 	btv->audio = input;
+ 
+ 	/* automute */
+@@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 
+ 		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 
+ 		/* Note: the inputs tuner/radio/extern/intern are translated
+ 		   to msp routings. This assumes common behavior for all msp3400
+@@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+ 				input, 0, 0);
+ 	}
+@@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+ 
+ 		if (ctrl)
+-			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
++			v4l2_ctrl_s_ctrl(ctrl, mute);
+ 	}
+ 	return 0;
+ }
+@@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+ 		break;
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		audio_mute(btv, c->val);
++		btv->mute = c->val;
+ 		break;
+ 	case V4L2_CID_AUDIO_VOLUME:
+ 		btv->volume_gpio(btv, c->val);
+-- 
+1.7.10.4
+
