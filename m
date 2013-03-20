@@ -1,273 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:35520 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750981Ab3CPIg4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Mar 2013 04:36:56 -0400
-Received: by mail-wi0-f175.google.com with SMTP id l13so1175021wie.8
-        for <linux-media@vger.kernel.org>; Sat, 16 Mar 2013 01:36:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1363079692-16683-1-git-send-email-nsekhar@ti.com>
-References: <513EE45E.6050004@ti.com> <1363079692-16683-1-git-send-email-nsekhar@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 16 Mar 2013 14:06:34 +0530
-Message-ID: <CA+V-a8v2-yGsfs_PXsq1OmcJmfYZzcjP2nO5DubdE_TLfghQ8g@mail.gmail.com>
-Subject: Re: [PATCH v3] media: davinci: kconfig: fix incorrect selects
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:12454 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756206Ab3CTPHq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Mar 2013 11:07:46 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2KF7kYp015501
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 11:07:46 -0400
+Date: Wed, 20 Mar 2013 12:07:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] [media] drxk: Add pre/post BER and PER/UCB stats
+Message-ID: <20130320120742.3ebd1ffa@redhat.com>
+In-Reply-To: <1363788136-14393-3-git-send-email-mchehab@redhat.com>
+References: <1363788136-14393-1-git-send-email-mchehab@redhat.com>
+	<1363788136-14393-3-git-send-email-mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
+Em Wed, 20 Mar 2013 11:02:13 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-Thanks for the patch!
+> The original az6007 driver has the code to calculate such
+> stats. Add it to the driver, reporting them via DVBv5
+> stats API.
 
-On Tue, Mar 12, 2013 at 2:44 PM, Sekhar Nori <nsekhar@ti.com> wrote:
-> drivers/media/platform/davinci/Kconfig uses selects where
-> it should be using 'depends on'. This results in warnings of
-> the following sort when doing randconfig builds.
->
-> warning: (VIDEO_DM6446_CCDC && VIDEO_DM355_CCDC && VIDEO_ISIF && VIDEO_DAVINCI_VPBE_DISPLAY) selects VIDEO_VPSS_SYSTEM which has unmet direct dependencies (MEDIA_SUPPORT && V4L_PLATFORM_DRIVERS && ARCH_DAVINCI)
->
-> The VPIF kconfigs had a strange 'select' and 'depends on' cross
-> linkage which have been fixed as well by removing unneeded
-> VIDEO_DAVINCI_VPIF config symbol.
->
-> Similarly, remove the unnecessary VIDEO_VPSS_SYSTEM and
-> VIDEO_VPFE_CAPTURE. They don't select any independent functionality
-> and were being used to manage code dependencies which can
-> be handled using makefile.
->
-> Selecting video modules is now dependent on all ARCH_DAVINCI
-> instead of specific EVMs and SoCs earlier. This should help build
-> coverage. Remove unnecessary 'default y' for some config symbols.
->
-> While at it, fix the Kconfig help text to make it more readable
-> and fix names of modules created during module build.
->
-> Rename VIDEO_ISIF to VIDEO_DM365_ISIF as per suggestion from
-> Prabhakar.
->
-> This patch has only been build tested; I have tried to not break
-> any existing assumptions. I do not have the setup to test video,
-> so any test reports welcome.
->
-The series which I posted yesterday [1] for DM365 VPBE, uses a exported
-symbol 'vpss_enable_clock' so If I build vpbe as module it complains
-for following,
+There's an scale problem with this patch for S/N ratio at carrier.
 
-arch/arm/mach-davinci/built-in.o: In function `dm365_venc_setup_clock':
-pm_domain.c:(.text+0x302c): undefined reference to `vpss_enable_clock'
-pm_domain.c:(.text+0x3038): undefined reference to `vpss_enable_clock'
-pm_domain.c:(.text+0x3060): undefined reference to `vpss_enable_clock'
-pm_domain.c:(.text+0x306c): undefined reference to `vpss_enable_clock'
-
-So how would you suggest to handle this VPSS config ?
-
-[1] http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg25443.html
+Fix patch enclosed.
 
 Regards,
---Prabhakar
+Mauro
 
-> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
-> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
-> ---
-> Since v2, revisited config prompt texts and made them
-> more meaningful/consistent.
->
->  drivers/media/platform/davinci/Kconfig  |  103 +++++++++++--------------------
->  drivers/media/platform/davinci/Makefile |   17 ++---
->  2 files changed, 41 insertions(+), 79 deletions(-)
->
-> diff --git a/drivers/media/platform/davinci/Kconfig b/drivers/media/platform/davinci/Kconfig
-> index ccfde4e..c50d31d 100644
-> --- a/drivers/media/platform/davinci/Kconfig
-> +++ b/drivers/media/platform/davinci/Kconfig
-> @@ -1,79 +1,47 @@
->  config VIDEO_DAVINCI_VPIF_DISPLAY
-> -       tristate "DM646x/DA850/OMAPL138 EVM Video Display"
-> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
-> +       tristate "TI DaVinci VPIF V4L2-Display driver"
-> +       depends on VIDEO_DEV && ARCH_DAVINCI
->         select VIDEOBUF2_DMA_CONTIG
-> -       select VIDEO_DAVINCI_VPIF
->         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
->         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
->         help
->           Enables Davinci VPIF module used for display devices.
-> -         This module is common for following DM6467/DA850/OMAPL138
-> -         based display devices.
-> +         This module is used for display on TI DM6467/DA850/OMAPL138
-> +         SoCs.
->
-> -         To compile this driver as a module, choose M here: the
-> -         module will be called vpif_display.
-> +         To compile this driver as a module, choose M here. There will
-> +         be two modules called vpif.ko and vpif_display.ko
->
->  config VIDEO_DAVINCI_VPIF_CAPTURE
-> -       tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
-> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
-> +       tristate "TI DaVinci VPIF video capture driver"
-> +       depends on VIDEO_DEV && ARCH_DAVINCI
->         select VIDEOBUF2_DMA_CONTIG
-> -       select VIDEO_DAVINCI_VPIF
->         help
-> -         Enables Davinci VPIF module used for captur devices.
-> -         This module is common for following DM6467/DA850/OMAPL138
-> -         based capture devices.
-> +         Enables Davinci VPIF module used for capture devices.
-> +         This module is used for capture on TI DM6467/DA850/OMAPL138
-> +         SoCs.
->
-> -         To compile this driver as a module, choose M here: the
-> -         module will be called vpif_capture.
-> +         To compile this driver as a module, choose M here. There will
-> +         be two modules called vpif.ko and vpif_capture.ko
->
-> -config VIDEO_DAVINCI_VPIF
-> -       tristate "DaVinci VPIF Driver"
-> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
-> -       help
-> -         Support for DaVinci VPIF Driver.
-> -
-> -         To compile this driver as a module, choose M here: the
-> -         module will be called vpif.
-> -
-> -config VIDEO_VPSS_SYSTEM
-> -       tristate "VPSS System module driver"
-> -       depends on ARCH_DAVINCI
-> -       help
-> -         Support for vpss system module for video driver
-> -
-> -config VIDEO_VPFE_CAPTURE
-> -       tristate "VPFE Video Capture Driver"
-> +config VIDEO_DM6446_CCDC
-> +       tristate "TI DM6446 CCDC video capture driver"
->         depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
-> -       depends on I2C
->         select VIDEOBUF_DMA_CONTIG
->         help
-> -         Support for DMx/AMx VPFE based frame grabber. This is the
-> -         common V4L2 module for following DMx/AMx SoCs from Texas
-> -         Instruments:- DM6446, DM365, DM355 & AM3517/05.
-> -
-> -         To compile this driver as a module, choose M here: the
-> -         module will be called vpfe-capture.
-> -
-> -config VIDEO_DM6446_CCDC
-> -       tristate "DM6446 CCDC HW module"
-> -       depends on VIDEO_VPFE_CAPTURE
-> -       select VIDEO_VPSS_SYSTEM
-> -       default y
-> -       help
->            Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
->            with decoder modules such as TVP5146 over BT656 or
->            sensor module such as MT9T001 over a raw interface. This
->            module configures the interface and CCDC/ISIF to do
->            video frame capture from slave decoders.
->
-> -          To compile this driver as a module, choose M here: the
-> -          module will be called vpfe.
-> +          To compile this driver as a module, choose M here. There will
-> +          be three modules called vpfe_capture.ko, vpss.ko and dm644x_ccdc.ko
->
->  config VIDEO_DM355_CCDC
-> -       tristate "DM355 CCDC HW module"
-> -       depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
-> -       select VIDEO_VPSS_SYSTEM
-> -       default y
-> +       tristate "TI DM355 CCDC video capture driver"
-> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
-> +       select VIDEOBUF_DMA_CONTIG
->         help
->            Enables DM355 CCD hw module. DM355 CCDC hw interfaces
->            with decoder modules such as TVP5146 over BT656 or
-> @@ -81,31 +49,30 @@ config VIDEO_DM355_CCDC
->            module configures the interface and CCDC/ISIF to do
->            video frame capture from a slave decoders
->
-> -          To compile this driver as a module, choose M here: the
-> -          module will be called vpfe.
-> +          To compile this driver as a module, choose M here. There will
-> +          be three modules called vpfe_capture.ko, vpss.ko and dm355_ccdc.ko
->
-> -config VIDEO_ISIF
-> -       tristate "ISIF HW module"
-> -       depends on ARCH_DAVINCI_DM365 && VIDEO_VPFE_CAPTURE
-> -       select VIDEO_VPSS_SYSTEM
-> -       default y
-> +config VIDEO_DM365_ISIF
-> +       tristate "TI DM365 ISIF video capture driver"
-> +       depends on VIDEO_V4L2 && ARCH_DAVINCI
-> +       select VIDEOBUF_DMA_CONTIG
->         help
->            Enables ISIF hw module. This is the hardware module for
-> -          configuring ISIF in VPFE to capture Raw Bayer RGB data  from
-> +          configuring ISIF in VPFE to capture Raw Bayer RGB data from
->            a image sensor or YUV data from a YUV source.
->
-> -          To compile this driver as a module, choose M here: the
-> -          module will be called vpfe.
-> +          To compile this driver as a module, choose M here. There will
-> +          be three modules called vpfe_capture.ko, vpss.ko and isif.ko
->
->  config VIDEO_DAVINCI_VPBE_DISPLAY
-> -       tristate "DM644X/DM365/DM355 VPBE HW module"
-> -       depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365
-> -       select VIDEO_VPSS_SYSTEM
-> +       tristate "TI DaVinci VPBE V4L2-Display driver"
-> +       depends on ARCH_DAVINCI
->         select VIDEOBUF2_DMA_CONTIG
->         help
->             Enables Davinci VPBE module used for display devices.
-> -           This module is common for following DM644x/DM365/DM355
-> +           This module is used for dipslay on TI DM644x/DM365/DM355
->             based display devices.
->
-> -           To compile this driver as a module, choose M here: the
-> -           module will be called vpbe.
-> +           To compile this driver as a module, choose M here. There will
-> +           be five modules created called vpss.ko, vpbe.ko, vpbe_osd.ko,
-> +           vpbe_venc.ko and vpbe_display.ko
-> diff --git a/drivers/media/platform/davinci/Makefile b/drivers/media/platform/davinci/Makefile
-> index f40f521..d74d9ee 100644
-> --- a/drivers/media/platform/davinci/Makefile
-> +++ b/drivers/media/platform/davinci/Makefile
-> @@ -2,19 +2,14 @@
->  # Makefile for the davinci video device drivers.
->  #
->
-> -# VPIF
-> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
-> -
->  #VPIF Display driver
-> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif_display.o
-> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_DISPLAY) += vpif.o vpif_display.o
->  #VPIF Capture driver
-> -obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif_capture.o
-> +obj-$(CONFIG_VIDEO_DAVINCI_VPIF_CAPTURE) += vpif.o vpif_capture.o
->
->  # Capture: DM6446 and DM355
-> -obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
-> -obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
-> -obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
-> -obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
-> -obj-$(CONFIG_VIDEO_ISIF) += isif.o
-> -obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpbe.o vpbe_osd.o \
-> +obj-$(CONFIG_VIDEO_DM6446_CCDC) += vpfe_capture.o vpss.o dm644x_ccdc.o
-> +obj-$(CONFIG_VIDEO_DM355_CCDC) += vpfe_capture.o vpss.o dm355_ccdc.o
-> +obj-$(CONFIG_VIDEO_DM365_ISIF) += vpfe_capture.o vpss.o isif.o
-> +obj-$(CONFIG_VIDEO_DAVINCI_VPBE_DISPLAY) += vpss.o vpbe.o vpbe_osd.o \
->         vpbe_venc.o vpbe_display.o
-> --
-> 1.7.10.1
->
-> _______________________________________________
-> Davinci-linux-open-source mailing list
-> Davinci-linux-open-source@linux.davincidsp.com
-> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+-
+
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Wed, 20 Mar 2013 06:15:45 -0300
+[PATCHv2] [media] drxk: Add pre/post BER and PER/UCB stats
+
+The original az6007 driver has the code to calculate such
+stats. Add it to the driver, reporting them via DVBv5
+stats API.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index 0e40832..8c4de7c 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -2655,11 +2655,6 @@ static int GetDVBTSignalToNoise(struct drxk_state *state,
+ 		c = Log10Times100(SqrErrIQ);
+ 
+ 		iMER = a + b;
+-		/* No negative MER, clip to zero */
+-		if (iMER > c)
+-			iMER -= c;
+-		else
+-			iMER = 0;
+ 	}
+ 	*pSignalToNoise = iMER;
+ 
+@@ -6380,31 +6375,165 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
+ 	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+ 	Start(state, 0, IF);
+ 
++	/* After set_frontend, stats aren't avaliable */
++	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->pre_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->pre_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	/* printk(KERN_DEBUG "drxk: %s IF=%d done\n", __func__, IF); */
+ 
+ 	return 0;
+ }
+ 
+-static int drxk_read_status(struct dvb_frontend *fe, fe_status_t *status)
++static int drxk_get_stats(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct drxk_state *state = fe->demodulator_priv;
++	int status;
+ 	u32 stat;
+-
+-	dprintk(1, "\n");
++	u16 reg16;
++	u32 post_bit_count;
++	u32 post_bit_err_count;
++	u32 post_bit_error_scale;
++	u32 pre_bit_err_count;
++	u32 pre_bit_count;
++	u32 pkt_count;
++	u32 pkt_error_count;
++	s32 cnr, gain;
+ 
+ 	if (state->m_DrxkState == DRXK_NO_DEV)
+ 		return -ENODEV;
+ 	if (state->m_DrxkState == DRXK_UNINITIALIZED)
+ 		return -EAGAIN;
+ 
+-	*status = 0;
++	/* get status */
++	state->fe_status = 0;
+ 	GetLockStatus(state, &stat, 0);
+ 	if (stat == MPEG_LOCK)
+-		*status |= 0x1f;
++		state->fe_status |= 0x1f;
+ 	if (stat == FEC_LOCK)
+-		*status |= 0x0f;
++		state->fe_status |= 0x0f;
+ 	if (stat == DEMOD_LOCK)
+-		*status |= 0x07;
++		state->fe_status |= 0x07;
++
++	if (stat >= DEMOD_LOCK) {
++		GetSignalToNoise(state, &cnr);
++		c->cnr.stat[0].svalue = cnr * 100;
++		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
++	} else {
++		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	}
++
++	if (stat < FEC_LOCK) {
++		c->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->pre_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->pre_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		c->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++		return 0;
++	}
++
++	/* Get post BER */
++
++	/* BER measurement is valid if at least FEC lock is achieved */
++
++	/* OFDM_EC_VD_REQ_SMB_CNT__A and/or OFDM_EC_VD_REQ_BIT_CNT can be written
++		to set nr of symbols or bits over which
++		to measure EC_VD_REG_ERR_BIT_CNT__A . See CtrlSetCfg(). */
++
++	/* Read registers for post/preViterbi BER calculation */
++	status = read16(state, OFDM_EC_VD_ERR_BIT_CNT__A, &reg16);
++	if (status < 0)
++		goto error;
++	pre_bit_err_count = reg16;
++
++	status = read16(state, OFDM_EC_VD_IN_BIT_CNT__A , &reg16);
++	if (status < 0)
++		goto error;
++	pre_bit_count = reg16;
++
++	/* Number of bit-errors */
++	status = read16(state, FEC_RS_NR_BIT_ERRORS__A, &reg16);
++	if (status < 0)
++		goto error;
++	post_bit_err_count = reg16;
++
++	status = read16(state, FEC_RS_MEASUREMENT_PRESCALE__A, &reg16);
++	if (status < 0)
++		goto error;
++	post_bit_error_scale = reg16;
++
++	status = read16(state, FEC_RS_MEASUREMENT_PERIOD__A, &reg16);
++	if (status < 0)
++		goto error;
++	pkt_count = reg16;
++
++	status = read16(state, SCU_RAM_FEC_ACCUM_PKT_FAILURES__A, &reg16);
++	if (status < 0)
++		goto error;
++	pkt_error_count = reg16;
++	write16(state, SCU_RAM_FEC_ACCUM_PKT_FAILURES__A, 0);
++
++	post_bit_err_count *= post_bit_error_scale;
++
++	post_bit_count = pkt_count * 204 * 8;
++
++	/* Store the results */
++	c->block_error.stat[0].scale = FE_SCALE_COUNTER;
++	c->block_error.stat[0].uvalue += pkt_error_count;
++	c->block_count.stat[0].scale = FE_SCALE_COUNTER;
++	c->block_count.stat[0].uvalue += pkt_count;
++
++	c->pre_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++	c->pre_bit_error.stat[0].uvalue += pre_bit_err_count;
++	c->pre_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++	c->pre_bit_count.stat[0].uvalue += pre_bit_count;
++
++	c->post_bit_error.stat[0].scale = FE_SCALE_COUNTER;
++	c->post_bit_error.stat[0].uvalue += post_bit_err_count;
++	c->post_bit_count.stat[0].scale = FE_SCALE_COUNTER;
++	c->post_bit_count.stat[0].uvalue += post_bit_count;
++
++	/*
++	 * Read AGC gain
++	 *
++	 * IFgain = (IQM_AF_AGC_IF__A * 26.75) (nA)
++	 */
++	status = read16(state, IQM_AF_AGC_IF__A, &reg16);
++	if (status < 0) {
++		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
++		return status;
++	}
++	gain = 2675 * (reg16 - DRXK_AGC_DAC_OFFSET) / 100;
++
++	/* FIXME: it makes sense to fix the scale here to dBm */
++	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	c->strength.stat[0].uvalue = gain;
++
++error:
++	return status;
++}
++
++
++static int drxk_read_status(struct dvb_frontend *fe, fe_status_t *status)
++{
++	struct drxk_state *state = fe->demodulator_priv;
++	int rc;
++
++	dprintk(1, "\n");
++
++	rc = drxk_get_stats(fe);
++	if (rc < 0)
++		return rc;
++
++	*status = state->fe_status;
++
+ 	return 0;
+ }
+ 
+@@ -6439,6 +6568,10 @@ static int drxk_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		return -EAGAIN;
+ 
+ 	GetSignalToNoise(state, &snr2);
++
++	/* No negative SNR, clip to zero */
++	if (snr2 < 0)
++		snr2 = 0;
+ 	*snr = snr2 & 0xffff;
+ 	return 0;
+ }
+@@ -6522,6 +6655,7 @@ static struct dvb_frontend_ops drxk_ops = {
+ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 				 struct i2c_adapter *i2c)
+ {
++	struct dtv_frontend_properties *p;
+ 	struct drxk_state *state = NULL;
+ 	u8 adr = config->adr;
+ 	int status;
+@@ -6602,6 +6736,27 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	} else if (init_drxk(state) < 0)
+ 		goto error;
+ 
++
++	/* Initialize stats */
++	p = &state->frontend.dtv_property_cache;
++	p->strength.len = 1;
++	p->cnr.len = 1;
++	p->block_error.len = 1;
++	p->block_count.len = 1;
++	p->pre_bit_error.len = 1;
++	p->pre_bit_count.len = 1;
++	p->post_bit_error.len = 1;
++	p->post_bit_count.len = 1;
++
++	p->strength.stat[0].scale = FE_SCALE_RELATIVE;
++	p->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->block_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->pre_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->pre_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++	p->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
++
+ 	printk(KERN_INFO "drxk: frontend initialized.\n");
+ 	return &state->frontend;
+ 
+diff --git a/drivers/media/dvb-frontends/drxk_hard.h b/drivers/media/dvb-frontends/drxk_hard.h
+index d18a896..b8424f1 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.h
++++ b/drivers/media/dvb-frontends/drxk_hard.h
+@@ -345,6 +345,8 @@ struct drxk_state {
+ 	bool	antenna_dvbt;
+ 	u16	antenna_gpio;
+ 
++	fe_status_t fe_status;
++
+ 	/* Firmware */
+ 	const char *microcode_name;
+ 	struct completion fw_wait_load;
+diff --git a/drivers/media/dvb-frontends/drxk_map.h b/drivers/media/dvb-frontends/drxk_map.h
+index 23e16c1..761613f 100644
+--- a/drivers/media/dvb-frontends/drxk_map.h
++++ b/drivers/media/dvb-frontends/drxk_map.h
+@@ -10,6 +10,7 @@
+ #define    FEC_RS_COMM_EXEC_STOP                                           0x0
+ #define  FEC_RS_MEASUREMENT_PERIOD__A                                      0x1C30012
+ #define  FEC_RS_MEASUREMENT_PRESCALE__A                                    0x1C30013
++#define FEC_RS_NR_BIT_ERRORS__A                                            0x1C30014
+ #define  FEC_OC_MODE__A                                                    0x1C40011
+ #define    FEC_OC_MODE_PARITY__M                                           0x1
+ #define  FEC_OC_DTO_MODE__A                                                0x1C40014
+@@ -129,6 +130,8 @@
+ #define  OFDM_EC_SB_PRIOR__A                                               0x3410013
+ #define    OFDM_EC_SB_PRIOR_HI                                             0x0
+ #define    OFDM_EC_SB_PRIOR_LO                                             0x1
++#define OFDM_EC_VD_ERR_BIT_CNT__A                                          0x3420017
++#define OFDM_EC_VD_IN_BIT_CNT__A                                           0x3420018
+ #define  OFDM_EQ_TOP_TD_TPS_CONST__A                                       0x3010054
+ #define  OFDM_EQ_TOP_TD_TPS_CONST__M                                       0x3
+ #define    OFDM_EQ_TOP_TD_TPS_CONST_64QAM                                  0x2
+
