@@ -1,59 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2282 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754137Ab3CKLrC (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:51686 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754519Ab3CUKh7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:47:02 -0400
+	Thu, 21 Mar 2013 06:37:59 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 28/42] go7007: add log_status support.
-Date: Mon, 11 Mar 2013 12:46:06 +0100
-Message-Id: <5f728e5f0d938172330c4904636153eb1db01d9a.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH 06/10] bttv: untangle audio input and mute setting
+Date: Thu, 21 Mar 2013 11:37:58 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-7-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-7-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303211137.58139.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed 20 March 2013 20:24:46 Frank Schäfer wrote:
+> Split function audio_mux():
+> move the mute setting part to function audio_mute() and the input setting part
+> to function audio_input().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/go7007/go7007-v4l2.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index 186a56b..d3eef8d 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -1188,6 +1188,14 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	return call_all(&go->v4l2_dev, tuner, s_frequency, f);
- }
- 
-+static int vidioc_log_status(struct file *file, void *priv)
-+{
-+	struct go7007 *go = ((struct go7007_file *) priv)->go;
-+
-+	v4l2_ctrl_log_status(file, priv);
-+	return call_all(&go->v4l2_dev, core, log_status);
-+}
-+
- static int vidioc_cropcap(struct file *file, void *priv,
- 					struct v4l2_cropcap *cropcap)
- {
-@@ -1654,7 +1662,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_cropcap           = vidioc_cropcap,
- 	.vidioc_g_crop            = vidioc_g_crop,
- 	.vidioc_s_crop            = vidioc_s_crop,
--	.vidioc_log_status        = v4l2_ctrl_log_status,
-+	.vidioc_log_status        = vidioc_log_status,
- 	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
--- 
-1.7.10.4
+Regards,
 
+	Hans
+
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |   51 ++++++++++++++++-----------------
+>  1 Datei geändert, 24 Zeilen hinzugefügt(+), 27 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index f1cb0db..0df4a16 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -1022,18 +1022,37 @@ audio_mux_gpio(struct bttv *btv, int input, int mute)
+>  }
+>  
+>  static int
+> -audio_mux(struct bttv *btv, int input, int mute)
+> +audio_mute(struct bttv *btv, int mute)
+>  {
+>  	struct v4l2_ctrl *ctrl;
+>  
+> -	audio_mux_gpio(btv, input, mute);
+> +	audio_mux_gpio(btv, btv->audio_input, mute);
+>  
+>  	if (btv->sd_msp34xx) {
+> -		u32 in;
+> -
+>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  		if (ctrl)
+>  			v4l2_ctrl_s_ctrl(ctrl, mute);
+> +	}
+> +	if (btv->sd_tvaudio) {
+> +		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+> +		if (ctrl)
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+> +	}
+> +	if (btv->sd_tda7432) {
+> +		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+> +		if (ctrl)
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int
+> +audio_input(struct bttv *btv, int input)
+> +{
+> +	audio_mux_gpio(btv, input, btv->mute);
+> +
+> +	if (btv->sd_msp34xx) {
+> +		u32 in;
+>  
+>  		/* Note: the inputs tuner/radio/extern/intern are translated
+>  		   to msp routings. This assumes common behavior for all msp3400
+> @@ -1079,34 +1098,12 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  			       in, MSP_OUTPUT_DEFAULT, 0);
+>  	}
+>  	if (btv->sd_tvaudio) {
+> -		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+> -
+> -		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+> -				input, 0, 0);
+> -	}
+> -	if (btv->sd_tda7432) {
+> -		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+> -
+> -		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, mute);
+> +				 input, 0, 0);
+>  	}
+>  	return 0;
+>  }
+>  
+> -static inline int
+> -audio_mute(struct bttv *btv, int mute)
+> -{
+> -	return audio_mux(btv, btv->audio_input, mute);
+> -}
+> -
+> -static inline int
+> -audio_input(struct bttv *btv, int input)
+> -{
+> -	return audio_mux(btv, input, btv->mute);
+> -}
+> -
+>  static void
+>  bttv_crop_calc_limits(struct bttv_crop *c)
+>  {
+> 
