@@ -1,163 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:62524 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753209Ab3CZRak (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:51770 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932356Ab3CUIaH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:30:40 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 09/10] s5p-fimc: Remove dependency on fimc-core.h in
- fimc-lite driver
-Date: Tue, 26 Mar 2013 18:29:51 +0100
-Message-id: <1364318992-20562-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 21 Mar 2013 04:30:07 -0400
+From: Simon Horman <horms@verge.net.au>
+To: netdev@vger.kernel.org
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Simon Horman <horms@verge.net.au>,
+	Jesse Gross <jesse@nicira.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Karsten Keil <isdn@linux-pingi.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	dev@openvswitch.org
+Subject: [PATCH] net: add ETH_P_802_3_MIN
+Date: Thu, 21 Mar 2013 17:29:28 +0900
+Message-Id: <1363854568-32228-1-git-send-email-horms@verge.net.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drop fimc-lite.h header inclusion to make the exynos-fimc-lite
-module independent on other modules. Move struct fimc_fmt
-declaration to the driver's private headers as it is used in
-multiple modules.
+Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
+an 802.3 frame. Frames with a lower value in the ethernet type field
+are Ethernet II.
 
-Reported-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Also update all the users of this value that I could find to use the
+new constant.
+
+I anticipate adding some more users of this constant when
+adding MPLS support to Open vSwtich.
+
+As suggested by Jesse Gross.
+
+Compile tested only.
+
+Cc: Jesse Gross <jesse@nicira.com>
+Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux1394-devel@lists.sourceforge.net
+Cc: linux-media@vger.kernel.org
+Cc: dev@openvswitch.org
+Signed-off-by: Simon Horman <horms@verge.net.au>
 ---
- drivers/media/platform/s5p-fimc/fimc-core.h |   31 ------------------------
- drivers/media/platform/s5p-fimc/fimc-lite.c |    1 -
- drivers/media/platform/s5p-fimc/fimc-lite.h |    3 +--
- include/media/s5p_fimc.h                    |   34 +++++++++++++++++++++++++++
- 4 files changed, 35 insertions(+), 34 deletions(-)
+ drivers/firewire/net.c           |    2 +-
+ drivers/isdn/i4l/isdn_net.c      |    2 +-
+ drivers/media/dvb-core/dvb_net.c |    6 +++---
+ drivers/net/ethernet/sun/niu.c   |    2 +-
+ drivers/net/plip/plip.c          |    2 +-
+ include/uapi/linux/if_ether.h    |    3 +++
+ net/ethernet/eth.c               |    2 +-
+ net/openvswitch/datapath.c       |    2 +-
+ 8 files changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/s5p-fimc/fimc-core.h
-index 6355b33..793333a 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.h
-@@ -137,37 +137,6 @@ enum fimc_color_fmt {
- #define	FIMC_COLOR_RANGE_NARROW		(1 << 3)
+diff --git a/drivers/firewire/net.c b/drivers/firewire/net.c
+index 2b27bff..bd34ca1 100644
+--- a/drivers/firewire/net.c
++++ b/drivers/firewire/net.c
+@@ -630,7 +630,7 @@ static int fwnet_finish_incoming_packet(struct net_device *net,
+ 			if (memcmp(eth->h_dest, net->dev_addr, net->addr_len))
+ 				skb->pkt_type = PACKET_OTHERHOST;
+ 		}
+-		if (ntohs(eth->h_proto) >= 1536) {
++		if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN) {
+ 			protocol = eth->h_proto;
+ 		} else {
+ 			rawp = (u16 *)skb->data;
+diff --git a/drivers/isdn/i4l/isdn_net.c b/drivers/isdn/i4l/isdn_net.c
+index babc621..88d657d 100644
+--- a/drivers/isdn/i4l/isdn_net.c
++++ b/drivers/isdn/i4l/isdn_net.c
+@@ -1385,7 +1385,7 @@ isdn_net_type_trans(struct sk_buff *skb, struct net_device *dev)
+ 		if (memcmp(eth->h_dest, dev->dev_addr, ETH_ALEN))
+ 			skb->pkt_type = PACKET_OTHERHOST;
+ 	}
+-	if (ntohs(eth->h_proto) >= 1536)
++	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+ 		return eth->h_proto;
  
- /**
-- * struct fimc_fmt - the driver's internal color format data
-- * @mbus_code: Media Bus pixel code, -1 if not applicable
-- * @name: format description
-- * @fourcc: the fourcc code for this format, 0 if not applicable
-- * @color: the corresponding fimc_color_fmt
-- * @memplanes: number of physically non-contiguous data planes
-- * @colplanes: number of physically contiguous data planes
-- * @depth: per plane driver's private 'number of bits per pixel'
-- * @mdataplanes: bitmask indicating meta data plane(s), (1 << plane_no)
-- * @flags: flags indicating which operation mode format applies to
-- */
--struct fimc_fmt {
--	enum v4l2_mbus_pixelcode mbus_code;
--	char	*name;
--	u32	fourcc;
--	u32	color;
--	u16	memplanes;
--	u16	colplanes;
--	u8	depth[VIDEO_MAX_PLANES];
--	u16	mdataplanes;
--	u16	flags;
--#define FMT_FLAGS_CAM		(1 << 0)
--#define FMT_FLAGS_M2M_IN	(1 << 1)
--#define FMT_FLAGS_M2M_OUT	(1 << 2)
--#define FMT_FLAGS_M2M		(1 << 1 | 1 << 2)
--#define FMT_HAS_ALPHA		(1 << 3)
--#define FMT_FLAGS_COMPRESSED	(1 << 4)
--#define FMT_FLAGS_WRITEBACK	(1 << 5)
--};
--
--/**
-  * struct fimc_dma_offset - pixel offset information for DMA
-  * @y_h:	y value horizontal offset
-  * @y_v:	y value vertical offset
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index c76a9d6..ca78ac0 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -32,7 +32,6 @@
- #include <media/s5p_fimc.h>
+ 	rawp = skb->data;
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index 44225b1..9fc82a1 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -185,7 +185,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+ 			skb->pkt_type=PACKET_MULTICAST;
+ 	}
  
- #include "fimc-mdevice.h"
--#include "fimc-core.h"
- #include "fimc-lite.h"
- #include "fimc-lite-reg.h"
+-	if (ntohs(eth->h_proto) >= 1536)
++	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+ 		return eth->h_proto;
  
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h b/drivers/media/platform/s5p-fimc/fimc-lite.h
-index 7085761..4c234508 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.h
-@@ -20,12 +20,11 @@
+ 	rawp = skb->data;
+@@ -228,9 +228,9 @@ static int ule_test_sndu( struct dvb_net_priv *p )
+ static int ule_bridged_sndu( struct dvb_net_priv *p )
+ {
+ 	struct ethhdr *hdr = (struct ethhdr*) p->ule_next_hdr;
+-	if(ntohs(hdr->h_proto) < 1536) {
++	if(ntohs(hdr->h_proto) < ETH_P_802_3_MIN) {
+ 		int framelen = p->ule_sndu_len - ((p->ule_next_hdr+sizeof(struct ethhdr)) - p->ule_skb->data);
+-		/* A frame Type < 1536 for a bridged frame, introduces a LLC Length field. */
++		/* A frame Type < ETH_P_802_3_MIN for a bridged frame, introduces a LLC Length field. */
+ 		if(framelen != ntohs(hdr->h_proto)) {
+ 			return -1;
+ 		}
+diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/niu.c
+index e4c1c88..95cff98 100644
+--- a/drivers/net/ethernet/sun/niu.c
++++ b/drivers/net/ethernet/sun/niu.c
+@@ -6618,7 +6618,7 @@ static u64 niu_compute_tx_flags(struct sk_buff *skb, struct ethhdr *ehdr,
+ 	       (len << TXHDR_LEN_SHIFT) |
+ 	       ((l3off / 2) << TXHDR_L3START_SHIFT) |
+ 	       (ihl << TXHDR_IHL_SHIFT) |
+-	       ((eth_proto_inner < 1536) ? TXHDR_LLC : 0) |
++	       ((eth_proto_inner < ETH_P_802_3_MIN) ? TXHDR_LLC : 0) |
+ 	       ((eth_proto == ETH_P_8021Q) ? TXHDR_VLAN : 0) |
+ 	       (ipv6 ? TXHDR_IP_VER : 0) |
+ 	       csum_bits);
+diff --git a/drivers/net/plip/plip.c b/drivers/net/plip/plip.c
+index bed62d9..1f7bef9 100644
+--- a/drivers/net/plip/plip.c
++++ b/drivers/net/plip/plip.c
+@@ -560,7 +560,7 @@ static __be16 plip_type_trans(struct sk_buff *skb, struct net_device *dev)
+ 	 *	so don't forget to remove it.
+ 	 */
  
- #include <media/media-entity.h>
- #include <media/videobuf2-core.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-mediabus.h>
- #include <media/s5p_fimc.h>
+-	if (ntohs(eth->h_proto) >= 1536)
++	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+ 		return eth->h_proto;
  
--#include "fimc-core.h"
--
- #define FIMC_LITE_DRV_NAME	"exynos-fimc-lite"
- #define FLITE_CLK_NAME		"flite"
- #define FIMC_LITE_MAX_DEVS	2
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index e2434bb..2363aff 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -13,6 +13,7 @@
- #define S5P_FIMC_H_
+ 	rawp = skb->data;
+diff --git a/include/uapi/linux/if_ether.h b/include/uapi/linux/if_ether.h
+index 798032d..ade07f1 100644
+--- a/include/uapi/linux/if_ether.h
++++ b/include/uapi/linux/if_ether.h
+@@ -94,6 +94,9 @@
+ #define ETH_P_EDSA	0xDADA		/* Ethertype DSA [ NOT AN OFFICIALLY REGISTERED ID ] */
+ #define ETH_P_AF_IUCV   0xFBFB		/* IBM af_iucv [ NOT AN OFFICIALLY REGISTERED ID ] */
  
- #include <media/media-entity.h>
-+#include <media/v4l2-mediabus.h>
- 
++#define ETH_P_802_3_MIN	0x0600		/* If the value in the ethernet type is less than this value
++					 * then the frame is Ethernet II. Else it is 802.3 */
++
  /*
-  * Enumeration of data inputs to the camera subsystem.
-@@ -93,6 +94,39 @@ struct s5p_platform_fimc {
+  *	Non DIX types. Won't clash for 1500 types.
   */
- #define S5P_FIMC_TX_END_NOTIFY _IO('e', 0)
+diff --git a/net/ethernet/eth.c b/net/ethernet/eth.c
+index a36c85ea..5359560 100644
+--- a/net/ethernet/eth.c
++++ b/net/ethernet/eth.c
+@@ -195,7 +195,7 @@ __be16 eth_type_trans(struct sk_buff *skb, struct net_device *dev)
+ 	if (netdev_uses_trailer_tags(dev))
+ 		return htons(ETH_P_TRAILER);
  
-+#define FIMC_MAX_PLANES	3
-+
-+/**
-+ * struct fimc_fmt - color format data structure
-+ * @mbus_code: media bus pixel code, -1 if not applicable
-+ * @name: format description
-+ * @fourcc: fourcc code for this format, 0 if not applicable
-+ * @color: the driver's private color format id
-+ * @memplanes: number of physically non-contiguous data planes
-+ * @colplanes: number of physically contiguous data planes
-+ * @depth: per plane driver's private 'number of bits per pixel'
-+ * @mdataplanes: bitmask indicating meta data plane(s), (1 << plane_no)
-+ * @flags: flags indicating which operation mode format applies to
-+ */
-+struct fimc_fmt {
-+	enum v4l2_mbus_pixelcode mbus_code;
-+	char	*name;
-+	u32	fourcc;
-+	u32	color;
-+	u16	memplanes;
-+	u16	colplanes;
-+	u8	depth[FIMC_MAX_PLANES];
-+	u16	mdataplanes;
-+	u16	flags;
-+#define FMT_FLAGS_CAM		(1 << 0)
-+#define FMT_FLAGS_M2M_IN	(1 << 1)
-+#define FMT_FLAGS_M2M_OUT	(1 << 2)
-+#define FMT_FLAGS_M2M		(1 << 1 | 1 << 2)
-+#define FMT_HAS_ALPHA		(1 << 3)
-+#define FMT_FLAGS_COMPRESSED	(1 << 4)
-+#define FMT_FLAGS_WRITEBACK	(1 << 5)
-+};
-+
- enum fimc_subdev_index {
- 	IDX_SENSOR,
- 	IDX_CSIS,
+-	if (ntohs(eth->h_proto) >= 1536)
++	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+ 		return eth->h_proto;
+ 
+ 	/*
+diff --git a/net/openvswitch/datapath.c b/net/openvswitch/datapath.c
+index d61cd99..8759265 100644
+--- a/net/openvswitch/datapath.c
++++ b/net/openvswitch/datapath.c
+@@ -681,7 +681,7 @@ static int ovs_packet_cmd_execute(struct sk_buff *skb, struct genl_info *info)
+ 	/* Normally, setting the skb 'protocol' field would be handled by a
+ 	 * call to eth_type_trans(), but it assumes there's a sending
+ 	 * device, which we may not have. */
+-	if (ntohs(eth->h_proto) >= 1536)
++	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+ 		packet->protocol = eth->h_proto;
+ 	else
+ 		packet->protocol = htons(ETH_P_802_2);
 -- 
-1.7.9.5
+1.7.10.4
 
