@@ -1,183 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4998 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751Ab3CKLzj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:55:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 22/42] go7007: fix DMA related errors.
-Date: Mon, 11 Mar 2013 12:46:00 +0100
-Message-Id: <8651ee3d9d126c8a187b41c57264c94fe22e19b6.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47113 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755455Ab3CUK4C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 06:56:02 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2LAu1H5013258
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 06:56:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] siano: use defines for firmware names
+Date: Thu, 21 Mar 2013 07:55:54 -0300
+Message-Id: <1363863355-3648-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+There are too many firmwares there. As we need to add
+MODULE_FIMWARE() macros, the better is to define their names
+on just one place and use the macros for both cards/device type
+tables and MODULE_FIRMWARE().
 
-- Don't pass data allocated on the stack to usb_control_msg.
-- Use dma_mapping_error after calling dma_map_page().
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/staging/media/go7007/go7007-priv.h    |    1 +
- drivers/staging/media/go7007/go7007-usb.c     |   36 +++++++++++--------------
- drivers/staging/media/go7007/s2250-board.c    |    2 +-
- drivers/staging/media/go7007/saa7134-go7007.c |    4 +--
- 4 files changed, 20 insertions(+), 23 deletions(-)
+ drivers/media/common/siano/sms-cards.c  | 14 ++++-----
+ drivers/media/common/siano/smscoreapi.c | 56 ++++++++++++++++-----------------
+ drivers/media/common/siano/smscoreapi.h | 24 ++++++++++++++
+ 3 files changed, 59 insertions(+), 35 deletions(-)
 
-diff --git a/drivers/staging/media/go7007/go7007-priv.h b/drivers/staging/media/go7007/go7007-priv.h
-index 1c4b049..daae6dd 100644
---- a/drivers/staging/media/go7007/go7007-priv.h
-+++ b/drivers/staging/media/go7007/go7007-priv.h
-@@ -188,6 +188,7 @@ struct go7007 {
- 	int audio_enabled;
- 	struct v4l2_subdev *sd_video;
- 	struct v4l2_subdev *sd_audio;
-+	u8 usb_buf[16];
+diff --git a/drivers/media/common/siano/sms-cards.c b/drivers/media/common/siano/sms-cards.c
+index bb6e558..6680134 100644
+--- a/drivers/media/common/siano/sms-cards.c
++++ b/drivers/media/common/siano/sms-cards.c
+@@ -54,26 +54,26 @@ static struct sms_board sms_boards[] = {
+ 	[SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT] = {
+ 		.name	= "Hauppauge Catamount",
+ 		.type	= SMS_STELLAR,
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-stellar-dvbt-01.fw",
++		.fw[DEVICE_MODE_DVBT_BDA] = SMS_FW_DVBT_STELLAR,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 	},
+ 	[SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A] = {
+ 		.name	= "Hauppauge Okemo-A",
+ 		.type	= SMS_NOVA_A0,
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-nova-a-dvbt-01.fw",
++		.fw[DEVICE_MODE_DVBT_BDA] = SMS_FW_DVBT_NOVA_A,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 	},
+ 	[SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B] = {
+ 		.name	= "Hauppauge Okemo-B",
+ 		.type	= SMS_NOVA_B0,
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-nova-b-dvbt-01.fw",
++		.fw[DEVICE_MODE_DVBT_BDA] = SMS_FW_DVBT_NOVA_B,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 	},
+ 	[SMS1XXX_BOARD_HAUPPAUGE_WINDHAM] = {
+ 		.name	= "Hauppauge WinTV MiniStick",
+ 		.type	= SMS_NOVA_B0,
+-		.fw[DEVICE_MODE_ISDBT_BDA] = "sms1xxx-hcw-55xxx-isdbt-02.fw",
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
++		.fw[DEVICE_MODE_ISDBT_BDA] = SMS_FW_ISDBT_HCW_55XXX,
++		.fw[DEVICE_MODE_DVBT_BDA]  = SMS_FW_DVBT_HCW_55XXX,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 		.rc_codes = RC_MAP_HAUPPAUGE,
+ 		.board_cfg.leds_power = 26,
+@@ -87,7 +87,7 @@ static struct sms_board sms_boards[] = {
+ 	[SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD] = {
+ 		.name	= "Hauppauge WinTV MiniCard",
+ 		.type	= SMS_NOVA_B0,
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
++		.fw[DEVICE_MODE_DVBT_BDA] = SMS_FW_DVBT_HCW_55XXX,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 		.lna_ctrl  = 29,
+ 		.board_cfg.foreign_lna0_ctrl = 29,
+@@ -97,7 +97,7 @@ static struct sms_board sms_boards[] = {
+ 	[SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2] = {
+ 		.name	= "Hauppauge WinTV MiniCard",
+ 		.type	= SMS_NOVA_B0,
+-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
++		.fw[DEVICE_MODE_DVBT_BDA] = SMS_FW_DVBT_HCW_55XXX,
+ 		.default_mode = DEVICE_MODE_DVBT_BDA,
+ 		.lna_ctrl  = -1,
+ 	},
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index b5e40aa..b7aa63f 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -1048,50 +1048,50 @@ exit_fw_download:
  
- 	/* Video input */
- 	int input;
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 0b1af50..f496720 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -652,7 +652,7 @@ static int go7007_usb_ezusb_write_interrupt(struct go7007 *go,
- {
- 	struct go7007_usb *usb = go->hpi_context;
- 	int i, r;
--	u16 status_reg;
-+	u16 status_reg = 0;
- 	int timeout = 500;
+ static char *smscore_fw_lkup[][DEVICE_MODE_MAX] = {
+ 	[SMS_NOVA_A0] = {
+-		[DEVICE_MODE_DVBT]		= "dvb_nova_12mhz.inp",
+-		[DEVICE_MODE_DVBH]		= "dvb_nova_12mhz.inp",
+-		[DEVICE_MODE_DAB_TDMB]		= "tdmb_nova_12mhz.inp",
+-		[DEVICE_MODE_DVBT_BDA]		= "dvb_nova_12mhz.inp",
+-		[DEVICE_MODE_ISDBT]		= "isdbt_nova_12mhz.inp",
+-		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_nova_12mhz.inp",
++		[DEVICE_MODE_DVBT]		= SMS_FW_DVB_NOVA_12MHZ,
++		[DEVICE_MODE_DVBH]		= SMS_FW_DVB_NOVA_12MHZ,
++		[DEVICE_MODE_DAB_TDMB]		= SMS_FW_TDMB_NOVA_12MHZ,
++		[DEVICE_MODE_DVBT_BDA]		= SMS_FW_DVB_NOVA_12MHZ,
++		[DEVICE_MODE_ISDBT]		= SMS_FW_ISDBT_NOVA_12MHZ,
++		[DEVICE_MODE_ISDBT_BDA]		= SMS_FW_ISDBT_NOVA_12MHZ,
+ 	},
+ 	[SMS_NOVA_B0] = {
+-		[DEVICE_MODE_DVBT]		= "dvb_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_DVBH]		= "dvb_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_DAB_TDMB]		= "tdmb_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_DVBT_BDA]		= "dvb_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_ISDBT]		= "isdbt_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_nova_12mhz_b0.inp",
+-		[DEVICE_MODE_FM_RADIO]		= "fm_radio.inp",
+-		[DEVICE_MODE_FM_RADIO_BDA]	= "fm_radio.inp",
++		[DEVICE_MODE_DVBT]		= SMS_FW_DVB_NOVA_12MHZ_B0,
++		[DEVICE_MODE_DVBH]		= SMS_FW_DVB_NOVA_12MHZ_B0,
++		[DEVICE_MODE_DAB_TDMB]		= SMS_FW_TDMB_NOVA_12MHZ_B0,
++		[DEVICE_MODE_DVBT_BDA]		= SMS_FW_DVB_NOVA_12MHZ_B0,
++		[DEVICE_MODE_ISDBT]		= SMS_FW_ISDBT_NOVA_12MHZ_B0,
++		[DEVICE_MODE_ISDBT_BDA]		= SMS_FW_ISDBT_NOVA_12MHZ_B0,
++		[DEVICE_MODE_FM_RADIO]		= SMS_FW_FM_RADIO,
++		[DEVICE_MODE_FM_RADIO_BDA]	= SMS_FW_FM_RADIO,
+ 	},
+ 	[SMS_VEGA] = {
+-		[DEVICE_MODE_CMMB]		= "cmmb_vega_12mhz.inp",
++		[DEVICE_MODE_CMMB]		= SMS_FW_CMMB_VEGA_12MHZ,
+ 	},
+ 	[SMS_VENICE] = {
+-		[DEVICE_MODE_CMMB]		= "cmmb_venice_12mhz.inp",
++		[DEVICE_MODE_CMMB]		= SMS_FW_CMMB_VENICE_12MHZ,
+ 	},
+ 	[SMS_MING] = {
+-		[DEVICE_MODE_CMMB]		= "cmmb_ming_app.inp",
++		[DEVICE_MODE_CMMB]		= SMS_FW_CMMB_MING_APP,
+ 	},
+ 	[SMS_PELE] = {
+-		[DEVICE_MODE_ISDBT]		= "isdbt_pele.inp",
+-		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_pele.inp",
++		[DEVICE_MODE_ISDBT]		= SMS_FW_ISDBT_PELE,
++		[DEVICE_MODE_ISDBT_BDA]		= SMS_FW_ISDBT_PELE,
+ 	},
+ 	[SMS_RIO] = {
+-		[DEVICE_MODE_DVBT]		= "dvb_rio.inp",
+-		[DEVICE_MODE_DVBH]		= "dvbh_rio.inp",
+-		[DEVICE_MODE_DVBT_BDA]		= "dvb_rio.inp",
+-		[DEVICE_MODE_ISDBT]		= "isdbt_rio.inp",
+-		[DEVICE_MODE_ISDBT_BDA]		= "isdbt_rio.inp",
+-		[DEVICE_MODE_FM_RADIO]		= "fm_radio_rio.inp",
+-		[DEVICE_MODE_FM_RADIO_BDA]	= "fm_radio_rio.inp",
++		[DEVICE_MODE_DVBT]		= SMS_FW_DVB_RIO,
++		[DEVICE_MODE_DVBH]		= SMS_FW_DVBH_RIO,
++		[DEVICE_MODE_DVBT_BDA]		= SMS_FW_DVB_RIO,
++		[DEVICE_MODE_ISDBT]		= SMS_FW_ISDBT_RIO,
++		[DEVICE_MODE_ISDBT_BDA]		= SMS_FW_ISDBT_RIO,
++		[DEVICE_MODE_FM_RADIO]		= SMS_FW_FM_RADIO_RIO,
++		[DEVICE_MODE_FM_RADIO_BDA]	= SMS_FW_FM_RADIO_RIO,
+ 	},
+ 	[SMS_DENVER_1530] = {
+-		[DEVICE_MODE_ATSC]		= "atsc_denver.inp",
++		[DEVICE_MODE_ATSC]		= SMS_FW_ATSC_DENVER,
+ 	},
+ 	[SMS_DENVER_2160] = {
+-		[DEVICE_MODE_DAB_TDMB]		= "tdmb_denver.inp",
++		[DEVICE_MODE_DAB_TDMB]		= SMS_FW_TDMB_DENVER,
+ 	},
+ };
  
- #ifdef GO7007_USB_DEBUG
-@@ -664,15 +664,17 @@ static int go7007_usb_ezusb_write_interrupt(struct go7007 *go,
- 		r = usb_control_msg(usb->usbdev,
- 				usb_rcvctrlpipe(usb->usbdev, 0), 0x14,
- 				USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_IN,
--				0, HPI_STATUS_ADDR, &status_reg,
-+				0, HPI_STATUS_ADDR, go->usb_buf,
- 				sizeof(status_reg), timeout);
- 		if (r < 0)
--			goto write_int_error;
--		__le16_to_cpus(&status_reg);
-+			break;
-+		status_reg = le16_to_cpu(*((u16 *)go->usb_buf));
- 		if (!(status_reg & 0x0010))
- 			break;
- 		msleep(10);
- 	}
-+	if (r < 0)
-+		goto write_int_error;
- 	if (i == 100) {
- 		printk(KERN_ERR
- 			"go7007-usb: device is hung, status reg = 0x%04x\n",
-@@ -700,7 +702,6 @@ static int go7007_usb_onboard_write_interrupt(struct go7007 *go,
- 						int addr, int data)
- {
- 	struct go7007_usb *usb = go->hpi_context;
--	u8 *tbuf;
- 	int r;
- 	int timeout = 500;
- 
-@@ -709,17 +710,14 @@ static int go7007_usb_onboard_write_interrupt(struct go7007 *go,
- 		"go7007-usb: WriteInterrupt: %04x %04x\n", addr, data);
+diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
+index 53b81cb..a9672e0 100644
+--- a/drivers/media/common/siano/smscoreapi.h
++++ b/drivers/media/common/siano/smscoreapi.h
+@@ -44,6 +44,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ #define min(a, b) (((a) < (b)) ? (a) : (b))
  #endif
  
--	tbuf = kzalloc(8, GFP_KERNEL);
--	if (tbuf == NULL)
--		return -ENOMEM;
--	tbuf[0] = data & 0xff;
--	tbuf[1] = data >> 8;
--	tbuf[2] = addr & 0xff;
--	tbuf[3] = addr >> 8;
-+	go->usb_buf[0] = data & 0xff;
-+	go->usb_buf[1] = data >> 8;
-+	go->usb_buf[2] = addr & 0xff;
-+	go->usb_buf[3] = addr >> 8;
-+	go->usb_buf[4] = go->usb_buf[5] = go->usb_buf[6] = go->usb_buf[7] = 0;
- 	r = usb_control_msg(usb->usbdev, usb_sndctrlpipe(usb->usbdev, 2), 0x00,
- 			USB_TYPE_VENDOR | USB_RECIP_ENDPOINT, 0x55aa,
--			0xf0f0, tbuf, 8, timeout);
--	kfree(tbuf);
-+			0xf0f0, go->usb_buf, 8, timeout);
- 	if (r < 0) {
- 		printk(KERN_ERR "go7007-usb: error in WriteInterrupt: %d\n", r);
- 		return r;
-@@ -913,7 +911,7 @@ static int go7007_usb_i2c_master_xfer(struct i2c_adapter *adapter,
- {
- 	struct go7007 *go = i2c_get_adapdata(adapter);
- 	struct go7007_usb *usb = go->hpi_context;
--	u8 buf[16];
-+	u8 *buf = go->usb_buf;
- 	int buf_len, i;
- 	int ret = -EIO;
- 
-@@ -1169,14 +1167,12 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 
- 	/* Probe the tuner model on the TV402U */
- 	if (go->board_id == GO7007_BOARDID_PX_TV402U_ANY) {
--		u8 data[3];
--
- 		/* Board strapping indicates tuner model */
--		if (go7007_usb_vendor_request(go, 0x41, 0, 0, data, 3, 1) < 0) {
-+		if (go7007_usb_vendor_request(go, 0x41, 0, 0, go->usb_buf, 3, 1) < 0) {
- 			printk(KERN_ERR "go7007-usb: GPIO read failed!\n");
- 			goto initfail;
- 		}
--		switch (data[0] >> 6) {
-+		switch (go->usb_buf[0] >> 6) {
- 		case 1:
- 			go->board_id = GO7007_BOARDID_PX_TV402U_EU;
- 			go->tuner_type = TUNER_SONY_BTF_PG472Z;
-@@ -1309,8 +1305,8 @@ static void go7007_usb_disconnect(struct usb_interface *intf)
- 
- 	kfree(go->hpi_context);
- 
--	go7007_remove(go);
- 	go->status = STATUS_SHUTDOWN;
-+	go7007_remove(go);
- }
- 
- static struct usb_driver go7007_usb_driver = {
-diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
-index 37400bf..2266e1b 100644
---- a/drivers/staging/media/go7007/s2250-board.c
-+++ b/drivers/staging/media/go7007/s2250-board.c
-@@ -584,7 +584,7 @@ static int s2250_probe(struct i2c_client *client,
- 	if (audio == NULL)
- 		return -ENOMEM;
- 
--	state = kmalloc(sizeof(struct s2250), GFP_KERNEL);
-+	state = kzalloc(sizeof(struct s2250), GFP_KERNEL);
- 	if (state == NULL) {
- 		i2c_unregister_device(audio);
- 		return -ENOMEM;
-diff --git a/drivers/staging/media/go7007/saa7134-go7007.c b/drivers/staging/media/go7007/saa7134-go7007.c
-index d65e17a..afe21f3 100644
---- a/drivers/staging/media/go7007/saa7134-go7007.c
-+++ b/drivers/staging/media/go7007/saa7134-go7007.c
-@@ -261,12 +261,12 @@ static int saa7134_go7007_stream_start(struct go7007 *go)
- 
- 	saa->top_dma = dma_map_page(&dev->pci->dev, virt_to_page(saa->top),
- 			0, PAGE_SIZE, DMA_FROM_DEVICE);
--	if (!saa->top_dma)
-+	if (dma_mapping_error(&dev->pci->dev, saa->top_dma))
- 		return -ENOMEM;
- 	saa->bottom_dma = dma_map_page(&dev->pci->dev,
- 			virt_to_page(saa->bottom),
- 			0, PAGE_SIZE, DMA_FROM_DEVICE);
--	if (!saa->bottom_dma) {
-+	if (dma_mapping_error(&dev->pci->dev, saa->bottom_dma)) {
- 		dma_unmap_page(&dev->pci->dev, saa->top_dma, PAGE_SIZE,
- 				DMA_FROM_DEVICE);
- 		return -ENOMEM;
++/* Define the firmware names used by the driver */
++#define SMS_FW_ATSC_DENVER         "atsc_denver.inp"
++#define SMS_FW_CMMB_MING_APP       "cmmb_ming_app.inp"
++#define SMS_FW_CMMB_VEGA_12MHZ     "cmmb_vega_12mhz.inp"
++#define SMS_FW_CMMB_VENICE_12MHZ   "cmmb_venice_12mhz.inp"
++#define SMS_FW_DVBH_RIO            "dvbh_rio.inp"
++#define SMS_FW_DVB_NOVA_12MHZ_B0   "dvb_nova_12mhz_b0.inp"
++#define SMS_FW_DVB_NOVA_12MHZ      "dvb_nova_12mhz.inp"
++#define SMS_FW_DVB_RIO             "dvb_rio.inp"
++#define SMS_FW_FM_RADIO            "fm_radio.inp"
++#define SMS_FW_FM_RADIO_RIO        "fm_radio_rio.inp"
++#define SMS_FW_DVBT_HCW_55XXX      "sms1xxx-hcw-55xxx-dvbt-02.fw"
++#define SMS_FW_ISDBT_HCW_55XXX     "sms1xxx-hcw-55xxx-isdbt-02.fw"
++#define SMS_FW_ISDBT_NOVA_12MHZ_B0 "isdbt_nova_12mhz_b0.inp"
++#define SMS_FW_ISDBT_NOVA_12MHZ    "isdbt_nova_12mhz.inp"
++#define SMS_FW_ISDBT_PELE          "isdbt_pele.inp"
++#define SMS_FW_ISDBT_RIO           "isdbt_rio.inp"
++#define SMS_FW_DVBT_NOVA_A         "sms1xxx-nova-a-dvbt-01.fw"
++#define SMS_FW_DVBT_NOVA_B         "sms1xxx-nova-b-dvbt-01.fw"
++#define SMS_FW_DVBT_STELLAR        "sms1xxx-stellar-dvbt-01.fw"
++#define SMS_FW_TDMB_DENVER         "tdmb_denver.inp"
++#define SMS_FW_TDMB_NOVA_12MHZ_B0  "tdmb_nova_12mhz_b0.inp"
++#define SMS_FW_TDMB_NOVA_12MHZ     "tdmb_nova_12mhz.inp"
++
+ #define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS			(10000)
+ #define SMS_ALLOC_ALIGNMENT				128
+ #define SMS_DMA_ALIGNMENT				16
 -- 
-1.7.10.4
+1.8.1.4
 
