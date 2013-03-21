@@ -1,42 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f50.google.com ([209.85.212.50]:46518 "EHLO
-	mail-vb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932549Ab3CSPmG (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:64212 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753358Ab3CUKjz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 11:42:06 -0400
-Received: by mail-vb0-f50.google.com with SMTP id ft2so401547vbb.37
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 08:42:04 -0700 (PDT)
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 3/4] media: radio: add driver owner entry for radio-si4713
-Date: Tue, 19 Mar 2013 11:41:33 -0400
-Message-Id: <1363707694-27224-4-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
-References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+	Thu, 21 Mar 2013 06:39:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH 08/10] bttv: apply mute settings on open
+Date: Thu, 21 Mar 2013 11:39:52 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-9-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-9-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303211139.52921.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simple addition of platform_driver->driver->owner for radio-si4713.
+On Wed 20 March 2013 20:24:48 Frank Schäfer wrote:
+> Previously, this has been done implicitly for video device nodes by calling
+> set_input() (which calls audio_input() and also modified the mute
+> setting).
+> Since input and mute setting are now untangled (as much as possible), we need to
+> apply the mute setting with an explicit call to audio_mute().
+> Also apply the mute setting when the radio device node gets opened.
 
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
----
- drivers/media/radio/radio-si4713.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index cd30a89..ae70930 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -347,6 +347,7 @@ static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
- static struct platform_driver radio_si4713_pdriver = {
- 	.driver		= {
- 		.name	= "radio-si4713",
-+		.owner	= THIS_MODULE,
- 	},
- 	.probe		= radio_si4713_pdriver_probe,
- 	.remove         = __exit_p(radio_si4713_pdriver_remove),
--- 
-1.7.7.1.488.ge8e1c
+Regards,
 
+	Hans
+
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |    3 ++-
+>  1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index 55eab61..2fb2168 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -3065,7 +3065,7 @@ static int bttv_open(struct file *file)
+>  			    fh, &btv->lock);
+>  	set_tvnorm(btv,btv->tvnorm);
+>  	set_input(btv, btv->input, btv->tvnorm);
+> -
+> +	audio_mute(btv, btv->mute);
+>  
+>  	/* The V4L2 spec requires one global set of cropping parameters
+>  	   which only change on request. These are stored in btv->crop[1].
+> @@ -3230,6 +3230,7 @@ static int radio_open(struct file *file)
+>  	v4l2_fh_init(&fh->fh, vdev);
+>  
+>  	btv->radio_user++;
+> +	audio_mute(btv, btv->mute);
+>  
+>  	v4l2_fh_add(&fh->fh);
+>  
+> 
