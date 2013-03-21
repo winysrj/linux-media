@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55398 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752082Ab3CUTFb convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:41323 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251Ab3CUK2v convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 15:05:31 -0400
-Date: Thu, 21 Mar 2013 16:05:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke
- HVR 900
-Message-ID: <20130321160522.01e183a7@redhat.com>
-In-Reply-To: <514B4F8E.3030705@googlemail.com>
-References: <201303210933.41537.hverkuil@xs4all.nl>
-	<20130321070327.772c6301@redhat.com>
-	<201303211634.13057.hverkuil@xs4all.nl>
-	<514B4F8E.3030705@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+	Thu, 21 Mar 2013 06:28:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH 04/10] bttv: rename field 'audio' in struct 'bttv' to 'audio_input'
+Date: Thu, 21 Mar 2013 11:28:49 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-5-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 8BIT
+Message-Id: <201303211128.49273.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Mar 2013 19:21:02 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+On Wed 20 March 2013 20:24:44 Frank Schäfer wrote:
+> 'audio_input' better describes the meaning of this field.
 
-> Am 21.03.2013 16:34, schrieb Hans Verkuil:
-> > On Thu March 21 2013 11:03:27 Mauro Carvalho Chehab wrote:
-> >> Em Thu, 21 Mar 2013 09:33:41 +0100
-> >> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> >>
-> >>> I tried to use my HVR 900 stick today and discovered that it no longer worked.
-> >>> I traced it to commit aab3125c43d8fecc7134e5f1e729fabf4dd196da: "em28xx: add
-> >>> support for registering multiple i2c buses".
-> >>>
-> >>> The kernel messages for when it fails are:
-> >> ...
-> >>> Mar 21 09:26:57 telek kernel: [ 1396.542517] xc2028 12-0061: attaching existing instance
-> >>> Mar 21 09:26:57 telek kernel: [ 1396.542521] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
-> >>> Mar 21 09:26:57 telek kernel: [ 1396.542523] em2882/3 #0: em2882/3 #0/2: xc3028 attached
-> >> ...
-> >>> Mar 21 09:26:57 telek kernel: [ 1396.547833] xc2028 12-0061: Error on line 1293: -19
-> >> Probably, the I2C speed is wrong. I noticed a small bug on this patch.
-> >> The following patch should fix it. Could you please test?
-> > No luck, it didn't help.
-> 
-> I can't test it at the moment, but I have the same device and also
-> tested at least two other (non-em28xx) devices with the xc3028 during
-> the last weeks.
-> With all devices, I'm often getting i2c errors like this, too. Usually
-> only a few not affecting the device operation, but sometimes the log is
-> full of them and I have to unplugg the device and plug it in again to
-> make it work.
-> So something might be wrong with the xc3028 driver...
-
-I doubt that this is the cause. It could be some race condition between
-the main em28xx driver and some other one (we had this issue in the past).
-
-Also, there's no situation at xc3028 driver where ENODEV is returned.
-So, this is likely at em28xx-i2c, where this error is returned when the
-physical device doesn't answer to an I2C xfer.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
-Mauro
+
+	Hans
+
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-cards.c  |    2 +-
+>  drivers/media/pci/bt8xx/bttv-driver.c |   12 ++++++------
+>  drivers/media/pci/bt8xx/bttvp.h       |    2 +-
+>  3 Dateien geändert, 8 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+> index fa0faaa..b7dc921 100644
+> --- a/drivers/media/pci/bt8xx/bttv-cards.c
+> +++ b/drivers/media/pci/bt8xx/bttv-cards.c
+> @@ -3947,7 +3947,7 @@ static void avermedia_eeprom(struct bttv *btv)
+>  u32 bttv_tda9880_setnorm(struct bttv *btv, u32 gpiobits)
+>  {
+>  
+> -	if (btv->audio == TVAUDIO_INPUT_TUNER) {
+> +	if (btv->audio_input == TVAUDIO_INPUT_TUNER) {
+>  		if (bttv_tvnorms[btv->tvnorm].v4l2_id & V4L2_STD_MN)
+>  			gpiobits |= 0x10000;
+>  		else
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index e01a8d8..81ee70d 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -1093,7 +1093,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  static inline int
+>  audio_mute(struct bttv *btv, int mute)
+>  {
+> -	return audio_mux(btv, btv->audio, mute);
+> +	return audio_mux(btv, btv->audio_input, mute);
+>  }
+>  
+>  static inline int
+> @@ -1195,9 +1195,9 @@ set_input(struct bttv *btv, unsigned int input, unsigned int norm)
+>  	} else {
+>  		video_mux(btv,input);
+>  	}
+> -	btv->audio = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
+> -			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
+> -	audio_input(btv, btv->audio);
+> +	btv->audio_input = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
+> +				TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
+> +	audio_input(btv, btv->audio_input);
+>  	set_tvnorm(btv, norm);
+>  }
+>  
+> @@ -1706,8 +1706,8 @@ static void radio_enable(struct bttv *btv)
+>  	if (!btv->has_radio_tuner) {
+>  		btv->has_radio_tuner = 1;
+>  		bttv_call_all(btv, tuner, s_radio);
+> -		btv->audio = TVAUDIO_INPUT_RADIO;
+> -		audio_input(btv, btv->audio);
+> +		btv->audio_input = TVAUDIO_INPUT_RADIO;
+> +		audio_input(btv, btv->audio_input);
+>  	}
+>  }
+>  
+> diff --git a/drivers/media/pci/bt8xx/bttvp.h b/drivers/media/pci/bt8xx/bttvp.h
+> index e7910e0..9c1cc2c 100644
+> --- a/drivers/media/pci/bt8xx/bttvp.h
+> +++ b/drivers/media/pci/bt8xx/bttvp.h
+> @@ -423,7 +423,7 @@ struct bttv {
+>  
+>  	/* video state */
+>  	unsigned int input;
+> -	unsigned int audio;
+> +	unsigned int audio_input;
+>  	unsigned int mute;
+>  	unsigned long tv_freq;
+>  	unsigned int tvnorm;
+> 
