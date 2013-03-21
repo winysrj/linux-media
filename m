@@ -1,99 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:56881 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757055Ab3CNOKv (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:20366 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619Ab3CUK0q convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 10:10:51 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	elezegarcia@gmail.com,
-	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-Subject: [RFC V1 8/8] smi2021: Add Kconfig and Makefiles
-Date: Thu, 14 Mar 2013 15:07:04 +0100
-Message-Id: <1363270024-12127-9-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	Thu, 21 Mar 2013 06:26:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH 02/10] bttv: audio_mux(): do not change the value of the v4l2 mute control
+Date: Thu, 21 Mar 2013 11:26:44 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-3-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303211126.44343.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed 20 March 2013 20:24:42 Frank Schäfer wrote:
+> There are cases where we want to call audio_mux() without changing the value of
+> the v4l2 mute control, for example
+> - mute mute on last close
+> - mute on device probing
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
----
- drivers/media/usb/Kconfig          |  1 +
- drivers/media/usb/Makefile         |  1 +
- drivers/media/usb/smi2021/Kconfig  | 18 ++++++++++++++++++
- drivers/media/usb/smi2021/Makefile | 12 ++++++++++++
- 4 files changed, 32 insertions(+)
- create mode 100644 drivers/media/usb/smi2021/Kconfig
- create mode 100644 drivers/media/usb/smi2021/Makefile
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
-index 0a7d520..dec0383 100644
---- a/drivers/media/usb/Kconfig
-+++ b/drivers/media/usb/Kconfig
-@@ -26,6 +26,7 @@ source "drivers/media/usb/hdpvr/Kconfig"
- source "drivers/media/usb/tlg2300/Kconfig"
- source "drivers/media/usb/usbvision/Kconfig"
- source "drivers/media/usb/stk1160/Kconfig"
-+source "drivers/media/usb/smi2021/Kconfig"
- endif
- 
- if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
-diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
-index 7f51d7e..932a6ba 100644
---- a/drivers/media/usb/Makefile
-+++ b/drivers/media/usb/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_VIDEO_STK1160) += stk1160/
- obj-$(CONFIG_VIDEO_CX231XX) += cx231xx/
- obj-$(CONFIG_VIDEO_TM6000) += tm6000/
- obj-$(CONFIG_VIDEO_EM28XX) += em28xx/
-+obj-$(CONFIG_VIDEO_SMI2021) += smi2021/
-diff --git a/drivers/media/usb/smi2021/Kconfig b/drivers/media/usb/smi2021/Kconfig
-new file mode 100644
-index 0000000..311375f
---- /dev/null
-+++ b/drivers/media/usb/smi2021/Kconfig
-@@ -0,0 +1,18 @@
-+config VIDEO_SMI2021
-+	tristate "Somagic SMI2021 USB video/audio capture support"
-+	depends on VIDEO_DEV && I2C && SND && USB
-+	select VIDEOBUF2_VMALLOC
-+	select VIDEO_SAA711X
-+	select SND_PCM
-+	help
-+	  This is a video4linux driver for SMI2021 based video capture devices.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called smi2021
-+
-+config VIDEO_SMI2021_BOOTLOADER
-+	bool "Somagic SMI2021 Bootloader"
-+	depends on VIDEO_SMI2021
-+
-+	---help---
-+	  Needed for most SMI2021 devices to work.
-diff --git a/drivers/media/usb/smi2021/Makefile b/drivers/media/usb/smi2021/Makefile
-new file mode 100644
-index 0000000..4f28027
---- /dev/null
-+++ b/drivers/media/usb/smi2021/Makefile
-@@ -0,0 +1,12 @@
-+smi2021-bootloader-y := smi2021_bl.o
-+obj-$(CONFIG_VIDEO_SMI2021_BOOTLOADER) += smi2021-bootloader.o
-+
-+smi2021-y := smi2021_main.o  \
-+	     smi2021_v4l2.o  \
-+	     smi2021_video.o \
-+	     smi2021_i2c.o   \
-+	     smi2021_audio.o \
-+
-+obj-$(CONFIG_VIDEO_SMI2021) += smi2021.o
-+
-+ccflags-y += -Idrivers/media/i2c
--- 
-1.8.1.1
+Regards,
 
+	Hans
+
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+>  1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index a584d82..a082ab4 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -999,7 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		   bttv_tvcards[btv->c.type].gpiomask);
+>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+>  
+> -	btv->mute = mute;
+>  	btv->audio = input;
+>  
+>  	/* automute */
+> @@ -1031,7 +1030,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  
+>  		ctrl = v4l2_ctrl_find(btv->sd_msp34xx->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  
+>  		/* Note: the inputs tuner/radio/extern/intern are translated
+>  		   to msp routings. This assumes common behavior for all msp3400
+> @@ -1080,7 +1079,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		ctrl = v4l2_ctrl_find(btv->sd_tvaudio->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  		v4l2_subdev_call(btv->sd_tvaudio, audio, s_routing,
+>  				input, 0, 0);
+>  	}
+> @@ -1088,7 +1087,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		ctrl = v4l2_ctrl_find(btv->sd_tda7432->ctrl_handler, V4L2_CID_AUDIO_MUTE);
+>  
+>  		if (ctrl)
+> -			v4l2_ctrl_s_ctrl(ctrl, btv->mute);
+> +			v4l2_ctrl_s_ctrl(ctrl, mute);
+>  	}
+>  	return 0;
+>  }
+> @@ -1300,6 +1299,7 @@ static int bttv_s_ctrl(struct v4l2_ctrl *c)
+>  		break;
+>  	case V4L2_CID_AUDIO_MUTE:
+>  		audio_mute(btv, c->val);
+> +		btv->mute = c->val;
+>  		break;
+>  	case V4L2_CID_AUDIO_VOLUME:
+>  		btv->volume_gpio(btv, c->val);
+> 
