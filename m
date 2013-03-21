@@ -1,74 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58609 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753019Ab3C2LLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 07:11:20 -0400
-Date: Fri, 29 Mar 2013 08:11:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca: remove obsolete Kconfig macros
-Message-ID: <20130329081115.30d82656@redhat.com>
-In-Reply-To: <51555598.1040505@redhat.com>
-References: <1364506437.1345.42.camel@x61.thuisdomein>
-	<51555598.1040505@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:43324 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751103Ab3CURnv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 13:43:51 -0400
+Received: by mail-ee0-f47.google.com with SMTP id e52so1843945eek.6
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:43:50 -0700 (PDT)
+Message-ID: <514B470C.6040707@googlemail.com>
+Date: Thu, 21 Mar 2013 18:44:44 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 09/10] bttv: fix mute on last close of the video device
+ node
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-10-git-send-email-fschaefer.oss@googlemail.com> <201303211156.00584.hverkuil@xs4all.nl>
+In-Reply-To: <201303211156.00584.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 29 Mar 2013 09:49:28 +0100
-Hans de Goede <hdegoede@redhat.com> escreveu:
+Am 21.03.2013 11:56, schrieb Hans Verkuil:
+> On Wed 20 March 2013 20:24:49 Frank Schäfer wrote:
+>> Instead of applying the current mute setting on last device node close, always
+>> mute the device.
+> I am very pleased with the preceding 8 patches. That does exactly what I had
+> in mind. For this patch and the next (I would have combined those two into one
+> patch BTW) I want to do some testing first. Unfortunately due to travel I will
+> not have access to bttv hardware for the next 10 days or so.
 
-> Mauro,
-> 
-> Can you pick this one up? I don't have anything pending for gspca,
-> and to create a tree + pullreq for just a trivial patch is not really
-> efficient.
+No problem, I don't think this is high priority stuff. ;)
 
-No problem. I'll handle that.
+> One thing I am considering is adding some basic tuner-ownership functionality
+> to the v4l2 core. Without that I don't think we can ever get this working as
+> it should.
+
+Sounds good !
+
+> It might be an idea to make a pull request for the first 8 patches some time
+> next week. That's all good stuff and it makes the code much easier to
+> understand.
+
+Ok, I will resend the first 8 patches witch you ACK added and RFC removed.
+Please drop me a message when you have tested the last two patches and
+want me to take further actions.
+
+Thanks for reviewing !
 
 Regards,
-Mauro
-> Alternatively I can put it on my TODO for when there is more gspca work,
-> esp. since there is not really a need to hurry with merging this.
-> 
+Frank
+
 > Regards,
-> 
-> Hans
-> 
-> 
-> On 03/28/2013 10:33 PM, Paul Bolle wrote:
-> > The et61x251 driver was removed in v3.5. Remove the last references to
-> > its Kconfig macro now.
-> >
-> > Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
-> > ---
-> > Untested, as usual.
-> >
-> >   drivers/media/usb/gspca/etoms.c | 2 --
-> >   1 file changed, 2 deletions(-)
-> >
-> > diff --git a/drivers/media/usb/gspca/etoms.c b/drivers/media/usb/gspca/etoms.c
-> > index 38f68e1..f165581 100644
-> > --- a/drivers/media/usb/gspca/etoms.c
-> > +++ b/drivers/media/usb/gspca/etoms.c
-> > @@ -768,9 +768,7 @@ static const struct sd_desc sd_desc = {
-> >   /* -- module initialisation -- */
-> >   static const struct usb_device_id device_table[] = {
-> >   	{USB_DEVICE(0x102c, 0x6151), .driver_info = SENSOR_PAS106},
-> > -#if !defined CONFIG_USB_ET61X251 && !defined CONFIG_USB_ET61X251_MODULE
-> >   	{USB_DEVICE(0x102c, 0x6251), .driver_info = SENSOR_TAS5130CXX},
-> > -#endif
-> >   	{}
-> >   };
-> >
-> >
+>
+> 	Hans
+>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/pci/bt8xx/bttv-driver.c |    2 +-
+>>  1 Datei geändert, 1 Zeile hinzugefügt(+), 1 Zeile entfernt(-)
+>>
+>> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+>> index 2fb2168..469ea06 100644
+>> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+>> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+>> @@ -3126,7 +3126,7 @@ static int bttv_release(struct file *file)
+>>  	bttv_field_count(btv);
+>>  
+>>  	if (!btv->users)
+>> -		audio_mute(btv, btv->mute);
+>> +		audio_mute(btv, 1);
+>>  
+>>  	v4l2_fh_del(&fh->fh);
+>>  	v4l2_fh_exit(&fh->fh);
+>>
 
-
--- 
-
-Cheers,
-Mauro
