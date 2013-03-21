@@ -1,79 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:49794 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909Ab3COI46 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 04:56:58 -0400
-Received: by mail-ea0-f169.google.com with SMTP id z7so1378214eaf.14
-        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2013 01:56:56 -0700 (PDT)
-Message-ID: <5142F063.5000007@gmail.com>
-Date: Fri, 15 Mar 2013 10:56:51 +0100
-From: Benjamin Schindler <beschindler@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: msp3400 problem in linux-3.7.0
-References: <51410709.5040805@gmail.com> <201303140757.10555.hverkuil@xs4all.nl> <51417899.2070201@gmail.com> <201303140844.37378.hverkuil@xs4all.nl>
-In-Reply-To: <201303140844.37378.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:42373 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754396Ab3CUNCu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 09:02:50 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2LD2oxR028308
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 09:02:50 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 6/6] siano: make some functions static
+Date: Thu, 21 Mar 2013 10:02:43 -0300
+Message-Id: <1363870963-28552-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
+References: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just tried to apply the patch, but it does not apply cleanly:
+drivers/media/common/siano/smsdvb-debugfs.c:51:6: warning: no previous prototype for 'smsdvb_print_dvb_stats' [-Wmissing-prototypes]
+drivers/media/common/siano/smsdvb-debugfs.c:154:6: warning: no previous prototype for 'smsdvb_print_isdb_stats' [-Wmissing-prototypes]
+drivers/media/common/siano/smsdvb-debugfs.c:244:6: warning: no previous prototype for 'smsdvb_print_isdb_stats_ex' [-Wmissing-prototypes]
+drivers/media/common/siano/smscoreapi.c:832:5: warning: no previous prototype for 'smscore_configure_board' [-Wmissing-prototypes]
+drivers/media/common/siano/smscoreapi.c:1301:5: warning: no previous prototype for 'smscore_init_device' [-Wmissing-prototypes]
 
-metis linux # patch -p1 < /home/benjamin/Downloads/bttv-patch.txt
-patching file drivers/media/pci/bt8xx/bttv-driver.c
-Hunk #1 FAILED at 2007.
-Hunk #2 FAILED at 2024.
-Hunk #3 succeeded at 4269 with fuzz 2 (offset 34 lines).
-Hunk #4 succeeded at 4414 (offset 34 lines).
-2 out of 4 hunks FAILED -- saving rejects to file 
-drivers/media/pci/bt8xx/bttv-driver.c.rej
-patching file drivers/media/pci/bt8xx/bttvp.h
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/siano/smscoreapi.c     | 4 ++--
+ drivers/media/common/siano/smsdvb-debugfs.c | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-I then tried applying it manually, which I think worked. But it did not 
-fix the problem. Given that the patch did not apply cleanly, may be I 
-should either use the media git tree or wait for 3.10.
-
-I just realized that this was on a 3.7.10 kernel (not 3.7.0, but that 
-probably does not make much of a difference)
-
-Regards
-Benjamin
-
-On 14.03.2013 08:44, Hans Verkuil wrote:
-> On Thu March 14 2013 08:13:29 Benjamin Schindler wrote:
->> Hi Hans
->>
->> Thank you for the prompt response. I will try this once I'm home again.
->> Which patch is responsible for fixing it? Just so I can track it once it
->> lands upstream.
->
-> There is a whole series of bttv fixes that I did that will appear in 3.10.
->
-> But the patch that is probably responsible for fixing it is this one:
->
-> http://git.linuxtv.org/media_tree.git/commit/76ea992a036c4a5d3bc606a79ef775dd32fd3daa
->
-> I say 'probably' because I am not 100% certain that that is the main fix.
-> I'm 99% certain, though :-)
->
-> As mentioned, it was part of a much longer patch series, so there may be other
-> patches involved in this particular problem, but I don't think so.
->
-> If you can perhaps test just that single patch then that would be useful
-> information. If that fixes the problem then that's a candidate for 'stable'
-> kernels.
->
->> I have one more question - the wiki states the the WinTV-HVR-5500 is not
->> yet supported (as of June 2011) - is there an update on this? It's the
->> only DVB-C card I can buy in the local stores here
->
-> No idea. I do V4L2, not DVB :-) Hopefully someone else knows.
->
-> Regards,
->
-> 	Hans
->
+diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
+index e7fc4de..ebb9ece 100644
+--- a/drivers/media/common/siano/smscoreapi.c
++++ b/drivers/media/common/siano/smscoreapi.c
+@@ -829,7 +829,7 @@ static int smscore_init_ir(struct smscore_device_t *coredev)
+  *
+  * @return 0 on success, <0 on error.
+  */
+-int smscore_configure_board(struct smscore_device_t *coredev)
++static int smscore_configure_board(struct smscore_device_t *coredev)
+ {
+ 	struct sms_board *board;
+ 
+@@ -1298,7 +1298,7 @@ static int smscore_detect_mode(struct smscore_device_t *coredev)
+  *
+  * @return 0 on success, <0 on error.
+  */
+-int smscore_init_device(struct smscore_device_t *coredev, int mode)
++static int smscore_init_device(struct smscore_device_t *coredev, int mode)
+ {
+ 	void *buffer;
+ 	struct sms_msg_data *msg;
+diff --git a/drivers/media/common/siano/smsdvb-debugfs.c b/drivers/media/common/siano/smsdvb-debugfs.c
+index 4c5691e..0bb4430 100644
+--- a/drivers/media/common/siano/smsdvb-debugfs.c
++++ b/drivers/media/common/siano/smsdvb-debugfs.c
+@@ -48,7 +48,7 @@ struct smsdvb_debugfs {
+ 	wait_queue_head_t	stats_queue;
+ };
+ 
+-void smsdvb_print_dvb_stats(struct smsdvb_debugfs *debug_data,
++static void smsdvb_print_dvb_stats(struct smsdvb_debugfs *debug_data,
+ 			    struct sms_stats *p)
+ {
+ 	int n = 0;
+@@ -151,7 +151,7 @@ void smsdvb_print_dvb_stats(struct smsdvb_debugfs *debug_data,
+ 	wake_up(&debug_data->stats_queue);
+ }
+ 
+-void smsdvb_print_isdb_stats(struct smsdvb_debugfs *debug_data,
++static void smsdvb_print_isdb_stats(struct smsdvb_debugfs *debug_data,
+ 			     struct sms_isdbt_stats *p)
+ {
+ 	int i, n = 0;
+@@ -241,7 +241,7 @@ void smsdvb_print_isdb_stats(struct smsdvb_debugfs *debug_data,
+ 	wake_up(&debug_data->stats_queue);
+ }
+ 
+-void smsdvb_print_isdb_stats_ex(struct smsdvb_debugfs *debug_data,
++static void smsdvb_print_isdb_stats_ex(struct smsdvb_debugfs *debug_data,
+ 				struct sms_isdbt_stats_ex *p)
+ {
+ 	int i, n = 0;
+-- 
+1.8.1.4
 
