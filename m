@@ -1,117 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47691 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752561Ab3CFAYV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 19:24:21 -0500
-Date: Tue, 5 Mar 2013 21:23:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	arm@kernel.org, Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Tony Lindgren <tony@atomide.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/9] [media] ir-rx51: fix clock API related build issues
-Message-ID: <20130305212351.4993d8c6@redhat.com>
-In-Reply-To: <1362521809-22989-7-git-send-email-arnd@arndb.de>
-References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
-	<1362521809-22989-7-git-send-email-arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:37149 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561Ab3CURuf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 13:50:35 -0400
+Received: by mail-ea0-f178.google.com with SMTP id g14so1037750eak.37
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:50:34 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/8] bttv: audio_mux(): use a local variable "gpio_mute" instead of modifying the function parameter "mute"
+Date: Thu, 21 Mar 2013 18:51:13 +0100
+Message-Id: <1363888280-28724-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue,  5 Mar 2013 23:16:46 +0100
-Arnd Bergmann <arnd@arndb.de> escreveu:
+Function audio_mux() actually deals with two types of mute: gpio mute and
+subdevice muting.
+This patch claryfies the meaning of these values, but mainly prepares the code for
+the next patch.
 
-> OMAP1 no longer provides its own clock interfaces since patch
-> a135eaae52 "ARM: OMAP: remove plat/clock.h". This is great, but
-> we now have to convert the ir-rx51 driver to use the generic
-> interface from linux/clk.h.
-> 
-> The driver also uses the omap_dm_timer_get_fclk() function,
-> which is not exported for OMAP1, so we have to move the
-> definition out of the OMAP2 specific section.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c |    8 ++++----
+ 1 Datei geändert, 4 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
 
->From my side:
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-> Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-> Cc: Tony Lindgren <tony@atomide.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: linux-media@vger.kernel.org
-> ---
->  arch/arm/plat-omap/dmtimer.c | 16 ++++++++--------
->  drivers/media/rc/ir-rx51.c   |  4 ++--
->  2 files changed, 10 insertions(+), 10 deletions(-)
-> 
-> diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-> index a0daa2f..ea133e5 100644
-> --- a/arch/arm/plat-omap/dmtimer.c
-> +++ b/arch/arm/plat-omap/dmtimer.c
-> @@ -333,6 +333,14 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
->  }
->  EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
->  
-> +struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-> +{
-> +	if (timer)
-> +		return timer->fclk;
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
-> +
->  #if defined(CONFIG_ARCH_OMAP1)
->  #include <mach/hardware.h>
->  /**
-> @@ -371,14 +379,6 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
->  
->  #else
->  
-> -struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-> -{
-> -	if (timer)
-> -		return timer->fclk;
-> -	return NULL;
-> -}
-> -EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
-> -
->  __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
->  {
->  	BUG();
-> diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-> index 8ead492..d1364a1 100644
-> --- a/drivers/media/rc/ir-rx51.c
-> +++ b/drivers/media/rc/ir-rx51.c
-> @@ -25,9 +25,9 @@
->  #include <linux/platform_device.h>
->  #include <linux/sched.h>
->  #include <linux/wait.h>
-> +#include <linux/clk.h>
->  
->  #include <plat/dmtimer.h>
-> -#include <plat/clock.h>
->  
->  #include <media/lirc.h>
->  #include <media/lirc_dev.h>
-> @@ -209,7 +209,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
->  	}
->  
->  	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
-> -	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
-> +	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
->  
->  	return 0;
->  
-
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 8610b6a..a584d82 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -992,7 +992,7 @@ static char *audio_modes[] = {
+ static int
+ audio_mux(struct bttv *btv, int input, int mute)
+ {
+-	int gpio_val, signal;
++	int gpio_val, signal, mute_gpio;
+ 	struct v4l2_ctrl *ctrl;
+ 
+ 	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
+@@ -1003,10 +1003,10 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 	btv->audio = input;
+ 
+ 	/* automute */
+-	mute = mute || (btv->opt_automute && (!signal || !btv->users)
++	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
+ 				&& !btv->has_radio_tuner);
+ 
+-	if (mute)
++	if (mute_gpio)
+ 		gpio_val = bttv_tvcards[btv->c.type].gpiomute;
+ 	else
+ 		gpio_val = bttv_tvcards[btv->c.type].gpiomux[input];
+@@ -1022,7 +1022,7 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 	}
+ 
+ 	if (bttv_gpio)
+-		bttv_gpio_tracking(btv, audio_modes[mute ? 4 : input]);
++		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
+ 	if (in_interrupt())
+ 		return 0;
+ 
 -- 
+1.7.10.4
 
-Cheers,
-Mauro
