@@ -1,709 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3322 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651Ab3CRMcf (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2037 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757551Ab3CUIdw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 08:32:35 -0400
+	Thu, 21 Mar 2013 04:33:52 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 04/19] solo6x10: add control framework.
-Date: Mon, 18 Mar 2013 13:32:03 +0100
-Message-Id: <1363609938-21735-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: em28xx: commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke HVR 900
+Date: Thu, 21 Mar 2013 09:33:41 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303210933.41537.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+I tried to use my HVR 900 stick today and discovered that it no longer worked.
+I traced it to commit aab3125c43d8fecc7134e5f1e729fabf4dd196da: "em28xx: add
+support for registering multiple i2c buses".
 
-Note that the MOTION_THRESHOLD functionality has been temporarily reduced:
-only the global threshold can be set, not the per-block. This will be
-addressed in a later patch: controls are not the proper way to do this.
+The kernel messages for when it fails are:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/solo6x10.h |   15 +-
- drivers/staging/media/solo6x10/tw28.c     |   12 +-
- drivers/staging/media/solo6x10/tw28.h     |    1 +
- drivers/staging/media/solo6x10/v4l2-enc.c |  350 ++++++++---------------------
- drivers/staging/media/solo6x10/v4l2.c     |   83 +++----
- 5 files changed, 132 insertions(+), 329 deletions(-)
+Mar 21 09:26:54 telek kernel: [ 1393.446606] em28xx: New device  WinTV HVR-900 @ 480 Mbps (2040:6502, interface 0, class 0)
+Mar 21 09:26:54 telek kernel: [ 1393.446610] em28xx: Audio interface 0 found (Vendor Class)
+Mar 21 09:26:54 telek kernel: [ 1393.446611] em28xx: Video interface 0 found: isoc
+Mar 21 09:26:54 telek kernel: [ 1393.446612] em28xx: DVB interface 0 found: isoc
+Mar 21 09:26:54 telek kernel: [ 1393.446979] em28xx: chip ID is em2882/3
+Mar 21 09:26:54 telek kernel: [ 1393.587885] em2882/3 #0: i2c eeprom 00: 1a eb 67 95 40 20 02 65 d0 12 5c 03 82 1e 6a 18
+Mar 21 09:26:54 telek kernel: [ 1393.587896] em2882/3 #0: i2c eeprom 10: 00 00 24 57 66 07 01 00 00 00 00 00 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587905] em2882/3 #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b e0 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587913] em2882/3 #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 01 01 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587921] em2882/3 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587929] em2882/3 #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587937] em2882/3 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 18 03 34 00 30 00
+Mar 21 09:26:54 telek kernel: [ 1393.587946] em2882/3 #0: i2c eeprom 70: 32 00 37 00 36 00 37 00 38 00 36 00 33 00 39 00
+Mar 21 09:26:54 telek kernel: [ 1393.587954] em2882/3 #0: i2c eeprom 80: 00 00 1e 03 57 00 69 00 6e 00 54 00 56 00 20 00
+Mar 21 09:26:54 telek kernel: [ 1393.587962] em2882/3 #0: i2c eeprom 90: 48 00 56 00 52 00 2d 00 39 00 30 00 30 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587970] em2882/3 #0: i2c eeprom a0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
+Mar 21 09:26:54 telek kernel: [ 1393.587979] em2882/3 #0: i2c eeprom b0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 af 7f
+Mar 21 09:26:54 telek kernel: [ 1393.587987] em2882/3 #0: i2c eeprom c0: 11 f0 74 02 01 00 01 79 0b 00 00 00 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.587995] em2882/3 #0: i2c eeprom d0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
+Mar 21 09:26:54 telek kernel: [ 1393.588011] em2882/3 #0: i2c eeprom e0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 af 7f
+Mar 21 09:26:54 telek kernel: [ 1393.588020] em2882/3 #0: i2c eeprom f0: 11 f0 74 02 01 00 01 79 0b 00 00 00 00 00 00 00
+Mar 21 09:26:54 telek kernel: [ 1393.588029] em2882/3 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x323f39dd
+Mar 21 09:26:54 telek kernel: [ 1393.588031] em2882/3 #0: EEPROM info:
+Mar 21 09:26:54 telek kernel: [ 1393.588032] em2882/3 #0:       No audio on board.
+Mar 21 09:26:54 telek kernel: [ 1393.588033] em2882/3 #0:       500mA max power
+Mar 21 09:26:54 telek kernel: [ 1393.588034] em2882/3 #0:       Table at offset 0x00, strings=0x0000, 0x0000, 0x0000
+Mar 21 09:26:54 telek kernel: [ 1393.588036] em2882/3 #0: Identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+Mar 21 09:26:54 telek kernel: [ 1393.591653] tveeprom 12-0050: Hauppauge model 65018, rev B2C0, serial# 1146799
+Mar 21 09:26:54 telek kernel: [ 1393.591655] tveeprom 12-0050: tuner model is Xceive XC3028 (idx 120, type 71)
+Mar 21 09:26:54 telek kernel: [ 1393.591657] tveeprom 12-0050: TV standards PAL(B/G) PAL(I) PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xd4)
+Mar 21 09:26:54 telek kernel: [ 1393.591658] tveeprom 12-0050: audio processor is None (idx 0)
+Mar 21 09:26:54 telek kernel: [ 1393.591659] tveeprom 12-0050: has radio
+Mar 21 09:26:54 telek kernel: [ 1393.646629] tvp5150 12-005c: chip found @ 0xb8 (em2882/3 #0)
+Mar 21 09:26:54 telek kernel: [ 1393.646632] tvp5150 12-005c: tvp5150am1 detected.
+Mar 21 09:26:54 telek kernel: [ 1393.677877] tuner 12-0061: Tuner -1 found with type(s) Radio TV.
+Mar 21 09:26:54 telek kernel: [ 1393.683854] xc2028 12-0061: creating new instance
+Mar 21 09:26:54 telek kernel: [ 1393.683858] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
+Mar 21 09:26:54 telek kernel: [ 1393.684170] xc2028 12-0061: Loading 97 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Mar 21 09:26:54 telek kernel: [ 1393.685287] em2882/3 #0: Config register raw data: 0xd0
+Mar 21 09:26:54 telek kernel: [ 1393.686766] em2882/3 #0: AC97 vendor ID = 0xffffffff
+Mar 21 09:26:54 telek kernel: [ 1393.687823] em2882/3 #0: AC97 features = 0x6a90
+Mar 21 09:26:54 telek kernel: [ 1393.687826] em2882/3 #0: Empia 202 AC97 audio processor detected
+Mar 21 09:26:54 telek kernel: [ 1393.882147] em2882/3 #0: v4l2 driver version 0.2.0
+Mar 21 09:26:54 telek kernel: [ 1393.882772] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:26:56 telek kernel: [ 1395.953247] MTS (4), id 00000000000000ff:
+Mar 21 09:26:56 telek kernel: [ 1395.953262] xc2028 12-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+Mar 21 09:26:57 telek kernel: [ 1396.308931] em2882/3 #0: V4L2 video device registered as video0
+Mar 21 09:26:57 telek kernel: [ 1396.308935] em2882/3 #0: V4L2 VBI device registered as vbi0
+Mar 21 09:26:57 telek kernel: [ 1396.310318] em2882/3 #0: analog set to isoc mode.
+Mar 21 09:26:57 telek kernel: [ 1396.310320] em2882/3 #0: dvb set to isoc mode.
+Mar 21 09:26:57 telek kernel: [ 1396.311485] usbcore: registered new interface driver em28xx
+Mar 21 09:26:57 telek kernel: [ 1396.317648] em28xx-audio.c: probing for em28xx Audio Vendor Class
+Mar 21 09:26:57 telek kernel: [ 1396.317651] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+Mar 21 09:26:57 telek kernel: [ 1396.317652] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+Mar 21 09:26:57 telek kernel: [ 1396.328976] Em28xx: Initialized (Em28xx Audio Extension) extension
+Mar 21 09:26:57 telek kernel: [ 1396.542517] xc2028 12-0061: attaching existing instance
+Mar 21 09:26:57 telek kernel: [ 1396.542521] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
+Mar 21 09:26:57 telek kernel: [ 1396.542523] em2882/3 #0: em2882/3 #0/2: xc3028 attached
+Mar 21 09:26:57 telek kernel: [ 1396.542525] DVB: registering new adapter (em2882/3 #0)
+Mar 21 09:26:57 telek kernel: [ 1396.542548] usb 5-2: DVB: registering adapter 0 frontend 0 (Micronas DRXD DVB-T)...
+Mar 21 09:26:57 telek kernel: [ 1396.546126] em2882/3 #0: Successfully loaded em28xx-dvb
+Mar 21 09:26:57 telek kernel: [ 1396.546131] Em28xx: Initialized (Em28xx dvb Extension) extension
+Mar 21 09:26:57 telek kernel: [ 1396.547833] xc2028 12-0061: Error on line 1293: -19
+Mar 21 09:26:57 telek kernel: [ 1396.592046] Registered IR keymap rc-hauppauge
+Mar 21 09:26:57 telek kernel: [ 1396.594254] input: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:1c.2/0000:07:00.0/usb5/5-2/rc/rc0/input27
+Mar 21 09:26:57 telek kernel: [ 1396.595200] rc0: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:1c.2/0000:07:00.0/usb5/5-2/rc/rc0
+Mar 21 09:26:57 telek kernel: [ 1396.595594] Em28xx: Initialized (Em28xx Input Extension) extension
+Mar 21 09:26:59 telek kernel: [ 1398.314392] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:26:59 telek kernel: [ 1398.316642] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:26:59 telek kernel: [ 1398.336509] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:26:59 telek kernel: [ 1398.337631] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:27:02 telek kernel: [ 1401.460224] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.461603] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.461612] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.461617] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.512052] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.512639] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.512642] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.512643] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.563027] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.563587] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.563590] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.563592] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.614035] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.614599] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.614602] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.614603] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.665047] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.665608] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.665610] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.665612] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.716048] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.716580] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.716583] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.716584] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.767050] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.767659] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.767662] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.767664] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.818018] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.818523] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.818525] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.818527] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:02 telek kernel: [ 1401.869048] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:27:02 telek kernel: [ 1401.869625] xc2028 12-0061: i2c output error: rc = -19 (should be 64)
+Mar 21 09:27:02 telek kernel: [ 1401.869628] xc2028 12-0061: -19 returned from send
+Mar 21 09:27:02 telek kernel: [ 1401.869629] xc2028 12-0061: Error -22 while loading base firmware
+Mar 21 09:27:06 telek kernel: [ 1405.202225] xc2028 12-0061: Error on line 1293: -19
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index 77041f5..82be88c 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -38,6 +38,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-dev.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/videobuf-core.h>
- 
- #include "registers.h"
-@@ -100,12 +101,12 @@
- #define V4L2_BUF_FLAG_MOTION_ON		0x0400
- #define V4L2_BUF_FLAG_MOTION_DETECTED	0x0800
- #endif
--#ifndef V4L2_CID_MOTION_ENABLE
--#define PRIVATE_CIDS
--#define V4L2_CID_MOTION_ENABLE		(V4L2_CID_PRIVATE_BASE+0)
--#define V4L2_CID_MOTION_THRESHOLD	(V4L2_CID_PRIVATE_BASE+1)
--#define V4L2_CID_MOTION_TRACE		(V4L2_CID_PRIVATE_BASE+2)
--#endif
-+
-+#define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
-+#define V4L2_CID_MOTION_ENABLE		(SOLO_CID_CUSTOM_BASE+0)
-+#define V4L2_CID_MOTION_THRESHOLD	(SOLO_CID_CUSTOM_BASE+1)
-+#define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
-+#define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
- 
- enum SOLO_I2C_STATE {
- 	IIC_STATE_IDLE,
-@@ -137,6 +138,7 @@ struct solo_p2m_dev {
- struct solo_enc_dev {
- 	struct solo_dev	*solo_dev;
- 	/* V4L2 Items */
-+	struct v4l2_ctrl_handler hdl;
- 	struct video_device	*vfd;
- 	/* General accounting */
- 	struct mutex		enable_lock;
-@@ -207,6 +209,7 @@ struct solo_dev {
- 	unsigned int		frame_blank;
- 	u8			cur_disp_ch;
- 	wait_queue_head_t	disp_thread_wait;
-+	struct v4l2_ctrl_handler disp_hdl;
- 
- 	/* V4L2 Encoder items */
- 	struct solo_enc_dev	*v4l2_enc[SOLO_MAX_CHANNELS];
-diff --git a/drivers/staging/media/solo6x10/tw28.c b/drivers/staging/media/solo6x10/tw28.c
-index 365ab10..69baf82 100644
---- a/drivers/staging/media/solo6x10/tw28.c
-+++ b/drivers/staging/media/solo6x10/tw28.c
-@@ -660,6 +660,11 @@ u16 tw28_get_audio_status(struct solo_dev *solo_dev)
- }
- #endif
- 
-+bool tw28_has_sharpness(struct solo_dev *solo_dev, u8 ch)
-+{
-+	return is_tw286x(solo_dev, ch / 4);
-+}
-+
- int tw28_set_ctrl_val(struct solo_dev *solo_dev, u32 ctrl, u8 ch,
- 		      s32 val)
- {
-@@ -676,8 +681,6 @@ int tw28_set_ctrl_val(struct solo_dev *solo_dev, u32 ctrl, u8 ch,
- 	switch (ctrl) {
- 	case V4L2_CID_SHARPNESS:
- 		/* Only 286x has sharpness */
--		if (val > 0x0f || val < 0)
--			return -ERANGE;
- 		if (is_tw286x(solo_dev, chip_num)) {
- 			u8 v = solo_i2c_readbyte(solo_dev, SOLO_I2C_TW,
- 						 TW_CHIP_OFFSET_ADDR(chip_num),
-@@ -687,8 +690,9 @@ int tw28_set_ctrl_val(struct solo_dev *solo_dev, u32 ctrl, u8 ch,
- 			solo_i2c_writebyte(solo_dev, SOLO_I2C_TW,
- 					   TW_CHIP_OFFSET_ADDR(chip_num),
- 					   TW286x_SHARPNESS(chip_num), v);
--		} else if (val != 0)
--			return -ERANGE;
-+		} else {
-+			return -EINVAL;
-+		}
- 		break;
- 
- 	case V4L2_CID_HUE:
-diff --git a/drivers/staging/media/solo6x10/tw28.h b/drivers/staging/media/solo6x10/tw28.h
-index a03b429..1a02c87 100644
---- a/drivers/staging/media/solo6x10/tw28.h
-+++ b/drivers/staging/media/solo6x10/tw28.h
-@@ -55,6 +55,7 @@ int solo_tw28_init(struct solo_dev *solo_dev);
- 
- int tw28_set_ctrl_val(struct solo_dev *solo_dev, u32 ctrl, u8 ch, s32 val);
- int tw28_get_ctrl_val(struct solo_dev *solo_dev, u32 ctrl, u8 ch, s32 *val);
-+bool tw28_has_sharpness(struct solo_dev *solo_dev, u8 ch);
- 
- u8 tw28_get_audio_gain(struct solo_dev *solo_dev, u8 ch);
- void tw28_set_audio_gain(struct solo_dev *solo_dev, u8 ch, u8 val);
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index c4b2a34..1fbd95f 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -119,41 +119,6 @@ static unsigned char vop_6110_pal_cif[] = {
- 	0x01, 0x68, 0xce, 0x32, 0x28, 0x00, 0x00, 0x00,
- };
- 
--
--static const u32 solo_user_ctrls[] = {
--	V4L2_CID_BRIGHTNESS,
--	V4L2_CID_CONTRAST,
--	V4L2_CID_SATURATION,
--	V4L2_CID_HUE,
--	V4L2_CID_SHARPNESS,
--	0
--};
--
--static const u32 solo_mpeg_ctrls[] = {
--	V4L2_CID_MPEG_VIDEO_ENCODING,
--	V4L2_CID_MPEG_VIDEO_GOP_SIZE,
--	0
--};
--
--static const u32 solo_private_ctrls[] = {
--	V4L2_CID_MOTION_ENABLE,
--	V4L2_CID_MOTION_THRESHOLD,
--	0
--};
--
--static const u32 solo_fmtx_ctrls[] = {
--	V4L2_CID_RDS_TX_RADIO_TEXT,
--	0
--};
--
--static const u32 *solo_ctrl_classes[] = {
--	solo_user_ctrls,
--	solo_mpeg_ctrls,
--	solo_fmtx_ctrls,
--	solo_private_ctrls,
--	NULL
--};
--
- struct vop_header {
- 	/* VE_STATUS0 */
- 	u32 mpeg_size:20, sad_motion_flag:1, video_motion_flag:1, vop_type:2,
-@@ -1341,128 +1306,13 @@ static int solo_s_parm(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int solo_queryctrl(struct file *file, void *priv,
--			  struct v4l2_queryctrl *qc)
-+static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct solo_enc_fh *fh = priv;
--	struct solo_enc_dev *solo_enc = fh->enc;
-+	struct solo_enc_dev *solo_enc =
-+		container_of(ctrl->handler, struct solo_enc_dev, hdl);
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
--
--	qc->id = v4l2_ctrl_next(solo_ctrl_classes, qc->id);
--	if (!qc->id)
--		return -EINVAL;
--
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--	case V4L2_CID_CONTRAST:
--	case V4L2_CID_SATURATION:
--	case V4L2_CID_HUE:
--		return v4l2_ctrl_query_fill(qc, 0x00, 0xff, 1, 0x80);
--	case V4L2_CID_SHARPNESS:
--		return v4l2_ctrl_query_fill(qc, 0x00, 0x0f, 1, 0x00);
--	case V4L2_CID_MPEG_VIDEO_ENCODING:
--		return v4l2_ctrl_query_fill(
--			qc, V4L2_MPEG_VIDEO_ENCODING_MPEG_1,
--			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 1,
--			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC);
--	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
--		return v4l2_ctrl_query_fill(qc, 1, 255, 1, solo_dev->fps);
--#ifdef PRIVATE_CIDS
--	case V4L2_CID_MOTION_THRESHOLD:
--		qc->flags |= V4L2_CTRL_FLAG_SLIDER;
--		qc->type = V4L2_CTRL_TYPE_INTEGER;
--		qc->minimum = 0;
--		qc->maximum = 0xffff;
--		qc->step = 1;
--		qc->default_value = SOLO_DEF_MOT_THRESH;
--		strlcpy(qc->name, "Motion Detection Threshold",
--			sizeof(qc->name));
--		return 0;
--	case V4L2_CID_MOTION_ENABLE:
--		qc->type = V4L2_CTRL_TYPE_BOOLEAN;
--		qc->minimum = 0;
--		qc->maximum = qc->step = 1;
--		qc->default_value = 0;
--		strlcpy(qc->name, "Motion Detection Enable", sizeof(qc->name));
--		return 0;
--#else
--	case V4L2_CID_MOTION_THRESHOLD:
--		return v4l2_ctrl_query_fill(qc, 0, 0xffff, 1,
--					    SOLO_DEF_MOT_THRESH);
--	case V4L2_CID_MOTION_ENABLE:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
--#endif
--	case V4L2_CID_RDS_TX_RADIO_TEXT:
--		qc->type = V4L2_CTRL_TYPE_STRING;
--		qc->minimum = 0;
--		qc->maximum = OSD_TEXT_MAX;
--		qc->step = 1;
--		qc->default_value = 0;
--		strlcpy(qc->name, "OSD Text", sizeof(qc->name));
--		return 0;
--	}
--
--	return -EINVAL;
--}
--
--static int solo_querymenu(struct file *file, void *priv,
--			  struct v4l2_querymenu *qmenu)
--{
--	struct v4l2_queryctrl qctrl;
- 	int err;
- 
--	qctrl.id = qmenu->id;
--
--	err = solo_queryctrl(file, priv, &qctrl);
--	if (err)
--		return err;
--
--	return v4l2_ctrl_query_menu(qmenu, &qctrl, NULL);
--}
--
--static int solo_g_ctrl(struct file *file, void *priv,
--		       struct v4l2_control *ctrl)
--{
--	struct solo_enc_fh *fh = priv;
--	struct solo_enc_dev *solo_enc = fh->enc;
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--	case V4L2_CID_CONTRAST:
--	case V4L2_CID_SATURATION:
--	case V4L2_CID_HUE:
--	case V4L2_CID_SHARPNESS:
--		return tw28_get_ctrl_val(solo_dev, ctrl->id, solo_enc->ch,
--					 &ctrl->value);
--	case V4L2_CID_MPEG_VIDEO_ENCODING:
--		ctrl->value = V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC;
--		break;
--	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
--		if (atomic_read(&solo_enc->readers) > 0)
--			return -EBUSY;
--		ctrl->value = solo_enc->gop;
--		break;
--	case V4L2_CID_MOTION_THRESHOLD:
--		ctrl->value = solo_enc->motion_thresh;
--		break;
--	case V4L2_CID_MOTION_ENABLE:
--		ctrl->value = solo_is_motion_on(solo_enc);
--		break;
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int solo_s_ctrl(struct file *file, void *priv,
--		       struct v4l2_control *ctrl)
--{
--	struct solo_enc_fh *fh = priv;
--	struct solo_enc_dev *solo_enc = fh->enc;
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
--
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
- 	case V4L2_CID_CONTRAST:
-@@ -1470,20 +1320,15 @@ static int solo_s_ctrl(struct file *file, void *priv,
- 	case V4L2_CID_HUE:
- 	case V4L2_CID_SHARPNESS:
- 		return tw28_set_ctrl_val(solo_dev, ctrl->id, solo_enc->ch,
--					 ctrl->value);
-+					 ctrl->val);
- 	case V4L2_CID_MPEG_VIDEO_ENCODING:
--		if (ctrl->value != V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC)
--			return -ERANGE;
--		break;
-+		return 0;
- 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
--		if (ctrl->value < 1 || ctrl->value > 255)
--			return -ERANGE;
--		solo_enc->gop = ctrl->value;
--		break;
--	case V4L2_CID_MOTION_THRESHOLD:
--	{
--		u16 block = (ctrl->value >> 16) & 0xffff;
--		u16 value = ctrl->value & 0xffff;
-+		solo_enc->gop = ctrl->val;
-+		return 0;
-+	case V4L2_CID_MOTION_THRESHOLD: {
-+		u16 block = (ctrl->val >> 16) & 0xffff;
-+		u16 value = ctrl->val & 0xffff;
- 
- 		/* Motion thresholds are in a table of 64x64 samples, with
- 		 * each sample representing 16x16 pixels of the source. In
-@@ -1492,22 +1337,25 @@ static int solo_s_ctrl(struct file *file, void *priv,
- 		 *
- 		 * Block is 0 to set the threshold globally, or any positive
- 		 * number under 2049 to set block-1 individually. */
--		if (block > 2049)
--			return -ERANGE;
--
-+		/* Currently we limit support to block 0 only. A later patch
-+		 * will add a new ioctl to set all other blocks. */
- 		if (block == 0) {
- 			solo_enc->motion_thresh = value;
- 			return solo_set_motion_threshold(solo_dev,
- 							 solo_enc->ch, value);
--		} else {
--			return solo_set_motion_block(solo_dev, solo_enc->ch,
--						     value, block - 1);
- 		}
--		break;
-+		return solo_set_motion_block(solo_dev, solo_enc->ch,
-+						     value, block - 1);
- 	}
- 	case V4L2_CID_MOTION_ENABLE:
--		solo_motion_toggle(solo_enc, ctrl->value);
--		break;
-+		solo_motion_toggle(solo_enc, ctrl->val);
-+		return 0;
-+	case V4L2_CID_OSD_TEXT:
-+		mutex_lock(&solo_enc->enable_lock);
-+		strcpy(solo_enc->osd_text, ctrl->string);
-+		err = solo_osd_print(solo_enc);
-+		mutex_unlock(&solo_enc->enable_lock);
-+		return err;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1515,86 +1363,6 @@ static int solo_s_ctrl(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int solo_s_ext_ctrls(struct file *file, void *priv,
--			    struct v4l2_ext_controls *ctrls)
--{
--	struct solo_enc_fh *fh = priv;
--	struct solo_enc_dev *solo_enc = fh->enc;
--	int i;
--
--	for (i = 0; i < ctrls->count; i++) {
--		struct v4l2_ext_control *ctrl = (ctrls->controls + i);
--		int err;
--
--		switch (ctrl->id) {
--		case V4L2_CID_RDS_TX_RADIO_TEXT:
--			if (ctrl->size - 1 > OSD_TEXT_MAX)
--				err = -ERANGE;
--			else {
--				mutex_lock(&solo_enc->enable_lock);
--				err = copy_from_user(solo_enc->osd_text,
--						     ctrl->string,
--						     OSD_TEXT_MAX);
--				solo_enc->osd_text[OSD_TEXT_MAX] = '\0';
--				if (!err)
--					err = solo_osd_print(solo_enc);
--				else
--					err = -EFAULT;
--				mutex_unlock(&solo_enc->enable_lock);
--			}
--			break;
--		default:
--			err = -EINVAL;
--		}
--
--		if (err < 0) {
--			ctrls->error_idx = i;
--			return err;
--		}
--	}
--
--	return 0;
--}
--
--static int solo_g_ext_ctrls(struct file *file, void *priv,
--			    struct v4l2_ext_controls *ctrls)
--{
--	struct solo_enc_fh *fh = priv;
--	struct solo_enc_dev *solo_enc = fh->enc;
--	int i;
--
--	for (i = 0; i < ctrls->count; i++) {
--		struct v4l2_ext_control *ctrl = (ctrls->controls + i);
--		int err;
--
--		switch (ctrl->id) {
--		case V4L2_CID_RDS_TX_RADIO_TEXT:
--			if (ctrl->size < OSD_TEXT_MAX) {
--				ctrl->size = OSD_TEXT_MAX;
--				err = -ENOSPC;
--			} else {
--				mutex_lock(&solo_enc->enable_lock);
--				err = copy_to_user(ctrl->string,
--						   solo_enc->osd_text,
--						   OSD_TEXT_MAX);
--				if (err)
--					err = -EFAULT;
--				mutex_unlock(&solo_enc->enable_lock);
--			}
--			break;
--		default:
--			err = -EINVAL;
--		}
--
--		if (err < 0) {
--			ctrls->error_idx = i;
--			return err;
--		}
--	}
--
--	return 0;
--}
--
- static const struct v4l2_file_operations solo_enc_fops = {
- 	.owner			= THIS_MODULE,
- 	.open			= solo_enc_open,
-@@ -1630,13 +1398,6 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
- 	/* Video capture parameters */
- 	.vidioc_s_parm			= solo_s_parm,
- 	.vidioc_g_parm			= solo_g_parm,
--	/* Controls */
--	.vidioc_queryctrl		= solo_queryctrl,
--	.vidioc_querymenu		= solo_querymenu,
--	.vidioc_g_ctrl			= solo_g_ctrl,
--	.vidioc_s_ctrl			= solo_s_ctrl,
--	.vidioc_g_ext_ctrls		= solo_g_ext_ctrls,
--	.vidioc_s_ext_ctrls		= solo_s_ext_ctrls,
- };
- 
- static const struct video_device solo_enc_template = {
-@@ -1650,18 +1411,82 @@ static const struct video_device solo_enc_template = {
- 	.current_norm		= V4L2_STD_NTSC_M,
- };
- 
-+static const struct v4l2_ctrl_ops solo_ctrl_ops = {
-+	.s_ctrl = solo_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config solo_motion_threshold_ctrl = {
-+	.ops = &solo_ctrl_ops,
-+	.id = V4L2_CID_MOTION_THRESHOLD,
-+	.name = "Motion Detection Threshold",
-+	.type = V4L2_CTRL_TYPE_INTEGER,
-+	.max = 0xffff,
-+	.def = SOLO_DEF_MOT_THRESH,
-+	.step = 1,
-+	.flags = V4L2_CTRL_FLAG_SLIDER,
-+};
-+
-+static const struct v4l2_ctrl_config solo_motion_enable_ctrl = {
-+	.ops = &solo_ctrl_ops,
-+	.id = V4L2_CID_MOTION_ENABLE,
-+	.name = "Motion Detection Enable",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
-+static const struct v4l2_ctrl_config solo_osd_text_ctrl = {
-+	.ops = &solo_ctrl_ops,
-+	.id = V4L2_CID_OSD_TEXT,
-+	.name = "OSD Text",
-+	.type = V4L2_CTRL_TYPE_STRING,
-+	.max = OSD_TEXT_MAX,
-+	.step = 1,
-+};
-+
- static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 					   u8 ch, unsigned nr)
- {
- 	struct solo_enc_dev *solo_enc;
-+	struct v4l2_ctrl_handler *hdl;
- 	int ret;
- 
- 	solo_enc = kzalloc(sizeof(*solo_enc), GFP_KERNEL);
- 	if (!solo_enc)
- 		return ERR_PTR(-ENOMEM);
- 
-+	hdl = &solo_enc->hdl;
-+	v4l2_ctrl_handler_init(hdl, 10);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_HUE, 0, 255, 1, 128);
-+	if (tw28_has_sharpness(solo_dev, ch))
-+		v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_SHARPNESS, 0, 15, 1, 0);
-+	v4l2_ctrl_new_std_menu(hdl, &solo_ctrl_ops,
-+			V4L2_CID_MPEG_VIDEO_ENCODING,
-+			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 3,
-+			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC);
-+	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
-+			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1, solo_dev->fps);
-+	v4l2_ctrl_new_custom(hdl, &solo_motion_threshold_ctrl, NULL);
-+	v4l2_ctrl_new_custom(hdl, &solo_motion_enable_ctrl, NULL);
-+	v4l2_ctrl_new_custom(hdl, &solo_osd_text_ctrl, NULL);
-+	if (hdl->error) {
-+		ret = hdl->error;
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(solo_enc);
-+		return ERR_PTR(ret);
-+	}
-+
- 	solo_enc->vfd = video_device_alloc();
- 	if (!solo_enc->vfd) {
-+		v4l2_ctrl_handler_free(hdl);
- 		kfree(solo_enc);
- 		return ERR_PTR(-ENOMEM);
- 	}
-@@ -1671,9 +1496,11 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
- 
- 	*solo_enc->vfd = solo_enc_template;
- 	solo_enc->vfd->v4l2_dev = &solo_dev->v4l2_dev;
-+	solo_enc->vfd->ctrl_handler = hdl;
- 	ret = video_register_device(solo_enc->vfd, VFL_TYPE_GRABBER, nr);
- 	if (ret < 0) {
- 		video_device_release(solo_enc->vfd);
-+		v4l2_ctrl_handler_free(hdl);
- 		kfree(solo_enc);
- 		return ERR_PTR(ret);
- 	}
-@@ -1714,6 +1541,7 @@ static void solo_enc_free(struct solo_enc_dev *solo_enc)
- 		return;
- 
- 	video_unregister_device(solo_enc->vfd);
-+	v4l2_ctrl_handler_free(&solo_enc->hdl);
- 	kfree(solo_enc);
- }
- 
-diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
-index ae1c119..21b486c 100644
---- a/drivers/staging/media/solo6x10/v4l2.c
-+++ b/drivers/staging/media/solo6x10/v4l2.c
-@@ -687,64 +687,14 @@ static int solo_s_std(struct file *file, void *priv, v4l2_std_id *i)
- 	return 0;
- }
- 
--static const u32 solo_motion_ctrls[] = {
--	V4L2_CID_MOTION_TRACE,
--	0
--};
--
--static const u32 *solo_ctrl_classes[] = {
--	solo_motion_ctrls,
--	NULL
--};
--
--static int solo_disp_queryctrl(struct file *file, void *priv,
--			       struct v4l2_queryctrl *qc)
--{
--	qc->id = v4l2_ctrl_next(solo_ctrl_classes, qc->id);
--	if (!qc->id)
--		return -EINVAL;
--
--	switch (qc->id) {
--#ifdef PRIVATE_CIDS
--	case V4L2_CID_MOTION_TRACE:
--		qc->type = V4L2_CTRL_TYPE_BOOLEAN;
--		qc->minimum = 0;
--		qc->maximum = qc->step = 1;
--		qc->default_value = 0;
--		strlcpy(qc->name, "Motion Detection Trace", sizeof(qc->name));
--		return 0;
--#else
--	case V4L2_CID_MOTION_TRACE:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
--#endif
--	}
--	return -EINVAL;
--}
--
--static int solo_disp_g_ctrl(struct file *file, void *priv,
--			    struct v4l2_control *ctrl)
-+static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct solo_filehandle *fh = priv;
--	struct solo_dev *solo_dev = fh->solo_dev;
-+	struct solo_dev *solo_dev =
-+		container_of(ctrl->handler, struct solo_dev, disp_hdl);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_MOTION_TRACE:
--		ctrl->value = solo_reg_read(solo_dev, SOLO_VI_MOTION_BAR)
--			? 1 : 0;
--		return 0;
--	}
--	return -EINVAL;
--}
--
--static int solo_disp_s_ctrl(struct file *file, void *priv,
--			    struct v4l2_control *ctrl)
--{
--	struct solo_filehandle *fh = priv;
--	struct solo_dev *solo_dev = fh->solo_dev;
--
--	switch (ctrl->id) {
--	case V4L2_CID_MOTION_TRACE:
--		if (ctrl->value) {
-+		if (ctrl->val) {
- 			solo_reg_write(solo_dev, SOLO_VI_MOTION_BORDER,
- 					SOLO_VI_MOTION_Y_ADD |
- 					SOLO_VI_MOTION_Y_VALUE(0x20) |
-@@ -760,6 +710,8 @@ static int solo_disp_s_ctrl(struct file *file, void *priv,
- 			solo_reg_write(solo_dev, SOLO_VI_MOTION_BAR, 0);
- 		}
- 		return 0;
-+	default:
-+		break;
- 	}
- 	return -EINVAL;
- }
-@@ -793,10 +745,6 @@ static const struct v4l2_ioctl_ops solo_v4l2_ioctl_ops = {
- 	.vidioc_dqbuf			= solo_dqbuf,
- 	.vidioc_streamon		= solo_streamon,
- 	.vidioc_streamoff		= solo_streamoff,
--	/* Controls */
--	.vidioc_queryctrl		= solo_disp_queryctrl,
--	.vidioc_g_ctrl			= solo_disp_g_ctrl,
--	.vidioc_s_ctrl			= solo_disp_s_ctrl,
- };
- 
- static struct video_device solo_v4l2_template = {
-@@ -810,6 +758,19 @@ static struct video_device solo_v4l2_template = {
- 	.current_norm		= V4L2_STD_NTSC_M,
- };
- 
-+static const struct v4l2_ctrl_ops solo_ctrl_ops = {
-+	.s_ctrl = solo_s_ctrl,
-+};
-+
-+static const struct v4l2_ctrl_config solo_motion_trace_ctrl = {
-+	.ops = &solo_ctrl_ops,
-+	.id = V4L2_CID_MOTION_TRACE,
-+	.name = "Motion Detection Trace",
-+	.type = V4L2_CTRL_TYPE_BOOLEAN,
-+	.max = 1,
-+	.step = 1,
-+};
-+
- int solo_v4l2_init(struct solo_dev *solo_dev, unsigned nr)
- {
- 	int ret;
-@@ -824,6 +785,11 @@ int solo_v4l2_init(struct solo_dev *solo_dev, unsigned nr)
- 
- 	*solo_dev->vfd = solo_v4l2_template;
- 	solo_dev->vfd->v4l2_dev = &solo_dev->v4l2_dev;
-+	v4l2_ctrl_handler_init(&solo_dev->disp_hdl, 1);
-+	v4l2_ctrl_new_custom(&solo_dev->disp_hdl, &solo_motion_trace_ctrl, NULL);
-+	if (solo_dev->disp_hdl.error)
-+		return solo_dev->disp_hdl.error;
-+	solo_dev->vfd->ctrl_handler = &solo_dev->disp_hdl;
- 
- 	ret = video_register_device(solo_dev->vfd, VFL_TYPE_GRABBER, nr);
- 	if (ret < 0) {
-@@ -862,5 +828,6 @@ void solo_v4l2_exit(struct solo_dev *solo_dev)
- 		return;
- 
- 	video_unregister_device(solo_dev->vfd);
-+	v4l2_ctrl_handler_free(&solo_dev->disp_hdl);
- 	solo_dev->vfd = NULL;
- }
--- 
-1.7.10.4
+And this is how it should look like:
 
+Mar 21 09:24:49 telek kernel: [ 1268.313138] em28xx: New device  WinTV HVR-900 @ 480 Mbps (2040:6502, interface 0, class 0)
+Mar 21 09:24:49 telek kernel: [ 1268.313141] em28xx: Audio interface 0 found (Vendor Class)
+Mar 21 09:24:49 telek kernel: [ 1268.313143] em28xx: Video interface 0 found: isoc
+Mar 21 09:24:49 telek kernel: [ 1268.313144] em28xx: DVB interface 0 found: isoc
+Mar 21 09:24:49 telek kernel: [ 1268.313483] em28xx: chip ID is em2882/3
+Mar 21 09:24:49 telek kernel: [ 1268.451504] em2882/3 #0: i2c eeprom 00: 1a eb 67 95 40 20 02 65 d0 12 5c 03 82 1e 6a 18
+Mar 21 09:24:49 telek kernel: [ 1268.451515] em2882/3 #0: i2c eeprom 10: 00 00 24 57 66 07 01 00 00 00 00 00 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451523] em2882/3 #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b e0 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451531] em2882/3 #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 01 01 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451539] em2882/3 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451547] em2882/3 #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451556] em2882/3 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 18 03 34 00 30 00
+Mar 21 09:24:49 telek kernel: [ 1268.451564] em2882/3 #0: i2c eeprom 70: 32 00 37 00 36 00 37 00 38 00 36 00 33 00 39 00
+Mar 21 09:24:49 telek kernel: [ 1268.451572] em2882/3 #0: i2c eeprom 80: 00 00 1e 03 57 00 69 00 6e 00 54 00 56 00 20 00
+Mar 21 09:24:49 telek kernel: [ 1268.451580] em2882/3 #0: i2c eeprom 90: 48 00 56 00 52 00 2d 00 39 00 30 00 30 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451588] em2882/3 #0: i2c eeprom a0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
+Mar 21 09:24:49 telek kernel: [ 1268.451596] em2882/3 #0: i2c eeprom b0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 af 7f
+Mar 21 09:24:49 telek kernel: [ 1268.451605] em2882/3 #0: i2c eeprom c0: 11 f0 74 02 01 00 01 79 0b 00 00 00 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451613] em2882/3 #0: i2c eeprom d0: 84 12 00 00 05 50 1a 7f d4 78 23 fa fd d0 28 89
+Mar 21 09:24:49 telek kernel: [ 1268.451621] em2882/3 #0: i2c eeprom e0: ff 00 00 00 04 84 0a 00 01 01 20 77 00 40 af 7f
+Mar 21 09:24:49 telek kernel: [ 1268.451629] em2882/3 #0: i2c eeprom f0: 11 f0 74 02 01 00 01 79 0b 00 00 00 00 00 00 00
+Mar 21 09:24:49 telek kernel: [ 1268.451638] em2882/3 #0: EEPROM ID = 1a eb 67 95, EEPROM hash = 0x323f39dd
+Mar 21 09:24:49 telek kernel: [ 1268.451640] em2882/3 #0: EEPROM info:
+Mar 21 09:24:49 telek kernel: [ 1268.451641] em2882/3 #0:       No audio on board.
+Mar 21 09:24:49 telek kernel: [ 1268.451642] em2882/3 #0:       500mA max power
+Mar 21 09:24:49 telek kernel: [ 1268.451644] em2882/3 #0:       Table at offset 0x00, strings=0x0000, 0x0000, 0x0000
+Mar 21 09:24:49 telek kernel: [ 1268.451645] em2882/3 #0: Identified as Hauppauge WinTV HVR 900 (R2) (card=18)
+Mar 21 09:24:49 telek kernel: [ 1268.455336] tveeprom 12-0050: Hauppauge model 65018, rev B2C0, serial# 1146799
+Mar 21 09:24:49 telek kernel: [ 1268.455338] tveeprom 12-0050: tuner model is Xceive XC3028 (idx 120, type 71)
+Mar 21 09:24:49 telek kernel: [ 1268.455340] tveeprom 12-0050: TV standards PAL(B/G) PAL(I) PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xd4)
+Mar 21 09:24:49 telek kernel: [ 1268.455342] tveeprom 12-0050: audio processor is None (idx 0)
+Mar 21 09:24:49 telek kernel: [ 1268.455343] tveeprom 12-0050: has radio
+Mar 21 09:24:49 telek kernel: [ 1268.511612] tvp5150 12-005c: chip found @ 0xb8 (em2882/3 #0)
+Mar 21 09:24:49 telek kernel: [ 1268.511616] tvp5150 12-005c: tvp5150am1 detected.
+Mar 21 09:24:49 telek kernel: [ 1268.543048] tuner 12-0061: Tuner -1 found with type(s) Radio TV.
+Mar 21 09:24:49 telek kernel: [ 1268.550908] xc2028 12-0061: creating new instance
+Mar 21 09:24:49 telek kernel: [ 1268.550911] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
+Mar 21 09:24:49 telek kernel: [ 1268.551206] xc2028 12-0061: Loading 97 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Mar 21 09:24:49 telek kernel: [ 1268.552265] em2882/3 #0: Config register raw data: 0xd0
+Mar 21 09:24:49 telek kernel: [ 1268.553675] em2882/3 #0: AC97 vendor ID = 0xffffffff
+Mar 21 09:24:49 telek kernel: [ 1268.554349] em2882/3 #0: AC97 features = 0x6a90
+Mar 21 09:24:49 telek kernel: [ 1268.554351] em2882/3 #0: Empia 202 AC97 audio processor detected
+Mar 21 09:24:49 telek kernel: [ 1268.739185] em2882/3 #0: v4l2 driver version 0.2.0
+Mar 21 09:24:49 telek kernel: [ 1268.773016] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:24:51 telek kernel: [ 1270.903855] MTS (4), id 00000000000000ff:
+Mar 21 09:24:51 telek kernel: [ 1270.903870] xc2028 12-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+Mar 21 09:24:52 telek kernel: [ 1271.252677] em2882/3 #0: V4L2 video device registered as video0
+Mar 21 09:24:52 telek kernel: [ 1271.252681] em2882/3 #0: V4L2 VBI device registered as vbi0
+Mar 21 09:24:52 telek kernel: [ 1271.253425] em2882/3 #0: analog set to isoc mode.
+Mar 21 09:24:52 telek kernel: [ 1271.253427] em2882/3 #0: dvb set to isoc mode.
+Mar 21 09:24:52 telek kernel: [ 1271.254699] usbcore: registered new interface driver em28xx
+Mar 21 09:24:52 telek kernel: [ 1271.260336] em28xx-audio.c: probing for em28xx Audio Vendor Class
+Mar 21 09:24:52 telek kernel: [ 1271.260339] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+Mar 21 09:24:52 telek kernel: [ 1271.260340] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+Mar 21 09:24:52 telek kernel: [ 1271.263753] xc2028 12-0061: Error on line 1293: -19
+Mar 21 09:24:52 telek kernel: [ 1271.267562] Em28xx: Initialized (Em28xx Audio Extension) extension
+Mar 21 09:24:52 telek kernel: [ 1271.337649] xc2028 12-0061: attaching existing instance
+Mar 21 09:24:52 telek kernel: [ 1271.337653] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
+Mar 21 09:24:52 telek kernel: [ 1271.337654] em2882/3 #0: em2882/3 #0/2: xc3028 attached
+Mar 21 09:24:52 telek kernel: [ 1271.337657] DVB: registering new adapter (em2882/3 #0)
+Mar 21 09:24:52 telek kernel: [ 1271.337676] usb 5-2: DVB: registering adapter 0 frontend 0 (Micronas DRXD DVB-T)...
+Mar 21 09:24:52 telek kernel: [ 1271.341549] em2882/3 #0: Successfully loaded em28xx-dvb
+Mar 21 09:24:52 telek kernel: [ 1271.341553] Em28xx: Initialized (Em28xx dvb Extension) extension
+Mar 21 09:24:52 telek kernel: [ 1271.384073] Registered IR keymap rc-hauppauge
+Mar 21 09:24:52 telek kernel: [ 1271.385939] input: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:1c.2/0000:07:00.0/usb5/5-2/rc/rc0/input26
+Mar 21 09:24:52 telek kernel: [ 1271.386941] rc0: em28xx IR (em2882/3 #0) as /devices/pci0000:00/0000:00:1c.2/0000:07:00.0/usb5/5-2/rc/rc0
+Mar 21 09:24:52 telek kernel: [ 1271.387303] Em28xx: Initialized (Em28xx Input Extension) extension
+Mar 21 09:24:54 telek kernel: [ 1273.974437] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:24:54 telek kernel: [ 1273.975531] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:24:54 telek kernel: [ 1273.997453] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:24:54 telek kernel: [ 1273.998584] xc2028 12-0061: i2c input error: rc = -19 (should be 2)
+Mar 21 09:24:59 telek kernel: [ 1278.657044] xc2028 12-0061: Loading firmware for type=BASE F8MHZ MTS (7), id 0000000000000000.
+Mar 21 09:25:01 telek kernel: [ 1280.764698] MTS (4), id 00000000000000ff:
+Mar 21 09:25:01 telek kernel: [ 1280.764713] xc2028 12-0061: Loading firmware for type=MTS (4), id 0000000100000007.
+
+
+(Note: I've omitted irrelevant call stack traces due to a WARN_ON in vb2_queue)
+
+Regards,
+
+	Hans
