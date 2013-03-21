@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:63551 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758500Ab3CYOdc (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:41043 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681Ab3CUK2N convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 10:33:32 -0400
-Received: by mail-wi0-f175.google.com with SMTP id c10so4880448wiw.2
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 07:33:31 -0700 (PDT)
+	Thu, 21 Mar 2013 06:28:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?utf-8?q?Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: [RFC PATCH 03/10] bttv: do not save the audio input in audio_mux()
+Date: Thu, 21 Mar 2013 11:28:10 +0100
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com> <1363807490-3906-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363807490-3906-4-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-From: Anthony Horton <anthony.horton@drhotdog.net>
-Date: Tue, 26 Mar 2013 01:33:08 +1100
-Message-ID: <CAJQRBiXa2uhbfuGaf51RheKLzLeXbz67UgKeftuBw9hSKS8wVA@mail.gmail.com>
-Subject: media_build build is broken
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201303211128.10361.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Apologies is this is already known about but I couldn't find anything
-when I searched.
+On Wed 20 March 2013 20:24:43 Frank Schäfer wrote:
+> We can't and do not save the mute setting in function audio_mux(), so we
+> should also not save the input in this function for consistency.
 
-The media_build tree appears to be currently broken, at least for my
-build environment (Fedora 18, gcc 4.7.2, 3.8.4-202.fc18.x86_64
-kernel).
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-$ git clone git://linuxtv.org/media_build.git
-$ cd media_build/
-$./build
-Checking if the needed tools for Fedora release 18 (Spherical Cow) are available
-Needed package dependencies are met.
-...
-<lots of output>
-...
-  CC [M]  /home/username/build/v4l/media_build/v4l/mem2mem_testdev.o
-  CC [M]  /home/username/build/v4l/media_build/v4l/sh_veu.o
-/home/username/build/v4l/media_build/v4l/sh_veu.c: In function 'sh_veu_probe':
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1168:2: error:
-implicit declaration of function 'devm_ioremap_resource'
-[-Werror=implicit-function-declaration]
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1168:12: warning:
-assignment makes pointer from integer without a cast [enabled by
-default]
-/home/username/build/v4l/media_build/v4l/sh_veu.c: At top level:
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1252:1: warning:
-data definition has no type or storage class [enabled by default]
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1252:1: warning:
-type defaults to 'int' in declaration of
-'module_platform_driver_probe' [-Wimplicit-int]
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1252:1: warning:
-parameter names (without types) in function declaration [enabled by
-default]
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1147:12: warning:
-'sh_veu_probe' defined but not used [-Wunused-function]
-/home/username/build/v4l/media_build/v4l/sh_veu.c:1244:41: warning:
-'sh_veu_pdrv' defined but not used [-Wunused-variable]
-cc1: some warnings being treated as errors
-make[3]: *** [/home/username/build/v4l/media_build/v4l/sh_veu.o] Error 1
-make[2]: *** [_module_/home/username/build/v4l/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/3.8.4-202.fc18.x86_64'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/username/build/v4l/media_build/v4l'
-make: *** [all] Error 2
-build failed at ./build line 452.
+Regards,
 
-This seems to be a recent regression, I successfully built from
-media_build on another Fedora 18 machine just a couple of weeks ago.
+	Hans
+
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/pci/bt8xx/bttv-driver.c |   10 +++++-----
+>  1 Datei geändert, 5 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+> index a082ab4..e01a8d8 100644
+> --- a/drivers/media/pci/bt8xx/bttv-driver.c
+> +++ b/drivers/media/pci/bt8xx/bttv-driver.c
+> @@ -999,8 +999,6 @@ audio_mux(struct bttv *btv, int input, int mute)
+>  		   bttv_tvcards[btv->c.type].gpiomask);
+>  	signal = btread(BT848_DSTATUS) & BT848_DSTATUS_HLOC;
+>  
+> -	btv->audio = input;
+> -
+>  	/* automute */
+>  	mute_gpio = mute || (btv->opt_automute && (!signal || !btv->users)
+>  				&& !btv->has_radio_tuner);
+> @@ -1197,8 +1195,9 @@ set_input(struct bttv *btv, unsigned int input, unsigned int norm)
+>  	} else {
+>  		video_mux(btv,input);
+>  	}
+> -	audio_input(btv, (btv->tuner_type != TUNER_ABSENT && input == 0) ?
+> -			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN);
+> +	btv->audio = (btv->tuner_type != TUNER_ABSENT && input == 0) ?
+> +			 TVAUDIO_INPUT_TUNER : TVAUDIO_INPUT_EXTERN;
+> +	audio_input(btv, btv->audio);
+>  	set_tvnorm(btv, norm);
+>  }
+>  
+> @@ -1707,7 +1706,8 @@ static void radio_enable(struct bttv *btv)
+>  	if (!btv->has_radio_tuner) {
+>  		btv->has_radio_tuner = 1;
+>  		bttv_call_all(btv, tuner, s_radio);
+> -		audio_input(btv, TVAUDIO_INPUT_RADIO);
+> +		btv->audio = TVAUDIO_INPUT_RADIO;
+> +		audio_input(btv, btv->audio);
+>  	}
+>  }
+>  
+> 
