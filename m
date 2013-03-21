@@ -1,164 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:35587 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756497Ab3C2UJz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Mar 2013 16:09:55 -0400
-Date: Fri, 29 Mar 2013 21:10:01 +0100
-From: Anatolij Gustschin <agust@denx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/5] fsl-viu: v4l2 compliance fixes
-Message-ID: <20130329211001.3fde9c29@crub>
-In-Reply-To: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
-References: <1361009907-30990-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:20559 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751525Ab3CUVJR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 17:09:17 -0400
+Date: Thu, 21 Mar 2013 18:08:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
+	Linux Kernel Development <linux-kernel@vger.kernel.org>,
+	Janne Grunau <j@jannau.net>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] media: fix hdpvr build warning
+Message-ID: <20130321180857.5de49d16@redhat.com>
+In-Reply-To: <514B5814.4020309@infradead.org>
+References: <alpine.DEB.2.00.1303112254140.16847@ayla.of.borg>
+	<513F769D.6040306@infradead.org>
+	<20130321154509.46ad14e3@redhat.com>
+	<514B5814.4020309@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Thu, 21 Mar 2013 11:57:24 -0700
+Randy Dunlap <rdunlap@infradead.org> escreveu:
 
-On Sat, 16 Feb 2013 11:18:22 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> This patch series converts fsl-viu to the control framework and provides
-> some additional v4l2 compliance fixes.
+> On 03/21/13 11:45, Mauro Carvalho Chehab wrote:
+> > Em Tue, 12 Mar 2013 11:40:29 -0700
+> > Randy Dunlap <rdunlap@infradead.org> escreveu:
+> > 
+> >> From: Randy Dunlap <rdunlap@infradead.org>
+> >>
+> >> Fix build warning in hdpvr:
+> >>
+> >> drivers/media/usb/hdpvr/hdpvr-video.c: warning: "CONFIG_I2C_MODULE" is not defined [-Wundef]
+> >>
+> >> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> >> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> >> Cc: Janne Grunau <j@jannau.net>
+> > 
+> > From time to time, people used to write those checks wrong. So,
+> > we're now using a macro to avoid those problems (IS_ENABLED). The better
+> > is to also use it here.
+> > 
 > 
-> Anatolij, are you able to test this?
+> From time to time, people omit including header files that should be
+> included.
 
-Sorry for long delay, finally managed to set up the board with recent kernel
-to test the fsl-viu driver patches.
+Heh ;)
 
-> Ideally I'd like to see the output of the v4l2-compliance tool (found in
-> the http://git.linuxtv.org/v4l-utils.git repository). I know that there are
-> remaining issues, especially with the fact that there can be one user at a
-> time only (very bad!) and some overlay issues. I can try to fix those, but
-> I need someone to test otherwise I won't bother.
-
-Below is the output of the v4l2-compliance:
-
-# v4l2-compliance -v -d 0
-Driver Info:
-	Driver name   : viu
-	Card type     : viu
-	Bus info      : platform:viu
-	Driver version: 3.9.0
-	Capabilities  : 0x85000005
-		Video Capture
-		Video Overlay
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000005
-		Video Capture
-		Video Overlay
-		Read/Write
-		Streaming
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: FAIL
-
-Debug ioctls:
-	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-		fail: v4l2-test-input-output.cpp(415): could set input to invalid input 1
-	test VIDIOC_G/S/ENUMINPUT: FAIL
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-		info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
-		info: checking v4l2_queryctrl of control 'Brightness' (0x00980900)
-		info: checking v4l2_queryctrl of control 'Contrast' (0x00980901)
-		info: checking v4l2_queryctrl of control 'Saturation' (0x00980902)
-		info: checking v4l2_queryctrl of control 'Hue' (0x00980903)
-		info: checking v4l2_queryctrl of control 'Chroma AGC' (0x0098091d)
-		info: checking v4l2_queryctrl of control 'Chroma Gain' (0x00980924)
-		info: checking v4l2_queryctrl of control 'Brightness' (0x00980900)
-		info: checking v4l2_queryctrl of control 'Contrast' (0x00980901)
-		info: checking v4l2_queryctrl of control 'Saturation' (0x00980902)
-		info: checking v4l2_queryctrl of control 'Hue' (0x00980903)
-		info: checking v4l2_queryctrl of control 'Chroma AGC' (0x0098091d)
-		info: checking v4l2_queryctrl of control 'Chroma Gain' (0x00980924)
-	test VIDIOC_QUERYCTRL/MENU: OK
-		info: checking control 'User Controls' (0x00980001)
-		info: checking control 'Brightness' (0x00980900)
-		info: checking control 'Contrast' (0x00980901)
-		info: checking control 'Saturation' (0x00980902)
-		info: checking control 'Hue' (0x00980903)
-		info: checking control 'Chroma AGC' (0x0098091d)
-		info: checking control 'Chroma Gain' (0x00980924)
-	test VIDIOC_G/S_CTRL: OK
-		info: checking extended control 'User Controls' (0x00980001)
-		info: checking extended control 'Brightness' (0x00980900)
-		info: checking extended control 'Contrast' (0x00980901)
-		info: checking extended control 'Saturation' (0x00980902)
-		info: checking extended control 'Hue' (0x00980903)
-		info: checking extended control 'Chroma AGC' (0x0098091d)
-		info: checking extended control 'Chroma Gain' (0x00980924)
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		info: checking control event 'User Controls' (0x00980001)
-		info: checking control event 'Brightness' (0x00980900)
-		info: checking control event 'Contrast' (0x00980901)
-		info: checking control event 'Saturation' (0x00980902)
-		info: checking control event 'Hue' (0x00980903)
-		info: checking control event 'Chroma AGC' (0x0098091d)
-		info: checking control event 'Chroma Gain' (0x00980924)
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 7 Private Controls: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-
-Format ioctls:
-		fail: v4l2-test-formats.cpp(240): fmtdesc.pixelformat not set
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: FAIL
-	test VIDIOC_G/S_PARM: OK
-		fail: v4l2-test-formats.cpp(339): !fmt.width || !fmt.height
-	test VIDIOC_G_FBUF: FAIL
-		fail: v4l2-test-formats.cpp(385): !pix.sizeimage
-	test VIDIOC_G_FMT: FAIL
-	test VIDIOC_TRY_FMT: OK (Not Supported)
-	test VIDIOC_S_FMT: OK (Not Supported)
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-		fail: v4l2-test-buffers.cpp(84): node->node2 == NULL
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: FAIL
-
-Total: 35, Succeeded: 29, Failed: 6, Warnings: 0
+> Please add
+> 
+> #include <linux/kconfig.h>
+> 
+> to this patch.
 
 
-Thanks,
+Ok, I'll do it.
+> 
+> Thank you.
+> 
+> 
+> > -
+> > 
+> > [PATCH] Use the proper check for I2C support
+> > 
+> > As reported by Geert Uytterhoeven <geert@linux-m68k.org>:
+> > 
+> > 	drivers/media/usb/hdpvr/hdpvr-video.c: warning: "CONFIG_I2C_MODULE" is not defined [-Wundef]
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> > diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> > index da6b779..554d2eb 100644
+> > --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> > +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+> > @@ -1238,7 +1238,7 @@ static void hdpvr_device_release(struct video_device *vdev)
+> >  	v4l2_device_unregister(&dev->v4l2_dev);
+> >  
+> >  	/* deregister I2C adapter */
+> > -#if defined(CONFIG_I2C) || (CONFIG_I2C_MODULE)
+> > +#if IS_ENABLED(CONFIG_I2C)
+> >  	mutex_lock(&dev->i2c_mutex);
+> >  	i2c_del_adapter(&dev->i2c_adapter);
+> >  	mutex_unlock(&dev->i2c_mutex);
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> 
+> 
 
-Anatolij
+
+-- 
+
+Cheers,
+Mauro
