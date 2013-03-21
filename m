@@ -1,44 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f177.google.com ([209.85.220.177]:49874 "EHLO
-	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab3CSPmC (ORCPT
+Received: from mail-ee0-f53.google.com ([74.125.83.53]:61212 "EHLO
+	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab3CURuk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 11:42:02 -0400
-Received: by mail-vc0-f177.google.com with SMTP id ia10so492025vcb.36
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 08:42:02 -0700 (PDT)
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Eduardo Valentin <edubezval@gmail.com>
-Subject: [PATCH 2/4] media: radio: correct module license (==> GPL v2)
-Date: Tue, 19 Mar 2013 11:41:32 -0400
-Message-Id: <1363707694-27224-3-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
-References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+	Thu, 21 Mar 2013 13:50:40 -0400
+Received: by mail-ee0-f53.google.com with SMTP id e53so1840698eek.12
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:50:38 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 5/8] bttv: separate GPIO part from function audio_mux()
+Date: Thu, 21 Mar 2013 18:51:17 +0100
+Message-Id: <1363888280-28724-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As per code header comment, changing the driver license entry
-to match the correct version.
+Move the GPIO part of function audio_mux() to a separate function
+audio_mux_gpio().
+This prepares the code for the next patch which will separate mute and input
+setting.
 
-Signed-off-by: Eduardo Valentin <edubezval@gmail.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/radio/radio-si4713.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/pci/bt8xx/bttv-driver.c |   18 ++++++++++++------
+ 1 Datei geändert, 12 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
 
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index 5b5c42b..cd30a89 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -39,7 +39,7 @@ module_param(radio_nr, int, 0);
- MODULE_PARM_DESC(radio_nr,
- 		 "Minor number for radio device (-1 ==> auto assign)");
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index 81ee70d..f1cb0db 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -989,11 +989,10 @@ static char *audio_modes[] = {
+ 	"audio: intern", "audio: mute"
+ };
  
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
- MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
- MODULE_VERSION("0.0.1");
+-static int
+-audio_mux(struct bttv *btv, int input, int mute)
++static void
++audio_mux_gpio(struct bttv *btv, int input, int mute)
+ {
+ 	int gpio_val, signal, mute_gpio;
+-	struct v4l2_ctrl *ctrl;
+ 
+ 	gpio_inout(bttv_tvcards[btv->c.type].gpiomask,
+ 		   bttv_tvcards[btv->c.type].gpiomask);
+@@ -1020,8 +1019,14 @@ audio_mux(struct bttv *btv, int input, int mute)
+ 
+ 	if (bttv_gpio)
+ 		bttv_gpio_tracking(btv, audio_modes[mute_gpio ? 4 : input]);
+-	if (in_interrupt())
+-		return 0;
++}
++
++static int
++audio_mux(struct bttv *btv, int input, int mute)
++{
++	struct v4l2_ctrl *ctrl;
++
++	audio_mux_gpio(btv, input, mute);
+ 
+ 	if (btv->sd_msp34xx) {
+ 		u32 in;
+@@ -3846,7 +3851,8 @@ static irqreturn_t bttv_irq(int irq, void *dev_id)
+ 			bttv_irq_switch_video(btv);
+ 
+ 		if ((astat & BT848_INT_HLOCK)  &&  btv->opt_automute)
+-			audio_mute(btv, btv->mute);  /* trigger automute */
++			/* trigger automute */
++			audio_mux_gpio(btv, btv->audio_input, btv->mute);
+ 
+ 		if (astat & (BT848_INT_SCERR|BT848_INT_OCERR)) {
+ 			pr_info("%d: %s%s @ %08x,",
 -- 
-1.7.7.1.488.ge8e1c
+1.7.10.4
 
