@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f42.google.com ([209.85.210.42]:61089 "EHLO
-	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754827Ab3CYLVH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 07:21:07 -0400
-Received: by mail-da0-f42.google.com with SMTP id n15so3175085dad.29
-        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 04:21:07 -0700 (PDT)
-From: Sumit Semwal <sumit.semwal@linaro.org>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org
-Cc: patches@linaro.org, linaro-kernel@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH v2 0/2] dma-buf: Add support for debugfs
-Date: Mon, 25 Mar 2013 16:50:44 +0530
-Message-Id: <1364210447-8125-1-git-send-email-sumit.semwal@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:55545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933463Ab3CUOEe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 10:04:34 -0400
+Date: Thu, 21 Mar 2013 11:02:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Simon Horman <horms@verge.net.au>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>,
+	Jesse Gross <jesse@nicira.com>,
+	Stefan Richter <stefanr@s5r6.in-berlin.de>,
+	Karsten Keil <isdn@linux-pingi.de>,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	dev@openvswitch.org
+Subject: Re: [PATCH] net: add ETH_P_802_3_MIN
+Message-ID: <20130321110255.4c06b2b7@redhat.com>
+In-Reply-To: <1363854568-32228-1-git-send-email-horms@verge.net.au>
+References: <1363854568-32228-1-git-send-email-horms@verge.net.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch series adds a much-missed support for debugfs to dma-buf framework.
+Em Thu, 21 Mar 2013 17:29:28 +0900
+Simon Horman <horms@verge.net.au> escreveu:
 
-Based on the feedback received on v1 of this patch series, support is also
-added to allow exporters to provide name-strings that will prove useful
-while debugging.
+> Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
+> an 802.3 frame. Frames with a lower value in the ethernet type field
+> are Ethernet II.
+> 
+> Also update all the users of this value that I could find to use the
+> new constant.
+> 
+> I anticipate adding some more users of this constant when
+> adding MPLS support to Open vSwtich.
+> 
+> As suggested by Jesse Gross.
+> 
+> Compile tested only.
+> 
+> Cc: Jesse Gross <jesse@nicira.com>
+> Cc: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> Cc: Karsten Keil <isdn@linux-pingi.de>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: linux1394-devel@lists.sourceforge.net
+> Cc: linux-media@vger.kernel.org
+> Cc: dev@openvswitch.org
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-Some more magic can be added for more advanced debugging, but we'll leave that
-for the time being.
+...
 
-Best regards,
-~Sumit.
+> diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+> index 44225b1..9fc82a1 100644
+> --- a/drivers/media/dvb-core/dvb_net.c
+> +++ b/drivers/media/dvb-core/dvb_net.c
+> @@ -185,7 +185,7 @@ static __be16 dvb_net_eth_type_trans(struct sk_buff *skb,
+>  			skb->pkt_type=PACKET_MULTICAST;
+>  	}
+>  
+> -	if (ntohs(eth->h_proto) >= 1536)
+> +	if (ntohs(eth->h_proto) >= ETH_P_802_3_MIN)
+>  		return eth->h_proto;
 
+...
 
-Sumit Semwal (2):
-  dma-buf: replace dma_buf_export() with dma_buf_export_named()
-  dma-buf: Add debugfs support
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
- Documentation/dma-buf-sharing.txt |   13 ++-
- drivers/base/dma-buf.c            |  173 ++++++++++++++++++++++++++++++++++++-
- include/linux/dma-buf.h           |   16 +++-
- 3 files changed, 193 insertions(+), 9 deletions(-)
-
--- 
-1.7.10.4
-
+Cheers,
+Mauro
