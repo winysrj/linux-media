@@ -1,99 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4013 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751779Ab3CWSyb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 14:54:31 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2NIsSpc002703
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 19:54:30 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id D05B411E018E
-	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 19:54:27 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130323185427.D05B411E018E@alastor.dyndns.org>
-Date: Sat, 23 Mar 2013 19:54:27 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:43604 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753758Ab3CUKDe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Mar 2013 06:03:34 -0400
+Date: Thu, 21 Mar 2013 07:03:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: em28xx: commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke
+ HVR 900
+Message-ID: <20130321070327.772c6301@redhat.com>
+In-Reply-To: <201303210933.41537.hverkuil@xs4all.nl>
+References: <201303210933.41537.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Thu, 21 Mar 2013 09:33:41 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> I tried to use my HVR 900 stick today and discovered that it no longer worked.
+> I traced it to commit aab3125c43d8fecc7134e5f1e729fabf4dd196da: "em28xx: add
+> support for registering multiple i2c buses".
+> 
+> The kernel messages for when it fails are:
+...
+> Mar 21 09:26:57 telek kernel: [ 1396.542517] xc2028 12-0061: attaching existing instance
+> Mar 21 09:26:57 telek kernel: [ 1396.542521] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
+> Mar 21 09:26:57 telek kernel: [ 1396.542523] em2882/3 #0: em2882/3 #0/2: xc3028 attached
+...
+> Mar 21 09:26:57 telek kernel: [ 1396.547833] xc2028 12-0061: Error on line 1293: -19
 
-date:		Sat Mar 23 19:03:46 CET 2013
-git branch:	test
-git hash:	69aa6f4ec669b9121057cc9e32cb10b5f744f6d6
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Probably, the I2C speed is wrong. I noticed a small bug on this patch.
+The following patch should fix it. Could you please test?
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+-- 
 
-Detailed results are available here:
+Regards,
+Mauro
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+[PATCH] em28xx: fix I2C write to register 06
 
-Full logs are available here:
+Signed-off-by: Mauro Carvalho Chehab
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index de9b208..dd1f2de 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -295,7 +295,9 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
+ 			dev->cur_i2c_bus |= EM2874_I2C_SECONDARY_BUS_SELECT;
+ 		else
+ 			dev->cur_i2c_bus &= ~EM2874_I2C_SECONDARY_BUS_SELECT;
+-		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->cur_i2c_bus);
++		em28xx_write_reg_bits(dev, EM28XX_R06_I2C_CLK,
++				      dev->cur_i2c_bus,
++				      EM2874_I2C_SECONDARY_BUS_SELECT);
+ 		dev->cur_i2c_bus = bus;
+ 	}
+ 
