@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f182.google.com ([209.85.215.182]:36449 "EHLO
-	mail-ea0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858Ab3CURum (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3367 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932116Ab3CVNyL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 13:50:42 -0400
-Received: by mail-ea0-f182.google.com with SMTP id q15so1042290ead.13
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 10:50:41 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 7/8] bttv: do not unmute the device before the first open
-Date: Thu, 21 Mar 2013 18:51:19 +0100
-Message-Id: <1363888280-28724-8-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1363888280-28724-1-git-send-email-fschaefer.oss@googlemail.com>
+	Fri, 22 Mar 2013 09:54:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] em28xx: tuner setup is broken after algo_data change.
+Date: Fri, 22 Mar 2013 14:54:00 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303221454.00647.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |    4 +++-
- 1 Datei geändert, 3 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+Commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke em28xx. I traced
+this eventually to the change in what algo_data points to. This pointer
+is also passed to em28xx_tuner_callback() through several hidden tuner
+layers (yuck!) and that callback was not updated.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 0df4a16..55eab61 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -4212,11 +4212,13 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	btv->std = V4L2_STD_PAL;
- 	init_irqreg(btv);
- 	v4l2_ctrl_handler_setup(hdl);
--
- 	if (hdl->error) {
- 		result = hdl->error;
- 		goto fail2;
- 	}
-+	/* mute device */
-+	audio_mute(btv, 1);
-+
- 	/* register video4linux + input */
- 	if (!bttv_tvcards[btv->c.type].no_video) {
- 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 46fff5c..cb7cdd3 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2229,8 +2229,9 @@ static unsigned short msp3400_addrs[] = {
+ 
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg)
+ {
++	struct em28xx_i2c_bus *i2c_bus = ptr;
++	struct em28xx *dev = i2c_bus->dev;
+ 	int rc = 0;
+-	struct em28xx *dev = ptr;
+ 
+ 	if (dev->tuner_type != TUNER_XC2028 && dev->tuner_type != TUNER_XC5000)
+ 		return 0;
 -- 
 1.7.10.4
 
