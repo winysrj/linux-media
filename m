@@ -1,57 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2412 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757676Ab3CYIxS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 04:53:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [REVIEW PATCH 09/42] sony-btf-mpx: the MPX driver for the sony BTF PAL/SECAM tuner
-Date: Mon, 25 Mar 2013 09:52:56 +0100
-Cc: linux-media@vger.kernel.org,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl> <25054205c5119e9e7a86aad5a15ea0b5f8b0ca30.1363000605.git.hans.verkuil@cisco.com> <20130324122112.07348e39@redhat.com>
-In-Reply-To: <20130324122112.07348e39@redhat.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:36592 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754295Ab3CVKqM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 06:46:12 -0400
+Message-ID: <514C364E.1020208@iki.fi>
+Date: Fri, 22 Mar 2013 12:45:34 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 11/41] af9035: basic support for IT9135 v2 chips
+References: <1362881013-5271-1-git-send-email-crope@iki.fi> <1362881013-5271-11-git-send-email-crope@iki.fi> <20130321185422.4c2c9696@redhat.com> <514B9B9A.7010502@iki.fi> <20130322063004.43e66b05@redhat.com>
+In-Reply-To: <20130322063004.43e66b05@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303250952.56955.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun March 24 2013 16:21:12 Mauro Carvalho Chehab wrote:
-> Em Mon, 11 Mar 2013 12:45:47 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The Sony BTF PG472Z has an internal MPX to deal with mono/stereo/bilingual
-> > audio. This is split off from the wis-sony-tuner driver that is part of
-> > the go7007 driver as it should be a separate i2c sub-device driver.
-> > 
-> > The wis-sony-tuner is really three i2c devices: a standard tuner, a tda9887
-> > compatible demodulator and this mpx. After this patch the wis-sony-tuner
-> > can be replaced by this driver and the standard tuner driver.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/i2c/Kconfig        |   11 +-
-> >  drivers/media/i2c/Makefile       |    1 +
-> >  drivers/media/i2c/sony-btf-mpx.c |  399 ++++++++++++++++++++++++++++++++++++++
-> 
-> Not sure what happened, but sony-btf-mpx.c got missed on the version inside
-> the pull request.
-> 
-> So, I got it from this patch.
+On 03/22/2013 11:30 AM, Mauro Carvalho Chehab wrote:
+> Em Fri, 22 Mar 2013 01:45:30 +0200
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 03/21/2013 11:54 PM, Mauro Carvalho Chehab wrote:
+>>> Em Sun, 10 Mar 2013 04:03:03 +0200
+>>> Antti Palosaari <crope@iki.fi> escreveu:
+>>>>    static struct ite_config af9035_it913x_config = {
+>>>> -	.chip_ver = 0x01,
+>>>> +	.chip_ver = 0x02,
+>>
+>>>> @@ -1153,6 +1161,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+>>>>    	case AF9033_TUNER_IT9135_38:
+>>>>    	case AF9033_TUNER_IT9135_51:
+>>>>    	case AF9033_TUNER_IT9135_52:
+>>>> +		af9035_it913x_config.chip_ver = 0x01;
+>>>
+>>> Hmmm... aren't you missing a break here? If not, please add a comment, as
+>>> otherwise reviewers think that this is a bug.
+>>
+>> It is correct as it was set 0x02 by init. And variable was removed
+>> totally few patches later.
+>
+> Ok, so please send a patch latter adding a notice about that, like:
+>    	case AF9033_TUNER_IT9135_52:
+> 		af9035_it913x_config.chip_ver = 0x01;
+> 		/* fall trough */
+> 	case ...
+>
+> This is a very common practice at the Kernel, as it helps to better
+> document it.
+>
+> Also I'm pretty sure some janitor would otherwise send us sooner or later a
+> patch adding a break there.
 
-Grr. I found the same 'const' issue as you did, fixed it in my tree but forgot
-to do a git add for the file :-(
+I totally agree the issue, but it is totally irrelevant currently as the 
+whole piece of code does not exists anymore.
 
-Sorry.
+regards
+Antti
 
-Regards,
-
-	Hans
+-- 
+http://palosaari.fi/
