@@ -1,134 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:58391 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754451Ab3CKTBM (ORCPT
+Received: from mail-qe0-f49.google.com ([209.85.128.49]:47333 "EHLO
+	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754829Ab3CVS4i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:01:12 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 07/11] s5p-fimc: Ensure CAMCLK clock can be enabled by
- FIMC-LITE devices
-Date: Mon, 11 Mar 2013 20:00:22 +0100
-Message-id: <1363028426-2771-8-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 22 Mar 2013 14:56:38 -0400
+Received: by mail-qe0-f49.google.com with SMTP id 1so2527623qec.8
+        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2013 11:56:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201303221738.16145.hverkuil@xs4all.nl>
+References: <201303221738.16145.hverkuil@xs4all.nl>
+Date: Fri, 22 Mar 2013 14:50:28 -0400
+Message-ID: <CAGoCfiwjF-C_sbivVi_+JST32BykFXSnKzpmZ0q5W3H-pGOzsw@mail.gmail.com>
+Subject: Re: [GIT PULL FOR v3.10] au0828 driver overhaul
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In configurations where FIMC-LITE is used to capture image signal
-from an external sensor only we need to ensure one of FIMC devices
-is in active power state and the "fimc" gate clock is enabled.
-Otherwise the CAMCLK clock output signal will be masked off
-preventing an external sensor's operation.
-This affect processing pipelines like:
+On Fri, Mar 22, 2013 at 12:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> It works fine with qv4l2, but there is still a bug causing tvtime to fail.
+> That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
+> August last year, that broke g_tuner: after that 'signal' would always be 0
+> and tvtime expects signal to be non-zero for a valid frequency. The signal
+> field is set by the au8522, but g_tuner is only called for the tuner (well,
+> also for au8522 but since the i2c gate is set for the tuner that won't do
+> anything).
 
- - sensor -> FIMC-LITE -> memory
- - sensor -> MIPI-CSIS -> FIMC-LITE -> memory
+Wait, are you saying that the G_TUNER call is no longer being routed
+to the au8522 driver?  The signal level has always been set to a
+nonzero value by au8522 if a signal is present, and thus the state of
+the i2c gate isn't relevant.  This is because the xc5000 driver didn't
+actually have implemented a call to return the signal level.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   18 ++++++++++--------
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    2 ++
- 2 files changed, 12 insertions(+), 8 deletions(-)
+If what you're saying is true, then the behavior of the framework
+itself changed, and who knows what else is broken.
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index d26b7bf..c336ed1 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -464,7 +464,6 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- {
- 	struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
- 	struct device_node *of_node = fmd->pdev->dev.of_node;
--	struct fimc_dev *fd = NULL;
- 	int num_clients = 0;
- 	int ret, i;
- 
-@@ -472,13 +471,10 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- 	 * Runtime resume one of the FIMC entities to make sure
- 	 * the sclk_cam clocks are not globally disabled.
- 	 */
--	for (i = 0; !fd && i < ARRAY_SIZE(fmd->fimc); i++)
--		if (fmd->fimc[i])
--			fd = fmd->fimc[i];
--	if (!fd)
-+	if (!fmd->pmf)
- 		return -ENXIO;
- 
--	ret = pm_runtime_get_sync(&fd->pdev->dev);
-+	ret = pm_runtime_get_sync(fmd->pmf);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -512,7 +508,7 @@ static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- 		}
- 	}
- 
--	pm_runtime_put(&fd->pdev->dev);
-+	pm_runtime_put(fmd->pmf);
- 	return ret;
- }
- 
-@@ -557,6 +553,8 @@ static int register_fimc_entity(struct fimc_md *fmd, struct fimc_dev *fimc)
- 
- 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
- 	if (!ret) {
-+		if (!fmd->pmf && fimc->pdev)
-+			fmd->pmf = &fimc->pdev->dev;
- 		fmd->fimc[fimc->id] = fimc;
- 		fimc->vid_cap.user_subdev_api = fmd->user_subdev_api;
- 	} else {
-@@ -1048,7 +1046,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 	struct fimc_camclk_info *camclk;
- 	int ret = 0;
- 
--	if (WARN_ON(pdata->clk_id >= FIMC_MAX_CAMCLKS) || fmd == NULL)
-+	if (WARN_ON(pdata->clk_id >= FIMC_MAX_CAMCLKS) || !fmd || !fmd->pmf)
- 		return -EINVAL;
- 
- 	camclk = &fmd->camclk[pdata->clk_id];
-@@ -1064,6 +1062,9 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 		if (camclk->use_count++ == 0) {
- 			clk_set_rate(camclk->clock, pdata->clk_frequency);
- 			camclk->frequency = pdata->clk_frequency;
-+			ret = pm_runtime_get_sync(fmd->pmf);
-+			if (ret < 0)
-+				return ret;
- 			ret = clk_enable(camclk->clock);
- 			dbg("Enabled camclk %d: f: %lu", pdata->clk_id,
- 			    clk_get_rate(camclk->clock));
-@@ -1076,6 +1077,7 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 
- 	if (--camclk->use_count == 0) {
- 		clk_disable(camclk->clock);
-+		pm_runtime_put(fmd->pmf);
- 		dbg("Disabled camclk %d", pdata->clk_id);
- 	}
- 	return ret;
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 91be5db..a827bf9 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -80,6 +80,7 @@ struct fimc_sensor_info {
-  * @num_sensors: actual number of registered sensors
-  * @camclk: external sensor clock information
-  * @fimc: array of registered fimc devices
-+ * @pmf: handle to the CAMCLK clock control FIMC helper device
-  * @media_dev: top level media device
-  * @v4l2_dev: top level v4l2_device holding up the subdevs
-  * @pdev: platform device this media device is hooked up into
-@@ -97,6 +98,7 @@ struct fimc_md {
- 	struct clk *wbclk[FIMC_MAX_WBCLKS];
- 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
- 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
-+	struct device *pmf;
- 	struct media_device media_dev;
- 	struct v4l2_device v4l2_dev;
- 	struct platform_device *pdev;
+Devin
+
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
