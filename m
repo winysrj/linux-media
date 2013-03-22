@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:55260 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907Ab3CSL5P (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:34957 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679Ab3CVHxY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 07:57:15 -0400
-Received: by mail-oa0-f51.google.com with SMTP id h2so334909oag.24
-        for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 04:57:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1363687193-30893-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1363687193-30893-1-git-send-email-vikas.sajjan@linaro.org>
-Date: Tue, 19 Mar 2013 17:27:15 +0530
-Message-ID: <CAK9yfHws6SMuYJN6Vw9MLWf_USK13GHRdtW+e1H8XH4oDDJd=A@mail.gmail.com>
-Subject: Re: [PATCH] drm/exynos: enable FIMD clocks
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	kgene.kim@samsung.com, joshi@samsung.com, inki.dae@samsung.com,
-	linaro-kernel@lists.linaro.org, jy0922.shim@samsung.com,
-	linux-samsung-soc@vger.kernel.org, thomas.abraham@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 22 Mar 2013 03:53:24 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] davinci: vpss: clock cleanup
+Date: Fri, 22 Mar 2013 13:23:11 +0530
+Message-Id: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19 March 2013 15:29, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> While migrating to common clock framework (CCF), found that the FIMD clocks
-> were pulled down by the CCF.
-> If CCF finds any clock(s) which has NOT been claimed by any of the
-> drivers, then such clock(s) are PULLed low by CCF.
->
-> By calling clk_prepare_enable() for FIMD clocks fixes the issue.
->
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |    3 +++
->  1 file changed, 3 insertions(+)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index 9537761..d93dd8a 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -934,6 +934,9 @@ static int fimd_probe(struct platform_device *pdev)
->                 return ret;
->         }
->
-> +       clk_prepare_enable(ctx->lcd_clk);
-> +       clk_prepare_enable(ctx->bus_clk);
-> +
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-You also need to do clk_disable_unprepare during exit.
+This patch series cleanup's the VPSS clock enabling.
+The first patch removes vpss clock enabling from the capture
+drivers and moves it to the VPSS driver itself.
+The second patch moves the venc_enable_vpss_clock() to the driver
+which was being done in platform code.
+
+Lad, Prabhakar (2):
+  media: davinci: vpss: enable vpss clocks
+  media: davinci: vpbe: venc: move the enabling of vpss clocks to
+    driver
+
+ arch/arm/mach-davinci/dm355.c                |    3 -
+ arch/arm/mach-davinci/dm365.c                |    9 +++-
+ arch/arm/mach-davinci/dm644x.c               |    5 --
+ drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------
+ drivers/media/platform/davinci/dm644x_ccdc.c |   44 -------------------
+ drivers/media/platform/davinci/isif.c        |   28 ++----------
+ drivers/media/platform/davinci/vpbe_venc.c   |   26 +++++++++++
+ drivers/media/platform/davinci/vpss.c        |   60 ++++++++++++++++++++++++++
+ 8 files changed, 98 insertions(+), 116 deletions(-)
+
+-- 
+1.7.4.1
+
