@@ -1,91 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3552 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab3C0Kyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 06:54:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: VIDIOC_DBG_G_CHIP_NAME improvements
-Date: Wed, 27 Mar 2013 11:54:34 +0100
+Received: from mail.kapsi.fi ([217.30.184.167]:42933 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1161040Ab3CVRcP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 13:32:15 -0400
+Received: from dyn3-82-128-189-172.psoas.suomi.net ([82.128.189.172] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1UJ5p7-00032K-86
+	for linux-media@vger.kernel.org; Fri, 22 Mar 2013 19:32:13 +0200
+Message-ID: <514C9579.5040309@iki.fi>
+Date: Fri, 22 Mar 2013 19:31:37 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>
+Subject: Fwd: [SE-2011-01] PoC code for digital SAT TV research released
+References: <514B0B81.2090408@security-explorations.com>
+In-Reply-To: <514B0B81.2090408@security-explorations.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303271154.34620.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the VIDIOC_DBG_G_CHIP_NAME ioctl has been added to the v4l2 API I
-started work on removing the VIDIOC_DBG_G_CHIP_IDENT support in existing
-drivers. Based on that effort I realized that there are a few things that
-could be improved.
+Could be interesting reading for DTV hackers!
 
-One thing that Laurent pointed out is that this ioctl should be available
-only if CONFIG_VIDEO_ADV_DEBUG is set to prevent abuse by either userspace
-or kernelspace. I agree with that, especially since g_chip_ident is being
-abused today by some bridge drivers. That should be avoided in the future.
+regards
+Antti
 
-I am also unhappy with the name. G_CHIP_INFO would certainly be more descriptive,
-but perhaps we should move a bit more into the direction of the Media Controller
-and call it G_ENTITY_INFO. Opinions are welcome.
 
-What surprised me when digging into the existing uses of G_CHIP_IDENT was that
-there are more devices than expected that have multiple register blocks. I.e.
-rather than a single set of registers they have multiple blocks of registers,
-say one block at address 0x1000, another at 0x2000, etc.
+-------- Original Message --------
+Subject: [SE-2011-01] PoC code for digital SAT TV research released
+Date: Thu, 21 Mar 2013 14:30:41 +0100
+From: Security Explorations <contact@security-explorations.com>
+To: full-disclosure@lists.grok.org.uk, bugtraq@securityfocus.com
 
-Usually such register blocks represent IP blocks inside the chip, each doing
-a specific task. In other cases (adv7604) each block corresponds to an i2c
-address, each again representing an IP block inside the chip.
 
-In the case of adv7604 it has been implementing by mapping register offsets
-to specific i2c addresses, in the case of the cx231xx it has been implemented
-by exposing different bridge chips, unfortunately that's done in such a way
-that it can't be enumerated.
+Hello All,
 
-The existing debug API has no support for discovering such ranges, but having
-worked with such a chip I think that having support for this is very desirable.
+Last year, we disclosed information pertaining to security issues
+discovered as a result of our digital satellite TV research [1].
 
-Since we added a new ioctl anyway, I thought that this is a good time to
-extend it a bit and allow range discovery to be implemented:
+It's been over a year and we haven't received [2] information with
+respect to the status and impact of the vulnerabilities found in:
+- digital satellite TV set-top-boxes produced by Advanced Digital
+   Broadcast [3],
+- DVB / MPEG chipsets manufactured by STMicroelectronics [4].
 
-/**     
- * struct v4l2_dbg_chip_name - VIDIOC_DBG_G_CHIP_NAME argument
- * @match:      which chip to match
- * @flags:      flags that tell whether this range is readable/writable
- * @name:       unique name of the chip
- * @range_name: name of the register range
- * @range_min:  minimum register of the register range
- * @range_max:  maximum register of the register range
- * @reserved:   future extensions
- */     
-struct v4l2_dbg_chip_name {
-        struct v4l2_dbg_match match;
-	__u32 range;
-        __u32 flags;
-        char name[32];
-        char range_name[32];
-        __u64 range_start;
-        __u64 range_size;
-        __u32 reserved[8];
-} __attribute__ ((packed));
+We haven't received important information from Conax AS [5] either.
 
-range is the range index, range_name describes the purpose of the register
-range, range_start and size are the start register address and the size of
-this register range.
+This in particular concerns a final security level assigned by the
+company to set-top boxes and secure DVB chipsets evaluated as part
+of Conax security / evaluation process. Conax "rigorous evaluation
+and testing regime" [6] missed serious security vulnerabilities
+potentially affecting 540 millions [7] of DVB / MPEG chipsets.
 
-This extension allows you to enumerate the available register ranges for each
-device. If there is only one range, then range_size may be 0. This is mostly
-for backwards compatibility as otherwise I would have to modify all existing
-drivers for this, and also because this is not really necessary for simple
-devices with just one range. These are mostly i2c devices with start address
-0 and a size of 256 bytes at most.
+Today, a new digital satellite TV platform starts in Poland. It is
+called NC+ [8] and it is apparently based on equipment / technology
+coming from several vendors, which were affected by security issues
+found as part of SE-2011-01 project.
 
-Comments?
+We take the above as a perfect opportunity to verify whether these
+vendors had learned anything from the results of our 1.5 years long
+research. We assume that they have and that in particular:
+- all of security issues discovered as part of our SE-2011-01 project
+   have been properly resolved,
+- new equipment is considerably harder to hack or use for any SAT TV
+   piracy purposes.
 
-Regards,
+We decided to release our Proof of Concept code developed as part of
+SE-2011-01 project [9]. Its source code is is available for download
+from the following location:
 
-	Hans
+http://www.security-explorations.com/en/SE-2011-01-details.html
+
+We believe that the security community and professionals involved in
+a development of digital satellite TV ecosystems should benefit the
+most from the release of our Proof of Concept code.
+
+Thank you.
+
+Best Regards,
+Adam Gowdiak
+
+---------------------------------------------
+Security Explorations
+http://www.security-explorations.com
+"We bring security research to the new level"
+---------------------------------------------
+
+References:
+[1] SE-2011-01 Security weaknesses in a digital satellite TV platform
+     http://www.security-explorations.com/en/SE-2011-01.html
+[2] SE-2011-01 Vendors status
+     http://www.security-explorations.com/en/SE-2011-01-status.html
+[3] Advanced Digital Broadcast
+     http://www.adbglobal.com
+[4] STMicroelectronics
+     http://www.st.com
+[5] Conax AS
+     http://www.conax.com
+[6] Conax Security Evaluation Scheme
+
+http://www.conax.com/products-solutions/advanced-security-features/security-evaluation-scheme/
+[7] Multimedia Convergence & ACCI Sector Overview, Philippe Lambinet,
+STMicroelectronics
+
+http://www.st.com/internet/com/CORPORATE_RESOURCES/COMPANY/COMPANY_PRESENTATION/5_mult_conv_acci_lambinet.pdf
+[8] NC+ Digital Satellite TV Plaform
+     http://ncplus.pl/
+[9] SE-2011-01 Proof of Concept Code (technical information)
+     http://www.security-explorations.com/en/SE-2011-01-poc.html
+
+
