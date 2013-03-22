@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3748 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752627Ab3CBXqD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:46:03 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 19/20] solo6x10: small big-endian fix.
-Date: Sun,  3 Mar 2013 00:45:35 +0100
-Message-Id: <a50cb0941a4fe738d28391c25ff2f5bd90ece025.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45909 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752530Ab3CVKYH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 06:24:07 -0400
+Date: Fri, 22 Mar 2013 06:30:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [REVIEW PATCH 11/41] af9035: basic support for IT9135 v2 chips
+Message-ID: <20130322063004.43e66b05@redhat.com>
+In-Reply-To: <514B9B9A.7010502@iki.fi>
+References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	<1362881013-5271-11-git-send-email-crope@iki.fi>
+	<20130321185422.4c2c9696@redhat.com>
+	<514B9B9A.7010502@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 22 Mar 2013 01:45:30 +0200
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/p2m.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> On 03/21/2013 11:54 PM, Mauro Carvalho Chehab wrote:
+> > Em Sun, 10 Mar 2013 04:03:03 +0200
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >>   static struct ite_config af9035_it913x_config = {
+> >> -	.chip_ver = 0x01,
+> >> +	.chip_ver = 0x02,
+> 
+> >> @@ -1153,6 +1161,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
+> >>   	case AF9033_TUNER_IT9135_38:
+> >>   	case AF9033_TUNER_IT9135_51:
+> >>   	case AF9033_TUNER_IT9135_52:
+> >> +		af9035_it913x_config.chip_ver = 0x01;
+> >
+> > Hmmm... aren't you missing a break here? If not, please add a comment, as
+> > otherwise reviewers think that this is a bug.
+> 
+> It is correct as it was set 0x02 by init. And variable was removed 
+> totally few patches later.
 
-diff --git a/drivers/staging/media/solo6x10/p2m.c b/drivers/staging/media/solo6x10/p2m.c
-index 65911fa..1b5b129 100644
---- a/drivers/staging/media/solo6x10/p2m.c
-+++ b/drivers/staging/media/solo6x10/p2m.c
-@@ -261,7 +261,7 @@ void solo_p2m_error_isr(struct solo_dev *solo_dev, u32 status)
- 	struct solo_p2m_dev *p2m_dev;
- 	int i;
- 
--	if (!(status & SOLO_PCI_ERR_P2M))
-+	if (!(status & (SOLO_PCI_ERR_P2M | SOLO_PCI_ERR_P2M_DESC)))
- 		return;
- 
- 	for (i = 0; i < SOLO_NR_P2M; i++) {
--- 
-1.7.10.4
+Ok, so please send a patch latter adding a notice about that, like:
+  	case AF9033_TUNER_IT9135_52:
+		af9035_it913x_config.chip_ver = 0x01;
+		/* fall trough */
+	case ...
 
+This is a very common practice at the Kernel, as it helps to better
+document it.
+
+Also I'm pretty sure some janitor would otherwise send us sooner or later a
+patch adding a break there.
+
+Regards,
+Mauro
