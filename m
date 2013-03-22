@@ -1,62 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30107 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:11192 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757598Ab3CYM4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 08:56:06 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2PCu5ba009049
+	id S933852Ab3CVQQK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 12:16:10 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2MGG9gj023559
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 08:56:05 -0400
+	for <linux-media@vger.kernel.org>; Fri, 22 Mar 2013 12:16:10 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/3] tuner-core: handle errors when getting signal strength/afc
-Date: Mon, 25 Mar 2013 09:55:59 -0300
-Message-Id: <1364216159-12707-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1364216159-12707-1-git-send-email-mchehab@redhat.com>
-References: <201303251232.31456.hverkuil@xs4all.nl>
- <1364216159-12707-1-git-send-email-mchehab@redhat.com>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 3/3] [media] m5602_ov7660: return error at ov7660_init()
+Date: Fri, 22 Mar 2013 13:16:03 -0300
+Message-Id: <1363968963-7841-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1363968963-7841-1-git-send-email-mchehab@redhat.com>
+References: <1363968963-7841-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If those callbacks fail, it should return zero, and not a random
-value.
+It used to be a code that returns arror at ov7660_init.
+However, this was removed by changeset c84e412f:
 
+@@ -231,33 +116,40 @@ int ov7660_init(struct sd *sd)
+        if (dump_sensor)
+                ov7660_dump_registers(sd);
+
+-   err = ov7660_set_gain(&sd->gspca_dev, sensor_settings[GAIN_IDX]);
+-   if (err < 0)
+-           return err;
++ return 0;
++}
+
+-   err = ov7660_set_auto_white_balance(&sd->gspca_dev,
+-           sensor_settings[AUTO_WHITE_BALANCE_IDX]);
+-   if (err < 0)
+-           return err;
+
+As complained by gcc:
+	drivers/media/usb/gspca/m5602/m5602_ov7660.c: In function 'ov7660_init':
+	drivers/media/usb/gspca/m5602/m5602_ov7660.c:99:9: warning: variable 'err' set but not used [-Wunused-but-set-variable]
+
+It should be noticed that the original error code was crappy, as it wasn't
+returning any error if sensor init fails.
+
+Fix it by returning an error if the sensor can't be initialized.
+
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/v4l2-core/tuner-core.c | 10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/usb/gspca/m5602/m5602_ov7660.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index f1e8b40..cf9a9af 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -220,18 +220,20 @@ static void fe_standby(struct dvb_frontend *fe)
+diff --git a/drivers/media/usb/gspca/m5602/m5602_ov7660.c b/drivers/media/usb/gspca/m5602/m5602_ov7660.c
+index 4ac7889..64b3b03 100644
+--- a/drivers/media/usb/gspca/m5602/m5602_ov7660.c
++++ b/drivers/media/usb/gspca/m5602/m5602_ov7660.c
+@@ -96,7 +96,7 @@ sensor_found:
  
- static int fe_has_signal(struct dvb_frontend *fe)
+ int ov7660_init(struct sd *sd)
  {
--	u16 strength = 0;
-+	u16 strength;
+-	int i, err = 0;
++	int i, err;
  
--	fe->ops.tuner_ops.get_rf_strength(fe, &strength);
-+	if (fe->ops.tuner_ops.get_rf_strength(fe, &strength) < 0)
-+		return 0;
+ 	/* Init the sensor */
+ 	for (i = 0; i < ARRAY_SIZE(init_ov7660); i++) {
+@@ -111,6 +111,8 @@ int ov7660_init(struct sd *sd)
+ 			err = m5602_write_sensor(sd,
+ 				init_ov7660[i][1], data, 1);
+ 		}
++		if (err < 0)
++			return err;
+ 	}
  
- 	return strength;
- }
- 
- static int fe_get_afc(struct dvb_frontend *fe)
- {
--	s32 afc = 0;
-+	s32 afc;
- 
--	fe->ops.tuner_ops.get_afc(fe, &afc);
-+	if (fe->ops.tuner_ops.get_afc(fe, &afc) < 0)
-+		return 0;
- 
- 	return afc;
- }
+ 	if (dump_sensor)
 -- 
 1.8.1.4
 
