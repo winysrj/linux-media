@@ -1,62 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36592 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754295Ab3CVKqM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 06:46:12 -0400
-Message-ID: <514C364E.1020208@iki.fi>
-Date: Fri, 22 Mar 2013 12:45:34 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-la0-f52.google.com ([209.85.215.52]:39729 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933802Ab3CVQ07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 12:26:59 -0400
+Received: by mail-la0-f52.google.com with SMTP id fs12so7602561lab.39
+        for <linux-media@vger.kernel.org>; Fri, 22 Mar 2013 09:26:57 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [REVIEW PATCH 11/41] af9035: basic support for IT9135 v2 chips
-References: <1362881013-5271-1-git-send-email-crope@iki.fi> <1362881013-5271-11-git-send-email-crope@iki.fi> <20130321185422.4c2c9696@redhat.com> <514B9B9A.7010502@iki.fi> <20130322063004.43e66b05@redhat.com>
-In-Reply-To: <20130322063004.43e66b05@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201303221504.06707.hverkuil@xs4all.nl>
+References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
+	<201303201218.48929.hverkuil@xs4all.nl>
+	<CAC-25o-qAs1yB6EqC8bfCXjwCmvWM_2z6SDu0VCuPQVeJvms8Q@mail.gmail.com>
+	<201303221504.06707.hverkuil@xs4all.nl>
+Date: Fri, 22 Mar 2013 12:26:57 -0400
+Message-ID: <CAC-25o-Y=0d9=W2L9-_THvK2cR+jwp=gcZ6URSa6byaR3mKpiw@mail.gmail.com>
+Subject: Re: [PATCH 0/4] media: si4713: minor updates
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/22/2013 11:30 AM, Mauro Carvalho Chehab wrote:
-> Em Fri, 22 Mar 2013 01:45:30 +0200
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 03/21/2013 11:54 PM, Mauro Carvalho Chehab wrote:
->>> Em Sun, 10 Mar 2013 04:03:03 +0200
->>> Antti Palosaari <crope@iki.fi> escreveu:
->>>>    static struct ite_config af9035_it913x_config = {
->>>> -	.chip_ver = 0x01,
->>>> +	.chip_ver = 0x02,
->>
->>>> @@ -1153,6 +1161,7 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
->>>>    	case AF9033_TUNER_IT9135_38:
->>>>    	case AF9033_TUNER_IT9135_51:
->>>>    	case AF9033_TUNER_IT9135_52:
->>>> +		af9035_it913x_config.chip_ver = 0x01;
->>>
->>> Hmmm... aren't you missing a break here? If not, please add a comment, as
->>> otherwise reviewers think that this is a bug.
->>
->> It is correct as it was set 0x02 by init. And variable was removed
->> totally few patches later.
->
-> Ok, so please send a patch latter adding a notice about that, like:
->    	case AF9033_TUNER_IT9135_52:
-> 		af9035_it913x_config.chip_ver = 0x01;
-> 		/* fall trough */
-> 	case ...
->
-> This is a very common practice at the Kernel, as it helps to better
-> document it.
->
-> Also I'm pretty sure some janitor would otherwise send us sooner or later a
-> patch adding a break there.
+Hello Hans,
 
-I totally agree the issue, but it is totally irrelevant currently as the 
-whole piece of code does not exists anymore.
+On Fri, Mar 22, 2013 at 10:04 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+<snip>
 
-regards
-Antti
+>>
+>> # on your branch on the other hand I get a NULL pointer:
+>
+> I've fixed that (v4l2_dev was never initialized), and I've also rebased my tree
+> to the latest code. Can you try again?
+>
+
+This time I get a kernel crash at _power. Unfortunately I cannot fetch
+the crash log as I am not having access to a serial line (using vga
+console) and in my setup mtdoops is not working somehow.
+
+
+Sequence is v4l2_ioctl->video_usercopy->__video_do_ioctl->v4l_s_ctrl->v4l2_s_ctrl->set_ctrl_lock->try_or_set_cluster->si4713_s_ctrl->si4713_set_power_state->mutex_lock_nested->lock_acquire.
+
+
+I 'd need to spend some time on it to understand better your patches
+and help you to get this working. And for that I'd prob need to spend
+some time to either hack a serial line or get mtdoops to work :-)
+
+> Regards,
+>
+>         Hans
+
+
 
 -- 
-http://palosaari.fi/
+Eduardo Bezerra Valentin
