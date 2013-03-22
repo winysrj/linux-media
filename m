@@ -1,267 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:56880 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756801Ab3CNOKv (ORCPT
+Received: from mail-we0-f172.google.com ([74.125.82.172]:60594 "EHLO
+	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754416Ab3CVFvJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 10:10:51 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	elezegarcia@gmail.com,
-	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-Subject: [RFC V1 1/8] smi2021: Add the header file
-Date: Thu, 14 Mar 2013 15:06:57 +0100
-Message-Id: <1363270024-12127-2-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
+	Fri, 22 Mar 2013 01:51:09 -0400
+Received: by mail-we0-f172.google.com with SMTP id u50so1849577wey.31
+        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 22:51:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CA+V-a8uzLtt64yG8yUGit6vDFGDDCmCb7O1SaTQm3H3YZjdUzw@mail.gmail.com>
+References: <CA+V-a8sOHbseLe+rATFtLRwxdURB83QM0LvZ+5fQjfh7CDAkZQ@mail.gmail.com>
+ <Pine.LNX.4.64.1302022132420.8751@axis700.grange> <CA+V-a8uzLtt64yG8yUGit6vDFGDDCmCb7O1SaTQm3H3YZjdUzw@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 22 Mar 2013 11:20:48 +0530
+Message-ID: <CA+V-a8v9M0rPncF_m7MhYR4Ovo0G01fXmrM1w1Obpu_BcuidrA@mail.gmail.com>
+Subject: Re: [QUERY] V4L async api
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the header file for the smi2021 module.
+Guennadi,
 
-Signed-off-by: Jon Arne JÃ¸rgensen <jonarne@jonarne.no>
----
- drivers/media/usb/smi2021/smi2021.h | 228 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 228 insertions(+)
- create mode 100644 drivers/media/usb/smi2021/smi2021.h
+On Fri, Mar 22, 2013 at 11:02 AM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> Guennadi,
+>
+> On Sun, Feb 3, 2013 at 2:32 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+>> On Wed, 30 Jan 2013, Prabhakar Lad wrote:
+>>
+>>> Hi Guennadi,
+>>>
+>>> I am working on adding v4l-asyn for capture and display device..
+>>>
+>>> Here is my hw details:--
+>>>  1: The capture device has two subdevs tvp514x @0x5c and tvp514x @0x5d.
+>>>  2: The display device has a one subdev adv7343 @0x2a.
+>>>
+>>> Note:- I have added  async support for all the subdevices and the
+>>> capture and display driver too
+>>>
+>>> Test Case:-
+>>>   1:   I have v4l2_async_notifier_register() for both capture and
+>>> display driver, as of now I have built
+>>>         the subdevices as module. when board is up, I insert the
+>>> tvp514x  subdevices and the capture
+>>>         driver gets intialized (/dev/video0 & /dev/video1) nodes get
+>>> created, now I do insmod on the other
+>>>         subdevice adv7343, the bound callback is called in capture
+>>> driver, but whereas this should have been
+>>>         called in the display driver.
+>>
+>> This certainly _should_ not happen. Your subdevice driver should call
+>> v4l2_async_subdev_bound(), which will walk the notifier list and check,
+>> which of them this subdevice matches. I'm afraid you'll have to debug your
+>> set up to see why the wrong notifier matches.
+>>
+>>>   2:   When I build the subdevices as part of uImage I hit a crash.
+>>> Attached is the crash log.
+>>
+>> The crash happens in v4l2_async_notifier_register() when a newly
+>> registered notifier walks the list of _already_ successfully probed
+>> subdevices. Then I'm not exactly sure where the actual crash happens, one
+>> of the possibilities is if the match_i2c() function is called for an
+>> invalid or unbound i2c device. You'll have to debug this too.
+>>
+> Trying to debug, I see that list_for_each_entry() in v4l2_async_belongs()
+> is picking up some invalid entry which is causing it to crash!
+>
+Here is the case when this happens may be you can try it out on your side,
+I have single subdev (say A) element in  the asd array which is for
+the capture driver.
+and I have two subdevs (say B and C) which support  asynchronous
+probing, which is required
+for the display driver. I have built only the capture driver and not
+the display driver as part of uImage,
+and I also build subdevs A, B, C as part of uImage. Note the the
+subdevs as are i2c based and
+is registered via i2c_register_board_info() , ie probe of A, B, C get
+called. Here is when the crash happens.
 
-diff --git a/drivers/media/usb/smi2021/smi2021.h b/drivers/media/usb/smi2021/smi2021.h
-new file mode 100644
-index 0000000..eba0fef
---- /dev/null
-+++ b/drivers/media/usb/smi2021/smi2021.h
-@@ -0,0 +1,228 @@
-+/*******************************************************************************
-+ * smi2021.h                                                                   *
-+ *                                                                             *
-+ * USB Driver for SMI2021 - EasyCap                                            *
-+ * USB ID 1c88:003c                                                            *
-+ *                                                                             *
-+ * *****************************************************************************
-+ *
-+ * Copyright 2011-2013 Jon Arne JÃ¸rgensen
-+ * <jonjon.arnearne--a.t--gmail.com>
-+ *
-+ * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
-+ *
-+ * This file is part of SMI2021
-+ * http://code.google.com/p/easycap-somagic-linux/
-+ *
-+ * This program is free software: you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation, either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ * This driver is heavily influensed by the STK1160 driver.
-+ * Copyright (C) 2012 Ezequiel Garcia
-+ * <elezegarcia--a.t--gmail.com>
-+ *
-+ */
-+
-+#ifndef SMI2021_H
-+#define SMI2021_H
-+
-+#include <linux/module.h>
-+#include <linux/usb.h>
-+#include <linux/types.h>
-+#include <linux/spinlock_types.h>
-+#include <linux/slab.h>
-+#include <linux/i2c.h>
-+
-+#include <media/v4l2-event.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-vmalloc.h>
-+#include <media/saa7115.h>
-+
-+#include <sound/core.h>
-+#include <sound/pcm.h>
-+#include <sound/pcm_params.h>
-+#include <sound/initval.h>
-+
-+#define SMI2021_DRIVER_VERSION "0.1"
-+
-+/* For ISOC */
-+#define SMI2021_MAX_PKT_SIZE	3072
-+#define SMI2021_ISOC_PACKETS	10	/* 64 */
-+#define SMI2021_ISOC_BUFS	4	/* 16 */
-+#define SMI2021_ISOC_EP		0x82
-+
-+/* The structure of the array we use to send i2c settings to the device */
-+#define SMI2021_CTRL_HEAD 0x00
-+#define	SMI2021_CTRL_ADDR 0x01
-+#define SMI2021_CTRL_BM_DATA_TYPE 0x02
-+#define	SMI2021_CTRL_BM_DATA_OFFSET 0x03
-+#define	SMI2021_CTRL_DATA_SIZE 0x04
-+
-+#define SMI2021_CTRL_REG_HI 0x05
-+#define SMI2021_CTRL_REG_LO 0x06
-+#define SMI2021_CTRL_REG_VAL 0x07
-+
-+#define SMI2021_CTRL_I2C_REG 0x05
-+#define SMI2021_CTRL_I2C_VAL 0x06
-+#define SMI2021_CTRL_I2C_RCV_VAL 0x05
-+
-+/* General video constants */
-+#define SMI2021_BYTES_PER_LINE	1440
-+#define SMI2021_PAL_LINES	576
-+#define SMI2021_NTSC_LINES	486
-+
-+/* Timing Referance Codes, see saa7113 datasheet */
-+#define SMI2021_TRC_EAV		0x10
-+#define SMI2021_TRC_VBI		0x20
-+#define SMI2021_TRC_FIELD_2	0x40
-+#define SMI2021_TRC		0x80
-+
-+#define DEBUG
-+#ifdef DEBUG
-+#define smi2021_dbg(fmt, args...)		\
-+	pr_debug("smi2021::%s: " fmt, __func__, \
-+			##args)
-+#else
-+#define smi2021_dbg(fmt, args...)
-+#endif
-+
-+#define smi2021_info(fmt, args...)		\
-+	pr_info("smi2021::%s: " fmt,		\
-+		__func__, ##args)
-+
-+#define smi2021_warn(fmt, args...)		\
-+	pr_warn("smi2021::%s: " fmt,		\
-+		__func__, ##args)
-+
-+#define smi2021_err(fmt, args...)		\
-+	pr_err("smi2021::%s: " fmt,		\
-+		__func__, ##args)
-+
-+enum smi2021_sync {
-+	HSYNC,
-+	SYNCZ1,
-+	SYNCZ2,
-+	TRC
-+};
-+
-+/* Buffer for one video frame */
-+struct smi2021_buffer {
-+	/* Common vb2 stuff, must be first */
-+	struct vb2_buffer		vb;
-+	struct list_head		list;
-+
-+	void				*mem;
-+	unsigned int			length;
-+
-+	bool				second_field;
-+	bool				in_blank;
-+	unsigned int			pos;
-+
-+	/* ActiveVideo - Line counter */
-+	u16				trc_av;
-+};
-+
-+struct smi2021_isoc_ctl {
-+	int max_pkt_size;
-+	int num_bufs;
-+	struct urb **urb;
-+	char **transfer_buffer;
-+	struct smi2021_buffer *buf;
-+};
-+
-+
-+struct smi2021_fmt {
-+	char				*name;
-+	u32				fourcc;
-+	int				depth;
-+};
-+
-+struct smi2021_input {
-+	char				*name;
-+	int				type;
-+};
-+
-+struct smi2021_dev {
-+	struct v4l2_device		v4l2_dev;
-+	struct video_device		vdev;
-+	struct v4l2_ctrl_handler	ctrl_handler;
-+
-+	struct v4l2_subdev		*sd_saa7113;
-+
-+	struct usb_device		*udev;
-+	struct device			*dev;
-+
-+	/* Capture buffer queue */
-+	struct vb2_queue		vb_vidq;
-+
-+	/* ISOC control struct */
-+	struct list_head		avail_bufs;
-+	struct smi2021_isoc_ctl		isoc_ctl;
-+
-+	int				width;		/* frame width */
-+	int				height;		/* frame height */
-+	unsigned int			ctl_input;	/* selected input */
-+	v4l2_std_id			norm;		/* current norm */
-+	struct smi2021_fmt		*fmt;		/* selected format */
-+	unsigned int			buf_count;	/* for video buffers */
-+
-+	/* i2c i/o */
-+	struct i2c_adapter		i2c_adap;
-+	struct i2c_client		i2c_client;
-+
-+	struct mutex			v4l2_lock;
-+	struct mutex			vb_queue_lock;
-+	spinlock_t			buf_lock;
-+
-+	enum smi2021_sync		sync_state;
-+
-+	/* audio */
-+	struct snd_card			*snd_card;
-+	struct snd_pcm_substream	*pcm_substream;
-+
-+	unsigned int			pcm_write_ptr;
-+	unsigned int			pcm_complete_samples;
-+
-+	u8				pcm_read_offset;
-+	struct work_struct		adev_capture_trigger;
-+	atomic_t			adev_capturing;
-+};
-+
-+/* Provided by smi2021_main.c */
-+int smi2021_write_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 val);
-+int smi2021_read_reg(struct smi2021_dev *dev, u8 addr, u16 reg, u8 *val);
-+
-+/* Provided by smi2021_v4l2.c */
-+int smi2021_vb2_setup(struct smi2021_dev *dev);
-+int smi2021_video_register(struct smi2021_dev *dev);
-+void smi2021_clear_queue(struct smi2021_dev *dev);
-+
-+/* Provided by smi2021_video.c */
-+int smi2021_alloc_isoc(struct smi2021_dev *dev);
-+void smi2021_free_isoc(struct smi2021_dev *dev);
-+void smi2021_cancel_isoc(struct smi2021_dev *dev);
-+void smi2021_uninit_isoc(struct smi2021_dev *dev);
-+
-+/* Provided by smi2021_i2c.c */
-+int smi2021_i2c_register(struct smi2021_dev *dev);
-+int smi2021_i2c_unregister(struct smi2021_dev *dev);
-+
-+/* Provided by smi2021_audio.c */
-+int smi2021_snd_register(struct smi2021_dev *dev);
-+void smi2021_snd_unregister(struct smi2021_dev *dev);
-+void smi2021_audio(struct smi2021_dev *dev, u8 *data, int len);
-+#endif /* SMI2021_H */
--- 
-1.8.1.1
+The other case is when the crash doesn’t happen is if I have more than
+one element in asd array strange!
+or if I don’t build B and C as part of uImage.
 
+Regards,
+--Prabhakar
+
+> Cheers,
+> --Prabhakar
+>
+>> Thanks
+>> Guennadi
+>>
+>>>   3:   When I just build and use either the capture/display driver and
+>>> their respective subdevices only every thing works fine.
+>>>
+>>> Regards,
+>>> --Prabhakar
+>>>
+>>
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+>> http://www.open-technology.de/
