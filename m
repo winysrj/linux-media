@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f44.google.com ([209.85.210.44]:59748 "EHLO
-	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755457Ab3CDIZr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 03:25:47 -0500
-Received: by mail-da0-f44.google.com with SMTP id z20so2434135dae.17
-        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 00:25:47 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org,
-	thierry.reding@avionic-design.de
-Subject: [PATCH 1/4] [media] sh_veu.c: Convert to devm_ioremap_resource()
-Date: Mon,  4 Mar 2013 13:45:18 +0530
-Message-Id: <1362384921-7344-1-git-send-email-sachin.kamat@linaro.org>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4511 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753876Ab3CVOER (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 10:04:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+Subject: Re: [PATCH 0/4] media: si4713: minor updates
+Date: Fri, 22 Mar 2013 15:04:06 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1363707694-27224-1-git-send-email-edubezval@gmail.com> <201303201218.48929.hverkuil@xs4all.nl> <CAC-25o-qAs1yB6EqC8bfCXjwCmvWM_2z6SDu0VCuPQVeJvms8Q@mail.gmail.com>
+In-Reply-To: <CAC-25o-qAs1yB6EqC8bfCXjwCmvWM_2z6SDu0VCuPQVeJvms8Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303221504.06707.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the newly introduced devm_ioremap_resource() instead of
-devm_request_and_ioremap() which provides more consistent error handling.
+On Thu March 21 2013 19:46:03 edubezval@gmail.com wrote:
+> Hans,
+> 
+> 
+> <snip>
+> 
+> >> > Are you still able to test the si4713 driver? Because I have patches
+> >>
+> >>
+> >>
+> >> I see. In fact that is my next step on my todo list for si4713. I
+> >> still have an n900 that I can fetch from my drobe, so just a matter of
+> >> booting it with newer kernel.
+> >>
+> >> > outstanding that I would love for someone to test for me:
+> >> >
+> >> > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/si4713
+> 
+> So, I got my hands on my old n900 and thanks to Aaro and lo community
+> I could still boot it with 3.9-rc3 kernel! amazing!
+> 
+> I didn't have the time to look at your patches, but I could do a blind
+> run of v4l2-compliance -r 0 on n900. It follows the results:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/sh_veu.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+... 
 
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index cb54c69..362d88e 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -10,6 +10,7 @@
-  * published by the Free Software Foundation
-  */
- 
-+#include <linux/err.h>
- #include <linux/fs.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -1164,9 +1165,9 @@ static int sh_veu_probe(struct platform_device *pdev)
- 
- 	veu->is_2h = resource_size(reg_res) == 0x22c;
- 
--	veu->base = devm_request_and_ioremap(&pdev->dev, reg_res);
--	if (!veu->base)
--		return -ENOMEM;
-+	veu->base = devm_ioremap_resource(&pdev->dev, reg_res);
-+	if (IS_ERR(veu->base))
-+		return PTR_ERR(veu->base);
- 
- 	ret = devm_request_threaded_irq(&pdev->dev, irq, sh_veu_isr, sh_veu_bh,
- 					0, "veu", veu);
--- 
-1.7.4.1
+> 
+> 
+> # on your branch on the other hand I get a NULL pointer:
 
+I've fixed that (v4l2_dev was never initialized), and I've also rebased my tree
+to the latest code. Can you try again?
+
+Regards,
+
+	Hans
