@@ -1,78 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:57836 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138Ab3CGHj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 02:39:59 -0500
-Received: by mail-pa0-f51.google.com with SMTP id hz1so258980pad.24
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 23:39:59 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com, joshi@samsung.com,
-	linaro-kernel@lists.linaro.org
-Subject: [PATCH v12 1/2] video: drm: exynos: Add display-timing node parsing using video helper function
-Date: Thu,  7 Mar 2013 13:09:43 +0530
-Message-Id: <1362641984-2706-2-git-send-email-vikas.sajjan@linaro.org>
-In-Reply-To: <1362641984-2706-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1362641984-2706-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:36334 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753582Ab3CVHxv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Mar 2013 03:53:51 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 2/2] media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
+Date: Fri, 22 Mar 2013 13:23:13 +0530
+Message-Id: <1363938793-22246-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for parsing the display-timing node using video helper
-function.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-The DT node parsing is done only if 'dev.of_node'
-exists and the NON-DT logic is still maintained under the 'else' part.
+The vpss clocks were enabled by calling a exported function from a driver
+in a machine code. calling driver code from platform code is incorrect way.
 
-Signed-off-by: Leela Krishna Amudala <l.krishna@samsung.com>
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
+This patch fixes this issue and calls the function from driver code itself.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ Note: This patch is based on the comment from Sekhar
+      (https://patchwork-mail1.kernel.org/patch/2278441/).
+      Shekar I haven't completely removed the callback, I just added
+      the function calls after the callback. As you mentioned just to
+      pass the VPSS_CLK_CTRL as a resource to venc but the VPSS_CLK_CTRL
+      is already being used by VPSS driver. I'll take this cleanup task later
+      point of time.
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..e323cf9 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -20,6 +20,7 @@
- #include <linux/of_device.h>
- #include <linux/pm_runtime.h>
- 
-+#include <video/of_display_timing.h>
- #include <video/samsung_fimd.h>
- #include <drm/exynos_drm.h>
- 
-@@ -883,10 +884,25 @@ static int fimd_probe(struct platform_device *pdev)
- 
- 	DRM_DEBUG_KMS("%s\n", __FILE__);
- 
--	pdata = pdev->dev.platform_data;
--	if (!pdata) {
--		dev_err(dev, "no platform data specified\n");
--		return -EINVAL;
-+	if (pdev->dev.of_node) {
-+		pdata = devm_kzalloc(dev, sizeof(*pdata), GFP_KERNEL);
-+		if (!pdata) {
-+			DRM_ERROR("memory allocation for pdata failed\n");
-+			return -ENOMEM;
-+		}
-+
-+		ret = of_get_fb_videomode(dev->of_node, &pdata->panel.timing,
-+					OF_USE_NATIVE_MODE);
-+		if (ret) {
-+			DRM_ERROR("failed: of_get_fb_videomode() : %d\n", ret);
-+			return ret;
-+		}
-+	} else {
-+		pdata = pdev->dev.platform_data;
-+		if (!pdata) {
-+			DRM_ERROR("no platform data specified\n");
-+			return -EINVAL;
-+		}
+ drivers/media/platform/davinci/vpbe_venc.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
+index f15f211..26bdf9b 100644
+--- a/drivers/media/platform/davinci/vpbe_venc.c
++++ b/drivers/media/platform/davinci/vpbe_venc.c
+@@ -202,6 +202,26 @@ static void venc_enabledigitaloutput(struct v4l2_subdev *sd, int benable)
  	}
+ }
  
- 	panel = &pdata->panel;
++static void
++venc_enable_vpss_clock(int venc_type,
++		       enum vpbe_enc_timings_type type,
++		       unsigned int pclock)
++{
++	if (venc_type == VPBE_VERSION_1)
++		return;
++
++	if (venc_type == VPBE_VERSION_2 && (type == VPBE_ENC_STD ||
++	    (type == VPBE_ENC_DV_TIMINGS && pclock <= 27000000))) {
++		vpss_enable_clock(VPSS_VENC_CLOCK_SEL, 1);
++		vpss_enable_clock(VPSS_VPBE_CLOCK, 1);
++		return;
++	}
++
++	if (venc_type == VPBE_VERSION_3 && type == VPBE_ENC_STD)
++		vpss_enable_clock(VPSS_VENC_CLOCK_SEL, 0);
++
++}
++
+ #define VDAC_CONFIG_SD_V3	0x0E21A6B6
+ #define VDAC_CONFIG_SD_V2	0x081141CF
+ /*
+@@ -220,6 +240,7 @@ static int venc_set_ntsc(struct v4l2_subdev *sd)
+ 	if (pdata->setup_clock(VPBE_ENC_STD, V4L2_STD_525_60) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_STD, V4L2_STD_525_60);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	if (venc->venc_type == VPBE_VERSION_3) {
+@@ -265,6 +286,7 @@ static int venc_set_pal(struct v4l2_subdev *sd)
+ 	if (venc->pdata->setup_clock(VPBE_ENC_STD, V4L2_STD_625_50) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_STD, V4L2_STD_625_50);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	if (venc->venc_type == VPBE_VERSION_3) {
+@@ -319,6 +341,7 @@ static int venc_set_480p59_94(struct v4l2_subdev *sd)
+ 	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_DV_TIMINGS, 27000000);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	if (venc->venc_type == VPBE_VERSION_2)
+@@ -366,6 +389,7 @@ static int venc_set_576p50(struct v4l2_subdev *sd)
+ 	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 27000000) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_DV_TIMINGS, 27000000);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	if (venc->venc_type == VPBE_VERSION_2)
+@@ -406,6 +430,7 @@ static int venc_set_720p60_internal(struct v4l2_subdev *sd)
+ 	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_DV_TIMINGS, 74250000);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	venc_write(sd, VENC_OSDCLK0, 0);
+@@ -434,6 +459,7 @@ static int venc_set_1080i30_internal(struct v4l2_subdev *sd)
+ 	if (pdata->setup_clock(VPBE_ENC_DV_TIMINGS, 74250000) < 0)
+ 		return -EINVAL;
+ 
++	venc_enable_vpss_clock(venc->venc_type, VPBE_ENC_DV_TIMINGS, 74250000);
+ 	venc_enabledigitaloutput(sd, 0);
+ 
+ 	venc_write(sd, VENC_OSDCLK0, 0);
 -- 
-1.7.9.5
+1.7.4.1
 
