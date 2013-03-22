@@ -1,50 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:33712 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932227Ab3CTTYR (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3161 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1160999Ab3CVQiW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 15:24:17 -0400
-Received: by mail-ee0-f49.google.com with SMTP id d41so1306175eek.36
-        for <linux-media@vger.kernel.org>; Wed, 20 Mar 2013 12:24:16 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFC PATCH 07/10] bttv: do not unmute the device before the first open
-Date: Wed, 20 Mar 2013 20:24:47 +0100
-Message-Id: <1363807490-3906-8-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1363807490-3906-1-git-send-email-fschaefer.oss@googlemail.com>
+	Fri, 22 Mar 2013 12:38:22 -0400
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.10] au0828 driver overhaul
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Fri, 22 Mar 2013 17:38:16 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303221738.16145.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |    4 +++-
- 1 Datei geändert, 3 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+Hi all,
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 0df4a16..55eab61 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -4212,11 +4212,13 @@ static int bttv_probe(struct pci_dev *dev, const struct pci_device_id *pci_id)
- 	btv->std = V4L2_STD_PAL;
- 	init_irqreg(btv);
- 	v4l2_ctrl_handler_setup(hdl);
--
- 	if (hdl->error) {
- 		result = hdl->error;
- 		goto fail2;
- 	}
-+	/* mute device */
-+	audio_mute(btv, 1);
-+
- 	/* register video4linux + input */
- 	if (!bttv_tvcards[btv->c.type].no_video) {
- 		v4l2_ctrl_add_handler(&btv->radio_ctrl_handler, hdl,
--- 
-1.7.10.4
+This pull request converts the au0828/au8522 drivers to the latest frameworks,
+except for vb2 as usual.
 
+Tested with a WinTV aero generously donated by Hauppauge some time ago.
+
+I also did a lot of fixes in the disconnect handling and setting up the
+right routing/std information at the right time.
+
+It works fine with qv4l2, but there is still a bug causing tvtime to fail.
+That's caused by commit e58071f024aa337b7ce41682578b33895b024f8b, applied
+August last year, that broke g_tuner: after that 'signal' would always be 0
+and tvtime expects signal to be non-zero for a valid frequency. The signal
+field is set by the au8522, but g_tuner is only called for the tuner (well,
+also for au8522 but since the i2c gate is set for the tuner that won't do
+anything).
+
+I have a patch for that but I want to convert that to using an i2c mux instead.
+
+For the time being I'd like to get this merged since at least it is in a
+lot better shape.
+
+Note: this pull request sits on top of this 'const' pull request:
+
+http://patchwork.linuxtv.org/patch/17568/
+
+Regards,
+
+        Hans
+
+The following changes since commit 8bf1a5a826d06a9b6f65b3e8dffb9be59d8937c3:
+
+  v4l2-ioctl: add precision when printing names. (2013-03-22 11:59:21 +0100)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git au0828c
+
+for you to fetch changes up to fbb5b69d62a7eb9b1dc4783a52ebe45c850c510a:
+
+  au0828: improve firmware loading & locking. (2013-03-22 17:34:15 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (15):
+      au8522_decoder: convert to the control framework.
+      au0828: fix querycap.
+      au0828: frequency handling fixes.
+      au0828: fix intendation coding style issue.
+      au0828: fix audio input handling.
+      au0828: convert to the control framework.
+      au0828: add prio, control event and log_status support
+      au0828: add try_fmt_vbi support, zero vbi.reserved, pix.priv.
+      au0828: replace deprecated current_norm by g_std.
+      au8522_decoder: remove obsolete control ops.
+      au0828: fix disconnect sequence.
+      au0828: simplify i2c_gate_ctrl.
+      au0828: don't change global state information on open().
+      au0828: fix initial video routing.
+      au0828: improve firmware loading & locking.
+
+ drivers/media/dvb-frontends/au8522_decoder.c |  123 ++++++++------------------
+ drivers/media/dvb-frontends/au8522_priv.h    |    6 +-
+ drivers/media/usb/au0828/au0828-core.c       |   61 +++++++++----
+ drivers/media/usb/au0828/au0828-video.c      |  287 ++++++++++++++++++++++++++++++++++++------------------------
+ drivers/media/usb/au0828/au0828.h            |    7 ++
+ 5 files changed, 261 insertions(+), 223 deletions(-)
