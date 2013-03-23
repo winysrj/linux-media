@@ -1,49 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:3301 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752974Ab3CRQig (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:42438 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab3CWR0d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 12:38:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	Frank Schaefer <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 1/6] v4l2-common: remove obsolete check for ' at the end of a driver name.
-Date: Mon, 18 Mar 2013 17:38:15 +0100
-Message-Id: <1363624700-29270-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 23 Mar 2013 13:26:33 -0400
+Received: by mail-ea0-f172.google.com with SMTP id z7so91300eaf.31
+        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 10:26:31 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 5/5] em28xx: write output frame resolution to regs 0x34+0x35 for em25xx family bridges
+Date: Sat, 23 Mar 2013 18:27:12 +0100
+Message-Id: <1364059632-29070-6-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The Windows driver writes the output resolution to registers 0x34 (width / 16)
+and 0x35 (height / 16) always.
+We don't know yet what these registers are used for.
 
-During the transition to sub-devices several years ago non-subdev drivers
-had a ' at the end of their driver name to tell them apart from already
-converted drivers. This check was a left-over from that time and can be
-removed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/v4l2-core/v4l2-common.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
+ drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
+ 2 Dateien geändert, 13 Zeilen hinzugefügt(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index aa044f4..46d2b9b 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -251,9 +251,6 @@ int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match
- 		if (c->driver == NULL || c->driver->driver.name == NULL)
- 			return 0;
- 		len = strlen(c->driver->driver.name);
--		/* legacy drivers have a ' suffix, don't try to match that */
--		if (len && c->driver->driver.name[len - 1] == '\'')
--			len--;
- 		return len && !strncmp(c->driver->driver.name, match->name, len);
- 	case V4L2_CHIP_MATCH_I2C_ADDR:
- 		return c->addr == match->addr;
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 7b9f76b..0ce6b0f 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
+ 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
+ 	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
++
++	if (dev->is_em25xx) {
++		em28xx_write_reg(dev, 0x34, width >> 4);
++		em28xx_write_reg(dev, 0x35, height >> 4);
++	}
++	/* FIXME: function/meaning of these registers ? */
++	/* FIXME: align width+height to multiples of 4 ?! */
+ }
+ 
+ static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 1b0ecd6..e08982a 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -167,6 +167,12 @@
+ 
+ #define EM28XX_R34_VBI_START_H	0x34
+ #define EM28XX_R35_VBI_START_V	0x35
++/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
++ * registers for a different unknown purpose.
++ *   => register 0x34 is set to capture width / 16
++ *   => register 0x35 is set to capture height / 16
++ */
++
+ #define EM28XX_R36_VBI_WIDTH	0x36
+ #define EM28XX_R37_VBI_HEIGHT	0x37
+ 
 -- 
 1.7.10.4
 
