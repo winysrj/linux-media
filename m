@@ -1,53 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:60754 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932292Ab3CGLkM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 06:40:12 -0500
-Received: by mail-wi0-f181.google.com with SMTP id hm6so204100wib.2
-        for <linux-media@vger.kernel.org>; Thu, 07 Mar 2013 03:40:10 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <513878EC.1020907@ti.com>
-References: <1362492801-13202-1-git-send-email-nsekhar@ti.com>
- <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com>
- <51371553.5030103@ti.com> <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
- <5137191F.6050707@ti.com> <CA+V-a8s_x_X_GdQ0aa36e-B3DhxpXJ5vzsce0yqPcn78g81m+w@mail.gmail.com>
- <513750ED.2040701@ti.com> <CA+V-a8vaT4d52goryzrF5YdeXBVvCzfGnVicaNMuYL85Lmabcg@mail.gmail.com>
- <513878EC.1020907@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 7 Mar 2013 17:09:49 +0530
-Message-ID: <CA+V-a8sMTqU4PkxZ8_EK5yNY1S22G2G=7-bs5j31Umi_Dt97gQ@mail.gmail.com>
-Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32958 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752113Ab3CWWA2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Mar 2013 18:00:28 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
+	hverkuil@xs4all.nl
+Subject: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond to reality
+Date: Sun, 24 Mar 2013 00:04:34 +0200
+Message-Id: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
+Document that monotonic timestamps are taken after the corresponding frame
+has been received, not when the reception has begun. This corresponds to the
+reality of current drivers: the timestamp is naturally taken when the
+hardware triggers an interrupt to tell the driver to handle the received
+frame.
 
-On Thu, Mar 7, 2013 at 4:54 PM, Sekhar Nori <nsekhar@ti.com> wrote:
-> On 3/7/2013 12:47 PM, Prabhakar Lad wrote:
->
->> On Wed, Mar 6, 2013 at 7:51 PM, Sekhar Nori <nsekhar@ti.com> wrote:
->>> So instead of presenting a non-useful vpif selection to users,
->>> vpif.c dependency is better handled in makefile, no?
->>>
->> Agreed that’s a better fix.
->
-> How about VIDEO_VPFE_CAPTURE? Does enabling just that config present any
-> interface which can be used? Or should vpfe_capture.c be automatically
-> built as well?
->
-Yes this can be removed as well and handle in Makefile. And for consistency
-you can rename VIDEO_ISIF to VIDEO_DM365_ISIF.
+Remove the note on timestamp accurary as it is fairly subjective what is
+actually an unstable timestamp.
 
-Regards,
---Prabhakar
+Also remove explanation that output buffer timestamps can be used to delay
+outputting a frame.
 
-> Thanks,
-> Sekhar
+Remove the footnote saying we always use realtime clock.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Hi all,
+
+This is the second version of the patch fixing timestamp behaviour
+documentation. I've tried to address the comments I've received albeit I
+don't think there was a definitive conclusion on all the trails of
+discussion. What has changed since v1 is:
+
+- Removed discussion on timestamp stability.
+
+- Removed notes that timestamps on output buffers define when frames will be
+  displayed. It appears no driver has ever implemented this, or at least
+  does not implement this now.
+
+- Monotonic time is not affected by harms that the wall clock time is
+  subjected to. Remove notes on that.
+
+ Documentation/DocBook/media/v4l/io.xml |   47 ++++++--------------------------
+ 1 file changed, 8 insertions(+), 39 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index e6c5855..46d5a41 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -654,38 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
+ 
+-      <para>Nominally timestamps refer to the first data byte transmitted.
+-In practice however the wide range of hardware covered by the V4L2 API
+-limits timestamp accuracy. Often an interrupt routine will
+-sample the system clock shortly after the field or frame was stored
+-completely in memory. So applications must expect a constant
+-difference up to one field or frame period plus a small (few scan
+-lines) random error. The delay and error can be much
+-larger due to compression or transmission over an external bus when
+-the frames are not properly stamped by the sender. This is frequently
+-the case with USB cameras. Here timestamps refer to the instant the
+-field or frame was received by the driver, not the capture time. These
+-devices identify by not enumerating any video standards, see <xref
+-linkend="standard" />.</para>
+-
+-      <para>Similar limitations apply to output timestamps. Typically
+-the video hardware locks to a clock controlling the video timing, the
+-horizontal and vertical synchronization pulses. At some point in the
+-line sequence, possibly the vertical blanking, an interrupt routine
+-samples the system clock, compares against the timestamp and programs
+-the hardware to repeat the previous field or frame, or to display the
+-buffer contents.</para>
+-
+-      <para>Apart of limitations of the video device and natural
+-inaccuracies of all clocks, it should be noted system time itself is
+-not perfectly stable. It can be affected by power saving cycles,
+-warped to insert leap seconds, or even turned back or forth by the
+-system administrator affecting long term measurements. <footnote>
+-	  <para>Since no other Linux multimedia
+-API supports unadjusted time it would be foolish to introduce here. We
+-must use a universally supported clock to synchronize different media,
+-hence time of day.</para>
+-	</footnote></para>
++      <para>On timestamp types that are sampled from the system clock
++(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
++taken after the complete frame has been received (or transmitted in
++case of video output devices). For other kinds of
++timestamps this may vary depending on the driver.</para>
+ 
+     <table frame="none" pgwide="1" id="v4l2-buffer">
+       <title>struct <structname>v4l2_buffer</structname></title>
+@@ -745,13 +718,9 @@ applications when an output stream.</entry>
+ 	    byte was captured, as returned by the
+ 	    <function>clock_gettime()</function> function for the relevant
+ 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+-	    <xref linkend="buffer-flags" />. For output streams the data
+-	    will not be displayed before this time, secondary to the nominal
+-	    frame rate determined by the current video standard in enqueued
+-	    order. Applications can for example zero this field to display
+-	    frames as soon as possible. The driver stores the time at which
+-	    the first data byte was actually sent out in the
+-	    <structfield>timestamp</structfield> field. This permits
++	    <xref linkend="buffer-flags" />. For output streams he driver
++	    stores the time at which the first data byte was actually sent out
++	    in the  <structfield>timestamp</structfield> field. This permits
+ 	    applications to monitor the drift between the video and system
+ 	    clock.</para></entry>
+ 	  </row>
+-- 
+Kind regards,
+Sakari
