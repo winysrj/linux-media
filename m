@@ -1,156 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:50641 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752600Ab3CZSOs (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:59872 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750806Ab3CWNlY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 14:14:48 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/7] exynos4-is: Add FIMC-IS ISP I2C bus driver
-Date: Tue, 26 Mar 2013 19:14:18 +0100
-Message-id: <1364321663-21010-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 23 Mar 2013 09:41:24 -0400
+Message-ID: <514DB100.1060607@gmail.com>
+Date: Sat, 23 Mar 2013 14:41:20 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Arun Kumar K <arun.kk@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com, kilyeon.im@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [RFC 03/12] exynos-fimc-is: Adds fimc-is driver core files
+References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com> <1362754765-2651-4-git-send-email-arun.kk@samsung.com>
+In-Reply-To: <1362754765-2651-4-git-send-email-arun.kk@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the ISP I2C bus controller driver files.
+On 03/08/2013 03:59 PM, Arun Kumar K wrote:
+> This driver is for the FIMC-IS IP available in Samsung Exynos5
+> SoC onwards. This patch adds the core files for the new driver.
+>
+> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
+> ---
+>   drivers/media/platform/exynos5-is/fimc-is-core.c |  421 ++++++++++++++++++++++
+>   drivers/media/platform/exynos5-is/fimc-is-core.h |  140 +++++++
+>   2 files changed, 561 insertions(+)
+[...]
+> +static int __devinit fimc_is_probe(struct platform_device *pdev)
 
-Creating a standard I2C bus adapter, even if the driver doesn't
-actually communicates with the hardware and it is instead used
-by the ISP firmware running on the Cortex-A5, allows to use
-standard hardware description in the device tree. As the sensor
-would have actually had a standard V4L2 sub-device driver run
-on the host CPU.
+You need to remove this attribute, that's not supported in recent kernels
+any more.
 
-This approach allows to adapt the driver with a relatively small
-effort should the Imaging Subsystem architecture change so that
-the I2C bus is controlled by the host CPU, rather than the
-internal FIMC-IS ARM CPU. The image sensor drivers can be
-standard I2C client driver, as in case of most existing image
-sensor driver.
+> +{
+> +	struct device *dev =&pdev->dev;
+> +	struct fimc_is_platdata *pdata;
+> +	struct resource *res;
+> +	struct fimc_is *is;
+> +	struct pinctrl *pctrl;
+> +	void __iomem *regs;
+> +	int irq, ret;
+> +
+> +	pr_debug("FIMC-IS Probe Enter\n");
+> +
+> +	pctrl = devm_pinctrl_get_select_default(dev);
+> +	if (IS_ERR(pctrl)) {
+> +		dev_err(dev, "Pinctrl configuration failed\n");
+> +		return -EINVAL;
+> +	}
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-is-i2c.c |   81 +++++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-i2c.h |   15 +++++
- 2 files changed, 96 insertions(+)
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.h
+This is not needed any more. If you work with not latest kernel I suggest
+to cherry pick
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-new file mode 100644
-index 0000000..d4c75dc
---- /dev/null
-+++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
-@@ -0,0 +1,81 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#define pr_fmt(fmt) "%s:%d " fmt, __func__, __LINE__
-+
-+#include <linux/module.h>
-+#include <linux/of_i2c.h>
-+#include <linux/platform_device.h>
-+#include "fimc-is-i2c.h"
-+
-+/*
-+ * An empty algorithm is used as the actual I2C bus controller driver
-+ * is implemented in the FIMC-IS subsystem firmware and the host CPU
-+ * doesn't touch the hardware.
-+ */
-+static const struct i2c_algorithm fimc_is_i2c_algorithm;
-+
-+static int fimc_is_i2c_probe(struct platform_device *pdev)
-+{
-+	struct device_node *node = pdev->dev.of_node;
-+	struct i2c_adapter *i2c_adap;
-+	int ret;
-+
-+	i2c_adap = devm_kzalloc(&pdev->dev, sizeof(*i2c_adap), GFP_KERNEL);
-+
-+	i2c_adap->dev.of_node = node;
-+	i2c_adap->dev.parent = &pdev->dev;
-+	strlcpy(i2c_adap->name, "exynos4x12-is-i2c", sizeof(i2c_adap->name));
-+	i2c_adap->owner = THIS_MODULE;
-+	i2c_adap->algo = &fimc_is_i2c_algorithm;
-+	i2c_adap->class = I2C_CLASS_SPD;
-+
-+	ret = i2c_add_adapter(i2c_adap);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to add I2C bus %s\n",
-+						node->full_name);
-+		return ret;
-+	}
-+	of_i2c_register_devices(i2c_adap);
-+
-+	return 0;
-+}
-+
-+static int fimc_is_i2c_remove(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static const struct of_device_id fimc_is_i2c_of_match[] = {
-+	{ .compatible = FIMC_IS_I2C_COMPATIBLE },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, fimc_is_i2c_of_match);
-+
-+static struct platform_driver fimc_is_i2c_driver = {
-+	.probe		= fimc_is_i2c_probe,
-+	.remove		= fimc_is_i2c_remove,
-+	.driver = {
-+		.of_match_table = fimc_is_i2c_of_match,
-+		.name		= "fimc-is-i2c",
-+		.owner		= THIS_MODULE,
-+	}
-+};
-+
-+int fimc_is_register_i2c_driver(void)
-+{
-+	return platform_driver_register(&fimc_is_i2c_driver);
-+}
-+
-+void fimc_is_unregister_i2c_driver(void)
-+{
-+	platform_driver_unregister(&fimc_is_i2c_driver);
-+}
-+
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.h b/drivers/media/platform/exynos4-is/fimc-is-i2c.h
-new file mode 100644
-index 0000000..0d38d6b
---- /dev/null
-+++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.h
-@@ -0,0 +1,15 @@
-+/*
-+ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#define FIMC_IS_I2C_COMPATIBLE	"samsung,exynos4212-i2c-isp"
-+
-+int fimc_is_register_i2c_driver(void);
-+void fimc_is_unregister_i2c_driver(void);
--- 
-1.7.9.5
+commit ab78029ecc347debbd737f06688d788bd9d60c1d
+drivers/pinctrl: grab default handles from device core
 
+and remove those devm_pinctrl_get_select_default() calls from drivers.
+
+> +	if (!pdev->dev.of_node) {
+> +		dev_err(dev, "Null platform data\n");
+
+Huh ? Since this driver is for dt-only platforms, is there a need to check
+pdev->dev.of_node at all ? Probably you want to just return -ENODEV if it
+is NULL.
+
+> +		return -EINVAL;
+> +	}
+> +
+> +	pdata = fimc_is_parse_dt(dev);
+> +	if (!pdata) {
+> +		dev_err(dev, "Parse DT failed\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
+> +	if (!is)
+> +		return -ENOMEM;
+> +
+> +	is->pdev = pdev;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	regs = devm_request_and_ioremap(dev, res);
+> +	if (regs == NULL) {
+> +		dev_err(dev, "Failed to obtain io memory\n");
+> +		return -ENOENT;
+> +	}
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq<  0) {
+> +		dev_err(dev, "Failed to get IRQ\n");
+> +		return irq;
+> +	}
+> +
+> +	ret = fimc_is_clk_cfg(is);
+> +	if (ret<  0) {
+> +		dev_err(dev, "Clock config failed\n");
+> +		goto err_clk;
+> +	}
+> +
+> +	platform_set_drvdata(pdev, is);
+> +	pm_runtime_enable(dev);
+> +
+> +	ret = pm_runtime_get_sync(dev);
+> +	if (ret<  0)
+> +		goto err_clk;
+> +
+> +	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+> +	if (IS_ERR(is->alloc_ctx)) {
+> +		ret = PTR_ERR(is->alloc_ctx);
+> +		goto err_pm;
+> +	}
+> +
+> +	/* Create sensor subdevs */
+> +	is->pdata = pdata;
+> +	ret = fimc_is_create_sensor_subdevs(is);
+> +	if (ret<  0)
+> +		goto err_sensor_sd;
+> +
+> +	/* Init FIMC Pipeline */
+> +	ret = fimc_is_pipeline_init(&is->pipeline, 0, is);
+> +	if (ret<  0)
+> +		goto err_sd;
+> +
+> +	/* Init FIMC Interface */
+> +	ret = fimc_is_interface_init(&is->interface, regs, irq);
+> +	if (ret<  0)
+> +		goto err_sd;
+> +
+> +	dev_dbg(dev, "FIMC-IS registered successfully\n");
+
+Shouldn't there be pm_runtime_put() ?
+
+> +
+> +	return 0;
+> +
+> +err_sd:
+> +	fimc_is_pipeline_destroy(&is->pipeline);
+> +err_sensor_sd:
+> +	fimc_is_unregister_sensor_subdevs(is);
+> +err_vb:
+> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+> +err_pm:
+> +	pm_runtime_put(dev);
+> +err_clk:
+> +	fimc_is_clk_put(is);
+> +
+> +	return ret;
+> +}
+> +
+> +int fimc_is_clk_enable(struct fimc_is *is)
+> +{
+> +	clk_enable(is->clock[IS_CLK_GATE0]);
+> +	clk_enable(is->clock[IS_CLK_GATE1]);
+
+No need to check return value ?
+
+> +	return 0;
+> +}
+> +
+> +void fimc_is_clk_disable(struct fimc_is *is)
+> +{
+> +	clk_disable(is->clock[IS_CLK_GATE0]);
+> +	clk_disable(is->clock[IS_CLK_GATE1]);
+> +}
+> +
+> +static int fimc_is_pm_resume(struct device *dev)
+> +{
+> +	struct fimc_is *is = dev_get_drvdata(dev);
+> +	int ret;
+> +
+> +	ret = fimc_is_clk_enable(is);
+> +	if (ret<  0)
+> +		dev_err(dev, "Could not enable clocks\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static int fimc_is_pm_suspend(struct device *dev)
+> +{
+> +	struct fimc_is *is = dev_get_drvdata(dev);
+> +
+> +	fimc_is_clk_disable(is);
+> +	return 0;
+> +}
+> +
+> +static int fimc_is_runtime_resume(struct device *dev)
+> +{
+> +	return fimc_is_pm_resume(dev);
+> +}
+> +
+> +static int fimc_is_runtime_suspend(struct device *dev)
+> +{
+> +	return fimc_is_pm_suspend(dev);
+> +}
+> +
+> +#ifdef CONFIG_PM_SLEEP
+> +static int fimc_is_resume(struct device *dev)
+> +{
+> +	return fimc_is_pm_resume(dev);
+> +}
+> +
+> +static int fimc_is_suspend(struct device *dev)
+> +{
+> +	return fimc_is_pm_suspend(dev);
+> +}
+> +#endif /* CONFIG_PM_SLEEP */
+> +
+> +static int fimc_is_remove(struct platform_device *pdev)
+> +{
+> +	struct fimc_is *is = platform_get_drvdata(pdev);
+> +	struct device *dev =&pdev->dev;
+> +
+> +	pm_runtime_disable(dev);
+> +	pm_runtime_set_suspended(dev);
+> +	fimc_is_pipeline_destroy(&is->pipeline);
+> +	fimc_is_unregister_sensor_subdevs(is);
+> +	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+> +	fimc_is_clk_put(is);
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_device_id fimc_is_driver_ids[] = {
+> +	{
+> +		.name		= "exynos5-fimc-is",
+> +		.driver_data	= 0,
+
+This line doesn't change anything, I would just remove it.
+But is this fimc_is_driver_ids[] array needed at all ?
+
+> +	},
+> +};
+> +MODULE_DEVICE_TABLE(platform, fimc_is_driver_ids);
+> +
+> +static const struct dev_pm_ops fimc_is_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(fimc_is_suspend, fimc_is_resume)
+> +	SET_RUNTIME_PM_OPS(fimc_is_runtime_suspend, fimc_is_runtime_resume,
+> +			   NULL)
+> +};
+> +
+> +static struct platform_driver fimc_is_driver = {
+> +	.probe		= fimc_is_probe,
+> +	.remove		= fimc_is_remove,
+> +	.id_table	= fimc_is_driver_ids,
+> +	.driver = {
+> +		.name	= FIMC_IS_DRV_NAME,
+> +		.owner	= THIS_MODULE,
+> +		.pm	=&fimc_is_pm_ops,
+
+How is this driver instantiated from the device tree when there
+is no of_match_table ? I didn't find any chunk adding it further
+in this series.
+
+> +	}
+> +};
+> +module_platform_driver(fimc_is_driver);
+
+I forgot to say that in general this patch series looks very clean
+to me. I'm really happy to see this driver in such a good shape.
+
+Thanks,
+Sylwester
