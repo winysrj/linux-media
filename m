@@ -1,45 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3938 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754414Ab3CUPeW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 11:34:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: em28xx: commit aab3125c43d8fecc7134e5f1e729fabf4dd196da broke HVR 900
-Date: Thu, 21 Mar 2013 16:34:13 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201303210933.41537.hverkuil@xs4all.nl> <20130321070327.772c6301@redhat.com>
-In-Reply-To: <20130321070327.772c6301@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303211634.13057.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:19849 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750718Ab3CWMfV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Mar 2013 08:35:21 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2NCZIJj031614
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 08:35:18 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 4/4] [media] dvb-usb/dvb-usb-v2: use IS_ENABLED
+Date: Sat, 23 Mar 2013 09:35:11 -0300
+Message-Id: <1364042111-24708-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1364042111-24708-1-git-send-email-mchehab@redhat.com>
+References: <1364042111-24708-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu March 21 2013 11:03:27 Mauro Carvalho Chehab wrote:
-> Em Thu, 21 Mar 2013 09:33:41 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
-> > I tried to use my HVR 900 stick today and discovered that it no longer worked.
-> > I traced it to commit aab3125c43d8fecc7134e5f1e729fabf4dd196da: "em28xx: add
-> > support for registering multiple i2c buses".
-> > 
-> > The kernel messages for when it fails are:
-> ...
-> > Mar 21 09:26:57 telek kernel: [ 1396.542517] xc2028 12-0061: attaching existing instance
-> > Mar 21 09:26:57 telek kernel: [ 1396.542521] xc2028 12-0061: type set to XCeive xc2028/xc3028 tuner
-> > Mar 21 09:26:57 telek kernel: [ 1396.542523] em2882/3 #0: em2882/3 #0/2: xc3028 attached
-> ...
-> > Mar 21 09:26:57 telek kernel: [ 1396.547833] xc2028 12-0061: Error on line 1293: -19
-> 
-> Probably, the I2C speed is wrong. I noticed a small bug on this patch.
-> The following patch should fix it. Could you please test?
+Instead of checking everywhere there for 3 symbols, use instead
+IS_ENABLED macro.
 
-No luck, it didn't help.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h | 4 ++--
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h | 5 ++---
+ drivers/media/usb/dvb-usb/dibusb-common.c     | 5 +++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-Regards,
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+index 432706a..3f3f8bf 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+@@ -21,6 +21,7 @@
+ #ifndef __MXL111SF_DEMOD_H__
+ #define __MXL111SF_DEMOD_H__
+ 
++#include <linux/kconfig.h>
+ #include "dvb_frontend.h"
+ #include "mxl111sf.h"
+ 
+@@ -31,8 +32,7 @@ struct mxl111sf_demod_config {
+ 			    struct mxl111sf_reg_ctrl_info *ctrl_reg_info);
+ };
+ 
+-#if defined(CONFIG_DVB_USB_MXL111SF) || \
+-	(defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
++#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
+ extern
+ struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
+ 					   struct mxl111sf_demod_config *cfg);
+diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+index ff33396..90f583e 100644
+--- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
++++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+@@ -21,8 +21,8 @@
+ #ifndef __MXL111SF_TUNER_H__
+ #define __MXL111SF_TUNER_H__
+ 
++#include <linux/kconfig.h>
+ #include "dvb_frontend.h"
+-
+ #include "mxl111sf.h"
+ 
+ enum mxl_if_freq {
+@@ -60,8 +60,7 @@ struct mxl111sf_tuner_config {
+ 
+ /* ------------------------------------------------------------------------ */
+ 
+-#if defined(CONFIG_DVB_USB_MXL111SF) || \
+-	(defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
++#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
+ extern
+ struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
+ 					   struct mxl111sf_state *mxl_state,
+diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+index af0d432..c2dded9 100644
+--- a/drivers/media/usb/dvb-usb/dibusb-common.c
++++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+@@ -8,6 +8,8 @@
+  *
+  * see Documentation/dvb/README.dvb-usb for more information
+  */
++
++#include <linux/kconfig.h>
+ #include "dibusb.h"
+ 
+ static int debug;
+@@ -232,8 +234,7 @@ static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
+ 	.agc2_slope2 = 0x1e,
+ };
+ 
+-#if defined(CONFIG_DVB_DIB3000MC) || 					\
+-	(defined(CONFIG_DVB_DIB3000MC_MODULE) && defined(MODULE))
++#if IS_ENABLED(CONFIG_DVB_DIB3000MC)
+ 
+ static struct dib3000mc_config mod3000p_dib3000p_config = {
+ 	&dib3000p_panasonic_agc_config,
+-- 
+1.8.1.4
 
-	Hans
