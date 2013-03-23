@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4391 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756575Ab3CDJg7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:36:59 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [REVIEW PATCH 10/11] davinci/dm644x_ccdc: fix compiler warning
-Date: Mon, 4 Mar 2013 10:36:32 +0100
-Cc: linux-media@vger.kernel.org, Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com> <82ceff23cb7321a9f84f76ae1ed956b2829a45d6.1362387265.git.hans.verkuil@cisco.com> <CA+V-a8t_ri8qJoc=KwE6kMCXwPxqkpbMoV3UsjZ9mJ_zgRFORQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8t_ri8qJoc=KwE6kMCXwPxqkpbMoV3UsjZ9mJ_zgRFORQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201303041036.32470.hverkuil@xs4all.nl>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:44265 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752184Ab3CWWgA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Mar 2013 18:36:00 -0400
+Received: by mail-la0-f53.google.com with SMTP id fr10so9245168lab.40
+        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 15:35:59 -0700 (PDT)
+From: Volokh Konstantin <volokh84@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: Volokh Konstantin <volokh84@gmail.com>
+Subject: [PATCH] hverkuil/go7007: media: i2c : tw2804: Revert ADC Control Reverting patch commit 3d321ebba68f1fc50a9461373e8da0887e39fbbc Case: In AdLink MPG24 there is bt878 exists (it captures one frame of all video inputs),  Video Signal for it one transmits through tw2804 chip, so we can`t control ADC (shut on/off) on tw2804 ,as some another can use bttv capture way.
+Date: Sun, 24 Mar 2013 02:28:28 +0400
+Message-Id: <1364077708-508-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon March 4 2013 10:29:26 Prabhakar Lad wrote:
-> Hi Hans,
-> 
-> On Mon, Mar 4, 2013 at 2:35 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> >
-> > drivers/media/platform/davinci/dm644x_ccdc.c: In function ‘validate_ccdc_param’:
-> > drivers/media/platform/davinci/dm644x_ccdc.c:233:32: warning: comparison between ‘enum ccdc_gama_width’ and ‘enum ccdc_data_size’ [-Wenum-compare]
-> >
-> please refer this discussion [1], where Mauro has suggested
-> few options for fixing it.
+Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+---
+ drivers/media/i2c/tw2804.c |   17 +----------------
+ 1 files changed, 1 insertions(+), 16 deletions(-)
 
-Ah, good. I'll try and do a proper fix.
+diff --git a/drivers/media/i2c/tw2804.c b/drivers/media/i2c/tw2804.c
+index 441b766..c5dc2c3 100644
+--- a/drivers/media/i2c/tw2804.c
++++ b/drivers/media/i2c/tw2804.c
+@@ -53,7 +53,7 @@ static const u8 global_registers[] = {
+ 	0x3d, 0x80,
+ 	0x3e, 0x82,
+ 	0x3f, 0x82,
+-	0x78, 0x0f,
++	0x78, 0x00,
+ 	0xff, 0xff, /* Terminator (reg 0xff does not exist) */
+ };
+ 
+@@ -337,20 +337,6 @@ static int tw2804_s_video_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+ 	return 0;
+ }
+ 
+-static int tw2804_s_stream(struct v4l2_subdev *sd, int enable)
+-{
+-	struct tw2804 *dec = to_state(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	u32 reg = read_reg(client, 0x78, 0);
+-
+-	if (enable == 1)
+-		write_reg(client, 0x78, reg & ~(1 << dec->channel), 0);
+-	else
+-		write_reg(client, 0x78, reg | (1 << dec->channel), 0);
+-
+-	return 0;
+-}
+-
+ static const struct v4l2_ctrl_ops tw2804_ctrl_ops = {
+ 	.g_volatile_ctrl = tw2804_g_volatile_ctrl,
+ 	.s_ctrl = tw2804_s_ctrl,
+@@ -358,7 +344,6 @@ static const struct v4l2_ctrl_ops tw2804_ctrl_ops = {
+ 
+ static const struct v4l2_subdev_video_ops tw2804_video_ops = {
+ 	.s_routing = tw2804_s_video_routing,
+-	.s_stream = tw2804_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_core_ops tw2804_core_ops = {
+-- 
+1.7.7.6
 
-BTW, does 'CCDC_GAMMA_BITS_15_6' mean '15 bits'? I'm not sure about the meaning
-of the '_6' suffix. Also, I assume that 'gama' in 'enum ccdc_gama_width' is a
-misspelling for 'gamma', right?
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> --Prabhakar Lad
-> 
-> [1] https://patchwork.kernel.org/patch/1923091/
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/platform/davinci/dm644x_ccdc.c |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-> > index 318e805..41f0a80 100644
-> > --- a/drivers/media/platform/davinci/dm644x_ccdc.c
-> > +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-> > @@ -230,7 +230,7 @@ static int validate_ccdc_param(struct ccdc_config_params_raw *ccdcparam)
-> >         if (ccdcparam->alaw.enable) {
-> >                 if ((ccdcparam->alaw.gama_wd > CCDC_GAMMA_BITS_09_0) ||
-> >                     (ccdcparam->alaw.gama_wd < CCDC_GAMMA_BITS_15_6) ||
-> > -                   (ccdcparam->alaw.gama_wd < ccdcparam->data_sz)) {
-> > +                   (ccdcparam->alaw.gama_wd < (unsigned)ccdcparam->data_sz)) {
-> >                         dev_dbg(ccdc_cfg.dev, "\nInvalid data line select");
-> >                         return -1;
-> >                 }
-> > --
-> > 1.7.10.4
-> >
-> 
