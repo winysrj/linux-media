@@ -1,105 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7780 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752270Ab3CXKNr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 06:13:47 -0400
-Date: Sun, 24 Mar 2013 07:12:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-ee0-f42.google.com ([74.125.83.42]:43686 "EHLO
+	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655Ab3CWR0b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Mar 2013 13:26:31 -0400
+Received: by mail-ee0-f42.google.com with SMTP id b47so2625637eek.15
+        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 10:26:29 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
 Cc: linux-media@vger.kernel.org,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Brian Johnson <brijohn@gmail.com>,
-	Mike Isely <isely@pobox.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Huang Shijie <shijie8@gmail.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Takashi Iwai <tiwai@suse.de>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 5/6] v4l2-ioctl: simplify debug code.
-Message-ID: <20130324071242.5129d395@redhat.com>
-In-Reply-To: <1363615925-19507-6-git-send-email-hverkuil@xs4all.nl>
-References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
-	<1363615925-19507-6-git-send-email-hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v2 4/5] em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
+Date: Sat, 23 Mar 2013 18:27:11 +0100
+Message-Id: <1364059632-29070-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 18 Mar 2013 15:12:04 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Streaming doesn't work with the EM2765 if bit 5 of the output format register
+0x27 is set.
+It's actually not clear if really has to be set for the other chips, but for
+now let's keep it to avoid regressions and add a comment to the code.
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The core debug code can now be simplified since all the write-only ioctls are
-> now const and will not modify the data they pass to the drivers.
-> 
-> So instead of logging write-only ioctls before the driver is called this can
-> now be done afterwards, which is cleaner when it comes to error reporting as
-> well.
-> 
-> This also fixes a logic error in the debugging code where there was one 'else'
-> too many.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   20 +++++++++++++++-----
+ 1 Datei geändert, 15 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
 
-Patch looks ok, but I won't apply right now, as it seems it depends on 4/6.
-
-Regards,
-Mauro
-
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c |   15 ++-------------
->  1 file changed, 2 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 2abd13a..b3fe148 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2147,11 +2147,6 @@ static long __video_do_ioctl(struct file *file,
->  	}
->  
->  	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
-> -	if (write_only && debug > V4L2_DEBUG_IOCTL) {
-> -		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
-> -		pr_cont(": ");
-> -		info->debug(arg, write_only);
-> -	}
->  	if (info->flags & INFO_FL_STD) {
->  		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
->  		const void *p = vfd->ioctl_ops;
-> @@ -2170,16 +2165,10 @@ static long __video_do_ioctl(struct file *file,
->  
->  done:
->  	if (debug) {
-> -		if (write_only && debug > V4L2_DEBUG_IOCTL) {
-> -			if (ret < 0)
-> -				printk(KERN_DEBUG "%s: error %ld\n",
-> -					video_device_node_name(vfd), ret);
-> -			return ret;
-> -		}
->  		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
->  		if (ret < 0)
-> -			pr_cont(": error %ld\n", ret);
-> -		else if (debug == V4L2_DEBUG_IOCTL)
-> +			pr_cont(": error %ld", ret);
-> +		if (debug == V4L2_DEBUG_IOCTL)
->  			pr_cont("\n");
->  		else if (_IOC_DIR(cmd) == _IOC_NONE)
->  			info->debug(arg, write_only);
-
-
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index b2dcb3d..7b9f76b 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -697,12 +697,22 @@ int em28xx_vbi_supported(struct em28xx *dev)
+ int em28xx_set_outfmt(struct em28xx *dev)
+ {
+ 	int ret;
+-	u8 vinctrl;
+-
+-	ret = em28xx_write_reg_bits(dev, EM28XX_R27_OUTFMT,
+-				dev->format->reg | 0x20, 0xff);
++	u8 fmt, vinctrl;
++
++	fmt = dev->format->reg;
++	if (!dev->is_em25xx)
++		fmt |= 0x20;
++	/* NOTE: it's not clear if this is really needed !
++	 * The datasheets say bit 5 is a reserved bit and devices seem to work
++	 * fine without it. But the Windows driver sets it for em2710/50+em28xx
++	 * devices and we've always been setting it, too.
++	 *
++	 * em2765 (em25xx, em276x/7x/8x ?) devices do NOT work with this bit set,
++	 * it's likely used for an additional (compressed ?) format there.
++	 */
++	ret = em28xx_write_reg(dev, EM28XX_R27_OUTFMT, fmt);
+ 	if (ret < 0)
+-			return ret;
++		return ret;
+ 
+ 	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
+ 	if (ret < 0)
 -- 
+1.7.10.4
 
-Cheers,
-Mauro
