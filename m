@@ -1,84 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:64067 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab3CVFdR (ORCPT
+Received: from mail.eecsit.tu-berlin.de ([130.149.17.13]:61208 "EHLO
+	mail.cs.tu-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750998Ab3CWKx7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Mar 2013 01:33:17 -0400
-Received: by mail-wi0-f178.google.com with SMTP id hq4so3899602wib.5
-        for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 22:33:15 -0700 (PDT)
+	Sat, 23 Mar 2013 06:53:59 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by localhost-12225.cs.tu-berlin.de (Postfix) with ESMTP id 1667FA630
+	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 11:42:46 +0100 (CET)
+Received: from mailhost.cs.tu-berlin.de ([127.0.0.1])
+	by localhost (mail.cs.tu-berlin.de [127.0.0.1]) (amavisd-new, port 12224)
+	with ESMTP id R1biOKKV+aI2 15101-14 for <linux-media@vger.kernel.org>;
+	Sat, 23 Mar 2013 11:42:35 +0100 (CET) 16609
+Received: from [10.210.217.233] (unknown [176.5.217.233])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: starcmn)
+	by mailhost.cs.tu-berlin.de (Postfix) with ESMTPSA
+	for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 11:42:35 +0100 (CET)
+Message-ID: <514D871A.1070509@cs.tu-berlin.de>
+Date: Sat, 23 Mar 2013 11:42:34 +0100
+From: Frank Reimann <starcmn@cs.tu-berlin.de>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1302022132420.8751@axis700.grange>
-References: <CA+V-a8sOHbseLe+rATFtLRwxdURB83QM0LvZ+5fQjfh7CDAkZQ@mail.gmail.com>
- <Pine.LNX.4.64.1302022132420.8751@axis700.grange>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 22 Mar 2013 11:02:55 +0530
-Message-ID: <CA+V-a8uzLtt64yG8yUGit6vDFGDDCmCb7O1SaTQm3H3YZjdUzw@mail.gmail.com>
-Subject: Re: [QUERY] V4L async api
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media <linux-media@vger.kernel.org>
+To: linux-media@vger.kernel.org
+Subject: em28xx: new board id [eb1a:e323]
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+Hi,
 
-On Sun, Feb 3, 2013 at 2:32 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Wed, 30 Jan 2013, Prabhakar Lad wrote:
->
->> Hi Guennadi,
->>
->> I am working on adding v4l-asyn for capture and display device..
->>
->> Here is my hw details:--
->>  1: The capture device has two subdevs tvp514x @0x5c and tvp514x @0x5d.
->>  2: The display device has a one subdev adv7343 @0x2a.
->>
->> Note:- I have added  async support for all the subdevices and the
->> capture and display driver too
->>
->> Test Case:-
->>   1:   I have v4l2_async_notifier_register() for both capture and
->> display driver, as of now I have built
->>         the subdevices as module. when board is up, I insert the
->> tvp514x  subdevices and the capture
->>         driver gets intialized (/dev/video0 & /dev/video1) nodes get
->> created, now I do insmod on the other
->>         subdevice adv7343, the bound callback is called in capture
->> driver, but whereas this should have been
->>         called in the display driver.
->
-> This certainly _should_ not happen. Your subdevice driver should call
-> v4l2_async_subdev_bound(), which will walk the notifier list and check,
-> which of them this subdevice matches. I'm afraid you'll have to debug your
-> set up to see why the wrong notifier matches.
->
->>   2:   When I build the subdevices as part of uImage I hit a crash.
->> Attached is the crash log.
->
-> The crash happens in v4l2_async_notifier_register() when a newly
-> registered notifier walks the list of _already_ successfully probed
-> subdevices. Then I'm not exactly sure where the actual crash happens, one
-> of the possibilities is if the match_i2c() function is called for an
-> invalid or unbound i2c device. You'll have to debug this too.
->
-Trying to debug, I see that list_for_each_entry() in v4l2_async_belongs()
-is picking up some invalid entry which is causing it to crash!
+ I've made tests with my MSI DIGIVOX A/D II stick:
 
-Cheers,
---Prabhakar
+ Model: MSI DIGIVOX A/D II
+ Vendor/Product id: [eb1a:e323].
 
-> Thanks
-> Guennadi
->
->>   3:   When I just build and use either the capture/display driver and
->> their respective subdevices only every thing works fine.
->>
->> Regards,
->> --Prabhakar
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+ Tests made:
+
+     - DVB    [Worked]
+
+ Tested-by: Frank Reimann <starcmn@cs.tu-berlin.de>
+
+  Frank Reimann
+
