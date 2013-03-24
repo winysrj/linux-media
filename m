@@ -1,138 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2228 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754762Ab3CFT4b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 14:56:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: gomboc0@gmail.com
-Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
-Date: Wed, 6 Mar 2013 20:56:24 +0100
-Cc: linux-media@vger.kernel.org
-References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt> <201303010852.36574.hverkuil@xs4all.nl> <51313F7A.9080900@gmail.com>
-In-Reply-To: <51313F7A.9080900@gmail.com>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:46803 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753606Ab3CXMwr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 08:52:47 -0400
+Received: by mail-ea0-f169.google.com with SMTP id n15so346748ead.0
+        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 05:52:45 -0700 (PDT)
+Message-ID: <514EF754.6080709@googlemail.com>
+Date: Sun, 24 Mar 2013 13:53:40 +0100
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303062056.24462.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B read/write/check
+ device operations
+References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com> <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com> <20130324083846.199bdda6@redhat.com>
+In-Reply-To: <20130324083846.199bdda6@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matt,
+Am 24.03.2013 12:38, schrieb Mauro Carvalho Chehab:
+> Em Sat, 23 Mar 2013 18:27:08 +0100
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
+>> for i2c communication with the sensor, which is connected to a second i2c bus.
+>>
+>> We don't know yet how to find out which devices support/use it.
+>> It's very likely used by all em25xx and em276x+ bridges.
+>> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
+>> algorithm always succeeds there although no slave device is connected.
+>>
+>> The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
+>> because the Windows driver seems to use it for probing Samsung and Kodak
+>> sensors.
+>>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
+>>  drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
+>>  drivers/media/usb/em28xx/em28xx.h       |   10 +-
+>>  3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+>> index cb7cdd3..033b6cb 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>> @@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+>>  	rt_mutex_init(&dev->i2c_bus_lock);
+>>  
+>>  	/* register i2c bus 0 */
+>> -	retval = em28xx_i2c_register(dev, 0);
+>> +	if (dev->board.is_em2800)
+>> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
+>> +	else
+>> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
+>>  	if (retval < 0) {
+>>  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
+>>  			__func__, retval);
+>>  		goto unregister_dev;
+>>  	}
+>>  
+>> +	/* register i2c bus 1 */
+>>  	if (dev->def_i2c_bus) {
+>> -		retval = em28xx_i2c_register(dev, 1);
+>> +		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
+>>  		if (retval < 0) {
+>>  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
+>>  				__func__, retval);
+>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> index 9e2fa41..ab14ac3 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>> @@ -5,6 +5,7 @@
+>>  		      Markus Rechberger <mrechberger@gmail.com>
+>>  		      Mauro Carvalho Chehab <mchehab@infradead.org>
+>>  		      Sascha Sommer <saschasommer@freenet.de>
+>> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+>>  
+>>     This program is free software; you can redistribute it and/or modify
+>>     it under the terms of the GNU General Public License as published by
+>> @@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+>>  }
+>>  
+>>  /*
+>> + * em25xx_bus_B_send_bytes
+>> + * write bytes to the i2c device
+>> + */
+>> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>> +				   u16 len)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (len < 1 || len > 64)
+>> +		return -EOPNOTSUPP;
+>> +	/* NOTE: limited by the USB ctrl message constraints
+>> +	 * Zero length reads always succeed, even if no device is connected */
+>> +
+>> +	/* Set register and write value */
+>> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
+>> +	/* NOTE:
+>> +	 * 0 byte writes always succeed, even if no device is connected. */
+> You already noticed it on the previous note.
 
-While I added this patch to my cx231xx patch series, Mauro didn't pick it
-up for some reason. So for when he gets around to looking at your patch, I want to
-add my:
+Yes. ;)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+>> +	if (ret != len) {
+>> +		if (ret < 0) {
+>> +			em28xx_warn("writing to i2c device at 0x%x failed "
+>> +				    "(error=%i)\n", addr, ret);
+>> +			return ret;
+>> +		} else {
+>> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
+>> +				    "requested, but %i bytes written\n",
+>> +				    len, addr, ret);
+>> +			return -EIO;
+>> +		}
+>> +	}
+>> +	/* Check success */
+>> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
+>> +	/* NOTE: the only error we've seen so far is
+>> +	 * 0x01 when the slave device is not present */
+>> +	if (ret == 0x00) {
+> 	Please simplify. just use:
+> 		if (!ret)
+
+I would like to keep it as is because I think it better expresses the
+purposes of this check. I also used 0x00 instead of 0 on purpose.
+ret is a mixed value which is negative on errors and contains the data
+bytes (0x00 to 0xff) on success.
+Ok, in this specific case all other values are covered with a single
+(ret > 0) check, but take a look at the comment and the em28xx-algo
+functions where we check for 0x10, too.
+
+>
+>> +		return len;
+>> +	} else if (ret > 0) {
+>> +		return -ENODEV;
+>> +	}
+>> +
+>> +	return ret;
+>> +	/* NOTE: With chips which do not support this operation,
+>> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> Sorry, but I didn't get what you're trying to explain here. What are those
+> em25xx chips that don't support this operation?
+
+Hmm... I don't know how to explain it better...
+The thing is, that this algo _seems_ to work also (at least with some)
+chips which actually don't support it (even if they don't provide a
+second i2c bus).
+
+>
+>> +}
+>> +
+>> +/*
+>> + * em25xx_bus_B_recv_bytes
+>> + * read bytes from the i2c device
+>> + */
+>> +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+>> +				   u16 len)
+>> +{
+>> +	int ret;
+>> +
+>> +	if (len < 1 || len > 64)
+>> +		return -EOPNOTSUPP;
+>> +	/* NOTE: limited by the USB ctrl message constraints
+>> +	 * Zero length reads always succeed, even if no device is connected */
+> You already explained about the zero length before.
+
+Yepp, but in another function. ;)
+
+>> +
+>> +	/* Read value */
+>> +	ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
+>> +	/* NOTE:
+>> +	 * 0 byte reads always succeed, even if no device is connected. */
+> You're insistent on that, won't you? ;)
+
+Yeah, I like comments and I think there should be much more ! :)
+
+But in this case I don't want to be insistent, I just want to make sure
+that important issues are expalined at all relevant code places.
+The alternative would be to reference comments at other places, which
+IMHO doesn't work well.
 
 Regards,
+Frank
 
-	Hans
-
-On Sat March 2 2013 00:53:30 Matt Gomboc wrote:
-> Thanks for the response, I have done as you suggested.
-> 
-> Below is an updated patch for the OTG102 device against http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx, kernel version 3.8.
-> 
-> With further testing it appears the extra clauses in cx231xx-cards.c were not necessary (in static in cx231xx_init_dev and static int cx231xx_usb_probe), so those have been also been removed.
-> 
-> 
-> Signed-off-by: Matt Gomboc <gomboc0@gmail.com>
-> --
->  drivers/media/usb/cx231xx/cx231xx-avcore.c |  2 ++
->  drivers/media/usb/cx231xx/cx231xx-cards.c  | 35 ++++++++++++++++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx.h        |  1 +
->  3 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> index 2e51fb9..235ba65 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-> @@ -357,6 +357,7 @@ int cx231xx_afe_update_power_control(struct cx231xx *dev,
->  	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
->  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
->  	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
-> +	case CX231XX_BOARD_OTG102:
->  		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
->  			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
->  						FLD_PWRDN_ENABLE_PLL)) {
-> @@ -1720,6 +1721,7 @@ int cx231xx_dif_set_standard(struct cx231xx *dev, u32 standard)
->  	case CX231XX_BOARD_CNXT_RDU_250:
->  	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
->  	case CX231XX_BOARD_HAUPPAUGE_EXETER:
-> +	case CX231XX_BOARD_OTG102:
->  		func_mode = 0x03;
->  		break;
->  	case CX231XX_BOARD_CNXT_RDE_253S:
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index b7b1acd..13249e5 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -634,6 +634,39 @@ struct cx231xx_board cx231xx_boards[] = {
->  			.gpio = NULL,
->  		} },
->  	},
-> +	[CX231XX_BOARD_OTG102] = {
-> +		.name = "Geniatech OTG102",
-> +		.tuner_type = TUNER_ABSENT,
-> +		.decoder = CX231XX_AVDECODER,
-> +		.output_mode = OUT_MODE_VIP11,
-> +		.ctl_pin_status_mask = 0xFFFFFFC4,
-> +		.agc_analog_digital_select_gpio = 0x0c, 
-> +			/* According with PV CxPlrCAP.inf file */
-> +		.gpio_pin_status_mask = 0x4001000,
-> +		.norm = V4L2_STD_NTSC,
-> +		.no_alt_vanc = 1,
-> +		.external_av = 1,
-> +		.dont_use_port_3 = 1,
-> +		/*.has_417 = 1, */
-> +		/* This board is believed to have a hardware encoding chip
-> +		 * supporting mpeg1/2/4, but as the 417 is apparently not
-> +		 * working for the reference board it is not here either. */
-> +
-> +		.input = {{
-> +				.type = CX231XX_VMUX_COMPOSITE1,
-> +				.vmux = CX231XX_VIN_2_1,
-> +				.amux = CX231XX_AMUX_LINE_IN,
-> +				.gpio = NULL,
-> +			}, {
-> +				.type = CX231XX_VMUX_SVIDEO,
-> +				.vmux = CX231XX_VIN_1_1 |
-> +					(CX231XX_VIN_1_2 << 8) |
-> +					CX25840_SVIDEO_ON,
-> +				.amux = CX231XX_AMUX_LINE_IN,
-> +				.gpio = NULL,
-> +			}
-> +		},
-> +	},
->  };
->  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->  
-> @@ -675,6 +708,8 @@ struct usb_device_id cx231xx_id_table[] = {
->  	 .driver_info = CX231XX_BOARD_ICONBIT_U100},
->  	{USB_DEVICE(0x0fd9, 0x0037),
->  	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
-> +	{USB_DEVICE(0x1f4d, 0x0102),
-> +	 .driver_info = CX231XX_BOARD_OTG102},
->  	{},
->  };
->  
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index a8e50d2..dff3f1d 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -71,6 +71,7 @@
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
->  #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
->  #define CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2 16
-> +#define CX231XX_BOARD_OTG102 17
->  
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
