@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2119 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753886Ab3CKLql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 07:46:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 02/42] v4l2-core: add code to check for specific ops.
-Date: Mon, 11 Mar 2013 12:45:40 +0100
-Message-Id: <5270e1d72ea8bf5e78f09c37f414551a050ae02f.1363000605.git.hans.verkuil@cisco.com>
-In-Reply-To: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
-References: <38bc3cc42d0c021432afd29c2c1e22cf380b06e0.1363000605.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46472 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753688Ab3CXNLd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 09:11:33 -0400
+Message-ID: <514EFB5E.3010808@iki.fi>
+Date: Sun, 24 Mar 2013 15:10:54 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: David <zlokomatic@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Fwd: Delock 61959
+References: <CALS5Gh60mV5UiOeNPf98QrhmY_j5MDi2T1xsjRn7DzdAYj7fQg@mail.gmail.com> <CALS5Gh7=UTEz8GDq0XK97_=Uaf4gVfifweY+v50XX0AUjoHBNg@mail.gmail.com>
+In-Reply-To: <CALS5Gh7=UTEz8GDq0XK97_=Uaf4gVfifweY+v50XX0AUjoHBNg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Maybe it is em28xx + DRX-K + tda18271 based. There is few such devices 
+already supported by em28xx driver. First device to test is 1b80:e425 
+MaxMedia UB425-TC. Just replace USB ID 0xe425 with 0xe1cc, compile and 
+test. There is some other devices too, especially all those which are 
+using drx-k.
 
-This patch adds a v4l2_subdev_has_op() macro and a v4l2_device_has_op macro to
-quickly check if a specific subdev or any subdev supports a particular subdev
-operation.
+regards
+Antti
 
-This makes it easy for drivers to disable certain ioctls if none of the subdevs
-supports the necessary functionality.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/v4l2-device.h |   13 +++++++++++++
- include/media/v4l2-subdev.h |    3 +++
- 2 files changed, 16 insertions(+)
+On 03/24/2013 03:51 AM, David wrote:
+> Hi there,
+>
+> today i got a new DVB-T / DVB-C USB Stick but as far as i can see on
+> the web it is not (yet) supported.
+>
+> Is this currently being worked on or is there something i can do to
+> get it working?
+>
+> Here is the lsusb output:
+>
+> Device Descriptor:
+>    bLength                18
+>    bDescriptorType         1
+>    bcdUSB               2.00
+>    bDeviceClass            0 (Defined at Interface level)
+>    bDeviceSubClass         0
+>    bDeviceProtocol         0
+>    bMaxPacketSize0        64
+>    idVendor           0x1b80 Afatech
+>    idProduct          0xe1cc
+>    bcdDevice            1.00
+>    iManufacturer           0
+>    iProduct                1 USB 2875 Device
+>    iSerial                 0
+>    bNumConfigurations      1
+>
+>
+> David
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index d61febf..c9b1593 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -190,4 +190,17 @@ v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
- 			##args);					\
- })
- 
-+#define v4l2_device_has_op(v4l2_dev, o, f)				\
-+({									\
-+	struct v4l2_subdev *__sd;					\
-+	bool __result = false;						\
-+	list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) {		\
-+		if (v4l2_subdev_has_op(__sd, o, f)) {			\
-+			__result = true;				\
-+			break;						\
-+		}							\
-+	}								\
-+	__result;							\
-+})
-+
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b137a5e..0740c06 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -687,4 +687,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
- 	((!(sd) || !(sd)->v4l2_dev || !(sd)->v4l2_dev->notify) ? -ENODEV : \
- 	 (sd)->v4l2_dev->notify((sd), (notification), (arg)))
- 
-+#define v4l2_subdev_has_op(sd, o, f) \
-+	((sd)->ops->o && (sd)->ops->o->f)
-+
- #endif
+
 -- 
-1.7.10.4
-
+http://palosaari.fi/
