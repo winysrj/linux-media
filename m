@@ -1,343 +1,503 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57273 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:61345 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750729Ab3CEKzh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Mar 2013 05:55:37 -0500
+	id S1753205Ab3CXPVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 11:21:24 -0400
+Date: Sun, 24 Mar 2013 12:21:12 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 3/3] em28xx: add support for registering multiple i2c buses
-Date: Tue,  5 Mar 2013 07:55:28 -0300
-Message-Id: <1362480928-20382-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 09/42] sony-btf-mpx: the MPX driver for the sony
+ BTF PAL/SECAM tuner
+Message-ID: <20130324122112.07348e39@redhat.com>
+In-Reply-To: <25054205c5119e9e7a86aad5a15ea0b5f8b0ca30.1363000605.git.hans.verkuil@cisco.com>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+	<25054205c5119e9e7a86aad5a15ea0b5f8b0ca30.1363000605.git.hans.verkuil@cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register both buses 0 and 1 via I2C API. For now, bus 0 is used
-only by eeprom on all known devices. Later patches will be needed
-if this changes in the future.
+Em Mon, 11 Mar 2013 12:45:47 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c | 29 +++++++---
- drivers/media/usb/em28xx/em28xx-i2c.c   | 93 ++++++++++++++++++++++-----------
- drivers/media/usb/em28xx/em28xx.h       | 19 +++++--
- 3 files changed, 97 insertions(+), 44 deletions(-)
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The Sony BTF PG472Z has an internal MPX to deal with mono/stereo/bilingual
+> audio. This is split off from the wis-sony-tuner driver that is part of
+> the go7007 driver as it should be a separate i2c sub-device driver.
+> 
+> The wis-sony-tuner is really three i2c devices: a standard tuner, a tda9887
+> compatible demodulator and this mpx. After this patch the wis-sony-tuner
+> can be replaced by this driver and the standard tuner driver.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/i2c/Kconfig        |   11 +-
+>  drivers/media/i2c/Makefile       |    1 +
+>  drivers/media/i2c/sony-btf-mpx.c |  399 ++++++++++++++++++++++++++++++++++++++
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 16ab4d7..496b938 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2235,8 +2235,8 @@ static inline void em28xx_set_model(struct em28xx *dev)
- 		dev->board.i2c_speed = EM28XX_I2C_CLK_WAIT_ENABLE |
- 				       EM28XX_I2C_FREQ_100_KHZ;
- 
--	if (dev->board.def_i2c_bus == 1)
--		dev->board.i2c_speed |= EM2874_I2C_SECONDARY_BUS_SELECT;
-+	/* Should be initialized early, for I2C to work */
-+	dev->def_i2c_bus = dev->board.def_i2c_bus;
- }
- 
- 
-@@ -2642,7 +2642,7 @@ static int em28xx_hint_board(struct em28xx *dev)
- 
- 	/* user did not request i2c scanning => do it now */
- 	if (!dev->i2c_hash)
--		em28xx_do_i2c_scan(dev);
-+		em28xx_do_i2c_scan(dev, dev->def_i2c_bus);
- 
- 	for (i = 0; i < ARRAY_SIZE(em28xx_i2c_hash); i++) {
- 		if (dev->i2c_hash == em28xx_i2c_hash[i].hash) {
-@@ -2953,7 +2953,9 @@ void em28xx_release_resources(struct em28xx *dev)
- 
- 	em28xx_release_analog_resources(dev);
- 
--	em28xx_i2c_unregister(dev);
-+	if (dev->def_i2c_bus)
-+		em28xx_i2c_unregister(dev, 1);
-+	em28xx_i2c_unregister(dev, 0);
- 
- 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 
-@@ -3109,14 +3111,23 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 	v4l2_ctrl_handler_init(hdl, 8);
- 	dev->v4l2_dev.ctrl_handler = hdl;
- 
--	/* register i2c bus */
--	retval = em28xx_i2c_register(dev);
-+	/* register i2c bus 0 */
-+	retval = em28xx_i2c_register(dev, 0);
- 	if (retval < 0) {
--		em28xx_errdev("%s: em28xx_i2c_register - error [%d]!\n",
-+		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
- 			__func__, retval);
- 		goto unregister_dev;
- 	}
- 
-+	if (dev->def_i2c_bus) {
-+		retval = em28xx_i2c_register(dev, 1);
-+		if (retval < 0) {
-+			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
-+				__func__, retval);
-+			goto unregister_dev;
-+		}
-+	}
-+
- 	/*
- 	 * Default format, used for tvp5150 or saa711x output formats
- 	 */
-@@ -3186,7 +3197,9 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 	return 0;
- 
- fail:
--	em28xx_i2c_unregister(dev);
-+	if (dev->def_i2c_bus)
-+		em28xx_i2c_unregister(dev, 1);
-+	em28xx_i2c_unregister(dev, 0);
- 	v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 
- unregister_dev:
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 9086e57..ea63ac4 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -280,9 +280,22 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
- static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			   struct i2c_msg msgs[], int num)
- {
--	struct em28xx *dev = i2c_adap->algo_data;
-+	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
-+	struct em28xx *dev = i2c_bus->dev;
-+	unsigned bus = i2c_bus->bus, last_bus;
- 	int addr, rc, i, byte;
- 
-+	/* Switch I2C bus if needed */
-+	last_bus = (dev->board.i2c_speed & EM2874_I2C_SECONDARY_BUS_SELECT) ?
-+		   1 : 0;
-+	if (bus != last_bus) {
-+		if (bus == 1)
-+			dev->board.i2c_speed |= EM2874_I2C_SECONDARY_BUS_SELECT;
-+		else
-+			dev->board.i2c_speed &= ~EM2874_I2C_SECONDARY_BUS_SELECT;
-+		em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
-+	}
-+
- 	if (num <= 0)
- 		return 0;
- 	for (i = 0; i < num; i++) {
-@@ -384,7 +397,7 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
- 	/* Select address */
- 	buf[0] = addr >> 8;
- 	buf[1] = addr & 0xff;
--	ret = i2c_master_send(&dev->i2c_client[dev->def_i2c_bus], buf + !addr_w16, 1 + addr_w16);
-+	ret = i2c_master_send(&dev->i2c_client[0], buf + !addr_w16, 1 + addr_w16);
- 	if (ret < 0)
- 		return ret;
- 	/* Read data */
-@@ -398,7 +411,7 @@ static int em28xx_i2c_read_block(struct em28xx *dev, u16 addr, bool addr_w16,
- 		else
- 			rsize = remain;
- 
--		ret = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], data, rsize);
-+		ret = i2c_master_recv(&dev->i2c_client[0], data, rsize);
- 		if (ret < 0)
- 			return ret;
- 
-@@ -422,10 +435,12 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, u8 **eedata, u16 *eedata_len)
- 	*eedata = NULL;
- 	*eedata_len = 0;
- 
--	dev->i2c_client[dev->def_i2c_bus].addr = 0xa0 >> 1;
-+	/* EEPROM is always on i2c bus 0 on all known devices. */
-+
-+	dev->i2c_client[0].addr = 0xa0 >> 1;
- 
- 	/* Check if board has eeprom */
--	err = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], &buf, 0);
-+	err = i2c_master_recv(&dev->i2c_client[0], &buf, 0);
- 	if (err < 0) {
- 		em28xx_info("board has no eeprom\n");
- 		return -ENODEV;
-@@ -590,9 +605,11 @@ error:
- /*
-  * functionality()
-  */
--static u32 functionality(struct i2c_adapter *adap)
-+static u32 functionality(struct i2c_adapter *i2c_adap)
- {
--	struct em28xx *dev = adap->algo_data;
-+	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
-+	struct em28xx *dev = i2c_bus->dev;
-+
- 	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
- 	if (dev->board.is_em2800)
- 		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
-@@ -643,7 +660,7 @@ static char *i2c_devs[128] = {
-  * do_i2c_scan()
-  * check i2c address range for devices
-  */
--void em28xx_do_i2c_scan(struct em28xx *dev)
-+void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus)
- {
- 	u8 i2c_devicelist[128];
- 	unsigned char buf;
-@@ -652,55 +669,66 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
- 	memset(i2c_devicelist, 0, ARRAY_SIZE(i2c_devicelist));
- 
- 	for (i = 0; i < ARRAY_SIZE(i2c_devs); i++) {
--		dev->i2c_client[dev->def_i2c_bus].addr = i;
--		rc = i2c_master_recv(&dev->i2c_client[dev->def_i2c_bus], &buf, 0);
-+		dev->i2c_client[bus].addr = i;
-+		rc = i2c_master_recv(&dev->i2c_client[bus], &buf, 0);
- 		if (rc < 0)
- 			continue;
- 		i2c_devicelist[i] = i;
--		em28xx_info("found i2c device @ 0x%x [%s]\n",
--			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-+		em28xx_info("found i2c device @ 0x%x on bus %d [%s]\n",
-+			    i << 1, bus, i2c_devs[i] ? i2c_devs[i] : "???");
- 	}
- 
--	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
--					ARRAY_SIZE(i2c_devicelist), 32);
-+	if (bus == dev->def_i2c_bus)
-+		dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
-+						ARRAY_SIZE(i2c_devicelist), 32);
- }
- 
- /*
-  * em28xx_i2c_register()
-  * register i2c bus
-  */
--int em28xx_i2c_register(struct em28xx *dev)
-+int em28xx_i2c_register(struct em28xx *dev, unsigned bus)
- {
- 	int retval;
- 
- 	BUG_ON(!dev->em28xx_write_regs || !dev->em28xx_read_reg);
- 	BUG_ON(!dev->em28xx_write_regs_req || !dev->em28xx_read_reg_req);
--	dev->i2c_adap[dev->def_i2c_bus] = em28xx_adap_template;
--	dev->i2c_adap[dev->def_i2c_bus].dev.parent = &dev->udev->dev;
--	strcpy(dev->i2c_adap[dev->def_i2c_bus].name, dev->name);
--	dev->i2c_adap[dev->def_i2c_bus].algo_data = dev;
--	i2c_set_adapdata(&dev->i2c_adap[dev->def_i2c_bus], &dev->v4l2_dev);
- 
--	retval = i2c_add_adapter(&dev->i2c_adap[dev->def_i2c_bus]);
-+	if (bus >= NUM_I2C_BUSES)
-+		return -ENODEV;
-+
-+	dev->i2c_adap[bus] = em28xx_adap_template;
-+	dev->i2c_adap[bus].dev.parent = &dev->udev->dev;
-+	strcpy(dev->i2c_adap[bus].name, dev->name);
-+
-+	dev->i2c_bus[bus].bus = bus;
-+	dev->i2c_bus[bus].dev = dev;
-+	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
-+	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
-+
-+	retval = i2c_add_adapter(&dev->i2c_adap[bus]);
- 	if (retval < 0) {
- 		em28xx_errdev("%s: i2c_add_adapter failed! retval [%d]\n",
- 			__func__, retval);
- 		return retval;
- 	}
- 
--	dev->i2c_client[dev->def_i2c_bus] = em28xx_client_template;
--	dev->i2c_client[dev->def_i2c_bus].adapter = &dev->i2c_adap[dev->def_i2c_bus];
-+	dev->i2c_client[bus] = em28xx_client_template;
-+	dev->i2c_client[bus].adapter = &dev->i2c_adap[bus];
- 
--	retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
--	if ((retval < 0) && (retval != -ENODEV)) {
--		em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
--			__func__, retval);
-+	/* Up to now, all eeproms are at bus 0 */
-+	if (!bus) {
-+		retval = em28xx_i2c_eeprom(dev, &dev->eedata, &dev->eedata_len);
-+		if ((retval < 0) && (retval != -ENODEV)) {
-+			em28xx_errdev("%s: em28xx_i2_eeprom failed! retval [%d]\n",
-+				__func__, retval);
- 
--		return retval;
-+			return retval;
-+		}
- 	}
- 
- 	if (i2c_scan)
--		em28xx_do_i2c_scan(dev);
-+		em28xx_do_i2c_scan(dev, bus);
- 
- 	return 0;
- }
-@@ -709,8 +737,11 @@ int em28xx_i2c_register(struct em28xx *dev)
-  * em28xx_i2c_unregister()
-  * unregister i2c_bus
-  */
--int em28xx_i2c_unregister(struct em28xx *dev)
-+int em28xx_i2c_unregister(struct em28xx *dev, unsigned bus)
- {
--	i2c_del_adapter(&dev->i2c_adap[dev->def_i2c_bus]);
-+	if (bus >= NUM_I2C_BUSES)
-+		return -ENODEV;
-+
-+	i2c_del_adapter(&dev->i2c_adap[bus]);
- 	return 0;
- }
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 43eb1c6..6800992 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -375,7 +375,7 @@ struct em28xx_board {
- 	int vchannels;
- 	int tuner_type;
- 	int tuner_addr;
--	int def_i2c_bus;	/* Default I2C bus */
-+	unsigned def_i2c_bus;	/* Default I2C bus */
- 
- 	/* i2c flags */
- 	unsigned int tda9887_conf;
-@@ -460,6 +460,13 @@ struct em28xx_fh {
- 	enum v4l2_buf_type           type;
- };
- 
-+struct em28xx_i2c_bus {
-+	struct em28xx *dev;
-+
-+	unsigned bus;
-+};
-+
-+
- /* main device struct */
- struct em28xx {
- 	/* generic device properties */
-@@ -515,8 +522,10 @@ struct em28xx {
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap[NUM_I2C_BUSES];
- 	struct i2c_client i2c_client[NUM_I2C_BUSES];
-+	struct em28xx_i2c_bus i2c_bus[NUM_I2C_BUSES];
-+
- 	unsigned char eeprom_addrwidth_16bit:1;
--	int def_i2c_bus;	/* Default I2C bus */
-+	unsigned def_i2c_bus;	/* Default I2C bus */
- 
- 	/* video for linux */
- 	int users;		/* user count for exclusive use */
-@@ -638,9 +647,9 @@ struct em28xx_ops {
- };
- 
- /* Provided by em28xx-i2c.c */
--void em28xx_do_i2c_scan(struct em28xx *dev);
--int  em28xx_i2c_register(struct em28xx *dev);
--int  em28xx_i2c_unregister(struct em28xx *dev);
-+void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus);
-+int  em28xx_i2c_register(struct em28xx *dev, unsigned bus);
-+int  em28xx_i2c_unregister(struct em28xx *dev, unsigned bus);
- 
- /* Provided by em28xx-core.c */
- int em28xx_read_reg_req_len(struct em28xx *dev, u8 req, u16 reg,
+Not sure what happened, but sony-btf-mpx.c got missed on the version inside
+the pull request.
+
+So, I got it from this patch.
+
+>  3 files changed, 410 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/media/i2c/sony-btf-mpx.c
+> 
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index 7b771ba..70dbae2 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -133,7 +133,7 @@ config VIDEO_WM8739
+>  	  module will be called wm8739.
+>  
+>  config VIDEO_VP27SMPX
+> -	tristate "Panasonic VP27s internal MPX"
+> +	tristate "Panasonic VP27's internal MPX"
+>  	depends on VIDEO_V4L2 && I2C
+>  	---help---
+>  	  Support for the internal MPX of the Panasonic VP27s tuner.
+> @@ -141,6 +141,15 @@ config VIDEO_VP27SMPX
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called vp27smpx.
+>  
+> +config VIDEO_SONY_BTF_MPX
+> +	tristate "Sony BTF's internal MPX"
+> +	depends on VIDEO_V4L2 && I2C
+> +	help
+> +	  Support for the internal MPX of the Sony BTF-PG472Z tuner.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called sony-btf-mpx.
+> +
+>  comment "RDS decoders"
+>  
+>  config VIDEO_SAA6588
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index cfefd30..4c57075 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -44,6 +44,7 @@ obj-$(CONFIG_VIDEO_TLV320AIC23B) += tlv320aic23b.o
+>  obj-$(CONFIG_VIDEO_WM8775) += wm8775.o
+>  obj-$(CONFIG_VIDEO_WM8739) += wm8739.o
+>  obj-$(CONFIG_VIDEO_VP27SMPX) += vp27smpx.o
+> +obj-$(CONFIG_VIDEO_SONY_BTF_MPX) += sony-btf-mpx.o
+>  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+>  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+>  obj-$(CONFIG_VIDEO_OV7670) 	+= ov7670.o
+> diff --git a/drivers/media/i2c/sony-btf-mpx.c b/drivers/media/i2c/sony-btf-mpx.c
+> new file mode 100644
+> index 0000000..bc73e8f
+> --- /dev/null
+> +++ b/drivers/media/i2c/sony-btf-mpx.c
+> @@ -0,0 +1,399 @@
+> +/*
+> + * Copyright (C) 2005-2006 Micronas USA Inc.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License (Version 2) as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software Foundation,
+> + * Inc., 59 Temple Place - Suite 330, Boston MA 02111-1307, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev2.h>
+> +#include <media/tuner.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-device.h>
+> +#include <linux/slab.h>
+> +
+> +MODULE_DESCRIPTION("sony-btf-mpx driver");
+> +MODULE_LICENSE("GPL v2");
+> +
+> +static int debug;
+> +module_param(debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "debug level 0=off(default) 1=on\n");
+> +
+> +/* #define MPX_DEBUG */
+> +
+> +/*
+> + * Note:
+> + *
+> + * AS(IF/MPX) pin:      LOW      HIGH/OPEN
+> + * IF/MPX address:   0x42/0x40   0x43/0x44
+> + */
+> +
+> +
+> +static int force_mpx_mode = -1;
+> +module_param(force_mpx_mode, int, 0644);
+> +
+> +struct sony_btf_mpx {
+> +	struct v4l2_subdev sd;
+> +	int mpxmode;
+> +	u32 audmode;
+> +};
+> +
+> +static inline struct sony_btf_mpx *to_state(struct v4l2_subdev *sd)
+> +{
+> +	return container_of(sd, struct sony_btf_mpx, sd);
+> +}
+> +
+> +static int mpx_write(struct i2c_client *client, int dev, int addr, int val)
+> +{
+> +	u8 buffer[5];
+> +	struct i2c_msg msg;
+> +
+> +	buffer[0] = dev;
+> +	buffer[1] = addr >> 8;
+> +	buffer[2] = addr & 0xff;
+> +	buffer[3] = val >> 8;
+> +	buffer[4] = val & 0xff;
+> +	msg.addr = client->addr;
+> +	msg.flags = 0;
+> +	msg.len = 5;
+> +	msg.buf = buffer;
+> +	i2c_transfer(client->adapter, &msg, 1);
+> +	return 0;
+> +}
+> +
+> +/*
+> + * MPX register values for the BTF-PG472Z:
+> + *
+> + *                                 FM_     NICAM_  SCART_
+> + *          MODUS  SOURCE    ACB   PRESCAL PRESCAL PRESCAL SYSTEM  VOLUME
+> + *         10/0030 12/0008 12/0013 12/000E 12/0010 12/0000 10/0020 12/0000
+> + *         ---------------------------------------------------------------
+> + * Auto     1003    0020    0100    2603    5000    XXXX    0001    7500
+> + *
+> + * B/G
+> + *  Mono    1003    0020    0100    2603    5000    XXXX    0003    7500
+> + *  A2      1003    0020    0100    2601    5000    XXXX    0003    7500
+> + *  NICAM   1003    0120    0100    2603    5000    XXXX    0008    7500
+> + *
+> + * I
+> + *  Mono    1003    0020    0100    2603    7900    XXXX    000A    7500
+> + *  NICAM   1003    0120    0100    2603    7900    XXXX    000A    7500
+> + *
+> + * D/K
+> + *  Mono    1003    0020    0100    2603    5000    XXXX    0004    7500
+> + *  A2-1    1003    0020    0100    2601    5000    XXXX    0004    7500
+> + *  A2-2    1003    0020    0100    2601    5000    XXXX    0005    7500
+> + *  A2-3    1003    0020    0100    2601    5000    XXXX    0007    7500
+> + *  NICAM   1003    0120    0100    2603    5000    XXXX    000B    7500
+> + *
+> + * L/L'
+> + *  Mono    0003    0200    0100    7C03    5000    2200    0009    7500
+> + *  NICAM   0003    0120    0100    7C03    5000    XXXX    0009    7500
+> + *
+> + * M
+> + *  Mono    1003    0200    0100    2B03    5000    2B00    0002    7500
+> + *
+> + * For Asia, replace the 0x26XX in FM_PRESCALE with 0x14XX.
+> + *
+> + * Bilingual selection in A2/NICAM:
+> + *
+> + *         High byte of SOURCE     Left chan   Right chan
+> + *                 0x01              MAIN         SUB
+> + *                 0x03              MAIN         MAIN
+> + *                 0x04              SUB          SUB
+> + *
+> + * Force mono in NICAM by setting the high byte of SOURCE to 0x02 (L/L') or
+> + * 0x00 (all other bands).  Force mono in A2 with FMONO_A2:
+> + *
+> + *                      FMONO_A2
+> + *                      10/0022
+> + *                      --------
+> + *     Forced mono ON     07F0
+> + *     Forced mono OFF    0190
+> + */
+> +
+> +static const struct {
+> +	enum { AUD_MONO, AUD_A2, AUD_NICAM, AUD_NICAM_L } audio_mode;
+> +	u16 modus;
+> +	u16 source;
+> +	u16 acb;
+> +	u16 fm_prescale;
+> +	u16 nicam_prescale;
+> +	u16 scart_prescale;
+> +	u16 system;
+> +	u16 volume;
+> +} mpx_audio_modes[] = {
+> +	/* Auto */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
+> +					0x5000, 0x0000, 0x0001, 0x7500 },
+> +	/* B/G Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
+> +					0x5000, 0x0000, 0x0003, 0x7500 },
+> +	/* B/G A2 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
+> +					0x5000, 0x0000, 0x0003, 0x7500 },
+> +	/* B/G NICAM */ { AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
+> +					0x5000, 0x0000, 0x0008, 0x7500 },
+> +	/* I Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
+> +					0x7900, 0x0000, 0x000A, 0x7500 },
+> +	/* I NICAM */	{ AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
+> +					0x7900, 0x0000, 0x000A, 0x7500 },
+> +	/* D/K Mono */	{ AUD_MONO,	0x1003, 0x0020, 0x0100, 0x2603,
+> +					0x5000, 0x0000, 0x0004, 0x7500 },
+> +	/* D/K A2-1 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
+> +					0x5000, 0x0000, 0x0004, 0x7500 },
+> +	/* D/K A2-2 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
+> +					0x5000, 0x0000, 0x0005, 0x7500 },
+> +	/* D/K A2-3 */	{ AUD_A2,	0x1003, 0x0020, 0x0100, 0x2601,
+> +					0x5000, 0x0000, 0x0007, 0x7500 },
+> +	/* D/K NICAM */	{ AUD_NICAM,	0x1003, 0x0120, 0x0100, 0x2603,
+> +					0x5000, 0x0000, 0x000B, 0x7500 },
+> +	/* L/L' Mono */	{ AUD_MONO,	0x0003, 0x0200, 0x0100, 0x7C03,
+> +					0x5000, 0x2200, 0x0009, 0x7500 },
+> +	/* L/L' NICAM */{ AUD_NICAM_L,	0x0003, 0x0120, 0x0100, 0x7C03,
+> +					0x5000, 0x0000, 0x0009, 0x7500 },
+> +};
+> +
+> +#define MPX_NUM_MODES	ARRAY_SIZE(mpx_audio_modes)
+> +
+> +static int mpx_setup(struct sony_btf_mpx *t)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&t->sd);
+> +	u16 source = 0;
+> +	u8 buffer[3];
+> +	struct i2c_msg msg;
+> +	int mode = t->mpxmode;
+> +
+> +	/* reset MPX */
+> +	buffer[0] = 0x00;
+> +	buffer[1] = 0x80;
+> +	buffer[2] = 0x00;
+> +	msg.addr = client->addr;
+> +	msg.flags = 0;
+> +	msg.len = 3;
+> +	msg.buf = buffer;
+> +	i2c_transfer(client->adapter, &msg, 1);
+> +	buffer[1] = 0x00;
+> +	i2c_transfer(client->adapter, &msg, 1);
+> +
+> +	if (t->audmode != V4L2_TUNER_MODE_MONO)
+> +		mode++;
+> +
+> +	if (mpx_audio_modes[mode].audio_mode != AUD_MONO) {
+> +		switch (t->audmode) {
+> +		case V4L2_TUNER_MODE_MONO:
+> +			switch (mpx_audio_modes[mode].audio_mode) {
+> +			case AUD_A2:
+> +				source = mpx_audio_modes[mode].source;
+> +				break;
+> +			case AUD_NICAM:
+> +				source = 0x0000;
+> +				break;
+> +			case AUD_NICAM_L:
+> +				source = 0x0200;
+> +				break;
+> +			default:
+> +				break;
+> +			}
+> +			break;
+> +		case V4L2_TUNER_MODE_STEREO:
+> +			source = mpx_audio_modes[mode].source;
+> +			break;
+> +		case V4L2_TUNER_MODE_LANG1:
+> +			source = 0x0300;
+> +			break;
+> +		case V4L2_TUNER_MODE_LANG2:
+> +			source = 0x0400;
+> +			break;
+> +		}
+> +		source |= mpx_audio_modes[mode].source & 0x00ff;
+> +	} else
+> +		source = mpx_audio_modes[mode].source;
+> +
+> +	mpx_write(client, 0x10, 0x0030, mpx_audio_modes[mode].modus);
+> +	mpx_write(client, 0x12, 0x0008, source);
+> +	mpx_write(client, 0x12, 0x0013, mpx_audio_modes[mode].acb);
+> +	mpx_write(client, 0x12, 0x000e,
+> +			mpx_audio_modes[mode].fm_prescale);
+> +	mpx_write(client, 0x12, 0x0010,
+> +			mpx_audio_modes[mode].nicam_prescale);
+> +	mpx_write(client, 0x12, 0x000d,
+> +			mpx_audio_modes[mode].scart_prescale);
+> +	mpx_write(client, 0x10, 0x0020, mpx_audio_modes[mode].system);
+> +	mpx_write(client, 0x12, 0x0000, mpx_audio_modes[mode].volume);
+> +	if (mpx_audio_modes[mode].audio_mode == AUD_A2)
+> +		mpx_write(client, 0x10, 0x0022,
+> +			t->audmode == V4L2_TUNER_MODE_MONO ? 0x07f0 : 0x0190);
+> +
+> +#ifdef MPX_DEBUG
+> +	{
+> +		u8 buf1[3], buf2[2];
+> +		struct i2c_msg msgs[2];
+> +
+> +		v4l2_info(client,
+> +			"MPX registers: %04x %04x %04x %04x %04x %04x %04x %04x\n",
+> +			mpx_audio_modes[mode].modus,
+> +			source,
+> +			mpx_audio_modes[mode].acb,
+> +			mpx_audio_modes[mode].fm_prescale,
+> +			mpx_audio_modes[mode].nicam_prescale,
+> +			mpx_audio_modes[mode].scart_prescale,
+> +			mpx_audio_modes[mode].system,
+> +			mpx_audio_modes[mode].volume);
+> +		buf1[0] = 0x11;
+> +		buf1[1] = 0x00;
+> +		buf1[2] = 0x7e;
+> +		msgs[0].addr = client->addr;
+> +		msgs[0].flags = 0;
+> +		msgs[0].len = 3;
+> +		msgs[0].buf = buf1;
+> +		msgs[1].addr = client->addr;
+> +		msgs[1].flags = I2C_M_RD;
+> +		msgs[1].len = 2;
+> +		msgs[1].buf = buf2;
+> +		i2c_transfer(client->adapter, msgs, 2);
+> +		v4l2_info(client, "MPX system: %02x%02x\n",
+> +				buf2[0], buf2[1]);
+> +		buf1[0] = 0x11;
+> +		buf1[1] = 0x02;
+> +		buf1[2] = 0x00;
+> +		i2c_transfer(client->adapter, msgs, 2);
+> +		v4l2_info(client, "MPX status: %02x%02x\n",
+> +				buf2[0], buf2[1]);
+> +	}
+> +#endif
+> +	return 0;
+> +}
+> +
+> +
+> +static int sony_btf_mpx_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> +{
+> +	struct sony_btf_mpx *t = to_state(sd);
+> +	int default_mpx_mode = 0;
+> +
+> +	if (std & V4L2_STD_PAL_BG)
+> +		default_mpx_mode = 1;
+> +	else if (std & V4L2_STD_PAL_I)
+> +		default_mpx_mode = 4;
+> +	else if (std & V4L2_STD_PAL_DK)
+> +		default_mpx_mode = 6;
+> +	else if (std & V4L2_STD_SECAM_L)
+> +		default_mpx_mode = 11;
+> +
+> +	if (default_mpx_mode != t->mpxmode) {
+> +		t->mpxmode = default_mpx_mode;
+> +		mpx_setup(t);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int sony_btf_mpx_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> +{
+> +	struct sony_btf_mpx *t = to_state(sd);
+> +
+> +	vt->capability = V4L2_TUNER_CAP_NORM |
+> +		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_LANG1 |
+> +		V4L2_TUNER_CAP_LANG2;
+> +	vt->rxsubchans = V4L2_TUNER_SUB_MONO |
+> +		V4L2_TUNER_SUB_STEREO | V4L2_TUNER_SUB_LANG1 |
+> +		V4L2_TUNER_SUB_LANG2;
+> +	vt->audmode = t->audmode;
+> +	return 0;
+> +}
+> +
+> +static int sony_btf_mpx_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+> +{
+> +	struct sony_btf_mpx *t = to_state(sd);
+> +
+> +	if (vt->type != V4L2_TUNER_ANALOG_TV)
+> +		return -EINVAL;
+> +
+> +	if (vt->audmode != t->audmode) {
+> +		t->audmode = vt->audmode;
+> +		mpx_setup(t);
+> +	}
+> +	return 0;
+> +}
+> +
+> +/* --------------------------------------------------------------------------*/
+> +
+> +static const struct v4l2_subdev_core_ops sony_btf_mpx_core_ops = {
+> +	.s_std = sony_btf_mpx_s_std,
+> +};
+> +
+> +static const struct v4l2_subdev_tuner_ops sony_btf_mpx_tuner_ops = {
+> +	.s_tuner = sony_btf_mpx_s_tuner,
+> +	.g_tuner = sony_btf_mpx_g_tuner,
+> +};
+> +
+> +static const struct v4l2_subdev_ops sony_btf_mpx_ops = {
+> +	.core = &sony_btf_mpx_core_ops,
+> +	.tuner = &sony_btf_mpx_tuner_ops,
+> +};
+> +
+> +/* --------------------------------------------------------------------------*/
+> +
+> +static int sony_btf_mpx_probe(struct i2c_client *client,
+> +				const struct i2c_device_id *id)
+> +{
+> +	struct sony_btf_mpx *t;
+> +	struct v4l2_subdev *sd;
+> +
+> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_I2C_BLOCK))
+> +		return -ENODEV;
+> +
+> +	v4l_info(client, "chip found @ 0x%x (%s)\n",
+> +			client->addr << 1, client->adapter->name);
+> +
+> +	t = kzalloc(sizeof(struct sony_btf_mpx), GFP_KERNEL);
+> +	if (t == NULL)
+> +		return -ENOMEM;
+> +
+> +	sd = &t->sd;
+> +	v4l2_i2c_subdev_init(sd, client, &sony_btf_mpx_ops);
+> +
+> +	/* Initialize sony_btf_mpx */
+> +	t->mpxmode = 0;
+> +	t->audmode = V4L2_TUNER_MODE_STEREO;
+> +
+> +	return 0;
+> +}
+> +
+> +static int sony_btf_mpx_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +	kfree(to_state(sd));
+> +
+> +	return 0;
+> +}
+> +
+> +/* ----------------------------------------------------------------------- */
+> +
+> +static const struct i2c_device_id sony_btf_mpx_id[] = {
+> +	{ "sony-btf-mpx", 0 },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(i2c, sony_btf_mpx_id);
+> +
+> +static struct i2c_driver sony_btf_mpx_driver = {
+> +	.driver = {
+> +		.owner	= THIS_MODULE,
+> +		.name	= "sony-btf-mpx",
+> +	},
+> +	.probe = sony_btf_mpx_probe,
+> +	.remove = sony_btf_mpx_remove,
+> +	.id_table = sony_btf_mpx_id,
+> +};
+> +module_i2c_driver(sony_btf_mpx_driver);
+
+
 -- 
-1.8.1.4
 
+Cheers,
+Mauro
