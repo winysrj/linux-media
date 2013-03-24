@@ -1,89 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:39306 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336Ab3CCTkV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:21 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so3510713eei.35
-        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:20 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/5] em28xx: add chip id of the em2765
-Date: Sun,  3 Mar 2013 20:40:58 +0100
-Message-Id: <1362339661-3446-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3940 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754480Ab3CXSpR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 14:45:17 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2OIjEhF052659
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 19:45:16 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2DEF811E01B4
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 19:45:13 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130324184513.2DEF811E01B4@alastor.dyndns.org>
+Date: Sun, 24 Mar 2013 19:45:13 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This chip can be found in the SpeedLink VAD Laplace webcam (1ae7:9003 and 1ae7:9004).
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   13 ++++++++++++-
- drivers/media/usb/em28xx/em28xx-reg.h   |    1 +
- drivers/media/usb/em28xx/em28xx.h       |    1 +
- 3 Dateien geändert, 14 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 75d4aef..e4d14e7 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3015,6 +3015,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		case CHIP_ID_EM2750:
- 			chip_name = "em2750";
- 			break;
-+		case CHIP_ID_EM2765:
-+			chip_name = "em2765";
-+			dev->wait_after_write = 0;
-+			dev->is_em25xx = 1;
-+			dev->eeprom_addrwidth_16bit = 1;
-+			break;
- 		case CHIP_ID_EM2820:
- 			chip_name = "em2710/2820";
- 			break;
-@@ -3106,7 +3112,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 	if (dev->board.is_em2800) {
- 		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM2800;
- 	} else {
--		dev->i2c_algo_type = EM28XX_I2C_ALGO_EM28XX;
-+		if (dev->is_em25xx)
-+			/* Use i2c bus B */
-+			dev->i2c_algo_type = EM28XX_I2C_ALGO_EM25XX_BUS_B;
-+			/* FIXME: really do this always ? */
-+		else
-+			dev->i2c_algo_type = EM28XX_I2C_ALGO_EM28XX;
- 
- 		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
- 		if (retval < 0) {
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 1e369ba..d765d59 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -219,6 +219,7 @@ enum em28xx_chip_id {
- 	CHIP_ID_EM2860 = 34,
- 	CHIP_ID_EM2870 = 35,
- 	CHIP_ID_EM2883 = 36,
-+	CHIP_ID_EM2765 = 54,
- 	CHIP_ID_EM2874 = 65,
- 	CHIP_ID_EM2884 = 68,
- 	CHIP_ID_EM28174 = 113,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index b7c8134..131fdaa 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -469,6 +469,7 @@ struct em28xx {
- 	int model;		/* index in the device_data struct */
- 	int devno;		/* marks the number of this device */
- 	enum em28xx_chip_id chip_id;
-+	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
- 
- 	unsigned char disconnected:1;	/* device has been diconnected */
- 
--- 
-1.7.10.4
+date:		Sun Mar 24 19:00:24 CET 2013
+git branch:	test
+git hash:	b781e6be79a394cd6980e9cd8fd5c25822d152b6
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
