@@ -1,119 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32958 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752113Ab3CWWA2 (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:6710 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753250Ab3CXLW7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 18:00:28 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, k.debski@samsung.com,
-	hverkuil@xs4all.nl
-Subject: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond to reality
-Date: Sun, 24 Mar 2013 00:04:34 +0200
-Message-Id: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
+	Sun, 24 Mar 2013 07:22:59 -0400
+Date: Sun, 24 Mar 2013 08:22:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B
+ read/write/check device operations
+Message-ID: <20130324082253.54dfc1c1@redhat.com>
+In-Reply-To: <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document that monotonic timestamps are taken after the corresponding frame
-has been received, not when the reception has begun. This corresponds to the
-reality of current drivers: the timestamp is naturally taken when the
-hardware triggers an interrupt to tell the driver to handle the received
-frame.
+Em Sat, 23 Mar 2013 18:27:08 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-Remove the note on timestamp accurary as it is fairly subjective what is
-actually an unstable timestamp.
+> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
+> for i2c communication with the sensor, which is connected to a second i2c bus.
+> 
+> We don't know yet how to find out which devices support/use it.
+> It's very likely used by all em25xx and em276x+ bridges.
+> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
+> algorithm always succeeds there although no slave device is connected.
+> 
+> The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
+> because the Windows driver seems to use it for probing Samsung and Kodak
+> sensors.
+> 
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
+>  drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
+>  drivers/media/usb/em28xx/em28xx.h       |   10 +-
+>  3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index cb7cdd3..033b6cb 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+>  	rt_mutex_init(&dev->i2c_bus_lock);
+>  
+>  	/* register i2c bus 0 */
+> -	retval = em28xx_i2c_register(dev, 0);
+> +	if (dev->board.is_em2800)
+> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
+> +	else
+> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
+>  	if (retval < 0) {
+>  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
+>  			__func__, retval);
+>  		goto unregister_dev;
+>  	}
+>  
+> +	/* register i2c bus 1 */
+>  	if (dev->def_i2c_bus) {
+> -		retval = em28xx_i2c_register(dev, 1);
+> +		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
+>  		if (retval < 0) {
+>  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
+>  				__func__, retval);
+> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> index 9e2fa41..ab14ac3 100644
+> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> @@ -5,6 +5,7 @@
+>  		      Markus Rechberger <mrechberger@gmail.com>
+>  		      Mauro Carvalho Chehab <mchehab@infradead.org>
+>  		      Sascha Sommer <saschasommer@freenet.de>
+> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+>  
+>     This program is free software; you can redistribute it and/or modify
+>     it under the terms of the GNU General Public License as published by
+> @@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+>  }
+>  
+>  /*
+> + * em25xx_bus_B_send_bytes
+> + * write bytes to the i2c device
+> + */
+> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> +				   u16 len)
+> +{
+> +	int ret;
+> +
+> +	if (len < 1 || len > 64)
+> +		return -EOPNOTSUPP;
+> +	/* NOTE: limited by the USB ctrl message constraints
+> +	 * Zero length reads always succeed, even if no device is connected */
+> +
+> +	/* Set register and write value */
+> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
+> +	/* NOTE:
+> +	 * 0 byte writes always succeed, even if no device is connected. */
+> +	if (ret != len) {
+> +		if (ret < 0) {
+> +			em28xx_warn("writing to i2c device at 0x%x failed "
+> +				    "(error=%i)\n", addr, ret);
+> +			return ret;
+> +		} else {
+> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
+> +				    "requested, but %i bytes written\n",
+> +				    len, addr, ret);
+> +			return -EIO;
+> +		}
+> +	}
+> +	/* Check success */
+> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
+> +	/* NOTE: the only error we've seen so far is
+> +	 * 0x01 when the slave device is not present */
+> +	if (ret == 0x00) {
+> +		return len;
+> +	} else if (ret > 0) {
+> +		return -ENODEV;
+> +	}
+> +
+> +	return ret;
+> +	/* NOTE: With chips which do not support this operation,
+> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> +}
+> +
+> +/*
+> + * em25xx_bus_B_recv_bytes
+> + * read bytes from the i2c device
+> + */
+> +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> +				   u16 len)
+> +{
+> +	int ret;
+> +
+> +	if (len < 1 || len > 64)
+> +		return -EOPNOTSUPP;
+> +	/* NOTE: limited by the USB ctrl message constraints
+> +	 * Zero length reads always succeed, even if no device is connected */
 
-Also remove explanation that output buffer timestamps can be used to delay
-outputting a frame.
 
-Remove the footnote saying we always use realtime clock.
+Please stick with Kernel's coding style, as described on
+Documentation/CodingStyle and on the common practices.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-Hi all,
+Multi-line comments are like:
+	/*
+	 * Foo
+	 * bar
+	 */
 
-This is the second version of the patch fixing timestamp behaviour
-documentation. I've tried to address the comments I've received albeit I
-don't think there was a definitive conclusion on all the trails of
-discussion. What has changed since v1 is:
+There are also a bunch of scripts/checkpatch.pl complains for this patch: 
 
-- Removed discussion on timestamp stability.
+WARNING: please, no spaces at the start of a line
+#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
++   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>$
 
-- Removed notes that timestamps on output buffers define when frames will be
-  displayed. It appears no driver has ever implemented this, or at least
-  does not implement this now.
+WARNING: space prohibited between function name and open parenthesis '('
+#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
++   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
 
-- Monotonic time is not affected by harms that the wall clock time is
-  subjected to. Remove notes on that.
+WARNING: Avoid CamelCase: <Copyright>
+#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
++   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
 
- Documentation/DocBook/media/v4l/io.xml |   47 ++++++--------------------------
- 1 file changed, 8 insertions(+), 39 deletions(-)
+WARNING: Avoid CamelCase: <Frank>
+#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
++   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index e6c5855..46d5a41 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -654,38 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
- In that case, struct <structname>v4l2_buffer</structname> contains an array of
- plane structures.</para>
- 
--      <para>Nominally timestamps refer to the first data byte transmitted.
--In practice however the wide range of hardware covered by the V4L2 API
--limits timestamp accuracy. Often an interrupt routine will
--sample the system clock shortly after the field or frame was stored
--completely in memory. So applications must expect a constant
--difference up to one field or frame period plus a small (few scan
--lines) random error. The delay and error can be much
--larger due to compression or transmission over an external bus when
--the frames are not properly stamped by the sender. This is frequently
--the case with USB cameras. Here timestamps refer to the instant the
--field or frame was received by the driver, not the capture time. These
--devices identify by not enumerating any video standards, see <xref
--linkend="standard" />.</para>
--
--      <para>Similar limitations apply to output timestamps. Typically
--the video hardware locks to a clock controlling the video timing, the
--horizontal and vertical synchronization pulses. At some point in the
--line sequence, possibly the vertical blanking, an interrupt routine
--samples the system clock, compares against the timestamp and programs
--the hardware to repeat the previous field or frame, or to display the
--buffer contents.</para>
--
--      <para>Apart of limitations of the video device and natural
--inaccuracies of all clocks, it should be noted system time itself is
--not perfectly stable. It can be affected by power saving cycles,
--warped to insert leap seconds, or even turned back or forth by the
--system administrator affecting long term measurements. <footnote>
--	  <para>Since no other Linux multimedia
--API supports unadjusted time it would be foolish to introduce here. We
--must use a universally supported clock to synchronize different media,
--hence time of day.</para>
--	</footnote></para>
-+      <para>On timestamp types that are sampled from the system clock
-+(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-+taken after the complete frame has been received (or transmitted in
-+case of video output devices). For other kinds of
-+timestamps this may vary depending on the driver.</para>
- 
-     <table frame="none" pgwide="1" id="v4l2-buffer">
-       <title>struct <structname>v4l2_buffer</structname></title>
-@@ -745,13 +718,9 @@ applications when an output stream.</entry>
- 	    byte was captured, as returned by the
- 	    <function>clock_gettime()</function> function for the relevant
- 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
--	    <xref linkend="buffer-flags" />. For output streams the data
--	    will not be displayed before this time, secondary to the nominal
--	    frame rate determined by the current video standard in enqueued
--	    order. Applications can for example zero this field to display
--	    frames as soon as possible. The driver stores the time at which
--	    the first data byte was actually sent out in the
--	    <structfield>timestamp</structfield> field. This permits
-+	    <xref linkend="buffer-flags" />. For output streams he driver
-+	    stores the time at which the first data byte was actually sent out
-+	    in the  <structfield>timestamp</structfield> field. This permits
- 	    applications to monitor the drift between the video and system
- 	    clock.</para></entry>
- 	  </row>
--- 
-Kind regards,
-Sakari
+WARNING: Avoid CamelCase: <Sch>
+#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
++   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+
+WARNING: quoted string split across lines
+#97: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:298:
++			em28xx_warn("writing to i2c device at 0x%x failed "
++				    "(error=%i)\n", addr, ret);
+
+WARNING: quoted string split across lines
+#101: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:302:
++			em28xx_warn("%i bytes write to i2c device at 0x%x "
++				    "requested, but %i bytes written\n",
+
+WARNING: braces {} are not necessary for any arm of this statement
+#110: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:311:
++	if (ret == 0x00) {
+[...]
++	} else if (ret > 0) {
+[...]
+
+WARNING: braces {} are not necessary for any arm of this statement
+#156: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:357:
++	if (ret == 0x00) {
+[...]
++	} else if (ret > 0) {
+[...]
+
+WARNING: braces {} are not necessary for any arm of this statement
+#190: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:391:
++	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+[...]
+
+WARNING: printk() should include KERN_ facility level
+#199: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:400:
++			printk(" no device\n");
+
+WARNING: braces {} are not necessary for any arm of this statement
+#211: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:412:
++	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+[...]
+
+WARNING: printk() should include KERN_ facility level
+#220: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:421:
++			printk(" %02x", msg.buf[byte]);
+
+WARNING: braces {} are not necessary for any arm of this statement
+#236: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:437:
++	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
+[...]
++	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
+[...]
+
+total: 0 errors, 14 warnings, 333 lines checked
+
+Your patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+PS.: I'll write a separate email if I find any non-coding style issue on
+this patch series. Won't comment anymore about coding style, as I'm
+assuming that you'll be fixing it on the other patches of this series
+if needed.
+
+Regards,
+Mauro
