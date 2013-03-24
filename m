@@ -1,99 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4503 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757276Ab3CST2S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 15:28:18 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2JJSENQ051928
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 20:28:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id AA3E011E017E
-	for <linux-media@vger.kernel.org>; Tue, 19 Mar 2013 20:28:13 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130319192813.AA3E011E017E@alastor.dyndns.org>
-Date: Tue, 19 Mar 2013 20:28:13 +0100 (CET)
+Received: from mx1.redhat.com ([209.132.183.28]:13804 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753287Ab3CXKIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 06:08:16 -0400
+Date: Sun, 24 Mar 2013 07:07:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>,
+	Mike Isely <isely@pobox.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Huang Shijie <shijie8@gmail.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Takashi Iwai <tiwai@suse.de>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 4/6] v4l2: add const to argument of write-only
+ s_register ioctl.
+Message-ID: <20130324070703.63a4e918@redhat.com>
+In-Reply-To: <1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
+References: <1363615925-19507-1-git-send-email-hverkuil@xs4all.nl>
+	<1363615925-19507-5-git-send-email-hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Mon, 18 Mar 2013 15:12:03 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Results of the daily build of media_tree:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This ioctl is defined as IOW, so pass the argument as const.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-date:		Tue Mar 19 19:00:25 CET 2013
-git branch:	test
-git hash:	cab3e1ffbe1b9c7a607506338f590dc1e6ca9909
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+...
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+> diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+> index 080f179..15e08aa 100644
+> --- a/drivers/media/pci/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+> @@ -711,49 +711,50 @@ static int ivtv_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_i
+>  }
+>  
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> -static int ivtv_itvc(struct ivtv *itv, unsigned int cmd, void *arg)
+> +static volatile u8 __iomem *ivtv_itvc_start(struct ivtv *itv,
+> +		const struct v4l2_dbg_register *regs)
+>  {
+> -	struct v4l2_dbg_register *regs = arg;
+> -	volatile u8 __iomem *reg_start;
+> -
+> -	if (!capable(CAP_SYS_ADMIN))
+> -		return -EPERM;
+>  	if (regs->reg >= IVTV_REG_OFFSET && regs->reg < IVTV_REG_OFFSET + IVTV_REG_SIZE)
+> -		reg_start = itv->reg_mem - IVTV_REG_OFFSET;
+> -	else if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
+> +		return itv->reg_mem - IVTV_REG_OFFSET;
+> +	if (itv->has_cx23415 && regs->reg >= IVTV_DECODER_OFFSET &&
+>  			regs->reg < IVTV_DECODER_OFFSET + IVTV_DECODER_SIZE)
+> -		reg_start = itv->dec_mem - IVTV_DECODER_OFFSET;
+> -	else if (regs->reg < IVTV_ENCODER_SIZE)
+> -		reg_start = itv->enc_mem;
+> -	else
+> -		return -EINVAL;
+> -
+> -	regs->size = 4;
+> -	if (cmd == VIDIOC_DBG_G_REGISTER)
+> -		regs->val = readl(regs->reg + reg_start);
+> -	else
+> -		writel(regs->val, regs->reg + reg_start);
+> -	return 0;
+> +		return itv->dec_mem - IVTV_DECODER_OFFSET;
+> +	if (regs->reg < IVTV_ENCODER_SIZE)
+> +		return itv->enc_mem;
+> +	return NULL;
+>  }
+>  
+>  static int ivtv_g_register(struct file *file, void *fh, struct v4l2_dbg_register *reg)
+>  {
+>  	struct ivtv *itv = fh2id(fh)->itv;
+>  
+> -	if (v4l2_chip_match_host(&reg->match))
+> -		return ivtv_itvc(itv, VIDIOC_DBG_G_REGISTER, reg);
+> +	if (v4l2_chip_match_host(&reg->match)) {
+> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
+> +
+> +		if (reg_start == NULL)
+> +			return -EINVAL;
+> +		reg->size = 4;
+> +		reg->val = readl(reg->reg + reg_start);
+> +		return 0;
+> +	}
+>  	/* TODO: subdev errors should not be ignored, this should become a
+>  	   subdev helper function. */
+>  	ivtv_call_all(itv, core, g_register, reg);
+>  	return 0;
+>  }
+>  
+> -static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register *reg)
+> +static int ivtv_s_register(struct file *file, void *fh, const struct v4l2_dbg_register *reg)
+>  {
+>  	struct ivtv *itv = fh2id(fh)->itv;
+>  
+> -	if (v4l2_chip_match_host(&reg->match))
+> -		return ivtv_itvc(itv, VIDIOC_DBG_S_REGISTER, reg);
+> +	if (v4l2_chip_match_host(&reg->match)) {
+> +		volatile u8 __iomem *reg_start = ivtv_itvc_start(itv, reg);
+> +
+> +		if (reg_start == NULL)
+> +			return -EINVAL;
+> +		writel(reg->val, reg->reg + reg_start);
+> +		return 0;
+> +	}
+>  	/* TODO: subdev errors should not be ignored, this should become a
+>  	   subdev helper function. */
+>  	ivtv_call_all(itv, core, s_register, reg);
 
-Detailed results are available here:
+I'm not convinced about the changes on ivtv. Why do you need volatile there?
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Also, as you're doing changes there that aren't that trivial, and are not
+just "add const argument", please split those non-trivial ivtv changes into
+a separate patch, and properly describe what you're doing and why.
 
-Full logs are available here:
+Also, having it on a separate patch helps to bisect it, if it ever brings
+any problem.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+-- 
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers,
+Mauro
