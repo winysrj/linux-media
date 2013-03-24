@@ -1,53 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:54997 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753218Ab3C0VGi (ORCPT
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:59229 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754137Ab3CXQpI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 17:06:38 -0400
-Received: by mail-ea0-f179.google.com with SMTP id f15so3574969eak.24
-        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 14:06:37 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 8/9] em28xx: add comment about Samsung and Kodak sensor probing addresses
-Date: Wed, 27 Mar 2013 22:06:35 +0100
-Message-Id: <1364418396-8191-9-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364418396-8191-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364418396-8191-1-git-send-email-fschaefer.oss@googlemail.com>
+	Sun, 24 Mar 2013 12:45:08 -0400
+Received: by mail-vc0-f170.google.com with SMTP id lf10so4306284vcb.1
+        for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 09:45:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1363894748-28000-4-git-send-email-mchehab@redhat.com>
+References: <1363894748-28000-1-git-send-email-mchehab@redhat.com>
+	<1363894748-28000-4-git-send-email-mchehab@redhat.com>
+Date: Sun, 24 Mar 2013 12:45:07 -0400
+Message-ID: <CAOcJUbx6MFDmP-6V2T0LQ-RQ_DWEG9uqvo559w9jD9qmAQa73A@mail.gmail.com>
+Subject: Re: [PATCH 4/4] [media] dvb-usb/dvb-usb-v2: use IS_ENABLED
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Windows driver also probes at least two further i2c addresses (0x22 >> 1
-and 0x66 >> 1). I've got some hints that they are very likely used by Samsung
-and Kodak sensors, which are known to be used in Empia devices, too.
-We havn't seen any devices using these sensors yet and don't know how to probe
-them properly, so leave a comment.
+Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-camera.c |    5 +++++
- 1 Datei geändert, 5 Zeilen hinzugefügt(+)
-
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index e8b3322..64b70d4 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -301,6 +301,11 @@ int em28xx_detect_sensor(struct em28xx *dev)
- 	if (dev->em28xx_sensor == EM28XX_NOSENSOR && ret < 0)
- 		ret = em28xx_probe_sensor_omnivision(dev);
- 
-+	/*
-+	 * NOTE: the Windows driver also probes i2c addresses
-+	 *       0x22 (Samsung ?) and 0x66 (Kodak ?)
-+	 */
-+
- 	if (dev->em28xx_sensor == EM28XX_NOSENSOR && ret < 0) {
- 		em28xx_info("No sensor detected\n");
- 		return -ENODEV;
--- 
-1.7.10.4
-
+On Thu, Mar 21, 2013 at 3:39 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Instead of checking everywhere there for 3 symbols, use instead
+> IS_ENABLED macro.
+>
+> This replacement was done using this small perl script:
+>
+> my $data;
+> $data .= $_ while (<>);
+> if ($data =~ m/CONFIG_([A-Z\_\d]*)_MODULE/) {
+>         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)\)[\s\|\&\\\(\)\!]+defined\(CONFIG_($f)_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+>
+>         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_($f)\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(CONFIG_MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+>         $data =~ s,defined\(CONFIG_($f)_MODULE\)[\s\|\&\\\(\)]+defined\(MODULE\)\)*,IS_ENABLED(CONFIG_$f),g;
+> }
+> print $data;
+>
+> Cc: Michael Krufky <mkrufky@linuxtv.org>
+> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h | 3 +--
+>  drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h | 3 +--
+>  drivers/media/usb/dvb-usb/dibusb-common.c     | 3 +--
+>  3 files changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> index 432706a..40dd409 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-demod.h
+> @@ -31,8 +31,7 @@ struct mxl111sf_demod_config {
+>                             struct mxl111sf_reg_ctrl_info *ctrl_reg_info);
+>  };
+>
+> -#if defined(CONFIG_DVB_USB_MXL111SF) || \
+> -       (defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
+> +#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
+>  extern
+>  struct dvb_frontend *mxl111sf_demod_attach(struct mxl111sf_state *mxl_state,
+>                                            struct mxl111sf_demod_config *cfg);
+> diff --git a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+> index ff33396..634eee3 100644
+> --- a/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+> +++ b/drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.h
+> @@ -60,8 +60,7 @@ struct mxl111sf_tuner_config {
+>
+>  /* ------------------------------------------------------------------------ */
+>
+> -#if defined(CONFIG_DVB_USB_MXL111SF) || \
+> -       (defined(CONFIG_DVB_USB_MXL111SF_MODULE) && defined(MODULE))
+> +#if IS_ENABLED(CONFIG_DVB_USB_MXL111SF)
+>  extern
+>  struct dvb_frontend *mxl111sf_tuner_attach(struct dvb_frontend *fe,
+>                                            struct mxl111sf_state *mxl_state,
+> diff --git a/drivers/media/usb/dvb-usb/dibusb-common.c b/drivers/media/usb/dvb-usb/dibusb-common.c
+> index af0d432..ecb9360 100644
+> --- a/drivers/media/usb/dvb-usb/dibusb-common.c
+> +++ b/drivers/media/usb/dvb-usb/dibusb-common.c
+> @@ -232,8 +232,7 @@ static struct dibx000_agc_config dib3000p_panasonic_agc_config = {
+>         .agc2_slope2 = 0x1e,
+>  };
+>
+> -#if defined(CONFIG_DVB_DIB3000MC) ||                                   \
+> -       (defined(CONFIG_DVB_DIB3000MC_MODULE) && defined(MODULE))
+> +#if IS_ENABLED(CONFIG_DVB_DIB3000MC)
+>
+>  static struct dib3000mc_config mod3000p_dib3000p_config = {
+>         &dib3000p_panasonic_agc_config,
+> --
+> 1.8.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
