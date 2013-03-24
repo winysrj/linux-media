@@ -1,84 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4277 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752855Ab3CXJSX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 05:18:23 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2O9IJFx085446
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:18:22 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C94AC11E0154
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:18:18 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.10] Remove core DV_PRESET support.
-Date: Sun, 24 Mar 2013 10:18:19 +0100
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:36570 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752781Ab3CXPfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 11:35:13 -0400
+Date: Sun, 24 Mar 2013 12:35:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 16/42] go7007: switch to standard tuner/i2c
+ subdevs.
+Message-ID: <20130324123506.7d8eb627@redhat.com>
+In-Reply-To: <a5f72624c6412dc0a7e4ef04f5e49316cae53a15.1363000605.git.hans.verkuil@cisco.com>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
+	<a5f72624c6412dc0a7e4ef04f5e49316cae53a15.1363000605.git.hans.verkuil@cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303241018.19918.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are no more drivers that use the obsolete DV_PRESET API, so remove it
-from the V4L2 core code and the V4L2 documentation.
+Em Mon, 11 Mar 2013 12:45:54 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-This is unchanged from the last 5 patches in this original RFC patch series:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Instead of using the wis-* drivers we now use the standard 'proper' subdev
+> drivers.
+> 
+> The board configuration tables now also list the possible audio inputs,
+> this will be used later to implement audio inputs.
+> 
+> Special mention deserves a little change in set_capture_size() where the
+> height passed to s_mbus_fmt is doubled: that is because the saa7115 driver
+> expects to see the frame height, not the field height as the wis_saa7115
+> driver did.
+> 
+> Another change is that the tuner input is moved from last to the first
+> input, which is consistent with the common practice in other video drivers.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/staging/media/go7007/Kconfig          |   77 ++---------------
+>  drivers/staging/media/go7007/Makefile         |   12 ---
+>  drivers/staging/media/go7007/go7007-driver.c  |   29 +++++--
+>  drivers/staging/media/go7007/go7007-i2c.c     |    1 -
+>  drivers/staging/media/go7007/go7007-priv.h    |   18 +++-
+>  drivers/staging/media/go7007/go7007-usb.c     |  112 +++++++++++++++++--------
+>  drivers/staging/media/go7007/go7007-v4l2.c    |   18 +++-
+>  drivers/staging/media/go7007/saa7134-go7007.c |    2 +-
+>  8 files changed, 135 insertions(+), 134 deletions(-)
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/60904
+That produced the following warnings:
 
-except for the new last patch that updates the version number and documents
-the 3.10 changes.
+drivers/media/i2c/sony-btf-mpx.c:335:2: warning: initialization from incompatible pointer type [enabled by default]
+drivers/media/i2c/sony-btf-mpx.c:335:2: warning: (near initialization for 'sony_btf_mpx_tuner_ops.s_tuner') [enabled by default]
 
-Regards,
-
-	Hans
-
-
-The following changes since commit 69aa6f4ec669b9121057cc9e32cb10b5f744f6d6:
-
-  [media] drivers: staging: davinci_vpfe: use resource_size() (2013-03-23 11:35:44 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git remove-preset
-
-for you to fetch changes up to 181baa6d806a6d145dea2bfefde369ac75914172:
-
-  DocBook/media/v4l: Update version number and document 3.10 changes. (2013-03-24 10:10:05 +0100)
-
-----------------------------------------------------------------
-Hans Verkuil (6):
-      v4l2-common: remove obsolete v4l_fill_dv_preset_info
-      v4l2-subdev: remove obsolete dv_preset ops.
-      v4l2 core: remove the obsolete dv_preset support.
-      DocBook/media/v4l: remove the documentation of the obsolete dv_preset API.
-      videodev2.h: remove obsolete DV_PRESET API.
-      DocBook/media/v4l: Update version number and document 3.10 changes.
-
- Documentation/DocBook/media/v4l/common.xml                 |   14 ---
- Documentation/DocBook/media/v4l/compat.xml                 |   17 +++-
- Documentation/DocBook/media/v4l/v4l2.xml                   |   15 ++-
- Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml |  240 ----------------------------------------------
- Documentation/DocBook/media/v4l/vidioc-enuminput.xml       |    5 -
- Documentation/DocBook/media/v4l/vidioc-enumoutput.xml      |    5 -
- Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml     |  113 ----------------------
- Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml |   78 ---------------
- drivers/media/v4l2-core/v4l2-common.c                      |   47 ---------
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c              |    4 -
- drivers/media/v4l2-core/v4l2-dev.c                         |    4 -
- drivers/media/v4l2-core/v4l2-ioctl.c                       |   27 +-----
- include/media/v4l2-common.h                                |    1 -
- include/media/v4l2-ioctl.h                                 |    9 --
- include/media/v4l2-subdev.h                                |   16 ----
- include/uapi/linux/videodev2.h                             |   54 -----------
- 16 files changed, 29 insertions(+), 620 deletions(-)
- delete mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml
- delete mode 100644 Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
- delete mode 100644 Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
+Cheers,
+Mauro
