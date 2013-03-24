@@ -1,139 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15306 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759842Ab3CZQG1 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4277 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752855Ab3CXJSX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 12:06:27 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Sun, 24 Mar 2013 05:18:23 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2O9IJFx085446
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:18:22 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C94AC11E0154
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:18:18 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH 1/3] s5p-fimc: Use video entity for marking media
- pipeline as streaming
-Date: Tue, 26 Mar 2013 17:06:04 +0100
-Message-id: <1364313966-18868-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR v3.10] Remove core DV_PRESET support.
+Date: Sun, 24 Mar 2013 10:18:19 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303241018.19918.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It doesn't matter whether we start from the sensor of from
-the video node entity. Remove use of pipeline->subdevs array
-where possible, so we can partly drop dependency on struct
-fimc_pipeline in the fimc-lite module, which is also used
-by the exynos5-is driver.
-Also make sure we revert any media entity pipeline operations
-when vb2_streamon() function fails.
+There are no more drivers that use the obsolete DV_PRESET API, so remove it
+from the V4L2 core code and the V4L2 documentation.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |   27 +++++++++++++++---------
- drivers/media/platform/s5p-fimc/fimc-lite.c    |    9 ++++----
- 2 files changed, 21 insertions(+), 15 deletions(-)
+This is unchanged from the last 5 patches in this original RFC patch series:
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 87b6842..257afc1 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -1230,36 +1230,43 @@ static int fimc_cap_streamon(struct file *file, void *priv,
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
- 	struct fimc_pipeline *p = &fimc->pipeline;
--	struct v4l2_subdev *sd = p->subdevs[IDX_SENSOR];
-+	struct fimc_vid_cap *vc = &fimc->vid_cap;
-+	struct media_entity *entity = &vc->vfd.entity;
- 	int ret;
- 
- 	if (fimc_capture_active(fimc))
- 		return -EBUSY;
- 
--	ret = media_entity_pipeline_start(&sd->entity, p->m_pipeline);
-+	ret = media_entity_pipeline_start(entity, p->m_pipeline);
- 	if (ret < 0)
- 		return ret;
- 
--	if (fimc->vid_cap.user_subdev_api) {
-+	if (vc->user_subdev_api) {
- 		ret = fimc_pipeline_validate(fimc);
--		if (ret < 0) {
--			media_entity_pipeline_stop(&sd->entity);
--			return ret;
--		}
-+		if (ret < 0)
-+			goto err_p_stop;
- 	}
--	return vb2_streamon(&fimc->vid_cap.vbq, type);
-+
-+	ret = vb2_streamon(&vc->vbq, type);
-+	if (!ret)
-+		return ret;
-+
-+err_p_stop:
-+	media_entity_pipeline_stop(entity);
-+	return ret;
- }
- 
- static int fimc_cap_streamoff(struct file *file, void *priv,
- 			    enum v4l2_buf_type type)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
--	struct v4l2_subdev *sd = fimc->pipeline.subdevs[IDX_SENSOR];
- 	int ret;
- 
- 	ret = vb2_streamoff(&fimc->vid_cap.vbq, type);
-+
- 	if (ret == 0)
--		media_entity_pipeline_stop(&sd->entity);
-+		media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 8ebefdb..40733e0 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -800,20 +800,20 @@ static int fimc_lite_streamon(struct file *file, void *priv,
- 			      enum v4l2_buf_type type)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
--	struct v4l2_subdev *sensor = fimc->pipeline.subdevs[IDX_SENSOR];
-+	struct media_entity *entity = &fimc->vfd.entity;
- 	struct fimc_pipeline *p = &fimc->pipeline;
- 	int ret;
- 
- 	if (fimc_lite_active(fimc))
- 		return -EBUSY;
- 
--	ret = media_entity_pipeline_start(&sensor->entity, p->m_pipeline);
-+	ret = media_entity_pipeline_start(entity, p->m_pipeline);
- 	if (ret < 0)
- 		return ret;
- 
- 	ret = fimc_pipeline_validate(fimc);
- 	if (ret) {
--		media_entity_pipeline_stop(&sensor->entity);
-+		media_entity_pipeline_stop(entity);
- 		return ret;
- 	}
- 
-@@ -824,12 +824,11 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
- 			       enum v4l2_buf_type type)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
--	struct v4l2_subdev *sd = fimc->pipeline.subdevs[IDX_SENSOR];
- 	int ret;
- 
- 	ret = vb2_streamoff(&fimc->vb_queue, type);
- 	if (ret == 0)
--		media_entity_pipeline_stop(&sd->entity);
-+		media_entity_pipeline_stop(&fimc->vfd.entity);
- 	return ret;
- }
- 
--- 
-1.7.9.5
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/60904
 
+except for the new last patch that updates the version number and documents
+the 3.10 changes.
+
+Regards,
+
+	Hans
+
+
+The following changes since commit 69aa6f4ec669b9121057cc9e32cb10b5f744f6d6:
+
+  [media] drivers: staging: davinci_vpfe: use resource_size() (2013-03-23 11:35:44 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git remove-preset
+
+for you to fetch changes up to 181baa6d806a6d145dea2bfefde369ac75914172:
+
+  DocBook/media/v4l: Update version number and document 3.10 changes. (2013-03-24 10:10:05 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (6):
+      v4l2-common: remove obsolete v4l_fill_dv_preset_info
+      v4l2-subdev: remove obsolete dv_preset ops.
+      v4l2 core: remove the obsolete dv_preset support.
+      DocBook/media/v4l: remove the documentation of the obsolete dv_preset API.
+      videodev2.h: remove obsolete DV_PRESET API.
+      DocBook/media/v4l: Update version number and document 3.10 changes.
+
+ Documentation/DocBook/media/v4l/common.xml                 |   14 ---
+ Documentation/DocBook/media/v4l/compat.xml                 |   17 +++-
+ Documentation/DocBook/media/v4l/v4l2.xml                   |   15 ++-
+ Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml |  240 ----------------------------------------------
+ Documentation/DocBook/media/v4l/vidioc-enuminput.xml       |    5 -
+ Documentation/DocBook/media/v4l/vidioc-enumoutput.xml      |    5 -
+ Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml     |  113 ----------------------
+ Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml |   78 ---------------
+ drivers/media/v4l2-core/v4l2-common.c                      |   47 ---------
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c              |    4 -
+ drivers/media/v4l2-core/v4l2-dev.c                         |    4 -
+ drivers/media/v4l2-core/v4l2-ioctl.c                       |   27 +-----
+ include/media/v4l2-common.h                                |    1 -
+ include/media/v4l2-ioctl.h                                 |    9 --
+ include/media/v4l2-subdev.h                                |   16 ----
+ include/uapi/linux/videodev2.h                             |   54 -----------
+ 16 files changed, 29 insertions(+), 620 deletions(-)
+ delete mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml
+ delete mode 100644 Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
+ delete mode 100644 Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
