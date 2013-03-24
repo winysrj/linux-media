@@ -1,92 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58518 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:39721 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751843Ab3CJCEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:38 -0500
+	id S1752781Ab3CXSTI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 14:19:08 -0400
+Message-ID: <514F4375.3060309@iki.fi>
+Date: Sun, 24 Mar 2013 20:18:29 +0200
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 06/41] af9015: reject device TerraTec Cinergy T Stick Dual RC (rev. 2)
-Date: Sun, 10 Mar 2013 04:02:58 +0200
-Message-Id: <1362881013-5271-6-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: CrazyCat <crazycat69@yandex.ua>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] cxd2820r_t2: Multistream support (MultiPLP)
+References: <302151362615390@web22d.yandex.ru>
+In-Reply-To: <302151362615390@web22d.yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That same USB ID is used both AF9015 and AF9035 driver.
-iManufacturer is only thing we can select correct driver without a I/O.
+Is there anyone who could test that patch?
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9015.c | 40 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+I have no multi PLP signal here.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
-index b86d0f2..2cf7ad2 100644
---- a/drivers/media/usb/dvb-usb-v2/af9015.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9015.c
-@@ -1317,6 +1317,43 @@ static int af9015_get_rc_config(struct dvb_usb_device *d, struct dvb_usb_rc *rc)
- 	#define af9015_get_rc_config NULL
- #endif
- 
-+static int af9015_probe(struct usb_interface *intf,
-+		const struct usb_device_id *id)
-+{
-+	struct usb_device *udev = interface_to_usbdev(intf);
-+	char manufacturer[sizeof("ITE Technologies, Inc.")];
-+
-+	memset(manufacturer, 0, sizeof(manufacturer));
-+	usb_string(udev, udev->descriptor.iManufacturer,
-+			manufacturer, sizeof(manufacturer));
-+	/*
-+	 * There is two devices having same ID but different chipset. One uses
-+	 * AF9015 and the other IT9135 chipset. Only difference seen on lsusb
-+	 * is iManufacturer string.
-+	 *
-+	 * idVendor           0x0ccd TerraTec Electronic GmbH
-+	 * idProduct          0x0099
-+	 * bcdDevice            2.00
-+	 * iManufacturer           1 Afatech
-+	 * iProduct                2 DVB-T 2
-+	 *
-+	 * idVendor           0x0ccd TerraTec Electronic GmbH
-+	 * idProduct          0x0099
-+	 * bcdDevice            2.00
-+	 * iManufacturer           1 ITE Technologies, Inc.
-+	 * iProduct                2 DVB-T TV Stick
-+	 */
-+	if ((le16_to_cpu(udev->descriptor.idVendor) == USB_VID_TERRATEC) &&
-+			(le16_to_cpu(udev->descriptor.idProduct) == 0x0099)) {
-+		if (!strcmp("ITE Technologies, Inc.", manufacturer)) {
-+			dev_dbg(&udev->dev, "%s: rejecting device\n", __func__);
-+			return -ENODEV;
-+		}
-+	}
-+
-+	return dvb_usbv2_probe(intf, id);
-+}
-+
- /* interface 0 is used by DVB-T receiver and
-    interface 1 is for remote controller (HID) */
- static struct dvb_usb_device_properties af9015_props = {
-@@ -1425,6 +1462,7 @@ static const struct usb_device_id af9015_id_table[] = {
- 		&af9015_props, "AverMedia AVerTV Volar M (A815Mac)", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_RC,
- 		&af9015_props, "TerraTec Cinergy T Stick RC", RC_MAP_TERRATEC_SLIM_2) },
-+	/* XXX: that same ID [0ccd:0099] is used by af9035 driver too */
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC,
- 		&af9015_props, "TerraTec Cinergy T Stick Dual RC", RC_MAP_TERRATEC_SLIM) },
- 	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T,
-@@ -1441,7 +1479,7 @@ MODULE_DEVICE_TABLE(usb, af9015_id_table);
- static struct usb_driver af9015_usb_driver = {
- 	.name = KBUILD_MODNAME,
- 	.id_table = af9015_id_table,
--	.probe = dvb_usbv2_probe,
-+	.probe = af9015_probe,
- 	.disconnect = dvb_usbv2_disconnect,
- 	.suspend = dvb_usbv2_suspend,
- 	.resume = dvb_usbv2_resume,
+Also there is minor issue on that patch. As stream ID validy is already 
+checked there is no reason for bit AND 0xff.
+
+
+Antti
+
+On 03/07/2013 02:16 AM, CrazyCat wrote:
+> MultiPLP filtering support for CXD2820r, not tested.
+> Somebody from Russia please test (exclude Moscow, because used singlePLP). Usual used PLP 0 (4TV + 3 radio) and 1 (4TV). PLP 2,3 reserved (regional channels).
+>
+> P.S. You can use my scan-s2 with multistream support - https://bitbucket.org/CrazyCat/scan-s2. Generated channel list compatible with current VDR 1.7.3x
+>
+> Signed-off-by: Evgeny Plehov <EvgenyPlehov@ukr.net>
+> diff --git a/drivers/media/dvb-frontends/cxd2820r_core.c b/drivers/media/dvb-frontends/cxd2820r_core.c
+> index 9b658c1..7ca5c69 100644
+> --- a/drivers/media/dvb-frontends/cxd2820r_core.c
+> +++ b/drivers/media/dvb-frontends/cxd2820r_core.c
+> @@ -660,7 +660,8 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
+>   			FE_CAN_GUARD_INTERVAL_AUTO	|
+>   			FE_CAN_HIERARCHY_AUTO		|
+>   			FE_CAN_MUTE_TS			|
+> -			FE_CAN_2G_MODULATION
+> +			FE_CAN_2G_MODULATION		|
+> +			FE_CAN_MULTISTREAM
+>   		},
+>
+>   	.release		= cxd2820r_release,
+> diff --git a/drivers/media/dvb-frontends/cxd2820r_t2.c b/drivers/media/dvb-frontends/cxd2820r_t2.c
+> index e82d82a..c2bfea7 100644
+> --- a/drivers/media/dvb-frontends/cxd2820r_t2.c
+> +++ b/drivers/media/dvb-frontends/cxd2820r_t2.c
+> @@ -124,6 +124,23 @@ int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
+>   	buf[1] = ((if_ctl >>  8) & 0xff);
+>   	buf[2] = ((if_ctl >>  0) & 0xff);
+>
+> +	/* PLP filtering */
+> +	if (c->stream_id < 0 || c->stream_id > 255) {
+> +		dev_dbg(&priv->i2c->dev, "%s: Disable PLP filtering\n", __func__);
+> +		ret = cxd2820r_wr_reg(priv, 0x023ad , 0);
+> +		if (ret)
+> +			goto error;
+> +	} else {
+> +		dev_dbg(&priv->i2c->dev, "%s: Enable PLP filtering = %d\n", __func__,
+> +				c->stream_id);
+> +		ret = cxd2820r_wr_reg(priv, 0x023af , c->stream_id & 0xFF);
+> +		if (ret)
+> +			goto error;
+> +		ret = cxd2820r_wr_reg(priv, 0x023ad , 1);
+> +		if (ret)
+> +			goto error;
+> +	}
+> +
+>   	ret = cxd2820r_wr_regs(priv, 0x020b6, buf, 3);
+>   	if (ret)
+>   		goto error;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
 -- 
-1.7.11.7
-
+http://palosaari.fi/
