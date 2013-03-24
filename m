@@ -1,296 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:15138 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933517Ab3CHQqj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 11:46:39 -0500
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MJC00IWEP98S540@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 09 Mar 2013 01:46:38 +0900 (KST)
-Received: from amdc1344.digital.local ([106.116.147.32])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MJC00BU5P8ZM870@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Sat, 09 Mar 2013 01:46:37 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: devicetree-discuss@lists.ozlabs.org, swarren@wwwdotorg.org,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH RFC v5 4/6] s5p-fimc: Add device tree support for the media
- device driver
-Date: Fri, 08 Mar 2013 17:46:04 +0100
-Message-id: <1362761166-5285-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1362761166-5285-1-git-send-email-s.nawrocki@samsung.com>
-References: <1362761166-5285-1-git-send-email-s.nawrocki@samsung.com>
+Received: from impaqm4.telefonica.net ([213.4.138.20]:12941 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754577Ab3CXTjb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 15:39:31 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Gianluca Gennari <gennarone@gmail.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] block i2c tuner reads for Avermedia Twinstar in the af9035 driver
+Date: Sun, 24 Mar 2013 20:39:15 +0100
+Message-ID: <1602162.t6BDYGs1VX@jar7.dominio>
+In-Reply-To: <5146399E.8070404@iki.fi>
+References: <4261811.IXtDYhFBCx@jar7.dominio> <2056426.oO4bCijko2@jar7.dominio> <5146399E.8070404@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds changes required for the main camera media device
-driver corresponding to the top level 'camera' device node.
+On Domingo, 17 de marzo de 2013 23:46:06 Antti Palosaari escribió:
+> On 03/17/2013 08:49 PM, Jose Alberto Reguero wrote:
+> > On Martes, 12 de marzo de 2013 00:11:38 Antti Palosaari escribió:
+> >> On 03/11/2013 10:02 PM, Jose Alberto Reguero wrote:
+> >>> On Lunes, 11 de marzo de 2013 14:57:37 Antti Palosaari escribió:
+> >>>> On 03/11/2013 01:51 PM, Jose Alberto Reguero wrote:
+> >>>>> On Lunes, 11 de febrero de 2013 14:48:18 Jose Alberto Reguero 
+escribió:
+> >>>>>> On Domingo, 10 de febrero de 2013 22:11:53 Antti Palosaari escribió:
+> >>>>>>> On 02/10/2013 09:43 PM, Jose Alberto Reguero wrote:
+> >>>>>>>> This patch block the i2c tuner reads for Avermedia Twinstar. If
+> >>>>>>>> it's
+> >>>>>>>> needed other pids can be added.
+> >>>>>>>> 
+> >>>>>>>> Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+> >>>>>>>> 
+> >>>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c ---
+> >>>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.c	2013-01-07
+> >>>>>>>> 05:45:57.000000000 +0100 +++
+> >>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.c	2013-02-08
+> >>>>>>>> 22:55:08.304089054 +0100 @@ -232,7 +232,11 @@ static int
+> >>>>>>>> af9035_i2c_master_xfer(struct
+> >>>>>>>> 
+> >>>>>>>>      			buf[3] = 0x00; /* reg addr MSB */
+> >>>>>>>>      			buf[4] = 0x00; /* reg addr LSB */
+> >>>>>>>>      			memcpy(&buf[5], msg[0].buf, msg[0].len);
+> >>>>>>>> 
+> >>>>>>>> -			ret = af9035_ctrl_msg(d, &req);
+> >>>>>>>> +			if (state->block_read) {
+> >>>>>>>> +				msg[1].buf[0] = 0x3f;
+> >>>>>>>> +				ret = 0;
+> >>>>>>>> +			} else
+> >>>>>>>> +				ret = af9035_ctrl_msg(d, &req);
+> >>>>>>>> 
+> >>>>>>>>      		}
+> >>>>>>>>      	
+> >>>>>>>>      	} else if (num == 1 && !(msg[0].flags & I2C_M_RD)) {
+> >>>>>>>>      	
+> >>>>>>>>      		if (msg[0].len > 40) {
+> >>>>>>>> 
+> >>>>>>>> @@ -638,6 +642,17 @@ static int af9035_read_config(struct dvb
+> >>>>>>>> 
+> >>>>>>>>      	for (i = 0; i < ARRAY_SIZE(state->af9033_config); i++)
+> >>>>>>>>      	
+> >>>>>>>>      		state->af9033_config[i].clock = clock_lut[tmp];
+> >>>>>>>> 
+> >>>>>>>> +	state->block_read = false;
+> >>>>>>>> +
+> >>>>>>>> +	if (le16_to_cpu(d->udev->descriptor.idVendor) ==
+> >>>>>>>> USB_VID_AVERMEDIA
+> >>>>>>>> &&
+> >>>>>>>> +		le16_to_cpu(d->udev->descriptor.idProduct) ==
+> >>>>>>>> +			USB_PID_AVERMEDIA_TWINSTAR) {
+> >>>>>>>> +		dev_dbg(&d->udev->dev,
+> >>>>>>>> +				"%s: AverMedia Twinstar: block i2c read from tuner\n",
+> >>>>>>>> +				__func__);
+> >>>>>>>> +		state->block_read = true;
+> >>>>>>>> +	}
+> >>>>>>>> +
+> >>>>>>>> 
+> >>>>>>>>      	return 0;
+> >>>>>>>>      
+> >>>>>>>>      err:
+> >>>>>>>> diff -upr linux/drivers/media/usb/dvb-usb-v2/af9035.h
+> >>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h ---
+> >>>>>>>> linux/drivers/media/usb/dvb-usb-v2/af9035.h	2013-01-07
+> >>>>>>>> 05:45:57.000000000 +0100 +++
+> >>>>>>>> linux.new/drivers/media/usb/dvb-usb-v2/af9035.h	2013-02-08
+> >>>>>>>> 22:52:42.293842710 +0100 @@ -54,6 +54,7 @@ struct usb_req {
+> >>>>>>>> 
+> >>>>>>>>      struct state {
+> >>>>>>>>      
+> >>>>>>>>      	u8 seq; /* packet sequence number */
+> >>>>>>>>      	bool dual_mode;
+> >>>>>>>> 
+> >>>>>>>> +	bool block_read;
+> >>>>>>>> 
+> >>>>>>>>      	struct af9033_config af9033_config[2];
+> >>>>>>>>      
+> >>>>>>>>      };
+> >>>>>>> 
+> >>>>>>> Could you test if faking tuner ID during attach() is enough?
+> >>>>>>> 
+> >>>>>>> Also, I would like to know what is returned error code from firmware
+> >>>>>>> when it fails. Enable debugs to see it. It should print something
+> >>>>>>> like
+> >>>>>>> that: af9035_ctrl_msg: command=03 failed fw error=2
+> >>>>>>> 
+> >>>>>>> 
+> >>>>>>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>>>>>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>>>>>> index a1e953a..5a4f28d 100644
+> >>>>>>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>>>>>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+> >>>>>>> @@ -1082,9 +1082,22 @@ static int af9035_tuner_attach(struct
+> >>>>>>> dvb_usb_adapter *adap)
+> >>>>>>> 
+> >>>>>>>                             tuner_addr = 0x60 | 0x80; /* I2C bus
+> >>>>>>>                             hack
+> >>>>>>>                             */
+> >>>>>>>                     
+> >>>>>>>                     }
+> >>>>>>> 
+> >>>>>>> +               // fake used tuner for demod firmware / i2c adapter
+> >>>>>>> +               if (adap->id == 0)
+> >>>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
+> >>>>>>> AF9033_TUNER_FC0011);
+> >>>>>>> +               else
+> >>>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
+> >>>>>>> AF9033_TUNER_FC0011);
+> >>>>>>> +
+> >>>>>>> 
+> >>>>>>>                     /* attach tuner */
+> >>>>>>>                     fe = dvb_attach(mxl5007t_attach, adap->fe[0],
+> >>>>>>>                     &d->i2c_adap,
+> >>>>>>>                     
+> >>>>>>>                                     tuner_addr,
+> >>>>>>> 
+> >>>>>>> &af9035_mxl5007t_config[adap->id]);
+> >>>>>>> +
+> >>>>>>> +               // return correct tuner
+> >>>>>>> +               if (adap->id == 0)
+> >>>>>>> +                       ret = af9035_wr_reg(d, 0x00f641,
+> >>>>>>> AF9033_TUNER_MXL5007T);
+> >>>>>>> +               else
+> >>>>>>> +                       ret = af9035_wr_reg(d, 0x10f641,
+> >>>>>>> AF9033_TUNER_MXL5007T);
+> >>>>>>> +
+> >>>>>>> 
+> >>>>>>>                     break;
+> >>>>>>>             
+> >>>>>>>             case AF9033_TUNER_TDA18218:
+> >>>>>>>                     /* attach tuner */
+> >>>>>>> 
+> >>>>>>> regards
+> >>>>>>> Antti
+> >>>>>> 
+> >>>>>> I will try with fake tuner, but I can't test unil next weekend.
+> >>>>>> If I remember, the read operation is performed, and return good
+> >>>>>> value,
+> >>>>>> but after that, all the i2c transfers fail. Seee:
+> >>>>>> 
+> >>>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56346.html
+> >>>>>> 
+> >>>>>> Jose Alberto
+> >>>>> 
+> >>>>> I tried with fake tuner without success:
+> >>>>> 
+> >>>>> [ 1346.707405] DVB: registering new adapter (AVerMedia Twinstar
+> >>>>> (A825))
+> >>>>> [ 1346.959043] i2c i2c-1: af9033: firmware version: LINK=11.5.9.0
+> >>>>> OFDM=5.17.9.1
+> >>>>> [ 1346.962920] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech
+> >>>>> AF9033 (DVB-T))...
+> >>>>> [ 1347.439354] mxl5007t 1-0060: creating new instance
+> >>>>> [ 1347.440644] mxl5007t_get_chip_id: unknown rev (3f)
+> >>>>> [ 1347.440652] mxl5007t_get_chip_id: MxL5007T detected @ 1-0060
+> >>>>> [ 1347.443023] mxl5007t_write_reg: 472: failed!
+> >>>>> [ 1347.443031] mxl5007t_attach: error -121 on line 903
+> >>>>> [ 1347.443790] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error
+> >>>>> while
+> >>>>> loading driver (-19)
+> >>>>> [ 1347.446624] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)'
+> >>>>> successfully deinitialized and disconnected
+> >>>> 
+> >>>> I don't see how the hell it could even go to the mxl5007t_write_reg()
+> >>>> during attach. Any idea?
+> >>> 
+> >>> Now with the patches I sent for mxl5007 in the attach function
+> >>> mxl5007t_soft_reset is called, and also  loop_thru_enable is writed. The
+> >>> problem is that the read is performed and it return a good value, but
+> >>> the
+> >>> next writes fail.
+> >>> 
+> >>>> I have some thoughts that mxl5007t do not use repeated condition.
+> >>>> Driver
+> >>>> still does that. Could you test to perform register read without a
+> >>>> repeated I2C condition?
+> >>> 
+> >>> How I can do that? what it is a repeated i2c condition?
+> >> 
+> >> You should take a look for I2C specification.
+> >> 
+> >> Please test that:
+> >> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_i
+> >> 2c_ mxl5007t_test
+> >> 
+> >> It fixes similar issue of AF9015 driver :)
+> >> 
+> >> I am not able to test AF9035 as I have no hw. It is compile tested only.
+> >> Try to do some tweaking for AF9035 implementation if it does not work!
+> >> 
+> >> regards
+> >> Antti
+> > 
+> > I try with the i2c changes of your tree, and don't work, but there are
+> > some
+> > differences. With the i2c changes now the chip is recognized as
+> > MxL5007T.v4
+> > and without the changes the chip is recognized as unknown rev (3f). But
+> > the
+> > problem after the i2c read persit.
+> > 
+> > [ 1784.774117] DVB: registering new adapter (AVerMedia Twinstar (A825))
+> > [ 1784.877636] i2c i2c-4: af9033: firmware version: LINK=11.5.9.0
+> > OFDM=5.17.9.1
+> > [ 1784.884771] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech
+> > AF9033 (DVB-T))...
+> > [ 1785.274753] mxl5007t 4-0060: creating new instance
+> > [ 1785.276886] mxl5007t_get_chip_id: MxL5007T.v4 detected @ 4-0060
+> > [ 1785.279252] mxl5007t_write_reg: 472: failed!
+> > [ 1785.279260] mxl5007t_attach: error -121 on line 940
+> > [ 1785.279703] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error
+> > while
+> > loading driver (-19)
+> > [ 1785.282377] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)'
+> > successfully deinitialized and disconnected
+> 
+> I have asked that earlier, but Haven't got answer. Could you say how it
+> fails? mxl5007t is a little bit dummy and didn't print any hint why it
+> fails - just set error -EREMOTEIO in any case.
+> 
+> Enable dvb_usb_v2 and dvb_usb_af9035 debugs to see what it returns. I
+> want to see those raw debug lines from dvb_usb_v2 + af9035 debugs.
+> 
+> Also, could you add hw sniffer to I2C bus and look what goes there?
+> 
+> regards
+> Antti
 
-The drivers of devices corresponding to child nodes of the 'camera'
-node are looked up and and registered as sub-devices to the top
-level driver. The main driver's probing is deferred if any of the
-sub-device drivers is not yet initialized and ready.
+I can't make dynamic debug work, but I put some printks in af9035. The result 
+is:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
+Witout i2c changes:
 
-Changes since v4:
- - fimc-lite device nodes are not fimc-is children any more,
-   fimc_md_of_register_platform entities() function has been
-   updated accordingly, i.e. removed recursive call.
+[ 8433.114216] i2c i2c-1: af9033: firmware version: LINK=11.5.9.0 
+OFDM=5.17.9.1
+[ 8433.119700] af9035_ctrl_msg: failed1=0
+[ 8433.128423] af9035_ctrl_msg: failed1=0
+[ 8433.128450] usb 1-2: DVB: registering adapter 1 frontend 0 (Afatech AF9033 
+(DVB-T))...
+[ 8433.128770] mxl5007t 1-00e0: creating new instance
+[ 8433.134945] af9035_ctrl_msg: failed1=0
+[ 8433.134962] mxl5007t_get_chip_id: unknown rev (3f)
+[ 8433.134970] mxl5007t_get_chip_id: MxL5007T detected @ 1-00e0
+[ 8433.141312] af9035_ctrl_msg: command=03 failed fw error=4
+[ 8433.141324] af9035_ctrl_msg: failed2=-5
+[ 8433.141332] mxl5007t_write_reg: 472: failed!
+[ 8433.141340] mxl5007t_attach: error -121 on line 903
+[ 8433.141737] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error while 
+loading driver (-19)
+[ 8433.144481] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' successfully 
+deinitialized and disconnected
 
----
- drivers/media/platform/s5p-fimc/fimc-core.c    |    1 -
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |  107 ++++++++++++++++++++----
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    5 ++
- include/media/s5p_fimc.h                       |    1 +
- 4 files changed, 97 insertions(+), 17 deletions(-)
+With i2c changes:
+[ 9300.143397] usb 1-2: DVB: registering adapter 0 frontend 0 (Afatech AF9033 
+(DVB-T))...
+[ 9300.144204] af9035_ctrl_msg: failed1=0
+[ 9300.144620] af9035_ctrl_msg: failed1=0
+[ 9300.144992] af9035_ctrl_msg: failed1=0
+[ 9300.176123] af9035_ctrl_msg: failed1=0
+[ 9300.478122] af9035_ctrl_msg: failed1=0
+[ 9300.478484] af9035_ctrl_msg: failed1=0
+[ 9300.478858] af9035_ctrl_msg: failed1=0
+[ 9300.479245] af9035_ctrl_msg: failed1=0
+[ 9300.479609] af9035_ctrl_msg: failed1=0
+[ 9300.479984] af9035_ctrl_msg: failed1=0
+[ 9300.518083] mxl5007t 1-0060: creating new instance
+[ 9300.519179] af9035_ctrl_msg: failed1=0
+[ 9300.520063] af9035_ctrl_msg: failed1=0
+[ 9300.520083] mxl5007t_get_chip_id: MxL5007T.v4 detected @ 1-0060
+[ 9300.522498] af9035_ctrl_msg: command=03 failed fw error=4
+[ 9300.522505] af9035_ctrl_msg: failed2=-5
+[ 9300.522513] mxl5007t_write_reg: 472: failed!
+[ 9300.522522] mxl5007t_attach: error -121 on line 940
+[ 9300.522907] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' error while 
+loading driver (-19)
+[ 9300.525680] usb 1-2: dvb_usb_v2: 'AVerMedia Twinstar (A825)' successfully 
+deinitialized and disconnected
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index 27796e9..d7fe332 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -1285,7 +1285,6 @@ static const struct platform_device_id fimc_driver_ids[] = {
- 	},
- 	{ },
- };
--MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
- 
- static const struct of_device_id fimc_of_match[] = {
- 	{
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index c800129..7fae4c9 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -17,11 +17,16 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_device.h>
-+#include <linux/of_i2c.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- #include <media/media-device.h>
- #include <media/s5p_fimc.h>
- 
-@@ -264,6 +269,21 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
- 		i2c_put_adapter(adapter);
- }
- 
-+#ifdef CONFIG_OF
-+static int __of_get_csis_id(struct device_node *np)
-+{
-+	u32 reg = 0;
-+
-+	np = of_get_child_by_name(np, "port");
-+	if (!np)
-+		return -EINVAL;
-+	of_property_read_u32(np, "reg", &reg);
-+	return reg - FIMC_INPUT_MIPI_CSI2_0;
-+}
-+#else
-+#define __of_get_csis_id(np) (-ENOSYS)
-+#endif
-+
- static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- {
- 	struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
-@@ -368,13 +388,13 @@ static int register_csis_entity(struct fimc_md *fmd,
- 	struct device_node *node = pdev->dev.of_node;
- 	int id, ret;
- 
--	id = node ? of_alias_get_id(node, "csis") : max(0, pdev->id);
-+	id = node ? __of_get_csis_id(node) : max(0, pdev->id);
- 
--	if (WARN_ON(id >= CSIS_MAX_ENTITIES || fmd->csis[id].sd))
--		return -EBUSY;
-+	if (WARN_ON(id < 0 || id >= CSIS_MAX_ENTITIES))
-+		return -ENOENT;
- 
--	if (WARN_ON(id >= CSIS_MAX_ENTITIES))
--		return 0;
-+	if (WARN_ON(fmd->csis[id].sd))
-+		return -EBUSY;
- 
- 	sd->grp_id = GRP_ID_CSIS;
- 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
-@@ -457,6 +477,44 @@ static int fimc_md_pdev_match(struct device *dev, void *data)
- 	return 0;
- }
- 
-+/* Register FIMC, FIMC-LITE and CSIS media entities */
-+#ifdef CONFIG_OF
-+static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
-+						 struct device_node *parent)
-+{
-+	struct device_node *node;
-+	int ret = 0;
-+
-+	for_each_available_child_of_node(parent, node) {
-+		struct platform_device *pdev;
-+		int plat_entity = -1;
-+
-+		pdev = of_find_device_by_node(node);
-+		if (!pdev)
-+			continue;
-+
-+		/* If driver of any entity isn't ready try all again later. */
-+		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
-+			plat_entity = IDX_CSIS;
-+		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
-+			plat_entity = IDX_FLITE;
-+		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME))
-+			plat_entity = IDX_FIMC;
-+
-+		if (plat_entity >= 0)
-+			ret = fimc_md_register_platform_entity(fmd, pdev,
-+							plat_entity);
-+		put_device(&pdev->dev);
-+		if (ret < 0)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+#else
-+#define fimc_md_register_of_platform_entities(fmd, node) (-ENOSYS)
-+#endif
-+
- static void fimc_md_unregister_entities(struct fimc_md *fmd)
- {
- 	int i;
-@@ -931,11 +989,12 @@ static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
- 
- static int fimc_md_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct v4l2_device *v4l2_dev;
- 	struct fimc_md *fmd;
- 	int ret;
- 
--	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
-+	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
- 	if (!fmd)
- 		return -ENOMEM;
- 
-@@ -945,15 +1004,14 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
- 	fmd->media_dev.link_notify = fimc_md_link_notify;
--	fmd->media_dev.dev = &pdev->dev;
-+	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
- 	v4l2_dev->mdev = &fmd->media_dev;
- 	v4l2_dev->notify = fimc_sensor_notify;
--	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s",
--		 dev_name(&pdev->dev));
-+	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
- 
--	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
-+	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
- 		return ret;
-@@ -967,21 +1025,25 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_clk;
- 
--	fmd->user_subdev_api = false;
-+	fmd->user_subdev_api = (dev->of_node != NULL);
- 
- 	/* Protect the media graph while we're registering entities */
- 	mutex_lock(&fmd->media_dev.graph_mutex);
- 
--	ret = bus_for_each_dev(&platform_bus_type, NULL, fmd,
--					fimc_md_pdev_match);
-+	if (dev->of_node)
-+		ret = fimc_md_register_of_platform_entities(fmd, dev->of_node);
-+	else
-+		ret = bus_for_each_dev(&platform_bus_type, NULL, fmd,
-+						fimc_md_pdev_match);
- 	if (ret)
- 		goto err_unlock;
- 
--	if (pdev->dev.platform_data) {
-+	if (dev->platform_data) {
- 		ret = fimc_md_register_sensor_entities(fmd);
- 		if (ret)
- 			goto err_unlock;
- 	}
-+
- 	ret = fimc_md_create_links(fmd);
- 	if (ret)
- 		goto err_unlock;
-@@ -1021,12 +1083,25 @@ static int fimc_md_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static struct platform_device_id fimc_driver_ids[] __always_unused = {
-+	{ .name = "s5p-fimc-md" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
-+
-+static const struct of_device_id fimc_md_of_match[] = {
-+	{ .compatible = "samsung,fimc" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, fimc_md_of_match);
-+
- static struct platform_driver fimc_md_driver = {
- 	.probe		= fimc_md_probe,
- 	.remove		= fimc_md_remove,
- 	.driver = {
--		.name	= "s5p-fimc-md",
--		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(fimc_md_of_match),
-+		.name		= "s5p-fimc-md",
-+		.owner		= THIS_MODULE,
- 	}
- };
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 06b0d82..b6ceb59 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -21,6 +21,11 @@
- #include "fimc-lite.h"
- #include "mipi-csis.h"
- 
-+#define FIMC_OF_NODE_NAME	"fimc"
-+#define FIMC_LITE_OF_NODE_NAME	"fimc-lite"
-+#define FIMC_IS_OF_NODE_NAME	"fimc-is"
-+#define CSIS_OF_NODE_NAME	"csis"
-+
- /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
- #define GRP_ID_SENSOR		(1 << 8)
- #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index d6dbb79..e2c5989 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -94,6 +94,7 @@ enum fimc_subdev_index {
- 	IDX_SENSOR,
- 	IDX_CSIS,
- 	IDX_FLITE,
-+	IDX_IS_ISP,
- 	IDX_FIMC,
- 	IDX_MAX,
- };
--- 
-1.7.9.5
+
+Note that the read operation is performed without error, the error is in the 
+next write operation. ¿Do you need more detailed logs?
+
+Jose Alberto
 
