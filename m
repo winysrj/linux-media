@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57927 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755398Ab3CYLHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 07:07:01 -0400
-Date: Mon, 25 Mar 2013 08:06:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: Re: [GIT PULL FOR v3.10] go7007 driver overhaul
-Message-ID: <20130325080654.20e6c746@redhat.com>
-In-Reply-To: <201303251002.29967.hverkuil@xs4all.nl>
-References: <201303221536.35993.hverkuil@xs4all.nl>
-	<20130324131340.720a59dd@redhat.com>
-	<201303251002.29967.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1627 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754227Ab3CXJWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Mar 2013 05:22:41 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2O9MbRf001425
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:22:40 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id DDA1C11E0154
+	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 10:22:36 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.10] vivi: add v4l2_ctrl_modify_range test case.
+Date: Sun, 24 Mar 2013 10:22:38 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201303241022.38105.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 Mar 2013 10:02:29 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Very few drivers use v4l2_ctrl_modify_range. Add it to vivi so applications
+can use vivi to test their support for v4l2_ctrl_modify_range.
 
-> On Sun March 24 2013 17:13:40 Mauro Carvalho Chehab wrote:
-> > Em Fri, 22 Mar 2013 15:36:35 +0100
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-...
-> > >       saa7134-go7007: add support for this combination.
-> > 
-> > I won't apply this one yet. A non-staging driver should not try to load a
-> > staging one without a notice. That change would be ok if you were also
-> > moving go7007 out of staging.
-> 
-> Fair enough. I will prepare a patch that at least updates the saa7134-go7007.c
-> source with my changes. That only leaves the patch to saa7134 itself that will
-> need to be applied once this driver goes out of staging.
+Regards,
 
-Ok.
+	Hans
 
-> > 
-> > >       s2250: add comment describing the hardware.
-> > >       go7007-loader: renamed from s2250-loader
-> > >       go7007-loader: add support for the other devices and move fw files
-> > >       go7007: update the README
-> > 
-> > You need to add there:
-> > 	- move cypress load firmware to drivers/media/common;
-> > 
-> > And some note about saa7134 integration.
-> 
-> Would it be OK if I add the saa7134 patch to the go7007 directory? Rather
-> than keeping it around in my git tree?
+The following changes since commit 69aa6f4ec669b9121057cc9e32cb10b5f744f6d6:
 
-What do you mean? Adding a diff file there? If so, that sounds weird. If you're
-afraid of losing it, post it at the ML as RFC instead and add a pointer to the
-patchwork number for such RFC patch at README.
+  [media] drivers: staging: davinci_vpfe: use resource_size() (2013-03-23 11:35:44 -0300)
 
-> > >       MAINTAINERS: add the go7007 driver.
-> > >       go7007: a small improvement to querystd handling.
-> > >       go7007: add back 'repeat sequence header' control.
-> > >       go7007: correct a header check: MPEG4 has a different GOP code.
-> > >       go7007: drop firmware name in board config, make configs const.
-> > >       go7007: don't continue if firmware can't be loaded.
-> > 
-> > This one didn't apply. Maybe due to the lack of saa7134-go7007.
-> > 
-> > Maybe it is just a trivial merging conflict, but better if you could
-> > check it before forcing it.
-> 
-> Will do.
+are available in the git repository at:
 
-Thanks!
-Mauro
+  git://linuxtv.org/hverkuil/media_tree.git vivi
+
+for you to fetch changes up to e9117118f71945f60c95371bea4260ba37f3a5b1:
+
+  vivi: add v4l2_ctrl_modify_range test case. (2013-03-24 10:20:21 +0100)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      vivi: add v4l2_ctrl_modify_range test case.
+
+ drivers/media/platform/vivi.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
