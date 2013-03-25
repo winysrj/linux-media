@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:40900 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752995Ab3CJVxW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 17:53:22 -0400
-Received: by mail-ee0-f49.google.com with SMTP id d41so1840605eek.8
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 14:53:21 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [RFC PATCH v2 5/6] bttv: avoid mute on last close when the radio device node is still open
-Date: Sun, 10 Mar 2013 22:53:53 +0100
-Message-Id: <1362952434-2974-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362952434-2974-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:60551 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755409Ab3CYLCX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 07:02:23 -0400
+Date: Mon, 25 Mar 2013 08:02:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Denis Kirjanov <kirjanov@gmail.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, Jarod Wilson <jarod@wilsonet.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] staging: lirc: remove dead code
+Message-ID: <20130325080212.6e2cb4c3@redhat.com>
+In-Reply-To: <CAHj3AVk-3oRAFG4UV5-vxA_8LejUh-X7Tgi2N0xe--p13-FiCQ@mail.gmail.com>
+References: <1364203632.1390.254.camel@x61.thuisdomein>
+	<CAHj3AVn83fum-2BQnEKxxajdL=VLrdNQGQ2cWf7dzOYbVHiqQw@mail.gmail.com>
+	<1364204910.1390.259.camel@x61.thuisdomein>
+	<CAHj3AVk-3oRAFG4UV5-vxA_8LejUh-X7Tgi2N0xe--p13-FiCQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In contrast to video devices, radio devices should not be muted on the last
-close of the device node.
-In cases where a device provides a video and a radio device node, tuner
-ownership has to be taken into account.
+Em Mon, 25 Mar 2013 13:59:44 +0400
+Denis Kirjanov <kirjanov@gmail.com> escreveu:
 
-The current code doesn't handle tuner ownership yet, so never mute the device if
-the radio device node is still open.
-Also add a comment about this issue.
+> Greg, looks like you have missed it in the queue for 3.8-rc1
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/pci/bt8xx/bttv-driver.c |    6 ++++--
- 1 Datei geändert, 4 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
+Greg won't likely apply it, as drivers/stating/media is maintained by me.
+I'll pick it and apply, adding Paul SOB on it.
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index 6432bfe..7459ad6 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -3114,7 +3114,6 @@ static int bttv_release(struct file *file)
- 	}
- 
- 	/* free stuff */
--
- 	videobuf_mmap_free(&fh->cap);
- 	videobuf_mmap_free(&fh->vbi);
- 	file->private_data = NULL;
-@@ -3122,8 +3121,11 @@ static int bttv_release(struct file *file)
- 	btv->users--;
- 	bttv_field_count(btv);
- 
--	if (!btv->users)
-+	if (!btv->users && !btv->radio_user)
- 		audio_mute(btv, 1);
-+	/* FIXME: should also depend on tuner ownership ! */
-+	/* NOTE as long as we don't handle the tuner ownership properly,
-+	 * only mute the device if the radio device node isn't open. */
- 
- 	v4l2_fh_del(&fh->fh);
- 	v4l2_fh_exit(&fh->fh);
+> 
+> 
+> 
+> On 3/25/13, Paul Bolle <pebolle@tiscali.nl> wrote:
+> > On Mon, 2013-03-25 at 13:40 +0400, Denis Kirjanov wrote:
+> >> Just found that the exactly the same patch has been posted a while ago:
+> >> http://driverdev.linuxdriverproject.org/pipermail/devel/2012-November/033623.html
+> >
+> > Thanks for that. Is that previous patch queued somewhere?
+> >
+> >
+> > Paul Bolle
+> >
+> >
+> 
+> 
+
+
 -- 
-1.7.10.4
 
+Cheers,
+Mauro
