@@ -1,59 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:19450 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756845Ab3CHMO4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 07:14:56 -0500
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MJC001NUCOTE370@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:14:54 +0000 (GMT)
-Received: from [127.0.0.1] ([106.116.147.30])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MJC008A1COTEW70@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 08 Mar 2013 12:14:54 +0000 (GMT)
-Message-id: <5139D63D.4040205@samsung.com>
-Date: Fri, 08 Mar 2013 13:14:53 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:32139 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756770Ab3CYML6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 08:11:58 -0400
+Date: Mon, 25 Mar 2013 09:11:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: linux-media@vger.kernel.org,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [REVIEW PATCH 0/2] Add gfp_flags + silence vb2-dma-sg
-References: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
-In-reply-to: <1362734517-9420-1-git-send-email-hverkuil@xs4all.nl>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [REVIEW PATCH] tuner-core fix for au0828 g_tuner bug
+Message-ID: <20130325091153.33c02851@redhat.com>
+In-Reply-To: <201303251232.31456.hverkuil@xs4all.nl>
+References: <201303251232.31456.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Mon, 25 Mar 2013 12:32:31 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On 3/8/2013 10:21 AM, Hans Verkuil wrote:
-> This patch series makes two modifications to videobuf2: the first adds the
-> gfp_flags field allowing us to easily convert drivers that need GFP_DMA or
-> __GFP_DMA32 to vb2. The stops the vb2-dma-sg module from logging every time
-> buffers are allocating or released. Instead add a debug option.
->
-> Marek, I understood from our earlier discussion that you are OK with doing
-> it this way for now. If you can Ack this, then that would be great as that
-> allows me to make a pull request for my solo driver changes.
+> While testing the au0828 driver overhaul patch series:
+> 
+> http://patchwork.linuxtv.org/patch/17576/
+> 
+> I discovered that the signal strength as reported by VIDIOC_G_TUNER was
+> always 0. Initially I thought it was related to the i2c gate, but after
+> testing some more that turned out to be wrong, although it did gave me the
+> clue that it was related to the order in which subdevs were called. If
+> the g_tuner op of au8522 was called before that of tuner-core, then it would
+> fail, if the order was the other way around then it would work.
+> 
+> Some digging in tuner-core clarified it: if the has_signal callback is set,
+> then tuner-core would call 'vt->signal = analog_ops->has_signal(&t->fe);'.
+> But has_signal is always filled in, even if the frontend doesn't implement
+> get_rf_strength, as is the case for the xc5000. And in that case vt->signal
+> is overwritten with 0.
+> 
+> Solution: don't set the has_signal callback if get_rf_strength is not
+> supported. Ditto for get_afc.
 
-I'm fine now. I hope I will manage to find some free time to finish dma-sg
-allocator code cleanup, but this will definitely not happen till the next
-merge window.
+It looks OK to me.
 
-> One question: I'm OR-ing gfp_flags for dma-contig and dma-sg, but also in
-> vmalloc. I'm not sure about the last one. I did it for consistency, but it
-> is pretty useless, so if you think it is better to drop the vmalloc change,
-> then that's no problem. Your call.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -------- patch ----------
+> If the tuner frontend does not support get_rf_strength, then don't set
+> the has_signal callback. Ditto for get_afc.
+> 
+> Both callbacks overwrite the signal and afc fields of struct v4l2_tuner
+> but that should only happen if the tuner can actually detect this. If
+> it can't, then it should leave those fields alone so other subdevices
+> can try and detect the signal/afc.
+> 
+> This fixes the bug where the au8522 detected a signal and then tuner-core
+> overwrote it with 0 since the xc5000 tuner does not support get_rf_strength.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/tuner-core.c |    7 ++++++-
+>  1 file changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index f775768..dd8a803 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -253,7 +253,7 @@ static int fe_set_config(struct dvb_frontend *fe, void *priv_cfg)
+>  
+>  static void tuner_status(struct dvb_frontend *fe);
+>  
+> -static struct analog_demod_ops tuner_analog_ops = {
+> +static const struct analog_demod_ops tuner_analog_ops = {
+>  	.set_params     = fe_set_params,
+>  	.standby        = fe_standby,
+>  	.has_signal     = fe_has_signal,
+> @@ -453,6 +453,11 @@ static void set_type(struct i2c_client *c, unsigned int type,
+>  		memcpy(analog_ops, &tuner_analog_ops,
+>  		       sizeof(struct analog_demod_ops));
+>  
+> +		if (fe_tuner_ops->get_rf_strength == NULL)
+> +			analog_ops->has_signal = NULL;
+> +		if (fe_tuner_ops->get_afc == NULL)
+> +			analog_ops->get_afc = NULL;
+> +
+>  	} else {
+>  		t->name = analog_ops->info.name;
+>  	}
 
-Let's leave it as is for better consistency.
 
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
 
-
+Cheers,
+Mauro
