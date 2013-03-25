@@ -1,62 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:57212 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757979Ab3CUNKk convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4795 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932611Ab3CYSli (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 09:10:40 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] siano: get rid of CammelCase from smscoreapi.h
-References: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
-Date: Thu, 21 Mar 2013 14:10:33 +0100
-In-Reply-To: <1363870963-28552-1-git-send-email-mchehab@redhat.com> (Mauro
-	Carvalho Chehab's message of "Thu, 21 Mar 2013 10:02:38 -0300")
-Message-ID: <87hak4j3ue.fsf@nemi.mork.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 25 Mar 2013 14:41:38 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2PIfZwv094691
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 19:41:37 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id E57F511E013C
+	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 19:41:33 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130325184133.E57F511E013C@alastor.dyndns.org>
+Date: Mon, 25 Mar 2013 19:41:33 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> It is almost impossible to see a compliant with checkpatch.pl
-> on those Siano drivers, as there are simply too much violations
-> on it. So, now that a big change was done, the better is to
-> cleanup the checkpatch compliants.
->
-> Let's first replace all CammelCase symbols found at smscoreapi.h
-> using camel_case namespace. That removed 144 checkpatch.pl
-> compliants on this file. Of course, the other files need to be
-> fixed accordingly.
-[..]
-> @@ -840,14 +840,14 @@ int smscore_configure_board(struct smscore_device_t *coredev)
->  	}
->  
->  	if (board->mtu) {
-> -		struct SmsMsgData_ST MtuMsg;
-> +		struct sms_msg_data MtuMsg;
->  		sms_debug("set max transmit unit %d", board->mtu);
->  
-> -		MtuMsg.xMsgHeader.msgSrcId = 0;
-> -		MtuMsg.xMsgHeader.msgDstId = HIF_TASK;
-> -		MtuMsg.xMsgHeader.msgFlags = 0;
-> -		MtuMsg.xMsgHeader.msgType = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> -		MtuMsg.xMsgHeader.msgLength = sizeof(MtuMsg);
-> +		MtuMsg.x_msg_header.msg_src_id = 0;
-> +		MtuMsg.x_msg_header.msg_dst_id = HIF_TASK;
-> +		MtuMsg.x_msg_header.msg_flags = 0;
-> +		MtuMsg.x_msg_header.msg_type = MSG_SMS_SET_MAX_TX_MSG_LEN_REQ;
-> +		MtuMsg.x_msg_header.msg_length = sizeof(MtuMsg);
->  		MtuMsg.msgData[0] = board->mtu;
->  
->  		coredev->sendrequest_handler(coredev->context, &MtuMsg,
+Results of the daily build of media_tree:
 
+date:		Mon Mar 25 19:00:23 CET 2013
+git branch:	test
+git hash:	7bce33daeaca26a3ea3f6099fdfe4e11ea46cac6
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-etc.  This didn't help one bit, did it?  There are exacly the same
-number of CamelCased lines here as before your patch.  Why is that?
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Bjørn
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
