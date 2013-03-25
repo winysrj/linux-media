@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:50324 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336Ab3CCTkT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:19 -0500
-Received: by mail-ee0-f48.google.com with SMTP id t10so3510704eei.35
-        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:18 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2412 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757676Ab3CYIxS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 04:53:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [REVIEW PATCH 09/42] sony-btf-mpx: the MPX driver for the sony BTF PAL/SECAM tuner
+Date: Mon, 25 Mar 2013 09:52:56 +0100
 Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 0/5] em28xx: add support for the em2765 bridge
-Date: Sun,  3 Mar 2013 20:40:56 +0100
-Message-Id: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl> <25054205c5119e9e7a86aad5a15ea0b5f8b0ca30.1363000605.git.hans.verkuil@cisco.com> <20130324122112.07348e39@redhat.com>
+In-Reply-To: <20130324122112.07348e39@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303250952.56955.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds basic support for the em25xx/276x/7x/8x camera bridges.
-These devices differ from the em2710/2750 and em28xx bridges in several points:
-1) a second i2c bus is provided which has to be accessed with a different 
-   read/write algorithm (=> patch 1)
-2) a different frame data format is used (=> patch 3)
-3) additional output formats (e.g. mpeg) are provided. This patch series does
-   not (yet) add support for them, but it fixes the output format selection 
-   for these bridges (the current code sets bit 5 of the output format register,
-   which has a different meaning for the other bridges and breaks capturing
-   with em25xx family sdevices). (=> patch 4)
-4) registers 0x34+0x35 (VBI_START_H/V for em28xx devices) are used for a 
-   different (unknown) purpose. This needs to be investigated further (could be 
-   zooming, cropping, image statistics or AWB/AE window selection).
-   At normal operation, these registers are set to capturing (input) 
-   width/height / 16. (=> patch 5)
+On Sun March 24 2013 16:21:12 Mauro Carvalho Chehab wrote:
+> Em Mon, 11 Mar 2013 12:45:47 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > The Sony BTF PG472Z has an internal MPX to deal with mono/stereo/bilingual
+> > audio. This is split off from the wis-sony-tuner driver that is part of
+> > the go7007 driver as it should be a separate i2c sub-device driver.
+> > 
+> > The wis-sony-tuner is really three i2c devices: a standard tuner, a tda9887
+> > compatible demodulator and this mpx. After this patch the wis-sony-tuner
+> > can be replaced by this driver and the standard tuner driver.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/i2c/Kconfig        |   11 +-
+> >  drivers/media/i2c/Makefile       |    1 +
+> >  drivers/media/i2c/sony-btf-mpx.c |  399 ++++++++++++++++++++++++++++++++++++++
+> 
+> Not sure what happened, but sony-btf-mpx.c got missed on the version inside
+> the pull request.
+> 
+> So, I got it from this patch.
 
-Patch 2 add the chip id of the em2765 as found in the "SpeedLink Vicious And 
-Devine Laplace" webcam. The changes have also been tested with this device.
+Grr. I found the same 'const' issue as you did, fixed it in my tree but forgot
+to do a git add for the file :-(
 
+Sorry.
 
-Frank Schäfer (5):
-  em28xx: add support for em25xx i2c bus B read/write/check device
-    operations
-  em28xx: add chip id of the em2765
-  em28xx: add support for em25xx/em276x/em277x/em278x frame data
-    processing
-  em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
-  em28xx: write output frame resolution to regs 0x34+0x35 for em25xx
-    family bridges
+Regards,
 
- drivers/media/usb/em28xx/em28xx-cards.c |   17 +++-
- drivers/media/usb/em28xx/em28xx-core.c  |   27 ++++-
- drivers/media/usb/em28xx/em28xx-i2c.c   |  164 +++++++++++++++++++++++++++----
- drivers/media/usb/em28xx/em28xx-reg.h   |    7 ++
- drivers/media/usb/em28xx/em28xx-video.c |   72 +++++++++++++-
- drivers/media/usb/em28xx/em28xx.h       |    8 ++
- 6 Dateien geändert, 271 Zeilen hinzugefügt(+), 24 Zeilen entfernt(-)
-
--- 
-1.7.10.4
-
+	Hans
