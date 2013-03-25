@@ -1,47 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:47621 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754704Ab3CLPGV (ORCPT
+Received: from mail-qc0-f181.google.com ([209.85.216.181]:36508 "EHLO
+	mail-qc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932094Ab3CYOiI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 11:06:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Darrick Burch" <darrick@tuffmail.com>
-Subject: Re: [REVIEW PATCH 00/42] go7007: complete overhaul
-Date: Tue, 12 Mar 2013 16:05:36 +0100
-Cc: linux-media@vger.kernel.org
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl> <42459.207.87.255.226.1363099023.squirrel@webmail.tuffmail.net>
-In-Reply-To: <42459.207.87.255.226.1363099023.squirrel@webmail.tuffmail.net>
+	Mon, 25 Mar 2013 10:38:08 -0400
+Received: by mail-qc0-f181.google.com with SMTP id a22so2683947qcs.40
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 07:38:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303121605.36107.hverkuil@xs4all.nl>
+In-Reply-To: <201303251232.31456.hverkuil@xs4all.nl>
+References: <201303251232.31456.hverkuil@xs4all.nl>
+Date: Mon, 25 Mar 2013 10:38:07 -0400
+Message-ID: <CAGoCfiyXLTQV_baP9QF6nsF2z3w3+cQu0YiuHz8OmHLgzc8Pmw@mail.gmail.com>
+Subject: Re: [REVIEW PATCH] tuner-core fix for au0828 g_tuner bug
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 12 March 2013 15:37:03 Darrick Burch wrote:
-> > This week I'll also receive a Plextor PX-M402U to test with and an ADS DVD
-> > XPress DX2 is also on its way (I did some ebay shopping!).
-> 
-> As it happens I've been working with the DVD Xpress DX2.  I found a patch
-> floating around the Internet, with the needed code to add support for it,
-> but I was chagrined to discover (on 3.6.28) that v4l2 subdevice support
-> was simply not implemented correctly and I couldn't get very far with it.
-> 
-> I have cloned your go7007 branch and I am in the process of trying to
-> apply the changes again.  My only question about this device is that it
-> uses a tw9906 and not a tw9903 (for which there is already an i2c module).
->  Do you know much about either decoder?  The tw9906 code in the patch
-> looked very similar to what was in the tw9903 save for a few initial
-> register differences.
+On Mon, Mar 25, 2013 at 7:32 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> This fixes the bug where the au8522 detected a signal and then tuner-core
+> overwrote it with 0 since the xc5000 tuner does not support get_rf_strength.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-I know little about those devices. But I did find datasheets for both with
-some creative googling. I'll mail them to you.
+Nice find.  That makes much more sense.
 
-Looking at the datasheets it seems to me that there are too many differences.
-Especially if the drivers are going to be extended with additional features.
-I would go with separate drivers for now.
+Cheers,
 
-Regards,
+Devin
 
-	Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
