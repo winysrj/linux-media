@@ -1,57 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55193 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364Ab3CYLSX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 07:18:23 -0400
-Message-ID: <51503272.9070301@ti.com>
-Date: Mon, 25 Mar 2013 16:48:10 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3293 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756295Ab3CYLgT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 07:36:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [review patch] radio-mr800: move clamp_t check inside amradio_set_freq()
+Date: Mon, 25 Mar 2013 12:36:12 +0100
+Cc: linux-media@vger.kernel.org
+References: <1363299126.5156.19.camel@tux>
+In-Reply-To: <1363299126.5156.19.camel@tux>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 2/2] media: davinci: vpbe: venc: move the enabling of
- vpss clocks to driver
-References: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com> <1363938793-22246-3-git-send-email-prabhakar.csengg@gmail.com> <514FE307.5090201@ti.com> <CA+V-a8tShKHreai51GHsyfHvW5yCvEiEcTTks7Tsy0s54bEekQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8tShKHreai51GHsyfHvW5yCvEiEcTTks7Tsy0s54bEekQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201303251236.12346.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/25/2013 3:45 PM, Prabhakar Lad wrote:
-> Hi Sekhar,
+On Thu March 14 2013 23:12:06 Alexey Klimov wrote:
+> Hi Hans, all,
 > 
-> On Mon, Mar 25, 2013 at 11:09 AM, Sekhar Nori <nsekhar@ti.com> wrote:
->> On 3/22/2013 1:23 PM, Prabhakar lad wrote:
->>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>>
->>> The vpss clocks were enabled by calling a exported function from a driver
->>> in a machine code. calling driver code from platform code is incorrect way.
->>>
->>> This patch fixes this issue and calls the function from driver code itself.
->>>
->>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>> ---
->>>  Note: This patch is based on the comment from Sekhar
->>>       (https://patchwork-mail1.kernel.org/patch/2278441/).
->>>       Shekar I haven't completely removed the callback, I just added
->>>       the function calls after the callback. As you mentioned just to
->>>       pass the VPSS_CLK_CTRL as a resource to venc but the VPSS_CLK_CTRL
->>>       is already being used by VPSS driver. I'll take this cleanup task later
->>>       point of time.
->>
->> Fine by me.
->>
-> Can I have your ACK on this patch ?
+> If i run verbose v4l2-compliance with my radio-mr800 device few times
+> then i get warning about frequency out of range:
 
-The 'fine' from me was for the approach, not not patch ;). Seriously
-though, since this patch is only touching media/ I haven't really done a
-detailed enough review of it. In any case, it should be OK to merge this
-without my ack.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks,
-Sekhar
+Regards,
+
+	Hans
+
+> 
+> root@machine:~# v4l2-compliance -r /dev/radio0 -v 2
+> is radio
+> Driver Info:
+> 	Driver name   : radio-mr800
+> 	Card type     : AverMedia MR 800 USB FM Radio
+> 	Bus info      : usb-0000:00:1a.0-1.2
+> 	Driver version: 3.9.0
+> 	Capabilities  : 0x80050400
+> 		Tuner
+> 		Radio
+> 		Device Capabilities
+> 	Device Caps   : 0x00050400
+> 		Tuner
+> 		Radio
+> 
+> Compliance test for device /dev/radio0 (not using libv4l2):
+> 
+> Required ioctls:
+> 	test VIDIOC_QUERYCAP: OK
+> 
+> Allow for multiple opens:
+> 	test second radio open: OK
+> 	test VIDIOC_QUERYCAP: OK
+> 	test VIDIOC_G/S_PRIORITY: OK
+> 
+> Debug ioctls:
+> 	test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
+> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+> 	test VIDIOC_LOG_STATUS: OK
+> 
+> Input ioctls:
+> 	test VIDIOC_G/S_TUNER: OK
+> 		warn: v4l2-test-input-output.cpp(234): returned tuner 0 frequency out
+> of range (6550200 not in [1400000...1728000])
+> 	test VIDIOC_G/S_FREQUENCY: OK
+> 	test VIDIOC_S_HW_FREQ_SEEK: OK
+> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+> 	Inputs: 0 Audio Inputs: 0 Tuners: 1
+> 
+> Output ioctls:
+> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+> 	test VIDIOC_G/S_FREQUENCY: OK
+> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
+> 
+> Control ioctls:
+> 		info: checking v4l2_queryctrl of control 'User Controls' (0x00980001)
+> 		info: checking v4l2_queryctrl of control 'Mute' (0x00980909)
+> 		info: checking v4l2_queryctrl of control 'Mute' (0x00980909)
+> 	test VIDIOC_QUERYCTRL/MENU: OK
+> 		info: checking control 'User Controls' (0x00980001)
+> 		info: checking control 'Mute' (0x00980909)
+> 	test VIDIOC_G/S_CTRL: OK
+> 		info: checking extended control 'User Controls' (0x00980001)
+> 		info: checking extended control 'Mute' (0x00980909)
+> 	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+> 		info: checking control event 'User Controls' (0x00980001)
+> 		info: checking control event 'Mute' (0x00980909)
+> 	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+> 	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> 	Standard Controls: 2 Private Controls: 0
+> 
+> Input/Output configuration ioctls:
+> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+> 	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
+> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+> 
+> Format ioctls:
+> 	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+> 	test VIDIOC_G/S_PARM: OK (Not Supported)
+> 	test VIDIOC_G_FBUF: OK (Not Supported)
+> 	test VIDIOC_G_FMT: OK (Not Supported)
+> 	test VIDIOC_TRY_FMT: OK (Not Supported)
+> 	test VIDIOC_S_FMT: OK (Not Supported)
+> 	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+> 
+> Codec ioctls:
+> 	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+> 	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+> 	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+> 
+> Buffer ioctls:
+> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+> 
+> Total: 38, Succeeded: 38, Failed: 0, Warnings: 1
+> 
+> Some printk() debugging showed that vidioc_s_hw_freq_seek() setups
+> radio->curfreq to out of range value (lines 395-396) and calls
+> amradio_set_freq() to set this frequency on device without any
+> out-of-range checks.
+> 
+> I suggest to move clamp_t check inside amradio_set_freq() function. It
+> will protect from setting up frequency to incorrect values in different
+> places. It also makes compliance test happy.
+> 
+> If this fix is right may be it necessary to push this patch in 3.9
+> current development tree.
+> 
+> ================================================================
+> 
+> 
+> radio-mr800: move clamp_t check inside amradio_set_freq()
+> 
+> Patch protects from setting up frequency on device to incorrect value
+> moving clamp_t check inside amradio_set_freq. With this patch we can
+> call amradio_set_freq() with out of range frequency from any place.
+> Also put comment that sometimes radio->curfreq is set to out of range
+> value in vidioc_s_hw_freq_seek().
+> 
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+> 
+> 
+> diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+> index 9c5a267..1cbdbfd 100644
+> --- a/drivers/media/radio/radio-mr800.c
+> +++ b/drivers/media/radio/radio-mr800.c
+> @@ -203,10 +203,14 @@ static int amradio_set_mute(struct amradio_device *radio, bool mute)
+>  /* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
+>  static int amradio_set_freq(struct amradio_device *radio, int freq)
+>  {
+> -	unsigned short freq_send = 0x10 + (freq >> 3) / 25;
+> +	unsigned short freq_send;
+>  	u8 buf[3];
+>  	int retval;
+>  
+> +	/* we need to be sure that frequency isn't out of range */
+> +	freq = clamp_t(unsigned, freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+> +	freq_send = 0x10 + (freq >> 3) / 25;
+> +
+>  	/* frequency is calculated from freq_send and placed in first 2 bytes */
+>  	buf[0] = (freq_send >> 8) & 0xff;
+>  	buf[1] = freq_send & 0xff;
+> @@ -329,8 +333,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+>  
+>  	if (f->tuner != 0)
+>  		return -EINVAL;
+> -	return amradio_set_freq(radio, clamp_t(unsigned, f->frequency,
+> -				FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL));
+> +	return amradio_set_freq(radio, f->frequency);
+>  }
+>  
+>  /* vidioc_g_frequency - get tuner radio frequency */
+> @@ -389,6 +392,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *priv,
+>  			continue;
+>  		amradio_send_cmd(radio, AMRADIO_GET_FREQ, 0, NULL, 0, true);
+>  		if (radio->buffer[1] || radio->buffer[2]) {
+> +			/* To check: sometimes radio->curfreq is set to out of range value */
+>  			radio->curfreq = (radio->buffer[1] << 8) | radio->buffer[2];
+>  			radio->curfreq = (radio->curfreq - 0x10) * 200;
+>  			amradio_send_cmd(radio, AMRADIO_STOP_SEARCH,
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
