@@ -1,417 +1,481 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57244 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933252Ab3CSQum (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:42 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 04/46] [media] siano: update message macros
-Date: Tue, 19 Mar 2013 13:48:53 -0300
-Message-Id: <1363711775-2120-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-we0-f176.google.com ([74.125.82.176]:43260 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754787Ab3CYKOq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 06:14:46 -0400
+MIME-Version: 1.0
+In-Reply-To: <514FE152.4070300@ti.com>
+References: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1363938793-22246-2-git-send-email-prabhakar.csengg@gmail.com> <514FE152.4070300@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 25 Mar 2013 15:44:24 +0530
+Message-ID: <CA+V-a8tZGh8y_eC52XC-7J41inARjrq9KD2bHCfZ+j1npo+VYw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: davinci: vpss: enable vpss clocks
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert from #define into an enum and add the newer message
-macros as found on this patch from Doron Cohen:
-	http://patchwork.linuxtv.org/patch/7882/
+Hi Sekhar,
 
-No messages got supressed.
+Thanks for the review!
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/siano/smscoreapi.h | 374 +++++++++++++++++++++++++++-----
- 1 file changed, 321 insertions(+), 53 deletions(-)
+On Mon, Mar 25, 2013 at 11:02 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On 3/22/2013 1:23 PM, Prabhakar lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> By default the VPSS clocks are only enabled in capture driver
+>> for davinci family which creates duplicates. This
+>> patch adds support to enable the VPSS clocks in VPSS driver.
+>> This avoids duplication of code and also adding clock aliases.
+>> This patch cleanups the VPSS clock enabling in the capture driver,
+>> and also removes the clock alias in machine file. Along side adds
+>> a vpss slave clock for DM365 as mentioned by Sekhar
+>> (https://patchwork.kernel.org/patch/1221261/).
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  arch/arm/mach-davinci/dm355.c                |    3 -
+>>  arch/arm/mach-davinci/dm365.c                |    9 +++-
+>>  arch/arm/mach-davinci/dm644x.c               |    5 --
+>>  drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------
+>>  drivers/media/platform/davinci/dm644x_ccdc.c |   44 -------------------
+>>  drivers/media/platform/davinci/isif.c        |   28 ++----------
+>>  drivers/media/platform/davinci/vpss.c        |   60 ++++++++++++++++++++++++++
+>>  7 files changed, 72 insertions(+), 116 deletions(-)
+>>
+>>  static struct clk arm_clk = {
+>>       .name           = "arm_clk",
+>>       .parent         = &pll2_sysclk2,
+>> @@ -450,6 +456,7 @@ static struct clk_lookup dm365_clks[] = {
+>>       CLK(NULL, "pll2_sysclk9", &pll2_sysclk9),
+>>       CLK(NULL, "vpss_dac", &vpss_dac_clk),
+>>       CLK(NULL, "vpss_master", &vpss_master_clk),
+>> +     CLK(NULL, "vpss_slave", &vpss_slave_clk),
+>
+> These should use device name for look-up instead of relying just on
+> con_id. So the entry should look like:
+>
+> CLK("vpss", "slave", &vpss_slave_clk),
+>
+OK
 
-diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
-index f2510f5..4a0a763 100644
---- a/drivers/media/common/siano/smscoreapi.h
-+++ b/drivers/media/common/siano/smscoreapi.h
-@@ -194,59 +194,327 @@ struct smscore_device_t {
- #define SMS_MAX_PAYLOAD_SIZE				240
- #define SMS_TUNE_TIMEOUT					500
- 
--#define MSG_SMS_GPIO_CONFIG_REQ				507
--#define MSG_SMS_GPIO_CONFIG_RES				508
--#define MSG_SMS_GPIO_SET_LEVEL_REQ			509
--#define MSG_SMS_GPIO_SET_LEVEL_RES			510
--#define MSG_SMS_GPIO_GET_LEVEL_REQ			511
--#define MSG_SMS_GPIO_GET_LEVEL_RES			512
--#define MSG_SMS_RF_TUNE_REQ					561
--#define MSG_SMS_RF_TUNE_RES					562
--#define MSG_SMS_INIT_DEVICE_REQ				578
--#define MSG_SMS_INIT_DEVICE_RES				579
--#define MSG_SMS_ADD_PID_FILTER_REQ			601
--#define MSG_SMS_ADD_PID_FILTER_RES			602
--#define MSG_SMS_REMOVE_PID_FILTER_REQ			603
--#define MSG_SMS_REMOVE_PID_FILTER_RES			604
--#define MSG_SMS_DAB_CHANNEL				607
--#define MSG_SMS_GET_PID_FILTER_LIST_REQ			608
--#define MSG_SMS_GET_PID_FILTER_LIST_RES			609
--#define MSG_SMS_GET_STATISTICS_RES			616
--#define MSG_SMS_GET_STATISTICS_REQ			615
--#define MSG_SMS_HO_PER_SLICES_IND			630
--#define MSG_SMS_SET_ANTENNA_CONFIG_REQ			651
--#define MSG_SMS_SET_ANTENNA_CONFIG_RES			652
--#define MSG_SMS_SLEEP_RESUME_COMP_IND			655
--#define MSG_SMS_DATA_DOWNLOAD_REQ			660
--#define MSG_SMS_DATA_DOWNLOAD_RES			661
--#define MSG_SMS_SWDOWNLOAD_TRIGGER_REQ		664
--#define MSG_SMS_SWDOWNLOAD_TRIGGER_RES		665
--#define MSG_SMS_SWDOWNLOAD_BACKDOOR_REQ		666
--#define MSG_SMS_SWDOWNLOAD_BACKDOOR_RES		667
--#define MSG_SMS_GET_VERSION_EX_REQ			668
--#define MSG_SMS_GET_VERSION_EX_RES			669
--#define MSG_SMS_SET_CLOCK_OUTPUT_REQ		670
--#define MSG_SMS_I2C_SET_FREQ_REQ			685
--#define MSG_SMS_GENERIC_I2C_REQ				687
--#define MSG_SMS_GENERIC_I2C_RES				688
--#define MSG_SMS_DVBT_BDA_DATA				693
--#define MSG_SW_RELOAD_REQ					697
--#define MSG_SMS_DATA_MSG					699
--#define MSG_SW_RELOAD_START_REQ				702
--#define MSG_SW_RELOAD_START_RES				703
--#define MSG_SW_RELOAD_EXEC_REQ				704
--#define MSG_SW_RELOAD_EXEC_RES				705
--#define MSG_SMS_SPI_INT_LINE_SET_REQ		710
--#define MSG_SMS_GPIO_CONFIG_EX_REQ			712
--#define MSG_SMS_GPIO_CONFIG_EX_RES			713
--#define MSG_SMS_ISDBT_TUNE_REQ				776
--#define MSG_SMS_ISDBT_TUNE_RES				777
--#define MSG_SMS_TRANSMISSION_IND			782
--#define MSG_SMS_START_IR_REQ				800
--#define MSG_SMS_START_IR_RES				801
--#define MSG_SMS_IR_SAMPLES_IND				802
--#define MSG_SMS_SIGNAL_DETECTED_IND			827
--#define MSG_SMS_NO_SIGNAL_IND				828
-+enum msg_types {
-+	MSG_TYPE_BASE_VAL = 500,
-+	MSG_SMS_GET_VERSION_REQ = 503,
-+	MSG_SMS_GET_VERSION_RES = 504,
-+	MSG_SMS_MULTI_BRIDGE_CFG = 505,
-+	MSG_SMS_GPIO_CONFIG_REQ = 507,
-+	MSG_SMS_GPIO_CONFIG_RES = 508,
-+	MSG_SMS_GPIO_SET_LEVEL_REQ = 509,
-+	MSG_SMS_GPIO_SET_LEVEL_RES = 510,
-+	MSG_SMS_GPIO_GET_LEVEL_REQ = 511,
-+	MSG_SMS_GPIO_GET_LEVEL_RES = 512,
-+	MSG_SMS_EEPROM_BURN_IND = 513,
-+	MSG_SMS_LOG_ENABLE_CHANGE_REQ = 514,
-+	MSG_SMS_LOG_ENABLE_CHANGE_RES = 515,
-+	MSG_SMS_SET_MAX_TX_MSG_LEN_REQ = 516,
-+	MSG_SMS_SET_MAX_TX_MSG_LEN_RES = 517,
-+	MSG_SMS_SPI_HALFDUPLEX_TOKEN_HOST_TO_DEVICE = 518,
-+	MSG_SMS_SPI_HALFDUPLEX_TOKEN_DEVICE_TO_HOST = 519,
-+	MSG_SMS_BACKGROUND_SCAN_FLAG_CHANGE_REQ = 520,
-+	MSG_SMS_BACKGROUND_SCAN_FLAG_CHANGE_RES = 521,
-+	MSG_SMS_BACKGROUND_SCAN_SIGNAL_DETECTED_IND = 522,
-+	MSG_SMS_BACKGROUND_SCAN_NO_SIGNAL_IND = 523,
-+	MSG_SMS_CONFIGURE_RF_SWITCH_REQ = 524,
-+	MSG_SMS_CONFIGURE_RF_SWITCH_RES = 525,
-+	MSG_SMS_MRC_PATH_DISCONNECT_REQ = 526,
-+	MSG_SMS_MRC_PATH_DISCONNECT_RES = 527,
-+	MSG_SMS_RECEIVE_1SEG_THROUGH_FULLSEG_REQ = 528,
-+	MSG_SMS_RECEIVE_1SEG_THROUGH_FULLSEG_RES = 529,
-+	MSG_SMS_RECEIVE_VHF_VIA_VHF_INPUT_REQ = 530,
-+	MSG_SMS_RECEIVE_VHF_VIA_VHF_INPUT_RES = 531,
-+	MSG_WR_REG_RFT_REQ = 533,
-+	MSG_WR_REG_RFT_RES = 534,
-+	MSG_RD_REG_RFT_REQ = 535,
-+	MSG_RD_REG_RFT_RES = 536,
-+	MSG_RD_REG_ALL_RFT_REQ = 537,
-+	MSG_RD_REG_ALL_RFT_RES = 538,
-+	MSG_HELP_INT = 539,
-+	MSG_RUN_SCRIPT_INT = 540,
-+	MSG_SMS_EWS_INBAND_REQ = 541,
-+	MSG_SMS_EWS_INBAND_RES = 542,
-+	MSG_SMS_RFS_SELECT_REQ = 543,
-+	MSG_SMS_RFS_SELECT_RES = 544,
-+	MSG_SMS_MB_GET_VER_REQ = 545,
-+	MSG_SMS_MB_GET_VER_RES = 546,
-+	MSG_SMS_MB_WRITE_CFGFILE_REQ = 547,
-+	MSG_SMS_MB_WRITE_CFGFILE_RES = 548,
-+	MSG_SMS_MB_READ_CFGFILE_REQ = 549,
-+	MSG_SMS_MB_READ_CFGFILE_RES = 550,
-+	MSG_SMS_RD_MEM_REQ = 552,
-+	MSG_SMS_RD_MEM_RES = 553,
-+	MSG_SMS_WR_MEM_REQ = 554,
-+	MSG_SMS_WR_MEM_RES = 555,
-+	MSG_SMS_UPDATE_MEM_REQ = 556,
-+	MSG_SMS_UPDATE_MEM_RES = 557,
-+	MSG_SMS_ISDBT_ENABLE_FULL_PARAMS_SET_REQ = 558,
-+	MSG_SMS_ISDBT_ENABLE_FULL_PARAMS_SET_RES = 559,
-+	MSG_SMS_RF_TUNE_REQ = 561,
-+	MSG_SMS_RF_TUNE_RES = 562,
-+	MSG_SMS_ISDBT_ENABLE_HIGH_MOBILITY_REQ = 563,
-+	MSG_SMS_ISDBT_ENABLE_HIGH_MOBILITY_RES = 564,
-+	MSG_SMS_ISDBT_SB_RECEPTION_REQ = 565,
-+	MSG_SMS_ISDBT_SB_RECEPTION_RES = 566,
-+	MSG_SMS_GENERIC_EPROM_WRITE_REQ = 567,
-+	MSG_SMS_GENERIC_EPROM_WRITE_RES = 568,
-+	MSG_SMS_GENERIC_EPROM_READ_REQ = 569,
-+	MSG_SMS_GENERIC_EPROM_READ_RES = 570,
-+	MSG_SMS_EEPROM_WRITE_REQ = 571,
-+	MSG_SMS_EEPROM_WRITE_RES = 572,
-+	MSG_SMS_CUSTOM_READ_REQ = 574,
-+	MSG_SMS_CUSTOM_READ_RES = 575,
-+	MSG_SMS_CUSTOM_WRITE_REQ = 576,
-+	MSG_SMS_CUSTOM_WRITE_RES = 577,
-+	MSG_SMS_INIT_DEVICE_REQ = 578,
-+	MSG_SMS_INIT_DEVICE_RES = 579,
-+	MSG_SMS_ATSC_SET_ALL_IP_REQ = 580,
-+	MSG_SMS_ATSC_SET_ALL_IP_RES = 581,
-+	MSG_SMS_ATSC_START_ENSEMBLE_REQ = 582,
-+	MSG_SMS_ATSC_START_ENSEMBLE_RES = 583,
-+	MSG_SMS_SET_OUTPUT_MODE_REQ = 584,
-+	MSG_SMS_SET_OUTPUT_MODE_RES = 585,
-+	MSG_SMS_ATSC_IP_FILTER_GET_LIST_REQ = 586,
-+	MSG_SMS_ATSC_IP_FILTER_GET_LIST_RES = 587,
-+	MSG_SMS_SUB_CHANNEL_START_REQ = 589,
-+	MSG_SMS_SUB_CHANNEL_START_RES = 590,
-+	MSG_SMS_SUB_CHANNEL_STOP_REQ = 591,
-+	MSG_SMS_SUB_CHANNEL_STOP_RES = 592,
-+	MSG_SMS_ATSC_IP_FILTER_ADD_REQ = 593,
-+	MSG_SMS_ATSC_IP_FILTER_ADD_RES = 594,
-+	MSG_SMS_ATSC_IP_FILTER_REMOVE_REQ = 595,
-+	MSG_SMS_ATSC_IP_FILTER_REMOVE_RES = 596,
-+	MSG_SMS_ATSC_IP_FILTER_REMOVE_ALL_REQ = 597,
-+	MSG_SMS_ATSC_IP_FILTER_REMOVE_ALL_RES = 598,
-+	MSG_SMS_WAIT_CMD = 599,
-+	MSG_SMS_ADD_PID_FILTER_REQ = 601,
-+	MSG_SMS_ADD_PID_FILTER_RES = 602,
-+	MSG_SMS_REMOVE_PID_FILTER_REQ = 603,
-+	MSG_SMS_REMOVE_PID_FILTER_RES = 604,
-+	MSG_SMS_FAST_INFORMATION_CHANNEL_REQ = 605,
-+	MSG_SMS_FAST_INFORMATION_CHANNEL_RES = 606,
-+	MSG_SMS_DAB_CHANNEL = 607,
-+	MSG_SMS_GET_PID_FILTER_LIST_REQ = 608,
-+	MSG_SMS_GET_PID_FILTER_LIST_RES = 609,
-+	MSG_SMS_POWER_DOWN_REQ = 610,
-+	MSG_SMS_POWER_DOWN_RES = 611,
-+	MSG_SMS_ATSC_SLT_EXIST_IND = 612,
-+	MSG_SMS_ATSC_NO_SLT_IND = 613,
-+	MSG_SMS_GET_STATISTICS_REQ = 615,
-+	MSG_SMS_GET_STATISTICS_RES = 616,
-+	MSG_SMS_SEND_DUMP = 617,
-+	MSG_SMS_SCAN_START_REQ = 618,
-+	MSG_SMS_SCAN_START_RES = 619,
-+	MSG_SMS_SCAN_STOP_REQ = 620,
-+	MSG_SMS_SCAN_STOP_RES = 621,
-+	MSG_SMS_SCAN_PROGRESS_IND = 622,
-+	MSG_SMS_SCAN_COMPLETE_IND = 623,
-+	MSG_SMS_LOG_ITEM = 624,
-+	MSG_SMS_DAB_SUBCHANNEL_RECONFIG_REQ = 628,
-+	MSG_SMS_DAB_SUBCHANNEL_RECONFIG_RES = 629,
-+	MSG_SMS_HO_PER_SLICES_IND = 630,
-+	MSG_SMS_HO_INBAND_POWER_IND = 631,
-+	MSG_SMS_MANUAL_DEMOD_REQ = 632,
-+	MSG_SMS_HO_TUNE_ON_REQ = 636,
-+	MSG_SMS_HO_TUNE_ON_RES = 637,
-+	MSG_SMS_HO_TUNE_OFF_REQ = 638,
-+	MSG_SMS_HO_TUNE_OFF_RES = 639,
-+	MSG_SMS_HO_PEEK_FREQ_REQ = 640,
-+	MSG_SMS_HO_PEEK_FREQ_RES = 641,
-+	MSG_SMS_HO_PEEK_FREQ_IND = 642,
-+	MSG_SMS_MB_ATTEN_SET_REQ = 643,
-+	MSG_SMS_MB_ATTEN_SET_RES = 644,
-+	MSG_SMS_ENABLE_STAT_IN_I2C_REQ = 649,
-+	MSG_SMS_ENABLE_STAT_IN_I2C_RES = 650,
-+	MSG_SMS_SET_ANTENNA_CONFIG_REQ = 651,
-+	MSG_SMS_SET_ANTENNA_CONFIG_RES = 652,
-+	MSG_SMS_GET_STATISTICS_EX_REQ = 653,
-+	MSG_SMS_GET_STATISTICS_EX_RES = 654,
-+	MSG_SMS_SLEEP_RESUME_COMP_IND = 655,
-+	MSG_SMS_SWITCH_HOST_INTERFACE_REQ = 656,
-+	MSG_SMS_SWITCH_HOST_INTERFACE_RES = 657,
-+	MSG_SMS_DATA_DOWNLOAD_REQ = 660,
-+	MSG_SMS_DATA_DOWNLOAD_RES = 661,
-+	MSG_SMS_DATA_VALIDITY_REQ = 662,
-+	MSG_SMS_DATA_VALIDITY_RES = 663,
-+	MSG_SMS_SWDOWNLOAD_TRIGGER_REQ = 664,
-+	MSG_SMS_SWDOWNLOAD_TRIGGER_RES = 665,
-+	MSG_SMS_SWDOWNLOAD_BACKDOOR_REQ = 666,
-+	MSG_SMS_SWDOWNLOAD_BACKDOOR_RES = 667,
-+	MSG_SMS_GET_VERSION_EX_REQ = 668,
-+	MSG_SMS_GET_VERSION_EX_RES = 669,
-+	MSG_SMS_CLOCK_OUTPUT_CONFIG_REQ = 670,
-+	MSG_SMS_CLOCK_OUTPUT_CONFIG_RES = 671,
-+	MSG_SMS_I2C_SET_FREQ_REQ = 685,
-+	MSG_SMS_I2C_SET_FREQ_RES = 686,
-+	MSG_SMS_GENERIC_I2C_REQ = 687,
-+	MSG_SMS_GENERIC_I2C_RES = 688,
-+	MSG_SMS_DVBT_BDA_DATA = 693,
-+	MSG_SW_RELOAD_REQ = 697,
-+	MSG_SMS_DATA_MSG = 699,
-+	MSG_TABLE_UPLOAD_REQ = 700,
-+	MSG_TABLE_UPLOAD_RES = 701,
-+	MSG_SW_RELOAD_START_REQ = 702,
-+	MSG_SW_RELOAD_START_RES = 703,
-+	MSG_SW_RELOAD_EXEC_REQ = 704,
-+	MSG_SW_RELOAD_EXEC_RES = 705,
-+	MSG_SMS_SPI_INT_LINE_SET_REQ = 710,
-+	MSG_SMS_SPI_INT_LINE_SET_RES = 711,
-+	MSG_SMS_GPIO_CONFIG_EX_REQ = 712,
-+	MSG_SMS_GPIO_CONFIG_EX_RES = 713,
-+	MSG_SMS_WATCHDOG_ACT_REQ = 716,
-+	MSG_SMS_WATCHDOG_ACT_RES = 717,
-+	MSG_SMS_LOOPBACK_REQ = 718,
-+	MSG_SMS_LOOPBACK_RES = 719,
-+	MSG_SMS_RAW_CAPTURE_START_REQ = 720,
-+	MSG_SMS_RAW_CAPTURE_START_RES = 721,
-+	MSG_SMS_RAW_CAPTURE_ABORT_REQ = 722,
-+	MSG_SMS_RAW_CAPTURE_ABORT_RES = 723,
-+	MSG_SMS_RAW_CAPTURE_COMPLETE_IND = 728,
-+	MSG_SMS_DATA_PUMP_IND = 729,
-+	MSG_SMS_DATA_PUMP_REQ = 730,
-+	MSG_SMS_DATA_PUMP_RES = 731,
-+	MSG_SMS_FLASH_DL_REQ = 732,
-+	MSG_SMS_EXEC_TEST_1_REQ = 734,
-+	MSG_SMS_EXEC_TEST_1_RES = 735,
-+	MSG_SMS_ENBALE_TS_INTERFACE_REQ = 736,
-+	MSG_SMS_ENBALE_TS_INTERFACE_RES = 737,
-+	MSG_SMS_SPI_SET_BUS_WIDTH_REQ = 738,
-+	MSG_SMS_SPI_SET_BUS_WIDTH_RES = 739,
-+	MSG_SMS_SEND_EMM_REQ = 740,
-+	MSG_SMS_SEND_EMM_RES = 741,
-+	MSG_SMS_DISABLE_TS_INTERFACE_REQ = 742,
-+	MSG_SMS_DISABLE_TS_INTERFACE_RES = 743,
-+	MSG_SMS_IS_BUF_FREE_REQ = 744,
-+	MSG_SMS_IS_BUF_FREE_RES = 745,
-+	MSG_SMS_EXT_ANTENNA_REQ = 746,
-+	MSG_SMS_EXT_ANTENNA_RES = 747,
-+	MSG_SMS_CMMB_GET_NET_OF_FREQ_REQ_OBSOLETE = 748,
-+	MSG_SMS_CMMB_GET_NET_OF_FREQ_RES_OBSOLETE = 749,
-+	MSG_SMS_BATTERY_LEVEL_REQ = 750,
-+	MSG_SMS_BATTERY_LEVEL_RES = 751,
-+	MSG_SMS_CMMB_INJECT_TABLE_REQ_OBSOLETE = 752,
-+	MSG_SMS_CMMB_INJECT_TABLE_RES_OBSOLETE = 753,
-+	MSG_SMS_FM_RADIO_BLOCK_IND = 754,
-+	MSG_SMS_HOST_NOTIFICATION_IND = 755,
-+	MSG_SMS_CMMB_GET_CONTROL_TABLE_REQ_OBSOLETE = 756,
-+	MSG_SMS_CMMB_GET_CONTROL_TABLE_RES_OBSOLETE = 757,
-+	MSG_SMS_CMMB_GET_NETWORKS_REQ = 760,
-+	MSG_SMS_CMMB_GET_NETWORKS_RES = 761,
-+	MSG_SMS_CMMB_START_SERVICE_REQ = 762,
-+	MSG_SMS_CMMB_START_SERVICE_RES = 763,
-+	MSG_SMS_CMMB_STOP_SERVICE_REQ = 764,
-+	MSG_SMS_CMMB_STOP_SERVICE_RES = 765,
-+	MSG_SMS_CMMB_ADD_CHANNEL_FILTER_REQ = 768,
-+	MSG_SMS_CMMB_ADD_CHANNEL_FILTER_RES = 769,
-+	MSG_SMS_CMMB_REMOVE_CHANNEL_FILTER_REQ = 770,
-+	MSG_SMS_CMMB_REMOVE_CHANNEL_FILTER_RES = 771,
-+	MSG_SMS_CMMB_START_CONTROL_INFO_REQ = 772,
-+	MSG_SMS_CMMB_START_CONTROL_INFO_RES = 773,
-+	MSG_SMS_CMMB_STOP_CONTROL_INFO_REQ = 774,
-+	MSG_SMS_CMMB_STOP_CONTROL_INFO_RES = 775,
-+	MSG_SMS_ISDBT_TUNE_REQ = 776,
-+	MSG_SMS_ISDBT_TUNE_RES = 777,
-+	MSG_SMS_TRANSMISSION_IND = 782,
-+	MSG_SMS_PID_STATISTICS_IND = 783,
-+	MSG_SMS_POWER_DOWN_IND = 784,
-+	MSG_SMS_POWER_DOWN_CONF = 785,
-+	MSG_SMS_POWER_UP_IND = 786,
-+	MSG_SMS_POWER_UP_CONF = 787,
-+	MSG_SMS_POWER_MODE_SET_REQ = 790,
-+	MSG_SMS_POWER_MODE_SET_RES = 791,
-+	MSG_SMS_DEBUG_HOST_EVENT_REQ = 792,
-+	MSG_SMS_DEBUG_HOST_EVENT_RES = 793,
-+	MSG_SMS_NEW_CRYSTAL_REQ = 794,
-+	MSG_SMS_NEW_CRYSTAL_RES = 795,
-+	MSG_SMS_CONFIG_SPI_REQ = 796,
-+	MSG_SMS_CONFIG_SPI_RES = 797,
-+	MSG_SMS_I2C_SHORT_STAT_IND = 798,
-+	MSG_SMS_START_IR_REQ = 800,
-+	MSG_SMS_START_IR_RES = 801,
-+	MSG_SMS_IR_SAMPLES_IND = 802,
-+	MSG_SMS_CMMB_CA_SERVICE_IND = 803,
-+	MSG_SMS_SLAVE_DEVICE_DETECTED = 804,
-+	MSG_SMS_INTERFACE_LOCK_IND = 805,
-+	MSG_SMS_INTERFACE_UNLOCK_IND = 806,
-+	MSG_SMS_SEND_ROSUM_BUFF_REQ = 810,
-+	MSG_SMS_SEND_ROSUM_BUFF_RES = 811,
-+	MSG_SMS_ROSUM_BUFF = 812,
-+	MSG_SMS_SET_AES128_KEY_REQ = 815,
-+	MSG_SMS_SET_AES128_KEY_RES = 816,
-+	MSG_SMS_MBBMS_WRITE_REQ = 817,
-+	MSG_SMS_MBBMS_WRITE_RES = 818,
-+	MSG_SMS_MBBMS_READ_IND = 819,
-+	MSG_SMS_IQ_STREAM_START_REQ = 820,
-+	MSG_SMS_IQ_STREAM_START_RES = 821,
-+	MSG_SMS_IQ_STREAM_STOP_REQ = 822,
-+	MSG_SMS_IQ_STREAM_STOP_RES = 823,
-+	MSG_SMS_IQ_STREAM_DATA_BLOCK = 824,
-+	MSG_SMS_GET_EEPROM_VERSION_REQ = 825,
-+	MSG_SMS_GET_EEPROM_VERSION_RES = 826,
-+	MSG_SMS_SIGNAL_DETECTED_IND = 827,
-+	MSG_SMS_NO_SIGNAL_IND = 828,
-+	MSG_SMS_MRC_SHUTDOWN_SLAVE_REQ = 830,
-+	MSG_SMS_MRC_SHUTDOWN_SLAVE_RES = 831,
-+	MSG_SMS_MRC_BRINGUP_SLAVE_REQ = 832,
-+	MSG_SMS_MRC_BRINGUP_SLAVE_RES = 833,
-+	MSG_SMS_EXTERNAL_LNA_CTRL_REQ = 834,
-+	MSG_SMS_EXTERNAL_LNA_CTRL_RES = 835,
-+	MSG_SMS_SET_PERIODIC_STATISTICS_REQ = 836,
-+	MSG_SMS_SET_PERIODIC_STATISTICS_RES = 837,
-+	MSG_SMS_CMMB_SET_AUTO_OUTPUT_TS0_REQ = 838,
-+	MSG_SMS_CMMB_SET_AUTO_OUTPUT_TS0_RES = 839,
-+	LOCAL_TUNE = 850,
-+	LOCAL_IFFT_H_ICI = 851,
-+	MSG_RESYNC_REQ = 852,
-+	MSG_SMS_CMMB_GET_MRC_STATISTICS_REQ = 853,
-+	MSG_SMS_CMMB_GET_MRC_STATISTICS_RES = 854,
-+	MSG_SMS_LOG_EX_ITEM = 855,
-+	MSG_SMS_DEVICE_DATA_LOSS_IND = 856,
-+	MSG_SMS_MRC_WATCHDOG_TRIGGERED_IND = 857,
-+	MSG_SMS_USER_MSG_REQ = 858,
-+	MSG_SMS_USER_MSG_RES = 859,
-+	MSG_SMS_SMART_CARD_INIT_REQ = 860,
-+	MSG_SMS_SMART_CARD_INIT_RES = 861,
-+	MSG_SMS_SMART_CARD_WRITE_REQ = 862,
-+	MSG_SMS_SMART_CARD_WRITE_RES = 863,
-+	MSG_SMS_SMART_CARD_READ_IND = 864,
-+	MSG_SMS_TSE_ENABLE_REQ = 866,
-+	MSG_SMS_TSE_ENABLE_RES = 867,
-+	MSG_SMS_CMMB_GET_SHORT_STATISTICS_REQ = 868,
-+	MSG_SMS_CMMB_GET_SHORT_STATISTICS_RES = 869,
-+	MSG_SMS_LED_CONFIG_REQ = 870,
-+	MSG_SMS_LED_CONFIG_RES = 871,
-+	MSG_PWM_ANTENNA_REQ = 872,
-+	MSG_PWM_ANTENNA_RES = 873,
-+	MSG_SMS_CMMB_SMD_SN_REQ = 874,
-+	MSG_SMS_CMMB_SMD_SN_RES = 875,
-+	MSG_SMS_CMMB_SET_CA_CW_REQ = 876,
-+	MSG_SMS_CMMB_SET_CA_CW_RES = 877,
-+	MSG_SMS_CMMB_SET_CA_SALT_REQ = 878,
-+	MSG_SMS_CMMB_SET_CA_SALT_RES = 879,
-+	MSG_SMS_NSCD_INIT_REQ = 880,
-+	MSG_SMS_NSCD_INIT_RES = 881,
-+	MSG_SMS_NSCD_PROCESS_SECTION_REQ = 882,
-+	MSG_SMS_NSCD_PROCESS_SECTION_RES = 883,
-+	MSG_SMS_DBD_CREATE_OBJECT_REQ = 884,
-+	MSG_SMS_DBD_CREATE_OBJECT_RES = 885,
-+	MSG_SMS_DBD_CONFIGURE_REQ = 886,
-+	MSG_SMS_DBD_CONFIGURE_RES = 887,
-+	MSG_SMS_DBD_SET_KEYS_REQ = 888,
-+	MSG_SMS_DBD_SET_KEYS_RES = 889,
-+	MSG_SMS_DBD_PROCESS_HEADER_REQ = 890,
-+	MSG_SMS_DBD_PROCESS_HEADER_RES = 891,
-+	MSG_SMS_DBD_PROCESS_DATA_REQ = 892,
-+	MSG_SMS_DBD_PROCESS_DATA_RES = 893,
-+	MSG_SMS_DBD_PROCESS_GET_DATA_REQ = 894,
-+	MSG_SMS_DBD_PROCESS_GET_DATA_RES = 895,
-+	MSG_SMS_NSCD_OPEN_SESSION_REQ = 896,
-+	MSG_SMS_NSCD_OPEN_SESSION_RES = 897,
-+	MSG_SMS_SEND_HOST_DATA_TO_DEMUX_REQ = 898,
-+	MSG_SMS_SEND_HOST_DATA_TO_DEMUX_RES = 899,
-+	MSG_LAST_MSG_TYPE = 900,
-+};
- 
- #define SMS_INIT_MSG_EX(ptr, type, src, dst, len) do { \
- 	(ptr)->msgType = type; (ptr)->msgSrcId = src; (ptr)->msgDstId = dst; \
--- 
-1.8.1.4
+>>       CLK(NULL, "arm", &arm_clk),
+>>       CLK(NULL, "uart0", &uart0_clk),
+>>       CLK(NULL, "uart1", &uart1_clk),
+>> @@ -1239,8 +1246,6 @@ static int __init dm365_init_devices(void)
+>>       clk_add_alias(NULL, dev_name(&dm365_mdio_device.dev),
+>>                     NULL, &dm365_emac_device.dev);
+>>
+>> -     /* Add isif clock alias */
+>> -     clk_add_alias("master", dm365_isif_dev.name, "vpss_master", NULL);
+>>       platform_device_register(&dm365_vpss_device);
+>>       platform_device_register(&dm365_isif_dev);
+>>       platform_device_register(&vpfe_capture_dev);
+>> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+>> index ee0e994..026e7e3 100644
+>> --- a/arch/arm/mach-davinci/dm644x.c
+>> +++ b/arch/arm/mach-davinci/dm644x.c
+>> @@ -901,11 +901,6 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
+>>               dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
+>>               platform_device_register(&dm644x_ccdc_dev);
+>>               platform_device_register(&dm644x_vpfe_dev);
+>> -             /* Add ccdc clock aliases */
+>> -             clk_add_alias("master", dm644x_ccdc_dev.name,
+>> -                           "vpss_master", NULL);
+>> -             clk_add_alias("slave", dm644x_ccdc_dev.name,
+>> -                           "vpss_slave", NULL);
+>>       }
+>>
+>>       if (vpbe_cfg) {
+>> diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+>> index 2364dba..05f8fb7 100644
+>> --- a/drivers/media/platform/davinci/dm355_ccdc.c
+>> +++ b/drivers/media/platform/davinci/dm355_ccdc.c
+>> @@ -37,7 +37,6 @@
+>>  #include <linux/platform_device.h>
+>>  #include <linux/uaccess.h>
+>>  #include <linux/videodev2.h>
+>> -#include <linux/clk.h>
+>>  #include <linux/err.h>
+>>  #include <linux/module.h>
+>>
+>> @@ -59,10 +58,6 @@ static struct ccdc_oper_config {
+>>       struct ccdc_params_raw bayer;
+>>       /* YCbCr configuration */
+>>       struct ccdc_params_ycbcr ycbcr;
+>> -     /* Master clock */
+>> -     struct clk *mclk;
+>> -     /* slave clock */
+>> -     struct clk *sclk;
+>>       /* ccdc base address */
+>>       void __iomem *base_addr;
+>>  } ccdc_cfg = {
+>> @@ -997,32 +992,10 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
+>>               goto fail_nomem;
+>>       }
+>>
+>> -     /* Get and enable Master clock */
+>> -     ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
+>> -     if (IS_ERR(ccdc_cfg.mclk)) {
+>> -             status = PTR_ERR(ccdc_cfg.mclk);
+>> -             goto fail_nomap;
+>> -     }
+>> -     if (clk_prepare_enable(ccdc_cfg.mclk)) {
+>> -             status = -ENODEV;
+>> -             goto fail_mclk;
+>> -     }
+>> -
+>> -     /* Get and enable Slave clock */
+>> -     ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
+>> -     if (IS_ERR(ccdc_cfg.sclk)) {
+>> -             status = PTR_ERR(ccdc_cfg.sclk);
+>> -             goto fail_mclk;
+>> -     }
+>> -     if (clk_prepare_enable(ccdc_cfg.sclk)) {
+>> -             status = -ENODEV;
+>> -             goto fail_sclk;
+>> -     }
+>> -
+>>       /* Platform data holds setup_pinmux function ptr */
+>>       if (NULL == pdev->dev.platform_data) {
+>>               status = -ENODEV;
+>> -             goto fail_sclk;
+>> +             goto fail_nomap;
+>>       }
+>>       setup_pinmux = pdev->dev.platform_data;
+>>       /*
+>> @@ -1033,12 +1006,6 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
+>>       ccdc_cfg.dev = &pdev->dev;
+>>       printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>>       return 0;
+>> -fail_sclk:
+>> -     clk_disable_unprepare(ccdc_cfg.sclk);
+>> -     clk_put(ccdc_cfg.sclk);
+>> -fail_mclk:
+>> -     clk_disable_unprepare(ccdc_cfg.mclk);
+>> -     clk_put(ccdc_cfg.mclk);
+>>  fail_nomap:
+>>       iounmap(ccdc_cfg.base_addr);
+>>  fail_nomem:
+>> @@ -1052,10 +1019,6 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
+>>  {
+>>       struct resource *res;
+>>
+>> -     clk_disable_unprepare(ccdc_cfg.sclk);
+>> -     clk_disable_unprepare(ccdc_cfg.mclk);
+>> -     clk_put(ccdc_cfg.mclk);
+>> -     clk_put(ccdc_cfg.sclk);
+>>       iounmap(ccdc_cfg.base_addr);
+>>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       if (res)
+>> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+>> index 971d639..30fa084 100644
+>> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+>> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+>> @@ -38,7 +38,6 @@
+>>  #include <linux/uaccess.h>
+>>  #include <linux/videodev2.h>
+>>  #include <linux/gfp.h>
+>> -#include <linux/clk.h>
+>>  #include <linux/err.h>
+>>  #include <linux/module.h>
+>>
+>> @@ -60,10 +59,6 @@ static struct ccdc_oper_config {
+>>       struct ccdc_params_raw bayer;
+>>       /* YCbCr configuration */
+>>       struct ccdc_params_ycbcr ycbcr;
+>> -     /* Master clock */
+>> -     struct clk *mclk;
+>> -     /* slave clock */
+>> -     struct clk *sclk;
+>>       /* ccdc base address */
+>>       void __iomem *base_addr;
+>>  } ccdc_cfg = {
+>> @@ -991,38 +986,9 @@ static int dm644x_ccdc_probe(struct platform_device *pdev)
+>>               goto fail_nomem;
+>>       }
+>>
+>> -     /* Get and enable Master clock */
+>> -     ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
+>> -     if (IS_ERR(ccdc_cfg.mclk)) {
+>> -             status = PTR_ERR(ccdc_cfg.mclk);
+>> -             goto fail_nomap;
+>> -     }
+>> -     if (clk_prepare_enable(ccdc_cfg.mclk)) {
+>> -             status = -ENODEV;
+>> -             goto fail_mclk;
+>> -     }
+>> -
+>> -     /* Get and enable Slave clock */
+>> -     ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
+>> -     if (IS_ERR(ccdc_cfg.sclk)) {
+>> -             status = PTR_ERR(ccdc_cfg.sclk);
+>> -             goto fail_mclk;
+>> -     }
+>> -     if (clk_prepare_enable(ccdc_cfg.sclk)) {
+>> -             status = -ENODEV;
+>> -             goto fail_sclk;
+>> -     }
+>>       ccdc_cfg.dev = &pdev->dev;
+>>       printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>>       return 0;
+>> -fail_sclk:
+>> -     clk_disable_unprepare(ccdc_cfg.sclk);
+>> -     clk_put(ccdc_cfg.sclk);
+>> -fail_mclk:
+>> -     clk_disable_unprepare(ccdc_cfg.mclk);
+>> -     clk_put(ccdc_cfg.mclk);
+>> -fail_nomap:
+>> -     iounmap(ccdc_cfg.base_addr);
+>>  fail_nomem:
+>>       release_mem_region(res->start, resource_size(res));
+>>  fail_nores:
+>> @@ -1034,10 +1000,6 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
+>>  {
+>>       struct resource *res;
+>>
+>> -     clk_disable_unprepare(ccdc_cfg.mclk);
+>> -     clk_disable_unprepare(ccdc_cfg.sclk);
+>> -     clk_put(ccdc_cfg.mclk);
+>> -     clk_put(ccdc_cfg.sclk);
+>>       iounmap(ccdc_cfg.base_addr);
+>>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       if (res)
+>> @@ -1052,18 +1014,12 @@ static int dm644x_ccdc_suspend(struct device *dev)
+>>       ccdc_save_context();
+>>       /* Disable CCDC */
+>>       ccdc_enable(0);
+>> -     /* Disable both master and slave clock */
+>> -     clk_disable_unprepare(ccdc_cfg.mclk);
+>> -     clk_disable_unprepare(ccdc_cfg.sclk);
+>>
+>>       return 0;
+>>  }
+>>
+>>  static int dm644x_ccdc_resume(struct device *dev)
+>>  {
+>> -     /* Enable both master and slave clock */
+>> -     clk_prepare_enable(ccdc_cfg.mclk);
+>> -     clk_prepare_enable(ccdc_cfg.sclk);
+>>       /* Restore CCDC context */
+>>       ccdc_restore_context();
+>>
+>> diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+>> index abc3ae3..3332cca 100644
+>> --- a/drivers/media/platform/davinci/isif.c
+>> +++ b/drivers/media/platform/davinci/isif.c
+>> @@ -32,7 +32,6 @@
+>>  #include <linux/uaccess.h>
+>>  #include <linux/io.h>
+>>  #include <linux/videodev2.h>
+>> -#include <linux/clk.h>
+>>  #include <linux/err.h>
+>>  #include <linux/module.h>
+>>
+>> @@ -88,8 +87,6 @@ static struct isif_oper_config {
+>>       struct isif_ycbcr_config ycbcr;
+>>       struct isif_params_raw bayer;
+>>       enum isif_data_pack data_pack;
+>> -     /* Master clock */
+>> -     struct clk *mclk;
+>>       /* ISIF base address */
+>>       void __iomem *base_addr;
+>>       /* ISIF Linear Table 0 */
+>> @@ -1039,6 +1036,10 @@ static int isif_probe(struct platform_device *pdev)
+>>       void *__iomem addr;
+>>       int status = 0, i;
+>>
+>> +     /* Platform data holds setup_pinmux function ptr */
+>> +     if (!pdev->dev.platform_data)
+>> +             return -ENODEV;
+>> +
+>
+> This change seems unrelated. I suggest moving it to a different patch or
+> atleast note it in the description.
+>
+Its just a movement, while fixing the cleanups. I'll add some
+description about it.
 
+>>       /*
+>>        * first try to register with vpfe. If not correct platform, then we
+>>        * don't have to iomap
+>> @@ -1047,22 +1048,6 @@ static int isif_probe(struct platform_device *pdev)
+>>       if (status < 0)
+>>               return status;
+>>
+>> -     /* Get and enable Master clock */
+>> -     isif_cfg.mclk = clk_get(&pdev->dev, "master");
+>> -     if (IS_ERR(isif_cfg.mclk)) {
+>> -             status = PTR_ERR(isif_cfg.mclk);
+>> -             goto fail_mclk;
+>> -     }
+>> -     if (clk_prepare_enable(isif_cfg.mclk)) {
+>> -             status = -ENODEV;
+>> -             goto fail_mclk;
+>> -     }
+>> -
+>> -     /* Platform data holds setup_pinmux function ptr */
+>> -     if (NULL == pdev->dev.platform_data) {
+>> -             status = -ENODEV;
+>> -             goto fail_mclk;
+>> -     }
+>>       setup_pinmux = pdev->dev.platform_data;
+>>       /*
+>>        * setup Mux configuration for ccdc which may be different for
+>> @@ -1124,9 +1109,6 @@ fail_nobase_res:
+>>               release_mem_region(res->start, resource_size(res));
+>>               i--;
+>>       }
+>> -fail_mclk:
+>> -     clk_disable_unprepare(isif_cfg.mclk);
+>> -     clk_put(isif_cfg.mclk);
+>>       vpfe_unregister_ccdc_device(&isif_hw_dev);
+>>       return status;
+>>  }
+>> @@ -1146,8 +1128,6 @@ static int isif_remove(struct platform_device *pdev)
+>>               i++;
+>>       }
+>>       vpfe_unregister_ccdc_device(&isif_hw_dev);
+>> -     clk_disable_unprepare(isif_cfg.mclk);
+>> -     clk_put(isif_cfg.mclk);
+>>       return 0;
+>>  }
+>>
+>> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+>> index a19c552..db69317 100644
+>> --- a/drivers/media/platform/davinci/vpss.c
+>> +++ b/drivers/media/platform/davinci/vpss.c
+>> @@ -17,6 +17,7 @@
+>>   *
+>>   * common vpss system module platform driver for all video drivers.
+>>   */
+>> +#include <linux/clk.h>
+>>  #include <linux/kernel.h>
+>>  #include <linux/sched.h>
+>>  #include <linux/init.h>
+>> @@ -126,6 +127,10 @@ struct vpss_oper_config {
+>>       enum vpss_platform_type platform;
+>>       spinlock_t vpss_lock;
+>>       struct vpss_hw_ops hw_ops;
+>> +     /* Master clock */
+>> +     struct clk *mclk;
+>> +     /* slave clock */
+>> +     struct clk *sclk;
+>>  };
+>>
+>>  static struct vpss_oper_config oper_cfg;
+>> @@ -429,6 +434,26 @@ static int vpss_probe(struct platform_device *pdev)
+>>               return -ENODEV;
+>>       }
+>>
+>> +     /* Get and enable Master clock */
+>> +     oper_cfg.mclk = clk_get(&pdev->dev, "vpss_master");
+>
+> use devm_clk_get() here to simplify the error handling.
+>
+OK
+
+>> +     if (IS_ERR(oper_cfg.mclk)) {
+>> +             status = PTR_ERR(oper_cfg.mclk);
+>> +             goto fail_getclk;
+>> +     }
+>> +     status = clk_prepare_enable(oper_cfg.mclk);
+>> +     if (status)
+>> +             goto fail_mclk;
+>> +
+>> +     /* Get and enable Slave clock */
+>> +     oper_cfg.sclk = clk_get(&pdev->dev, "vpss_slave");
+>> +     if (IS_ERR(oper_cfg.sclk)) {
+>> +             status = PTR_ERR(oper_cfg.sclk);
+>> +             goto fail_mclk;
+>> +     }
+>> +     status = clk_prepare_enable(oper_cfg.sclk);
+>> +     if (status)
+>> +             goto fail_sclk;
+>> +
+>>       dev_info(&pdev->dev, "%s vpss probed\n", platform_name);
+>>       r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       if (!r1)
+>> @@ -500,6 +525,13 @@ fail2:
+>>       iounmap(oper_cfg.vpss_regs_base0);
+>>  fail1:
+>>       release_mem_region(r1->start, resource_size(r1));
+>> +fail_sclk:
+>> +     clk_disable_unprepare(oper_cfg.sclk);
+>> +     clk_put(oper_cfg.sclk);
+>> +fail_mclk:
+>> +     clk_disable_unprepare(oper_cfg.mclk);
+>> +     clk_put(oper_cfg.mclk);
+>> +fail_getclk:
+>>       return status;
+>>  }
+>>
+>> @@ -510,6 +542,10 @@ static int vpss_remove(struct platform_device *pdev)
+>>       iounmap(oper_cfg.vpss_regs_base0);
+>>       res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>       release_mem_region(res->start, resource_size(res));
+>> +     clk_disable_unprepare(oper_cfg.mclk);
+>> +     clk_disable_unprepare(oper_cfg.sclk);
+>> +     clk_put(oper_cfg.mclk);
+>> +     clk_put(oper_cfg.sclk);
+>>       if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
+>>               iounmap(oper_cfg.vpss_regs_base1);
+>>               res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+>> @@ -518,10 +554,34 @@ static int vpss_remove(struct platform_device *pdev)
+>>       return 0;
+>>  }
+>>
+>
+>> +static int vpss_suspend(struct device *dev)
+>> +{
+>> +     /* Disable both master and slave clock */
+>> +     clk_disable_unprepare(oper_cfg.mclk);
+>> +     clk_disable_unprepare(oper_cfg.sclk);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int vpss_resume(struct device *dev)
+>> +{
+>> +     /* Enable both master and slave clock */
+>> +     clk_prepare_enable(oper_cfg.mclk);
+>> +     clk_prepare_enable(oper_cfg.sclk);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static const struct dev_pm_ops vpss_pm_ops = {
+>> +     .suspend = vpss_suspend,
+>> +     .resume = vpss_resume,
+>> +};
+>
+> Addition of suspend support seems unrelated to this patch. May be make a
+> seperate patch for it and while at it, please use PM runtime instead of
+> direct clock enable/disable. Have a look at the davinci_emac driver
+> which was converted to use PM runtime recently.
+>
+I felt having in same patch would be a good idea, since the clock
+enabling/disabling
+where removed from dm644x_ccdc.c for suspend/resume and add it in
+vpss. If you still
+feel it needs to be separate patch let me know.
+
+> Let me know how you want to handle this patch. I suppose you intend this
+> should go through my tree because of other dependent platform changes?
+>
+I want this series to go through the media tree because of few dependencies
+(dependency on ths7353 video amplifier driver which recently got
+merged into media tree)
+
+Regards,
+--Prabhakar
+
+> Thanks,
+> Sekhar
