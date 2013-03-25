@@ -1,91 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:65160 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754338Ab3C0KXx (ORCPT
+Received: from mail-da0-f42.google.com ([209.85.210.42]:61089 "EHLO
+	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754827Ab3CYLVH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 06:23:53 -0400
-MIME-Version: 1.0
-In-Reply-To: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
-References: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
-Date: Wed, 27 Mar 2013 19:23:51 +0900
-Message-ID: <CAAQKjZNOKu0RxYfuOBj8Fg3OfV8hXsA-QF7mgqQeFW6c4B2xgQ@mail.gmail.com>
-Subject: Re: [PATCH v2] drm/exynos: enable FIMD clocks
-From: Inki Dae <inki.dae@samsung.com>
-To: Vikas Sajjan <vikas.sajjan@linaro.org>
-Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
-	kgene.kim@samsung.com, linaro-kernel@lists.linaro.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 25 Mar 2013 07:21:07 -0400
+Received: by mail-da0-f42.google.com with SMTP id n15so3175085dad.29
+        for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 04:21:07 -0700 (PDT)
+From: Sumit Semwal <sumit.semwal@linaro.org>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org
+Cc: patches@linaro.org, linaro-kernel@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH v2 0/2] dma-buf: Add support for debugfs
+Date: Mon, 25 Mar 2013 16:50:44 +0530
+Message-Id: <1364210447-8125-1-git-send-email-sumit.semwal@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/3/20 Vikas Sajjan <vikas.sajjan@linaro.org>:
-> While migrating to common clock framework (CCF), found that the FIMD clocks
-> were pulled down by the CCF.
-> If CCF finds any clock(s) which has NOT been claimed by any of the
-> drivers, then such clock(s) are PULLed low by CCF.
->
-> By calling clk_prepare_enable() for FIMD clocks fixes the issue.
->
-> this patch also replaces clk_disable() with clk_disable_unprepare()
-> during exit.
->
-> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> ---
-> Changes since v1:
->         - added error checking for clk_prepare_enable() and also replaced
->         clk_disable() with clk_disable_unprepare() during exit.
-> ---
->  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> index 9537761..014d750 100644
-> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> @@ -934,6 +934,19 @@ static int fimd_probe(struct platform_device *pdev)
->                 return ret;
->         }
->
-> +       ret = clk_prepare_enable(ctx->lcd_clk);
-> +       if (ret) {
-> +               dev_err(dev, "failed to enable 'sclk_fimd' clock\n");
-> +               return ret;
-> +       }
-> +
-> +       ret = clk_prepare_enable(ctx->bus_clk);
-> +       if (ret) {
-> +               clk_disable_unprepare(ctx->lcd_clk);
-> +               dev_err(dev, "failed to enable 'fimd' clock\n");
-> +               return ret;
-> +       }
-> +
+The patch series adds a much-missed support for debugfs to dma-buf framework.
 
-Please remove the above two clk_prepare_enable function calls and use
-them in fimd_clock() instead of clk_enable/disable(). When probed,
-fimd clock will be enabled by runtime pm.
+Based on the feedback received on v1 of this patch series, support is also
+added to allow exporters to provide name-strings that will prove useful
+while debugging.
 
-Thanks,
-Inki Dae
+Some more magic can be added for more advanced debugging, but we'll leave that
+for the time being.
 
->         ctx->vidcon0 = pdata->vidcon0;
->         ctx->vidcon1 = pdata->vidcon1;
->         ctx->default_win = pdata->default_win;
-> @@ -981,8 +994,8 @@ static int fimd_remove(struct platform_device *pdev)
->         if (ctx->suspended)
->                 goto out;
->
-> -       clk_disable(ctx->lcd_clk);
-> -       clk_disable(ctx->bus_clk);
-> +       clk_disable_unprepare(ctx->lcd_clk);
-> +       clk_disable_unprepare(ctx->bus_clk);
->
->         pm_runtime_set_suspended(dev);
->         pm_runtime_put_sync(dev);
-> --
-> 1.7.9.5
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+Best regards,
+~Sumit.
+
+
+Sumit Semwal (2):
+  dma-buf: replace dma_buf_export() with dma_buf_export_named()
+  dma-buf: Add debugfs support
+
+ Documentation/dma-buf-sharing.txt |   13 ++-
+ drivers/base/dma-buf.c            |  173 ++++++++++++++++++++++++++++++++++++-
+ include/linux/dma-buf.h           |   16 +++-
+ 3 files changed, 193 insertions(+), 9 deletions(-)
+
+-- 
+1.7.10.4
+
