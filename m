@@ -1,42 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:59302 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932528Ab3CHOnM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Mar 2013 09:43:12 -0500
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	kilyeon.im@samsung.com, arunkk.samsung@gmail.com
-Subject: [RFC 12/12] mipi-csis: Enable all interrupts for fimc-is usage
-Date: Fri, 08 Mar 2013 09:59:25 -0500
-Message-id: <1362754765-2651-13-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:7642 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757498Ab3CYM4F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 08:56:05 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2PCu55N007163
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 25 Mar 2013 08:56:05 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/3] tuner-core: return afc instead of zero
+Date: Mon, 25 Mar 2013 09:55:57 -0300
+Message-Id: <1364216159-12707-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1364216159-12707-1-git-send-email-mchehab@redhat.com>
+References: <201303251232.31456.hverkuil@xs4all.nl>
+ <1364216159-12707-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FIMC-IS firmware needs all the MIPI-CSIS interrupts to be enabled.
-This patch enables all those MIPI interrupts.
+While the driver gets AFC from the tuner, it doesn't return it
+back via V4L2 API due to a mistake at the return. fix it.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/s5p-fimc/mipi-csis.c |    2 +-
+ drivers/media/v4l2-core/tuner-core.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/s5p-fimc/mipi-csis.c
-index debda7c..11eef67 100644
---- a/drivers/media/platform/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/platform/s5p-fimc/mipi-csis.c
-@@ -64,7 +64,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-2)");
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index dd8a803..5e18f44 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -235,7 +235,7 @@ static int fe_get_afc(struct dvb_frontend *fe)
+ 	if (fe->ops.tuner_ops.get_afc)
+ 		fe->ops.tuner_ops.get_afc(fe, &afc);
  
- /* Interrupt mask */
- #define S5PCSIS_INTMSK			0x10
--#define S5PCSIS_INTMSK_EN_ALL		0xf000103f
-+#define S5PCSIS_INTMSK_EN_ALL		0xfc00103f
- #define S5PCSIS_INTMSK_EVEN_BEFORE	(1 << 31)
- #define S5PCSIS_INTMSK_EVEN_AFTER	(1 << 30)
- #define S5PCSIS_INTMSK_ODD_BEFORE	(1 << 29)
+-	return 0;
++	return afc;
+ }
+ 
+ static int fe_set_config(struct dvb_frontend *fe, void *priv_cfg)
 -- 
-1.7.9.5
+1.8.1.4
 
