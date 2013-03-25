@@ -1,40 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:61068 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753154Ab3CETkv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 14:40:51 -0500
-Received: by mail-pb0-f41.google.com with SMTP id um15so4913272pbc.0
-        for <linux-media@vger.kernel.org>; Tue, 05 Mar 2013 11:40:50 -0800 (PST)
-From: Syam Sidhardhan <syamsidhardh@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: syamsidhardh@gmail.com, tvboxspy@gmail.com, mchehab@redhat.com
-Subject: [PATCH] lmedm04: Remove redundant NULL check before kfree
-Date: Wed,  6 Mar 2013 01:10:39 +0530
-Message-Id: <1362512439-3914-1-git-send-email-s.syam@samsung.com>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4038 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752741Ab3CYIvu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 04:51:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [REVIEW PATCH 01/19] solo6x10: sync to latest code from Bluecherry's git repo.
+Date: Mon, 25 Mar 2013 09:51:37 +0100
+Cc: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl> <1363609938-21735-2-git-send-email-hverkuil@xs4all.nl> <20130324112723.445693ea@redhat.com>
+In-Reply-To: <20130324112723.445693ea@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303250951.37422.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kfree on NULL pointer is a no-op.
+On Sun March 24 2013 15:27:23 Mauro Carvalho Chehab wrote:
+> Em Mon, 18 Mar 2013 13:32:00 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Synced to commit e9815ac5503ae60cfbf6ff8037035de8f62e2846 from
+> > branch next in git repository https://github.com/bluecherrydvr/solo6x10.git
+> > 
+> > Only removed some code under #if LINUX_VERSION_CODE < some-kernel-version,
+> > renamed the driver back to solo6x10 from solo6x10-edge and removed the
+> > unnecessary compat.h header.
+> > 
+> > Otherwise the code is identical.
+> > 
+> 
+> ...
+> 
+> > @@ -21,29 +26,78 @@
+> >  #include <linux/module.h>
+> >  #include <linux/pci.h>
+> >  #include <linux/interrupt.h>
+> > -#include <linux/slab.h>
+> 
+> You can't remove slab.h if any k*alloc function is used, or it will
+> break compilation, depending on the Kconfig options selected.
 
-Signed-off-by: Syam Sidhardhan <s.syam@samsung.com>
----
- drivers/media/usb/dvb-usb-v2/lmedm04.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Well spotted, thanks!
 
-diff --git a/drivers/media/usb/dvb-usb-v2/lmedm04.c b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-index 96804be..b3fd0ff 100644
---- a/drivers/media/usb/dvb-usb-v2/lmedm04.c
-+++ b/drivers/media/usb/dvb-usb-v2/lmedm04.c
-@@ -1302,8 +1302,7 @@ static void lme2510_exit(struct dvb_usb_device *d)
- 
- 	if (d != NULL) {
- 		usb_buffer = lme2510_exit_int(d);
--		if (usb_buffer != NULL)
--			kfree(usb_buffer);
-+		kfree(usb_buffer);
- 	}
- }
- 
--- 
-1.7.9.5
+> 
+> The same type of removal are on other files inside this patch.
+> 
+> Please fix.
 
+Done. New pull request posted.
+
+Regards,
+
+	Hans
