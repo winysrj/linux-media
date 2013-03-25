@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:58366 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947Ab3CKTAw (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55703 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752022Ab3CYWD7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:00:52 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 01/11] s5p-fimc: Added error checks for pipeline stream on
- callbacks
-Date: Mon, 11 Mar 2013 20:00:16 +0100
-Message-id: <1363028426-2771-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 25 Mar 2013 18:03:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andreas Bombe <aeb@debian.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH] configure.ac: Respect CPPFLAGS from environment
+Date: Mon, 25 Mar 2013 23:04:46 +0100
+Message-ID: <1466207.TFbi0fXivb@avalon>
+In-Reply-To: <20130218001002.GA7885@amos.fritz.box>
+References: <20130218001002.GA7885@amos.fritz.box>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrzej Hajda <a.hajda@samsung.com>
+Hi Andreas,
 
-set_stream error for pipelines is logged or reported to user
-space if possible.
+Thanks for the patch, and sorry for the late reply.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-capture.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+On Monday 18 February 2013 01:10:02 Andreas Bombe wrote:
+> Signed-off-by: Andreas Bombe <aeb@debian.org>
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
-index 2a1da4c..52abc9f 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-@@ -286,8 +286,8 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
- 		fimc_activate_capture(ctx);
- 
- 		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
--			fimc_pipeline_call(fimc, set_stream,
--					   &fimc->pipeline, 1);
-+			return fimc_pipeline_call(fimc, set_stream,
-+						  &fimc->pipeline, 1);
- 	}
- 
- 	return 0;
-@@ -443,12 +443,17 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	if (vb2_is_streaming(&vid_cap->vbq) &&
- 	    vid_cap->active_buf_cnt >= min_bufs &&
- 	    !test_and_set_bit(ST_CAPT_STREAM, &fimc->state)) {
-+		int ret;
-+
- 		fimc_activate_capture(ctx);
- 		spin_unlock_irqrestore(&fimc->slock, flags);
- 
--		if (!test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
--			fimc_pipeline_call(fimc, set_stream,
--					   &fimc->pipeline, 1);
-+		if (test_and_set_bit(ST_CAPT_ISP_STREAM, &fimc->state))
-+			return;
-+
-+		ret = fimc_pipeline_call(fimc, set_stream, &fimc->pipeline, 1);
-+		if (ret < 0)
-+			v4l2_err(&vid_cap->vfd, "stream on failed: %d\n", ret);
- 		return;
- 	}
- 	spin_unlock_irqrestore(&fimc->slock, flags);
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+and pushed to the repository.
+
+> ---
+>  configure.ac |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/configure.ac b/configure.ac
+> index 98459d4..a749794 100644
+> --- a/configure.ac
+> +++ b/configure.ac
+> @@ -48,7 +48,7 @@ AC_ARG_WITH(kernel-headers,
+>       esac],
+>      [KERNEL_HEADERS_DIR="/usr/src/kernel-headers"])
+> 
+> -CPPFLAGS="-I$KERNEL_HEADERS_DIR/include"
+> +CPPFLAGS="$CPPFLAGS -I$KERNEL_HEADERS_DIR/include"
+> 
+>  # Checks for header files.
+>  AC_CHECK_HEADERS([linux/media.h \
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
