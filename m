@@ -1,724 +1,455 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f52.google.com ([209.85.128.52]:60647 "EHLO
-	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab3CKGlN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 02:41:13 -0400
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48365 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757431Ab3CYFcT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 01:32:19 -0400
+Message-ID: <514FE152.4070300@ti.com>
+Date: Mon, 25 Mar 2013 11:02:02 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <513D027A.10004@gmail.com>
-References: <1362570838-4737-1-git-send-email-shaik.ameer@samsung.com>
-	<1362570838-4737-2-git-send-email-shaik.ameer@samsung.com>
-	<513D027A.10004@gmail.com>
-Date: Mon, 11 Mar 2013 12:11:12 +0530
-Message-ID: <CAOD6ATo3vSCBN1u7wWBP22xDqVR1qEpae6ksg9Tj_ie=hoKOJw@mail.gmail.com>
-Subject: Re: [RFC 01/12] media: s5p-fimc: modify existing mdev to use common pipeline
-From: Shaik Ameer Basha <shaik.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, s.nawrocki@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] media: davinci: vpss: enable vpss clocks
+References: <1363938793-22246-1-git-send-email-prabhakar.csengg@gmail.com> <1363938793-22246-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1363938793-22246-2-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 3/22/2013 1:23 PM, Prabhakar lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> By default the VPSS clocks are only enabled in capture driver
+> for davinci family which creates duplicates. This
+> patch adds support to enable the VPSS clocks in VPSS driver.
+> This avoids duplication of code and also adding clock aliases.
+> This patch cleanups the VPSS clock enabling in the capture driver,
+> and also removes the clock alias in machine file. Along side adds
+> a vpss slave clock for DM365 as mentioned by Sekhar
+> (https://patchwork.kernel.org/patch/1221261/).
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  arch/arm/mach-davinci/dm355.c                |    3 -
+>  arch/arm/mach-davinci/dm365.c                |    9 +++-
+>  arch/arm/mach-davinci/dm644x.c               |    5 --
+>  drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------
+>  drivers/media/platform/davinci/dm644x_ccdc.c |   44 -------------------
+>  drivers/media/platform/davinci/isif.c        |   28 ++----------
+>  drivers/media/platform/davinci/vpss.c        |   60 ++++++++++++++++++++++++++
+>  7 files changed, 72 insertions(+), 116 deletions(-)
+> 
+>  static struct clk arm_clk = {
+>  	.name		= "arm_clk",
+>  	.parent		= &pll2_sysclk2,
+> @@ -450,6 +456,7 @@ static struct clk_lookup dm365_clks[] = {
+>  	CLK(NULL, "pll2_sysclk9", &pll2_sysclk9),
+>  	CLK(NULL, "vpss_dac", &vpss_dac_clk),
+>  	CLK(NULL, "vpss_master", &vpss_master_clk),
+> +	CLK(NULL, "vpss_slave", &vpss_slave_clk),
 
-Thanks for the review.
-Actually I know this is the important patch in this series and I
-wanted us to have
-enough time to discuss on this patch. That's why I posted this patch
-series in hurry.
+These should use device name for look-up instead of relying just on
+con_id. So the entry should look like:
 
-I will remove this patch from the exynos5-mdev series and will send this as a
-separate patch from next time.
+CLK("vpss", "slave", &vpss_slave_clk),
 
-please find my review comments inline..
+>  	CLK(NULL, "arm", &arm_clk),
+>  	CLK(NULL, "uart0", &uart0_clk),
+>  	CLK(NULL, "uart1", &uart1_clk),
+> @@ -1239,8 +1246,6 @@ static int __init dm365_init_devices(void)
+>  	clk_add_alias(NULL, dev_name(&dm365_mdio_device.dev),
+>  		      NULL, &dm365_emac_device.dev);
+>  
+> -	/* Add isif clock alias */
+> -	clk_add_alias("master", dm365_isif_dev.name, "vpss_master", NULL);
+>  	platform_device_register(&dm365_vpss_device);
+>  	platform_device_register(&dm365_isif_dev);
+>  	platform_device_register(&vpfe_capture_dev);
+> diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+> index ee0e994..026e7e3 100644
+> --- a/arch/arm/mach-davinci/dm644x.c
+> +++ b/arch/arm/mach-davinci/dm644x.c
+> @@ -901,11 +901,6 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
+>  		dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
+>  		platform_device_register(&dm644x_ccdc_dev);
+>  		platform_device_register(&dm644x_vpfe_dev);
+> -		/* Add ccdc clock aliases */
+> -		clk_add_alias("master", dm644x_ccdc_dev.name,
+> -			      "vpss_master", NULL);
+> -		clk_add_alias("slave", dm644x_ccdc_dev.name,
+> -			      "vpss_slave", NULL);
+>  	}
+>  
+>  	if (vpbe_cfg) {
+> diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
+> index 2364dba..05f8fb7 100644
+> --- a/drivers/media/platform/davinci/dm355_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm355_ccdc.c
+> @@ -37,7 +37,6 @@
+>  #include <linux/platform_device.h>
+>  #include <linux/uaccess.h>
+>  #include <linux/videodev2.h>
+> -#include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/module.h>
+>  
+> @@ -59,10 +58,6 @@ static struct ccdc_oper_config {
+>  	struct ccdc_params_raw bayer;
+>  	/* YCbCr configuration */
+>  	struct ccdc_params_ycbcr ycbcr;
+> -	/* Master clock */
+> -	struct clk *mclk;
+> -	/* slave clock */
+> -	struct clk *sclk;
+>  	/* ccdc base address */
+>  	void __iomem *base_addr;
+>  } ccdc_cfg = {
+> @@ -997,32 +992,10 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
+>  		goto fail_nomem;
+>  	}
+>  
+> -	/* Get and enable Master clock */
+> -	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
+> -	if (IS_ERR(ccdc_cfg.mclk)) {
+> -		status = PTR_ERR(ccdc_cfg.mclk);
+> -		goto fail_nomap;
+> -	}
+> -	if (clk_prepare_enable(ccdc_cfg.mclk)) {
+> -		status = -ENODEV;
+> -		goto fail_mclk;
+> -	}
+> -
+> -	/* Get and enable Slave clock */
+> -	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
+> -	if (IS_ERR(ccdc_cfg.sclk)) {
+> -		status = PTR_ERR(ccdc_cfg.sclk);
+> -		goto fail_mclk;
+> -	}
+> -	if (clk_prepare_enable(ccdc_cfg.sclk)) {
+> -		status = -ENODEV;
+> -		goto fail_sclk;
+> -	}
+> -
+>  	/* Platform data holds setup_pinmux function ptr */
+>  	if (NULL == pdev->dev.platform_data) {
+>  		status = -ENODEV;
+> -		goto fail_sclk;
+> +		goto fail_nomap;
+>  	}
+>  	setup_pinmux = pdev->dev.platform_data;
+>  	/*
+> @@ -1033,12 +1006,6 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
+>  	ccdc_cfg.dev = &pdev->dev;
+>  	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>  	return 0;
+> -fail_sclk:
+> -	clk_disable_unprepare(ccdc_cfg.sclk);
+> -	clk_put(ccdc_cfg.sclk);
+> -fail_mclk:
+> -	clk_disable_unprepare(ccdc_cfg.mclk);
+> -	clk_put(ccdc_cfg.mclk);
+>  fail_nomap:
+>  	iounmap(ccdc_cfg.base_addr);
+>  fail_nomem:
+> @@ -1052,10 +1019,6 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
+>  {
+>  	struct resource	*res;
+>  
+> -	clk_disable_unprepare(ccdc_cfg.sclk);
+> -	clk_disable_unprepare(ccdc_cfg.mclk);
+> -	clk_put(ccdc_cfg.mclk);
+> -	clk_put(ccdc_cfg.sclk);
+>  	iounmap(ccdc_cfg.base_addr);
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (res)
+> diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
+> index 971d639..30fa084 100644
+> --- a/drivers/media/platform/davinci/dm644x_ccdc.c
+> +++ b/drivers/media/platform/davinci/dm644x_ccdc.c
+> @@ -38,7 +38,6 @@
+>  #include <linux/uaccess.h>
+>  #include <linux/videodev2.h>
+>  #include <linux/gfp.h>
+> -#include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/module.h>
+>  
+> @@ -60,10 +59,6 @@ static struct ccdc_oper_config {
+>  	struct ccdc_params_raw bayer;
+>  	/* YCbCr configuration */
+>  	struct ccdc_params_ycbcr ycbcr;
+> -	/* Master clock */
+> -	struct clk *mclk;
+> -	/* slave clock */
+> -	struct clk *sclk;
+>  	/* ccdc base address */
+>  	void __iomem *base_addr;
+>  } ccdc_cfg = {
+> @@ -991,38 +986,9 @@ static int dm644x_ccdc_probe(struct platform_device *pdev)
+>  		goto fail_nomem;
+>  	}
+>  
+> -	/* Get and enable Master clock */
+> -	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
+> -	if (IS_ERR(ccdc_cfg.mclk)) {
+> -		status = PTR_ERR(ccdc_cfg.mclk);
+> -		goto fail_nomap;
+> -	}
+> -	if (clk_prepare_enable(ccdc_cfg.mclk)) {
+> -		status = -ENODEV;
+> -		goto fail_mclk;
+> -	}
+> -
+> -	/* Get and enable Slave clock */
+> -	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
+> -	if (IS_ERR(ccdc_cfg.sclk)) {
+> -		status = PTR_ERR(ccdc_cfg.sclk);
+> -		goto fail_mclk;
+> -	}
+> -	if (clk_prepare_enable(ccdc_cfg.sclk)) {
+> -		status = -ENODEV;
+> -		goto fail_sclk;
+> -	}
+>  	ccdc_cfg.dev = &pdev->dev;
+>  	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
+>  	return 0;
+> -fail_sclk:
+> -	clk_disable_unprepare(ccdc_cfg.sclk);
+> -	clk_put(ccdc_cfg.sclk);
+> -fail_mclk:
+> -	clk_disable_unprepare(ccdc_cfg.mclk);
+> -	clk_put(ccdc_cfg.mclk);
+> -fail_nomap:
+> -	iounmap(ccdc_cfg.base_addr);
+>  fail_nomem:
+>  	release_mem_region(res->start, resource_size(res));
+>  fail_nores:
+> @@ -1034,10 +1000,6 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
+>  {
+>  	struct resource	*res;
+>  
+> -	clk_disable_unprepare(ccdc_cfg.mclk);
+> -	clk_disable_unprepare(ccdc_cfg.sclk);
+> -	clk_put(ccdc_cfg.mclk);
+> -	clk_put(ccdc_cfg.sclk);
+>  	iounmap(ccdc_cfg.base_addr);
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (res)
+> @@ -1052,18 +1014,12 @@ static int dm644x_ccdc_suspend(struct device *dev)
+>  	ccdc_save_context();
+>  	/* Disable CCDC */
+>  	ccdc_enable(0);
+> -	/* Disable both master and slave clock */
+> -	clk_disable_unprepare(ccdc_cfg.mclk);
+> -	clk_disable_unprepare(ccdc_cfg.sclk);
+>  
+>  	return 0;
+>  }
+>  
+>  static int dm644x_ccdc_resume(struct device *dev)
+>  {
+> -	/* Enable both master and slave clock */
+> -	clk_prepare_enable(ccdc_cfg.mclk);
+> -	clk_prepare_enable(ccdc_cfg.sclk);
+>  	/* Restore CCDC context */
+>  	ccdc_restore_context();
+>  
+> diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
+> index abc3ae3..3332cca 100644
+> --- a/drivers/media/platform/davinci/isif.c
+> +++ b/drivers/media/platform/davinci/isif.c
+> @@ -32,7 +32,6 @@
+>  #include <linux/uaccess.h>
+>  #include <linux/io.h>
+>  #include <linux/videodev2.h>
+> -#include <linux/clk.h>
+>  #include <linux/err.h>
+>  #include <linux/module.h>
+>  
+> @@ -88,8 +87,6 @@ static struct isif_oper_config {
+>  	struct isif_ycbcr_config ycbcr;
+>  	struct isif_params_raw bayer;
+>  	enum isif_data_pack data_pack;
+> -	/* Master clock */
+> -	struct clk *mclk;
+>  	/* ISIF base address */
+>  	void __iomem *base_addr;
+>  	/* ISIF Linear Table 0 */
+> @@ -1039,6 +1036,10 @@ static int isif_probe(struct platform_device *pdev)
+>  	void *__iomem addr;
+>  	int status = 0, i;
+>  
+> +	/* Platform data holds setup_pinmux function ptr */
+> +	if (!pdev->dev.platform_data)
+> +		return -ENODEV;
+> +
 
+This change seems unrelated. I suggest moving it to a different patch or
+atleast note it in the description.
 
-On Mon, Mar 11, 2013 at 3:30 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 03/06/2013 12:53 PM, Shaik Ameer Basha wrote:
->>
->> This patch modifies the current fimc_pipeline to exynos_pipeline,
->
->
-> I think we could leave it as fimc_pipeline, exynos_pipeline seems
-> too generic to me.
+>  	/*
+>  	 * first try to register with vpfe. If not correct platform, then we
+>  	 * don't have to iomap
+> @@ -1047,22 +1048,6 @@ static int isif_probe(struct platform_device *pdev)
+>  	if (status < 0)
+>  		return status;
+>  
+> -	/* Get and enable Master clock */
+> -	isif_cfg.mclk = clk_get(&pdev->dev, "master");
+> -	if (IS_ERR(isif_cfg.mclk)) {
+> -		status = PTR_ERR(isif_cfg.mclk);
+> -		goto fail_mclk;
+> -	}
+> -	if (clk_prepare_enable(isif_cfg.mclk)) {
+> -		status = -ENODEV;
+> -		goto fail_mclk;
+> -	}
+> -
+> -	/* Platform data holds setup_pinmux function ptr */
+> -	if (NULL == pdev->dev.platform_data) {
+> -		status = -ENODEV;
+> -		goto fail_mclk;
+> -	}
+>  	setup_pinmux = pdev->dev.platform_data;
+>  	/*
+>  	 * setup Mux configuration for ccdc which may be different for
+> @@ -1124,9 +1109,6 @@ fail_nobase_res:
+>  		release_mem_region(res->start, resource_size(res));
+>  		i--;
+>  	}
+> -fail_mclk:
+> -	clk_disable_unprepare(isif_cfg.mclk);
+> -	clk_put(isif_cfg.mclk);
+>  	vpfe_unregister_ccdc_device(&isif_hw_dev);
+>  	return status;
+>  }
+> @@ -1146,8 +1128,6 @@ static int isif_remove(struct platform_device *pdev)
+>  		i++;
+>  	}
+>  	vpfe_unregister_ccdc_device(&isif_hw_dev);
+> -	clk_disable_unprepare(isif_cfg.mclk);
+> -	clk_put(isif_cfg.mclk);
+>  	return 0;
+>  }
+>  
+> diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+> index a19c552..db69317 100644
+> --- a/drivers/media/platform/davinci/vpss.c
+> +++ b/drivers/media/platform/davinci/vpss.c
+> @@ -17,6 +17,7 @@
+>   *
+>   * common vpss system module platform driver for all video drivers.
+>   */
+> +#include <linux/clk.h>
+>  #include <linux/kernel.h>
+>  #include <linux/sched.h>
+>  #include <linux/init.h>
+> @@ -126,6 +127,10 @@ struct vpss_oper_config {
+>  	enum vpss_platform_type platform;
+>  	spinlock_t vpss_lock;
+>  	struct vpss_hw_ops hw_ops;
+> +	/* Master clock */
+> +	struct clk *mclk;
+> +	/* slave clock */
+> +	struct clk *sclk;
+>  };
+>  
+>  static struct vpss_oper_config oper_cfg;
+> @@ -429,6 +434,26 @@ static int vpss_probe(struct platform_device *pdev)
+>  		return -ENODEV;
+>  	}
+>  
+> +	/* Get and enable Master clock */
+> +	oper_cfg.mclk = clk_get(&pdev->dev, "vpss_master");
 
-no issues, if we are going to strict to this common pipeline implementation
-definitely we can retain fimc_pipeline or we can use some other name which
-is not too generic.
+use devm_clk_get() here to simplify the error handling.
 
->
->> which can be used across multiple media device drivers.
->> Signed-off-by: Shaik Ameer Basha<shaik.ameer@samsung.com>
->> ---
->>   drivers/media/platform/s5p-fimc/fimc-capture.c |   96 +++++++-----
->>   drivers/media/platform/s5p-fimc/fimc-core.h    |    4 +-
->>   drivers/media/platform/s5p-fimc/fimc-lite.c    |   73 ++++------
->>   drivers/media/platform/s5p-fimc/fimc-lite.h    |    4 +-
->>   drivers/media/platform/s5p-fimc/fimc-mdevice.c |  186
->> ++++++++++++++++++++++--
->>   drivers/media/platform/s5p-fimc/fimc-mdevice.h |   41 +++---
->>   include/media/s5p_fimc.h                       |   66 ++++++---
->>   7 files changed, 326 insertions(+), 144 deletions(-)
->>
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c
->> b/drivers/media/platform/s5p-fimc/fimc-capture.c
->> index 4cbaf46..106466e 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-capture.c
->> +++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
->> @@ -27,24 +27,26 @@
->>   #include<media/videobuf2-core.h>
->>   #include<media/videobuf2-dma-contig.h>
->>
->> -#include "fimc-mdevice.h"
->>   #include "fimc-core.h"
->>   #include "fimc-reg.h"
->>
->>   static int fimc_capture_hw_init(struct fimc_dev *fimc)
->>   {
->>         struct fimc_ctx *ctx = fimc->vid_cap.ctx;
->> -       struct fimc_pipeline *p =&fimc->pipeline;
->> +       struct exynos_pipeline *p =&fimc->pipeline;
->>
->>         struct fimc_sensor_info *sensor;
->>         unsigned long flags;
->> +       struct v4l2_subdev *sd;
->>         int ret = 0;
->>
->> -       if (p->subdevs[IDX_SENSOR] == NULL || ctx == NULL)
->> +       sd = exynos_pipeline_get_subdev(fimc->pipeline_ops,
->> +                                       get_subdev_sensor, p);
->
->
-> Hmm, it feels it is going wrong path this way. I would keep changes
-> to the s5p-fimc driver as small as possible. And the modules that
-> are shared across the exynos4 and exynos5 driver should use generic
-> media graph walking routines where possible.
+> +	if (IS_ERR(oper_cfg.mclk)) {
+> +		status = PTR_ERR(oper_cfg.mclk);
+> +		goto fail_getclk;
+> +	}
+> +	status = clk_prepare_enable(oper_cfg.mclk);
+> +	if (status)
+> +		goto fail_mclk;
+> +
+> +	/* Get and enable Slave clock */
+> +	oper_cfg.sclk = clk_get(&pdev->dev, "vpss_slave");
+> +	if (IS_ERR(oper_cfg.sclk)) {
+> +		status = PTR_ERR(oper_cfg.sclk);
+> +		goto fail_mclk;
+> +	}
+> +	status = clk_prepare_enable(oper_cfg.sclk);
+> +	if (status)
+> +		goto fail_sclk;
+> +
+>  	dev_info(&pdev->dev, "%s vpss probed\n", platform_name);
+>  	r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	if (!r1)
+> @@ -500,6 +525,13 @@ fail2:
+>  	iounmap(oper_cfg.vpss_regs_base0);
+>  fail1:
+>  	release_mem_region(r1->start, resource_size(r1));
+> +fail_sclk:
+> +	clk_disable_unprepare(oper_cfg.sclk);
+> +	clk_put(oper_cfg.sclk);
+> +fail_mclk:
+> +	clk_disable_unprepare(oper_cfg.mclk);
+> +	clk_put(oper_cfg.mclk);
+> +fail_getclk:
+>  	return status;
+>  }
+>  
+> @@ -510,6 +542,10 @@ static int vpss_remove(struct platform_device *pdev)
+>  	iounmap(oper_cfg.vpss_regs_base0);
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>  	release_mem_region(res->start, resource_size(res));
+> +	clk_disable_unprepare(oper_cfg.mclk);
+> +	clk_disable_unprepare(oper_cfg.sclk);
+> +	clk_put(oper_cfg.mclk);
+> +	clk_put(oper_cfg.sclk);
+>  	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
+>  		iounmap(oper_cfg.vpss_regs_base1);
+>  		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> @@ -518,10 +554,34 @@ static int vpss_remove(struct platform_device *pdev)
+>  	return 0;
+>  }
+>  
 
-The only problem here is, the fimc_subdev_index enum is specific to
-fimc-mdevice.
-and why should we expose one particular media-device driver specific
-enums to other drivers.
-My Idea was to remove all media device specific structures, macros
-from fimc, fimc-lite,
-mipi-csis and fimc-is drivers.
+> +static int vpss_suspend(struct device *dev)
+> +{
+> +	/* Disable both master and slave clock */
+> +	clk_disable_unprepare(oper_cfg.mclk);
+> +	clk_disable_unprepare(oper_cfg.sclk);
+> +
+> +	return 0;
+> +}
+> +
+> +static int vpss_resume(struct device *dev)
+> +{
+> +	/* Enable both master and slave clock */
+> +	clk_prepare_enable(oper_cfg.mclk);
+> +	clk_prepare_enable(oper_cfg.sclk);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops vpss_pm_ops = {
+> +	.suspend = vpss_suspend,
+> +	.resume = vpss_resume,
+> +};
 
->
->
->> +       if (sd == NULL || ctx == NULL)
->>                 return -ENXIO;
->>         if (ctx->s_frame.fmt == NULL)
->>                 return -EINVAL;
->>
->> -       sensor = v4l2_get_subdev_hostdata(p->subdevs[IDX_SENSOR]);
->> +       sensor = v4l2_get_subdev_hostdata(sd);
->>
->>         spin_lock_irqsave(&fimc->slock, flags);
->>         fimc_prepare_dma_offset(ctx,&ctx->d_frame);
->
-> ...
->>
->> @@ -486,9 +491,12 @@ static struct vb2_ops fimc_capture_qops = {
->>   int fimc_capture_ctrls_create(struct fimc_dev *fimc)
->>   {
->>         struct fimc_vid_cap *vid_cap =&fimc->vid_cap;
->>
->> -       struct v4l2_subdev *sensor = fimc->pipeline.subdevs[IDX_SENSOR];
->> +       struct v4l2_subdev *sensor;
->>         int ret;
->>
->> +       sensor = exynos_pipeline_get_subdev(fimc->pipeline_ops,
->> +
->> get_subdev_sensor,&fimc->pipeline);
->>
->> +
->>         if (WARN_ON(vid_cap->ctx == NULL))
->>                 return -ENXIO;
->>         if (vid_cap->ctx->ctrls.ready)
->> @@ -513,7 +521,7 @@ static int fimc_capture_open(struct file *file)
->>
->>         dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
->>
->> -       fimc_md_graph_lock(fimc);
->> +       exynos_pipeline_graph_lock(fimc->pipeline_ops,&fimc->pipeline);
->
->
-> Hmm, this look pretty scary to me. But I suspect this change is not
-> needed at all. The graph lock is _not_ the pipeline lock. It protects
-> all media entities registered to the media device, and links between
-> them. Not only entities linked into specific video processing pipeline
-> at a moment.
+Addition of suspend support seems unrelated to this patch. May be make a
+seperate patch for it and while at it, please use PM runtime instead of
+direct clock enable/disable. Have a look at the davinci_emac driver
+which was converted to use PM runtime recently.
 
-Sorry, here the function name doesn't suits its implementation.
-Actually  exynos_pipeline_graph_lock() does what exactly
-fimc_md_graph_lock() does.
-I thought of having one common function across all the drivers to use
-graph lock/unlock functionality.
+Let me know how you want to handle this patch. I suppose you intend this
+should go through my tree because of other dependent platform changes?
 
->
->>         mutex_lock(&fimc->lock);
->>
->>         if (fimc_m2m_active(fimc))
->> @@ -531,7 +539,7 @@ static int fimc_capture_open(struct file *file)
->>         }
->>
->>         if (++fimc->vid_cap.refcnt == 1) {
->> -               ret = fimc_pipeline_call(fimc, open,&fimc->pipeline,
->> +               ret = exynos_pipeline_call(fimc, open,&fimc->pipeline,
->>                                         &fimc->vid_cap.vfd.entity, true);
->>
->>                 if (!ret&&  !fimc->vid_cap.user_subdev_api)
->>
->> @@ -549,7 +557,7 @@ static int fimc_capture_open(struct file *file)
->>         }
->>   unlock:
->>         mutex_unlock(&fimc->lock);
->> -       fimc_md_graph_unlock(fimc);
->> +       exynos_pipeline_graph_unlock(fimc->pipeline_ops,&fimc->pipeline);
->>         return ret;
->>   }
->
-> ...
->
->>   /**
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c
->> b/drivers/media/platform/s5p-fimc/fimc-lite.c
->> index 3266c3f..122cf95 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
->> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
->
-> ...
->>
->> -/* Called with the media graph mutex held */
->> -static struct v4l2_subdev *__find_remote_sensor(struct media_entity *me)
->> -{
->> -       struct media_pad *pad =&me->pads[0];
->>
->> -       struct v4l2_subdev *sd;
->> -
->> -       while (pad->flags&  MEDIA_PAD_FL_SINK) {
->>
->> -               /* source pad */
->> -               pad = media_entity_remote_source(pad);
->> -               if (pad == NULL ||
->> -                   media_entity_type(pad->entity) !=
->> MEDIA_ENT_T_V4L2_SUBDEV)
->> -                       break;
->> -
->> -               sd = media_entity_to_v4l2_subdev(pad->entity);
->> -
->> -               if (sd->grp_id == GRP_ID_FIMC_IS_SENSOR)
->> -                       return sd;
->> -               /* sink pad */
->> -               pad =&sd->entity.pads[0];
->>
->> -       }
->> -       return NULL;
->> -}
->
->
-> What's wrong with this function ? Why doesn't it work for you ?
-> I think we should drop direct usage of fimc->pipeline->subdevs[IDX_SENSOR]
-> instead. The sensor group IDs should probably be moved to some common
-> header file.
->
-
-In case of exynos4, fimc-lite only used with fimc-is. That means it only
-uses the FIMC IS SENSOR. but in case of exynos5, fimc-lite can use both
-GRP_ID_SENSOR and GRP_ID_FIMC_IS_SENSOR. Even this group ID's are
-specific to individual media device drivers.
-
-Here the idea is driver need not know about which sensor is connected to the
-pipeline, it can be IS sensor or normal sensor. It can use the common pipeline
-api's to get the sensor sub-dev.
-
-Or as you suggested, we can move all this GRP_ID's to some common location
-and change the checking in this function to
-        -  if (sd->grp_id == GRP_ID_FIMC_IS_SENSOR)
-        + if ((sd->grp_id == GRP_ID_FIMC_IS_SENSOR) || (sd->grp_id ==
-GRP_ID_SENSOR))
-
-My only idea was to reuse the fimc pipeline structure (struct
-fimc_pipeline) across
-different media device drivers. Having a hard-coded max array index
-which is specific to
-one media device driver will not help it to be reused by multiple guys.
-
-I may be missing some details here. Can you please suggest a better
-way to remove this dependency.
-
->
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
->> b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
->> index fc93fad..938cc56 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
->> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
->> @@ -36,6 +36,8 @@
->>   #include "fimc-mdevice.h"
->>   #include "mipi-csis.h"
->>
->> +static struct fimc_md *g_fimc_mdev;
->
->
-> Hm, this is pretty ugly. Can you explain why it is needed ?
-
-I was expecting this.
-Actually i want to associate this fimc_mdev with this exynos_pipeline.
-But as the pipeline init happens from the driver context (fimc,
-fimc-lite), I should
-have a way to access struct fimc_md in pipeline init function. That's
-why I stored a
-global reference of struct fimc_md here.
-I think, I need to find a better way to achieve same functionality if needed. :)
-
->
->
->>   static int __fimc_md_set_camclk(struct fimc_md *fmd,
->>                                 struct fimc_sensor_info *s_info,
->>                                 bool on);
->> @@ -143,6 +145,73 @@ static int fimc_pipeline_s_power(struct fimc_pipeline
->> *p, bool state)
->>   }
->>
->>   /**
->> + * __fimc_pipeline_init
->> + *      allocate the fimc_pipeline structure and do the basic
->> initialization
->
->
-> This is not a proper kernel-doc style.
-
-Ok. Will take care.
-
->
->
->> + */
->> +static int __fimc_pipeline_init(struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p;
->> +
->> +       p = kzalloc(sizeof(*p), GFP_KERNEL);
->> +       if (!p)
->> +               return -ENOMEM;
->
->
-> Why this needs to be allocated dynamically ?
-
-OK. I will check this.
-
->
->
->> +       p->is_init = true;
->> +       p->fmd = g_fimc_mdev;
->> +       ep->priv = (void *)p;
->> +       return 0;
->> +}
->> +
->> +/**
->> + * __fimc_pipeline_deinit
->> + *      free the allocated resources for fimc_pipeline
->> + */
->> +static int __fimc_pipeline_deinit(struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->> +
->> +       if (!p || !p->is_init)
->> +               return -EINVAL;
->> +
->> +       p->is_init = false;
->> +       kfree(p);
->> +
->> +       return 0;
->> +}
->> +
->> +/**
->> + * __fimc_pipeline_get_subdev_sensor
->> + *      if valid pipeline, returns the sensor subdev pointer
->> + *      else returns NULL
->> + */
->> +static struct v4l2_subdev *__fimc_pipeline_get_subdev_sensor(
->> +                                       struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->> +
->> +       if (!p || !p->is_init)
->> +               return NULL;
->> +
->> +       return p->subdevs[IDX_SENSOR];
->> +}
->> +
->> +/**
->> + * __fimc_pipeline_get_subdev_csis
->> + *      if valid pipeline, returns the csis subdev pointer
->> + *      else returns NULL
->> + */
->> +static struct v4l2_subdev *__fimc_pipeline_get_subdev_csis(
->> +                                       struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->> +
->> +       if (!p || !p->is_init)
->> +               return NULL;
->> +
->> +       return p->subdevs[IDX_CSIS];
->> +}
->> +
->> +/**
->>    * __fimc_pipeline_open - update the pipeline information, enable power
->>    *                        of all pipeline subdevs and the sensor clock
->>    * @me: media entity to start graph walk with
->> @@ -150,11 +219,15 @@ static int fimc_pipeline_s_power(struct
->> fimc_pipeline *p, bool state)
->>    *
->>    * Called with the graph mutex held.
->>    */
->> -static int __fimc_pipeline_open(struct fimc_pipeline *p,
->> +static int __fimc_pipeline_open(struct exynos_pipeline *ep,
->>                                 struct media_entity *me, bool prep)
->>   {
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->>         int ret;
->>
->> +       if (!p || !p->is_init)
->> +               return -EINVAL;
->> +
->>         if (prep)
->>                 fimc_pipeline_prepare(p, me);
->>
->> @@ -174,17 +247,20 @@ static int __fimc_pipeline_open(struct fimc_pipeline
->> *p,
->>    *
->>    * Disable power of all subdevs and turn the external sensor clock off.
->>    */
->> -static int __fimc_pipeline_close(struct fimc_pipeline *p)
->> +static int __fimc_pipeline_close(struct exynos_pipeline *ep)
->>   {
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->>         int ret = 0;
->>
->> -       if (!p || !p->subdevs[IDX_SENSOR])
->> +       if (!p || !p->is_init)
->>                 return -EINVAL;
->>
->> -       if (p->subdevs[IDX_SENSOR]) {
->> -               ret = fimc_pipeline_s_power(p, 0);
->> -               fimc_md_set_camclk(p->subdevs[IDX_SENSOR], false);
->> -       }
->> +       if (!p->subdevs[IDX_SENSOR])
->> +               return -EINVAL;
->> +
->> +       ret = fimc_pipeline_s_power(p, 0);
->> +       fimc_md_set_camclk(p->subdevs[IDX_SENSOR], false);
->> +
->>         return ret == -ENXIO ? 0 : ret;
->>   }
->>
->> @@ -193,10 +269,14 @@ static int __fimc_pipeline_close(struct
->> fimc_pipeline *p)
->>    * @pipeline: video pipeline structure
->>    * @on: passed as the s_stream call argument
->>    */
->> -static int __fimc_pipeline_s_stream(struct fimc_pipeline *p, bool on)
->> +static int __fimc_pipeline_s_stream(struct exynos_pipeline *ep, bool on)
->>   {
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->>         int i, ret;
->>
->> +       if (!p || !p->is_init)
->> +               return -EINVAL;
->> +
->>         if (p->subdevs[IDX_SENSOR] == NULL)
->>                 return -ENODEV;
->>
->> @@ -213,11 +293,47 @@ static int __fimc_pipeline_s_stream(struct
->> fimc_pipeline *p, bool on)
->>
->>   }
->>
->> +static void __fimc_pipeline_graph_lock(struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->> +       struct fimc_md *fmd = p->fmd;
->> +
->> +       mutex_lock(&fmd->media_dev.graph_mutex);
->> +}
->> +
->> +static void __fimc_pipeline_graph_unlock(struct exynos_pipeline *ep)
->> +{
->> +       struct fimc_pipeline *p = (struct fimc_pipeline *)ep->priv;
->> +       struct fimc_md *fmd = p->fmd;
->> +
->> +       mutex_unlock(&fmd->media_dev.graph_mutex);
->> +}
->
->
-> This seems really wrong to me. You can reference the media graph mutex
-> from a subdev or video device through its 'entity' member, e.g.
-> sd->entity.parent->graph_mutex.
->
-> ...
->>
->>   static int fimc_md_probe(struct platform_device *pdev)
->>   {
->>         struct device *dev =&pdev->dev;
->>
->> @@ -1175,7 +1327,7 @@ static int fimc_md_probe(struct platform_device
->> *pdev)
->>
->>         v4l2_dev =&fmd->v4l2_dev;
->>         v4l2_dev->mdev =&fmd->media_dev;
->>
->> -       v4l2_dev->notify = fimc_sensor_notify;
->> +       v4l2_dev->notify = fimc_md_sensor_notify;
->>         strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
->>
->>
->> @@ -1194,6 +1346,7 @@ static int fimc_md_probe(struct platform_device
->> *pdev)
->>                 goto err_clk;
->>
->>         fmd->user_subdev_api = (dev->of_node != NULL);
->> +       g_fimc_mdev = fmd;
->>
->>         /* Protect the media graph while we're registering entities */
->>         mutex_lock(&fmd->media_dev.graph_mutex);
->> @@ -1252,6 +1405,7 @@ static int fimc_md_remove(struct platform_device
->> *pdev)
->>
->>         if (!fmd)
->>                 return 0;
->> +       g_fimc_mdev = NULL;
->>         device_remove_file(&pdev->dev,&dev_attr_subdev_conf_mode);
->>         fimc_md_unregister_entities(fmd);
->>         media_device_unregister(&fmd->media_dev);
->> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
->> b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
->> index f3e0251..1ea7acf 100644
->> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
->> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
->> @@ -37,6 +37,15 @@
->>   #define FIMC_MAX_SENSORS      8
->>   #define FIMC_MAX_CAMCLKS      2
->>
->> +enum fimc_subdev_index {
->> +       IDX_SENSOR,
->> +       IDX_CSIS,
->> +       IDX_FLITE,
->> +       IDX_IS_ISP,
->> +       IDX_FIMC,
->> +       IDX_MAX,
->> +};
->> +
->>   struct fimc_csis_info {
->>         struct v4l2_subdev *sd;
->>         int id;
->> @@ -49,20 +58,6 @@ struct fimc_camclk_info {
->>   };
->>
->>   /**
->> - * struct fimc_sensor_info - image data source subdev information
->> - * @pdata: sensor's atrributes passed as media device's platform data
->> - * @subdev: image sensor v4l2 subdev
->> - * @host: fimc device the sensor is currently linked to
->> - *
->> - * This data structure applies to image sensor and the writeback subdevs.
->> - */
->> -struct fimc_sensor_info {
->> -       struct fimc_source_info pdata;
->> -       struct v4l2_subdev *subdev;
->> -       struct fimc_dev *host;
->> -};
->> -
->> -/**
->>    * struct fimc_md - fimc media device information
->>    * @csis: MIPI CSIS subdevs data
->>    * @sensor: array of registered sensor subdevs
->> @@ -89,6 +84,14 @@ struct fimc_md {
->>         spinlock_t slock;
->>   };
->>
->> +struct fimc_pipeline {
->> +       int is_init;
->> +       struct fimc_md *fmd;
->> +       struct v4l2_subdev *subdevs[IDX_MAX];
->> +       void (*sensor_notify)(struct v4l2_subdev *sd,
->> +                       unsigned int notification, void *arg);
->> +};
->
->
-> This is supposed to be the s5p-fimc driver specific only data structure,
-> right ?
-
-yes.
-
->
->
->>   #define is_subdev_pad(pad) (pad == NULL || \
->>         media_entity_type(pad->entity) == MEDIA_ENT_T_V4L2_SUBDEV)
->>
->> @@ -103,16 +106,6 @@ static inline struct fimc_md
->> *entity_to_fimc_mdev(struct media_entity *me)
->>                 container_of(me->parent, struct fimc_md, media_dev);
->>   }
->>
->> -static inline void fimc_md_graph_lock(struct fimc_dev *fimc)
->> -{
->> -       mutex_lock(&fimc->vid_cap.vfd.entity.parent->graph_mutex);
->> -}
->> -
->> -static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
->> -{
->> -       mutex_unlock(&fimc->vid_cap.vfd.entity.parent->graph_mutex);
->> -}
->
->
-> Why to remove these s5p-fimc driver private functions ?
-
-I thought of using the common pipeline graph functions instead.
-As the implementaiton of __fimc_pipeline_graph_unlock() looks wrong,
-we can retain this as driver private functions.
-
->
->
->>   int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
->>
->>   #endif
->> diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
->> index e2434bb..007e998 100644
->> --- a/include/media/s5p_fimc.h
->> +++ b/include/media/s5p_fimc.h
->> @@ -13,6 +13,7 @@
->>   #define S5P_FIMC_H_
->>
->>   #include<media/media-entity.h>
->> +#include<media/v4l2-subdev.h>
->>
->>   /*
->>    * Enumeration of data inputs to the camera subsystem.
->> @@ -75,6 +76,20 @@ struct fimc_source_info {
->>   };
->>
->>   /**
->> + * struct fimc_sensor_info - image data source subdev information
->> + * @pdata: sensor's atrributes passed as media device's platform data
->> + * @subdev: image sensor v4l2 subdev
->> + * @host: capture device the sensor is currently linked to
->> + *
->> + * This data structure applies to image sensor and the writeback subdevs.
->> + */
->> +struct fimc_sensor_info {
->> +       struct fimc_source_info pdata;
->> +       struct v4l2_subdev *subdev;
->> +       void *host;
->> +};
->> +
->> +/**
->>    * struct s5p_platform_fimc - camera host interface platform data
->>    *
->>    * @source_info: properties of an image source for the host interface
->> setup
->> @@ -93,21 +108,10 @@ struct s5p_platform_fimc {
->>    */
->>   #define S5P_FIMC_TX_END_NOTIFY _IO('e', 0)
->>
->> -enum fimc_subdev_index {
->> -       IDX_SENSOR,
->> -       IDX_CSIS,
->> -       IDX_FLITE,
->> -       IDX_IS_ISP,
->> -       IDX_FIMC,
->> -       IDX_MAX,
->> -};
->> -
->> -struct media_pipeline;
->> -struct v4l2_subdev;
->>
->> -struct fimc_pipeline {
->> -       struct v4l2_subdev *subdevs[IDX_MAX];
->> -       struct media_pipeline *m_pipeline;
->> +struct exynos_pipeline {
->> +       struct media_pipeline m_pipeline;
->> +       void *priv;
->>   };
->>
->>   /*
->> @@ -115,15 +119,39 @@ struct fimc_pipeline {
->>    * video node when it is the last entity of the pipeline. Implemented
->>    * by corresponding media device driver.
->>    */
->> -struct fimc_pipeline_ops {
->> -       int (*open)(struct fimc_pipeline *p, struct media_entity *me,
->> +struct exynos_pipeline_ops {
->> +       int (*init) (struct exynos_pipeline *p);
->> +       int (*deinit) (struct exynos_pipeline *p);
->
->
-> How about naming it 'free' instead ?
-
-OK
-
->
->
->> +       int (*open)(struct exynos_pipeline *p, struct media_entity *me,
->>                           bool resume);
->> -       int (*close)(struct fimc_pipeline *p);
->> -       int (*set_stream)(struct fimc_pipeline *p, bool state);
->> +       int (*close)(struct exynos_pipeline *p);
->> +       int (*set_stream)(struct exynos_pipeline *p, bool state);
->> +       void (*graph_lock)(struct exynos_pipeline *p);
->> +       void (*graph_unlock)(struct exynos_pipeline *p);
->
->
-> Why do you think these graph callbacks are needed here ?
-
-as mentioned above, we can remove this.
-
->
->
->> +       struct v4l2_subdev *(*get_subdev_sensor)(struct exynos_pipeline
->> *p);
->> +       struct v4l2_subdev *(*get_subdev_csis)(struct exynos_pipeline *p);
->
->
-> No, we should instead use generic media graph walking routines in the
-> shared drivers (FIMC-LITE, MIPI-CSIS). FIMC driver could be making
-> certain assumptions about it's related media device driver. These
-> drivers are contained in a single module anyway.
-
-Cant we expose some macros for subdevs in a common header and implement a
-get_subdev function in common pipeline to achieve this.
-
-enum in /include/media/s5p_fimc.h file. Something like
-
-EXYNOS_SD_SENSOR,
-EXYNOS_SD_MIPI_CSIS,
-...
-... etc.
-
-pipeline_ops->get_subdev(pipeline, EXYNOS_SD_SENSOR);
-
-actually, the implementation of get_subdev uses the media device specific
-structures which stored the subdev pointers internally by using  generic media
-graph walking routines itself. so there should not be any issues with using the
-common pipeline api's also.
-
-[Or]
-
-as you already suggested, we can have some common group id's exposed
-in a common header file, and use the generic media graph walking
-routines in each
-driver to achieve this functionality.
-
-Regards,
-Shaik Ameer Basha
-
->
->
->> +       void (*register_notify_cb)(struct exynos_pipeline *p,
->> +               void (*cb)(struct v4l2_subdev *sd,
->> +                               unsigned int notification, void *arg));
->
->
-> Hmm, I need to think more about this. AFAIR this would be only needed
-> for S5P/Exynos4 FIMC.
+Thanks,
+Sekhar
