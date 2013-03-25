@@ -1,279 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:48745 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab3CZRao (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3705 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755681Ab3CYJCo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:30:44 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 10/10] s5p-fimc: Change the driver directory name to
- exynos4-is
-Date: Tue, 26 Mar 2013 18:29:52 +0100
-Message-id: <1364318992-20562-11-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 25 Mar 2013 05:02:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.10] go7007 driver overhaul
+Date: Mon, 25 Mar 2013 10:02:29 +0100
+Cc: linux-media@vger.kernel.org,
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>
+References: <201303221536.35993.hverkuil@xs4all.nl> <20130324131340.720a59dd@redhat.com>
+In-Reply-To: <20130324131340.720a59dd@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303251002.29967.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The s5p-fimc directory now contains drivers for multiple IP blocks
-found in multiple Samsung application processors. This includes FIMC
-(CAMIF), MIPI CSIS and FIMC LITE. FIMC-IS (Imaging Subsystem) driver
-is going to be put into same directory. Hence we rename it to
-exynos4-is as s5p-fimc was only relevant for early version of this
-driver, when it only supported FIMC IP block.
+On Sun March 24 2013 17:13:40 Mauro Carvalho Chehab wrote:
+> Em Fri, 22 Mar 2013 15:36:35 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Hi all,
+> > 
+> > This pull request updates the staging go7007 driver to the latest
+> > V4L2 frameworks and actually makes it work reliably.
+> > 
+> > This pull request assumes that pull request
+> > http://patchwork.linuxtv.org/patch/17568/ was merged first.
+> > 
+> > Some highlights:
+> > 
+> > - moved the custom i2c drivers to media/i2c.
+> > - replaced the s2250-loader by a common loader for all the supported
+> >   devices.
+> > - replaced all MPEG-related custom ioctls by standard ioctls and FMT
+> >   support.
+> > - added the saa7134-go7007 combination (similar to the saa7134-empress).
+> > - added support for ADS Tech DVD Xpress DX2.
+> > 
+> > In addition I've made some V4L2 core and saa7115 changes (the first 7
+> > patches):
+> > 
+> > - eliminate false lockdep warnings when dealing with nested control
+> >   handlers. This patch is a slightly modified version from the one Andy
+> >   posted a long time ago.
+> > - add support to easily test if any subdevices support a particular operation.
+> > - fix a few bugs in the code that tests if an ioctl is available: it didn't
+> >   take 'disabling of ioctls' into account.
+> > - added additional configuration flags to saa7115, needed by the go7007.
+> > - improved querystd support in saa7115.
+> > 
+> > This driver now passes all v4l2-compliance tests.
+> > 
+> > It has been tested with:
+> > 
+> > - Plextor PX-TV402U (PAL model)
+> > - Sensoray S2250S (generously provided by Sensoray, all audio inputs
+> >   now work!)
+> > - Sensoray Model 614 (saa7134+go7007 PCI board, generously provided by
+> >   Sensoray)
+> > - WIS X-Men II sensor board (generously provided by Sensoray)
+> > - Adlink PCI-MPG24 surveillance board
+> > - ADS Tech DVD Xpress DX2
+> > 
+> > Everything seems to work OK, but for two things:
+> > 
+> > - the WIS X-Men and tthe S2250 do not honor requested frameperiod changes
+> >   using S_PARM. The others work fine, and I have no idea why these work
+> >   differently.
+> > - the bttv part of the Adlink card doesn't work for me: I just get black
+> >   with fuzzy lines. This doesn't work in 3.8 either, so I don't know
+> >   what's going on here. It's not related to my patch series, that's for
+> >   sure.
+> > 
+> > What needs to be done to get this driver out of staging? The main thing
+> > is the motion detection support. Volokh has some additional code for that,
+> > and I want to experiment with motion detection for this card and the
+> > solo6x10 card and see if I can come up with a nice API for that.
+> > 
+> > It would also be nice to get the s2250-board.c code make use of the already
+> > existing i2c devices, but it is hooked up somewhat strangely, so I need to
+> > look at that some day.
+> > 
+> > Regarding the firmware: they are available here:
+> > 
+> > http://git.linuxtv.org/hverkuil/linux-firmware.git/shortlog/refs/heads/go7007
+> > 
+> > All firmwares relating to this driver have been collected in the go7007
+> > directory with correct licensing. Note that this means that the s2250 firmwares
+> > have been renamed. Should this be an issue I can change this back and leave
+> > those files where they are today, but since the go7007 firmware files were
+> > never included in linux-firmware (and therefor the driver never worked with
+> > just linux-firmware) and because it is still a staging driver I thought it
+> > cleaner to have all firmware files in one place.
+> > 
+> > Mauro, when should I make a pull request for the linux-firmware changes?
+> > After you have merged this pull request?
+> > 
+> > In the meantime, the firmware files are also available here:
+> > 
+> > http://hverkuil.home.xs4all.nl/go7007-fw.tar.bz2
+> > 
+> > Just unpack in /lib/firmware.
+> > 
+> > Regards,
+> > 
+> >         Hans
+> > 
+> > The following changes since commit 8bf1a5a826d06a9b6f65b3e8dffb9be59d8937c3:
+> > 
+> >   v4l2-ioctl: add precision when printing names. (2013-03-22 11:59:21 +0100)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git go7007
+> > 
+> > for you to fetch changes up to 651f19e2186eb92393296717afaa7fc0873d6c2f:
+> > 
+> >   go7007: add support for ADS Tech DVD Xpress DX2 (2013-03-22 15:20:46 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Andy Walls (1):
+> >       v4l2-ctrls: eliminate lockdep false alarms for struct v4l2_ctrl_handler.lock
+> > 
+> > Hans Verkuil (47):
+> >       v4l2-core: add code to check for specific ops.
+> >       v4l2-ioctl: check if an ioctl is valid.
+> >       v4l2-ctrls: add V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER control
+> >       saa7115: add config flag to change the IDQ polarity.
+> >       saa7115: improve querystd handling for the saa7115.
+> >       saa7115: add support for double-rate ASCLK
+> >       go7007: fix i2c_xfer return codes.
+> >       tuner: add Sony BTF tuners
+> >       sony-btf-mpx: the MPX driver for the sony BTF PAL/SECAM tuner
+> >       ov7640: add new ov7640 driver
+> >       uda1342: add new uda1342 audio codec driver
+> >       tw9903: add new tw9903 video decoder.
+> >       tw2804: add support for the Techwell tw2804.
+> >       go7007: switch to standard tuner/i2c subdevs.
+> >       go7007: remove all wis* drivers.
+> >       go7007: add audio input ioctls.
+> >       s2250-loader: use usbv2_cypress_load_firmware
+> >       go7007: go7007: add device_caps and bus_info support to querycap.
+> >       go7007: remove current_norm.
+> >       go7007: fix DMA related errors.
+> >       go7007: remember boot firmware.
+> >       go7007: fix unregister/disconnect handling.
+> >       go7007: convert to the control framework and remove obsolete JPEGCOMP support.
+> >       s2250: convert to the control framework.
+> >       go7007: add prio and control event support.
+> >       go7007: add log_status support.
+> >       go7007: tuner/std related fixes.
+> >       go7007: standardize MPEG handling support.
+> >       go7007: simplify the PX-TV402U board ID handling.
+> >       go7007: set up the saa7115 audio clock correctly.
+> >       go7007: drop struct go7007_file
+> >       go7007: convert to core locking and vb2.
+> >       go7007: embed struct video_device
+> >       go7007: remove cropping functions
+> >       saa7134-go7007: add support for this combination.
+> 
+> I won't apply this one yet. A non-staging driver should not try to load a
+> staging one without a notice. That change would be ok if you were also
+> moving go7007 out of staging.
 
-The imaging subsystem drivers for Exynos4 SoC series and S5PV210 will
-be included in drivers/media/platform/exynos4-is directory, with some
-modules shared with exynos5 series, while the rest of exynos5 specific
-modules will find their home in drivers/media/platform/exynos5-is.
+Fair enough. I will prepare a patch that at least updates the saa7134-go7007.c
+source with my changes. That only leaves the patch to saa7134 itself that will
+need to be applied once this driver goes out of staging.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/Kconfig                     |    2 +-
- drivers/media/platform/Makefile                    |    2 +-
- .../platform/{s5p-fimc => exynos4-is}/Kconfig      |    8 ++++----
- .../platform/{s5p-fimc => exynos4-is}/Makefile     |    2 +-
- .../{s5p-fimc => exynos4-is}/fimc-capture.c        |    2 +-
- .../platform/{s5p-fimc => exynos4-is}/fimc-core.c  |    2 +-
- .../platform/{s5p-fimc => exynos4-is}/fimc-core.h  |    0
- .../{s5p-fimc => exynos4-is}/fimc-lite-reg.c       |    0
- .../{s5p-fimc => exynos4-is}/fimc-lite-reg.h       |    0
- .../platform/{s5p-fimc => exynos4-is}/fimc-lite.c  |    2 +-
- .../platform/{s5p-fimc => exynos4-is}/fimc-lite.h  |    0
- .../platform/{s5p-fimc => exynos4-is}/fimc-m2m.c   |    3 +--
- .../platform/{s5p-fimc => exynos4-is}/fimc-reg.c   |    2 +-
- .../platform/{s5p-fimc => exynos4-is}/fimc-reg.h   |    0
- .../fimc-mdevice.c => exynos4-is/media-dev.c}      |    2 +-
- .../fimc-mdevice.h => exynos4-is/media-dev.h}      |    0
- .../platform/{s5p-fimc => exynos4-is}/mipi-csis.c  |    0
- .../platform/{s5p-fimc => exynos4-is}/mipi-csis.h  |    0
- 18 files changed, 13 insertions(+), 14 deletions(-)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/Kconfig (87%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/Makefile (94%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-capture.c (99%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-core.c (99%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-core.h (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-lite-reg.c (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-lite-reg.h (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-lite.c (99%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-lite.h (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-m2m.c (99%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-reg.c (99%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/fimc-reg.h (100%)
- rename drivers/media/platform/{s5p-fimc/fimc-mdevice.c => exynos4-is/media-dev.c} (99%)
- rename drivers/media/platform/{s5p-fimc/fimc-mdevice.h => exynos4-is/media-dev.h} (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/mipi-csis.c (100%)
- rename drivers/media/platform/{s5p-fimc => exynos4-is}/mipi-csis.h (100%)
+> 
+> >       s2250: add comment describing the hardware.
+> >       go7007-loader: renamed from s2250-loader
+> >       go7007-loader: add support for the other devices and move fw files
+> >       go7007: update the README
+> 
+> You need to add there:
+> 	- move cypress load firmware to drivers/media/common;
+> 
+> And some note about saa7134 integration.
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 3dcfea6..7813b2a 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -122,7 +122,7 @@ config VIDEO_S3C_CAMIF
- 	  will be called s3c-camif.
- 
- source "drivers/media/platform/soc_camera/Kconfig"
--source "drivers/media/platform/s5p-fimc/Kconfig"
-+source "drivers/media/platform/exynos4-is/Kconfig"
- source "drivers/media/platform/s5p-tv/Kconfig"
- 
- endif # V4L_PLATFORM_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 4817d28..8d691fe 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -28,7 +28,7 @@ obj-$(CONFIG_VIDEO_CODA) 		+= coda.o
- obj-$(CONFIG_VIDEO_MEM2MEM_DEINTERLACE)	+= m2m-deinterlace.o
- 
- obj-$(CONFIG_VIDEO_S3C_CAMIF) 		+= s3c-camif/
--obj-$(CONFIG_VIDEO_SAMSUNG_S5P_FIMC) 	+= s5p-fimc/
-+obj-$(CONFIG_VIDEO_SAMSUNG_EXYNOS4_IS) 	+= exynos4-is/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG)	+= s5p-jpeg/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC)	+= s5p-mfc/
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
-diff --git a/drivers/media/platform/s5p-fimc/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-similarity index 87%
-rename from drivers/media/platform/s5p-fimc/Kconfig
-rename to drivers/media/platform/exynos4-is/Kconfig
-index 64c1116..ed96dbc 100644
---- a/drivers/media/platform/s5p-fimc/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -1,6 +1,6 @@
- 
--config VIDEO_SAMSUNG_S5P_FIMC
--	bool "Samsung S5P/EXYNOS SoC camera interface driver (experimental)"
-+config VIDEO_SAMSUNG_EXYNOS4_IS
-+	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PLAT_S5P && PM_RUNTIME
- 	depends on EXPERIMENTAL
- 	depends on MFD_SYSCON
-@@ -8,7 +8,7 @@ config VIDEO_SAMSUNG_S5P_FIMC
- 	  Say Y here to enable camera host interface devices for
- 	  Samsung S5P and EXYNOS SoC series.
- 
--if VIDEO_SAMSUNG_S5P_FIMC
-+if VIDEO_SAMSUNG_EXYNOS4_IS
- 
- config VIDEO_S5P_FIMC
- 	tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
-@@ -17,7 +17,7 @@ config VIDEO_S5P_FIMC
- 	select V4L2_MEM2MEM_DEV
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
--	  interface and video postprocessor (FIMC and FIMC-LITE) devices.
-+	  interface and video postprocessor (FIMC) devices.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called s5p-fimc.
-diff --git a/drivers/media/platform/s5p-fimc/Makefile b/drivers/media/platform/exynos4-is/Makefile
-similarity index 94%
-rename from drivers/media/platform/s5p-fimc/Makefile
-rename to drivers/media/platform/exynos4-is/Makefile
-index 4648514..8c67441 100644
---- a/drivers/media/platform/s5p-fimc/Makefile
-+++ b/drivers/media/platform/exynos4-is/Makefile
-@@ -1,4 +1,4 @@
--s5p-fimc-objs := fimc-core.o fimc-reg.o fimc-m2m.o fimc-capture.o fimc-mdevice.o
-+s5p-fimc-objs := fimc-core.o fimc-reg.o fimc-m2m.o fimc-capture.o media-dev.o
- exynos-fimc-lite-objs += fimc-lite-reg.o fimc-lite.o
- s5p-csis-objs := mipi-csis.o
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-capture.c
-rename to drivers/media/platform/exynos4-is/fimc-capture.c
-index 4d79d64..b9c0817 100644
---- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -27,7 +27,7 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-dma-contig.h>
- 
--#include "fimc-mdevice.h"
-+#include "media-dev.h"
- #include "fimc-core.h"
- #include "fimc-reg.h"
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-core.c
-rename to drivers/media/platform/exynos4-is/fimc-core.c
-index 1edd3aa..1248cdd 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -32,7 +32,7 @@
- 
- #include "fimc-core.h"
- #include "fimc-reg.h"
--#include "fimc-mdevice.h"
-+#include "media-dev.h"
- 
- static char *fimc_clocks[MAX_FIMC_CLOCKS] = {
- 	"sclk_fimc", "fimc"
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-core.h
-rename to drivers/media/platform/exynos4-is/fimc-core.h
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite-reg.c b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-lite-reg.c
-rename to drivers/media/platform/exynos4-is/fimc-lite-reg.c
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite-reg.h b/drivers/media/platform/exynos4-is/fimc-lite-reg.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-lite-reg.h
-rename to drivers/media/platform/exynos4-is/fimc-lite-reg.h
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-lite.c
-rename to drivers/media/platform/exynos4-is/fimc-lite.c
-index ca78ac0..70c0cc2 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -31,7 +31,7 @@
- #include <media/videobuf2-dma-contig.h>
- #include <media/s5p_fimc.h>
- 
--#include "fimc-mdevice.h"
-+#include "media-dev.h"
- #include "fimc-lite.h"
- #include "fimc-lite-reg.h"
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-lite.h
-rename to drivers/media/platform/exynos4-is/fimc-lite.h
-diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-m2m.c
-rename to drivers/media/platform/exynos4-is/fimc-m2m.c
-index daaaf91..3936b09 100644
---- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
-@@ -29,8 +29,7 @@
- 
- #include "fimc-core.h"
- #include "fimc-reg.h"
--#include "fimc-mdevice.h"
--
-+#include "media-dev.h"
- 
- static unsigned int get_m2m_fmt_flags(unsigned int stream_type)
- {
-diff --git a/drivers/media/platform/s5p-fimc/fimc-reg.c b/drivers/media/platform/exynos4-is/fimc-reg.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-reg.c
-rename to drivers/media/platform/exynos4-is/fimc-reg.c
-index ee88b94..c276eb8 100644
---- a/drivers/media/platform/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/platform/exynos4-is/fimc-reg.c
-@@ -14,7 +14,7 @@
- #include <linux/regmap.h>
- 
- #include <media/s5p_fimc.h>
--#include "fimc-mdevice.h"
-+#include "media-dev.h"
- 
- #include "fimc-reg.h"
- #include "fimc-core.h"
-diff --git a/drivers/media/platform/s5p-fimc/fimc-reg.h b/drivers/media/platform/exynos4-is/fimc-reg.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-reg.h
-rename to drivers/media/platform/exynos4-is/fimc-reg.h
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/exynos4-is/media-dev.c
-similarity index 99%
-rename from drivers/media/platform/s5p-fimc/fimc-mdevice.c
-rename to drivers/media/platform/exynos4-is/media-dev.c
-index 06d1eb4..6048290 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -30,9 +30,9 @@
- #include <media/media-device.h>
- #include <media/s5p_fimc.h>
- 
-+#include "media-dev.h"
- #include "fimc-core.h"
- #include "fimc-lite.h"
--#include "fimc-mdevice.h"
- #include "mipi-csis.h"
- 
- static int __fimc_md_set_camclk(struct fimc_md *fmd,
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/exynos4-is/media-dev.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/fimc-mdevice.h
-rename to drivers/media/platform/exynos4-is/media-dev.h
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/mipi-csis.c
-rename to drivers/media/platform/exynos4-is/mipi-csis.c
-diff --git a/drivers/media/platform/s5p-fimc/mipi-csis.h b/drivers/media/platform/exynos4-is/mipi-csis.h
-similarity index 100%
-rename from drivers/media/platform/s5p-fimc/mipi-csis.h
-rename to drivers/media/platform/exynos4-is/mipi-csis.h
--- 
-1.7.9.5
+Would it be OK if I add the saa7134 patch to the go7007 directory? Rather
+than keeping it around in my git tree?
 
+> 
+> 
+> >       MAINTAINERS: add the go7007 driver.
+> >       go7007: a small improvement to querystd handling.
+> >       go7007: add back 'repeat sequence header' control.
+> >       go7007: correct a header check: MPEG4 has a different GOP code.
+> >       go7007: drop firmware name in board config, make configs const.
+> >       go7007: don't continue if firmware can't be loaded.
+> 
+> This one didn't apply. Maybe due to the lack of saa7134-go7007.
+> 
+> Maybe it is just a trivial merging conflict, but better if you could
+> check it before forcing it.
+
+Will do.
+
+Regards,
+
+	Hans
