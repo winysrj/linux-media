@@ -1,55 +1,224 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39657 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:24691 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754327Ab3CXO1c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 10:27:32 -0400
-Date: Sun, 24 Mar 2013 11:27:23 -0300
+	id S1757277Ab3CYMTZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Mar 2013 08:19:25 -0400
+Date: Mon, 25 Mar 2013 09:19:19 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 01/19] solo6x10: sync to latest code from
- Bluecherry's git repo.
-Message-ID: <20130324112723.445693ea@redhat.com>
-In-Reply-To: <1363609938-21735-2-git-send-email-hverkuil@xs4all.nl>
-References: <1363609938-21735-1-git-send-email-hverkuil@xs4all.nl>
-	<1363609938-21735-2-git-send-email-hverkuil@xs4all.nl>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B
+ read/write/check device operations
+Message-ID: <20130325091919.43281789@redhat.com>
+In-Reply-To: <514F6CD2.8010902@googlemail.com>
+References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
+	<20130324083846.199bdda6@redhat.com>
+	<514EF754.6080709@googlemail.com>
+	<20130324110213.41564d09@redhat.com>
+	<514F6CD2.8010902@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 18 Mar 2013 13:32:00 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Sun, 24 Mar 2013 22:14:58 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> Am 24.03.2013 15:02, schrieb Mauro Carvalho Chehab:
+> > Em Sun, 24 Mar 2013 13:53:40 +0100
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> Am 24.03.2013 12:38, schrieb Mauro Carvalho Chehab:
+> >>> Em Sat, 23 Mar 2013 18:27:08 +0100
+> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >>>
+> >>>> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
+> >>>> for i2c communication with the sensor, which is connected to a second i2c bus.
+> >>>>
+> >>>> We don't know yet how to find out which devices support/use it.
+> >>>> It's very likely used by all em25xx and em276x+ bridges.
+> >>>> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
+> >>>> algorithm always succeeds there although no slave device is connected.
+> >>>>
+> >>>> The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
+> >>>> because the Windows driver seems to use it for probing Samsung and Kodak
+> >>>> sensors.
+> >>>>
+> >>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >>>> ---
+> >>>>  drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
+> >>>>  drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
+> >>>>  drivers/media/usb/em28xx/em28xx.h       |   10 +-
+> >>>>  3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
+> >>>>
+> >>>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> >>>> index cb7cdd3..033b6cb 100644
+> >>>> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> >>>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> >>>> @@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+> >>>>  	rt_mutex_init(&dev->i2c_bus_lock);
+> >>>>  
+> >>>>  	/* register i2c bus 0 */
+> >>>> -	retval = em28xx_i2c_register(dev, 0);
+> >>>> +	if (dev->board.is_em2800)
+> >>>> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
+> >>>> +	else
+> >>>> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
+> >>>>  	if (retval < 0) {
+> >>>>  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
+> >>>>  			__func__, retval);
+> >>>>  		goto unregister_dev;
+> >>>>  	}
+> >>>>  
+> >>>> +	/* register i2c bus 1 */
+> >>>>  	if (dev->def_i2c_bus) {
+> >>>> -		retval = em28xx_i2c_register(dev, 1);
+> >>>> +		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
+> >>>>  		if (retval < 0) {
+> >>>>  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
+> >>>>  				__func__, retval);
+> >>>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+> >>>> index 9e2fa41..ab14ac3 100644
+> >>>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+> >>>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+> >>>> @@ -5,6 +5,7 @@
+> >>>>  		      Markus Rechberger <mrechberger@gmail.com>
+> >>>>  		      Mauro Carvalho Chehab <mchehab@infradead.org>
+> >>>>  		      Sascha Sommer <saschasommer@freenet.de>
+> >>>> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+> >>>>  
+> >>>>     This program is free software; you can redistribute it and/or modify
+> >>>>     it under the terms of the GNU General Public License as published by
+> >>>> @@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+> >>>>  }
+> >>>>  
+> >>>>  /*
+> >>>> + * em25xx_bus_B_send_bytes
+> >>>> + * write bytes to the i2c device
+> >>>> + */
+> >>>> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
+> >>>> +				   u16 len)
+> >>>> +{
+> >>>> +	int ret;
+> >>>> +
+> >>>> +	if (len < 1 || len > 64)
+> >>>> +		return -EOPNOTSUPP;
+> >>>> +	/* NOTE: limited by the USB ctrl message constraints
+> >>>> +	 * Zero length reads always succeed, even if no device is connected */
+> >>>> +
+> >>>> +	/* Set register and write value */
+> >>>> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
+> >>>> +	/* NOTE:
+> >>>> +	 * 0 byte writes always succeed, even if no device is connected. */
+> >>> You already noticed it on the previous note.
+> >> Yes. ;)
+> > Well, there's no need to repeat the same thing twice at the same function ;)
 > 
-> Synced to commit e9815ac5503ae60cfbf6ff8037035de8f62e2846 from
-> branch next in git repository https://github.com/bluecherrydvr/solo6x10.git
+> Uhm yes... WTF... !??
+> This stuff has definitely been rebased too often... ;)
+
+:)
 > 
-> Only removed some code under #if LINUX_VERSION_CODE < some-kernel-version,
-> renamed the driver back to solo6x10 from solo6x10-edge and removed the
-> unnecessary compat.h header.
 > 
-> Otherwise the code is identical.
+> >>>> +	if (ret != len) {
+> >>>> +		if (ret < 0) {
+> >>>> +			em28xx_warn("writing to i2c device at 0x%x failed "
+> >>>> +				    "(error=%i)\n", addr, ret);
+> >>>> +			return ret;
+> >>>> +		} else {
+> >>>> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
+> >>>> +				    "requested, but %i bytes written\n",
+> >>>> +				    len, addr, ret);
+> >>>> +			return -EIO;
+> >>>> +		}
+> >>>> +	}
+> >>>> +	/* Check success */
+> >>>> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
+> >>>> +	/* NOTE: the only error we've seen so far is
+> >>>> +	 * 0x01 when the slave device is not present */
+> >>>> +	if (ret == 0x00) {
+> >>> 	Please simplify. just use:
+> >>> 		if (!ret)
+> >> I would like to keep it as is because I think it better expresses the
+> >> purposes of this check. I also used 0x00 instead of 0 on purpose.
+> > Why do you think it better expresses it? It is just a more verbose way
+> > of doing the same thing. 
+> >
+> > If you want to better express, then add a comment:
+> > 	/* 
+> > 	 * Reg 08 value 0 means that the operation succeeded.
+> > 	 * different values indicate that the I2C device was not found.
+> > 	 */
+> > 	if (!ret)
+> > 		return len;
+> 
+> :)
+> 
+> I don't care too much. If you prefer it that way, no problem.
+
+Ok, thanks!
+> 
+> >> ret is a mixed value which is negative on errors and contains the data
+> >> bytes (0x00 to 0xff) on success.
+> >> Ok, in this specific case all other values are covered with a single
+> >> (ret > 0) check, but take a look at the comment and the em28xx-algo
+> >> functions where we check for 0x10, too.
+> >>
+> >>>> +		return len;
+> >>>> +	} else if (ret > 0) {
+> >>>> +		return -ENODEV;
+> >>>> +	}
+> >>>> +
+> >>>> +	return ret;
+> >>>> +	/* NOTE: With chips which do not support this operation,
+> >>>> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
+> >>> Sorry, but I didn't get what you're trying to explain here. What are those
+> >>> em25xx chips that don't support this operation?
+> >> Hmm... I don't know how to explain it better...
+> >> The thing is, that this algo _seems_ to work also (at least with some)
+> >> chips which actually don't support it (even if they don't provide a
+> >> second i2c bus).
+> > Again, what do you mean by "chips which actually don't support it"?
+> >
+> > Are you talking about some versions of chips with this ID?
+> > +	CHIP_ID_EM2765 = 54,
+> 
+> We don't know any other way to distinguish between chips than the chip
+> ID, right ? ;)
+> So the same chip ID means the same "chip" or "chip type" for us and
+> different chip IDs mean different "chips" or "chip types".
+> And even if there would be several sub-revisions, it's not likely that
+> they would differ in such a significant feature.
+> 
+> I think the comment should be clear enough, but I could change it to
+>   "chips with different chip ids which actually don't support it"
+
+Ah, now it is clear to me!
+
+> Would that make it clear enough for you ? Or do you have a better
+> suggestion ?
+
+> 
+> 
+> > Or about something else? How those can be distinguished from the others
+> > that don't support it? Or they can't be distinguished?
+> 
+> That's exactly the reason for this comment. ;)
+> I don't know, do you ?
+> 
+> Regards,
+> Frank
+> 
+> 
+> 
+> 
 > 
 
-...
 
-> @@ -21,29 +26,78 @@
->  #include <linux/module.h>
->  #include <linux/pci.h>
->  #include <linux/interrupt.h>
-> -#include <linux/slab.h>
+-- 
 
-You can't remove slab.h if any k*alloc function is used, or it will
-break compilation, depending on the Kconfig options selected.
-
-The same type of removal are on other files inside this patch.
-
-Please fix.
-
-Regards,
+Cheers,
 Mauro
