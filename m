@@ -1,75 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:48809 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752769Ab3CRTG0 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4782 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756090Ab3CYLcn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Mar 2013 15:06:26 -0400
-From: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+	Mon, 25 Mar 2013 07:32:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, gregkh@linuxfoundation.org,
-	prabhakar.lad@ti.com, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org,
-	Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-Subject: [PATCH v2] drivers: staging: davinci_vpfe: use resource_size()
-Date: Mon, 18 Mar 2013 21:06:20 +0200
-Message-Id: <1363633580-2920-1-git-send-email-silviupopescu1990@gmail.com>
+Subject: [REVIEW PATCH] tuner-core fix for au0828 g_tuner bug
+Date: Mon, 25 Mar 2013 12:32:31 +0100
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303251232.31456.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This uses the resource_size() function instead of explicit computation.
+While testing the au0828 driver overhaul patch series:
 
-Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+http://patchwork.linuxtv.org/patch/17576/
+
+I discovered that the signal strength as reported by VIDIOC_G_TUNER was
+always 0. Initially I thought it was related to the i2c gate, but after
+testing some more that turned out to be wrong, although it did gave me the
+clue that it was related to the order in which subdevs were called. If
+the g_tuner op of au8522 was called before that of tuner-core, then it would
+fail, if the order was the other way around then it would work.
+
+Some digging in tuner-core clarified it: if the has_signal callback is set,
+then tuner-core would call 'vt->signal = analog_ops->has_signal(&t->fe);'.
+But has_signal is always filled in, even if the frontend doesn't implement
+get_rf_strength, as is the case for the xc5000. And in that case vt->signal
+is overwritten with 0.
+
+Solution: don't set the has_signal callback if get_rf_strength is not
+supported. Ditto for get_afc.
+
+Regards,
+
+	Hans
+
+-------- patch ----------
+If the tuner frontend does not support get_rf_strength, then don't set
+the has_signal callback. Ditto for get_afc.
+
+Both callbacks overwrite the signal and afc fields of struct v4l2_tuner
+but that should only happen if the tuner can actually detect this. If
+it can't, then it should leave those fields alone so other subdevices
+can try and detect the signal/afc.
+
+This fixes the bug where the au8522 detected a signal and then tuner-core
+overwrote it with 0 since the xc5000 tuner does not support get_rf_strength.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |    2 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c    |    4 ++--
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/tuner-core.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-index 9285353..05673ed 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
-@@ -1859,5 +1859,5 @@ void vpfe_ipipe_cleanup(struct vpfe_ipipe_device *ipipe,
- 	iounmap(ipipe->isp5_base_addr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 4);
- 	if (res)
--		release_mem_region(res->start, res->end - res->start + 1);
-+		release_mem_region(res->start, resource_size(res));
- }
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-index ebeea72..c4a5660 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
-@@ -1953,7 +1953,7 @@ static void isif_remove(struct vpfe_isif_device *isif,
- 		res = platform_get_resource(pdev, IORESOURCE_MEM, i);
- 		if (res)
- 			release_mem_region(res->start,
--					   res->end - res->start + 1);
-+					   resource_size(res));
- 		i++;
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index f775768..dd8a803 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -253,7 +253,7 @@ static int fe_set_config(struct dvb_frontend *fe, void *priv_cfg)
+ 
+ static void tuner_status(struct dvb_frontend *fe);
+ 
+-static struct analog_demod_ops tuner_analog_ops = {
++static const struct analog_demod_ops tuner_analog_ops = {
+ 	.set_params     = fe_set_params,
+ 	.standby        = fe_standby,
+ 	.has_signal     = fe_has_signal,
+@@ -453,6 +453,11 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 		memcpy(analog_ops, &tuner_analog_ops,
+ 		       sizeof(struct analog_demod_ops));
+ 
++		if (fe_tuner_ops->get_rf_strength == NULL)
++			analog_ops->has_signal = NULL;
++		if (fe_tuner_ops->get_afc == NULL)
++			analog_ops->get_afc = NULL;
++
+ 	} else {
+ 		t->name = analog_ops->info.name;
  	}
- }
-@@ -2003,7 +2003,7 @@ int vpfe_isif_init(struct vpfe_isif_device *isif, struct platform_device *pdev)
- 			status = -ENOENT;
- 			goto fail_nobase_res;
- 		}
--		res_len = res->end - res->start + 1;
-+		res_len = resource_size(res);
- 		res = request_mem_region(res->start, res_len, res->name);
- 		if (!res) {
- 			status = -EBUSY;
-diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-index 9cb0262..126f84c 100644
---- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-+++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
-@@ -1995,5 +1995,5 @@ vpfe_resizer_cleanup(struct vpfe_resizer_device *vpfe_rsz,
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 5);
- 	if (res)
- 		release_mem_region(res->start,
--					res->end - res->start + 1);
-+					resource_size(res));
- }
 -- 
-1.7.9.5
+1.7.10.4
 
