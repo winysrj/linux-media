@@ -1,121 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f171.google.com ([209.85.210.171]:41666 "EHLO
-	mail-ia0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496Ab3CAXxe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:53:34 -0500
-Received: by mail-ia0-f171.google.com with SMTP id z13so3156021iaz.2
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:53:33 -0800 (PST)
-Message-ID: <51313F7A.9080900@gmail.com>
-Date: Fri, 01 Mar 2013 16:53:30 -0700
-From: Matt Gomboc <gomboc0@gmail.com>
-Reply-To: gomboc0@gmail.com
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:51050 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754550Ab3CZRh6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 13:37:58 -0400
+Received: by mail-bk0-f51.google.com with SMTP id y8so1239060bkt.38
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:56 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v3 3/5] em28xx: add support for em25xx/em276x/em277x/em278x frame data processing
+Date: Tue, 26 Mar 2013 18:38:38 +0100
+Message-Id: <1364319520-6628-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: cx231xx : Add support for OTG102 aka EZGrabber2
-References: <4B487EF5847E47F0A8C1E96B9CA6B6D6@ucdenver.pvt> <201303010852.36574.hverkuil@xs4all.nl>
-In-Reply-To: <201303010852.36574.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the response, I have done as you suggested.
+The em25xx/em276x/em277x/em278x frame data format is different to the one used
+by the em2710/em2750/em28xx chips.
+With the recent cleanups and reorganization of the frame data processing code it
+can be easily extended to support these devices.
 
-Below is an updated patch for the OTG102 device against http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/cx231xx, kernel version 3.8.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-video.c |   74 ++++++++++++++++++++++++++++++-
+ 1 Datei geändert, 73 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-With further testing it appears the extra clauses in cx231xx-cards.c were not necessary (in static in cx231xx_init_dev and static int cx231xx_usb_probe), so those have been also been removed.
-
-
-Signed-off-by: Matt Gomboc <gomboc0@gmail.com>
---
- drivers/media/usb/cx231xx/cx231xx-avcore.c |  2 ++
- drivers/media/usb/cx231xx/cx231xx-cards.c  | 35 ++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h        |  1 +
- 3 files changed, 38 insertions(+)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-index 2e51fb9..235ba65 100644
---- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
-@@ -357,6 +357,7 @@ int cx231xx_afe_update_power_control(struct cx231xx *dev,
- 	case CX231XX_BOARD_PV_PLAYTV_USB_HYBRID:
- 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL:
- 	case CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC:
-+	case CX231XX_BOARD_OTG102:
- 		if (avmode == POLARIS_AVMODE_ANALOGT_TV) {
- 			while (afe_power_status != (FLD_PWRDN_TUNING_BIAS |
- 						FLD_PWRDN_ENABLE_PLL)) {
-@@ -1720,6 +1721,7 @@ int cx231xx_dif_set_standard(struct cx231xx *dev, u32 standard)
- 	case CX231XX_BOARD_CNXT_RDU_250:
- 	case CX231XX_BOARD_CNXT_VIDEO_GRABBER:
- 	case CX231XX_BOARD_HAUPPAUGE_EXETER:
-+	case CX231XX_BOARD_OTG102:
- 		func_mode = 0x03;
- 		break;
- 	case CX231XX_BOARD_CNXT_RDE_253S:
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index b7b1acd..13249e5 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -634,6 +634,39 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_OTG102] = {
-+		.name = "Geniatech OTG102",
-+		.tuner_type = TUNER_ABSENT,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c, 
-+			/* According with PV CxPlrCAP.inf file */
-+		.gpio_pin_status_mask = 0x4001000,
-+		.norm = V4L2_STD_NTSC,
-+		.no_alt_vanc = 1,
-+		.external_av = 1,
-+		.dont_use_port_3 = 1,
-+		/*.has_417 = 1, */
-+		/* This board is believed to have a hardware encoding chip
-+		 * supporting mpeg1/2/4, but as the 417 is apparently not
-+		 * working for the reference board it is not here either. */
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index b181723..ef1959b 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -76,6 +76,16 @@ MODULE_DESCRIPTION(DRIVER_DESC);
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(EM28XX_VERSION);
+ 
 +
-+		.input = {{
-+				.type = CX231XX_VMUX_COMPOSITE1,
-+				.vmux = CX231XX_VIN_2_1,
-+				.amux = CX231XX_AMUX_LINE_IN,
-+				.gpio = NULL,
-+			}, {
-+				.type = CX231XX_VMUX_SVIDEO,
-+				.vmux = CX231XX_VIN_1_1 |
-+					(CX231XX_VIN_1_2 << 8) |
-+					CX25840_SVIDEO_ON,
-+				.amux = CX231XX_AMUX_LINE_IN,
-+				.gpio = NULL,
-+			}
-+		},
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
++#define EM25XX_FRMDATAHDR_BYTE1			0x02
++#define EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE	0x20
++#define EM25XX_FRMDATAHDR_BYTE2_FRAME_END	0x02
++#define EM25XX_FRMDATAHDR_BYTE2_FRAME_ID	0x01
++#define EM25XX_FRMDATAHDR_BYTE2_MASK	(EM25XX_FRMDATAHDR_BYTE2_STILL_IMAGE | \
++					 EM25XX_FRMDATAHDR_BYTE2_FRAME_END |   \
++					 EM25XX_FRMDATAHDR_BYTE2_FRAME_ID)
++
++
+ static unsigned int video_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+ static unsigned int vbi_nr[]   = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+ static unsigned int radio_nr[] = {[0 ... (EM28XX_MAXBOARDS - 1)] = -1U };
+@@ -408,6 +418,62 @@ static inline void process_frame_data_em28xx(struct em28xx *dev,
+ 		em28xx_copy_video(dev, buf, data_pkt, data_len);
+ }
  
-@@ -675,6 +708,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_ICONBIT_U100},
- 	{USB_DEVICE(0x0fd9, 0x0037),
- 	 .driver_info = CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2},
-+	{USB_DEVICE(0x1f4d, 0x0102),
-+	 .driver_info = CX231XX_BOARD_OTG102},
- 	{},
- };
++/*
++ * Process data packet according to the em25xx/em276x/7x/8x frame data format
++ */
++static inline void process_frame_data_em25xx(struct em28xx *dev,
++					     unsigned char *data_pkt,
++					     unsigned int  data_len)
++{
++	struct em28xx_buffer    *buf = dev->usb_ctl.vid_buf;
++	struct em28xx_dmaqueue  *dmaq = &dev->vidq;
++	bool frame_end = 0;
++
++	/* Check for header */
++	/* NOTE: at least with bulk transfers, only the first packet
++	 * has a header and has always set the FRAME_END bit         */
++	if (data_len >= 2) {	/* em25xx header is only 2 bytes long */
++		if ((data_pkt[0] == EM25XX_FRMDATAHDR_BYTE1) &&
++		    ((data_pkt[1] & ~EM25XX_FRMDATAHDR_BYTE2_MASK) == 0x00)) {
++			dev->top_field = !(data_pkt[1] &
++					   EM25XX_FRMDATAHDR_BYTE2_FRAME_ID);
++			frame_end = data_pkt[1] &
++				    EM25XX_FRMDATAHDR_BYTE2_FRAME_END;
++			data_pkt += 2;
++			data_len -= 2;
++		}
++
++		/* Finish field and prepare next (BULK only) */
++		if (dev->analog_xfer_bulk && frame_end) {
++			buf = finish_field_prepare_next(dev, buf, dmaq);
++			dev->usb_ctl.vid_buf = buf;
++		}
++		/* NOTE: in ISOC mode when a new frame starts and buf==NULL,
++		 * we COULD already prepare a buffer here to avoid skipping the
++		 * first frame.
++		 */
++	}
++
++	/* Copy data */
++	if (buf != NULL && data_len > 0)
++		em28xx_copy_video(dev, buf, data_pkt, data_len);
++
++	/* Finish frame (ISOC only) => avoids lag of 1 frame */
++	if (!dev->analog_xfer_bulk && frame_end) {
++		buf = finish_field_prepare_next(dev, buf, dmaq);
++		dev->usb_ctl.vid_buf = buf;
++	}
++
++	/* NOTE: Tested with USB bulk transfers only !
++	 * The wording in the datasheet suggests that isoc might work different.
++	 * The current code assumes that with isoc transfers each packet has a
++	 * header like with the other em28xx devices.
++	 */
++	/* NOTE: Support for interlaced mode is pure theory. It has not been
++	 * tested and it is unknown if these devices actually support it. */
++	/* NOTE: No VBI support yet (these chips likely do not support VBI). */
++}
++
+ /* Processes and copies the URB data content (video and VBI data) */
+ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ {
+@@ -460,7 +526,13 @@ static inline int em28xx_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ 			continue;
+ 		}
  
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index a8e50d2..dff3f1d 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -71,6 +71,7 @@
- #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_PAL 14
- #define CX231XX_BOARD_HAUPPAUGE_USB2_FM_NTSC 15
- #define CX231XX_BOARD_ELGATO_VIDEO_CAPTURE_V2 16
-+#define CX231XX_BOARD_OTG102 17
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+-		process_frame_data_em28xx(dev, usb_data_pkt, usb_data_len);
++		if (dev->is_em25xx)
++			process_frame_data_em25xx(dev,
++						  usb_data_pkt, usb_data_len);
++		else
++			process_frame_data_em28xx(dev,
++						  usb_data_pkt, usb_data_len);
++
+ 	}
+ 	return 1;
+ }
+-- 
+1.7.10.4
 
