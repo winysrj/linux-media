@@ -1,401 +1,338 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:39966 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab3CWR02 (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:15308 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759842Ab3CZQGa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Mar 2013 13:26:28 -0400
-Received: by mail-ee0-f52.google.com with SMTP id d49so98228eek.11
-        for <linux-media@vger.kernel.org>; Sat, 23 Mar 2013 10:26:26 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B read/write/check device operations
-Date: Sat, 23 Mar 2013 18:27:08 +0100
-Message-Id: <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 26 Mar 2013 12:06:30 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH 2/3] s5p-fimc: Use vb2 ioctl/fop helpers in FIMC capture
+ driver
+Date: Tue, 26 Mar 2013 17:06:05 +0100
+Message-id: <1364313966-18868-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
-for i2c communication with the sensor, which is connected to a second i2c bus.
+mmap/poll file operation and several ioctl handlers are replaced
+with the vb2 helper functions. Some helpers are used indirectly
+to maintain the buffer queue ownership.
 
-We don't know yet how to find out which devices support/use it.
-It's very likely used by all em25xx and em276x+ bridges.
-Tests with other em28xx chips (em2820, em2882/em2883) show, that this
-algorithm always succeeds there although no slave device is connected.
-
-The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
-because the Windows driver seems to use it for probing Samsung and Kodak
-sensors.
-
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
- drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
- drivers/media/usb/em28xx/em28xx.h       |   10 +-
- 3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
+ drivers/media/platform/s5p-fimc/fimc-capture.c |  153 +++++-------------------
+ drivers/media/platform/s5p-fimc/fimc-m2m.c     |    9 +-
+ 2 files changed, 36 insertions(+), 126 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index cb7cdd3..033b6cb 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 	rt_mutex_init(&dev->i2c_bus_lock);
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 257afc1..b05d97b 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -454,24 +454,12 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ }
  
- 	/* register i2c bus 0 */
--	retval = em28xx_i2c_register(dev, 0);
-+	if (dev->board.is_em2800)
-+		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
-+	else
-+		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
- 	if (retval < 0) {
- 		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
- 			__func__, retval);
- 		goto unregister_dev;
+-static void fimc_lock(struct vb2_queue *vq)
+-{
+-	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
+-	mutex_lock(&ctx->fimc_dev->lock);
+-}
+-
+-static void fimc_unlock(struct vb2_queue *vq)
+-{
+-	struct fimc_ctx *ctx = vb2_get_drv_priv(vq);
+-	mutex_unlock(&ctx->fimc_dev->lock);
+-}
+-
+ static struct vb2_ops fimc_capture_qops = {
+ 	.queue_setup		= queue_setup,
+ 	.buf_prepare		= buffer_prepare,
+ 	.buf_queue		= buffer_queue,
+-	.wait_prepare		= fimc_unlock,
+-	.wait_finish		= fimc_lock,
++	.wait_prepare	 	= vb2_ops_wait_prepare,
++	.wait_finish	 	= vb2_ops_wait_finish,
+ 	.start_streaming	= start_streaming,
+ 	.stop_streaming		= stop_streaming,
+ };
+@@ -530,7 +518,7 @@ static int fimc_capture_open(struct file *file)
+ 		goto unlock;
  	}
  
-+	/* register i2c bus 1 */
- 	if (dev->def_i2c_bus) {
--		retval = em28xx_i2c_register(dev, 1);
-+		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
- 		if (retval < 0) {
- 			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
- 				__func__, retval);
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 9e2fa41..ab14ac3 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -5,6 +5,7 @@
- 		      Markus Rechberger <mrechberger@gmail.com>
- 		      Mauro Carvalho Chehab <mchehab@infradead.org>
- 		      Sascha Sommer <saschasommer@freenet.de>
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+-	if (++fimc->vid_cap.refcnt == 1) {
++	if (v4l2_fh_is_singular_file(file)) {
+ 		ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
+ 					 &fimc->vid_cap.vfd.entity, true);
  
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-@@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
+@@ -543,8 +531,9 @@ static int fimc_capture_open(struct file *file)
+ 		if (ret < 0) {
+ 			clear_bit(ST_CAPT_BUSY, &fimc->state);
+ 			pm_runtime_put_sync(&fimc->pdev->dev);
+-			fimc->vid_cap.refcnt--;
+ 			v4l2_fh_release(file);
++		} else {
++			fimc->vid_cap.refcnt++;
+ 		}
+ 	}
+ unlock:
+@@ -553,7 +542,7 @@ unlock:
+ 	return ret;
  }
+ 
+-static int fimc_capture_close(struct file *file)
++static int fimc_capture_release(struct file *file)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	int ret;
+@@ -562,50 +551,20 @@ static int fimc_capture_close(struct file *file)
+ 
+ 	mutex_lock(&fimc->lock);
+ 
+-	if (--fimc->vid_cap.refcnt == 0) {
++	if (v4l2_fh_is_singular_file(file)) {
+ 		clear_bit(ST_CAPT_BUSY, &fimc->state);
+ 		fimc_stop_capture(fimc, false);
+ 		fimc_pipeline_call(fimc, close, &fimc->pipeline);
+ 		clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
++		fimc->vid_cap.refcnt--;
+ 	}
+ 
+ 	pm_runtime_put(&fimc->pdev->dev);
+ 
+-	if (fimc->vid_cap.refcnt == 0) {
+-		vb2_queue_release(&fimc->vid_cap.vbq);
++	if (v4l2_fh_is_singular_file(file))
+ 		fimc_ctrls_delete(fimc->vid_cap.ctx);
+-	}
+-
+-	ret = v4l2_fh_release(file);
+-
+-	mutex_unlock(&fimc->lock);
+-	return ret;
+-}
+-
+-static unsigned int fimc_capture_poll(struct file *file,
+-				      struct poll_table_struct *wait)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-	int ret;
+ 
+-	if (mutex_lock_interruptible(&fimc->lock))
+-		return POLL_ERR;
+-
+-	ret = vb2_poll(&fimc->vid_cap.vbq, file, wait);
+-	mutex_unlock(&fimc->lock);
+-
+-	return ret;
+-}
+-
+-static int fimc_capture_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&fimc->lock))
+-		return -ERESTARTSYS;
+-
+-	ret = vb2_mmap(&fimc->vid_cap.vbq, vma);
++	ret = vb2_fop_release(file);
+ 	mutex_unlock(&fimc->lock);
+ 
+ 	return ret;
+@@ -614,10 +573,10 @@ static int fimc_capture_mmap(struct file *file, struct vm_area_struct *vma)
+ static const struct v4l2_file_operations fimc_capture_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= fimc_capture_open,
+-	.release	= fimc_capture_close,
+-	.poll		= fimc_capture_poll,
++	.release	= fimc_capture_release,
++	.poll		= vb2_fop_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+-	.mmap		= fimc_capture_mmap,
++	.mmap		= vb2_fop_mmap,
+ };
  
  /*
-+ * em25xx_bus_B_send_bytes
-+ * write bytes to the i2c device
-+ */
-+static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-+				   u16 len)
-+{
-+	int ret;
-+
-+	if (len < 1 || len > 64)
-+		return -EOPNOTSUPP;
-+	/* NOTE: limited by the USB ctrl message constraints
-+	 * Zero length reads always succeed, even if no device is connected */
-+
-+	/* Set register and write value */
-+	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
-+	/* NOTE:
-+	 * 0 byte writes always succeed, even if no device is connected. */
-+	if (ret != len) {
-+		if (ret < 0) {
-+			em28xx_warn("writing to i2c device at 0x%x failed "
-+				    "(error=%i)\n", addr, ret);
-+			return ret;
-+		} else {
-+			em28xx_warn("%i bytes write to i2c device at 0x%x "
-+				    "requested, but %i bytes written\n",
-+				    len, addr, ret);
-+			return -EIO;
-+		}
-+	}
-+	/* Check success */
-+	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-+	/* NOTE: the only error we've seen so far is
-+	 * 0x01 when the slave device is not present */
-+	if (ret == 0x00) {
-+		return len;
-+	} else if (ret > 0) {
-+		return -ENODEV;
-+	}
-+
-+	return ret;
-+	/* NOTE: With chips which do not support this operation,
-+	 * it seems to succeed ALWAYS ! (even if no device connected) */
-+}
-+
-+/*
-+ * em25xx_bus_B_recv_bytes
-+ * read bytes from the i2c device
-+ */
-+static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-+				   u16 len)
-+{
-+	int ret;
-+
-+	if (len < 1 || len > 64)
-+		return -EOPNOTSUPP;
-+	/* NOTE: limited by the USB ctrl message constraints
-+	 * Zero length reads always succeed, even if no device is connected */
-+
-+	/* Read value */
-+	ret = dev->em28xx_read_reg_req_len(dev, 0x06, addr, buf, len);
-+	/* NOTE:
-+	 * 0 byte reads always succeed, even if no device is connected. */
-+	if (ret < 0) {
-+		em28xx_warn("reading from i2c device at 0x%x failed (error=%i)\n",
-+			    addr, ret);
-+		return ret;
-+	}
-+	/* NOTE: some devices with two i2c busses have the bad habit to return 0
-+	 * bytes if we are on bus B AND there was no write attempt to the
-+	 * specified slave address before AND no device is present at the
-+	 * requested slave address.
-+	 * Anyway, the next check will fail with -ENODEV in this case, so avoid
-+	 * spamming the system log on device probing and do nothing here.
-+	 */
-+
-+	/* Check success */
-+	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-+	/* NOTE: the only error we've seen so far is
-+	 * 0x01 when the slave device is not present */
-+	if (ret == 0x00) {
-+		return len;
-+	} else if (ret > 0) {
-+		return -ENODEV;
-+	}
-+
-+	return ret;
-+	/* NOTE: With chips which do not support this operation,
-+	 * it seems to succeed ALWAYS ! (even if no device connected) */
-+}
-+
-+/*
-+ * em25xx_bus_B_check_for_device()
-+ * check if there is a i2c device at the supplied address
-+ */
-+static int em25xx_bus_B_check_for_device(struct em28xx *dev, u16 addr)
-+{
-+	u8 buf;
-+	int ret;
-+
-+	ret = em25xx_bus_B_recv_bytes(dev, addr, &buf, 1);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+	/* NOTE: With chips which do not support this operation,
-+	 * it seems to succeed ALWAYS ! (even if no device connected) */
-+}
-+
-+static inline int i2c_check_for_device(struct em28xx_i2c_bus *i2c_bus, u16 addr)
-+{
-+	struct em28xx *dev = i2c_bus->dev;
-+	int rc = -EOPNOTSUPP;
-+
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-+		rc = em28xx_i2c_check_for_device(dev, addr);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-+		rc = em2800_i2c_check_for_device(dev, addr);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-+		rc = em25xx_bus_B_check_for_device(dev, addr);
-+	}
-+	if (rc == -ENODEV) {
-+		if (i2c_debug)
-+			printk(" no device\n");
-+	}
-+	return rc;
-+}
-+
-+static inline int i2c_recv_bytes(struct em28xx_i2c_bus *i2c_bus,
-+				 struct i2c_msg msg)
-+{
-+	struct em28xx *dev = i2c_bus->dev;
-+	u16 addr = msg.addr << 1;
-+	int byte, rc = -EOPNOTSUPP;
-+
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-+		rc = em28xx_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-+		rc = em2800_i2c_recv_bytes(dev, addr, msg.buf, msg.len);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-+		rc = em25xx_bus_B_recv_bytes(dev, addr, msg.buf, msg.len);
-+	}
-+	if (i2c_debug) {
-+		for (byte = 0; byte < msg.len; byte++)
-+			printk(" %02x", msg.buf[byte]);
-+	}
-+	return rc;
-+}
-+
-+static inline int i2c_send_bytes(struct em28xx_i2c_bus *i2c_bus,
-+				 struct i2c_msg msg, int stop)
-+{
-+	struct em28xx *dev = i2c_bus->dev;
-+	u16 addr = msg.addr << 1;
-+	int byte, rc = -EOPNOTSUPP;
-+
-+	if (i2c_debug) {
-+		for (byte = 0; byte < msg.len; byte++)
-+			printk(" %02x", msg.buf[byte]);
-+	}
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-+		rc = em28xx_i2c_send_bytes(dev, addr, msg.buf, msg.len, stop);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-+		rc = em2800_i2c_send_bytes(dev, addr, msg.buf, msg.len);
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-+		rc = em25xx_bus_B_send_bytes(dev, addr, msg.buf, msg.len);
-+	}
-+	return rc;
-+}
-+
-+/*
-  * em28xx_i2c_xfer()
-  * the main i2c transfer function
-  */
-@@ -283,7 +454,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
- 	struct em28xx *dev = i2c_bus->dev;
- 	unsigned bus = i2c_bus->bus;
--	int addr, rc, i, byte;
-+	int addr, rc, i;
- 	u8 reg;
+@@ -1247,7 +1206,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 			goto err_p_stop;
+ 	}
  
- 	rc = rt_mutex_trylock(&dev->i2c_bus_lock);
-@@ -291,7 +462,8 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		return rc;
+-	ret = vb2_streamon(&vc->vbq, type);
++	ret = vb2_ioctl_streamon(file, priv, type);
+ 	if (!ret)
+ 		return ret;
  
- 	/* Switch I2C bus if needed */
--	if (bus != dev->cur_i2c_bus) {
-+	if (bus != dev->cur_i2c_bus &&
-+	    i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
- 		if (bus == 1)
- 			reg = EM2874_I2C_SECONDARY_BUS_SELECT;
- 		else
-@@ -314,45 +486,17 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			       i == num - 1 ? "stop" : "nonstop",
- 			       addr, msgs[i].len);
- 		if (!msgs[i].len) { /* no len: check only for device presence */
--			if (dev->board.is_em2800)
--				rc = em2800_i2c_check_for_device(dev, addr);
--			else
--				rc = em28xx_i2c_check_for_device(dev, addr);
-+			rc = i2c_check_for_device(i2c_bus, addr);
- 			if (rc == -ENODEV) {
--				if (i2c_debug)
--					printk(" no device\n");
- 				rt_mutex_unlock(&dev->i2c_bus_lock);
- 				return rc;
- 			}
- 		} else if (msgs[i].flags & I2C_M_RD) {
- 			/* read bytes */
--			if (dev->board.is_em2800)
--				rc = em2800_i2c_recv_bytes(dev, addr,
--							   msgs[i].buf,
--							   msgs[i].len);
--			else
--				rc = em28xx_i2c_recv_bytes(dev, addr,
--							   msgs[i].buf,
--							   msgs[i].len);
--			if (i2c_debug) {
--				for (byte = 0; byte < msgs[i].len; byte++)
--					printk(" %02x", msgs[i].buf[byte]);
--			}
-+			rc = i2c_recv_bytes(i2c_bus, msgs[i]);
- 		} else {
- 			/* write bytes */
--			if (i2c_debug) {
--				for (byte = 0; byte < msgs[i].len; byte++)
--					printk(" %02x", msgs[i].buf[byte]);
--			}
--			if (dev->board.is_em2800)
--				rc = em2800_i2c_send_bytes(dev, addr,
--							   msgs[i].buf,
--							   msgs[i].len);
--			else
--				rc = em28xx_i2c_send_bytes(dev, addr,
--							   msgs[i].buf,
--							   msgs[i].len,
--							   i == num - 1);
-+			rc = i2c_send_bytes(i2c_bus, msgs[i], i == num - 1);
- 		}
- 		if (rc < 0) {
- 			if (i2c_debug)
-@@ -622,12 +766,17 @@ error:
- static u32 functionality(struct i2c_adapter *i2c_adap)
+@@ -1262,7 +1221,7 @@ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	int ret;
+ 
+-	ret = vb2_streamoff(&fimc->vid_cap.vbq, type);
++	ret = vb2_ioctl_streamoff(file, priv, type);
+ 
+ 	if (ret == 0)
+ 		media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
+@@ -1274,59 +1233,14 @@ static int fimc_cap_reqbufs(struct file *file, void *priv,
+ 			    struct v4l2_requestbuffers *reqbufs)
  {
- 	struct em28xx_i2c_bus *i2c_bus = i2c_adap->algo_data;
--	struct em28xx *dev = i2c_bus->dev;
- 
--	u32 func_flags = I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
--	if (dev->board.is_em2800)
--		func_flags &= ~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
--	return func_flags;
-+	if ((i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) ||
-+	    (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B)) {
-+		return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800)  {
-+		return (I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL) &
-+			~I2C_FUNC_SMBUS_WRITE_BLOCK_DATA;
-+	}
+ 	struct fimc_dev *fimc = video_drvdata(file);
+-	int ret = vb2_reqbufs(&fimc->vid_cap.vbq, reqbufs);
++	int ret;
 +
-+	WARN(1, "Unknown i2c bus algorithm.\n");
-+	return 0;
++	ret = vb2_ioctl_reqbufs(file, priv, reqbufs);
+ 
+ 	if (!ret)
+ 		fimc->vid_cap.reqbufs_count = reqbufs->count;
+-	return ret;
+-}
+-
+-static int fimc_cap_querybuf(struct file *file, void *priv,
+-			   struct v4l2_buffer *buf)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-
+-	return vb2_querybuf(&fimc->vid_cap.vbq, buf);
+-}
+-
+-static int fimc_cap_qbuf(struct file *file, void *priv,
+-			  struct v4l2_buffer *buf)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-
+-	return vb2_qbuf(&fimc->vid_cap.vbq, buf);
+-}
+-
+-static int fimc_cap_expbuf(struct file *file, void *priv,
+-			  struct v4l2_exportbuffer *eb)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-
+-	return vb2_expbuf(&fimc->vid_cap.vbq, eb);
+-}
+-
+-static int fimc_cap_dqbuf(struct file *file, void *priv,
+-			   struct v4l2_buffer *buf)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-
+-	return vb2_dqbuf(&fimc->vid_cap.vbq, buf, file->f_flags & O_NONBLOCK);
+-}
+-
+-static int fimc_cap_create_bufs(struct file *file, void *priv,
+-				struct v4l2_create_buffers *create)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+-
+-	return vb2_create_bufs(&fimc->vid_cap.vbq, create);
+-}
+-
+-static int fimc_cap_prepare_buf(struct file *file, void *priv,
+-				struct v4l2_buffer *b)
+-{
+-	struct fimc_dev *fimc = video_drvdata(file);
+ 
+-	return vb2_prepare_buf(&fimc->vid_cap.vbq, b);
++	return ret;
  }
  
- static struct i2c_algorithm em28xx_algo = {
-@@ -701,7 +850,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus)
-  * em28xx_i2c_register()
-  * register i2c bus
-  */
--int em28xx_i2c_register(struct em28xx *dev, unsigned bus)
-+int em28xx_i2c_register(struct em28xx *dev, unsigned bus,
-+			enum em28xx_i2c_algo_type algo_type)
+ static int fimc_cap_g_selection(struct file *file, void *fh,
+@@ -1425,14 +1339,12 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_cap_mplane	= fimc_cap_g_fmt_mplane,
+ 
+ 	.vidioc_reqbufs			= fimc_cap_reqbufs,
+-	.vidioc_querybuf		= fimc_cap_querybuf,
+-
+-	.vidioc_qbuf			= fimc_cap_qbuf,
+-	.vidioc_dqbuf			= fimc_cap_dqbuf,
+-	.vidioc_expbuf			= fimc_cap_expbuf,
+-
+-	.vidioc_prepare_buf		= fimc_cap_prepare_buf,
+-	.vidioc_create_bufs		= fimc_cap_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+ 
+ 	.vidioc_streamon		= fimc_cap_streamon,
+ 	.vidioc_streamoff		= fimc_cap_streamoff,
+@@ -1759,9 +1671,9 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 				 struct v4l2_device *v4l2_dev)
  {
- 	int retval;
+ 	struct video_device *vfd = &fimc->vid_cap.vfd;
+-	struct fimc_vid_cap *vid_cap;
++	struct vb2_queue *q = &fimc->vid_cap.vbq;
+ 	struct fimc_ctx *ctx;
+-	struct vb2_queue *q;
++	struct fimc_vid_cap *vid_cap;
+ 	int ret = -ENOMEM;
  
-@@ -716,6 +866,7 @@ int em28xx_i2c_register(struct em28xx *dev, unsigned bus)
- 	strcpy(dev->i2c_adap[bus].name, dev->name);
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+@@ -1783,28 +1695,27 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	vfd->v4l2_dev	= v4l2_dev;
+ 	vfd->minor	= -1;
+ 	vfd->release	= video_device_release_empty;
++	vfd->queue	= q;
+ 	vfd->lock	= &fimc->lock;
  
- 	dev->i2c_bus[bus].bus = bus;
-+	dev->i2c_bus[bus].algo_type = algo_type;
- 	dev->i2c_bus[bus].dev = dev;
- 	dev->i2c_adap[bus].algo_data = &dev->i2c_bus[bus];
- 	i2c_set_adapdata(&dev->i2c_adap[bus], &dev->v4l2_dev);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index 4c667fd..aeee896 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -461,10 +461,17 @@ struct em28xx_fh {
- 	enum v4l2_buf_type           type;
- };
+ 	video_set_drvdata(vfd, fimc);
+-
+ 	vid_cap = &fimc->vid_cap;
+ 	vid_cap->active_buf_cnt = 0;
+-	vid_cap->reqbufs_count  = 0;
+-	vid_cap->refcnt = 0;
++	vid_cap->reqbufs_count = 0;
++	vid_cap->ctx = ctx;
  
-+enum em28xx_i2c_algo_type {
-+	EM28XX_I2C_ALGO_EM28XX = 0,
-+	EM28XX_I2C_ALGO_EM2800,
-+	EM28XX_I2C_ALGO_EM25XX_BUS_B,
-+};
-+
- struct em28xx_i2c_bus {
- 	struct em28xx *dev;
+ 	INIT_LIST_HEAD(&vid_cap->pending_buf_q);
+ 	INIT_LIST_HEAD(&vid_cap->active_buf_q);
+-	vid_cap->ctx = ctx;
  
- 	unsigned bus;
-+	enum em28xx_i2c_algo_type algo_type;
- };
+-	q = &fimc->vid_cap.vbq;
+ 	memset(q, 0, sizeof(*q));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+ 	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+-	q->drv_priv = fimc->vid_cap.ctx;
++	q->drv_priv = ctx;
+ 	q->ops = &fimc_capture_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->buf_struct_size = sizeof(struct fimc_vid_buffer);
+ 	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	q->lock = &fimc->lock;
  
+ 	ret = vb2_queue_init(q);
+ 	if (ret)
+diff --git a/drivers/media/platform/s5p-fimc/fimc-m2m.c b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+index 2de56d3..163584d 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-m2m.c
++++ b/drivers/media/platform/s5p-fimc/fimc-m2m.c
+@@ -671,16 +671,15 @@ static int fimc_m2m_open(struct file *file)
+ 	struct fimc_ctx *ctx;
+ 	int ret = -EBUSY;
  
-@@ -651,7 +658,8 @@ struct em28xx_ops {
+-	dbg("pid: %d, state: 0x%lx, refcnt: %d",
+-	    task_pid_nr(current), fimc->state, fimc->vid_cap.refcnt);
++	pr_debug("pid: %d, state: %#lx\n", task_pid_nr(current), fimc->state);
  
- /* Provided by em28xx-i2c.c */
- void em28xx_do_i2c_scan(struct em28xx *dev, unsigned bus);
--int  em28xx_i2c_register(struct em28xx *dev, unsigned bus);
-+int  em28xx_i2c_register(struct em28xx *dev, unsigned bus,
-+			 enum em28xx_i2c_algo_type algo_type);
- int  em28xx_i2c_unregister(struct em28xx *dev, unsigned bus);
+ 	if (mutex_lock_interruptible(&fimc->lock))
+ 		return -ERESTARTSYS;
+ 	/*
+-	 * Return if the corresponding video capture node
+-	 * is already opened.
++	 * Don't allow simultaneous open() of the mem-to-mem and the
++	 * capture video node that belong to same FIMC IP instance.
+ 	 */
+-	if (fimc->vid_cap.refcnt > 0)
++	if (test_bit(ST_CAPT_BUSY, &fimc->state))
+ 		goto unlock;
  
- /* Provided by em28xx-core.c */
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
 -- 
-1.7.10.4
+1.7.9.5
 
