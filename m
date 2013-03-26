@@ -1,105 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59607 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3CEWRC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 17:17:02 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, arm@kernel.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Timo Kokkonen <timo.t.kokkonen@iki.fi>,
-	Tony Lindgren <tony@atomide.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+Received: from mail.kapsi.fi ([217.30.184.167]:60775 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932225Ab3CZKAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 06:00:49 -0400
+Message-ID: <515171A9.3070308@iki.fi>
+Date: Tue, 26 Mar 2013 12:00:09 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: mchehab@redhat.com
+CC: Wei Yongjun <weiyj.lk@gmail.com>, yongjun_wei@trendmicro.com.cn,
 	linux-media@vger.kernel.org
-Subject: [PATCH 6/9] [media] ir-rx51: fix clock API related build issues
-Date: Tue,  5 Mar 2013 23:16:46 +0100
-Message-Id: <1362521809-22989-7-git-send-email-arnd@arndb.de>
-In-Reply-To: <1362521809-22989-1-git-send-email-arnd@arndb.de>
-References: <1362521809-22989-1-git-send-email-arnd@arndb.de>
+Subject: Re: [PATCH -next] [media] af9035: fix missing unlock on error in
+ af9035_ctrl_msg()
+References: <CAPgLHd8Ow5eV=zrOJ7PxWtOFn2qLwVd_Ys2LNE3ddL4gf3EFQg@mail.gmail.com> <51516E76.8010508@iki.fi>
+In-Reply-To: <51516E76.8010508@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OMAP1 no longer provides its own clock interfaces since patch
-a135eaae52 "ARM: OMAP: remove plat/clock.h". This is great, but
-we now have to convert the ir-rx51 driver to use the generic
-interface from linux/clk.h.
+@Mauro, that bug is new and coming as I rebased AF9035 IR code to the 
+new AF9035 non-stacked usb buffers, which introduces that mutex. Just 
+apply it to the current master.
 
-The driver also uses the omap_dm_timer_get_fclk() function,
-which is not exported for OMAP1, so we have to move the
-definition out of the OMAP2 specific section.
+regards
+Antti
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Timo Kokkonen <timo.t.kokkonen@iki.fi>
-Cc: Tony Lindgren <tony@atomide.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org
----
- arch/arm/plat-omap/dmtimer.c | 16 ++++++++--------
- drivers/media/rc/ir-rx51.c   |  4 ++--
- 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/arch/arm/plat-omap/dmtimer.c b/arch/arm/plat-omap/dmtimer.c
-index a0daa2f..ea133e5 100644
---- a/arch/arm/plat-omap/dmtimer.c
-+++ b/arch/arm/plat-omap/dmtimer.c
-@@ -333,6 +333,14 @@ int omap_dm_timer_get_irq(struct omap_dm_timer *timer)
- }
- EXPORT_SYMBOL_GPL(omap_dm_timer_get_irq);
- 
-+struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
-+{
-+	if (timer)
-+		return timer->fclk;
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
-+
- #if defined(CONFIG_ARCH_OMAP1)
- #include <mach/hardware.h>
- /**
-@@ -371,14 +379,6 @@ EXPORT_SYMBOL_GPL(omap_dm_timer_modify_idlect_mask);
- 
- #else
- 
--struct clk *omap_dm_timer_get_fclk(struct omap_dm_timer *timer)
--{
--	if (timer)
--		return timer->fclk;
--	return NULL;
--}
--EXPORT_SYMBOL_GPL(omap_dm_timer_get_fclk);
--
- __u32 omap_dm_timer_modify_idlect_mask(__u32 inputmask)
- {
- 	BUG();
-diff --git a/drivers/media/rc/ir-rx51.c b/drivers/media/rc/ir-rx51.c
-index 8ead492..d1364a1 100644
---- a/drivers/media/rc/ir-rx51.c
-+++ b/drivers/media/rc/ir-rx51.c
-@@ -25,9 +25,9 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/wait.h>
-+#include <linux/clk.h>
- 
- #include <plat/dmtimer.h>
--#include <plat/clock.h>
- 
- #include <media/lirc.h>
- #include <media/lirc_dev.h>
-@@ -209,7 +209,7 @@ static int lirc_rx51_init_port(struct lirc_rx51 *lirc_rx51)
- 	}
- 
- 	clk_fclk = omap_dm_timer_get_fclk(lirc_rx51->pwm_timer);
--	lirc_rx51->fclk_khz = clk_fclk->rate / 1000;
-+	lirc_rx51->fclk_khz = clk_get_rate(clk_fclk) / 1000;
- 
- 	return 0;
- 
+
+On 03/26/2013 11:46 AM, Antti Palosaari wrote:
+> On 03/26/2013 07:32 AM, Wei Yongjun wrote:
+>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>>
+>> Add the missing unlock before return from function af9035_ctrl_msg()
+>> in the error handling case.
+>>
+>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+>
+>> ---
+>>   drivers/media/usb/dvb-usb-v2/af9035.c | 17 +++++++++--------
+>>   1 file changed, 9 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c
+>> b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> index b1f7059..b638fc1 100644
+>> --- a/drivers/media/usb/dvb-usb-v2/af9035.c
+>> +++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+>> @@ -57,7 +57,7 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d,
+>> struct usb_req *req)
+>>           dev_err(&d->udev->dev, "%s: too much data wlen=%d rlen=%d\n",
+>>                   __func__, req->wlen, req->rlen);
+>>           ret = -EINVAL;
+>> -        goto err;
+>> +        goto exit;
+>>       }
+>>
+>>       state->buf[0] = REQ_HDR_LEN + req->wlen + CHECKSUM_LEN - 1;
+>> @@ -81,7 +81,7 @@ static int af9035_ctrl_msg(struct dvb_usb_device *d,
+>> struct usb_req *req)
+>>       ret = dvb_usbv2_generic_rw_locked(d,
+>>               state->buf, wlen, state->buf, rlen);
+>>       if (ret)
+>> -        goto err;
+>> +        goto exit;
+>>
+>>       /* no ack for those packets */
+>>       if (req->cmd == CMD_FW_DL)
+>> @@ -95,28 +95,29 @@ static int af9035_ctrl_msg(struct dvb_usb_device
+>> *d, struct usb_req *req)
+>>                   "(%04x != %04x)\n", KBUILD_MODNAME, req->cmd,
+>>                   tmp_checksum, checksum);
+>>           ret = -EIO;
+>> -        goto err;
+>> +        goto exit;
+>>       }
+>>
+>>       /* check status */
+>>       if (state->buf[2]) {
+>>           /* fw returns status 1 when IR code was not received */
+>> -        if (req->cmd == CMD_IR_GET || state->buf[2] == 1)
+>> -            return 1;
+>> +        if (req->cmd == CMD_IR_GET || state->buf[2] == 1) {
+>> +            ret = 1;
+>> +            goto exit;
+>> +        }
+>>
+>>           dev_dbg(&d->udev->dev, "%s: command=%02x failed fw error=%d\n",
+>>                   __func__, req->cmd, state->buf[2]);
+>>           ret = -EIO;
+>> -        goto err;
+>> +        goto exit;
+>>       }
+>>
+>>       /* read request, copy returned data to return buf */
+>>       if (req->rlen)
+>>           memcpy(req->rbuf, &state->buf[ACK_HDR_LEN], req->rlen);
+>>   exit:
+>> -err:
+>>       mutex_unlock(&d->usb_mutex);
+>> -    if (ret)
+>> +    if (ret < 0)
+>>           dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+>>       return ret;
+>>   }
+>>
+>>
+>
+>
+
+
 -- 
-1.8.1.2
-
+http://palosaari.fi/
