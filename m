@@ -1,61 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:50307 "EHLO
-	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753438Ab3CKVaI (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:50665 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753773Ab3CZSPD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 17:30:08 -0400
-Message-ID: <1363037403.3137.114.camel@x61.thuisdomein>
-Subject: [PATCH] [media] soc_camera: remove two outdated selects
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Mon, 11 Mar 2013 22:30:03 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Mar 2013 14:15:03 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 6/7] s5p-fimc: Add fimc-is subdevs registration
+Date: Tue, 26 Mar 2013 19:14:22 +0100
+Message-id: <1364321663-21010-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Release v2.6.30 removed the MT9M001_PCA9536_SWITCH and
-MT9V022_PCA9536_SWITCH Kconfig symbols, in commits
-36034dc325ecab63c8cfb992fbf9a1a8e94738a2 ("V4L/DVB (11032): mt9m001:
-allow setting of bus width from board code") and
-e958e27adeade7fa085dd396a8a0dfaef7e338c1 ("V4L/DVB (11033): mt9v022:
-allow setting of bus width from board code").
+This patch allows to register FIMC-IS device represented by FIMC-IS-ISP
+subdev to the top level media device driver. The use_isp platform data
+structure field allows to select whether the fimc-is ISP subdev should
+be tried to be registered or not.
 
-These two commits removed all gpio related code from these two drivers.
-But they skipped removing their two selects of GPIO_PCA953X. Remove
-these now as they are outdated. Their dependencies can never evaluate to
-true anyhow.
-
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Tested by grepping the tree.
+ drivers/media/platform/exynos4-is/media-dev.c |   37 +++++++++++++++++++++++--
+ drivers/media/platform/exynos4-is/media-dev.h |   13 +++++++++
+ 2 files changed, 47 insertions(+), 3 deletions(-)
 
- drivers/media/i2c/soc_camera/Kconfig | 2 --
- 1 file changed, 2 deletions(-)
-
-diff --git a/drivers/media/i2c/soc_camera/Kconfig b/drivers/media/i2c/soc_camera/Kconfig
-index 6dff2b7..23d352f 100644
---- a/drivers/media/i2c/soc_camera/Kconfig
-+++ b/drivers/media/i2c/soc_camera/Kconfig
-@@ -9,7 +9,6 @@ config SOC_CAMERA_IMX074
- config SOC_CAMERA_MT9M001
- 	tristate "mt9m001 support"
- 	depends on SOC_CAMERA && I2C
--	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
- 	help
- 	  This driver supports MT9M001 cameras from Micron, monochrome
- 	  and colour models.
-@@ -36,7 +35,6 @@ config SOC_CAMERA_MT9T112
- config SOC_CAMERA_MT9V022
- 	tristate "mt9v022 and mt9v024 support"
- 	depends on SOC_CAMERA && I2C
--	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
- 	help
- 	  This driver supports MT9V022 cameras from Micron
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 6048290..5e1c28e 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -32,6 +32,7 @@
  
+ #include "media-dev.h"
+ #include "fimc-core.h"
++#include "fimc-is.h"
+ #include "fimc-lite.h"
+ #include "mipi-csis.h"
+ 
+@@ -85,9 +86,11 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 		case GRP_ID_FIMC:
+ 			/* No need to control FIMC subdev through subdev ops */
+ 			break;
++		case GRP_ID_FIMC_IS:
++			p->subdevs[IDX_IS_ISP] = sd;
++			break;
+ 		default:
+-			pr_warn("%s: Unknown subdev grp_id: %#x\n",
+-				__func__, sd->grp_id);
++			break;
+ 		}
+ 		me = &sd->entity;
+ 		if (me->num_pads == 1)
+@@ -322,6 +325,7 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
+ 
+ 	if (!client)
+ 		return;
++
+ 	v4l2_device_unregister_subdev(sd);
+ 
+ 	if (!client->dev.of_node) {
+@@ -372,7 +376,11 @@ static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+ 		goto mod_put;
+ 
+ 	v4l2_set_subdev_hostdata(sd, si);
+-	sd->grp_id = GRP_ID_SENSOR;
++	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++		sd->grp_id = GRP_ID_FIMC_IS_SENSOR;
++	else
++		sd->grp_id = GRP_ID_SENSOR;
++
+ 	si->subdev = sd;
+ 	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
+ 		  sd->name, fmd->num_sensors);
+@@ -650,6 +658,22 @@ static int register_csis_entity(struct fimc_md *fmd,
+ 	return ret;
+ }
+ 
++static int register_fimc_is_entity(struct fimc_md *fmd, struct fimc_is *is)
++{
++	struct v4l2_subdev *sd = &is->isp.subdev;
++	int ret;
++
++	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
++	if (ret) {
++		v4l2_err(&fmd->v4l2_dev,
++			 "Failed to register FIMC-ISP (%d)\n", ret);
++		return ret;
++	}
++
++	fmd->fimc_is = is;
++	return 0;
++}
++
+ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 					    struct platform_device *pdev,
+ 					    int plat_entity)
+@@ -677,6 +701,9 @@ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 		case IDX_CSIS:
+ 			ret = register_csis_entity(fmd, pdev, drvdata);
+ 			break;
++		case IDX_IS_ISP:
++			ret = register_fimc_is_entity(fmd, drvdata);
++			break;
+ 		default:
+ 			ret = -ENODEV;
+ 		}
+@@ -740,6 +767,8 @@ static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
+ 		/* If driver of any entity isn't ready try all again later. */
+ 		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
+ 			plat_entity = IDX_CSIS;
++		else if	(!strcmp(node->name, FIMC_IS_OF_NODE_NAME))
++			plat_entity = IDX_IS_ISP;
+ 		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
+ 			plat_entity = IDX_FLITE;
+ 		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
+@@ -1306,6 +1335,8 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	v4l2_dev->notify = fimc_sensor_notify;
+ 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
+ 
++	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
++
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 1d5cea5..0b14cd5 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -12,6 +12,7 @@
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <media/media-device.h>
+ #include <media/media-entity.h>
+@@ -80,6 +81,7 @@ struct fimc_sensor_info {
+  * @num_sensors: actual number of registered sensors
+  * @camclk: external sensor clock information
+  * @fimc: array of registered fimc devices
++ * @fimc_is: fimc-is data structure
+  * @use_isp: set to true when FIMC-IS subsystem is used
+  * @pmf: handle to the CAMCLK clock control FIMC helper device
+  * @media_dev: top level media device
+@@ -99,6 +101,7 @@ struct fimc_md {
+ 	struct clk *wbclk[FIMC_MAX_WBCLKS];
+ 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
+ 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
++	struct fimc_is *fimc_is;
+ 	bool use_isp;
+ 	struct device *pmf;
+ 	struct media_device media_dev;
+@@ -139,4 +142,14 @@ static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
+ 
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+ 
++#ifdef CONFIG_OF
++static inline bool fimc_md_is_isp_available(struct device_node *node)
++{
++	node = of_get_child_by_name(node, FIMC_IS_OF_NODE_NAME);
++	return node ? of_device_is_available(node) : false;
++}
++#else
++#define fimc_md_is_isp_available(node) (false)
++#endif /* CONFIG_OF */
++
+ #endif
 -- 
-1.7.11.7
+1.7.9.5
 
