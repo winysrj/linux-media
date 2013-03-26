@@ -1,112 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:49755 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751730Ab3CJOMB (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:53839 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753257Ab3CZRaM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Mar 2013 10:12:01 -0400
-Received: by mail-lb0-f180.google.com with SMTP id q12so2434777lbc.25
-        for <linux-media@vger.kernel.org>; Sun, 10 Mar 2013 07:12:00 -0700 (PDT)
-From: Volokh Konstantin <volokh84@gmail.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: Volokh Konstantin <volokh84@gmail.com>
-Subject: [PATCH 1/7] hverkuil/go7007: staging: media: go7007: Add Framesizes
-Date: Sun, 10 Mar 2013 18:04:40 +0400
-Message-Id: <1362924286-23995-1-git-send-email-volokh84@gmail.com>
+	Tue, 26 Mar 2013 13:30:12 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 01/10] V4L: Add MATRIX option to V4L2_CID_EXPOSURE_METERING
+ control
+Date: Tue, 26 Mar 2013 18:29:43 +0100
+Message-id: <1364318992-20562-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
----
- drivers/staging/media/go7007/go7007-v4l2.c |   76 ++++++++++++++++++++++++++++
- 1 files changed, 76 insertions(+), 0 deletions(-)
+This patch adds a menu option to the V4L2_CID_EXPOSURE_METERING
+control for multi-zone metering.
 
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index 66307ea..4ec9b84 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -612,6 +612,82 @@ static int vidioc_enum_framesizes(struct file *filp, void *priv,
- {
- 	struct go7007 *go = video_drvdata(filp);
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    7 +++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c         |    1 +
+ include/uapi/linux/v4l2-controls.h           |    1 +
+ 3 files changed, 9 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 7fe5be1..c5398ed 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3159,6 +3159,13 @@ giving priority to the center of the metered area.</entry>
+ 		  <entry><constant>V4L2_EXPOSURE_METERING_SPOT</constant>&nbsp;</entry>
+ 		  <entry>Measure only very small area at the center of the frame.</entry>
+ 		</row>
++		<row>
++		  <entry><constant>V4L2_EXPOSURE_METERING_MATRIX</constant>&nbsp;</entry>
++		  <entry>A multi-zone metering. The light intensity is measured
++in several points of the frame and the the results are combined. The
++algorithm of the zones selection and their significance in calculating the
++final value is device dependant.</entry>
++		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+ 	  </row>
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 4b45d49..6b56d7b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -234,6 +234,7 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Average",
+ 		"Center Weighted",
+ 		"Spot",
++		"Matrix",
+ 		NULL
+ 	};
+ 	static const char * const camera_auto_focus_range[] = {
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index f56c945..22556a2 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -642,6 +642,7 @@ enum v4l2_exposure_metering {
+ 	V4L2_EXPOSURE_METERING_AVERAGE		= 0,
+ 	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED	= 1,
+ 	V4L2_EXPOSURE_METERING_SPOT		= 2,
++	V4L2_EXPOSURE_METERING_MATRIX		= 3,
+ };
  
-+	if (go->board_id == GO7007_BOARDID_ADLINK_MPG24) {
-+		switch (go->standard) {
-+		case GO7007_STD_NTSC:
-+			switch (fsize->pixel_format) {
-+			case V4L2_PIX_FMT_MJPEG:
-+			case V4L2_PIX_FMT_MPEG:
-+			case V4L2_PIX_FMT_H263:
-+				switch (fsize->index) {
-+				case 0:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 720;
-+					fsize->discrete.height = 480;
-+					break;
-+				case 1:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 640;
-+					fsize->discrete.height = 480;
-+					break;
-+				case 2:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 352;
-+					fsize->discrete.height = 240;
-+					break;
-+				case 3:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 320;
-+					fsize->discrete.height = 240;
-+					break;
-+				case 4:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 176;
-+					fsize->discrete.height = 112;
-+					break;
-+				default:
-+					return -EINVAL;
-+				}
-+				break;
-+			default:
-+				return -EINVAL;
-+			}
-+			break;
-+		case GO7007_STD_PAL:
-+			switch (fsize->pixel_format) {
-+			case V4L2_PIX_FMT_MJPEG:
-+			case V4L2_PIX_FMT_MPEG:
-+			case V4L2_PIX_FMT_H263:
-+				switch (fsize->index) {
-+				case 0:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 720;
-+					fsize->discrete.height = 576;
-+					break;
-+				case 1:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 352;
-+					fsize->discrete.height = 288;
-+					break;
-+				case 2:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 176;
-+					fsize->discrete.height = 144;
-+					break;
-+				default:
-+					return -EINVAL;
-+				}
-+				break;
-+			default:
-+				return -EINVAL;
-+			}
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+		return 0;
-+	}
-+
- 	if (fsize->index > 0)
- 		return -EINVAL;
- 
+ #define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
 -- 
-1.7.7.6
+1.7.9.5
 
