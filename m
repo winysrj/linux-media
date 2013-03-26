@@ -1,74 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:64214 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418Ab3CTJFE (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:53845 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753163Ab3CZRaS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Mar 2013 05:05:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [PATCH 0/4] media: si4713: minor updates
-Date: Wed, 20 Mar 2013 10:04:05 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-References: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
-In-Reply-To: <1363707694-27224-1-git-send-email-edubezval@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303201004.05563.hverkuil@xs4all.nl>
+	Tue, 26 Mar 2013 13:30:18 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 03/10] s5p-fimc: Update graph traversal for entities with
+ multiple source pads
+Date: Tue, 26 Mar 2013 18:29:45 +0100
+Message-id: <1364318992-20562-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eduardo!
+We cannot assume that the passed entity the fimc_pipeline_prepare()
+function is supposed to start the media graph traversal from will
+always have its sink pad at pad index 0. Find the starting media
+entity's sink pad by iterating over its all pads and checking the
+pad flags. This ensures proper handling of FIMC, FIMC-LITE and
+FIMC-IS-ISP subdevs that have more than one sink and one source pad.
 
-On Tue 19 March 2013 16:41:30 Eduardo Valentin wrote:
-> Hello Mauro and Hans,
-> 
-> Here are a couple of minor changes for si4713 FM transmitter driver.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-Thanks!
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index b689166..abd3ad3 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -40,14 +40,13 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
+ 				bool on);
+ /**
+  * fimc_pipeline_prepare - update pipeline information with subdevice pointers
+- * @fimc: fimc device terminating the pipeline
++ * @me: media entity terminating the pipeline
+  *
+  * Caller holds the graph mutex.
+  */
+ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 				  struct media_entity *me)
+ {
+-	struct media_pad *pad = &me->pads[0];
+ 	struct v4l2_subdev *sd;
+ 	int i;
+ 
+@@ -55,15 +54,21 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 		p->subdevs[i] = NULL;
+ 
+ 	while (1) {
+-		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+-			break;
++		struct media_pad *pad = NULL;
++
++		/* Find remote source pad */
++		for (i = 0; i < me->num_pads; i++) {
++			struct media_pad *spad = &me->pads[i];
++			if (!(spad->flags & MEDIA_PAD_FL_SINK))
++				continue;
++			pad = media_entity_remote_source(spad);
++			if (pad)
++				break;
++		}
+ 
+-		/* source pad */
+-		pad = media_entity_remote_source(pad);
+ 		if (pad == NULL ||
+ 		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+ 			break;
+-
+ 		sd = media_entity_to_v4l2_subdev(pad->entity);
+ 
+ 		switch (sd->grp_id) {
+@@ -84,8 +89,9 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 			pr_warn("%s: Unknown subdev grp_id: %#x\n",
+ 				__func__, sd->grp_id);
+ 		}
+-		/* sink pad */
+-		pad = &sd->entity.pads[0];
++		me = &sd->entity;
++		if (me->num_pads == 1)
++			break;
+ 	}
+ }
+ 
+-- 
+1.7.9.5
 
-Patches 2-4 are fine, but I don't really see the point of the first patch
-(except for the last chunk which is a real improvement).
-
-The Codingstyle doesn't require such alignment, and in fact it says:
-
-"Descendants are always substantially shorter than the parent and
-are placed substantially to the right. The same applies to function headers
-with a long argument list."
-
-Unless Mauro thinks otherwise, I would leave all the alignment stuff alone
-and just post a version with the last chunk.
-
-For patches 2-4:
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Are you still able to test the si4713 driver? Because I have patches
-outstanding that I would love for someone to test for me:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/si4713
-
-In particular, run the latest v4l2-compliance test over it.
-
-Regards,
-
-	Hans
-
-> 
-> These changes are also available here:
-> https://git.gitorious.org/si4713/si4713.git
-> 
-> All best,
-> 
-> Eduardo Valentin (4):
->   media: radio: CodingStyle changes on si4713
->   media: radio: correct module license (==> GPL v2)
->   media: radio: add driver owner entry for radio-si4713
->   media: radio: add module alias entry for radio-si4713
-> 
->  drivers/media/radio/radio-si4713.c |   57 ++++++++++++++++++-----------------
->  1 files changed, 29 insertions(+), 28 deletions(-)
-> 
-> 
