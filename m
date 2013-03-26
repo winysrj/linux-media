@@ -1,363 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46699 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752007Ab3CJCEj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:39 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: =?y?q?=5BREVIEW=20PATCH=2013/41=5D=20af9035=3A=20IT9135=20dual=20tuner=20related=20changes?=
-Date: Sun, 10 Mar 2013 04:03:05 +0200
-Message-Id: <1362881013-5271-13-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:44498 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754477Ab3CZRh5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 13:37:57 -0400
+Received: by mail-bk0-f50.google.com with SMTP id jg1so339465bkc.23
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:55 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v3 2/5] em28xx: add chip id of the em2765
+Date: Tue, 26 Mar 2013 18:38:37 +0100
+Message-Id: <1364319520-6628-3-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=y
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now it supports IT9135 based dual tuner devices.
+This chip can be found in the SpeedLink VAD Laplace webcam (1ae7:9003 and 1ae7:9004).
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/usb/dvb-usb-v2/af9035.c | 201 +++++++++++++++++-----------------
- drivers/media/usb/dvb-usb-v2/af9035.h |   3 +-
- 2 files changed, 102 insertions(+), 102 deletions(-)
+ drivers/media/usb/em28xx/em28xx-cards.c |   13 ++++++++++++-
+ drivers/media/usb/em28xx/em28xx-reg.h   |    1 +
+ drivers/media/usb/em28xx/em28xx.h       |    1 +
+ 3 Dateien geändert, 14 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index 0b92277..1db9c76 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -320,8 +320,10 @@ static int af9035_identify_state(struct dvb_usb_device *d, const char **name)
- 			*name = AF9035_FIRMWARE_IT9135_V2;
- 		else
- 			*name = AF9035_FIRMWARE_IT9135_V1;
-+		state->eeprom_addr = EEPROM_BASE_IT9135;
- 	} else {
- 		*name = AF9035_FIRMWARE_AF9035;
-+		state->eeprom_addr = EEPROM_BASE_AF9035;
- 	}
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 033b6cb..54e0362 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -3041,6 +3041,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 		case CHIP_ID_EM2750:
+ 			chip_name = "em2750";
+ 			break;
++		case CHIP_ID_EM2765:
++			chip_name = "em2765";
++			dev->wait_after_write = 0;
++			dev->is_em25xx = 1;
++			dev->eeprom_addrwidth_16bit = 1;
++			break;
+ 		case CHIP_ID_EM2820:
+ 			chip_name = "em2710/2820";
+ 			break;
+@@ -3151,7 +3157,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
  
- 	ret = af9035_ctrl_msg(d, &req);
-@@ -347,63 +349,14 @@ static int af9035_download_firmware_af9035(struct dvb_usb_device *d,
- {
- 	int ret, i, j, len;
- 	u8 wbuf[1];
--	u8 rbuf[4];
- 	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
- 	struct usb_req req_fw_dl = { CMD_FW_DL, 0, 0, wbuf, 0, NULL };
--	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf } ;
--	u8 hdr_core, tmp;
-+	u8 hdr_core;
- 	u16 hdr_addr, hdr_data_len, hdr_checksum;
- 	#define MAX_DATA 58
- 	#define HDR_SIZE 7
+ 	/* register i2c bus 1 */
+ 	if (dev->def_i2c_bus) {
+-		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
++		if (dev->is_em25xx)
++			retval = em28xx_i2c_register(dev, 1,
++						  EM28XX_I2C_ALGO_EM25XX_BUS_B);
++		else
++			retval = em28xx_i2c_register(dev, 1,
++							EM28XX_I2C_ALGO_EM28XX);
+ 		if (retval < 0) {
+ 			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
+ 				__func__, retval);
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 8fd3c7f..1b0ecd6 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -219,6 +219,7 @@ enum em28xx_chip_id {
+ 	CHIP_ID_EM2860 = 34,
+ 	CHIP_ID_EM2870 = 35,
+ 	CHIP_ID_EM2883 = 36,
++	CHIP_ID_EM2765 = 54,
+ 	CHIP_ID_EM2874 = 65,
+ 	CHIP_ID_EM2884 = 68,
+ 	CHIP_ID_EM28174 = 113,
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index aeee896..7be008f 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -482,6 +482,7 @@ struct em28xx {
+ 	int model;		/* index in the device_data struct */
+ 	int devno;		/* marks the number of this device */
+ 	enum em28xx_chip_id chip_id;
++	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
  
- 	/*
--	 * In case of dual tuner configuration we need to do some extra
--	 * initialization in order to download firmware to slave demod too,
--	 * which is done by master demod.
--	 * Master feeds also clock and controls power via GPIO.
--	 */
--	ret = af9035_rd_reg(d, EEPROM_BASE_AF9035 + EEPROM_DUAL_MODE, &tmp);
--	if (ret < 0)
--		goto err;
--
--	if (tmp) {
--		/* configure gpioh1, reset & power slave demod */
--		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
--		if (ret < 0)
--			goto err;
--
--		ret = af9035_wr_reg_mask(d, 0x00d8b1, 0x01, 0x01);
--		if (ret < 0)
--			goto err;
--
--		ret = af9035_wr_reg_mask(d, 0x00d8af, 0x00, 0x01);
--		if (ret < 0)
--			goto err;
--
--		usleep_range(10000, 50000);
--
--		ret = af9035_wr_reg_mask(d, 0x00d8af, 0x01, 0x01);
--		if (ret < 0)
--			goto err;
--
--		/* tell the slave I2C address */
--		ret = af9035_rd_reg(d,
--				EEPROM_BASE_AF9035 + EEPROM_2ND_DEMOD_ADDR,
--				&tmp);
--		if (ret < 0)
--			goto err;
--
--		ret = af9035_wr_reg(d, 0x00417f, tmp);
--		if (ret < 0)
--			goto err;
--
--		/* enable clock out */
--		ret = af9035_wr_reg_mask(d, 0x00d81a, 0x01, 0x01);
--		if (ret < 0)
--			goto err;
--	}
--
--	/*
- 	 * Thanks to Daniel Glöckner <daniel-gl@gmx.net> about that info!
- 	 *
- 	 * byte 0: MCS 51 core
-@@ -469,28 +422,6 @@ static int af9035_download_firmware_af9035(struct dvb_usb_device *d,
- 	if (i)
- 		dev_warn(&d->udev->dev, "%s: bad firmware\n", KBUILD_MODNAME);
- 
--	/* firmware loaded, request boot */
--	req.cmd = CMD_FW_BOOT;
--	ret = af9035_ctrl_msg(d, &req);
--	if (ret < 0)
--		goto err;
--
--	/* ensure firmware starts */
--	wbuf[0] = 1;
--	ret = af9035_ctrl_msg(d, &req_fw_ver);
--	if (ret < 0)
--		goto err;
--
--	if (!(rbuf[0] || rbuf[1] || rbuf[2] || rbuf[3])) {
--		dev_err(&d->udev->dev, "%s: firmware did not run\n",
--				KBUILD_MODNAME);
--		ret = -ENODEV;
--		goto err;
--	}
--
--	dev_info(&d->udev->dev, "%s: firmware version=%d.%d.%d.%d",
--			KBUILD_MODNAME, rbuf[0], rbuf[1], rbuf[2], rbuf[3]);
--
- 	return 0;
- 
- err:
-@@ -503,11 +434,7 @@ static int af9035_download_firmware_it9135(struct dvb_usb_device *d,
- 		const struct firmware *fw)
- {
- 	int ret, i, i_prev;
--	u8 wbuf[1];
--	u8 rbuf[4];
--	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
- 	struct usb_req req_fw_dl = { CMD_FW_SCATTER_WR, 0, 0, NULL, 0, NULL };
--	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf } ;
- 	#define HDR_SIZE 7
- 
- 	/*
-@@ -522,7 +449,6 @@ static int af9035_download_firmware_it9135(struct dvb_usb_device *d,
- 	 * 5: addr LSB
- 	 * 6: count of data bytes ?
- 	 */
--
- 	for (i = HDR_SIZE, i_prev = 0; i <= fw->size; i++) {
- 		if (i == fw->size ||
- 				(fw->data[i + 0] == 0x03 &&
-@@ -541,6 +467,86 @@ static int af9035_download_firmware_it9135(struct dvb_usb_device *d,
- 		}
- 	}
- 
-+	return 0;
-+
-+err:
-+	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
-+
-+	return ret;
-+}
-+
-+static int af9035_download_firmware(struct dvb_usb_device *d,
-+		const struct firmware *fw)
-+{
-+	struct state *state = d_to_priv(d);
-+	int ret;
-+	u8 wbuf[1];
-+	u8 rbuf[4];
-+	u8 tmp;
-+	struct usb_req req = { 0, 0, 0, NULL, 0, NULL };
-+	struct usb_req req_fw_ver = { CMD_FW_QUERYINFO, 0, 1, wbuf, 4, rbuf } ;
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-+
-+	/*
-+	 * In case of dual tuner configuration we need to do some extra
-+	 * initialization in order to download firmware to slave demod too,
-+	 * which is done by master demod.
-+	 * Master feeds also clock and controls power via GPIO.
-+	 */
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_DUAL_MODE, &tmp);
-+	if (ret < 0)
-+		goto err;
-+
-+	if (tmp) {
-+		/* configure gpioh1, reset & power slave demod */
-+		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9035_wr_reg_mask(d, 0x00d8b1, 0x01, 0x01);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9035_wr_reg_mask(d, 0x00d8af, 0x00, 0x01);
-+		if (ret < 0)
-+			goto err;
-+
-+		usleep_range(10000, 50000);
-+
-+		ret = af9035_wr_reg_mask(d, 0x00d8af, 0x01, 0x01);
-+		if (ret < 0)
-+			goto err;
-+
-+		/* tell the slave I2C address */
-+		ret = af9035_rd_reg(d,
-+				state->eeprom_addr + EEPROM_2ND_DEMOD_ADDR,
-+				&tmp);
-+		if (ret < 0)
-+			goto err;
-+
-+		if (state->chip_type == 0x9135) {
-+			ret = af9035_wr_reg(d, 0x004bfb, tmp);
-+			if (ret < 0)
-+				goto err;
-+		} else {
-+			ret = af9035_wr_reg(d, 0x00417f, tmp);
-+			if (ret < 0)
-+				goto err;
-+
-+			/* enable clock out */
-+			ret = af9035_wr_reg_mask(d, 0x00d81a, 0x01, 0x01);
-+			if (ret < 0)
-+				goto err;
-+		}
-+	}
-+
-+	if (state->chip_type == 0x9135)
-+		ret = af9035_download_firmware_it9135(d, fw);
-+	else
-+		ret = af9035_download_firmware_af9035(d, fw);
-+	if (ret < 0)
-+		goto err;
-+
- 	/* firmware loaded, request boot */
- 	req.cmd = CMD_FW_BOOT;
- 	ret = af9035_ctrl_msg(d, &req);
-@@ -571,17 +577,6 @@ err:
- 	return ret;
- }
- 
--static int af9035_download_firmware(struct dvb_usb_device *d,
--		const struct firmware *fw)
--{
--	struct state *state = d_to_priv(d);
--
--	if (state->chip_type == 0x9135)
--		return af9035_download_firmware_it9135(d, fw);
--	else
--		return af9035_download_firmware_af9035(d, fw);
--}
--
- static int af9035_read_config(struct dvb_usb_device *d)
- {
- 	struct state *state = d_to_priv(d);
-@@ -592,14 +587,17 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	/* demod I2C "address" */
- 	state->af9033_config[0].i2c_addr = 0x38;
- 	state->af9033_config[0].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
-+	state->af9033_config[1].adc_multiplier = AF9033_ADC_MULTIPLIER_2X;
- 
- 	/* eeprom memory mapped location */
- 	if (state->chip_type == 0x9135) {
- 		if (state->chip_version == 0x02) {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_60;
-+			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_60;
- 			tmp16 = 0x00461d;
- 		} else {
- 			state->af9033_config[0].tuner = AF9033_TUNER_IT9135_38;
-+			state->af9033_config[1].tuner = AF9033_TUNER_IT9135_38;
- 			tmp16 = 0x00461b;
- 		}
- 
-@@ -678,8 +676,14 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 
- 		/* disable dual mode if driver does not support it */
- 		if (i == 1)
--			switch (tmp) {
-+			switch (state->af9033_config[i].tuner) {
- 			case AF9033_TUNER_FC0012:
-+			case AF9033_TUNER_IT9135_38:
-+			case AF9033_TUNER_IT9135_51:
-+			case AF9033_TUNER_IT9135_52:
-+			case AF9033_TUNER_IT9135_60:
-+			case AF9033_TUNER_IT9135_61:
-+			case AF9033_TUNER_IT9135_62:
- 				break;
- 			default:
- 				state->dual_mode = false;
-@@ -891,6 +895,7 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- 	struct state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret;
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
- 
- 	if (!state->af9033_config[adap->id].tuner) {
- 		/* unsupported tuner */
-@@ -901,15 +906,6 @@ static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- 	if (adap->id == 0) {
- 		state->af9033_config[0].ts_mode = AF9033_TS_MODE_USB;
- 		state->af9033_config[1].ts_mode = AF9033_TS_MODE_SERIAL;
--
--		ret = af9035_wr_reg(d, 0x00417f,
--				state->af9033_config[1].i2c_addr);
--		if (ret < 0)
--			goto err;
--
--		ret = af9035_wr_reg(d, 0x00d81a, state->dual_mode);
--		if (ret < 0)
--			goto err;
- 	}
- 
- 	/* attach demodulator */
-@@ -1004,6 +1000,8 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_frontend *fe;
- 	struct i2c_msg msg[1];
- 	u8 tuner_addr;
-+	dev_dbg(&d->udev->dev, "%s:\n", __func__);
-+
- 	/*
- 	 * XXX: Hack used in that function: we abuse unused I2C address bit [7]
- 	 * to carry info about used I2C bus for dual tuner configuration.
-@@ -1165,10 +1163,11 @@ static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- 	case AF9033_TUNER_IT9135_60:
- 	case AF9033_TUNER_IT9135_61:
- 	case AF9033_TUNER_IT9135_62:
--		/* attach tuner */
- 		af9035_it913x_config.tuner_id_0 = state->af9033_config[0].tuner;
--		fe = dvb_attach(it913x_attach, adap->fe[0],
--				&d->i2c_adap, 0x38, &af9035_it913x_config);
-+		/* attach tuner */
-+		fe = dvb_attach(it913x_attach, adap->fe[0], &d->i2c_adap,
-+				state->af9033_config[adap->id].i2c_addr,
-+				&af9035_it913x_config);
- 		break;
- 	default:
- 		fe = NULL;
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index 4d918ee..59843c7 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -54,10 +54,11 @@ struct usb_req {
- 
- struct state {
- 	u8 seq; /* packet sequence number */
--	bool dual_mode;
- 	u8 prechip_version;
- 	u8 chip_version;
- 	u16 chip_type;
-+	bool dual_mode;
-+	u16 eeprom_addr;
- 	struct af9033_config af9033_config[2];
- };
+ 	unsigned char disconnected:1;	/* device has been diconnected */
  
 -- 
-1.7.11.7
+1.7.10.4
 
