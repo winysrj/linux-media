@@ -1,202 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11453 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932266Ab3CDSrD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 13:47:03 -0500
-Date: Mon, 4 Mar 2013 15:46:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 01/11] em28xx-i2c: replace printk() with the
- corresponding em28xx macros
-Message-ID: <20130304154658.1aa6716b@redhat.com>
-In-Reply-To: <5134E780.4000700@googlemail.com>
-References: <1362339464-3373-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1362339464-3373-2-git-send-email-fschaefer.oss@googlemail.com>
-	<20130304150931.050dd815@redhat.com>
-	<5134E780.4000700@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.samsung.com ([203.254.224.24]:49033 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759842Ab3CZQGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 12:06:23 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH 0/3] s5p-fimc driver updates
+Date: Tue, 26 Mar 2013 17:06:03 +0100
+Message-id: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 04 Mar 2013 19:27:12 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+This patch series contains mostly conversion of the video capture node
+drivers to videobuf2 ioctl/fop helpers.
 
-> Am 04.03.2013 19:09, schrieb Mauro Carvalho Chehab:
-> > Em Sun,  3 Mar 2013 20:37:34 +0100
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Reduces the number of characters/lines, unifies the code and improves readability.
-> > Had you actually test this patch? The reason why printk() is used on some
-> > places is because dev->name is not available early.
-> 
-> The em28xx-specific macros are using printk, too.
-> They are actually just an abbreviation of the current printks (saving us
-> the KERN_XY and the the dev->name parameter).
-> See em28xx.h.
+Sylwester Nawrocki (3):
+  s5p-fimc: Use video entity for marking media pipeline as streaming
+  s5p-fimc: Use vb2 ioctl/fop helpers in FIMC capture driver
+  s5p-fimc: Use vb2 ioctl helpers in fimc-lite
 
-Hmm... em28xx dev->name used to be initialized after I2C register. 
-With the current logic this patch makes sense ;)
+ drivers/media/platform/s5p-fimc/fimc-capture.c |  178 +++++++-----------------
+ drivers/media/platform/s5p-fimc/fimc-lite.c    |  177 +++++++----------------
+ drivers/media/platform/s5p-fimc/fimc-m2m.c     |    9 +-
+ 3 files changed, 100 insertions(+), 264 deletions(-)
 
-Ok, I'm requeuing it.
+--
+1.7.9.5
 
-> > That's said, it makes sense to replace all those em28xx-specific printk
-> > functions by the standard pr_fmt-based ones (pr_err, pr_info, pr_debug, etc).
-> 
-> Yeah, I agree.
-> But that would be a separate patch series... ;)
-> I can do that (later) if you want.
-
-IMHO, that would be a nice cleanup. Of course, there's no hush for such
-cleanups ;)
-> 
-> Regards,
-> Frank
-> 
-> >
-> > Regards,
-> > Mauro
-> >
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> ---
-> >>  drivers/media/usb/em28xx/em28xx-i2c.c |   55 ++++++++++++++-------------------
-> >>  1 Datei geändert, 24 Zeilen hinzugefügt(+), 31 Zeilen entfernt(-)
-> >>
-> >> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> >> index 8532c1d..8819b54 100644
-> >> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> >> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> >> @@ -399,7 +399,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-> >>  	/* Check if board has eeprom */
-> >>  	err = i2c_master_recv(&dev->i2c_client, &buf, 0);
-> >>  	if (err < 0) {
-> >> -		em28xx_errdev("board has no eeprom\n");
-> >> +		em28xx_info("board has no eeprom\n");
-> >>  		memset(eedata, 0, len);
-> >>  		return -ENODEV;
-> >>  	}
-> >> @@ -408,8 +408,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-> >>  
-> >>  	err = i2c_master_send(&dev->i2c_client, &buf, 1);
-> >>  	if (err != 1) {
-> >> -		printk(KERN_INFO "%s: Huh, no eeprom present (err=%d)?\n",
-> >> -		       dev->name, err);
-> >> +		em28xx_errdev("failed to read eeprom (err=%d)\n", err);
-> >>  		return err;
-> >>  	}
-> >>  
-> >> @@ -426,9 +425,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-> >>  
-> >>  		if (block !=
-> >>  		    (err = i2c_master_recv(&dev->i2c_client, p, block))) {
-> >> -			printk(KERN_WARNING
-> >> -			       "%s: i2c eeprom read error (err=%d)\n",
-> >> -			       dev->name, err);
-> >> +			em28xx_errdev("i2c eeprom read error (err=%d)\n", err);
-> >>  			return err;
-> >>  		}
-> >>  		size -= block;
-> >> @@ -436,7 +433,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-> >>  	}
-> >>  	for (i = 0; i < len; i++) {
-> >>  		if (0 == (i % 16))
-> >> -			printk(KERN_INFO "%s: i2c eeprom %02x:", dev->name, i);
-> >> +			em28xx_info("i2c eeprom %02x:", i);
-> >>  		printk(" %02x", eedata[i]);
-> >>  		if (15 == (i % 16))
-> >>  			printk("\n");
-> >> @@ -445,55 +442,51 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned char *eedata, int len)
-> >>  	if (em_eeprom->id == 0x9567eb1a)
-> >>  		dev->hash = em28xx_hash_mem(eedata, len, 32);
-> >>  
-> >> -	printk(KERN_INFO "%s: EEPROM ID= 0x%08x, EEPROM hash = 0x%08lx\n",
-> >> -	       dev->name, em_eeprom->id, dev->hash);
-> >> +	em28xx_info("EEPROM ID = 0x%08x, EEPROM hash = 0x%08lx\n",
-> >> +		    em_eeprom->id, dev->hash);
-> >>  
-> >> -	printk(KERN_INFO "%s: EEPROM info:\n", dev->name);
-> >> +	em28xx_info("EEPROM info:\n");
-> >>  
-> >>  	switch (em_eeprom->chip_conf >> 4 & 0x3) {
-> >>  	case 0:
-> >> -		printk(KERN_INFO "%s:\tNo audio on board.\n", dev->name);
-> >> +		em28xx_info("\tNo audio on board.\n");
-> >>  		break;
-> >>  	case 1:
-> >> -		printk(KERN_INFO "%s:\tAC97 audio (5 sample rates)\n",
-> >> -				 dev->name);
-> >> +		em28xx_info("\tAC97 audio (5 sample rates)\n");
-> >>  		break;
-> >>  	case 2:
-> >> -		printk(KERN_INFO "%s:\tI2S audio, sample rate=32k\n",
-> >> -				 dev->name);
-> >> +		em28xx_info("\tI2S audio, sample rate=32k\n");
-> >>  		break;
-> >>  	case 3:
-> >> -		printk(KERN_INFO "%s:\tI2S audio, 3 sample rates\n",
-> >> -				 dev->name);
-> >> +		em28xx_info("\tI2S audio, 3 sample rates\n");
-> >>  		break;
-> >>  	}
-> >>  
-> >>  	if (em_eeprom->chip_conf & 1 << 3)
-> >> -		printk(KERN_INFO "%s:\tUSB Remote wakeup capable\n", dev->name);
-> >> +		em28xx_info("\tUSB Remote wakeup capable\n");
-> >>  
-> >>  	if (em_eeprom->chip_conf & 1 << 2)
-> >> -		printk(KERN_INFO "%s:\tUSB Self power capable\n", dev->name);
-> >> +		em28xx_info("\tUSB Self power capable\n");
-> >>  
-> >>  	switch (em_eeprom->chip_conf & 0x3) {
-> >>  	case 0:
-> >> -		printk(KERN_INFO "%s:\t500mA max power\n", dev->name);
-> >> +		em28xx_info("\t500mA max power\n");
-> >>  		break;
-> >>  	case 1:
-> >> -		printk(KERN_INFO "%s:\t400mA max power\n", dev->name);
-> >> +		em28xx_info("\t400mA max power\n");
-> >>  		break;
-> >>  	case 2:
-> >> -		printk(KERN_INFO "%s:\t300mA max power\n", dev->name);
-> >> +		em28xx_info("\t300mA max power\n");
-> >>  		break;
-> >>  	case 3:
-> >> -		printk(KERN_INFO "%s:\t200mA max power\n", dev->name);
-> >> +		em28xx_info("\t200mA max power\n");
-> >>  		break;
-> >>  	}
-> >> -	printk(KERN_INFO "%s:\tTable at 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
-> >> -				dev->name,
-> >> -				em_eeprom->string_idx_table,
-> >> -				em_eeprom->string1,
-> >> -				em_eeprom->string2,
-> >> -				em_eeprom->string3);
-> >> +	em28xx_info("\tTable at offset 0x%02x, strings=0x%04x, 0x%04x, 0x%04x\n",
-> >> +		    em_eeprom->string_idx_table,
-> >> +		    em_eeprom->string1,
-> >> +		    em_eeprom->string2,
-> >> +		    em_eeprom->string3);
-> >>  
-> >>  	return 0;
-> >>  }
-> >> @@ -570,8 +563,8 @@ void em28xx_do_i2c_scan(struct em28xx *dev)
-> >>  		if (rc < 0)
-> >>  			continue;
-> >>  		i2c_devicelist[i] = i;
-> >> -		printk(KERN_INFO "%s: found i2c device @ 0x%x [%s]\n",
-> >> -		       dev->name, i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-> >> +		em28xx_info("found i2c device @ 0x%x [%s]\n",
-> >> +			    i << 1, i2c_devs[i] ? i2c_devs[i] : "???");
-> >>  	}
-> >>  
-> >>  	dev->i2c_hash = em28xx_hash_mem(i2c_devicelist,
-> >
-> 
-
-
--- 
-
-Cheers,
-Mauro
