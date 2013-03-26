@@ -1,90 +1,410 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:44498 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754477Ab3CZRh5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35509 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755468Ab3CZXxR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:37:57 -0400
-Received: by mail-bk0-f50.google.com with SMTP id jg1so339465bkc.23
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:55 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH v3 2/5] em28xx: add chip id of the em2765
-Date: Tue, 26 Mar 2013 18:38:37 +0100
-Message-Id: <1364319520-6628-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+	Tue, 26 Mar 2013 19:53:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v6 3/7] media: soc-camera: switch I2C subdevice drivers to use v4l2-clk
+Date: Wed, 27 Mar 2013 00:54:04 +0100
+Message-ID: <3250836.ovo27np6Xb@avalon>
+In-Reply-To: <1363382873-20077-4-git-send-email-g.liakhovetski@gmx.de>
+References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de> <1363382873-20077-4-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This chip can be found in the SpeedLink VAD Laplace webcam (1ae7:9003 and 1ae7:9004).
+Hi Guennadi,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   13 ++++++++++++-
- drivers/media/usb/em28xx/em28xx-reg.h   |    1 +
- drivers/media/usb/em28xx/em28xx.h       |    1 +
- 3 Dateien geändert, 14 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 033b6cb..54e0362 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -3041,6 +3041,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		case CHIP_ID_EM2750:
- 			chip_name = "em2750";
- 			break;
-+		case CHIP_ID_EM2765:
-+			chip_name = "em2765";
-+			dev->wait_after_write = 0;
-+			dev->is_em25xx = 1;
-+			dev->eeprom_addrwidth_16bit = 1;
-+			break;
- 		case CHIP_ID_EM2820:
- 			chip_name = "em2710/2820";
- 			break;
-@@ -3151,7 +3157,12 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 
- 	/* register i2c bus 1 */
- 	if (dev->def_i2c_bus) {
--		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
-+		if (dev->is_em25xx)
-+			retval = em28xx_i2c_register(dev, 1,
-+						  EM28XX_I2C_ALGO_EM25XX_BUS_B);
-+		else
-+			retval = em28xx_i2c_register(dev, 1,
-+							EM28XX_I2C_ALGO_EM28XX);
- 		if (retval < 0) {
- 			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
- 				__func__, retval);
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 8fd3c7f..1b0ecd6 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -219,6 +219,7 @@ enum em28xx_chip_id {
- 	CHIP_ID_EM2860 = 34,
- 	CHIP_ID_EM2870 = 35,
- 	CHIP_ID_EM2883 = 36,
-+	CHIP_ID_EM2765 = 54,
- 	CHIP_ID_EM2874 = 65,
- 	CHIP_ID_EM2884 = 68,
- 	CHIP_ID_EM28174 = 113,
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index aeee896..7be008f 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -482,6 +482,7 @@ struct em28xx {
- 	int model;		/* index in the device_data struct */
- 	int devno;		/* marks the number of this device */
- 	enum em28xx_chip_id chip_id;
-+	unsigned int is_em25xx:1;	/* em25xx/em276x/7x/8x family bridge */
- 
- 	unsigned char disconnected:1;	/* device has been diconnected */
- 
+On Friday 15 March 2013 22:27:49 Guennadi Liakhovetski wrote:
+> Instead of centrally enabling and disabling subdevice master clocks in
+> soc-camera core, let subdevice drivers do that themselves, using the
+> V4L2 clock API and soc-camera convenience wrappers.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+[snip]
+
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c
+> b/drivers/media/platform/soc_camera/soc_camera.c index 4e626a6..01cd5a0
+> 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -30,6 +30,7 @@
+>  #include <linux/vmalloc.h>
+> 
+>  #include <media/soc_camera.h>
+> +#include <media/v4l2-clk.h>
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-ioctl.h>
+>  #include <media/v4l2-dev.h>
+> @@ -50,13 +51,19 @@ static LIST_HEAD(hosts);
+>  static LIST_HEAD(devices);
+>  static DEFINE_MUTEX(list_lock);		/* Protects the list of hosts */
+> 
+> -int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc
+> *ssdd)
+> +int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc
+> *ssdd,
+> +			struct v4l2_clk *clk)
+>  {
+> -	int ret = regulator_bulk_enable(ssdd->num_regulators,
+> +	int ret = clk ? v4l2_clk_enable(clk) : 0;
+> +	if (ret < 0) {
+> +		dev_err(dev, "Cannot enable clock\n");
+> +		return ret;
+> +	}
+
+Will that work for all devices ? Aren't there devices that would need the 
+clock to be turned on after the power supply is stable ?
+
+> +	ret = regulator_bulk_enable(ssdd->num_regulators,
+>  					ssdd->regulators);
+>  	if (ret < 0) {
+>  		dev_err(dev, "Cannot enable regulators\n");
+> -		return ret;
+> +		goto eregenable;;
+>  	}
+> 
+>  	if (ssdd->power) {
+> @@ -64,16 +71,25 @@ int soc_camera_power_on(struct device *dev, struct
+> soc_camera_subdev_desc *ssdd) if (ret < 0) {
+>  			dev_err(dev,
+>  				"Platform failed to power-on the camera.\n");
+> -			regulator_bulk_disable(ssdd->num_regulators,
+> -					       ssdd->regulators);
+> +			goto epwron;
+>  		}
+>  	}
+> 
+> +	return 0;
+> +
+> +epwron:
+> +	regulator_bulk_disable(ssdd->num_regulators,
+> +			       ssdd->regulators);
+> +eregenable:
+> +	if (clk)
+> +		v4l2_clk_disable(clk);
+> +
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL(soc_camera_power_on);
+> 
+> -int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc
+> *ssdd)
+> +int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc
+> *ssdd,
+> +			 struct v4l2_clk *clk)
+>  {
+>  	int ret = 0;
+>  	int err;
+> @@ -94,28 +110,44 @@ int soc_camera_power_off(struct device *dev, struct
+> soc_camera_subdev_desc *ssdd ret = ret ? : err;
+>  	}
+> 
+> +	if (clk)
+> +		v4l2_clk_disable(clk);
+> +
+>  	return ret;
+>  }
+>  EXPORT_SYMBOL(soc_camera_power_off);
+> 
+>  static int __soc_camera_power_on(struct soc_camera_device *icd)
+>  {
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	int ret;
+> 
+> +	if (!icd->clk) {
+> +		ret = ici->ops->add(icd);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +
+>  	ret = v4l2_subdev_call(sd, core, s_power, 1);
+> -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+> +	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+> +		if (!icd->clk)
+> +			ici->ops->remove(icd);
+>  		return ret;
+> +	}
+> 
+>  	return 0;
+>  }
+> 
+>  static int __soc_camera_power_off(struct soc_camera_device *icd)
+>  {
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  	int ret;
+> 
+>  	ret = v4l2_subdev_call(sd, core, s_power, 0);
+> +	if (!icd->clk)
+> +		ici->ops->remove(icd);
+>  	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+>  		return ret;
+> 
+> @@ -563,12 +595,6 @@ static int soc_camera_open(struct file *file)
+>  		if (sdesc->subdev_desc.reset)
+>  			sdesc->subdev_desc.reset(icd->pdev);
+> 
+> -		ret = ici->ops->add(icd);
+> -		if (ret < 0) {
+> -			dev_err(icd->pdev, "Couldn't activate the camera: %d\n", ret);
+> -			goto eiciadd;
+> -		}
+> -
+>  		ret = __soc_camera_power_on(icd);
+>  		if (ret < 0)
+>  			goto epower;
+> @@ -614,8 +640,6 @@ esfmt:
+>  eresume:
+>  	__soc_camera_power_off(icd);
+>  epower:
+> -	ici->ops->remove(icd);
+> -eiciadd:
+>  	icd->use_count--;
+>  	mutex_unlock(&ici->host_lock);
+>  elockhost:
+> @@ -638,7 +662,6 @@ static int soc_camera_close(struct file *file)
+> 
+>  		if (ici->ops->init_videobuf2)
+>  			vb2_queue_release(&icd->vb2_vidq);
+> -		ici->ops->remove(icd);
+> 
+>  		__soc_camera_power_off(icd);
+>  	}
+> @@ -1079,6 +1102,57 @@ static void scan_add_host(struct soc_camera_host
+> *ici) mutex_unlock(&list_lock);
+>  }
+> 
+> +/*
+> + * It is invalid to call v4l2_clk_enable() after a successful probing
+> + * asynchronously outside of V4L2 operations, i.e. with .host_lock not
+> held.
+> + */
+> +static int soc_camera_clk_enable(struct v4l2_clk *clk)
+> +{
+> +	struct soc_camera_device *icd = clk->priv;
+> +	struct soc_camera_host *ici;
+> +
+> +	if (!icd || !icd->parent)
+> +		return -ENODEV;
+> +
+> +	ici = to_soc_camera_host(icd->parent);
+> +
+> +	if (!try_module_get(ici->ops->owner))
+> +		return -ENODEV;
+> +
+> +	/*
+> +	 * If a different client is currently being probed, the host will tell
+> +	 * you to go
+> +	 */
+> +	return ici->ops->add(icd);
+
+You don't use clk->subdev here. Why is the struct v4l2_clk subdev field thus 
+needed ?
+
+> +}
+> +
+> +static void soc_camera_clk_disable(struct v4l2_clk *clk)
+> +{
+> +	struct soc_camera_device *icd = clk->priv;
+> +	struct soc_camera_host *ici;
+> +
+> +	if (!icd || !icd->parent)
+> +		return;
+> +
+> +	ici = to_soc_camera_host(icd->parent);
+> +
+> +	ici->ops->remove(icd);
+> +
+> +	module_put(ici->ops->owner);
+> +}
+> +
+> +/*
+> + * Eventually, it would be more logical to make the respective host the
+> clock + * owner, but then we would have to copy this struct for each ici.
+> Besides, it + * would introduce the circular dependency problem, unless we
+> port all client + * drivers to release the clock, when not in use.
+> + */
+> +static const struct v4l2_clk_ops soc_camera_clk_ops = {
+> +	.owner = THIS_MODULE,
+> +	.enable = soc_camera_clk_enable,
+> +	.disable = soc_camera_clk_disable,
+> +};
+> +
+>  #ifdef CONFIG_I2C_BOARDINFO
+>  static int soc_camera_init_i2c(struct soc_camera_device *icd,
+>  			       struct soc_camera_desc *sdesc)
+> @@ -1088,19 +1162,32 @@ static int soc_camera_init_i2c(struct
+> soc_camera_device *icd, struct soc_camera_host_desc *shd =
+> &sdesc->host_desc;
+>  	struct i2c_adapter *adap = i2c_get_adapter(shd->i2c_adapter_id);
+>  	struct v4l2_subdev *subdev;
+> +	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+> +	int ret;
+> 
+>  	if (!adap) {
+>  		dev_err(icd->pdev, "Cannot get I2C adapter #%d. No driver?\n",
+>  			shd->i2c_adapter_id);
+> -		goto ei2cga;
+> +		return -ENODEV;
+>  	}
+> 
+>  	shd->board_info->platform_data = &sdesc->subdev_desc;
+> 
+> +	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+> +		 shd->i2c_adapter_id, shd->board_info->addr);
+> +
+> +	icd->clk = v4l2_clk_register(&soc_camera_clk_ops, clk_name, "mclk", icd);
+> +	if (IS_ERR(icd->clk)) {
+> +		ret = PTR_ERR(icd->clk);
+> +		goto eclkreg;
+> +	}
+> +
+>  	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
+>  				shd->board_info, NULL);
+> -	if (!subdev)
+> +	if (!subdev) {
+> +		ret = -ENODEV;
+>  		goto ei2cnd;
+> +	}
+> 
+>  	client = v4l2_get_subdevdata(subdev);
+> 
+> @@ -1109,9 +1196,11 @@ static int soc_camera_init_i2c(struct
+> soc_camera_device *icd,
+> 
+>  	return 0;
+>  ei2cnd:
+> +	v4l2_clk_unregister(icd->clk);
+> +	icd->clk = NULL;
+> +eclkreg:
+>  	i2c_put_adapter(adap);
+> -ei2cga:
+> -	return -ENODEV;
+> +	return ret;
+>  }
+> 
+>  static void soc_camera_free_i2c(struct soc_camera_device *icd)
+> @@ -1124,6 +1213,8 @@ static void soc_camera_free_i2c(struct
+> soc_camera_device *icd)
+> v4l2_device_unregister_subdev(i2c_get_clientdata(client));
+>  	i2c_unregister_device(client);
+>  	i2c_put_adapter(adap);
+> +	v4l2_clk_unregister(icd->clk);
+> +	icd->clk = NULL;
+>  }
+>  #else
+>  #define soc_camera_init_i2c(icd, sdesc)	(-ENODEV)
+> @@ -1161,26 +1252,31 @@ static int soc_camera_probe(struct soc_camera_device
+> *icd) if (ssdd->reset)
+>  		ssdd->reset(icd->pdev);
+> 
+> -	mutex_lock(&ici->host_lock);
+> -	ret = ici->ops->add(icd);
+> -	mutex_unlock(&ici->host_lock);
+> -	if (ret < 0)
+> -		goto eadd;
+> -
+>  	/* Must have icd->vdev before registering the device */
+>  	ret = video_dev_create(icd);
+>  	if (ret < 0)
+>  		goto evdc;
+> 
+> +	/*
+> +	 * ..._video_start() will create a device node, video_register_device()
+> +	 * itself is protected against concurrent open() calls, but we also have
+> +	 * to protect our data also during client probing.
+> +	 */
+> +	mutex_lock(&ici->host_lock);
+> +
+>  	/* Non-i2c cameras, e.g., soc_camera_platform, have no board_info */
+>  	if (shd->board_info) {
+>  		ret = soc_camera_init_i2c(icd, sdesc);
+>  		if (ret < 0)
+> -			goto eadddev;
+> +			goto eadd;
+>  	} else if (!shd->add_device || !shd->del_device) {
+>  		ret = -EINVAL;
+> -		goto eadddev;
+> +		goto eadd;
+>  	} else {
+> +		ret = ici->ops->add(icd);
+> +		if (ret < 0)
+> +			goto eadd;
+> +
+>  		if (shd->module_name)
+>  			ret = request_module(shd->module_name);
+> 
+> @@ -1216,13 +1312,6 @@ static int soc_camera_probe(struct soc_camera_device
+> *icd)
+> 
+>  	icd->field = V4L2_FIELD_ANY;
+> 
+> -	/*
+> -	 * ..._video_start() will create a device node, video_register_device()
+> -	 * itself is protected against concurrent open() calls, but we also have
+> -	 * to protect our data.
+> -	 */
+> -	mutex_lock(&ici->host_lock);
+> -
+>  	ret = soc_camera_video_start(icd);
+>  	if (ret < 0)
+>  		goto evidstart;
+> @@ -1235,14 +1324,14 @@ static int soc_camera_probe(struct soc_camera_device
+> *icd) icd->field		= mf.field;
+>  	}
+> 
+> -	ici->ops->remove(icd);
+> +	if (!shd->board_info)
+> +		ici->ops->remove(icd);
+> 
+>  	mutex_unlock(&ici->host_lock);
+> 
+>  	return 0;
+> 
+>  evidstart:
+> -	mutex_unlock(&ici->host_lock);
+>  	soc_camera_free_user_formats(icd);
+>  eiufmt:
+>  ectrl:
+> @@ -1251,16 +1340,15 @@ ectrl:
+>  	} else {
+>  		shd->del_device(icd);
+>  		module_put(control->driver->owner);
+> -	}
+>  enodrv:
+>  eadddev:
+> +		ici->ops->remove(icd);
+> +	}
+> +eadd:
+>  	video_device_release(icd->vdev);
+>  	icd->vdev = NULL;
+> -evdc:
+> -	mutex_lock(&ici->host_lock);
+> -	ici->ops->remove(icd);
+>  	mutex_unlock(&ici->host_lock);
+> -eadd:
+> +evdc:
+>  	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+>  	return ret;
+>  }
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
