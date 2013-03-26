@@ -1,79 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8108 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933037Ab3CSQuR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 12:50:17 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Doron Cohen <doronc@siano-ms.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 45/46] [media] siano: remove doubled new line
-Date: Tue, 19 Mar 2013 13:49:34 -0300
-Message-Id: <1363711775-2120-46-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-References: <1363711775-2120-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.samsung.com ([203.254.224.33]:51549 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760098Ab3CZSi5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 14:38:57 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 3/4] exynos4-is: Correct input DMA YUV order configuration
+Date: Tue, 26 Mar 2013 19:38:18 +0100
+Message-id: <1364323101-22046-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sms_debug() and sms_info() already adds a '\n' at the printed
-strings. No need to add more.
+This patch fixes erroneous setup of the YUV order caused by not
+clearing FIMC_REG_MSCTRL_ORDER422_MASK bit field before setting
+proper FIMC_REG_MSCTRL_ORDER422 bits. This resulted in false
+colors for YUYV, YVYU, UYVY, VYUY color formats, depending in
+what sequence those were configured by user space.
 
-That helps to cleanup stuff like:
-	[ 4868.205648] smscore_onresponse: message not handled.
+YUV order definitions are corrected so that following convention
+is used:
 
-	[ 4868.205898] smscore_onresponse: message not handled.
+        | byte3 | byte2 | byte1 | byte0
+ -------+-------+-------+-------+------
+ YCBYCR | CR    | Y     | CB    | Y
+ YCRYCB | CB    | Y     | CR    | Y
+ CBYCRY | Y     | CR    | Y     | CB
+ CRYCBY | Y     | CB    | Y     | CR
 
-and:
-	[ 5467.959769] smscore_onresponse:
-	data rate 143069 bytes/secs
-
-While here, provides the message name, when the message is not
-handled by the smsmdtv core.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/common/siano/smscoreapi.c  | 6 ++++--
- drivers/media/common/siano/smsdvb-main.c | 2 +-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-core.c |   16 ++++++++--------
+ drivers/media/platform/exynos4-is/fimc-reg.c  |    3 ++-
+ drivers/media/platform/exynos4-is/fimc-reg.h  |   16 ++++++++--------
+ 3 files changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/common/siano/smscoreapi.c b/drivers/media/common/siano/smscoreapi.c
-index 5bfeeee..244928b 100644
---- a/drivers/media/common/siano/smscoreapi.c
-+++ b/drivers/media/common/siano/smscoreapi.c
-@@ -1496,7 +1496,7 @@ void smscore_onresponse(struct smscore_device_t *coredev,
- 		last_sample_time = time_now;
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index 2e153bb..f6efa47 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -412,34 +412,34 @@ void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	/* Set order for 1 plane input formats. */
+ 	switch (ctx->s_frame.fmt->color) {
+ 	case FIMC_FMT_YCRYCB422:
+-		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_CBYCRY;
++		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case FIMC_FMT_CBYCRY422:
+-		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_YCRYCB;
++		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case FIMC_FMT_CRYCBY422:
+-		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_YCBYCR;
++		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	case FIMC_FMT_YCBYCR422:
+ 	default:
+-		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_CRYCBY;
++		ctx->in_order_1p = FIMC_REG_MSCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	}
+ 	dbg("ctx->in_order_1p= %d", ctx->in_order_1p);
  
- 	if (time_now - last_sample_time > 10000) {
--		sms_debug("\ndata rate %d bytes/secs",
-+		sms_debug("data rate %d bytes/secs",
- 			  (int)((data_total * 1000) /
- 				(time_now - last_sample_time)));
+ 	switch (ctx->d_frame.fmt->color) {
+ 	case FIMC_FMT_YCRYCB422:
+-		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_CBYCRY;
++		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_YCRYCB;
+ 		break;
+ 	case FIMC_FMT_CBYCRY422:
+-		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_YCRYCB;
++		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_CBYCRY;
+ 		break;
+ 	case FIMC_FMT_CRYCBY422:
+-		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_YCBYCR;
++		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_CRYCBY;
+ 		break;
+ 	case FIMC_FMT_YCBYCR422:
+ 	default:
+-		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_CRYCBY;
++		ctx->out_order_1p = FIMC_REG_CIOCTRL_ORDER422_YCBYCR;
+ 		break;
+ 	}
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+diff --git a/drivers/media/platform/exynos4-is/fimc-reg.c b/drivers/media/platform/exynos4-is/fimc-reg.c
+index c276eb8..fd144a1 100644
+--- a/drivers/media/platform/exynos4-is/fimc-reg.c
++++ b/drivers/media/platform/exynos4-is/fimc-reg.c
+@@ -449,7 +449,8 @@ void fimc_hw_set_in_dma(struct fimc_ctx *ctx)
+ 		 | FIMC_REG_MSCTRL_IN_BURST_COUNT_MASK
+ 		 | FIMC_REG_MSCTRL_INPUT_MASK
+ 		 | FIMC_REG_MSCTRL_C_INT_IN_MASK
+-		 | FIMC_REG_MSCTRL_2P_IN_ORDER_MASK);
++		 | FIMC_REG_MSCTRL_2P_IN_ORDER_MASK
++		 | FIMC_REG_MSCTRL_ORDER422_MASK);
  
-@@ -1607,7 +1607,9 @@ void smscore_onresponse(struct smscore_device_t *coredev,
- 			break;
- 
- 		default:
--			sms_debug("message not handled.\n");
-+			sms_debug("message %s(%d) not handled.",
-+				  smscore_translate_msg(phdr->msgType),
-+				  phdr->msgType);
- 			break;
- 		}
- 		smscore_putbuffer(coredev, cb);
-diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
-index ce6ba7b..7f84b5c 100644
---- a/drivers/media/common/siano/smsdvb-main.c
-+++ b/drivers/media/common/siano/smsdvb-main.c
-@@ -948,7 +948,7 @@ static int smsdvb_isdbt_set_frontend(struct dvb_frontend *fe)
- 
- 	c->bandwidth_hz = 6000000;
- 
--	sms_info("%s: freq %d segwidth %d segindex %d\n", __func__,
-+	sms_info("%s: freq %d segwidth %d segindex %d", __func__,
- 		 c->frequency, c->isdbt_sb_segment_count,
- 		 c->isdbt_sb_segment_idx);
- 
+ 	cfg |= (FIMC_REG_MSCTRL_IN_BURST_COUNT(4)
+ 		| FIMC_REG_MSCTRL_INPUT_MEMORY
+diff --git a/drivers/media/platform/exynos4-is/fimc-reg.h b/drivers/media/platform/exynos4-is/fimc-reg.h
+index 01da7f3..6c97798 100644
+--- a/drivers/media/platform/exynos4-is/fimc-reg.h
++++ b/drivers/media/platform/exynos4-is/fimc-reg.h
+@@ -95,10 +95,10 @@
+ /* Output DMA control */
+ #define FIMC_REG_CIOCTRL			0x4c
+ #define FIMC_REG_CIOCTRL_ORDER422_MASK		(3 << 0)
+-#define FIMC_REG_CIOCTRL_ORDER422_CRYCBY	(0 << 0)
+-#define FIMC_REG_CIOCTRL_ORDER422_CBYCRY	(1 << 0)
+-#define FIMC_REG_CIOCTRL_ORDER422_YCRYCB	(2 << 0)
+-#define FIMC_REG_CIOCTRL_ORDER422_YCBYCR	(3 << 0)
++#define FIMC_REG_CIOCTRL_ORDER422_YCBYCR	(0 << 0)
++#define FIMC_REG_CIOCTRL_ORDER422_YCRYCB	(1 << 0)
++#define FIMC_REG_CIOCTRL_ORDER422_CBYCRY	(2 << 0)
++#define FIMC_REG_CIOCTRL_ORDER422_CRYCBY	(3 << 0)
+ #define FIMC_REG_CIOCTRL_LASTIRQ_ENABLE		(1 << 2)
+ #define FIMC_REG_CIOCTRL_YCBCR_3PLANE		(0 << 3)
+ #define FIMC_REG_CIOCTRL_YCBCR_2PLANE		(1 << 3)
+@@ -220,10 +220,10 @@
+ #define FIMC_REG_MSCTRL_FLIP_180		(3 << 13)
+ #define FIMC_REG_MSCTRL_FIFO_CTRL_FULL		(1 << 12)
+ #define FIMC_REG_MSCTRL_ORDER422_SHIFT		4
+-#define FIMC_REG_MSCTRL_ORDER422_YCBYCR		(0 << 4)
+-#define FIMC_REG_MSCTRL_ORDER422_CBYCRY		(1 << 4)
+-#define FIMC_REG_MSCTRL_ORDER422_YCRYCB		(2 << 4)
+-#define FIMC_REG_MSCTRL_ORDER422_CRYCBY		(3 << 4)
++#define FIMC_REG_MSCTRL_ORDER422_CRYCBY		(0 << 4)
++#define FIMC_REG_MSCTRL_ORDER422_YCRYCB		(1 << 4)
++#define FIMC_REG_MSCTRL_ORDER422_CBYCRY		(2 << 4)
++#define FIMC_REG_MSCTRL_ORDER422_YCBYCR		(3 << 4)
+ #define FIMC_REG_MSCTRL_ORDER422_MASK		(3 << 4)
+ #define FIMC_REG_MSCTRL_INPUT_EXTCAM		(0 << 3)
+ #define FIMC_REG_MSCTRL_INPUT_MEMORY		(1 << 3)
 -- 
-1.8.1.4
+1.7.9.5
 
