@@ -1,51 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:60070 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729Ab3CEFEI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 00:04:08 -0500
-Received: by mail-pb0-f49.google.com with SMTP id xa12so3911646pbc.36
-        for <linux-media@vger.kernel.org>; Mon, 04 Mar 2013 21:04:07 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
-Subject: [PATCH 1/3] [media] sh_veu: Use module_platform_driver_probe macro
-Date: Tue,  5 Mar 2013 10:23:36 +0530
-Message-Id: <1362459218-13314-1-git-send-email-sachin.kamat@linaro.org>
+Received: from agero.humv.es ([193.146.74.20]:56030 "EHLO agero.humv.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932693Ab3CZHgr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 03:36:47 -0400
+Message-ID: <54770.82.128.15.135.1364282874.squirrel@correo.humv.es>
+Date: Tue, 26 Mar 2013 08:27:54 +0100 (CET)
+Subject: 
+From: e639@humv.es
+Reply-To: eberhardtrost1@hotmail.com
+MIME-Version: 1.0
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-module_platform_driver_probe() eliminates the boilerplate and simplifies
-the code.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/sh_veu.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index 362d88e..0b32cc3 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -1249,18 +1249,7 @@ static struct platform_driver __refdata sh_veu_pdrv = {
- 	},
- };
- 
--static int __init sh_veu_init(void)
--{
--	return platform_driver_probe(&sh_veu_pdrv, sh_veu_probe);
--}
--
--static void __exit sh_veu_exit(void)
--{
--	platform_driver_unregister(&sh_veu_pdrv);
--}
--
--module_init(sh_veu_init);
--module_exit(sh_veu_exit);
-+module_platform_driver_probe(sh_veu_pdrv, sh_veu_probe);
- 
- MODULE_DESCRIPTION("sh-mobile VEU mem2mem driver");
- MODULE_AUTHOR("Guennadi Liakhovetski, <g.liakhovetski@gmx.de>");
+
 -- 
-1.7.4.1
+Ich bin Barrister Werner Erich Zeller, ich brauche eure aufrichtige
+Partnerschaft intransferring die Summe von 15.000.000,00 EUR auf Ihr
+Bankkonto in dieser Woche für den Nutzen der beiden von uns 50% each.It
+ist 100% legal, legitim und sicher! für Details, schreiben Sie mir auf
+dieser meiner privaten E-Mail statt: Dies ist dringende und ernste Sie
+müssen bereit sein und bereit, bevor Sie mich kontaktieren.
 
+bitte! Rufen Sie +44 702 409 0820 (Büro)
