@@ -1,89 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3123 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab3CALcR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 06:32:17 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFC PATCH 00/18] Remove DV_PRESET API
-Date: Fri, 1 Mar 2013 12:32:04 +0100
-Cc: linux-media@vger.kernel.org,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-References: <1361006901-16103-1-git-send-email-hverkuil@xs4all.nl> <51308A75.4040300@samsung.com>
-In-Reply-To: <51308A75.4040300@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303011232.04059.hverkuil@xs4all.nl>
+Received: from mailout1.samsung.com ([203.254.224.24]:56499 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760098Ab3CZSjE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 14:39:04 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 4/4] exynos4-is: Ensure proper media pipeline state on
+ device close
+Date: Tue, 26 Mar 2013 19:38:20 +0100
+Message-id: <1364323101-22046-9-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri March 1 2013 12:01:09 Tomasz Stanislawski wrote:
-> Hi Hans,
-> Thank you for the patches.
-> I applied the patchset on the top of SPRC's 3.8-rc4 kernel.
-> I tested the s5p-tv dv-timings using 0.9.3 using v4l-utils.
-> The test platform was Universal C210 (based on Exynos 4210 SoC).
-> 
-> Every timing mode worked correctly so do not hesitate to add:
-> 
-> Tested-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> 
-> to all s5p-tv related patches.
+Make sure media_entity_pipeline_stop() is called on video device
+close in cases where there was VIDIOC_STREAMON ioctl and no
+VIDIOC_STREAMOFF. This patch fixes media entities stream_count
+state which could prevent links from being disconnected, due to
+non-zero stream_count.
 
-Thanks for testing! Much appreciated.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c |   18 +++++++++++++-----
+ drivers/media/platform/exynos4-is/fimc-core.h    |    1 +
+ drivers/media/platform/exynos4-is/fimc-lite.c    |   18 ++++++++++++++----
+ drivers/media/platform/exynos4-is/fimc-lite.h    |    1 +
+ 4 files changed, 29 insertions(+), 9 deletions(-)
 
-> 
-> I tested following features:
-> a) v4l2-ctl --list-dv-timings
->    Result: got 10 timings entries as expected
-> b) v4l2-ctl --get-dv-timings-cap
->    Result: got timings caps. The was minor issue. Minimal with is 720 not 640.
-> c) for each available timing
->    v4l2-ctl --set-dv-bt-timings=index={index}
->    v4l2-ctl --get-dv-bt-timings
->    Show test image on the screen
->    Result: TV detected correct timings for all cases
-> 
-> I found some minor issues in the patches.
-> Please refer to the inlined comments.
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index b9c0817..0ae6bdb 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -551,6 +551,7 @@ unlock:
+ static int fimc_capture_release(struct file *file)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
++	struct fimc_vid_cap *vc = &fimc->vid_cap;
+ 	int ret;
+ 
+ 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
+@@ -558,6 +559,10 @@ static int fimc_capture_release(struct file *file)
+ 	mutex_lock(&fimc->lock);
+ 
+ 	if (v4l2_fh_is_singular_file(file)) {
++		if (vc->streaming) {
++			media_entity_pipeline_stop(&vc->vfd.entity);
++			vc->streaming = false;
++		}
+ 		clear_bit(ST_CAPT_BUSY, &fimc->state);
+ 		fimc_stop_capture(fimc, false);
+ 		fimc_pipeline_call(fimc, close, &fimc->pipeline);
+@@ -1243,8 +1248,10 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	}
+ 
+ 	ret = vb2_ioctl_streamon(file, priv, type);
+-	if (!ret)
++	if (!ret) {
++		vc->streaming = true;
+ 		return ret;
++	}
+ 
+ err_p_stop:
+ 	media_entity_pipeline_stop(entity);
+@@ -1258,11 +1265,12 @@ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 	int ret;
+ 
+ 	ret = vb2_ioctl_streamoff(file, priv, type);
++	if (ret < 0)
++		return ret;
+ 
+-	if (ret == 0)
+-		media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
+-
+-	return ret;
++	media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
++	fimc->vid_cap.streaming = false;
++	return 0;
+ }
+ 
+ static int fimc_cap_reqbufs(struct file *file, void *priv,
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 793333a..de2b57e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -318,6 +318,7 @@ struct fimc_vid_cap {
+ 	int				buf_index;
+ 	unsigned int			frame_count;
+ 	unsigned int			reqbufs_count;
++	bool				streaming;
+ 	int				input_index;
+ 	int				refcnt;
+ 	u32				input;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index b11e358..cb196b8 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -507,6 +507,10 @@ static int fimc_lite_release(struct file *file)
+ 
+ 	if (v4l2_fh_is_singular_file(file) &&
+ 	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
++		if (fimc->streaming) {
++			media_entity_pipeline_stop(&fimc->vfd.entity);
++			fimc->streaming = false;
++		}
+ 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+ 		fimc_lite_stop_capture(fimc, false);
+ 		fimc_pipeline_call(fimc, close, &fimc->pipeline);
+@@ -798,8 +802,11 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 		goto err_p_stop;
+ 
+ 	ret = vb2_ioctl_streamon(file, priv, type);
+-	if (!ret)
++	if (!ret) {
++		fimc->streaming = true;
+ 		return ret;
++	}
++
+ err_p_stop:
+ 	media_entity_pipeline_stop(entity);
+ 	return 0;
+@@ -812,9 +819,12 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
+ 	int ret;
+ 
+ 	ret = vb2_ioctl_streamoff(file, priv, type);
+-	if (ret == 0)
+-		media_entity_pipeline_stop(&fimc->vfd.entity);
+-	return ret;
++	if (ret < 0)
++		return ret;
++
++	media_entity_pipeline_stop(&fimc->vfd.entity);
++	fimc->streaming = false;
++	return 0;
+ }
+ 
+ static int fimc_lite_reqbufs(struct file *file, void *priv,
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index 8a8d26f..71fed51 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -166,6 +166,7 @@ struct fimc_lite {
+ 	int			ref_count;
+ 
+ 	struct fimc_lite_events	events;
++	bool			streaming;
+ };
+ 
+ static inline bool fimc_lite_active(struct fimc_lite *fimc)
+-- 
+1.7.9.5
 
-I'll take those into account for my v2 posting.
-
-> BTW.
-> The v4l2-ctl reports that fps for 1080i50 and 1080i60 as 25 and 30 respectively.
-> I agree that those values correctly reflects relation between
-> image resolution and the pixel rate.
-> However, I admit it looks a little bit confusing when suddenly 50 changes into 25.
-> It should clarified if F in FPS stands for "frame" or "field".
-
-Can you add this patch to v4l2-ctl and see if that looks better?
-
---------------- cut here ---------------
-diff --git a/utils/v4l2-ctl/v4l2-ctl-stds.cpp b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-index 863357a..d39faca 100644
---- a/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-stds.cpp
-@@ -260,10 +260,9 @@ static void print_dv_timings(const struct v4l2_dv_timings *t)
- 				(bt->polarities & V4L2_DV_HSYNC_POS_POL) ? '+' : '-');
- 		printf("\tPixelclock: %lld Hz", bt->pixelclock);
- 		if (bt->width && bt->height)
--			printf(" (%.2f fps)", (double)bt->pixelclock /
-+			printf(" (%.2f fields per second)", (double)bt->pixelclock /
- 					((bt->width + bt->hfrontporch + bt->hsync + bt->hbackporch) *
--					 (bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch +
--					  bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch)));
-+					 (bt->height + bt->vfrontporch + bt->vsync + bt->vbackporch)));
- 		printf("\n");
- 		printf("\tHorizontal frontporch: %d\n", bt->hfrontporch);
- 		printf("\tHorizontal sync: %d\n", bt->hsync);
---------------- cut here ---------------
-
-Also, can you run v4l2-compliance as well? See what that reports.
-
-Regards,
-
-	Hans
