@@ -1,223 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54117 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab3COM2B (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:64254 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753730Ab3CZSOk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 08:28:01 -0400
-Date: Fri, 15 Mar 2013 09:27:54 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com
-Subject: Re: [RFC V1 3/8] smi2021: Add smi2021_i2c.c
-Message-ID: <20130315122753.GD2989@localhost>
-References: <1363270024-12127-1-git-send-email-jonarne@jonarne.no>
- <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1363270024-12127-4-git-send-email-jonarne@jonarne.no>
+	Tue, 26 Mar 2013 14:14:40 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 0/7] V4L2 driver for Exynos4x12 Imaging Subsystem
+Date: Tue, 26 Mar 2013 19:14:16 +0100
+Message-id: <1364321663-21010-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 14, 2013 at 03:06:59PM +0100, Jon Arne Jørgensen wrote:
-> This file is responsible for registering the device
-> with the kernel i2c subsystem.
-> v4l2 talks to the saa7113 chip of the device via i2c.
-> 
-> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> ---
->  drivers/media/usb/smi2021/smi2021_i2c.c | 160 ++++++++++++++++++++++++++++++++
->  1 file changed, 160 insertions(+)
->  create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
-> 
-> diff --git a/drivers/media/usb/smi2021/smi2021_i2c.c b/drivers/media/usb/smi2021/smi2021_i2c.c
-> new file mode 100644
-> index 0000000..5b6f3f5
-> --- /dev/null
-> +++ b/drivers/media/usb/smi2021/smi2021_i2c.c
-> @@ -0,0 +1,160 @@
-> +/*******************************************************************************
-> + * smi2021_i2c.c                                                               *
-> + *                                                                             *
-> + * USB Driver for SMI2021 - EasyCAP                                            *
-> + * USB ID 1c88:003c                                                            *
-> + *                                                                             *
-> + * *****************************************************************************
-> + *
-> + * Copyright 2011-2013 Jon Arne Jørgensen
-> + * <jonjon.arnearne--a.t--gmail.com>
-> + *
-> + * Copyright 2011, 2012 Tony Brown, Michal Demin, Jeffry Johnston
-> + *
-> + * This file is part of SMI2021
-> + * http://code.google.com/p/easycap-somagic-linux/
-> + *
-> + * This program is free software: you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation, either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, see <http://www.gnu.org/licenses/>.
-> + *
-> + * This driver is heavily influensed by the STK1160 driver.
-> + * Copyright (C) 2012 Ezequiel Garcia
-> + * <elezegarcia--a.t--gmail.com>
-> + *
-> + */
-> +
-> +#include "smi2021.h"
-> +
-> +/* The device will not return the chip_name on address 0x00.
-> + * But the saa7115 i2c driver needs the chip id to match "f7113"
-> + * if we want to use it,
-> + * so we have to fake the return of this value
-> + */
+This iteration includes couple bug fixes and minor cleanup comparing
+to the original version (original cover letter can be found below).
+A patch adding ISP capture node has been removed as I'll need more
+time to enable this feature and I'd like to possibly have this series
+included in 3.10.
+                       -------
 
-This comment style is wrong, check Documentation/CodingStyle.
+This patch series is an initial version of a driver for the camera ISP
+subsystem (FIMC-IS) found in Samsung Exynos4x12 SoCs.
 
-BTW, Did you check the patches with checkpatch.pl?
-(you can add checkpatch.pl as a git pre-commit hook, which I find very useful)
+The FIMC-IS subsystem is build around a ARM Cortex-A5 CPU that controls
+its dedicated peripherals, like I2C, SPI, UART, PWM, ADC,...  and the
+ISP chain. There are 3 hardware image processing blocks: ISP, DRC
+(dynamic range compression) and FD (face detection) that are normally
+controlled by the Cortex-A5 firmware.
 
-> +
-> +static char chip_id[] = { 'x', 255, 55, 49, 49, 115, 0 };
-> +static int id_ptr;
-> +
-> +static unsigned int i2c_debug;
-> +module_param(i2c_debug, int, 0644);
-> +MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
-> +
-> +#define dprint_i2c(fmt, args...)					\
-> +do {									\
-> +	if (i2c_debug)							\
-> +		pr_debug("smi2021[i2c]::%s: " fmt, __func__, ##args);	\
-> +} while (0)
-> +
-> +
-> +static int i2c_xfer(struct i2c_adapter *i2c_adap,
-> +				struct i2c_msg msgs[], int num)
-> +{
-> +	struct smi2021_dev *dev = i2c_adap->algo_data;
-> +
-> +	switch (num) {
-> +	case 2: { /* Read reg */
+The driver currently exposes two additional sub-devices to user space:
+the image sensor and FIMC-IS-ISP sub-device. Another one might be
+added in future for the FD features.
 
-Do you need a local scope in here?
+The FIMC-IS has various data inputs, it can capture data from memory
+or from other SoC IP blocks (FIMC-LITE). It is currently plugged
+between FIMC-LITE and FIMC IP blocks, so there is a media pipeline
+like:
 
-> +		if (msgs[0].len != 1 || msgs[1].len != 1) {
-> +			dprint_i2c("both messages must be 1 byte\n");
-> +			goto err_out;
-> +
+sensor -> MIPI-CSIS -> FIMC-LITE -> FIMC-IS-ISP -> FIMC -> memory
 
-I think you missed a closing } here. And an opening { below...
+A raw Bayer image data can be captured from the ISP block which has
+it's own DMA engines. Support for this is not really included in
+this series though, only a video capture node driver stubs are added.
 
-> +		if ((msgs[1].flags & I2C_M_RD) != I2C_M_RD)
-> +			dprint_i2c("last message should have rd flag\n");
-> +			goto err_out;
-> +		}
-> +
-> +		if (msgs[0].buf[0] == 0) {
-> +			msgs[1].buf[0] = chip_id[id_ptr];
-> +			if (chip_id[id_ptr] != 0)
-> +				id_ptr += 1;
-> +		} else {
-> +			smi2021_read_reg(dev, msgs[0].addr, msgs[0].buf[0],
-> +						msgs[1].buf);
-> +		}
-> +		break;
-> +	}
-> +	case 1: { /* Write reg */
-> +		if (msgs[0].len == 0) {
-> +			break;
-> +		} else if (msgs[0].len != 2) {
-> +			dprint_i2c("unsupported len\n");
-> +			goto err_out;
-> +		}
-> +		if (msgs[0].buf[0] == 0) {
-> +			/* We don't handle writing to addr 0x00 */
-> +			break;
-> +		}
-> +
-> +		smi2021_write_reg(dev, msgs[0].addr, msgs[0].buf[0],
-> +						msgs[0].buf[1]);
-> +		break;
-> +	}
-> +	default: {
-> +		dprint_i2c("driver can only handle 1 or 2 messages\n");
-> +		goto err_out;
-> +	}
-> +	}
-> +	return num;
-> +
-> +err_out:
-> +	return -EOPNOTSUPP;
-> +}
-> +
-> +static u32 functionality(struct i2c_adapter *adap)
-> +{
-> +	return I2C_FUNC_SMBUS_EMUL;
-> +}
-> +
-> +static struct i2c_algorithm algo = {
-> +	.master_xfer = i2c_xfer,
-> +	.functionality = functionality,
-> +};
-> +
-> +static struct i2c_adapter adap_template = {
-> +	.owner = THIS_MODULE,
-> +	.name = "smi2021_easycap_dc60",
-> +	.algo = &algo,
-> +};
-> +
-> +static struct i2c_client client_template = {
-> +	.name = "smi2021 internal",
-> +};
-> +
-> +int smi2021_i2c_register(struct smi2021_dev *dev)
-> +{
-> +	int rc;
-> +
-> +	id_ptr = 0;
+This is a bit complicated code, nevertheless I would really appreciate
+any review comments you might have.
 
-You don't need to initialize id_ptr here.
+And this is just a basic set of futures this patch series addresses.
+Others include input/output DMA support for the DRC and FD blocks,
+support for more ISP controls, etc.
 
-> +
-> +	dev->i2c_adap = adap_template;
-> +	dev->i2c_adap.dev.parent = dev->dev;
-> +	strcpy(dev->i2c_adap.name, "smi2021");
-> +	dev->i2c_adap.algo_data = dev;
-> +
-> +	i2c_set_adapdata(&dev->i2c_adap, &dev->v4l2_dev);
-> +
-> +	rc = i2c_add_adapter(&dev->i2c_adap);
-> +	if (rc < 0) {
-> +		smi2021_err("can't add i2c adapter, errno: %d\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	dev->i2c_client = client_template;
-> +	dev->i2c_client.adapter = &dev->i2c_adap;
-> +
-> +	return 0;
-> +}
-> +
-> +int smi2021_i2c_unregister(struct smi2021_dev *dev)
-> +{
-> +	i2c_del_adapter(&dev->i2c_adap);
-> +	return 0;
-> +}
-> -- 
-> 1.8.1.1
-> 
 
--- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Full git tree with all dependencies can be found at:
+http://git.linuxtv.org/snawrocki/samsung.git/exynos4-fimc-is-v2
+
+Sylwester Nawrocki (7):
+  exynos4-is: Add Exynos4x12 FIMC-IS driver
+  exynos4-is: Add FIMC-IS ISP I2C bus driver
+  exynos4-is: Add FIMC-IS parameter region definitions
+  exynos4-is: Add common FIMC-IS image sensor driver
+  exynos4-is: Add Exynos4x12 FIMC-IS device tree bindings documentation
+  s5p-fimc: Add fimc-is subdevs registration
+  s5p-fimc: Create media links for the FIMC-IS entities
+
+ .../devicetree/bindings/media/exynos4-fimc-is.txt  |   45 +
+ drivers/media/platform/exynos4-is/Kconfig          |   13 +
+ drivers/media/platform/exynos4-is/Makefile         |    3 +
+ .../media/platform/exynos4-is/fimc-is-command.h    |  147 +++
+ drivers/media/platform/exynos4-is/fimc-is-errno.c  |  272 ++++++
+ drivers/media/platform/exynos4-is/fimc-is-errno.h  |  248 +++++
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c    |   81 ++
+ drivers/media/platform/exynos4-is/fimc-is-i2c.h    |   15 +
+ drivers/media/platform/exynos4-is/fimc-is-param.c  |  971 +++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-param.h  | 1022 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.c   |  242 +++++
+ drivers/media/platform/exynos4-is/fimc-is-regs.h   |  164 ++++
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  307 ++++++
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   80 ++
+ drivers/media/platform/exynos4-is/fimc-is.c        |  962 ++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is.h        |  340 +++++++
+ drivers/media/platform/exynos4-is/fimc-isp.c       |  707 ++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-isp.h       |  181 ++++
+ drivers/media/platform/exynos4-is/media-dev.c      |  120 ++-
+ drivers/media/platform/exynos4-is/media-dev.h      |   13 +
+ 20 files changed, 5911 insertions(+), 22 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-command.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is.h
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.h
+
+--
+1.7.9.5
+
