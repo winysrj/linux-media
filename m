@@ -1,62 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f53.google.com ([74.125.83.53]:35030 "EHLO
-	mail-ee0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757816Ab3CNNLx (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:12601 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932862Ab3CZFOf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 09:11:53 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH 04/10] drivers: hwmon: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 14:11:25 +0100
-Message-Id: <1363266691-15757-6-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+	Tue, 26 Mar 2013 01:14:35 -0400
+From: Prasanna Kumar <prasanna.ps@samsung.com>
+To: linux-samsung-soc@vger.kernel.org, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: Prasanna Kumar <prasanna.ps@samsung.com>
+Subject: [PATCH] [media] s5p-mfc: Change MFC clock reference w.r.t Common Clock
+ Framework
+Date: Tue, 26 Mar 2013 10:50:51 +0530
+Message-id: <1364275251-31394-1-git-send-email-prasanna.ps@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+From: Prasanna Kumar <prasanna.ps@samsung.com>
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jean Delvare <khali@linux-fr.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: lm-sensors@lm-sensors.org
+According to Common Clock framework , modified the method of getting
+clock for MFC Block.
+
+Signed-off-by: Prasanna Kumar <prasanna.ps@samsung.com>
 ---
- drivers/hwmon/mc13783-adc.c | 13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/hwmon/mc13783-adc.c b/drivers/hwmon/mc13783-adc.c
-index 2a7f331..982d862 100644
---- a/drivers/hwmon/mc13783-adc.c
-+++ b/drivers/hwmon/mc13783-adc.c
-@@ -273,18 +273,7 @@ static struct platform_driver mc13783_adc_driver = {
- 	.id_table	= mc13783_adc_idtable,
- };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+index 6aa38a5..b8ac8f6 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+@@ -50,7 +50,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+ 		goto err_p_ip_clk;
+ 	}
  
--static int __init mc13783_adc_init(void)
--{
--	return platform_driver_probe(&mc13783_adc_driver, mc13783_adc_probe);
--}
--
--static void __exit mc13783_adc_exit(void)
--{
--	platform_driver_unregister(&mc13783_adc_driver);
--}
--
--module_init(mc13783_adc_init);
--module_exit(mc13783_adc_exit);
-+module_platform_driver_probe(mc13783_adc_driver, mc13783_adc_probe);
- 
- MODULE_DESCRIPTION("MC13783 ADC driver");
- MODULE_AUTHOR("Luotao Fu <l.fu@pengutronix.de>");
+-	pm->clock = clk_get(&dev->plat_dev->dev, dev->variant->mclk_name);
++	pm->clock = clk_get_parent(pm->clock_gate);
+ 	if (IS_ERR(pm->clock)) {
+ 		mfc_err("Failed to get MFC clock\n");
+ 		ret = PTR_ERR(pm->clock);
 -- 
-1.8.1.5
+1.7.5.4
 
