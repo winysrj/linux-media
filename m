@@ -1,76 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33999 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756487Ab3CFKXl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Mar 2013 05:23:41 -0500
-Message-ID: <5137191F.6050707@ti.com>
-Date: Wed, 6 Mar 2013 15:53:27 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:40692 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754091Ab3CZRh7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 13:37:59 -0400
+Received: by mail-bk0-f42.google.com with SMTP id jc3so922553bkc.29
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 10:37:57 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH v3 4/5] em28xx: make em28xx_set_outfmt() working with EM25xx family bridges
+Date: Tue, 26 Mar 2013 18:38:39 +0100
+Message-Id: <1364319520-6628-5-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364319520-6628-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Prabhakar Lad <prabhakar.lad@ti.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
-References: <1362492801-13202-1-git-send-email-nsekhar@ti.com> <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com> <51371553.5030103@ti.com> <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
-In-Reply-To: <CA+V-a8uRWQxcBSoTkuDAqzzCyR2e20JHEWzVuS39389QEoPazg@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/6/2013 3:46 PM, Prabhakar Lad wrote:
-> Sekhar,
-> 
-> On Wed, Mar 6, 2013 at 3:37 PM, Sekhar Nori <nsekhar@ti.com> wrote:
->> On 3/6/2013 2:59 PM, Prabhakar Lad wrote:
->>
->>>>  config VIDEO_DAVINCI_VPIF_DISPLAY
->>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Display"
->>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
->>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
->>>>         select VIDEOBUF2_DMA_CONTIG
->>>> -       select VIDEO_DAVINCI_VPIF
->>>>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
->>>>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
->>>>         help
->>>> @@ -15,9 +14,8 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
->>>>
->>>>  config VIDEO_DAVINCI_VPIF_CAPTURE
->>>>         tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
->>>> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
->>>> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
->>>>         select VIDEOBUF2_DMA_CONTIG
->>>> -       select VIDEO_DAVINCI_VPIF
->>>>         help
->>>>           Enables Davinci VPIF module used for captur devices.
->>>>           This module is common for following DM6467/DA850/OMAPL138
->>>> @@ -28,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
->>>>
->>>>  config VIDEO_DAVINCI_VPIF
->>>>         tristate "DaVinci VPIF Driver"
->>>> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
->>>> +       depends on ARCH_DAVINCI
->>>
->>> It would be better if this was  depends on MACH_DAVINCI_DM6467_EVM ||
->>> MACH_DAVINCI_DA850_EVM
->>> rather than 'ARCH_DAVINCI' then you can remove 'MACH_DAVINCI_DM6467_EVM' and
->>> 'MACH_DAVINCI_DA850_EVM' dependency from VIDEO_DAVINCI_VPIF_DISPLAY and
->>> VIDEO_DAVINCI_VPIF_CAPTURE. So it would be just 'depends on VIDEO_DEV
->>> && VIDEO_DAVINCI_VPIF'
->>
->> I could, but vpif.c seems pretty board independent to me. Are you sure
->> no other board would like to build vpif.c? BTW, are vpif_display.c and
->> vpif_capture.c really that board specific? May be we can all make them
->> depend on ARCH_DAVINCI?
->>
-> VPIF is present only in DM646x and DA850/OMAP-L1138.
-> vpif.c is common file which is used by vpif_capture and vpif_display.
+Streaming doesn't work with the EM2765 if bit 5 of the output format register
+0x27 is set.
+It's actually not clear if really has to be set for the other chips, but for
+now let's keep it to avoid regressions and add a comment to the code.
 
-So vpif.c per se doesn't do anything useful. Why the dependency on EVMs?
-There are other boards for these platform which could use VPIF.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |   21 ++++++++++++++++-----
+ 1 Datei geändert, 16 Zeilen hinzugefügt(+), 5 Zeilen entfernt(-)
 
-Thanks,
-Sekhar
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index b2dcb3d..575a46a 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -697,12 +697,23 @@ int em28xx_vbi_supported(struct em28xx *dev)
+ int em28xx_set_outfmt(struct em28xx *dev)
+ {
+ 	int ret;
+-	u8 vinctrl;
+-
+-	ret = em28xx_write_reg_bits(dev, EM28XX_R27_OUTFMT,
+-				dev->format->reg | 0x20, 0xff);
++	u8 fmt, vinctrl;
++
++	fmt = dev->format->reg;
++	if (!dev->is_em25xx)
++		fmt |= 0x20;
++	/*
++	 * NOTE: it's not clear if this is really needed !
++	 * The datasheets say bit 5 is a reserved bit and devices seem to work
++	 * fine without it. But the Windows driver sets it for em2710/50+em28xx
++	 * devices and we've always been setting it, too.
++	 *
++	 * em2765 (em25xx, em276x/7x/8x) devices do NOT work with this bit set,
++	 * it's likely used for an additional (compressed ?) format there.
++	 */
++	ret = em28xx_write_reg(dev, EM28XX_R27_OUTFMT, fmt);
+ 	if (ret < 0)
+-			return ret;
++		return ret;
+ 
+ 	ret = em28xx_write_reg(dev, EM28XX_R10_VINMODE, dev->vinmode);
+ 	if (ret < 0)
+-- 
+1.7.10.4
+
