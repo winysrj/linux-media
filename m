@@ -1,98 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4105 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200Ab3CGUbp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 15:31:45 -0500
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r27KVfer093073
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 7 Mar 2013 21:31:43 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B861E11E0160
-	for <linux-media@vger.kernel.org>; Thu,  7 Mar 2013 21:31:40 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:51534 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754685Ab3CZSig (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 14:38:36 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130307203140.B861E11E0160@alastor.dyndns.org>
-Date: Thu,  7 Mar 2013 21:31:40 +0100 (CET)
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 0/4] exynos4-is updates
+Date: Tue, 26 Mar 2013 19:38:12 +0100
+Message-id: <1364323101-22046-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch series includes YUV order handling fix for the FIMC
+and FIMC-LITE, a fix for media entity ref_count issue, minor
+refactoring and removal of some static data that will no longer
+be needed since starting from 3.10 Exynos platform is going to
+be DT only.
 
-Results of the daily build of media_tree:
+All dependencies of this series are available at:
+git://linuxtv.org/snawrocki/samsung.git exynos4-fimc-is-v2
 
-date:		Thu Mar  7 19:00:24 CET 2013
-git branch:	test
-git hash:	457ba4ce4f435d0b4dd82a0acc6c796e541a2ea7
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8.03-marune
+Sylwester Nawrocki (5):
+  exynos4-is: Remove static driver data for Exynos4210 FIMC variants
+  exynos4-is: Use common driver data for all FIMC-LITE IP instances
+  exynos4-is: Allow colorspace conversion at fimc-lite
+  exynos4-is: Correct input DMA YUV order configuration
+  exynos4-is: Ensure proper media pipeline state on device close
 
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: WARNINGS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+ drivers/media/platform/exynos4-is/fimc-capture.c  |   18 ++-
+ drivers/media/platform/exynos4-is/fimc-core.c     |   51 ++-------
+ drivers/media/platform/exynos4-is/fimc-core.h     |    1 +
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c |    4 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.h |    8 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c     |  127 +++++++++++++--------
+ drivers/media/platform/exynos4-is/fimc-lite.h     |   15 +--
+ drivers/media/platform/exynos4-is/fimc-reg.c      |    3 +-
+ drivers/media/platform/exynos4-is/fimc-reg.h      |   16 +--
+ include/media/s5p_fimc.h                          |    2 +
+ 10 files changed, 124 insertions(+), 121 deletions(-)
 
-Detailed results are available here:
+--
+1.7.9.5
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
