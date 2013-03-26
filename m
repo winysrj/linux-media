@@ -1,83 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43986 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754451Ab3CKTBT (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:18263 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758070Ab3CZHEh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 15:01:19 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	shaik.samsung@gmail.com, arun.kk@samsung.com, a.hajda@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 09/11] s5p-fimc: Ensure proper s_power() call order in the
- ISP datapaths
-Date: Mon, 11 Mar 2013 20:00:24 +0100
-Message-id: <1363028426-2771-10-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
-References: <1363028426-2771-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 26 Mar 2013 03:04:37 -0400
+Date: Tue, 26 Mar 2013 10:04:15 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: hans.verkuil@cisco.com, mchehab@redhat.com,
+	gregkh@linuxfoundation.org, devel@driverdev.osuosl.org,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Subject: Re: [PATCH -next] [media] go7007: fix invalid use of sizeof in
+ go7007_usb_i2c_master_xfer()
+Message-ID: <20130326070415.GH9138@mwanda>
+References: <CAPgLHd-+DNxxVHsXiJpk2KFk8mzrQUkwaYPUFeWHyAmz-H6=4Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPgLHd-+DNxxVHsXiJpk2KFk8mzrQUkwaYPUFeWHyAmz-H6=4Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the FIMC-IS firmware communicates with an image sensor directly
-through the ISP I2C bus controllers the sub-devices power supplies
-cannot be simply enabled from left to right or disabled from right
-to left along the processing pipeline. Thus a subdev index to call
-s_power() on is looked up from a table, rather than doing the op call
-based on increasing/decreasing indexes.
+On Tue, Mar 26, 2013 at 02:42:47PM +0800, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> sizeof() when applied to a pointer typed expression gives the
+> size of the pointer, not that of the pointed data.
+>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   26 ++++++++++++++++--------
- 1 file changed, 18 insertions(+), 8 deletions(-)
+This fix isn't right.  "buf" is a char pointer.  I don't know what
+this code is doing.  Instead of sizeof(*buf) it should be something
+like "buflen", "msg[i].len", "msg[i].len + 1" or "msg[i].len + 3".
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index c99802d..e9e5337 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -128,23 +128,33 @@ static int __subdev_set_power(struct v4l2_subdev *sd, int on)
-  *
-  * Needs to be called with the graph mutex held.
-  */
--static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool state)
-+static int fimc_pipeline_s_power(struct fimc_pipeline *p, bool on)
- {
--	unsigned int i;
--	int ret;
-+	static const u8 seq[2][IDX_MAX - 1] = {
-+		{ IDX_IS_ISP, IDX_SENSOR, IDX_CSIS, IDX_FLITE },
-+		{ IDX_CSIS, IDX_FLITE, IDX_SENSOR, IDX_IS_ISP },
-+	};
-+	int i, ret = 0;
- 
- 	if (p->subdevs[IDX_SENSOR] == NULL)
- 		return -ENXIO;
- 
--	for (i = 0; i < IDX_MAX; i++) {
--		unsigned int idx = state ? (IDX_MAX - 1) - i : i;
-+	for (i = 0; i < IDX_MAX - 1; i++) {
-+		unsigned int idx = seq[on][i];
-+
-+		ret = __subdev_set_power(p->subdevs[idx], on);
-+
- 
--		ret = __subdev_set_power(p->subdevs[idx], state);
- 		if (ret < 0 && ret != -ENXIO)
--			return ret;
-+			goto error;
- 	}
--
- 	return 0;
-+error:
-+	for (; i >= 0; i--) {
-+		unsigned int idx = seq[on][i];
-+		__subdev_set_power(p->subdevs[idx], !on);
-+	}
-+	return ret;
- }
- 
- /**
--- 
-1.7.9.5
+I'm not sure which is correct here or what it's doing, sorry.
+
+regards,
+dan carpenter
 
