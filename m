@@ -1,123 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62628 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753532Ab3CCP66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Mar 2013 10:58:58 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r23FwwYs021697
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 3 Mar 2013 10:58:58 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 03/11] [media] mb86a20s: provide CNR stats before FE_HAS_SYNC
-Date: Sun,  3 Mar 2013 12:58:43 -0300
-Message-Id: <1362326331-17541-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
-References: <1362326331-17541-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout2.samsung.com ([203.254.224.25]:15306 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759842Ab3CZQG1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 12:06:27 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
+	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH 1/3] s5p-fimc: Use video entity for marking media
+ pipeline as streaming
+Date: Tue, 26 Mar 2013 17:06:04 +0100
+Message-id: <1364313966-18868-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-State 9 means TS started to be output, and it should be
-associated with FE_HAS_SYNC.
+It doesn't matter whether we start from the sensor of from
+the video node entity. Remove use of pipeline->subdevs array
+where possible, so we can partly drop dependency on struct
+fimc_pipeline in the fimc-lite module, which is also used
+by the exynos5-is driver.
+Also make sure we revert any media entity pipeline operations
+when vb2_streamon() function fails.
 
-The mb86a20scan get CNR statistics at state 7, when frame sync
-is obtained.
-
-As CNR may help to adjust the antenna, provide it earlier.
-
-A latter patch could eventually start outputing MER measures
-earlier, but that would require a bigger change, and probably
-won't be better than the current way, as the time between
-changing from state 8 to 9 is generally lower than the time
-to get the stats collected.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-frontends/mb86a20s.c | 24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ drivers/media/platform/s5p-fimc/fimc-capture.c |   27 +++++++++++++++---------
+ drivers/media/platform/s5p-fimc/fimc-lite.c    |    9 ++++----
+ 2 files changed, 21 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index daeee81..e222e55 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -312,7 +312,7 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	dev_dbg(&state->i2c->dev, "%s: Status = 0x%02x (state = %d)\n",
- 		 __func__, *status, val);
- 
--	return 0;
-+	return val;
- }
- 
- static int mb86a20s_read_signal_strength(struct dvb_frontend *fe)
-@@ -1564,7 +1564,7 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
- 	}
- }
- 
--static int mb86a20s_get_stats(struct dvb_frontend *fe)
-+static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
+diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+index 87b6842..257afc1 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-capture.c
++++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+@@ -1230,36 +1230,43 @@ static int fimc_cap_streamon(struct file *file, void *priv,
  {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -1584,6 +1584,14 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe)
- 	/* Get per-layer stats */
- 	mb86a20s_get_blk_error_layer_CNR(fe);
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_pipeline *p = &fimc->pipeline;
+-	struct v4l2_subdev *sd = p->subdevs[IDX_SENSOR];
++	struct fimc_vid_cap *vc = &fimc->vid_cap;
++	struct media_entity *entity = &vc->vfd.entity;
+ 	int ret;
  
-+	/*
-+	 * At state 7, only CNR is available
-+	 * For BER measures, state=9 is required
-+	 * FIXME: we may get MER measures with state=8
-+	 */
-+	if (status_nr < 9)
-+		return 0;
+ 	if (fimc_capture_active(fimc))
+ 		return -EBUSY;
+ 
+-	ret = media_entity_pipeline_start(&sd->entity, p->m_pipeline);
++	ret = media_entity_pipeline_start(entity, p->m_pipeline);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (fimc->vid_cap.user_subdev_api) {
++	if (vc->user_subdev_api) {
+ 		ret = fimc_pipeline_validate(fimc);
+-		if (ret < 0) {
+-			media_entity_pipeline_stop(&sd->entity);
+-			return ret;
+-		}
++		if (ret < 0)
++			goto err_p_stop;
+ 	}
+-	return vb2_streamon(&fimc->vid_cap.vbq, type);
 +
- 	for (i = 0; i < 3; i++) {
- 		if (c->isdbt_layer_enabled & (1 << i)) {
- 			/* Layer is active and has rc segments */
-@@ -1875,7 +1883,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
++	ret = vb2_streamon(&vc->vbq, type);
++	if (!ret)
++		return ret;
++
++err_p_stop:
++	media_entity_pipeline_stop(entity);
++	return ret;
+ }
+ 
+ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 			    enum v4l2_buf_type type)
  {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int rc;
-+	int rc, status_nr;
+ 	struct fimc_dev *fimc = video_drvdata(file);
+-	struct v4l2_subdev *sd = fimc->pipeline.subdevs[IDX_SENSOR];
+ 	int ret;
  
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 	ret = vb2_streamoff(&fimc->vid_cap.vbq, type);
++
+ 	if (ret == 0)
+-		media_entity_pipeline_stop(&sd->entity);
++		media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
++
+ 	return ret;
+ }
  
-@@ -1883,12 +1891,12 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 		fe->ops.i2c_gate_ctrl(fe, 0);
+diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+index 8ebefdb..40733e0 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-lite.c
++++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+@@ -800,20 +800,20 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 			      enum v4l2_buf_type type)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	struct v4l2_subdev *sensor = fimc->pipeline.subdevs[IDX_SENSOR];
++	struct media_entity *entity = &fimc->vfd.entity;
+ 	struct fimc_pipeline *p = &fimc->pipeline;
+ 	int ret;
  
- 	/* Get lock */
--	rc = mb86a20s_read_status(fe, status);
--	if (!(*status & FE_HAS_LOCK)) {
-+	status_nr = mb86a20s_read_status(fe, status);
-+	if (status_nr < 7) {
- 		mb86a20s_stats_not_ready(fe);
- 		mb86a20s_reset_frontend_cache(fe);
+ 	if (fimc_lite_active(fimc))
+ 		return -EBUSY;
+ 
+-	ret = media_entity_pipeline_start(&sensor->entity, p->m_pipeline);
++	ret = media_entity_pipeline_start(entity, p->m_pipeline);
+ 	if (ret < 0)
+ 		return ret;
+ 
+ 	ret = fimc_pipeline_validate(fimc);
+ 	if (ret) {
+-		media_entity_pipeline_stop(&sensor->entity);
++		media_entity_pipeline_stop(entity);
+ 		return ret;
  	}
--	if (rc < 0) {
-+	if (state < 0) {
- 		dev_err(&state->i2c->dev,
- 			"%s: Can't read frontend lock status\n", __func__);
- 		goto error;
-@@ -1908,7 +1916,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 	/* Fill signal strength */
- 	c->strength.stat[0].uvalue = rc;
  
--	if (*status & FE_HAS_LOCK) {
-+	if (status_nr >= 7) {
- 		/* Get TMCC info*/
- 		rc = mb86a20s_get_frontend(fe);
- 		if (rc < 0) {
-@@ -1919,7 +1927,7 @@ static int mb86a20s_read_status_and_stats(struct dvb_frontend *fe,
- 		}
+@@ -824,12 +824,11 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
+ 			       enum v4l2_buf_type type)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	struct v4l2_subdev *sd = fimc->pipeline.subdevs[IDX_SENSOR];
+ 	int ret;
  
- 		/* Get statistics */
--		rc = mb86a20s_get_stats(fe);
-+		rc = mb86a20s_get_stats(fe, status_nr);
- 		if (rc < 0 && rc != -EBUSY) {
- 			dev_err(&state->i2c->dev,
- 				"%s: Can't get FE statistics.\n", __func__);
+ 	ret = vb2_streamoff(&fimc->vb_queue, type);
+ 	if (ret == 0)
+-		media_entity_pipeline_stop(&sd->entity);
++		media_entity_pipeline_stop(&fimc->vfd.entity);
+ 	return ret;
+ }
+ 
 -- 
-1.8.1.4
+1.7.9.5
 
