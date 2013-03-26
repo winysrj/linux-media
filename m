@@ -1,49 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53249 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932822Ab3CGVhb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 16:37:31 -0500
-Date: Thu, 7 Mar 2013 22:37:26 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Christian Rhodin <Crhodin@aptina.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Pixel Formats
-In-Reply-To: <B4589F7BF62FDC409F64E48C95EC0572113A6BFC@sjcaex01.aptad.aptina.com>
-Message-ID: <Pine.LNX.4.64.1303072227570.20470@axis700.grange>
-References: <B4589F7BF62FDC409F64E48C95EC0572113A6BFC@sjcaex01.aptad.aptina.com>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:52929 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753591Ab3CZIpM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 04:45:12 -0400
+Received: by mail-bk0-f52.google.com with SMTP id it16so797131bkc.25
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 01:45:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 26 Mar 2013 16:45:11 +0800
+Message-ID: <CAPgLHd8xRn-7ExMXY9KA8GKvh3DmZ6jN0WBZ8BGb1WmGW2ghBA@mail.gmail.com>
+Subject: [PATCH -next v2] [media] go7007: fix invalid use of sizeof in go7007_usb_i2c_master_xfer()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: hans.verkuil@cisco.com, mchehab@redhat.com,
+	gregkh@linuxfoundation.org
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Christian
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-On Wed, 6 Mar 2013, Christian Rhodin wrote:
+sizeof() when applied to a pointer typed expression gives the
+size of the pointer, not that of the pointed data.
 
-> Hi,
-> 
-> I'm looking for some guidance on the correct way to handle a new pixel
-> format.  What I'm dealing with is a CMOS image sensor that supports
-> dynamic switching between linear and iHDR modes.  iHDR stands for
-> "interlaced High Dynamic Range" and is a mode where odd and even lines
-> have different exposure times, typically with an 8:1 ratio.  When I
-> started implementing a driver for this sensor I used
-> "V4L2_MBUS_FMT_SGRBG10_1X10" as the format for the linear mode and
-> defined a new format "V4L2_MBUS_FMT_SGRBG10_IHDR_1X10" for the iHDR
-> mode.  I used the format to control which mode I put the sensor in.  But
-> now I'm having trouble switching modes without reinitializing the
-> sensor.  Does anyone (everyone?) have an opinion about the correct way
-> to implement this?  I'm thinking that the format is overloaded because
-> it represents both the size and type of the data.  Should I use a single
-> format and add a control to switch the mode?
-
-I would vote for a single format with a control, maybe even somehow 
-cluster it with the normal exposure, but I'm not an expert in that, not 
-sure if it would make sense.
-
-Thanks
-Guennadi
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/staging/media/go7007/go7007-usb.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
+index 0823506..d455c0b 100644
+--- a/drivers/staging/media/go7007/go7007-usb.c
++++ b/drivers/staging/media/go7007/go7007-usb.c
+@@ -1035,7 +1035,7 @@ static int go7007_usb_i2c_master_xfer(struct i2c_adapter *adapter,
+ 						buf, buf_len, 0) < 0)
+ 			goto i2c_done;
+ 		if (msgs[i].flags & I2C_M_RD) {
+-			memset(buf, 0, sizeof(buf));
++			memset(buf, 0, msgs[i].len + 1);
+ 			if (go7007_usb_vendor_request(go, 0x25, 0, 0, buf,
+ 						msgs[i].len + 1, 1) < 0)
+ 				goto i2c_done;
+
+
