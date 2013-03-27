@@ -1,79 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f170.google.com ([209.85.210.170]:47199 "EHLO
-	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754788Ab3CSJEd (ORCPT
+Received: from mail-ve0-f174.google.com ([209.85.128.174]:56257 "EHLO
+	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750794Ab3C0Uda (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 05:04:33 -0400
+	Wed, 27 Mar 2013 16:33:30 -0400
+Received: by mail-ve0-f174.google.com with SMTP id jz10so4532964veb.5
+        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 13:33:29 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAHkwnC9fg7_uhLM2KD3vvj_oFx3EBoQfw8mCN=V9pyV5=k37aA@mail.gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-	<201303181058.51641.arnd@arndb.de>
-	<CAHkwnC-aHwd24S5MyLhnVzTqqQj2L7MMuVX9dirhS-G830jZcw@mail.gmail.com>
-	<201303181128.45215.arnd@arndb.de>
-	<CAHkwnC9fg7_uhLM2KD3vvj_oFx3EBoQfw8mCN=V9pyV5=k37aA@mail.gmail.com>
-Date: Tue, 19 Mar 2013 10:04:32 +0100
-Message-ID: <CAMuHMdVS56HRDSvr7XCpVEjEWnGti+V=J_m4qQzEid=23ON_fQ@mail.gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Fabio Porcedda <fabio.porcedda@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>
-Cc: H Hartley Sweeten <hartleys@visionengravers.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz>
+References: <20121228102928.4103390e@redhat.com>
+	<CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com>
+	<63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de>
+	<CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
+	<alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz>
+	<CALW4P+L1QKe=1wNkr90LsZY89OFnGBKB2N6yVeDhnyab_rSsnA@mail.gmail.com>
+	<alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz>
+Date: Thu, 28 Mar 2013 00:33:29 +0400
+Message-ID: <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
+Subject: Re: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Dirk E. Wagner" <linux@wagner-budenheim.de>,
+	Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 19, 2013 at 9:55 AM, Fabio Porcedda
-<fabio.porcedda@gmail.com> wrote:
-> On Mon, Mar 18, 2013 at 12:28 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Monday 18 March 2013, Fabio Porcedda wrote:
->>> On Mon, Mar 18, 2013 at 11:58 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->>> > On Monday 18 March 2013, Fabio Porcedda wrote:
->>> >> Since by using platform_driver_probe() the  function
->>> >> ep93xx_pwm_probe() is freed after initialization,
->>> >> is better to use module_platform_drive_probe().
->>> >> IMHO i don't see any good reason to use module_platform_driver() for
->>> >> this driver.
->>> >
->>> > As I commented earlier, the platform_driver_probe() and
->>> > module_platform_drive_probe() interfaces are rather dangerous in combination
->>> > with deferred probing, I would much prefer Harley's patch.
->>>
->>> Since those drivers don't use -EPROBE_DEFER i was thinking that they don't use
->>> deferred probing.
->>> I'm missing something?
->>
->> clk_get() may return -EPROBE_DEFER after ep93xx is converted to use the
->> common clk API. We currently return the value of clk_get from the probe()
->> function, which will automatically do the right thing as long as the probe
->> function remains reachable.
+On Wed, Mar 27, 2013 at 2:18 PM, Jiri Kosina <jkosina@suse.cz> wrote:
+> On Tue, 19 Mar 2013, Alexey Klimov wrote:
 >
-> Thanks for the explanation.
+>> Yes, i just checked how hid_ignore() works and prepared dirty fix to
+>> test in almost the same way like it's done for Keene usb driver. I
+>> will send correct fix in next few days.
+>
+> Any news on this, please?
 
-Hmm, so we may have drivers that (now) work perfectly fine with
-module_platform_driver_probe()/platform_driver_probe(), but will start
-failing suddenly in the future?
+Hi Jiri,
 
-I guess we need a big fat WARN_ON(-EPROBE_DEFER) in
-platform_driver_probe() to catch these?
+I'm very very sorry (was busy because of life). I just sent two
+patches to you, Mauro and two mail lists:
+[patch 1/2] hid: fix Masterkit MA901 hid quirks
+[patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
+doesn't match
 
-Gr{oetje,eeting}s,
+Please check. First one for hid layer, so maybe you can take it
+directly through your tree. I hope it's not too late.
+I think Mauro will take second patch.
 
-                        Geert
+I spend some time testing them trying to figure out right scenarios
+and i hope i did correct checks.
+It will be nice if someone can test patches because i don't have any
+devices with same USB IDs as radio-ma901.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Thanks and best regards,
+Alexey.
