@@ -1,238 +1,733 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4994 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752558Ab3CBXp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 12/20] solo6x10: rename the spinlock 'lock' to 'slock'.
-Date: Sun,  3 Mar 2013 00:45:28 +0100
-Message-Id: <1d4957107e1073d07d53b3e2112fb9e6c180ef32.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:44476 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753274Ab3C0ULa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Mar 2013 16:11:30 -0400
+Received: by mail-ea0-f175.google.com with SMTP id r16so908328ead.6
+        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 13:11:29 -0700 (PDT)
+Message-ID: <515352AA.1080303@googlemail.com>
+Date: Wed, 27 Mar 2013 21:12:26 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Timo Teras <timo.teras@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec Grabby hwrev 2
+References: <20130325190846.3250fe98@vostro> <51532E56.9070108@googlemail.com> <20130327195749.4fbd4ae1@vostro> <20130327200421.1f8df956@vostro>
+In-Reply-To: <20130327200421.1f8df956@vostro>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 27.03.2013 19:04, schrieb Timo Teras:
+> On Wed, 27 Mar 2013 19:57:49 +0200
+> Timo Teras <timo.teras@iki.fi> wrote:
+>
+>> The errors are weird. strace gives:
+>> open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No such file or
+>> directory) open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No
+>> such file or directory)
+>>
+>> # ls  /dev/bus/usb/005/
+>> 001  003  013
+> Seems something fishy in my mdev setup. Here's the full output:
+>
+> #  lsusb -vvv -d 0ccd:0096
+>
+> Bus 005 Device 029: ID 0ccd:0096 TerraTec Electronic GmbH 
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>   idVendor           0x0ccd TerraTec Electronic GmbH
+>   idProduct          0x0096 
+>   bcdDevice            1.00
+>   iManufacturer           2 TerraTec Electronic GmbH
+>   iProduct                1 TerraTec Grabby
+>   iSerial                 0 
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength          555
+>     bNumInterfaces          3
+>     bConfigurationValue     1
+>     iConfiguration          0 
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       1
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       2
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0ad4  2x 724 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       3
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0c00  2x 1024 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       4
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x1300  3x 768 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       5
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x135c  3x 860 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       6
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x13c4  3x 964 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       7
+>       bNumEndpoints           3
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol    255 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0001  1x 1 bytes
+>         bInterval              11
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x1400  3x 1024 bytes
+>         bInterval               1
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        1
+>       bAlternateSetting       0
+>       bNumEndpoints           0
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      1 Control Device
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioControl Interface Descriptor:
+>         bLength                 9
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (HEADER)
+>         bcdADC               1.00
+>         wTotalLength           39
+>         bInCollection           1
+>         baInterfaceNr( 0)       2
+>       AudioControl Interface Descriptor:
+>         bLength                12
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (INPUT_TERMINAL)
+>         bTerminalID             1
+>         wTerminalType      0x0603 Line Connector
+>         bAssocTerminal          0
+>         bNrChannels             2
+>         wChannelConfig     0x0003
+>           Left Front (L)
+>           Right Front (R)
+>         iChannelNames           0 
+>         iTerminal               0 
+>       AudioControl Interface Descriptor:
+>         bLength                 9
+>         bDescriptorType        36
+>         bDescriptorSubtype      6 (FEATURE_UNIT)
+>         bUnitID                 2
+>         bSourceID               1
+>         bControlSize            1
+>         bmaControls( 0)      0x03
+>           Mute Control
+>           Volume Control
+>         bmaControls( 1)      0x00
+>         iFeature                0 
+>       AudioControl Interface Descriptor:
+>         bLength                 9
+>         bDescriptorType        36
+>         bDescriptorSubtype      3 (OUTPUT_TERMINAL)
+>         bTerminalID             3
+>         wTerminalType      0x0101 USB Streaming
+>         bAssocTerminal          0
+>         bSourceID               2
+>         iTerminal               0 
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]            0
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       1
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]        48000
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x00c4  1x 196 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       2
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]        44100
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x00b4  1x 180 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       3
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]        32000
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0084  1x 132 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       4
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]        16000
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0044  1x 68 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        2
+>       bAlternateSetting       5
+>       bNumEndpoints           1
+>       bInterfaceClass         1 Audio
+>       bInterfaceSubClass      2 Streaming
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       AudioStreaming Interface Descriptor:
+>         bLength                 7
+>         bDescriptorType        36
+>         bDescriptorSubtype      1 (AS_GENERAL)
+>         bTerminalLink           3
+>         bDelay                  1 frames
+>         wFormatTag              1 PCM
+>       AudioStreaming Interface Descriptor:
+>         bLength                11
+>         bDescriptorType        36
+>         bDescriptorSubtype      2 (FORMAT_TYPE)
+>         bFormatType             1 (FORMAT_TYPE_I)
+>         bNrChannels             2
+>         bSubframeSize           2
+>         bBitResolution         16
+>         bSamFreqType            1 Discrete
+>         tSamFreq[ 0]         8000
+>       Endpoint Descriptor:
+>         bLength                 9
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0024  1x 36 bytes
+>         bInterval               4
+>         bRefresh                0
+>         bSynchAddress           0
+>         AudioControl Endpoint Descriptor:
+>           bLength                 7
+>           bDescriptorType        37
+>           bDescriptorSubtype      1 (EP_GENERAL)
+>           bmAttributes         0x00
+>           bLockDelayUnits         0 Undefined
+>           wLockDelay              0 Undefined
+> Device Qualifier (for other device speed):
+>   bLength                10
+>   bDescriptorType         6
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>   bNumConfigurations      1
+> Device Status:     0x0000
+>   (Bus Powered)
 
-The next patch will add a mutex called 'lock', so we have to rename this
-spinlock first.
+Thanks !
+I've sent a patch a few minutes ago (CC'ed you) that should fix the
+registering of a DVB device.
+The issue addressed by this patch _should_ not be reason for the issue
+you are reporting in this thread, but it's definitely worth testing if
+it helps ;).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/solo6x10.h |    2 +-
- drivers/staging/media/solo6x10/v4l2-enc.c |   52 ++++++++++++++---------------
- 2 files changed, 27 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
-index fcbe8ecf..2ab64cf 100644
---- a/drivers/staging/media/solo6x10/solo6x10.h
-+++ b/drivers/staging/media/solo6x10/solo6x10.h
-@@ -160,7 +160,7 @@ struct solo_enc_dev {
- 	struct video_device	*vfd;
- 	/* General accounting */
- 	wait_queue_head_t	thread_wait;
--	spinlock_t		lock;
-+	spinlock_t		slock;
- 	atomic_t		readers;
- 	u8			ch;
- 	u8			mode, gop, qp, interlaced, interval;
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 32f812f..800719e 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -52,7 +52,7 @@ static void solo_motion_toggle(struct solo_enc_dev *solo_enc, int on)
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	u8 ch = solo_enc->ch;
- 
--	spin_lock(&solo_enc->lock);
-+	spin_lock(&solo_enc->slock);
- 
- 	if (on)
- 		solo_dev->motion_mask |= (1 << ch);
-@@ -73,15 +73,15 @@ static void solo_motion_toggle(struct solo_enc_dev *solo_enc, int on)
- 	else
- 		solo_irq_off(solo_dev, SOLO_IRQ_MOTION);
- 
--	spin_unlock(&solo_enc->lock);
-+	spin_unlock(&solo_enc->slock);
- }
- 
--/* Should be called with solo_enc->lock held */
-+/* Should be called with solo_enc->slock held */
- static void solo_update_mode(struct solo_enc_dev *solo_enc)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 
--	assert_spin_locked(&solo_enc->lock);
-+	assert_spin_locked(&solo_enc->slock);
- 
- 	solo_enc->interlaced = (solo_enc->mode & 0x08) ? 1 : 0;
- 	solo_enc->bw_weight = max(solo_dev->fps / solo_enc->interval, 1);
-@@ -101,14 +101,14 @@ static void solo_update_mode(struct solo_enc_dev *solo_enc)
- 	}
- }
- 
--/* Should be called with solo_enc->lock held */
-+/* Should be called with solo_enc->slock held */
- static int solo_enc_on(struct solo_enc_dev *solo_enc)
- {
- 	u8 ch = solo_enc->ch;
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	u8 interval;
- 
--	assert_spin_locked(&solo_enc->lock);
-+	assert_spin_locked(&solo_enc->slock);
- 
- 	if (solo_enc->enc_on)
- 		return 0;
-@@ -175,7 +175,7 @@ static void solo_enc_off(struct solo_enc_dev *solo_enc)
- 		solo_enc->kthread = NULL;
- 	}
- 
--	spin_lock(&solo_enc->lock);
-+	spin_lock(&solo_enc->slock);
- 	solo_dev->enc_bw_remain += solo_enc->bw_weight;
- 	solo_enc->enc_on = 0;
- 
-@@ -185,7 +185,7 @@ static void solo_enc_off(struct solo_enc_dev *solo_enc)
- 	solo_reg_write(solo_dev, SOLO_CAP_CH_SCALE(solo_enc->ch), 0);
- 	solo_reg_write(solo_dev, SOLO_CAP_CH_COMP_ENA_E(solo_enc->ch), 0);
- unlock:
--	spin_unlock(&solo_enc->lock);
-+	spin_unlock(&solo_enc->slock);
- }
- 
- static int solo_start_thread(struct solo_enc_dev *solo_enc)
-@@ -699,7 +699,7 @@ static void solo_enc_thread_try(struct solo_enc_dev *solo_enc)
- 	struct videobuf_buffer *vb;
- 
- 	for (;;) {
--		spin_lock(&solo_enc->lock);
-+		spin_lock(&solo_enc->slock);
- 
- 		if (solo_enc->rd_idx == solo_dev->enc_wr_idx)
- 			break;
-@@ -715,13 +715,13 @@ static void solo_enc_thread_try(struct solo_enc_dev *solo_enc)
- 
- 		list_del(&vb->queue);
- 
--		spin_unlock(&solo_enc->lock);
-+		spin_unlock(&solo_enc->slock);
- 
- 		solo_enc_fillbuf(solo_enc, vb);
- 	}
- 
--	assert_spin_locked(&solo_enc->lock);
--	spin_unlock(&solo_enc->lock);
-+	assert_spin_locked(&solo_enc->slock);
-+	spin_unlock(&solo_enc->slock);
- }
- 
- static int solo_enc_thread(void *data)
-@@ -944,9 +944,9 @@ static ssize_t solo_enc_read(struct file *file, char __user *data,
- 	if (!solo_enc->enc_on) {
- 		int ret;
- 
--		spin_lock(&solo_enc->lock);
-+		spin_lock(&solo_enc->slock);
- 		ret = solo_enc_on(solo_enc);
--		spin_unlock(&solo_enc->lock);
-+		spin_unlock(&solo_enc->slock);
- 		if (ret)
- 			return ret;
- 
-@@ -1097,7 +1097,7 @@ static int solo_enc_set_fmt_cap(struct file *file, void *priv,
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	int ret;
- 
--	spin_lock(&solo_enc->lock);
-+	spin_lock(&solo_enc->slock);
- 
- 	ret = solo_enc_try_fmt_cap(file, priv, f);
- 	if (ret)
-@@ -1110,7 +1110,7 @@ static int solo_enc_set_fmt_cap(struct file *file, void *priv,
- 			ret = -EBUSY;
- 	}
- 	if (ret) {
--		spin_unlock(&solo_enc->lock);
-+		spin_unlock(&solo_enc->slock);
- 		return ret;
- 	}
- 
-@@ -1126,7 +1126,7 @@ static int solo_enc_set_fmt_cap(struct file *file, void *priv,
- 		solo_enc->type = SOLO_ENC_TYPE_EXT;
- 	ret = solo_enc_on(solo_enc);
- 
--	spin_unlock(&solo_enc->lock);
-+	spin_unlock(&solo_enc->slock);
- 
- 	if (ret)
- 		return ret;
-@@ -1183,9 +1183,9 @@ static int solo_enc_dqbuf(struct file *file, void *priv,
- 
- 	/* Make sure the encoder is on */
- 	if (!solo_enc->enc_on) {
--		spin_lock(&solo_enc->lock);
-+		spin_lock(&solo_enc->slock);
- 		ret = solo_enc_on(solo_enc);
--		spin_unlock(&solo_enc->lock);
-+		spin_unlock(&solo_enc->slock);
- 		if (ret)
- 			return ret;
- 
-@@ -1336,10 +1336,10 @@ static int solo_s_parm(struct file *file, void *priv,
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct v4l2_captureparm *cp = &sp->parm.capture;
- 
--	spin_lock(&solo_enc->lock);
-+	spin_lock(&solo_enc->slock);
- 
- 	if (atomic_read(&solo_enc->readers) > 0) {
--		spin_unlock(&solo_enc->lock);
-+		spin_unlock(&solo_enc->slock);
- 		return -EBUSY;
- 	}
- 
-@@ -1364,7 +1364,7 @@ static int solo_s_parm(struct file *file, void *priv,
- 	solo_enc->gop = max(solo_dev->fps / solo_enc->interval, 1);
- 	solo_update_mode(solo_enc);
- 
--	spin_unlock(&solo_enc->lock);
-+	spin_unlock(&solo_enc->slock);
- 
- 	return 0;
- }
-@@ -1539,7 +1539,7 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev, u8 ch)
- 	solo_enc->fmt = V4L2_PIX_FMT_MPEG;
- 	solo_enc->type = SOLO_ENC_TYPE_STD;
- 
--	spin_lock_init(&solo_enc->lock);
-+	spin_lock_init(&solo_enc->slock);
- 	init_waitqueue_head(&solo_enc->thread_wait);
- 	atomic_set(&solo_enc->readers, 0);
- 
-@@ -1549,13 +1549,13 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev, u8 ch)
- 	solo_enc->mode = SOLO_ENC_MODE_CIF;
- 	solo_enc->motion_thresh = SOLO_DEF_MOT_THRESH;
- 
--	spin_lock(&solo_enc->lock);
-+	spin_lock(&solo_enc->slock);
- 	solo_update_mode(solo_enc);
--	spin_unlock(&solo_enc->lock);
-+	spin_unlock(&solo_enc->slock);
- 
- 	videobuf_queue_sg_init(&solo_enc->vidq, &solo_enc_video_qops,
- 			       &solo_enc->solo_dev->pdev->dev,
--			       &solo_enc->lock,
-+			       &solo_enc->slock,
- 			       V4L2_BUF_TYPE_VIDEO_CAPTURE,
- 			       V4L2_FIELD_INTERLACED,
- 			       sizeof(struct videobuf_buffer), solo_enc, NULL);
--- 
-1.7.10.4
+Regards,
+Frank
 
