@@ -1,106 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42831 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754843Ab3C0XRf (ORCPT
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:53917 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751969Ab3C0Rg3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 19:17:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: VIDIOC_DBG_G_CHIP_NAME improvements
-Date: Thu, 28 Mar 2013 00:18:23 +0100
-Message-ID: <4037755.IHUjzgIeDl@avalon>
-In-Reply-To: <201303271154.34620.hverkuil@xs4all.nl>
-References: <201303271154.34620.hverkuil@xs4all.nl>
+	Wed, 27 Mar 2013 13:36:29 -0400
+Received: by mail-ea0-f173.google.com with SMTP id k11so640735eaj.32
+        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 10:36:28 -0700 (PDT)
+Message-ID: <51532E56.9070108@googlemail.com>
+Date: Wed, 27 Mar 2013 18:37:26 +0100
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Timo Teras <timo.teras@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec Grabby hwrev 2
+References: <20130325190846.3250fe98@vostro>
+In-Reply-To: <20130325190846.3250fe98@vostro>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Am 25.03.2013 18:08, schrieb Timo Teras:
+> I just bought a Terratec Grabby hardware revision 2 in hopes that it
+> would work on my linux box.
+>
+> But alas, I got only sound working. It seems that analog video picture
+> grabbing does not work.
+>
+> I tried kernels 3.4.34-grsec, 3.7.1 (vanilla), 3.8.2-grsec and
+> 3.9.0-rc4 (vanilla). And all fail the same way - no video data received.
+>
+> The USB ID is same as on the revision 1 board:
+> Bus 005 Device 002: ID 0ccd:0096 TerraTec Electronic GmbH
+>
+> And it is properly detected as Grabby.
+>
+> It seems that the videobuf2 changes for 3.9.0-rc4 resulted in better
+> debug logging, and it implies that the application (ffmpeg 1.1.4) is
+> behaving well: all buffers are allocated, mmapped, queued, streamon
+> called. But no data is received from the dongle. I also tested mencoder
+> and it fails in similar manner.
+>
+> Dmesg (on 3.9.0-rc4) tells after module load the following:
+>  
+> [ 1249.600246] em28xx: New device TerraTec Electronic GmbH TerraTec Grabby @ 480 Mbps (0ccd:0096, inte
+> rface 0, class 0)
+> [ 1249.600258] em28xx: Video interface 0 found: isoc
+> [ 1249.600264] em28xx: DVB interface 0 found: isoc
 
-On Wednesday 27 March 2013 11:54:34 Hans Verkuil wrote:
-> Now that the VIDIOC_DBG_G_CHIP_NAME ioctl has been added to the v4l2 API I
-> started work on removing the VIDIOC_DBG_G_CHIP_IDENT support in existing
-> drivers. Based on that effort I realized that there are a few things that
-> could be improved.
-> 
-> One thing that Laurent pointed out is that this ioctl should be available
-> only if CONFIG_VIDEO_ADV_DEBUG is set to prevent abuse by either userspace
-> or kernelspace. I agree with that, especially since g_chip_ident is being
-> abused today by some bridge drivers. That should be avoided in the future.
-> 
-> I am also unhappy with the name. G_CHIP_INFO would certainly be more
-> descriptive, but perhaps we should move a bit more into the direction of
-> the Media Controller and call it G_ENTITY_INFO. Opinions are welcome.
+Hmm... yet another device where we detect a DVB endpoint (which is
+obviously wrong)...
+Could you please post the output of lsusb -v -d 0ccd:0096 ?
 
-We need such an ioctl to retrieve extended informations about entities (it's 
-been on my to-do list for too long), but I'd like to see it on the media 
-device node.
-
-> What surprised me when digging into the existing uses of G_CHIP_IDENT was
-> that there are more devices than expected that have multiple register
-> blocks. I.e. rather than a single set of registers they have multiple
-> blocks of registers, say one block at address 0x1000, another at 0x2000,
-> etc.
-> 
-> Usually such register blocks represent IP blocks inside the chip, each doing
-> a specific task. In other cases (adv7604) each block corresponds to an i2c
-> address, each again representing an IP block inside the chip.
-> 
-> In the case of adv7604 it has been implementing by mapping register offsets
-> to specific i2c addresses, in the case of the cx231xx it has been
-> implemented by exposing different bridge chips, unfortunately that's done
-> in such a way that it can't be enumerated.
-> 
-> The existing debug API has no support for discovering such ranges, but
-> having worked with such a chip I think that having support for this is very
-> desirable.
-
-As this is really a debug API, and applications (and users) need to know what 
-they're doing, do we really need to make the ranges discoverable ? If you 
-don't know what ranges a device supports you probably won't know enough to 
-poke its registers directly anyway.
-
-> Since we added a new ioctl anyway, I thought that this is a good time to
-> extend it a bit and allow range discovery to be implemented:
-> 
-> /**
->  * struct v4l2_dbg_chip_name - VIDIOC_DBG_G_CHIP_NAME argument
->  * @match:      which chip to match
->  * @flags:      flags that tell whether this range is readable/writable
->  * @name:       unique name of the chip
->  * @range_name: name of the register range
->  * @range_min:  minimum register of the register range
->  * @range_max:  maximum register of the register range
->  * @reserved:   future extensions
->  */
-> struct v4l2_dbg_chip_name {
->         struct v4l2_dbg_match match;
-> 	__u32 range;
->         __u32 flags;
->         char name[32];
->         char range_name[32];
->         __u64 range_start;
->         __u64 range_size;
->         __u32 reserved[8];
-> } __attribute__ ((packed));
-> 
-> range is the range index, range_name describes the purpose of the register
-> range, range_start and size are the start register address and the size of
-> this register range.
-> 
-> This extension allows you to enumerate the available register ranges for
-> each device. If there is only one range, then range_size may be 0. This is
-> mostly for backwards compatibility as otherwise I would have to modify all
-> existing drivers for this, and also because this is not really necessary
-> for simple devices with just one range. These are mostly i2c devices with
-> start address 0 and a size of 256 bytes at most.
-
--- 
 Regards,
+Frank
 
-Laurent Pinchart
+
+> [ 1249.600443] em28xx: chip ID is em2860
+> [ 1249.715053] em2860 #0: i2c eeprom 00: 1a eb 67 95 cd 0c 96 00 50 00 11 03 9c 20 6a 32
+> [ 1249.715084] em2860 #0: i2c eeprom 10: 00 00 06 57 0e 02 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715110] em2860 #0: i2c eeprom 20: 02 00 01 00 f0 10 01 00 00 00 00 00 5b 00 00 00
+> [ 1249.715136] em2860 #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
+> [ 1249.715161] em2860 #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715186] em2860 #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715211] em2860 #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 32 03 54 00 65 00
+> [ 1249.715235] em2860 #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00 45 00
+> [ 1249.715261] em2860 #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00 69 00
+> [ 1249.715286] em2860 #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 20 03 54 00
+> [ 1249.715311] em2860 #0: i2c eeprom a0: 65 00 72 00 72 00 61 00 54 00 65 00 63 00 20 00
+> [ 1249.715336] em2860 #0: i2c eeprom b0: 47 00 72 00 61 00 62 00 62 00 79 00 48 00 00 00
+> [ 1249.715361] em2860 #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715385] em2860 #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715410] em2860 #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715435] em2860 #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> [ 1249.715464] em2860 #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xd3498090
+> [ 1249.715470] em2860 #0: EEPROM info:
+> [ 1249.715475] em2860 #0:       AC97 audio (5 sample rates)
+> [ 1249.715480] em2860 #0:       500mA max power
+> [ 1249.715487] em2860 #0:       Table at 0x06, strings=0x209c, 0x326a, 0x0000
+> [ 1249.715495] em2860 #0: Identified as Terratec Grabby (card=67)
+> [ 1250.058076] em2860 #0: Config register raw data: 0x50
+> [ 1250.076845] em2860 #0: AC97 vendor ID = 0x60f160f1
+> [ 1250.086814] em2860 #0: AC97 features = 0x60f1
+> [ 1250.086822] em2860 #0: Unknown AC97 audio processor detected!
+> [ 1251.116646] em2860 #0: v4l2 driver version 0.1.3
+> [ 1251.891145] em2860 #0: V4L2 video device registered as video0
+> [ 1251.891155] em2860 #0: V4L2 VBI device registered as vbi0
+> [ 1251.891161] em2860 #0: analog set to isoc mode.
+> [ 1251.891167] em2860 #0: dvb set to isoc mode.
+> [ 1251.910649] usbcore: registered new interface driver em28xx
+>
+> Any suggestions how to debug/fix this?
+>
+> Thanks,
+>  Timo
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
