@@ -1,249 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6710 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753250Ab3CXLW7 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3552 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879Ab3C0Kyt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 07:22:59 -0400
-Date: Sun, 24 Mar 2013 08:22:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] em28xx: add support for em25xx i2c bus B
- read/write/check device operations
-Message-ID: <20130324082253.54dfc1c1@redhat.com>
-In-Reply-To: <1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
-References: <1364059632-29070-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1364059632-29070-2-git-send-email-fschaefer.oss@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 27 Mar 2013 06:54:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: RFC: VIDIOC_DBG_G_CHIP_NAME improvements
+Date: Wed, 27 Mar 2013 11:54:34 +0100
+MIME-Version: 1.0
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303271154.34620.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 23 Mar 2013 18:27:08 +0100
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Now that the VIDIOC_DBG_G_CHIP_NAME ioctl has been added to the v4l2 API I
+started work on removing the VIDIOC_DBG_G_CHIP_IDENT support in existing
+drivers. Based on that effort I realized that there are a few things that
+could be improved.
 
-> The webcam "SpeedLink VAD Laplace" (em2765 + ov2640) uses a special algorithm
-> for i2c communication with the sensor, which is connected to a second i2c bus.
-> 
-> We don't know yet how to find out which devices support/use it.
-> It's very likely used by all em25xx and em276x+ bridges.
-> Tests with other em28xx chips (em2820, em2882/em2883) show, that this
-> algorithm always succeeds there although no slave device is connected.
-> 
-> The algorithm likely also works for real i2c client devices (OV2640 uses SCCB),
-> because the Windows driver seems to use it for probing Samsung and Kodak
-> sensors.
-> 
-> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c |    8 +-
->  drivers/media/usb/em28xx/em28xx-i2c.c   |  229 +++++++++++++++++++++++++------
->  drivers/media/usb/em28xx/em28xx.h       |   10 +-
->  3 Dateien geändert, 205 Zeilen hinzugefügt(+), 42 Zeilen entfernt(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index cb7cdd3..033b6cb 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -3139,15 +3139,19 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
->  	rt_mutex_init(&dev->i2c_bus_lock);
->  
->  	/* register i2c bus 0 */
-> -	retval = em28xx_i2c_register(dev, 0);
-> +	if (dev->board.is_em2800)
-> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM2800);
-> +	else
-> +		retval = em28xx_i2c_register(dev, 0, EM28XX_I2C_ALGO_EM28XX);
->  	if (retval < 0) {
->  		em28xx_errdev("%s: em28xx_i2c_register bus 0 - error [%d]!\n",
->  			__func__, retval);
->  		goto unregister_dev;
->  	}
->  
-> +	/* register i2c bus 1 */
->  	if (dev->def_i2c_bus) {
-> -		retval = em28xx_i2c_register(dev, 1);
-> +		retval = em28xx_i2c_register(dev, 1, EM28XX_I2C_ALGO_EM28XX);
->  		if (retval < 0) {
->  			em28xx_errdev("%s: em28xx_i2c_register bus 1 - error [%d]!\n",
->  				__func__, retval);
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 9e2fa41..ab14ac3 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -5,6 +5,7 @@
->  		      Markus Rechberger <mrechberger@gmail.com>
->  		      Mauro Carvalho Chehab <mchehab@infradead.org>
->  		      Sascha Sommer <saschasommer@freenet.de>
-> +   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
->  
->     This program is free software; you can redistribute it and/or modify
->     it under the terms of the GNU General Public License as published by
-> @@ -274,6 +275,176 @@ static int em28xx_i2c_check_for_device(struct em28xx *dev, u16 addr)
->  }
->  
->  /*
-> + * em25xx_bus_B_send_bytes
-> + * write bytes to the i2c device
-> + */
-> +static int em25xx_bus_B_send_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> +				   u16 len)
-> +{
-> +	int ret;
-> +
-> +	if (len < 1 || len > 64)
-> +		return -EOPNOTSUPP;
-> +	/* NOTE: limited by the USB ctrl message constraints
-> +	 * Zero length reads always succeed, even if no device is connected */
-> +
-> +	/* Set register and write value */
-> +	ret = dev->em28xx_write_regs_req(dev, 0x06, addr, buf, len);
-> +	/* NOTE:
-> +	 * 0 byte writes always succeed, even if no device is connected. */
-> +	if (ret != len) {
-> +		if (ret < 0) {
-> +			em28xx_warn("writing to i2c device at 0x%x failed "
-> +				    "(error=%i)\n", addr, ret);
-> +			return ret;
-> +		} else {
-> +			em28xx_warn("%i bytes write to i2c device at 0x%x "
-> +				    "requested, but %i bytes written\n",
-> +				    len, addr, ret);
-> +			return -EIO;
-> +		}
-> +	}
-> +	/* Check success */
-> +	ret = dev->em28xx_read_reg_req(dev, 0x08, 0x0000);
-> +	/* NOTE: the only error we've seen so far is
-> +	 * 0x01 when the slave device is not present */
-> +	if (ret == 0x00) {
-> +		return len;
-> +	} else if (ret > 0) {
-> +		return -ENODEV;
-> +	}
-> +
-> +	return ret;
-> +	/* NOTE: With chips which do not support this operation,
-> +	 * it seems to succeed ALWAYS ! (even if no device connected) */
-> +}
-> +
-> +/*
-> + * em25xx_bus_B_recv_bytes
-> + * read bytes from the i2c device
-> + */
-> +static int em25xx_bus_B_recv_bytes(struct em28xx *dev, u16 addr, u8 *buf,
-> +				   u16 len)
-> +{
-> +	int ret;
-> +
-> +	if (len < 1 || len > 64)
-> +		return -EOPNOTSUPP;
-> +	/* NOTE: limited by the USB ctrl message constraints
-> +	 * Zero length reads always succeed, even if no device is connected */
+One thing that Laurent pointed out is that this ioctl should be available
+only if CONFIG_VIDEO_ADV_DEBUG is set to prevent abuse by either userspace
+or kernelspace. I agree with that, especially since g_chip_ident is being
+abused today by some bridge drivers. That should be avoided in the future.
 
+I am also unhappy with the name. G_CHIP_INFO would certainly be more descriptive,
+but perhaps we should move a bit more into the direction of the Media Controller
+and call it G_ENTITY_INFO. Opinions are welcome.
 
-Please stick with Kernel's coding style, as described on
-Documentation/CodingStyle and on the common practices.
+What surprised me when digging into the existing uses of G_CHIP_IDENT was that
+there are more devices than expected that have multiple register blocks. I.e.
+rather than a single set of registers they have multiple blocks of registers,
+say one block at address 0x1000, another at 0x2000, etc.
 
-Multi-line comments are like:
-	/*
-	 * Foo
-	 * bar
-	 */
+Usually such register blocks represent IP blocks inside the chip, each doing
+a specific task. In other cases (adv7604) each block corresponds to an i2c
+address, each again representing an IP block inside the chip.
 
-There are also a bunch of scripts/checkpatch.pl complains for this patch: 
+In the case of adv7604 it has been implementing by mapping register offsets
+to specific i2c addresses, in the case of the cx231xx it has been implemented
+by exposing different bridge chips, unfortunately that's done in such a way
+that it can't be enumerated.
 
-WARNING: please, no spaces at the start of a line
-#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>$
+The existing debug API has no support for discovering such ranges, but having
+worked with such a chip I think that having support for this is very desirable.
 
-WARNING: space prohibited between function name and open parenthesis '('
-#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+Since we added a new ioctl anyway, I thought that this is a good time to
+extend it a bit and allow range discovery to be implemented:
 
-WARNING: Avoid CamelCase: <Copyright>
-#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+/**     
+ * struct v4l2_dbg_chip_name - VIDIOC_DBG_G_CHIP_NAME argument
+ * @match:      which chip to match
+ * @flags:      flags that tell whether this range is readable/writable
+ * @name:       unique name of the chip
+ * @range_name: name of the register range
+ * @range_min:  minimum register of the register range
+ * @range_max:  maximum register of the register range
+ * @reserved:   future extensions
+ */     
+struct v4l2_dbg_chip_name {
+        struct v4l2_dbg_match match;
+	__u32 range;
+        __u32 flags;
+        char name[32];
+        char range_name[32];
+        __u64 range_start;
+        __u64 range_size;
+        __u32 reserved[8];
+} __attribute__ ((packed));
 
-WARNING: Avoid CamelCase: <Frank>
-#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+range is the range index, range_name describes the purpose of the register
+range, range_start and size are the start register address and the size of
+this register range.
 
-WARNING: Avoid CamelCase: <Sch>
-#69: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:8:
-+   Copyright (C) 2013 Frank Schäfer <fschaefer.oss@googlemail.com>
+This extension allows you to enumerate the available register ranges for each
+device. If there is only one range, then range_size may be 0. This is mostly
+for backwards compatibility as otherwise I would have to modify all existing
+drivers for this, and also because this is not really necessary for simple
+devices with just one range. These are mostly i2c devices with start address
+0 and a size of 256 bytes at most.
 
-WARNING: quoted string split across lines
-#97: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:298:
-+			em28xx_warn("writing to i2c device at 0x%x failed "
-+				    "(error=%i)\n", addr, ret);
-
-WARNING: quoted string split across lines
-#101: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:302:
-+			em28xx_warn("%i bytes write to i2c device at 0x%x "
-+				    "requested, but %i bytes written\n",
-
-WARNING: braces {} are not necessary for any arm of this statement
-#110: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:311:
-+	if (ret == 0x00) {
-[...]
-+	} else if (ret > 0) {
-[...]
-
-WARNING: braces {} are not necessary for any arm of this statement
-#156: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:357:
-+	if (ret == 0x00) {
-[...]
-+	} else if (ret > 0) {
-[...]
-
-WARNING: braces {} are not necessary for any arm of this statement
-#190: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:391:
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-[...]
-
-WARNING: printk() should include KERN_ facility level
-#199: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:400:
-+			printk(" no device\n");
-
-WARNING: braces {} are not necessary for any arm of this statement
-#211: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:412:
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-[...]
-
-WARNING: printk() should include KERN_ facility level
-#220: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:421:
-+			printk(" %02x", msg.buf[byte]);
-
-WARNING: braces {} are not necessary for any arm of this statement
-#236: FILE: drivers/media/usb/em28xx/em28xx-i2c.c:437:
-+	if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM28XX) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM2800) {
-[...]
-+	} else if (i2c_bus->algo_type == EM28XX_I2C_ALGO_EM25XX_BUS_B) {
-[...]
-
-total: 0 errors, 14 warnings, 333 lines checked
-
-Your patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-PS.: I'll write a separate email if I find any non-coding style issue on
-this patch series. Won't comment anymore about coding style, as I'm
-assuming that you'll be fixing it on the other patches of this series
-if needed.
+Comments?
 
 Regards,
-Mauro
+
+	Hans
