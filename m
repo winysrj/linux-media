@@ -1,67 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:34998 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab3CAXLi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:38 -0500
-Received: by mail-ee0-f43.google.com with SMTP id c50so2701792eek.30
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:36 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Received: from mail-da0-f44.google.com ([209.85.210.44]:44368 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754597Ab3C0Cry (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 22:47:54 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
 To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 02/11] em28xx-i2c: get rid of the dprintk2 macro
-Date: Sat,  2 Mar 2013 00:12:06 +0100
-Message-Id: <1362179535-18929-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v8 7/9] v4l2: Add documentation for the FM RX controls
+Date: Tue, 26 Mar 2013 19:47:24 -0700
+Message-Id: <1364352446-28572-8-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is only a single place where the dprintk2 macro is used, so get rid of it.
+Add appropriate documentation for all the newly added standard
+controls.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Based on the patch by Manjunatha Halli [1]
+
+[1] http://lists-archives.com/linux-kernel/27641303-media-update-docs-for-v4l2-fm-new-features.html
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-i2c.c |   17 ++++++-----------
- 1 Datei geändert, 6 Zeilen hinzugefügt(+), 11 Zeilen entfernt(-)
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   72 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +++
+ 3 files changed, 84 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index 8819b54..f970c29 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -41,14 +41,6 @@ static unsigned int i2c_debug;
- module_param(i2c_debug, int, 0644);
- MODULE_PARM_DESC(i2c_debug, "enable debug messages [i2c]");
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 104a1a2..f418bc3 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2310,6 +2310,9 @@ more information.</para>
+ 	<listitem>
+ 	  <para>Added FM Modulator (FM TX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
+ 	</listitem>
++<listitem>
++	  <para>Added FM Receiver (FM RX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
++	</listitem>
+ 	<listitem>
+ 	  <para>Added Remote Controller chapter, describing the default Remote Controller mapping for media devices.</para>
+ 	</listitem>
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 1ad20cc..6aa647a 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -4687,4 +4687,76 @@ interface and may change in the future.</para>
+       </table>
  
--#define dprintk2(lvl, fmt, args...)			\
--do {							\
--	if (i2c_debug >= lvl) {				\
--		printk(KERN_DEBUG "%s at %s: " fmt,	\
--		       dev->name, __func__ , ##args);	\
--      } 						\
--} while (0)
--
- /*
-  * em2800_i2c_send_bytes()
-  * send up to 4 bytes to the em2800 i2c device
-@@ -295,9 +287,12 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		return 0;
- 	for (i = 0; i < num; i++) {
- 		addr = msgs[i].addr << 1;
--		dprintk2(2, "%s %s addr=%x len=%d:",
--			 (msgs[i].flags & I2C_M_RD) ? "read" : "write",
--			 i == num - 1 ? "stop" : "nonstop", addr, msgs[i].len);
-+		if (i2c_debug >= 2)
-+			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
-+			       dev->name, __func__ ,
-+			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-+			       i == num - 1 ? "stop" : "nonstop",
-+			       addr, msgs[i].len			     );
- 		if (!msgs[i].len) { /* no len: check only for device presence */
- 			if (dev->board.is_em2800)
- 				rc = em2800_i2c_check_for_device(dev, addr);
+     </section>
++
++    <section id="fm-rx-controls">
++      <title>FM Receiver Control Reference</title>
++
++      <para>The FM Receiver (FM_RX) class includes controls for common features of
++      FM Reception capable devices.</para>
++
++      <table pgwide="1" frame="none" id="fm-rx-control-id">
++      <title>FM_RX Control IDs</title>
++
++      <tgroup cols="4">
++        <colspec colname="c1" colwidth="1*" />
++        <colspec colname="c2" colwidth="6*" />
++        <colspec colname="c3" colwidth="2*" />
++        <colspec colname="c4" colwidth="6*" />
++        <spanspec namest="c1" nameend="c2" spanname="id" />
++        <spanspec namest="c2" nameend="c4" spanname="descr" />
++        <thead>
++          <row>
++            <entry spanname="id" align="left">ID</entry>
++            <entry align="left">Type</entry>
++          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++          </row>
++        </thead>
++        <tbody valign="top">
++          <row><entry></entry></row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
++            <entry>class</entry>
++          </row><row><entry spanname="descr">The FM_RX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++          </row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_RDS_RECEPTION</constant>&nbsp;</entry>
++            <entry>boolean</entry>
++          </row><row><entry spanname="descr">Enables/disables RDS
++	  reception by the radio tuner</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
++	    <entry>enum v4l2_deemphasis</entry>
++	  </row>
++	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the de-emphasis value for reception.
++A de-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_deemphasis
++defines possible values for de-emphasis. Here they are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No de-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A de-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A de-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++          <row><entry></entry></row>
++        </tbody>
++      </tgroup>
++      </table>
++
++      </section>
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index 4e16112..b3bb957 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -319,6 +319,15 @@ These controls are described in <xref
+ 	    processing controls. These controls are described in <xref
+ 	    linkend="image-process-controls" />.</entry>
+ 	  </row>
++
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
++	    <entry>0xa10000</entry>
++	    <entry>The class containing FM Receiver (FM RX) controls.
++These controls are described in <xref
++		linkend="fm-rx-controls" />.</entry>
++	  </row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
 -- 
 1.7.10.4
 
