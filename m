@@ -1,100 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63049 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639Ab3CEKnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Mar 2013 05:43:37 -0500
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MJ6009LGO6JMF90@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Mar 2013 10:43:35 +0000 (GMT)
-Received: from [127.0.0.1] ([106.116.147.30])
- by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0MJ6003I3OGCT330@eusync4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 05 Mar 2013 10:43:35 +0000 (GMT)
-Message-id: <5135CC4C.1030905@samsung.com>
-Date: Tue, 05 Mar 2013 11:43:24 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Federico Vaga <federico.vaga@gmail.com>,
-	Pawel Osciak <p.osciak@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH] Adding additional flags when allocating buffer memory
-References: <201303011944.00532.hverkuil@xs4all.nl>
- <5135BAC6.5050703@samsung.com> <201303051059.50277.hverkuil@xs4all.nl>
-In-reply-to: <201303051059.50277.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1668 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752Ab3C0Ilx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Mar 2013 04:41:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 2/6] v4l2: add new VIDIOC_DBG_G_CHIP_NAME ioctl.
+Date: Wed, 27 Mar 2013 09:41:33 +0100
+Cc: linux-media@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Frank Schaefer <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl> <1363624700-29270-3-git-send-email-hverkuil@xs4all.nl> <4375309.Kgln0QGpEZ@avalon>
+In-Reply-To: <4375309.Kgln0QGpEZ@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303270941.33211.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed March 27 2013 02:11:23 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 18 March 2013 17:38:16 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Simplify the debugging ioctls by creating the VIDIOC_DBG_G_CHIP_NAME ioctl.
+> > This will eventually replace VIDIOC_DBG_G_CHIP_IDENT. Chip matching is done
+> > by the name or index of subdevices or an index to a bridge chip. Most of
+> > this can all be done automatically, so most drivers just need to provide
+> > get/set register ops.
+> > 
+> > In particular, it is now possible to get/set subdev registers without
+> > requiring assistance of the bridge driver.
+> 
+> My biggest question is why don't we use the media controller API to get the 
+> information provided by this new ioctl ?
 
-On 3/5/2013 10:59 AM, Hans Verkuil wrote:
-> On Tue 5 March 2013 10:28:38 Marek Szyprowski wrote:
-> > Hello,
-> >
-> > On 3/1/2013 7:44 PM, Hans Verkuil wrote:
-> > > Hi all,
-> > >
-> > > This patch is based on an idea from Federico:
-> > >
-> > > http://www.mail-archive.com/davinci-linux-open-source@linux.davincidsp.com/msg24669.html
-> > >
-> > > While working on converting the solo6x10 driver to vb2 I realized that the
-> > > same thing was needed for the dma-sg case: the solo6x10 has 32-bit PCI DMA,
-> > > so you want to specify __GFP_DMA32 to prevent bounce buffers from being created.
-> > >
-> > > Rather than patching all drivers as the patch above does (error prone IMHO),
-> > > I've decided to just add a gfp_flags field to vb2_queue and pass that to the
-> > > alloc mem_op. The various alloc implementations will just OR it in.
-> >
-> > I agree that the gfp_flags is needed. It should be there from the
-> > beginning,
-> > but there is not DMA zone on our hardware and we missed that point. Our
-> > fault.
-> > However IMHO the better place for gfp_flags is the allocator context
-> > structure
-> > instead of vb2_queue. vb2_dma_contig_init_ctx() would need to be
-> > extended and
-> > similar function should be added for dma sg.
->
-> Why is this better? It seems a huge amount of work for something that is
-> useful for pretty much any allocator. Note that most PCI drivers are 32-bit
-> only and need __GFP_DMA32. So this is not a rare case, it just that we
-> haven't converted them yet.
->
-> I don't mind doing the work, but I'd like to know the reasoning behind it.
+Because the media controller is implemented by only a handful of drivers,
+and this debug API is used by many more drivers. So I don't really see how
+this would be feasible today.
 
-I would like to keep the logical separation between queue and buffer 
-allocators.
-Putting gfp flags to vb2_queue suggests that those flags will be used for
-allocating queue internal structures, what is something different from 
-allocating
-buffer itself.
+> 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-common.c |    5 +-
+> >  drivers/media/v4l2-core/v4l2-dev.c    |    5 +-
+> >  drivers/media/v4l2-core/v4l2-ioctl.c  |  115 ++++++++++++++++++++++++++++--
+> >  include/media/v4l2-ioctl.h            |    3 +
+> >  include/uapi/linux/videodev2.h        |   34 +++++++---
+> >  5 files changed, 146 insertions(+), 16 deletions(-)
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> > b/drivers/media/v4l2-core/v4l2-dev.c index de1e9ab..c0c651d 100644
+> > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > @@ -591,9 +591,10 @@ static void determine_valid_ioctls(struct video_device
+> 
+> [snip]
+> 
+> > +static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+> > +				struct file *file, void *fh, void *arg)
+> 
+> As this is a debug ioctl that should never be used in application, I would 
+> like to guard the whole implementation with #ifdef CONFIG_VIDEO_ADV_DEBUG. 
+> This will make sure that no applications will abuse it, as it won't be 
+> available in distro kernels.
 
-DMA SG allocator also needs to have the context structure (which should 
-contain
-device pointer and gfp flags) as well as the redesign in the mapping 
-approach
-(the buffers should be mapped by the allocator not the driver) and the
-'descriptor' structure (sgtable should be used instead of the custom 
-thing).
-This requires significant amount of work, so I don't expect You to do it 
-atm.
+Agreed. I'll make that change. Actually, it's not so much userspace abuse I
+am worried about, but kernel space abuse. I've found several drivers where
+the bridge driver calls g_chip_ident to get information about subdevice
+drivers. That was never intended and it complicates my work of removing
+g_chip_ident. By putting chip_name under ADV_DEBUG we can avoid similar abuse
+in the future.
 
-For the target solution I would like to have gfp flags in the context 
-structure,
-but for fixing v3.9-rc / v3.8 the patch you have proposed can be used. I 
-will
-just rebase my work-in-progress patches on top of that one day.
+Regards,
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+	Hans
 
-
+> 
+> > +{
+> > +	struct video_device *vfd = video_devdata(file);
+> > +	struct v4l2_dbg_chip_name *p = arg;
+> > +	struct v4l2_subdev *sd;
+> > +	int idx = 0;
+> > +
+> > +	switch (p->match.type) {
+> > +	case V4L2_CHIP_MATCH_BRIDGE:
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +		if (ops->vidioc_s_register)
+> > +			p->flags |= V4L2_CHIP_FL_WRITABLE;
+> > +		if (ops->vidioc_g_register)
+> > +			p->flags |= V4L2_CHIP_FL_READABLE;
+> > +#endif
+> > +		if (ops->vidioc_g_chip_name)
+> > +			return ops->vidioc_g_chip_name(file, fh, arg);
+> > +		if (p->match.addr)
+> > +			return -EINVAL;
+> > +		if (vfd->v4l2_dev)
+> > +			strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
+> > +		else if (vfd->parent)
+> > +			strlcpy(p->name, vfd->parent->driver->name, sizeof(p->name));
+> > +		else
+> > +			strlcpy(p->name, "bridge", sizeof(p->name));
+> > +		return 0;
+> > +
+> > +	case V4L2_CHIP_MATCH_SUBDEV_IDX:
+> > +	case V4L2_CHIP_MATCH_SUBDEV_NAME:
+> > +		if (vfd->v4l2_dev == NULL)
+> > +			break;
+> > +		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev) {
+> > +			if (v4l_dbg_found_match(&p->match, sd, idx++)) {
+> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > +				if (sd->ops->core && sd->ops->core->s_register)
+> > +					p->flags |= V4L2_CHIP_FL_WRITABLE;
+> > +				if (sd->ops->core && sd->ops->core->g_register)
+> > +					p->flags |= V4L2_CHIP_FL_READABLE;
+> > +#endif
+> > +				strlcpy(p->name, sd->name, sizeof(p->name));
+> > +				return 0;
+> > +			}
+> > +		}
+> > +		break;
+> > +	}
+> > +	return -EINVAL;
+> > +}
+> 
+> 
