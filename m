@@ -1,290 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:16921 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965789Ab3CZQk3 (ORCPT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:51357 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753987Ab3C0R46 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 12:40:29 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v5 4/6] s5p-fimc: Add device tree support for the media device
- driver
-Date: Tue, 26 Mar 2013 17:39:56 +0100
-Message-id: <1364315998-19372-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364315998-19372-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364315998-19372-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 27 Mar 2013 13:56:58 -0400
+Received: by mail-ee0-f44.google.com with SMTP id l10so4577934eei.31
+        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 10:56:57 -0700 (PDT)
+Date: Wed, 27 Mar 2013 19:57:49 +0200
+From: Timo Teras <timo.teras@iki.fi>
+To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec Grabby hwrev 2
+Message-ID: <20130327195749.4fbd4ae1@vostro>
+In-Reply-To: <51532E56.9070108@googlemail.com>
+References: <20130325190846.3250fe98@vostro>
+	<51532E56.9070108@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds changes required for the main camera media device
-driver corresponding to the top level 'camera' device node.
+On Wed, 27 Mar 2013 18:37:26 +0100
+Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
 
-The drivers of devices corresponding to child nodes of the 'camera'
-node are looked up and and registered as sub-devices to the top
-level driver. The main driver's probing is deferred if any of the
-sub-device drivers is not yet initialized and ready.
+> Am 25.03.2013 18:08, schrieb Timo Teras:
+> > I just bought a Terratec Grabby hardware revision 2 in hopes that it
+> > would work on my linux box.
+> >
+> > But alas, I got only sound working. It seems that analog video
+> > picture grabbing does not work.
+> >
+> > I tried kernels 3.4.34-grsec, 3.7.1 (vanilla), 3.8.2-grsec and
+> > 3.9.0-rc4 (vanilla). And all fail the same way - no video data
+> > received.
+> >
+> > The USB ID is same as on the revision 1 board:
+> > Bus 005 Device 002: ID 0ccd:0096 TerraTec Electronic GmbH
+> >
+> > And it is properly detected as Grabby.
+> >
+> > It seems that the videobuf2 changes for 3.9.0-rc4 resulted in better
+> > debug logging, and it implies that the application (ffmpeg 1.1.4) is
+> > behaving well: all buffers are allocated, mmapped, queued, streamon
+> > called. But no data is received from the dongle. I also tested
+> > mencoder and it fails in similar manner.
+> >
+> > Dmesg (on 3.9.0-rc4) tells after module load the following:
+> >  
+> > [ 1249.600246] em28xx: New device TerraTec Electronic GmbH TerraTec
+> > Grabby @ 480 Mbps (0ccd:0096, inte rface 0, class 0)
+> > [ 1249.600258] em28xx: Video interface 0 found: isoc
+> > [ 1249.600264] em28xx: DVB interface 0 found: isoc
+> 
+> Hmm... yet another device where we detect a DVB endpoint (which is
+> obviously wrong)...
+> Could you please post the output of lsusb -v -d 0ccd:0096 ?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
+# lsusb -vvv -d 0ccd:0096
 
-Changes since v5:
+Bus 005 Device 028: ID 0ccd:0096 TerraTec Electronic GmbH 
+Couldn't open device, some information will be missing
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x0ccd TerraTec Electronic GmbH
+  idProduct          0x0096 
+  bcdDevice            1.00
+  iManufacturer           2 
+  iProduct                1 
+  iSerial                 0 
+  bNumConfigurations      1
+Couldn't get configuration descriptor 0, some information will be missing
+Couldn't get configuration descriptor 0, some information will be missing
 
-- Do not register FIMC with WB input to the camera driver. FIMC devices
-  with LCD Writeback input and "samsung,lcd-wb" property in their device
-  tree node are handled by the DRM image post-processing driver and
-  registration of these devices to the camera driver is skipped.
----
- drivers/media/platform/s5p-fimc/fimc-core.c    |    1 -
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |  108 ++++++++++++++++++++----
- drivers/media/platform/s5p-fimc/fimc-mdevice.h |    5 ++
- include/media/s5p_fimc.h                       |    1 +
- 4 files changed, 98 insertions(+), 17 deletions(-)
+The errors are weird. strace gives:
+open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No such file or directory)
+open("/dev/bus/usb/005/028", O_RDONLY)  = -1 ENOENT (No such file or directory)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-core.c b/drivers/media/platform/s5p-fimc/fimc-core.c
-index d39e47a..6a8098c 100644
---- a/drivers/media/platform/s5p-fimc/fimc-core.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-core.c
-@@ -1281,7 +1281,6 @@ static const struct platform_device_id fimc_driver_ids[] = {
- 	},
- 	{ },
- };
--MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
- 
- static const struct of_device_id fimc_of_match[] = {
- 	{
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index cd38d70..b62011d 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -17,11 +17,16 @@
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_platform.h>
-+#include <linux/of_device.h>
-+#include <linux/of_i2c.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/types.h>
- #include <linux/slab.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
- #include <media/media-device.h>
- #include <media/s5p_fimc.h>
- 
-@@ -264,6 +269,21 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
- 		i2c_put_adapter(adapter);
- }
- 
-+#ifdef CONFIG_OF
-+static int __of_get_csis_id(struct device_node *np)
-+{
-+	u32 reg = 0;
-+
-+	np = of_get_child_by_name(np, "port");
-+	if (!np)
-+		return -EINVAL;
-+	of_property_read_u32(np, "reg", &reg);
-+	return reg - FIMC_INPUT_MIPI_CSI2_0;
-+}
-+#else
-+#define __of_get_csis_id(np) (-ENOSYS)
-+#endif
-+
- static int fimc_md_register_sensor_entities(struct fimc_md *fmd)
- {
- 	struct s5p_platform_fimc *pdata = fmd->pdev->dev.platform_data;
-@@ -368,13 +388,13 @@ static int register_csis_entity(struct fimc_md *fmd,
- 	struct device_node *node = pdev->dev.of_node;
- 	int id, ret;
- 
--	id = node ? of_alias_get_id(node, "csis") : max(0, pdev->id);
-+	id = node ? __of_get_csis_id(node) : max(0, pdev->id);
- 
--	if (WARN_ON(id >= CSIS_MAX_ENTITIES || fmd->csis[id].sd))
--		return -EBUSY;
-+	if (WARN_ON(id < 0 || id >= CSIS_MAX_ENTITIES))
-+		return -ENOENT;
- 
--	if (WARN_ON(id >= CSIS_MAX_ENTITIES))
--		return 0;
-+	if (WARN_ON(fmd->csis[id].sd))
-+		return -EBUSY;
- 
- 	sd->grp_id = GRP_ID_CSIS;
- 	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
-@@ -457,6 +477,45 @@ static int fimc_md_pdev_match(struct device *dev, void *data)
- 	return 0;
- }
- 
-+/* Register FIMC, FIMC-LITE and CSIS media entities */
-+#ifdef CONFIG_OF
-+static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
-+						 struct device_node *parent)
-+{
-+	struct device_node *node;
-+	int ret = 0;
-+
-+	for_each_available_child_of_node(parent, node) {
-+		struct platform_device *pdev;
-+		int plat_entity = -1;
-+
-+		pdev = of_find_device_by_node(node);
-+		if (!pdev)
-+			continue;
-+
-+		/* If driver of any entity isn't ready try all again later. */
-+		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
-+			plat_entity = IDX_CSIS;
-+		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
-+			plat_entity = IDX_FLITE;
-+		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
-+			 !of_property_read_bool(node, "samsung,lcd-wb"))
-+			plat_entity = IDX_FIMC;
-+
-+		if (plat_entity >= 0)
-+			ret = fimc_md_register_platform_entity(fmd, pdev,
-+							plat_entity);
-+		put_device(&pdev->dev);
-+		if (ret < 0)
-+			break;
-+	}
-+
-+	return ret;
-+}
-+#else
-+#define fimc_md_register_of_platform_entities(fmd, node) (-ENOSYS)
-+#endif
-+
- static void fimc_md_unregister_entities(struct fimc_md *fmd)
- {
- 	int i;
-@@ -928,11 +987,12 @@ static DEVICE_ATTR(subdev_conf_mode, S_IWUSR | S_IRUGO,
- 
- static int fimc_md_probe(struct platform_device *pdev)
- {
-+	struct device *dev = &pdev->dev;
- 	struct v4l2_device *v4l2_dev;
- 	struct fimc_md *fmd;
- 	int ret;
- 
--	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
-+	fmd = devm_kzalloc(dev, sizeof(*fmd), GFP_KERNEL);
- 	if (!fmd)
- 		return -ENOMEM;
- 
-@@ -942,15 +1002,14 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	strlcpy(fmd->media_dev.model, "SAMSUNG S5P FIMC",
- 		sizeof(fmd->media_dev.model));
- 	fmd->media_dev.link_notify = fimc_md_link_notify;
--	fmd->media_dev.dev = &pdev->dev;
-+	fmd->media_dev.dev = dev;
- 
- 	v4l2_dev = &fmd->v4l2_dev;
- 	v4l2_dev->mdev = &fmd->media_dev;
- 	v4l2_dev->notify = fimc_sensor_notify;
--	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s",
--		 dev_name(&pdev->dev));
-+	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
- 
--	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
-+	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
- 		return ret;
-@@ -964,21 +1023,25 @@ static int fimc_md_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_clk;
- 
--	fmd->user_subdev_api = false;
-+	fmd->user_subdev_api = (dev->of_node != NULL);
- 
- 	/* Protect the media graph while we're registering entities */
- 	mutex_lock(&fmd->media_dev.graph_mutex);
- 
--	ret = bus_for_each_dev(&platform_bus_type, NULL, fmd,
--					fimc_md_pdev_match);
-+	if (dev->of_node)
-+		ret = fimc_md_register_of_platform_entities(fmd, dev->of_node);
-+	else
-+		ret = bus_for_each_dev(&platform_bus_type, NULL, fmd,
-+						fimc_md_pdev_match);
- 	if (ret)
- 		goto err_unlock;
- 
--	if (pdev->dev.platform_data) {
-+	if (dev->platform_data) {
- 		ret = fimc_md_register_sensor_entities(fmd);
- 		if (ret)
- 			goto err_unlock;
- 	}
-+
- 	ret = fimc_md_create_links(fmd);
- 	if (ret)
- 		goto err_unlock;
-@@ -1018,12 +1081,25 @@ static int fimc_md_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static struct platform_device_id fimc_driver_ids[] __always_unused = {
-+	{ .name = "s5p-fimc-md" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(platform, fimc_driver_ids);
-+
-+static const struct of_device_id fimc_md_of_match[] = {
-+	{ .compatible = "samsung,fimc" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, fimc_md_of_match);
-+
- static struct platform_driver fimc_md_driver = {
- 	.probe		= fimc_md_probe,
- 	.remove		= fimc_md_remove,
- 	.driver = {
--		.name	= "s5p-fimc-md",
--		.owner	= THIS_MODULE,
-+		.of_match_table = of_match_ptr(fimc_md_of_match),
-+		.name		= "s5p-fimc-md",
-+		.owner		= THIS_MODULE,
- 	}
- };
- 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-index 06b0d82..b6ceb59 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
-@@ -21,6 +21,11 @@
- #include "fimc-lite.h"
- #include "mipi-csis.h"
- 
-+#define FIMC_OF_NODE_NAME	"fimc"
-+#define FIMC_LITE_OF_NODE_NAME	"fimc-lite"
-+#define FIMC_IS_OF_NODE_NAME	"fimc-is"
-+#define CSIS_OF_NODE_NAME	"csis"
-+
- /* Group IDs of sensor, MIPI-CSIS, FIMC-LITE and the writeback subdevs. */
- #define GRP_ID_SENSOR		(1 << 8)
- #define GRP_ID_FIMC_IS_SENSOR	(1 << 9)
-diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
-index d6dbb79..e2c5989 100644
---- a/include/media/s5p_fimc.h
-+++ b/include/media/s5p_fimc.h
-@@ -94,6 +94,7 @@ enum fimc_subdev_index {
- 	IDX_SENSOR,
- 	IDX_CSIS,
- 	IDX_FLITE,
-+	IDX_IS_ISP,
- 	IDX_FIMC,
- 	IDX_MAX,
- };
--- 
-1.7.9.5
-
+# ls  /dev/bus/usb/005/
+001  003  013
