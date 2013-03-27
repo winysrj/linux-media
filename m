@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:61460 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756204Ab3CFWKL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Mar 2013 17:10:11 -0500
-Received: by mail-we0-f174.google.com with SMTP id r6so8811146wey.5
-        for <linux-media@vger.kernel.org>; Wed, 06 Mar 2013 14:10:10 -0800 (PST)
-Message-ID: <5137BEBF.7060608@gmail.com>
-Date: Wed, 06 Mar 2013 23:10:07 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:51788 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880Ab3C0CBI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 22:01:08 -0400
+Received: by mail-pd0-f170.google.com with SMTP id 4so3325347pdd.15
+        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 19:01:08 -0700 (PDT)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, s.nawrocki@samsung.com
-Subject: Re: [PATCH] [media] s5p-mfc: Fix encoder control 15 issue
-References: <1362575757-22839-1-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1362575757-22839-1-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+To: Prasanna Kumar <prasanna.ps@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, kgene.kim@samsung.com,
+	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+From: Mike Turquette <mturquette@linaro.org>
+In-Reply-To: <1364275251-31394-1-git-send-email-prasanna.ps@samsung.com>
+Cc: Prasanna Kumar <prasanna.ps@samsung.com>
+References: <1364275251-31394-1-git-send-email-prasanna.ps@samsung.com>
+Message-ID: <20130327020102.4014.2171@quantum>
+Subject: Re: [PATCH] [media] s5p-mfc: Change MFC clock reference w.r.t Common Clock
+ Framework
+Date: Tue, 26 Mar 2013 19:01:02 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
-
-On 03/06/2013 02:15 PM, Arun Kumar K wrote:
-> mfc-encoder is not working in the latest kernel giving the
-> erorr "Adding control (15) failed". Adding the missing step
-> parameter in this control to fix the issue.
-
-Do you mean this problem was not observed in 3.8 kernel and something
-has changed in the v4l2 core so it fails in 3.9-rc now ? Or is it
-related to some change in the driver itself ?
-
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+Quoting Prasanna Kumar (2013-03-25 22:20:51)
+> From: Prasanna Kumar <prasanna.ps@samsung.com>
+> 
+> According to Common Clock framework , modified the method of getting
+> clock for MFC Block.
+> 
+> Signed-off-by: Prasanna Kumar <prasanna.ps@samsung.com>
 > ---
->   drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |    1 +
->   1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> index 2356fd5..4f6b553 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-> @@ -232,6 +232,7 @@ static struct mfc_control controls[] = {
->   		.minimum = 0,
->   		.maximum = 1,
->   		.default_value = 0,
-> +		.step = 1,
->   		.menu_skip_mask = 0,
->   	},
->   	{
+>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> index 6aa38a5..b8ac8f6 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_pm.c
+> @@ -50,7 +50,7 @@ int s5p_mfc_init_pm(struct s5p_mfc_dev *dev)
+>                 goto err_p_ip_clk;
+>         }
+>  
+> -       pm->clock = clk_get(&dev->plat_dev->dev, dev->variant->mclk_name);
+> +       pm->clock = clk_get_parent(pm->clock_gate);
+
+Ok, I'll bite.  Why make this change?  Was there an issue using
+clkdev/clk_get to get the clock you needed?
 
 Regards,
-Sylwester
+Mike
+
+>         if (IS_ERR(pm->clock)) {
+>                 mfc_err("Failed to get MFC clock\n");
+>                 ret = PTR_ERR(pm->clock);
+> -- 
+> 1.7.5.4
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
