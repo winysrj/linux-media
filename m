@@ -1,99 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3940 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754480Ab3CXSpR (ORCPT
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:39140 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab3C0UHk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 14:45:17 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2OIjEhF052659
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 19:45:16 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2DEF811E01B4
-	for <linux-media@vger.kernel.org>; Sun, 24 Mar 2013 19:45:13 +0100 (CET)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130324184513.2DEF811E01B4@alastor.dyndns.org>
-Date: Sun, 24 Mar 2013 19:45:13 +0100 (CET)
+	Wed, 27 Mar 2013 16:07:40 -0400
+Message-ID: <1364414849.3909.24.camel@samsungRC530>
+Subject: [patch 1/2] hid: fix Masterkit MA901 hid quirks
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: jkosina@suse.cz
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	linux@wagner-budenheim.de, klimov.linux@gmail.com
+Date: Thu, 28 Mar 2013 00:07:29 +0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch reverts commit 0322bd3980b3ebf7dde8474e22614cb443d6479a and
+adds checks in hid_ignore() for Masterkit MA901 usb radio device. This
+usb radio device shares USB ID with many Atmel V-USB (and probably
+other) devices so patch sorts things out by checking name, vendor,
+product of hid device.
 
-Results of the daily build of media_tree:
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-date:		Sun Mar 24 19:00:24 CET 2013
-git branch:	test
-git hash:	b781e6be79a394cd6980e9cd8fd5c25822d152b6
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index 512b01c..aa341d1 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -2077,7 +2077,6 @@ static const struct hid_device_id hid_ignore_list[] = {
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HYBRID) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_LD, USB_DEVICE_ID_LD_HEATCONTROL) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MADCATZ, USB_DEVICE_ID_MADCATZ_BEATPAD) },
+-	{ HID_USB_DEVICE(USB_VENDOR_ID_MASTERKIT, USB_DEVICE_ID_MASTERKIT_MA901RADIO) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1024LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MCC, USB_DEVICE_ID_MCC_PMD1208LS) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_MICROCHIP, USB_DEVICE_ID_PICKIT1) },
+@@ -2244,6 +2243,18 @@ bool hid_ignore(struct hid_device *hdev)
+ 		     hdev->product <= USB_DEVICE_ID_VELLEMAN_K8061_LAST))
+ 			return true;
+ 		break;
++	case USB_VENDOR_ID_ATMEL_V_USB:
++		/* Masterkit MA901 usb radio based on Atmel tiny85 chip and
++		 * it has the same USB ID as many Atmel V-USB devices. This
++		 * usb radio is handled by radio-ma901.c driver so we want
++		 * ignore the hid. Check the name, bus, product and ignore
++		 * if we have MA901 usb radio.
++		 */
++		if (hdev->product == USB_DEVICE_ID_ATMEL_V_USB &&
++			hdev->bus == BUS_USB &&
++			strncmp(hdev->name, "www.masterkit.ru MA901", 22) == 0)
++			return true;
++		break;
+ 	}
+ 
+ 	if (hdev->type == HID_TYPE_USBMOUSE &&
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 92e47e5..57d9f3a 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -158,6 +158,8 @@
+ #define USB_VENDOR_ID_ATMEL		0x03eb
+ #define USB_DEVICE_ID_ATMEL_MULTITOUCH	0x211c
+ #define USB_DEVICE_ID_ATMEL_MXT_DIGITIZER	0x2118
++#define USB_VENDOR_ID_ATMEL_V_USB	0x16c0
++#define USB_DEVICE_ID_ATMEL_V_USB	0x05df
+ 
+ #define USB_VENDOR_ID_AUREAL		0x0755
+ #define USB_DEVICE_ID_AUREAL_W01RN	0x2626
+@@ -557,9 +559,6 @@
+ #define USB_VENDOR_ID_MADCATZ		0x0738
+ #define USB_DEVICE_ID_MADCATZ_BEATPAD	0x4540
+ 
+-#define USB_VENDOR_ID_MASTERKIT			0x16c0
+-#define USB_DEVICE_ID_MASTERKIT_MA901RADIO	0x05df
+-
+ #define USB_VENDOR_ID_MCC		0x09db
+ #define USB_DEVICE_ID_MCC_PMD1024LS	0x0076
+ #define USB_DEVICE_ID_MCC_PMD1208LS	0x007a
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
