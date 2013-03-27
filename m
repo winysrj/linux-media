@@ -1,47 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3242 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755607Ab3CDJFa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [REVIEW PATCH 00/11] davinci/blackfin DV_PRESET/current_norm removal
-Date: Mon,  4 Mar 2013 10:04:54 +0100
-Message-Id: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:57689 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab3C0VGa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Mar 2013 17:06:30 -0400
+Received: by mail-ee0-f49.google.com with SMTP id d41so4439400eek.36
+        for <linux-media@vger.kernel.org>; Wed, 27 Mar 2013 14:06:29 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/9] em28xx: rename em28xx_hint_sensor() to em28xx_detect_sensor()
+Date: Wed, 27 Mar 2013 22:06:30 +0100
+Message-Id: <1364418396-8191-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1364418396-8191-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1364418396-8191-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Now that the board hints and the sensor initialization/configuration have been
+separated, em28xx_detect_sensor() is the better name for this function.
 
-This patch series is for the most part identical to the RFC patch series
-posted earlier:
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |    7 +++----
+ 1 Datei geändert, 3 Zeilen hinzugefügt(+), 4 Zeilen entfernt(-)
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg58762.html
-
-The main changes are:
-
-- dropped the Samsung-related patches, those will go through a separate
-  patch series.
-- added patches 7-10.
-
-The first set of patches deal with the removal of the obsolete dv_preset
-API. Patch 7 converts one last davinci driver to the control framework,
-patches 8 and 9 remove the use of the obsolete current_norm field and
-patch 10 fixes a compiler warning.
-
-Scott, the blackfin patch is here only because I want to make a single pull
-request for both the davinci and blackfin patches. Since you have already
-acked your patch there is no need for you to do anything.
-
-Prabhakar, if you can look at patches 7-10 (note that patch 7 is different
-from the one you saw earlier), then that would be appreciated. Once I have
-your ack I can make a pull request by the end of the week.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index c8ad7e5..7bb760e 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2309,11 +2309,10 @@ static int em28xx_initialize_mt9m001(struct em28xx *dev)
+ 	return 0;
+ }
+ 
+-/* HINT method: webcam I2C chips
+- *
++/*
+  * This method works for webcams with Micron sensors
+  */
+-static int em28xx_hint_sensor(struct em28xx *dev)
++static int em28xx_detect_sensor(struct em28xx *dev)
+ {
+ 	int rc;
+ 	char *sensor_name;
+@@ -2746,7 +2745,7 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 	 * If sensor is not found, then it isn't a webcam.
+ 	 */
+ 	if (dev->board.is_webcam) {
+-		if (em28xx_hint_sensor(dev) < 0)
++		if (em28xx_detect_sensor(dev) < 0)
+ 			dev->board.is_webcam = 0;
+ 		else
+ 			dev->progressive = 1;
+-- 
+1.7.10.4
 
