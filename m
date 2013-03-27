@@ -1,57 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f44.google.com ([209.85.219.44]:51977 "EHLO
-	mail-oa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756019Ab3CSRLc (ORCPT
+Received: from mail-la0-f43.google.com ([209.85.215.43]:65160 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338Ab3C0KXx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Mar 2013 13:11:32 -0400
+	Wed, 27 Mar 2013 06:23:53 -0400
 MIME-Version: 1.0
-In-Reply-To: <201303191648.31527.arnd@arndb.de>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
- <CAHkwnC9fg7_uhLM2KD3vvj_oFx3EBoQfw8mCN=V9pyV5=k37aA@mail.gmail.com>
- <CAMuHMdVS56HRDSvr7XCpVEjEWnGti+V=J_m4qQzEid=23ON_fQ@mail.gmail.com> <201303191648.31527.arnd@arndb.de>
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Tue, 19 Mar 2013 18:11:11 +0100
-Message-ID: <CAHkwnC9FL9W07=n6bWvcwiE058zcBZwqUwtRB-VVNpU0gv0mNw@mail.gmail.com>
-Subject: Re: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	H Hartley Sweeten <hartleys@visionengravers.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
+In-Reply-To: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
+References: <1363779119-3255-1-git-send-email-vikas.sajjan@linaro.org>
+Date: Wed, 27 Mar 2013 19:23:51 +0900
+Message-ID: <CAAQKjZNOKu0RxYfuOBj8Fg3OfV8hXsA-QF7mgqQeFW6c4B2xgQ@mail.gmail.com>
+Subject: Re: [PATCH v2] drm/exynos: enable FIMD clocks
+From: Inki Dae <inki.dae@samsung.com>
+To: Vikas Sajjan <vikas.sajjan@linaro.org>
+Cc: dri-devel@lists.freedesktop.org, linux-samsung-soc@vger.kernel.org,
+	kgene.kim@samsung.com, linaro-kernel@lists.linaro.org,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 19, 2013 at 5:48 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 19 March 2013, Geert Uytterhoeven wrote:
->> Hmm, so we may have drivers that (now) work perfectly fine with
->> module_platform_driver_probe()/platform_driver_probe(), but will start
->> failing suddenly in the future?
+2013/3/20 Vikas Sajjan <vikas.sajjan@linaro.org>:
+> While migrating to common clock framework (CCF), found that the FIMD clocks
+> were pulled down by the CCF.
+> If CCF finds any clock(s) which has NOT been claimed by any of the
+> drivers, then such clock(s) are PULLed low by CCF.
 >
-> They will fail if someone changes the initialization order. That would
-> already break drivers before deferred probing support (and was the reason
-> we added feature in the first place), but now we can be much more liberal
-> with the order in which drivers are initialized, except when they are
-> using platform_driver_probe()
+> By calling clk_prepare_enable() for FIMD clocks fixes the issue.
 >
->> I guess we need a big fat WARN_ON(-EPROBE_DEFER) in
->> platform_driver_probe() to catch these?
+> this patch also replaces clk_disable() with clk_disable_unprepare()
+> during exit.
 >
-> Yes, very good idea.
+> Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+> ---
+> Changes since v1:
+>         - added error checking for clk_prepare_enable() and also replaced
+>         clk_disable() with clk_disable_unprepare() during exit.
+> ---
+>  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
 >
->         Arnd
+> diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> index 9537761..014d750 100644
+> --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+> @@ -934,6 +934,19 @@ static int fimd_probe(struct platform_device *pdev)
+>                 return ret;
+>         }
+>
+> +       ret = clk_prepare_enable(ctx->lcd_clk);
+> +       if (ret) {
+> +               dev_err(dev, "failed to enable 'sclk_fimd' clock\n");
+> +               return ret;
+> +       }
+> +
+> +       ret = clk_prepare_enable(ctx->bus_clk);
+> +       if (ret) {
+> +               clk_disable_unprepare(ctx->lcd_clk);
+> +               dev_err(dev, "failed to enable 'fimd' clock\n");
+> +               return ret;
+> +       }
+> +
 
-If it's fine, I'll send a patch for that.
+Please remove the above two clk_prepare_enable function calls and use
+them in fimd_clock() instead of clk_enable/disable(). When probed,
+fimd clock will be enabled by runtime pm.
 
-Regards
---
-Fabio Porcedda
+Thanks,
+Inki Dae
+
+>         ctx->vidcon0 = pdata->vidcon0;
+>         ctx->vidcon1 = pdata->vidcon1;
+>         ctx->default_win = pdata->default_win;
+> @@ -981,8 +994,8 @@ static int fimd_remove(struct platform_device *pdev)
+>         if (ctx->suspended)
+>                 goto out;
+>
+> -       clk_disable(ctx->lcd_clk);
+> -       clk_disable(ctx->bus_clk);
+> +       clk_disable_unprepare(ctx->lcd_clk);
+> +       clk_disable_unprepare(ctx->bus_clk);
+>
+>         pm_runtime_set_suspended(dev);
+>         pm_runtime_put_sync(dev);
+> --
+> 1.7.9.5
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
