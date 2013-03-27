@@ -1,78 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.bemta8.messagelabs.com ([216.82.243.207]:16004 "EHLO
-	mail1.bemta8.messagelabs.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751724Ab3CORuf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 13:50:35 -0400
-From: H Hartley Sweeten <hartleys@visionengravers.com>
-To: Arnd Bergmann <arnd@arndb.de>,
-	Fabio Porcedda <fabio.porcedda@gmail.com>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-ide@vger.kernel.org" <linux-ide@vger.kernel.org>,
-	"lm-sensors@lm-sensors.org" <lm-sensors@lm-sensors.org>,
-	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans-Christian Egtvedt <hans-christian.egtvedt@atmel.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Date: Fri, 15 Mar 2013 12:43:48 -0500
-Subject: RE: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Message-ID: <ADE657CA350FB648AAC2C43247A983F0020980106B9E@AUSP01VMBX24.collaborationhost.net>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
- <1363266691-15757-12-git-send-email-fabio.porcedda@gmail.com>
- <201303141358.05616.arnd@arndb.de>
-In-Reply-To: <201303141358.05616.arnd@arndb.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:63184 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752265Ab3C0Crl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Mar 2013 22:47:41 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: mchehab@redhat.com
+Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v8 0/9] Driver for Si476x series of chips
+Date: Tue, 26 Mar 2013 19:47:17 -0700
+Message-Id: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, March 14, 2013 6:58 AM, Arnd Bergmann wrote:
-> On Thursday 14 March 2013, Fabio Porcedda wrote:
->> This patch converts the drivers to use the
->> module_platform_driver_probe() macro which makes the code smaller and
->> a bit simpler.
->> 
->> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  drivers/misc/atmel_pwm.c  | 12 +-----------
->>  drivers/misc/ep93xx_pwm.c | 13 +------------
->>  2 files changed, 2 insertions(+), 23 deletions(-)
->
-> The patch itself seems fine, but there are two issues around it:
->
-> * The PWM drivers should really get moved to drivers/pwm and converted to the new
->   PWM subsystem. I don't know if Hartley or Hans-Christian have plans to do
->   that already.
+Driver for Si476x series of chips
 
-Arnd,
+This is a eight version of the patchset originaly posted here:
+https://lkml.org/lkml/2012/9/13/590
 
-Ill look at converting the ep93xx pwm driver to the PWM subsystem. The only issue is
-the current driver exposes a sysfs interface that I think is not available in that subsystem.
+Second version of the patch was posted here:
+https://lkml.org/lkml/2012/10/5/598
 
->* Regarding the use of module_platform_driver_probe, I'm a little worried about
->  the interactions with deferred probing. I don't think there are any regressions,
->  but we should probably make people aware that one cannot return -EPROBE_DEFER
->  from a platform_driver_probe function.
+Third version of the patch was posted here:
+https://lkml.org/lkml/2012/10/23/510
 
-The ep93xx pwm driver does not need to use platform_driver_probe(). It can be changed
-to use module_platform_driver() by just moving the .probe to the platform_driver. This
-driver was added before module_platform_driver() was available and I used the
-platform_driver_probe() thinking it would save a couple lines of code.
+Fourth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/18/572
 
-I'll change this in a bit. Right now I'm trying to work out why kernel 3.8 is not booting
-on the ep93xx. I had 3.6.6 on my development board and 3.7 works fine but 3.8 hangs
-without uncompressing the kernel.
+Fifth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/26/45
 
-Regards,
-Hartley
+Sixth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/26/257
+
+Seventh version of the patch was posted here:
+https://lkml.org/lkml/2013/2/27/22
 
 
+To save everyone's time I'll repost the original description of it:
+
+This patchset contains a driver for a Silicon Laboratories 476x series
+of radio tuners. The driver itself is implemented as an MFD devices
+comprised of three parts: 
+ 1. Core device that provides all the other devices with basic
+functionality and locking scheme.
+ 2. Radio device that translates between V4L2 subsystem requests into
+Core device commands.
+ 3. Codec device that does similar to the earlier described task, but
+for ALSA SoC subsystem.
+
+v8 of this driver has following changes:
+   - checkpatch.pl fixes
+
+Pleas note that patches are not completely warning free, as far as
+checkpatch.pl is concerned, because I skipped all the places where
+80-character compliance can be acheived only by means of weird
+indentation.
+
+Andrey Smirnov (9):
+  mfd: Add commands abstraction layer for SI476X MFD
+  mfd: Add the main bulk of core driver for SI476x code
+  mfd: Add chip properties handling code for SI476X MFD
+  mfd: Add header files and Kbuild plumbing for SI476x MFD core
+  v4l2: Fix the type of V4L2_CID_TUNE_PREEMPHASIS in the documentation
+  v4l2: Add standard controls for FM receivers
+  v4l2: Add documentation for the FM RX controls
+  v4l2: Add private controls base for SI476X
+  v4l2: Add a V4L2 driver for SI476X MFD
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   74 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +
+ Documentation/video4linux/si476x.txt               |  187 +++
+ drivers/media/radio/Kconfig                        |   17 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-si476x.c                 | 1599 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   14 +-
+ drivers/mfd/Kconfig                                |   12 +
+ drivers/mfd/Makefile                               |    4 +
+ drivers/mfd/si476x-cmd.c                           | 1554 +++++++++++++++++++
+ drivers/mfd/si476x-i2c.c                           |  886 +++++++++++
+ drivers/mfd/si476x-prop.c                          |  242 +++
+ include/linux/mfd/si476x-core.h                    |  525 +++++++
+ include/media/si476x.h                             |  426 ++++++
+ include/uapi/linux/v4l2-controls.h                 |   17 +
+ 16 files changed, 5566 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/video4linux/si476x.txt
+ create mode 100644 drivers/media/radio/radio-si476x.c
+ create mode 100644 drivers/mfd/si476x-cmd.c
+ create mode 100644 drivers/mfd/si476x-i2c.c
+ create mode 100644 drivers/mfd/si476x-prop.c
+ create mode 100644 include/linux/mfd/si476x-core.h
+ create mode 100644 include/media/si476x.h
+
+-- 
+1.7.10.4
 
