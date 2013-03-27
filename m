@@ -1,318 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:15311 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759842Ab3CZQGd (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:41827 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754588Ab3C0Crw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 12:06:33 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH 3/3] s5p-fimc: Use vb2 ioctl helpers in fimc-lite
-Date: Tue, 26 Mar 2013 17:06:06 +0100
-Message-id: <1364313966-18868-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364313966-18868-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 26 Mar 2013 22:47:52 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: mchehab@redhat.com
+Cc: andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	sameo@linux.intel.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH v8 6/9] v4l2: Add standard controls for FM receivers
+Date: Tue, 26 Mar 2013 19:47:23 -0700
+Message-Id: <1364352446-28572-7-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace some ioctl, file and video buffer queue operation handlers
-with the videobuf2 helpers. This allows to get rid of significant
-amount of boilerplate.
+This commit introduces new class of standard controls
+V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
+pertaining to FM receiver chips. Also, two controls belonging to said
+class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
+V4L2_CID_RDS_RECEPTION.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This patch is based on the code found in the patch by Manjunatha Halli [1]
+
+[1] http://lists-archives.com/linux-kernel/27641307-new-control-class-and-features-for-fm-rx.html
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-lite.c |  170 +++++++--------------------
- 1 file changed, 45 insertions(+), 125 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
+ include/uapi/linux/v4l2-controls.h   |   13 +++++++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
-index 40733e0..187d9f6 100644
---- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-@@ -425,24 +425,12 @@ static void buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&fimc->slock, flags);
- }
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6b28b58..8b89fb8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Text",
+ 		NULL
+ 	};
+-	static const char * const tune_preemphasis[] = {
+-		"No Preemphasis",
++	static const char * const tune_emphasis[] = {
++		"None",
+ 		"50 Microseconds",
+ 		"75 Microseconds",
+ 		NULL,
+@@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_SCENE_MODE:
+ 		return scene_mode;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+-		return tune_preemphasis;
++		return tune_emphasis;
++	case V4L2_CID_TUNE_DEEMPHASIS:
++		return tune_emphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 		return flash_led_mode;
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+@@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
+ 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
  
--static void fimc_lock(struct vb2_queue *vq)
--{
--	struct fimc_lite *fimc = vb2_get_drv_priv(vq);
--	mutex_lock(&fimc->lock);
--}
--
--static void fimc_unlock(struct vb2_queue *vq)
--{
--	struct fimc_lite *fimc = vb2_get_drv_priv(vq);
--	mutex_unlock(&fimc->lock);
--}
--
- static const struct vb2_ops fimc_lite_qops = {
- 	.queue_setup	 = queue_setup,
- 	.buf_prepare	 = buffer_prepare,
- 	.buf_queue	 = buffer_queue,
--	.wait_prepare	 = fimc_unlock,
--	.wait_finish	 = fimc_lock,
-+	.wait_prepare	 = vb2_ops_wait_prepare,
-+	.wait_finish	 = vb2_ops_wait_finish,
- 	.start_streaming = start_streaming,
- 	.stop_streaming	 = stop_streaming,
- };
-@@ -467,99 +455,69 @@ static int fimc_lite_open(struct file *file)
- 	mutex_lock(&fimc->lock);
- 	if (atomic_read(&fimc->out_path) != FIMC_IO_DMA) {
- 		ret = -EBUSY;
--		goto done;
-+		goto unlock;
++	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
++	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
++	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+ 	default:
+ 		return NULL;
  	}
+@@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
++	case V4L2_CID_RDS_RECEPTION:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 	case V4L2_CID_TEST_PATTERN:
++	case V4L2_CID_TUNE_DEEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+@@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index dcd6374..3e985be 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -59,6 +59,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
++#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
  
- 	set_bit(ST_FLITE_IN_USE, &fimc->state);
- 	ret = pm_runtime_get_sync(&fimc->pdev->dev);
- 	if (ret < 0)
--		goto done;
-+		goto unlock;
+ /* User-class control IDs */
  
- 	ret = v4l2_fh_open(file);
- 	if (ret < 0)
--		goto done;
-+		goto err_pm;
+@@ -825,4 +826,16 @@ enum v4l2_dv_rgb_range {
+ #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
+ #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
  
--	if (++fimc->ref_count == 1 &&
--	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
--		ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
--					 &fimc->vfd.entity, true);
--		if (ret < 0) {
--			pm_runtime_put_sync(&fimc->pdev->dev);
--			fimc->ref_count--;
--			v4l2_fh_release(file);
--			clear_bit(ST_FLITE_IN_USE, &fimc->state);
--		}
-+	if (!v4l2_fh_is_singular_file(file) ||
-+	    atomic_read(&fimc->out_path) != FIMC_IO_DMA)
-+		goto unlock;
- 
-+	ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
-+						me, true);
-+	if (!ret) {
- 		fimc_lite_clear_event_counters(fimc);
-+		fimc->ref_count++;
-+		goto unlock;
- 	}
--done:
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
 +
-+	v4l2_fh_release(file);
-+err_pm:
-+	pm_runtime_put_sync(&fimc->pdev->dev);
-+	clear_bit(ST_FLITE_IN_USE, &fimc->state);
-+unlock:
- 	mutex_unlock(&fimc->lock);
- 	mutex_unlock(&me->parent->graph_mutex);
- 	return ret;
- }
- 
--static int fimc_lite_close(struct file *file)
-+static int fimc_lite_release(struct file *file)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
--	int ret;
- 
- 	mutex_lock(&fimc->lock);
- 
--	if (--fimc->ref_count == 0 &&
-+	if (v4l2_fh_is_singular_file(file) &&
- 	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
- 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
- 		fimc_lite_stop_capture(fimc, false);
- 		fimc_pipeline_call(fimc, close, &fimc->pipeline);
--		clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
-+		fimc->ref_count--;
- 	}
- 
-+	vb2_fop_release(file);
- 	pm_runtime_put(&fimc->pdev->dev);
-+	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
- 
--	if (fimc->ref_count == 0)
--		vb2_queue_release(&fimc->vb_queue);
--
--	ret = v4l2_fh_release(file);
--
--	mutex_unlock(&fimc->lock);
--	return ret;
--}
--
--static unsigned int fimc_lite_poll(struct file *file,
--				   struct poll_table_struct *wait)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--	int ret;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return POLL_ERR;
--
--	ret = vb2_poll(&fimc->vb_queue, file, wait);
--	mutex_unlock(&fimc->lock);
--
--	return ret;
--}
--
--static int fimc_lite_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--	int ret;
--
--	if (mutex_lock_interruptible(&fimc->lock))
--		return -ERESTARTSYS;
--
--	ret = vb2_mmap(&fimc->vb_queue, vma);
- 	mutex_unlock(&fimc->lock);
--
--	return ret;
-+	return 0;
- }
- 
- static const struct v4l2_file_operations fimc_lite_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= fimc_lite_open,
--	.release	= fimc_lite_close,
--	.poll		= fimc_lite_poll,
-+	.release	= fimc_lite_release,
-+	.poll		= vb2_fop_poll,
- 	.unlocked_ioctl	= video_ioctl2,
--	.mmap		= fimc_lite_mmap,
-+	.mmap		= vb2_fop_mmap,
- };
- 
- /*
-@@ -720,7 +678,6 @@ static int fimc_lite_try_fmt_mplane(struct file *file, void *fh,
- 				    struct v4l2_format *f)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
--
- 	return fimc_lite_try_fmt(fimc, &f->fmt.pix_mp, NULL);
- }
- 
-@@ -812,12 +769,15 @@ static int fimc_lite_streamon(struct file *file, void *priv,
- 		return ret;
- 
- 	ret = fimc_pipeline_validate(fimc);
--	if (ret) {
--		media_entity_pipeline_stop(entity);
--		return ret;
--	}
-+	if (ret < 0)
-+		goto err_p_stop;
- 
--	return vb2_streamon(&fimc->vb_queue, type);
-+	ret = vb2_ioctl_streamon(file, priv, type);
-+	if (!ret)
-+		return ret;
-+err_p_stop:
-+	media_entity_pipeline_stop(entity);
-+	return 0;
- }
- 
- static int fimc_lite_streamoff(struct file *file, void *priv,
-@@ -826,7 +786,7 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
- 	struct fimc_lite *fimc = video_drvdata(file);
- 	int ret;
- 
--	ret = vb2_streamoff(&fimc->vb_queue, type);
-+	ret = vb2_ioctl_streamoff(file, priv, type);
- 	if (ret == 0)
- 		media_entity_pipeline_stop(&fimc->vfd.entity);
- 	return ret;
-@@ -839,53 +799,13 @@ static int fimc_lite_reqbufs(struct file *file, void *priv,
- 	int ret;
- 
- 	reqbufs->count = max_t(u32, FLITE_REQ_BUFS_MIN, reqbufs->count);
--	ret = vb2_reqbufs(&fimc->vb_queue, reqbufs);
-+	ret = vb2_ioctl_reqbufs(file, priv, reqbufs);
- 	if (!ret)
- 		fimc->reqbufs_count = reqbufs->count;
- 
- 	return ret;
- }
- 
--static int fimc_lite_querybuf(struct file *file, void *priv,
--			      struct v4l2_buffer *buf)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--
--	return vb2_querybuf(&fimc->vb_queue, buf);
--}
--
--static int fimc_lite_qbuf(struct file *file, void *priv,
--			  struct v4l2_buffer *buf)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--
--	return vb2_qbuf(&fimc->vb_queue, buf);
--}
--
--static int fimc_lite_dqbuf(struct file *file, void *priv,
--			   struct v4l2_buffer *buf)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--
--	return vb2_dqbuf(&fimc->vb_queue, buf, file->f_flags & O_NONBLOCK);
--}
--
--static int fimc_lite_create_bufs(struct file *file, void *priv,
--				 struct v4l2_create_buffers *create)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--
--	return vb2_create_bufs(&fimc->vb_queue, create);
--}
--
--static int fimc_lite_prepare_buf(struct file *file, void *priv,
--				 struct v4l2_buffer *b)
--{
--	struct fimc_lite *fimc = video_drvdata(file);
--
--	return vb2_prepare_buf(&fimc->vb_queue, b);
--}
--
- /* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
- static int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
- {
-@@ -965,11 +885,11 @@ static const struct v4l2_ioctl_ops fimc_lite_ioctl_ops = {
- 	.vidioc_g_selection		= fimc_lite_g_selection,
- 	.vidioc_s_selection		= fimc_lite_s_selection,
- 	.vidioc_reqbufs			= fimc_lite_reqbufs,
--	.vidioc_querybuf		= fimc_lite_querybuf,
--	.vidioc_prepare_buf		= fimc_lite_prepare_buf,
--	.vidioc_create_bufs		= fimc_lite_create_bufs,
--	.vidioc_qbuf			= fimc_lite_qbuf,
--	.vidioc_dqbuf			= fimc_lite_dqbuf,
-+	.vidioc_querybuf		= vb2_ioctl_querybuf,
-+	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-+	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-+	.vidioc_qbuf			= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
- 	.vidioc_streamon		= fimc_lite_streamon,
- 	.vidioc_streamoff		= fimc_lite_streamoff,
- };
-@@ -1310,8 +1230,7 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
- 	vfd->v4l2_dev = sd->v4l2_dev;
- 	vfd->minor = -1;
- 	vfd->release = video_device_release_empty;
--	vfd->lock = &fimc->lock;
--	fimc->ref_count = 0;
-+	vfd->queue = q;
- 	fimc->reqbufs_count = 0;
- 
- 	INIT_LIST_HEAD(&fimc->pending_buf_q);
-@@ -1325,6 +1244,7 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
- 	q->buf_struct_size = sizeof(struct flite_buffer);
- 	q->drv_priv = fimc;
- 	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
-+	q->lock = &fimc->lock;
- 
- 	ret = vb2_queue_init(q);
- 	if (ret < 0)
++#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
++enum v4l2_deemphasis {
++	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
++	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
++	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
++};
++
++#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
++
+ #endif
 -- 
-1.7.9.5
+1.7.10.4
 
