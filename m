@@ -1,178 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:52712 "EHLO
-	relmlor3.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932320Ab3CNQvm (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35572 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790Ab3C0AHm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 12:51:42 -0400
-Received: from relmlir1.idc.renesas.com ([10.200.68.151])
- by relmlor3.idc.renesas.com ( SJSMS)
- with ESMTP id <0MJN0026KTI4F600@relmlor3.idc.renesas.com> for
- linux-media@vger.kernel.org; Fri, 15 Mar 2013 01:51:40 +0900 (JST)
-Received: from relmlac3.idc.renesas.com ([10.200.69.23])
- by relmlir1.idc.renesas.com (SJSMS)
- with ESMTP id <0MJN008VGTI4DD50@relmlir1.idc.renesas.com> for
- linux-media@vger.kernel.org; Fri, 15 Mar 2013 01:51:40 +0900 (JST)
-In-reply-to: <Pine.LNX.4.64.1303081228050.24912@axis700.grange>
-References: <1360834509-1228-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1303081228050.24912@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Subject: Re: [PATCH] soc_camera: Add RGB666 & RGB888 formats
-Message-id: <OFB47C6CBF.EF9CF8E0-ON80257B2E.005C1F03-80257B2E.005C9489@eu.necel.com>
-Date: Thu, 14 Mar 2013 16:51:31 +0000
-Content-type: text/plain; charset=US-ASCII
+	Tue, 26 Mar 2013 20:07:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, patches@linaro.org,
+	linaro-kernel@lists.linaro.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH 2/2] dma-buf: Add debugfs support
+Date: Wed, 27 Mar 2013 01:08:30 +0100
+Message-ID: <1447681.bSpIR8Dx74@avalon>
+In-Reply-To: <1364210447-8125-3-git-send-email-sumit.semwal@linaro.org>
+References: <1364210447-8125-1-git-send-email-sumit.semwal@linaro.org> <1364210447-8125-3-git-send-email-sumit.semwal@linaro.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Sumit,
 
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> To: Phil Edworthy <phil.edworthy@renesas.com>, 
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, 
-linux-media@vger.kernel.org
-> Date: 08/03/2013 13:30
-> Subject: Re: [PATCH] soc_camera: Add RGB666 & RGB888 formats
+Thanks for the patch.
+
+On Monday 25 March 2013 16:50:46 Sumit Semwal wrote:
+> Add debugfs support to make it easier to print debug information
+> about the dma-buf buffers.
 > 
-> Hi Phil
+> Cc: Dave Airlie <airlied@redhat.com>
+>  [minor fixes on init and warning fix]
+> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> ---
+> changes since v1:
+>  - fixes on init and warnings as reported and corrected by Dave Airlie.
+>  - add locking while walking attachment list - reported by Daniel Vetter.
 > 
-> On Thu, 14 Feb 2013, Phil Edworthy wrote:
+>  drivers/base/dma-buf.c  |  162 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dma-buf.h |    5 +-
+>  2 files changed, 166 insertions(+), 1 deletion(-)
 > 
-> > Based on work done by Katsuya Matsubara.
-> > 
-> > Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index d89102a..7d867ed 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -27,9 +27,18 @@
+>  #include <linux/dma-buf.h>
+>  #include <linux/anon_inodes.h>
+>  #include <linux/export.h>
+> +#include <linux/debugfs.h>
+> +#include <linux/seq_file.h>
 > 
-> Looks mostly good to me, but please also provide format descriptions for 
-
-> Documentation/DocBook/media/v4l/pixfmt-packed-rgb.xml, also see a couple 
-
-> of minor notes below
-
-I had a look at the doc you pointed to, but it appears to only describe 
-formats that can be accessed by userspace. I take it you meant 
-Documentation/DocBook/media/v4l/subdev-formats.xml?
-
-> > ---
-> >  drivers/media/platform/soc_camera/soc_mediabus.c |   42 +++++++++
-> +++++++++++++
-> >  include/media/soc_camera.h                       |    6 +++-
-> >  include/media/soc_mediabus.h                     |    3 ++
-> >  include/uapi/linux/v4l2-mediabus.h               |    6 +++-
-> >  4 files changed, 55 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/
-> drivers/media/platform/soc_camera/soc_mediabus.c
-> > index a397812..d8acfd3 100644
-> > --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> > +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> > @@ -97,6 +97,42 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
-> >        .layout         = SOC_MBUS_LAYOUT_PACKED,
-> >     },
-> >  }, {
-> > +   .code = V4L2_MBUS_FMT_RGB666_1X18,
-> > +   .fmt = {
-> > +      .fourcc         = V4L2_PIX_FMT_RGB32,
-> > +      .name         = "RGB666/32bpp",
-> > +      .bits_per_sample   = 18,
-> > +      .packing      = SOC_MBUS_PACKING_EXTEND32,
-> > +      .order         = SOC_MBUS_ORDER_LE,
-> > +   },
-> > +}, {
-> > +   .code = V4L2_MBUS_FMT_RGB888_1X24,
-> > +   .fmt = {
-> > +      .fourcc         = V4L2_PIX_FMT_RGB32,
-> > +      .name         = "RGB888/32bpp",
-> > +      .bits_per_sample   = 24,
-> > +      .packing      = SOC_MBUS_PACKING_EXTEND32,
-> > +      .order         = SOC_MBUS_ORDER_LE,
-> > +   },
-> > +}, {
-> > +   .code = V4L2_MBUS_FMT_RGB888_2X12_BE,
-> > +   .fmt = {
-> > +      .fourcc         = V4L2_PIX_FMT_RGB32,
-> > +      .name         = "RGB888/32bpp",
-> > +      .bits_per_sample   = 12,
-> > +      .packing      = SOC_MBUS_PACKING_EXTEND32,
-> > +      .order         = SOC_MBUS_ORDER_BE,
-> > +   },
-> > +}, {
-> > +   .code = V4L2_MBUS_FMT_RGB888_2X12_LE,
-> > +   .fmt = {
-> > +      .fourcc         = V4L2_PIX_FMT_RGB32,
-> > +      .name         = "RGB888/32bpp",
-> > +      .bits_per_sample   = 12,
-> > +      .packing      = SOC_MBUS_PACKING_EXTEND32,
-> > +      .order         = SOC_MBUS_ORDER_LE,
-> > +   },
-> > +}, {
-> >     .code = V4L2_MBUS_FMT_SBGGR8_1X8,
-> >     .fmt = {
-> >        .fourcc         = V4L2_PIX_FMT_SBGGR8,
-> > @@ -358,6 +394,10 @@ int soc_mbus_samples_per_pixel(const struct 
-> soc_mbus_pixelfmt *mf,
-> >        *numerator = 1;
-> >        *denominator = 1;
-> >        return 0;
-> > +   case SOC_MBUS_PACKING_EXTEND32:
-> > +      *numerator = 1;
-> > +      *denominator = 1;
-> > +      return 0;
-> >     case SOC_MBUS_PACKING_2X8_PADHI:
-> >     case SOC_MBUS_PACKING_2X8_PADLO:
-> >        *numerator = 2;
-> > @@ -395,6 +435,8 @@ s32 soc_mbus_bytes_per_line(u32 width, const 
-> struct soc_mbus_pixelfmt *mf)
-> >        return width * 3 / 2;
-> >     case SOC_MBUS_PACKING_VARIABLE:
-> >        return 0;
-> > +   case SOC_MBUS_PACKING_EXTEND32:
-> > +      return width * 4;
-> >     }
-> >     return -EINVAL;
-> >  }
-> > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-> > index 6442edc..c820be2 100644
-> > --- a/include/media/soc_camera.h
-> > +++ b/include/media/soc_camera.h
-> > @@ -231,10 +231,14 @@ struct soc_camera_sense {
-> >  #define SOCAM_DATAWIDTH_10   SOCAM_DATAWIDTH(10)
+>  static inline int is_dma_buf_file(struct file *);
 > 
-> Didn't you forget to define SOCAM_DATAWIDTH_12 here?
-Yes, I forgot this.
-
-> >  #define SOCAM_DATAWIDTH_15   SOCAM_DATAWIDTH(15)
-> >  #define SOCAM_DATAWIDTH_16   SOCAM_DATAWIDTH(16)
-> > +#define SOCAM_DATAWIDTH_18   SOCAM_DATAWIDTH(18)
-> > +#define SOCAM_DATAWIDTH_24   SOCAM_DATAWIDTH(24)
-> > 
-> >  #define SOCAM_DATAWIDTH_MASK (SOCAM_DATAWIDTH_4 | SOCAM_DATAWIDTH_8 | 
-\
-> >                 SOCAM_DATAWIDTH_9 | SOCAM_DATAWIDTH_10 | \
-> > -               SOCAM_DATAWIDTH_15 | SOCAM_DATAWIDTH_16)
-> > +               SOCAM_DATAWIDTH_12 | SOCAM_DATAWIDTH_15 | \
-> > +               SOCAM_DATAWIDTH_16 | SOCAM_DATAWIDTH_18 | \
-> > +               SOCAM_DATAWIDTH_24)
-> > 
-> >  static inline void soc_camera_limit_side(int *start, int *length,
-> >        unsigned int start_min,
-> > diff --git a/include/media/soc_mediabus.h 
-b/include/media/soc_mediabus.h
-> > index 0dc6f46..eea98d1 100644
-> > --- a/include/media/soc_mediabus.h
-> > +++ b/include/media/soc_mediabus.h
-> > @@ -26,6 +26,8 @@
-> >   * @SOC_MBUS_PACKING_VARIABLE:   compressed formats with variable 
-packing
-> >   * @SOC_MBUS_PACKING_1_5X8:   used for packed YUV 4:2:0 formats, 
-where 4
-> >   *            pixels occupy 6 bytes in RAM
-> > + * @SOC_MBUS_PACKING_EXTEND32:  sample width (e.g., 24 bits) has 
-> to be extended
+> +struct dma_buf_list {
+> +	struct list_head head;
+> +	struct mutex lock;
+> +};
+> +
+> +static struct dma_buf_list db_list;
+> +
+>  static int dma_buf_release(struct inode *inode, struct file *file)
+>  {
+>  	struct dma_buf *dmabuf;
+> @@ -42,6 +51,11 @@ static int dma_buf_release(struct inode *inode, struct
+> file *file) BUG_ON(dmabuf->vmapping_counter);
 > 
-> Please, use a TAB above
-Of course.
+>  	dmabuf->ops->release(dmabuf);
+> +
+> +	mutex_lock(&db_list.lock);
+> +	list_del(&dmabuf->list_node);
+> +	mutex_unlock(&db_list.lock);
+> +
+>  	kfree(dmabuf);
+>  	return 0;
+>  }
+> @@ -125,6 +139,10 @@ struct dma_buf *dma_buf_export_named(void *priv, const
+> struct dma_buf_ops *ops, mutex_init(&dmabuf->lock);
+>  	INIT_LIST_HEAD(&dmabuf->attachments);
+> 
+> +	mutex_lock(&db_list.lock);
+> +	list_add(&dmabuf->list_node, &db_list.head);
+> +	mutex_unlock(&db_list.lock);
+> +
+>  	return dmabuf;
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_export_named);
+> @@ -551,3 +569,147 @@ void dma_buf_vunmap(struct dma_buf *dmabuf, void
+> *vaddr) mutex_unlock(&dmabuf->lock);
+>  }
+>  EXPORT_SYMBOL_GPL(dma_buf_vunmap);
+> +
+> +static int dma_buf_init_debugfs(void);
+> +static void dma_buf_uninit_debugfs(void);
+> +
+> +static int __init dma_buf_init(void)
+> +{
+> +	mutex_init(&db_list.lock);
+> +	INIT_LIST_HEAD(&db_list.head);
+> +	dma_buf_init_debugfs();
+> +	return 0;
+> +}
+> +
+> +subsys_initcall(dma_buf_init);
+> +
+> +static void __exit dma_buf_deinit(void)
 
-Thanks
-Phil
+This function is never called.
+
+> +{
+> +	dma_buf_uninit_debugfs();
+> +}
+
+If you moved those two functions at the end of the file you could get rid of 
+the forward declarations above.
+
+> +
+> +#ifdef CONFIG_DEBUG_FS
+> +static int dma_buf_describe(struct seq_file *s)
+> +{
+> +	int ret;
+> +	struct dma_buf *buf_obj;
+> +	struct dma_buf_attachment *attach_obj;
+> +	int count = 0, attach_count;
+> +	size_t size = 0;
+> +
+> +	ret = mutex_lock_interruptible(&db_list.lock);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	seq_printf(s, "\nDma-buf Objects:\n");
+> +	seq_printf(s, "\texp_name\tsize\tflags\tmode\tcount\n");
+> +
+> +	list_for_each_entry(buf_obj, &db_list.head, list_node) {
+> +		ret = mutex_lock_interruptible(&buf_obj->lock);
+> +
+> +		if (ret) {
+> +			seq_printf(s,
+> +				  "\tERROR locking buffer object: skipping\n");
+> +			goto skip_buffer;
+> +		}
+> +
+> +		seq_printf(s, "\t");
+> +
+> +		seq_printf(s, "\t%s\t%08zu\t%08x\t%08x\t%08d\n",
+> +				buf_obj->exp_name, buf_obj->size,
+> +				buf_obj->file->f_flags, buf_obj->file->f_mode,
+> +				buf_obj->file->f_count.counter);
+> +
+> +		seq_printf(s, "\t\tAttached Devices:\n");
+> +		attach_count = 0;
+> +
+> +		list_for_each_entry(attach_obj, &buf_obj->attachments, node) {
+> +			seq_printf(s, "\t\t");
+> +
+> +			seq_printf(s, "%s\n", attach_obj->dev->init_name);
+> +			attach_count++;
+> +		}
+> +
+> +		seq_printf(s, "\n\t\tTotal %d devices attached\n",
+> +				attach_count);
+> +
+> +		count++;
+> +		size += buf_obj->size;
+> +skip_buffer:
+> +		mutex_unlock(&buf_obj->lock);
+> +	}
+> +
+> +	seq_printf(s, "\nTotal %d objects, %zu bytes\n", count, size);
+> +
+> +	mutex_unlock(&db_list.lock);
+> +	return 0;
+> +}
+> +
+> +static int dma_buf_show(struct seq_file *s, void *unused)
+> +{
+> +	void (*func)(struct seq_file *) = s->private;
+> +	func(s);
+> +	return 0;
+> +}
+> +
+> +static int dma_buf_debug_open(struct inode *inode, struct file *file)
+> +{
+> +	return single_open(file, dma_buf_show, inode->i_private);
+> +}
+> +
+> +static const struct file_operations dma_buf_debug_fops = {
+> +	.open           = dma_buf_debug_open,
+> +	.read           = seq_read,
+> +	.llseek         = seq_lseek,
+> +	.release        = single_release,
+> +};
+> +
+> +static struct dentry *dma_buf_debugfs_dir;
+> +
+> +static int dma_buf_init_debugfs(void)
+> +{
+> +	int err = 0;
+> +	dma_buf_debugfs_dir = debugfs_create_dir("dma_buf", NULL);
+> +	if (IS_ERR(dma_buf_debugfs_dir)) {
+> +		err = PTR_ERR(dma_buf_debugfs_dir);
+> +		dma_buf_debugfs_dir = NULL;
+> +		return err;
+> +	}
+> +
+> +	err = dma_buf_debugfs_create_file("bufinfo", dma_buf_describe);
+> +
+> +	if (err)
+> +		pr_debug("dma_buf: debugfs: failed to create node bufinfo\n");
+> +
+> +	return err;
+> +}
+> +
+> +static void dma_buf_uninit_debugfs(void)
+> +{
+> +	if (dma_buf_debugfs_dir)
+> +		debugfs_remove_recursive(dma_buf_debugfs_dir);
+> +}
+> +
+> +int dma_buf_debugfs_create_file(const char *name,
+> +				int (*write)(struct seq_file *))
+> +{
+> +	struct dentry *d;
+> +
+> +	d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
+> +			write, &dma_buf_debug_fops);
+> +
+> +	if (IS_ERR(d))
+> +		return PTR_ERR(d);
+> +
+> +	return 0;
+> +}
+> +#else
+> +static inline int dma_buf_init_debugfs(void)
+> +{
+> +	return 0;
+> +}
+> +static inline void dma_buf_uninit_debugfs(void)
+> +{
+> +}
+> +#endif
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index 6f55c04..dfac5ed 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -113,6 +113,7 @@ struct dma_buf_ops {
+>   * @attachments: list of dma_buf_attachment that denotes all devices
+> attached. * @ops: dma_buf_ops associated with this buffer object.
+>   * @exp_name: name of the exporter; useful for debugging.
+> + * @list_node: node for dma_buf accounting and debugging.
+>   * @priv: exporter specific private data for this buffer object.
+>   */
+>  struct dma_buf {
+> @@ -125,6 +126,7 @@ struct dma_buf {
+>  	unsigned vmapping_counter;
+>  	void *vmap_ptr;
+>  	const char *exp_name;
+> +	struct list_head list_node;
+>  	void *priv;
+>  };
+> 
+> @@ -192,5 +194,6 @@ int dma_buf_mmap(struct dma_buf *, struct vm_area_struct
+> *, unsigned long);
+>  void *dma_buf_vmap(struct dma_buf *);
+>  void dma_buf_vunmap(struct dma_buf *, void *vaddr);
+> -
+> +int dma_buf_debugfs_create_file(const char *name,
+> +				int (*write)(struct seq_file *));
+
+This function is only called internally from the same file, could it be 
+declared as static ?
+
+>  #endif /* __DMA_BUF_H__ */
+-- 
+Regards,
+
+Laurent Pinchart
+
