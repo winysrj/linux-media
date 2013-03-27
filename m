@@ -1,56 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:38300 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860Ab3CMEJV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38590 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385Ab3C0KLE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Mar 2013 00:09:21 -0400
+	Wed, 27 Mar 2013 06:11:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>,
+	Frank Schaefer <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/6] v4l2: add new VIDIOC_DBG_G_CHIP_NAME ioctl.
+Date: Wed, 27 Mar 2013 11:11:53 +0100
+Message-ID: <3447822.JyctDNubxl@avalon>
+In-Reply-To: <201303270941.33211.hverkuil@xs4all.nl>
+References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl> <4375309.Kgln0QGpEZ@avalon> <201303270941.33211.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <513F5171.40603@samsung.com>
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
-	<1362754765-2651-13-git-send-email-arun.kk@samsung.com>
-	<513F5171.40603@samsung.com>
-Date: Wed, 13 Mar 2013 09:39:19 +0530
-Message-ID: <CALt3h7_zXP9M5m+4VXFGhnfpaUO+6F20hTsnR8ATF8+=CNmcrA@mail.gmail.com>
-Subject: Re: [RFC 12/12] mipi-csis: Enable all interrupts for fimc-is usage
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Hans,
 
->>
->>  /* Interrupt mask */
->>  #define S5PCSIS_INTMSK                       0x10
->> -#define S5PCSIS_INTMSK_EN_ALL                0xf000103f
->> +#define S5PCSIS_INTMSK_EN_ALL                0xfc00103f
->
-> Do you know what interrupts are assigned to the CSIS_INTMSK
-> bits 26, 27 ? In the documentation I have they are marked
-> as reserved. I have tested this patch on Exynos4x12, it seems
-> OK but you might want to merge it to the patch adding compatible
-> property for exynos5.
+On Wednesday 27 March 2013 09:41:33 Hans Verkuil wrote:
+> On Wed March 27 2013 02:11:23 Laurent Pinchart wrote:
+> > On Monday 18 March 2013 17:38:16 Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Simplify the debugging ioctls by creating the VIDIOC_DBG_G_CHIP_NAME
+> > > ioctl. This will eventually replace VIDIOC_DBG_G_CHIP_IDENT. Chip
+> > > matching is done by the name or index of subdevices or an index to a
+> > > bridge chip. Most of this can all be done automatically, so most drivers
+> > > just need to provide get/set register ops.
+> > > 
+> > > In particular, it is now possible to get/set subdev registers without
+> > > requiring assistance of the bridge driver.
+> > 
+> > My biggest question is why don't we use the media controller API to get
+> > the information provided by this new ioctl ?
+> 
+> Because the media controller is implemented by only a handful of drivers,
+> and this debug API is used by many more drivers.
 
-The bits 26 and 27 are for Frame start and Frame end interrupts.
-Yes this change can be merged with the MIPI-CSIS support for Exynos5.
-Shaik will pick it up and merge it along with his patch series in v2.
+Shouldn't we then fix that instead of adding a new ioctl ?
 
->
-> It would be good to know what these bits are for. And how
-> enabling the interrupts actually help without modifying the
-> interrupt handler ? Is it enough to just acknowledge those
-> interrupts ? Or how it works ?
->
+> So I don't really see how this would be feasible today.
+> 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > > 
+> > >  drivers/media/v4l2-core/v4l2-common.c |    5 +-
+> > >  drivers/media/v4l2-core/v4l2-dev.c    |    5 +-
+> > >  drivers/media/v4l2-core/v4l2-ioctl.c  |  115 ++++++++++++++++++++++++--
+> > >  include/media/v4l2-ioctl.h            |    3 +
+> > >  include/uapi/linux/videodev2.h        |   34 +++++++---
+> > >  5 files changed, 146 insertions(+), 16 deletions(-)
+> > 
+> > [snip]
+> > 
+> > > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
+> > > b/drivers/media/v4l2-core/v4l2-dev.c index de1e9ab..c0c651d 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-dev.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> > > @@ -591,9 +591,10 @@ static void determine_valid_ioctls(struct
+> > > video_device
+> > 
+> > [snip]
+> > 
+> > > +static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+> > > +				struct file *file, void *fh, void *arg)
+> > 
+> > As this is a debug ioctl that should never be used in application, I would
+> > like to guard the whole implementation with #ifdef CONFIG_VIDEO_ADV_DEBUG.
+> > This will make sure that no applications will abuse it, as it won't be
+> > available in distro kernels.
+> 
+> Agreed. I'll make that change. Actually, it's not so much userspace abuse I
+> am worried about, but kernel space abuse. I've found several drivers where
+> the bridge driver calls g_chip_ident to get information about subdevice
+> drivers. That was never intended and it complicates my work of removing
+> g_chip_ident. By putting chip_name under ADV_DEBUG we can avoid similar
+> abuse in the future.
 
-These interrupts are used by the FIMC-IS firmware possibly to check if the
-sensor is working. Without enabling these, I get the error from firmware
-on Sensor Open command.
+-- 
+Regards,
 
-Regards
-Arun
+Laurent Pinchart
+
