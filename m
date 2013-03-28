@@ -1,135 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1668 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752Ab3C0Ilx (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45651 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752589Ab3C1JJa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Mar 2013 04:41:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 2/6] v4l2: add new VIDIOC_DBG_G_CHIP_NAME ioctl.
-Date: Wed, 27 Mar 2013 09:41:33 +0100
+	Thu, 28 Mar 2013 05:09:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
 Cc: linux-media@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Frank Schaefer <fschaefer.oss@googlemail.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1363624700-29270-1-git-send-email-hverkuil@xs4all.nl> <1363624700-29270-3-git-send-email-hverkuil@xs4all.nl> <4375309.Kgln0QGpEZ@avalon>
-In-Reply-To: <4375309.Kgln0QGpEZ@avalon>
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH RFC] [media] add Aptina mt9m114 HD digital image sensor driver
+Date: Thu, 28 Mar 2013 10:10:19 +0100
+Message-ID: <1691028.0qtxercLZ8@avalon>
+In-Reply-To: <CAHG8p1CP8nSjVFeus17wDfiSgq1qTMDDvAJtJODmt5OxL3zj=A@mail.gmail.com>
+References: <1358546444-30265-1-git-send-email-scott.jiang.linux@gmail.com> <3061473.pZdeCOpV7t@avalon> <CAHG8p1CP8nSjVFeus17wDfiSgq1qTMDDvAJtJODmt5OxL3zj=A@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303270941.33211.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed March 27 2013 02:11:23 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 18 March 2013 17:38:16 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Scott,
+
+On Thursday 28 March 2013 16:29:30 Scott Jiang wrote:
+> >> This driver support parallel data output mode and
+> >> QVGA/VGA/WVGA/720P resolution. You can select YCbCr and RGB565
+> >> output format.
 > > 
-> > Simplify the debugging ioctls by creating the VIDIOC_DBG_G_CHIP_NAME ioctl.
-> > This will eventually replace VIDIOC_DBG_G_CHIP_IDENT. Chip matching is done
-> > by the name or index of subdevices or an index to a bridge chip. Most of
-> > this can all be done automatically, so most drivers just need to provide
-> > get/set register ops.
+> > What host bridge do you use this driver with ?
+> 
+> I only tested with blackfin.
+> 
+> >> + */
 > > 
-> > In particular, it is now possible to get/set subdev registers without
-> > requiring assistance of the bridge driver.
+> > [snip]
+> > 
+> >> +struct mt9m114_reg {
+> >> +     u16 reg;
+> >> +     u32 val;
+> >> +     int width;
+> >> +};
+> >> +
+> >> +enum {
+> >> +     MT9M114_QVGA,
+> >> +     MT9M114_VGA,
+> >> +     MT9M114_WVGA,
+> >> +     MT9M114_720P,
+> >> +};
+> > 
+> > This is the part I don't like. Instead of hardcoding 4 different
+> > resolutions and using large register address/value tables, you should
+> > compute the register values from the image size requested by the user.
 > 
-> My biggest question is why don't we use the media controller API to get the 
-> information provided by this new ioctl ?
+> In fact we get this table with the Aptina development tool. So we only
+> support fixed resolutions. If we compute each register value, it only makes
+> the code more complex.
 
-Because the media controller is implemented by only a handful of drivers,
-and this debug API is used by many more drivers. So I don't really see how
-this would be feasible today.
+But it also makes the code more useful, as the user won't be limited to the 4 
+resolutions above.
 
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-common.c |    5 +-
-> >  drivers/media/v4l2-core/v4l2-dev.c    |    5 +-
-> >  drivers/media/v4l2-core/v4l2-ioctl.c  |  115 ++++++++++++++++++++++++++++--
-> >  include/media/v4l2-ioctl.h            |    3 +
-> >  include/uapi/linux/videodev2.h        |   34 +++++++---
-> >  5 files changed, 146 insertions(+), 16 deletions(-)
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> > b/drivers/media/v4l2-core/v4l2-dev.c index de1e9ab..c0c651d 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -591,9 +591,10 @@ static void determine_valid_ioctls(struct video_device
-> 
-> [snip]
-> 
-> > +static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
-> > +				struct file *file, void *fh, void *arg)
-> 
-> As this is a debug ioctl that should never be used in application, I would 
-> like to guard the whole implementation with #ifdef CONFIG_VIDEO_ADV_DEBUG. 
-> This will make sure that no applications will abuse it, as it won't be 
-> available in distro kernels.
-
-Agreed. I'll make that change. Actually, it's not so much userspace abuse I
-am worried about, but kernel space abuse. I've found several drivers where
-the bridge driver calls g_chip_ident to get information about subdevice
-drivers. That was never intended and it complicates my work of removing
-g_chip_ident. By putting chip_name under ADV_DEBUG we can avoid similar abuse
-in the future.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> > +{
-> > +	struct video_device *vfd = video_devdata(file);
-> > +	struct v4l2_dbg_chip_name *p = arg;
-> > +	struct v4l2_subdev *sd;
-> > +	int idx = 0;
-> > +
-> > +	switch (p->match.type) {
-> > +	case V4L2_CHIP_MATCH_BRIDGE:
-> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > +		if (ops->vidioc_s_register)
-> > +			p->flags |= V4L2_CHIP_FL_WRITABLE;
-> > +		if (ops->vidioc_g_register)
-> > +			p->flags |= V4L2_CHIP_FL_READABLE;
-> > +#endif
-> > +		if (ops->vidioc_g_chip_name)
-> > +			return ops->vidioc_g_chip_name(file, fh, arg);
-> > +		if (p->match.addr)
-> > +			return -EINVAL;
-> > +		if (vfd->v4l2_dev)
-> > +			strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
-> > +		else if (vfd->parent)
-> > +			strlcpy(p->name, vfd->parent->driver->name, sizeof(p->name));
-> > +		else
-> > +			strlcpy(p->name, "bridge", sizeof(p->name));
-> > +		return 0;
-> > +
-> > +	case V4L2_CHIP_MATCH_SUBDEV_IDX:
-> > +	case V4L2_CHIP_MATCH_SUBDEV_NAME:
-> > +		if (vfd->v4l2_dev == NULL)
-> > +			break;
-> > +		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev) {
-> > +			if (v4l_dbg_found_match(&p->match, sd, idx++)) {
-> > +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > +				if (sd->ops->core && sd->ops->core->s_register)
-> > +					p->flags |= V4L2_CHIP_FL_WRITABLE;
-> > +				if (sd->ops->core && sd->ops->core->g_register)
-> > +					p->flags |= V4L2_CHIP_FL_READABLE;
-> > +#endif
-> > +				strlcpy(p->name, sd->name, sizeof(p->name));
-> > +				return 0;
-> > +			}
-> > +		}
-> > +		break;
-> > +	}
-> > +	return -EINVAL;
-> > +}
-> 
-> 
