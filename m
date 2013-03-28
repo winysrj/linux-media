@@ -1,46 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:52929 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753591Ab3CZIpM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45961 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753384Ab3C1KJ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 04:45:12 -0400
-Received: by mail-bk0-f52.google.com with SMTP id it16so797131bkc.25
-        for <linux-media@vger.kernel.org>; Tue, 26 Mar 2013 01:45:11 -0700 (PDT)
+	Thu, 28 Mar 2013 06:09:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
+Date: Thu, 28 Mar 2013 11:10:45 +0100
+Message-ID: <3365178.uRYh2rr3nD@avalon>
+In-Reply-To: <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com>
+References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com> <1650338.UonQ4LqB70@avalon> <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com>
 MIME-Version: 1.0
-Date: Tue, 26 Mar 2013 16:45:11 +0800
-Message-ID: <CAPgLHd8xRn-7ExMXY9KA8GKvh3DmZ6jN0WBZ8BGb1WmGW2ghBA@mail.gmail.com>
-Subject: [PATCH -next v2] [media] go7007: fix invalid use of sizeof in go7007_usb_i2c_master_xfer()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@redhat.com,
-	gregkh@linuxfoundation.org
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi Prabhakar,
 
-sizeof() when applied to a pointer typed expression gives the
-size of the pointer, not that of the pointed data.
+On Thursday 28 March 2013 15:36:11 Prabhakar Lad wrote:
+> On Thu, Mar 28, 2013 at 2:39 PM, Laurent Pinchart wrote:
+> > On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
+> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> 
+> >> Add pm_runtime support to the TI Davinci VPIF driver.
+> >> Along side this patch replaces clk_get() with devm_clk_get()
+> >> to simplify the error handling.
+> >> 
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> ---
+> >> 
+> >>  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
+> >>  1 files changed, 11 insertions(+), 10 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/platform/davinci/vpif.c
+> >> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
+> >> --- a/drivers/media/platform/davinci/vpif.c
+> >> +++ b/drivers/media/platform/davinci/vpif.c
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/staging/media/go7007/go7007-usb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[snip]
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 0823506..d455c0b 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1035,7 +1035,7 @@ static int go7007_usb_i2c_master_xfer(struct i2c_adapter *adapter,
- 						buf, buf_len, 0) < 0)
- 			goto i2c_done;
- 		if (msgs[i].flags & I2C_M_RD) {
--			memset(buf, 0, sizeof(buf));
-+			memset(buf, 0, msgs[i].len + 1);
- 			if (go7007_usb_vendor_request(go, 0x25, 0, 0, buf,
- 						msgs[i].len + 1, 1) < 0)
- 				goto i2c_done;
+> >> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
+> >>               goto fail;
+> >>       }
+> >> 
+> >> -     vpif_clk = clk_get(&pdev->dev, "vpif");
+> >> +     vpif_clk = devm_clk_get(&pdev->dev, "vpif");
+> >>       if (IS_ERR(vpif_clk)) {
+> >>               status = PTR_ERR(vpif_clk);
+> >>               goto clk_fail;
+> >>       }
+> >> 
+> >> -     clk_prepare_enable(vpif_clk);
+> >> +     clk_put(vpif_clk);
+> > 
+> > Why do you need to call clk_put() here ?
+> 
+> The above check is to see if the clock is provided, once done
+> we free it using clk_put().
 
+In that case you shouldn't use devm_clk_get(), otherwise clk_put() will be 
+called again automatically at remove() time.
+
+> >> +     pm_runtime_enable(&pdev->dev);
+> >> +     pm_runtime_resume(&pdev->dev);
+> >> +
+> >> +     pm_runtime_get(&pdev->dev);
+> > 
+> > Does runtime PM automatically handle your clock ? If so can't you remove
+> > clock handling from the driver completely ?
+> 
+> Yes  pm runtime take care of enabling/disabling the clocks
+> so that we don't have to do it in drivers. I believe clock
+> handling is removed with this patch, with just  devm_clk_get() remaining ;)
+
+When is the clk_get() call expected to fail ? If the clock is provided by the 
+SoC and always available, can't the check be removed completely ?
+
+-- 
+Regards,
+
+Laurent Pinchart
 
