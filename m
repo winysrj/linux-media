@@ -1,91 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:56109 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290Ab3CAXLj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 18:11:39 -0500
-Received: by mail-ee0-f49.google.com with SMTP id d41so2701552eek.8
-        for <linux-media@vger.kernel.org>; Fri, 01 Mar 2013 15:11:37 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 03/11] em28xx-i2c: also print debug messages at debug level 1
-Date: Sat,  2 Mar 2013 00:12:07 +0100
-Message-Id: <1362179535-18929-4-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362179535-18929-1-git-send-email-fschaefer.oss@googlemail.com>
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:44816 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755871Ab3C1JhN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Mar 2013 05:37:13 -0400
+Received: by mail-oa0-f49.google.com with SMTP id j6so9563536oag.8
+        for <linux-media@vger.kernel.org>; Thu, 28 Mar 2013 02:37:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Thu, 28 Mar 2013 10:37:13 +0100
+Message-ID: <CAJoPetqg8sKaXFaBxYpXYNRiPi-QTHm9Y0SuoaCX3goFLzWzkw@mail.gmail.com>
+Subject: Get resolution of image capture device?
+From: Satz Klauer <satzklauer@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current code uses only a single debug level and all debug messages are
-printed for i2c_debug >= 2 only. So debug level 1 is actually the same as
-level 0, which is odd.
-Users expect debugging messages to become enabled for anything else than
-debug level 0.
+Hi,
 
-Fix it and simplify the code a bit by printing the debug messages also at debug
-level 1;
+there are several documents and examples out there tha helped me a lot
+with v4l2 and image capturing, but one question is still unanswered:
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c |   12 ++++++------
- 1 Datei geändert, 6 Zeilen hinzugefügt(+), 6 Zeilen entfernt(-)
+How can I check which (maximum) native resolutions a device supports?
+Is there a possibility to query image width and height from a device?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index f970c29..d765567 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -287,7 +287,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 		return 0;
- 	for (i = 0; i < num; i++) {
- 		addr = msgs[i].addr << 1;
--		if (i2c_debug >= 2)
-+		if (i2c_debug)
- 			printk(KERN_DEBUG "%s at %s: %s %s addr=%02x len=%d:",
- 			       dev->name, __func__ ,
- 			       (msgs[i].flags & I2C_M_RD) ? "read" : "write",
-@@ -299,7 +299,7 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 			else
- 				rc = em28xx_i2c_check_for_device(dev, addr);
- 			if (rc == -ENODEV) {
--				if (i2c_debug >= 2)
-+				if (i2c_debug)
- 					printk(" no device\n");
- 				return rc;
- 			}
-@@ -313,13 +313,13 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 				rc = em28xx_i2c_recv_bytes(dev, addr,
- 							   msgs[i].buf,
- 							   msgs[i].len);
--			if (i2c_debug >= 2) {
-+			if (i2c_debug) {
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
- 			}
- 		} else {
- 			/* write bytes */
--			if (i2c_debug >= 2) {
-+			if (i2c_debug) {
- 				for (byte = 0; byte < msgs[i].len; byte++)
- 					printk(" %02x", msgs[i].buf[byte]);
- 			}
-@@ -334,11 +334,11 @@ static int em28xx_i2c_xfer(struct i2c_adapter *i2c_adap,
- 							   i == num - 1);
- 		}
- 		if (rc < 0) {
--			if (i2c_debug >= 2)
-+			if (i2c_debug)
- 				printk(" ERROR: %i\n", rc);
- 			return rc;
- 		}
--		if (i2c_debug >= 2)
-+		if (i2c_debug)
- 			printk("\n");
- 	}
- 
--- 
-1.7.10.4
-
+Thanks!
