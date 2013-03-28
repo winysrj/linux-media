@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64506 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754840Ab3CUNCu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Mar 2013 09:02:50 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r2LD2nwn020856
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 21 Mar 2013 09:02:49 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/6] [siano] fix checkpatch.pl compliants on smscoreapi.h
-Date: Thu, 21 Mar 2013 10:02:40 -0300
-Message-Id: <1363870963-28552-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
-References: <1363870963-28552-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pd0-f177.google.com ([209.85.192.177]:46593 "EHLO
+	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753572Ab3C1Iup (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Mar 2013 04:50:45 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] davinci: vpif: add pm_runtime support
+Date: Thu, 28 Mar 2013 14:20:32 +0530
+Message-Id: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the remaining checkpatch.pl compliants at smscoreapi.h,
-except by the "line over 80 characters" on comments. Fixing those
-would require more time, as the better is to convert them into the
-struct descriptions used inside the kernel, as described at:
-	Documentation/kernel-doc-nano-HOWTO.txt
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Add pm_runtime support to the TI Davinci VPIF driver.
+Along side this patch replaces clk_get() with devm_clk_get()
+to simplify the error handling.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/common/siano/smscoreapi.h | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/common/siano/smscoreapi.h b/drivers/media/common/siano/smscoreapi.h
-index b65232a..b0253d2 100644
---- a/drivers/media/common/siano/smscoreapi.h
-+++ b/drivers/media/common/siano/smscoreapi.h
-@@ -577,8 +577,11 @@ enum msg_types {
- };
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 28638a8..7d14625 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -25,6 +25,7 @@
+ #include <linux/io.h>
+ #include <linux/clk.h>
+ #include <linux/err.h>
++#include <linux/pm_runtime.h>
+ #include <linux/v4l2-dv-timings.h>
  
- #define SMS_INIT_MSG_EX(ptr, type, src, dst, len) do { \
--	(ptr)->msg_type = type; (ptr)->msg_src_id = src; (ptr)->msg_dst_id = dst; \
--	(ptr)->msg_length = len; (ptr)->msg_flags = 0; \
-+	(ptr)->msg_type = type; \
-+	(ptr)->msg_src_id = src; \
-+	(ptr)->msg_dst_id = dst; \
-+	(ptr)->msg_length = len; \
-+	(ptr)->msg_flags = 0; \
- } while (0)
+ #include <mach/hardware.h>
+@@ -44,7 +45,6 @@ static struct resource	*res;
+ spinlock_t vpif_lock;
  
- #define SMS_INIT_MSG(ptr, type, len) \
-@@ -704,7 +707,7 @@ struct sms_stats {
- 	u32 modem_state;		/* from SMSHOSTLIB_DVB_MODEM_STATE_ET,
- 	valid only for DVB-T/H */
- 	u32 guard_interval;	/* Guard Interval from
--	SMSHOSTLIB_GUARD_INTERVALS_ET, 	valid only for DVB-T/H */
-+	SMSHOSTLIB_GUARD_INTERVALS_ET,	valid only for DVB-T/H */
- 	u32 code_rate;		/* Code Rate from SMSHOSTLIB_CODE_RATE_ET,
- 	valid only for DVB-T/H */
- 	u32 lp_code_rate;		/* Low Priority Code Rate from
-@@ -746,7 +749,7 @@ struct sms_stats {
- 	u32 sms_to_host_tx_errors;	/* Total number of transmission errors. */
+ void __iomem *vpif_base;
+-struct clk *vpif_clk;
  
- 	/* DAB/T-DMB */
--	u32 pre_ber; 		/* DAB/T-DMB only: Pre Viterbi BER [1E-5] */
-+	u32 pre_ber;		/* DAB/T-DMB only: Pre Viterbi BER [1E-5] */
+ /**
+  * ch_params: video standard configuration parameters for vpif
+@@ -421,6 +421,7 @@ EXPORT_SYMBOL(vpif_channel_getfid);
  
- 	/* DVB-H TPS parameters */
- 	u32 cell_id;		/* TPS Cell ID in bits 15..0, bits 31..16 zero;
-@@ -1177,7 +1180,8 @@ int smscore_led_state(struct smscore_device_t *core, int led);
+ static int vpif_probe(struct platform_device *pdev)
+ {
++	struct clk *vpif_clk;
+ 	int status = 0;
  
- #define dprintk(kern, lvl, fmt, arg...) do {\
- 	if (sms_dbg & lvl) \
--		sms_printk(kern, fmt, ##arg); } while (0)
-+		sms_printk(kern, fmt, ##arg); \
-+} while (0)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
+ 		goto fail;
+ 	}
  
- #define sms_log(fmt, arg...) sms_printk(KERN_INFO, fmt, ##arg)
- #define sms_err(fmt, arg...) \
+-	vpif_clk = clk_get(&pdev->dev, "vpif");
++	vpif_clk = devm_clk_get(&pdev->dev, "vpif");
+ 	if (IS_ERR(vpif_clk)) {
+ 		status = PTR_ERR(vpif_clk);
+ 		goto clk_fail;
+ 	}
+-	clk_prepare_enable(vpif_clk);
++	clk_put(vpif_clk);
++
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_resume(&pdev->dev);
++
++	pm_runtime_get(&pdev->dev);
+ 
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
+@@ -459,11 +465,6 @@ fail:
+ 
+ static int vpif_remove(struct platform_device *pdev)
+ {
+-	if (vpif_clk) {
+-		clk_disable_unprepare(vpif_clk);
+-		clk_put(vpif_clk);
+-	}
+-
+ 	iounmap(vpif_base);
+ 	release_mem_region(res->start, res_len);
+ 	return 0;
+@@ -472,13 +473,13 @@ static int vpif_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int vpif_suspend(struct device *dev)
+ {
+-	clk_disable_unprepare(vpif_clk);
++	pm_runtime_put(dev);
+ 	return 0;
+ }
+ 
+ static int vpif_resume(struct device *dev)
+ {
+-	clk_prepare_enable(vpif_clk);
++	pm_runtime_get(dev);
+ 	return 0;
+ }
+ 
 -- 
-1.8.1.4
+1.7.4.1
 
