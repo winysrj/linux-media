@@ -1,531 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51059 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753313Ab3CKPDZ (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2904 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755980Ab3C1OOf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Mar 2013 11:03:25 -0400
-Date: Mon, 11 Mar 2013 16:03:16 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org
-Subject: Re: [PATCH v7] [media] Add a V4L2 OF parser
-In-Reply-To: <1362757563-30825-1-git-send-email-s.nawrocki@samsung.com>
-Message-ID: <Pine.LNX.4.64.1303111442420.21241@axis700.grange>
-References: <1362757563-30825-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 28 Mar 2013 10:14:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.10] hdpvr: driver overhaul
+Date: Thu, 28 Mar 2013 15:14:25 +0100
+Cc: Leonid Kegulskiy <leo@lumanate.com>, Janne Grunau <j@jannau.net>
+References: <201303280927.53374.hverkuil@xs4all.nl>
+In-Reply-To: <201303280927.53374.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303281514.25282.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester
-
-Thanks for continuing this work! You have made a great progress compared 
-to my initial version, and I should really have looked at each your 
-submitted new revision, unfortunately, I haven't managed that. So, sorry 
-for chiming back in so late in the game, but maybe we still manage to get 
-it in on time for 3.10. Let me know if you'd like me to do the next couple 
-of rounds :) Or if you disagree with my comments and prefer your present 
-state.
-
-On Fri, 8 Mar 2013, Sylwester Nawrocki wrote:
-
-> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On Thu March 28 2013 09:27:53 Hans Verkuil wrote:
+> Hi Mauro,
 > 
-> Add a V4L2 OF parser, implementing bindings documented in
-> Documentation/devicetree/bindings/media/video-interfaces.txt.
+> This pull request overhauls the hdpvr driver. It's identical to my earlier
+> posted patch series:
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> [s.nawrocki@samsung.com: various corrections and improvements
-> since the initial version]
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> ---
-> The last version of the bindings documentation patch can be found
-> at: https://patchwork.kernel.org/patch/2074951
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg60040.html
 > 
-> Changes since v6:
->  - minor v4l2_of_get_remote_port_parent() function cleanup.
+> except for being rebased to the latest master.
 > 
-> Changes since v5:
->  - renamed v4l2_of_parse_mipi_csi2 -> v4l2_of_parse_csi_bus,
->  - corrected v4l2_of_get_remote_port_parent() function declaration
->    for !CONFIG_OF,
->  - reworked v4l2_of_get_next_endpoint() function to consider the
->    'port' nodes can be grouped under optional 'ports' node,
->  - added kerneldoc description for v4l2_of_get_next_endpoint()
->    function.
+> It's been tested thoroughly on my hdpvr and with a video generator to test all
+> the video formats.
 > 
-> Changes since v4:
->  - reworked v4l2_of_get_remote_port() function to consider cases
->    where 'port' nodes are grouped in a parent 'ports' node,
->  - rearranged struct v4l2_of_endpoint and related changes added
->    in the parser code,
->  - added kerneldoc description for struct v4l2_of_endpoint,
->  - s/link/endpoint in the comments,
-> ---
->  drivers/media/v4l2-core/Makefile  |    3 +
->  drivers/media/v4l2-core/v4l2-of.c |  261 +++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-of.h           |   98 ++++++++++++++
->  3 files changed, 362 insertions(+)
->  create mode 100644 drivers/media/v4l2-core/v4l2-of.c
->  create mode 100644 include/media/v4l2-of.h
+> I've taken care to preserve the current VIDIOC_G_FMT behavior since MythTV
+> relies on that. See the last patch for more information on that topic.
 > 
-> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-> index c2d61d4..00f64d6 100644
-> --- a/drivers/media/v4l2-core/Makefile
-> +++ b/drivers/media/v4l2-core/Makefile
-> @@ -9,6 +9,9 @@ videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
->  ifeq ($(CONFIG_COMPAT),y)
->    videodev-objs += v4l2-compat-ioctl32.o
->  endif
-> +ifeq ($(CONFIG_OF),y)
-> +  videodev-objs += v4l2-of.o
-> +endif
->  
->  obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
->  obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> new file mode 100644
-> index 0000000..cbd18f6
-> --- /dev/null
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -0,0 +1,261 @@
-> +/*
-> + * V4L2 OF binding parsing library
-> + *
-> + * Copyright (C) 2012 Renesas Electronics Corp.
-> + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> + * Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Leonid, because of the MythTV behavior your patch (http://patchwork.linuxtv.org/patch/17567/)
+> can't be applied.
+> 
+> The way out would be for someone to add support to MythTV for
+> VIDIOC_QUERY_DV_TIMINGS as the preferred method of detecting if a signal
+> is present on the HDPVR, and once that it in place this legacy hack can
+> be removed from this driver.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
-You probably want to put your copyright at the top as the newer one, isn't 
-it the usual order - newest first?
+Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/string.h>
-> +#include <linux/types.h>
-> +
-> +#include <media/v4l2-of.h>
-> +
-> +/**
-> + * v4l2_of_parse_csi_bus() - parse MIPI CSI-2 bus properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + *
-> + * Return: 0 on success or negative error value otherwise.
-> + */
-> +int v4l2_of_parse_csi_bus(const struct device_node *node,
-> +			  struct v4l2_of_endpoint *endpoint)
-> +{
-> +	struct v4l2_mbus_mipi_csi2 *mipi_csi2 = &endpoint->mbus.mipi_csi2;
-> +	u32 data_lanes[ARRAY_SIZE(mipi_csi2->data_lanes)];
-> +	struct property *prop;
-> +	const __be32 *lane = NULL;
-> +	u32 v;
-> +	int i = 0;
-> +
-> +	prop = of_find_property(node, "data-lanes", NULL);
-> +	if (!prop)
-> +		return -EINVAL;
+Leonid found some issues that I want to address first.
 
-Oh... Well, first - this isn't an error to not specify "data-lanes." Below 
-you also try to continue configuring the CSI-2 properties in this "error" 
-case, but since you return here, you skip parsing all clock-related 
-properties...
+Regards,
 
-> +	do {
-> +		lane = of_prop_next_u32(prop, lane, &data_lanes[i]);
-> +	} while (lane && i++ < ARRAY_SIZE(data_lanes));
+	Hans
 
-you could do this as a "for" loop, but then you'd have an additional 
-if-break check inside, so, maybe your do-while is a prettier solution 
-here.
-
-> +
-> +	mipi_csi2->num_data_lanes = i;
-> +	while (i--)
-> +		mipi_csi2->data_lanes[i] = data_lanes[i];
-> +
-> +	if (!of_property_read_u32(node, "clock-lanes", &v))
-> +		mipi_csi2->clock_lane = v;
-> +
-> +	if (of_get_property(node, "clock-noncontinuous", &v))
-> +		endpoint->mbus.flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_csi_bus);
-> +
-> +/**
-> + * v4l2_of_parse_parallel_bus() - parse parallel bus properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + */
-> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> +				struct v4l2_of_endpoint *endpoint)
-> +{
-> +	unsigned int flags = 0;
-> +	u32 v;
-> +
-> +	if (WARN_ON(!endpoint))
-> +		return;
-> +
-> +	if (!of_property_read_u32(node, "hsync-active", &v))
-> +		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
-> +			V4L2_MBUS_HSYNC_ACTIVE_LOW;
-> +
-> +	if (!of_property_read_u32(node, "vsync-active", &v))
-> +		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
-> +			V4L2_MBUS_VSYNC_ACTIVE_LOW;
-> +
-> +	if (!of_property_read_u32(node, "pclk-sample", &v))
-> +		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
-> +			V4L2_MBUS_PCLK_SAMPLE_FALLING;
-> +
-> +	if (!of_property_read_u32(node, "field-even-active", &v))
-> +		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
-> +			V4L2_MBUS_FIELD_EVEN_LOW;
-> +	if (flags)
-> +		endpoint->mbus.type = V4L2_MBUS_PARALLEL;
-> +	else
-> +		endpoint->mbus.type = V4L2_MBUS_BT656;
-> +
-> +	if (!of_property_read_u32(node, "data-active", &v))
-> +		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
-> +			V4L2_MBUS_DATA_ACTIVE_LOW;
-> +
-> +	if (of_get_property(node, "slave-mode", &v))
-> +		flags |= V4L2_MBUS_SLAVE;
-> +
-> +	if (!of_property_read_u32(node, "bus-width", &v))
-> +		endpoint->mbus.parallel.bus_width = v;
-> +
-> +	if (!of_property_read_u32(node, "data-shift", &v))
-> +		endpoint->mbus.parallel.data_shift = v;
-> +
-> +	endpoint->mbus.flags = flags;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
-> +
-> +/**
-> + * v4l2_of_parse_endpoint() - parse all endpoint node properties
-> + * @node: pointer to endpoint device_node
-> + * @endpoint: pointer to v4l2_of_endpoint data structure
-> + *
-> + * All properties are optional. If none are found, we don't set any flags.
-> + * This means the port has a static configuration and no properties have
-> + * to be specified explicitly.
-> + * If any properties that identify the bus as parallel are found and
-> + * slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarly, if we recognise
-> + * the bus as serial CSI-2 and clock-noncontinuous isn't set, we set the
-> + * V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag.
-> + * The caller should hold a reference to @node.
-> + */
-> +void v4l2_of_parse_endpoint(const struct device_node *node,
-> +			    struct v4l2_of_endpoint *endpoint)
-> +{
-> +	const struct device_node *port_node = of_get_parent(node);
-> +	struct v4l2_of_mbus *mbus = &endpoint->mbus;
-> +	bool data_lanes_present = false;
-> +
-> +	memset(endpoint, 0, sizeof(*endpoint));
-> +
-> +	endpoint->local_node = node;
-> +	/*
-> +	 * It doesn't matter whether the two calls below succeed. If they
-> +	 * don't then the default value 0 is used.
-> +	 */
-> +	of_property_read_u32(port_node, "reg", &endpoint->port);
-> +	of_property_read_u32(node, "reg", &endpoint->id);
-> +
-> +	v4l2_of_parse_parallel_bus(node, endpoint);
-
-I don't really know why you export both these helper functions to parse 
-only parallel or CSI-2 bus properties, but if you do - doesn't the code 
-below belong to parsing the parallel bus too?
-
-> +
-> +	/* If any parallel bus properties have been found, skip serial ones. */
-> +	if (mbus->parallel.bus_width || mbus->parallel.data_shift ||
-> +	    mbus->flags) {
-> +		/* Default parallel bus-master. */
-> +		if (!(mbus->flags & V4L2_MBUS_SLAVE))
-> +			mbus->flags |= V4L2_MBUS_MASTER;
-> +		return;
-> +	}
-> +
-> +	mbus->type = V4L2_MBUS_CSI2;
-
-For symmetry you can move the above assignment inside the CSI2 parser 
-function.
-
-> +
-> +	if (!v4l2_of_parse_csi_bus(node, endpoint))
-
-ditto - don't you want to move setting the continuous clock flag inside 
-the function?
-
-> +		data_lanes_present = true;
-
-Was this a conscious change in behaviour respective the original version? 
-Your v4l2_of_parse_csi_bus() also returns 0 if no data-lane related 
-properties have been detected, which is different from the original 
-implementation and makes the name of the variable wrong.
-
-> +
-> +	if ((mbus->mipi_csi2.clock_lane || data_lanes_present) &&
-> +	    !(mbus->flags & V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK)) {
-
-superfluous braces
-
-> +		/* Default CSI-2: continuous clock. */
-> +		mbus->flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
-> +	}
-> +}
-> +EXPORT_SYMBOL(v4l2_of_parse_endpoint);
-> +
-> +/**
-> + * v4l2_of_get_next_endpoint() - get next endpoint node
-> + * @parent: pointer to the parent's device node
-> + * @prev: previous endpoint node, or NULL to get first
-> + *
-> + * Return: An 'endpoint' node pointer with refcount incremented. Refcount
-> + * of the passed @prev node is not decremented, the caller have to use
-> + * of_node_put() on it when done.
-> + */
-> +struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-> +					struct device_node *prev)
-> +{
-> +	struct device_node *endpoint, *port = NULL;
-> +
-> +	if (!parent)
-> +		return NULL;
-> +
-> +	if (!prev) {
-> +		/*
-> +		 * It's the first call, we have to find a port subnode
-> +		 * within this node or within an optional 'ports' node.
-> +		 */
-> +		while ((port = of_get_next_child(parent, port))) {
-
-Hm, I think such assignment-within-condition is discouraged.
-
-> +			if (!of_node_cmp(port->name, "port"))
-> +				break;
-> +			if (!of_node_cmp(port->name, "ports")) {
-> +				parent = port;
-> +				of_node_put(port);
-> +				port = NULL;
-
-Can we do this a bit differently: you shouldn't have both - a "ports" 
-subnode and single "port" subnodes within this node, right? So, why don't 
-we first check for a "ports" subnode. If we find one - use it as a parent 
-for our scan, if we don't - use the parent from the function argument. If 
-we do find "ports" we can also optionally sanity-check for direct "port" 
-subnodes too.
-
-Then, after this initial parent discovery, we can use the normal 
-for_each_child_of_node() loop - as in the original version.
-
-> +			}
-> +		};
-> +		if (port) {
-> +			/* Found a port, get an endpoint. */
-> +			endpoint = of_get_next_child(port, NULL);
-> +			of_node_put(port);
-> +		} else {
-> +			endpoint = NULL;
-> +		}
-> +		if (!endpoint)
-> +			pr_err("%s(): no endpoint nodes specified for %s\n",
-> +			       __func__, parent->full_name);
-> +	} else {
-> +		port = of_get_parent(prev);
-> +		if (!port)
-> +			/* Hm, has someone given us the root node ?... */
-> +			return NULL;
-> +
-> +		/* Avoid dropping prev node refcount to 0. */
-> +		of_node_get(prev);
-> +		endpoint = of_get_next_child(port, prev);
-> +		if (endpoint) {
-> +			of_node_put(port);
-> +			return endpoint;
-> +		}
-> +
-> +		/* No more endpoints under this port, try the next one. */
-> +		do {
-> +			port = of_get_next_child(parent, port);
-> +			if (!port)
-> +				return NULL;
-> +		} while (of_node_cmp(port->name, "port"));
-> +
-> +		/* Pick up the first endpoint in this port. */
-> +		endpoint = of_get_next_child(port, NULL);
-> +		of_node_put(port);
-> +	}
-> +
-> +	return endpoint;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_get_next_endpoint);
-> +
-> +/**
-> + * v4l2_of_get_remote_port_parent() - get remote port's parent node
-> + * @node: pointer to a local endpoint device_node
-> + *
-> + * Return: Remote device node associated with remote endpoint node linked
-> + *	   to @node. Use of_node_put() on it when done.
-> + */
-> +struct device_node *v4l2_of_get_remote_port_parent(
-> +			       const struct device_node *node)
-> +{
-> +	struct device_node *np;
-> +	unsigned int depth = 3;
-> +
-> +	/* Get remote endpoint node. */
-> +	np = of_parse_phandle(node, "remote-endpoint", 0);
-> +
-> +	/* Walk 3 levels up only if there is 'ports' node. */
-> +	while (np && --depth >= 0) {
-
-unsigned int depth >= 0 is always true. Why not
-
-	for (depth = 3; depth && np; depth--)
-
-or similar?
-
-> +		np = of_get_next_parent(np);
-> +		if (depth == 1 && of_node_cmp(np->name, "ports"))
-> +			break;
-> +	}
-> +	return np;
-> +}
-> +EXPORT_SYMBOL(v4l2_of_get_remote_port_parent);
-> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
-> new file mode 100644
-> index 0000000..458e97b
-> --- /dev/null
-> +++ b/include/media/v4l2-of.h
-> @@ -0,0 +1,98 @@
-> +/*
-> + * V4L2 OF binding parsing library
-> + *
-> + * Copyright (C) 2012 Renesas Electronics Corp.
-> + * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> + *
-> + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
-> + * Sylwester Nawrocki <s.nawrocki@samsung.com>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of version 2 of the GNU General Public License as
-> + * published by the Free Software Foundation.
-> + */
-> +#ifndef _V4L2_OF_H
-> +#define _V4L2_OF_H
-> +
-> +#include <linux/list.h>
-> +#include <linux/types.h>
-> +#include <linux/errno.h>
-> +
-> +#include <media/v4l2-mediabus.h>
-> +
-> +struct device_node;
-> +
-> +struct v4l2_mbus_mipi_csi2 {
-> +	unsigned char data_lanes[4];
-> +	unsigned char clock_lane;
-> +	unsigned short num_data_lanes;
-> +};
-> +
-> +struct v4l2_mbus_parallel {
-> +	unsigned char bus_width;
-> +	unsigned char data_shift;
-> +};
-
-You really need the above two structs? Even if you do - I wouldn't call 
-them "v4l2_mbus_*" - that's a different namespace.
-
-> +
-> +/**
-> + * struct v4l2_of_endpoint - the endpoint data structure
-> + * @port: identifier (value of reg property) of a port this endpoint belongs to
-> + * @id: identifier (value of reg property) of this endpoint
-> + * @head: list head for this structure
-> + * @local_node: pointer to device_node of this endpoint
-> + * @remote: phandle to remote endpoint node
-> + * @type: media bus type
-> + * @flags: media bus (V4L2_MBUS_*) flags
-> + * @mipi_csi2: MIPI CSI-2 bus configuration data structure
-> + * @parallel: parallel bus configuration data structure
-> + */
-> +struct v4l2_of_endpoint {
-> +	unsigned int port;
-> +	unsigned int id;
-> +	struct list_head head;
-> +	const struct device_node *local_node;
-> +	const __be32 *remote;
-> +	struct v4l2_of_mbus {
-> +		enum v4l2_mbus_type type;
-> +		unsigned int flags;
-> +		union {
-> +			struct v4l2_mbus_mipi_csi2 mipi_csi2;
-> +			struct v4l2_mbus_parallel parallel;
-> +		};
-> +	} mbus;
-> +};
-> +
-> +#ifdef CONFIG_OF
-> +int v4l2_of_parse_csi_bus(const struct device_node *node,
-> +				struct v4l2_of_endpoint *endpoint);
-> +void v4l2_of_parse_parallel_bus(const struct device_node *node,
-> +				struct v4l2_of_endpoint *endpoint);
-
-You really need to export these two functions? Then you'd also have to 
-provide non-OF stubs for them?
-
-> +void v4l2_of_parse_endpoint(const struct device_node *node,
-> +				struct v4l2_of_endpoint *link);
-> +struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
-> +					struct device_node *previous);
-> +struct device_node *v4l2_of_get_remote_port_parent(
-> +					const struct device_node *node);
-> +#else /* CONFIG_OF */
-> +
-> +static inline int v4l2_of_parse_endpoint(const struct device_node *node,
-> +					struct v4l2_of_endpoint *link)
-> +{
-> +	return -ENOSYS;
-> +}
-> +
-> +static inline struct device_node *v4l2_of_get_next_endpoint(
-> +					const struct device_node *parent,
-> +					struct device_node *previous)
-> +{
-> +	return NULL;
-> +}
-> +
-> +static inline struct device_node *v4l2_of_get_remote_port_parent(
-> +					const struct device_node *node)
-> +{
-> +	return NULL;
-> +}
-> +
-> +#endif /* CONFIG_OF */
-> +
-> +#endif /* _V4L2_OF_H */
-> -- 
-> 1.7.9.5
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> The following changes since commit 004e45d736bfe62159bd4dc1549eff414bd27496:
+> 
+>   [media] tuner-core: handle errors when getting signal strength/afc (2013-03-25 15:10:43 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git hdpvr
+> 
+> for you to fetch changes up to 6cb9721190d98e654e1b5ac467565ce7784ed2da:
+> 
+>   hdpvr: add dv_timings support. (2013-03-28 09:16:36 +0100)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (11):
+>       videodev2.h: fix incorrect V4L2_DV_FL_HALF_LINE bitmask.
+>       v4l2-dv-timings.h: add 480i59.94 and 576i50 CEA-861-E timings.
+>       hdpvr: convert to the control framework.
+>       hdpvr: remove hdpvr_fh and just use v4l2_fh.
+>       hdpvr: add prio and control event support.
+>       hdpvr: support device_caps in querycap.
+>       hdpvr: small fixes
+>       hdpvr: register the video node at the end of probe.
+>       hdpvr: recognize firmware version 0x1e.
+>       hdpvr: add g/querystd, remove deprecated current_norm.
+>       hdpvr: add dv_timings support.
+> 
+>  drivers/media/usb/hdpvr/hdpvr-core.c  |   14 +-
+>  drivers/media/usb/hdpvr/hdpvr-video.c |  918 +++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
+>  drivers/media/usb/hdpvr/hdpvr.h       |   19 +-
+>  include/uapi/linux/v4l2-dv-timings.h  |   18 ++
+>  include/uapi/linux/videodev2.h        |    2 +-
+>  5 files changed, 473 insertions(+), 498 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
