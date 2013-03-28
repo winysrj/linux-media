@@ -1,96 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:53845 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163Ab3CZRaS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46513 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752650Ab3C1Lwr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 13:30:18 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, shaik.samsung@gmail.com, arun.kk@samsung.com,
-	a.hajda@samsung.com, linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 03/10] s5p-fimc: Update graph traversal for entities with
- multiple source pads
-Date: Tue, 26 Mar 2013 18:29:45 +0100
-Message-id: <1364318992-20562-4-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
-References: <1364318992-20562-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 28 Mar 2013 07:52:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-usb@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>
+Subject: [PATCH/RFC] uvcvideo: Disable USB autosuspend for Creative Live! Cam Optia AF
+Date: Thu, 28 Mar 2013 12:53:32 +0100
+Message-Id: <1364471612-31792-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We cannot assume that the passed entity the fimc_pipeline_prepare()
-function is supposed to start the media graph traversal from will
-always have its sink pad at pad index 0. Find the starting media
-entity's sink pad by iterating over its all pads and checking the
-pad flags. This ensures proper handling of FIMC, FIMC-LITE and
-FIMC-IS-ISP subdevs that have more than one sink and one source pad.
+The camera fails to start video streaming after having been autosuspend.
+Add a new quirk to selectively disable autosuspend for devices that
+don't support it.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/s5p-fimc/fimc-mdevice.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+ drivers/media/usb/uvc/uvcvideo.h   |  1 +
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-index b689166..abd3ad3 100644
---- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-@@ -40,14 +40,13 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 				bool on);
- /**
-  * fimc_pipeline_prepare - update pipeline information with subdevice pointers
-- * @fimc: fimc device terminating the pipeline
-+ * @me: media entity terminating the pipeline
-  *
-  * Caller holds the graph mutex.
-  */
- static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 				  struct media_entity *me)
- {
--	struct media_pad *pad = &me->pads[0];
- 	struct v4l2_subdev *sd;
- 	int i;
- 
-@@ -55,15 +54,21 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 		p->subdevs[i] = NULL;
- 
- 	while (1) {
--		if (!(pad->flags & MEDIA_PAD_FL_SINK))
--			break;
-+		struct media_pad *pad = NULL;
-+
-+		/* Find remote source pad */
-+		for (i = 0; i < me->num_pads; i++) {
-+			struct media_pad *spad = &me->pads[i];
-+			if (!(spad->flags & MEDIA_PAD_FL_SINK))
-+				continue;
-+			pad = media_entity_remote_source(spad);
-+			if (pad)
-+				break;
-+		}
- 
--		/* source pad */
--		pad = media_entity_remote_source(pad);
- 		if (pad == NULL ||
- 		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
- 			break;
--
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
- 
- 		switch (sd->grp_id) {
-@@ -84,8 +89,9 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 			pr_warn("%s: Unknown subdev grp_id: %#x\n",
- 				__func__, sd->grp_id);
- 		}
--		/* sink pad */
--		pad = &sd->entity.pads[0];
-+		me = &sd->entity;
-+		if (me->num_pads == 1)
-+			break;
+I've tried to set the reset resume quirk for this device in the USB core but
+the camera still failed to start video streaming after having been
+autosuspended. Regardless of whether the reset resume quirk was set, it would
+respond to control messages but wouldn't send video data.
+
+This solution below is a hack, but I'm not sure what else I can try. Crazy
+ideas are welcome.
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 5dbefa6..99e2de0 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1913,8 +1913,11 @@ static int uvc_probe(struct usb_interface *intf,
+ 			"supported.\n", ret);
  	}
- }
  
++	if (!(dev->quirks & UVC_QUIRK_DISABLE_AUTOSUSPEND))
++		usb_enable_autosuspend(udev);
++
+ 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
+-	usb_enable_autosuspend(udev);
++
+ 	return 0;
+ 
+ error:
+@@ -2061,6 +2064,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
++	/* Creative Live! Cam Optia AF */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x041e,
++	  .idProduct		= 0x4058,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_DISABLE_AUTOSUSPEND },
+ 	/* Genius eFace 2025 */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index af505fd..9cd584a 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -137,6 +137,7 @@
+ #define UVC_QUIRK_FIX_BANDWIDTH		0x00000080
+ #define UVC_QUIRK_PROBE_DEF		0x00000100
+ #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
++#define UVC_QUIRK_DISABLE_AUTOSUSPEND	0x00000400
+ 
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
