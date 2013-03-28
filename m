@@ -1,74 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:39462 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198Ab3CLEmn (ORCPT
+Received: from mail-qe0-f49.google.com ([209.85.128.49]:40519 "EHLO
+	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755492Ab3C1KVP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 00:42:43 -0400
-Received: by mail-wi0-f174.google.com with SMTP id hi8so1492860wib.13
-        for <linux-media@vger.kernel.org>; Mon, 11 Mar 2013 21:42:42 -0700 (PDT)
+	Thu, 28 Mar 2013 06:21:15 -0400
 MIME-Version: 1.0
-In-Reply-To: <CAPgLHd80DXpcUmY69Vcc72ALGh3LrSGPakm0iBeXNUqLY-+Nxg@mail.gmail.com>
-References: <CAPgLHd80DXpcUmY69Vcc72ALGh3LrSGPakm0iBeXNUqLY-+Nxg@mail.gmail.com>
+In-Reply-To: <3365178.uRYh2rr3nD@avalon>
+References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1650338.UonQ4LqB70@avalon> <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com>
+ <3365178.uRYh2rr3nD@avalon>
 From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 12 Mar 2013 10:12:22 +0530
-Message-ID: <CA+V-a8sxCACzpm1v-daH84rwCfX776dzFXJSTm2mu1A0JSsfmw@mail.gmail.com>
-Subject: Re: [PATCH -next] [media] davinci: vpfe: fix return value check in vpfe_enable_clock()
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: mchehab@redhat.com, gregkh@linuxfoundation.org,
-	sakari.ailus@iki.fi, laurent.pinchart@ideasonboard.com,
-	hans.verkuil@cisco.com, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 28 Mar 2013 15:50:55 +0530
+Message-ID: <CA+V-a8sWCx1CpDbtDHVZKGpW2z1FrPpY1o3UJaoU6nEK9RN=Ug@mail.gmail.com>
+Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sekhar Nori <nsekhar@ti.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wei,
+Hi Laurent,
 
-Thanks for the patch! I'll queue it up for v3.10
-
-On Mon, Mar 11, 2013 at 7:27 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Thu, Mar 28, 2013 at 3:40 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
 >
-> In case of error, the function clk_get() returns ERR_PTR()
-> and never returns NULL. The NULL test in the return value
-> check should be replaced with IS_ERR().
+> On Thursday 28 March 2013 15:36:11 Prabhakar Lad wrote:
+>> On Thu, Mar 28, 2013 at 2:39 PM, Laurent Pinchart wrote:
+>> > On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
+>> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> >>
+>> >> Add pm_runtime support to the TI Davinci VPIF driver.
+>> >> Along side this patch replaces clk_get() with devm_clk_get()
+>> >> to simplify the error handling.
+>> >>
+>> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> >> ---
+>> >>
+>> >>  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
+>> >>  1 files changed, 11 insertions(+), 10 deletions(-)
+>> >>
+>> >> diff --git a/drivers/media/platform/davinci/vpif.c
+>> >> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
+>> >> --- a/drivers/media/platform/davinci/vpif.c
+>> >> +++ b/drivers/media/platform/davinci/vpif.c
 >
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> [snip]
+>
+>> >> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
+>> >>               goto fail;
+>> >>       }
+>> >>
+>> >> -     vpif_clk = clk_get(&pdev->dev, "vpif");
+>> >> +     vpif_clk = devm_clk_get(&pdev->dev, "vpif");
+>> >>       if (IS_ERR(vpif_clk)) {
+>> >>               status = PTR_ERR(vpif_clk);
+>> >>               goto clk_fail;
+>> >>       }
+>> >>
+>> >> -     clk_prepare_enable(vpif_clk);
+>> >> +     clk_put(vpif_clk);
+>> >
+>> > Why do you need to call clk_put() here ?
+>>
+>> The above check is to see if the clock is provided, once done
+>> we free it using clk_put().
+>
+> In that case you shouldn't use devm_clk_get(), otherwise clk_put() will be
+> called again automatically at remove() time.
+>
+Yes agreed it should be clk_get() only.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> >> +     pm_runtime_enable(&pdev->dev);
+>> >> +     pm_runtime_resume(&pdev->dev);
+>> >> +
+>> >> +     pm_runtime_get(&pdev->dev);
+>> >
+>> > Does runtime PM automatically handle your clock ? If so can't you remove
+>> > clock handling from the driver completely ?
+>>
+>> Yes  pm runtime take care of enabling/disabling the clocks
+>> so that we don't have to do it in drivers. I believe clock
+>> handling is removed with this patch, with just  devm_clk_get() remaining ;)
+>
+> When is the clk_get() call expected to fail ? If the clock is provided by the
+> SoC and always available, can't the check be removed completely ?
+>
+Yes I agree with you it can be removed completely assuming the clock
+is always available from the Soc.
+But may be I need feedback from others Hans/Sekhar what do you suggest ?
 
 Regards,
---Prabhakar Lad
+--Prabhakar
 
-> ---
->  drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> index 7b35171..6a8222c 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c
-> @@ -243,7 +243,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
->
->                 vpfe_dev->clks[i] =
->                                 clk_get(vpfe_dev->pdev, vpfe_cfg->clocks[i]);
-> -               if (vpfe_dev->clks[i] == NULL) {
-> +               if (IS_ERR(vpfe_dev->clks[i])) {
->                         v4l2_err(vpfe_dev->pdev->driver,
->                                 "Failed to get clock %s\n",
->                                 vpfe_cfg->clocks[i]);
-> @@ -264,7 +264,7 @@ static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
->         return 0;
->  out:
->         for (i = 0; i < vpfe_cfg->num_clocks; i++)
-> -               if (vpfe_dev->clks[i]) {
-> +               if (!IS_ERR(vpfe_dev->clks[i])) {
->                         clk_disable_unprepare(vpfe_dev->clks[i]);
->                         clk_put(vpfe_dev->clks[i]);
->                 }
->
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+>
+> Laurent Pinchart
+>
