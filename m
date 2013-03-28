@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1913 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933961Ab3CZIWO (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:38154 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282Ab3C1Fbc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Mar 2013 04:22:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Subject: Re: [PATCH -next] [media] go7007: remove unused including <linux/version.h>
-Date: Tue, 26 Mar 2013 09:21:38 +0100
-Cc: hans.verkuil@cisco.com, mchehab@redhat.com,
-	gregkh@linuxfoundation.org, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-References: <CAPgLHd99aV5rzjpOVUvWMK9PNJtxeqfmezv9XSzMU4rXVdg85g@mail.gmail.com>
-In-Reply-To: <CAPgLHd99aV5rzjpOVUvWMK9PNJtxeqfmezv9XSzMU4rXVdg85g@mail.gmail.com>
+	Thu, 28 Mar 2013 01:31:32 -0400
+Date: Thu, 28 Mar 2013 14:31:29 +0900
+From: Simon Horman <horms@verge.net.au>
+To: David Miller <davem@davemloft.net>
+Cc: jesse@nicira.com, isdn@linux-pingi.de, linville@tuxdriver.com,
+	johannes@sipsolutions.net, bart.de.schuymer@pandora.be,
+	stephen@networkplumber.org, kaber@trash.net, marcel@holtmann.org,
+	gustavo@padovan.org, johan.hedberg@gmail.com,
+	linux-bluetooth@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	bridge@lists.linux-foundation.org, linux-wireless@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, dev@openvswitch.org
+Subject: Re: [PATCH v2] net: add ETH_P_802_3_MIN
+Message-ID: <20130328053128.GA23630@verge.net.au>
+References: <1364445505-9745-1-git-send-email-horms@verge.net.au>
+ <20130328.012108.961738246524996742.davem@davemloft.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201303260921.38133.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130328.012108.961738246524996742.davem@davemloft.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue March 26 2013 06:45:51 Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Thu, Mar 28, 2013 at 01:21:08AM -0400, David Miller wrote:
+> From: Simon Horman <horms@verge.net.au>
+> Date: Thu, 28 Mar 2013 13:38:25 +0900
 > 
-> Remove including <linux/version.h> that don't need it.
+> > Add a new constant ETH_P_802_3_MIN, the minimum ethernet type for
+> > an 802.3 frame. Frames with a lower value in the ethernet type field
+> > are Ethernet II.
+> > 
+> > Also update all the users of this value that David Miller and
+> > I could find to use the new constant.
+> > 
+> > Also correct a bug in util.c. The comparison with ETH_P_802_3_MIN
+> > should be >= not >.
+> > 
+> > As suggested by Jesse Gross.
+> > 
+> > Compile tested only.
+> > 
+> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Acked-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> Looks great, applied, thanks Simon.
 
-The include is already removed.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/staging/media/go7007/go7007-v4l2.c | 1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-> index 24ba50e..50eb69a 100644
-> --- a/drivers/staging/media/go7007/go7007-v4l2.c
-> +++ b/drivers/staging/media/go7007/go7007-v4l2.c
-> @@ -17,7 +17,6 @@
->  
->  #include <linux/module.h>
->  #include <linux/init.h>
-> -#include <linux/version.h>
->  #include <linux/delay.h>
->  #include <linux/sched.h>
->  #include <linux/spinlock.h>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Thanks!
