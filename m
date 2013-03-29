@@ -1,34 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:40796 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424Ab3COSUH (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1282 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753749Ab3C2NBZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Mar 2013 14:20:07 -0400
-Received: by mail-pb0-f54.google.com with SMTP id rr4so4162749pbb.13
-        for <linux-media@vger.kernel.org>; Fri, 15 Mar 2013 11:20:06 -0700 (PDT)
-Date: Fri, 15 Mar 2013 11:13:51 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-fbdev@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH v2 8/8] drivers: misc: use module_platform_driver_probe()
-Message-ID: <20130315181351.GA16747@kroah.com>
-References: <1363280978-24051-1-git-send-email-fabio.porcedda@gmail.com>
- <1363280978-24051-9-git-send-email-fabio.porcedda@gmail.com>
+	Fri, 29 Mar 2013 09:01:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR v3.10] Move cypress_firmware to common
+Date: Fri, 29 Mar 2013 14:01:00 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Antti Palosaari <crope@iki.fi>
+References: <201303291246.39331.hverkuil@xs4all.nl> <20130329095142.5856e961@redhat.com>
+In-Reply-To: <20130329095142.5856e961@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1363280978-24051-9-git-send-email-fabio.porcedda@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303291401.00737.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 14, 2013 at 06:09:38PM +0100, Fabio Porcedda wrote:
-> This patch converts the drivers to use the
-> module_platform_driver_probe() macro which makes the code smaller and
-> a bit simpler.
+On Fri March 29 2013 13:51:42 Mauro Carvalho Chehab wrote:
+> Em Fri, 29 Mar 2013 12:46:39 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > As discussed earlier (http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/62438)
+> > let's move this to common. It's a nice cleanup for go7007 as well which had a weird DVB
+> > dependency.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > The following changes since commit 9e7664e0827528701074875eef872f2be1dfaab8:
+> > 
+> >   [media] solo6x10: The size of the thresholds ioctls was too large (2013-03-29 08:34:23 -0300)
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/hverkuil/media_tree.git cypress-common
+> > 
+> > for you to fetch changes up to 6e69c66b2dafc4927b88a15801e0f84585a28336:
+> > 
+> >   media: move dvb-usb-v2/cypress_firmware.c to media/common. (2013-03-29 12:42:32 +0100)
+> > 
+> > ----------------------------------------------------------------
+> > Hans Verkuil (1):
+> >       media: move dvb-usb-v2/cypress_firmware.c to media/common.
+> 
+> That broke compilation:
+> 
+> drivers/media/usb/dvb-usb-v2/az6007.c: In function 'az6007_download_firmware':
+> drivers/media/usb/dvb-usb-v2/az6007.c:845:2: error: implicit declaration of function 'cypress_load_firmware' [-Werror=implicit-function-declaration]
+> cc1: some warnings being treated as errors
 
-Someone else beat you to this fix for these files, sorry.
+Are you sure you don't have an old cypress_firmware.h lying around? It
+compiles fine for me.
 
-greg k-h
+> 
+> > 
+> >  drivers/media/common/Kconfig                                |    3 +++
+> >  drivers/media/common/Makefile                               |    2 ++
+> >  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c |   77 +++++++++++++++++++++++++++++++++---------------------------------
+> >  drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h |    9 +++-----
+> >  drivers/media/usb/dvb-usb-v2/Kconfig                        |    6 +-----
+> >  drivers/media/usb/dvb-usb-v2/Makefile                       |    5 +----
+> >  drivers/media/usb/dvb-usb-v2/az6007.c                       |    2 +-
+> >  drivers/staging/media/go7007/Kconfig                        |    3 ++-
+> >  drivers/staging/media/go7007/Makefile                       |    6 +-----
+> >  drivers/staging/media/go7007/go7007-loader.c                |    4 ++--
+> >  10 files changed, 54 insertions(+), 63 deletions(-)
+> 
+> >  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.c (88%)
+> >  rename drivers/media/{usb/dvb-usb-v2 => common}/cypress_firmware.h (68%)
+> 
+> Why are out there so many changes? 
+
+There were lots of 'dvb_usbv2_' prefixes that had to be renamed, and I made
+the get_hexline() function static since it was only used internally. Because
+of that I had to move the function up in the code.
+
+Regards,
+
+	Hans
+
+> 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
