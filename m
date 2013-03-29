@@ -1,64 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58156 "EHLO mail.kapsi.fi"
+Received: from infra.metatux.net ([78.46.58.246]:55034 "EHLO infra.metatux.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752213Ab3CJCEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:43 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 36/41] af9033: move code from it913x to af9033
-Date: Sun, 10 Mar 2013 04:03:28 +0200
-Message-Id: <1362881013-5271-36-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S1756282Ab3C2TYf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 15:24:35 -0400
+Message-ID: <5155E8D2.9030707@metatux.net>
+Date: Fri, 29 Mar 2013 20:17:38 +0100
+From: Lars Buerding <lindvb@metatux.net>
+MIME-Version: 1.0
+To: Alexey Klimov <klimov.linux@gmail.com>
+CC: Jiri Kosina <jkosina@suse.cz>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Dirk E. Wagner" <linux@wagner-budenheim.de>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: Fw: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+References: <20121228102928.4103390e@redhat.com> <CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com> <63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de> <CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com> <alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz> <CALW4P+L1QKe=1wNkr90LsZY89OFnGBKB2N6yVeDhnyab_rSsnA@mail.gmail.com> <alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz> <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
+In-Reply-To: <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-That register is property of demodulator so move it correct place.
+On 27.03.2013 21:33, Alexey Klimov wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb-frontends/af9033.c | 9 +++++++++
- drivers/media/tuners/it913x.c        | 6 ------
- 2 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index 0320747..8e3a99d 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -391,6 +391,15 @@ static int af9033_init(struct dvb_frontend *fe)
- 			goto err;
- 	}
- 
-+	switch (state->cfg.tuner) {
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+		ret = af9033_wr_reg(state, 0x800000, 0x01);
-+		if (ret < 0)
-+			goto err;
-+	}
-+
- 	state->bandwidth_hz = 0; /* force to program all parameters */
- 
- 	return 0;
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/it913x.c
-index 2c60bf7..4d7a247 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/it913x.c
-@@ -145,12 +145,6 @@ static int it913x_init(struct dvb_frontend *fe)
- 	u8 nv[] = {48, 32, 24, 16, 12, 8, 6, 4, 2};
- 	u8 b[2];
- 
--	if (state->chip_ver == 2) {
--		ret = it913x_wr_reg(state, PRO_DMOD, TRIGGER_OFSM, 0x1);
--		if (ret < 0)
--			return -ENODEV;
--	}
--
- 	reg = it913x_rd_reg(state, 0xec86);
- 	switch (reg) {
- 	case 0:
--- 
-1.7.11.7
+> [patch 1/2] hid: fix Masterkit MA901 hid quirks
+> [patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
+> doesn't match
+
+> I spend some time testing them trying to figure out right scenarios
+> and i hope i did correct checks.
+> It will be nice if someone can test patches because i don't have any
+> devices with same USB IDs as radio-ma901.
+
+Thanks Alexey, I am using an infrared receiver running the same software
+Dirk uses, applied your [patch 1/2] against a vanilla kernel v3.4.38 on my
+vdr machine. The hidraw device is generated again as expected.
+
+This is my USB device:
+
+   idVendor           0x16c0 VOTI
+   idProduct          0x05df
+   bcdDevice            1.08
+   iManufacturer           1 www.mikrocontroller.net/articles/USB_IR_Remote_Receiver
+   iProduct                2 USB IR Remote Receiver
+
+
+>
+> Thanks and best regards,
+> Alexey.
+>
+
+Thanks,
+Lars
 
