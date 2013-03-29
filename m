@@ -1,83 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f173.google.com ([209.85.215.173]:39815 "EHLO
-	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757847Ab3CNNMR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Mar 2013 09:12:17 -0400
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-ide@vger.kernel.org,
-	lm-sensors@lm-sensors.org, linux-input@vger.kernel.org,
-	linux-fbdev@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 10/10] drivers: misc: use module_platform_driver_probe()
-Date: Thu, 14 Mar 2013 14:11:31 +0100
-Message-Id: <1363266691-15757-12-git-send-email-fabio.porcedda@gmail.com>
-In-Reply-To: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
-References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:57651 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752837Ab3C2OOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 10:14:37 -0400
+Date: Fri, 29 Mar 2013 15:14:36 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>,
+	"Dirk E. Wagner" <linux@wagner-budenheim.de>,
+	Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [patch 02/03 v2] usb hid quirks for Masterkit MA901 usb radio
+In-Reply-To: <20130329100534.75f72b2b@redhat.com>
+Message-ID: <alpine.LNX.2.00.1303291514160.22069@pobox.suse.cz>
+References: <20121228102928.4103390e@redhat.com> <CALW4P+KzhmzAeQUQDRxEyfiHNSkCeua81p=xzukp0k3tF7JEEg@mail.gmail.com> <63b74db2773903666ea02810e1e6c047@mail.mx6-sysproserver.de> <CALW4P+LtcO_=c9a30xgFvQ+61r8=BxNifsn6x_8bbtceNkJ-jA@mail.gmail.com>
+ <alpine.LNX.2.00.1303181449140.9529@pobox.suse.cz> <CALW4P+L1QKe=1wNkr90LsZY89OFnGBKB2N6yVeDhnyab_rSsnA@mail.gmail.com> <alpine.LNX.2.00.1303271117570.23442@pobox.suse.cz> <CALW4P+L53ea5eqktdOkNms3ZmBzmg9dX3NJJEx89Yog_4UqLMg@mail.gmail.com>
+ <20130329100534.75f72b2b@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the drivers to use the
-module_platform_driver_probe() macro which makes the code smaller and
-a bit simpler.
+On Fri, 29 Mar 2013, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
----
- drivers/misc/atmel_pwm.c  | 12 +-----------
- drivers/misc/ep93xx_pwm.c | 13 +------------
- 2 files changed, 2 insertions(+), 23 deletions(-)
+> > >> Yes, i just checked how hid_ignore() works and prepared dirty fix to
+> > >> test in almost the same way like it's done for Keene usb driver. I
+> > >> will send correct fix in next few days.
+> > >
+> > > Any news on this, please?
+> > 
+> > Hi Jiri,
+> > 
+> > I'm very very sorry (was busy because of life). I just sent two
+> > patches to you, Mauro and two mail lists:
+> > [patch 1/2] hid: fix Masterkit MA901 hid quirks
+> > [patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
+> > doesn't match
+> > 
+> > Please check. First one for hid layer, so maybe you can take it
+> > directly through your tree. I hope it's not too late.
+> > I think Mauro will take second patch.
+> 
+> It is better to add both patches via the same tree. As it is badly 
+> affecting HID, it seems better if Jiri can apply both patches. 
+> 
+> Also, there's no other patch for radio-ma901 on my tree. So, 
+> I don't expect any conflicts if those patches got merged via hid tree.
+> 
+> Jiri, could you please apply both patches on your tree?
+> 
+> For both:
+> > [patch 1/2] hid: fix Masterkit MA901 hid quirks
+> > [patch 2/2] media: radio-ma901: return ENODEV in probe if usb_device
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-diff --git a/drivers/misc/atmel_pwm.c b/drivers/misc/atmel_pwm.c
-index 28f5aaa..494d050 100644
---- a/drivers/misc/atmel_pwm.c
-+++ b/drivers/misc/atmel_pwm.c
-@@ -393,17 +393,7 @@ static struct platform_driver atmel_pwm_driver = {
- 	 */
- };
- 
--static int __init pwm_init(void)
--{
--	return platform_driver_probe(&atmel_pwm_driver, pwm_probe);
--}
--module_init(pwm_init);
--
--static void __exit pwm_exit(void)
--{
--	platform_driver_unregister(&atmel_pwm_driver);
--}
--module_exit(pwm_exit);
-+module_platform_driver_probe(atmel_pwm_driver, pwm_probe);
- 
- MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/misc/ep93xx_pwm.c b/drivers/misc/ep93xx_pwm.c
-index 16d7179..96787ec 100644
---- a/drivers/misc/ep93xx_pwm.c
-+++ b/drivers/misc/ep93xx_pwm.c
-@@ -365,18 +365,7 @@ static struct platform_driver ep93xx_pwm_driver = {
- 	.remove		= __exit_p(ep93xx_pwm_remove),
- };
- 
--static int __init ep93xx_pwm_init(void)
--{
--	return platform_driver_probe(&ep93xx_pwm_driver, ep93xx_pwm_probe);
--}
--
--static void __exit ep93xx_pwm_exit(void)
--{
--	platform_driver_unregister(&ep93xx_pwm_driver);
--}
--
--module_init(ep93xx_pwm_init);
--module_exit(ep93xx_pwm_exit);
-+module_platform_driver_probe(ep93xx_pwm_driver, ep93xx_pwm_probe);
- 
- MODULE_AUTHOR("Matthieu Crapet <mcrapet@gmail.com>, "
- 	      "H Hartley Sweeten <hsweeten@visionengravers.com>");
+Absolutely. Will add your Ack and push it to Linus for 3.9 still.
+
+Thanks,
+
 -- 
-1.8.1.5
-
+Jiri Kosina
+SUSE Labs
