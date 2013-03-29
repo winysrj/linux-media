@@ -1,80 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3785 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292Ab3CBXpv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Mar 2013 18:45:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 06/20] solo6x10: fix scheduling while atomic error.
-Date: Sun,  3 Mar 2013 00:45:22 +0100
-Message-Id: <de9751909ed96d9eb5caea4e4990bd8965e50860.1362266529.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362267936-6772-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
-References: <5384481a4f621f619f37dd5716df122283e80704.1362266529.git.hans.verkuil@cisco.com>
+Received: from mail-yh0-f53.google.com ([209.85.213.53]:60413 "EHLO
+	mail-yh0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754552Ab3C2UWQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 16:22:16 -0400
+Received: by mail-yh0-f53.google.com with SMTP id q3so59202yhf.40
+        for <linux-media@vger.kernel.org>; Fri, 29 Mar 2013 13:22:16 -0700 (PDT)
+Message-ID: <5155F7F6.4070400@gmail.com>
+Date: Fri, 29 Mar 2013 15:22:14 -0500
+From: Rob Herring <robherring2@gmail.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [GIT PULL FOR 3.10] Media DT bindings and V4L2 OF parsing library
+References: <5155D1EE.1020201@samsung.com>
+In-Reply-To: <5155D1EE.1020201@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 03/29/2013 12:39 PM, Sylwester Nawrocki wrote:
+> Mauro,
+> 
+> This includes two patches adding device tree support at the V4L2 API.
+> I added Rob and Grant at Cc in case they still wanted to comment on
+> those patches. Not sure what the exact policy is but I guess we need
+> an explicit DT maintainer's Ack on stuff like this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/staging/media/solo6x10/v4l2-enc.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+Bindings regularly go in without Grant's or my ack simply because there
+are too many to keep up with and it really requires knowledge of the
+particular h/w being described.
 
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 71d9656f..6b5b8c0 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -188,27 +188,26 @@ static void solo_enc_off(struct solo_enc_fh *fh)
- 		fh->kthread = NULL;
- 	}
- 
-+	spin_lock(&solo_enc->lock);
- 	solo_dev->enc_bw_remain += solo_enc->bw_weight;
- 	fh->enc_on = 0;
- 
- 	if (atomic_dec_return(&solo_enc->readers) > 0)
--		return;
-+		goto unlock;
- 
- 	solo_reg_write(solo_dev, SOLO_CAP_CH_SCALE(solo_enc->ch), 0);
- 	solo_reg_write(solo_dev, SOLO_CAP_CH_COMP_ENA_E(solo_enc->ch), 0);
-+unlock:
-+	spin_unlock(&solo_enc->lock);
- }
- 
- static int solo_start_fh_thread(struct solo_enc_fh *fh)
- {
--	struct solo_enc_dev *solo_enc = fh->enc;
--
- 	fh->kthread = kthread_run(solo_enc_thread, fh, SOLO6X10_NAME "_enc");
- 
- 	/* Oops, we had a problem */
- 	if (IS_ERR(fh->kthread)) {
--		spin_lock(&solo_enc->lock);
- 		solo_enc_off(fh);
--		spin_unlock(&solo_enc->lock);
- 
- 		return PTR_ERR(fh->kthread);
- 	}
-@@ -1003,14 +1002,11 @@ static ssize_t solo_enc_read(struct file *file, char __user *data,
- static int solo_enc_release(struct file *file)
- {
- 	struct solo_enc_fh *fh = file->private_data;
--	struct solo_enc_dev *solo_enc = fh->enc;
- 
- 	videobuf_stop(&fh->vidq);
- 	videobuf_mmap_free(&fh->vidq);
- 
--	spin_lock(&solo_enc->lock);
- 	solo_enc_off(fh);
--	spin_unlock(&solo_enc->lock);
- 
- 	kfree(fh);
- 
--- 
-1.7.10.4
+I've skimmed thru this one on several versions and nothing concerning
+jumps out. So I think it is good to go in.
+
+Rob
+
+> These patches have been discussed quite extensively and first versions
+> appeared about 6 months ago. Now we need DT support at the media
+> subsystem since some SoCs are already starting to loose non-dt booting
+> support upstream. Without this most of our media drivers would have been
+> pretty useless.
+> 
+> Thanks,
+> Sylwester
+> 
+> The following changes since commit 9e7664e0827528701074875eef872f2be1dfaab8:
+> 
+>   [media] solo6x10: The size of the thresholds ioctls was too large (2013-03-29
+> 08:34:23 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/snawrocki/samsung.git v4l_devicetree
+> 
+> for you to fetch changes up to 27ab1e94d69d9139d530a661832c7b3a047a69e0:
+> 
+>   [media] Add a V4L2 OF parser (2013-03-29 17:34:55 +0100)
+> 
+> ----------------------------------------------------------------
+> Guennadi Liakhovetski (2):
+>       [media] Add common video interfaces OF bindings documentation
+>       [media] Add a V4L2 OF parser
+> 
+>  .../devicetree/bindings/media/video-interfaces.txt |  228 +++++++++++++++++
+>  drivers/media/v4l2-core/Makefile                   |    3 +
+>  drivers/media/v4l2-core/v4l2-of.c                  |  267 ++++++++++++++++++++
+>  include/media/v4l2-of.h                            |  111 ++++++++
+>  4 files changed, 609 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/video-interfaces.txt
+>  create mode 100644 drivers/media/v4l2-core/v4l2-of.c
+>  create mode 100644 include/media/v4l2-of.h
+> 
 
