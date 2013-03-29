@@ -1,47 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4656 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756160Ab3CDJF5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Mar 2013 04:05:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	linux@arm.linux.org.uk, Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 09/11] davinci/vpfe_capture: remove current_norm
-Date: Mon,  4 Mar 2013 10:05:03 +0100
-Message-Id: <fd5a003b7dfa01578da8e0fc92a9c1df551cd594.1362387265.git.hans.verkuil@cisco.com>
-In-Reply-To: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
-References: <1362387905-3666-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
-References: <b14bb5bd725678bc0fadfa241b462b5d6487f099.1362387265.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:23982 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754142Ab3C2Mqm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 08:46:42 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Andrey Smirnov <andrew.smirnov@gmail.com>
+Subject: [PATCH] [media] radio-si476x: vidioc_s* now uses a const parameter
+Date: Fri, 29 Mar 2013 09:46:37 -0300
+Message-Id: <1364561197-19719-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+vidioc_s_tuner, vidioc_s_frequency and vidioc_s_register now
+uses a constant argument. So, the driver reports warnings:
 
-Since vpfe_capture already provided a g_std op setting current_norm
-does not actually do anything. Remove it.
+	drivers/media/radio/radio-si476x.c:1196:2: warning: initialization from incompatible pointer type [enabled by default]
+	drivers/media/radio/radio-si476x.c:1196:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_tuner') [enabled by default]
+	drivers/media/radio/radio-si476x.c:1199:2: warning: initialization from incompatible pointer type [enabled by default]
+	drivers/media/radio/radio-si476x.c:1199:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_frequency') [enabled by default]
+	drivers/media/radio/radio-si476x.c:1209:2: warning: initialization from incompatible pointer type [enabled by default]
+	drivers/media/radio/radio-si476x.c:1209:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_register') [enabled by default]
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This is due to a (soft) merge conflict, as both this driver and the
+const patches were applied for the same Kernel version.
+
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/davinci/vpfe_capture.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/radio/radio-si476x.c | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpfe_capture.c b/drivers/media/platform/davinci/vpfe_capture.c
-index 70facc0..3d1af67 100644
---- a/drivers/media/platform/davinci/vpfe_capture.c
-+++ b/drivers/media/platform/davinci/vpfe_capture.c
-@@ -1884,7 +1884,6 @@ static int vpfe_probe(struct platform_device *pdev)
- 	vfd->fops		= &vpfe_fops;
- 	vfd->ioctl_ops		= &vpfe_ioctl_ops;
- 	vfd->tvnorms		= 0;
--	vfd->current_norm	= V4L2_STD_PAL;
- 	vfd->v4l2_dev 		= &vpfe_dev->v4l2_dev;
- 	snprintf(vfd->name, sizeof(vfd->name),
- 		 "%s_V%d.%d.%d",
+diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
+index 0895a0c..9430c6a 100644
+--- a/drivers/media/radio/radio-si476x.c
++++ b/drivers/media/radio/radio-si476x.c
+@@ -472,7 +472,7 @@ static int si476x_radio_g_tuner(struct file *file, void *priv,
+ }
+ 
+ static int si476x_radio_s_tuner(struct file *file, void *priv,
+-				struct v4l2_tuner *tuner)
++				const struct v4l2_tuner *tuner)
+ {
+ 	struct si476x_radio *radio = video_drvdata(file);
+ 
+@@ -699,15 +699,16 @@ static int si476x_radio_g_frequency(struct file *file, void *priv,
+ }
+ 
+ static int si476x_radio_s_frequency(struct file *file, void *priv,
+-				    struct v4l2_frequency *f)
++				    const struct v4l2_frequency *f)
+ {
+ 	int err;
++	u32 freq = f->frequency;
+ 	struct si476x_tune_freq_args args;
+ 	struct si476x_radio *radio = video_drvdata(file);
+ 
+ 	const u32 midrange = (si476x_bands[SI476X_BAND_AM].rangehigh +
+ 			      si476x_bands[SI476X_BAND_FM].rangelow) / 2;
+-	const int band = (f->frequency > midrange) ?
++	const int band = (freq > midrange) ?
+ 		SI476X_BAND_FM : SI476X_BAND_AM;
+ 	const enum si476x_func func = (band == SI476X_BAND_AM) ?
+ 		SI476X_FUNC_AM_RECEIVER : SI476X_FUNC_FM_RECEIVER;
+@@ -718,11 +719,11 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
+ 
+ 	si476x_core_lock(radio->core);
+ 
+-	f->frequency = clamp(f->frequency,
+-			     si476x_bands[band].rangelow,
+-			     si476x_bands[band].rangehigh);
++	freq = clamp(freq,
++		     si476x_bands[band].rangelow,
++		     si476x_bands[band].rangehigh);
+ 
+-	if (si476x_radio_freq_is_inside_of_the_band(f->frequency,
++	if (si476x_radio_freq_is_inside_of_the_band(freq,
+ 						    SI476X_BAND_AM) &&
+ 	    (!si476x_core_has_am(radio->core) ||
+ 	     si476x_core_is_a_secondary_tuner(radio->core))) {
+@@ -737,8 +738,7 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
+ 	args.zifsr		= false;
+ 	args.hd			= false;
+ 	args.injside		= SI476X_INJSIDE_AUTO;
+-	args.freq		= v4l2_to_si476x(radio->core,
+-						 f->frequency);
++	args.freq		= v4l2_to_si476x(radio->core, freq);
+ 	args.tunemode		= SI476X_TM_VALIDATED_NORMAL_TUNE;
+ 	args.smoothmetrics	= SI476X_SM_INITIALIZE_AUDIO;
+ 	args.antcap		= 0;
+@@ -1046,7 +1046,7 @@ static int si476x_radio_g_register(struct file *file, void *fh,
+ 	return err;
+ }
+ static int si476x_radio_s_register(struct file *file, void *fh,
+-				   struct v4l2_dbg_register *reg)
++				   const struct v4l2_dbg_register *reg)
+ {
+ 
+ 	int err;
 -- 
-1.7.10.4
+1.8.1.4
 
