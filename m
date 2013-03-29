@@ -1,45 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43842 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:58609 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752272Ab3CJCEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:44 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [REVIEW PATCH 41/41] MAINTAINERS: add drivers/media/tuners/it913x*
-Date: Sun, 10 Mar 2013 04:03:33 +0200
-Message-Id: <1362881013-5271-41-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+	id S1753019Ab3C2LLU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 07:11:20 -0400
+Date: Fri, 29 Mar 2013 08:11:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] gspca: remove obsolete Kconfig macros
+Message-ID: <20130329081115.30d82656@redhat.com>
+In-Reply-To: <51555598.1040505@redhat.com>
+References: <1364506437.1345.42.camel@x61.thuisdomein>
+	<51555598.1040505@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Em Fri, 29 Mar 2013 09:49:28 +0100
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index ff2fcc9..ded88d3 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4418,6 +4418,16 @@ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
- S:	Maintained
- F:	drivers/media/dvb-frontends/it913x-fe*
- 
-+IT913X MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/tuners/it913x*
-+
- IVTV VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
- L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
+> Mauro,
+> 
+> Can you pick this one up? I don't have anything pending for gspca,
+> and to create a tree + pullreq for just a trivial patch is not really
+> efficient.
+
+No problem. I'll handle that.
+
+Regards,
+Mauro
+> Alternatively I can put it on my TODO for when there is more gspca work,
+> esp. since there is not really a need to hurry with merging this.
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> On 03/28/2013 10:33 PM, Paul Bolle wrote:
+> > The et61x251 driver was removed in v3.5. Remove the last references to
+> > its Kconfig macro now.
+> >
+> > Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
+> > ---
+> > Untested, as usual.
+> >
+> >   drivers/media/usb/gspca/etoms.c | 2 --
+> >   1 file changed, 2 deletions(-)
+> >
+> > diff --git a/drivers/media/usb/gspca/etoms.c b/drivers/media/usb/gspca/etoms.c
+> > index 38f68e1..f165581 100644
+> > --- a/drivers/media/usb/gspca/etoms.c
+> > +++ b/drivers/media/usb/gspca/etoms.c
+> > @@ -768,9 +768,7 @@ static const struct sd_desc sd_desc = {
+> >   /* -- module initialisation -- */
+> >   static const struct usb_device_id device_table[] = {
+> >   	{USB_DEVICE(0x102c, 0x6151), .driver_info = SENSOR_PAS106},
+> > -#if !defined CONFIG_USB_ET61X251 && !defined CONFIG_USB_ET61X251_MODULE
+> >   	{USB_DEVICE(0x102c, 0x6251), .driver_info = SENSOR_TAS5130CXX},
+> > -#endif
+> >   	{}
+> >   };
+> >
+> >
+
+
 -- 
-1.7.11.7
 
+Cheers,
+Mauro
