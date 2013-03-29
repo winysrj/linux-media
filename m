@@ -1,39 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:51104 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754202Ab3CGIGZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Mar 2013 03:06:25 -0500
-Received: by mail-ob0-f172.google.com with SMTP id tb18so136110obb.3
-        for <linux-media@vger.kernel.org>; Thu, 07 Mar 2013 00:06:25 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CA+V-a8tEQmabr40j6jWOPDwFRnmH80kKze_G4Ldwr0r3D1ofRg@mail.gmail.com>
-References: <1362484334-18804-1-git-send-email-sachin.kamat@linaro.org>
-	<CA+V-a8vwiXk+0AcRgRRdOP-qbKrsDKFNQ4DKm+fTGgTSiiwn7g@mail.gmail.com>
-	<CAK9yfHyeoMYiYZUEUY+gPRGOaLf4Qk500R=N4uKNV7n-csqiWQ@mail.gmail.com>
-	<CA+V-a8tEQmabr40j6jWOPDwFRnmH80kKze_G4Ldwr0r3D1ofRg@mail.gmail.com>
-Date: Thu, 7 Mar 2013 13:36:24 +0530
-Message-ID: <CAK9yfHy+OL3=gx5dO-1uzSHQTqXovCzbyokv28yTHD11NOG4hA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] [media] davinci_vpfe: Use module_platform_driver macro
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.samsung.com ([203.254.224.24]:46353 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755518Ab3C2QT0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 12:19:26 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, mturquette@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com, dh09.lee@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH v3 6/7] exynos4-is: Add FIMC-IS subdevs registration
+Date: Fri, 29 Mar 2013 17:18:09 +0100
+Message-id: <1364573890-31536-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364573890-31536-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364573890-31536-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+This patch allows to register FIMC-IS device represented by FIMC-IS-ISP
+subdev to the top level media device driver. The use_isp platform data
+structure field allows to select whether the fimc-is ISP subdev should
+be tried to be registered or not.
 
->> BTW, who is supposed to pick this patch?
->>
-> I'll queue it for 3.10 and a issue a pull request to Mauro soon.
-> Or if you have a branch and want to issue a pull no problem(anyways
-> I have Acked it). what do you suggest ?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
 
-Please queue it in your tree and go ahead with the pull request. That
-sounds reasonable.
+Changes since v2:
+ - none.
+---
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c |   37 ++++++++++++++++++++++--
+ drivers/media/platform/s5p-fimc/fimc-mdevice.h |   13 +++++++++
+ 2 files changed, 47 insertions(+), 3 deletions(-)
 
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+index 06d1eb4..b00144e 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+@@ -31,6 +31,7 @@
+ #include <media/s5p_fimc.h>
+ 
+ #include "fimc-core.h"
++#include "fimc-is.h"
+ #include "fimc-lite.h"
+ #include "fimc-mdevice.h"
+ #include "mipi-csis.h"
+@@ -85,9 +86,11 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 		case GRP_ID_FIMC:
+ 			/* No need to control FIMC subdev through subdev ops */
+ 			break;
++		case GRP_ID_FIMC_IS:
++			p->subdevs[IDX_IS_ISP] = sd;
++			break;
+ 		default:
+-			pr_warn("%s: Unknown subdev grp_id: %#x\n",
+-				__func__, sd->grp_id);
++			break;
+ 		}
+ 		me = &sd->entity;
+ 		if (me->num_pads == 1)
+@@ -322,6 +325,7 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
+ 
+ 	if (!client)
+ 		return;
++
+ 	v4l2_device_unregister_subdev(sd);
+ 
+ 	if (!client->dev.of_node) {
+@@ -372,7 +376,11 @@ static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+ 		goto mod_put;
+ 
+ 	v4l2_set_subdev_hostdata(sd, si);
+-	sd->grp_id = GRP_ID_SENSOR;
++	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++		sd->grp_id = GRP_ID_FIMC_IS_SENSOR;
++	else
++		sd->grp_id = GRP_ID_SENSOR;
++
+ 	si->subdev = sd;
+ 	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
+ 		  sd->name, fmd->num_sensors);
+@@ -650,6 +658,22 @@ static int register_csis_entity(struct fimc_md *fmd,
+ 	return ret;
+ }
+ 
++static int register_fimc_is_entity(struct fimc_md *fmd, struct fimc_is *is)
++{
++	struct v4l2_subdev *sd = &is->isp.subdev;
++	int ret;
++
++	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
++	if (ret) {
++		v4l2_err(&fmd->v4l2_dev,
++			 "Failed to register FIMC-ISP (%d)\n", ret);
++		return ret;
++	}
++
++	fmd->fimc_is = is;
++	return 0;
++}
++
+ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 					    struct platform_device *pdev,
+ 					    int plat_entity)
+@@ -677,6 +701,9 @@ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 		case IDX_CSIS:
+ 			ret = register_csis_entity(fmd, pdev, drvdata);
+ 			break;
++		case IDX_IS_ISP:
++			ret = register_fimc_is_entity(fmd, drvdata);
++			break;
+ 		default:
+ 			ret = -ENODEV;
+ 		}
+@@ -740,6 +767,8 @@ static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
+ 		/* If driver of any entity isn't ready try all again later. */
+ 		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
+ 			plat_entity = IDX_CSIS;
++		else if	(!strcmp(node->name, FIMC_IS_OF_NODE_NAME))
++			plat_entity = IDX_IS_ISP;
+ 		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
+ 			plat_entity = IDX_FLITE;
+ 		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
+@@ -1306,6 +1335,8 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	v4l2_dev->notify = fimc_sensor_notify;
+ 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
+ 
++	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
++
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.h b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+index 1d5cea5..0b14cd5 100644
+--- a/drivers/media/platform/s5p-fimc/fimc-mdevice.h
++++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.h
+@@ -12,6 +12,7 @@
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <media/media-device.h>
+ #include <media/media-entity.h>
+@@ -80,6 +81,7 @@ struct fimc_sensor_info {
+  * @num_sensors: actual number of registered sensors
+  * @camclk: external sensor clock information
+  * @fimc: array of registered fimc devices
++ * @fimc_is: fimc-is data structure
+  * @use_isp: set to true when FIMC-IS subsystem is used
+  * @pmf: handle to the CAMCLK clock control FIMC helper device
+  * @media_dev: top level media device
+@@ -99,6 +101,7 @@ struct fimc_md {
+ 	struct clk *wbclk[FIMC_MAX_WBCLKS];
+ 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
+ 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
++	struct fimc_is *fimc_is;
+ 	bool use_isp;
+ 	struct device *pmf;
+ 	struct media_device media_dev;
+@@ -139,4 +142,14 @@ static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
+ 
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+ 
++#ifdef CONFIG_OF
++static inline bool fimc_md_is_isp_available(struct device_node *node)
++{
++	node = of_get_child_by_name(node, FIMC_IS_OF_NODE_NAME);
++	return node ? of_device_is_available(node) : false;
++}
++#else
++#define fimc_md_is_isp_available(node) (false)
++#endif /* CONFIG_OF */
++
+ #endif
 -- 
-With warm regards,
-Sachin
+1.7.9.5
+
