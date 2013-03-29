@@ -1,70 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:53363 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab3CCTk1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Mar 2013 14:40:27 -0500
-Received: by mail-ee0-f52.google.com with SMTP id b15so3381774eek.11
-        for <linux-media@vger.kernel.org>; Sun, 03 Mar 2013 11:40:26 -0800 (PST)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 5/5] em28xx: write output frame resolution to regs 0x34+0x35 for em25xx family bridges
-Date: Sun,  3 Mar 2013 20:41:01 +0100
-Message-Id: <1362339661-3446-6-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1362339661-3446-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.samsung.com ([203.254.224.34]:63359 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754137Ab3C2QS5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 12:18:57 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	thomas.abraham@linaro.org, mturquette@linaro.org,
+	t.figa@samsung.com, myungjoo.ham@samsung.com, dh09.lee@samsung.com,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 2/7] exynos4-is: Add FIMC-IS ISP I2C bus driver
+Date: Fri, 29 Mar 2013 17:18:05 +0100
+Message-id: <1364573890-31536-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364573890-31536-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364573890-31536-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Windows driver writes the output resolution to registers 0x34 (width / 16)
-and 0x35 (height / 16) always.
-We don't know yet what these registers are used for.
+This patch adds the ISP I2C bus controller driver files.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Creating a standard I2C bus adapter, even if the driver doesn't
+actually communicate with the hardware and it is instead used
+by the ISP firmware running on the Cortex-A5, allows to use
+standard hardware description in the device tree. As the sensor
+would have actually had a standard V4L2 sub-device driver run
+on the host CPU.
+
+This approach allows to adapt the driver with a relatively small
+effort should the Imaging Subsystem architecture change so that
+the I2C bus is controlled by the host CPU, rather than the
+internal FIMC-IS ARM CPU. The image sensor driver can be a
+standard I2C client driver, as in case of most existing image
+sensors.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/em28xx/em28xx-core.c |    7 +++++++
- drivers/media/usb/em28xx/em28xx-reg.h  |    6 ++++++
- 2 Dateien geändert, 13 Zeilen hinzugefügt(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index 7b9f76b..0ce6b0f 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -766,6 +766,13 @@ static void em28xx_capture_area_set(struct em28xx *dev, u8 hstart, u8 vstart,
- 	em28xx_write_regs(dev, EM28XX_R1E_CWIDTH, &cwidth, 1);
- 	em28xx_write_regs(dev, EM28XX_R1F_CHEIGHT, &cheight, 1);
- 	em28xx_write_regs(dev, EM28XX_R1B_OFLOW, &overflow, 1);
-+
-+	if (dev->is_em25xx) {
-+		em28xx_write_reg(dev, 0x34, width >> 4);
-+		em28xx_write_reg(dev, 0x35, height >> 4);
-+	}
-+	/* FIXME: function/meaning of these registers ? */
-+	/* FIXME: align width+height to multiples of 4 ?! */
- }
- 
- static int em28xx_scaler_set(struct em28xx *dev, u16 h, u16 v)
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index d765d59..3ec5528 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -167,6 +167,12 @@
- 
- #define EM28XX_R34_VBI_START_H	0x34
- #define EM28XX_R35_VBI_START_V	0x35
-+/* NOTE: the EM276x (and EM25xx, EM277x/8x ?) (camera bridges) use these
-+ * registers for a different unknown purpose.
-+ *   => register 0x34 is set to capture width / 16
-+ *   => register 0x35 is set to capture height / 16
+Changes since v2:
+ -  added ISP I2C bus controler gate clock handling and
+    enabled runtime PM.
+---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c |  122 +++++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-i2c.h |   15 +++
+ 2 files changed, 137 insertions(+)
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.h
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+new file mode 100644
+index 0000000..d9ee623
+--- /dev/null
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -0,0 +1,122 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
 +
- #define EM28XX_R36_VBI_WIDTH	0x36
- #define EM28XX_R37_VBI_HEIGHT	0x37
- 
++#include <linux/module.h>
++#include <linux/of_i2c.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <linux/clk.h>
++#include "fimc-is-i2c.h"
++
++struct fimc_is_i2c {
++	struct i2c_adapter adapter;
++	struct clk *clock;
++};
++
++/*
++ * An empty algorithm is used as the actual I2C bus controller driver
++ * is implemented in the FIMC-IS subsystem firmware and the host CPU
++ * doesn't access the I2C bus controller.
++ */
++static const struct i2c_algorithm fimc_is_i2c_algorithm;
++
++static int fimc_is_i2c_probe(struct platform_device *pdev)
++{
++	struct device_node *node = pdev->dev.of_node;
++	struct fimc_is_i2c *isp_i2c;
++	struct i2c_adapter *i2c_adap;
++	int ret;
++
++	isp_i2c = devm_kzalloc(&pdev->dev, sizeof(*isp_i2c), GFP_KERNEL);
++	if (!isp_i2c)
++		return -ENOMEM;
++
++	isp_i2c->clock = devm_clk_get(&pdev->dev, "i2c_isp");
++	if (IS_ERR(isp_i2c->clock)) {
++		dev_err(&pdev->dev, "failed to get the clock\n");
++		return PTR_ERR(isp_i2c->clock);
++	}
++
++	i2c_adap = &isp_i2c->adapter;
++	i2c_adap->dev.of_node = node;
++	i2c_adap->dev.parent = &pdev->dev;
++	strlcpy(i2c_adap->name, "exynos4x12-isp-i2c", sizeof(i2c_adap->name));
++	i2c_adap->owner = THIS_MODULE;
++	i2c_adap->algo = &fimc_is_i2c_algorithm;
++	i2c_adap->class = I2C_CLASS_SPD;
++
++	ret = i2c_add_adapter(i2c_adap);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "failed to add I2C bus %s\n",
++						node->full_name);
++		return ret;
++	}
++
++	platform_set_drvdata(pdev, isp_i2c);
++
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_enable(&i2c_adap->dev);
++
++	of_i2c_register_devices(i2c_adap);
++
++	return 0;
++}
++
++static int fimc_is_i2c_remove(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static int fimc_is_i2c_suspend(struct device *dev)
++{
++	struct fimc_is_i2c *isp_i2c = dev_get_drvdata(dev);
++	clk_disable_unprepare(isp_i2c->clock);
++	return 0;
++}
++
++static int fimc_is_i2c_resume(struct device *dev)
++{
++	struct fimc_is_i2c *isp_i2c = dev_get_drvdata(dev);
++	return clk_prepare_enable(isp_i2c->clock);
++}
++
++UNIVERSAL_DEV_PM_OPS(fimc_is_i2c_pm_ops, fimc_is_i2c_suspend,
++		     fimc_is_i2c_resume, NULL);
++
++static const struct of_device_id fimc_is_i2c_of_match[] = {
++	{ .compatible = FIMC_IS_I2C_COMPATIBLE },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, fimc_is_i2c_of_match);
++
++static struct platform_driver fimc_is_i2c_driver = {
++	.probe		= fimc_is_i2c_probe,
++	.remove		= fimc_is_i2c_remove,
++	.driver = {
++		.of_match_table = fimc_is_i2c_of_match,
++		.name		= "fimc-isp-i2c",
++		.owner		= THIS_MODULE,
++		.pm		= &fimc_is_i2c_pm_ops,
++	}
++};
++
++int fimc_is_register_i2c_driver(void)
++{
++	return platform_driver_register(&fimc_is_i2c_driver);
++}
++
++void fimc_is_unregister_i2c_driver(void)
++{
++	platform_driver_unregister(&fimc_is_i2c_driver);
++}
++
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.h b/drivers/media/platform/exynos4-is/fimc-is-i2c.h
+new file mode 100644
+index 0000000..0d38d6b
+--- /dev/null
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.h
+@@ -0,0 +1,15 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#define FIMC_IS_I2C_COMPATIBLE	"samsung,exynos4212-i2c-isp"
++
++int fimc_is_register_i2c_driver(void);
++void fimc_is_unregister_i2c_driver(void);
 -- 
-1.7.10.4
+1.7.9.5
 
