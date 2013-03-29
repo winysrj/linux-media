@@ -1,79 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f42.google.com ([209.85.210.42]:47685 "EHLO
-	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887Ab3CAFey (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Mar 2013 00:34:54 -0500
-Received: by mail-da0-f42.google.com with SMTP id n15so1221371dad.29
-        for <linux-media@vger.kernel.org>; Thu, 28 Feb 2013 21:34:54 -0800 (PST)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, l.krishna@samsung.com,
-	jy0922.shim@samsung.com, sylvester.nawrocki@gmail.com
-Subject: [PATCH v10 0/2] Add display-timing node parsing to exynos drm fimd
-Date: Fri,  1 Mar 2013 11:04:38 +0530
-Message-Id: <1362116080-20063-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4228 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754552Ab3C2TS3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 15:18:29 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2TJIPJx016783
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 29 Mar 2013 20:18:27 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 8343D11E0166
+	for <linux-media@vger.kernel.org>; Fri, 29 Mar 2013 20:18:23 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130329191823.8343D11E0166@alastor.dyndns.org>
+Date: Fri, 29 Mar 2013 20:18:23 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add display-timing node parsing to drm fimd and depends on
-the display helper patchset at
-http://lists.freedesktop.org/archives/dri-devel/2013-January/033998.html
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-It also adds pinctrl support for drm fimd.
+Results of the daily build of media_tree:
 
-changes since v9:
-	- replaced IS_ERR_OR_NULL() with IS_ERR(), since IS_ERR_OR_NULL()
-	will be depreciated, as discussed at
-	http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/140543.html
-	http://www.mail-archive.com/linux-omap@vger.kernel.org/msg78030.html
+date:		Fri Mar 29 19:00:30 CET 2013
+git branch:	test
+git hash:	79a63c60a6a2ae589e44529401e0ab1150e9408a
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-changes since v8:
-	- replaced IS_ERR() with IS_ERR_OR_NULL(),
-	because devm_pinctrl_get_select_default can return NULL,
-	If CONFIG_PINCTRL is disabled.
-	- modified the error log, such that it shall NOT cross 80 column.
-	- added Acked-by.
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-changes since v7:
-	- addressed comments from Joonyoung Shim <jy0922.shim@samsung.com> 
-	to remove a unnecessary variable.
+Detailed results are available here:
 
-changes since v6:
-	addressed comments from Inki Dae <inki.dae@samsung.com> to
-	separated out the pinctrl functionality and made a separate patch.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-changes since v5:
-	- addressed comments from Inki Dae <inki.dae@samsung.com>,
-	to remove the allocation of 'fbmode' and replaced
-	'-1'in "of_get_fb_videomode(dev->of_node, fbmode, -1)" with
-	OF_USE_NATIVE_MODE.
+Full logs are available here:
 
-changes since v4:
-	- addressed comments from Paul Menzel 
-	<paulepanter@users.sourceforge.net>, to modify the commit message
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-changes since v3:
-	- addressed comments from Sean Paul <seanpaul@chromium.org>, to modify
-	the return values and print messages.
+The Media Infrastructure API from this daily build is here:
 
-changes since v2:
-	- moved 'devm_pinctrl_get_select_default' function call under
-		'if (pdev->dev.of_node)', this makes NON-DT code unchanged.
-		(reported by: Rahul Sharma <r.sh.open@gmail.com>)
-
-changes since v1:
-	- addressed comments from Sean Paul <seanpaul@chromium.org>
-
-
-Vikas Sajjan (2):
-  video: drm: exynos: Add display-timing node parsing using video
-    helper function
-  video: drm: exynos: Add pinctrl support to fimd
-
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   33 ++++++++++++++++++++++++++----
- 1 file changed, 29 insertions(+), 4 deletions(-)
-
--- 
-1.7.9.5
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
