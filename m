@@ -1,129 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51051 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751774Ab3CJCEi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Mar 2013 21:04:38 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>,
-	Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [REVIEW PATCH 02/41] af9033: support for it913x tuners
-Date: Sun, 10 Mar 2013 04:02:54 +0200
-Message-Id: <1362881013-5271-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1362881013-5271-1-git-send-email-crope@iki.fi>
-References: <1362881013-5271-1-git-send-email-crope@iki.fi>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2442 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab3C2OOn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 Mar 2013 10:14:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l2-controls.h: update private control ranges to prevent  overlap.
+Date: Fri, 29 Mar 2013 15:14:32 +0100
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303291514.32190.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for tuners integrated to the IT9135 and IT9137.
+These ranges shouldn't overlap.
 
-Cc: Malcolm Priestley <tvboxspy@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/af9033.c | 34 +++++++++++++++++++++-------------
- drivers/media/dvb-frontends/af9033.h | 15 +++++++++++++++
- 2 files changed, 36 insertions(+), 13 deletions(-)
+ include/uapi/linux/v4l2-controls.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/af9033.c b/drivers/media/dvb-frontends/af9033.c
-index c9cad98..dece775 100644
---- a/drivers/media/dvb-frontends/af9033.c
-+++ b/drivers/media/dvb-frontends/af9033.c
-@@ -223,6 +223,7 @@ static int af9033_init(struct dvb_frontend *fe)
- 		{ 0x80f986, state->ts_mode_parallel, 0x01 },
- 		{ 0x00d827, 0x00, 0xff },
- 		{ 0x00d829, 0x00, 0xff },
-+		{ 0x800045, state->cfg.adc_multiplier, 0xff },
- 	};
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 910d7cd..7da22ce 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -153,12 +153,12 @@ enum v4l2_colorfx {
  
- 	/* program clock control */
-@@ -322,6 +323,14 @@ static int af9033_init(struct dvb_frontend *fe)
- 		len = ARRAY_SIZE(tuner_init_fc0012);
- 		init = tuner_init_fc0012;
- 		break;
-+	case AF9033_TUNER_IT9135_38:
-+	case AF9033_TUNER_IT9135_51:
-+	case AF9033_TUNER_IT9135_52:
-+	case AF9033_TUNER_IT9135_60:
-+	case AF9033_TUNER_IT9135_61:
-+	case AF9033_TUNER_IT9135_62:
-+		len = 0;
-+		break;
- 	default:
- 		dev_dbg(&state->i2c->dev, "%s: unsupported tuner ID=%d\n",
- 				__func__, state->cfg.tuner);
-@@ -498,12 +507,7 @@ static int af9033_set_frontend(struct dvb_frontend *fe)
- 		if (spec_inv == -1)
- 			freq_cw = 0x800000 - freq_cw;
  
--		/* get adc multiplies */
--		ret = af9033_rd_reg(state, 0x800045, &tmp);
--		if (ret < 0)
--			goto err;
--
--		if (tmp == 1)
-+		if (state->cfg.adc_multiplier == AF9033_ADC_MULTIPLIER_2X)
- 			freq_cw /= 2;
+ /* The base for the s2255 driver controls.
+- * We reserve 8 controls for this driver. */
+-#define V4L2_CID_USER_S2255_BASE		(V4L2_CID_USER_BASE + 0x1010)
++ * We reserve 16 controls for this driver. */
++#define V4L2_CID_USER_S2255_BASE		(V4L2_CID_USER_BASE + 0x1030)
  
- 		buf[0] = (freq_cw >>  0) & 0xff;
-@@ -933,14 +937,18 @@ struct dvb_frontend *af9033_attach(const struct af9033_config *config,
- 			"OFDM=%d.%d.%d.%d\n", KBUILD_MODNAME, buf[0], buf[1],
- 			buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]);
+ /* The base for the si476x driver controls. See include/media/si476x.h for the list
+- * of controls. Total of 16 controls is reserved for that driver */
+-#define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1010)
++ * of controls. Total of 16 controls is reserved for this driver */
++#define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1040)
  
--	/* sleep */
--	ret = af9033_wr_reg(state, 0x80004c, 1);
--	if (ret < 0)
--		goto err;
+ /* MPEG-class control IDs */
  
--	ret = af9033_wr_reg(state, 0x800000, 0);
--	if (ret < 0)
--		goto err;
-+	/* FIXME: Do not abuse adc_multiplier for detecting IT9135 */
-+	if (state->cfg.adc_multiplier != AF9033_ADC_MULTIPLIER_2X) {
-+		/* sleep */
-+		ret = af9033_wr_reg(state, 0x80004c, 1);
-+		if (ret < 0)
-+			goto err;
-+
-+		ret = af9033_wr_reg(state, 0x800000, 0);
-+		if (ret < 0)
-+			goto err;
-+	}
- 
- 	/* configure internal TS mode */
- 	switch (state->cfg.ts_mode) {
-diff --git a/drivers/media/dvb-frontends/af9033.h b/drivers/media/dvb-frontends/af9033.h
-index 82bd8c1..53fd304 100644
---- a/drivers/media/dvb-frontends/af9033.h
-+++ b/drivers/media/dvb-frontends/af9033.h
-@@ -36,6 +36,13 @@ struct af9033_config {
- 	u32 clock;
- 
- 	/*
-+	 * ADC multiplier
-+	 */
-+#define AF9033_ADC_MULTIPLIER_1X   0
-+#define AF9033_ADC_MULTIPLIER_2X   1
-+	u8 adc_multiplier;
-+
-+	/*
- 	 * tuner
- 	 */
- #define AF9033_TUNER_TUA9001     0x27 /* Infineon TUA 9001 */
-@@ -44,6 +51,14 @@ struct af9033_config {
- #define AF9033_TUNER_MXL5007T    0xa0 /* MaxLinear MxL5007T */
- #define AF9033_TUNER_TDA18218    0xa1 /* NXP TDA 18218HN */
- #define AF9033_TUNER_FC2580      0x32 /* FCI FC2580 */
-+/* 50-5f Omega */
-+#define AF9033_TUNER_IT9135_38   0x38 /* Omega */
-+#define AF9033_TUNER_IT9135_51   0x51 /* Omega LNA config 1 */
-+#define AF9033_TUNER_IT9135_52   0x52 /* Omega LNA config 2 */
-+/* 60-6f Omega v2 */
-+#define AF9033_TUNER_IT9135_60   0x60 /* Omega v2 */
-+#define AF9033_TUNER_IT9135_61   0x61 /* Omega v2 LNA config 1 */
-+#define AF9033_TUNER_IT9135_62   0x62 /* Omega v2 LNA config 2 */
- 	u8 tuner;
- 
- 	/*
 -- 
-1.7.11.7
+1.7.10.4
 
