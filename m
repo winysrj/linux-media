@@ -1,65 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23283 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754580Ab3CYLD3 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3415 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549Ab3C2LUx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 07:03:29 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MK700DH6QN4S050@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Mar 2013 11:03:27 +0000 (GMT)
-Received: from [127.0.0.1] ([106.116.147.30])
- by eusync1.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MK7006G3QPQ1EB0@eusync1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 25 Mar 2013 11:03:27 +0000 (GMT)
-Message-id: <51502EFD.6060606@samsung.com>
-Date: Mon, 25 Mar 2013 12:03:25 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: Status of the patches under review at LMML (32 patches)
-References: <20130324151111.1b2ca8d4@redhat.com>
-In-reply-to: <20130324151111.1b2ca8d4@redhat.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 29 Mar 2013 07:20:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] solo6x10: The size of the thresholds ioctls was too large.
+Date: Fri, 29 Mar 2013 12:20:36 +0100
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Greg KH <greg@kroah.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201303291220.36090.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This should fix the build failure in linux-next.
 
-On 3/24/2013 7:11 PM, Mauro Carvalho Chehab wrote:
-> This is the summary of the patches that are currently under review at
-> Linux Media Mailing List <linux-media@vger.kernel.org>.
-> Each patch is represented by its submission date, the subject (up to 70
-> chars) and the patchwork link (if submitted via email).
->
-> P.S.: This email is c/c to the developers where some action is expected.
->        If you were copied, please review the patches, acking/nacking or
->        submitting an update.
->
-> It took me a lot of time to handle patches this time. The good news is that
-> there's just one patch without an owner.
->
-...
+[PATCH] solo6x10: The size of the thresholds ioctls was too large.
 
-> 		== Marek Szyprowski <m.szyprowski@samsung.com> ==
->
-> Nov,12 2012: [media] videobuf2-core: print current state of buffer in vb2_buffer_do http://patchwork.linuxtv.org/patch/15420  Tushar Behera <tushar.behera@linaro.org>
+On powerpc the maximum size for the ioctl argument is 8191, and it was
+8192. However, the 64x64 array of threshold values is more than is actually
+needed in practice for PAL and NTSC formats. A 45x45 array will do just fine.
 
-This one is ok. I acked it by gmane interface as I don't have original 
-mail, I have no
+So change the size accordingly to fix this problem.
 
-> Mar, 5 2013: [media] dma-mapping: enable no mmu support in dma_common_mmap          http://patchwork.linuxtv.org/patch/17112  Scott Jiang <scott.jiang.linux@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-disp.c |    3 ++-
+ drivers/staging/media/solo6x10/solo6x10.h      |    8 +++++++-
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-IMHO this one is RFC. I would like to get some more explanation why it 
-is needed and how it will be used.
-
-Best regards
+diff --git a/drivers/staging/media/solo6x10/solo6x10-disp.c b/drivers/staging/media/solo6x10/solo6x10-disp.c
+index 78070c8..32d9953 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-disp.c
++++ b/drivers/staging/media/solo6x10/solo6x10-disp.c
+@@ -205,10 +205,11 @@ int solo_set_motion_block(struct solo_dev *solo_dev, u8 ch,
+ 		const struct solo_motion_thresholds *thresholds)
+ {
+ 	u32 off = SOLO_MOT_FLAG_AREA + ch * SOLO_MOT_THRESH_SIZE * 2;
+-	u16 buf[SOLO_MOTION_SZ];
++	u16 buf[64];
+ 	int x, y;
+ 	int ret = 0;
+ 
++	memset(buf, 0, sizeof(buf));
+ 	for (y = 0; y < SOLO_MOTION_SZ; y++) {
+ 		for (x = 0; x < SOLO_MOTION_SZ; x++)
+ 			buf[x] = cpu_to_le16(thresholds->thresholds[y][x]);
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index 3526d6b..6f91d2e 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -113,8 +113,14 @@
+  * each sample representing 16x16 pixels of the source. In
+  * effect, 44x30 samples are used for NTSC, and 44x36 for PAL.
+  * The 5th sample on the 10th row is (10*64)+5 = 645.
++ *
++ * Using a 64x64 array will result in a problem on some architectures like
++ * the powerpc where the size of the argument is limited to 13 bits.
++ * Since both PAL and NTSC do not use the full table anyway I've chosen
++ * to limit the array to 45x45 (45*16 = 720, which is the maximum PAL/NTSC
++ * width).
+  */
+-#define SOLO_MOTION_SZ (64)
++#define SOLO_MOTION_SZ (45)
+ struct solo_motion_thresholds {
+ 	__u16	thresholds[SOLO_MOTION_SZ][SOLO_MOTION_SZ];
+ };
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.7.10.4
 
