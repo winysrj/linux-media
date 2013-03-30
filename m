@@ -1,63 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4854 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751603Ab3CYI5M (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:46750 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747Ab3C3JyD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Mar 2013 04:57:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 30 Mar 2013 05:54:03 -0400
+Received: by mail-lb0-f177.google.com with SMTP id r10so823626lbi.36
+        for <linux-media@vger.kernel.org>; Sat, 30 Mar 2013 02:54:02 -0700 (PDT)
+Date: Sat, 30 Mar 2013 11:54:55 +0200
+From: Timo Teras <timo.teras@iki.fi>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [REVIEW PATCH 19/42] s2250-loader: use usbv2_cypress_load_firmware
-Date: Mon, 25 Mar 2013 09:56:48 +0100
-Cc: linux-media@vger.kernel.org,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl> <400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com> <20130324123924.2451beb9@redhat.com>
-In-Reply-To: <20130324123924.2451beb9@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Cc: linux-media@vger.kernel.org
+Subject: Re: Terratec Grabby hwrev 2
+Message-ID: <20130330115455.56c34b5f@vostro>
+In-Reply-To: <20130328122252.19769614@redhat.com>
+References: <20130325190846.3250fe98@vostro>
+	<20130325143647.3da1360f@redhat.com>
+	<20130325194820.7c122834@vostro>
+	<20130325153220.3e6dbfe5@redhat.com>
+	<20130325211238.7c325d5e@vostro>
+	<20130326102056.63b55916@vostro>
+	<20130327161049.683483f8@vostro>
+	<20130328105201.7bcc7388@vostro>
+	<20130328094052.26b7f3f5@redhat.com>
+	<20130328153556.0b58d1aa@vostro>
+	<20130328122252.19769614@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201303250956.48549.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun March 24 2013 16:39:24 Mauro Carvalho Chehab wrote:
-> Em Mon, 11 Mar 2013 12:45:57 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+On Thu, 28 Mar 2013 12:22:52 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+
+> > On the W7 driver, I don't get any of the above mentioned problems.
+> > 
+> > I looked at the saa7113 register init sequence, and copied that
+> > over to linux saa7113 init, but that did not remove the problems.
+> > There were only few changes.
 > 
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > The v2 of this function doesn't do DMA to objects on the stack like
-> > its predecessor does.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/staging/media/go7007/Makefile       |    4 ++--
-> >  drivers/staging/media/go7007/s2250-loader.c |    7 ++++---
-> >  2 files changed, 6 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
-> > index 5bed78b..f9c8e0f 100644
-> > --- a/drivers/staging/media/go7007/Makefile
-> > +++ b/drivers/staging/media/go7007/Makefile
-> > @@ -11,8 +11,8 @@ s2250-y := s2250-board.o
-> >  #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
-> >  #ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
-> >  
-> > -# S2250 needs cypress ezusb loader from dvb-usb
-> > -ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb
-> > +# S2250 needs cypress ezusb loader from dvb-usb-v2
-> > +ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
-> 
-> Please don't do it like that. Ok, for now it is in staging,
-> but once you move it outside it, please move the cypress load firmware
-> code to drivers/media/common, and do the proper changes for it to be
-> shared between go7007 and dvb-usb-v2.
+> So, maybe it does a different crop setup at em28xx.
 
-It's a good idea to move this to common. I'll do that.
+I did an analysis of the register setups of em28xx and found the
+following differences:
 
-Regards,
+1. Different crop settings
 
-	Hans
+EM28XX_R1D_VSTART, EM28XX_R1F_CHEIGHT and EM28XX_R2B_YMAX set by W7
+driver were divided by two compared to the linux driver. Seems that
+linux driver did just this before commit c2a6b54.  I also found the
+patch https://patchwork.kernel.org/patch/1272051/ to restore the
+original behaviour, but somehow it was disregarded and commit 0bc9c89
+was done instead. The mentioned patch though does not fix R1D setting
+though.
+
+2. Different outfmt used
+
+It seems that ffmpeg defaults to v4l default, which somehow apparently
+resulted in EM28XX_OUTFMT_RGB_8_RGRG set. When forcing ffmpeg to set
+yuyv422 or EM28XX_OUTFMT_YUV422_Y0UY1V the color distortions vanished.
+I'm unsure if the distiortion comes from ffmpeg doing some automatic
+conversions, or from v4l kernel driver.
+
+Though, it might be an idea to set the default outfmt to something that
+is known to work. So I'm wondering if this could be fixed easily?
+YUYV422 should have also better quality, so it would make sense to
+select it instead of the other one.
+
+--
+
+So seems that now the device is working properly. Basically we need the
+following changes:
+ 1. saa7113 id ignore (or autodetect, and fallback to forced type)
+ 2. saa7113 not writing to the registers 14-17 in case it's not the
+    original chip (id not present)
+ 3. em28xx crop height/vstart to divided by 2 in interlaced mode
+ 4. (optionally) em28xx outfmt should default to YUYV422
+
+I can post a patch for 3, but for others I'm not fully certain about
+implementation details. With few pointers, I could probably produce
+patches, though. But I would be also happy to just test what ever you
+come up with.
+
+Thanks,
+ Timo
