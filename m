@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46102 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752942Ab3CFKHb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 Mar 2013 05:07:31 -0500
-Message-ID: <51371553.5030103@ti.com>
-Date: Wed, 6 Mar 2013 15:37:15 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Prabhakar Lad <prabhakar.lad@ti.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: davinci: kconfig: fix incorrect selects
-References: <1362492801-13202-1-git-send-email-nsekhar@ti.com> <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com>
-In-Reply-To: <CA+V-a8u0XLAN72ky05JO_4vvoMjnHXoXS7JAk6OPO3r8r46CLw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3564 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab3C3TUL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 30 Mar 2013 15:20:11 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r2UJK723084888
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 30 Mar 2013 20:20:10 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 30ADD11E00F4
+	for <linux-media@vger.kernel.org>; Sat, 30 Mar 2013 20:20:07 +0100 (CET)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130330192007.30ADD11E00F4@alastor.dyndns.org>
+Date: Sat, 30 Mar 2013 20:20:07 +0100 (CET)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/6/2013 2:59 PM, Prabhakar Lad wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
->>  config VIDEO_DAVINCI_VPIF_DISPLAY
->>         tristate "DM646x/DA850/OMAPL138 EVM Video Display"
->> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
->> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
->>         select VIDEOBUF2_DMA_CONTIG
->> -       select VIDEO_DAVINCI_VPIF
->>         select VIDEO_ADV7343 if MEDIA_SUBDRV_AUTOSELECT
->>         select VIDEO_THS7303 if MEDIA_SUBDRV_AUTOSELECT
->>         help
->> @@ -15,9 +14,8 @@ config VIDEO_DAVINCI_VPIF_DISPLAY
->>
->>  config VIDEO_DAVINCI_VPIF_CAPTURE
->>         tristate "DM646x/DA850/OMAPL138 EVM Video Capture"
->> -       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM)
->> +       depends on VIDEO_DEV && (MACH_DAVINCI_DM6467_EVM || MACH_DAVINCI_DA850_EVM) && VIDEO_DAVINCI_VPIF
->>         select VIDEOBUF2_DMA_CONTIG
->> -       select VIDEO_DAVINCI_VPIF
->>         help
->>           Enables Davinci VPIF module used for captur devices.
->>           This module is common for following DM6467/DA850/OMAPL138
->> @@ -28,7 +26,7 @@ config VIDEO_DAVINCI_VPIF_CAPTURE
->>
->>  config VIDEO_DAVINCI_VPIF
->>         tristate "DaVinci VPIF Driver"
->> -       depends on VIDEO_DAVINCI_VPIF_DISPLAY || VIDEO_DAVINCI_VPIF_CAPTURE
->> +       depends on ARCH_DAVINCI
-> 
-> It would be better if this was  depends on MACH_DAVINCI_DM6467_EVM ||
-> MACH_DAVINCI_DA850_EVM
-> rather than 'ARCH_DAVINCI' then you can remove 'MACH_DAVINCI_DM6467_EVM' and
-> 'MACH_DAVINCI_DA850_EVM' dependency from VIDEO_DAVINCI_VPIF_DISPLAY and
-> VIDEO_DAVINCI_VPIF_CAPTURE. So it would be just 'depends on VIDEO_DEV
-> && VIDEO_DAVINCI_VPIF'
+Results of the daily build of media_tree:
 
-I could, but vpif.c seems pretty board independent to me. Are you sure
-no other board would like to build vpif.c? BTW, are vpif_display.c and
-vpif_capture.c really that board specific? May be we can all make them
-depend on ARCH_DAVINCI?
+date:		Sat Mar 30 19:00:20 CET 2013
+git branch:	test
+git hash:	79a63c60a6a2ae589e44529401e0ab1150e9408a
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> 
-> BTW this patch doesn’t apply on3.9.0-rc1.
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Oops. I based this on a handy v3.8. I will fix.
+Detailed results are available here:
 
-Thanks,
-sekhar
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
