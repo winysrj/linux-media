@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8165 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:29023 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752781Ab3CXPjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Mar 2013 11:39:42 -0400
-Date: Sun, 24 Mar 2013 12:39:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: Re: [REVIEW PATCH 19/42] s2250-loader: use
- usbv2_cypress_load_firmware
-Message-ID: <20130324123924.2451beb9@redhat.com>
-In-Reply-To: <400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com>
-References: <1363002380-19825-1-git-send-email-hverkuil@xs4all.nl>
-	<400666fef6bc62079f4ebd7122196c753039aaad.1363000605.git.hans.verkuil@cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	id S1753833Ab3CaMoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Mar 2013 08:44:37 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: hverkuil@xs4all.nl
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/2] xawtv: Limit minimum window size to minimum capture resolution
+Date: Sun, 31 Mar 2013 14:48:05 +0200
+Message-Id: <1364734085-4227-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1364734085-4227-1-git-send-email-hdegoede@redhat.com>
+References: <1364734085-4227-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 11 Mar 2013 12:45:57 +0100
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ x11/xawtv.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The v2 of this function doesn't do DMA to objects on the stack like
-> its predecessor does.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/staging/media/go7007/Makefile       |    4 ++--
->  drivers/staging/media/go7007/s2250-loader.c |    7 ++++---
->  2 files changed, 6 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/staging/media/go7007/Makefile b/drivers/staging/media/go7007/Makefile
-> index 5bed78b..f9c8e0f 100644
-> --- a/drivers/staging/media/go7007/Makefile
-> +++ b/drivers/staging/media/go7007/Makefile
-> @@ -11,8 +11,8 @@ s2250-y := s2250-board.o
->  #obj-$(CONFIG_VIDEO_SAA7134) += saa7134-go7007.o
->  #ccflags-$(CONFIG_VIDEO_SAA7134:m=y) += -Idrivers/media/video/saa7134 -DSAA7134_MPEG_GO7007=3
->  
-> -# S2250 needs cypress ezusb loader from dvb-usb
-> -ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb
-> +# S2250 needs cypress ezusb loader from dvb-usb-v2
-> +ccflags-$(CONFIG_VIDEO_GO7007_USB_S2250_BOARD:m=y) += -Idrivers/media/usb/dvb-usb-v2
+diff --git a/x11/xawtv.c b/x11/xawtv.c
+index bade35a..9c578da 100644
+--- a/x11/xawtv.c
++++ b/x11/xawtv.c
+@@ -1636,7 +1636,7 @@ create_launchwin(void)
+ int
+ main(int argc, char *argv[])
+ {
+-    int            i;
++    int            i, min_width, min_height;
+     unsigned long  freq;
+ 
+     hello_world("xawtv");
+@@ -1784,11 +1784,16 @@ main(int argc, char *argv[])
+     XSetWMProtocols(XtDisplay(app_shell), XtWindow(app_shell),
+ 		    &WM_DELETE_WINDOW, 1);
+ 
++    drv->get_min_size(h_drv, &min_width, &min_height);
++    min_width  = ((min_width + (WIDTH_INC - 1)) / WIDTH_INC) * WIDTH_INC;
++    min_height = ((min_height + (HEIGHT_INC - 1)) / HEIGHT_INC) * HEIGHT_INC;
++    if (debug)
++	fprintf(stderr,"main: window min size %dx%d\n", min_width, min_height);
+     XtVaSetValues(app_shell,
+ 		  XtNwidthInc,  WIDTH_INC,
+ 		  XtNheightInc, HEIGHT_INC,
+-		  XtNminWidth,  WIDTH_INC,
+-		  XtNminHeight, HEIGHT_INC,
++		  XtNminWidth,  min_width,
++		  XtNminHeight, min_height,
+ 		  NULL);
+     if (f_drv & CAN_TUNE)
+ 	XtVaSetValues(chan_shell,
+-- 
+1.8.1.4
 
-Please don't do it like that. Ok, for now it is in staging,
-but once you move it outside it, please move the cypress load firmware
-code to drivers/media/common, and do the proper changes for it to be
-shared between go7007 and dvb-usb-v2.
-
-Regards,
-Mauro
