@@ -1,104 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog117.obsmtp.com ([74.125.149.242]:51002 "EHLO
-	na3sys009aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755550Ab3CMCiI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Mar 2013 22:38:08 -0400
-From: Libin Yang <lbyang@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Albert Wang <twang13@marvell.com>,
-	"corbet@lwn.net" <corbet@lwn.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 12 Mar 2013 19:34:07 -0700
-Subject: RE: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support
- for marvell-ccic driver
-Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF230B6F4819@SC-VEXCH4.marvell.com>
-References: <1360238687-15768-1-git-send-email-twang13@marvell.com>
- <1360238687-15768-2-git-send-email-twang13@marvell.com>
- <Pine.LNX.4.64.1303042128390.20206@axis700.grange>
- <A63A0DC671D719488CD1A6CD8BDC16CF230B65F82E@SC-VEXCH4.marvell.com>
- <Pine.LNX.4.64.1303121044490.680@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1303121044490.680@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:33657 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755267Ab3CaNxA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 Mar 2013 09:53:00 -0400
+Date: Sun, 31 Mar 2013 10:52:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.9-rc4] media fixes
+Message-ID: <20130331105252.3e7e9367@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Linus,
 
->-----Original Message-----
->From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
->Sent: Tuesday, March 12, 2013 6:08 PM
->To: Libin Yang
->Cc: Albert Wang; corbet@lwn.net; Linux Media Mailing List
->Subject: RE: [REVIEW PATCH V4 01/12] [media] marvell-ccic: add MIPI support for
->marvell-ccic driver
->
->Hi Libin
->
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
->> >
->> >A general comment first: I have no idea about this hardware, so, feel free
->> >to ignore all my hardware-handling related comments. But just from looking
->> >your handling of the pll1 clock does seem a bit fishy to me. You acquire
->> >and release the clock in the generic mcam code, but only use it in the mmp
->> >driver. Is it really needed centrally? Wouldn't it suffice to only acquire
->> >it in mmp? Same goes for your mcam_config_mipi() function - is it really
->> >needed centrally? But as I said, maybe I'm just missing something.
->>
->> [Libin] For the mcam_config_mipi() function, it is used to config mipi
->> in the soc. All boards need to configure it if they are using MIPI based
->> on Marvell CCIC. So I think this function should be in the mcam-core.
->>
->> For the pll1, I think you are right. Actually, it is board based. MMP
->> based boards are using pll1 to calculate the dphy. And I can not
->> guarantee that all boards need pll1. It seems putting pll1 in the
->> mmp-driver is more reasonable. But do you remember, in the previous
->> patch review, you mentioned that it is better to keep the reference to
->> the clock until clean up, because other components may change it. So
->> what I design is: get pll1 and hold it in the open and release it
->> automatically with devm (It may be better to release the pll1 when
->> closing the camera). The problem is in mmp-driver, there is no such
->> point to get the pll1. The open action is in the mcam-core. If I move
->> getting pll1 to the probe function of mmp-driver and putting it in
->> remove, it means camera driver will hold the pll1 all the time. Do you
->> have some suggestions?
->
->Wouldn't it be possible to acquire the clock in mmpcam_power_up() like
->
->struct mmp_camera {
->	...
->+	struct clk *mipi;
->};
->
->static int mmpcam_probe(struct platform_device *pdev)
->{
->	...
->+	cam->mipi = ERR_PTR(-EINVAL);
->	...
->
->-static void mmpcam_power_up(struct mcam_camera *mcam)
->+static int mmpcam_power_up(struct mcam_camera *mcam)
->{
->	...
->+	if (mcam->bus_type == V4L2_MBUS_CSI2 && IS_ERR(cam->mipi)) {
->+		cam->mipi = devm_clk_get(mcam->dev, "mipi");
->+		if (IS_ERR(cam->mipi))
->+			return PTR_ERR(cam->mipi);
->+	}
->
->Yes, it might be good to change the return type of .plat_power_up() to int
->in a separate patch first. And I think a clock name like "mipi" is better
->suitable here, since, as you say, not on all hardware it will be pll1.
+For a some fixes for Kernel 3.9:
+	- A subsystem build fix when VIDEO_DEV=y, VIDEO_V4L2=m and I2C=m.
+	- A compilation fix for arm multiarch preventing IR_RX51 to be
+	  selected;
+	- a regression fix at bttv crop logic;
+	- s5p-mfc/m5mols/exynos: a few fixes for cameras on exynos hardware.
 
-[Libin] It is reasonable to acquire the clock in mmpcam_power_up() and release it in mmpcam_power_down(). So we can get the clock when opening and put the clock when closing. Using "mipi" is a good suggestion. And I'd like to put "mipi" clock in the struct mmp_camera, as it is platform related.
+Thanks!
+Mauro
 
->
->> [snip]
->>
->> >
+-
 
-Regards,
-Libin
+The following changes since commit a937536b868b8369b98967929045f1df54234323:
+
+  Linux 3.9-rc3 (2013-03-17 15:59:32 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to 35ccecef6ed48a5602755ddf580c45a026a1dc05:
+
+  [media] [REGRESSION] bt8xx: Fix too large height in cropcap (2013-03-26 08:37:00 -0300)
+
+----------------------------------------------------------------
+Andrzej Hajda (1):
+      [media] m5mols: Fix bug in stream on handler
+
+Arnd Bergmann (1):
+      [media] ir: IR_RX51 only works on OMAP2
+
+Arun Kumar K (2):
+      [media] s5p-mfc: Fix frame skip bug
+      [media] s5p-mfc: Fix encoder control 15 issue
+
+Hans de Goede (1):
+      [media] [REGRESSION] bt8xx: Fix too large height in cropcap
+
+Mauro Carvalho Chehab (2):
+      Merge tag 'v3.9-rc3' into v4l_for_linus
+      [media] fix compilation with both V4L2 and I2C as 'm'
+
+Shaik Ameer Basha (4):
+      [media] fimc-lite: Initialize 'step' field in fimc_lite_ctrl structure
+      [media] fimc-lite: Fix the variable type to avoid possible crash
+      [media] exynos-gsc: send valid m2m ctx to gsc_m2m_job_finish
+      [media] s5p-fimc: send valid m2m ctx to fimc_m2m_job_finish
+
+Sylwester Nawrocki (1):
+      [media] s5p-fimc: Do not attempt to disable not enabled media pipeline
+
+ drivers/media/i2c/m5mols/m5mols_core.c          |  2 +-
+ drivers/media/pci/bt8xx/bttv-driver.c           | 20 +++++++++----
+ drivers/media/platform/exynos-gsc/gsc-core.c    |  8 +++--
+ drivers/media/platform/s5p-fimc/fimc-core.c     |  6 ++--
+ drivers/media/platform/s5p-fimc/fimc-lite-reg.c |  8 ++---
+ drivers/media/platform/s5p-fimc/fimc-lite.c     |  1 +
+ drivers/media/platform/s5p-fimc/fimc-mdevice.c  | 39 ++++++++++++-------------
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  1 +
+ drivers/media/rc/Kconfig                        |  2 +-
+ drivers/media/v4l2-core/Makefile                |  2 +-
+ 11 files changed, 53 insertions(+), 38 deletions(-)
+
