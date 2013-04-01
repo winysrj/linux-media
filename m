@@ -1,103 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43066 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28839 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757455Ab3DAGE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Apr 2013 02:04:26 -0400
-Message-ID: <5159234E.8080105@ti.com>
-Date: Mon, 1 Apr 2013 11:33:58 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
-References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com> <1650338.UonQ4LqB70@avalon> <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com> <3365178.uRYh2rr3nD@avalon> <CA+V-a8sWCx1CpDbtDHVZKGpW2z1FrPpY1o3UJaoU6nEK9RN=Ug@mail.gmail.com>
-In-Reply-To: <CA+V-a8sWCx1CpDbtDHVZKGpW2z1FrPpY1o3UJaoU6nEK9RN=Ug@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+	id S1758318Ab3DAOnI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Apr 2013 10:43:08 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH 5/5] [media] mb86a20s: better name temp vars at mb86a20s_layer_bitrate()
+Date: Mon,  1 Apr 2013 11:41:59 -0300
+Message-Id: <1364827319-18332-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1364827319-18332-1-git-send-email-mchehab@redhat.com>
+References: <20130401072529.GL18466@mwanda>
+ <1364827319-18332-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/28/2013 3:50 PM, Prabhakar Lad wrote:
-> Hi Laurent,
-> 
-> On Thu, Mar 28, 2013 at 3:40 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi Prabhakar,
->>
->> On Thursday 28 March 2013 15:36:11 Prabhakar Lad wrote:
->>> On Thu, Mar 28, 2013 at 2:39 PM, Laurent Pinchart wrote:
->>>> On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
->>>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>>>>
->>>>> Add pm_runtime support to the TI Davinci VPIF driver.
->>>>> Along side this patch replaces clk_get() with devm_clk_get()
->>>>> to simplify the error handling.
->>>>>
->>>>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>>>> ---
->>>>>
->>>>>  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
->>>>>  1 files changed, 11 insertions(+), 10 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/platform/davinci/vpif.c
->>>>> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
->>>>> --- a/drivers/media/platform/davinci/vpif.c
->>>>> +++ b/drivers/media/platform/davinci/vpif.c
->>
->> [snip]
->>
->>>>> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
->>>>>               goto fail;
->>>>>       }
->>>>>
->>>>> -     vpif_clk = clk_get(&pdev->dev, "vpif");
->>>>> +     vpif_clk = devm_clk_get(&pdev->dev, "vpif");
->>>>>       if (IS_ERR(vpif_clk)) {
->>>>>               status = PTR_ERR(vpif_clk);
->>>>>               goto clk_fail;
->>>>>       }
->>>>>
->>>>> -     clk_prepare_enable(vpif_clk);
->>>>> +     clk_put(vpif_clk);
->>>>
->>>> Why do you need to call clk_put() here ?
->>>
->>> The above check is to see if the clock is provided, once done
->>> we free it using clk_put().
->>
->> In that case you shouldn't use devm_clk_get(), otherwise clk_put() will be
->> called again automatically at remove() time.
->>
-> Yes agreed it should be clk_get() only.
-> 
->>>>> +     pm_runtime_enable(&pdev->dev);
->>>>> +     pm_runtime_resume(&pdev->dev);
->>>>> +
->>>>> +     pm_runtime_get(&pdev->dev);
->>>>
->>>> Does runtime PM automatically handle your clock ? If so can't you remove
->>>> clock handling from the driver completely ?
->>>
->>> Yes  pm runtime take care of enabling/disabling the clocks
->>> so that we don't have to do it in drivers. I believe clock
->>> handling is removed with this patch, with just  devm_clk_get() remaining ;)
->>
->> When is the clk_get() call expected to fail ? If the clock is provided by the
->> SoC and always available, can't the check be removed completely ?
->>
-> Yes I agree with you it can be removed completely assuming the clock
-> is always available from the Soc.
-> But may be I need feedback from others Hans/Sekhar what do you suggest ?
+Using 'i' for the guard interval temporary var is a bad idea, as
+'i' is generally used by "anonymous" indexes.
 
-Unless you need the clk handle to get the clock rate or something, you
-should simply rely on runtime PM calls to enable clocks for you and not
-have any clk API call at all in your driver.
+Let's rename modulation, fec and guard interval temp vars with
+a meaningful name, as that makes easier to understand the code
+and avoids cut-and-paste types of error.
 
-Thanks,
-Sekhar
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/mb86a20s.c | 37 +++++++++++++++++-----------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index d25df75..0e6c535 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -566,12 +566,13 @@ static u32 isdbt_rate[3][5][4] = {
+ };
+ 
+ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+-				   u32 modulation, u32 fec, u32 interleaving,
++				   u32 modulation, u32 forward_error_correction,
++				   u32 interleaving,
+ 				   u32 segment)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	u32 rate;
+-	int m, f, i;
++	int mod, fec, guard;
+ 
+ 	/*
+ 	 * If modulation/fec/interleaving is not detected, the default is
+@@ -582,54 +583,54 @@ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+ 	case DQPSK:
+ 	case QPSK:
+ 	default:
+-		m = 0;
++		mod = 0;
+ 		break;
+ 	case QAM_16:
+-		m = 1;
++		mod = 1;
+ 		break;
+ 	case QAM_64:
+-		m = 2;
++		mod = 2;
+ 		break;
+ 	}
+ 
+-	switch (fec) {
++	switch (forward_error_correction) {
+ 	default:
+ 	case FEC_1_2:
+ 	case FEC_AUTO:
+-		f = 0;
++		fec = 0;
+ 		break;
+ 	case FEC_2_3:
+-		f = 1;
++		fec = 1;
+ 		break;
+ 	case FEC_3_4:
+-		f = 2;
++		fec = 2;
+ 		break;
+ 	case FEC_5_6:
+-		f = 3;
++		fec = 3;
+ 		break;
+ 	case FEC_7_8:
+-		f = 4;
++		fec = 4;
+ 		break;
+ 	}
+ 
+ 	switch (interleaving) {
+ 	default:
+ 	case GUARD_INTERVAL_1_4:
+-		i = 0;
++		guard = 0;
+ 		break;
+ 	case GUARD_INTERVAL_1_8:
+-		i = 1;
++		guard = 1;
+ 		break;
+ 	case GUARD_INTERVAL_1_16:
+-		i = 2;
++		guard = 2;
+ 		break;
+ 	case GUARD_INTERVAL_1_32:
+-		i = 3;
++		guard = 3;
+ 		break;
+ 	}
+ 
+ 	/* Samples BER at BER_SAMPLING_RATE seconds */
+-	rate = isdbt_rate[m][f][i] * segment * BER_SAMPLING_RATE;
++	rate = isdbt_rate[mod][fec][guard] * segment * BER_SAMPLING_RATE;
+ 
+ 	/* Avoids sampling too quickly or to overflow the register */
+ 	if (rate < 256)
+@@ -639,13 +640,13 @@ static void mb86a20s_layer_bitrate(struct dvb_frontend *fe, u32 layer,
+ 
+ 	dev_dbg(&state->i2c->dev,
+ 		"%s: layer %c bitrate: %d kbps; counter = %d (0x%06x)\n",
+-	       __func__, 'A' + layer, segment * isdbt_rate[m][f][i]/1000,
++	        __func__, 'A' + layer,
++	        segment * isdbt_rate[mod][fec][guard]/1000,
+ 		rate, rate);
+ 
+ 	state->estimated_rate[layer] = rate;
+ }
+ 
+-
+ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+-- 
+1.8.1.4
+
