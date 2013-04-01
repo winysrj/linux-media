@@ -1,78 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f202.google.com ([209.85.161.202]:65488 "EHLO
-	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755226Ab3DXAm6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 20:42:58 -0400
-Received: by mail-gg0-f202.google.com with SMTP id 4so138935ggm.5
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 17:42:58 -0700 (PDT)
-From: Shawn Nematbakhsh <shawnn@chromium.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:16110 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758507Ab3DAOnJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Apr 2013 10:43:09 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	shawnn@chromium.org
-Subject: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
-Date: Tue, 23 Apr 2013 17:42:32 -0700
-Message-Id: <1366764152-9797-1-git-send-email-shawnn@chromium.org>
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH 1/5] [media] mb86a20s: Use a macro for the number of layers
+Date: Mon,  1 Apr 2013 11:41:55 -0300
+Message-Id: <1364827319-18332-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1364827319-18332-1-git-send-email-mchehab@redhat.com>
+References: <20130401072529.GL18466@mwanda>
+ <1364827319-18332-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While usb_kill_urb is in progress, calls to usb_submit_urb will fail
-with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
-does not correctly handle this case -- there is no synchronization
-between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
-uvc_status_stop.
+Instead of using the magic number "3", use NUM_LAYERS macro
+on all places that are related to the ISDB-T layers.
 
-This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
-returns -EPERM. This usually means that usb_kill_urb is in progress, and
-we just need to wait a while.
+This makes the source code a little more readable.
 
-Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
+No functional changes.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
- drivers/media/usb/uvc/uvcvideo.h |  1 +
- 2 files changed, 10 insertions(+), 1 deletion(-)
+ drivers/media/dvb-frontends/mb86a20s.c | 32 +++++++++++++++++---------------
+ 1 file changed, 17 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index b2dc326..f1498a8 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
- {
- 	struct uvc_streaming *stream;
- 	struct uvc_fh *handle;
-+	unsigned long timeout;
- 	int ret = 0;
+diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
+index d04b52e..80a8ee0 100644
+--- a/drivers/media/dvb-frontends/mb86a20s.c
++++ b/drivers/media/dvb-frontends/mb86a20s.c
+@@ -20,6 +20,8 @@
+ #include "dvb_frontend.h"
+ #include "mb86a20s.h"
  
- 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
-@@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
++#define NUM_LAYERS 3
++
+ static int debug = 1;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
+@@ -48,7 +50,7 @@ struct mb86a20s_state {
+ 	bool inversion;
+ 	u32 subchannel;
+ 
+-	u32 estimated_rate[3];
++	u32 estimated_rate[NUM_LAYERS];
+ 	unsigned long get_strength_time;
+ 
+ 	bool need_init;
+@@ -666,7 +668,7 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ 
+ 	/* Get per-layer data */
+ 
+-	for (i = 0; i < 3; i++) {
++	for (i = 0; i < NUM_LAYERS; i++) {
+ 		dev_dbg(&state->i2c->dev, "%s: getting data for layer %c.\n",
+ 			__func__, 'A' + i);
+ 
+@@ -828,7 +830,7 @@ static int mb86a20s_get_pre_ber(struct dvb_frontend *fe,
+ 
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+-	if (layer >= 3)
++	if (layer >= NUM_LAYERS)
+ 		return -EINVAL;
+ 
+ 	/* Check if the BER measures are already available */
+@@ -962,7 +964,7 @@ static int mb86a20s_get_post_ber(struct dvb_frontend *fe,
+ 
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+-	if (layer >= 3)
++	if (layer >= NUM_LAYERS)
+ 		return -EINVAL;
+ 
+ 	/* Check if the BER measures are already available */
+@@ -1089,7 +1091,7 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
+ 	u32 collect_rate;
+ 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
+ 
+-	if (layer >= 3)
++	if (layer >= NUM_LAYERS)
+ 		return -EINVAL;
+ 
+ 	/* Check if the PER measures are already available */
+@@ -1476,7 +1478,7 @@ static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
  	}
  
- 	if (atomic_inc_return(&stream->dev->users) == 1) {
--		ret = uvc_status_start(stream->dev);
-+		timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
-+		/* -EPERM means stop in progress, wait for completion */
-+		do {
-+			ret = uvc_status_start(stream->dev);
-+			if (ret == -EPERM)
-+				usleep_range(5000, 6000);
-+		} while (ret == -EPERM && time_before(jiffies, timeout));
-+
- 		if (ret < 0) {
- 			atomic_dec(&stream->dev->users);
- 			usb_autopm_put_interface(stream->dev->intf);
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index af505fd..a47e1d3 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -122,6 +122,7 @@
+ 	/* Read all layers */
+-	for (i = 0; i < 3; i++) {
++	for (i = 0; i < NUM_LAYERS; i++) {
+ 		if (!(c->isdbt_layer_enabled & (1 << i))) {
+ 			c->cnr.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
+ 			continue;
+@@ -1565,20 +1567,20 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
+ 	c->strength.len = 1;
  
- #define UVC_CTRL_CONTROL_TIMEOUT	300
- #define UVC_CTRL_STREAMING_TIMEOUT	5000
-+#define UVC_STATUS_START_TIMEOUT	100
+ 	/* Per-layer stats - 3 layers + global */
+-	c->cnr.len = 4;
+-	c->pre_bit_error.len = 4;
+-	c->pre_bit_count.len = 4;
+-	c->post_bit_error.len = 4;
+-	c->post_bit_count.len = 4;
+-	c->block_error.len = 4;
+-	c->block_count.len = 4;
++	c->cnr.len = NUM_LAYERS + 1;
++	c->pre_bit_error.len = NUM_LAYERS + 1;
++	c->pre_bit_count.len = NUM_LAYERS + 1;
++	c->post_bit_error.len = NUM_LAYERS + 1;
++	c->post_bit_count.len = NUM_LAYERS + 1;
++	c->block_error.len = NUM_LAYERS + 1;
++	c->block_count.len = NUM_LAYERS + 1;
  
- /* Maximum allowed number of control mappings per device */
- #define UVC_MAX_CONTROL_MAPPINGS	1024
+ 	/* Signal is always available */
+ 	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
+ 	c->strength.stat[0].uvalue = 0;
+ 
+ 	/* Put all of them at FE_SCALE_NOT_AVAILABLE */
+-	for (i = 0; i < 4; i++) {
++	for (i = 0; i < NUM_LAYERS + 1; i++) {
+ 		c->cnr.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
+ 		c->pre_bit_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
+ 		c->pre_bit_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
+@@ -1617,7 +1619,7 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
+ 	if (status_nr < 9)
+ 		return 0;
+ 
+-	for (i = 0; i < 3; i++) {
++	for (i = 0; i < NUM_LAYERS; i++) {
+ 		if (c->isdbt_layer_enabled & (1 << i)) {
+ 			/* Layer is active and has rc segments */
+ 			active_layers++;
 -- 
-1.7.12.4
+1.8.1.4
 
