@@ -1,92 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46231 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753561Ab3D1VIe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 17:08:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Igor Kugasyan <kugasyan@hotmail.com>
-Cc: "todd.fischer@ridgerun.com" <todd.fischer@ridgerun.com>,
-	"clark.becker@ridgerun.com" <clark.becker@ridgerun.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Subject: Re: mt9v034 driver
-Date: Sun, 28 Apr 2013 23:08:38 +0200
-Message-ID: <1762550.7mDg3VrWU9@avalon>
-In-Reply-To: <DUB112-W1120C7E0BD196DF8764BA21D2B70@phx.gbl>
-References: <DUB112-W1120C7E0BD196DF8764BA21D2B70@phx.gbl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1879 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757996Ab3DASuW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 14:50:22 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id r31IoIge040708
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 1 Apr 2013 20:50:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2FD1411E0103
+	for <linux-media@vger.kernel.org>; Mon,  1 Apr 2013 20:50:17 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130401185017.2FD1411E0103@alastor.dyndns.org>
+Date: Mon,  1 Apr 2013 20:50:17 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Friday 26 April 2013 16:30:49 Igor Kugasyan wrote:
-> Dear Sirs,
-> 
-> I wrote a driver for the mt9v034 as Todd recommended (on basis of working
-> mt9p031 and mt9v022), built kernel with this driver,
+Results of the daily build of media_tree:
 
-Note that a driver for the same sensor has already been posted, see 
-https://patchwork.linuxtv.org/patch/14907/.
+date:		Mon Apr  1 19:30:52 CEST 2013
+git branch:	test
+git hash:	6bf7861fa2bb4be3cc70a6e9aed664ce65270027
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> but faced with the
-> problem:
- 
-> /dev # cat video0
-> cat: can't open 'video0': No such device
-> 
-> ----------------------------------------------------------------------------
-> NAND
-> Starting NAND Copy...
-> Valid magicnum, 0xA1ACED66, found in block 0x00000019.
-> 
-> 
-> U-Boot 2010.12-rc2 (Feb 07 2013 - 18:15:34)
-> 
-> Cores: ARM 297 MHz
-> DDR:   243 MHz
-> I2C:   ready
-> DRAM:  128 MiB
-> NAND:  256 MiB
-> MMC:   davinci: 0, davinci: 1
-> Net:   Ethernet PHY: GENERIC @ 0x00
-> DaVinci-EMAC
-> Hit any key to stop autoboot:  0 
-> 
-> Loading from nand0, offset 0x400000
->    Image Name:   "RR Linux Kernel"
->    Created:      2013-04-26  11:03:27 UTC
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    4247104 Bytes = 4.1 MiB
->    Load Address: 80008000
->    Entry Point:  80008000
-> Automatic boot of image at addr 0x82000000 ...
-> ## Booting kernel from Legacy Image at 82000000 ...
->    Image Name:   "RR Linux Kernel"
->    Created:      2013-04-26  11:03:27 UTC
->    Image Type:   ARM Linux Kernel Image (uncompressed)
->    Data Size:    4247104 Bytes = 4.1 MiB
->    Load Address: 80008000
->    Entry Point:  80008000
->    Verifying Checksum ... OK
->    Loading Kernel Image ... OK
-> OK
-> 
-> Starting kernel ...
-> 
-> Linux version 2.6.32.17-davinci1 (root@ubuntu) (gcc version 4.3.3 (Sourcery
-> G++ Lite 2009q1-203) ) #129 PREEMPT Fri Apr 26 14:02:08 EEST 2013
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Not only is 2.6.32 from ancient times, I suppose it's the kernel provided with 
-the TI BSP. I don't think you will get any support for that here, you should 
-contact your TI support channel. We can only provide support for the mainline 
-kernel.
+Detailed results are available here:
 
--- 
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Laurent Pinchart
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
