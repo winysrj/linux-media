@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:63967 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755065Ab3DTUoQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 16:44:16 -0400
-Received: by mail-la0-f50.google.com with SMTP id el20so4494849lab.9
-        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:44:15 -0700 (PDT)
-Message-ID: <5172FDEC.3070200@cogentembedded.com>
-Date: Sun, 21 Apr 2013 00:43:24 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	mchehab@redhat.com, linux-media@vger.kernel.org
-CC: horms@verge.net.au, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH 0/5] OKI ML86V7667 driver and R8A7778/BOCK-W VIN support
-References: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:11566 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751856Ab3DAGkm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 02:40:42 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MKK00DKSD7TVEM0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 01 Apr 2013 15:40:41 +0900 (KST)
+From: Seung-Woo Kim <sw0312.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
+	hans.verkuil@cisco.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com
+Subject: [RFC][PATCH 2/2] media: v4l2-mem2mem: return for polling if a buffer
+ is available
+Date: Mon, 01 Apr 2013 15:40:47 +0900
+Message-id: <1364798447-32224-3-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1364798447-32224-1-git-send-email-sw0312.kim@samsung.com>
+References: <1364798447-32224-1-git-send-email-sw0312.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+The v4l2_m2m_poll() does not need to wait if there is already a buffer in
+done_list of source and destination queues, but current v4l2_m2m_poll() always
+waits. So done_list of each queue is checked before calling poll_wait().
 
-On 04/21/2013 12:13 AM, Sergei Shtylyov wrote:
+Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
->     Here's the set of 4 patches against the Simon Horman's 'renesas.git' repo,
-> 'renesas-next-20130419' tag and my recent yet unapplied patches. Here we
-> add the OKI ML86V7667 video decoder driver and the VIN platform code working on
-> the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
-> to Mauro's 'media_tree.git'...
->
-> [1/5] V4L2: I2C: ML86V7667 video decoder driver
-> [2/5] sh-pfc: r8a7778: add VIN pin groups
-> [3/5] ARM: shmobile: r8a7778: add VIN support
-> [4/5] ARM: shmobile: BOCK-W: add VIN and ADV7180 support
-> [5/5] ARM: shmobile: BOCK-W: enable VIN and ADV7180 in defconfig
-
-     s/ADV7180/ML86V7667/. Sorry, used the old cover letter as a template
-and forgot to fix the decoder name.
-
-WBR, Sergei
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index da99cf7..b6f0316 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -458,8 +458,10 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
+ 		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
+ 
+-	poll_wait(file, &src_q->done_wq, wait);
+-	poll_wait(file, &dst_q->done_wq, wait);
++	if (list_empty(&src_q->done_list))
++		poll_wait(file, &src_q->done_wq, wait);
++	if (list_empty(&dst_q->done_list))
++		poll_wait(file, &dst_q->done_wq, wait);
+ 
+ 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
+ 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+-- 
+1.7.4.1
 
