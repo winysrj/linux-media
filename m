@@ -1,227 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15187 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757867Ab3DAWOd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 18:14:33 -0400
-Date: Mon, 1 Apr 2013 19:14:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from imr-db01.mx.aol.com ([205.188.91.95]:40027 "EHLO
+	imr-db01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758715Ab3DAWq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 18:46:56 -0400
+Message-ID: <515A0D03.7040802@netscape.net>
+Date: Mon, 01 Apr 2013 19:41:07 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
+MIME-Version: 1.0
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 0/3] em28xx: add support for two buses on em2874 and
- upper
-Message-ID: <20130401191427.5d81fbc4@redhat.com>
-In-Reply-To: <20130401191224.4da92bd8@redhat.com>
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com>
-	<51378067.3000506@googlemail.com>
-	<20130318182205.44f44e20@redhat.com>
-	<5159C05B.10902@googlemail.com>
-	<20130401162205.379bda4f@redhat.com>
-	<5159F080.1030503@googlemail.com>
-	<20130401191224.4da92bd8@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+CC: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net>
+In-Reply-To: <513A6968.4070803@netscape.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Apr 2013 19:12:24 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hi all
 
-> Em Mon, 01 Apr 2013 22:39:28 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> 
-> > Am 01.04.2013 21:22, schrieb Mauro Carvalho Chehab:
-> > > Em Mon, 01 Apr 2013 19:14:03 +0200
-> > > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> > >
-> > >> Am 18.03.2013 22:22, schrieb Mauro Carvalho Chehab:
-> > >>> Em Wed, 06 Mar 2013 18:44:07 +0100
-> > >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> > >>>
-> > >>>> Am 05.03.2013 16:43, schrieb Devin Heitmueller:
-> > >>>>> 2013/3/5 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> > >>>>>> The em2874 chips and upper have 2 buses. On all known devices, bus 0 is
-> > >>>>>> currently used only by eeprom, and bus 1 for the rest. Add support to
-> > >>>>>> register both buses.
-> > >>>>> Did you add a mutex to ensure that both buses cannot be used at the
-> > >>>>> same time?  Because using the bus requires you to toggle a register
-> > >>>>> (thus you cannot be using both busses at the same time), you cannot
-> > >>>>> rely on the existing i2c adapter lock anymore.
-> > >>>>>
-> > >>>>> You don't want a situation where something is actively talking on bus
-> > >>>>> 0, and then something else tries to talk on bus 1, flips the register
-> > >>>>> bit and then the thread talking on bus 0 starts failing.
-> > >>>>>
-> > >>>>> Devin
-> > >>>> Hmm... there are several writes to EM28XX_R06_I2C_CLK in em28xx-dvb...
-> > >>>> See hauppauge_hvr930c_init(), terratec_h5_init() and
-> > >>>> terratec_htc_stick_init().
-> > >>>> These functions are called from em28xx_dvb_init() at module init.
-> > >>>> Module init is async, so yes, this is (or could at least become) a
-> > >>>> problem...
-> > >>>>
-> > >>>> I wonder if we can't simply remove all those writes to
-> > >>>> EM28XX_R06_I2C_CLK from em28xx-dvb.
-> > >>>> This is what the functions are doing:
-> > >>>>
-> > >>>> hauppauge_hvr930c_init()
-> > >>>>     ...
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> > >>>>     msleep(10);
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> > >>>>     msleep(10);
-> > >>>>     ... [init sequence for slave at address 0x82]
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> > >>>>     msleep(30);
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
-> > >>>>     msleep(10);
-> > >>>>
-> > >>>> terratec_h5_init():
-> > >>>>     ...
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> > >>>>     msleep(10);
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
-> > >>>>     msleep(10);
-> > >>>>     ...
-> > >>>>
-> > >>>> terratec_htc_stick_init()
-> > >>>>     ...
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> > >>>>     msleep(10);
-> > >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> > >>>>     msleep(10);
-> > >>>>     ...
-> > >>>>
-> > >>>> All three boards are using the following settings:
-> > >>>>         .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
-> > >>>> EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_400_KHZ = 0x45
-> > >>>>
-> > >>>> So what these functions are doing is
-> > >>>> - switch to bus A and do nothing fo 10ms
-> > >>>> - overwrite board settings for reg 0x06 with a local value (clears
-> > >>>> EM28XX_I2C_FREQ_400_KHZ permanently for the HTC-Stick !).
-> > >>>>
-> > >>>> I can test the HVR-930C next week.
-> > >> Ok, I finally had the chance to test with a HVR-930C, but it seems my
-> > >> device () is different.
-> > 
-> > I forgot to insert the device/model of the device I tested: it's 16009, B1F0
-> 
-> It has the same model as the one I have here.
-> 
-> > 
-> > >> It has no slave device at i2c address 0x82, so I can't test this part.
-> > >> Btw, which slave device is this ?
-> 
-> AFAIKT, at address 0x41, there is the analog demod (avf4910b). It is not
-> used by Digital TV (although I'm not sure if, for this device, it needs
-> to be initialized or not).
-> 
-> We don't have enough documentation to write a driver for avf4910b. Some
-> developers at the ML are trying to implement support for it for HVR-930C:
-> 
-> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg59296.html
-> 
-> There is a code pointed there for avf4910a:
-> 	https://github.com/wurststulle/ngene_2400i/blob/2377b1fd99d91ff355a5e46881ef27ccc87cb376/avf4910a.c
-> 
-> Also, maybe to access the avf4910b some different GPIO setting may be needed,
-> as it might be powered off by the GPIO settings initialized at device init.
-> 
-> > >>
-> > >> Removing the temporary switches to bus A makes no difference (as expected).
-> > >>
-> > >>> There are some things there on the init sequence that can be
-> > >>> cleaned/removed. Those sequences generally comes from observing
-> > >>> what the original driver does. While it produces a working driver,
-> > >>> in general, it is not optimized and part of the init sequence can
-> > >>> be removed.
-> > >> Do you want me to send patches to remove these writes ?
-> > >> Which i2c speed settings do you suggest for the HVR-930C and the
-> > >> HTC-Stick (board settings:
-> > >> EM28XX_I2C_FREQ_400_KHZ, code overwrites it with EM28XX_I2C_FREQ_100_KHZ) ?
-> > > Sure. The better would be to even remove the hauppauge_hvr930c_init()
-> > > function, as this is just a hack, and use the setup via the em28xx-cards
-> > > commented entries:
-> > >
-> > > 		.tuner_type   = TUNER_XC5000,
-> > > 		.tuner_addr   = 0x41,
-> > > 		.dvb_gpio     = hauppauge_930c_digital,
-> > > 		.tuner_gpio   = hauppauge_930c_gpio,
-> > 
-> > Hmm... tuner address is 0x61 for the device I tested !
-> > The register sequences in em28xx-cards.c also seem to be different to
-> > the ones used in hauppauge_hvr930c_init() in em28xx-dvb.c...
-> 
-> I'm not telling that the entries there are right. They aren't. If they
-> where working, that data there weren't commented. This device entry
-> started with a clone from Terratec H5, which was the first em28xx
-> device with DRX-K.
-> 
-> On Terratec H5, the tuner is different (based on tda8290/tda8275).
-> The current device initialization started as a clone of the code
-> under terratec_h5_init().
-> 
-> As it worked like that, the patch author that added support for HVR-930
-> likely didn't touch on it.
-> 
-> The tuner for HVR930C is clearly at 0x61 address, as it can be seen at
-> em28xx-dvb:
-> 
->                 /* Attach xc5000 */
->                	memset(&cfg, 0, sizeof(cfg));
->                 cfg.i2c_address  = 0x61;
->                 cfg.if_khz = 4000;
-> 
->                 if (dvb->fe[0]->ops.i2c_gate_ctrl)
->                         dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 1);
->                	if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap[dev->def_i2c_bus],
->                                 &cfg)) {
->                         result = -EINVAL;
->                         goto out_free;
->                 }
-> 
-> > Are you sure this will work for _all_ variants of the HVR-930C ?
-> 
-> Well, the current code will only work with a HVR-930C with a xc5000 tuner,
-> a drx-k demod and an em28xx (and an avf4910b analog TV demod).
-> 
-> Any other model with a different layout, if are there any, won't work 
-> anyway.
-> 
-> While we can't discard that a different model might have a different GPIO
-> setting, Hauppauge tends to keep the GPIO settings equal for the same
-> device brand name. 
-> 
-> So, it seems very unlikely that any change here will keep it working for
-> model 16009 while breaking it for other devices.
+After analyzing 15 samples (took me many days),I obtained the table 
+underneath.
 
-In time, I meant to say:
-	"So, it seems very unlikely that any change here will keep it working for
-	 model 16009 while breaking it for other HVR-930 devices."
+     { 0x70, 0x0f },
+     { 0x70, 0xff },
+     { 0x09, 0x3a },
+     { 0x50, 0xd1 }, { 0x51, 0x22 },
+     { 0x39, 0x00 },
+     { 0x28, 0x2a }, { 0x29, 0x00 }, { 0x2a, 0xfd }, { 0x2b, 0xc8 },
+     { 0x3b, 0x21 },
+     { 0x3c, 0x38 },
+     { 0x28, 0x20 }, { 0x29, 0x3e }, { 0x2a, 0xde }, { 0x2b, 0x4d },
+     { 0x28, 0x22 }, { 0x29, 0x00 }, { 0x2a, 0x1f }, { 0x2b, 0xf0 },
+     { 0x01, 0x0d },
+     { 0x04, 0x08 }, { 0x05, 0x03 },
+     { 0x04, 0x0e }, { 0x05, 0x00 },
+     { 0x04, 0x0f }, { 0x05, 0x32 },
+     { 0x04, 0x0b }, { 0x05, 0x78 },
+     { 0x04, 0x00 }, { 0x05, 0x00 },
+     { 0x04, 0x01 }, { 0x05, 0x1e },
+     { 0x04, 0x02 }, { 0x05, 0x07 },
+     { 0x04, 0x03 }, { 0x05, 0xd0 },
+     { 0x04, 0x09 }, { 0x05, 0x00 },
+     { 0x04, 0x0a }, { 0x05, 0xff },
+     { 0x04, 0x27 }, { 0x05, 0x00 },
+     { 0x04, 0x28 }, { 0x05, 0x00 },
+     { 0x04, 0x1e }, { 0x05, 0x00 },
+     { 0x04, 0x29 }, { 0x05, 0x64 },
+     { 0x04, 0x32 }, { 0x05, 0x64 },
+     { 0x04, 0x14 }, { 0x05, 0x02 },
+     { 0x04, 0x04 }, { 0x05, 0x00 },
+     { 0x04, 0x05 }, { 0x05, 0x22 },
+     { 0x04, 0x06 }, { 0x05, 0x0e },
+     { 0x04, 0x07 }, { 0x05, 0xd8 },
+     { 0x04, 0x12 }, { 0x05, 0x00 },
+     { 0x04, 0x13 }, { 0x05, 0xff },
 
-> 
-> > I think it would be better if you would create those patches.
-> > I really don't like writing patches without completely understanding the
-> > code, not beeing able to test them and commit messages saying "Mauro
-> > told me to do this"... ;)
-> 
-> > You also didn't answer my question concerning the i2c speed settings. ;)
-> 
-> What question?
-> 
-> Each bus may have a different max I2C speed, but the speed should not
-> change on the same I2C bus over the time. If the driver is doing that,
-> this is a bug that needs to be fixed.
-> 
-> Regards,
-> Mauro
+     { 0x52, 0x01 },
+     { 0x50, 0xa7 }, { 0x51, 0x00 },
+     { 0x50, 0xa8 }, { 0x51, 0xff },
+     { 0x50, 0xa9 }, { 0x51, 0xff },
+     { 0x50, 0xaa }, { 0x51, 0x00 },
+     { 0x50, 0xab }, { 0x51, 0xff },
+     { 0x50, 0xac }, { 0x51, 0xff },
+     { 0x50, 0xad }, { 0x51, 0x00 },
+     { 0x50, 0xae }, { 0x51, 0xff },
+     { 0x50, 0xaf }, { 0x51, 0xff },
+
+     { 0x5e, 0x07 },
+     { 0x50, 0xdc }, { 0x51, 0x3f },
+     { 0x50, 0xdd }, { 0x51, 0xff },
+     { 0x50, 0xde }, { 0x51, 0x3f },
+     { 0x50, 0xdf }, { 0x51, 0xff },
+     { 0x50, 0xe0 }, { 0x51, 0x3f },
+     { 0x50, 0xe1 }, { 0x51, 0xff },
+     { 0x50, 0xb0 }, { 0x51, 0x07 },
+     { 0x50, 0xb2 }, { 0x51, 0x3f },
+     { 0x50, 0xb3 }, { 0x51, 0xff },
+     { 0x50, 0xb4 }, { 0x51, 0x3f },
+     { 0x50, 0xb5 }, { 0x51, 0xff },
+     { 0x50, 0xb6 }, { 0x51, 0x3f },
+     { 0x50, 0xb7 }, { 0x51, 0xff },
+
+     { 0x50, 0x51 }, { 0x51, 0x04 },
+     { 0x50, 0x50 }, { 0x51, 0x02 },
+     { 0x45, 0x04 },
+     { 0x48, 0x04 },
+
+     { 0x50, 0xd5 }, { 0x51, 0x00 },
+     { 0x50, 0xd6 }, { 0x51, 0x1f },
+     { 0x50, 0xd2 }, { 0x51, 0x03 },
+     { 0x50, 0xd7 }, { 0x51, 0x3f },
+     { 0x28, 0x74 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xff },
+     { 0x28, 0x46 }, { 0x29, 0x00 }, { 0x2a, 0x1a }, { 0x2b, 0x0c },
+
+     { 0x04, 0x40 }, { 0x05, 0x00 },
+     { 0x28, 0x00 }, { 0x2b, 0x08 },
+     { 0x28, 0x05 }, { 0x2b, 0x00 },
+     { 0x1c, 0x01 },
+     { 0x28, 0x06 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x1f },
+     { 0x28, 0x07 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x18 },
+     { 0x28, 0x08 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x12 },
+     { 0x28, 0x09 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x30 },
+     { 0x28, 0x0a }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x37 },
+     { 0x28, 0x0b }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x02 },
+     { 0x28, 0x0c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x09 },
+     { 0x28, 0x0d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x06 },
+     { 0x28, 0x0e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7b },
+     { 0x28, 0x0f }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x76 },
+     { 0x28, 0x10 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x7d },
+     { 0x28, 0x11 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x08 },
+     { 0x28, 0x12 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0b },
+     { 0x28, 0x13 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x00 },
+     { 0x28, 0x14 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf2 },
+     { 0x28, 0x15 }, { 0x29, 0x00 }, { 0x2a, 0x01 }, { 0x2b, 0xf3 },
+     { 0x28, 0x16 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x05 },
+     { 0x28, 0x17 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x16 },
+     { 0x28, 0x18 }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x0f },
+     { 0x28, 0x19 }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xef },
+     { 0x28, 0x1a }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xd8 },
+     { 0x28, 0x1b }, { 0x29, 0x00 }, { 0x2a, 0x07 }, { 0x2b, 0xf1 },
+     { 0x28, 0x1c }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x3d },
+     { 0x28, 0x1d }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0x94 },
+     { 0x28, 0x1e }, { 0x29, 0x00 }, { 0x2a, 0x00 }, { 0x2b, 0xba },
+     { 0x50, 0x1e }, { 0x51, 0x5d },
+     { 0x50, 0x22 }, { 0x51, 0x00 },
+     { 0x50, 0x23 }, { 0x51, 0xc8 },
+     { 0x50, 0x24 }, { 0x51, 0x00 },
+     { 0x50, 0x25 }, { 0x51, 0xf0 },
+     { 0x50, 0x26 }, { 0x51, 0x00 },
+     { 0x50, 0x27 }, { 0x51, 0xc3 },
+     { 0x50, 0x39 }, { 0x51, 0x02 },
 
 
--- 
+It has very few changes from the one that comes with the controller, but 
+when trying to use it I get the following:
 
-Cheers,
-Mauro
+{ 0x70, 0x0f },
+{ 0x70, 0xff },
+{ 0x09, 0x3a },
+{ 0x50, 0xd1 }, { 0x51, 0x22 },
+{ 0x09, 0x3e },               /* This line is inserted alone. Initialize 
+the frontend? */
+{ 0x39, 0x01 },              /* This line is inserted alone. Initialize 
+the frontend? */
+{ 0x71, 0x00 },              /* This line is inserted alone. Initialize 
+the frontend? */
+{ 0x28, 0x2a }, { 0x29, 0x5a }, { 0x2a, 0x6c }, { 0x2b, 0x63 },          
+/* This line is inserted alone. Adjust IF frequency to match tuner? */
+{ 0x28, 0x20 }, { 0x29, 0x33 }, { 0x2a, 0xdf }, { 0x2b, 0xa9 },          
+/* This line is inserted alone. Adjust IF frequency to match tuner? */
+{ 0x50, 0xd5 }, { 0x51, 0x00 },                /* This line is inserted 
+alone. Adjust IF frequency to match tuner? */
+{ 0x39, 0x00 },
+{ 0x28, 0x2a }, { 0x29, 0x00 }, { 0x2a, 0xfd }, { 0x2b, 0xc8 },
+{ 0x3b, 0x21 },
+{ 0x3c, 0x38 },
+{ 0x28, 0x20 }, { 0x29, 0x3e }, { 0x2a, 0xde }, { 0x2b, 0x4d },
+{ 0x28, 0x22 }, { 0x29, 0x00 }, { 0x2a, 0x1f }, { 0x2b, 0xf0 },
+...
+For the rest I get the same thing on Windows. I have commented the line 
+that added "alone".
+
+
+I get the following with dvbv5:
+
+
+alfredo@dhcppc4:~> dvbv5-zap -I zap -c ~/channels.conf "Encuentro"
+using demux '/dev/dvb/adapter0/demux0'
+reading channels from file '/home/alfredo/channels.conf'
+CODE_RATE_HP (36) command not found during store
+CODE_RATE_LP (37) command not found during store
+MODULATION (4) command not found during store
+HIERARCHY (40) command not found during store
+tuning to 521142857 Hz
+video pid 272
+audio pid 273
+status 01 | signal 0000 | snr ffff | ber 00000000 | unc 0000ffff |
+status 01 | signal 0000 | snr ffff | ber 00000000 | unc 0000ffff |
+status 01 | signal 0000 | snr ffff | ber 00000000 | unc 0000ffff |
+
+Wath means: CODE_RATE_HP (36) command not found during store; 
+CODE_RATE_LP (37) command not found during store; MODULATION (4) command 
+not found during store; HIERARCHY (40) command not found during store?
+
+Any suggestions,
+
+Thanks,
+
+Alfredo
