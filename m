@@ -1,85 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25370 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936341Ab3DHPin (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:38:43 -0400
-Message-id: <5162E47E.8010306@samsung.com>
-Date: Mon, 08 Apr 2013 17:38:38 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v7 2/7] media: V4L2: support asynchronous subdevice
- registration
-References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
- <1365419231-14830-3-git-send-email-g.liakhovetski@gmx.de>
- <5162C934.90808@samsung.com> <Pine.LNX.4.64.1304081548360.29945@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1304081548360.29945@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2561 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756736Ab3DAOj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 10:39:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] xawtv: release buffer if it can't be displayed
+Date: Mon, 1 Apr 2013 16:39:57 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201303301047.41952.hverkuil@xs4all.nl> <201304011219.30985.hverkuil@xs4all.nl> <51599877.2050801@redhat.com>
+In-Reply-To: <51599877.2050801@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304011639.57747.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/2013 03:55 PM, Guennadi Liakhovetski wrote:
-> On Mon, 8 Apr 2013, Sylwester Nawrocki wrote:
->> On 04/08/2013 01:07 PM, Guennadi Liakhovetski wrote:
-[...]
->>> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
->>> +						    struct v4l2_async_subdev_list *asdl)
->>> +{
->>> +	struct v4l2_async_subdev *asd = NULL;
->>> +	bool (*match)(struct device *,
->>> +		      struct v4l2_async_hw_device *);
->>> +
->>> +	list_for_each_entry (asd, &notifier->waiting, list) {
->>> +		struct v4l2_async_hw_device *hw = &asd->hw;
->>> +		switch (hw->bus_type) {
->>> +		case V4L2_ASYNC_BUS_SPECIAL:
->>> +			match = hw->match.special.match;
->>> +			if (!match)
->>> +				/* Match always */
->>> +				return asd;
->>> +			break;
->>> +		case V4L2_ASYNC_BUS_PLATFORM:
->>> +			match = match_platform;
->>> +			break;
->>> +		case V4L2_ASYNC_BUS_I2C:
->>> +			match = match_i2c;
->>> +			break;
->>> +		default:
->>> +			/* Oops */
->>> +			match = NULL;
->>> +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
->>> +				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
->>> +		}
->>> +
->>> +		if (match && match(asdl->dev, hw))
->>> +			break;
->>
->> Since we maintain various lists of sub-devices, couldn't we match them e.g. by
->> name instead ? What would be preventing this ?
+On Mon April 1 2013 16:23:51 Hans de Goede wrote:
+> Hi,
 > 
-> Do you have a specific case where your proposal would work, whereas mine 
-> wouldn't? This can be changed at any time, we can leave it until there's a 
-> real use-case, for which this implementation wouldn't work.
-
-No, don't have any specific case in mind. Just was wondering if we don't
-happen to be over-engineering things a bit. And yes, this seems something
-that could be changed later if required.
-
->> And additionally provide an API to override the matching method?
+> On 04/01/2013 12:19 PM, Hans Verkuil wrote:
+> > Hi Hans,
+> >
+> > On Sun March 31 2013 14:48:01 Hans de Goede wrote:
+> >> Hi,
+> >>
+> >> On 03/30/2013 10:47 AM, Hans Verkuil wrote:
+> >>> This patch for xawtv3 releases the buffer if it can't be displayed because
+> >>> the resolution of the current format is larger than the size of the window.
+> >>>
+> >>> This will happen if the hardware cannot scale down to the initially quite
+> >>> small xawtv window. For example the au0828 driver has a fixed size of 720x480,
+> >>> so it will not display anything until the window is large enough for that
+> >>> resolution.
+> >>>
+> >>> The problem is that xawtv never releases (== calls QBUF) the buffer in that
+> >>> case, and it will of course run out of buffers and stall. The only way to
+> >>> kill it is to issue a 'kill -9' since ctrl-C won't work either.
+> >>>
+> >>> By releasing the buffer xawtv at least remains responsive and a picture will
+> >>> appear after resizing the window. Ideally of course xawtv should resize itself
+> >>> to the minimum supported resolution, but that's left as an exercise for the
+> >>> reader...
+> >>>
+> >>> Hans, the xawtv issues I reported off-list are all caused by this bug and by
+> >>> by the scaling bug introduced recently in em28xx. They had nothing to do with
+> >>> the alsa streaming, that was a red herring.
+> >>
+> >> Thanks for the debugging and for the patch. I've pushed the patch to
+> >> xawtv3.git. I've a 2 patch follow up set which should fix the issue with being
+> >> able to resize the window to a too small size.
+> >>
+> >> I'll send this patch set right after this mail, can you test it with the au0828
+> >> please?
+> >
+> > I've tested it and it is not yet working. I've tracked it down to video_gd_configure
+> > where it calls ng_ratio_fixup() which changes the cur_tv_width of 736 to 640. The
+> > height remains the same at 480.
 > 
-> Override - that's what the "SPECIAL" (CUSTOM) is for.
+> Thanks for testing and for figuring out where the problem lies. I've attached a
+> second version of the second patch, can you give that a try please?
 
-Yes, I wanted to emphasize the idea to have a possibility for custom subdev
-matching was good.
+This is now working for au0828, but now vivi is broken... That worked fine with your
+previous patch.
 
+I'm getting:
+
+$ xawtv
+This is xawtv-3.102, running on Linux/x86_64 (3.9.0-rc1-tschai)
+ioctl: VIDIOC_QUERYMENU(id=134217731;index=2;name="Menu Item 1";reserved=0): Invalid argument
+vid-open-auto: using grabber/webcam device /dev/video0
+libv4l2: error setting pixformat: Device or resource busy
+ioctl: VIDIOC_S_FMT(type=VIDEO_CAPTURE;fmt.pix.width=384;fmt.pix.height=288;fmt.pix.pixelformat=0x34524742 [BGR4];fmt.pix.field=INTERLACED;fmt.pix.bytesperline=1536;fmt.pix.sizeimage=442368;fmt.pix.colorspace=SRGB;fmt.pix.priv=0): Device or resource busy
+
+Note that the QUERYMENU error is harmless, although it would be nice if xawtv
+would understand menu controls with 'holes' in the menu list.
+
+The 'Device or resource busy' errors are new and I didn't have them in your
+previous version.
 
 Regards,
-Sylwester
+
+	Hans
