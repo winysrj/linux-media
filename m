@@ -1,174 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4314 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935062Ab3DIGqz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 02:46:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Tzu-Jung Lee" <roylee17@gmail.com>
-Subject: Re: Question regarding developing V4L2 device driver and Streaming IO in v4l2-ctl
-Date: Tue, 9 Apr 2013 08:46:40 +0200
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	Kamil Debski <k.debski@samsung.com>
-References: <CAEvN+1iN_fZ-Gu904LTLYf8CZs9ZfZm03bfuE4Ev3frEgOLShg@mail.gmail.com> <201304081607.23357.hverkuil@xs4all.nl> <CAEvN+1gcZdrQsnFyh9cyWQeMFUFZe7bfRgNZuWcY_ph-Gqbe+A@mail.gmail.com>
-In-Reply-To: <CAEvN+1gcZdrQsnFyh9cyWQeMFUFZe7bfRgNZuWcY_ph-Gqbe+A@mail.gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:43066 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757455Ab3DAGE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Apr 2013 02:04:26 -0400
+Message-ID: <5159234E.8080105@ti.com>
+Date: Mon, 1 Apr 2013 11:33:58 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] davinci: vpif: add pm_runtime support
+References: <1364460632-21697-1-git-send-email-prabhakar.csengg@gmail.com> <1650338.UonQ4LqB70@avalon> <CA+V-a8uMaNKBXF-tJRtOMaYpjA1PsMA9qhG6MgwORTU8YRvDbQ@mail.gmail.com> <3365178.uRYh2rr3nD@avalon> <CA+V-a8sWCx1CpDbtDHVZKGpW2z1FrPpY1o3UJaoU6nEK9RN=Ug@mail.gmail.com>
+In-Reply-To: <CA+V-a8sWCx1CpDbtDHVZKGpW2z1FrPpY1o3UJaoU6nEK9RN=Ug@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201304090846.40387.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue April 9 2013 05:57:40 Tzu-Jung Lee wrote:
-> Hi Hans,
+On 3/28/2013 3:50 PM, Prabhakar Lad wrote:
+> Hi Laurent,
 > 
-> > On Mon, Apr 8, 2013 at 10:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > But try the patch below for v4l2-ctl: if you combine streaming with --decoder-cmd
-> > then instead of doing a STREAMOFF it will call the decoder command. And the
-> > encoder now listens to the EOS event.
-> > Note that --en/decoder-cmd=start isn't necessary: STREAMON should call that
-> > implicitly as per the spec.
-> >
-> > Let me know if this works!
+> On Thu, Mar 28, 2013 at 3:40 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Prabhakar,
+>>
+>> On Thursday 28 March 2013 15:36:11 Prabhakar Lad wrote:
+>>> On Thu, Mar 28, 2013 at 2:39 PM, Laurent Pinchart wrote:
+>>>> On Thursday 28 March 2013 14:20:32 Prabhakar lad wrote:
+>>>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>>>
+>>>>> Add pm_runtime support to the TI Davinci VPIF driver.
+>>>>> Along side this patch replaces clk_get() with devm_clk_get()
+>>>>> to simplify the error handling.
+>>>>>
+>>>>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>>> ---
+>>>>>
+>>>>>  drivers/media/platform/davinci/vpif.c |   21 +++++++++++----------
+>>>>>  1 files changed, 11 insertions(+), 10 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/davinci/vpif.c
+>>>>> b/drivers/media/platform/davinci/vpif.c index 28638a8..7d14625 100644
+>>>>> --- a/drivers/media/platform/davinci/vpif.c
+>>>>> +++ b/drivers/media/platform/davinci/vpif.c
+>>
+>> [snip]
+>>
+>>>>> @@ -439,12 +440,17 @@ static int vpif_probe(struct platform_device *pdev)
+>>>>>               goto fail;
+>>>>>       }
+>>>>>
+>>>>> -     vpif_clk = clk_get(&pdev->dev, "vpif");
+>>>>> +     vpif_clk = devm_clk_get(&pdev->dev, "vpif");
+>>>>>       if (IS_ERR(vpif_clk)) {
+>>>>>               status = PTR_ERR(vpif_clk);
+>>>>>               goto clk_fail;
+>>>>>       }
+>>>>>
+>>>>> -     clk_prepare_enable(vpif_clk);
+>>>>> +     clk_put(vpif_clk);
+>>>>
+>>>> Why do you need to call clk_put() here ?
+>>>
+>>> The above check is to see if the clock is provided, once done
+>>> we free it using clk_put().
+>>
+>> In that case you shouldn't use devm_clk_get(), otherwise clk_put() will be
+>> called again automatically at remove() time.
+>>
+> Yes agreed it should be clk_get() only.
 > 
-> The patch works well, thanks!
-> 
-> For trying it out, I need to workaround some frame-based logics.
-> (please find the attach patch below)
-> 
-> Quote from the spec:
-> 
->        A read() or VIDIOC_STREAMON call sends an implicit START
-> command to the encoder if it has not been started yet.
->        After a STOP command, read() calls will read the remaining data
-> buffered by the driver. When the buffer is empty, read() will return
-> zero and the next read() call will restart the encoder.
-> 
->        A close() or VIDIOC_STREAMOFF call of a streaming file
-> descriptor sends an implicit immediate STOP to the encoder, and all
-> buffered data is discarded.
-> 
-> So I think I'll make the driver itself stop the codec implicitly in
-> the STREAMOFF call as well to conform the spec.
+>>>>> +     pm_runtime_enable(&pdev->dev);
+>>>>> +     pm_runtime_resume(&pdev->dev);
+>>>>> +
+>>>>> +     pm_runtime_get(&pdev->dev);
+>>>>
+>>>> Does runtime PM automatically handle your clock ? If so can't you remove
+>>>> clock handling from the driver completely ?
+>>>
+>>> Yes  pm runtime take care of enabling/disabling the clocks
+>>> so that we don't have to do it in drivers. I believe clock
+>>> handling is removed with this patch, with just  devm_clk_get() remaining ;)
+>>
+>> When is the clk_get() call expected to fail ? If the clock is provided by the
+>> SoC and always available, can't the check be removed completely ?
+>>
+> Yes I agree with you it can be removed completely assuming the clock
+> is always available from the Soc.
+> But may be I need feedback from others Hans/Sekhar what do you suggest ?
 
-That's correct.
+Unless you need the clk handle to get the clock rate or something, you
+should simply rely on runtime PM calls to enable clocks for you and not
+have any clk API call at all in your driver.
 
-> And then we can change the decoding command line from
-> 
->     v4l2-ctl --stream-poll --stream-out-mmap
-> --stream-from=/clips/src.h264 --decoder-cmd=cmd=stop &
-> to
->     v4l2-ctl --stream-poll --stream-out-mmap --stream-from=/clips/src.h264  &
-
-It's not quite the same thing. STREAMOFF does an immediate stop, discarding
-any pending data. --decoder-cmd=cmd=stop will wait for the decoder to finish
-decoding any pending data.
-
-I also made a small mistake in my v4l2-ctl patch. This:
-
-               if (options[OptDecoderCmd])
-                       doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
-               else
-                       doioctl(fd, VIDIOC_STREAMOFF, &type);
-
-should be:
-
-               if (options[OptDecoderCmd])
-                       doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
-               doioctl(fd, VIDIOC_STREAMOFF, &type);
-
-since the STOP command doesn't imply a STREAMOFF.
-
-> 
-> like the encoding command line:
-> 
->     v4l2-ctl --stream-poll --stream-mmap --stream-to=/clips/dst.h264 &
-> 
-> It will be great if we can combine the two command lines into one for
-> the transcoding case.
-> 
->     v4l2-ctl --stream-poll --stream-out-mmap
-> --stream-from=/clips/src.h264 --stream-mmap
-> --stream-to=/clips/dst.h264
-
-That would only be possible for a memory-to-memory device (is that what you have?).
-If you have two different video nodes, one for the capture side, one for the output
-side, then you need two v4l2-ctl commands, one for each node.
-
-It would certainly be desirable to have mem2mem streaming support in v4l2-ctl.
-Patches for that are welcome.
-
-I'm going to commit my patch with the change mentioned above. Please let me know
-if you run into problems.
-
-Regards,
-
-	Hans
-
-> 
-> 
-> p.s. I can help on this for the bitstreaming case, though it will need
-> reviewing for not breaking frame-based cases :-)
-> 
-> Thanks.
-> Roy
-> 
-> -----------------------
-> commit 195e914175b2faf7f2e536cbc32760a18bfa4b28
-> Author: Tzu-Jung Lee <tjlee@ambarella.com>
-> Date:   Tue Apr 9 11:24:15 2013 +0800
-> 
->     v4l-ctl: add missing declarations
-> 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> index 9099f63..df0b2e1 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> @@ -628,6 +628,8 @@ void streaming_set(int fd)
->                 unsigned count = 0, last = 0;
->                 struct timeval tv_last;
->                 bool eos = false;
-> +               fd_set read_fds;
-> +               fd_set exception_fds;
-> 
->                 while (!eos) {
->                         struct v4l2_plane planes[VIDEO_MAX_PLANES];
-> 
-> 
-> commit 5671c388ecbe448b11f271079dcd88689e753e3b
-> Author: Tzu-Jung Lee <tjlee@ambarella.com>
-> Date:   Tue Apr 9 11:25:13 2013 +0800
-> 
->     v4l-ctl: tmp hack for straming I/O of bitstreams
-> 
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> index df0b2e1..5d40810 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> @@ -796,10 +796,12 @@ void streaming_set(int fd)
->                 fmt.type = type;
->                 doioctl(fd, VIDIOC_G_FMT, &fmt);
-> 
-> +#if 0
->                 if (!precalculate_bars(fmt.fmt.pix.pixelformat,
-> stream_pat % NUM_PATTERNS)) {
->                         fprintf(stderr, "unsupported pixelformat\n");
->                         return;
->                 }
-> +#endif
-> 
->                 memset(&reqbufs, 0, sizeof(reqbufs));
->                 reqbufs.count = reqbufs_count;
-> @@ -876,6 +878,7 @@ void streaming_set(int fd)
->                                 if (!fin ||
-> !fill_buffer_from_file(buffers, buffer_lengths,
->                                                 buf.index, num_planes, fin))
->                                         fill_buffer(buffers[i], &fmt.fmt.pix);
-> +                               buf.bytesused = buf.length;
->                         }
->                         if (doioctl(fd, VIDIOC_QBUF, &buf))
->                                 return;
-> 
+Thanks,
+Sekhar
