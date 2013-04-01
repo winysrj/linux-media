@@ -1,84 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33372 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754030Ab3DMOiI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 10:38:08 -0400
-Message-ID: <51696DA6.9020508@iki.fi>
-Date: Sat, 13 Apr 2013 17:37:26 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <51695A7B.4010206@iki.fi> <20130413112517.40833d48@redhat.com>
-In-Reply-To: <20130413112517.40833d48@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:43291 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751648Ab3DAGhF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 02:37:05 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH v2] davinci: vpif: add pm_runtime support
+Date: Mon,  1 Apr 2013 12:06:50 +0530
+Message-Id: <1364798210-31517-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/13/2013 05:25 PM, Mauro Carvalho Chehab wrote:
-> Em Sat, 13 Apr 2013 16:15:39 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
->>> Patch 1 removes the unneeded and broken gpio register caching code.
->>> Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
->>> and patch 3 finally adds a new helper function for gpio ports with separate
->>> registers for read and write access.
->>
->>
->> I have nothing to say directly about those patches - they looked good at
->> the quick check. But I wonder if you have any idea if it is possible to
->> use some existing Kernel GPIO functionality in order to provide standard
->> interface (interface like I2C). I did some work last summer in order to
->> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA
->> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled
->> by default and due to that there is macros to disable LNA when GPIOLIB
->> is not compiled.
->> I noticed recently there is some ongoing development for Kernel GPIO. I
->> haven't looked yet if it makes use of GPIO interface more common...
->
-> I have conflicting opinions myself weather we should use gpiolib or not.
->
-> I don't mind with the fact that GPIOLIB is disabled by default. If all
-> media drivers start depending on it, distros will enable it to keep
-> media support on it.
->
-> I never took the time to take a look on what methods gpiolib provides.
-> Maybe it will bring some benefits. I dunno.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Compare to benefits of I2C bus. It offers standard interface. Also it 
-offers userspace debug interface - like I2C also does.
+Add pm_runtime support to the TI Davinci VPIF driver.
 
-> Just looking at the existing drivers (almost all has some sort of GPIO
-> config), GPIO is just a single register bitmask read/write. Most drivers
-> need already bitmask read/write operations. So, in principle, I can't
-> foresee any code simplification by using a library.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sekhar Nori <nsekhar@ti.com>
+---
+ Changes for v2:
+ 1: Removed use of clk API as pointed by Laurent and Sekhar.
 
-Use of lib interface is not very practical inside of module, however it 
-could be used. Again, as compared to I2C there is some bridge drivers 
-which do some I2C access using I2C interface, even bridge could do it 
-directly (as it offers I2C adapter). I think it is most common to do it 
-directly to simplify things.
+ drivers/media/platform/davinci/vpif.c |   24 +++++++-----------------
+ 1 files changed, 7 insertions(+), 17 deletions(-)
 
-> Also, from a very pragmatic view, changing (almost) all existing drivers
-> to use gpiolib is a big effort.
-
-It is not needed to implement for all driver as one go.
-
-> However, for that to happen, one question should be answered: what
-> benefits would be obtained by using gpiolib?
-
-Obtain GPIO access between modules using standard interface and offer 
-handy debug interface to switch GPIOs from userspace.
-
-You could ask why we use Kernel I2C library as we could do it directly 
-:) Or clock framework. Or SPI, is there SPI bus modeled yet?
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 28638a8..599cabb 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -23,8 +23,8 @@
+ #include <linux/spinlock.h>
+ #include <linux/kernel.h>
+ #include <linux/io.h>
+-#include <linux/clk.h>
+ #include <linux/err.h>
++#include <linux/pm_runtime.h>
+ #include <linux/v4l2-dv-timings.h>
+ 
+ #include <mach/hardware.h>
+@@ -44,7 +44,6 @@ static struct resource	*res;
+ spinlock_t vpif_lock;
+ 
+ void __iomem *vpif_base;
+-struct clk *vpif_clk;
+ 
+ /**
+  * ch_params: video standard configuration parameters for vpif
+@@ -439,19 +438,15 @@ static int vpif_probe(struct platform_device *pdev)
+ 		goto fail;
+ 	}
+ 
+-	vpif_clk = clk_get(&pdev->dev, "vpif");
+-	if (IS_ERR(vpif_clk)) {
+-		status = PTR_ERR(vpif_clk);
+-		goto clk_fail;
+-	}
+-	clk_prepare_enable(vpif_clk);
++	pm_runtime_enable(&pdev->dev);
++	pm_runtime_resume(&pdev->dev);
++
++	pm_runtime_get(&pdev->dev);
+ 
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
+ 	return 0;
+ 
+-clk_fail:
+-	iounmap(vpif_base);
+ fail:
+ 	release_mem_region(res->start, res_len);
+ 	return status;
+@@ -459,11 +454,6 @@ fail:
+ 
+ static int vpif_remove(struct platform_device *pdev)
+ {
+-	if (vpif_clk) {
+-		clk_disable_unprepare(vpif_clk);
+-		clk_put(vpif_clk);
+-	}
+-
+ 	iounmap(vpif_base);
+ 	release_mem_region(res->start, res_len);
+ 	return 0;
+@@ -472,13 +462,13 @@ static int vpif_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int vpif_suspend(struct device *dev)
+ {
+-	clk_disable_unprepare(vpif_clk);
++	pm_runtime_put(dev);
+ 	return 0;
+ }
+ 
+ static int vpif_resume(struct device *dev)
+ {
+-	clk_prepare_enable(vpif_clk);
++	pm_runtime_get(dev);
+ 	return 0;
+ }
+ 
 -- 
-http://palosaari.fi/
+1.7.4.1
+
