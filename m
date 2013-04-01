@@ -1,50 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10888 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207Ab3DYKFC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 06:05:02 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00BMA2LNB150@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 11:05:00 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
- <201304251158.47036.hverkuil@xs4all.nl>
-In-reply-to: <201304251158.47036.hverkuil@xs4all.nl>
-Subject: RE: [PATCH 0/7] Add copy time stamp handling to mem2mem drivers
-Date: Thu, 25 Apr 2013 12:04:55 +0200
-Message-id: <000701ce419c$56cd6cd0$04684670$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:50680 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757853Ab3DAIoB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 04:44:01 -0400
+Received: by mail-pa0-f43.google.com with SMTP id hz11so1218997pad.2
+        for <linux-media@vger.kernel.org>; Mon, 01 Apr 2013 01:44:01 -0700 (PDT)
+From: Vikas Sajjan <vikas.sajjan@linaro.org>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
+	inki.dae@samsung.com, linaro-kernel@lists.linaro.org,
+	jy0922.shim@samsung.com, linux-samsung-soc@vger.kernel.org,
+	thomas.abraham@linaro.org
+Subject: [PATCH v3] drm/exynos: enable FIMD clocks
+Date: Mon,  1 Apr 2013 14:13:50 +0530
+Message-Id: <1364805830-6129-1-git-send-email-vikas.sajjan@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+While migrating to common clock framework (CCF), found that the FIMD clocks
+were pulled down by the CCF.
+If CCF finds any clock(s) which has NOT been claimed by any of the
+drivers, then such clock(s) are PULLed low by CCF.
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Thursday, April 25, 2013 11:59 AM
-> 
-> On Thu 25 April 2013 11:49:43 Kamil Debski wrote:
-> > Hi,
-> >
-> > This set of patches adds support for copy time stamp handling in the
-> > following mem2mem drivers:
-> 
-> While you are at it, can you also take a look at this patch?
-> 
-> https://patchwork.linuxtv.org/patch/18025/
-> 
-> If it is OK, can you add it to your tree?
+By calling clk_prepare_enable() for FIMD clocks fixes the issue.
 
-No problem, will do.
+this patch also replaces clk_disable() with clk_disable_unprepare()
+during exit.
 
-Best wishes,
-Kamil
+Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+---
+Changes since v2:
+	- moved clk_prepare_enable() and clk_disable_unprepare() from 
+	fimd_probe() to fimd_clock() as suggested by Inki Dae <inki.dae@samsung.com>
+Changes since v1:
+	- added error checking for clk_prepare_enable() and also replaced 
+	clk_disable() with clk_disable_unprepare() during exit.
+---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index 9537761..f2400c8 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -799,18 +799,18 @@ static int fimd_clock(struct fimd_context *ctx, bool enable)
+ 	if (enable) {
+ 		int ret;
+ 
+-		ret = clk_enable(ctx->bus_clk);
++		ret = clk_prepare_enable(ctx->bus_clk);
+ 		if (ret < 0)
+ 			return ret;
+ 
+-		ret = clk_enable(ctx->lcd_clk);
++		ret = clk_prepare_enable(ctx->lcd_clk);
+ 		if  (ret < 0) {
+-			clk_disable(ctx->bus_clk);
++			clk_disable_unprepare(ctx->bus_clk);
+ 			return ret;
+ 		}
+ 	} else {
+-		clk_disable(ctx->lcd_clk);
+-		clk_disable(ctx->bus_clk);
++		clk_disable_unprepare(ctx->lcd_clk);
++		clk_disable_unprepare(ctx->bus_clk);
+ 	}
+ 
+ 	return 0;
+@@ -981,8 +981,8 @@ static int fimd_remove(struct platform_device *pdev)
+ 	if (ctx->suspended)
+ 		goto out;
+ 
+-	clk_disable(ctx->lcd_clk);
+-	clk_disable(ctx->bus_clk);
++	clk_disable_unprepare(ctx->lcd_clk);
++	clk_disable_unprepare(ctx->bus_clk);
+ 
+ 	pm_runtime_set_suspended(dev);
+ 	pm_runtime_put_sync(dev);
+-- 
+1.7.9.5
 
