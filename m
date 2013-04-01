@@ -1,39 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:39828 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756888Ab3D2LOM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 07:14:12 -0400
-Received: by mail-la0-f41.google.com with SMTP id fq13so5354505lab.0
-        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 04:14:10 -0700 (PDT)
-Message-ID: <517E55B4.8070000@cogentembedded.com>
-Date: Mon, 29 Apr 2013 15:12:52 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:41318 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758308Ab3DAIXW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 04:23:22 -0400
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: mchehab@redhat.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v2 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201304200231.31802.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1304201201370.10520@axis700.grange> <517D7195.1020301@cogentembedded.com> <Pine.LNX.4.64.1304290922310.22640@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1304290922310.22640@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+Z25wXJt=vZnZ-ba+zkOWMgx0AjfnZT1JyHbaF4nuQ8MLvaKg@mail.gmail.com>
+References: <1364798210-31517-1-git-send-email-prabhakar.csengg@gmail.com> <CA+Z25wXJt=vZnZ-ba+zkOWMgx0AjfnZT1JyHbaF4nuQ8MLvaKg@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 1 Apr 2013 13:53:01 +0530
+Message-ID: <CA+V-a8vFrom92g4CE-Kc2gjK8HSo4xkFwMgfmycSJQib0AF+aQ@mail.gmail.com>
+Subject: Re: [PATCH v2] davinci: vpif: add pm_runtime support
+To: Rajagopal Venkat <rajagopal.venkat@linaro.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sekhar Nori <nsekhar@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Mon, Apr 1, 2013 at 12:47 PM, Rajagopal Venkat
+<rajagopal.venkat@linaro.org> wrote:
+> On 1 April 2013 12:06, Prabhakar lad <prabhakar.csengg@gmail.com> wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> Add pm_runtime support to the TI Davinci VPIF driver.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Sekhar Nori <nsekhar@ti.com>
+>> ---
+>>  Changes for v2:
+>>  1: Removed use of clk API as pointed by Laurent and Sekhar.
+>>
+>>  drivers/media/platform/davinci/vpif.c |   24 +++++++-----------------
+>>  1 files changed, 7 insertions(+), 17 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+>> index 28638a8..599cabb 100644
+>> --- a/drivers/media/platform/davinci/vpif.c
+>> +++ b/drivers/media/platform/davinci/vpif.c
+>> @@ -23,8 +23,8 @@
+>>  #include <linux/spinlock.h>
+>>  #include <linux/kernel.h>
+>>  #include <linux/io.h>
+>> -#include <linux/clk.h>
+>>  #include <linux/err.h>
+>> +#include <linux/pm_runtime.h>
+>>  #include <linux/v4l2-dv-timings.h>
+>>
+>>  #include <mach/hardware.h>
+>> @@ -44,7 +44,6 @@ static struct resource        *res;
+>>  spinlock_t vpif_lock;
+>>
+>>  void __iomem *vpif_base;
+>> -struct clk *vpif_clk;
+>>
+>>  /**
+>>   * ch_params: video standard configuration parameters for vpif
+>> @@ -439,19 +438,15 @@ static int vpif_probe(struct platform_device *pdev)
+>>                 goto fail;
+>>         }
+>>
+>> -       vpif_clk = clk_get(&pdev->dev, "vpif");
+>> -       if (IS_ERR(vpif_clk)) {
+>> -               status = PTR_ERR(vpif_clk);
+>> -               goto clk_fail;
+>> -       }
+>> -       clk_prepare_enable(vpif_clk);
+>> +       pm_runtime_enable(&pdev->dev);
+>> +       pm_runtime_resume(&pdev->dev);
+>> +
+>> +       pm_runtime_get(&pdev->dev);
+>
+> I don't see runtime-pm ops being registered. Can you explain how clock
+> prepare/unprepare is taken care by runtime-pm?
+>
+The pm_runtime API handles the clock management for you.
+For Davinci platform runtime PM support for clock management has
+been added (You can find it in  arch/arm/mach-davinci/pm_domain.c)
+When runtime PM is enabled, the davinci runtime PM implementation will
+use the pm_clk layer to enable/disable clocks on demand.
 
-On 29-04-2013 11:23, Guennadi Liakhovetski wrote:
+For more/detailed understanding you can go through the pm_runtime framework.
 
->> send these patches
-
-> patchwork.linuxtv.org
-
-    Thanks, I totally forgot about this one.
-
-WBR, Sergei
-
-
+Regards,
+--Prabhakar
