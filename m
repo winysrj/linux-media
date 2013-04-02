@@ -1,61 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:39132 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758706Ab3DZI5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 04:57:54 -0400
-Received: by mail-ob0-f182.google.com with SMTP id dn14so3285729obc.41
-        for <linux-media@vger.kernel.org>; Fri, 26 Apr 2013 01:57:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <517A4043.3040509@samsung.com>
-References: <1366951447-6202-1-git-send-email-sachin.kamat@linaro.org>
-	<517A4043.3040509@samsung.com>
-Date: Fri, 26 Apr 2013 14:27:53 +0530
-Message-ID: <CAK9yfHz-hj0rMMDd4hTfE93kEpgsfb-ZqyKTP_nV2jyUgzzo+w@mail.gmail.com>
-Subject: Re: [PATCH 1/1] [media] exynos4-is: Fix potential null pointer
- dereference in mipi-csis.c
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:12965 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761797Ab3DBNlS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 09:41:18 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MKM00AZIRCLJ6U0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Apr 2013 22:41:16 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, Andrzej Hajda <a.hajda@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] m5mols: Improved power on routine
+Date: Tue, 02 Apr 2013 15:40:56 +0200
+Message-id: <1364910056-25636-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Andrzej Hajda <a.hajda@samsung.com>
 
-On 26 April 2013 14:22, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> On 04/26/2013 06:44 AM, Sachin Kamat wrote:
->> When 'node' is NULL, the print statement tries to dereference it.
->> Remove it from the error message.
->>
->> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->> ---
->>  drivers/media/platform/exynos4-is/mipi-csis.c |    3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
->> index a2eda9d..6ddc69f 100644
->> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
->> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
->> @@ -745,8 +745,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
->>
->>       node = v4l2_of_get_next_endpoint(node, NULL);
->>       if (!node) {
->> -             dev_err(&pdev->dev, "No port node at %s\n",
->> -                                     node->full_name);
->> +             dev_err(&pdev->dev, "Port node not available\n");
->
-> Thanks Sachin. Could you instead do
-> s/node->full_name/pdev->dev.of_node->full_name ?
->
-> This way we won't loose any information and it would be easier to
-> determine which node exactly is wrong.
+The regulator bulk API doesn't guarantee an order in which regulators
+are enabled or disabled. Make sure the regulators are enabled
+sequentially, as specified in the sensor's datasheet.
+Additionally a 1ms delay is added after the reset GPIO (de)assertion.
 
-Certainly. I too wanted to provide this information in print message
-but could not think of an alternative way
-immediately. Thanks for the tip.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/i2c/m5mols/m5mols_core.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index 0b899cb..a364781 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -740,6 +740,24 @@ static const struct v4l2_subdev_video_ops m5mols_video_ops = {
+ 	.s_stream	= m5mols_s_stream,
+ };
+ 
++static int regulator_bulk_enable_sync(int num_consumers,
++				      struct regulator_bulk_data *consumers)
++{
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(supplies); ++i) {
++		ret = regulator_enable(supplies[i].consumer);
++		if (ret < 0) {
++			for (; i >= 0; --i)
++				regulator_disable(supplies[i].consumer);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
+ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
+ {
+ 	struct v4l2_subdev *sd = &info->sd;
+@@ -757,13 +775,15 @@ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
+ 				return ret;
+ 		}
+ 
+-		ret = regulator_bulk_enable(ARRAY_SIZE(supplies), supplies);
++		ret = regulator_bulk_enable_sync(ARRAY_SIZE(supplies),
++						  supplies);
+ 		if (ret) {
+ 			info->set_power(&client->dev, 0);
+ 			return ret;
+ 		}
+ 
+ 		gpio_set_value(pdata->gpio_reset, !pdata->reset_polarity);
++		usleep_range(1000, 1000);
+ 		info->power = 1;
+ 
+ 		return ret;
+@@ -777,6 +797,7 @@ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
+ 		info->set_power(&client->dev, 0);
+ 
+ 	gpio_set_value(pdata->gpio_reset, pdata->reset_polarity);
++	usleep_range(1000, 1000);
+ 
+ 	info->isp_ready = 0;
+ 	info->power = 0;
 -- 
-With warm regards,
-Sachin
+1.7.9.5
+
