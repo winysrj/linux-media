@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2824 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756431Ab3DFST2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 14:19:28 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r36IJPMR056604
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 6 Apr 2013 20:19:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C331A11E01F3
-	for <linux-media@vger.kernel.org>; Sat,  6 Apr 2013 20:19:24 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130406181924.C331A11E01F3@alastor.dyndns.org>
-Date: Sat,  6 Apr 2013 20:19:24 +0200 (CEST)
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:24298 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761234Ab3DBPYb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 11:24:31 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MKM00LTXW4AYP90@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 02 Apr 2013 16:24:30 +0100 (BST)
+Message-id: <515AF82D.1010902@samsung.com>
+Date: Tue, 02 Apr 2013 17:24:29 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
+Subject: Re: [PATCH] V4L: Remove incorrect EXPORT_SYMBOL() usage at v4l2-of.c
+References: <1364913818-7970-1-git-send-email-s.nawrocki@samsung.com>
+ <Pine.LNX.4.64.1304021652021.31999@axis700.grange>
+In-reply-to: <Pine.LNX.4.64.1304021652021.31999@axis700.grange>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Guennadi,
 
-Results of the daily build of media_tree:
+On 04/02/2013 04:54 PM, Guennadi Liakhovetski wrote:
+> On Tue, 2 Apr 2013, Sylwester Nawrocki wrote:
+> 
+>> > v4l2_of_parse_parallel_bus() function is now static and
+>> > EXPORT_SYMBOL() doesn't apply to it any more. Drop this
+>> > meaningless statement, which was supposed to be done in
+>> > the original merged patch.
+>> > 
+>> > While at it, edit the copyright notice so it is sorted in
+>> > both the v4l2-of.c and v4l2-of.h file in newest entries
+>> > on top order, and state clearly I'm just the author of
+>> > parts of the code, not the copyright owner.
+>> > 
+>> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>
+> This is not concerning the contents of this patch, but rather the form 
+> confuses me a bit - the two above Sob's: you are the author, and you're 
+> sending the patch to the list, but Kyungmin Park's Sob is the last in the 
+> list, which to me means that your patch went via his tree, but it's you 
+> who's sending it?... I think I saw this pattern in some other your patches 
+> too. What exactly does this mean?
 
-date:		Sat Apr  6 19:00:20 CEST 2013
-git branch:	test
-git hash:	53faa685fa7df0e12751eebbda30bc7e7bb5e71a
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+This means just that Kyungmin approves the patch submission as our manager
+and the internal tree maintainer. He is not necessarily directly involved
+in the development of a patch. As you probably noticed his Signed-off is
+on patches from all our team members. I agree it is not immediately obvious
+what's going on here. This has been discussed in the past few times. For
+instance please refer to this thread:
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+http://www.spinics.net/lists/linux-usb/msg74981.html
 
-Detailed results are available here:
+--
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Sylwester
