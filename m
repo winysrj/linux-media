@@ -1,46 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55248 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751135Ab3DOOMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 10:12:15 -0400
-Message-ID: <516C0A95.1040101@iki.fi>
-Date: Mon, 15 Apr 2013 17:11:33 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com> <51697AC8.1050807@googlemail.com> <20130413140444.2fba3e88@redhat.com> <516999EC.6080605@googlemail.com> <20130413150823.6e962285@redhat.com> <516B12F9.4040609@googlemail.com> <20130415095130.78a5ecd9@redhat.com>
-In-Reply-To: <20130415095130.78a5ecd9@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1646 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760293Ab3DBSSS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 14:18:18 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r32IIEqH065761
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 2 Apr 2013 20:18:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id DA5B511E0104
+	for <linux-media@vger.kernel.org>; Tue,  2 Apr 2013 20:18:12 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130402181812.DA5B511E0104@alastor.dyndns.org>
+Date: Tue,  2 Apr 2013 20:18:12 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/15/2013 03:51 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 14 Apr 2013 22:35:05 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
->> I checked the em25xx datasheet (excerpt) and it talks about separate
->> registers for GPIO configuration (unfortunately without explaining their
->> function in detail).
->
-> Interesting. There are several old designs (bttv, saa7134,...) that uses
-> a separate register for defining the input and the output pins.
+Results of the daily build of media_tree:
 
-That's pretty usual way, likely most common, having separate GPIO 
-configuration and GPIO value registers. If you has a port of GPIO values 
-in one register, and you has configured those as 0-3 INPUT and 4-7 
-OUTPUT, then writing to that register does not make any changes to bits 
-that are mapped as IN (are just discarded as don't care).
+date:		Tue Apr  2 19:00:23 CEST 2013
+git branch:	test
+git hash:	f9f11dfe4831adb1531e1face9dcd9fc57665d2e
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-In case a bit I/O (which is not not supported by Kernel) writing to 
-input register could enable internal pull-up or pull-down resistor :) 
-IIRC Atmel micro-controllers has such option.
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-regards
-Antti
+Detailed results are available here:
 
--- 
-http://palosaari.fi/
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
