@@ -1,99 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10675 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754224Ab3DWUed (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 16:34:33 -0400
-Message-ID: <5176F051.4030902@redhat.com>
-Date: Tue, 23 Apr 2013 17:34:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:56570 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760348Ab3DBOyk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 10:54:40 -0400
+Date: Tue, 2 Apr 2013 16:54:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com
+Subject: Re: [PATCH] V4L: Remove incorrect EXPORT_SYMBOL() usage at v4l2-of.c
+In-Reply-To: <1364913818-7970-1-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1304021652021.31999@axis700.grange>
+References: <1364913818-7970-1-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-To: Kevin Baradon <kevin.baradon@gmail.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/4] Revert "media/rc/imon.c: make send_packet() delay
- larger for 15c2:0036"
-References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com> <1366661386-6720-2-git-send-email-kevin.baradon@gmail.com>
-In-Reply-To: <1366661386-6720-2-git-send-email-kevin.baradon@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
+Hi Sylwester
 
-Em 22-04-2013 17:09, Kevin Baradon escreveu:
-> This reverts commit d92f150f9cb80b4df56331d1f42442da78e351f0.
-> It seems send_packet() is used during initialization, before send_packet_delay is set.
->
-> This will be fixed by another patch.
+On Tue, 2 Apr 2013, Sylwester Nawrocki wrote:
 
-Reverting patches is a resource that we generally use only when
-there's something deadly wrong, as it makes the git history
-dirtier, hides the reasons why a change is needed, and might be bad
-for git bisecting.
+> v4l2_of_parse_parallel_bus() function is now static and
+> EXPORT_SYMBOL() doesn't apply to it any more. Drop this
+> meaningless statement, which was supposed to be done in
+> the original merged patch.
+> 
+> While at it, edit the copyright notice so it is sorted in
+> both the v4l2-of.c and v4l2-of.h file in newest entries
+> on top order, and state clearly I'm just the author of
+> parts of the code, not the copyright owner.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-In this specific case, by applying both the revert patch and your newer
-one, it is clear that your intent is to move the logic that changes
-the send packet delay, because it needs to happen earlier.
+This is not concerning the contents of this patch, but rather the form 
+confuses me a bit - the two above Sob's: you are the author, and you're 
+sending the patch to the list, but Kyungmin Park's Sob is the last in the 
+list, which to me means that your patch went via his tree, but it's you 
+who's sending it?... I think I saw this pattern in some other your patches 
+too. What exactly does this mean?
 
-So, instead of applying both patches, I'll fold them into one,
-as enclosed.
+Thanks
+Guennadi
 
--
+> ---
+>  drivers/media/v4l2-core/v4l2-of.c |    3 +--
+>  include/media/v4l2-of.h           |    6 +++---
+>  2 files changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+> index e38e210..aa59639 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -2,7 +2,7 @@
+>   * V4L2 OF binding parsing library
+>   *
+>   * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+> - * Sylwester Nawrocki <s.nawrocki@samsung.com>
+> + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>   *
+>   * Copyright (C) 2012 Renesas Electronics Corp.
+>   * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> @@ -103,7 +103,6 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>  	bus->flags = flags;
+>  
+>  }
+> -EXPORT_SYMBOL(v4l2_of_parse_parallel_bus);
+>  
+>  /**
+>   * v4l2_of_parse_endpoint() - parse all endpoint node properties
+> diff --git a/include/media/v4l2-of.h b/include/media/v4l2-of.h
+> index 00f9147..3a8a841 100644
+> --- a/include/media/v4l2-of.h
+> +++ b/include/media/v4l2-of.h
+> @@ -1,12 +1,12 @@
+>  /*
+>   * V4L2 OF binding parsing library
+>   *
+> + * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+> + * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> + *
+>   * Copyright (C) 2012 Renesas Electronics Corp.
+>   * Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>   *
+> - * Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+> - * Sylwester Nawrocki <s.nawrocki@samsung.com>
+> - *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of version 2 of the GNU General Public License as
+>   * published by the Free Software Foundation.
+> -- 
+> 1.7.9.5
+> 
 
-From: Kevin Baradon <kevin.baradon@gmail.com>
-
-[media] imon: Use large delays earlier
-
-send_packet() is used during initialization, before send_packet_delay
-is set. So, move ictx->send_packet_delay to happen earlier.
-
-[mchehab@redhat.com: fold two patches into one to make git history clearer]
-Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
-
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index b8f9f85..624fd33 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -2093,7 +2093,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
-  
-  }
-  
--static struct imon_context *imon_init_intf0(struct usb_interface *intf)
-+static struct imon_context *imon_init_intf0(struct usb_interface *intf,
-+					    const struct usb_device_id *id)
-  {
-  	struct imon_context *ictx;
-  	struct urb *rx_urb;
-@@ -2133,6 +2134,10 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
-  	ictx->vendor  = le16_to_cpu(ictx->usbdev_intf0->descriptor.idVendor);
-  	ictx->product = le16_to_cpu(ictx->usbdev_intf0->descriptor.idProduct);
-  
-+	/* default send_packet delay is 5ms but some devices need more */
-+	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
-+				  20 : 5;
-+
-  	ret = -ENODEV;
-  	iface_desc = intf->cur_altsetting;
-  	if (!imon_find_endpoints(ictx, iface_desc)) {
-@@ -2311,7 +2316,7 @@ static int imon_probe(struct usb_interface *interface,
-  	first_if_ctx = usb_get_intfdata(first_if);
-  
-  	if (ifnum == 0) {
--		ictx = imon_init_intf0(interface);
-+		ictx = imon_init_intf0(interface, id);
-  		if (!ictx) {
-  			pr_err("failed to initialize context!\n");
-  			ret = -ENODEV;
-@@ -2329,10 +2334,6 @@ static int imon_probe(struct usb_interface *interface,
-  
-  	}
-  
--	/* default send_packet delay is 5ms but some devices need more */
--	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
--				  20 : 5;
--
-  	usb_set_intfdata(interface, ictx);
-  
-  	if (ifnum == 0) {
-
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
