@@ -1,53 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:52467
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762995Ab3DDQtV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Apr 2013 12:49:21 -0400
-Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
-	by bombadil.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
-	id 1UNnLk-0007F7-LQ
-	for linux-media@vger.kernel.org; Thu, 04 Apr 2013 16:49:20 +0000
-Message-ID: <1365094158.2609.119.camel@laptop>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
- v2
-From: Peter Zijlstra <peterz@infradead.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, daniel.vetter@ffwll.ch, x86@kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Thu, 04 Apr 2013 18:49:18 +0200
-In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
-References: <20130228102452.15191.22673.stgit@patser>
-	 <20130228102502.15191.14146.stgit@patser>
-	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
-	 <1364921954.20640.22.camel@laptop> <1365076908.2609.94.camel@laptop>
-	 <20130404133123.GW2228@phenom.ffwll.local>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:44868 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761158Ab3DBOAc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 10:00:32 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Prabhakar lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH v3] davinci: vpif: add pm_runtime support
+Date: Tue, 2 Apr 2013 15:50:20 +0200
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sekhar Nori <nsekhar@ti.com>
+References: <1364910090-5501-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1364910090-5501-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304021550.21018.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
-> We've discussed this approach of using (rt-prio, age) instead of just
-> age
-> to determine the the "oldness" of a task for deadlock-breaking with
-> -EAGAIN. The problem is that through PI boosting or normal rt-prio
-> changes
-> while tasks are trying to acquire ww_mutexes you can create acyclic
-> loops
-> in the blocked-on graph of ww_mutexes after the fact and so cause
-> deadlocks. So we've convinced ourselves that this approche doesn't
-> work.
+On Tue 2 April 2013 15:41:30 Prabhakar lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> Add pm_runtime support to the TI Davinci VPIF driver.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-Could you pretty please draw me a picture, I'm having trouble seeing
-what you mean.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-AFAICT as long as you boost Y while its the lock owner things should
-work out, no?
+Regards,
 
+	Hans
 
-
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Sekhar Nori <nsekhar@ti.com>
+> ---
+>  Changes for v3:
+>  1: Removed pm_runtime_resume() from probe as pm_runtime_get()
+>     calls it as pointed by Hans.
+> 
+>  Changes for v2:
+>  1: Removed use of clk API as pointed by Laurent and Sekhar.
+> 
+>  drivers/media/platform/davinci/vpif.c |   24 ++++++------------------
+>  1 files changed, 6 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+> index 3bc4db8..ea82a8b 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+> @@ -23,8 +23,8 @@
+>  #include <linux/spinlock.h>
+>  #include <linux/kernel.h>
+>  #include <linux/io.h>
+> -#include <linux/clk.h>
+>  #include <linux/err.h>
+> +#include <linux/pm_runtime.h>
+>  #include <linux/v4l2-dv-timings.h>
+>  
+>  #include <mach/hardware.h>
+> @@ -46,8 +46,6 @@ spinlock_t vpif_lock;
+>  void __iomem *vpif_base;
+>  EXPORT_SYMBOL_GPL(vpif_base);
+>  
+> -struct clk *vpif_clk;
+> -
+>  /**
+>   * vpif_ch_params: video standard configuration parameters for vpif
+>   * The table must include all presets from supported subdevices.
+> @@ -443,19 +441,13 @@ static int vpif_probe(struct platform_device *pdev)
+>  		goto fail;
+>  	}
+>  
+> -	vpif_clk = clk_get(&pdev->dev, "vpif");
+> -	if (IS_ERR(vpif_clk)) {
+> -		status = PTR_ERR(vpif_clk);
+> -		goto clk_fail;
+> -	}
+> -	clk_prepare_enable(vpif_clk);
+> +	pm_runtime_enable(&pdev->dev);
+> +	pm_runtime_get(&pdev->dev);
+>  
+>  	spin_lock_init(&vpif_lock);
+>  	dev_info(&pdev->dev, "vpif probe success\n");
+>  	return 0;
+>  
+> -clk_fail:
+> -	iounmap(vpif_base);
+>  fail:
+>  	release_mem_region(res->start, res_len);
+>  	return status;
+> @@ -463,11 +455,7 @@ fail:
+>  
+>  static int vpif_remove(struct platform_device *pdev)
+>  {
+> -	if (vpif_clk) {
+> -		clk_disable_unprepare(vpif_clk);
+> -		clk_put(vpif_clk);
+> -	}
+> -
+> +	pm_runtime_disable(&pdev->dev);
+>  	iounmap(vpif_base);
+>  	release_mem_region(res->start, res_len);
+>  	return 0;
+> @@ -476,13 +464,13 @@ static int vpif_remove(struct platform_device *pdev)
+>  #ifdef CONFIG_PM
+>  static int vpif_suspend(struct device *dev)
+>  {
+> -	clk_disable_unprepare(vpif_clk);
+> +	pm_runtime_put(dev);
+>  	return 0;
+>  }
+>  
+>  static int vpif_resume(struct device *dev)
+>  {
+> -	clk_prepare_enable(vpif_clk);
+> +	pm_runtime_get(dev);
+>  	return 0;
+>  }
+>  
+> 
