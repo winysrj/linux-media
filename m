@@ -1,122 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40518 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756642Ab3DDLHz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 07:07:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Mike Turquette <mturquette@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 2/2] mt9p031: Use the common clock framework
-Date: Thu,  4 Apr 2013 13:08:39 +0200
-Message-Id: <1365073719-8038-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:54633 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759896Ab3DBLpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 07:45:11 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 3/3] davinic: vpss: trivial cleanup
+Date: Tue,  2 Apr 2013 17:14:04 +0530
+Message-Id: <1364903044-13752-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Configure the device external clock using the common clock framework
-instead of a board code callback function.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+this patch removes unnecessary header file inclusions and
+fixes the typo's.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/i2c/mt9p031.c | 22 +++++++++++++++-------
- include/media/mt9p031.h     |  2 --
- 2 files changed, 15 insertions(+), 9 deletions(-)
+ drivers/media/platform/davinci/vpss.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e328332..825cc2d 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -12,6 +12,7 @@
-  * published by the Free Software Foundation.
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index d36429d..8a2f01e 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -17,13 +17,8 @@
+  *
+  * common vpss system module platform driver for all video drivers.
   */
+-#include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/spinlock.h>
+-#include <linux/compiler.h>
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
  
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/gpio.h>
-@@ -121,6 +122,8 @@ struct mt9p031 {
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 
-+	struct clk *clk;
-+
- 	enum mt9p031_model model;
- 	struct aptina_pll pll;
- 	int reset;
-@@ -195,7 +198,7 @@ static int mt9p031_reset(struct mt9p031 *mt9p031)
- 					  0);
- }
- 
--static int mt9p031_pll_setup(struct mt9p031 *mt9p031)
-+static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
- {
- 	static const struct aptina_pll_limits limits = {
- 		.ext_clock_min = 6000000,
-@@ -216,6 +219,12 @@ static int mt9p031_pll_setup(struct mt9p031 *mt9p031)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
- 	struct mt9p031_platform_data *pdata = mt9p031->pdata;
- 
-+	mt9p031->clk = devm_clk_get(&client->dev, NULL);
-+	if (IS_ERR(mt9p031->clk))
-+		return PTR_ERR(mt9p031->clk);
-+
-+	clk_set_rate(mt9p031->clk, pdata->ext_freq);
-+
- 	mt9p031->pll.ext_clock = pdata->ext_freq;
- 	mt9p031->pll.pix_clock = pdata->target_freq;
- 
-@@ -265,9 +274,8 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 	}
- 
- 	/* Emable clock */
--	if (mt9p031->pdata->set_xclk)
--		mt9p031->pdata->set_xclk(&mt9p031->subdev,
--					 mt9p031->pdata->ext_freq);
-+	if (mt9p031->clk)
-+		clk_prepare_enable(mt9p031->clk);
- 
- 	/* Now RESET_BAR must be high */
- 	if (mt9p031->reset != -1) {
-@@ -285,8 +293,8 @@ static void mt9p031_power_off(struct mt9p031 *mt9p031)
- 		usleep_range(1000, 2000);
- 	}
- 
--	if (mt9p031->pdata->set_xclk)
--		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
-+	if (mt9p031->clk)
-+		clk_disable_unprepare(mt9p031->clk);
- }
- 
- static int __mt9p031_set_power(struct mt9p031 *mt9p031, bool on)
-@@ -1009,7 +1017,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 		mt9p031->reset = pdata->reset;
- 	}
- 
--	ret = mt9p031_pll_setup(mt9p031);
-+	ret = mt9p031_clk_setup(mt9p031);
- 
- done:
- 	if (ret < 0) {
-diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
-index 0c97b19..b1e63f2 100644
---- a/include/media/mt9p031.h
-+++ b/include/media/mt9p031.h
-@@ -5,13 +5,11 @@ struct v4l2_subdev;
+@@ -101,7 +96,7 @@ enum vpss_platform_type {
  
  /*
-  * struct mt9p031_platform_data - MT9P031 platform data
-- * @set_xclk: Clock frequency set callback
-  * @reset: Chip reset GPIO (set to -1 if not used)
-  * @ext_freq: Input clock frequency
-  * @target_freq: Pixel clock frequency
+  * vpss operations. Depends on platform. Not all functions are available
+- * on all platforms. The api, first check if a functio is available before
++ * on all platforms. The api, first check if a function is available before
+  * invoking it. In the probe, the function ptrs are initialized based on
+  * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
   */
- struct mt9p031_platform_data {
--	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
- 	int reset;
- 	int ext_freq;
- 	int target_freq;
+@@ -116,7 +111,7 @@ struct vpss_hw_ops {
+ 	void (*set_sync_pol)(struct vpss_sync_pol);
+ 	/* set the PG_FRAME_SIZE register*/
+ 	void (*set_pg_frame_size)(struct vpss_pg_frame_size);
+-	/* check and clear interrupt if occured */
++	/* check and clear interrupt if occurred */
+ 	int (*dma_complete_interrupt)(void);
+ };
+ 
+@@ -235,7 +230,7 @@ EXPORT_SYMBOL(vpss_clear_wbl_overflow);
+ 
+ /*
+  *  dm355_enable_clock - Enable VPSS Clock
+- *  @clock_sel: CLock to be enabled/disabled
++ *  @clock_sel: Clock to be enabled/disabled
+  *  @en: enable/disable flag
+  *
+  *  This is called to enable or disable a vpss clock
 -- 
-1.8.1.5
+1.7.4.1
 
