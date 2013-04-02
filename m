@@ -1,79 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:47198 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758536Ab3DSJrN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:47:13 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH RFC] media: videobuf2: fix the length check for mmap
-Date: Fri, 19 Apr 2013 15:16:56 +0530
-Message-Id: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-ia0-f177.google.com ([209.85.210.177]:64396 "EHLO
+	mail-ia0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757298Ab3DBRa6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 13:30:58 -0400
+Received: by mail-ia0-f177.google.com with SMTP id w33so506805iag.8
+        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 10:30:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1364921954.20640.22.camel@laptop>
+References: <20130228102452.15191.22673.stgit@patser>
+	<20130228102502.15191.14146.stgit@patser>
+	<1364900432.18374.24.camel@laptop>
+	<515AF1C1.7080508@canonical.com>
+	<1364921954.20640.22.camel@laptop>
+Date: Tue, 2 Apr 2013 19:30:57 +0200
+Message-ID: <CAKMK7uHPtR1m_GYTH2xmnfo-rCJUCvz3_ci40jp9zOWTNpzsvw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Tue, Apr 2, 2013 at 6:59 PM, Peter Zijlstra <a.p.zijlstra@chello.nl> wrote:
+>> > Also, is there anything in CS literature that comes close to this? I'd
+>> > think the DBMS people would have something similar with their
+>> > transactional systems. What do they call it?
+>
+>> I didn't study cs, but judging from your phrasing I guess you mean you
+>> want me to call it transaction_mutexes instead?
+>
+> Nah, me neither, I just hate reinventing names for something that's
+> already got a perfectly fine name under which a bunch of people know
+> it.
+>
+> See the email from Daniel, apparently its known as wound-wait deadlock
+> avoidance -- its actually described in the "deadlock" wikipedia
+> article.
+>
+> So how about we call the thing something like:
+>
+>   struct ww_mutex; /* wound/wait */
+>
+>   int mutex_wound_lock(struct ww_mutex *); /* returns -EDEADLK */
+>   int mutex_wait_lock(struct ww_mutex *);  /* does not fail */
 
->From commit 068a0df76023926af958a336a78bef60468d2033
-"[media] media: vb2: add length check for mmap"
-patch verifies that the mmap() size requested by userspace
-doesn't exceed the buffer size.
+I'm not sold on this prefix, since wound-wait is just the
+implementation detail of how it detects/handles deadlocks. For users a
+really dumb strategy of just doing a mutex trylock and always
+returning -EAGAIN if that fails (together with a msleep(rand) in the
+slowpath) would have the same interface. Almost at least, we could
+ditch the ticket - but the ticket is used as a virtual lock for the
+lockdep annotation, so ditching it would also reduce lockdep
+usefulness (due to all those trylocks). So in case we ever switch the
+deadlock/backoff algo ww_ would be a bit misleading.
 
-As the mmap() size is rounded up to the next page boundary
-the check will fail for buffer sizes that are not multiple
-of the page size.
-
-This patch fixes the check by aligning the buffer size to page
-size during the check. Alongside fixes the vmalloc allocator
-to round up the size.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
- drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 58c1744..223fcd4 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
- 
- 	vb = q->bufs[buffer];
- 
--	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
-+	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end - vma->vm_start)) {
- 		dprintk(1, "Invalid length\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 313d977..bf3b95c 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fl
- 		return NULL;
- 
- 	buf->size = size;
--	buf->vaddr = vmalloc_user(buf->size);
-+	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_vmalloc_put;
- 	buf->handler.arg = buf;
+Otoh reservation_ is just what it's used for in graphics-land, so not
+that much better. I don't really have a good idea for what this is
+besides mutexes_with_magic_deadlock_detection_and_backoff. Which is a
+bit long.
+-Daniel
 -- 
-1.7.4.1
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
