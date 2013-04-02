@@ -1,127 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:50387 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934794Ab3DIH6d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 03:58:33 -0400
-Received: by mail-ie0-f180.google.com with SMTP id a11so8207487iee.11
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 00:58:33 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.8]:54208 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760543Ab3DBOHc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 10:07:32 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id 6356640BB3
+	for <linux-media@vger.kernel.org>; Tue,  2 Apr 2013 16:07:30 +0200 (CEST)
+Date: Tue, 2 Apr 2013 16:07:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] soc-camera: protect against racing open(2) and rmmod
+Message-ID: <Pine.LNX.4.64.1304021558400.31999@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <201304081446.33811.hverkuil@xs4all.nl>
-References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com>
-	<CA+MoWDpAFOgEN-ruyzVp=C-Dz_16CnOSXU30UowARB3m-eTVMQ@mail.gmail.com>
-	<CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
-	<201304081446.33811.hverkuil@xs4all.nl>
-Date: Tue, 9 Apr 2013 09:58:33 +0200
-Message-ID: <CAFW1BFwF1WKgp0Bxyqo1WrvY98LaKCbakK+=rjNsbEW7LgB2cw@mail.gmail.com>
-Subject: Re: vivi kernel driver
-From: Michal Lazo <michal.lazo@mdragon.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I want to make API that will provide hw video decoder on Amlogic SOC
-it is ARM cortex 9
+To protect against open() racing with rmmod, hold the list_lock also while
+obtaining a reference to the camera host driver and check that the video
+device hasn't been unregistered yet.
 
-with some proprietary video decoder
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |   42 ++++++++++++++++--------
+ 1 files changed, 28 insertions(+), 14 deletions(-)
 
-amlogic provide me with working example that generate output frames in
-amlvideo driver.
-It is v4l2 driver
-and it did memcpy to mmap userspace memory
-
-    buffer_y_start=ioremap(cs0.addr,cs0.width*cs0.height);
-    for(i=0;i<buf->vb.height;i++) {
-		memcpy(vbuf + pos_dst, buffer_y_start+pos_src, buf->vb.width*3);
-		pos_dst+=buf->vb.width*3;
-		pos_src+= cs0.width;
-	}
-
-I did it with one memcpy with same cpu load
-
-https://github.com/Pivosgroup/buildroot-linux-kernel/blob/master/drivers/media/video/amlvideo/amlvideo.c#L218
-
-top get me 50% cpu load on this driver for 25fps PAL
-
-it is really too much
-
-and funny is that vivi driver(amlvideo is completely base on vivi) get
-me same cpu load
-
-it looks like memcpy isn't cached or something but I don't know how to
-identify problem
-Any idea how to identify this problem.
-
-On Mon, Apr 8, 2013 at 2:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Mon April 8 2013 14:42:32 Michal Lazo wrote:
->> Hi
->> 720x576 RGB 25, 30 fps and it take
->>
->> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
->> 2GHz linux 3.2.0-39)
->>
->> it is simply too much
->
-> No, that's what I would expect. Note that vivi was substantially improved recently
-> when it comes to the image generation. That will be in the upcoming 3.9 kernel.
->
-> This should reduce CPU load by quite a bit if memory serves.
->
-> Regards,
->
->         Hans
->
->>
->>
->>
->>
->> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
->> <peter.senna@gmail.com> wrote:
->> > Dear Michal,
->> >
->> > The CPU intensive part of the vivi driver is the image generation.
->> > This is not an issue for real drivers.
->> >
->> > Regards,
->> >
->> > Peter
->> >
->> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
->> >> Hi
->> >> V4L2 driver vivi
->> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
->> >>
->> >> player
->> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
->> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
->> >> height=576, framerate=30000/1001 ! fakesink sync=false
->> >>
->> >> Anybody can answer me why?
->> >> And how can I do it better ?
->> >>
->> >> I use vivi as base example for my driver
->> >> --
->> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> >> the body of a message to majordomo@vger.kernel.org
->> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->> >
->> >
->> > --
->> > Peter
->>
->>
->>
->>
-
-
-
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 8ec9805..9cc3898 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -508,36 +508,49 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
+ static int soc_camera_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	struct soc_camera_device *icd = dev_get_drvdata(vdev->parent);
+-	struct soc_camera_desc *sdesc = to_soc_camera_desc(icd);
++	struct soc_camera_device *icd;
+ 	struct soc_camera_host *ici;
+ 	int ret;
+ 
+-	if (!to_soc_camera_control(icd))
+-		/* No device driver attached */
+-		return -ENODEV;
+-
+ 	/*
+ 	 * Don't mess with the host during probe: wait until the loop in
+-	 * scan_add_host() completes
++	 * scan_add_host() completes. Also protect against a race with
++	 * soc_camera_host_unregister().
+ 	 */
+ 	if (mutex_lock_interruptible(&list_lock))
+ 		return -ERESTARTSYS;
++
++	if (!vdev || !video_is_registered(vdev)) {
++		mutex_unlock(&list_lock);
++		return -ENODEV;
++	}
++
++	icd = dev_get_drvdata(vdev->parent);
+ 	ici = to_soc_camera_host(icd->parent);
++
++	ret = try_module_get(ici->ops->owner) ? 0 : -ENODEV;
+ 	mutex_unlock(&list_lock);
+ 
+-	if (mutex_lock_interruptible(&ici->host_lock))
+-		return -ERESTARTSYS;
+-	if (!try_module_get(ici->ops->owner)) {
++	if (ret < 0) {
+ 		dev_err(icd->pdev, "Couldn't lock capture bus driver.\n");
+-		ret = -EINVAL;
+-		goto emodule;
++		return ret;
++	}
++
++	if (!to_soc_camera_control(icd)) {
++		/* No device driver attached */
++		ret = -ENODEV;
++		goto econtrol;
+ 	}
+ 
++	if (mutex_lock_interruptible(&ici->host_lock)) {
++		ret = -ERESTARTSYS;
++		goto elockhost;
++	}
+ 	icd->use_count++;
+ 
+ 	/* Now we really have to activate the camera */
+ 	if (icd->use_count == 1) {
++		struct soc_camera_desc *sdesc = to_soc_camera_desc(icd);
+ 		/* Restore parameters before the last close() per V4L2 API */
+ 		struct v4l2_format f = {
+ 			.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+@@ -609,9 +622,10 @@ epower:
+ 	ici->ops->remove(icd);
+ eiciadd:
+ 	icd->use_count--;
+-	module_put(ici->ops->owner);
+-emodule:
+ 	mutex_unlock(&ici->host_lock);
++elockhost:
++econtrol:
++	module_put(ici->ops->owner);
+ 
+ 	return ret;
+ }
 -- 
-Best Regards
+1.7.2.5
 
-Michal Lazo
-Senior developer manager
-mdragon.org
-Slovakia
