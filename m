@@ -1,52 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f41.google.com ([209.85.210.41]:32776 "EHLO
-	mail-da0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761742Ab3DCFM0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 01:12:26 -0400
-Received: by mail-da0-f41.google.com with SMTP id w4so507902dam.28
-        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 22:12:26 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
-Subject: [PATCH 2/7] soc_camera/mx2_camera: Fix warnings related to spacing
-Date: Wed,  3 Apr 2013 10:30:36 +0530
-Message-Id: <1364965241-28225-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
-References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:52317 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932636Ab3DBPr5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Apr 2013 11:47:57 -0400
+Message-ID: <515AFDA0.8090802@redhat.com>
+Date: Tue, 02 Apr 2013 17:47:44 +0200
+From: Gerd Hoffmann <kraxel@redhat.com>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: zhaokai@loongson.cn
+Subject: saa7134 irq status bits
+References: <515A8D5A.4060605@loongson.cn>
+In-Reply-To: <515A8D5A.4060605@loongson.cn>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following checkpatch warnings:
-WARNING: unnecessary whitespace before a quoted newline
-WARNING: please, no space before tabs
+  Hi,
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/soc_camera/mx2_camera.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Forwarding to linux-media mailing list, hoping that someone there can
+help out.  I havn't worked in the code for years now, can't remember
+what the AR irq bit is and can't find my copy of the saa7134 data sheet
+too ...
 
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 048c26a..3a0ffbb 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -1454,7 +1454,7 @@ static int mx27_camera_emma_init(struct platform_device *pdev)
- 	err = devm_request_irq(pcdev->dev, irq_emma, mx27_camera_emma_irq, 0,
- 			       MX2_CAM_DRV_NAME, pcdev);
- 	if (err) {
--		dev_err(pcdev->dev, "Camera EMMA interrupt register failed \n");
-+		dev_err(pcdev->dev, "Camera EMMA interrupt register failed\n");
- 		goto out;
- 	}
- 
-@@ -1615,7 +1615,7 @@ static int mx2_camera_remove(struct platform_device *pdev)
- }
- 
- static struct platform_driver mx2_camera_driver = {
--	.driver 	= {
-+	.driver		= {
- 		.name	= MX2_CAM_DRV_NAME,
- 	},
- 	.id_table	= mx2_camera_devtype,
--- 
-1.7.9.5
+cheers,
+  Gerd
+
+-------- Original Message --------
+Subject: hello kraxel
+Date: Tue, 02 Apr 2013 15:48:42 +0800
+From: zhaokai <zhaokai@loongson.cn>
+To: kraxel@bytesex.org
+
+Dear Kraxel:
+
+My name is zhaokai, I am a soft developer working in beijing.
+This is my first mail to The Kernel Developer, I am very excited.
+Now I have a question about your code for saa7134 driver in linux kernel
+2.6.21.
+We use Loongson CPU,I compile kernel and run the image,when I run my
+test app for saa7134 camera
+this message will print:
+saa7130[0]/irq: looping -- clearing all enable bits
+
+I study the saa7134 driver code,find the message come from the follow code:
+
+    if (10 == loop) {
+        print_irqstatus(dev,loop,report,status);
+        if (report & SAA7134_IRQ_REPORT_PE) {
+            /* disable all parity error */
+            printk(KERN_WARNING "%s/irq: looping -- "
+                   "clearing PE (parity error!) enable bit\n",dev->name);
+            saa_clearl(SAA7134_IRQ2,SAA7134_IRQ2_INTE_PE);
+        } else if (report & SAA7134_IRQ_REPORT_GPIO16) {
+            /* disable gpio16 IRQ */
+            printk(KERN_WARNING "%s/irq: looping -- "
+                   "clearing GPIO16 enable bit\n",dev->name);
+            saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO16);
+        } else if (report & SAA7134_IRQ_REPORT_GPIO18) {
+            /* disable gpio18 IRQs */
+            printk(KERN_WARNING "%s/irq: looping -- "
+                   "clearing GPIO18 enable bit\n",dev->name);
+            saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
+        } else {
+            /* disable all irqs */
+            printk(KERN_WARNING "%s/irq: looping -- "
+                   "clearing all enable bits\n",dev->name);
+            saa_writel(SAA7134_IRQ1,0);
+            saa_writel(SAA7134_IRQ2,0);
+        }
+    }
+this is in the interrupt handle function,I add some print and find the
+value of SAA7134_IRQ_REPORT register is 0x11 or 0x10, normally it would
+be 0x1 or 0x0,
+0x1x means SAA7134_IRQ_REPORT_AR, So what is the meaning of
+SAA7134_IRQ_REPORT_AR ?
+
+Best regards,
+ZhaoKai
+
+
+
 
