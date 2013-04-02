@@ -1,88 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46078 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760488Ab3DJN43 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 09:56:29 -0400
-Date: Wed, 10 Apr 2013 14:56:27 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Barry Song <21cnbao@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"renwei.wu" <renwei.wu@csr.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	xiaomeng.hou@csr.com, zilong.wu@csr.com
-Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of
- clients
-Message-ID: <20130410135627.GD9243@opensource.wolfsonmicro.com>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de>
- <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
- <Pine.LNX.4.64.1304101358490.13557@axis700.grange>
- <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Dnvf+KcI+0MByPWJ"
-Content-Disposition: inline
-In-Reply-To: <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:61666 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759943Ab3DBFmN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 01:42:13 -0400
+Received: by mail-ee0-f47.google.com with SMTP id t10so20575eei.6
+        for <linux-media@vger.kernel.org>; Mon, 01 Apr 2013 22:42:11 -0700 (PDT)
+Date: Tue, 2 Apr 2013 08:43:05 +0300
+From: Timo Teras <timo.teras@iki.fi>
+To: Frank =?ISO-8859-1?Q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec Grabby hwrev 2
+Message-ID: <20130402084305.0f623e6e@vostro>
+In-Reply-To: <5159C35D.7080901@googlemail.com>
+References: <20130325190846.3250fe98@vostro>
+	<20130325143647.3da1360f@redhat.com>
+	<20130325194820.7c122834@vostro>
+	<20130325153220.3e6dbfe5@redhat.com>
+	<20130325211238.7c325d5e@vostro>
+	<20130326102056.63b55916@vostro>
+	<20130327161049.683483f8@vostro>
+	<20130328105201.7bcc7388@vostro>
+	<20130328094052.26b7f3f5@redhat.com>
+	<20130328153556.0b58d1aa@vostro>
+	<20130328122252.19769614@redhat.com>
+	<20130330115455.56c34b5f@vostro>
+	<5159C35D.7080901@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 01 Apr 2013 19:26:53 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> wrote:
 
---Dnvf+KcI+0MByPWJ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+> Am 30.03.2013 10:54, schrieb Timo Teras:
+> > On Thu, 28 Mar 2013 12:22:52 -0300
+> > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> >
+> >>> On the W7 driver, I don't get any of the above mentioned problems.
+> >>>
+> >>> I looked at the saa7113 register init sequence, and copied that
+> >>> over to linux saa7113 init, but that did not remove the problems.
+> >>> There were only few changes.
+> >> So, maybe it does a different crop setup at em28xx.
+> > I did an analysis of the register setups of em28xx and found the
+> > following differences:
+> >
+> > 1. Different crop settings
+> >
+> > EM28XX_R1D_VSTART, EM28XX_R1F_CHEIGHT and EM28XX_R2B_YMAX set by W7
+> > driver were divided by two compared to the linux driver. Seems that
+> > linux driver did just this before commit c2a6b54.  I also found the
+> > patch https://patchwork.kernel.org/patch/1272051/ to restore the
+> > original behaviour, but somehow it was disregarded and commit
+> > 0bc9c89 was done instead. The mentioned patch though does not fix
+> > R1D setting though.
+> 
+> Can you post the settings the Windows driver uses for these
+> registers ? Don't worry about registers 0x28-0x2B, different values
+> shouldn' matter. See
+> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/57039.
 
-On Wed, Apr 10, 2013 at 09:53:20PM +0800, Barry Song wrote:
-> 2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+Yes, it would seem registers 0x28-0x2B do not have great significance
+in the video we get out of it.
 
-> >> what about another possible way:
-> >> we let all host and i2c client driver probed in any order,
+The full sequence the W7 driver does for PAL video is:
 
-> > This cannot work, because some I2C devices, e.g. sensors, need a clock
-> > signal from the camera interface to probe. Before the bridge driver has
-> > completed its probing and registered a suitable clock source with the
-> > v4l2-clk framework, sensors cannot be probed. And no, we don't want to
-> > fake successful probing without actually being able to talk to the
-> > hardware.
+EM28XX_R20_YGAIN        0x00
+EM28XX_R22_UVGAIN       0x00
+EM28XX_R06_I2C_CLK      0x40
+EM28XX_R15_RGAIN        0x20
+EM28XX_R16_GGAIN        0x20
+EM28XX_R17_BGAIN        0x20
+EM28XX_R18_ROFFSET      0x00
+EM28XX_R19_GOFFSET      0x00
+EM28XX_R1A_BOFFSET      0x00
+EM28XX_R23_UOFFSET      0x00
+EM28XX_R24_VOFFSET      0x00
+EM28XX_R26_COMPR        0x00
+EM28XX_R13_???          0x08 (Note: we do not set this at all)
+EM28XX_R27_OUTFMT       0x34
+EM28XX_R10_VINMODE      0x00
+EM28XX_R28_XMIN         0x01
+EM28XX_R29_XMAX         0xB3
+EM28XX_R2A_YMIN         0x01
+EM28XX_R2B_YMAX         0x47 (We set 0x8e, i think)
+EM28XX_R1C_HSTART       0x00
+EM28XX_R1D_VSTART       0x01 (We set 0x02)
+EM28XX_R1E_CWIDTH       0xB4
+EM28XX_R1F_CHEIGHT      0x48 (We set 0x8f, or 0x90)
+EM28XX_R1B_OFLOW        0x00
 
-> i'd say same dependency also exists on ASoC.  a "fake" successful
-> probing doesn't mean it should really begin to work if there is no
-> external trigger source.  ASoC has successfully done that by a machine
-> driver to connect all DAI.
-> a way is we put all things ready in their places, finally we connect
-> them together and launch the whole hardware flow.
+(Tuner and AC97 config takes place here)
 
-In the ASoC case the idea is that drivers should probe as far as they
-can with just the chip and then register with the core.  The machine
-driver defers probing until all components have probed and then runs
-through second stage initialisaton which pulls everything together.
+EM28XX_R0E_AUDIOSRC     0x8f
+EM28XX_R21_YOFFSET      0x08 (We set 0x10)
+EM28XX_R20_YGAIN        0x10
+EM28XX_R22_UVGAIN       0x10
+EM28XX_R14_GAMMA        0x32 (We set 0x20)
+EM28XX_R25_SHARPNESS    0x02 (We set 0x00)
+EM28XX_R26_COMPR        0x00
+EM28XX_R27_OUTFMT       0x34
+EM28XX_R11_VINCTRL      0x11
+EM28XX_R1B_OFLOW        0x00
+EM28XX_R12_VINENABLE    0x67
+EM28XX_R22_UVGAIN       0x10
+EM28XX_R20_YGAIN        0x10
+EM28XX_R0E_AUDIOSRC     0x8f
 
---Dnvf+KcI+0MByPWJ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+> > 2. Different outfmt used
+> >
+> > It seems that ffmpeg defaults to v4l default, which somehow
+> > apparently resulted in EM28XX_OUTFMT_RGB_8_RGRG set. When forcing
+> > ffmpeg to set yuyv422 or EM28XX_OUTFMT_YUV422_Y0UY1V the color
+> > distortions vanished. I'm unsure if the distiortion comes from
+> > ffmpeg doing some automatic conversions, or from v4l kernel driver.
+> 
+> The easiest way to test the drivers output formats is to use qv4l2
+> with the device opened in raw mode (command line option '-r' or 'Open
+> raw device' from the 'File' menu).
+> In raw mode, you can be sure that the selected format is always the
+> actually used format (otherwise libv4l2 is used which selects what it
+> thinks is the best source format for the conversion into the selected
+> format.
 
-iQIcBAEBAgAGBQJRZW+AAAoJELSic+t+oim9RisP/0JnIg+nLUD6ybwBMA2Mc1d+
-GvVQVmasJue54gyGd9X+XcRXdBrtSw8UUiSI5rUFoOHIyc6ZLYz+qprpSCjIEAUz
-BRiPG2zwpEsHvdI9ys3mCtwU/9Go4pnxhGUHLtb7xHbsORxdaTyN0yiiOEwbwaAe
-9mfzBn3iZGru5vjSf7vIft/YX5rcmsMaRq9typ1b10Q1dEHJQFk3V4GVN1KbpULG
-4xEOaipv3HorsJhcEuc7r+LIXp7Zp9Yg2W5RVTTu7CDnGWmyu4ELSCDa8mWsqAdu
-80N2zDzQQHu+QZwxrGp2GPHRbBeL4Pekp3GHUXqUokWnHSHe1pTaqEvp4BpBMRUn
-UQqDJkFNNu8n3bL9UjQ7feVgo1obX4e9B1BG4Z+PWFbIViK/Q9mMU5EatSesx7Ju
-qqCIIGKG0Q8YxildXDf9y70CirkXIDyvOt42O0uxZTeQMMx5AdP0y/gvz+nPfdVw
-kReb2sXLVKvysXmvsG5B8L0FnWKB1sDDMCDCrkZowzIDkuhFZ9ZphdeUr9j/IKf7
-MjnfIGrsGos7+D/yVXBJJJ/t2JZ1IzGzNdoGhG/XYLS1hjmhj5KiBFd2k3Mr77/u
-Qa+pG7guhaCYlh+8/CcCCpabjW6wPQfjtzZ1bMjAx77grcm+jGlSJJHMdIdOd7nD
-N+AOg+yeJVJQwvabeOMk
-=XoTj
------END PGP SIGNATURE-----
+Ah, ok. So libv4l2 can be doing stuff underneath also. I think in
+my setup yuv420p is the preferred one (encoding to h264 with baseline
+profile). Now that I figured what goes wrong, this is not a big issue.
 
---Dnvf+KcI+0MByPWJ--
+> I hate to say that, but currently you shouldn't expect anything else
+> than the 16 bit formats to work properly. :(
+> The code assumes 16 bit pixel width in several places (initially
+> YUV422 was the only supported format).
+> Some of these bugs are easy to find (e.g. in em28xx_copy_video() ),
+> some are hidden...
+> I didn't have enough time yet to track them all down and all my
+> attempts to fix parts of the code resulted in an even worse picture
+> so far.
+
+Oh, would it then make sense to disable all the non-16bpp formats for
+the time being?
+
+Basically, I got mostly OK picture, but areas with all-black and
+all-white next to each other got distorted (e.g. subtitles).
+
+> > Though, it might be an idea to set the default outfmt to something
+> > that is known to work. So I'm wondering if this could be fixed
+> > easily? YUYV422 should have also better quality, so it would make
+> > sense to select it instead of the other one.
+> 
+> The driver selects EM28XX_OUTFMT_YUV422_Y0UY1V as default format, so
+> it must be ffmpeg that selects EM28XX_OUTFMT_RGB_8_RGRG.
+
+Yes, starting to sound like that.
+
+> > So seems that now the device is working properly. Basically we need
+> > the following changes:
+> >  1. saa7113 id ignore (or autodetect, and fallback to forced type)
+> >  2. saa7113 not writing to the registers 14-17 in case it's not the
+> >     original chip (id not present)
+> 
+> You should talk to the saa7115 maintainer about that.
+
+get_maintainers.pl says that Mauro and this list is the place to talk
+to. So here I am doing it :)
+
+> >  3. em28xx crop height/vstart to divided by 2 in interlaced mode
+> >  4. (optionally) em28xx outfmt should default to YUYV422
+> 
+> Both isn't necessary (as explained above).
+> What definitely needs to be fixed in the em28xx driver are the
+> non-16bit-formats.
+
+Yeah, seems to be the case.
+
+- Timo
