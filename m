@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:37061 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965239Ab3DRO2e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 10:28:34 -0400
-Received: by mail-la0-f47.google.com with SMTP id fk20so2323147lab.6
-        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 07:28:33 -0700 (PDT)
-Message-ID: <517002CC.2000807@cogentembedded.com>
-Date: Thu, 18 Apr 2013 18:27:24 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:47061 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759947Ab3DBHxQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 03:53:16 -0400
+Date: Tue, 2 Apr 2013 10:51:02 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [RFC] [media] dvb-core: check ->msg_len for diseqc_send_master_cmd()
+Message-ID: <20130402075102.GA11233@longonot.mountain>
 MIME-Version: 1.0
-To: g.liakhovetski@gmx.de, mchehab@redhat.com,
-	linux-media@vger.kernel.org
-CC: magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Subject: Re: [PATCH 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180211.13992.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304180211.13992.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-04-2013 2:11, Sergei Shtylyov wrote:
+I'd like to send this patch except that it "breaks"
+cx24116_send_diseqc_msg().  The cx24116 driver accepts ->msg_len values
+up to 24 but it looks like it's just copying 16 bytes past the end of
+the ->msg[] array so it's already broken.
 
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+cmd->msg_len is an unsigned char.  The comment next to the struct
+declaration says that valid values are are 3-6.  Some of the drivers
+check that this is true, but most don't and it could cause memory
+corruption.
 
-> Add Renesas R-Car VIN (Video In) V4L2 driver.
+Some examples of functions which don't check are:
+ttusbdecfe_dvbs_diseqc_send_master_cmd()
+cx24123_send_diseqc_msg()
+ds3000_send_diseqc_msg()
+etc.
 
-> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> [Sergei: some formatting cleanup]
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
-[...]
-
-> +static int rcar_vin_probe(struct platform_device *pdev)
-> +{
-[...]
-> +	ret = devm_request_irq(&pdev->dev, irq, rcar_vin_irq, IRQF_DISABLED,
-
-    I forgot that this flag is deprecated now. Also we need to pass IRQF_SHARED
-for the VIN driver to work on R8A7778 where VIN0/1 share the IRQ.
-
-WBR, Sergei
-
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 57601c0..3d1eee6 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2265,7 +2265,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 
+ 	case FE_DISEQC_SEND_MASTER_CMD:
+ 		if (fe->ops.diseqc_send_master_cmd) {
+-			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
++			struct dvb_diseqc_master_cmd *cmd = parg;
++
++			if (cmd->msg_len >= 3 && cmd->msg_len <= 6)
++				err = fe->ops.diseqc_send_master_cmd(fe, cmd);
++			else
++				err = -EINVAL;
++
+ 			fepriv->state = FESTATE_DISEQC;
+ 			fepriv->status = 0;
+ 		}
