@@ -1,43 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:52862 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935034Ab3DIJnK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 05:43:10 -0400
-Received: by mail-bk0-f54.google.com with SMTP id q16so3531940bkw.13
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 02:43:09 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 9 Apr 2013 17:43:09 +0800
-Message-ID: <CAPgLHd-EpQB2HjpH6pGnDLzvLUyKYSmyPfqQyCWa7CPz0V9d=g@mail.gmail.com>
-Subject: [PATCH] [media] rc: ttusbir: fix potential double free in ttusbir_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: sean@mess.org, mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:48188 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759896Ab3DBLoO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 07:44:14 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 0/3] davinci: vpss: clock cleanup
+Date: Tue,  2 Apr 2013 17:14:01 +0530
+Message-Id: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Since rc_unregister_device() frees its argument, the subsequently
-call to rc_free_device() on the same variable will cause a double
-free bug. Fix by set argument to NULL, thus when fall through to
-rc_free_device(), nothing will be done there.
+This patch series cleanup's the VPSS clock enabling.
+The first patch removes vpss clock enabling from the capture
+drivers and moves it to the VPSS driver itself.
+The second patch moves the venc_enable_vpss_clock() to the driver
+which was being done in platform code.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/rc/ttusbir.c | 1 +
- 1 file changed, 1 insertion(+)
+Changes for v2:
+1: Used PM runtime API for clock handling and nit's pointed by Sekhar.
 
-diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-index cf0d47f..891762d 100644
---- a/drivers/media/rc/ttusbir.c
-+++ b/drivers/media/rc/ttusbir.c
-@@ -347,6 +347,7 @@ static int ttusbir_probe(struct usb_interface *intf,
- 	return 0;
- out3:
- 	rc_unregister_device(rc);
-+	rc = NULL;
- out2:
- 	led_classdev_unregister(&tt->led);
- out:
+Lad, Prabhakar (3):
+  media: davinci: vpss: enable vpss clocks
+  media: davinci: vpbe: venc: move the enabling of vpss clocks to
+    driver
+  davinic: vpss: trivial cleanup
+
+ arch/arm/mach-davinci/dm355.c                |    7 +---
+ arch/arm/mach-davinci/dm365.c                |   11 +++++--
+ arch/arm/mach-davinci/dm644x.c               |    9 +----
+ arch/arm/mach-davinci/pm_domain.c            |    2 +-
+ drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------------
+ drivers/media/platform/davinci/dm644x_ccdc.c |   44 --------------------------
+ drivers/media/platform/davinci/isif.c        |   28 ++--------------
+ drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++++++++++++
+ drivers/media/platform/davinci/vpss.c        |   36 ++++++++++++++++-----
+ 9 files changed, 71 insertions(+), 130 deletions(-)
+
+-- 
+1.7.4.1
 
