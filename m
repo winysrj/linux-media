@@ -1,64 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:41756 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752773Ab3DLI0u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 04:26:50 -0400
-MIME-Version: 1.0
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 12 Apr 2013 13:56:29 +0530
-Message-ID: <CA+V-a8sko61y73odE5efJWwqYyMkBqM7_FPrs7Uvh7sdtBsGvA@mail.gmail.com>
-Subject: [GIT PULL FOR v3.10] DaVinci media cleanups + Updates
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:21683 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761234Ab3DBQGp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 12:06:45 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: yhwan.joo@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH v4 6/7] exynos4-is: Add fimc-is subdevs registration
+Date: Tue, 02 Apr 2013 18:03:38 +0200
+Message-id: <1364918619-9118-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364918619-9118-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364918619-9118-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans/Mauro,
+This patch allows to register FIMC-IS device represented by FIMC-IS-ISP
+subdev to the top level media device driver. The use_isp platform data
+structure field allows to select whether the fimc-is ISP subdev should
+be tried to be registered or not.
 
-Please pull the following patches for Davinci media. Few patches
-contain platform changes for ARM which have been Acked by its maintainer.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c |   37 +++++++++++++++++++++++--
+ drivers/media/platform/exynos4-is/media-dev.h |   13 +++++++++
+ 2 files changed, 47 insertions(+), 3 deletions(-)
 
-Regards,
---Prabhakar Lad
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index a0fd8cc..597648e 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -32,6 +32,7 @@
+ 
+ #include "media-dev.h"
+ #include "fimc-core.h"
++#include "fimc-is.h"
+ #include "fimc-lite.h"
+ #include "mipi-csis.h"
+ 
+@@ -85,9 +86,11 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+ 		case GRP_ID_FIMC:
+ 			/* No need to control FIMC subdev through subdev ops */
+ 			break;
++		case GRP_ID_FIMC_IS:
++			p->subdevs[IDX_IS_ISP] = sd;
++			break;
+ 		default:
+-			pr_warn("%s: Unknown subdev grp_id: %#x\n",
+-				__func__, sd->grp_id);
++			break;
+ 		}
+ 		me = &sd->entity;
+ 		if (me->num_pads == 1)
+@@ -322,6 +325,7 @@ static void fimc_md_unregister_sensor(struct v4l2_subdev *sd)
+ 
+ 	if (!client)
+ 		return;
++
+ 	v4l2_device_unregister_subdev(sd);
+ 
+ 	if (!client->dev.of_node) {
+@@ -372,7 +376,11 @@ static int fimc_md_of_add_sensor(struct fimc_md *fmd,
+ 		goto mod_put;
+ 
+ 	v4l2_set_subdev_hostdata(sd, si);
+-	sd->grp_id = GRP_ID_SENSOR;
++	if (si->pdata.fimc_bus_type == FIMC_BUS_TYPE_ISP_WRITEBACK)
++		sd->grp_id = GRP_ID_FIMC_IS_SENSOR;
++	else
++		sd->grp_id = GRP_ID_SENSOR;
++
+ 	si->subdev = sd;
+ 	v4l2_info(&fmd->v4l2_dev, "Registered sensor subdevice: %s (%d)\n",
+ 		  sd->name, fmd->num_sensors);
+@@ -652,6 +660,22 @@ static int register_csis_entity(struct fimc_md *fmd,
+ 	return ret;
+ }
+ 
++static int register_fimc_is_entity(struct fimc_md *fmd, struct fimc_is *is)
++{
++	struct v4l2_subdev *sd = &is->isp.subdev;
++	int ret;
++
++	ret = v4l2_device_register_subdev(&fmd->v4l2_dev, sd);
++	if (ret) {
++		v4l2_err(&fmd->v4l2_dev,
++			 "Failed to register FIMC-ISP (%d)\n", ret);
++		return ret;
++	}
++
++	fmd->fimc_is = is;
++	return 0;
++}
++
+ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 					    struct platform_device *pdev,
+ 					    int plat_entity)
+@@ -679,6 +703,9 @@ static int fimc_md_register_platform_entity(struct fimc_md *fmd,
+ 		case IDX_CSIS:
+ 			ret = register_csis_entity(fmd, pdev, drvdata);
+ 			break;
++		case IDX_IS_ISP:
++			ret = register_fimc_is_entity(fmd, drvdata);
++			break;
+ 		default:
+ 			ret = -ENODEV;
+ 		}
+@@ -742,6 +769,8 @@ static int fimc_md_register_of_platform_entities(struct fimc_md *fmd,
+ 		/* If driver of any entity isn't ready try all again later. */
+ 		if (!strcmp(node->name, CSIS_OF_NODE_NAME))
+ 			plat_entity = IDX_CSIS;
++		else if	(!strcmp(node->name, FIMC_IS_OF_NODE_NAME))
++			plat_entity = IDX_IS_ISP;
+ 		else if (!strcmp(node->name, FIMC_LITE_OF_NODE_NAME))
+ 			plat_entity = IDX_FLITE;
+ 		else if	(!strcmp(node->name, FIMC_OF_NODE_NAME) &&
+@@ -1308,6 +1337,8 @@ static int fimc_md_probe(struct platform_device *pdev)
+ 	v4l2_dev->notify = fimc_sensor_notify;
+ 	strlcpy(v4l2_dev->name, "s5p-fimc-md", sizeof(v4l2_dev->name));
+ 
++	fmd->use_isp = fimc_md_is_isp_available(dev->of_node);
++
+ 	ret = v4l2_device_register(dev, &fmd->v4l2_dev);
+ 	if (ret < 0) {
+ 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 1d5cea5..0b14cd5 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -12,6 +12,7 @@
+ #include <linux/clk.h>
+ #include <linux/platform_device.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <media/media-device.h>
+ #include <media/media-entity.h>
+@@ -80,6 +81,7 @@ struct fimc_sensor_info {
+  * @num_sensors: actual number of registered sensors
+  * @camclk: external sensor clock information
+  * @fimc: array of registered fimc devices
++ * @fimc_is: fimc-is data structure
+  * @use_isp: set to true when FIMC-IS subsystem is used
+  * @pmf: handle to the CAMCLK clock control FIMC helper device
+  * @media_dev: top level media device
+@@ -99,6 +101,7 @@ struct fimc_md {
+ 	struct clk *wbclk[FIMC_MAX_WBCLKS];
+ 	struct fimc_lite *fimc_lite[FIMC_LITE_MAX_DEVS];
+ 	struct fimc_dev *fimc[FIMC_MAX_DEVS];
++	struct fimc_is *fimc_is;
+ 	bool use_isp;
+ 	struct device *pmf;
+ 	struct media_device media_dev;
+@@ -139,4 +142,14 @@ static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
+ 
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+ 
++#ifdef CONFIG_OF
++static inline bool fimc_md_is_isp_available(struct device_node *node)
++{
++	node = of_get_child_by_name(node, FIMC_IS_OF_NODE_NAME);
++	return node ? of_device_is_available(node) : false;
++}
++#else
++#define fimc_md_is_isp_available(node) (false)
++#endif /* CONFIG_OF */
++
+ #endif
+-- 
+1.7.9.5
 
-The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
-
-  [media] budget: Add support for Philips Semi Sylt PCI ref. design
-(2013-04-08 07:28:01 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_v3.10
-
-Lad, Prabhakar (6):
-      davinci: vpif: add pm_runtime support
-      media: davinci: vpss: enable vpss clocks
-      media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
-      davinic: vpss: trivial cleanup
-      ARM: davinci: dm365: add support for v4l2 video display
-      ARM: davinci: dm365 EVM: add support for VPBE display
-
-Sekhar Nori (1):
-      media: davinci: kconfig: fix incorrect selects
-
- arch/arm/mach-davinci/board-dm365-evm.c      |  166 ++++++++++++++++++++++-
- arch/arm/mach-davinci/davinci.h              |    8 +-
- arch/arm/mach-davinci/dm355.c                |    7 +-
- arch/arm/mach-davinci/dm365.c                |  195 +++++++++++++++++++++++---
- arch/arm/mach-davinci/dm644x.c               |    9 +-
- arch/arm/mach-davinci/pm_domain.c            |    2 +-
- drivers/media/platform/davinci/Kconfig       |  103 +++++---------
- drivers/media/platform/davinci/Makefile      |   17 +--
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +-----
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 ------
- drivers/media/platform/davinci/isif.c        |   28 +---
- drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++
- drivers/media/platform/davinci/vpif.c        |   24 +---
- drivers/media/platform/davinci/vpss.c        |   36 ++++-
- 14 files changed, 459 insertions(+), 244 deletions(-)
