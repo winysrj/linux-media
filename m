@@ -1,53 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:41587 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754319Ab3DVHSh (ORCPT
+Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:40734
+	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758291Ab3DBLAo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 03:18:37 -0400
-MIME-Version: 1.0
-In-Reply-To: <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de> <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 22 Apr 2013 12:47:46 +0530
-Message-ID: <CA+V-a8uLsr8MkLs8rjEohqEo=7x-PJq37nhVuAUzsfF5j_uJiA@mail.gmail.com>
-Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 2 Apr 2013 07:00:44 -0400
+Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
+	by bombadil.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
+	id 1UMyxH-00067f-BJ
+	for linux-media@vger.kernel.org; Tue, 02 Apr 2013 11:00:43 +0000
+Message-ID: <1364900432.18374.24.camel@laptop>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
+ v2
+From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	daniel.vetter@ffwll.ch, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org
+Date: Tue, 02 Apr 2013 13:00:32 +0200
+In-Reply-To: <20130228102502.15191.14146.stgit@patser>
+References: <20130228102452.15191.22673.stgit@patser>
+	 <20130228102502.15191.14146.stgit@patser>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Thu, 2013-02-28 at 11:25 +0100, Maarten Lankhorst wrote:
+> +Reservation type mutexes
 
-Thanks for the patch!
+> +struct ticket_mutex {
 
-On Fri, Apr 12, 2013 at 9:10 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Currently bridge device drivers register devices for all subdevices
-> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
-> is attached to a video bridge device, the bridge driver will create an I2C
-> device and wait for the respective I2C driver to probe. This makes linking
-> of devices straight forward, but this approach cannot be used with
-> intrinsically asynchronous and unordered device registration systems like
-> the Flattened Device Tree. To support such systems this patch adds an
-> asynchronous subdevice registration framework to V4L2. To use it respective
-> (e.g. I2C) subdevice drivers must register themselves with the framework.
-> A bridge driver on the other hand must register notification callbacks,
-> that will be called upon various related events.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> +extern int __must_check _mutex_reserve_lock(struct ticket_mutex *lock,
 
-with this https://patchwork.linuxtv.org/patch/18096/ patch applied, yo
-can add my
+That's two different names and two different forms of one (for a total
+of 3 variants) for the same scheme.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+FAIL...
 
-Regards,
---Prabhakar
+Also, is there anything in CS literature that comes close to this? I'd
+think the DBMS people would have something similar with their
+transactional systems. What do they call it?
+
