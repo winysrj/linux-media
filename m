@@ -1,318 +1,497 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7072 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934963Ab3DPS0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 14:26:23 -0400
-Subject: [PATCH 04/28] proc: Supply PDE attribute setting accessor functions
- [RFC]
-To: linux-kernel@vger.kernel.org
-From: David Howells <dhowells@redhat.com>
-Cc: alsa-devel@alsa-project.org, netdev@vger.kernel.org,
-	linux-wireless@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	viro@zeniv.linux.org.uk, linux-pci@vger.kernel.org,
-	linux-fsdevel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
-	linux-media@vger.kernel.org
-Date: Tue, 16 Apr 2013 19:26:06 +0100
-Message-ID: <20130416182606.27773.55054.stgit@warthog.procyon.org.uk>
-In-Reply-To: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
-References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:21672 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932514Ab3DBQGf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 12:06:35 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: yhwan.joo@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, myungjoo.ham@samsung.com,
+	dh09.lee@samsung.com, linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 4/7] exynos4-is: Add common FIMC-IS image sensor driver
+Date: Tue, 02 Apr 2013 18:03:36 +0200
+Message-id: <1364918619-9118-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1364918619-9118-1-git-send-email-s.nawrocki@samsung.com>
+References: <1364918619-9118-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Supply accessor functions to set attributes in proc_dir_entry structs.
+This patch adds a common image sensor driver and Makefile/Kconfig
+to enable cpmpilation of the whole IS drives.
 
-The following are supplied: proc_set_size() and proc_set_user().
+The sensor subdev driver currently only handles an image sensor's
+power supplies and reset signal. There is no an I2C communication
+as it is handled by the ISP's firmware.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: linuxppc-dev@lists.ozlabs.org
-cc: linux-media@vger.kernel.org
-cc: netdev@vger.kernel.org
-cc: linux-wireless@vger.kernel.org
-cc: linux-pci@vger.kernel.org
-cc: netfilter-devel@vger.kernel.org
-cc: alsa-devel@alsa-project.org
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
 
- arch/powerpc/kernel/proc_powerpc.c        |    2 +-
- arch/powerpc/platforms/pseries/reconfig.c |    2 +-
- drivers/media/pci/ttpci/av7110_ir.c       |    2 +-
- drivers/net/irda/vlsi_ir.c                |    2 +-
- drivers/net/wireless/airo.c               |   34 +++++++++--------------------
- drivers/pci/proc.c                        |    2 +-
- fs/proc/generic.c                         |   13 +++++++++++
- include/linux/proc_fs.h                   |    5 ++++
- kernel/configs.c                          |    2 +-
- kernel/profile.c                          |    2 +-
- net/netfilter/xt_recent.c                 |    3 +--
- sound/core/info.c                         |    2 +-
- 12 files changed, 38 insertions(+), 33 deletions(-)
+Changes since v3:
+ - dropped unused headers.
+---
+ drivers/media/platform/exynos4-is/Kconfig          |   11 +
+ drivers/media/platform/exynos4-is/Makefile         |    3 +
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |  322 ++++++++++++++++++++
+ drivers/media/platform/exynos4-is/fimc-is-sensor.h |   83 +++++
+ 4 files changed, 419 insertions(+)
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.c
+ create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.h
 
-diff --git a/arch/powerpc/kernel/proc_powerpc.c b/arch/powerpc/kernel/proc_powerpc.c
-index 41d8ee9..feb8580 100644
---- a/arch/powerpc/kernel/proc_powerpc.c
-+++ b/arch/powerpc/kernel/proc_powerpc.c
-@@ -83,7 +83,7 @@ static int __init proc_ppc64_init(void)
- 			       &page_map_fops, vdso_data);
- 	if (!pde)
- 		return 1;
--	pde->size = PAGE_SIZE;
-+	proc_set_size(pde, PAGE_SIZE);
+diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
+index 0ffb6a4..57e9c7e 100644
+--- a/drivers/media/platform/exynos4-is/Kconfig
++++ b/drivers/media/platform/exynos4-is/Kconfig
+@@ -51,4 +51,15 @@ config VIDEO_EXYNOS_FIMC_LITE
+ 	  module will be called exynos-fimc-lite.
+ endif
  
- 	return 0;
- }
-diff --git a/arch/powerpc/platforms/pseries/reconfig.c b/arch/powerpc/platforms/pseries/reconfig.c
-index d6491bd..f93cdf5 100644
---- a/arch/powerpc/platforms/pseries/reconfig.c
-+++ b/arch/powerpc/platforms/pseries/reconfig.c
-@@ -452,7 +452,7 @@ static int proc_ppc64_create_ofdt(void)
- 
- 	ent = proc_create("powerpc/ofdt", S_IWUSR, NULL, &ofdt_fops);
- 	if (ent)
--		ent->size = 0;
-+		proc_set_size(ent, 0);
- 
- 	return 0;
- }
-diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
-index eb82286..0e763a7 100644
---- a/drivers/media/pci/ttpci/av7110_ir.c
-+++ b/drivers/media/pci/ttpci/av7110_ir.c
-@@ -375,7 +375,7 @@ int av7110_ir_init(struct av7110 *av7110)
- 	if (av_cnt == 1) {
- 		e = proc_create("av7110_ir", S_IWUSR, NULL, &av7110_ir_proc_fops);
- 		if (e)
--			e->size = 4 + 256 * sizeof(u16);
-+			proc_set_size(e, 4 + 256 * sizeof(u16));
- 	}
- 
- 	tasklet_init(&av7110->ir.ir_tasklet, av7110_emit_key, (unsigned long) &av7110->ir);
-diff --git a/drivers/net/irda/vlsi_ir.c b/drivers/net/irda/vlsi_ir.c
-index e22cd4e..5f47584 100644
---- a/drivers/net/irda/vlsi_ir.c
-+++ b/drivers/net/irda/vlsi_ir.c
-@@ -1678,7 +1678,7 @@ vlsi_irda_probe(struct pci_dev *pdev, const struct pci_device_id *id)
- 			IRDA_WARNING("%s: failed to create proc entry\n",
- 				     __func__);
- 		} else {
--			ent->size = 0;
-+			proc_set_size(ent, 0);
- 		}
- 		idev->proc_entry = ent;
- 	}
-diff --git a/drivers/net/wireless/airo.c b/drivers/net/wireless/airo.c
-index 66e398d..21d0233 100644
---- a/drivers/net/wireless/airo.c
-+++ b/drivers/net/wireless/airo.c
-@@ -4507,73 +4507,63 @@ static int setup_proc_entry( struct net_device *dev,
- 					    airo_entry);
- 	if (!apriv->proc_entry)
- 		goto fail;
--	apriv->proc_entry->uid = proc_kuid;
--	apriv->proc_entry->gid = proc_kgid;
-+	proc_set_user(apriv->proc_entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the StatsDelta */
- 	entry = proc_create_data("StatsDelta", S_IRUGO & proc_perm,
- 				 apriv->proc_entry, &proc_statsdelta_ops, dev);
- 	if (!entry)
- 		goto fail_stats_delta;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the Stats */
- 	entry = proc_create_data("Stats", S_IRUGO & proc_perm,
- 				 apriv->proc_entry, &proc_stats_ops, dev);
- 	if (!entry)
- 		goto fail_stats;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the Status */
- 	entry = proc_create_data("Status", S_IRUGO & proc_perm,
- 				 apriv->proc_entry, &proc_status_ops, dev);
- 	if (!entry)
- 		goto fail_status;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the Config */
- 	entry = proc_create_data("Config", proc_perm,
- 				 apriv->proc_entry, &proc_config_ops, dev);
- 	if (!entry)
- 		goto fail_config;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the SSID */
- 	entry = proc_create_data("SSID", proc_perm,
- 				 apriv->proc_entry, &proc_SSID_ops, dev);
- 	if (!entry)
- 		goto fail_ssid;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the APList */
- 	entry = proc_create_data("APList", proc_perm,
- 				 apriv->proc_entry, &proc_APList_ops, dev);
- 	if (!entry)
- 		goto fail_aplist;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the BSSList */
- 	entry = proc_create_data("BSSList", proc_perm,
- 				 apriv->proc_entry, &proc_BSSList_ops, dev);
- 	if (!entry)
- 		goto fail_bsslist;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 
- 	/* Setup the WepKey */
- 	entry = proc_create_data("WepKey", proc_perm,
- 				 apriv->proc_entry, &proc_wepkey_ops, dev);
- 	if (!entry)
- 		goto fail_wepkey;
--	entry->uid = proc_kuid;
--	entry->gid = proc_kgid;
--
-+	proc_set_user(entry, proc_kuid, proc_kgid);
- 	return 0;
- 
- fail_wepkey:
-@@ -5695,10 +5685,8 @@ static int __init airo_init_module( void )
- 
- 	airo_entry = proc_mkdir_mode("driver/aironet", airo_perm, NULL);
- 
--	if (airo_entry) {
--		airo_entry->uid = proc_kuid;
--		airo_entry->gid = proc_kgid;
--	}
-+	if (airo_entry)
-+		proc_set_user(airo_entry, proc_kuid, proc_kgid);
- 
- 	for (i = 0; i < 4 && io[i] && irq[i]; i++) {
- 		airo_print_info("", "Trying to configure ISA adapter at irq=%d "
-diff --git a/drivers/pci/proc.c b/drivers/pci/proc.c
-index 12e4fb5..7cde7c1 100644
---- a/drivers/pci/proc.c
-+++ b/drivers/pci/proc.c
-@@ -419,7 +419,7 @@ int pci_proc_attach_device(struct pci_dev *dev)
- 			     &proc_bus_pci_operations, dev);
- 	if (!e)
- 		return -ENOMEM;
--	e->size = dev->cfg_size;
-+	proc_set_size(e, dev->cfg_size);
- 	dev->procent = e;
- 
- 	return 0;
-diff --git a/fs/proc/generic.c b/fs/proc/generic.c
-index 1c07cad..5f6f6c3 100644
---- a/fs/proc/generic.c
-+++ b/fs/proc/generic.c
-@@ -498,6 +498,19 @@ out:
- 	return NULL;
- }
- EXPORT_SYMBOL(proc_create_data);
-+ 
-+void proc_set_size(struct proc_dir_entry *de, loff_t size)
-+{
-+	de->size = size;
-+}
-+EXPORT_SYMBOL(proc_set_size);
++config VIDEO_EXYNOS4_FIMC_IS
++	tristate "EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver"
++	select VIDEOBUF2_DMA_CONTIG
++	depends on OF
++	help
++	  This is a V4L2 driver for Samsung EXYNOS4x12 SoC series
++	  FIMC-IS (Imaging Subsystem).
 +
-+void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid)
-+{
-+	de->uid = uid;
-+	de->gid = gid;
-+}
-+EXPORT_SYMBOL(proc_set_user);
- 
- static void free_proc_entry(struct proc_dir_entry *de)
- {
-diff --git a/include/linux/proc_fs.h b/include/linux/proc_fs.h
-index 805edac..28a4d7e 100644
---- a/include/linux/proc_fs.h
-+++ b/include/linux/proc_fs.h
-@@ -130,6 +130,9 @@ static inline struct proc_dir_entry *proc_create(const char *name, umode_t mode,
- extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
- 	struct proc_dir_entry *parent);
- 
-+extern void proc_set_size(struct proc_dir_entry *, loff_t);
-+extern void proc_set_user(struct proc_dir_entry *, kuid_t, kgid_t);
++	  To compile this driver as a module, choose M here: the
++	  module will be called exynos4-fimc-is.
 +
- extern struct file *proc_ns_fget(int fd);
- extern bool proc_ns_inode(struct inode *inode);
+ endif # VIDEO_SAMSUNG_S5P_FIMC
+diff --git a/drivers/media/platform/exynos4-is/Makefile b/drivers/media/platform/exynos4-is/Makefile
+index 8c67441..f25f463 100644
+--- a/drivers/media/platform/exynos4-is/Makefile
++++ b/drivers/media/platform/exynos4-is/Makefile
+@@ -1,7 +1,10 @@
+ s5p-fimc-objs := fimc-core.o fimc-reg.o fimc-m2m.o fimc-capture.o media-dev.o
+ exynos-fimc-lite-objs += fimc-lite-reg.o fimc-lite.o
++exynos-fimc-is-objs := fimc-is.o fimc-isp.o fimc-is-sensor.o fimc-is-regs.o
++exynos-fimc-is-objs += fimc-is-param.o fimc-is-errno.o fimc-is-i2c.o
+ s5p-csis-objs := mipi-csis.o
  
-@@ -158,6 +161,8 @@ static inline struct proc_dir_entry *proc_mkdir(const char *name,
- 	struct proc_dir_entry *parent) {return NULL;}
- static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
- 	umode_t mode, struct proc_dir_entry *parent) { return NULL; }
-+static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
-+static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
- 
- struct tty_driver;
- static inline void proc_tty_register_driver(struct tty_driver *driver) {};
-diff --git a/kernel/configs.c b/kernel/configs.c
-index 42e8fa0..c18b1f1 100644
---- a/kernel/configs.c
-+++ b/kernel/configs.c
-@@ -79,7 +79,7 @@ static int __init ikconfig_init(void)
- 	if (!entry)
- 		return -ENOMEM;
- 
--	entry->size = kernel_config_data_size;
-+	proc_set_size(entry, kernel_config_data_size);
- 
- 	return 0;
- }
-diff --git a/kernel/profile.c b/kernel/profile.c
-index 524ce5e..0bf4007 100644
---- a/kernel/profile.c
-+++ b/kernel/profile.c
-@@ -600,7 +600,7 @@ int __ref create_proc_profile(void) /* false positive from hotcpu_notifier */
- 			    NULL, &proc_profile_operations);
- 	if (!entry)
- 		return 0;
--	entry->size = (1+prof_len) * sizeof(atomic_t);
-+	proc_set_size(entry, (1 + prof_len) * sizeof(atomic_t));
- 	hotcpu_notifier(profile_cpu_callback, 0);
- 	return 0;
- }
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 3db2d38..1e657cf 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -401,8 +401,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	pde->uid = uid;
--	pde->gid = gid;
-+	proc_set_user(pde, uid, gid);
- #endif
- 	spin_lock_bh(&recent_lock);
- 	list_add_tail(&t->list, &recent_net->tables);
-diff --git a/sound/core/info.c b/sound/core/info.c
-index 3aa8864..c7f41c3 100644
---- a/sound/core/info.c
-+++ b/sound/core/info.c
-@@ -970,7 +970,7 @@ int snd_info_register(struct snd_info_entry * entry)
- 			mutex_unlock(&info_mutex);
- 			return -ENOMEM;
- 		}
--		p->size = entry->size;
-+		proc_set_size(p, entry->size);
- 	}
- 	entry->p = p;
- 	if (entry->parent)
+ obj-$(CONFIG_VIDEO_S5P_MIPI_CSIS)	+= s5p-csis.o
+ obj-$(CONFIG_VIDEO_EXYNOS_FIMC_LITE)	+= exynos-fimc-lite.o
++obj-$(CONFIG_VIDEO_EXYNOS4_FIMC_IS)	+= exynos-fimc-is.o
+ obj-$(CONFIG_VIDEO_S5P_FIMC)		+= s5p-fimc.o
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
+new file mode 100644
+index 0000000..02b2719
+--- /dev/null
++++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
+@@ -0,0 +1,322 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *
++ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#include <linux/delay.h>
++#include <linux/device.h>
++#include <linux/errno.h>
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of_gpio.h>
++#include <linux/pm_runtime.h>
++#include <linux/regulator/consumer.h>
++#include <linux/slab.h>
++#include <media/v4l2-subdev.h>
++
++#include "fimc-is.h"
++#include "fimc-is-sensor.h"
++
++#define DRIVER_NAME "FIMC-IS-SENSOR"
++
++static const char * const sensor_supply_names[] = {
++	"svdda",
++	"svddio",
++};
++
++static const struct v4l2_mbus_framefmt fimc_is_sensor_formats[] = {
++	{
++		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.field = V4L2_FIELD_NONE,
++	}
++};
++
++static struct fimc_is_sensor *sd_to_fimc_is_sensor(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct fimc_is_sensor, subdev);
++}
++
++static const struct v4l2_mbus_framefmt *find_sensor_format(
++	struct v4l2_mbus_framefmt *mf)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(fimc_is_sensor_formats); i++)
++		if (mf->code == fimc_is_sensor_formats[i].code)
++			return &fimc_is_sensor_formats[i];
++
++	return &fimc_is_sensor_formats[0];
++}
++
++static int fimc_is_sensor_enum_mbus_code(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->index >= ARRAY_SIZE(fimc_is_sensor_formats))
++		return -EINVAL;
++
++	code->code = fimc_is_sensor_formats[code->index].code;
++	return 0;
++}
++
++static void fimc_is_sensor_try_format(struct fimc_is_sensor *sensor,
++				      struct v4l2_mbus_framefmt *mf)
++{
++	const struct sensor_drv_data *dd = sensor->drvdata;
++	const struct v4l2_mbus_framefmt *fmt;
++
++	fmt = find_sensor_format(mf);
++	mf->code = fmt->code;
++	v4l_bound_align_image(&mf->width, 16 + 8, dd->width, 0,
++			      &mf->height, 12 + 8, dd->height, 0, 0);
++}
++
++static struct v4l2_mbus_framefmt *__fimc_is_sensor_get_format(
++		struct fimc_is_sensor *sensor, struct v4l2_subdev_fh *fh,
++		u32 pad, enum v4l2_subdev_format_whence which)
++{
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
++
++	return &sensor->format;
++}
++
++static int fimc_is_sensor_set_fmt(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	fimc_is_sensor_try_format(sensor, &fmt->format);
++
++	mf = __fimc_is_sensor_get_format(sensor, fh, fmt->pad, fmt->which);
++	if (mf) {
++		mutex_lock(&sensor->lock);
++		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
++			*mf = fmt->format;
++		mutex_unlock(&sensor->lock);
++	}
++	return 0;
++}
++
++static int fimc_is_sensor_get_fmt(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_fh *fh,
++				  struct v4l2_subdev_format *fmt)
++{
++	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
++	struct v4l2_mbus_framefmt *mf;
++
++	mf = __fimc_is_sensor_get_format(sensor, fh, fmt->pad, fmt->which);
++
++	mutex_lock(&sensor->lock);
++	fmt->format = *mf;
++	mutex_unlock(&sensor->lock);
++	return 0;
++}
++
++static struct v4l2_subdev_pad_ops fimc_is_sensor_pad_ops = {
++	.enum_mbus_code	= fimc_is_sensor_enum_mbus_code,
++	.get_fmt	= fimc_is_sensor_get_fmt,
++	.set_fmt	= fimc_is_sensor_set_fmt,
++};
++
++static int fimc_is_sensor_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
++
++	*format		= fimc_is_sensor_formats[0];
++	format->width	= FIMC_IS_SENSOR_DEF_PIX_WIDTH;
++	format->height	= FIMC_IS_SENSOR_DEF_PIX_HEIGHT;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops fimc_is_sensor_sd_internal_ops = {
++	.open = fimc_is_sensor_open,
++};
++
++static int fimc_is_sensor_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct fimc_is_sensor *sensor = v4l2_get_subdevdata(sd);
++	int gpio = sensor->gpio_reset;
++	int ret;
++
++	if (on) {
++		ret = pm_runtime_get(sensor->dev);
++		if (ret < 0)
++			return ret;
++
++		ret = regulator_bulk_enable(SENSOR_NUM_SUPPLIES,
++					    sensor->supplies);
++		if (ret < 0) {
++			pm_runtime_put(sensor->dev);
++			return ret;
++		}
++		if (gpio_is_valid(gpio)) {
++			gpio_set_value(gpio, 1);
++			usleep_range(600, 800);
++			gpio_set_value(gpio, 0);
++			usleep_range(10000, 11000);
++			gpio_set_value(gpio, 1);
++		}
++
++		/* A delay needed for the sensor initialization. */
++		msleep(20);
++	} else {
++		if (gpio_is_valid(gpio))
++			gpio_set_value(gpio, 0);
++
++		ret = regulator_bulk_disable(SENSOR_NUM_SUPPLIES,
++					     sensor->supplies);
++		if (!ret)
++			pm_runtime_put(sensor->dev);
++	}
++
++	pr_info("%s:%d: on: %d, ret: %d\n", __func__, __LINE__, on, ret);
++
++	return ret;
++}
++
++static struct v4l2_subdev_core_ops fimc_is_sensor_core_ops = {
++	.s_power = fimc_is_sensor_s_power,
++};
++
++static struct v4l2_subdev_ops fimc_is_sensor_subdev_ops = {
++	.core = &fimc_is_sensor_core_ops,
++	.pad = &fimc_is_sensor_pad_ops,
++};
++
++static const struct of_device_id fimc_is_sensor_of_match[];
++
++static int fimc_is_sensor_probe(struct i2c_client *client,
++				const struct i2c_device_id *id)
++{
++	struct device *dev = &client->dev;
++	struct fimc_is_sensor *sensor;
++	const struct of_device_id *of_id;
++	struct v4l2_subdev *sd;
++	int gpio, i, ret;
++
++	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
++	if (!sensor)
++		return -ENOMEM;
++
++	mutex_init(&sensor->lock);
++	sensor->gpio_reset = -EINVAL;
++
++	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
++	if (gpio_is_valid(gpio)) {
++		ret = gpio_request_one(gpio, GPIOF_OUT_INIT_LOW, DRIVER_NAME);
++		if (ret < 0)
++			return ret;
++	}
++	sensor->gpio_reset = gpio;
++
++	for (i = 0; i < SENSOR_NUM_SUPPLIES; i++)
++		sensor->supplies[i].supply = sensor_supply_names[i];
++
++	ret = devm_regulator_bulk_get(&client->dev, SENSOR_NUM_SUPPLIES,
++				      sensor->supplies);
++	if (ret < 0)
++		goto err_gpio;
++
++	of_id = of_match_node(fimc_is_sensor_of_match, dev->of_node);
++	if (!of_id) {
++		ret = -ENODEV;
++		goto err_reg;
++	}
++
++	sensor->drvdata = of_id->data;
++	sensor->dev = dev;
++
++	sd = &sensor->subdev;
++	v4l2_i2c_subdev_init(sd, client, &fimc_is_sensor_subdev_ops);
++	snprintf(sd->name, sizeof(sd->name), sensor->drvdata->subdev_name);
++	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	sensor->format.code = fimc_is_sensor_formats[0].code;
++	sensor->format.width = FIMC_IS_SENSOR_DEF_PIX_WIDTH;
++	sensor->format.height = FIMC_IS_SENSOR_DEF_PIX_HEIGHT;
++
++	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
++	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
++	if (ret < 0)
++		goto err_reg;
++
++	v4l2_set_subdevdata(sd, sensor);
++	pm_runtime_no_callbacks(dev);
++	pm_runtime_enable(dev);
++
++	return 0;
++err_reg:
++	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
++err_gpio:
++	if (gpio_is_valid(sensor->gpio_reset))
++		gpio_free(sensor->gpio_reset);
++	return ret;
++}
++
++static int fimc_is_sensor_remove(struct i2c_client *client)
++{
++	struct fimc_is_sensor *sensor;
++
++	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
++	media_entity_cleanup(&sensor->subdev.entity);
++
++	return 0;
++}
++
++static const struct i2c_device_id fimc_is_sensor_ids[] = {
++	{ }
++};
++
++static const struct sensor_drv_data s5k6a3_drvdata = {
++	.id		= FIMC_IS_SENSOR_ID_S5K6A3,
++	.subdev_name	= "S5K6A3",
++	.width		= S5K6A3_SENSOR_WIDTH,
++	.height		= S5K6A3_SENSOR_HEIGHT,
++};
++
++static const struct of_device_id fimc_is_sensor_of_match[] = {
++	{
++		.compatible	= "samsung,s5k6a3",
++		.data		= &s5k6a3_drvdata,
++	},
++	{  }
++};
++MODULE_DEVICE_TABLE(of, fimc_is_sensor_of_match);
++
++static struct i2c_driver fimc_is_sensor_driver = {
++	.driver = {
++		.of_match_table	= fimc_is_sensor_of_match,
++		.name		= DRIVER_NAME,
++		.owner		= THIS_MODULE,
++	},
++	.probe		= fimc_is_sensor_probe,
++	.remove		= fimc_is_sensor_remove,
++	.id_table	= fimc_is_sensor_ids,
++};
++
++int fimc_is_register_sensor_driver(void)
++{
++	return i2c_add_driver(&fimc_is_sensor_driver);
++}
++
++void fimc_is_unregister_sensor_driver(void)
++{
++	i2c_del_driver(&fimc_is_sensor_driver);
++}
++
++MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_DESCRIPTION("Exynos4x12 FIMC-IS image sensor subdev driver");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.h b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
+new file mode 100644
+index 0000000..50b8e4d
+--- /dev/null
++++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
+@@ -0,0 +1,83 @@
++/*
++ * Samsung EXYNOS4x12 FIMC-IS (Imaging Subsystem) driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ *
++ * Authors:  Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *	     Younghwan Joo <yhwan.joo@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++#ifndef FIMC_IS_SENSOR_H_
++#define FIMC_IS_SENSOR_H_
++
++#include <linux/clk.h>
++#include <linux/device.h>
++#include <linux/kernel.h>
++#include <linux/platform_device.h>
++#include <linux/regulator/consumer.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-subdev.h>
++
++#define FIMC_IS_SENSOR_OPEN_TIMEOUT	2000 /* ms */
++
++#define FIMC_IS_SENSOR_DEF_PIX_WIDTH	1296
++#define FIMC_IS_SENSOR_DEF_PIX_HEIGHT	732
++
++#define S5K6A3_SENSOR_WIDTH		1392
++#define S5K6A3_SENSOR_HEIGHT		1392
++
++#define SENSOR_NUM_SUPPLIES		2
++
++enum fimc_is_sensor_id {
++	FIMC_IS_SENSOR_ID_S5K3H2 = 1,
++	FIMC_IS_SENSOR_ID_S5K6A3,
++	FIMC_IS_SENSOR_ID_S5K4E5,
++	FIMC_IS_SENSOR_ID_S5K3H7,
++	FIMC_IS_SENSOR_ID_CUSTOM,
++	FIMC_IS_SENSOR_ID_END
++};
++
++#define IS_SENSOR_CTRL_BUS_I2C0		0
++#define IS_SENSOR_CTRL_BUS_I2C1		1
++
++struct sensor_drv_data {
++	enum fimc_is_sensor_id id;
++	const char * const subdev_name;
++	unsigned int width;
++	unsigned int height;
++};
++
++/**
++ * struct fimc_is_sensor - fimc-is sensor data structure
++ * @dev: pointer to this I2C client device structure
++ * @subdev: the image sensor's v4l2 subdev
++ * @pad: subdev media source pad
++ * @supplies: image sensor's voltage regulator supplies
++ * @gpio_reset: GPIO connected to the sensor's reset pin
++ * @drvdata: a pointer to the sensor's parameters data structure
++ * @i2c_bus: ISP I2C bus index (0...1)
++ * @test_pattern: true to enable video test pattern
++ * @lock: mutex protecting the structure's members below
++ * @format: media bus format at the sensor's source pad
++ */
++struct fimc_is_sensor {
++	struct device *dev;
++	struct v4l2_subdev subdev;
++	struct media_pad pad;
++	struct regulator_bulk_data supplies[SENSOR_NUM_SUPPLIES];
++	int gpio_reset;
++	const struct sensor_drv_data *drvdata;
++	unsigned int i2c_bus;
++	bool test_pattern;
++
++	struct mutex lock;
++	struct v4l2_mbus_framefmt format;
++};
++
++int fimc_is_register_sensor_driver(void);
++void fimc_is_unregister_sensor_driver(void);
++
++#endif /* FIMC_IS_SENSOR_H_ */
+-- 
+1.7.9.5
 
