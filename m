@@ -1,119 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51141 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831Ab3DLPko (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 11:40:44 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v9 10/20] mx1-camera: move interface activation and deactivation to clock callbacks
-Date: Fri, 12 Apr 2013 17:40:30 +0200
-Message-Id: <1365781240-16149-11-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail-oa0-f45.google.com ([209.85.219.45]:38225 "EHLO
+	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760815Ab3DCJht (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 05:37:49 -0400
+Received: by mail-oa0-f45.google.com with SMTP id o6so1267400oag.4
+        for <linux-media@vger.kernel.org>; Wed, 03 Apr 2013 02:37:49 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1303181108540.30957@axis700.grange>
+References: <1363599836-15824-1-git-send-email-fabio.porcedda@gmail.com> <Pine.LNX.4.64.1303181108540.30957@axis700.grange>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Wed, 3 Apr 2013 11:37:28 +0200
+Message-ID: <CAHkwnC8yWYvcQbiTM+xfJMNeBzeY8Gv8A8SN3sROCKT2EtM0iw@mail.gmail.com>
+Subject: Re: [PATCH] [media] mx2_camera: use module_platform_driver_probe()
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the mx1-camera driver only activates
-and deactivates its camera interface respectively, which doesn't include
-any client-specific actions. Move this functionality into .clock_start()
-and .clock_stop() callbacks.
+On Mon, Mar 18, 2013 at 11:09 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Fabio
+>
+> On Mon, 18 Mar 2013, Fabio Porcedda wrote:
+>
+>> The commit 39793c6 "[media] mx2_camera: Convert it to platform driver"
+>> used module_platform_driver() to make code smaller,
+>> but since the driver used platform_driver_probe is more appropriate
+>> to use module_platform_driver_probe().
+>>
+>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+>> Cc: Fabio Estevam <fabio.estevam@freescale.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> Thanks, will queue for 3.10.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/mx1_camera.c |   32 +++++++++++++++---------
- 1 files changed, 20 insertions(+), 12 deletions(-)
+Thanks for taking it.
+In which repository/branch is it?
+This commit is not in linux-next or in
+git://linuxtv.org/mchehab/media-next.git yet.
 
-diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
-index 5f9ec8e..fea3e61 100644
---- a/drivers/media/platform/soc_camera/mx1_camera.c
-+++ b/drivers/media/platform/soc_camera/mx1_camera.c
-@@ -399,7 +399,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- {
- 	unsigned int csicr1 = CSICR1_EN;
- 
--	dev_dbg(pcdev->soc_host.icd->parent, "Activate device\n");
-+	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Activate device\n");
- 
- 	clk_prepare_enable(pcdev->clk);
- 
-@@ -415,7 +415,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- 
- static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- {
--	dev_dbg(pcdev->soc_host.icd->parent, "Deactivate device\n");
-+	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Deactivate device\n");
- 
- 	/* Disable all CSI interface */
- 	__raw_writel(0x00, pcdev->base + CSICR1);
-@@ -423,26 +423,35 @@ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- 	clk_disable_unprepare(pcdev->clk);
- }
- 
-+static int mx1_camera_add_device(struct soc_camera_device *icd)
-+{
-+	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
-+		 icd->devnum);
-+
-+	return 0;
-+}
-+
-+static void mx1_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
-+		 icd->devnum);
-+}
-+
- /*
-  * The following two functions absolutely depend on the fact, that
-  * there can be only one camera on i.MX1/i.MXL camera sensor interface
-  */
--static int mx1_camera_add_device(struct soc_camera_device *icd)
-+static int mx1_camera_clock_start(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 
--	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
--		 icd->devnum);
--
- 	mx1_camera_activate(pcdev);
- 
- 	return 0;
- }
- 
--static void mx1_camera_remove_device(struct soc_camera_device *icd)
-+static void mx1_camera_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 	unsigned int csicr1;
- 
-@@ -453,9 +462,6 @@ static void mx1_camera_remove_device(struct soc_camera_device *icd)
- 	/* Stop DMA engine */
- 	imx_dma_disable(pcdev->dma_chan);
- 
--	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
--		 icd->devnum);
--
- 	mx1_camera_deactivate(pcdev);
- }
- 
-@@ -669,6 +675,8 @@ static struct soc_camera_host_ops mx1_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= mx1_camera_add_device,
- 	.remove		= mx1_camera_remove_device,
-+	.clock_start	= mx1_camera_clock_start,
-+	.clock_stop	= mx1_camera_clock_stop,
- 	.set_bus_param	= mx1_camera_set_bus_param,
- 	.set_fmt	= mx1_camera_set_fmt,
- 	.try_fmt	= mx1_camera_try_fmt,
--- 
-1.7.2.5
+Best regards
+--
+Fabio Porcedda
 
+> Guennadi
+>
+>> ---
+>>  drivers/media/platform/soc_camera/mx2_camera.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+>> index ffba7d9..848dff9 100644
+>> --- a/drivers/media/platform/soc_camera/mx2_camera.c
+>> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
+>> @@ -1619,10 +1619,9 @@ static struct platform_driver mx2_camera_driver = {
+>>       },
+>>       .id_table       = mx2_camera_devtype,
+>>       .remove         = mx2_camera_remove,
+>> -     .probe          = mx2_camera_probe,
+>>  };
+>>
+>> -module_platform_driver(mx2_camera_driver);
+>> +module_platform_driver_probe(mx2_camera_driver, mx2_camera_probe);
+>>
+>>  MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
+>>  MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+>> --
+>> 1.8.2
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
