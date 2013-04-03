@@ -1,74 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51544 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762270Ab3DJApo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 20:45:44 -0400
-Message-ID: <5164B611.2060500@iki.fi>
-Date: Wed, 10 Apr 2013 03:45:05 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:35762 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758498Ab3DCKmb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 06:42:31 -0400
+Received: by mail-wi0-f173.google.com with SMTP id ez12so3467406wid.6
+        for <linux-media@vger.kernel.org>; Wed, 03 Apr 2013 03:42:30 -0700 (PDT)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [PATCH 1/5] mxl5007t: fix buggy register read
-References: <1365551600-3394-1-git-send-email-crope@iki.fi> <1365551600-3394-2-git-send-email-crope@iki.fi> <CAGoCfiw_pyh5MchkU59Y9NJz+Rgf5B7Gvd92A1pF+e18DVWgKQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiw_pyh5MchkU59Y9NJz+Rgf5B7Gvd92A1pF+e18DVWgKQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20130403103301.9548.49850@www.linuxtv.org>
+References: <20130403103301.9548.49850@www.linuxtv.org>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 3 Apr 2013 16:12:09 +0530
+Message-ID: <CA+V-a8syAyjYtNSSVzunvgt+hFSXpY+L77htTt4egp0wt2GDPA@mail.gmail.com>
+Subject: Re: Patch update notification: 6 patches updated
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2013 03:20 AM, Devin Heitmueller wrote:
-> On Tue, Apr 9, 2013 at 7:53 PM, Antti Palosaari <crope@iki.fi> wrote:
->> Chip uses WRITE + STOP + READ + STOP sequence for I2C register read.
->> Driver was using REPEATED START condition which makes it failing if
->> I2C adapter was implemented correctly.
->>
->> Add use_broken_read_reg_intentionally option to keep old buggy
->> implantation as there is buggy I2C adapter implementation relying
->> that bug...
->>
->> Signed-off-by: Antti Palosaari <crope@iki.fi>
+Hi Mauro,
+
+On Wed, Apr 3, 2013 at 4:03 PM, Patchwork <patchwork@linuxtv.org> wrote:
+> Hello,
 >
-> Hi Antti,
+> The following patches (submitted by you) have been updated in patchwork:
 >
-> The existing code actually looks fine.  This is actually how most
-> devices do register reads.
+>  * [v3] davinci: vpif: add pm_runtime support
+>      - http://patchwork.linuxtv.org/patch/17737/
+>     was: New
+>     now: Not Applicable
+>
+>  * [v2,3/3] davinic: vpss: trivial cleanup
+>      - http://patchwork.linuxtv.org/patch/17733/
+>     was: New
+>     now: Not Applicable
+>
+>  * [v2,2/3] media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
+>      - http://patchwork.linuxtv.org/patch/17731/
+>     was: New
+>     now: Not Applicable
+>
+>  * davinci: vpif: add pm_runtime support
+>      - http://patchwork.linuxtv.org/patch/17692/
+>     was: Under Review
+>     now: Not Applicable
+>
+This should 'suppressed'
 
-Yes, most devices do that, but not all!
-MxL5007t has a special register for setting register to read. Look the 
-code and you could see it easily. It was over year ago I fixed it...
+>  * [v2,1/3] media: davinci: vpss: enable vpss clocks
+>      - http://patchwork.linuxtv.org/patch/17732/
+>     was: New
+>     now: Not Applicable
+>
+>  * [v2] davinci: vpif: add pm_runtime support
+>      - http://patchwork.linuxtv.org/patch/17719/
+>     was: New
+>     now: Not Applicable
+>
+This should 'suppressed' .
 
-> Further, it *should* be done in a single call to i2c_transfer() or
-> else you won't hold the lock and you will create a race condition.
+And the rest of the patches are intended  to go via  media-tree.git.
 
-No. That's why I added new lock. Single i2c_transfer() means all 
-messages are done using repeated START condition.
+Regards,
+--Prabhakar
 
-> This sounds more like it's a bug in the i2c master rather than the 5007 driver.
-
-No.
-
-> Do you have i2c bus traces that clearly show that this was the cause
-> of the issue?  If we need to define something as "broken" behavior, at
-> first glance it looks like the way *you're* proposing is the broken
-> behavior - presumably to work around a bug in the i2c master not
-> properly supporting repeated start.
-
-Yes and no. I made own Cypress FX2 firmware and saw initially that issue 
-then. Also, as you could see looking the following patches I ensured / 
-confirmed issue using two different I2C adapters (AF9015 and AF9035). So 
-I have totally 3 working adapters to prove it (which are broken without 
-that patch)!
-
-> Also, any reason you didn't put Mike into the cc: for this (since he
-> owns the driver)?
-
-you added :)
-
-> Devin
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+> This email is a notification only - you do not need to respond.
+>
+> -
+>
+> Patches submitted to linux-media@vger.kernel.org have the following
+> possible states:
+>
+> New: Patches not yet reviewed (typically new patches);
+>
+> Under review: When it is expected that someone is reviewing it (typically,
+>               the driver's author or maintainer). Unfortunately, patchwork
+>               doesn't have a field to indicate who is the driver maintainer.
+>               If in doubt about who is the driver maintainer please check the
+>               MAINTAINERS file or ask at the ML;
+>
+> Superseded: when the same patch is sent twice, or a new version of the
+>             same patch is sent, and the maintainer identified it, the first
+>             version is marked as such. It is also used when a patch was
+>             superseeded by a git pull request.
+>
+> Obsoleted: patch doesn't apply anymore, because the modified code doesn't
+>            exist anymore.
+>
+> Changes requested: when someone requests changes at the patch;
+>
+> Rejected: When the patch is wrong or doesn't apply. Most of the
+>           time, 'rejected' and 'changes requested' means the same thing
+>           for the developer: he'll need to re-work on the patch.
+>
+> RFC: patches marked as such and other patches that are also RFC, but the
+>      patch author was not nice enough to mark them as such. That includes:
+>         - patches sent by a driver's maintainer who send patches
+>           via git pull requests;
+>         - patches with a very active community (typically from developers
+>           working with embedded devices), where lots of versions are
+>           needed for the driver maintainer and/or the community to be
+>           happy with.
+>
+> Not Applicable: for patches that aren't meant to be applicable via
+>                 the media-tree.git.
+>
+> Accepted: when some driver maintainer says that the patch will be applied
+>           via his tree, or when everything is ok and it got applied
+>           either at the main tree or via some other tree (fixes tree;
+>           some other maintainer's tree - when it belongs to other subsystems,
+>           etc);
+>
+> If you think any status change is a mistake, please send an email to the ML.
+>
+> -
+>
+> This is an automated mail sent by the patchwork system at
+> patchwork.linuxtv.org. To stop receiving these notifications, edit
+> your mail settings at:
+>   http://patchwork.linuxtv.org/mail/
