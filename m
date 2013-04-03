@@ -1,98 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40921 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751536Ab3DRR57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 13:57:59 -0400
-Date: Thu, 18 Apr 2013 14:57:53 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 00/12]  Driver for Si476x series of chips
-Message-ID: <20130418145753.7bacee9b@redhat.com>
-In-Reply-To: <20130418174547.GV8798@zurbaran>
-References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
-	<20130418142800.5c00b004@redhat.com>
-	<20130418174547.GV8798@zurbaran>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:58664 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754300Ab3DCFMe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 01:12:34 -0400
+Received: by mail-pb0-f54.google.com with SMTP id xa7so642518pbc.13
+        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 22:12:33 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
+Subject: [PATCH 5/7] soc_camera/pxa_camera: Constify struct dev_pm_ops
+Date: Wed,  3 Apr 2013 10:30:39 +0530
+Message-Id: <1364965241-28225-5-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Apr 2013 19:45:47 +0200
-Samuel Ortiz <sameo@linux.intel.com> escreveu:
+struct dev_pm_ops should be const.
 
-> On Thu, Apr 18, 2013 at 02:28:00PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 18 Apr 2013 09:58:26 -0700
-> > Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
-> > 
-> > > Driver for Si476x series of chips
-> > > 
-> > > This is a eight version of the patchset originaly posted here:
-> > > https://lkml.org/lkml/2012/9/13/590
-> > > 
-> > > Second version of the patch was posted here:
-> > > https://lkml.org/lkml/2012/10/5/598
-> > > 
-> > > Third version of the patch was posted here:
-> > > https://lkml.org/lkml/2012/10/23/510
-> > > 
-> > > Fourth version of the patch was posted here:
-> > > https://lkml.org/lkml/2013/2/18/572
-> > > 
-> > > Fifth version of the patch was posted here:
-> > > https://lkml.org/lkml/2013/2/26/45
-> > > 
-> > > Sixth version of the patch was posted here:
-> > > https://lkml.org/lkml/2013/2/26/257
-> > > 
-> > > Seventh version of the patch was posted here:
-> > > https://lkml.org/lkml/2013/2/27/22
-> > > 
-> > > Eighth version of the patch was posted here:
-> > > https://lkml.org/lkml/2013/3/26/891
-> > > 
-> > > To save everyone's time I'll repost the original description of it:
-> > > 
-> > > This patchset contains a driver for a Silicon Laboratories 476x series
-> > > of radio tuners. The driver itself is implemented as an MFD devices
-> > > comprised of three parts: 
-> > >  1. Core device that provides all the other devices with basic
-> > > functionality and locking scheme.
-> > >  2. Radio device that translates between V4L2 subsystem requests into
-> > > Core device commands.
-> > >  3. Codec device that does similar to the earlier described task, but
-> > > for ALSA SoC subsystem.
-> > > 
-> > > v9 of this driver has following changes:
-> > >    - MFD part of the driver no longer depends on the header file added
-> > >      by the radio driver(media/si476x.h) which should potential
-> > >      restore the bisectability of the patches
-> > > 
-> > > Mauro, I am not sure if you reverted changes in patches 5 - 7, so I am
-> > > including them just in case.
-> > 
-> > No, I didn't revert all patches. I just reverted two patches: the
-> > last one, and the one that Samuel asked me.
-> Sorry I didn't have time to check your email from yesterday, but I was
-> actually hoping you would revert the whole patchset, then pull from my
-> mfd-next/topic/si476x branch to fetch the MFD bits and then apply the
-> v4l2/media ones (From patchset v9) on top of that.
-> Does that make sense to you ?
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I don't rebase my tree, as this would cause troubles for everybody that
-relies on it.
-
-Reverting the entire patchset is hard, as there are lots of patches after
-them, and some patches touch at V4L2 core. Even reverting those
-two patches hit conflicts, that I needed to manage, in order to avoid
-compilation breakages.
-
-So, I really prefer to confine the patch reversion to the absolute 
-minimum.
-
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index b0e6f3b..d665242 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1796,7 +1796,7 @@ static int pxa_camera_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct dev_pm_ops pxa_camera_pm = {
++static const struct dev_pm_ops pxa_camera_pm = {
+ 	.suspend	= pxa_camera_suspend,
+ 	.resume		= pxa_camera_resume,
+ };
 -- 
+1.7.9.5
 
-Cheers,
-Mauro
