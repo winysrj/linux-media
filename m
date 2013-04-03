@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53755 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755539Ab3DQAm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:56 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gupE002380
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:56 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 27/31] [media] r820t: Fix hp_cor filter mask
-Date: Tue, 16 Apr 2013 21:42:38 -0300
-Message-Id: <1366159362-3773-28-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:47090 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761766Ab3DCFMb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 01:12:31 -0400
+Received: by mail-pb0-f49.google.com with SMTP id um15so633767pbc.8
+        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 22:12:30 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
+Subject: [PATCH 4/7] soc_camera/pxa_camera: Fix warning related to spacing
+Date: Wed,  3 Apr 2013 10:30:38 +0530
+Message-Id: <1364965241-28225-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The bit mask was inverted here.
+Fixes the following checkpatch warning:
+WARNING: please, no space before tabs
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/tuners/r820t.c | 2 +-
+ drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index f5a5fb0..c644e90 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1102,7 +1102,7 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
- 		return rc;
+diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
+index 42abbce..b0e6f3b 100644
+--- a/drivers/media/platform/soc_camera/pxa_camera.c
++++ b/drivers/media/platform/soc_camera/pxa_camera.c
+@@ -1802,7 +1802,7 @@ static struct dev_pm_ops pxa_camera_pm = {
+ };
  
- 	/* Set BW, Filter_gain, & HP corner */
--	rc = r820t_write_reg_mask(priv, 0x0b, hp_cor, 0x10);
-+	rc = r820t_write_reg_mask(priv, 0x0b, hp_cor, 0xef);
- 	if (rc < 0)
- 		return rc;
- 
+ static struct platform_driver pxa_camera_driver = {
+-	.driver 	= {
++	.driver		= {
+ 		.name	= PXA_CAM_DRV_NAME,
+ 		.pm	= &pxa_camera_pm,
+ 	},
 -- 
-1.8.1.4
+1.7.9.5
 
