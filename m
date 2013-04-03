@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3449 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893Ab3DLLcr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 07:32:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: Re: [PATCH 1/2] [media] blackfin: add display support in ppi driver
-Date: Fri, 12 Apr 2013 13:32:12 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-References: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com>
-In-Reply-To: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:52913 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762845Ab3DCUgX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 16:36:23 -0400
+Date: Wed, 3 Apr 2013 22:36:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera for 3.10 second lot
+Message-ID: <Pine.LNX.4.64.1304032230410.10531@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304121332.13025.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat April 13 2013 01:52:57 Scott Jiang wrote:
-> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+Hi Mauro
 
-Is it OK if I postpone these two patches for 3.11? They don't make sense
-AFAICT without the new display driver, and that will definitely not make it
-for 3.10.
+All looks quiet, clock and async will have to wait for another round (or 
+more) :-) So, just minor updates here. I'm not sure whether I already can 
+update patch status at patchwork and whether any patches have been 
+delegated to me yet (perhaps not, I'd get a notification, right?) As soon 
+as that begins to work, I'll try to update patchwork too. In any case I'm 
+not listing patch IDs here, right?
 
-Regards,
+The following changes since commit f9f11dfe4831adb1531e1face9dcd9fc57665d2e:
 
-	Hans
+  Merge tag 'v3.9-rc5' into patchwork (2013-04-01 09:54:14 -0300)
 
-> ---
->  drivers/media/platform/blackfin/ppi.c |   12 ++++++++++++
->  1 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
-> index 01b5b50..15e9c2b 100644
-> --- a/drivers/media/platform/blackfin/ppi.c
-> +++ b/drivers/media/platform/blackfin/ppi.c
-> @@ -266,6 +266,18 @@ static int ppi_set_params(struct ppi_if *ppi, struct ppi_params *params)
->  		bfin_write32(&reg->vcnt, params->height);
->  		if (params->int_mask)
->  			bfin_write32(&reg->imsk, params->int_mask & 0xFF);
-> +		if (ppi->ppi_control & PORT_DIR) {
-> +			u32 hsync_width, vsync_width, vsync_period;
-> +
-> +			hsync_width = params->hsync
-> +					* params->bpp / params->dlen;
-> +			vsync_width = params->vsync * samples_per_line;
-> +			vsync_period = samples_per_line * params->frame;
-> +			bfin_write32(&reg->fs1_wlhb, hsync_width);
-> +			bfin_write32(&reg->fs1_paspl, samples_per_line);
-> +			bfin_write32(&reg->fs2_wlvb, vsync_width);
-> +			bfin_write32(&reg->fs2_palpf, vsync_period);
-> +		}
->  		break;
->  	}
->  	default:
-> 
+are available in the git repository at:
+
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.10-2
+
+Fabio Porcedda (2):
+      drivers: media: use module_platform_driver_probe()
+      mx2_camera: use module_platform_driver_probe()
+
+Guennadi Liakhovetski (1):
+      soc-camera: protect against racing open(2) and rmmod
+
+Phil Edworthy (1):
+      soc_camera: Add RGB666 & RGB888 formats
+
+Sachin Kamat (7):
+      soc_camera/mx1_camera: Fix warnings related to spacing
+      soc_camera/mx2_camera: Fix warnings related to spacing
+      soc_camera/mx3_camera: Fix warning related to spacing
+      soc_camera/pxa_camera: Fix warning related to spacing
+      soc_camera/pxa_camera: Constify struct dev_pm_ops
+      soc_camera/sh_mobile_ceu_camera: Fix warning related to spacing
+      soc_camera/soc_camera_platform: Fix warning related to spacing
+
+Tushar Behera (1):
+      atmel-isi: Update error check for unsigned variables
+
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  206 +++++++++++++++++++-
+ Documentation/DocBook/media_api.tmpl               |    1 +
+ drivers/media/platform/soc_camera/atmel-isi.c      |   15 +--
+ drivers/media/platform/soc_camera/mx1_camera.c     |    4 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |    7 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |    2 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |    4 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   42 +++--
+ .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+ drivers/media/platform/soc_camera/soc_mediabus.c   |   42 ++++
+ include/media/soc_camera.h                         |    7 +-
+ include/media/soc_mediabus.h                       |    3 +
+ include/uapi/linux/v4l2-mediabus.h                 |    6 +-
+ 14 files changed, 293 insertions(+), 50 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
