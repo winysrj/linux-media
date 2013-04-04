@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:55740 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756861Ab3DWRfg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 13:35:36 -0400
-Received: by mail-lb0-f173.google.com with SMTP id 10so908041lbf.18
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 10:35:34 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH v3 5/5] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
-Date: Tue, 23 Apr 2013 21:34:51 +0400
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org,
-	matsu@igel.co.jp, vladimir.barinov@cogentembedded.com
-References: <201304232118.43686.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304232118.43686.sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from merlin.infradead.org ([205.233.59.134]:54577 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762923Ab3DDQqI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:46:08 -0400
+Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
+	by merlin.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
+	id 1UNnId-0007KL-OD
+	for linux-media@vger.kernel.org; Thu, 04 Apr 2013 16:46:07 +0000
+Message-ID: <1365093965.2609.116.camel@laptop>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
+ v2
+From: Peter Zijlstra <peterz@infradead.org>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, daniel.vetter@ffwll.ch, x86@kernel.org,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
+Date: Thu, 04 Apr 2013 18:46:05 +0200
+In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
+References: <20130228102452.15191.22673.stgit@patser>
+	 <20130228102502.15191.14146.stgit@patser>
+	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
+	 <1364921954.20640.22.camel@laptop> <1365076908.2609.94.camel@laptop>
+	 <20130404133123.GW2228@phenom.ffwll.local>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201304232134.52153.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
+> I'm a bit confused about the different classes you're talking about.
+> Since
+> the ticket queue is currently a global counter there's only one class
+> of
+> ww_mutexes. 
 
-Add the VIN and ML86V7667 drivers to 'bockw_defconfig'.
+Right, so that's not something that's going to fly.. we need to support
+multiple users, including nesting of those. Again, you're adding
+something to the generic kernel infrastructure, it had better be usable
+:-)
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> I guess we could change that once a second user shows up
 
----
- arch/arm/configs/bockw_defconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+No, we fix that before it all goes in. I would _so_ hate to find out it
+cannot be 'fixed' and be stuck with a half-arsed sync primitive in the
+core kernel that's only every usable by the one existent user.
 
-Index: renesas/arch/arm/configs/bockw_defconfig
-===================================================================
---- renesas.orig/arch/arm/configs/bockw_defconfig
-+++ renesas/arch/arm/configs/bockw_defconfig
-@@ -76,6 +76,13 @@ CONFIG_SERIAL_SH_SCI_CONSOLE=y
- # CONFIG_HWMON is not set
- CONFIG_I2C=y
- CONFIG_I2C_RCAR=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_SOC_CAMERA=y
-+CONFIG_VIDEO_RCAR_VIN=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ML86V7667=y
- CONFIG_USB=y
- CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
- CONFIG_USB_EHCI_HCD=y
+So for now, forget all about TTM, DMA-BUF and other such coolness
+except to verify that whatever we end up with does indeed work for the
+case you need it for ;-)
 
