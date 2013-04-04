@@ -1,37 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:58687 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750835Ab3DZKZT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 06:25:19 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLU0053HY7DTH70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Apr 2013 11:25:17 +0100 (BST)
-Message-id: <517A560C.7090403@samsung.com>
-Date: Fri, 26 Apr 2013 12:25:16 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, patches@linaro.org
-Subject: Re: [PATCH v2] [media] exynos4-is: Fix potential null pointer
- dereference in mipi-csis.c
-References: <1366966377-15808-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1366966377-15808-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from avon.wwwdotorg.org ([70.85.31.133]:34781 "EHLO
+	avon.wwwdotorg.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760708Ab3DDUpZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 16:45:25 -0400
+Message-ID: <515DE661.2050902@wwwdotorg.org>
+Date: Thu, 04 Apr 2013 14:45:21 -0600
+From: Stephen Warren <swarren@wwwdotorg.org>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	dh09.lee@samsung.com, prabhakar.lad@ti.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCH v7] [media] Add common video interfaces OF bindings documentation
+References: <1364313495-18635-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1364313495-18635-1-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/26/2013 10:52 AM, Sachin Kamat wrote:
-> When 'node' is NULL, the print statement tries to dereference it.
-> Hence replace the variable with the one that is accessible.
+On 03/26/2013 09:58 AM, Sylwester Nawrocki wrote:
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
-> Changes since v1:
-> Used pdev->dev.of_node->full_name for node name.
+> This patch adds a document describing common OF bindings for video
+> capture, output and video processing devices. It is curently mainly
+> focused on video capture devices, with data busses defined by
+> standards such as ITU-R BT.656 or MIPI-CSI2.
+> It also documents a method of describing data links between devices.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Patch applied for 3.10-rc2+, thanks.
-
+Acked-by: Stephen Warren <swarren@nvidia.com>
