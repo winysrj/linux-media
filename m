@@ -1,46 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f42.google.com ([209.85.210.42]:55392 "EHLO
-	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab3DPGOs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 02:14:48 -0400
-Received: by mail-da0-f42.google.com with SMTP id n15so94399dad.1
-        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:14:48 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 4/5] [media] exynos4-is: Initialize 'sensor' before using
-Date: Tue, 16 Apr 2013 11:32:22 +0530
-Message-Id: <1366092143-5482-4-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
-References: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail-ia0-f175.google.com ([209.85.210.175]:49706 "EHLO
+	mail-ia0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760679Ab3DDUoc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 16:44:32 -0400
+Received: by mail-ia0-f175.google.com with SMTP id e16so2608510iaa.34
+        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 13:44:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1365094158.2609.119.camel@laptop>
+References: <20130228102452.15191.22673.stgit@patser>
+	<20130228102502.15191.14146.stgit@patser>
+	<1364900432.18374.24.camel@laptop>
+	<515AF1C1.7080508@canonical.com>
+	<1364921954.20640.22.camel@laptop>
+	<1365076908.2609.94.camel@laptop>
+	<20130404133123.GW2228@phenom.ffwll.local>
+	<1365094158.2609.119.camel@laptop>
+Date: Thu, 4 Apr 2013 22:44:31 +0200
+Message-ID: <CAKMK7uEUdtiDDCRPwpiumkrST6suFY7YuQcPAXR_nJ0XHKzsAw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing initialization code to the 'sensor' data
-structure variable before using it.
+On Thu, Apr 4, 2013 at 6:49 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
+>> We've discussed this approach of using (rt-prio, age) instead of just
+>> age
+>> to determine the the "oldness" of a task for deadlock-breaking with
+>> -EAGAIN. The problem is that through PI boosting or normal rt-prio
+>> changes
+>> while tasks are trying to acquire ww_mutexes you can create acyclic
+>> loops
+>> in the blocked-on graph of ww_mutexes after the fact and so cause
+>> deadlocks. So we've convinced ourselves that this approche doesn't
+>> work.
+>
+> Could you pretty please draw me a picture, I'm having trouble seeing
+> what you mean.
+>
+> AFAICT as long as you boost Y while its the lock owner things should
+> work out, no?
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
-Only compile tested.
----
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+So this one here took a bit of pondering. But I think you'll like the
+conclusion.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-index 02b2719..bda9093 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-@@ -268,7 +268,8 @@ err_gpio:
- 
- static int fimc_is_sensor_remove(struct i2c_client *client)
- {
--	struct fimc_is_sensor *sensor;
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
- 
- 	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
- 	media_entity_cleanup(&sensor->subdev.entity);
--- 
-1.7.9.5
+Now the deadlock detection works because it impose a dag onto all
+lockers which clearly denotes who'll wait and who will get wounded.
+The problem with using (rt_prio, ww_age/ticket) instead of just the
+ticket si that it's ambigous in the face of PI boosting. E.g.
+- rt_prio of A > rt_prio of B, but
+- task A is younger than task B
 
+Before boosting task A wins, but after boosting (when only the age
+matters) task B wins, since it's now older. So now when B comes around
+and tries to grab a lock A currently holds, it'll also block.
+
+Now the cool thing with TASK_KILLABLE (hey, I start to appreciate it,
+bear with me!) is that this is no problem - it limits the length of
+any chain of blocked tasks to just one link of blocked tasks:
+- If the length is currently one it cannot be extended - the blocked
+task will set the PF_GTFO flag on the current holder, and since that
+would be checked before blocking on another ww_mutex the chain can't
+grow past one blocked task.
+- If the current holder itself is blocked on another ww_mutex it'll be
+in TASK_DEADLOCK state and get woken up.
+
+In both case the current holder of the lock will either continue with
+what it's been doing (PI-boosted ofc) until it unlocks everything or
+hits the PF_GTFO check and backs off from all currently held locks. RT
+mission accomplished I think since the wait time for the highest-prio
+task for grabbing a lock is bounded by the lock hold time for the
+completely uncontended case. And within a given rt-prio the normal
+wait/wound algorithm will resolve conflicts (and ensure forward
+progress).
+
+So I'm now rather convinced that with the TASK_DEADLOCK implementation
+we can make (rt_prio, age) lock ordering work. But it's not an
+artifact of consistent PI boosting (I've raced down that alley first
+trying to prove it to no avail), but the fact that lock holder kicking
+through PF_GTFO naturally limits blocked task chains on ww_mutexes to
+just one link. That in turn makes any post-PI-boosted considerations
+moot and so can't result in havoc due to a PI-boost having flipped an
+edge in the lock_er_ ordering DAG (we sort tasks with wait/wound, not
+locks, hence it's not a lock ordering DAG).
+
+Please poke holes into this argument, I've probably missed a sublety
+somewhere ...
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
