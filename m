@@ -1,71 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:57431 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab3DKTz7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 15:55:59 -0400
-Received: by mail-ea0-f180.google.com with SMTP id d10so861888eaj.25
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 12:55:58 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: improve em2710/em2820 distinction
-Date: Thu, 11 Apr 2013 21:56:47 +0200
-Message-Id: <1365710207-4974-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58484 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758188Ab3DDL1g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 07:27:36 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MKQ00MNQAFKTH60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 04 Apr 2013 12:27:34 +0100 (BST)
+Message-id: <515D63A4.2060108@samsung.com>
+Date: Thu, 04 Apr 2013 13:27:32 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Mike Turquette <mturquette@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] omap3isp: Use the common clock framework
+References: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1365073719-8038-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20130404112004.GG10541@valkosipuli.retiisi.org.uk>
+In-reply-to: <20130404112004.GG10541@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Chip id 18 is used by the em2710 and em2820.
-The current code assumes that if the device is a camera, the chip is an em2710 
-and an em2820 otherwise.
-But it turned out that the em2820 is also used in camera devices.
-"Silvercrest 1.3 MPix" webcams for example are available with both chips.
-Fortunately both variants are using different generic USD IDs which give us a
-hint about the used chip.
+Hi Sakari,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   16 ++++++++--------
- 1 Datei geändert, 8 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
+On 04/04/2013 01:20 PM, Sakari Ailus wrote:
+> Hi Laurent,
+> 
+> I don't remember when did I see equally nice patch to the omap3isp driver!
+> :-) Thanks!
+> 
+> A few comments below.
+> 
+> On Thu, Apr 04, 2013 at 01:08:38PM +0200, Laurent Pinchart wrote:
+> ...
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 2da17af..bec604f 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2909,6 +2909,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			break;
- 		case CHIP_ID_EM2820:
- 			chip_name = "em2710/2820";
-+			if (dev->udev->descriptor.idVendor == 0xeb1a) {
-+				__le16 idProd = dev->udev->descriptor.idProduct;
-+				if (le16_to_cpu(idProd) == 0x2710)
-+					chip_name = "em2710";
-+				else if (le16_to_cpu(idProd) == 0x2820)
-+					chip_name = "em2820";
-+			}
-+			/* NOTE: the em2820 is used in webcams, too ! */
- 			break;
- 		case CHIP_ID_EM2840:
- 			chip_name = "em2840";
-@@ -2974,14 +2982,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 
- 	em28xx_pre_card_setup(dev);
- 
--	if (dev->chip_id == CHIP_ID_EM2820) {
--		if (dev->board.is_webcam)
--			chip_name = "em2710";
--		else
--			chip_name = "em2820";
--		snprintf(dev->name, sizeof(dev->name), "%s #%d", chip_name, dev->devno);
--	}
--
- 	if (!dev->board.is_em2800) {
- 		/* Resets I2C speed */
- 		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
--- 
-1.7.10.4
+>> +		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+> 
+> How about devm_kzalloc()? You'd save a bit of error handling (which is btw.
+> missing now, as well as kfree in cleanup).
+
+clkdev_drop() will free memory allocated here. So using devm_kzalloc()
+wouldn't be correct.
+
+>> +		if (xclk->lookup == NULL)
+>> +			return -ENOMEM;
+>> +
+>> +		xclk->lookup->con_id = pdata->xclks[i].con_id;
+>> +		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+>> +		xclk->lookup->clk = clk;
+>> +
+>> +		clkdev_add(xclk->lookup);
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static void isp_xclk_cleanup(struct isp_device *isp)
+>> +{
+>> +	unsigned int i;
+>> +
+>> +	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+>> +		struct isp_xclk *xclk = &isp->xclks[i];
+>> +
+>> +		if (xclk->lookup)
+>> +			clkdev_drop(xclk->lookup);
+>> +	}
+>> +}
+
+Regards,
+Sylwester
 
