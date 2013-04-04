@@ -1,163 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43114 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933036Ab3DOMvf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 08:51:35 -0400
-Date: Mon, 15 Apr 2013 09:51:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-Message-ID: <20130415095130.78a5ecd9@redhat.com>
-In-Reply-To: <516B12F9.4040609@googlemail.com>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
-	<20130413114144.097a21a1@redhat.com>
-	<51697AC8.1050807@googlemail.com>
-	<20130413140444.2fba3e88@redhat.com>
-	<516999EC.6080605@googlemail.com>
-	<20130413150823.6e962285@redhat.com>
-	<516B12F9.4040609@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41936 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761846Ab3DDP1D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 11:27:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH/RFC] uvcvideo: Disable USB autosuspend for Creative Live! Cam Optia AF
+Date: Thu, 04 Apr 2013 17:28:01 +0200
+Message-ID: <1675297.SBVpg0UeLp@avalon>
+In-Reply-To: <Pine.LNX.4.44L0.1303281043140.1652-100000@iolanthe.rowland.org>
+References: <Pine.LNX.4.44L0.1303281043140.1652-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 14 Apr 2013 22:35:05 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Hi Alan,
 
-> Am 13.04.2013 20:08, schrieb Mauro Carvalho Chehab:
-> > Em Sat, 13 Apr 2013 19:46:20 +0200
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Am 13.04.2013 19:04, schrieb Mauro Carvalho Chehab:
-> >>> Em Sat, 13 Apr 2013 17:33:28 +0200
-> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>
-> >>>> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
-> >>>>> Em Sat, 13 Apr 2013 11:48:39 +0200
-> >>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>>>
-> >>>>>> The GPIO register tracking/caching code is partially broken, because newer
-> >>>>>> devices provide more than one GPIO register and some of them are even using
-> >>>>>> separate registers for read and write access.
-> >>>>>> Making it work would be too complicated.
-> >>>>>> It is also used nowhere and doesn't make sense in cases where input lines are
-> >>>>>> connected to buttons etc.
-> >>>>>>
-> >>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >>>>>> ---
-> >>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
-> >>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
-> >>>>>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
-> >>>>>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
-> >>>>> ...
-> >>>>>
-> >>>>>
-> >>>>>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
-> >>>>>>  	int oldval;
-> >>>>>>  	u8 newval;
-> >>>>>>  
-> >>>>>> -	/* Uses cache for gpo/gpio registers */
-> >>>>>> -	if (reg == dev->reg_gpo_num)
-> >>>>>> -		oldval = dev->reg_gpo;
-> >>>>>> -	else if (reg == dev->reg_gpio_num)
-> >>>>>> -		oldval = dev->reg_gpio;
-> >>>>>> -	else
-> >>>>>> -		oldval = em28xx_read_reg(dev, reg);
-> >>>>>> -
-> >>>>>> +	oldval = em28xx_read_reg(dev, reg);
-> >>>>>>  	if (oldval < 0)
-> >>>>>>  		return oldval;
-> >>>>> That's plain wrong, as it will break GPIO input.
-> >>>>>
-> >>>>> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
-> >>>>> code works for output ports.
-> >>>>>
-> >>>>> However, an input port requires an specific value (either 1 or 0 depending
-> >>>>> on the GPIO circuitry). If the wrong value is written there, the input port
-> >>>>> will stop working.
-> >>>>>
-> >>>>> So, you can't simply read a value from a GPIO input and write it. You need
-> >>>>> to shadow the GPIO write values instead.
-> >>>> I don't understand what you mean.
-> >>>> Why can I not read the value of a GPIO input and write it ?
-> >>> Because, depending on the value you write, it can transform the input into an
-> >>> output port.
-> >> I don't get it.
-> >> We always write to the GPIO register. That's why these functions are
-> >> called em28xx_write_* ;)
-> >> Whether the write operation is sane or not (e.g. because it modifies the
-> >> bit corresponding to an input line) is not subject of these functions.
-> > Writing is sane: GPIO input lines requires writing as well, in order to 
-> > set it to either pull-up or pull-down mode (not sure if em28xx supports
-> > both ways).
-> >
-> > So, the driver needs to know if it will write there a 0 or 1, and this is part
-> > of its GPIO configuration.
-> >
-> > Let's assume that, on a certain device, you need to write "1" to enable that
-> > input.
-> >
-> > A read I/O to that port can return either 0 or 1. 
-> >
-> > Giving an hypothetical example, please assume this code:
-> >
-> > static int write_gpio_bits(u32 out, u32 mask)
-> > {
-> > 	u32 gpio = (read_gpio_ports() & ~mask) | (out & mask);
-> > 	write_gpio_ports(gpio);
-> > }
-> >
-> >
-> > ...
-> > 	/* Use bit 1 as input GPIO */
-> > 	write_gpio_bits(1, 1);
-> >
-> > 	/* send a reset via bit 2 GPIO */
-> > 	write_gpio_bits(2, 2);
-> > 	write_gpio_bits(0, 2);
-> > 	write_gpio_bits(2, 2);
-> >
-> > If, at the time the above code runs, the input bit 1 is at "0" state,
-> > the subsequent calls will disable the input.
-> >
-> > If, instead, only the write operations are cached like:
-> >
-> > static int write_gpio_bits(u32 out, u32 mask)
-> > {
-> > 	static u32 shadow_cache;
-> >
-> > 	shadow_cache = (shadow_cache & ~mask) | (out & mask);
-> > 	write_gpio_ports(gpio);
-> > }
-> >
-> > there's no such risk, as it will keep using "1" for the input bit.
+On Thursday 28 March 2013 10:45:27 Alan Stern wrote:
+> On Thu, 28 Mar 2013, Laurent Pinchart wrote:
+> > The camera fails to start video streaming after having been autosuspend.
+> > Add a new quirk to selectively disable autosuspend for devices that
+> > don't support it.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
+> >  drivers/media/usb/uvc/uvcvideo.h   |  1 +
+> >  2 files changed, 14 insertions(+), 1 deletion(-)
+> > 
+> > I've tried to set the reset resume quirk for this device in the USB core
+> > but the camera still failed to start video streaming after having been
+> > autosuspended. Regardless of whether the reset resume quirk was set, it
+> > would respond to control messages but wouldn't send video data.
 > 
-> Hmm... ok, now I understand what you mean.
-> Are you sure the Empia chips are really working this way ?
+> Presumably the camera won't work after a system suspend, either.
 
-Yes. It uses a pretty standard GPIO mechanism at register 0x08. I'm not
-so sure about the "GPO" register 0x04, but using a shadow for it as
-well won't hurt, and will reduce a little bit the USB bus traffic.
+That was my expectation as well, but the device has survived system suspend 
+without being reenumerated. I don't know if the USB port power got cut off 
+during system suspend.
 
-> I checked the em25xx datasheet (excerpt) and it talks about separate
-> registers for GPIO configuration (unfortunately without explaining their
-> function in detail).
+> > This solution below is a hack, but I'm not sure what else I can try. Crazy
+> > ideas are welcome.
+> 
+> It's not a hack; it's a normal use for a quirk flag.  Of course, if you
+> can figure out what's wrong with the camera and see how to fix it, that
+> would be best.
 
-Interesting. There are several old designs (bttv, saa7134,...) that uses
-a separate register for defining the input and the output pins.
+I've tried to but I can't figure out what goes wrong exactly.
 
-> I going to do some tests with the Laplace webcam, so far it seems to be
-> working fine without this caching stuff.
-> But the reverse-engineering possibilities are quite limited, so someone
-> with a detailed datasheet should really look this up.
+> How does the camera perform on a Windows system after being put to
+> sleep and then woken up?
 
-Well, that will affect only devices with input pins connected.
-If you test on a hardware without it, you won't notice any difference
-at all.
+I don't know, I have no Windows system to test the camera on.
 
-Cheers,
-Mauro
+-- 
+Regards,
+
+Laurent Pinchart
+
