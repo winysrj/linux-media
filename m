@@ -1,63 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:18841 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab3DOPVv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37592 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757749Ab3DDLUI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 11:21:51 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLA00AP5YKWXQC0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 15 Apr 2013 16:21:49 +0100 (BST)
-Message-id: <516C1B0B.4010806@samsung.com>
-Date: Mon, 15 Apr 2013 17:21:47 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] exynos4-is: Fix potential null pointer
- dereferencing
-References: <1366027438-4560-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1366027438-4560-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 4 Apr 2013 07:20:08 -0400
+Date: Thu, 4 Apr 2013 14:20:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Mike Turquette <mturquette@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] omap3isp: Use the common clock framework
+Message-ID: <20130404112004.GG10541@valkosipuli.retiisi.org.uk>
+References: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1365073719-8038-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1365073719-8038-2-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Hi Laurent,
 
-On 04/15/2013 02:03 PM, Sachin Kamat wrote:
-> If fimc->drv_data is NULL, then fimc->drv_data->num_entities would
-> cause NULL pointer dereferencing.
-> While at it also remove the check for fimc->id being negative as 'id' is
-> unsigned variable and can't be less than 0.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
->  drivers/media/platform/exynos4-is/fimc-core.c |    7 +++----
->  1 file changed, 3 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-> index f25807d..d388832 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-core.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
-> @@ -953,10 +953,9 @@ static int fimc_probe(struct platform_device *pdev)
->  		fimc->drv_data = fimc_get_drvdata(pdev);
->  		fimc->id = pdev->id;
->  	}
-> -	if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities ||
-> -	    fimc->id < 0) {
-> -		dev_err(dev, "Invalid driver data or device id (%d/%d)\n",
-> -			fimc->id, fimc->drv_data->num_entities);
-> +	if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities) {
-> +		dev_err(dev, "Invalid driver data or device id (%d)\n",
-> +			fimc->id);
->  		return -EINVAL;
+I don't remember when did I see equally nice patch to the omap3isp driver!
+:-) Thanks!
 
-Thanks for the patch. To make it more explicit I would prefer to change
-id type to 'int', and to leave the check for negative value. There is
-a similar issue in fimc-lite.c that could be addressed in same patch.
-Could you also fix this and resend ?
+A few comments below.
 
-Regards,
-Sylwester
+On Thu, Apr 04, 2013 at 01:08:38PM +0200, Laurent Pinchart wrote:
+...
+> +static int isp_xclk_set_rate(struct clk_hw *hw, unsigned long rate,
+> +			     unsigned long parent_rate)
+> +{
+> +	struct isp_xclk *xclk = to_isp_xclk(hw);
+> +	unsigned long flags;
+> +	u32 divider;
+> +
+> +	divider = isp_xclk_calc_divider(&rate, parent_rate);
+> +
+> +	spin_lock_irqsave(&xclk->lock, flags);
+> +
+> +	xclk->divider = divider;
+> +	if (xclk->enabled)
+> +		isp_xclk_update(xclk, divider);
+> +
+> +	spin_unlock_irqrestore(&xclk->lock, flags);
+> +
+> +	dev_dbg(xclk->isp->dev, "%s: cam_xclk%c set to %lu Hz (div %u)\n",
+> +		__func__, xclk->id == ISP_XCLK_A ? 'a' : 'b', rate, divider);
+> +	return 0;
+> +}
+> +
+> +static const struct clk_ops isp_xclk_ops = {
+> +	.prepare = isp_xclk_prepare,
+> +	.unprepare = isp_xclk_unprepare,
+> +	.enable = isp_xclk_enable,
+> +	.disable = isp_xclk_disable,
+> +	.recalc_rate = isp_xclk_recalc_rate,
+> +	.round_rate = isp_xclk_round_rate,
+> +	.set_rate = isp_xclk_set_rate,
+> +};
+> +
+> +static const char *isp_xclk_parent_name = "cam_mclk";
+> +
+> +static const struct clk_init_data isp_xclk_init_data = {
+> +	.name = "cam_xclk",
+> +	.ops = &isp_xclk_ops,
+> +	.parent_names = &isp_xclk_parent_name,
+> +	.num_parents = 1,
+> +};
+
+isp_xclk_init_data is unused.
+
+> +static int isp_xclk_init(struct isp_device *isp)
+> +{
+> +	struct isp_platform_data *pdata = isp->pdata;
+> +	struct clk_init_data init;
+
+Init can be declared inside the loop.
+
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+> +		struct isp_xclk *xclk = &isp->xclks[i];
+> +		struct clk *clk;
+> +
+> +		xclk->isp = isp;
+> +		xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
+> +		xclk->divider = 1;
+> +		spin_lock_init(&xclk->lock);
+> +
+> +		init.name = i == 0 ? "cam_xclka" : "cam_xclkb";
+> +		init.ops = &isp_xclk_ops;
+> +		init.parent_names = &isp_xclk_parent_name;
+> +		init.num_parents = 1;
+> +
+> +		xclk->hw.init = &init;
+> +
+> +		clk = devm_clk_register(isp->dev, &xclk->hw);
+> +		if (IS_ERR(clk))
+> +			return PTR_ERR(clk);
+> +
+> +		if (pdata->xclks[i].con_id == NULL &&
+> +		    pdata->xclks[i].dev_id == NULL)
+> +			continue;
+> +
+> +		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+
+How about devm_kzalloc()? You'd save a bit of error handling (which is btw.
+missing now, as well as kfree in cleanup).
+
+> +		if (xclk->lookup == NULL)
+> +			return -ENOMEM;
+> +
+> +		xclk->lookup->con_id = pdata->xclks[i].con_id;
+> +		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+> +		xclk->lookup->clk = clk;
+> +
+> +		clkdev_add(xclk->lookup);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void isp_xclk_cleanup(struct isp_device *isp)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+> +		struct isp_xclk *xclk = &isp->xclks[i];
+> +
+> +		if (xclk->lookup)
+> +			clkdev_drop(xclk->lookup);
+> +	}
+> +}
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
