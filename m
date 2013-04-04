@@ -1,211 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52399 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758069Ab3DAWMb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 18:12:31 -0400
-Date: Mon, 1 Apr 2013 19:12:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 0/3] em28xx: add support for two buses on em2874 and
- upper
-Message-ID: <20130401191224.4da92bd8@redhat.com>
-In-Reply-To: <5159F080.1030503@googlemail.com>
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com>
-	<CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com>
-	<51378067.3000506@googlemail.com>
-	<20130318182205.44f44e20@redhat.com>
-	<5159C05B.10902@googlemail.com>
-	<20130401162205.379bda4f@redhat.com>
-	<5159F080.1030503@googlemail.com>
+Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:51188
+	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759380Ab3DDMCE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Apr 2013 08:02:04 -0400
+Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
+	by bombadil.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
+	id 1UNirj-0002vW-6C
+	for linux-media@vger.kernel.org; Thu, 04 Apr 2013 12:02:03 +0000
+Message-ID: <1365076908.2609.94.camel@laptop>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
+ v2
+From: Peter Zijlstra <peterz@infradead.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	daniel.vetter@ffwll.ch, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org
+Date: Thu, 04 Apr 2013 14:01:48 +0200
+In-Reply-To: <1364921954.20640.22.camel@laptop>
+References: <20130228102452.15191.22673.stgit@patser>
+	 <20130228102502.15191.14146.stgit@patser>
+	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
+	 <1364921954.20640.22.camel@laptop>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 01 Apr 2013 22:39:28 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-> Am 01.04.2013 21:22, schrieb Mauro Carvalho Chehab:
-> > Em Mon, 01 Apr 2013 19:14:03 +0200
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> Am 18.03.2013 22:22, schrieb Mauro Carvalho Chehab:
-> >>> Em Wed, 06 Mar 2013 18:44:07 +0100
-> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>
-> >>>> Am 05.03.2013 16:43, schrieb Devin Heitmueller:
-> >>>>> 2013/3/5 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> >>>>>> The em2874 chips and upper have 2 buses. On all known devices, bus 0 is
-> >>>>>> currently used only by eeprom, and bus 1 for the rest. Add support to
-> >>>>>> register both buses.
-> >>>>> Did you add a mutex to ensure that both buses cannot be used at the
-> >>>>> same time?  Because using the bus requires you to toggle a register
-> >>>>> (thus you cannot be using both busses at the same time), you cannot
-> >>>>> rely on the existing i2c adapter lock anymore.
-> >>>>>
-> >>>>> You don't want a situation where something is actively talking on bus
-> >>>>> 0, and then something else tries to talk on bus 1, flips the register
-> >>>>> bit and then the thread talking on bus 0 starts failing.
-> >>>>>
-> >>>>> Devin
-> >>>> Hmm... there are several writes to EM28XX_R06_I2C_CLK in em28xx-dvb...
-> >>>> See hauppauge_hvr930c_init(), terratec_h5_init() and
-> >>>> terratec_htc_stick_init().
-> >>>> These functions are called from em28xx_dvb_init() at module init.
-> >>>> Module init is async, so yes, this is (or could at least become) a
-> >>>> problem...
-> >>>>
-> >>>> I wonder if we can't simply remove all those writes to
-> >>>> EM28XX_R06_I2C_CLK from em28xx-dvb.
-> >>>> This is what the functions are doing:
-> >>>>
-> >>>> hauppauge_hvr930c_init()
-> >>>>     ...
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> >>>>     msleep(10);
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> >>>>     msleep(10);
-> >>>>     ... [init sequence for slave at address 0x82]
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> >>>>     msleep(30);
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
-> >>>>     msleep(10);
-> >>>>
-> >>>> terratec_h5_init():
-> >>>>     ...
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> >>>>     msleep(10);
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
-> >>>>     msleep(10);
-> >>>>     ...
-> >>>>
-> >>>> terratec_htc_stick_init()
-> >>>>     ...
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-> >>>>     msleep(10);
-> >>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-> >>>>     msleep(10);
-> >>>>     ...
-> >>>>
-> >>>> All three boards are using the following settings:
-> >>>>         .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
-> >>>> EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_400_KHZ = 0x45
-> >>>>
-> >>>> So what these functions are doing is
-> >>>> - switch to bus A and do nothing fo 10ms
-> >>>> - overwrite board settings for reg 0x06 with a local value (clears
-> >>>> EM28XX_I2C_FREQ_400_KHZ permanently for the HTC-Stick !).
-> >>>>
-> >>>> I can test the HVR-930C next week.
-> >> Ok, I finally had the chance to test with a HVR-930C, but it seems my
-> >> device () is different.
+I'm sorry, this email ended up quite a bit longer than I had hoped for;
+please bear with me.
+
+On Tue, 2013-04-02 at 18:59 +0200, Peter Zijlstra wrote:
+>   struct ww_mutex; /* wound/wait */
 > 
-> I forgot to insert the device/model of the device I tested: it's 16009, B1F0
-
-It has the same model as the one I have here.
-
+>   int mutex_wound_lock(struct ww_mutex *); /* returns -EDEADLK */
+>   int mutex_wait_lock(struct ww_mutex *);  /* does not fail */
 > 
-> >> It has no slave device at i2c address 0x82, so I can't test this part.
-> >> Btw, which slave device is this ?
-
-AFAIKT, at address 0x41, there is the analog demod (avf4910b). It is not
-used by Digital TV (although I'm not sure if, for this device, it needs
-to be initialized or not).
-
-We don't have enough documentation to write a driver for avf4910b. Some
-developers at the ML are trying to implement support for it for HVR-930C:
-
-	http://www.mail-archive.com/linux-media@vger.kernel.org/msg59296.html
-
-There is a code pointed there for avf4910a:
-	https://github.com/wurststulle/ngene_2400i/blob/2377b1fd99d91ff355a5e46881ef27ccc87cb376/avf4910a.c
-
-Also, maybe to access the avf4910b some different GPIO setting may be needed,
-as it might be powered off by the GPIO settings initialized at device init.
-
-> >>
-> >> Removing the temporary switches to bus A makes no difference (as expected).
-> >>
-> >>> There are some things there on the init sequence that can be
-> >>> cleaned/removed. Those sequences generally comes from observing
-> >>> what the original driver does. While it produces a working driver,
-> >>> in general, it is not optimized and part of the init sequence can
-> >>> be removed.
-> >> Do you want me to send patches to remove these writes ?
-> >> Which i2c speed settings do you suggest for the HVR-930C and the
-> >> HTC-Stick (board settings:
-> >> EM28XX_I2C_FREQ_400_KHZ, code overwrites it with EM28XX_I2C_FREQ_100_KHZ) ?
-> > Sure. The better would be to even remove the hauppauge_hvr930c_init()
-> > function, as this is just a hack, and use the setup via the em28xx-cards
-> > commented entries:
-> >
-> > 		.tuner_type   = TUNER_XC5000,
-> > 		.tuner_addr   = 0x41,
-> > 		.dvb_gpio     = hauppauge_930c_digital,
-> > 		.tuner_gpio   = hauppauge_930c_gpio,
+> Hmm.. thinking about that,.. you only need that second variant because
+> you don't have a clear lock to wait for the 'older' process to
+> complete; but having the unconditional wait makes the entire thing
+> prone to accidents and deadlocks when the 'user' (read your fellow
+> programmers) make a mistake.
 > 
-> Hmm... tuner address is 0x61 for the device I tested !
-> The register sequences in em28xx-cards.c also seem to be different to
-> the ones used in hauppauge_hvr930c_init() in em28xx-dvb.c...
+> Ideally we'd only have the one primitive that returns -EDEADLK and use
+> a 'proper' mutex to wait on or somesuch.. let me ponder this a bit
+> more.
 
-I'm not telling that the entries there are right. They aren't. If they
-where working, that data there weren't commented. This device entry
-started with a clone from Terratec H5, which was the first em28xx
-device with DRX-K.
+So I had me a little ponder..
 
-On Terratec H5, the tuner is different (based on tda8290/tda8275).
-The current device initialization started as a clone of the code
-under terratec_h5_init().
+Its all really about breaking the symmetry (equivalence of both sides)
+of the deadlock. Lets start with the simplest AB-BA deadlock:
 
-As it worked like that, the patch author that added support for HVR-930
-likely didn't touch on it.
+	task-O	task-Y
+	  A
+		B
+		A <-- blocks on O
+	  B <-- blocks on Y
 
-The tuner for HVR930C is clearly at 0x61 address, as it can be seen at
-em28xx-dvb:
+In this case the wound-wait algorithm says that the older task (O) has
+precedence over the younger task (Y) and we'll 'kill' Y to allow
+progress for O.
 
-                /* Attach xc5000 */
-               	memset(&cfg, 0, sizeof(cfg));
-                cfg.i2c_address  = 0x61;
-                cfg.if_khz = 4000;
+Now clearly we don't really want to kill Y, instead we'll allow its
+lock operation to return -EDEADLK.
 
-                if (dvb->fe[0]->ops.i2c_gate_ctrl)
-                        dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 1);
-               	if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap[dev->def_i2c_bus],
-                                &cfg)) {
-                        result = -EINVAL;
-                        goto out_free;
-                }
+This would suggest that our 'new' mutex implementation (ww_mutex
+henceforth) has owner tracking -- so O acquiring B can find Y to 'kill'
+-- and that we have a new wakeup state TASK_DEADLOCK similar to
+TASK_WAKEKILL (can we avoid this by using the extra state required
+below? I don't think so since we'd have the risk of waking Y while it
+would be blocked on a !ww_mutex)
 
-> Are you sure this will work for _all_ variants of the HVR-930C ?
+Now this gets a little more interesting if we change the scenario a
+little:
 
-Well, the current code will only work with a HVR-930C with a xc5000 tuner,
-a drx-k demod and an em28xx (and an avf4910b analog TV demod).
+	task-O	task-Y
+	  A
+		B
+	  B <-- blocks on Y
+		* <-- could be A
 
-Any other model with a different layout, if are there any, won't work 
-anyway.
+In this case when O blocks Y isn't actually blocked, so our
+TASK_DEADLOCK wakeup doesn't actually achieve anything.
 
-While we can't discard that a different model might have a different GPIO
-setting, Hauppauge tends to keep the GPIO settings equal for the same
-device brand name. 
+This means we also have to track (task) state so that once Y tries to
+acquire A (creating the actual deadlock) we'll not wait so our
+TASK_DEADLOCK wakeup doesn't actually achieve anything.
 
-So, it seems very unlikely that any change here will keep it working for
-model 16009 while breaking it for other devices.
+Note that Y doesn't need to acquire A in order to return -EDEADLK, any
+acquisition from the same set (see below) would return -EDEADLK even if
+there isn't an actual deadlock. This is the cost of heuristic; we could
+walk the actual block graph but that would be prohibitively expensive
+since we'd have to do this on every acquire.
 
-> I think it would be better if you would create those patches.
-> I really don't like writing patches without completely understanding the
-> code, not beeing able to test them and commit messages saying "Mauro
-> told me to do this"... ;)
+This raises the point of what would happen if Y were to acquire a
+'regular' mutex in between the series of ww_mutexes. In this case we'd
+clearly have an actual deadlock scenario. However lockdep would catch
+this for we'd clearly invert the lock class order:
 
-> You also didn't answer my question concerning the i2c speed settings. ;)
+	ww_mutex -> other -> ww_mutex
 
-What question?
+For the more complex scenarios there's the case of multiple waiters. In
+this case its desirable to order the waiters in age order so that we
+don't introduce age inversion -- this minimizes the amount of -EDEADLK
+occurrences, but also allows doing away with the unconditional wait.
 
-Each bus may have a different max I2C speed, but the speed should not
-change on the same I2C bus over the time. If the driver is doing that,
-this is a bug that needs to be fixed.
+With the lock queue ordering we can simply immediately re-try the lock
+acquisition sequence. Since the older task is already queued it will
+obtain the lock, even if we re-queue ourselves before the lock is
+assigned.
 
-Regards,
-Mauro
+Now the one thing I've so far 'ignored' is how to assign age. Forward
+progress guarantees demand that the age doesn't get reset on retries;
+doing so would mean you're always pushing yourself fwd, decreasing your
+'priority', never getting to be the most eligible. However it also
+means that we should (re)set the time every time we start a 'new'
+acquisition sequence. If we'd use a static (per task) age the task with
+the lowest age would be able to 'starve' all other.
+
+This means we need means to mark the start of an acquisition sequence;
+one that is not included in the restart loop.
+
+Having a start suggests having an end marker too, and indeed we can
+find a reason for having one; suppose our second scenario above, where
+Y has already acquired all locks it needs to proceed. In this case we
+would have marked Y to fail on another acquisition. This doesn't seem
+like a problem until you consider the case where we nest different
+mm_mutex sets. In this case Y would -EDEADLK on the first of the second
+(nested) set, even though re-trying that set is pointless, O doesn't
+care.
+
+Furthermore, considering the first scenario, O could block on a lock of
+the first set when Y is blocked on a lock of the second (nested) set;
+we need means of discerning the different lock sets. This cannot be
+done by local means, that is, any context created by the start/end
+markers would be local to that task and would not be recognizable by
+another as to belong to the same group.
+
+Instead we'd need to create a set-class, much like lockdep has and
+somehow ensure all locks in a set are of that class.
+
+One thing I'm not entirely sure of is the strict need for a local
+context it could be used to track the set-class, but I'm not entirely
+sure we need that to clean up state at the end marker. I haven't been
+creative enough to construct a fail case where both O and Y nest and a
+pending EDEADLK state could cross the end marker wrongly.
+
+However, having a local context, even if empty, does put a few
+constraints on the API usage, which as per below, is a good thing.
+
+To recap, we now have:
+
+  struct ww_mutex_key { };
+  struct ww_mutex;
+  struct ww_mutex_ctx;
+
+  void __ww_mutex_init(struct ww_mutex *, void *);
+
+  #define ww_mutex_init(ww_mutex) 	 		\
+    do {					\
+	static struct ww_mutex_key __key;		\
+	__ww_mutex_init(ww_mutex, &__key);		\
+    } while (0)
+
+  void ww_mutex_acquire_start(struct ww_mutex_ctx *);
+  void ww_mutex_acquire_end  (struct ww_mutex_ctx *);
+
+  int  ww_mutex_lock(struct ww_mutex_ctx *, struct ww_mutex *);
+  void ww_mutex_unlock(struct ww_mutex *);
+
+Which are to be used like:
+
+  int bufs_lock(bufs)
+  {
+	struct ww_mutex_ctx ww_ctx;
+
+	ww_mutex_acquire_start(&ww_ctx);
+  retry:
+	for-all-buffers(buf, bufs) {
+		err = ww_mutex_lock(&ww_ctx, &buf->lock);
+		if (err)
+			goto error;
+	}
+
+	ww_mutex_acquire_end(&ww_ctx);
+
+	return 0; /* success */
+
+  error:
+	for-all-buffers(buf2, bufs) {
+		if (buf2 == buf)
+			break;
+		ww_mutex_unlock(&buf->lock);
+	}
+	if (err == -EDEADLK)
+		goto again;
+
+	return err; /* other error */
+  }
+
+  void bufs_unlock(bufs)
+  {
+	for-all-buffers(buf, bufs)
+		ww_mutex_unlock(&buf->lock);
+  }
+
+This API has a few problems as per Rusty's API guidelines, it is fairly
+trivial to use it wrong; mostly the placement of the start and end
+markers are easy to get wrong, but of course one can get all kinds of
+badness from doing the retry wrong. At least having the local context
+forces one to use the start/end markers.
+
+The only remaining 'problem' left is RT, however the above suggests a
+very clean solution; change the lock queueing order to first sort on
+priority (be it the SCHED_FIFO/RR static priority or SCHED_DEADLINE
+dynamic priority) and secondly on the age. 
+
+Note that (re)setting the age at every acquisition set is really only a
+means to provide FIFO fairness between tasks, RT tasks don't strictly
+require this, they have their own ordering.
+
+With all that this locking scheme should be deterministic; and in cases
+where the older task would block (the young task has passed the end
+marker) we can apply PI and push Y's priority.
+
+
+Did I miss something?
+
+Anyway, I haven't actually looked at the details of your implementation
+yet, I'll get to that next, but I think something like the above should
+be what we want to aim for.
+
+*phew* thanks for reading this far ! :-)
+
