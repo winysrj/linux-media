@@ -1,384 +1,455 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50307 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751881Ab3DUMDv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 08:03:51 -0400
-Message-ID: <5173D576.7090404@iki.fi>
-Date: Sun, 21 Apr 2013 15:03:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC v2 0/3] Add SDR at V4L2 API
-References: <366469499-31640-1-git-send-email-mchehab@redhat.com> <201304211134.09073.hverkuil@xs4all.nl> <5173BAEF.3000805@redhat.com> <201304211234.45282.hverkuil@xs4all.nl> <5173C910.3000803@redhat.com>
-In-Reply-To: <5173C910.3000803@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40517 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756705Ab3DDLHy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 07:07:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Mike Turquette <mturquette@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/2] omap3isp: Use the common clock framework
+Date: Thu,  4 Apr 2013 13:08:38 +0200
+Message-Id: <1365073719-8038-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You just jumped over all my previous hard work and introduced 
-implementation, as I tried still to study and finalize all requirements....
+Expose the two ISP external clocks XCLKA and XCLKB as common clocks for
+subdev drivers.
 
-http://palosaari.fi/linux/kernel_sdr_api_requirement_specification.txt
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/isp.c | 277 +++++++++++++++++++++++++---------
+ drivers/media/platform/omap3isp/isp.h |  22 ++-
+ include/media/omap3isp.h              |  10 +-
+ 3 files changed, 225 insertions(+), 84 deletions(-)
 
-I don't like that. I want just study all requirements and implement 
-those as a once and correctly. That one does not meet very many of those 
-listed requirements.
-
-Antti
-
-
-
-On 04/21/2013 02:10 PM, Mauro Carvalho Chehab wrote:
-> Em 21-04-2013 07:34, Hans Verkuil escreveu:
->> On Sun April 21 2013 12:09:51 Mauro Carvalho Chehab wrote:
->>> Em 21-04-2013 06:34, Hans Verkuil escreveu:
->>>> Hi Mauro,
->>>>
->>>> On Sat April 20 2013 19:51:11 Mauro Carvalho Chehab wrote:
->>>>> This is a version 2 of the V4L2 API bits to support Software Digital
->>>>> Radio (SDR).
->>>>
->>>> It looks pretty good to me. Just one question though: what is your
->>>> rationale
->>>> for choosing a new device name (/dev/sdrX) instead of using the
->>>> existing
->>>> /dev/radioX?
->>>>
->>>> I'm not saying I'm opposed to it, in fact I agree with it, but I
->>>> think the
->>>> reasons for it should be stated explicitly.
->>>
->>> Because a SDR radio is different than a normal radio device:
->>>
->>> A normal radio device is actually radio and hardware demod. As the demod
->>> is in hardware, several things that are required for the demodulate the
->>> signal (IF, bandwidth, sample rate, RF/IF filters, etc) are internal to
->>> the device and aren't part of the API.
->>>
->>> SDR radio, on the other hand, requires that every control needed by the
->>> tuner to be exposed on userspace, as userspace needs to adjust the
->>> software decoder to match them.
->>>
->>> So, they're different.
->>>
->>> Btw, it is also possible that the same device to offer analog TV,
->>> digital TV, hardware-decoded radio and SDR. One example of such devices
->>> are cx88. The existing drivers supports already hardware demodulers,
->>> but the device also allows to export the collected samples to userspace.
->>> It is just a matter of programming the cx88 RISC code to do that.
->>>
->>> Internally, cx2388x has 2 10 bits ADC, one for baseband (composite
->>> inputs)
->>> and another one for IF signal capable of working up to 35.44 MHz
->>> sampling
->>> rate (on "8x FSC PAL" supported mode). It would be easy to export its
->>> output to userspace.
->>>
->>> Btw, while seeking for more data about SDR this weekend, I discovered
->>> one project doing exactly that:
->>>
->>>     http://www.geocities.ws/how_chee/cx23881fc6.htm
->>>
->>> I did a very quick look at its source code. It is limited, as it works
->>> only at a fixed sample rate of 27 MHz provides only 8 bits
->>> samples[1], and
->>> I'm not sure if it allows using both ADCs.
->>>
->>> Yet, It shows that it is possible that a driver/subdrivers to offer
->>> the 4 different types of devices:
->>>     - analog TV;
->>>     - digital TV;
->>>     - radio;
->>>     - SDR.
->>>
->>> So, IMO we should not abuse of /dev/radio for SDR.
->>
->> I agree. I just wanted to have it explicit :-)
->
-> Sure. I'll summarize the above at the commit patch on a next version.
->
->> I also think we should provide and maintain a library doing the
->> decoding for
->> SDR that is part of v4l-utils. Otherwise you'll end up with a big
->> userspace
->> mess.
->
-> I partially agree. I've seen some SDR usages that are experimental
-> app-specific stuff like GSM and ADSB receivers.
->
-> You can see a sample of such projects that use one of the existing
-> userspace libraries at:
->      http://sdr.osmocom.org/trac/wiki/rtl-sdr#KnownApps
->
-> In principle, I don't think it is worth to invest our time handling
-> all sorts of possible decoders at v4l-apps[1].
->
-> It makes more sense to offer instead low level library there to allow
-> applications to abstract from hardware differences, like doing
-> fourcc conversions.
->
-> There are at least two ways of outputting data on the known devices:
->      - simple ADC samples in time domain;
->      - IF using in-phase/quadrature (I/Q) samples.
->
-> Also, the number of bits can vary from device to device, being 8 bits
-> and 10 bits the most common ones. I think I saw some analog TV devices
-> using a 12 bits sampler somewhere, but I can't remember if it is
-> flexible enough to output sampled data to the DMA engine, or if they're
-> just simple I2C devices that output only decoded data via I2S.
->
-> Anyway, the low-level library should take care of those differences,
-> just like it is done at libv4l for image standards.
->
-> With time, the library may also provide a basic set of decoders for
-> more common analog radio standards: FM, AM DSB-FC, AM DSB-SC, AM SSB.
->
-> It may also provide analog TV decoders and even digital TV ones,
-> but writing them may take a lot of time. It could be good projects
-> for Google's Summer of Code and similar events.
->
-> I would love to have a set of those decodes there, as they can
-> offer a nice set of instrumentation tools to test what is being
-> received on some place and calibrate device drivers.
->
-> I would love even more to have SDR TX devices. With both TX and RX
-> working, one could send us a sample of what they're receiving on
-> some place, and this signal could be used by the developer to test
-> their devices, improving the driver to better receive such signals.
->
-> I suspect that low-cost SDR TX devices will come with time.
->
-> [1] Ok, if someone wants to add support for those app-specific decoders,
-> maintain it there and it doesn't offer any legal issues that would
-> restrict v4l-utils distribution, I'm not against to add it there.
->
->>
->> And we want this checked by v4l2-compliance, and qv4l2 should be able
->> to use
->> the library so we have at least one application that can handle it.
->>
->> Regards,
->>
->>     Hans
->>
->>>
->>> Regards,
->>> Mauro
->>>
->>> [1] The trick is to program the cx88 RISC to output data from the
->>> samplers, instead of from the demods. We do that already for the
->>> audio standard detection.
->>>
->>> I've no idea if cx88 has any upper DMA maximum bandwidth. If it has,
->>> that might be the reason to limit to 27MHz, 8 bits, but I suspect
->>> that it was done that way just because it was easier.
->>>
->>> Btw, I'm almost sure that other Conexant designs can also offer
->>> similar interfaces.
->>>
->>>
->>>>
->>>> Regards,
->>>>
->>>>     Hans
->>>>
->>>>>
->>>>>
->>>>> The changes from version 1 are:
->>>>>     - fix compilation;
->>>>>     - add a new capture type for SDR (V4L2_BUF_TYPE_SDR_CAPTURE),
->>>>>       with the corresponding documentation;
->>>>>     - remove legacy V4L1 buffer types from videobuf2.h.
->>>>>
->>>>> With regards to VIDIOC_S_TUNER, what's currently defined there is
->>>>> that, in contrary to what a radio device does, this ioctl would
->>>>> set the input.
->>>>>
->>>>> This patch adds the very basic stuff for SDR:
->>>>>
->>>>>     - a separate devnode;
->>>>>     - an VIDIOC_QUERYCAP caps for SDR;
->>>>>     - a fourcc group for SDR;
->>>>>     - a few DocBook bits.
->>>>>
->>>>> What's missing:
->>>>>     - SDR specific controls;
->>>>>     - Sample rate config;
->>>>>     ...
->>>>>
->>>>> As discussing DocBook changes inside the patch is hard, I'm adding
->>>>> here
->>>>> the DocBook formatted changes.
->>>>>
->>>>> The DocBook changes add the following bits:
->>>>>
->>>>> At Chapter 1. Common API Elements, it adds:
->>>>>
->>>>> <text>
->>>>> Software Digital Radio (SDR) Tuners and Modulators
->>>>> ==================================================
->>>>>
->>>>> Those devices are special types of Radio devices that don't have any
->>>>> analog demodulator. Instead, it samples the radio IF or baseband and
->>>>> sends the samples for userspace to demodulate.
->>>>>
->>>>> Tuners
->>>>> ======
->>>>>
->>>>> SDR receivers can have one or more tuners sampling RF signals. Each
->>>>> tuner is associated with one or more inputs, depending on the
->>>>> number of
->>>>> RF connectors on the tuner. The type field of the respective struct
->>>>> v4l2_input returned by the VIDIOC_ENUMINPUT ioctl is set to
->>>>> V4L2_INPUT_TYPE_TUNER and its tuner field contains the index number of
->>>>> the tuner input.
->>>>>
->>>>> To query and change tuner properties applications use the
->>>>> VIDIOC_G_TUNER
->>>>> and VIDIOC_S_TUNER ioctl, respectively. The struct v4l2_tuner returned
->>>>> by VIDIOC_G_TUNER also contains signal status information applicable
->>>>> when the tuner of the current SDR input is queried. In order to change
->>>>> the SDR input, VIDIOC_S_TUNER with a new SDR index should be called.
->>>>> Drivers must support both ioctls and set the V4L2_CAP_SDR and
->>>>> V4L2_CAP_TUNER flags in the struct v4l2_capability returned by the
->>>>> VIDIOC_QUERYCAP ioctl.
->>>>>
->>>>> Modulators
->>>>> ==========
->>>>>
->>>>> To be defined.
->>>>> </text>
->>>>>
->>>>> At the end of Chapter 2. Image Formats, it adds:
->>>>>
->>>>> <text>
->>>>> SDR format struture
->>>>> ===================
->>>>>
->>>>> Table 2.4. struct v4l2_sdr_format
->>>>> =================================
->>>>>
->>>>> __u32    sampleformat    The format of the samples used by the SDR
->>>>> device.
->>>>>             This is a little endian four character code.
->>>>>
->>>>> Table 2.5. SDR formats
->>>>> ======================
->>>>>
->>>>> V4L2_SDR_FMT_I8Q8    Samples are given by a sequence of 8 bits
->>>>> in-phase(I)
->>>>>             and 8 bits quadrature (Q) samples taken from a
->>>>>             signal(t) represented by the following expression:
->>>>>             signal(t) = I * cos(2Ï€ fc t) - Q * sin(2Ï€ fc t)
->>>>> </text>
->>>>>
->>>>> Of course, other formats will be needed at Table 2.5, as SDR could
->>>>> also
->>>>> be taken baseband samples, being, for example, a simple sequence of
->>>>> equally time-spaced digitalized samples of the signal in time.
->>>>> SDR samples could also use other resolutions, use a non-linear
->>>>> (A-law, u-law) ADC, or even compress the samples (with ADPCM, for
->>>>> example). So, this table will grow as newer devices get added, and an
->>>>> userspace library may be required to convert them into some common
->>>>> format.
->>>>>
->>>>> At "Chapter 4. Interfaces", it adds the following text:
->>>>>
->>>>> <text>
->>>>> Software Digital Radio(SDR) Interface
->>>>> =====================================
->>>>>
->>>>> This interface is intended for Software Digital Radio (SDR) receivers
->>>>> and transmitters.
->>>>>
->>>>> Conventionally V4L2 SDR devices are accessed through character device
->>>>> special files named /dev/sdr0 to/dev/radio255 and uses a dynamically
->>>>> allocated major/minor number.
->>>>>
->>>>> Querying Capabilities
->>>>> =====================
->>>>>
->>>>> Devices supporting the radio interface set the V4L2_CAP_SDR and
->>>>> V4L2_CAP_TUNER or V4L2_CAP_MODULATOR flag in the capabilities field of
->>>>> struct v4l2_capability returned by the VIDIOC_QUERYCAP ioctl. Other
->>>>> combinations of capability flags are reserved for future extensions.
->>>>>
->>>>> Supplemental Functions
->>>>> ======================
->>>>>
->>>>> SDR receivers should support tuner ioctls.
->>>>>
->>>>> SDR transmitter ioctl's will be defined in the future.
->>>>>
->>>>> SDR devices should also support one or more of the following I/O
->>>>> ioctls:
->>>>> read or write, memory mapped IO, user memory IO and/or DMA buffers.
->>>>>
->>>>> SDR devices can also support controls ioctls.
->>>>>
->>>>> The SDR Input/Output are A/D or D/A samples taken from a modulated
->>>>> signal, and can eventually be packed by the hardware. They are
->>>>> generally
->>>>> encoded using cartesian in-phase/quadrature (I/Q) samples, to make
->>>>> demodulation easier. The format of the samples should be according
->>>>> with
->>>>> SDR format.
->>>>> </text>
->>>>>
->>>>> Note: "SDR format" on the last paragraph is an hyperlink to
->>>>> Chapter 2. Image Formats.
->>>>>
->>>>> At "Appendix A. Function Reference - ioctl VIDIOC_QUERYCAP", it adds:
->>>>>
->>>>> <text>
->>>>> Table A.93. Device Capabilities Flags
->>>>> ...
->>>>> V4L2_CAP_SDR    0x00100000    The device is a Software Digital Radio.
->>>>>                 For more information about SDR programming
->>>>>                 see the section called â€œSoftware Digital
->>>>>                 Radio (SDR) Tuners and Modulatorsâ€�.
->>>>> </text>
->>>>>
->>>>> Mauro Carvalho Chehab (3):
->>>>>     [media] Add SDR at V4L2 API
->>>>>     videodev2.h: Remove the unused old V4L1 buffer types
->>>>>     [media] V4L2 api: Add a buffer capture type for SDR
->>>>>
->>>>>    Documentation/DocBook/media/v4l/common.xml         | 35
->>>>> ++++++++++++++++++
->>>>>    Documentation/DocBook/media/v4l/dev-capture.xml    | 26
->>>>> ++++++++------
->>>>>    Documentation/DocBook/media/v4l/io.xml             |  6 ++++
->>>>>    Documentation/DocBook/media/v4l/pixfmt.xml         | 41
->>>>> ++++++++++++++++++++++
->>>>>    Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
->>>>>    .../DocBook/media/v4l/vidioc-querycap.xml          |  7 ++++
->>>>>    drivers/media/v4l2-core/v4l2-dev.c                 |  3 ++
->>>>>    drivers/media/v4l2-core/v4l2-ioctl.c               | 32
->>>>> +++++++++++++++++
->>>>>    include/media/v4l2-dev.h                           |  3 +-
->>>>>    include/media/v4l2-ioctl.h                         |  8 +++++
->>>>>    include/uapi/linux/videodev2.h                     | 33
->>>>> +++++++----------
->>>>>    11 files changed, 163 insertions(+), 32 deletions(-)
->>>>>
->>>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 6e5ad8e..1d7dbd5 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -55,6 +55,7 @@
+ #include <asm/cacheflush.h>
+ 
+ #include <linux/clk.h>
++#include <linux/clkdev.h>
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+@@ -148,6 +149,201 @@ void omap3isp_flush(struct isp_device *isp)
+ 	isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
+ }
+ 
++/* -----------------------------------------------------------------------------
++ * XCLK
++ */
++
++#define to_isp_xclk(_hw)	container_of(_hw, struct isp_xclk, hw)
++
++static void isp_xclk_update(struct isp_xclk *xclk, u32 divider)
++{
++	switch (xclk->id) {
++	case ISP_XCLK_A:
++		isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
++				ISPTCTRL_CTRL_DIVA_MASK,
++				divider << ISPTCTRL_CTRL_DIVA_SHIFT);
++		break;
++	case ISP_XCLK_B:
++		isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
++				ISPTCTRL_CTRL_DIVB_MASK,
++				divider << ISPTCTRL_CTRL_DIVB_SHIFT);
++		break;
++	}
++}
++
++static int isp_xclk_prepare(struct clk_hw *hw)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++
++	omap3isp_get(xclk->isp);
++
++	return 0;
++}
++
++static void isp_xclk_unprepare(struct clk_hw *hw)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++
++	omap3isp_put(xclk->isp);
++}
++
++static int isp_xclk_enable(struct clk_hw *hw)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++	unsigned long flags;
++
++	spin_lock_irqsave(&xclk->lock, flags);
++	isp_xclk_update(xclk, xclk->divider);
++	xclk->enabled = true;
++	spin_unlock_irqrestore(&xclk->lock, flags);
++
++	return 0;
++}
++
++static void isp_xclk_disable(struct clk_hw *hw)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++	unsigned long flags;
++
++	spin_lock_irqsave(&xclk->lock, flags);
++	isp_xclk_update(xclk, 0);
++	xclk->enabled = false;
++	spin_unlock_irqrestore(&xclk->lock, flags);
++}
++
++static unsigned long isp_xclk_recalc_rate(struct clk_hw *hw,
++					  unsigned long parent_rate)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++
++	return parent_rate / xclk->divider;
++}
++
++static u32 isp_xclk_calc_divider(unsigned long *rate, unsigned long parent_rate)
++{
++	u32 divider;
++
++	if (*rate >= parent_rate) {
++		*rate = parent_rate;
++		return ISPTCTRL_CTRL_DIV_BYPASS;
++	}
++
++	divider = DIV_ROUND_CLOSEST(parent_rate, *rate);
++	if (divider >= ISPTCTRL_CTRL_DIV_BYPASS)
++		divider = ISPTCTRL_CTRL_DIV_BYPASS - 1;
++
++	*rate = parent_rate / divider;
++	return divider;
++}
++
++static long isp_xclk_round_rate(struct clk_hw *hw, unsigned long rate,
++				unsigned long *parent_rate)
++{
++	isp_xclk_calc_divider(&rate, *parent_rate);
++	return rate;
++}
++
++static int isp_xclk_set_rate(struct clk_hw *hw, unsigned long rate,
++			     unsigned long parent_rate)
++{
++	struct isp_xclk *xclk = to_isp_xclk(hw);
++	unsigned long flags;
++	u32 divider;
++
++	divider = isp_xclk_calc_divider(&rate, parent_rate);
++
++	spin_lock_irqsave(&xclk->lock, flags);
++
++	xclk->divider = divider;
++	if (xclk->enabled)
++		isp_xclk_update(xclk, divider);
++
++	spin_unlock_irqrestore(&xclk->lock, flags);
++
++	dev_dbg(xclk->isp->dev, "%s: cam_xclk%c set to %lu Hz (div %u)\n",
++		__func__, xclk->id == ISP_XCLK_A ? 'a' : 'b', rate, divider);
++	return 0;
++}
++
++static const struct clk_ops isp_xclk_ops = {
++	.prepare = isp_xclk_prepare,
++	.unprepare = isp_xclk_unprepare,
++	.enable = isp_xclk_enable,
++	.disable = isp_xclk_disable,
++	.recalc_rate = isp_xclk_recalc_rate,
++	.round_rate = isp_xclk_round_rate,
++	.set_rate = isp_xclk_set_rate,
++};
++
++static const char *isp_xclk_parent_name = "cam_mclk";
++
++static const struct clk_init_data isp_xclk_init_data = {
++	.name = "cam_xclk",
++	.ops = &isp_xclk_ops,
++	.parent_names = &isp_xclk_parent_name,
++	.num_parents = 1,
++};
++
++static int isp_xclk_init(struct isp_device *isp)
++{
++	struct isp_platform_data *pdata = isp->pdata;
++	struct clk_init_data init;
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
++		struct isp_xclk *xclk = &isp->xclks[i];
++		struct clk *clk;
++
++		xclk->isp = isp;
++		xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
++		xclk->divider = 1;
++		spin_lock_init(&xclk->lock);
++
++		init.name = i == 0 ? "cam_xclka" : "cam_xclkb";
++		init.ops = &isp_xclk_ops;
++		init.parent_names = &isp_xclk_parent_name;
++		init.num_parents = 1;
++
++		xclk->hw.init = &init;
++
++		clk = devm_clk_register(isp->dev, &xclk->hw);
++		if (IS_ERR(clk))
++			return PTR_ERR(clk);
++
++		if (pdata->xclks[i].con_id == NULL &&
++		    pdata->xclks[i].dev_id == NULL)
++			continue;
++
++		xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
++		if (xclk->lookup == NULL)
++			return -ENOMEM;
++
++		xclk->lookup->con_id = pdata->xclks[i].con_id;
++		xclk->lookup->dev_id = pdata->xclks[i].dev_id;
++		xclk->lookup->clk = clk;
++
++		clkdev_add(xclk->lookup);
++	}
++
++	return 0;
++}
++
++static void isp_xclk_cleanup(struct isp_device *isp)
++{
++	unsigned int i;
++
++	for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
++		struct isp_xclk *xclk = &isp->xclks[i];
++
++		if (xclk->lookup)
++			clkdev_drop(xclk->lookup);
++	}
++}
++
++/* -----------------------------------------------------------------------------
++ * Interrupts
++ */
++
+ /*
+  * isp_enable_interrupts - Enable ISP interrupts.
+  * @isp: OMAP3 ISP device
+@@ -180,80 +376,6 @@ static void isp_disable_interrupts(struct isp_device *isp)
+ 	isp_reg_writel(isp, 0, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
+ }
+ 
+-/**
+- * isp_set_xclk - Configures the specified cam_xclk to the desired frequency.
+- * @isp: OMAP3 ISP device
+- * @xclk: Desired frequency of the clock in Hz. 0 = stable low, 1 is stable high
+- * @xclksel: XCLK to configure (0 = A, 1 = B).
+- *
+- * Configures the specified MCLK divisor in the ISP timing control register
+- * (TCTRL_CTRL) to generate the desired xclk clock value.
+- *
+- * Divisor = cam_mclk_hz / xclk
+- *
+- * Returns the final frequency that is actually being generated
+- **/
+-static u32 isp_set_xclk(struct isp_device *isp, u32 xclk, u8 xclksel)
+-{
+-	u32 divisor;
+-	u32 currentxclk;
+-	unsigned long mclk_hz;
+-
+-	if (!omap3isp_get(isp))
+-		return 0;
+-
+-	mclk_hz = clk_get_rate(isp->clock[ISP_CLK_CAM_MCLK]);
+-
+-	if (xclk >= mclk_hz) {
+-		divisor = ISPTCTRL_CTRL_DIV_BYPASS;
+-		currentxclk = mclk_hz;
+-	} else if (xclk >= 2) {
+-		divisor = mclk_hz / xclk;
+-		if (divisor >= ISPTCTRL_CTRL_DIV_BYPASS)
+-			divisor = ISPTCTRL_CTRL_DIV_BYPASS - 1;
+-		currentxclk = mclk_hz / divisor;
+-	} else {
+-		divisor = xclk;
+-		currentxclk = 0;
+-	}
+-
+-	switch (xclksel) {
+-	case ISP_XCLK_A:
+-		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+-				ISPTCTRL_CTRL_DIVA_MASK,
+-				divisor << ISPTCTRL_CTRL_DIVA_SHIFT);
+-		dev_dbg(isp->dev, "isp_set_xclk(): cam_xclka set to %d Hz\n",
+-			currentxclk);
+-		break;
+-	case ISP_XCLK_B:
+-		isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+-				ISPTCTRL_CTRL_DIVB_MASK,
+-				divisor << ISPTCTRL_CTRL_DIVB_SHIFT);
+-		dev_dbg(isp->dev, "isp_set_xclk(): cam_xclkb set to %d Hz\n",
+-			currentxclk);
+-		break;
+-	case ISP_XCLK_NONE:
+-	default:
+-		omap3isp_put(isp);
+-		dev_dbg(isp->dev, "ISP_ERR: isp_set_xclk(): Invalid requested "
+-			"xclk. Must be 0 (A) or 1 (B).\n");
+-		return -EINVAL;
+-	}
+-
+-	/* Do we go from stable whatever to clock? */
+-	if (divisor >= 2 && isp->xclk_divisor[xclksel - 1] < 2)
+-		omap3isp_get(isp);
+-	/* Stopping the clock. */
+-	else if (divisor < 2 && isp->xclk_divisor[xclksel - 1] >= 2)
+-		omap3isp_put(isp);
+-
+-	isp->xclk_divisor[xclksel - 1] = divisor;
+-
+-	omap3isp_put(isp);
+-
+-	return currentxclk;
+-}
+-
+ /*
+  * isp_core_init - ISP core settings
+  * @isp: OMAP3 ISP device
+@@ -1969,6 +2091,7 @@ static int isp_remove(struct platform_device *pdev)
+ 
+ 	isp_unregister_entities(isp);
+ 	isp_cleanup_modules(isp);
++	isp_xclk_cleanup(isp);
+ 
+ 	__omap3isp_get(isp, false);
+ 	iommu_detach_device(isp->domain, &pdev->dev);
+@@ -2042,7 +2165,6 @@ static int isp_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	isp->autoidle = autoidle;
+-	isp->platform_cb.set_xclk = isp_set_xclk;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+@@ -2093,6 +2215,10 @@ static int isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_isp;
+ 
++	ret = isp_xclk_init(isp);
++	if (ret < 0)
++		goto error_isp;
++
+ 	/* Memory resources */
+ 	for (m = 0; m < ARRAY_SIZE(isp_res_maps); m++)
+ 		if (isp->revision == isp_res_maps[m].isp_rev)
+@@ -2162,6 +2288,7 @@ detach_dev:
+ free_domain:
+ 	iommu_domain_free(isp->domain);
+ error_isp:
++	isp_xclk_cleanup(isp);
+ 	omap3isp_put(isp);
+ error:
+ 	platform_set_drvdata(pdev, NULL);
+diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+index c77e1f2..cd3eff4 100644
+--- a/drivers/media/platform/omap3isp/isp.h
++++ b/drivers/media/platform/omap3isp/isp.h
+@@ -29,6 +29,7 @@
+ 
+ #include <media/omap3isp.h>
+ #include <media/v4l2-device.h>
++#include <linux/clk-provider.h>
+ #include <linux/device.h>
+ #include <linux/io.h>
+ #include <linux/iommu.h>
+@@ -125,8 +126,20 @@ struct isp_reg {
+ 	u32 val;
+ };
+ 
+-struct isp_platform_callback {
+-	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
++enum isp_xclk_id {
++	ISP_XCLK_A,
++	ISP_XCLK_B,
++};
++
++struct isp_xclk {
++	struct isp_device *isp;
++	struct clk_hw hw;
++	struct clk_lookup *lookup;
++	enum isp_xclk_id id;
++
++	spinlock_t lock;	/* Protects enabled and divider */
++	bool enabled;
++	unsigned int divider;
+ };
+ 
+ /*
+@@ -149,6 +162,7 @@ struct isp_platform_callback {
+  * @cam_mclk: Pointer to camera functional clock structure.
+  * @csi2_fck: Pointer to camera CSI2 complexIO clock structure.
+  * @l3_ick: Pointer to OMAP3 L3 bus interface clock.
++ * @xclks: External clocks provided by the ISP
+  * @irq: Currently attached ISP ISR callbacks information structure.
+  * @isp_af: Pointer to current settings for ISP AutoFocus SCM.
+  * @isp_hist: Pointer to current settings for ISP Histogram SCM.
+@@ -185,12 +199,12 @@ struct isp_device {
+ 	int has_context;
+ 	int ref_count;
+ 	unsigned int autoidle;
+-	u32 xclk_divisor[2];	/* Two clocks, a and b. */
+ #define ISP_CLK_CAM_ICK		0
+ #define ISP_CLK_CAM_MCLK	1
+ #define ISP_CLK_CSI2_FCK	2
+ #define ISP_CLK_L3_ICK		3
+ 	struct clk *clock[4];
++	struct isp_xclk xclks[2];
+ 
+ 	/* ISP modules */
+ 	struct ispstat isp_af;
+@@ -209,8 +223,6 @@ struct isp_device {
+ 	unsigned int subclk_resources;
+ 
+ 	struct iommu_domain *domain;
+-
+-	struct isp_platform_callback platform_cb;
+ };
+ 
+ #define v4l2_dev_to_isp_device(dev) \
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 9584269..c9d06d9 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -29,10 +29,6 @@
+ struct i2c_board_info;
+ struct isp_device;
+ 
+-#define ISP_XCLK_NONE			0
+-#define ISP_XCLK_A			1
+-#define ISP_XCLK_B			2
+-
+ enum isp_interface_type {
+ 	ISP_INTERFACE_PARALLEL,
+ 	ISP_INTERFACE_CSI2A_PHY2,
+@@ -153,7 +149,13 @@ struct isp_v4l2_subdevs_group {
+ 	} bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+ };
+ 
++struct isp_platform_xclk {
++	const char *dev_id;
++	const char *con_id;
++};
++
+ struct isp_platform_data {
++	struct isp_platform_xclk xclks[2];
+ 	struct isp_v4l2_subdevs_group *subdevs;
+ 	void (*set_constraints)(struct isp_device *isp, bool enable);
+ };
 -- 
-http://palosaari.fi/
+1.8.1.5
+
