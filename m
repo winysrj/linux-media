@@ -1,84 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51434 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757253Ab3D2OMv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37670 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759877Ab3DDNHc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 10:12:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC] media: i2c: mt9p031: add OF support
-Date: Mon, 29 Apr 2013 16:12:57 +0200
-Message-ID: <1699729.OjpLK67acQ@avalon>
-In-Reply-To: <CA+V-a8ubM9NXA4XNACjXiO1RKRzVmaXOdoM4EyPx96m7S=ffVw@mail.gmail.com>
-References: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com> <3228007.esFOONCu9m@avalon> <CA+V-a8ubM9NXA4XNACjXiO1RKRzVmaXOdoM4EyPx96m7S=ffVw@mail.gmail.com>
+	Thu, 4 Apr 2013 09:07:32 -0400
+Date: Thu, 4 Apr 2013 16:07:27 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Mike Turquette <mturquette@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] omap3isp: Use the common clock framework
+Message-ID: <20130404130727.GH10541@valkosipuli.retiisi.org.uk>
+References: <1365073719-8038-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1365073719-8038-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20130404112004.GG10541@valkosipuli.retiisi.org.uk>
+ <515D63A4.2060108@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <515D63A4.2060108@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 29 April 2013 17:18:02 Prabhakar Lad wrote:
-> On Mon, Apr 29, 2013 at 5:05 PM, Laurent Pinchart wrote:
-> > Hi Prabhakar,
-> > 
-> > Thank you for the patch. Please see below for a couple of comments in
-> > addition to the ones I've just sent (in reply to Sascha's e-mail).
-> 
-> Yep fixed them all.
-> 
->  [snip]
-> 
-> >> ---
-> >> 
-> >>  .../devicetree/bindings/media/i2c/mt9p031.txt      |   43 ++++++++++++++
-> >>  drivers/media/i2c/mt9p031.c                        |   61 +++++++++++++-
-> >>  2 files changed, 103 insertions(+), 1 deletions(-)
-> >>  create mode 100644
-> >>  Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> >> 
-> >> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> >> b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt new file mode
-> >> 100644
-> >> index 0000000..b985e63
-> >> --- /dev/null
-> >> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> >> @@ -0,0 +1,43 @@
-> >> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
-> >> +
-> >> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image
-> >> +sensor with an active imaging pixel array of 2592H x 1944V. It
-> >> +incorporates sophisticated camera functions on-chip such as windowing,
-> >> +column and row skip mode, and snapshot mode. It is programmable through
-> >> +a simple two-wire serial interface.
-> >> +The MT9P031 is a progressive-scan sensor that generates a stream of
-> >> +pixel data at a constant frame rate. It uses an on-chip, phase-locked
-> >> +loop (PLL) to generate all internal clocks from a single master input
-> >> +clock running between 6 and 27 MHz. The maximum pixel rate is 96 Mp/s,
-> >> +corresponding to a clock rate of 96 MHz.
-> > 
-> > Isn't this text (directly copied from the datasheet) under Aptina's
-> > copyright ?
-> 
-> hmm :) do you want me change it ?
+Hi Sylwester,
 
->From a personal point of view I don't care much, and I don't think Aptina 
-would either, but I'd rather be safe than sorry on such matters, so it would 
-probably be a good idea to change the text. One or two sentences should be 
-enough.
+On Thu, Apr 04, 2013 at 01:27:32PM +0200, Sylwester Nawrocki wrote:
+> clkdev_drop() will free memory allocated here. So using devm_kzalloc()
+> wouldn't be correct.
+
+Thanks for pointing this out. I should educate myself on the common clock
+framework. The problem, though, is where to get the time for that. :-P
 
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
