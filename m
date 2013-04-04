@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:62443 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759102Ab3D3JRA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 05:17:00 -0400
-Received: by mail-pa0-f42.google.com with SMTP id kl13so248286pab.15
-        for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 02:16:59 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org, Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH 1/1] [media] s5c73m3: Fix whitespace related warnings
-Date: Tue, 30 Apr 2013 14:34:09 +0530
-Message-Id: <1367312649-28950-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail.pripojeni.net ([178.22.112.14]:51049 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1764854Ab3DDUcS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 16:32:18 -0400
+From: Jiri Slaby <jslaby@suse.cz>
+To: jirislaby@gmail.com
+Cc: linux-kernel@vger.kernel.org, Sean Young <sean@mess.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/5] MEDIA: ttusbir, fix double free
+Date: Thu,  4 Apr 2013 22:32:09 +0200
+Message-Id: <1365107532-32721-2-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1365107532-32721-1-git-send-email-jslaby@suse.cz>
+References: <1365107532-32721-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Silences the following type of warning:
-WARNING: space prohibited before semicolon
+rc_unregister_device already calls rc_free_device to free the passed
+device. But in one of ttusbir's probe fail paths, we call
+rc_unregister_device _and_ rc_free_device. This is wrong and results
+in a double free.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
+Instead, set rc to NULL resulting in rc_free_device being a noop.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/i2c/s5c73m3/s5c73m3-spi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/rc/ttusbir.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-index 6f3a9c0..8079e26 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-spi.c
-@@ -73,7 +73,7 @@ int s5c73m3_spi_write(struct s5c73m3 *state, const void *addr,
- 
- 	memset(padding, 0, sizeof(padding));
- 
--	for (i = 0; i < count ; i++) {
-+	for (i = 0; i < count; i++) {
- 		r = spi_xmit(spi_dev, (void *)addr + j, tx_size, SPI_DIR_TX);
- 		if (r < 0)
- 			return r;
-@@ -98,7 +98,7 @@ int s5c73m3_spi_read(struct s5c73m3 *state, void *addr,
- 	unsigned int i, j = 0;
- 	int r = 0;
- 
--	for (i = 0; i < count ; i++) {
-+	for (i = 0; i < count; i++) {
- 		r = spi_xmit(spi_dev, addr + j, tx_size, SPI_DIR_RX);
- 		if (r < 0)
- 			return r;
+diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+index cf0d47f..891762d 100644
+--- a/drivers/media/rc/ttusbir.c
++++ b/drivers/media/rc/ttusbir.c
+@@ -347,6 +347,7 @@ static int ttusbir_probe(struct usb_interface *intf,
+ 	return 0;
+ out3:
+ 	rc_unregister_device(rc);
++	rc = NULL;
+ out2:
+ 	led_classdev_unregister(&tt->led);
+ out:
 -- 
-1.7.9.5
+1.8.2
+
 
