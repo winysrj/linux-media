@@ -1,177 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:49472 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762938Ab3DILDh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 07:03:37 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: sameo@linux.intel.com
-Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH] max77693: added device tree support
-Date: Tue, 09 Apr 2013 13:03:05 +0200
-Message-id: <1365505385-24946-1-git-send-email-a.hajda@samsung.com>
+Received: from mail-ie0-f173.google.com ([209.85.223.173]:39735 "EHLO
+	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762968Ab3DDQ47 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:56:59 -0400
+Received: by mail-ie0-f173.google.com with SMTP id 9so3288125iec.18
+        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 09:56:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
+References: <20130228102452.15191.22673.stgit@patser>
+	<20130228102502.15191.14146.stgit@patser>
+	<1364900432.18374.24.camel@laptop>
+	<515AF1C1.7080508@canonical.com>
+	<1364921954.20640.22.camel@laptop>
+	<1365076908.2609.94.camel@laptop>
+	<20130404133123.GW2228@phenom.ffwll.local>
+Date: Thu, 4 Apr 2013 18:56:58 +0200
+Message-ID: <CAKMK7uG_qLQrZUdE_LRANm7qXPvGUisBx-k=+y=F2gA3=odkrQ@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
+	x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-max77693 mfd main device uses only wakeup field
-from max77693_platform_data. This field is mapped
-to wakeup-source common property in device tree.
+On Thu, Apr 4, 2013 at 3:31 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+>> In this case when O blocks Y isn't actually blocked, so our
+>> TASK_DEADLOCK wakeup doesn't actually achieve anything.
+>>
+>> This means we also have to track (task) state so that once Y tries to
+>> acquire A (creating the actual deadlock) we'll not wait so our
+>> TASK_DEADLOCK wakeup doesn't actually achieve anything.
+>>
+>> Note that Y doesn't need to acquire A in order to return -EDEADLK, any
+>> acquisition from the same set (see below) would return -EDEADLK even if
+>> there isn't an actual deadlock. This is the cost of heuristic; we could
+>> walk the actual block graph but that would be prohibitively expensive
+>> since we'd have to do this on every acquire.
+>
+> Hm, I guess your aim with the TASK_DEADLOCK wakeup is to bound the wait
+> times of older task. This could be interesting for RT, but I'm unsure of
+> the implications. The trick with the current code is that the oldest task
+> will never see an -EAGAIN ever and hence is guaranteed to make forward
+> progress. If the task is really unlucky though it might be forced to wait
+> for a younger task for every ww_mutex it tries to acquire.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Hi Samuel,
+[Aside: I'm writing this while your replies trickle in, but I think
+it's not yet answered already.]
 
-This is "max77693: added device tree support" patch rebased to mfd-next/master.
-I have added Documentation/devicetree/bindings/mfd/max77693.txt.
-Thanks for the review.
+Ok, I've discussed this a lot with Maarten on irc and I think I see a
+bit clearer now what's the aim with the new sleep state. Or at least I
+have an illusion about it ;-) So let me try to recap my understanding
+to check whether we're talking roughly about the same idea.
 
-Regards
-Andrzej
+I think for starters we need to have a slightly more interesting example:
 
- Documentation/devicetree/bindings/mfd/max77693.txt |   31 ++++++++++++
- drivers/mfd/max77693.c                             |   50 +++++++++++++++-----
- 2 files changed, 68 insertions(+), 13 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/mfd/max77693.txt
+3 threads O, M, Y: O has the oldest ww_age/ticket, Y the youngest, M
+is in between.
+2 ww_mutexes: A, B
 
-diff --git a/Documentation/devicetree/bindings/mfd/max77693.txt b/Documentation/devicetree/bindings/mfd/max77693.txt
-new file mode 100644
-index 0000000..a7213b7
---- /dev/null
-+++ b/Documentation/devicetree/bindings/mfd/max77693.txt
-@@ -0,0 +1,31 @@
-+Maxim MAX77693 multi-function device
-+
-+MAX77686 is a Mulitifunction device with the following submodules:
-+- PMIC,
-+- Charger,
-+- LED,
-+- MUIC,
-+- HAPTIC.
-+
-+It is interfaced to host controller using i2c.
-+This document describes the bindings for the mfd device.
-+
-+Required properties:
-+- compatible : Must be "maxim,max77693".
-+- reg : Specifies the i2c slave address of PMIC block.
-+- interrupts : This i2c device has an IRQ line connected to the main SoC.
-+- interrupt-parent : The parent interrupt controller.
-+
-+Optional properties:
-+- wakeup-source : Indicates if the device can wakeup the system from the sleep
-+	state.
-+
-+Example:
-+max77693@66 {
-+	compatible = "maxim,max77693";
-+	reg = <0x66>;
-+	interrupt-parent = <&gpx1>;
-+	interrupts = <5 0>;
-+	wakeup-source;
-+	};
-+};
-diff --git a/drivers/mfd/max77693.c b/drivers/mfd/max77693.c
-index 9e60fed..6045706 100644
---- a/drivers/mfd/max77693.c
-+++ b/drivers/mfd/max77693.c
-@@ -106,29 +106,41 @@ static const struct regmap_config max77693_regmap_config = {
- 	.max_register = MAX77693_PMIC_REG_END,
- };
- 
-+static int max77693_get_platform_data(struct max77693_dev *max77693,
-+				      struct device *dev)
-+{
-+	struct device_node *node = dev->of_node;
-+	struct max77693_platform_data *pdata = dev->platform_data;
-+
-+	if (node) {
-+		max77693->wakeup = of_property_read_bool(node, "wakeup-source");
-+		return 0;
-+	}
-+
-+	if (pdata) {
-+		max77693->wakeup = pdata->wakeup;
-+		return 0;
-+	}
-+
-+	dev_err(dev, "No platform data found.\n");
-+	return -EINVAL;
-+}
-+
- static int max77693_i2c_probe(struct i2c_client *i2c,
- 			      const struct i2c_device_id *id)
- {
- 	struct max77693_dev *max77693;
--	struct max77693_platform_data *pdata = i2c->dev.platform_data;
- 	u8 reg_data;
- 	int ret = 0;
- 
--	if (!pdata) {
--		dev_err(&i2c->dev, "No platform data found.\n");
--		return -EINVAL;
--	}
--
- 	max77693 = devm_kzalloc(&i2c->dev,
- 			sizeof(struct max77693_dev), GFP_KERNEL);
- 	if (max77693 == NULL)
- 		return -ENOMEM;
- 
--	i2c_set_clientdata(i2c, max77693);
--	max77693->dev = &i2c->dev;
--	max77693->i2c = i2c;
--	max77693->irq = i2c->irq;
--	max77693->type = id->driver_data;
-+	ret = max77693_get_platform_data(max77693, &i2c->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	max77693->regmap = devm_regmap_init_i2c(i2c, &max77693_regmap_config);
- 	if (IS_ERR(max77693->regmap)) {
-@@ -138,7 +150,11 @@ static int max77693_i2c_probe(struct i2c_client *i2c,
- 		return ret;
- 	}
- 
--	max77693->wakeup = pdata->wakeup;
-+	i2c_set_clientdata(i2c, max77693);
-+	max77693->dev = &i2c->dev;
-+	max77693->i2c = i2c;
-+	max77693->irq = i2c->irq;
-+	max77693->type = id->driver_data;
- 
- 	ret = max77693_read_reg(max77693->regmap, MAX77693_PMIC_REG_PMIC_ID2,
- 				&reg_data);
-@@ -179,7 +195,7 @@ static int max77693_i2c_probe(struct i2c_client *i2c,
- 	if (ret < 0)
- 		goto err_mfd;
- 
--	device_init_wakeup(max77693->dev, pdata->wakeup);
-+	device_init_wakeup(max77693->dev, max77693->wakeup);
- 
- 	return ret;
- 
-@@ -235,11 +251,19 @@ static const struct dev_pm_ops max77693_pm = {
- 	.resume = max77693_resume,
- };
- 
-+#ifdef CONFIG_OF
-+static struct of_device_id max77693_dt_match[] = {
-+	{.compatible = "maxim,max77693"},
-+	{},
-+};
-+#endif
-+
- static struct i2c_driver max77693_i2c_driver = {
- 	.driver = {
- 		   .name = "max77693",
- 		   .owner = THIS_MODULE,
- 		   .pm = &max77693_pm,
-+		   .of_match_table = of_match_ptr(max77693_dt_match),
- 	},
- 	.probe = max77693_i2c_probe,
- 	.remove = max77693_i2c_remove,
--- 
-1.7.10.4
+Y has already acquired ww_mutex A, M has already acquired ww_mutex B.
 
+Now O wants to acquire B and M wants to acquire A (let's ignore
+detailed ordering for now), resulting in O blocking on M (M holds B
+already, but O is older) and M blocking on Y (same for lock B).
+
+Now first question to check my understanding: Your aim with that
+special wakeup is to kick M so that it backs off and drops B? That way
+O does not need to wait for Y to complete whatever it's currently
+doing, unlock A and then in turn M to complete whatever it's doing so
+that it can unlock A&B and finally allows O to grab the lock.
+
+Presuming I'm still following we should be able to fix this with the
+new sleep state TASK_DEADLOCK and a flag somewhere in the thread info
+(let's call it PF_GTFO for simplicity). Then every time a task does a
+blocking wait on a ww_mutex it would set this special sleep state and
+also check the PF_GTFO bit. If the later is set, it bails out with
+-EAGAIN (so that all locks are dropped).
+
+Now if a task wants to take a lock and notices that it's held by a
+younger locker it can set that flag and wake the thread up (need to
+think about all the races a bit, but we should be able to make this
+work). Then it can do the normal blocking mutex slowpath and wait for
+the unlock.
+
+Now if O and M race a bit against each another M should either get
+woken (if it's already blocked on Y) and back off, or notice that the
+thread flag is set before it even tries to grab another mutex (and so
+before the block tree can extend further to Y). And the special sleep
+state is to make sure we don't cause any other spurious interrupts.
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
