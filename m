@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:53283 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934567Ab3DHB1m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 21:27:42 -0400
-Received: by mail-vb0-f49.google.com with SMTP id 11so3367659vbf.22
-        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 18:27:41 -0700 (PDT)
-Date: Sun, 7 Apr 2013 21:27:47 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: [PULL] Ondrej Zary's patches for AverMedia A706
-Message-ID: <20130407212747.55f08939@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21279 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932089Ab3DEJTR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Apr 2013 05:19:17 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MKR00LXFZ5NR250@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 05 Apr 2013 10:19:14 +0100 (BST)
+Message-id: <515E9711.3090302@samsung.com>
+Date: Fri, 05 Apr 2013 11:19:13 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Stephen Warren <swarren@wwwdotorg.org>
+Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	dh09.lee@samsung.com, prabhakar.lad@ti.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, myungjoo.ham@samsung.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCH v7] [media] Add common video interfaces OF bindings
+ documentation
+References: <1364313495-18635-1-git-send-email-s.nawrocki@samsung.com>
+ <515DE661.2050902@wwwdotorg.org>
+In-reply-to: <515DE661.2050902@wwwdotorg.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-53faa685fa7df0e12751eebbda30bc7e7bb5e71a:
+On 04/04/2013 10:45 PM, Stephen Warren wrote:
+> On 03/26/2013 09:58 AM, Sylwester Nawrocki wrote:
+>> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>>
+>> This patch adds a document describing common OF bindings for video
+>> capture, output and video processing devices. It is curently mainly
+>> focused on video capture devices, with data busses defined by
+>> standards such as ITU-R BT.656 or MIPI-CSI2.
+>> It also documents a method of describing data links between devices.
+>>
+>> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> 
+> Acked-by: Stephen Warren <swarren@nvidia.com>
 
-  [media] siano: Fix array boundary at smscore_translate_msg()
-  (2013-04-04 14:35:40 -0300)
+Thanks Stephen, this patch is already queued for 3.10 in the media
+tree. Hence unfortunately I cannot add more tags to it.
 
-are available in the git repository at:
 
-  git://linuxtv.org/mkrufky/dvb AverMediaA706-April
-
-for you to fetch changes up to 84c1018a6cc3e1650dac5a881727cf4c07b7db81:
-
-  tda8290: change magic LNA config values to enum (2013-04-06 14:07:49
-  -0400)
-
-----------------------------------------------------------------
-Ondrej Zary (5):
-      tda8290: Allow disabling I2C gate
-      tda8290: Allow custom std_map for tda18271
-      tuner-core: Change config from unsigned int to void *
-      saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
-      tda8290: change magic LNA config values to enum
-
- drivers/media/i2c/ir-kbd-i2c.c              |   13 ++++++++++++-
- drivers/media/pci/saa7134/saa7134-cards.c   |   94
- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
- drivers/media/pci/saa7134/saa7134-dvb.c     |   23
- +++++++++++++++++++++++ drivers/media/pci/saa7134/saa7134-i2c.c
- |    1 + drivers/media/pci/saa7134/saa7134-input.c   |    3 +++
- drivers/media/pci/saa7134/saa7134-tvaudio.c |    1 +
- drivers/media/pci/saa7134/saa7134.h         |    4 +++-
- drivers/media/tuners/tda18271-fe.c          |    9 +++++----
- drivers/media/tuners/tda827x.c              |   10 +++++-----
- drivers/media/tuners/tda827x.h              |    3 ++-
- drivers/media/tuners/tda8290.c              |   60
- +++++++++++++++++++++++++++++++++++++-----------------------
- drivers/media/tuners/tda8290.h              |   12 +++++++++++-
- drivers/media/v4l2-core/tuner-core.c        |   20
- +++++++------------- include/media/tuner.h                       |
- 2 +- 14 files changed, 185 insertions(+), 70 deletions(-)
-
-Cheers,
-
-Mike
