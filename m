@@ -1,113 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14256 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752980Ab3DZOWx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 10:22:53 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3QEMr9C003989
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 26 Apr 2013 10:22:53 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 2/2] saa7115: add detection code for gm7113c
-Date: Fri, 26 Apr 2013 11:22:48 -0300
-Message-Id: <1366986168-27756-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366986168-27756-1-git-send-email-mchehab@redhat.com>
-References: <366980557-23077-1-git-send-email-mchehab@redhat.com>
- <1366986168-27756-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1275 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1162370Ab3DESTl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Apr 2013 14:19:41 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r35IJcNO039541
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 5 Apr 2013 20:19:40 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1F95311E018E
+	for <linux-media@vger.kernel.org>; Fri,  5 Apr 2013 20:19:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130405181932.1F95311E018E@alastor.dyndns.org>
+Date: Fri,  5 Apr 2013 20:19:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds a code that (auto)detects gm7113c clones. The auto-detection
-here is not perfect, as, on contrary to what it would be expected
-by looking into its datasheets some devices would return, instead:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
+Results of the daily build of media_tree:
 
-(found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
+date:		Fri Apr  5 19:00:23 CEST 2013
+git branch:	test
+git hash:	53faa685fa7df0e12751eebbda30bc7e7bb5e71a
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-chip-ident.h |  2 ++
- 2 files changed, 38 insertions(+)
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 9340e0c..950a536 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1640,6 +1640,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
- 		}
- 	}
- 
-+	/* Check if it is a gm7113c */
-+	if (!memcmp(name, "0000", 4)) {
-+		chip_id = 0;
-+		for (i = 0; i < 4; i++) {
-+			chip_id = chip_id << 1;
-+			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
-+		}
-+
-+		/*
-+		 * Note: From the datasheet, only versions 1 and 2
-+		 * exists. However, tests on a device labeled as:
-+		 * "GM7113C 1145" returned "10" on all 16 chip
-+		 * version (reg 0x00) reads. So, we need to also
-+		 * accept at least verion 0. For now, let's just
-+		 * assume that a device that returns "0000" for
-+		 * the lower nibble is a gm7113c.
-+		 */
-+
-+		strlcpy(name, "gm7113c", size);
-+
-+		if (!autodetect && strcmp(name, id->name))
-+			return -EINVAL;
-+
-+		v4l_dbg(1, debug, client,
-+			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
-+			name, 16, chip_ver, client->addr << 1);
-+
-+		return V4L2_IDENT_GM7113C;
-+	}
-+
- 	/* Chip was not discovered. Return its ID and don't bind */
- 	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
- 		16, chip_ver, client->addr << 1);
-@@ -1669,6 +1699,11 @@ static int saa711x_probe(struct i2c_client *client,
- 	if (ident < 0)
- 		return ident;
- 
-+	if (ident == V4L2_IDENT_GM7113C) {
-+		v4l_warn(client, "%s not yet supported\n", name);
-+		return -ENODEV;
-+	}
-+
- 	strlcpy(client->name, name, sizeof(client->name));
- 
- 	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
-@@ -1756,6 +1791,7 @@ static const struct i2c_device_id saa711x_id[] = {
- 	{ "saa7114", 0 },
- 	{ "saa7115", 0 },
- 	{ "saa7118", 0 },
-+	{ "gm7113c", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, saa711x_id);
-diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-index c259b36..543f89c 100644
---- a/include/media/v4l2-chip-ident.h
-+++ b/include/media/v4l2-chip-ident.h
-@@ -52,6 +52,8 @@ enum {
- 	V4L2_IDENT_SAA7115 = 105,
- 	V4L2_IDENT_SAA7118 = 108,
- 
-+	V4L2_IDENT_GM7113C = 140,
-+
- 	/* module saa7127: reserved range 150-199 */
- 	V4L2_IDENT_SAA7127 = 157,
- 	V4L2_IDENT_SAA7129 = 159,
--- 
-1.8.1.4
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
