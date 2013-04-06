@@ -1,120 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33977 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753561Ab3D1Pr5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 11:47:57 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SFlv4q013720
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:47:57 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/9] [media] drxk_hard: don't split strings across lines
-Date: Sun, 28 Apr 2013 12:47:46 -0300
-Message-Id: <1367164071-11468-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
-References: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.17.8]:55538 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752339Ab3DFR0o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 13:26:44 -0400
+From: Hans-Peter Jansen <hpj@urpla.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Adam Sampson <ats@offog.org>, linux-media@vger.kernel.org,
+	jdonog01@eircom.net, bugzilla-kernel@tcnnet.com
+Subject: Re: Hauppauge Nova-S-Plus DVB-S works for one channel, but cannot tune in others
+Date: Sat, 06 Apr 2013 19:26:23 +0200
+Message-ID: <1580900.OVB5S0HrEf@xrated>
+In-Reply-To: <20130406103752.30ed1408@redhat.com>
+References: <1463242.ms8FUp7FVg@xrated> <2164572.6O2J60F4uN@xrated> <20130406103752.30ed1408@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	WARNING: quoted string split across lines
-	#5416: FILE: media/dvb-frontends/drxk_hard.c:5416:
-	+		dprintk(1, "Could not set demodulator parameters. Make "
-	+			"sure qam_demod_parameter_count (%d) is correct for "
+On Samstag, 6. April 2013 10:37:52 you wrote:
+> Em Sat, 06 Apr 2013 12:20:41 +0200
+> 
+> Hans-Peter Jansen <hpj@urpla.net> escreveu:
+> > Dear Mauro,
+> > 
+> > first of all, thank you for providing a proper fix that quickly.
+> > 
+> > On Freitag, 5. April 2013 13:18:54 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 05 Apr 2013 13:25:01 +0100
+> > > 
+> > > Adam Sampson <ats@offog.org> escreveu:
+> > > > Hans-Peter Jansen <hpj@urpla.net> writes:
+> > > > > In one of my systems, I've used a
+> > > > > Hauppauge Nova-S-Plus DVB-S card successfully, but after a system
+> > > > > upgrade to openSUSE 12.2, it cannot tune in all but one channel.
+> > > > 
+> > > > [...]
+> > > > 
+> > > > > initial transponder 12551500 V 22000000 5
+> > > > > 
+> > > > >>>> tune to: 12551:v:0:22000
+> > > > > 
+> > > > > DVB-S IF freq is 1951500
+> > > > > WARNING: >>> tuning failed!!!
+> > > > 
+> > > > I suspect you might be running into this problem:
+> > > >   https://bugzilla.kernel.org/show_bug.cgi?id=9476
+> > > > 
+> > > > The bug title is misleading -- the problem is actually that the card
+> > > > doesn't get configured properly to send the 22kHz tone for high-band
+> > > > transponders, like the one in your error above.
+> > > > 
+> > > > Applying this patch makes my Nova-S-Plus work with recent kernels:
+> > > >   https://bugzilla.kernel.org/attachment.cgi?id=21905&action=edit
+> > > 
+> > > Applying that patch would break support for all other devices with
+> > > isl6421.
+> > > 
+> > > Could you please test the enclosed patch? It allows the bridge
+> > > driver to tell if the set_tone should be overrided by isl6421 or
+> > > not. The code only changes it for Hauppauge model 92001.
+> > 
+> > Unfortunately, it appears to be more problematic. While the fix allows to
+> > scan the channel list, it is not complete (in another setup at the same
+> > dish (via multiswitch), vdrs channel list has about 1600 channels, while
+> > scan does collect 1138 only.
+> > 
+> > More importantly, a single channel (arte) is received with 0 BER and a S/N
+> > ratio of 99%, while all other channels produce more BER, eg. "Das Erste"
+> > with about 320 BER (SNR 99%, a few artifacts/distortions occasionally),
+> > "ZDF" about 6400 BER, (SNR drops down to 75%, constant distortions, and
+> > many channels doesn't produce anything beyond distortions with a video
+> > stream below 0.3 MBit/s and about 160000 BER. (measured using vdr femon
+> > plugin v. 1.6.7)
+> > 
+> > So, still no cigar, sorry.
+> > 
+> > I've tested both patches, just to be sure, with the same result. I had to
+> > relocate and refresh yours in order to apply it to 3.4, since the paths
+> > changed, result attached.
+> > 
+> > > If it works, please answer this email with a:
+> > > 	Tested-by: your name <your@email>
+> > > 
+> > > For me to add it when merging the patch upstream.
+> > > 
+> > > Regards,
+> > > Mauro.
+> > 
+> > It looks like the idea is sound, but the logic is still missing something
+> > that prevents it from tuning most channels properly.
+> 
+> Well, what it is expected from this patch is to be able of seeing
+> channels with H and V polarization. Nothing more, nothing less.
 
-	WARNING: quoted string split across lines
-	#5423: FILE: media/dvb-frontends/drxk_hard.c:5423:
-	+		dprintk(1, "Auto-probing the correct QAM demodulator command "
-	+			"parameters was successful - using %d parameters.\n",
+Okay. Yes, I do.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/drxk_hard.c | 30 +++++++++++++++---------------
- 1 file changed, 15 insertions(+), 15 deletions(-)
+> From what I understood, you're now seeing more than just one channel,
+> so, it is likely part of the fix, right?
 
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index 552bce5..fdbe23a 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -168,7 +168,7 @@ MODULE_PARM_DESC(debug, "enable debug messages");
- 
- #define dprintk(level, fmt, arg...) do {			\
- if (debug >= level)						\
--	printk(KERN_DEBUG "drxk: %s" fmt, __func__, ## arg);	\
-+	pr_debug(fmt, ##arg);					\
- } while (0)
- 
- 
-@@ -258,8 +258,8 @@ static int i2c_write(struct drxk_state *state, u8 adr, u8 *data, int len)
- 	if (debug > 2) {
- 		int i;
- 		for (i = 0; i < len; i++)
--			printk(KERN_CONT " %02x", data[i]);
--		printk(KERN_CONT "\n");
-+			pr_cont(" %02x", data[i]);
-+		pr_cont("\n");
- 	}
- 	status = drxk_i2c_transfer(state, &msg, 1);
- 	if (status >= 0 && status != 1)
-@@ -285,7 +285,7 @@ static int i2c_read(struct drxk_state *state,
- 	status = drxk_i2c_transfer(state, msgs, 2);
- 	if (status != 2) {
- 		if (debug > 2)
--			printk(KERN_CONT ": ERROR!\n");
-+			pr_cont(": ERROR!\n");
- 		if (status >= 0)
- 			status = -EIO;
- 
-@@ -296,11 +296,11 @@ static int i2c_read(struct drxk_state *state,
- 		int i;
- 		dprintk(2, ": read from");
- 		for (i = 0; i < len; i++)
--			printk(KERN_CONT " %02x", msg[i]);
--		printk(KERN_CONT ", value = ");
-+			pr_cont(" %02x", msg[i]);
-+		pr_cont(", value = ");
- 		for (i = 0; i < alen; i++)
--			printk(KERN_CONT " %02x", answ[i]);
--		printk(KERN_CONT "\n");
-+			pr_cont(" %02x", answ[i]);
-+		pr_cont("\n");
- 	}
- 	return 0;
- }
-@@ -470,8 +470,8 @@ static int write_block(struct drxk_state *state, u32 address,
- 			int i;
- 			if (p_block)
- 				for (i = 0; i < chunk; i++)
--					printk(KERN_CONT " %02x", p_block[i]);
--			printk(KERN_CONT "\n");
-+					pr_cont(" %02x", p_block[i]);
-+			pr_cont("\n");
- 		}
- 		status = i2c_write(state, state->demod_address,
- 				   &state->chunk[0], chunk + adr_length);
-@@ -5412,15 +5412,15 @@ static int set_qam(struct drxk_state *state, u16 intermediate_freqk_hz,
- 	}
- 
- 	if (status < 0) {
--		dprintk(1, "Could not set demodulator parameters. Make "
--			"sure qam_demod_parameter_count (%d) is correct for "
--			"your firmware (%s).\n",
-+		dprintk(1, "Could not set demodulator parameters.\n");
-+		dprintk(1,
-+			"Make sure qam_demod_parameter_count (%d) is correct for your firmware (%s).\n",
- 			state->qam_demod_parameter_count,
- 			state->microcode_name);
- 		goto error;
- 	} else if (!state->qam_demod_parameter_count) {
--		dprintk(1, "Auto-probing the correct QAM demodulator command "
--			"parameters was successful - using %d parameters.\n",
-+		dprintk(1,
-+			"Auto-probing the QAM command parameters was successful - using %d parameters.\n",
- 			qam_demod_param_count);
- 
- 		/*
--- 
-1.8.1.4
+Yes.
 
+> If are there any other issues, then it it would require other fixes,
+> likely at cx24123 frontend. My guess is that it could be due to some
+> precision loss maybe at cx24123_set_symbolrate(). It helps if you could
+> check if the channels that are more problematic have a higher or a
+> lower bit rate. It probably makes sense to change the code there to
+> use u64 and asm/div64.h, in order to allow the calculus to have more
+> precision. I'll try to write such patch.
+
+..that I'm testing right now. Build is on the way.
+
+You wrote and published the fix in less then 8 minutes. Wow, unbelievable.
+
+Since I use a rpm build of an otherwise unchanged distribution kernel, the 
+build will take slightly longer, unfortunately..
+
+> With regards to this fix, could you please confirm that you can
+> now get channels with both polarizations?
+
+Yes, confirmed.
+
+Tested-by: Hans-Peter Jansen <hpj@urpla.net>
+
+Thanks Mauro for the great support.
+
+Cheers,
+Pete
