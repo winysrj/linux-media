@@ -1,77 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:52913 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762845Ab3DCUgX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 16:36:23 -0400
-Date: Wed, 3 Apr 2013 22:36:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera for 3.10 second lot
-Message-ID: <Pine.LNX.4.64.1304032230410.10531@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:45769 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1422925Ab3DFNpt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Apr 2013 09:45:49 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans-Peter Jansen <hpj@urpla.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] cx24123: improve precision when calculating symbol rate ratio
+Date: Sat,  6 Apr 2013 10:45:33 -0300
+Message-Id: <1365255933-31611-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <2164572.6O2J60F4uN@xrated>
+References: <2164572.6O2J60F4uN@xrated>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+Symbol rate ratio were using a rough calculus, as the code was
+limited to 32 bits arithmetic. Change it to 64 bits, in order
+to better estimate the bandwidth low-pass filter on the demod.
 
-All looks quiet, clock and async will have to wait for another round (or 
-more) :-) So, just minor updates here. I'm not sure whether I already can 
-update patch status at patchwork and whether any patches have been 
-delegated to me yet (perhaps not, I'd get a notification, right?) As soon 
-as that begins to work, I'll try to update patchwork too. In any case I'm 
-not listing patch IDs here, right?
+This should reduce the noise and improve reception.
 
-The following changes since commit f9f11dfe4831adb1531e1face9dcd9fc57665d2e:
-
-  Merge tag 'v3.9-rc5' into patchwork (2013-04-01 09:54:14 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.10-2
-
-Fabio Porcedda (2):
-      drivers: media: use module_platform_driver_probe()
-      mx2_camera: use module_platform_driver_probe()
-
-Guennadi Liakhovetski (1):
-      soc-camera: protect against racing open(2) and rmmod
-
-Phil Edworthy (1):
-      soc_camera: Add RGB666 & RGB888 formats
-
-Sachin Kamat (7):
-      soc_camera/mx1_camera: Fix warnings related to spacing
-      soc_camera/mx2_camera: Fix warnings related to spacing
-      soc_camera/mx3_camera: Fix warning related to spacing
-      soc_camera/pxa_camera: Fix warning related to spacing
-      soc_camera/pxa_camera: Constify struct dev_pm_ops
-      soc_camera/sh_mobile_ceu_camera: Fix warning related to spacing
-      soc_camera/soc_camera_platform: Fix warning related to spacing
-
-Tushar Behera (1):
-      atmel-isi: Update error check for unsigned variables
-
- Documentation/DocBook/media/v4l/subdev-formats.xml |  206 +++++++++++++++++++-
- Documentation/DocBook/media_api.tmpl               |    1 +
- drivers/media/platform/soc_camera/atmel-isi.c      |   15 +--
- drivers/media/platform/soc_camera/mx1_camera.c     |    4 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |    7 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |    2 +-
- drivers/media/platform/soc_camera/pxa_camera.c     |    4 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |    2 +-
- drivers/media/platform/soc_camera/soc_camera.c     |   42 +++--
- .../platform/soc_camera/soc_camera_platform.c      |    2 +-
- drivers/media/platform/soc_camera/soc_mediabus.c   |   42 ++++
- include/media/soc_camera.h                         |    7 +-
- include/media/soc_mediabus.h                       |    3 +
- include/uapi/linux/v4l2-mediabus.h                 |    6 +-
- 14 files changed, 293 insertions(+), 50 deletions(-)
-
-Thanks
-Guennadi
+Reported-by: Hans-Peter Jansen <hpj@urpla.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb-frontends/cx24123.c | 28 +++++++---------------------
+ 1 file changed, 7 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
+index 68c88ab..a771da3 100644
+--- a/drivers/media/dvb-frontends/cx24123.c
++++ b/drivers/media/dvb-frontends/cx24123.c
+@@ -26,6 +26,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
++#include <asm/div64.h>
+ 
+ #include "dvb_frontend.h"
+ #include "cx24123.h"
+@@ -452,7 +453,8 @@ static u32 cx24123_int_log2(u32 a, u32 b)
+ 
+ static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
+ {
+-	u32 tmp, sample_rate, ratio, sample_gain;
++	u64 tmp;
++	u32 sample_rate, ratio, sample_gain;
+ 	u8 pll_mult;
+ 
+ 	/*  check if symbol rate is within limits */
+@@ -482,27 +484,11 @@ static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
+ 
+ 	sample_rate = pll_mult * XTAL;
+ 
+-	/*
+-	    SYSSymbolRate[21:0] = (srate << 23) / sample_rate
+-
+-	    We have to use 32 bit unsigned arithmetic without precision loss.
+-	    The maximum srate is 45000000 or 0x02AEA540. This number has
+-	    only 6 clear bits on top, hence we can shift it left only 6 bits
+-	    at a time. Borrowed from cx24110.c
+-	*/
+-
+-	tmp = srate << 6;
+-	ratio = tmp / sample_rate;
+-
+-	tmp = (tmp % sample_rate) << 6;
+-	ratio = (ratio << 6) + (tmp / sample_rate);
+-
+-	tmp = (tmp % sample_rate) << 6;
+-	ratio = (ratio << 6) + (tmp / sample_rate);
+-
+-	tmp = (tmp % sample_rate) << 5;
+-	ratio = (ratio << 5) + (tmp / sample_rate);
++	/* SYSSymbolRate[21:0] = (srate << 23) / sample_rate */
+ 
++	tmp = ((u64)srate) << 23;
++	do_div(tmp, sample_rate);
++	ratio = (u32) tmp;
+ 
+ 	cx24123_writereg(state, 0x01, pll_mult * 6);
+ 
+-- 
+1.8.1.4
+
