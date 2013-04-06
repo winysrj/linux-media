@@ -1,106 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65224 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754070Ab3DMREv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 13:04:51 -0400
-Date: Sat, 13 Apr 2013 14:04:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-Message-ID: <20130413140444.2fba3e88@redhat.com>
-In-Reply-To: <51697AC8.1050807@googlemail.com>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
-	<20130413114144.097a21a1@redhat.com>
-	<51697AC8.1050807@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2795 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932835Ab3DFL0K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 07:26:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 1/7] v4l2: put VIDIOC_DBG_G_CHIP_NAME under ADV_DEBUG.
+Date: Sat,  6 Apr 2013 13:25:46 +0200
+Message-Id: <1365247552-26795-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365247552-26795-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365247552-26795-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 13 Apr 2013 17:33:28 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
-> > Em Sat, 13 Apr 2013 11:48:39 +0200
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> The GPIO register tracking/caching code is partially broken, because newer
-> >> devices provide more than one GPIO register and some of them are even using
-> >> separate registers for read and write access.
-> >> Making it work would be too complicated.
-> >> It is also used nowhere and doesn't make sense in cases where input lines are
-> >> connected to buttons etc.
-> >>
-> >> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >> ---
-> >>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
-> >>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
-> >>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
-> >>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
-> > ...
-> >
-> >
-> >> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
-> >>  	int oldval;
-> >>  	u8 newval;
-> >>  
-> >> -	/* Uses cache for gpo/gpio registers */
-> >> -	if (reg == dev->reg_gpo_num)
-> >> -		oldval = dev->reg_gpo;
-> >> -	else if (reg == dev->reg_gpio_num)
-> >> -		oldval = dev->reg_gpio;
-> >> -	else
-> >> -		oldval = em28xx_read_reg(dev, reg);
-> >> -
-> >> +	oldval = em28xx_read_reg(dev, reg);
-> >>  	if (oldval < 0)
-> >>  		return oldval;
-> > That's plain wrong, as it will break GPIO input.
-> >
-> > With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
-> > code works for output ports.
-> >
-> > However, an input port requires an specific value (either 1 or 0 depending
-> > on the GPIO circuitry). If the wrong value is written there, the input port
-> > will stop working.
-> >
-> > So, you can't simply read a value from a GPIO input and write it. You need
-> > to shadow the GPIO write values instead.
-> 
-> I don't understand what you mean.
-> Why can I not read the value of a GPIO input and write it ?
+Only enable this ioctl if the VIDEO_ADV_DEBUG config option is set. This
+prevents abuse from both userspace and kernelspace (some bridge drivers
+abuse DBG_G_CHIP_IDENT, lets prevent that from happening again with this
+ioctl).
 
-Because, depending on the value you write, it can transform the input into an
-output port.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-name.xml |    3 +++
+ drivers/media/usb/em28xx/em28xx-video.c                    |    4 ++--
+ drivers/media/v4l2-core/v4l2-dev.c                         |    2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c                       |    8 ++++----
+ include/media/v4l2-ioctl.h                                 |    6 +++---
+ 5 files changed, 13 insertions(+), 10 deletions(-)
 
-If you don't understand why, I suggest you to take a look on how the GPIO
-circuits are implemented. A very quick explanation could be find here:
-	http://www.mcc-us.com/Open-collectorFAQ.htm
-
-A more detailed one could be find here:
-
-	http://www.coactionos.com/embedded-design/28-using-pull-ups-and-pull-downs.html
-
-
-So, looking at the picture at http://www.coactionos.com/images/pullup.png and
-assuming that a 0 means that the MOSFET gate is open, 1 means it is closed, 
-for a pull-up GPIO input pin to work, driver needs to write "1" on it, so that
-it will have VCC there.
-
-This way, when MOSFEG goes to 1, the GPIO will be short-ciruited with GND, and
-the driver will read a 0.
-
-Note, however, that, if the driver writes a 0 to GPIO, no matter if the MOSFET
-is opened or closed, it will read 0 every time.
-
-Just the opposite logic applies for the pull-down logic.
-
-
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-name.xml b/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-name.xml
+index 4921346..5fce8d8 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-name.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-name.xml
+@@ -63,6 +63,9 @@ card. Regular applications must not use it. When you found a chip
+ specific bug, please contact the linux-media mailing list (&v4l-ml;)
+ so it can be fixed.</para>
+ 
++    <para>Additionally the Linux kernel must be compiled with the
++<constant>CONFIG_VIDEO_ADV_DEBUG</constant> option to enable this ioctl.</para>
++
+     <para>To query the driver applications must initialize the
+ <structfield>match.type</structfield> and
+ <structfield>match.addr</structfield> or <structfield>match.name</structfield>
+diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+index 792ead1..39951f5 100644
+--- a/drivers/media/usb/em28xx/em28xx-video.c
++++ b/drivers/media/usb/em28xx/em28xx-video.c
+@@ -1331,6 +1331,7 @@ static int vidioc_g_chip_ident(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int vidioc_g_chip_name(struct file *file, void *priv,
+ 	       struct v4l2_dbg_chip_name *chip)
+ {
+@@ -1346,7 +1347,6 @@ static int vidioc_g_chip_name(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int em28xx_reg_len(int reg)
+ {
+ 	switch (reg) {
+@@ -1796,8 +1796,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ 	.vidioc_g_chip_ident        = vidioc_g_chip_ident,
+-	.vidioc_g_chip_name         = vidioc_g_chip_name,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_name         = vidioc_g_chip_name,
+ 	.vidioc_g_register          = vidioc_g_register,
+ 	.vidioc_s_register          = vidioc_s_register,
+ #endif
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 670b9ca..1c3b43c 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -591,8 +591,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_FREQUENCY, vidioc_g_frequency);
+ 	SET_VALID_IOCTL(ops, VIDIOC_S_FREQUENCY, vidioc_s_frequency);
+ 	SET_VALID_IOCTL(ops, VIDIOC_LOG_STATUS, vidioc_log_status);
+-	set_bit(_IOC_NR(VIDIOC_DBG_G_CHIP_NAME), valid_ioctls);
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	set_bit(_IOC_NR(VIDIOC_DBG_G_CHIP_NAME), valid_ioctls);
+ 	set_bit(_IOC_NR(VIDIOC_DBG_G_REGISTER), valid_ioctls);
+ 	set_bit(_IOC_NR(VIDIOC_DBG_S_REGISTER), valid_ioctls);
+ #endif
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 336ed2d..feac07e 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1873,6 +1873,7 @@ static int v4l_dbg_g_chip_ident(const struct v4l2_ioctl_ops *ops,
+ static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_dbg_chip_name *p = arg;
+ 	struct v4l2_subdev *sd;
+@@ -1880,12 +1881,10 @@ static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+ 
+ 	switch (p->match.type) {
+ 	case V4L2_CHIP_MATCH_BRIDGE:
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 		if (ops->vidioc_s_register)
+ 			p->flags |= V4L2_CHIP_FL_WRITABLE;
+ 		if (ops->vidioc_g_register)
+ 			p->flags |= V4L2_CHIP_FL_READABLE;
+-#endif
+ 		if (ops->vidioc_g_chip_name)
+ 			return ops->vidioc_g_chip_name(file, fh, arg);
+ 		if (p->match.addr)
+@@ -1904,12 +1903,10 @@ static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+ 			break;
+ 		v4l2_device_for_each_subdev(sd, vfd->v4l2_dev) {
+ 			if (v4l_dbg_found_match(&p->match, sd, idx++)) {
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 				if (sd->ops->core && sd->ops->core->s_register)
+ 					p->flags |= V4L2_CHIP_FL_WRITABLE;
+ 				if (sd->ops->core && sd->ops->core->g_register)
+ 					p->flags |= V4L2_CHIP_FL_READABLE;
+-#endif
+ 				strlcpy(p->name, sd->name, sizeof(p->name));
+ 				return 0;
+ 			}
+@@ -1917,6 +1914,9 @@ static int v4l_dbg_g_chip_name(const struct v4l2_ioctl_ops *ops,
+ 		break;
+ 	}
+ 	return -EINVAL;
++#else
++	return -ENOTTY;
++#endif
+ }
+ 
+ static int v4l_dqevent(const struct v4l2_ioctl_ops *ops,
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index b273f0e..6b917d6 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -243,12 +243,12 @@ struct v4l2_ioctl_ops {
+ 					struct v4l2_dbg_register *reg);
+ 	int (*vidioc_s_register)       (struct file *file, void *fh,
+ 					const struct v4l2_dbg_register *reg);
+-#endif
+-	int (*vidioc_g_chip_ident)     (struct file *file, void *fh,
+-					struct v4l2_dbg_chip_ident *chip);
+ 
+ 	int (*vidioc_g_chip_name)      (struct file *file, void *fh,
+ 					struct v4l2_dbg_chip_name *chip);
++#endif
++	int (*vidioc_g_chip_ident)     (struct file *file, void *fh,
++					struct v4l2_dbg_chip_ident *chip);
+ 
+ 	int (*vidioc_enum_framesizes)   (struct file *file, void *fh,
+ 					 struct v4l2_frmsizeenum *fsize);
 -- 
+1.7.10.4
 
-Cheers,
-Mauro
