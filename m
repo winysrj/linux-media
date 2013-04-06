@@ -1,85 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52317 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932636Ab3DBPr5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Apr 2013 11:47:57 -0400
-Message-ID: <515AFDA0.8090802@redhat.com>
-Date: Tue, 02 Apr 2013 17:47:44 +0200
-From: Gerd Hoffmann <kraxel@redhat.com>
+Received: from honeysuckle.london.02.net ([87.194.255.144]:50692 "EHLO
+	honeysuckle.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422792Ab3DFM7s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 08:59:48 -0400
+Date: Sat, 6 Apr 2013 13:59:33 +0100
+From: Adam Sampson <ats@offog.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans-Peter Jansen <hpj@urpla.net>, linux-media@vger.kernel.org,
+	jdonog01@eircom.net, bugzilla-kernel@tcnnet.com
+Subject: Re: Hauppauge Nova-S-Plus DVB-S works for one channel, but cannot
+ tune in others
+Message-ID: <20130406125932.GA4564@cartman.at.offog.org>
+References: <1463242.ms8FUp7FVg@xrated>
+ <y2ar4ipcggy.fsf@cartman.at.offog.org>
+ <20130405131854.6512bad6@redhat.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: zhaokai@loongson.cn
-Subject: saa7134 irq status bits
-References: <515A8D5A.4060605@loongson.cn>
-In-Reply-To: <515A8D5A.4060605@loongson.cn>
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130405131854.6512bad6@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hi,
+On Fri, Apr 05, 2013 at 01:18:54PM -0300, Mauro Carvalho Chehab wrote:
+> Could you please test the enclosed patch? It allows the bridge
+> driver to tell if the set_tone should be overrided by isl6421 or
+> not.
 
-Forwarding to linux-media mailing list, hoping that someone there can
-help out.  I havn't worked in the code for years now, can't remember
-what the AR irq bit is and can't find my copy of the saa7134 data sheet
-too ...
+Yes, your patch works fine for me, backported to 3.4, which was just a
+case of changing the paths:
+  http://offog.org/stuff/bug9476v2.diff
 
-cheers,
-  Gerd
+Tested-by: Adam Sampson <ats@offog.org>
 
--------- Original Message --------
-Subject: hello kraxel
-Date: Tue, 02 Apr 2013 15:48:42 +0800
-From: zhaokai <zhaokai@loongson.cn>
-To: kraxel@bytesex.org
+I've tested it on my "Hauppauge model 92001, rev C1B1, serial# 1888307"
+board with lowband V, lowband H, highband V and highband H transponders,
+so both tone and voltage switching are working. I've not tested it on
+any other boards.
 
-Dear Kraxel:
+> --- a/drivers/media/dvb-frontends/isl6421.h
+> +++ b/drivers/media/dvb-frontends/isl6421.h
+> @@ -42,10 +42,10 @@
+>  #if IS_ENABLED(CONFIG_DVB_ISL6421)
+>  /* override_set and override_clear control which system register bits (above) to always set & clear */
+>  extern struct dvb_frontend *isl6421_attach(struct dvb_frontend *fe, struct i2c_adapter *i2c, u8 i2c_addr,
+> -			  u8 override_set, u8 override_clear);
+> +			  u8 override_set, u8 override_clear, bool override_tone);
 
-My name is zhaokai, I am a soft developer working in beijing.
-This is my first mail to The Kernel Developer, I am very excited.
-Now I have a question about your code for saa7134 driver in linux kernel
-2.6.21.
-We use Loongson CPU,I compile kernel and run the image,when I run my
-test app for saa7134 camera
-this message will print:
-saa7130[0]/irq: looping -- clearing all enable bits
+It might be worth adding a comment there saying what override_tone is
+actually doing?
 
-I study the saa7134 driver code,find the message come from the follow code:
+Thanks very much,
 
-    if (10 == loop) {
-        print_irqstatus(dev,loop,report,status);
-        if (report & SAA7134_IRQ_REPORT_PE) {
-            /* disable all parity error */
-            printk(KERN_WARNING "%s/irq: looping -- "
-                   "clearing PE (parity error!) enable bit\n",dev->name);
-            saa_clearl(SAA7134_IRQ2,SAA7134_IRQ2_INTE_PE);
-        } else if (report & SAA7134_IRQ_REPORT_GPIO16) {
-            /* disable gpio16 IRQ */
-            printk(KERN_WARNING "%s/irq: looping -- "
-                   "clearing GPIO16 enable bit\n",dev->name);
-            saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO16);
-        } else if (report & SAA7134_IRQ_REPORT_GPIO18) {
-            /* disable gpio18 IRQs */
-            printk(KERN_WARNING "%s/irq: looping -- "
-                   "clearing GPIO18 enable bit\n",dev->name);
-            saa_clearl(SAA7134_IRQ2, SAA7134_IRQ2_INTE_GPIO18);
-        } else {
-            /* disable all irqs */
-            printk(KERN_WARNING "%s/irq: looping -- "
-                   "clearing all enable bits\n",dev->name);
-            saa_writel(SAA7134_IRQ1,0);
-            saa_writel(SAA7134_IRQ2,0);
-        }
-    }
-this is in the interrupt handle function,I add some print and find the
-value of SAA7134_IRQ_REPORT register is 0x11 or 0x10, normally it would
-be 0x1 or 0x0,
-0x1x means SAA7134_IRQ_REPORT_AR, So what is the meaning of
-SAA7134_IRQ_REPORT_AR ?
-
-Best regards,
-ZhaoKai
-
-
-
-
+-- 
+Adam Sampson <ats@offog.org>                         <http://offog.org/>
