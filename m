@@ -1,269 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:38682 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934862Ab3DKQwa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 12:52:30 -0400
-Received: by mail-pb0-f47.google.com with SMTP id rq13so952000pbb.34
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 09:52:29 -0700 (PDT)
-From: Tzu-Jung Lee <roylee17@gmail.com>
+Received: from mail-qc0-f173.google.com ([209.85.216.173]:39286 "EHLO
+	mail-qc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932483Ab3DGK4s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 06:56:48 -0400
+Received: by mail-qc0-f173.google.com with SMTP id b12so2146155qca.4
+        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 03:56:48 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 7 Apr 2013 12:56:47 +0200
+Message-ID: <CAK2FuSnQxgc2hvtgb=COH0BGaJVqY5Cg=4fYWpB_BwOn8TYE_w@mail.gmail.com>
+Subject: No Signal with TerraTec Cinergy T PCIe dual
+From: Jan Saris <jan.saris@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
-	Tzu-Jung Lee <tjlee@ambarella.com>
-Subject: [PATCH] v4l2-ctl: add is_compressed_format() helper
-Date: Fri, 12 Apr 2013 00:54:07 +0800
-Message-Id: <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
-In-Reply-To: <1365695281-21227-1-git-send-email-tjlee@ambarella.com>
-References: <1365695281-21227-1-git-send-email-tjlee@ambarella.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is used to:
+Hi,
 
-  bypass precalculate_bars() for OUTPUT device
-  that takes encoded bitstreams.
+Sinse a couple of months I'm trying to get my second DVB-C card to
+work, but with no luck.
+I have searched a lot around and even tried the last media_build.
 
-  handle the last chunk of input file that has
-  non-buffer-aligned size.
+I am running linux 3.5.0-26-generic with the latests media_build from
+here (http://git.linuxtv.org/media_build.git)
 
-Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
----
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 101 +++++++++++++++++++++++++++-------
- 1 file changed, 82 insertions(+), 19 deletions(-)
+For some reason the card won't get a lock. Here are my test results:
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index 9e361af..2bcf950 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -115,6 +115,29 @@ static const flag_def tc_flags_def[] = {
- 	{ 0, NULL }
- };
- 
-+static bool is_compressed_format(__u32 pixfmt)
-+{
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_MJPEG:
-+	case V4L2_PIX_FMT_JPEG:
-+	case V4L2_PIX_FMT_DV:
-+	case V4L2_PIX_FMT_MPEG:
-+	case V4L2_PIX_FMT_H264:
-+	case V4L2_PIX_FMT_H264_NO_SC:
-+	case V4L2_PIX_FMT_H263:
-+	case V4L2_PIX_FMT_MPEG1:
-+	case V4L2_PIX_FMT_MPEG2:
-+	case V4L2_PIX_FMT_MPEG4:
-+	case V4L2_PIX_FMT_XVID:
-+	case V4L2_PIX_FMT_VC1_ANNEX_G:
-+		return true;
-+	default:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
- static void print_buffer(FILE *f, struct v4l2_buffer &buf)
- {
- 	fprintf(f, "\tIndex    : %d\n", buf.index);
-@@ -223,23 +246,29 @@ void streaming_cmd(int ch, char *optarg)
- }
- 
- static bool fill_buffer_from_file(void *buffers[], unsigned buffer_lengths[],
--		unsigned buf_index, unsigned num_planes, FILE *fin)
-+				  unsigned buffer_bytesused[], unsigned buf_index,
-+				  unsigned num_planes, bool is_compressed, FILE *fin)
- {
- 	for (unsigned j = 0; j < num_planes; j++) {
- 		unsigned p = buf_index * num_planes + j;
- 		unsigned sz = fread(buffers[p], 1,
- 				buffer_lengths[p], fin);
- 
-+		buffer_bytesused[j] = sz;
- 		if (j == 0 && sz == 0 && stream_loop) {
- 			fseek(fin, 0, SEEK_SET);
- 			sz = fread(buffers[p], 1,
- 					buffer_lengths[p], fin);
-+
-+			buffer_bytesused[j] = sz;
- 		}
- 		if (sz == buffer_lengths[p])
- 			continue;
--		if (sz)
-+
-+		// Bail out if we get weird buffer sizes or non-compressed format.
-+		if (sz && !is_compressed)
- 			fprintf(stderr, "%u != %u\n", sz, buffer_lengths[p]);
--		// Bail out if we get weird buffer sizes.
-+
- 		return false;
- 	}
- 	return true;
-@@ -312,16 +341,22 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 				 bool is_mplane, unsigned &num_planes, bool is_mmap,
- 				 void *buffers[], unsigned buffer_lengths[], FILE *fin)
- {
-+	bool is_compressed;
-+
- 	struct v4l2_format fmt;
- 	memset(&fmt, 0, sizeof(fmt));
- 	fmt.type = reqbufs->type;
- 	doioctl(fd, VIDIOC_G_FMT, &fmt);
- 
--	if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+	if (!is_compressed &&
-+	    !precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
- 		fprintf(stderr, "unsupported pixelformat\n");
- 		return;
- 	}
- 
-+	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
-+
- 	for (unsigned i = 0; i < reqbufs->count; i++) {
- 		struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 		struct v4l2_buffer buf;
-@@ -363,11 +398,11 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 			// TODO fill_buffer_mp(buffers[i], &fmt.fmt.pix_mp);
- 			if (fin)
- 				fill_buffer_from_file(buffers, buffer_lengths,
--						      buf.index, num_planes, fin);
-+						      buffer_bytesused, buf.index,
-+						      num_planes, is_compressed, fin);
- 		}
- 		else {
- 			buffer_lengths[i] = buf.length;
--			buf.bytesused = buf.length;
- 			if (is_mmap) {
- 				buffers[i] = mmap(NULL, buf.length,
- 						  PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
-@@ -381,9 +416,16 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 				buffers[i] = calloc(1, buf.length);
- 				buf.m.userptr = (unsigned long)buffers[i];
- 			}
--			if (!fin || !fill_buffer_from_file(buffers, buffer_lengths,
--							   buf.index, num_planes, fin))
-+
-+			if (fin && fill_buffer_from_file(buffers, buffer_lengths,
-+							 buffer_bytesused, buf.index,
-+							 num_planes, is_compressed,
-+							 fin)) {
-+				buf.bytesused = buffer_bytesused[0];
-+			}
-+			else {
- 				fill_buffer(buffers[i], &fmt.fmt.pix);
-+			}
- 		}
- 		if (doioctl(fd, VIDIOC_QBUF, &buf))
- 			return;
-@@ -511,12 +553,13 @@ static int do_handle_cap(int fd, struct v4l2_requestbuffers *reqbufs,
- }
- 
- static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
--			 bool is_mplane, unsigned num_planes,
-+			 bool is_compressed, bool is_mplane, unsigned num_planes,
- 			 void *buffers[], unsigned buffer_lengths[], FILE *fin,
- 			 unsigned &count, unsigned &last, struct timeval &tv_last)
- {
- 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 	struct v4l2_buffer buf;
-+	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
- 	int ret;
- 
- 	memset(&buf, 0, sizeof(buf));
-@@ -535,14 +578,17 @@ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
- 		fprintf(stderr, "%s: failed: %s\n", "VIDIOC_DQBUF", strerror(errno));
- 		return -1;
- 	}
--	if (fin && !fill_buffer_from_file(buffers, buffer_lengths,
--					  buf.index, num_planes, fin))
-+	if (fin &&!fill_buffer_from_file(buffers, buffer_lengths,
-+					 buffer_bytesused, buf.index,
-+					 num_planes, is_compressed,
-+					 fin)) {
- 		return -1;
-+	}
- 	if (is_mplane) {
- 		for (unsigned j = 0; j < buf.length; j++)
--			buf.m.planes[j].bytesused = buf.m.planes[j].length;
-+			buf.m.planes[j].bytesused = buffer_bytesused[j];
- 	} else {
--		buf.bytesused = buf.length;
-+		buf.bytesused = buffer_bytesused[0];
- 	}
- 	if (test_ioctl(fd, VIDIOC_QBUF, &buf))
- 		return -1;
-@@ -688,7 +734,9 @@ static void streaming_set_cap(int fd)
- static void streaming_set_out(int fd)
- {
- 	struct v4l2_requestbuffers reqbufs;
-+	struct v4l2_format fmt;
- 	int fd_flags = fcntl(fd, F_GETFL);
-+	bool is_compressed;
- 	bool is_mplane = capabilities &
- 			(V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 				 V4L2_CAP_VIDEO_M2M_MPLANE);
-@@ -710,6 +758,12 @@ static void streaming_set_out(int fd)
- 	reqbufs.type = type;
- 	reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
- 
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs.type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+
- 	if (file_out) {
- 		if (!strcmp(file_out, "-"))
- 			fin = stdin;
-@@ -765,9 +819,9 @@ static void streaming_set_out(int fd)
- 				return;
- 			}
- 		}
--		r = do_handle_out(fd, &reqbufs, is_mplane, num_planes,
--				   buffers, buffer_lengths, fin,
--				   count, last, tv_last);
-+		r = do_handle_out(fd, &reqbufs, is_compressed, is_mplane,
-+				  num_planes, buffers, buffer_lengths,
-+				  fin, count, last, tv_last);
- 		if (r == -1)
- 			break;
- 
-@@ -795,6 +849,9 @@ enum stream_type {
- 
- static void streaming_set_m2m(int fd)
- {
-+	struct v4l2_format fmt;
-+	bool is_compressed;
-+
- 	int fd_flags = fcntl(fd, F_GETFL);
- 	bool use_poll = options[OptStreamPoll];
- 
-@@ -864,6 +921,12 @@ static void streaming_set_m2m(int fd)
- 			     is_mmap, buffers_out, buffer_lengths_out,
- 			     file[OUT]);
- 
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs[OUT].type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+
- 	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
- 	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
- 		return;
-@@ -927,9 +990,9 @@ static void streaming_set_m2m(int fd)
- 		}
- 
- 		if (wr_fds && FD_ISSET(fd, wr_fds)) {
--			r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes[OUT],
--					   buffers_out, buffer_lengths_out, file[OUT],
--					   count[OUT], last[OUT], tv_last[OUT]);
-+			r  = do_handle_out(fd, &reqbufs[OUT], is_compressed, is_mplane,
-+					   num_planes[OUT], buffers_out, buffer_lengths_out,
-+					   file[OUT], count[OUT], last[OUT], tv_last[OUT]);
- 			if (r < 0)  {
- 				wr_fds = NULL;
- 
--- 
-1.8.1.5
+Terratec Cinergy PCIe Dual
+dvbv5-scan -a2 -v channel2.conf
+using demux '/dev/dvb/adapter2/demux0'
+Device DRXK DVB-C DVB-T (/dev/dvb/adapter2/frontend0) capabilities:
+        CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 CAN_FEC_7_8
+CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO
+CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_32 CAN_QAM_64
+CAN_QAM_128 CAN_QAM_256 CAN_RECOVER CAN_TRANSMISSION_MODE_AUTO
+DVB API Version 5.6, Current v5 delivery system: DVBC/ANNEX_A
+Supported delivery systems: [DVBC/ANNEX_A] DVBC/ANNEX_C DVBT
+Scanning frequency #1 304000000
+FREQUENCY = 304000000
+MODULATION = QAM/64
+INVERSION = AUTO
+SYMBOL_RATE = 6875000
+INNER_FEC = AUTO
+DELIVERY_SYSTEM = DVBC/ANNEX_A
+status 00 | signal   0% | snr   0% | ber 0 | unc 119 | tune failed
+dmesg
+[    5.332360] cx23885_dvb_register() allocating 1 frontend(s)
+[    5.332365] cx23885[0]: cx23885 based dvb card
+[    5.365162] drxk: status = 0x639160d9
+[    5.365167] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
+[    5.465869] DRXK driver version 0.9.4300
+[    5.504139] drxk: frontend initialized.
+[    5.517782] mt2063_attach: Attaching MT2063
+[    5.517788] DVB: registering new adapter (cx23885[0])
+[    5.517791] DVB: registering adapter 1 frontend 0 (DRXK DVB-T)...
+[    5.518664] cx23885_dvb_register() allocating 1 frontend(s)
+[    5.518668] cx23885[0]: cx23885 based dvb card
+[    5.533886] drxk: status = 0x639130d9
+[    5.533896] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
+[    5.617338] DRXK driver version 0.9.4300
+[    5.650861] drxk: frontend initialized.
+[    5.650872] mt2063_attach: Attaching MT2063
+[    5.650876] DVB: registering new adapter (cx23885[0])
+[    5.650878] DVB: registering adapter 2 frontend 0 (DRXK DVB-C DVB-T)...
+[    5.651338] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[    5.651343] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+latency: 0, mmio: 0xff400000
+........
+[  153.727978] mt2063: detected a mt2063 B3
+[  153.877050] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  153.877058] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+[  156.989702] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  156.989710] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+[  170.558420] mt2063: detected a mt2063 B3
+[  170.629422] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  170.629430] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+[  173.742057] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  173.742065] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+[  251.314900] mt2063: detected a mt2063 B3
+[  251.385932] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  251.385940] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+[  254.498522] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+[  254.498530] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
 
+lspci -vvv
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
+PCI Video and Audio Decoder (rev 04)
+        Subsystem: TERRATEC Electronic GmbH Cinergy T PCIe Dual
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at ff400000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
+<64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
+Unsupported-
+                        RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq-
+AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
+Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
+SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
+PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [100 v1] Advanced Error Reporting
+                UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+                UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+                UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
+                CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+                CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+                AERCap: First Error Pointer: 00, GenCap- CGenEn- ChkCap- ChkEn-
+        Capabilities: [200 v1] Virtual Channel
+                Caps:   LPEVC=0 RefClk=100ns PATEntryBits=1
+                Arb:    Fixed+ WRR32+ WRR64+ WRR128-
+                Ctrl:   ArbSelect=WRR64
+                Status: InProgress-
+                Port Arbitration Table [240] <?>
+                VC0:    Caps:   PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
+                        Arb:    Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
+                        Ctrl:   Enable+ ID=0 ArbSelect=Fixed TC/VC=01
+                        Status: NegoPending- InProgress-
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+
+It says no signal, but if I put the antenna-cable in my other DVB-C
+card and do a scan I get:
+Philips TV-Card
+dvbv5-scan -a0 -v channel2.conf
+using demux '/dev/dvb/adapter0/demux0'
+Device Philips TDA10023 DVB-C (/dev/dvb/adapter0/frontend0) capabilities:
+        CAN_FEC_AUTO CAN_INVERSION_AUTO CAN_QAM_16 CAN_QAM_32
+CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_QPSK
+DVB API Version 5.6, Current v5 delivery system: DVBC/ANNEX_A
+Supported delivery systems: [DVBC/ANNEX_A] DVBC/ANNEX_C
+Scanning frequency #1 304000000
+FREQUENCY = 304000000
+MODULATION = QAM/64
+INVERSION = AUTO
+SYMBOL_RATE = 6875000
+INNER_FEC = AUTO
+DELIVERY_SYSTEM = DVBC/ANNEX_A
+status 1f | signal  97% | snr  94% | ber 1728 | unc 62194 | FE_HAS_LOCK
+
+Service #0 (101) Nederland 1 channel 0.1.0
+Service #1 (102) Nederland 2 channel 0.2.1
+Service #2 (103) Nederland 3 channel 0.3.2
+Service #3 (8101) 100%NL channel 0.801.3
+Service #4 (8102) Arrow Classic Rock channel 0.802.4
+Service #5 (8103) Arrow Jazz channel 0.803.5
+Service #6 (8104) BBC radio 1 channel 0.804.6
+Service #7 (8105) BBC radio 2 channel 0.805.7
+Service #8 (8106) BBC radio 3 channel 0.806.8
+Service #9 (8107) BBC radio 4 channel 0.807.9
+Service #10 (8108) BNR channel 0.808.10
+Service #11 (8109) Classic FM channel 0.809.11
+New transponder/channel found: #2: 505937920
+New transponder/channel found: #3: 515112960
+New transponder/channel found: #4: 524288000
+New transponder/channel found: #5: 529530880
+New transponder/channel found: #6: 538705920
+New transponder/channel found: #7: 547880960
+New transponder/channel found: #8: 557056000
+New transponder/channel found: #9: 566231040
+New transponder/channel found: #10: 312000000
+New transponder/channel found: #11: 320000000
+New transponder/channel found: #12: 328000000
+New transponder/channel found: #13: 336000000
+New transponder/channel found: #14: 580648960
+New transponder/channel found: #15: 344000000
+New transponder/channel found: #16: 352000000
+New transponder/channel found: #17: 360000000
+New transponder/channel found: #18: 368000000
+
+Does anyone know what I'm doing wrong?
+Thanks,
+
+Jan Saris
