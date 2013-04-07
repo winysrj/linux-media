@@ -1,99 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1194 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830Ab3D3SU1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 14:20:27 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3UIKND5027150
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 20:20:26 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C06B711E0155
-	for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 20:20:17 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130430182017.C06B711E0155@alastor.dyndns.org>
-Date: Tue, 30 Apr 2013 20:20:17 +0200 (CEST)
+Received: from mx1.redhat.com ([209.132.183.28]:54085 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934551Ab3DGXxt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Apr 2013 19:53:49 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r37NrmeH032464
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 7 Apr 2013 19:53:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC PATCH 2/5] r820t: Set gain mode to auto
+Date: Sun,  7 Apr 2013 20:53:27 -0300
+Message-Id: <1365378810-1637-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1365378810-1637-1-git-send-email-mchehab@redhat.com>
+References: <1365351031-22079-1-git-send-email-mchehab@redhat.com>
+ <1365378810-1637-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This tuner works with 2 modes: automatic gain mode and manual
+gain mode. Put it into automatic mode, as we currently don't
+have any API for manual gain adjustment.
 
-Results of the daily build of media_tree:
+The logic to allow setting the manual mode is there, as it is
+just a few extra code. This way, if/when we latter add support
+for setting the gain mode, the code is already there.
 
-date:		Tue Apr 30 19:00:27 CEST 2013
-git branch:	test
-git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/tuners/r820t.c | 91 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 91 insertions(+)
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index ed9cd65..50401a4 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -321,6 +321,20 @@ static int r820t_xtal_capacitor[][2] = {
+ };
+ 
+ /*
++ * measured with a Racal 6103E GSM test set at 928 MHz with -60 dBm
++ * input power, for raw results see:
++ *	http://steve-m.de/projects/rtl-sdr/gain_measurement/r820t/
++ */
++
++static const int r820t_lna_gain_steps[]  = {
++	0, 9, 13, 40, 38, 13, 31, 22, 26, 31, 26, 14, 19, 5, 35, 13
++};
++
++static const int r820t_mixer_gain_steps[]  = {
++	0, 5, 10, 10, 19, 9, 10, 25, 17, 10, 8, 16, 13, 6, 3, -8
++};
++
++/*
+  * I2C read/write code and shadow registers logic
+  */
+ static void shadow_store(struct r820t_priv *priv, u8 reg, const u8 *val,
+@@ -1094,6 +1108,78 @@ static int r820t_read_gain(struct r820t_priv *priv)
+ 	return ((data[3] & 0x0f) << 1) + ((data[3] & 0xf0) >> 4);
+ }
+ 
++static int r820t_set_gain_mode(struct r820t_priv *priv,
++			       bool set_manual_gain,
++			       int gain)
++{
++	int rc;
++
++	if (set_manual_gain) {
++		int i, total_gain = 0;
++		uint8_t mix_index = 0, lna_index = 0;
++		u8 data[4];
++
++		/* LNA auto off */
++		rc = r820t_write_reg_mask(priv, 0x05, 0x10, 0x10);
++		if (rc < 0)
++			return rc;
++
++		 /* Mixer auto off */
++		rc = r820t_write_reg_mask(priv, 0x07, 0, 0x10);
++		if (rc < 0)
++			return rc;
++
++		rc = r820_read(priv, 0x00, data, sizeof(data));
++		if (rc < 0)
++			return rc;
++
++		/* set fixed VGA gain for now (16.3 dB) */
++		rc = r820t_write_reg_mask(priv, 0x0c, 0x08, 0x9f);
++		if (rc < 0)
++			return rc;
++
++		for (i = 0; i < 15; i++) {
++			if (total_gain >= gain)
++				break;
++
++			total_gain += r820t_lna_gain_steps[++lna_index];
++
++			if (total_gain >= gain)
++				break;
++
++			total_gain += r820t_mixer_gain_steps[++mix_index];
++		}
++
++		/* set LNA gain */
++		rc = r820t_write_reg_mask(priv, 0x05, lna_index, 0x0f);
++		if (rc < 0)
++			return rc;
++
++		/* set Mixer gain */
++		rc = r820t_write_reg_mask(priv, 0x07, mix_index, 0x0f);
++		if (rc < 0)
++			return rc;
++	} else {
++		/* LNA */
++		rc = r820t_write_reg_mask(priv, 0x05, 0, 0xef);
++		if (rc < 0)
++			return rc;
++
++		/* Mixer */
++		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0xef);
++		if (rc < 0)
++			return rc;
++
++		/* set fixed VGA gain for now (26.5 dB) */
++		rc = r820t_write_reg_mask(priv, 0x0c, 0x0b, 0x9f);
++		if (rc < 0)
++			return rc;
++	}
++
++    return 0;
++}
++
++
+ static int generic_set_freq(struct dvb_frontend *fe,
+ 			    u32 freq /* in HZ */,
+ 			    unsigned bw,
+@@ -1121,6 +1207,11 @@ static int generic_set_freq(struct dvb_frontend *fe,
+ 	rc = r820t_set_mux(priv, lo_freq);
+ 	if (rc < 0)
+ 		goto err;
++
++	rc = r820t_set_gain_mode(priv, true, 0);
++	if (rc < 0)
++		goto err;
++
+ 	rc = r820t_set_pll(priv, lo_freq);
+ 	if (rc < 0 || !priv->has_lock)
+ 		goto err;
+-- 
+1.8.1.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
