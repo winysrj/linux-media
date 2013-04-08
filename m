@@ -1,120 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:32285 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763353Ab3DCJ41 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 05:56:27 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MKO005TWBM1PT90@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 03 Apr 2013 18:56:26 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, t.figa@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2] exynos4-is: Remove dependency on SYSCON for non-dt platforms
-Date: Wed, 03 Apr 2013 11:55:53 +0200
-Message-id: <1364982953-21324-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:55166 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758276Ab3DHG2D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 02:28:03 -0400
+Received: by mail-ob0-f182.google.com with SMTP id ef5so5356361obb.41
+        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 23:28:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1365056913-25772-1-git-send-email-sumit.semwal@linaro.org>
+References: <1365056913-25772-1-git-send-email-sumit.semwal@linaro.org>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Mon, 8 Apr 2013 11:57:41 +0530
+Message-ID: <CAO_48GEz037DhpZzQe-Ek2ob=bxX=QXdrv2onw_2zmt7B7BqGA@mail.gmail.com>
+Subject: Re: [PATCH v3 0/2] dma-buf: Add support for debugfs
+To: Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
+	linux-media@vger.kernel.org,
+	DRI mailing list <dri-devel@lists.freedesktop.org>
+Cc: Patch Tracking <patches@linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the whole driver depends on MFD_SYSCON, which in turn
-depends on OF. To allow to use the driver on non-dt platforms
-(S5PV210) the SYSREG support is made conditional (it is needed
-only for dt enabled platforms) and MFD_SYSCON is selected if
-OF is enabled, instead of depending on OF.
+Hi All,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
 
-Changes since v1:
- - select MFD_SYSCON if OF is enabled and use this symbol in
-   the code, rather than creating a separate Kconfig option.
+On 4 April 2013 11:58, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+> The patch series adds a much-missed support for debugfs to dma-buf framework.
+>
+> Based on the feedback received on v1 of this patch series, support is also
+> added to allow exporters to provide name-strings that will prove useful
+> while debugging.
 
----
- drivers/media/platform/exynos4-is/Kconfig     |    2 +-
- drivers/media/platform/exynos4-is/fimc-core.c |    3 +--
- drivers/media/platform/exynos4-is/fimc-core.h |   10 ++++++++++
- drivers/media/platform/exynos4-is/fimc-reg.c  |    3 +++
- 4 files changed, 15 insertions(+), 3 deletions(-)
+Since there're no more comments, I'll add this to my for-next, to
+queue it up for 3.10.
 
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 91dbd4b..ae57920 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -2,7 +2,6 @@
- config VIDEO_SAMSUNG_EXYNOS4_IS
- 	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
- 	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PLAT_S5P && PM_RUNTIME
--	depends on MFD_SYSCON
- 	help
- 	  Say Y here to enable camera host interface devices for
- 	  Samsung S5P and EXYNOS SoC series.
-@@ -14,6 +13,7 @@ config VIDEO_S5P_FIMC
- 	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select MFD_SYSCON if OF
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
- 	  interface and video postprocessor (FIMC) devices.
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
-index 44239e5..6b4a244 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.c
-+++ b/drivers/media/platform/exynos4-is/fimc-core.c
-@@ -966,8 +966,7 @@ static int fimc_probe(struct platform_device *pdev)
- 	spin_lock_init(&fimc->slock);
- 	mutex_init(&fimc->lock);
+Best regards,
+~Sumit.
+>
+> Some more magic can be added for more advanced debugging, but we'll leave that
+> for the time being.
+>
+> Best regards,
+> ~Sumit.
+>
+> ---
+> changes since v2: (based on review comments from Laurent Pinchart)
+>  - reordered functions to avoid forward declaration
+>  - added __exitcall for dma_buf_deinit()
+>
+> changes since v1:
+>  - added patch to replace dma_buf_export() with dma_buf_export_named(), per
+>     suggestion from Daniel Vetter.
+>  - fixes on init and warnings as reported and corrected by Dave Airlie.
+>  - added locking while walking attachment list - reported by Daniel Vetter.
+>
+> Sumit Semwal (2):
+>   dma-buf: replace dma_buf_export() with dma_buf_export_named()
+>   dma-buf: Add debugfs support
+>
+>  Documentation/dma-buf-sharing.txt |   13 ++-
+>  drivers/base/dma-buf.c            |  170 ++++++++++++++++++++++++++++++++++++-
+>  include/linux/dma-buf.h           |   16 +++-
+>  3 files changed, 190 insertions(+), 9 deletions(-)
+>
+> --
+> 1.7.10.4
+>
 
--	fimc->sysreg = syscon_regmap_lookup_by_phandle(dev->of_node,
--						"samsung,sysreg");
-+	fimc->sysreg = fimc_get_sysreg_regmap(dev->of_node);
- 	if (IS_ERR(fimc->sysreg))
- 		return PTR_ERR(fimc->sysreg);
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
-index 793333a..7d361b2 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.h
-+++ b/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -15,6 +15,7 @@
- #include <linux/regmap.h>
- #include <linux/sched.h>
- #include <linux/spinlock.h>
-+#include <linux/mfd/syscon.h>
- #include <linux/types.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-@@ -645,6 +646,15 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc);
- int fimc_register_driver(void);
- void fimc_unregister_driver(void);
 
-+#ifdef CONFIG_MFD_SYSCON
-+static inline struct regmap * fimc_get_sysreg_regmap(struct device_node *node)
-+{
-+	return syscon_regmap_lookup_by_phandle(node, "samsung,sysreg");
-+}
-+#else
-+#define fimc_get_sysreg_regmap(node) (NULL)
-+#endif
-+
- /* -----------------------------------------------------*/
- /* fimc-m2m.c */
- void fimc_m2m_job_finish(struct fimc_ctx *ctx, int vb_state);
-diff --git a/drivers/media/platform/exynos4-is/fimc-reg.c b/drivers/media/platform/exynos4-is/fimc-reg.c
-index c276eb8..c82e9bd 100644
---- a/drivers/media/platform/exynos4-is/fimc-reg.c
-+++ b/drivers/media/platform/exynos4-is/fimc-reg.c
-@@ -805,6 +805,9 @@ int fimc_hw_camblk_cfg_writeback(struct fimc_dev *fimc)
- 	unsigned int mask, val, camblk_cfg;
- 	int ret;
-
-+	if (map == NULL)
-+		return 0;
-+
- 	ret = regmap_read(map, SYSREG_CAMBLK, &camblk_cfg);
- 	if (ret < 0 || ((camblk_cfg & 0x00700000) >> 20 != 0x3))
- 		return ret;
 --
-1.7.9.5
+Thanks and regards,
 
+Sumit Semwal
+
+Linaro Kernel Engineer - Graphics working group
+
+Linaro.org │ Open source software for ARM SoCs
+
+Follow Linaro: Facebook | Twitter | Blog
