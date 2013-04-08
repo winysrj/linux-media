@@ -1,39 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53810 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965940Ab3DQIp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 04:45:26 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H8jQuK027417
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 04:45:26 -0400
-Received: from shalem.localdomain (vpn1-7-245.ams2.redhat.com [10.36.7.245])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r3H8jOru031009
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 04:45:26 -0400
-Message-ID: <516E6203.7060608@redhat.com>
-Date: Wed, 17 Apr 2013 10:49:07 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Anyone working on supporting sdio cams under Linux
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2423 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934627Ab3DHK7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 12/12] hdpvr: allow g/s_std when in legacy mode.
+Date: Mon,  8 Apr 2013 12:58:41 +0200
+Message-Id: <1365418721-23859-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yes I mean camaras which connect to the computer / tablet through
-an sdio connector, ie the hp one shown here:
-http://en.wikipedia.org/wiki/Secure_Digital#SDIO
+Otherwise gstreamer will no longer work.
 
-A college asked me if I wanted one for the webcam driver work
-I do, but since it does not have a usb plug I'm not interested.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-But if anyone else is working on this and wants one, I can
-put you in touch.
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 4376309..f6a705e 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -571,13 +571,14 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_s_std(struct file *file, void *private_data,
++static int vidioc_s_std(struct file *file, void *_fh,
+ 			v4l2_std_id std)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
+ 	u8 std_type = 1;
+ 
+-	if (dev->options.video_input == HDPVR_COMPONENT)
++	if (!fh->legacy_mode && dev->options.video_input == HDPVR_COMPONENT)
+ 		return -ENODATA;
+ 	if (dev->status != STATUS_IDLE)
+ 		return -EBUSY;
+@@ -590,12 +591,13 @@ static int vidioc_s_std(struct file *file, void *private_data,
+ 	return hdpvr_config_call(dev, CTRL_VIDEO_STD_TYPE, std_type);
+ }
+ 
+-static int vidioc_g_std(struct file *file, void *private_data,
++static int vidioc_g_std(struct file *file, void *_fh,
+ 			v4l2_std_id *std)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
+ 
+-	if (dev->options.video_input == HDPVR_COMPONENT)
++	if (!fh->legacy_mode && dev->options.video_input == HDPVR_COMPONENT)
+ 		return -ENODATA;
+ 	*std = dev->cur_std;
+ 	return 0;
+@@ -764,10 +766,11 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_s_input(struct file *file, void *private_data,
++static int vidioc_s_input(struct file *file, void *_fh,
+ 			  unsigned int index)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
+ 	int retval;
+ 
+ 	if (index >= HDPVR_VIDEO_INPUTS)
+@@ -780,7 +783,8 @@ static int vidioc_s_input(struct file *file, void *private_data,
+ 	if (!retval) {
+ 		dev->options.video_input = index;
+ 		dev->video_dev->tvnorms =
+-			index != HDPVR_COMPONENT ? V4L2_STD_ALL : 0;
++			(fh->legacy_mode || index != HDPVR_COMPONENT) ?
++				V4L2_STD_ALL : 0;
+ 	}
+ 
+ 	return retval;
+-- 
+1.7.10.4
 
-Regards,
-
-Hans
