@@ -1,62 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50793 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937471Ab3DKAG6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 20:06:58 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>,
-	linux-samsung-soc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 11/30] [media] exynos: remove unnecessary header inclusions
-Date: Thu, 11 Apr 2013 02:04:53 +0200
-Message-Id: <1365638712-1028578-12-git-send-email-arnd@arndb.de>
-In-Reply-To: <1365638712-1028578-1-git-send-email-arnd@arndb.de>
-References: <1365638712-1028578-1-git-send-email-arnd@arndb.de>
+Received: from mail-wg0-f50.google.com ([74.125.82.50]:62884 "EHLO
+	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934411Ab3DHLiq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:38:46 -0400
+MIME-Version: 1.0
+In-Reply-To: <51629B3D.4080905@ti.com>
+References: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1364903044-13752-2-git-send-email-prabhakar.csengg@gmail.com> <51629B3D.4080905@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 8 Apr 2013 17:08:24 +0530
+Message-ID: <CA+V-a8swx0LB0eK0bZwcuFhVCW2UB8Bvm3ebwMQifo=-TB6ASA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] media: davinci: vpss: enable vpss clocks
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In multiplatform configurations, we cannot include headers
-provided by only the exynos platform. Fortunately a number
-of drivers that include those headers do not actually need
-them, so we can just remove the inclusions.
+Sekhar,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/platform/exynos-gsc/gsc-regs.c | 1 -
- drivers/media/platform/s5p-tv/sii9234_drv.c  | 3 ---
- 2 files changed, 4 deletions(-)
+On Mon, Apr 8, 2013 at 3:56 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On 4/2/2013 5:14 PM, Prabhakar lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> By default the VPSS clocks were enabled in capture driver
+>> for davinci family which creates duplicates for dm355/dm365/dm644x.
+>> This patch adds support to enable the VPSS clocks in VPSS driver,
+>> which avoids duplication of code and also adding clock aliases.
+>>
+>> This patch uses PM runtime API to enable/disable instead common clock
+>> framework. con_ids for master and slave clocks of vpss is added in pm_domain
+>
+> Common clock framework in not (yet) used on DaVinci, so this is misleading.
+>
+OK, I'll make it 'This patch uses PM runtime API to enable/disable
+clock, instead
+of Davinci specific clock framework. con_ids for master and slave
+clocks of vpss is added in pm_domain'
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
-index 6f5b5a4..e22d147 100644
---- a/drivers/media/platform/exynos-gsc/gsc-regs.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
-@@ -12,7 +12,6 @@
- 
- #include <linux/io.h>
- #include <linux/delay.h>
--#include <mach/map.h>
- 
- #include "gsc-core.h"
- 
-diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
-index d90d228..39b77d2 100644
---- a/drivers/media/platform/s5p-tv/sii9234_drv.c
-+++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
-@@ -23,9 +23,6 @@
- #include <linux/regulator/machine.h>
- #include <linux/slab.h>
- 
--#include <mach/gpio.h>
--#include <plat/gpio-cfg.h>
--
- #include <media/sii9234.h>
- #include <media/v4l2-subdev.h>
- 
--- 
-1.8.1.2
+>> diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
+>> index c90250e..445b10b 100644
+>> --- a/arch/arm/mach-davinci/pm_domain.c
+>> +++ b/arch/arm/mach-davinci/pm_domain.c
+>> @@ -53,7 +53,7 @@ static struct dev_pm_domain davinci_pm_domain = {
+>>
+>>  static struct pm_clk_notifier_block platform_bus_notifier = {
+>>       .pm_domain = &davinci_pm_domain,
+>> -     .con_ids = { "fck", NULL, },
+>> +     .con_ids = { "fck", "master", "slave", NULL, },
+>
+> NULL is sentinel so you can drop the ',' after that. Apart from that,
+> for the mach-davinci parts:
+>
+OK
 
+Regards,
+--Prabhakar
+
+> Acked-by: Sekhar Nori <nsekhar@ti.com>
+>
+> Thanks,
+> Sekhar
