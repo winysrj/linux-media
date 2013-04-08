@@ -1,99 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4636 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757057Ab3DWSUb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 14:20:31 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3NIKNMt056635
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 20:20:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C15E811E0157
-	for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 20:20:21 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130423182021.C15E811E0157@alastor.dyndns.org>
-Date: Tue, 23 Apr 2013 20:20:21 +0200 (CEST)
+Received: from moutng.kundenserver.de ([212.227.17.10]:60577 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757022Ab3DHLWA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:22:00 -0400
+Date: Mon, 8 Apr 2013 13:21:52 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Barry Song <21cnbao@gmail.com>
+cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
+	zilong.wu@csr.com, "renwei.wu" <renwei.wu@csr.com>,
+	xiaomeng.hou@csr.com
+Subject: Re: [PATCH 10/14] media: soc-camera: support OF cameras
+In-Reply-To: <CAGsJ_4zYvF-U0_ETs9EP8i+bOJiJLkXWrJdMNnW_sXU-QwnXQw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1304081308000.29945@axis700.grange>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <1348754853-28619-11-git-send-email-g.liakhovetski@gmx.de>
+ <CAGsJ_4zYvF-U0_ETs9EP8i+bOJiJLkXWrJdMNnW_sXU-QwnXQw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Barry
 
-Results of the daily build of media_tree:
+On Mon, 8 Apr 2013, Barry Song wrote:
 
-date:		Tue Apr 23 19:00:20 CEST 2013
-git branch:	test
-git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+> hi Guennadi,
+> 
+> 2012/9/27 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> > With OF we aren't getting platform data any more. To minimise changes we
+> > create all the missing data ourselves, including compulsory struct
+> > soc_camera_link objects. Host-client linking is now done, based on the OF
+> > data. Media bus numbers also have to be assigned dynamically.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> as your V4L2 core DT based supports
+> [media] Add a V4L2 OF parser
+> [media] Add common video interfaces OF bindings documentation
+> have been in media_tree queue for 3.10. i do care about the status of
+> this patch for soc_camera.
+> 
+> will you have a plan to resend these soc-camera patches based on your
+> final V4L2 core DT patches? otherwise, we might do some jobs for that.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+This patch depends not only on the above two OF patches, that Sylwester 
+kindly polished to make them finally suitable for the mainline :-), but 
+also on V4L2 (temporary) clock and asynchronous probing patches, which 
+I've just re-posted in their v7. Once those patches stabilise, it will be 
+possible to re-spin this patch too. However, currently I don't have any 
+interested users for this work, so I can only run it as a low priority 
+task in my spare time, of which I don't have much.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
