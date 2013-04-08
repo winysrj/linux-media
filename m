@@ -1,66 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:58969 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936362Ab3DRVf5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:57 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 04/24] V4L2: fix Oops on rmmod path
-Date: Thu, 18 Apr 2013 23:35:25 +0200
-Message-Id: <1366320945-21591-5-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:52654 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935351Ab3DHMWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 08:22:44 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 3/3] davinic: vpss: trivial cleanup
+Date: Mon,  8 Apr 2013 17:49:13 +0530
+Message-Id: <1365423553-12619-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_async_cleanup() clears the sd->dev pointer, avoid dereferencing it in
-v4l2_async_unregister().
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+this patch removes unnecessary header file inclusions and
+fixes the typo's.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c |   18 ++++++------------
- 1 files changed, 6 insertions(+), 12 deletions(-)
+ drivers/media/platform/davinci/vpss.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 98db2e0..5d6b428 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -123,16 +123,6 @@ static void v4l2_async_cleanup(struct v4l2_async_subdev_list *asdl)
- 	sd->dev = NULL;
- }
+diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
+index d36429d..8a2f01e 100644
+--- a/drivers/media/platform/davinci/vpss.c
++++ b/drivers/media/platform/davinci/vpss.c
+@@ -17,13 +17,8 @@
+  *
+  * common vpss system module platform driver for all video drivers.
+  */
+-#include <linux/kernel.h>
+-#include <linux/sched.h>
+-#include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/spinlock.h>
+-#include <linux/compiler.h>
+ #include <linux/io.h>
+ #include <linux/pm_runtime.h>
  
--static void v4l2_async_unregister(struct v4l2_async_subdev_list *asdl)
--{
--	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
--
--	v4l2_async_cleanup(asdl);
--
--	/* If we handled USB devices, we'd have to lock the parent too */
--	device_release_driver(sd->dev);
--}
--
- int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier)
- {
-@@ -203,9 +193,13 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
- 	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
- 		if (dev) {
- 			struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
--			dev[i++] = get_device(sd->dev);
-+			dev[i] = get_device(sd->dev);
- 		}
--		v4l2_async_unregister(asdl);
-+		v4l2_async_cleanup(asdl);
-+
-+		/* If we handled USB devices, we'd have to lock the parent too */
-+		if (dev)
-+			device_release_driver(dev[i++]);
+@@ -101,7 +96,7 @@ enum vpss_platform_type {
  
- 		if (notifier->unbind)
- 			notifier->unbind(notifier, asdl);
+ /*
+  * vpss operations. Depends on platform. Not all functions are available
+- * on all platforms. The api, first check if a functio is available before
++ * on all platforms. The api, first check if a function is available before
+  * invoking it. In the probe, the function ptrs are initialized based on
+  * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
+  */
+@@ -116,7 +111,7 @@ struct vpss_hw_ops {
+ 	void (*set_sync_pol)(struct vpss_sync_pol);
+ 	/* set the PG_FRAME_SIZE register*/
+ 	void (*set_pg_frame_size)(struct vpss_pg_frame_size);
+-	/* check and clear interrupt if occured */
++	/* check and clear interrupt if occurred */
+ 	int (*dma_complete_interrupt)(void);
+ };
+ 
+@@ -235,7 +230,7 @@ EXPORT_SYMBOL(vpss_clear_wbl_overflow);
+ 
+ /*
+  *  dm355_enable_clock - Enable VPSS Clock
+- *  @clock_sel: CLock to be enabled/disabled
++ *  @clock_sel: Clock to be enabled/disabled
+  *  @en: enable/disable flag
+  *
+  *  This is called to enable or disable a vpss clock
 -- 
-1.7.2.5
+1.7.4.1
 
