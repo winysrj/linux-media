@@ -1,55 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:12472 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932129Ab3DYJuo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 05:50:44 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT005W41ZFFXL0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:50:43 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:50886 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762574Ab3DHLH2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:07:28 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>
-Subject: [PATCH 3/7] s5p-mfc: Optimize copy time stamp handling
-Date: Thu, 25 Apr 2013 11:49:46 +0200
-Message-id: <1366883390-12890-4-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
-References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v7 6/7] imx074: support asynchronous probing
+Date: Mon,  8 Apr 2013 13:07:10 +0200
+Message-Id: <1365419231-14830-7-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Jeongtae Park <jtp.park@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+Both synchronous and asynchronous imx074 subdevice probing is supported by
+this patch.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e810b1a..49f2d9f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -243,12 +243,10 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
- 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
- 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
- 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
--			memcpy(&dst_buf->b->v4l2_buf.timecode,
--				&src_buf->b->v4l2_buf.timecode,
--				sizeof(struct v4l2_timecode));
--			memcpy(&dst_buf->b->v4l2_buf.timestamp,
--				&src_buf->b->v4l2_buf.timestamp,
--				sizeof(struct timeval));
-+			dst_buf->b->v4l2_buf.timecode =
-+						src_buf->b->v4l2_buf.timecode;
-+			dst_buf->b->v4l2_buf.timestamp =
-+						src_buf->b->v4l2_buf.timestamp;
- 			switch (frame_type) {
- 			case S5P_FIMV_DECODE_FRAME_I_FRAME:
- 				dst_buf->b->v4l2_buf.flags |=
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/i2c/soc_camera/imx074.c |   24 +++++++++++++++++++++---
+ 1 files changed, 21 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+index a6a5060..624d7c7 100644
+--- a/drivers/media/i2c/soc_camera/imx074.c
++++ b/drivers/media/i2c/soc_camera/imx074.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
+ 
+ #include <media/soc_camera.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -79,6 +80,7 @@ struct imx074 {
+ 	struct v4l2_subdev		subdev;
+ 	const struct imx074_datafmt	*fmt;
+ 	struct v4l2_clk			*clk;
++	struct v4l2_async_subdev_list	asdl;
+ };
+ 
+ static const struct imx074_datafmt imx074_colour_fmts[] = {
+@@ -455,14 +457,28 @@ static int imx074_probe(struct i2c_client *client,
+ 
+ 	priv->fmt	= &imx074_colour_fmts[0];
+ 
++	priv->asdl.subdev = &priv->subdev;
++	priv->asdl.dev = &client->dev;
++
+ 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk))
+-		return PTR_ERR(priv->clk);
++	if (IS_ERR(priv->clk)) {
++		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv->clk));
++		return -EPROBE_DEFER;
++	}
++
++	ret = soc_camera_power_init(&client->dev, ssdd);
++	if (ret < 0)
++		goto epwrinit;
+ 
+ 	ret = imx074_video_probe(client);
+ 	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
++		goto eprobe;
+ 
++	return v4l2_async_register_subdev(&priv->asdl);
++
++epwrinit:
++eprobe:
++	v4l2_clk_put(priv->clk);
+ 	return ret;
+ }
+ 
+@@ -471,7 +487,9 @@ static int imx074_remove(struct i2c_client *client)
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct imx074 *priv = to_imx074(client);
+ 
++	v4l2_async_unregister_subdev(&priv->asdl);
+ 	v4l2_clk_put(priv->clk);
++
+ 	if (ssdd->free_bus)
+ 		ssdd->free_bus(ssdd);
+ 
 -- 
-1.7.9.5
+1.7.2.5
 
