@@ -1,76 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:43965 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760178Ab3DBNR2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 09:17:28 -0400
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:37501 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935526Ab3DHNSy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 09:18:54 -0400
 Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
+ by mailout1.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MKM008K9Q8L6O80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 02 Apr 2013 14:17:26 +0100 (BST)
-Message-id: <515ADA65.4040100@samsung.com>
-Date: Tue, 02 Apr 2013 15:17:25 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0MKX00DU4U8NR290@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Apr 2013 14:18:53 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MKX00E50UATSL20@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Apr 2013 14:18:53 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] s5p-mfc: decoder fix
+Date: Mon, 08 Apr 2013 15:18:27 +0200
+Message-id: <02dc01ce345b$90293110$b07b9330$%debski@samsung.com>
 MIME-version: 1.0
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 10/23] [media] exynos: remove unnecessary header inclusions
-References: <1362505353-8873-1-git-send-email-arnd@arndb.de>
- <1362505353-8873-11-git-send-email-arnd@arndb.de>
- <515AD837.1060106@samsung.com>
-In-reply-to: <515AD837.1060106@samsung.com>
-Content-type: text/plain; charset=UTF-8
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/02/2013 03:08 PM, Sylwester Nawrocki wrote:
-> On 03/05/2013 06:42 PM, Arnd Bergmann wrote:
->> In multiplatform configurations, we cannot include headers
->> provided by only the exynos platform. Fortunately a number
->> of drivers that include those headers do not actually need
->> them, so we can just remove the inclusions.
->>
->> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->>  drivers/media/platform/exynos-gsc/gsc-regs.c | 1 -
->>  drivers/media/platform/s5p-tv/sii9234_drv.c  | 3 ---
-> 
-> Cc: linux-media@vger.kernel.org
+Hi Mauro,
 
-Uhh, now really added it to Cc.
+Somehow the patch adding another way of ending video stream decoding was
+lost.
+I am not sure if this should be regarded as a fix or adding new
+functionality.
+It adds the ability to finish video decoding with an EOS command and notify
+the
+application with an event that the last frame was decoded. This is the
+recommended
+way to end decoding.
 
-> Thanks Arnd. I have applied this patch to my tree for 3.10.
-> 
->>  2 files changed, 4 deletions(-)
->>
->> diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> index 6f5b5a4..e22d147 100644
->> --- a/drivers/media/platform/exynos-gsc/gsc-regs.c
->> +++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
->> @@ -12,7 +12,6 @@
->>  
->>  #include <linux/io.h>
->>  #include <linux/delay.h>
->> -#include <mach/map.h>
->>  
->>  #include "gsc-core.h"
->>  
->> diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
->> index d90d228..39b77d2 100644
->> --- a/drivers/media/platform/s5p-tv/sii9234_drv.c
->> +++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
->> @@ -23,9 +23,6 @@
->>  #include <linux/regulator/machine.h>
->>  #include <linux/slab.h>
->>  
->> -#include <mach/gpio.h>
->> -#include <plat/gpio-cfg.h>
->> -
->>  #include <media/sii9234.h>
->>  #include <media/v4l2-subdev.h>
-> 
-> --
-> 
-> Regards,
-> Sylwester
+It was originally sent in January as a part of a 3 patch series. Other
+patches
+were pure fixes and already got merged.
+
+In addition, I included a recent fix by Hans Verkuil.
+
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+The following changes since commit 53faa685fa7df0e12751eebbda30bc7e7bb5e71a:
+
+  [media] siano: Fix array boundary at smscore_translate_msg() (2013-04-04
+14:35:40 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/kdebski/media.git media_tree
+
+for you to fetch changes up to 3d79b910d83f561bdf6c9c80083ee7ad529a4e4c:
+
+  s5c73m3: Fix s5c73m3-core.c compiler warning (2013-04-08 15:09:25 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      s5c73m3: Fix s5c73m3-core.c compiler warning
+
+Kamil Debski (1):
+      s5p-mfc: Add support for EOS command and EOS event in video decoder
+
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c        |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |    2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   76
++++++++++++++++++++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |    9 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   10 ++-
+ 5 files changed, 93 insertions(+), 6 deletions(-)
+
+
+
+
