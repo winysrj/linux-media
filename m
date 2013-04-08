@@ -1,146 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:21573 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761527Ab3DBQD5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 12:03:57 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: yhwan.joo@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, myungjoo.ham@samsung.com,
-	dh09.lee@samsung.com, linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v4 0/7] V4L2 driver for Exynos4x12 Imaging Subsystem
-Date: Tue, 02 Apr 2013 18:03:32 +0200
-Message-id: <1364918619-9118-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11656 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760770Ab3DHCjw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 22:39:52 -0400
+Date: Sun, 7 Apr 2013 23:39:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans-Peter Jansen <hpj@urpla.net>
+Cc: Adam Sampson <ats@offog.org>, linux-media@vger.kernel.org,
+	jdonog01@eircom.net, bugzilla-kernel@tcnnet.com
+Subject: Re: Hauppauge Nova-S-Plus DVB-S works for one channel, but cannot
+ tune in others
+Message-ID: <20130407233923.543817ba@redhat.com>
+In-Reply-To: <2403957.P6csrtIOfG@xrated>
+References: <1463242.ms8FUp7FVg@xrated>
+	<1677512.fSL1vcfScG@xrated>
+	<20130407140329.6f5db5e4@redhat.com>
+	<2403957.P6csrtIOfG@xrated>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This iteration includes mostly headers inclusion and comments cleanup,
-minor DT binding documentation update and added missing cleanup steps
-at the I2C bus driver. Detailed changes are listed at individual
-patches.
+Em Sun, 07 Apr 2013 21:10:21 +0200
+Hans-Peter Jansen <hpj@urpla.net> escreveu:
 
-Below is a full cover letter of v3. If there is no more comments
-I would send a pull request this week, so further development can
-be continued already in tree.
+> On Sonntag, 7. April 2013 14:03:29 Mauro Carvalho Chehab wrote:
+> > Em Sat, 06 Apr 2013 22:20:19 +0200
+> > 
+> > Hans-Peter Jansen <hpj@urpla.net> escreveu:
+> > > On Samstag, 6. April 2013 16:26:32 Mauro Carvalho Chehab wrote:
+> > > > Em Sat, 06 Apr 2013 19:26:23 +0200
+> > > > 
+> > > > Hans-Peter Jansen <hpj@urpla.net> escreveu:
+> > > > > On Samstag, 6. April 2013 10:37:52 you wrote:
+> > > > > > Em Sat, 06 Apr 2013 12:20:41 +0200
+> > > > > > 
+> > > > > > Hans-Peter Jansen <hpj@urpla.net> escreveu:
+> > > > > > > Dear Mauro,
+> > > > > > > 
+> > > > > > > first of all, thank you for providing a proper fix that quickly.
+> > > > > > > 
+> > > > > > > On Freitag, 5. April 2013 13:18:54 Mauro Carvalho Chehab wrote:
+> > > > > > > > Em Fri, 05 Apr 2013 13:25:01 +0100
+> > > > > > > > 
+> > > > > > > > Adam Sampson <ats@offog.org> escreveu:
+> > > > > > > > > Hans-Peter Jansen <hpj@urpla.net> writes:
+> > > > > > > > > > In one of my systems, I've used a
+> > > > > > > > > > Hauppauge Nova-S-Plus DVB-S card successfully, but after a
+> > > > > > > > > > system
+> > > > > > > > > > upgrade to openSUSE 12.2, it cannot tune in all but one
+> > > > > > > > > > channel.
+> > > > > > > > > 
+> > > > > > > > > [...]
+> > > > > > > > > 
+> > > > > > > > > > initial transponder 12551500 V 22000000 5
+> > > > > > > > > > 
+> > > > > > > > > >>>> tune to: 12551:v:0:22000
+> > > > > > > > > > 
+> > > > > > > > > > DVB-S IF freq is 1951500
+> > > > > > > > > > WARNING: >>> tuning failed!!!
+> > > > > > > > > 
+> > > > > > > > > I suspect you might be running into this problem:
+> > > > > > > > >   https://bugzilla.kernel.org/show_bug.cgi?id=9476
+> > > > > > > > > 
+> > > > > > > > > The bug title is misleading -- the problem is actually that
+> > > > > > > > > the
+> > > > > > > > > card
+> > > > > > > > > doesn't get configured properly to send the 22kHz tone for
+> > > > > > > > > high-band
+> > > > > > > > > transponders, like the one in your error above.
+> > > > > > > > > 
+> > > > > > > > > Applying this patch makes my Nova-S-Plus work with recent 
+> kernels:
+> > > > > > > > >   https://bugzilla.kernel.org/attachment.cgi?id=21905&action=e
+> > > > > > > > >   dit
+> > > > > > > > 
+> > > > > > > > Applying that patch would break support for all other devices
+> > > > > > > > with
+> > > > > > > > isl6421.
+> > > > > > > > 
+> > > > > > > > Could you please test the enclosed patch? It allows the bridge
+> > > > > > > > driver to tell if the set_tone should be overrided by isl6421 or
+> > > > > > > > not. The code only changes it for Hauppauge model 92001.
+> > > > > > > 
+> > > > > > > Unfortunately, it appears to be more problematic. While the fix
+> > > > > > > allows
+> > > > > > > to
+> > > > > > > scan the channel list, it is not complete (in another setup at the
+> > > > > > > same
+> > > > > > > dish (via multiswitch), vdrs channel list has about 1600 channels,
+> > > > > > > while
+> > > > > > > scan does collect 1138 only.
+> > > > > > > 
+> > > > > > > More importantly, a single channel (arte) is received with 0 BER
+> > > > > > > and a
+> > > > > > > S/N
+> > > > > > > ratio of 99%, while all other channels produce more BER, eg. "Das
+> > > > > > > Erste"
+> > > > > > > with about 320 BER (SNR 99%, a few artifacts/distortions
+> > > > > > > occasionally),
+> > > > > > > "ZDF" about 6400 BER, (SNR drops down to 75%, constant
+> > > > > > > distortions,
+> > > > > > > and
+> > > > > > > many channels doesn't produce anything beyond distortions with a
+> > > > > > > video
+> > > > > > > stream below 0.3 MBit/s and about 160000 BER. (measured using vdr
+> > > > > > > femon
+> > > > > > > plugin v. 1.6.7)
+> > > > > > > 
+> > > > > > > So, still no cigar, sorry.
+> > > > > > > 
+> > > > > > > I've tested both patches, just to be sure, with the same result. I
+> > > > > > > had
+> > > > > > > to
+> > > > > > > relocate and refresh yours in order to apply it to 3.4, since the
+> > > > > > > paths
+> > > > > > > changed, result attached.
+> > > > > > > 
+> > > > > > > > If it works, please answer this email with a:
+> > > > > > > > 	Tested-by: your name <your@email>
+> > > > > > > > 
+> > > > > > > > For me to add it when merging the patch upstream.
+> > > > > > > > 
+> > > > > > > > Regards,
+> > > > > > > > Mauro.
+> > > > > > > 
+> > > > > > > It looks like the idea is sound, but the logic is still missing
+> > > > > > > something
+> > > > > > > that prevents it from tuning most channels properly.
+> > > > > > 
+> > > > > > Well, what it is expected from this patch is to be able of seeing
+> > > > > > channels with H and V polarization. Nothing more, nothing less.
+> > > > > 
+> > > > > Okay. Yes, I do.
+> > > > > 
+> > > > > > From what I understood, you're now seeing more than just one
+> > > > > > channel,
+> > > > > > so, it is likely part of the fix, right?
+> > > > > 
+> > > > > Yes.
+> > > > 
+> > > > Ok, I'll likely be merging it by Monday.
+> > > 
+> > > Since it fixes the Nova-S-Plus 92001 model for some users, that's great.
+> > > 
+> > > > > > If are there any other issues, then it it would require other fixes,
+> > > > > > likely at cx24123 frontend. My guess is that it could be due to some
+> > > > > > precision loss maybe at cx24123_set_symbolrate(). It helps if you
+> > > > > > could
+> > > > > > check if the channels that are more problematic have a higher or a
+> > > > > > lower bit rate. It probably makes sense to change the code there to
+> > > > > > use u64 and asm/div64.h, in order to allow the calculus to have more
+> > > > > > precision. I'll try to write such patch.
+> > > > > 
+> > > > > ..that I'm testing right now. Build is on the way.
+> > > > > 
+> > > > > You wrote and published the fix in less then 8 minutes. Wow,
+> > > > > unbelievable.
+> > > > 
+> > > > Well, the patch is really trivial. If it works or not, only the tests
+> > > > can
+> > > > tell ;) I have one Nova-S model here, but unfortunately I don't have a
+> > > > satellite dish anymore, so I can't test.
+> > > 
+> > > That's a pity. Bad news: no changes. I double checked, that the new
+> > > cx24123
+> > > patch was applied. Unfortunately it doesn't help. The behavior is
+> > > unchanged
+> > > from what I can see.
+> > 
+> > Ok. As you're getting signals with high symbol rate, it were less likely to
+> > have troubles there.
+> > 
+> > That also means that the patch didn't introduce any bugs, so I'll likely
+> > apply it, as this way is better than before.
+> > 
+> > As you said that you weren't experiencing any issue with a previous kernel,
+> > I suggest you to do a diff between cx24123 on the version where everything
+> > is OK with the current one, and post here. We can then try to detect where
+> > the issue was introduced.
+> 
+> Hmm, that was an 2.6.2* kernel, IIRC. Only a bisection would make sense. 
+> Unfortunately, I cannot spend the time for a bisection today, and tomorrow I 
+> get an eagerly awaited Hauppauge WinTV-HVR400 in order to evaluate vdr 2.0 
+> with HD eventually, hence after finishing day work, I'm not sure, if I'm able 
+> to bridle myself until after the boring bisection. Most likely not.. ;-)
 
-                        ---------
-This patch series includes mostly changes in the clocks handling, fix of
-coding style issues found with checkpatch.pl and an improvement of the
-DT binding documentation.
+Yeah, bisecting from 2.6.2* could be really boring. As this driver didn't change
+that much, perhaps you could speed it up by manually bisecting on the changes
+that happened on cx24123 on that time.
 
-There is an issue that the ISP clocks (MCU_ISP block clocks) are in the
-ISP power domain and the clock registers should not be touched when this
-power domain is inactive. At least this applies to part of the CMU_ISP
-clocks, as our investigation shows. That is mainly the reason why all ISP
-clocks have CLK_IGNORE_UNUSED flag set in patch [1]. That's most likely
-not the right solution to this problem. But I'm not sure what could be
-other options, probably it would help to make the CMU_ISP clocks provider
-aware of the ISP domain. But I can't tell state of which clock registers
-is persistent over the ISP power domain on/off cycles.
-Without the CLK_IGNORE_UNUSED flags set the system hangs when the clock
-core disables unused clocks.
+Anyway, since kernel 2.6.12, there weren't many changes there:
 
-Changes since v2:
- - Improved clocks handling, all required clocks should now be explicitly
-   enabled/disabled by the driver as needed. In addition a frequency of
-   selected clocks is now being set to ensure the FIMC-IS ISP chain an
-   the MCU core clocks frequency is valid, before starting the ISP
-   firmware.
- - Added ISP I2C bus clock handling in the dummy I2C bus controller driver.
- - Clock properties added at the DT binding description.
+830e4b5 [media] dvb-frontends: get rid of some "always false" warnings
+9a0bf52 [media] move the dvb/frontends to drivers/media/dvb-frontends
+7581e61 [media] dvb: Remove ops->info.type from frontends
+7c61d80 [media] dvb: don't require a parameter for get_frontend
+7e07222 [media] dvb-core: Don't pass DVBv3 parameters on tune() fops
+a73efc0 [media] cx23123: convert set_fontend to use DVBv5 parameters
+31b4f32 [media] cx23123: remove an unused argument from cx24123_pll_writereg()
+a689e36 [media] dvb-core: add support for a DVBv5 get_frontend() callback
+bc9cd27 [media] Rename set_frontend fops to set_frontend_legacy
+14d24d1 [media] tuners: remove dvb_frontend_parameters from set_params()
+25985ed Fix common misspellings
+a90f933 [media] i2c: Stop using I2C_CLASS_TV_DIGITAL
+1ebcad7 V4L/DVB (12197): Remove unnecessary semicolons
+8420fa7 V4L/DVB (10662): remove redundant memset after kzalloc
+93504ab V4L/DVB (9260): cx24123: Checkpatch compliance
+1d43401 V4L/DVB (8837): dvb: fix I2C adapters name size
+6d89761 V4L/DVB (8805): Steven Toth email address change
+ca06fa7 V4L/DVB (7470): CX24123: preparing support for CX24113 tuner
+9c12224 V4L/DVB (6079): Cleanup: remove linux/moduleparam.h from drivers/media files
+3ea9661 V4L/DVB (5840): fix dst and cx24123: tune() callback changed signess for delay
+0496daa V4L/DVB (5202): DVB: Use ARRAY_SIZE macro when appropriate
+9b5a4a6 V4L/DVB (4699): CX24109 patch to eliminate the weird mis-tunings
+ef76856 V4L/DVB (4479): LNB voltage control was inverted for the benefit of geniatech cards on Kworld
+d93f886 V4L/DVB (4477): Improve hardware algorithm by setting the appropriate registers
+174ff21 V4L/DVB (4435): HW algo
+18c053b V4L/DVB (4434): Change BER config
+d12a9b9 V4L/DVB (4433): Soft decision threshold
+ccd214b V4L/DVB (4284): Cx24123: fix set_voltage function according to the specs
+dea7486 V4L/DVB (4028): Change dvb_frontend_ops to be a real field instead of a pointer field inside dvb_frontend
+cd20ca9 V4L/DVB (4012): Fix cx24123 diseqc
+20b1456 V4L/DVB (3869): Convert cx24123 to refactored tuner code
+70047f9 V4L/DVB (3804): Tweak bandselect setup fox cx24123
+0e4558a V4L/DVB (3803): Various correctness fixes to tuning.
+dce1dfc V4L/DVB (3797): Always wait for diseqc queue to become ready before transmitting a diseqc message
+caf970e V4L/DVB (3796): Add several debug messages to cx24123 code
+a74b51f V4L/DVB (3795): Fix for CX24123 & low symbol rates
+0144f314 V4L/DVB (3130): cx24123: cleanup timout handling
+1c956a3 DVB (2451): Add support for KWorld DVB-S 100, based on the same chips as Hauppauge
+e3b152b DVB (2446): Minor cleanups.
+b79cb65 DVB (2445): Added demodulator driver for Nova-S-Plus and Nova-SE2 DVB-S support.
 
-This patch series with all dependencies can be found at:
-git://linuxtv.org/snawrocki/samsung.git exynos4-fimc-is-v3
+If it used to work with kernel 2.6.18, and broke at 2.6.2x, my
+educated guess is that the regression happened between those 
+patches (including them):
 
-[1] http://www.spinics.net/lists/arm-kernel/msg233534.html
+$ git describe ca06fa7
+v2.6.25-3788-gca06fa7
 
-Below is a cover letter of the initial version of this patch series.
+$ git describe 20b1456
+v2.6.17-2503-g20b1456
 
-                       -------
-This patch series is an initial version of a driver for the camera ISP
-subsystem (FIMC-IS) found in Samsung Exynos4x12 SoCs.
+> Thanks again for your GREAT support, Mauro. Using Linux and Open Source for 
+> about 18 years, your engagement is exemplary. Given, that the sub system, you 
+> maintain is such an unforgiving mine field¹ just scales up that impression.
 
-The FIMC-IS subsystem is build around a ARM Cortex-A5 CPU that controls
-its dedicated peripherals, like I2C, SPI, UART, PWM, ADC,...  and the
-ISP chain. There are 3 hardware image processing blocks: ISP, DRC
-(dynamic range compression) and FD (face detection) that are normally
-controlled by the Cortex-A5 firmware.
+Thanks!
+> 
+> Cheers,
+> Pete
+> 
+> ¹) I just follow this group every now and then..
 
-The driver currently exposes two additional sub-devices to user space:
-the image sensor and FIMC-IS-ISP sub-device. Another one might be
-added in future for the FD features.
 
-The FIMC-IS has various data inputs, it can capture data from memory
-or from other SoC IP blocks (FIMC-LITE). It is currently plugged
-between FIMC-LITE and FIMC (post-processor)  IP blocks, so there is
-a processing chain like:
+-- 
 
-sensor -> MIPI-CSIS -> FIMC-LITE -> FIMC-IS-ISP -> FIMC -> memory
-
-A raw Bayer image data can be captured from the ISP block which has
-it's own DMA engines. Support for this is not really included in
-this series, only a video capture node driver stubs are added.
-
-This is a bit complicated code, nevertheless I would really appreciate
-any review comments you might have.
-
-And this is just a basic set of futures this patch series addresses.
-Others include input/output DMA support for the DRC and FD blocks,
-support for more ISP controls, etc.
-
-Full git tree with all dependencies can be found at:
-http://git.linuxtv.org/snawrocki/samsung.git/exynos4-fimc-is-v2
-                      ----------
-
-Sylwester Nawrocki (7):
-  exynos4-is: Add Exynos4x12 FIMC-IS driver
-  exynos4-is: Add FIMC-IS ISP I2C bus driver
-  exynos4-is: Add FIMC-IS parameter region definitions
-  exynos4-is: Add common FIMC-IS image sensor driver
-  exynos4-is: Add Exynos4x12 FIMC-IS device tree binding documentation
-  exynos4-is: Add fimc-is subdevs registration
-  exynos4-is: Create media links for the FIMC-IS entities
-
- .../devicetree/bindings/media/exynos4-fimc-is.txt  |   49 +
- drivers/media/platform/exynos4-is/Kconfig          |   11 +
- drivers/media/platform/exynos4-is/Makefile         |    3 +
- .../media/platform/exynos4-is/fimc-is-command.h    |  147 +++
- drivers/media/platform/exynos4-is/fimc-is-errno.c  |  272 ++++++
- drivers/media/platform/exynos4-is/fimc-is-errno.h  |  248 +++++
- drivers/media/platform/exynos4-is/fimc-is-i2c.c    |  129 +++
- drivers/media/platform/exynos4-is/fimc-is-i2c.h    |   15 +
- drivers/media/platform/exynos4-is/fimc-is-param.c  |  955 ++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-param.h  | 1022 ++++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is-regs.c   |  242 +++++
- drivers/media/platform/exynos4-is/fimc-is-regs.h   |  164 ++++
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |  322 ++++++
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |   83 ++
- drivers/media/platform/exynos4-is/fimc-is.c        | 1009 +++++++++++++++++++
- drivers/media/platform/exynos4-is/fimc-is.h        |  345 +++++++
- drivers/media/platform/exynos4-is/fimc-isp.c       |  702 ++++++++++++++
- drivers/media/platform/exynos4-is/fimc-isp.h       |  181 ++++
- drivers/media/platform/exynos4-is/media-dev.c      |  116 ++-
- drivers/media/platform/exynos4-is/media-dev.h      |   13 +
- 20 files changed, 6006 insertions(+), 22 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos4-fimc-is.txt
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-command.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-errno.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-i2c.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-param.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-regs.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is-sensor.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-is.h
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.c
- create mode 100644 drivers/media/platform/exynos4-is/fimc-isp.h
-
---
-1.7.9.5
-
+Cheers,
+Mauro
