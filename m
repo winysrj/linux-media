@@ -1,53 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:36063 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab3DMJrn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 05:47:43 -0400
-Received: by mail-ea0-f169.google.com with SMTP id n15so1591901ead.0
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 02:47:41 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 2/3] em28xx: add register defines for em25xx/em276x/7x/8x GPIO registers
-Date: Sat, 13 Apr 2013 11:48:40 +0200
-Message-Id: <1365846521-3127-3-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1537 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934608Ab3DHKr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:47:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 5/7] radio-si4713: fix g/s_frequency
+Date: Mon,  8 Apr 2013 12:47:39 +0200
+Message-Id: <1365418061-23694-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em25xx/em276x/7x/8x provides 3 GPIO register sets,
-each of them consisting of separate read and a write registers.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+- check for invalid modulators.
+- clamp frequency to valid range.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-reg.h |    8 ++++++++
- 1 Datei geändert, 8 Zeilen hinzugefügt(+)
+ drivers/media/radio/si4713-i2c.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 622871d..ebc5663 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -195,6 +195,14 @@
- #define EM2874_R5F_TS_ENABLE    0x5f
- #define EM2874_R80_GPIO         0x80
+diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
+index 1cb9a2e..facd669 100644
+--- a/drivers/media/radio/si4713-i2c.c
++++ b/drivers/media/radio/si4713-i2c.c
+@@ -1852,7 +1852,8 @@ static int si4713_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
+ 	struct si4713_device *sdev = to_si4713_device(sd);
+ 	int rval = 0;
  
-+/* em25xx, em276x/7x/8x GPIO registers */
-+#define EM25XX_R80_GPIO_P0_W    0x80
-+#define EM25XX_R81_GPIO_P1_W    0x81
-+#define EM25XX_R83_GPIO_P3_W    0x83
-+#define EM25XX_R84_GPIO_P0_R    0x84
-+#define EM25XX_R85_GPIO_P1_R    0x85
-+#define EM25XX_R87_GPIO_P3_R    0x87
+-	f->type = V4L2_TUNER_RADIO;
++	if (f->tuner)
++		return -EINVAL;
+ 
+ 	if (sdev->power_state) {
+ 		u16 freq;
+@@ -1877,9 +1878,11 @@ static int si4713_s_frequency(struct v4l2_subdev *sd, const struct v4l2_frequenc
+ 	int rval = 0;
+ 	u16 frequency = v4l2_to_si4713(f->frequency);
+ 
++	if (f->tuner)
++		return -EINVAL;
 +
- /* em2874 IR config register (0x50) */
- #define EM2874_IR_NEC           0x00
- #define EM2874_IR_NEC_NO_PARITY 0x01
+ 	/* Check frequency range */
+-	if (frequency < FREQ_RANGE_LOW || frequency > FREQ_RANGE_HIGH)
+-		return -EDOM;
++	frequency = clamp_t(u16, frequency, FREQ_RANGE_LOW, FREQ_RANGE_HIGH);
+ 
+ 	if (sdev->power_state) {
+ 		rval = si4713_tx_tune_freq(sdev, frequency);
 -- 
 1.7.10.4
 
