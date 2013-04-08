@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:25256 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965736Ab3DQHMM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 03:12:12 -0400
-Date: Wed, 17 Apr 2013 10:11:46 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] dvb-frontends: lg2160: dubious one-bit signed
- bitfield
-Message-ID: <20130417071146.GB7923@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:35242 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935057Ab3DHMTh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 08:19:37 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 0/3] davinci: vpss: clock cleanup
+Date: Mon,  8 Apr 2013 17:49:10 +0530
+Message-Id: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sparse complains that these are "dubious one-bit signed bitfields" and
-the comment says it was intended to be 1 and 0 instead of -1 and 0.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+This patch series cleanup's the VPSS clock enabling.
+The first patch removes vpss clock enabling from the capture
+drivers and moves it to the VPSS driver itself.
+The second patch moves the venc_enable_vpss_clock() to the driver
+which was being done in platform code.
 
-diff --git a/drivers/media/dvb-frontends/lg2160.h b/drivers/media/dvb-frontends/lg2160.h
-index a5f0368..194a07a 100644
---- a/drivers/media/dvb-frontends/lg2160.h
-+++ b/drivers/media/dvb-frontends/lg2160.h
-@@ -57,10 +57,10 @@ struct lg2160_config {
- 	u16 if_khz;
- 
- 	/* disable i2c repeater - 0:repeater enabled 1:repeater disabled */
--	int deny_i2c_rptr:1;
-+	unsigned int deny_i2c_rptr:1;
- 
- 	/* spectral inversion - 0:disabled 1:enabled */
--	int spectral_inversion:1;
-+	unsigned int spectral_inversion:1;
- 
- 	unsigned int output_if;
- 	enum lg2160_spi_clock spi_clock;
+Changes for v3:
+1: Changed the commit message for first patch as pointed by Sekhar.
+2: Removed a semicolon after NULL in con_ids as pointed by Sekhar.
+3: Included the Ack from Sekhar for first patch.
+
+Changes for v2:
+1: Used PM runtime API for clock handling and nit's pointed by Sekhar.
+
+Lad, Prabhakar (3):
+  media: davinci: vpss: enable vpss clocks
+  media: davinci: vpbe: venc: move the enabling of vpss clocks to
+    driver
+  davinic: vpss: trivial cleanup
+
+ arch/arm/mach-davinci/dm355.c                |    7 +---
+ arch/arm/mach-davinci/dm365.c                |   11 +++++--
+ arch/arm/mach-davinci/dm644x.c               |    9 +----
+ arch/arm/mach-davinci/pm_domain.c            |    2 +-
+ drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------------
+ drivers/media/platform/davinci/dm644x_ccdc.c |   44 --------------------------
+ drivers/media/platform/davinci/isif.c        |   28 ++--------------
+ drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++++++++++++
+ drivers/media/platform/davinci/vpss.c        |   36 ++++++++++++++++-----
+ 9 files changed, 71 insertions(+), 130 deletions(-)
+
+-- 
+1.7.4.1
+
