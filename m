@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59019 "EHLO mx2.suse.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45591 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754261Ab3DPMGu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 08:06:50 -0400
-From: Michal Marek <mmarek@suse.cz>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] em28xx: Put remaining .vidioc_g_chip_info instance under ADV_DEBUG
-Date: Tue, 16 Apr 2013 14:06:30 +0200
-Message-Id: <1366113990-19801-1-git-send-email-mmarek@suse.cz>
+	id S936643Ab3DHK0T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Apr 2013 06:26:19 -0400
+Message-ID: <51629B3D.4080905@ti.com>
+Date: Mon, 8 Apr 2013 15:56:05 +0530
+From: Sekhar Nori <nsekhar@ti.com>
+MIME-Version: 1.0
+To: Prabhakar lad <prabhakar.csengg@gmail.com>
+CC: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/3] media: davinci: vpss: enable vpss clocks
+References: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com> <1364903044-13752-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1364903044-13752-2-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit cd634f1 ("[media] v4l2: put VIDIOC_DBG_G_CHIP_NAME under
-ADV_DEBUG") missed the initializer of radio_ioctl_ops:
+On 4/2/2013 5:14 PM, Prabhakar lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> By default the VPSS clocks were enabled in capture driver
+> for davinci family which creates duplicates for dm355/dm365/dm644x.
+> This patch adds support to enable the VPSS clocks in VPSS driver,
+> which avoids duplication of code and also adding clock aliases.
+> 
+> This patch uses PM runtime API to enable/disable instead common clock
+> framework. con_ids for master and slave clocks of vpss is added in pm_domain
 
-drivers/media/usb/em28xx/em28xx-video.c:1830:2: error: unknown field 'vidioc_g_chip_info' specified in initializer
-drivers/media/usb/em28xx/em28xx-video.c:1830:26: error: 'vidioc_g_chip_info' undeclared here (not in a function)
+Common clock framework in not (yet) used on DaVinci, so this is misleading.
 
-Signed-off-by: Michal Marek <mmarek@suse.cz>
----
- drivers/media/usb/em28xx/em28xx-video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
+> index c90250e..445b10b 100644
+> --- a/arch/arm/mach-davinci/pm_domain.c
+> +++ b/arch/arm/mach-davinci/pm_domain.c
+> @@ -53,7 +53,7 @@ static struct dev_pm_domain davinci_pm_domain = {
+>  
+>  static struct pm_clk_notifier_block platform_bus_notifier = {
+>  	.pm_domain = &davinci_pm_domain,
+> -	.con_ids = { "fck", NULL, },
+> +	.con_ids = { "fck", "master", "slave", NULL, },
 
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index c27c1f6..32d60e5 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -1827,8 +1827,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- 	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
--	.vidioc_g_chip_info   = vidioc_g_chip_info,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.vidioc_g_chip_info   = vidioc_g_chip_info,
- 	.vidioc_g_register    = vidioc_g_register,
- 	.vidioc_s_register    = vidioc_s_register,
- #endif
--- 
-1.8.2.1
+NULL is sentinel so you can drop the ',' after that. Apart from that,
+for the mach-davinci parts:
 
+Acked-by: Sekhar Nori <nsekhar@ti.com>
+
+Thanks,
+Sekhar
