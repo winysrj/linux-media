@@ -1,47 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:43894 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555Ab3DXLgy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 07:36:54 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH 1/2] [media] anysee: Initialize ret = 0 in anysee_frontend_attach()
-Date: Wed, 24 Apr 2013 13:36:45 +0200
-Message-Id: <1366803406-17738-1-git-send-email-geert@linux-m68k.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1444 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934608Ab3DHKrw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:47:52 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Subject: [REVIEW PATCH 0/7] radio-si4713: driver overhaul
+Date: Mon,  8 Apr 2013 12:47:34 +0200
+Message-Id: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/usb/dvb-usb-v2/anysee.c: In function ‘anysee_frontend_attach’:
-drivers/media/usb/dvb-usb-v2/anysee.c:641: warning: ‘ret’ may be used uninitialized in this function
+This patch series makes radio-si4713 compliant with v4l2-compliance.
 
-And gcc is right (see the ANYSEE_HW_507T case), so initialize ret to zero
-to fix this.
+Eduardo, thanks for testing the previous code. I hope this version resolves
+all the issues we found. Can you test again?
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/usb/dvb-usb-v2/anysee.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This code is also available here:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/anysee.c b/drivers/media/usb/dvb-usb-v2/anysee.c
-index a20d691..3a1f976 100644
---- a/drivers/media/usb/dvb-usb-v2/anysee.c
-+++ b/drivers/media/usb/dvb-usb-v2/anysee.c
-@@ -638,7 +638,7 @@ static int anysee_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct anysee_state *state = adap_to_priv(adap);
- 	struct dvb_usb_device *d = adap_to_d(adap);
--	int ret;
-+	int ret = 0;
- 	u8 tmp;
- 	struct i2c_msg msg[2] = {
- 		{
--- 
-1.7.0.4
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/si4713b
+
+Make sure you also update v4l2-compliance: I found a bug in the way RDS
+capabilities were tested.
+
+Regards,
+
+	Hans
 
