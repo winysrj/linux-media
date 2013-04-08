@@ -1,108 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5770 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755300Ab3DQAm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:56 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gtAm021070
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:55 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 18/31] [media] r820t: fix prefix of the r820t_read() function
-Date: Tue, 16 Apr 2013 21:42:29 -0300
-Message-Id: <1366159362-3773-19-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2752 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934811Ab3DHK7X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 09/12] hdpvr: recognize firmware version 0x1e.
+Date: Mon,  8 Apr 2013 12:58:38 +0200
+Message-Id: <1365418721-23859-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just cosmetic changes: all other functions are prefixed
-by r820t. Do the same for r820t_read().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This is the latest firmware version and - it seems - the most reliable.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/r820t.c | 16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-core.c |    1 +
+ drivers/media/usb/hdpvr/hdpvr.h      |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index ef100ab..e9367d8 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -425,7 +425,7 @@ static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
- 	return r820t_write(priv, reg, &val, 1);
- }
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 248835b..8247c19 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -174,6 +174,7 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	case HDPVR_FIRMWARE_VERSION_AC3:
+ 	case HDPVR_FIRMWARE_VERSION_0X12:
+ 	case HDPVR_FIRMWARE_VERSION_0X15:
++	case HDPVR_FIRMWARE_VERSION_0X1E:
+ 		dev->flags |= HDPVR_FLAG_AC3_CAP;
+ 		break;
+ 	default:
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index 9450093..1c12981 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -38,6 +38,7 @@
+ #define HDPVR_FIRMWARE_VERSION_AC3	0x0d
+ #define HDPVR_FIRMWARE_VERSION_0X12	0x12
+ #define HDPVR_FIRMWARE_VERSION_0X15	0x15
++#define HDPVR_FIRMWARE_VERSION_0X1E	0x1e
  
--static int r820_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
-+static int r820t_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
- {
- 	int rc, i;
- 	u8 *p = &priv->buf[1];
-@@ -573,7 +573,7 @@ static int r820t_set_pll(struct r820t_priv *priv, u32 freq)
- 		mix_div = mix_div << 1;
- 	}
- 
--	rc = r820_read(priv, 0x00, data, sizeof(data));
-+	rc = r820t_read(priv, 0x00, data, sizeof(data));
- 	if (rc < 0)
- 		return rc;
- 
-@@ -660,7 +660,7 @@ static int r820t_set_pll(struct r820t_priv *priv, u32 freq)
- 		msleep(10);
- 
- 		/* Check if PLL has locked */
--		rc = r820_read(priv, 0x00, data, 3);
-+		rc = r820t_read(priv, 0x00, data, 3);
- 		if (rc < 0)
- 			return rc;
- 		if (data[2] & 0x40)
-@@ -1062,7 +1062,7 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
- 				return rc;
- 
- 			/* Check if calibration worked */
--			rc = r820_read(priv, 0x00, data, sizeof(data));
-+			rc = r820t_read(priv, 0x00, data, sizeof(data));
- 			if (rc < 0)
- 				return rc;
- 
-@@ -1135,7 +1135,7 @@ static int r820t_read_gain(struct r820t_priv *priv)
- 	u8 data[4];
- 	int rc;
- 
--	rc = r820_read(priv, 0x00, data, sizeof(data));
-+	rc = r820t_read(priv, 0x00, data, sizeof(data));
- 	if (rc < 0)
- 		return rc;
- 
-@@ -1163,7 +1163,7 @@ static int r820t_set_gain_mode(struct r820t_priv *priv,
- 		if (rc < 0)
- 			return rc;
- 
--		rc = r820_read(priv, 0x00, data, sizeof(data));
-+		rc = r820t_read(priv, 0x00, data, sizeof(data));
- 		if (rc < 0)
- 			return rc;
- 
-@@ -1349,7 +1349,7 @@ static int r820t_xtal_check(struct r820t_priv *priv)
- 
- 		msleep(5);
- 
--		rc = r820_read(priv, 0x00, data, sizeof(data));
-+		rc = r820t_read(priv, 0x00, data, sizeof(data));
- 		if (rc < 0)
- 			return rc;
- 		if ((!data[2]) & 0x40)
-@@ -1621,7 +1621,7 @@ struct dvb_frontend *r820t_attach(struct dvb_frontend *fe,
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
- 	/* check if the tuner is there */
--	rc = r820_read(priv, 0x00, data, sizeof(data));
-+	rc = r820t_read(priv, 0x00, data, sizeof(data));
- 	if (rc < 0)
- 		goto err;
+ /* #define HDPVR_DEBUG */
  
 -- 
-1.8.1.4
+1.7.10.4
 
