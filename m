@@ -1,38 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f172.google.com ([209.85.217.172]:61456 "EHLO
-	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754152Ab3DTUOo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 16:14:44 -0400
-Received: by mail-lb0-f172.google.com with SMTP id u10so4640415lbi.3
-        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:14:42 -0700 (PDT)
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: [PATCH 0/5] OKI ML86V7667 driver and R8A7778/BOCK-W VIN support
-Cc: matsu@igel.co.jp, vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Sun, 21 Apr 2013 00:13:45 +0400
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3942 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760527Ab3DHIjE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 04:39:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Frank =?iso-8859-15?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Subject: Re: em28xx: kernel oops in em28xx_tuner_callback() when watching digital TV
+Date: Mon, 8 Apr 2013 10:38:54 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <515EF7CF.4060107@googlemail.com> <201304060838.42052.hverkuil@xs4all.nl> <5161ECE7.1060808@googlemail.com>
+In-Reply-To: <5161ECE7.1060808@googlemail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201304081038.54531.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Mon April 8 2013 00:02:15 Frank Schäfer wrote:
+> 
+> 
+> In em28xx_start_streaming() and also em28xx_stop_streaming() we do
+> 
+>      struct em28xx *dev = dvb->adapter.priv;
+> 
+> which I would say should be the culprit.
+> Are you sure that dvb->adapter.priv needs to be assigned to i2c_bus
+> instead of dev ?
+> Anyway, I modified both functions to obtain the right pointer to dev,
+> but this caused another oops.
+> I also tested without changing dvb->adapter.priv: oops :-/
 
-   Here's the set of 4 patches against the Simon Horman's 'renesas.git' repo,
-'renesas-next-20130419' tag and my recent yet unapplied patches. Here we
-add the OKI ML86V7667 video decoder driver and the VIN platform code working on
-the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
-to Mauro's 'media_tree.git'...
+Can you try this patch? I did miss the adapter.priv change, so I've added that.
+I also noticed that I converted fe->dvb->priv as well, which is not correct.
 
-[1/5] V4L2: I2C: ML86V7667 video decoder driver
-[2/5] sh-pfc: r8a7778: add VIN pin groups
-[3/5] ARM: shmobile: r8a7778: add VIN support
-[4/5] ARM: shmobile: BOCK-W: add VIN and ADV7180 support
-[5/5] ARM: shmobile: BOCK-W: enable VIN and ADV7180 in defconfig
+So I'm hoping that this will do the trick.
 
-WBR, Sergei
+Regards,
+
+	Hans
+
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 42a6a26..1f1f56f 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -178,7 +178,8 @@ static inline int em28xx_dvb_urb_data_copy(struct em28xx *dev, struct urb *urb)
+ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ {
+ 	int rc;
+-	struct em28xx *dev = dvb->adapter.priv;
++	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
++	struct em28xx *dev = i2c_bus->dev;
+ 	int dvb_max_packet_size, packet_multiplier, dvb_alt;
+ 
+ 	if (dev->dvb_xfer_bulk) {
+@@ -217,7 +218,8 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 
+ static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
+ {
+-	struct em28xx *dev = dvb->adapter.priv;
++	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
++	struct em28xx *dev = i2c_bus->dev;
+ 
+ 	em28xx_stop_urbs(dev);
+ 
+@@ -839,7 +841,7 @@ static int em28xx_register_dvb(struct em28xx_dvb *dvb, struct module *module,
+ 	if (dvb->fe[1])
+ 		dvb->fe[1]->ops.ts_bus_ctrl = em28xx_dvb_bus_ctrl;
+ 
+-	dvb->adapter.priv = dev;
++	dvb->adapter.priv = &dev->i2c_bus[dev->def_i2c_bus];
+ 
+ 	/* register frontend */
+ 	result = dvb_register_frontend(&dvb->adapter, dvb->fe[0]);
