@@ -1,718 +1,663 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2652 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934Ab3DNP1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 11:27:48 -0400
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3001 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934735Ab3DHK7X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 10/30] cx25821: make lots of externals static.
-Date: Sun, 14 Apr 2013 17:27:06 +0200
-Message-Id: <1365953246-8972-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 03/12] hdpvr: convert to the control framework.
+Date: Mon,  8 Apr 2013 12:58:32 +0200
+Message-Id: <1365418721-23859-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A lot of functions and variables were external when they really can be
-declared as static.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/pci/cx25821/cx25821-video.c |  313 ++++++++++++++---------------
- drivers/media/pci/cx25821/cx25821-video.h |   74 -------
- drivers/media/pci/cx25821/cx25821.h       |    9 +-
- 3 files changed, 153 insertions(+), 243 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-video.c |  515 +++++++++------------------------
+ drivers/media/usb/hdpvr/hdpvr.h       |    8 +
+ 2 files changed, 145 insertions(+), 378 deletions(-)
 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index 9ddc7ac..9e948ef 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -46,15 +46,13 @@ static unsigned int irq_debug;
- module_param(irq_debug, int, 0644);
- MODULE_PARM_DESC(irq_debug, "enable debug messages [IRQ handler]");
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 2983bf0..a890127 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -710,335 +710,69 @@ static int vidioc_g_audio(struct file *file, void *private_data,
+ 	return 0;
+ }
  
--unsigned int vid_limit = 16;
-+static unsigned int vid_limit = 16;
- module_param(vid_limit, int, 0644);
- MODULE_PARM_DESC(vid_limit, "capture memory limit in megabytes");
- 
--static void cx25821_init_controls(struct cx25821_dev *dev, int chan_num);
+-static const s32 supported_v4l2_ctrls[] = {
+-	V4L2_CID_BRIGHTNESS,
+-	V4L2_CID_CONTRAST,
+-	V4L2_CID_SATURATION,
+-	V4L2_CID_HUE,
+-	V4L2_CID_SHARPNESS,
+-	V4L2_CID_MPEG_AUDIO_ENCODING,
+-	V4L2_CID_MPEG_VIDEO_ENCODING,
+-	V4L2_CID_MPEG_VIDEO_BITRATE_MODE,
+-	V4L2_CID_MPEG_VIDEO_BITRATE,
+-	V4L2_CID_MPEG_VIDEO_BITRATE_PEAK,
+-};
 -
- #define FORMAT_FLAGS_PACKED       0x01
- 
--struct cx25821_fmt formats[] = {
-+static const struct cx25821_fmt formats[] = {
- 	{
- 		.name = "8 bpp, gray",
- 		.fourcc = V4L2_PIX_FMT_GREY,
-@@ -83,12 +81,7 @@ struct cx25821_fmt formats[] = {
- 	},
- };
- 
--int cx25821_get_format_size(void)
+-static int fill_queryctrl(struct hdpvr_options *opt, struct v4l2_queryctrl *qc,
+-			  int ac3, int fw_ver)
 -{
--	return ARRAY_SIZE(formats);
--}
--
--struct cx25821_fmt *cx25821_format_by_fourcc(unsigned int fourcc)
-+static const struct cx25821_fmt *cx25821_format_by_fourcc(unsigned int fourcc)
- {
- 	unsigned int i;
- 
-@@ -138,7 +131,7 @@ void cx25821_video_wakeup(struct cx25821_dev *dev, struct cx25821_dmaqueue *q,
- 		pr_err("%s: %d buffers handled (should be 1)\n", __func__, bc);
- }
- 
--int cx25821_set_tvnorm(struct cx25821_dev *dev, v4l2_std_id norm)
-+static int cx25821_set_tvnorm(struct cx25821_dev *dev, v4l2_std_id norm)
- {
- 	dprintk(1, "%s(norm = 0x%08x) name: [%s]\n",
- 		__func__, (unsigned int)norm, v4l2_norm_to_name(norm));
-@@ -151,7 +144,7 @@ int cx25821_set_tvnorm(struct cx25821_dev *dev, v4l2_std_id norm)
- 	return 0;
- }
- 
--struct video_device *cx25821_vdev_init(struct cx25821_dev *dev,
-+static struct video_device *cx25821_vdev_init(struct cx25821_dev *dev,
- 				       struct pci_dev *pci,
- 				       const struct video_device *template,
- 				       char *type)
-@@ -237,7 +230,7 @@ void cx25821_res_free(struct cx25821_dev *dev, struct cx25821_fh *fh,
- 	mutex_unlock(&dev->lock);
- }
- 
--int cx25821_video_mux(struct cx25821_dev *dev, unsigned int input)
-+static int cx25821_video_mux(struct cx25821_dev *dev, unsigned int input)
- {
- 	struct v4l2_routing route;
- 	memset(&route, 0, sizeof(route));
-@@ -403,7 +396,7 @@ int cx25821_video_irq(struct cx25821_dev *dev, int chan_num, u32 status)
- 	return handled;
- }
- 
--int cx25821_buffer_setup(struct videobuf_queue *q, unsigned int *count,
-+static int cx25821_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 		 unsigned int *size)
- {
- 	struct cx25821_fh *fh = q->priv_data;
-@@ -419,7 +412,7 @@ int cx25821_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 	return 0;
- }
- 
--int cx25821_buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
-+static int cx25821_buffer_prepare(struct videobuf_queue *q, struct videobuf_buffer *vb,
- 		   enum v4l2_field field)
- {
- 	struct cx25821_fh *fh = q->priv_data;
-@@ -546,7 +539,7 @@ fail:
- 	return rc;
- }
- 
--void cx25821_buffer_release(struct videobuf_queue *q,
-+static void cx25821_buffer_release(struct videobuf_queue *q,
- 			    struct videobuf_buffer *vb)
- {
- 	struct cx25821_buffer *buf =
-@@ -555,7 +548,7 @@ void cx25821_buffer_release(struct videobuf_queue *q,
- 	cx25821_free_buffer(q, buf);
- }
- 
--struct videobuf_queue *get_queue(struct cx25821_fh *fh)
-+static struct videobuf_queue *get_queue(struct cx25821_fh *fh)
- {
- 	switch (fh->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-@@ -566,7 +559,7 @@ struct videobuf_queue *get_queue(struct cx25821_fh *fh)
- 	}
- }
- 
--int cx25821_get_resource(struct cx25821_fh *fh, int resource)
-+static int cx25821_get_resource(struct cx25821_fh *fh, int resource)
- {
- 	switch (fh->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-@@ -577,7 +570,7 @@ int cx25821_get_resource(struct cx25821_fh *fh, int resource)
- 	}
- }
- 
--int cx25821_video_mmap(struct file *file, struct vm_area_struct *vma)
-+static int cx25821_video_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct cx25821_fh *fh = file->private_data;
- 
-@@ -795,6 +788,70 @@ static int video_release(struct file *file)
- 	return 0;
- }
- 
-+/* VIDEO IOCTLS */
-+static int cx25821_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
-+				 struct v4l2_format *f)
-+{
-+	struct cx25821_fh *fh = priv;
-+
-+	f->fmt.pix.width = fh->width;
-+	f->fmt.pix.height = fh->height;
-+	f->fmt.pix.field = fh->vidq.field;
-+	f->fmt.pix.pixelformat = fh->fmt->fourcc;
-+	f->fmt.pix.bytesperline = (f->fmt.pix.width * fh->fmt->depth) >> 3;
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+
-+	return 0;
-+}
-+
-+static int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
-+				   struct v4l2_format *f)
-+{
-+	const struct cx25821_fmt *fmt;
-+	enum v4l2_field field;
-+	unsigned int maxw, maxh;
-+
-+	fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
-+	if (NULL == fmt)
-+		return -EINVAL;
-+
-+	field = f->fmt.pix.field;
-+	maxw = 720;
-+	maxh = 576;
-+
-+	if (V4L2_FIELD_ANY == field) {
-+		if (f->fmt.pix.height > maxh / 2)
-+			field = V4L2_FIELD_INTERLACED;
-+		else
-+			field = V4L2_FIELD_TOP;
-+	}
-+
-+	switch (field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+		maxh = maxh / 2;
-+		break;
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	f->fmt.pix.field = field;
-+	if (f->fmt.pix.height < 32)
-+		f->fmt.pix.height = 32;
-+	if (f->fmt.pix.height > maxh)
-+		f->fmt.pix.height = maxh;
-+	if (f->fmt.pix.width < 48)
-+		f->fmt.pix.width = 48;
-+	if (f->fmt.pix.width > maxw)
-+		f->fmt.pix.width = maxw;
-+	f->fmt.pix.width &= ~0x03;
-+	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+
-+	return 0;
-+}
- static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct cx25821_fh *fh = priv;
-@@ -832,6 +889,43 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- 	return 0;
- }
- 
-+static int cx25821_is_valid_width(u32 width, v4l2_std_id tvnorm)
-+{
-+	if (tvnorm == V4L2_STD_PAL_BG) {
-+		if (width == 352 || width == 720)
-+			return 1;
-+		else
-+			return 0;
-+	}
-+
-+	if (tvnorm == V4L2_STD_NTSC_M) {
-+		if (width == 320 || width == 352 || width == 720)
-+			return 1;
-+		else
-+			return 0;
-+	}
-+	return 0;
-+}
-+
-+static int cx25821_is_valid_height(u32 height, v4l2_std_id tvnorm)
-+{
-+	if (tvnorm == V4L2_STD_PAL_BG) {
-+		if (height == 576 || height == 288)
-+			return 1;
-+		else
-+			return 0;
-+	}
-+
-+	if (tvnorm == V4L2_STD_NTSC_M) {
-+		if (height == 480 || height == 240)
-+			return 1;
-+		else
-+			return 0;
-+	}
-+
-+	return 0;
-+}
-+
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
-@@ -918,89 +1012,8 @@ static int vidioc_log_status(struct file *file, void *priv)
- 	return 0;
- }
- 
--static int vidioc_s_ctrl(struct file *file, void *priv,
--			struct v4l2_control *ctl)
--{
--	struct cx25821_fh *fh = priv;
--	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
 -	int err;
 -
--	if (fh) {
--		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
--				      fh->prio);
--		if (0 != err)
--			return err;
+-	if (fw_ver > 0x15) {
+-		switch (qc->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		case V4L2_CID_CONTRAST:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x40);
+-		case V4L2_CID_SATURATION:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x40);
+-		case V4L2_CID_HUE:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0x1e, 1, 0xf);
+-		case V4L2_CID_SHARPNESS:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		}
+-	} else {
+-		switch (qc->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x86);
+-		case V4L2_CID_CONTRAST:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		case V4L2_CID_SATURATION:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		case V4L2_CID_HUE:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		case V4L2_CID_SHARPNESS:
+-			return v4l2_ctrl_query_fill(qc, 0x0, 0xff, 1, 0x80);
+-		}
 -	}
 -
--	return cx25821_set_control(dev, ctl, fh->channel_id);
--}
+-	switch (qc->id) {
+-	case V4L2_CID_MPEG_AUDIO_ENCODING:
+-		return v4l2_ctrl_query_fill(
+-			qc, V4L2_MPEG_AUDIO_ENCODING_AAC,
+-			ac3 ? V4L2_MPEG_AUDIO_ENCODING_AC3
+-			: V4L2_MPEG_AUDIO_ENCODING_AAC,
+-			1, V4L2_MPEG_AUDIO_ENCODING_AAC);
+-	case V4L2_CID_MPEG_VIDEO_ENCODING:
+-		return v4l2_ctrl_query_fill(
+-			qc, V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC,
+-			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 1,
+-			V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC);
 -
--/* VIDEO IOCTLS */
--int cx25821_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
--				 struct v4l2_format *f)
--{
--	struct cx25821_fh *fh = priv;
+-/* 	case V4L2_CID_MPEG_VIDEO_? maybe keyframe interval: */
+-/* 		return v4l2_ctrl_query_fill(qc, 0, 128, 128, 0); */
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+-		return v4l2_ctrl_query_fill(
+-			qc, V4L2_MPEG_VIDEO_BITRATE_MODE_VBR,
+-			V4L2_MPEG_VIDEO_BITRATE_MODE_CBR, 1,
+-			V4L2_MPEG_VIDEO_BITRATE_MODE_CBR);
 -
--	f->fmt.pix.width = fh->width;
--	f->fmt.pix.height = fh->height;
--	f->fmt.pix.field = fh->vidq.field;
--	f->fmt.pix.pixelformat = fh->fmt->fourcc;
--	f->fmt.pix.bytesperline = (f->fmt.pix.width * fh->fmt->depth) >> 3;
--	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
--
--	return 0;
--}
--
--int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
--				   struct v4l2_format *f)
--{
--	struct cx25821_fmt *fmt;
--	enum v4l2_field field;
--	unsigned int maxw, maxh;
--
--	fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
--	if (NULL == fmt)
+-	case V4L2_CID_MPEG_VIDEO_BITRATE:
+-		return v4l2_ctrl_query_fill(qc, 1000000, 13500000, 100000,
+-					    6500000);
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
+-		err = v4l2_ctrl_query_fill(qc, 1100000, 20200000, 100000,
+-					   9000000);
+-		if (!err && opt->bitrate_mode == HDPVR_CONSTANT)
+-			qc->flags |= V4L2_CTRL_FLAG_INACTIVE;
+-		return err;
+-	default:
 -		return -EINVAL;
+-	}
+-}
 -
--	field = f->fmt.pix.field;
--	maxw = 720;
--	maxh = 576;
+-static int vidioc_queryctrl(struct file *file, void *private_data,
+-			    struct v4l2_queryctrl *qc)
++static int hdpvr_try_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int i, next;
+-	u32 id = qc->id;
 -
--	if (V4L2_FIELD_ANY == field) {
--		if (f->fmt.pix.height > maxh / 2)
--			field = V4L2_FIELD_INTERLACED;
--		else
--			field = V4L2_FIELD_TOP;
+-	memset(qc, 0, sizeof(*qc));
+-
+-	next = !!(id &  V4L2_CTRL_FLAG_NEXT_CTRL);
+-	qc->id = id & ~V4L2_CTRL_FLAG_NEXT_CTRL;
+-
+-	for (i = 0; i < ARRAY_SIZE(supported_v4l2_ctrls); i++) {
+-		if (next) {
+-			if (qc->id < supported_v4l2_ctrls[i])
+-				qc->id = supported_v4l2_ctrls[i];
+-			else
+-				continue;
+-		}
+-
+-		if (qc->id == supported_v4l2_ctrls[i])
+-			return fill_queryctrl(&dev->options, qc,
+-					      dev->flags & HDPVR_FLAG_AC3_CAP,
+-					      dev->fw_ver);
+-
+-		if (qc->id < supported_v4l2_ctrls[i])
+-			break;
 -	}
 -
--	switch (field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--		maxh = maxh / 2;
+-	return -EINVAL;
+-}
+-
+-static int vidioc_g_ctrl(struct file *file, void *private_data,
+-			 struct v4l2_control *ctrl)
+-{
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev =
++		container_of(ctrl->handler, struct hdpvr_device, hdl);
+ 
+ 	switch (ctrl->id) {
+-	case V4L2_CID_BRIGHTNESS:
+-		ctrl->value = dev->options.brightness;
 -		break;
--	case V4L2_FIELD_INTERLACED:
+-	case V4L2_CID_CONTRAST:
+-		ctrl->value = dev->options.contrast;
+-		break;
+-	case V4L2_CID_SATURATION:
+-		ctrl->value = dev->options.saturation;
+-		break;
+-	case V4L2_CID_HUE:
+-		ctrl->value = dev->options.hue;
+-		break;
+-	case V4L2_CID_SHARPNESS:
+-		ctrl->value = dev->options.sharpness;
++	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
++		if (ctrl->val == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR &&
++		    dev->video_bitrate->val >= dev->video_bitrate_peak->val)
++			dev->video_bitrate_peak->val =
++					dev->video_bitrate->val + 100000;
+ 		break;
+-	default:
+-		return -EINVAL;
+ 	}
+ 	return 0;
+ }
+ 
+-static int vidioc_s_ctrl(struct file *file, void *private_data,
+-			 struct v4l2_control *ctrl)
++static int hdpvr_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int retval;
++	struct hdpvr_device *dev =
++		container_of(ctrl->handler, struct hdpvr_device, hdl);
++	struct hdpvr_options *opt = &dev->options;
++	int ret = -EINVAL;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-		retval = hdpvr_config_call(dev, CTRL_BRIGHTNESS, ctrl->value);
+-		if (!retval)
+-			dev->options.brightness = ctrl->value;
+-		break;
++		ret = hdpvr_config_call(dev, CTRL_BRIGHTNESS, ctrl->val);
++		if (ret)
++			break;
++		dev->options.brightness = ctrl->val;
++		return 0;
+ 	case V4L2_CID_CONTRAST:
+-		retval = hdpvr_config_call(dev, CTRL_CONTRAST, ctrl->value);
+-		if (!retval)
+-			dev->options.contrast = ctrl->value;
+-		break;
++		ret = hdpvr_config_call(dev, CTRL_CONTRAST, ctrl->val);
++		if (ret)
++			break;
++		dev->options.contrast = ctrl->val;
++		return 0;
+ 	case V4L2_CID_SATURATION:
+-		retval = hdpvr_config_call(dev, CTRL_SATURATION, ctrl->value);
+-		if (!retval)
+-			dev->options.saturation = ctrl->value;
+-		break;
++		ret = hdpvr_config_call(dev, CTRL_SATURATION, ctrl->val);
++		if (ret)
++			break;
++		dev->options.saturation = ctrl->val;
++		return 0;
+ 	case V4L2_CID_HUE:
+-		retval = hdpvr_config_call(dev, CTRL_HUE, ctrl->value);
+-		if (!retval)
+-			dev->options.hue = ctrl->value;
+-		break;
++		ret = hdpvr_config_call(dev, CTRL_HUE, ctrl->val);
++		if (ret)
++			break;
++		dev->options.hue = ctrl->val;
++		return 0;
+ 	case V4L2_CID_SHARPNESS:
+-		retval = hdpvr_config_call(dev, CTRL_SHARPNESS, ctrl->value);
+-		if (!retval)
+-			dev->options.sharpness = ctrl->value;
 -		break;
 -	default:
 -		return -EINVAL;
 -	}
 -
--	f->fmt.pix.field = field;
--	if (f->fmt.pix.height < 32)
--		f->fmt.pix.height = 32;
--	if (f->fmt.pix.height > maxh)
--		f->fmt.pix.height = maxh;
--	if (f->fmt.pix.width < 48)
--		f->fmt.pix.width = 48;
--	if (f->fmt.pix.width > maxw)
--		f->fmt.pix.width = maxw;
--	f->fmt.pix.width &= ~0x03;
--	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
--	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
+-	return retval;
+-}
 -
+-
+-static int hdpvr_get_ctrl(struct hdpvr_options *opt,
+-			  struct v4l2_ext_control *ctrl)
+-{
+-	switch (ctrl->id) {
+-	case V4L2_CID_MPEG_AUDIO_ENCODING:
+-		ctrl->value = opt->audio_codec;
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_ENCODING:
+-		ctrl->value = V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC;
+-		break;
+-/* 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: */
+-/* 		ctrl->value = (opt->gop_mode & 0x2) ? 0 : 128; */
+-/* 		break; */
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+-		ctrl->value = opt->bitrate_mode == HDPVR_CONSTANT
+-			? V4L2_MPEG_VIDEO_BITRATE_MODE_CBR
+-			: V4L2_MPEG_VIDEO_BITRATE_MODE_VBR;
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_BITRATE:
+-		ctrl->value = opt->bitrate * 100000;
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
+-		ctrl->value = opt->peak_bitrate * 100000;
+-		break;
+-	case V4L2_CID_MPEG_STREAM_TYPE:
+-		ctrl->value = V4L2_MPEG_STREAM_TYPE_MPEG2_TS;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
 -	return 0;
 -}
- 
--int cx25821_vidioc_querycap(struct file *file, void *priv,
-+static int cx25821_vidioc_querycap(struct file *file, void *priv,
- 			    struct v4l2_capability *cap)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
-@@ -1020,7 +1033,7 @@ int cx25821_vidioc_querycap(struct file *file, void *priv,
- 	return 0;
- }
- 
--int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-+static int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
- 			    struct v4l2_fmtdesc *f)
- {
- 	if (unlikely(f->index >= ARRAY_SIZE(formats)))
-@@ -1032,27 +1045,27 @@ int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--int cx25821_vidioc_reqbufs(struct file *file, void *priv,
-+static int cx25821_vidioc_reqbufs(struct file *file, void *priv,
- 			   struct v4l2_requestbuffers *p)
- {
- 	struct cx25821_fh *fh = priv;
- 	return videobuf_reqbufs(get_queue(fh), p);
- }
- 
--int cx25821_vidioc_querybuf(struct file *file, void *priv,
-+static int cx25821_vidioc_querybuf(struct file *file, void *priv,
- 			    struct v4l2_buffer *p)
- {
- 	struct cx25821_fh *fh = priv;
- 	return videobuf_querybuf(get_queue(fh), p);
- }
- 
--int cx25821_vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
-+static int cx25821_vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- {
- 	struct cx25821_fh *fh = priv;
- 	return videobuf_qbuf(get_queue(fh), p);
- }
- 
--int cx25821_vidioc_g_priority(struct file *file, void *f, enum v4l2_priority *p)
-+static int cx25821_vidioc_g_priority(struct file *file, void *f, enum v4l2_priority *p)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)f)->dev;
- 	struct cx25821_fh *fh = f;
-@@ -1062,7 +1075,7 @@ int cx25821_vidioc_g_priority(struct file *file, void *f, enum v4l2_priority *p)
- 	return 0;
- }
- 
--int cx25821_vidioc_s_priority(struct file *file, void *f,
-+static int cx25821_vidioc_s_priority(struct file *file, void *f,
- 			      enum v4l2_priority prio)
- {
- 	struct cx25821_fh *fh = f;
-@@ -1072,7 +1085,7 @@ int cx25821_vidioc_s_priority(struct file *file, void *f,
- 			prio);
- }
- 
--int cx25821_vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorms)
-+static int cx25821_vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorms)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 
-@@ -1107,18 +1120,20 @@ int cx25821_vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- 	return 0;
- }
- 
--int cx25821_enum_input(struct cx25821_dev *dev, struct v4l2_input *i)
-+static int cx25821_vidioc_enum_input(struct file *file, void *priv,
-+			      struct v4l2_input *i)
- {
- 	static const char * const iname[] = {
- 		[CX25821_VMUX_COMPOSITE] = "Composite",
- 		[CX25821_VMUX_SVIDEO] = "S-Video",
- 		[CX25821_VMUX_DEBUG] = "for debug only",
- 	};
-+	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 	unsigned int n;
- 	dprintk(1, "%s()\n", __func__);
- 
- 	n = i->index;
--	if (n >= 2)
-+	if (n >= CX25821_NR_INPUT)
- 		return -EINVAL;
- 
- 	if (0 == INPUT(n)->type)
-@@ -1131,15 +1146,7 @@ int cx25821_enum_input(struct cx25821_dev *dev, struct v4l2_input *i)
- 	return 0;
- }
- 
--int cx25821_vidioc_enum_input(struct file *file, void *priv,
--			      struct v4l2_input *i)
+-
+-static int vidioc_g_ext_ctrls(struct file *file, void *priv,
+-			      struct v4l2_ext_controls *ctrls)
 -{
--	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
--	dprintk(1, "%s()\n", __func__);
--	return cx25821_enum_input(dev, i);
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int i, err = 0;
+-
+-	if (ctrls->ctrl_class == V4L2_CTRL_CLASS_MPEG) {
+-		for (i = 0; i < ctrls->count; i++) {
+-			struct v4l2_ext_control *ctrl = ctrls->controls + i;
+-
+-			err = hdpvr_get_ctrl(&dev->options, ctrl);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-		}
+-		return err;
+-
+-	}
+-
+-	return -EINVAL;
 -}
 -
--int cx25821_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
-+static int cx25821_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 
-@@ -1148,7 +1155,7 @@ int cx25821_vidioc_g_input(struct file *file, void *priv, unsigned int *i)
- 	return 0;
- }
- 
--int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
-+static int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
- {
- 	struct cx25821_fh *fh = priv;
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
-@@ -1262,7 +1269,7 @@ static int cx25821_ctrl_query(struct v4l2_queryctrl *qctrl)
- 	return 0;
- }
- 
--int cx25821_vidioc_queryctrl(struct file *file, void *priv,
-+static int cx25821_vidioc_queryctrl(struct file *file, void *priv,
- 		     struct v4l2_queryctrl *qctrl)
- {
- 	return cx25821_ctrl_query(qctrl);
-@@ -1281,7 +1288,7 @@ static const struct v4l2_queryctrl *ctrl_by_id(unsigned int id)
- 	return NULL;
- }
- 
--int cx25821_vidioc_g_ctrl(struct file *file, void *priv,
-+static int cx25821_vidioc_g_ctrl(struct file *file, void *priv,
- 			  struct v4l2_control *ctl)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
-@@ -1310,7 +1317,7 @@ int cx25821_vidioc_g_ctrl(struct file *file, void *priv,
- 	return 0;
- }
- 
--int cx25821_set_control(struct cx25821_dev *dev,
-+static int cx25821_set_control(struct cx25821_dev *dev,
- 			struct v4l2_control *ctl, int chan_num)
- {
- 	int err;
-@@ -1360,6 +1367,23 @@ int cx25821_set_control(struct cx25821_dev *dev,
- 	return err;
- }
- 
-+static int vidioc_s_ctrl(struct file *file, void *priv,
-+			struct v4l2_control *ctl)
-+{
-+	struct cx25821_fh *fh = priv;
-+	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
-+	int err;
+-
+-static int hdpvr_try_ctrl(struct v4l2_ext_control *ctrl, int ac3)
+-{
+-	int ret = -EINVAL;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_MPEG_AUDIO_ENCODING:
+-		if (ctrl->value == V4L2_MPEG_AUDIO_ENCODING_AAC ||
+-		    (ac3 && ctrl->value == V4L2_MPEG_AUDIO_ENCODING_AC3))
+-			ret = 0;
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_ENCODING:
+-		if (ctrl->value == V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC)
+-			ret = 0;
+-		break;
+-/* 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: */
+-/* 		if (ctrl->value == 0 || ctrl->value == 128) */
+-/* 			ret = 0; */
+-/* 		break; */
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+-		if (ctrl->value == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR ||
+-		    ctrl->value == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR)
+-			ret = 0;
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_BITRATE:
+-	{
+-		uint bitrate = ctrl->value / 100000;
+-		if (bitrate >= 10 && bitrate <= 135)
+-			ret = 0;
+-		break;
+-	}
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK:
+-	{
+-		uint peak_bitrate = ctrl->value / 100000;
+-		if (peak_bitrate >= 10 && peak_bitrate <= 202)
+-			ret = 0;
+-		break;
+-	}
+-	case V4L2_CID_MPEG_STREAM_TYPE:
+-		if (ctrl->value == V4L2_MPEG_STREAM_TYPE_MPEG2_TS)
+-			ret = 0;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return ret;
+-}
+-
+-static int vidioc_try_ext_ctrls(struct file *file, void *priv,
+-				struct v4l2_ext_controls *ctrls)
+-{
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int i, err = 0;
+-
+-	if (ctrls->ctrl_class == V4L2_CTRL_CLASS_MPEG) {
+-		for (i = 0; i < ctrls->count; i++) {
+-			struct v4l2_ext_control *ctrl = ctrls->controls + i;
+-
+-			err = hdpvr_try_ctrl(ctrl,
+-					     dev->flags & HDPVR_FLAG_AC3_CAP);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-		}
+-		return err;
+-	}
+-
+-	return -EINVAL;
+-}
+-
+-
+-static int hdpvr_set_ctrl(struct hdpvr_device *dev,
+-			  struct v4l2_ext_control *ctrl)
+-{
+-	struct hdpvr_options *opt = &dev->options;
+-	int ret = 0;
+-
+-	switch (ctrl->id) {
++		ret = hdpvr_config_call(dev, CTRL_SHARPNESS, ctrl->val);
++		if (ret)
++			break;
++		dev->options.sharpness = ctrl->val;
++		return 0;
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING:
+ 		if (dev->flags & HDPVR_FLAG_AC3_CAP) {
+-			opt->audio_codec = ctrl->value;
+-			ret = hdpvr_set_audio(dev, opt->audio_input,
++			opt->audio_codec = ctrl->val;
++			return hdpvr_set_audio(dev, opt->audio_input,
+ 					      opt->audio_codec);
+ 		}
+-		break;
++		return 0;
+ 	case V4L2_CID_MPEG_VIDEO_ENCODING:
+-		break;
++		return 0;
+ /* 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: */
+ /* 		if (ctrl->value == 0 && !(opt->gop_mode & 0x2)) { */
+ /* 			opt->gop_mode |= 0x2; */
+@@ -1051,81 +785,37 @@ static int hdpvr_set_ctrl(struct hdpvr_device *dev,
+ /* 					  opt->gop_mode); */
+ /* 		} */
+ /* 		break; */
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
+-		if (ctrl->value == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR &&
+-		    opt->bitrate_mode != HDPVR_CONSTANT) {
+-			opt->bitrate_mode = HDPVR_CONSTANT;
+-			hdpvr_config_call(dev, CTRL_BITRATE_MODE_VALUE,
+-					  opt->bitrate_mode);
+-		}
+-		if (ctrl->value == V4L2_MPEG_VIDEO_BITRATE_MODE_VBR &&
+-		    opt->bitrate_mode == HDPVR_CONSTANT) {
+-			opt->bitrate_mode = HDPVR_VARIABLE_AVERAGE;
++	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE: {
++		uint peak_bitrate = dev->video_bitrate_peak->val / 100000;
++		uint bitrate = dev->video_bitrate->val / 100000;
 +
-+	if (fh) {
-+		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
-+				      fh->prio);
-+		if (0 != err)
-+			return err;
-+	}
-+
-+	return cx25821_set_control(dev, ctl, fh->channel_id);
-+}
-+
- static void cx25821_init_controls(struct cx25821_dev *dev, int chan_num)
- {
- 	struct v4l2_control ctrl;
-@@ -1372,7 +1396,7 @@ static void cx25821_init_controls(struct cx25821_dev *dev, int chan_num)
++		if (ctrl->is_new) {
++			if (ctrl->val == V4L2_MPEG_VIDEO_BITRATE_MODE_CBR)
++				opt->bitrate_mode = HDPVR_CONSTANT;
++			else
++				opt->bitrate_mode = HDPVR_VARIABLE_AVERAGE;
+ 			hdpvr_config_call(dev, CTRL_BITRATE_MODE_VALUE,
+ 					  opt->bitrate_mode);
++			v4l2_ctrl_activate(dev->video_bitrate_peak,
++				ctrl->val != V4L2_MPEG_VIDEO_BITRATE_MODE_CBR);
+ 		}
+-		break;
+-	case V4L2_CID_MPEG_VIDEO_BITRATE: {
+-		uint bitrate = ctrl->value / 100000;
+-
+-		opt->bitrate = bitrate;
+-		if (bitrate >= opt->peak_bitrate)
+-			opt->peak_bitrate = bitrate+1;
+-
+-		hdpvr_set_bitrate(dev);
+-		break;
+-	}
+-	case V4L2_CID_MPEG_VIDEO_BITRATE_PEAK: {
+-		uint peak_bitrate = ctrl->value / 100000;
+ 
+-		if (opt->bitrate_mode == HDPVR_CONSTANT)
+-			break;
+-
+-		if (opt->bitrate < peak_bitrate) {
++		if (dev->video_bitrate_peak->is_new ||
++		    dev->video_bitrate->is_new) {
++			opt->bitrate = bitrate;
+ 			opt->peak_bitrate = peak_bitrate;
+ 			hdpvr_set_bitrate(dev);
+-		} else
+-			ret = -EINVAL;
+-		break;
++		}
++		return 0;
  	}
+ 	case V4L2_CID_MPEG_STREAM_TYPE:
+-		break;
++		return 0;
+ 	default:
+-		return -EINVAL;
++		break;
+ 	}
+ 	return ret;
  }
  
--int cx25821_vidioc_cropcap(struct file *file, void *priv,
-+static int cx25821_vidioc_cropcap(struct file *file, void *priv,
- 			   struct v4l2_cropcap *cropcap)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
-@@ -1391,7 +1415,7 @@ int cx25821_vidioc_cropcap(struct file *file, void *priv,
- 	return 0;
- }
- 
--int cx25821_vidioc_s_crop(struct file *file, void *priv, const struct v4l2_crop *crop)
-+static int cx25821_vidioc_s_crop(struct file *file, void *priv, const struct v4l2_crop *crop)
- {
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 	struct cx25821_fh *fh = priv;
-@@ -1407,49 +1431,12 @@ int cx25821_vidioc_s_crop(struct file *file, void *priv, const struct v4l2_crop
- 	return -EINVAL;
- }
- 
--int cx25821_vidioc_g_crop(struct file *file, void *priv, struct v4l2_crop *crop)
-+static int cx25821_vidioc_g_crop(struct file *file, void *priv, struct v4l2_crop *crop)
- {
- 	/* cx25821_vidioc_g_crop not supported */
- 	return -EINVAL;
- }
- 
--int cx25821_is_valid_width(u32 width, v4l2_std_id tvnorm)
+-static int vidioc_s_ext_ctrls(struct file *file, void *priv,
+-			      struct v4l2_ext_controls *ctrls)
 -{
--	if (tvnorm == V4L2_STD_PAL_BG) {
--		if (width == 352 || width == 720)
--			return 1;
--		else
--			return 0;
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int i, err = 0;
+-
+-	if (ctrls->ctrl_class == V4L2_CTRL_CLASS_MPEG) {
+-		for (i = 0; i < ctrls->count; i++) {
+-			struct v4l2_ext_control *ctrl = ctrls->controls + i;
+-
+-			err = hdpvr_try_ctrl(ctrl,
+-					     dev->flags & HDPVR_FLAG_AC3_CAP);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-			err = hdpvr_set_ctrl(dev, ctrl);
+-			if (err) {
+-				ctrls->error_idx = i;
+-				break;
+-			}
+-		}
+-		return err;
+-
 -	}
 -
--	if (tvnorm == V4L2_STD_NTSC_M) {
--		if (width == 320 || width == 352 || width == 720)
--			return 1;
--		else
--			return 0;
--	}
--	return 0;
+-	return -EINVAL;
 -}
 -
--int cx25821_is_valid_height(u32 height, v4l2_std_id tvnorm)
--{
--	if (tvnorm == V4L2_STD_PAL_BG) {
--		if (height == 576 || height == 288)
--			return 1;
--		else
--			return 0;
--	}
--
--	if (tvnorm == V4L2_STD_NTSC_M) {
--		if (height == 480 || height == 240)
--			return 1;
--		else
--			return 0;
--	}
--
--	return 0;
--}
--
- static long video_ioctl_upstream9(struct file *file, unsigned int cmd,
- 				 unsigned long arg)
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
+ 				    struct v4l2_fmtdesc *f)
  {
-diff --git a/drivers/media/pci/cx25821/cx25821-video.h b/drivers/media/pci/cx25821/cx25821-video.h
-index 505b7f0..9d70020 100644
---- a/drivers/media/pci/cx25821/cx25821-video.h
-+++ b/drivers/media/pci/cx25821/cx25821-video.h
-@@ -63,97 +63,23 @@ do {									\
- #define MEDUSA_READ		    910
- #define MEDUSA_WRITE		    911
+@@ -1215,12 +905,6 @@ static const struct v4l2_ioctl_ops hdpvr_ioctl_ops = {
+ 	.vidioc_enumaudio	= vidioc_enumaudio,
+ 	.vidioc_g_audio		= vidioc_g_audio,
+ 	.vidioc_s_audio		= vidioc_s_audio,
+-	.vidioc_queryctrl	= vidioc_queryctrl,
+-	.vidioc_g_ctrl		= vidioc_g_ctrl,
+-	.vidioc_s_ctrl		= vidioc_s_ctrl,
+-	.vidioc_g_ext_ctrls	= vidioc_g_ext_ctrls,
+-	.vidioc_s_ext_ctrls	= vidioc_s_ext_ctrls,
+-	.vidioc_try_ext_ctrls	= vidioc_try_ext_ctrls,
+ 	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap		= vidioc_g_fmt_vid_cap,
+ 	.vidioc_encoder_cmd	= vidioc_encoder_cmd,
+@@ -1237,6 +921,7 @@ static void hdpvr_device_release(struct video_device *vdev)
+ 	mutex_unlock(&dev->io_mutex);
  
--extern unsigned int vid_limit;
--
- #define FORMAT_FLAGS_PACKED       0x01
--extern struct cx25821_fmt formats[];
--extern struct cx25821_fmt *cx25821_format_by_fourcc(unsigned int fourcc);
--extern struct cx25821_data timeout_data[MAX_VID_CHANNEL_NUM];
--
- extern void cx25821_video_wakeup(struct cx25821_dev *dev,
- 				 struct cx25821_dmaqueue *q, u32 count);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
++	v4l2_ctrl_handler_free(&dev->hdl);
  
--extern int cx25821_set_tvnorm(struct cx25821_dev *dev, v4l2_std_id norm);
--
- extern int cx25821_res_get(struct cx25821_dev *dev, struct cx25821_fh *fh,
- 			   unsigned int bit);
- extern int cx25821_res_check(struct cx25821_fh *fh, unsigned int bit);
- extern int cx25821_res_locked(struct cx25821_fh *fh, unsigned int bit);
- extern void cx25821_res_free(struct cx25821_dev *dev, struct cx25821_fh *fh,
- 			     unsigned int bits);
--extern int cx25821_video_mux(struct cx25821_dev *dev, unsigned int input);
- extern int cx25821_start_video_dma(struct cx25821_dev *dev,
- 				   struct cx25821_dmaqueue *q,
- 				   struct cx25821_buffer *buf,
- 				   const struct sram_channel *channel);
- 
--extern int cx25821_set_scale(struct cx25821_dev *dev, unsigned int width,
--			     unsigned int height, enum v4l2_field field);
- extern int cx25821_video_irq(struct cx25821_dev *dev, int chan_num, u32 status);
- extern void cx25821_video_unregister(struct cx25821_dev *dev, int chan_num);
- extern int cx25821_video_register(struct cx25821_dev *dev);
--extern int cx25821_get_format_size(void);
--
--extern int cx25821_buffer_setup(struct videobuf_queue *q, unsigned int *count,
--				unsigned int *size);
--extern int cx25821_buffer_prepare(struct videobuf_queue *q,
--				  struct videobuf_buffer *vb,
--				  enum v4l2_field field);
--extern void cx25821_buffer_release(struct videobuf_queue *q,
--				   struct videobuf_buffer *vb);
--extern struct videobuf_queue *get_queue(struct cx25821_fh *fh);
--extern int cx25821_get_resource(struct cx25821_fh *fh, int resource);
--extern int cx25821_video_mmap(struct file *file, struct vm_area_struct *vma);
--extern int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
--					  struct v4l2_format *f);
--extern int cx25821_vidioc_querycap(struct file *file, void *priv,
--				   struct v4l2_capability *cap);
--extern int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
--					   struct v4l2_fmtdesc *f);
--extern int cx25821_vidioc_reqbufs(struct file *file, void *priv,
--				  struct v4l2_requestbuffers *p);
--extern int cx25821_vidioc_querybuf(struct file *file, void *priv,
--				   struct v4l2_buffer *p);
--extern int cx25821_vidioc_qbuf(struct file *file, void *priv,
--			       struct v4l2_buffer *p);
--extern int cx25821_vidioc_s_std(struct file *file, void *priv,
--				v4l2_std_id tvnorms);
--extern int cx25821_enum_input(struct cx25821_dev *dev, struct v4l2_input *i);
--extern int cx25821_vidioc_enum_input(struct file *file, void *priv,
--				     struct v4l2_input *i);
--extern int cx25821_vidioc_g_input(struct file *file, void *priv,
--				  unsigned int *i);
--extern int cx25821_vidioc_s_input(struct file *file, void *priv,
--				  unsigned int i);
--extern int cx25821_vidioc_g_ctrl(struct file *file, void *priv,
--				 struct v4l2_control *ctl);
--extern int cx25821_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
--					struct v4l2_format *f);
--extern int cx25821_vidioc_g_register(struct file *file, void *fh,
--				     struct v4l2_dbg_register *reg);
--extern int cx25821_vidioc_s_register(struct file *file, void *fh,
--				     const struct v4l2_dbg_register *reg);
--
--extern int cx25821_is_valid_width(u32 width, v4l2_std_id tvnorm);
--extern int cx25821_is_valid_height(u32 height, v4l2_std_id tvnorm);
--
--extern int cx25821_vidioc_g_priority(struct file *file, void *f,
--				     enum v4l2_priority *p);
--extern int cx25821_vidioc_s_priority(struct file *file, void *f,
--				     enum v4l2_priority prio);
--
--extern int cx25821_vidioc_queryctrl(struct file *file, void *priv,
--				    struct v4l2_queryctrl *qctrl);
--extern int cx25821_set_control(struct cx25821_dev *dev,
--			       struct v4l2_control *ctrl, int chan_num);
--
--extern int cx25821_vidioc_cropcap(struct file *file, void *fh,
--				  struct v4l2_cropcap *cropcap);
--extern int cx25821_vidioc_s_crop(struct file *file, void *priv,
--				 const struct v4l2_crop *crop);
--extern int cx25821_vidioc_g_crop(struct file *file, void *priv,
--				 struct v4l2_crop *crop);
- 
--extern int cx25821_vidioc_querystd(struct file *file, void *priv,
--				   v4l2_std_id *norm);
- #endif
-diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
-index 195b004..033993f 100644
---- a/drivers/media/pci/cx25821/cx25821.h
-+++ b/drivers/media/pci/cx25821/cx25821.h
-@@ -127,7 +127,7 @@ struct cx25821_fh {
- 	enum v4l2_priority prio;
- 
- 	/* video capture */
--	struct cx25821_fmt *fmt;
-+	const struct cx25821_fmt *fmt;
- 	unsigned int width, height;
- 	int channel_id;
- 	struct videobuf_queue vidq;
-@@ -152,7 +152,7 @@ struct cx25821_buffer {
- 	/* cx25821 specific */
- 	unsigned int bpl;
- 	struct btcx_riscmem risc;
--	struct cx25821_fmt *fmt;
-+	const struct cx25821_fmt *fmt;
- 	u32 count;
+ 	/* deregister I2C adapter */
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -1264,13 +949,85 @@ static const struct video_device hdpvr_video_template = {
+ 		V4L2_STD_PAL_60,
  };
  
-@@ -565,8 +565,5 @@ extern int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
- 					       unsigned int bpl, u32 risc);
- extern void cx25821_set_pixel_format(struct cx25821_dev *dev, int channel,
- 				     u32 format);
--extern struct video_device *cx25821_vdev_init(struct cx25821_dev *dev,
--					      struct pci_dev *pci,
--					      const struct video_device *template,
--					      char *type);
++static const struct v4l2_ctrl_ops hdpvr_ctrl_ops = {
++	.try_ctrl = hdpvr_try_ctrl,
++	.s_ctrl = hdpvr_s_ctrl,
++};
 +
- #endif
+ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 			    int devnum)
+ {
++	struct v4l2_ctrl_handler *hdl = &dev->hdl;
++	bool ac3 = dev->flags & HDPVR_FLAG_AC3_CAP;
++	int res;
++
++	v4l2_ctrl_handler_init(hdl, 11);
++	if (dev->fw_ver > 0x15) {
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0x0, 0xff, 1, 0x80);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_CONTRAST, 0x0, 0xff, 1, 0x40);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_SATURATION, 0x0, 0xff, 1, 0x40);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_HUE, 0x0, 0x1e, 1, 0xf);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_SHARPNESS, 0x0, 0xff, 1, 0x80);
++	} else {
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0x0, 0xff, 1, 0x86);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_CONTRAST, 0x0, 0xff, 1, 0x80);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_SATURATION, 0x0, 0xff, 1, 0x80);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_HUE, 0x0, 0xff, 1, 0x80);
++		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++			V4L2_CID_SHARPNESS, 0x0, 0xff, 1, 0x80);
++	}
++
++	v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_STREAM_TYPE,
++		V4L2_MPEG_STREAM_TYPE_MPEG2_TS,
++		0x1, V4L2_MPEG_STREAM_TYPE_MPEG2_TS);
++	v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_AUDIO_ENCODING,
++		ac3 ? V4L2_MPEG_AUDIO_ENCODING_AC3 : V4L2_MPEG_AUDIO_ENCODING_AAC,
++		0x7, V4L2_MPEG_AUDIO_ENCODING_AAC);
++	v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_ENCODING,
++		V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC, 0x3,
++		V4L2_MPEG_VIDEO_ENCODING_MPEG_4_AVC);
++
++	dev->video_mode = v4l2_ctrl_new_std_menu(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_BITRATE_MODE,
++		V4L2_MPEG_VIDEO_BITRATE_MODE_CBR, 0,
++		V4L2_MPEG_VIDEO_BITRATE_MODE_CBR);
++
++	dev->video_bitrate = v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_BITRATE,
++		1000000, 13500000, 100000, 6500000);
++	dev->video_bitrate_peak = v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
++		V4L2_CID_MPEG_VIDEO_BITRATE_PEAK,
++		1100000, 20200000, 100000, 9000000);
++	dev->v4l2_dev.ctrl_handler = hdl;
++	if (hdl->error) {
++		res = hdl->error;
++		v4l2_err(&dev->v4l2_dev, "Could not register controls\n");
++		goto error;
++	}
++	v4l2_ctrl_cluster(3, &dev->video_mode);
++	res = v4l2_ctrl_handler_setup(hdl);
++	if (res < 0) {
++		v4l2_err(&dev->v4l2_dev, "Could not setup controls\n");
++		goto error;
++	}
++
+ 	/* setup and register video device */
+ 	dev->video_dev = video_device_alloc();
+ 	if (!dev->video_dev) {
+ 		v4l2_err(&dev->v4l2_dev, "video_device_alloc() failed\n");
++		res = -ENOMEM;
+ 		goto error;
+ 	}
+ 
+@@ -1279,12 +1036,14 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 	dev->video_dev->parent = parent;
+ 	video_set_drvdata(dev->video_dev, dev);
+ 
+-	if (video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum)) {
++	res = video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum);
++	if (res < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "video_device registration failed\n");
+ 		goto error;
+ 	}
+ 
+ 	return 0;
+ error:
+-	return -ENOMEM;
++	v4l2_ctrl_handler_free(hdl);
++	return res;
+ }
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index fea3c69..2a4deab 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -16,6 +16,7 @@
+ #include <linux/videodev2.h>
+ 
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/ir-kbd-i2c.h>
+ 
+ #define HDPVR_MAX 8
+@@ -65,10 +66,17 @@ struct hdpvr_options {
+ struct hdpvr_device {
+ 	/* the v4l device for this device */
+ 	struct video_device	*video_dev;
++	/* the control handler for this device */
++	struct v4l2_ctrl_handler hdl;
+ 	/* the usb device for this device */
+ 	struct usb_device	*udev;
+ 	/* v4l2-device unused */
+ 	struct v4l2_device	v4l2_dev;
++	struct { /* video mode/bitrate control cluster */
++		struct v4l2_ctrl *video_mode;
++		struct v4l2_ctrl *video_bitrate;
++		struct v4l2_ctrl *video_bitrate_peak;
++	};
+ 
+ 	/* the max packet size of the bulk endpoint */
+ 	size_t			bulk_in_size;
 -- 
 1.7.10.4
 
