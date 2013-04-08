@@ -1,65 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4625 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754655Ab3DWGmU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 02:42:20 -0400
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4452 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935469Ab3DHKr6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:47:58 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: Patch update notification: 2 patches updated
-Date: Tue, 23 Apr 2013 08:41:53 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media" <linux-media@vger.kernel.org>,
+To: linux-media@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-References: <20130420121301.2461.37868@www.linuxtv.org> <CA+V-a8vNRWw=davSbBUpb9rozvm3GyXx+iu3r_UD4M6BuHJmuQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8vNRWw=davSbBUpb9rozvm3GyXx+iu3r_UD4M6BuHJmuQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201304230841.53894.hverkuil@xs4all.nl>
+Subject: [REVIEW PATCH 1/7] radio-si4713: remove audout ioctls
+Date: Mon,  8 Apr 2013 12:47:35 +0200
+Message-Id: <1365418061-23694-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, April 22, 2013 12:50:50 Prabhakar Lad wrote:
-> Hi Mauro,
-> 
-> On Sat, Apr 20, 2013 at 5:43 PM, Patchwork <patchwork@linuxtv.org> wrote:
-> > Hello,
-> >
-> > The following patches (submitted by you) have been updated in patchwork:
-> >
-> >  * [2/2] media: davinci: vpif_display: move displaying of error to approppraite place
-> >      - http://patchwork.linuxtv.org/patch/18092/
-> >     was: Under Review
-> >     now: Accepted
-> >
-> >  * [1/2] media: davinci: vpif: remove unwanted header file inclusion
-> >      - http://patchwork.linuxtv.org/patch/18093/
-> >     was: Under Review
-> >     now: Accepted
-> >
-> The above patches have been marked as 'Accepted', However I haven’t
-> issued a pull request nor I find the patches in your master branch. Something
-> wrong while updating patchwork ?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Since I'm the submaintainer these days for such patches I'm the one that
-accepted them. Patches for 3.11 I keep here:
+The audout ioctls are not appropriate for radio transmitters, they apply to
+video output devices only. Remove them from this driver.
 
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.11
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/radio-si4713.c |   32 --------------------------------
+ 1 file changed, 32 deletions(-)
 
-I can't post a pull request for it yet since the 3.11 window isn't open yet,
-but I'm collecting all patches there, otherwise things would just pile up.
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 38b3f15..320f301 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -59,35 +59,6 @@ static const struct v4l2_file_operations radio_si4713_fops = {
+ };
+ 
+ /* Video4Linux Interface */
+-static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
+-{
+-	/* TODO: check presence of audio output */
+-	strlcpy(vao->name, "FM Modulator Audio Out", 32);
+-
+-	return 0;
+-}
+-
+-static int radio_si4713_enumaudout(struct file *file, void *priv,
+-						struct v4l2_audioout *vao)
+-{
+-	return radio_si4713_fill_audout(vao);
+-}
+-
+-static int radio_si4713_g_audout(struct file *file, void *priv,
+-					struct v4l2_audioout *vao)
+-{
+-	int rval = radio_si4713_fill_audout(vao);
+-
+-	vao->index = 0;
+-
+-	return rval;
+-}
+-
+-static int radio_si4713_s_audout(struct file *file, void *priv,
+-					const struct v4l2_audioout *vao)
+-{
+-	return vao->index ? -EINVAL : 0;
+-}
+ 
+ /* radio_si4713_querycap - query device capabilities */
+ static int radio_si4713_querycap(struct file *file, void *priv,
+@@ -229,9 +200,6 @@ static long radio_si4713_default(struct file *file, void *p,
+ }
+ 
+ static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
+-	.vidioc_enumaudout	= radio_si4713_enumaudout,
+-	.vidioc_g_audout	= radio_si4713_g_audout,
+-	.vidioc_s_audout	= radio_si4713_s_audout,
+ 	.vidioc_querycap	= radio_si4713_querycap,
+ 	.vidioc_queryctrl	= radio_si4713_queryctrl,
+ 	.vidioc_g_ext_ctrls	= radio_si4713_g_ext_ctrls,
+-- 
+1.7.10.4
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> --Prabhakar
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
