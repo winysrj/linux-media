@@ -1,103 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55987 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:60522 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab3DJMGh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 08:06:37 -0400
-Date: Wed, 10 Apr 2013 14:06:14 +0200 (CEST)
+	with ESMTP id S935913Ab3DHNzi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 09:55:38 -0400
+Date: Mon, 8 Apr 2013 15:55:31 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Barry Song <21cnbao@gmail.com>
-cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"renwei.wu" <renwei.wu@csr.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	xiaomeng.hou@csr.com, zilong.wu@csr.com
-Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of
- clients
-In-Reply-To: <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1304101358490.13557@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de>
- <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v7 2/7] media: V4L2: support asynchronous subdevice
+ registration
+In-Reply-To: <5162C934.90808@samsung.com>
+Message-ID: <Pine.LNX.4.64.1304081548360.29945@axis700.grange>
+References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+ <1365419231-14830-3-git-send-email-g.liakhovetski@gmx.de> <5162C934.90808@samsung.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Barry
+Hi Sylwester
 
-On Wed, 10 Apr 2013, Barry Song wrote:
+On Mon, 8 Apr 2013, Sylwester Nawrocki wrote:
 
-> Hi Guennadia,
+> Hi Guennadi,
 > 
-> 2012/9/27 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> > Currently soc-camera doesn't work with independently registered I2C client
-> > devices, it has to register them itself. This patch adds support for such
-> > configurations, in which case client drivers have to request deferred
-> > probing until their host becomes available and enables the data interface.
-> >
+> On 04/08/2013 01:07 PM, Guennadi Liakhovetski wrote:
+> > Currently bridge device drivers register devices for all subdevices
+> > synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> > is attached to a video bridge device, the bridge driver will create an I2C
+> > device and wait for the respective I2C driver to probe. This makes linking
+> > of devices straight forward, but this approach cannot be used with
+> > intrinsically asynchronous and unordered device registration systems like
+> > the Flattened Device Tree. To support such systems this patch adds an
+> > asynchronous subdevice registration framework to V4L2. To use it respective
+> > (e.g. I2C) subdevice drivers must register themselves with the framework.
+> > A bridge driver on the other hand must register notification callbacks,
+> > that will be called upon various related events.
+> > 
 > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > > ---
+> > 
+> > v7:
+> > 1. Removed bogus device reprobing from v4l2_async_unregister_subdev()
+> > 2. Renamed V4L2_ASYNC_BUS_SPECIAL to V4L2_ASYNC_BUS_CUSTOM
 > 
-> it seems deferred probing for i2c camera sensors is a more workaround
-> than a solution.
-> currently,  soc-camera-pdrv is the manager of the whole initilization
-> flow. it all requires the host/client registerred and initilized
-> synchronously. so that results in strange things like that we fill a
-> i2c_board_info structure in arch/arm/mach-xxx but we never call
-> anything like i2c_new_device() to add the i2c client in mach. because
-> we need to do that in the soc-camera-pdrv driver to make all things
-> happen orderly.
+> This change seems to be missing.
+
+Indeed :-(
+
+> > 3. Renamed v4l2_async_subdev_(un)register() to v4l2_async_(un)register_subdev()
+
+[snip]
+
+> > +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> > +						    struct v4l2_async_subdev_list *asdl)
+> > +{
+> > +	struct v4l2_async_subdev *asd = NULL;
+> > +	bool (*match)(struct device *,
+> > +		      struct v4l2_async_hw_device *);
+> > +
+> > +	list_for_each_entry (asd, &notifier->waiting, list) {
+> > +		struct v4l2_async_hw_device *hw = &asd->hw;
+> > +		switch (hw->bus_type) {
+> > +		case V4L2_ASYNC_BUS_SPECIAL:
+> > +			match = hw->match.special.match;
+> > +			if (!match)
+> > +				/* Match always */
+> > +				return asd;
+> > +			break;
+> > +		case V4L2_ASYNC_BUS_PLATFORM:
+> > +			match = match_platform;
+> > +			break;
+> > +		case V4L2_ASYNC_BUS_I2C:
+> > +			match = match_i2c;
+> > +			break;
+> > +		default:
+> > +			/* Oops */
+> > +			match = NULL;
+> > +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> > +				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
+> > +		}
+> > +
+> > +		if (match && match(asdl->dev, hw))
+> > +			break;
 > 
-> but now after we move to DT, all i2c device will be registerred
-> automatically by of_i2c_register_devices() in i2c_host 's probe, that
-> makes the problem much worse and very urgent to get fixed.
+> Since we maintain various lists of sub-devices, couldn't we match them e.g. by
+> name instead ? What would be preventing this ?
+
+Do you have a specific case where your proposal would work, whereas mine 
+wouldn't? This can be changed at any time, we can leave it until there's a 
+real use-case, for which this implementation wouldn't work.
+
+> And additionally provide an API to override the matching method?
+
+Override - that's what the "SPECIAL" (CUSTOM) is for.
+
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > new file mode 100644
+> > index 0000000..c0470c6
+> > --- /dev/null
+> > +++ b/include/media/v4l2-async.h
+> > @@ -0,0 +1,105 @@
+> > +/*
+> > + * V4L2 asynchronous subdevice registration API
+> > + *
+> > + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> returning DEFERRED_PROBE error until getting the private data filled
-> by the manager,
+> s/2012/2013 ?
+> 
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef V4L2_ASYNC_H
+> > +#define V4L2_ASYNC_H
+> > +
+> > +#include <linux/list.h>
+> > +#include <linux/mutex.h>
+> > +#include <linux/notifier.h>
+> 
+> Is there anything used from this header ?
 
-This hasn't been the case since several versions of these patches. We no 
-longer use private data to decide whether subdevices can probe 
-successfully or have to defer probing.
-
-> indirectly, makes the things seem to be asynchronous,
-> but essentially it is still synchronous because the overall timing
-> line is still controller by soc-camera-pdrv.
-
-It isn't. If your subdevice driver doesn't have any dependencies, like 
-e.g. sh_mobile_csi2.c, it will probe asynchronously whenever it's loaded. 
-It is the task of a bridge driver, in our case of the soc-camera core, to 
-register notifiers and a list of expected subdevices with the v4l2-async 
-subsystem. As subdevices complete their probing they signal that to the 
-v4l2-async too, which then calls bridge's notifiers, which then can build 
-the pipeline.
-
-> what about another possible way:
-> we let all host and i2c client driver probed in any order,
-
-This cannot work, because some I2C devices, e.g. sensors, need a clock 
-signal from the camera interface to probe. Before the bridge driver has 
-completed its probing and registered a suitable clock source with the 
-v4l2-clk framework, sensors cannot be probed. And no, we don't want to 
-fake successful probing without actually being able to talk to the 
-hardware.
+Don't think so, I'll remove it.
 
 Thanks
 Guennadi
-
-> but let the
-> final soc-camera-pdrv is the connection of all things. the situation
-> of soc_camera is very similar with ALSA SoC. it turns out ASoC has
-> done that very well.
-> 
-> -barry
-> 
-
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
