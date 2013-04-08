@@ -1,54 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:36616 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966606Ab3DQPIs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 11:08:48 -0400
-Received: by mail-wi0-f177.google.com with SMTP id hj19so25697wib.16
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 08:08:46 -0700 (PDT)
-From: Grant Likely <grant.likely@secretlab.ca>
-Subject: Re: Compilation breakage on drivers/media due to OF patches - was: Re: [PATCH] DT: export of_get_next_parent() for use by modules: fix modular V4L2
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Rob Herring <rob.herring@calxeda.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Arnd Bergmann <arnd@arndb.de>,
-	devicetree-discuss@lists.ozlabs.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-In-Reply-To: <20130417115357.0b0f31ae@redhat.com>
-References: <Pine.LNX.4.64.1304021825130.31999@axis700.grange> <201304021630.13371.arnd@arndb.de> <Pine.LNX.4.64.1304021840590.31999@axis700.grange> <Pine.LNX.4.64.1304171555140.16330@axis700.grange> <20130417115357.0b0f31ae@redhat.com>
-Date: Wed, 17 Apr 2013 16:08:43 +0100
-Message-Id: <20130417150843.5A5A63E2B73@localhost>
+Received: from mail-vb0-f41.google.com ([209.85.212.41]:60571 "EHLO
+	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936306Ab3DHPe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:34:29 -0400
+Received: by mail-vb0-f41.google.com with SMTP id f13so3946671vbg.28
+        for <linux-media@vger.kernel.org>; Mon, 08 Apr 2013 08:34:28 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1365418061-23694-2-git-send-email-hverkuil@xs4all.nl>
+References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+	<1365418061-23694-2-git-send-email-hverkuil@xs4all.nl>
+Date: Mon, 8 Apr 2013 11:34:28 -0400
+Message-ID: <CAC-25o8D+0TRChtcCB9aNoRasUZnXAZNGwUumD_iS6qL1e-X1A@mail.gmail.com>
+Subject: Re: [REVIEW PATCH 1/7] radio-si4713: remove audout ioctls
+From: "edubezval@gmail.com" <edubezval@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 17 Apr 2013 11:53:57 -0300, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Hi Grant/Rob,
-> 
-> Our tree is currently _broken_ with OT, because of the lack of 
-> exporting of_get_next_parent. The developer that submitted the patches 
-> that added V4L2 OF support forgot to test to compilation with MODULES
-> support enabled.
-> 
-> So, we're now having:
-> 	ERROR: "of_get_next_parent" [drivers/media/v4l2-core/videodev.ko] undefined!
-> 
-> if compiled with OF enabled and media as module.
-> 
-> As those patches were applied at my master branch and there are lots of
-> other patches on the top of the patches that added V4L2 OF support, 
-> I prefer to avoid reverting those patches. 
-> 
-> On the other hand, I can't send the patches upstream next week (assuming 
-> that -rc7 is the final one), without having this patch applying before 
-> the media tree.
+Hi,
 
-The fix needs to be applied to your tree then. Go ahead and apply it with my ack:
+On Mon, Apr 8, 2013 at 6:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> The audout ioctls are not appropriate for radio transmitters, they apply to
+> video output devices only. Remove them from this driver.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+Acked-by: Eduardo Valentin <edubezval@gmail.com>
+Tested-by: Eduardo Valentin <edubezval@gmail.com>
 
-It is no good to apply it to the devicetree -next branch because that
-will still leave your branch broken, even if device tree gets merged
-first.
 
-g.
+Output of v4l2-compliant is the same as the one send against patch 00/07
+> ---
+>  drivers/media/radio/radio-si4713.c |   32 --------------------------------
+>  1 file changed, 32 deletions(-)
+>
+> diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+> index 38b3f15..320f301 100644
+> --- a/drivers/media/radio/radio-si4713.c
+> +++ b/drivers/media/radio/radio-si4713.c
+> @@ -59,35 +59,6 @@ static const struct v4l2_file_operations radio_si4713_fops = {
+>  };
+>
+>  /* Video4Linux Interface */
+> -static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
+> -{
+> -       /* TODO: check presence of audio output */
+> -       strlcpy(vao->name, "FM Modulator Audio Out", 32);
+> -
+> -       return 0;
+> -}
+> -
+> -static int radio_si4713_enumaudout(struct file *file, void *priv,
+> -                                               struct v4l2_audioout *vao)
+> -{
+> -       return radio_si4713_fill_audout(vao);
+> -}
+> -
+> -static int radio_si4713_g_audout(struct file *file, void *priv,
+> -                                       struct v4l2_audioout *vao)
+> -{
+> -       int rval = radio_si4713_fill_audout(vao);
+> -
+> -       vao->index = 0;
+> -
+> -       return rval;
+> -}
+> -
+> -static int radio_si4713_s_audout(struct file *file, void *priv,
+> -                                       const struct v4l2_audioout *vao)
+> -{
+> -       return vao->index ? -EINVAL : 0;
+> -}
+>
+>  /* radio_si4713_querycap - query device capabilities */
+>  static int radio_si4713_querycap(struct file *file, void *priv,
+> @@ -229,9 +200,6 @@ static long radio_si4713_default(struct file *file, void *p,
+>  }
+>
+>  static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
+> -       .vidioc_enumaudout      = radio_si4713_enumaudout,
+> -       .vidioc_g_audout        = radio_si4713_g_audout,
+> -       .vidioc_s_audout        = radio_si4713_s_audout,
+>         .vidioc_querycap        = radio_si4713_querycap,
+>         .vidioc_queryctrl       = radio_si4713_queryctrl,
+>         .vidioc_g_ext_ctrls     = radio_si4713_g_ext_ctrls,
+> --
+> 1.7.10.4
+>
+
+
+
+-- 
+Eduardo Bezerra Valentin
