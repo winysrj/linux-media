@@ -1,78 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52598 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752066Ab3DLAMX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 20:12:23 -0400
-Message-ID: <5167513D.60804@iki.fi>
-Date: Fri, 12 Apr 2013 03:11:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Keene
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:25370 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936341Ab3DHPin (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:38:43 -0400
+Message-id: <5162E47E.8010306@samsung.com>
+Date: Mon, 08 Apr 2013 17:38:38 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v7 2/7] media: V4L2: support asynchronous subdevice
+ registration
+References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+ <1365419231-14830-3-git-send-email-g.liakhovetski@gmx.de>
+ <5162C934.90808@samsung.com> <Pine.LNX.4.64.1304081548360.29945@axis700.grange>
+In-reply-to: <Pine.LNX.4.64.1304081548360.29945@axis700.grange>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
-That device is working very, thank you for it. Anyhow, I noticed two things.
+On 04/08/2013 03:55 PM, Guennadi Liakhovetski wrote:
+> On Mon, 8 Apr 2013, Sylwester Nawrocki wrote:
+>> On 04/08/2013 01:07 PM, Guennadi Liakhovetski wrote:
+[...]
+>>> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+>>> +						    struct v4l2_async_subdev_list *asdl)
+>>> +{
+>>> +	struct v4l2_async_subdev *asd = NULL;
+>>> +	bool (*match)(struct device *,
+>>> +		      struct v4l2_async_hw_device *);
+>>> +
+>>> +	list_for_each_entry (asd, &notifier->waiting, list) {
+>>> +		struct v4l2_async_hw_device *hw = &asd->hw;
+>>> +		switch (hw->bus_type) {
+>>> +		case V4L2_ASYNC_BUS_SPECIAL:
+>>> +			match = hw->match.special.match;
+>>> +			if (!match)
+>>> +				/* Match always */
+>>> +				return asd;
+>>> +			break;
+>>> +		case V4L2_ASYNC_BUS_PLATFORM:
+>>> +			match = match_platform;
+>>> +			break;
+>>> +		case V4L2_ASYNC_BUS_I2C:
+>>> +			match = match_i2c;
+>>> +			break;
+>>> +		default:
+>>> +			/* Oops */
+>>> +			match = NULL;
+>>> +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+>>> +				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
+>>> +		}
+>>> +
+>>> +		if (match && match(asdl->dev, hw))
+>>> +			break;
+>>
+>> Since we maintain various lists of sub-devices, couldn't we match them e.g. by
+>> name instead ? What would be preventing this ?
+> 
+> Do you have a specific case where your proposal would work, whereas mine 
+> wouldn't? This can be changed at any time, we can leave it until there's a 
+> real use-case, for which this implementation wouldn't work.
 
-1) it does not start transmitting just after I plug it - I have to 
-retune it!
-Output says it is tuned to 95.160000 MHz by default, but it is not. 
-After I issue retune, just to same channel it starts working.
-$ v4l2-ctl -d /dev/radio0 --set-freq=95.16
+No, don't have any specific case in mind. Just was wondering if we don't
+happen to be over-engineering things a bit. And yes, this seems something
+that could be changed later if required.
 
-2) What is that log printing?
-ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2 
-(id 13)
+>> And additionally provide an API to override the matching method?
+> 
+> Override - that's what the "SPECIAL" (CUSTOM) is for.
 
-
-usb 5-2: new full-speed USB device number 3 using ohci_hcd
-usb 5-2: New USB device found, idVendor=046d, idProduct=0a0e
-usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 5-2: Product: B-LINK USB Audio
-usb 5-2: Manufacturer: HOLTEK
-ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2 
-(id 13)
-radio-keene 5-2:1.2: V4L2 device registered as radio0
+Yes, I wanted to emphasize the idea to have a possibility for custom subdev
+matching was good.
 
 
-$ v4l2-ctl -d /dev/radio0 --all -L
-Driver Info (not using libv4l2):
-	Driver name   : radio-keene
-	Card type     : Keene FM Transmitter
-	Bus info      : usb-0000:00:13.0-2
-	Driver version: 3.9.0
-	Capabilities  : 0x800C0000
-		Modulator
-		Radio
-Frequency: 1522560 (95.160000 MHz)
-Modulator:
-	Name                 : FM
-	Capabilities         : 62.5 Hz stereo
-	Frequency range      : 76.0 MHz - 108.0 MHz
-	Subchannel modulation: stereo
-Priority: 2
-
-User Controls
-
-                            mute (bool)   : default=0 value=0
-
-FM Radio Modulator Controls
-
-          audio_compression_gain (int)    : min=-15 max=18 step=3 
-default=0 value=0 flags=slider
-                    pre_emphasis (menu)   : min=0 max=2 default=1 value=1
-				1: 50 Microseconds
-				2: 75 Microseconds
-                tune_power_level (int)    : min=84 max=118 step=1 
-default=118 value=118 flags=slider
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+Regards,
+Sylwester
