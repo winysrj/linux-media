@@ -1,55 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3457 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755079Ab3DOKlN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 06:41:13 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3FAT35a082643
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 12:29:05 +0200 (CEST)
-	(envelope-from hansverk@cisco.com)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2A22611E00F4
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 12:29:02 +0200 (CEST)
-From: Hans Verkuil <hansverk@cisco.com>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.9] cx25821: do not expose broken video output streams
-Date: Mon, 15 Apr 2013 12:29:02 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from mail-vc0-f171.google.com ([209.85.220.171]:36487 "EHLO
+	mail-vc0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934703Ab3DHDBe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 23:01:34 -0400
+Received: by mail-vc0-f171.google.com with SMTP id ha11so4483025vcb.16
+        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 20:01:33 -0700 (PDT)
+Date: Sun, 7 Apr 2013 23:01:38 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: [PULL] git://linuxtv.org/mkrufky/dvb demods
+Message-ID: <20130407230138.170d1854@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201304151229.02226.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The following changes since commit
+53faa685fa7df0e12751eebbda30bc7e7bb5e71a:
 
-As requested: the cx25821 fix to prevent it exposing the broken video output
-streams posing a security risk.
-
-Regards,
-
-	Hans
-
-The following changes since commit 4c41dab4d69fb887884dc571fd70e4ddc41774fb:
-
-  [media] rc: fix single line indentation of keymaps/Makefile (2013-04-14 22:51:41 -0300)
+  [media] siano: Fix array boundary at smscore_translate_msg()
+  (2013-04-04 14:35:40 -0300)
 
 are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git cx25821-fix
+  git://linuxtv.org/mkrufky/dvb demods
 
-for you to fetch changes up to 7f7ae0c294ed718d4d0fe129518c6b144b68235d:
+for you to fetch changes up to bc6c1391e498c649cb22c9654a2203b328cca253:
 
-  cx25821: do not expose broken video output streams. (2013-04-15 12:23:45 +0200)
+  cxd2820r_t2: Multistream support (MultiPLP) (2013-04-07 22:56:46
+  -0400)
 
 ----------------------------------------------------------------
-Hans Verkuil (1):
-      cx25821: do not expose broken video output streams.
+Evgeny Plehov (1):
+      cxd2820r_t2: Multistream support (MultiPLP)
 
- drivers/media/pci/cx25821/cx25821-video.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Mauro Carvalho Chehab (6):
+      mb86a20s: Use a macro for the number of layers
+      mb86a20s: fix audio sub-channel check
+      mb86a20s: Use 'layer' instead of 'i' on all places
+      mb86a20s: Fix estimate_rate setting
+      mb86a20s: better name temp vars at mb86a20s_layer_bitrate()
+      cx24123: improve precision when calculating symbol rate ratio
+
+ drivers/media/dvb-frontends/cx24123.c       |   28 +++---------
+ drivers/media/dvb-frontends/cxd2820r_core.c |    3 +-
+ drivers/media/dvb-frontends/cxd2820r_t2.c   |   17 +++++++
+ drivers/media/dvb-frontends/mb86a20s.c      |  213
+ ++++++++++++++++++++++++++++++++++++++++++++-------------------------------------------
+ 4 files changed, 134 insertions(+), 127 deletions(-)
