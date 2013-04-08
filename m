@@ -1,119 +1,471 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4238 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712Ab3DSI0p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 04:26:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15958 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935936Ab3DHNmS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 09:42:18 -0400
+Message-id: <5162C934.90808@samsung.com>
+Date: Mon, 08 Apr 2013 15:42:12 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data type
-Date: Fri, 19 Apr 2013 10:26:34 +0200
 Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1304190941280.591@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304191026.34360.hverkuil@xs4all.nl>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v7 2/7] media: V4L2: support asynchronous subdevice
+ registration
+References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+ <1365419231-14830-3-git-send-email-g.liakhovetski@gmx.de>
+In-reply-to: <1365419231-14830-3-git-send-email-g.liakhovetski@gmx.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> Thanks for reviewing.
-> 
-> On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> 
-> > On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
-> > > This struct shall be used by subdevice drivers to pass per-subdevice data,
-> > > e.g. power supplies, to generic V4L2 methods, at the same time allowing
-> > > optional host-specific extensions via the host_priv pointer. To avoid
-> > > having to pass two pointers to those methods, add a pointer to this new
-> > > struct to struct v4l2_subdev.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > >  include/media/v4l2-subdev.h |   13 +++++++++++++
-> > >  1 files changed, 13 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > > index eb91366..b15c6e0 100644
-> > > --- a/include/media/v4l2-subdev.h
-> > > +++ b/include/media/v4l2-subdev.h
-> > > @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
-> > >  /* Set this flag if this subdev generates events. */
-> > >  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
-> > >  
-> > > +struct regulator_bulk_data;
-> > > +
-> > > +struct v4l2_subdev_platform_data {
-> > > +	/* Optional regulators uset to power on/off the subdevice */
-> > > +	struct regulator_bulk_data *regulators;
-> > > +	int num_regulators;
-> > > +
-> > > +	/* Per-subdevice data, specific for a certain video host device */
-> > > +	void *host_priv;
-> > > +};
-> > > +
-> > >  /* Each instance of a subdev driver should create this struct, either
-> > >     stand-alone or embedded in a larger struct.
-> > >   */
-> > > @@ -589,6 +600,8 @@ struct v4l2_subdev {
-> > >  	/* pointer to the physical device */
-> > >  	struct device *dev;
-> > >  	struct v4l2_async_subdev_list asdl;
-> > > +	/* common part of subdevice platform data */
-> > > +	struct v4l2_subdev_platform_data *pdata;
-> > >  };
-> > >  
-> > >  static inline struct v4l2_subdev *v4l2_async_to_subdev(
-> > > 
-> > 
-> > Sorry, this is the wrong approach.
-> > 
-> > This is data that is of no use to the subdev driver itself. It really is
-> > v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
-> > driver.
-> 
-> I don't think so. It has been discussed and agreed upon, that only 
-> subdevice drivers know when to switch power on and off, because only they 
-> know when they need to access the hardware. So, they have to manage 
-> regulators. In fact, those regulators supply power to respective 
-> subdevices, e.g. a camera sensor. Why should the bridge driver manage 
-> them? The V4L2 core can (and probably should) provide helper functions for 
-> that, like soc-camera currently does, but in any case it's the subdevice 
-> driver, that has to call them.
+Hi Guennadi,
 
-Ah, OK. I just realized I missed some context there. I didn't pay much
-attention to the regulator discussions since that's not my area of expertise.
-
-In that case my only comment is to drop the host_priv pointer since that just
-duplicates v4l2_get/set_subdev_hostdata().
-
-Regards,
-
-	Hans
-
+On 04/08/2013 01:07 PM, Guennadi Liakhovetski wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must register themselves with the framework.
+> A bridge driver on the other hand must register notification callbacks,
+> that will be called upon various related events.
 > 
-> Thanks
-> Guennadi
-> 
-> > It can use v4l2_get/set_subdev_hostdata() to associate this struct with a
-> > subdev, though.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
+> v7:
+> 1. Removed bogus device reprobing from v4l2_async_unregister_subdev()
+> 2. Renamed V4L2_ASYNC_BUS_SPECIAL to V4L2_ASYNC_BUS_CUSTOM
+
+This change seems to be missing.
+
+> 3. Renamed v4l2_async_subdev_(un)register() to v4l2_async_(un)register_subdev()
+> 
+>  drivers/media/v4l2-core/Makefile     |    3 +-
+>  drivers/media/v4l2-core/v4l2-async.c |  263 ++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-async.h           |  105 ++++++++++++++
+>  3 files changed, 370 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+>  create mode 100644 include/media/v4l2-async.h
+> 
+> diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+> index 628c630..4c33b8d6 100644
+> --- a/drivers/media/v4l2-core/Makefile
+> +++ b/drivers/media/v4l2-core/Makefile
+> @@ -5,7 +5,8 @@
+>  tuner-objs	:=	tuner-core.o
+>  
+>  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+> -			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
+> +			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
+> +			v4l2-async.o
+>  ifeq ($(CONFIG_COMPAT),y)
+>    videodev-objs += v4l2-compat-ioctl32.o
+>  endif
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> new file mode 100644
+> index 0000000..4cc56ad
+> --- /dev/null
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -0,0 +1,263 @@
+> +/*
+> + * V4L2 asynchronous subdevice registration API
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+s/2012/2013 ?
+
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/device.h>
+> +#include <linux/err.h>
+> +#include <linux/i2c.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/mutex.h>
+> +#include <linux/notifier.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/types.h>
+> +
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-subdev.h>
+> +
+> +static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
+> +{
+> +	struct i2c_client *client = i2c_verify_client(dev);
+> +	return client &&
+> +		hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
+> +		hw_dev->match.i2c.adapter_id == client->adapter->nr &&
+> +		hw_dev->match.i2c.address == client->addr;
+> +}
+> +
+> +static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
+> +{
+> +	return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
+> +		!strcmp(hw_dev->match.platform.name, dev_name(dev));
+> +}
+> +
+> +static LIST_HEAD(subdev_list);
+> +static LIST_HEAD(notifier_list);
+> +static DEFINE_MUTEX(list_lock);
+> +
+> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> +						    struct v4l2_async_subdev_list *asdl)
+> +{
+> +	struct v4l2_async_subdev *asd = NULL;
+> +	bool (*match)(struct device *,
+> +		      struct v4l2_async_hw_device *);
+> +
+> +	list_for_each_entry (asd, &notifier->waiting, list) {
+> +		struct v4l2_async_hw_device *hw = &asd->hw;
+> +		switch (hw->bus_type) {
+> +		case V4L2_ASYNC_BUS_SPECIAL:
+> +			match = hw->match.special.match;
+> +			if (!match)
+> +				/* Match always */
+> +				return asd;
+> +			break;
+> +		case V4L2_ASYNC_BUS_PLATFORM:
+> +			match = match_platform;
+> +			break;
+> +		case V4L2_ASYNC_BUS_I2C:
+> +			match = match_i2c;
+> +			break;
+> +		default:
+> +			/* Oops */
+> +			match = NULL;
+> +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> +				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
+> +		}
+> +
+> +		if (match && match(asdl->dev, hw))
+> +			break;
+
+Since we maintain various lists of sub-devices, couldn't we match them e.g. by
+name instead ? What would be preventing this ? And additionally provide an API
+to override the matching method ?
+
+> +	}
+> +
+> +	return asd;
+> +}
+> +
+> +static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
+> +				  struct v4l2_async_subdev_list *asdl,
+> +				  struct v4l2_async_subdev *asd)
+> +{
+> +	int ret;
+> +
+> +	/* Remove from the waiting list */
+> +	list_del(&asd->list);
+> +	asdl->asd = asd;
+> +	asdl->notifier = notifier;
+> +
+> +	if (notifier->bound) {
+> +		ret = notifier->bound(notifier, asdl);
+> +		if (ret < 0)
+> +			return ret;
+> +	}
+> +	/* Move from the global subdevice list to notifier's done */
+> +	list_move(&asdl->list, &notifier->done);
+> +
+> +	ret = v4l2_device_register_subdev(notifier->v4l2_dev,
+> +					  asdl->subdev);
+> +	if (ret < 0) {
+> +		if (notifier->unbind)
+> +			notifier->unbind(notifier, asdl);
+> +		return ret;
+> +	}
+> +
+> +	if (list_empty(&notifier->waiting) && notifier->complete)
+> +		return notifier->complete(notifier);
+> +
+> +	return 0;
+> +}
+> +
+> +static void v4l2_async_cleanup(struct v4l2_async_subdev_list *asdl)
+> +{
+> +	v4l2_device_unregister_subdev(asdl->subdev);
+> +	/* Subdevice driver will reprobe and put asdl back onto the list */
+> +	list_del_init(&asdl->list);
+> +	asdl->asd = NULL;
+> +	asdl->dev = NULL;
+> +}
+> +
+> +static struct device *v4l2_async_unregister(struct v4l2_async_subdev_list *asdl)
+> +{
+> +	struct device *dev = asdl->dev;
+> +
+> +	v4l2_async_cleanup(asdl);
+> +
+> +	/* If we handled USB devices, we'd have to lock the parent too */
+> +	device_release_driver(dev);
+> +	return dev;
+> +}
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_async_subdev_list *asdl, *tmp;
+> +	int i;
+> +
+> +	notifier->v4l2_dev = v4l2_dev;
+> +	INIT_LIST_HEAD(&notifier->waiting);
+> +	INIT_LIST_HEAD(&notifier->done);
+> +
+> +	for (i = 0; i < notifier->subdev_num; i++)
+> +		list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	/* Keep also completed notifiers on the list */
+> +	list_add(&notifier->list, &notifier_list);
+> +
+> +	list_for_each_entry_safe(asdl, tmp, &subdev_list, list) {
+> +		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
+> +		int ret;
+> +
+> +		if (!asd)
+> +			continue;
+> +
+> +		ret = v4l2_async_test_notify(notifier, asdl, asd);
+> +		if (ret < 0) {
+> +			mutex_unlock(&list_lock);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	mutex_unlock(&list_lock);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_notifier_register);
+> +
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_async_subdev_list *asdl, *tmp;
+> +	int i = 0;
+> +	struct device **dev = kcalloc(notifier->subdev_num,
+> +				      sizeof(*dev), GFP_KERNEL);
+> +	if (!dev)
+> +		dev_err(notifier->v4l2_dev->dev,
+> +			"Failed to allocate device cache!\n");
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	list_del(&notifier->list);
+> +
+> +	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
+> +		if (dev)
+> +			dev[i++] = get_device(asdl->dev);
+> +		v4l2_async_unregister(asdl);
+> +
+> +		if (notifier->unbind)
+> +			notifier->unbind(notifier, asdl);
+> +	}
+> +
+> +	mutex_unlock(&list_lock);
+> +
+> +	if (dev) {
+> +		while (i--) {
+> +			if (dev[i] && device_attach(dev[i]) < 0)
+> +				dev_err(dev[i], "Failed to re-probe to %s\n",
+> +					dev[i]->driver ? dev[i]->driver->name : "(none)");
+> +			put_device(dev[i]);
+> +		}
+> +		kfree(dev);
+> +	}
+> +	/*
+> +	 * Don't care about the waiting list, it is initialised and populated
+> +	 * upon notifier registration.
+> +	 */
+> +}
+> +EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> +
+> +int v4l2_async_register_subdev(struct v4l2_async_subdev_list *asdl)
+> +{
+> +	struct v4l2_async_notifier *notifier;
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	INIT_LIST_HEAD(&asdl->list);
+> +
+> +	list_for_each_entry(notifier, &notifier_list, list) {
+> +		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
+> +		if (asd) {
+> +			int ret = v4l2_async_test_notify(notifier, asdl, asd);
+> +			mutex_unlock(&list_lock);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* None matched, wait for hot-plugging */
+> +	list_add(&asdl->list, &subdev_list);
+> +
+> +	mutex_unlock(&list_lock);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_async_register_subdev);
+> +
+> +void v4l2_async_unregister_subdev(struct v4l2_async_subdev_list *asdl)
+> +{
+> +	struct v4l2_async_notifier *notifier = asdl->notifier;
+> +	struct device *dev;
+> +
+> +	if (!asdl->asd) {
+> +		if (!list_empty(&asdl->list))
+> +			v4l2_async_cleanup(asdl);
+> +		return;
+> +	}
+> +
+> +	mutex_lock(&list_lock);
+> +
+> +	dev = asdl->dev;
+> +
+> +	list_add(&asdl->asd->list, &notifier->waiting);
+> +
+> +	v4l2_async_cleanup(asdl);
+> +
+> +	if (notifier->unbind)
+> +		notifier->unbind(notifier, asdl);
+> +
+> +	mutex_unlock(&list_lock);
+> +}
+> +EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> new file mode 100644
+> index 0000000..c0470c6
+> --- /dev/null
+> +++ b/include/media/v4l2-async.h
+> @@ -0,0 +1,105 @@
+> +/*
+> + * V4L2 asynchronous subdevice registration API
+> + *
+> + * Copyright (C) 2012, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+s/2012/2013 ?
+
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#ifndef V4L2_ASYNC_H
+> +#define V4L2_ASYNC_H
+> +
+> +#include <linux/list.h>
+> +#include <linux/mutex.h>
+> +#include <linux/notifier.h>
+
+Is there anything used from this header ?
+
+> +#include <media/v4l2-subdev.h>
+> +
+> +struct device;
+> +struct v4l2_device;
+> +struct v4l2_async_notifier;
+> +
+> +enum v4l2_async_bus_type {
+> +	V4L2_ASYNC_BUS_SPECIAL,
+> +	V4L2_ASYNC_BUS_PLATFORM,
+> +	V4L2_ASYNC_BUS_I2C,
+> +};
+> +
+> +struct v4l2_async_hw_device {
+> +	enum v4l2_async_bus_type bus_type;
+> +	union {
+> +		struct {
+> +			const char *name;
+> +		} platform;
+> +		struct {
+> +			int adapter_id;
+> +			unsigned short address;
+> +		} i2c;
+> +		struct {
+> +			bool (*match)(struct device *,
+> +				      struct v4l2_async_hw_device *);
+> +			void *priv;
+> +		} special;
+> +	} match;
+> +};
+> +
+> +/**
+> + * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+> + * @hw:		this device descriptor
+> + * @list:	member in a list of subdevices
+> + */
+> +struct v4l2_async_subdev {
+> +	struct v4l2_async_hw_device hw;
+> +	struct list_head list;
+> +};
+> +
+> +/**
+> + * v4l2_async_subdev_list - provided by subdevices
+> + * @list:	member in a list of subdevices
+> + * @dev:	hardware device
+> + * @subdev:	V4L2 subdevice
+> + * @asd:	pointer to respective struct v4l2_async_subdev
+> + * @notifier:	pointer to managing notifier
+> + */
+> +struct v4l2_async_subdev_list {
+> +	struct list_head list;
+> +	struct device *dev;
+> +	struct v4l2_subdev *subdev;
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_async_notifier *notifier;
+> +};
+> +
+> +/**
+> + * v4l2_async_notifier - provided by bridges
+> + * @subdev_num:	number of subdevices
+> + * @subdev:	array of pointers to subdevices
+> + * @v4l2_dev:	pointer to sruct v4l2_device
+> + * @waiting:	list of subdevices, waiting for their drivers
+> + * @done:	list of subdevices, already probed
+> + * @list:	member in a global list of notifiers
+> + * @bound:	a subdevice driver has successfully probed one of subdevices
+> + * @complete:	all subdevices have been probed successfully
+> + * @unbind:	a subdevice is leaving
+> + */
+> +struct v4l2_async_notifier {
+> +	int subdev_num;
+> +	struct v4l2_async_subdev **subdev;
+> +	struct v4l2_device *v4l2_dev;
+> +	struct list_head waiting;
+> +	struct list_head done;
+> +	struct list_head list;
+> +	int (*bound)(struct v4l2_async_notifier *notifier,
+> +		     struct v4l2_async_subdev_list *asdl);
+> +	int (*complete)(struct v4l2_async_notifier *notifier);
+> +	void (*unbind)(struct v4l2_async_notifier *notifier,
+> +		       struct v4l2_async_subdev_list *asdl);
+> +};
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier);
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+> +int v4l2_async_register_subdev(struct v4l2_async_subdev_list *asdl);
+> +void v4l2_async_unregister_subdev(struct v4l2_async_subdev_list *asdl);
+> +#endif
+> 
+
+Thanks,
+Sylwester
