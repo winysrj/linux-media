@@ -1,128 +1,340 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:59090 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760189Ab3DBQ7h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 12:59:37 -0400
-Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
-	by merlin.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
-	id 1UN4Yb-0006Wy-0w
-	for linux-media@vger.kernel.org; Tue, 02 Apr 2013 16:59:37 +0000
-Message-ID: <1364921954.20640.22.camel@laptop>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
- v2
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	daniel.vetter@ffwll.ch, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org
-Date: Tue, 02 Apr 2013 18:59:14 +0200
-In-Reply-To: <515AF1C1.7080508@canonical.com>
-References: <20130228102452.15191.22673.stgit@patser>
-	  <20130228102502.15191.14146.stgit@patser>
-	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3200 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934775Ab3DHK7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/12] hdpvr: add dv_timings support.
+Date: Mon,  8 Apr 2013 12:58:40 +0200
+Message-Id: <1365418721-23859-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2013-04-02 at 16:57 +0200, Maarten Lankhorst wrote:
-> Hey,
-> 
-> Thanks for reviewing.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Only partway through so far :-)
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |  217 +++++++++++++++++++++++++++++----
+ drivers/media/usb/hdpvr/hdpvr.h       |    1 +
+ 2 files changed, 194 insertions(+), 24 deletions(-)
 
-> Op 02-04-13 13:00, Peter Zijlstra schreef:
-> > On Thu, 2013-02-28 at 11:25 +0100, Maarten Lankhorst wrote:
-> >> +Reservation type mutexes
-> >> +struct ticket_mutex {
-> >> +extern int __must_check _mutex_reserve_lock(struct ticket_mutex *lock,
-> > That's two different names and two different forms of one (for a total
-> > of 3 variants) for the same scheme.
-> >
-> > FAIL...
-
-> It's been hard since I haven't seen anything similar in the kernel, I
-> originally went with tickets since that's what ttm originally called
-> it, and tried to kill as many references as I could when I noticed
-> ticket mutexes already being taken.
-
-Ticket mutexes as such don't exist, but we have ticket based spinlock
-implementations. It seems a situation ripe for confusion to have two
-locking primitives (mutex, spinlock) with similar names (ticket) but
-vastly different semantics.
-
-> I'll fix up the ticket_mutex -> reservation_mutex, and mutex_reserve_*
-> -> reserve_mutex_*
-
-Do a google for "lock reservation" and observe the results.. its some
-scheme where they pre-assign lock ownership to the most likely thread.
-
-> > On Thu, 2013-02-28 at 11:25 +0100, Maarten Lankhorst wrote:
-> >> +mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow:
-> >> +  Similar to mutex_reserve_lock, except it won't backoff with
-> >> -EAGAIN.
-> >> +  This is useful when mutex_reserve_lock failed with -EAGAIN, and you
-> >> +  unreserved all reservation_locks so no deadlock can occur.
-> >> +
-> > I don't particularly like these function names, with lock
-> > implementations the _slow post-fix is typically used for slow path
-> > implementations, not API type interfaces.
-
->  I didn't intend for drivers to use the new calls directly, but rather
-> through a wrapper, for example by ttm_eu_reserve_buffers in
-> drivers/gpu/drm/ttm/ttm_execbuf_util.c
-
-You're providing a generic interface to the core kernel, other people
-will end up using it. Providing a proper API is helpful.
-
-> > Also, is there anything in CS literature that comes close to this? I'd
-> > think the DBMS people would have something similar with their
-> > transactional systems. What do they call it?
-
-> I didn't study cs, but judging from your phrasing I guess you mean you
-> want me to call it transaction_mutexes instead?
-
-Nah, me neither, I just hate reinventing names for something that's
-already got a perfectly fine name under which a bunch of people know
-it.
-
-See the email from Daniel, apparently its known as wound-wait deadlock
-avoidance -- its actually described in the "deadlock" wikipedia
-article.
-
-So how about we call the thing something like:
-
-  struct ww_mutex; /* wound/wait */
-
-  int mutex_wound_lock(struct ww_mutex *); /* returns -EDEADLK */
-  int mutex_wait_lock(struct ww_mutex *);  /* does not fail */
-
-Hmm.. thinking about that,.. you only need that second variant because
-you don't have a clear lock to wait for the 'older' process to
-complete; but having the unconditional wait makes the entire thing
-prone to accidents and deadlocks when the 'user' (read your fellow
-programmers) make a mistake.
-
-Ideally we'd only have the one primitive that returns -EDEADLK and use
-a 'proper' mutex to wait on or somesuch.. let me ponder this a bit more.
-
-> > Head hurts, needs more time to ponder. It would be good if someone else 
-> > (this would probably be you maarten) would also consider this explore 
-> > this 'interesting' problem space :-) 
-
-> My head too, evil priority stuff!
-> 
-> Hacky but pragmatical workaround for now: use a real mutex around all
-> the reserve_mutex_lock* calls instead of a virtual lock. It can be
-> unlocked as soon as all locks have been taken, before any actual work
-> is done.
-> 
-> It only slightly kills the point of having a reservation in the first
-> place, but at least it won't break completely -rt completely for now.
-
-Yeah, global lock, yay :-(
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 042f204..4376309 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -21,6 +21,7 @@
+ #include <linux/workqueue.h>
+ 
+ #include <linux/videodev2.h>
++#include <linux/v4l2-dv-timings.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+@@ -36,6 +37,25 @@
+ 			 list_size(&dev->free_buff_list),		\
+ 			 list_size(&dev->rec_buff_list)); }
+ 
++static const struct v4l2_dv_timings hdpvr_dv_timings[] = {
++	V4L2_DV_BT_CEA_720X480I59_94,
++	V4L2_DV_BT_CEA_720X576I50,
++	V4L2_DV_BT_CEA_720X480P59_94,
++	V4L2_DV_BT_CEA_720X576P50,
++	V4L2_DV_BT_CEA_1280X720P50,
++	V4L2_DV_BT_CEA_1280X720P60,
++	V4L2_DV_BT_CEA_1920X1080I50,
++	V4L2_DV_BT_CEA_1920X1080I60,
++};
++
++/* Use 480i59 as the default timings */
++#define HDPVR_DEF_DV_TIMINGS_IDX (0)
++
++struct hdpvr_fh {
++	struct v4l2_fh fh;
++	bool legacy_mode;
++};
++
+ static uint list_size(struct list_head *list)
+ {
+ 	struct list_head *tmp;
+@@ -355,13 +375,23 @@ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
+  * video 4 linux 2 file operations
+  */
+ 
++static int hdpvr_open(struct file *file)
++{
++	struct hdpvr_fh *fh = kzalloc(sizeof(*fh), GFP_KERNEL);
++
++	if (fh == NULL)
++		return -ENOMEM;
++	fh->legacy_mode = true;
++	v4l2_fh_init(&fh->fh, video_devdata(file));
++	v4l2_fh_add(&fh->fh);
++	file->private_data = fh;
++	return 0;
++}
++
+ static int hdpvr_release(struct file *file)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
+ 
+-	if (!dev)
+-		return -ENODEV;
+-
+ 	mutex_lock(&dev->io_mutex);
+ 	if (file->private_data == dev->owner) {
+ 		hdpvr_stop_streaming(dev);
+@@ -388,9 +418,6 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 	if (*pos)
+ 		return -ESPIPE;
+ 
+-	if (!dev)
+-		return -ENODEV;
+-
+ 	mutex_lock(&dev->io_mutex);
+ 	if (dev->status == STATUS_IDLE) {
+ 		if (hdpvr_start_streaming(dev)) {
+@@ -518,7 +545,7 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 
+ static const struct v4l2_file_operations hdpvr_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= v4l2_fh_open,
++	.open		= hdpvr_open,
+ 	.release	= hdpvr_release,
+ 	.read		= hdpvr_read,
+ 	.poll		= hdpvr_poll,
+@@ -594,6 +621,121 @@ static int vidioc_querystd(struct file *file, void *fh, v4l2_std_id *a)
+ 	return 0;
+ }
+ 
++static int vidioc_s_dv_timings(struct file *file, void *_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
++	int i;
++
++	fh->legacy_mode = false;
++	if (dev->options.video_input)
++		return -ENODATA;
++	if (dev->status != STATUS_IDLE)
++		return -EBUSY;
++	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++)
++		if (v4l_match_dv_timings(timings, hdpvr_dv_timings + i, 0))
++			break;
++	if (i == ARRAY_SIZE(hdpvr_dv_timings))
++		return -EINVAL;
++	dev->cur_dv_timings = hdpvr_dv_timings[i];
++	dev->width = hdpvr_dv_timings[i].bt.width;
++	dev->height = hdpvr_dv_timings[i].bt.height;
++	return 0;
++}
++
++static int vidioc_g_dv_timings(struct file *file, void *_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
++
++	fh->legacy_mode = false;
++	if (dev->options.video_input)
++		return -ENODATA;
++	*timings = dev->cur_dv_timings;
++	return 0;
++}
++
++static int vidioc_query_dv_timings(struct file *file, void *_fh,
++				    struct v4l2_dv_timings *timings)
++{
++	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
++	struct hdpvr_video_info *vid_info;
++	bool interlaced;
++	int ret = 0;
++	int i;
++
++	fh->legacy_mode = false;
++	if (dev->options.video_input)
++		return -ENODATA;
++	vid_info = get_video_info(dev);
++	if (vid_info == NULL)
++		return -ENOLCK;
++	interlaced = vid_info->fps <= 30;
++	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++) {
++		const struct v4l2_bt_timings *bt = &hdpvr_dv_timings[i].bt;
++		unsigned hsize;
++		unsigned vsize;
++		unsigned fps;
++
++		hsize = bt->hfrontporch + bt->hsync + bt->hbackporch + bt->width;
++		vsize = bt->vfrontporch + bt->vsync + bt->vbackporch +
++			bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch +
++			bt->height;
++		fps = (unsigned)bt->pixelclock / (hsize * vsize);
++		if (bt->width != vid_info->width ||
++		    bt->height != vid_info->height ||
++		    bt->interlaced != interlaced ||
++		    (fps != vid_info->fps && fps + 1 != vid_info->fps))
++			continue;
++		*timings = hdpvr_dv_timings[i];
++		break;
++	}
++	if (i == ARRAY_SIZE(hdpvr_dv_timings))
++		ret = -ERANGE;
++	kfree(vid_info);
++	return ret;
++}
++
++static int vidioc_enum_dv_timings(struct file *file, void *_fh,
++				    struct v4l2_enum_dv_timings *timings)
++{
++	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
++
++	fh->legacy_mode = false;
++	memset(timings->reserved, 0, sizeof(timings->reserved));
++	if (dev->options.video_input)
++		return -ENODATA;
++	if (timings->index >= ARRAY_SIZE(hdpvr_dv_timings))
++		return -EINVAL;
++	timings->timings = hdpvr_dv_timings[timings->index];
++	return 0;
++}
++
++static int vidioc_dv_timings_cap(struct file *file, void *_fh,
++				    struct v4l2_dv_timings_cap *cap)
++{
++	struct hdpvr_device *dev = video_drvdata(file);
++	struct hdpvr_fh *fh = _fh;
++
++	fh->legacy_mode = false;
++	if (dev->options.video_input)
++		return -ENODATA;
++	cap->type = V4L2_DV_BT_656_1120;
++	cap->bt.min_width = 720;
++	cap->bt.max_width = 1920;
++	cap->bt.min_height = 480;
++	cap->bt.max_height = 1080;
++	cap->bt.min_pixelclock = 27000000;
++	cap->bt.max_pixelclock = 74250000;
++	cap->bt.standards = V4L2_DV_BT_STD_CEA861;
++	cap->bt.capabilities = V4L2_DV_BT_CAP_INTERLACED | V4L2_DV_BT_CAP_PROGRESSIVE;
++	return 0;
++}
++
+ static const char *iname[] = {
+ 	[HDPVR_COMPONENT] = "Component",
+ 	[HDPVR_SVIDEO]    = "S-Video",
+@@ -827,29 +969,48 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
+ 	return 0;
+ }
+ 
+-static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
++static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
+ 				struct v4l2_format *f)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
+-	struct hdpvr_video_info *vid_info;
+-
+-	if (!dev)
+-		return -ENODEV;
+-
+-	vid_info = get_video_info(dev);
+-	if (!vid_info)
+-		return -EFAULT;
+-
+-	f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	struct hdpvr_fh *fh = _fh;
++
++	/*
++	 * The original driver would always returns the current detected
++	 * resolution as the format (and EFAULT if it couldn't be detected).
++	 * With the introduction of VIDIOC_QUERY_DV_TIMINGS there is now a
++	 * better way of doing this, but to stay compatible with existing
++	 * applications we assume legacy mode every time an application opens
++	 * the device. Only if one of the new DV_TIMINGS ioctls is called
++	 * will the filehandle go into 'normal' mode where g_fmt returns the
++	 * last set format.
++	 */
++	if (fh->legacy_mode) {
++		struct hdpvr_video_info *vid_info;
++
++		vid_info = get_video_info(dev);
++		if (!vid_info)
++			return -EFAULT;
++		f->fmt.pix.width = vid_info->width;
++		f->fmt.pix.height = vid_info->height;
++		kfree(vid_info);
++	} else {
++		f->fmt.pix.width = dev->width;
++		f->fmt.pix.height = dev->height;
++	}
+ 	f->fmt.pix.pixelformat	= V4L2_PIX_FMT_MPEG;
+-	f->fmt.pix.width	= vid_info->width;
+-	f->fmt.pix.height	= vid_info->height;
+ 	f->fmt.pix.sizeimage	= dev->bulk_in_size;
+-	f->fmt.pix.colorspace	= 0;
+ 	f->fmt.pix.bytesperline	= 0;
+-	f->fmt.pix.field	= V4L2_FIELD_ANY;
+-
+-	kfree(vid_info);
++	f->fmt.pix.priv		= 0;
++	if (f->fmt.pix.width == 720) {
++		/* SDTV formats */
++		f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++		f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	} else {
++		/* HDTV formats */
++		f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE240M;
++		f->fmt.pix.field = V4L2_FIELD_NONE;
++	}
+ 	return 0;
+ }
+ 
+@@ -916,6 +1077,11 @@ static const struct v4l2_ioctl_ops hdpvr_ioctl_ops = {
+ 	.vidioc_s_std		= vidioc_s_std,
+ 	.vidioc_g_std		= vidioc_g_std,
+ 	.vidioc_querystd	= vidioc_querystd,
++	.vidioc_s_dv_timings	= vidioc_s_dv_timings,
++	.vidioc_g_dv_timings	= vidioc_g_dv_timings,
++	.vidioc_query_dv_timings= vidioc_query_dv_timings,
++	.vidioc_enum_dv_timings	= vidioc_enum_dv_timings,
++	.vidioc_dv_timings_cap	= vidioc_dv_timings_cap,
+ 	.vidioc_enum_input	= vidioc_enum_input,
+ 	.vidioc_g_input		= vidioc_g_input,
+ 	.vidioc_s_input		= vidioc_s_input,
+@@ -924,6 +1090,8 @@ static const struct v4l2_ioctl_ops hdpvr_ioctl_ops = {
+ 	.vidioc_s_audio		= vidioc_s_audio,
+ 	.vidioc_enum_fmt_vid_cap= vidioc_enum_fmt_vid_cap,
+ 	.vidioc_g_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap	= vidioc_g_fmt_vid_cap,
+ 	.vidioc_encoder_cmd	= vidioc_encoder_cmd,
+ 	.vidioc_try_encoder_cmd	= vidioc_try_encoder_cmd,
+ 	.vidioc_log_status	= v4l2_ctrl_log_status,
+@@ -975,6 +1143,7 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 	dev->cur_std = V4L2_STD_525_60;
+ 	dev->width = 720;
+ 	dev->height = 480;
++	dev->cur_dv_timings = hdpvr_dv_timings[HDPVR_DEF_DV_TIMINGS_IDX];
+ 	v4l2_ctrl_handler_init(hdl, 11);
+ 	if (dev->fw_ver > 0x15) {
+ 		v4l2_ctrl_new_std(hdl, &hdpvr_ctrl_ops,
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index 050c6b9..1478f3d 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -92,6 +92,7 @@ struct hdpvr_device {
+ 	/* holds the current set options */
+ 	struct hdpvr_options	options;
+ 	v4l2_std_id		cur_std;
++	struct v4l2_dv_timings	cur_dv_timings;
+ 
+ 	uint			flags;
+ 
+-- 
+1.7.10.4
 
