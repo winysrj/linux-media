@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33632 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207Ab3DYKHQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 06:07:16 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT006MP2QO4Y50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 11:07:13 +0100 (BST)
-Message-id: <51790050.9040903@samsung.com>
-Date: Thu, 25 Apr 2013 12:07:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/7] Add copy time stamp handling to mem2mem drivers
-References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2297 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934522Ab3DHK7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 07/12] hdpvr: small fixes
+Date: Mon,  8 Apr 2013 12:58:36 +0200
+Message-Id: <1365418721-23859-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/25/2013 11:49 AM, Kamil Debski wrote:
-> Hi,
-> 
-> This set of patches adds support for copy time stamp handling in the following
-> mem2mem drivers:
-> * CODA video codec
-> * Exynos GScaler
-> * m2m-deinterlace
-> * mx2_emmaprp
-> * Exynos G2D
-> * Exynos Jpeg
-> In addition there is a slight optimisation for the Exynos MFC driver.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The series looks good to me, but would be nice to have the commit message
-not empty, so it is more clear why this change is needed.
+- return EBUSY instead of EAGAIN.
+- add missing break.
+- remove unnecessary buf type check (done by the core).
 
-Thanks,
-Sylwester
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 406eda8..e14bf49 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -594,7 +594,7 @@ static int vidioc_s_input(struct file *file, void *private_data,
+ 		return -EINVAL;
+ 
+ 	if (dev->status != STATUS_IDLE)
+-		return -EAGAIN;
++		return -EBUSY;
+ 
+ 	retval = hdpvr_config_call(dev, CTRL_VIDEO_INPUT_VALUE, index+1);
+ 	if (!retval)
+@@ -646,7 +646,7 @@ static int vidioc_s_audio(struct file *file, void *private_data,
+ 		return -EINVAL;
+ 
+ 	if (dev->status != STATUS_IDLE)
+-		return -EAGAIN;
++		return -EBUSY;
+ 
+ 	retval = hdpvr_set_audio(dev, audio->index+1, dev->options.audio_codec);
+ 	if (!retval)
+@@ -777,7 +777,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
+ 				    struct v4l2_fmtdesc *f)
+ {
+ 
+-	if (f->index != 0 || f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++	if (f->index != 0)
+ 		return -EINVAL;
+ 
+ 	f->flags = V4L2_FMT_FLAG_COMPRESSED;
+-- 
+1.7.10.4
+
