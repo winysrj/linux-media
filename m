@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62126 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752952Ab3DTRvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 13:51:23 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3KHpM3a022843
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:51:23 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v2 2/3] videodev2.h: Remove the unused old V4L1 buffer types
-Date: Sat, 20 Apr 2013 14:51:13 -0300
-Message-Id: <1366480274-31255-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366480274-31255-1-git-send-email-mchehab@redhat.com>
-References: <366469499-31640-1-git-send-email-mchehab@redhat.com>
- <1366480274-31255-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-qe0-f52.google.com ([209.85.128.52]:44851 "EHLO
+	mail-qe0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934568Ab3DHJUM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 05:20:12 -0400
+MIME-Version: 1.0
+In-Reply-To: <1348754853-28619-11-git-send-email-g.liakhovetski@gmx.de>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-11-git-send-email-g.liakhovetski@gmx.de>
+From: Barry Song <21cnbao@gmail.com>
+Date: Mon, 8 Apr 2013 17:19:52 +0800
+Message-ID: <CAGsJ_4zYvF-U0_ETs9EP8i+bOJiJLkXWrJdMNnW_sXU-QwnXQw@mail.gmail.com>
+Subject: Re: [PATCH 10/14] media: soc-camera: support OF cameras
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
+	zilong.wu@csr.com, "renwei.wu" <renwei.wu@csr.com>,
+	xiaomeng.hou@csr.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those aren't used anywhere for a long time. Drop it.
+hi Guennadi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/uapi/linux/videodev2.h | 21 ---------------------
- 1 file changed, 21 deletions(-)
+2012/9/27 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> With OF we aren't getting platform data any more. To minimise changes we
+> create all the missing data ourselves, including compulsory struct
+> soc_camera_link objects. Host-client linking is now done, based on the OF
+> data. Media bus numbers also have to be assigned dynamically.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 4aa24c3..5d8ee92 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -72,27 +72,6 @@
- #define VIDEO_MAX_FRAME               32
- #define VIDEO_MAX_PLANES               8
- 
--#ifndef __KERNEL__
--
--/* These defines are V4L1 specific and should not be used with the V4L2 API!
--   They will be removed from this header in the future. */
--
--#define VID_TYPE_CAPTURE	1	/* Can capture */
--#define VID_TYPE_TUNER		2	/* Can tune */
--#define VID_TYPE_TELETEXT	4	/* Does teletext */
--#define VID_TYPE_OVERLAY	8	/* Overlay onto frame buffer */
--#define VID_TYPE_CHROMAKEY	16	/* Overlay by chromakey */
--#define VID_TYPE_CLIPPING	32	/* Can clip */
--#define VID_TYPE_FRAMERAM	64	/* Uses the frame buffer memory */
--#define VID_TYPE_SCALES		128	/* Scalable */
--#define VID_TYPE_MONOCHROME	256	/* Monochrome only */
--#define VID_TYPE_SUBCAPTURE	512	/* Can capture subareas of the image */
--#define VID_TYPE_MPEG_DECODER	1024	/* Can decode MPEG streams */
--#define VID_TYPE_MPEG_ENCODER	2048	/* Can encode MPEG streams */
--#define VID_TYPE_MJPEG_DECODER	4096	/* Can decode MJPEG streams */
--#define VID_TYPE_MJPEG_ENCODER	8192	/* Can encode MJPEG streams */
--#endif
--
- /*
-  *	M I S C E L L A N E O U S
-  */
--- 
-1.8.1.4
+as your V4L2 core DT based supports
+[media] Add a V4L2 OF parser
+[media] Add common video interfaces OF bindings documentation
+have been in media_tree queue for 3.10. i do care about the status of
+this patch for soc_camera.
 
+will you have a plan to resend these soc-camera patches based on your
+final V4L2 core DT patches? otherwise, we might do some jobs for that.
+
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |  337 ++++++++++++++++++++++--
+>  include/media/soc_camera.h                     |    5 +
+>  2 files changed, 326 insertions(+), 16 deletions(-)
+>
+-barry
