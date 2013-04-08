@@ -1,301 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f181.google.com ([209.85.192.181]:58388 "EHLO
-	mail-pd0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935982Ab3DKSFX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 14:05:23 -0400
-Received: by mail-pd0-f181.google.com with SMTP id y10so982569pdj.12
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 11:05:22 -0700 (PDT)
-From: Tzu-Jung Lee <roylee17@gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4479 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934715Ab3DHK7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
-	Tzu-Jung Lee <tjlee@ambarella.com>
-Subject: [PATCH] v4l2-ctl: add is_compressed_format() helper
-Date: Fri, 12 Apr 2013 02:07:01 +0800
-Message-Id: <1365703621-7783-1-git-send-email-tjlee@ambarella.com>
-In-Reply-To: <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
-References: <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
+Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 04/12] hdpvr: remove hdpvr_fh and just use v4l2_fh.
+Date: Mon,  8 Apr 2013 12:58:33 +0200
+Message-Id: <1365418721-23859-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is used to:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-  bypass precalculate_bars() for OUTPUT device
-  that takes encoded bitstreams.
+This prepares the driver for priority and control event handling.
 
-  handle the last chunk of input file that has
-  non-buffer-aligned size.
+This patch also checks for correct streaming ownership and it makes a
+small improvement to the encoder_cmd ioctls: always zero 'flags' and
+drop the memset of 'raw' as that is already done by the v4l2 core.
 
-Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 132 ++++++++++++++++++++++++++++------
- 1 file changed, 112 insertions(+), 20 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-video.c |  115 +++++++++++++--------------------
+ drivers/media/usb/hdpvr/hdpvr.h       |    4 +-
+ 2 files changed, 46 insertions(+), 73 deletions(-)
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index 9e361af..44643e8 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -115,6 +115,29 @@ static const flag_def tc_flags_def[] = {
- 	{ 0, NULL }
- };
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index a890127..4bbcf48 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -35,10 +35,6 @@
+ 			 list_size(&dev->free_buff_list),		\
+ 			 list_size(&dev->rec_buff_list)); }
  
-+static bool is_compressed_format(__u32 pixfmt)
-+{
-+	switch (pixfmt) {
-+	case V4L2_PIX_FMT_MJPEG:
-+	case V4L2_PIX_FMT_JPEG:
-+	case V4L2_PIX_FMT_DV:
-+	case V4L2_PIX_FMT_MPEG:
-+	case V4L2_PIX_FMT_H264:
-+	case V4L2_PIX_FMT_H264_NO_SC:
-+	case V4L2_PIX_FMT_H263:
-+	case V4L2_PIX_FMT_MPEG1:
-+	case V4L2_PIX_FMT_MPEG2:
-+	case V4L2_PIX_FMT_MPEG4:
-+	case V4L2_PIX_FMT_XVID:
-+	case V4L2_PIX_FMT_VC1_ANNEX_G:
-+		return true;
-+	default:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
- static void print_buffer(FILE *f, struct v4l2_buffer &buf)
+-struct hdpvr_fh {
+-	struct hdpvr_device	*dev;
+-};
+-
+ static uint list_size(struct list_head *list)
  {
- 	fprintf(f, "\tIndex    : %d\n", buf.index);
-@@ -223,25 +246,60 @@ void streaming_cmd(int ch, char *optarg)
+ 	struct list_head *tmp;
+@@ -358,55 +354,21 @@ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
+  * video 4 linux 2 file operations
+  */
+ 
+-static int hdpvr_open(struct file *file)
+-{
+-	struct hdpvr_device *dev;
+-	struct hdpvr_fh *fh;
+-	int retval = -ENOMEM;
+-
+-	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
+-	if (!dev) {
+-		pr_err("open failing with with ENODEV\n");
+-		retval = -ENODEV;
+-		goto err;
+-	}
+-
+-	fh = kzalloc(sizeof(struct hdpvr_fh), GFP_KERNEL);
+-	if (!fh) {
+-		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+-		goto err;
+-	}
+-	/* lock the device to allow correctly handling errors
+-	 * in resumption */
+-	mutex_lock(&dev->io_mutex);
+-	dev->open_count++;
+-	mutex_unlock(&dev->io_mutex);
+-
+-	fh->dev = dev;
+-
+-	/* save our object in the file's private structure */
+-	file->private_data = fh;
+-
+-	retval = 0;
+-err:
+-	return retval;
+-}
+-
+ static int hdpvr_release(struct file *file)
+ {
+-	struct hdpvr_fh		*fh  = file->private_data;
+-	struct hdpvr_device	*dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	if (!dev)
+ 		return -ENODEV;
+ 
+ 	mutex_lock(&dev->io_mutex);
+-	if (!(--dev->open_count) && dev->status == STATUS_STREAMING)
++	if (file->private_data == dev->owner) {
+ 		hdpvr_stop_streaming(dev);
+-
++		dev->owner = NULL;
++	}
+ 	mutex_unlock(&dev->io_mutex);
+ 
+-	return 0;
++	return v4l2_fh_release(file);
  }
  
- static bool fill_buffer_from_file(void *buffers[], unsigned buffer_lengths[],
--		unsigned buf_index, unsigned num_planes, FILE *fin)
-+				  unsigned buffer_bytesused[], unsigned buf_index,
-+				  unsigned num_planes, bool is_compressed, FILE *fin)
+ /*
+@@ -416,8 +378,7 @@ static int hdpvr_release(struct file *file)
+ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 			  loff_t *pos)
  {
-+	if (num_planes == 1) {
-+		unsigned i = buf_index;
-+		unsigned sz = fread(buffers[i], 1,
-+				    buffer_lengths[i], fin);
-+
-+		buffer_bytesused[i] = sz;
-+		if (sz == 0 && stream_loop) {
-+			fseek(fin, 0, SEEK_SET);
-+			sz = fread(buffers[i], 1,
-+				   buffer_lengths[i], fin);
-+
-+			buffer_bytesused[i] = sz;
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_buffer *buf = NULL;
+ 	struct urb *urb;
+ 	unsigned int ret = 0;
+@@ -440,6 +401,7 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
+ 			mutex_unlock(&dev->io_mutex);
+ 			goto err;
+ 		}
++		dev->owner = file->private_data;
+ 		print_buffer_status();
+ 	}
+ 	mutex_unlock(&dev->io_mutex);
+@@ -518,8 +480,7 @@ err:
+ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ {
+ 	struct hdpvr_buffer *buf = NULL;
+-	struct hdpvr_fh *fh = filp->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(filp);
+ 	unsigned int mask = 0;
+ 
+ 	mutex_lock(&dev->io_mutex);
+@@ -534,6 +495,8 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 			v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+ 				 "start_streaming failed\n");
+ 			dev->status = STATUS_IDLE;
++		} else {
++			dev->owner = filp->private_data;
+ 		}
+ 
+ 		print_buffer_status();
+@@ -555,7 +518,7 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 
+ static const struct v4l2_file_operations hdpvr_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= hdpvr_open,
++	.open		= v4l2_fh_open,
+ 	.release	= hdpvr_release,
+ 	.read		= hdpvr_read,
+ 	.poll		= hdpvr_poll,
+@@ -584,8 +547,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ static int vidioc_s_std(struct file *file, void *private_data,
+ 			v4l2_std_id std)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	u8 std_type = 1;
+ 
+ 	if (std & (V4L2_STD_NTSC | V4L2_STD_PAL_60))
+@@ -603,8 +565,7 @@ static const char *iname[] = {
+ static int vidioc_enum_input(struct file *file, void *priv,
+ 				struct v4l2_input *i)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	unsigned int n;
+ 
+ 	n = i->index;
+@@ -626,8 +587,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ static int vidioc_s_input(struct file *file, void *private_data,
+ 			  unsigned int index)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	int retval;
+ 
+ 	if (index >= HDPVR_VIDEO_INPUTS)
+@@ -646,8 +606,7 @@ static int vidioc_s_input(struct file *file, void *private_data,
+ static int vidioc_g_input(struct file *file, void *private_data,
+ 			  unsigned int *index)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	*index = dev->options.video_input;
+ 	return 0;
+@@ -680,8 +639,7 @@ static int vidioc_enumaudio(struct file *file, void *priv,
+ static int vidioc_s_audio(struct file *file, void *private_data,
+ 			  const struct v4l2_audio *audio)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	int retval;
+ 
+ 	if (audio->index >= HDPVR_AUDIO_INPUTS)
+@@ -700,8 +658,7 @@ static int vidioc_s_audio(struct file *file, void *private_data,
+ static int vidioc_g_audio(struct file *file, void *private_data,
+ 			  struct v4l2_audio *audio)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 
+ 	audio->index = dev->options.audio_input;
+ 	audio->capability = V4L2_AUDCAP_STEREO;
+@@ -833,8 +790,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
+ static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
+ 				struct v4l2_format *f)
+ {
+-	struct hdpvr_fh *fh = file->private_data;
+-	struct hdpvr_device *dev = fh->dev;
++	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_video_info *vid_info;
+ 
+ 	if (!dev)
+@@ -860,26 +816,44 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
+ static int vidioc_encoder_cmd(struct file *filp, void *priv,
+ 			       struct v4l2_encoder_cmd *a)
+ {
+-	struct hdpvr_fh *fh = filp->private_data;
+-	struct hdpvr_device *dev = fh->dev;
+-	int res;
++	struct hdpvr_device *dev = video_drvdata(filp);
++	int res = 0;
+ 
+ 	mutex_lock(&dev->io_mutex);
++	a->flags = 0;
+ 
+-	memset(&a->raw, 0, sizeof(a->raw));
+ 	switch (a->cmd) {
+ 	case V4L2_ENC_CMD_START:
+-		a->flags = 0;
++		if (dev->owner && filp->private_data != dev->owner) {
++			res = -EBUSY;
++			break;
 +		}
-+
-+		if (!sz)
-+			return false;
-+
-+		if (sz == buffer_lengths[i])
-+			return true;
-+
-+		if (is_compressed)
-+			return true;
-+
-+		fprintf(stderr, "%u != %u\n", sz, buffer_lengths[i]);
-+
-+		return false;
-+	}
-+
- 	for (unsigned j = 0; j < num_planes; j++) {
- 		unsigned p = buf_index * num_planes + j;
- 		unsigned sz = fread(buffers[p], 1,
--				buffer_lengths[p], fin);
-+				    buffer_lengths[p], fin);
- 
-+		buffer_bytesused[j] = sz;
- 		if (j == 0 && sz == 0 && stream_loop) {
- 			fseek(fin, 0, SEEK_SET);
- 			sz = fread(buffers[p], 1,
--					buffer_lengths[p], fin);
-+				   buffer_lengths[p], fin);
-+
-+			buffer_bytesused[j] = sz;
- 		}
- 		if (sz == buffer_lengths[p])
- 			continue;
-+
-+		// Bail out if we get weird buffer sizes.
- 		if (sz)
- 			fprintf(stderr, "%u != %u\n", sz, buffer_lengths[p]);
--		// Bail out if we get weird buffer sizes.
-+
- 		return false;
++		if (dev->status == STATUS_STREAMING)
++			break;
+ 		res = hdpvr_start_streaming(dev);
++		if (!res)
++			dev->owner = filp->private_data;
++		else
++			dev->status = STATUS_IDLE;
+ 		break;
+ 	case V4L2_ENC_CMD_STOP:
++		if (dev->owner && filp->private_data != dev->owner) {
++			res = -EBUSY;
++			break;
++		}
++		if (dev->status == STATUS_IDLE)
++			break;
+ 		res = hdpvr_stop_streaming(dev);
++		if (!res)
++			dev->owner = NULL;
+ 		break;
+ 	default:
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+ 			 "Unsupported encoder cmd %d\n", a->cmd);
+ 		res = -EINVAL;
++		break;
  	}
 +
- 	return true;
+ 	mutex_unlock(&dev->io_mutex);
+ 	return res;
+ }
+@@ -887,6 +861,7 @@ static int vidioc_encoder_cmd(struct file *filp, void *priv,
+ static int vidioc_try_encoder_cmd(struct file *filp, void *priv,
+ 					struct v4l2_encoder_cmd *a)
+ {
++	a->flags = 0;
+ 	switch (a->cmd) {
+ 	case V4L2_ENC_CMD_START:
+ 	case V4L2_ENC_CMD_STOP:
+@@ -935,8 +910,6 @@ static void hdpvr_device_release(struct video_device *vdev)
  }
  
-@@ -312,16 +370,22 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 				 bool is_mplane, unsigned &num_planes, bool is_mmap,
- 				 void *buffers[], unsigned buffer_lengths[], FILE *fin)
- {
-+	bool is_compressed;
-+
- 	struct v4l2_format fmt;
- 	memset(&fmt, 0, sizeof(fmt));
- 	fmt.type = reqbufs->type;
- 	doioctl(fd, VIDIOC_G_FMT, &fmt);
- 
--	if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+	if (!is_compressed &&
-+	    !precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
- 		fprintf(stderr, "unsupported pixelformat\n");
- 		return;
+ static const struct video_device hdpvr_video_template = {
+-/* 	.type			= VFL_TYPE_GRABBER, */
+-/* 	.type2			= VID_TYPE_CAPTURE | VID_TYPE_MPEG_ENCODER, */
+ 	.fops			= &hdpvr_fops,
+ 	.release		= hdpvr_device_release,
+ 	.ioctl_ops 		= &hdpvr_ioctl_ops,
+@@ -1031,9 +1004,9 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 		goto error;
  	}
  
-+	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
-+
- 	for (unsigned i = 0; i < reqbufs->count; i++) {
- 		struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 		struct v4l2_buffer buf;
-@@ -363,11 +427,11 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 			// TODO fill_buffer_mp(buffers[i], &fmt.fmt.pix_mp);
- 			if (fin)
- 				fill_buffer_from_file(buffers, buffer_lengths,
--						      buf.index, num_planes, fin);
-+						      buffer_bytesused, buf.index,
-+						      num_planes, is_compressed, fin);
- 		}
- 		else {
- 			buffer_lengths[i] = buf.length;
--			buf.bytesused = buf.length;
- 			if (is_mmap) {
- 				buffers[i] = mmap(NULL, buf.length,
- 						  PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
-@@ -381,9 +445,16 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 				buffers[i] = calloc(1, buf.length);
- 				buf.m.userptr = (unsigned long)buffers[i];
- 			}
--			if (!fin || !fill_buffer_from_file(buffers, buffer_lengths,
--							   buf.index, num_planes, fin))
-+
-+			if (fin && fill_buffer_from_file(buffers, buffer_lengths,
-+							 buffer_bytesused, buf.index,
-+							 num_planes, is_compressed,
-+							 fin)) {
-+				buf.bytesused = buffer_bytesused[buf.index];
-+			}
-+			else {
- 				fill_buffer(buffers[i], &fmt.fmt.pix);
-+			}
- 		}
- 		if (doioctl(fd, VIDIOC_QBUF, &buf))
- 			return;
-@@ -511,12 +582,13 @@ static int do_handle_cap(int fd, struct v4l2_requestbuffers *reqbufs,
- }
+-	*(dev->video_dev) = hdpvr_video_template;
++	*dev->video_dev = hdpvr_video_template;
+ 	strcpy(dev->video_dev->name, "Hauppauge HD PVR");
+-	dev->video_dev->parent = parent;
++	dev->video_dev->v4l2_dev = &dev->v4l2_dev;
+ 	video_set_drvdata(dev->video_dev, dev);
  
- static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
--			 bool is_mplane, unsigned num_planes,
-+			 bool is_compressed, bool is_mplane, unsigned num_planes,
- 			 void *buffers[], unsigned buffer_lengths[], FILE *fin,
- 			 unsigned &count, unsigned &last, struct timeval &tv_last)
- {
- 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 	struct v4l2_buffer buf;
-+	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
- 	int ret;
+ 	res = video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum);
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index 2a4deab..9450093 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -85,8 +85,6 @@ struct hdpvr_device {
  
- 	memset(&buf, 0, sizeof(buf));
-@@ -535,14 +607,17 @@ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
- 		fprintf(stderr, "%s: failed: %s\n", "VIDIOC_DQBUF", strerror(errno));
- 		return -1;
- 	}
--	if (fin && !fill_buffer_from_file(buffers, buffer_lengths,
--					  buf.index, num_planes, fin))
-+	if (fin &&!fill_buffer_from_file(buffers, buffer_lengths,
-+					 buffer_bytesused, buf.index,
-+					 num_planes, is_compressed,
-+					 fin)) {
- 		return -1;
-+	}
- 	if (is_mplane) {
- 		for (unsigned j = 0; j < buf.length; j++)
--			buf.m.planes[j].bytesused = buf.m.planes[j].length;
-+			buf.m.planes[j].bytesused = buffer_bytesused[j];
- 	} else {
--		buf.bytesused = buf.length;
-+		buf.bytesused = buffer_bytesused[buf.index];
- 	}
- 	if (test_ioctl(fd, VIDIOC_QBUF, &buf))
- 		return -1;
-@@ -688,7 +763,9 @@ static void streaming_set_cap(int fd)
- static void streaming_set_out(int fd)
- {
- 	struct v4l2_requestbuffers reqbufs;
-+	struct v4l2_format fmt;
- 	int fd_flags = fcntl(fd, F_GETFL);
-+	bool is_compressed;
- 	bool is_mplane = capabilities &
- 			(V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 				 V4L2_CAP_VIDEO_M2M_MPLANE);
-@@ -710,6 +787,12 @@ static void streaming_set_out(int fd)
- 	reqbufs.type = type;
- 	reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+ 	/* holds the current device status */
+ 	__u8			status;
+-	/* count the number of openers */
+-	uint			open_count;
  
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs.type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+
- 	if (file_out) {
- 		if (!strcmp(file_out, "-"))
- 			fin = stdin;
-@@ -765,9 +848,9 @@ static void streaming_set_out(int fd)
- 				return;
- 			}
- 		}
--		r = do_handle_out(fd, &reqbufs, is_mplane, num_planes,
--				   buffers, buffer_lengths, fin,
--				   count, last, tv_last);
-+		r = do_handle_out(fd, &reqbufs, is_compressed, is_mplane,
-+				  num_planes, buffers, buffer_lengths,
-+				  fin, count, last, tv_last);
- 		if (r == -1)
- 			break;
+ 	/* holds the cureent set options */
+ 	struct hdpvr_options	options;
+@@ -107,6 +105,8 @@ struct hdpvr_device {
+ 	struct workqueue_struct	*workqueue;
+ 	/**/
+ 	struct work_struct	worker;
++	/* current stream owner */
++	struct v4l2_fh		*owner;
  
-@@ -795,6 +878,9 @@ enum stream_type {
- 
- static void streaming_set_m2m(int fd)
- {
-+	struct v4l2_format fmt;
-+	bool is_compressed;
-+
- 	int fd_flags = fcntl(fd, F_GETFL);
- 	bool use_poll = options[OptStreamPoll];
- 
-@@ -864,6 +950,12 @@ static void streaming_set_m2m(int fd)
- 			     is_mmap, buffers_out, buffer_lengths_out,
- 			     file[OUT]);
- 
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs[OUT].type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
-+
- 	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
- 	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
- 		return;
-@@ -927,9 +1019,9 @@ static void streaming_set_m2m(int fd)
- 		}
- 
- 		if (wr_fds && FD_ISSET(fd, wr_fds)) {
--			r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes[OUT],
--					   buffers_out, buffer_lengths_out, file[OUT],
--					   count[OUT], last[OUT], tv_last[OUT]);
-+			r  = do_handle_out(fd, &reqbufs[OUT], is_compressed, is_mplane,
-+					   num_planes[OUT], buffers_out, buffer_lengths_out,
-+					   file[OUT], count[OUT], last[OUT], tv_last[OUT]);
- 			if (r < 0)  {
- 				wr_fds = NULL;
- 
+ 	/* I2C adapter */
+ 	struct i2c_adapter	i2c_adapter;
 -- 
-1.8.1.5
+1.7.10.4
 
