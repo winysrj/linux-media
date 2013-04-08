@@ -1,152 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3676 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755381Ab3DQAmy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:54 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gsek021055
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:54 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 04/31] [media] r820t: Set gain mode to auto
-Date: Tue, 16 Apr 2013 21:42:15 -0300
-Message-Id: <1366159362-3773-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2192 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935422Ab3DHMql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 08:46:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Michal Lazo <michal.lazo@mdragon.org>
+Subject: Re: vivi kernel driver
+Date: Mon, 8 Apr 2013 14:46:33 +0200
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com> <CA+MoWDpAFOgEN-ruyzVp=C-Dz_16CnOSXU30UowARB3m-eTVMQ@mail.gmail.com> <CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
+In-Reply-To: <CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304081446.33811.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This tuner works with 2 modes: automatic gain mode and manual
-gain mode. Put it into automatic mode, as we currently don't
-have any API for manual gain adjustment.
-The logic to allow setting the manual mode is there, as it is
-just a few extra code. This way, if/when we latter add support
-for setting the gain mode, the code is already there.
+On Mon April 8 2013 14:42:32 Michal Lazo wrote:
+> Hi
+> 720x576 RGB 25, 30 fps and it take
+> 
+> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
+> 2GHz linux 3.2.0-39)
+> 
+> it is simply too much
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/tuners/r820t.c | 91 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 91 insertions(+)
+No, that's what I would expect. Note that vivi was substantially improved recently
+when it comes to the image generation. That will be in the upcoming 3.9 kernel.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index ed9cd65..0fa355d 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -321,6 +321,20 @@ static int r820t_xtal_capacitor[][2] = {
- };
- 
- /*
-+ * measured with a Racal 6103E GSM test set at 928 MHz with -60 dBm
-+ * input power, for raw results see:
-+ *	http://steve-m.de/projects/rtl-sdr/gain_measurement/r820t/
-+ */
-+
-+static const int r820t_lna_gain_steps[]  = {
-+	0, 9, 13, 40, 38, 13, 31, 22, 26, 31, 26, 14, 19, 5, 35, 13
-+};
-+
-+static const int r820t_mixer_gain_steps[]  = {
-+	0, 5, 10, 10, 19, 9, 10, 25, 17, 10, 8, 16, 13, 6, 3, -8
-+};
-+
-+/*
-  * I2C read/write code and shadow registers logic
-  */
- static void shadow_store(struct r820t_priv *priv, u8 reg, const u8 *val,
-@@ -1094,6 +1108,78 @@ static int r820t_read_gain(struct r820t_priv *priv)
- 	return ((data[3] & 0x0f) << 1) + ((data[3] & 0xf0) >> 4);
- }
- 
-+static int r820t_set_gain_mode(struct r820t_priv *priv,
-+			       bool set_manual_gain,
-+			       int gain)
-+{
-+	int rc;
-+
-+	if (set_manual_gain) {
-+		int i, total_gain = 0;
-+		uint8_t mix_index = 0, lna_index = 0;
-+		u8 data[4];
-+
-+		/* LNA auto off */
-+		rc = r820t_write_reg_mask(priv, 0x05, 0x10, 0x10);
-+		if (rc < 0)
-+			return rc;
-+
-+		 /* Mixer auto off */
-+		rc = r820t_write_reg_mask(priv, 0x07, 0, 0x10);
-+		if (rc < 0)
-+			return rc;
-+
-+		rc = r820_read(priv, 0x00, data, sizeof(data));
-+		if (rc < 0)
-+			return rc;
-+
-+		/* set fixed VGA gain for now (16.3 dB) */
-+		rc = r820t_write_reg_mask(priv, 0x0c, 0x08, 0x9f);
-+		if (rc < 0)
-+			return rc;
-+
-+		for (i = 0; i < 15; i++) {
-+			if (total_gain >= gain)
-+				break;
-+
-+			total_gain += r820t_lna_gain_steps[++lna_index];
-+
-+			if (total_gain >= gain)
-+				break;
-+
-+			total_gain += r820t_mixer_gain_steps[++mix_index];
-+		}
-+
-+		/* set LNA gain */
-+		rc = r820t_write_reg_mask(priv, 0x05, lna_index, 0x0f);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* set Mixer gain */
-+		rc = r820t_write_reg_mask(priv, 0x07, mix_index, 0x0f);
-+		if (rc < 0)
-+			return rc;
-+	} else {
-+		/* LNA */
-+		rc = r820t_write_reg_mask(priv, 0x05, 0, 0xef);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* Mixer */
-+		rc = r820t_write_reg_mask(priv, 0x07, 0x10, 0xef);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* set fixed VGA gain for now (26.5 dB) */
-+		rc = r820t_write_reg_mask(priv, 0x0c, 0x0b, 0x9f);
-+		if (rc < 0)
-+			return rc;
-+	}
-+
-+	return 0;
-+}
-+
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -1121,6 +1207,11 @@ static int generic_set_freq(struct dvb_frontend *fe,
- 	rc = r820t_set_mux(priv, lo_freq);
- 	if (rc < 0)
- 		goto err;
-+
-+	rc = r820t_set_gain_mode(priv, true, 0);
-+	if (rc < 0)
-+		goto err;
-+
- 	rc = r820t_set_pll(priv, lo_freq);
- 	if (rc < 0 || !priv->has_lock)
- 		goto err;
--- 
-1.8.1.4
+This should reduce CPU load by quite a bit if memory serves.
 
+Regards,
+
+	Hans
+
+> 
+> 
+> 
+> 
+> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
+> <peter.senna@gmail.com> wrote:
+> > Dear Michal,
+> >
+> > The CPU intensive part of the vivi driver is the image generation.
+> > This is not an issue for real drivers.
+> >
+> > Regards,
+> >
+> > Peter
+> >
+> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
+> >> Hi
+> >> V4L2 driver vivi
+> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
+> >>
+> >> player
+> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
+> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
+> >> height=576, framerate=30000/1001 ! fakesink sync=false
+> >>
+> >> Anybody can answer me why?
+> >> And how can I do it better ?
+> >>
+> >> I use vivi as base example for my driver
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> >
+> > --
+> > Peter
+> 
+> 
+> 
+> 
