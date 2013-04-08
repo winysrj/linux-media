@@ -1,105 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57073 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818Ab3DVMqi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:46:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
-Date: Mon, 22 Apr 2013 14:46:46 +0200
-Message-ID: <3524635.KtmUfWv2vm@avalon>
-In-Reply-To: <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1621615.OUnKCBbkfO@avalon> <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
+Received: from devils.ext.ti.com ([198.47.26.153]:35178 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935157Ab3DHLs7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:48:59 -0400
+Message-ID: <5162AE9E.9030404@ti.com>
+Date: Mon, 8 Apr 2013 17:18:46 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/3] media: davinci: vpss: enable vpss clocks
+References: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com> <1364903044-13752-2-git-send-email-prabhakar.csengg@gmail.com> <51629B3D.4080905@ti.com> <CA+V-a8swx0LB0eK0bZwcuFhVCW2UB8Bvm3ebwMQifo=-TB6ASA@mail.gmail.com>
+In-Reply-To: <CA+V-a8swx0LB0eK0bZwcuFhVCW2UB8Bvm3ebwMQifo=-TB6ASA@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 22 April 2013 14:39:57 Guennadi Liakhovetski wrote:
-> On Mon, 22 Apr 2013, Laurent Pinchart wrote:
-> > On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
-> > > On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
-> > > > Adding struct v4l2_subdev_platform_data to mt9p031's platform data
-> > > > allows the driver to use generic functions to manage sensor power
-> > > > supplies.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > 
-> > > A small addition to this one too: to be absolutely honest, I also had to
-> > > replace 12-bit formats with their 8-bit counterparts, because only 8
-> > > data lanes are connected to my camera host. We'll need to somehow
-> > > properly solve this too.
-> > 
-> > That information should be conveyed by platform/DT data for the host, and
-> > be used to convert the 12-bit media bus code into a 8-bit media bus code
-> > in the host (a core helper function would probably be helpful).
+
+
+On 4/8/2013 5:08 PM, Prabhakar Lad wrote:
+> Sekhar,
 > 
-> Yes, and we discussed this before too, I think. I proposed based then to
-> implement some compatibility table of "trivial" transformations, like a
-> 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-bit Bayer
-> etc. Such transformations would fit nicely in soc_mediabus.c ;-) This just
-> needs to be implemented...
-> 
-> Sure, I'd be happy to move soc_mediabus.c to
-> drivers/media/v4l2-core/v4l2-mediabus.c.
+> On Mon, Apr 8, 2013 at 3:56 PM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> On 4/2/2013 5:14 PM, Prabhakar lad wrote:
+>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>
+>>> By default the VPSS clocks were enabled in capture driver
+>>> for davinci family which creates duplicates for dm355/dm365/dm644x.
+>>> This patch adds support to enable the VPSS clocks in VPSS driver,
+>>> which avoids duplication of code and also adding clock aliases.
+>>>
+>>> This patch uses PM runtime API to enable/disable instead common clock
+>>> framework. con_ids for master and slave clocks of vpss is added in pm_domain
+>>
+>> Common clock framework in not (yet) used on DaVinci, so this is misleading.
+>>
+> OK, I'll make it 'This patch uses PM runtime API to enable/disable
+> clock, instead
+> of Davinci specific clock framework. con_ids for master and slave
 
-And the OMAP3 ISP driver has something similiar in 
-drivers/media/platform/omap3isp/ispvideo.c
+may be just call it "DaVinci clock framework"
 
-> > > > ---
-> > > > 
-> > > >  drivers/media/i2c/mt9p031.c |    1 +
-> > > >  include/media/mt9p031.h     |    3 +++
-> > > >  2 files changed, 4 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> > > > index 70f4525..ca2cc6e 100644
-> > > > --- a/drivers/media/i2c/mt9p031.c
-> > > > +++ b/drivers/media/i2c/mt9p031.c
-> > > > @@ -1048,6 +1048,7 @@ static int mt9p031_probe(struct i2c_client
-> > > > *client,
-> > > > 
-> > > >  		goto done;
-> > > >  	
-> > > >  	mt9p031->subdev.dev = &client->dev;
-> > > > 
-> > > > +	mt9p031->subdev.pdata = &pdata->sd_pdata;
-> > > > 
-> > > >  	ret = v4l2_async_register_subdev(&mt9p031->subdev);
-> > > >  
-> > > >  done:
-> > > > diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
-> > > > index 0c97b19..7bf7b53 100644
-> > > > --- a/include/media/mt9p031.h
-> > > > +++ b/include/media/mt9p031.h
-> > > > @@ -1,6 +1,8 @@
-> > > > 
-> > > >  #ifndef MT9P031_H
-> > > >  #define MT9P031_H
-> > > > 
-> > > > +#include <media/v4l2-subdev.h>
-> > > > +
-> > > > 
-> > > >  struct v4l2_subdev;
-> > > >  /*
-> > > > 
-> > > > @@ -15,6 +17,7 @@ struct mt9p031_platform_data {
-> > > > 
-> > > >  	int reset;
-> > > >  	int ext_freq;
-> > > >  	int target_freq;
-> > > > 
-> > > > +	struct v4l2_subdev_platform_data sd_pdata;
-> > > > 
-> > > >  };
-> > > >  
-> > > >  #endif
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Sekhar
