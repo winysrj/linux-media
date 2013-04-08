@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:9092 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935850Ab3DHUJw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Apr 2013 16:09:52 -0400
-Date: Mon, 8 Apr 2013 22:09:46 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v8 1/9] mfd: Add commands abstraction layer for SI476X MFD
-Message-ID: <20130408200946.GA23447@zurbaran>
-References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
- <1364352446-28572-2-git-send-email-andrew.smirnov@gmail.com>
- <20130408101624.GR24058@zurbaran>
- <CAHQ1cqE4aokZA98VfCWwRtkaNPm6dMnegibVz4BHfYW_VrAUBA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHQ1cqE4aokZA98VfCWwRtkaNPm6dMnegibVz4BHfYW_VrAUBA@mail.gmail.com>
+Received: from mail-vb0-f49.google.com ([209.85.212.49]:53283 "EHLO
+	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934567Ab3DHB1m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 21:27:42 -0400
+Received: by mail-vb0-f49.google.com with SMTP id 11so3367659vbf.22
+        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 18:27:41 -0700 (PDT)
+Date: Sun, 7 Apr 2013 21:27:47 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: [PULL] Ondrej Zary's patches for AverMedia A706
+Message-ID: <20130407212747.55f08939@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrey,
+The following changes since commit
+53faa685fa7df0e12751eebbda30bc7e7bb5e71a:
 
-On Mon, Apr 08, 2013 at 11:34:43AM -0700, Andrey Smirnov wrote:
-> On Mon, Apr 8, 2013 at 3:16 AM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > This file doesn't exist yet, which breaks bisectability.
-> > I'm fine with you including it with the first patch. I will prepare a
-> branch
-> > with the mfd patches from your serie for Mauro to pull from.
-> >
-> 
-> It was initially one single patch(in v1), and I split it in three upon
-> Hans' request(for ease of reviewing).
-It probably made sense then, but now, as I said, it breaks bisectability. So
-I'd appreciate if you could add this header file to this first patch so that I
-can merge the MFD parts independently.
-Again, I will provide a branch for Mauro to pull from and apply the remaining
-patches on top of it.
+  [media] siano: Fix array boundary at smscore_translate_msg()
+  (2013-04-04 14:35:40 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/mkrufky/dvb AverMediaA706-April
+
+for you to fetch changes up to 84c1018a6cc3e1650dac5a881727cf4c07b7db81:
+
+  tda8290: change magic LNA config values to enum (2013-04-06 14:07:49
+  -0400)
+
+----------------------------------------------------------------
+Ondrej Zary (5):
+      tda8290: Allow disabling I2C gate
+      tda8290: Allow custom std_map for tda18271
+      tuner-core: Change config from unsigned int to void *
+      saa7134: Add AverMedia A706 AverTV Satellite Hybrid+FM
+      tda8290: change magic LNA config values to enum
+
+ drivers/media/i2c/ir-kbd-i2c.c              |   13 ++++++++++++-
+ drivers/media/pci/saa7134/saa7134-cards.c   |   94
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------
+ drivers/media/pci/saa7134/saa7134-dvb.c     |   23
+ +++++++++++++++++++++++ drivers/media/pci/saa7134/saa7134-i2c.c
+ |    1 + drivers/media/pci/saa7134/saa7134-input.c   |    3 +++
+ drivers/media/pci/saa7134/saa7134-tvaudio.c |    1 +
+ drivers/media/pci/saa7134/saa7134.h         |    4 +++-
+ drivers/media/tuners/tda18271-fe.c          |    9 +++++----
+ drivers/media/tuners/tda827x.c              |   10 +++++-----
+ drivers/media/tuners/tda827x.h              |    3 ++-
+ drivers/media/tuners/tda8290.c              |   60
+ +++++++++++++++++++++++++++++++++++++-----------------------
+ drivers/media/tuners/tda8290.h              |   12 +++++++++++-
+ drivers/media/v4l2-core/tuner-core.c        |   20
+ +++++++------------- include/media/tuner.h                       |
+ 2 +- 14 files changed, 185 insertions(+), 70 deletions(-)
 
 Cheers,
-Samuel.
 
--- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Mike
