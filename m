@@ -1,558 +1,600 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:39325 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755596Ab3D1Rqt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 13:46:49 -0400
-Subject: [PATCH v3 3/3] mutex: Add ww tests to lib/locking-selftest.c. v3
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Sun, 28 Apr 2013 19:04:14 +0200
-Message-ID: <20130428170414.17075.40337.stgit@patser>
-In-Reply-To: <20130428165914.17075.57751.stgit@patser>
-References: <20130428165914.17075.57751.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:62249 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762574Ab3DHLHa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:07:30 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v7 5/7] sh_mobile_ceu_camera: add asynchronous subdevice probing support
+Date: Mon,  8 Apr 2013 13:07:09 +0200
+Message-Id: <1365419231-14830-6-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This stresses the lockdep code in some ways specifically useful to
-ww_mutexes. It adds checks for most of the common locking errors.
+Use the v4l2-async API to support asynchronous subdevice probing,
+including the CSI2 subdevice. Synchronous probing is still supported too.
 
-Changes since v1:
- - Add tests to verify reservation_id is untouched.
- - Use L() and U() macros where possible.
-
-Changes since v2:
- - Use the ww_mutex api directly.
- - Use macros for most of the code.
-
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- lib/locking-selftest.c |  439 ++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 420 insertions(+), 19 deletions(-)
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  134 ++++++++++++-----
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  163 +++++++++++--------
+ include/media/sh_mobile_ceu.h                      |    2 +
+ include/media/sh_mobile_csi2.h                     |    2 +-
+ 4 files changed, 194 insertions(+), 107 deletions(-)
 
-diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
-index c3eb261..9cef196 100644
---- a/lib/locking-selftest.c
-+++ b/lib/locking-selftest.c
-@@ -26,6 +26,8 @@
-  */
- static unsigned int debug_locks_verbose;
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index b0f0995..99d9029 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -36,6 +36,7 @@
+ #include <linux/pm_runtime.h>
+ #include <linux/sched.h>
  
-+static DEFINE_WW_CLASS(ww_lockdep);
-+
- static int __init setup_debug_locks_verbose(char *str)
++#include <media/v4l2-async.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/soc_camera.h>
+@@ -96,6 +97,10 @@ struct sh_mobile_ceu_buffer {
+ 
+ struct sh_mobile_ceu_dev {
+ 	struct soc_camera_host ici;
++	/* Asynchronous CSI2 linking */
++	struct v4l2_async_subdev *csi2_asd;
++	struct v4l2_subdev *csi2_sd;
++	/* Synchronous probing compatibility */
+ 	struct platform_device *csi2_pdev;
+ 
+ 	unsigned int irq;
+@@ -185,7 +190,6 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ 		udelay(1);
+ 	}
+ 
+-
+ 	if (2 != success) {
+ 		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
+ 		return -EIO;
+@@ -534,16 +538,29 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
  {
- 	get_option(&str, &debug_locks_verbose);
-@@ -42,6 +44,10 @@ __setup("debug_locks_verbose=", setup_debug_locks_verbose);
- #define LOCKTYPE_RWLOCK	0x2
- #define LOCKTYPE_MUTEX	0x4
- #define LOCKTYPE_RWSEM	0x8
-+#define LOCKTYPE_WW	0x10
-+
-+static struct ww_acquire_ctx t, t2;
-+static struct ww_mutex o, o2;
+ 	struct v4l2_subdev *sd;
  
- /*
-  * Normal standalone locks, for the circular and irq-context
-@@ -193,6 +199,17 @@ static void init_shared_classes(void)
- #define RSU(x)			up_read(&rwsem_##x)
- #define RWSI(x)			init_rwsem(&rwsem_##x)
+-	if (!pcdev->csi2_pdev)
+-		return NULL;
++	if (pcdev->csi2_sd)
++		return pcdev->csi2_sd;
  
-+#define WWAI(x)			ww_acquire_init(x, &ww_lockdep)
-+#define WWAD(x)			ww_acquire_done(x)
-+#define WWAF(x)			ww_acquire_fini(x)
-+
-+#define WWL(x, c)		ww_mutex_lock(x, c)
-+#define WWU(x)			ww_mutex_unlock(x)
-+
-+#define WWL1(x)			ww_mutex_lock_single(x)
-+#define WWT1(x)			ww_mutex_trylock_single(x)
-+#define WWU1(x)			ww_mutex_unlock_single(x)
-+
- #define LOCK_UNLOCK_2(x,y)	LOCK(x); LOCK(y); UNLOCK(y); UNLOCK(x)
+-	v4l2_device_for_each_subdev(sd, &pcdev->ici.v4l2_dev)
+-		if (&pcdev->csi2_pdev->dev == v4l2_get_subdevdata(sd))
+-			return sd;
++	if (pcdev->csi2_asd) {
++		char name[] = "sh-mobile-csi2";
++		v4l2_device_for_each_subdev(sd, &pcdev->ici.v4l2_dev)
++			if (!strncmp(name, sd->name, sizeof(name) - 1)) {
++				pcdev->csi2_sd = sd;
++				return sd;
++			}
++	}
  
- /*
-@@ -894,11 +911,13 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion_soft)
- # define I_RWLOCK(x)	lockdep_reset_lock(&rwlock_##x.dep_map)
- # define I_MUTEX(x)	lockdep_reset_lock(&mutex_##x.dep_map)
- # define I_RWSEM(x)	lockdep_reset_lock(&rwsem_##x.dep_map)
-+# define I_WW(x)	lockdep_reset_lock(&x.dep_map)
- #else
- # define I_SPINLOCK(x)
- # define I_RWLOCK(x)
- # define I_MUTEX(x)
- # define I_RWSEM(x)
-+# define I_WW(x)
- #endif
- 
- #define I1(x)					\
-@@ -920,11 +939,20 @@ GENERATE_PERMUTATIONS_3_EVENTS(irq_read_recursion_soft)
- static void reset_locks(void)
- {
- 	local_irq_disable();
-+	lockdep_free_key_range(&ww_lockdep.acquire_key, 1);
-+	lockdep_free_key_range(&ww_lockdep.mutex_key, 1);
-+
- 	I1(A); I1(B); I1(C); I1(D);
- 	I1(X1); I1(X2); I1(Y1); I1(Y2); I1(Z1); I1(Z2);
-+	I_WW(t); I_WW(t2); I_WW(o.base); I_WW(o2.base);
- 	lockdep_reset();
- 	I2(A); I2(B); I2(C); I2(D);
- 	init_shared_classes();
-+
-+	ww_mutex_init(&o, &ww_lockdep); ww_mutex_init(&o2, &ww_lockdep);
-+	memset(&t, 0, sizeof(t)); memset(&t2, 0, sizeof(t2));
-+	memset(&ww_lockdep.acquire_key, 0, sizeof(ww_lockdep.acquire_key));
-+	memset(&ww_lockdep.mutex_key, 0, sizeof(ww_lockdep.mutex_key));
- 	local_irq_enable();
+ 	return NULL;
  }
  
-@@ -938,7 +966,6 @@ static int unexpected_testcase_failures;
- static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
++static struct v4l2_subdev *csi2_subdev(struct sh_mobile_ceu_dev *pcdev,
++				       struct soc_camera_device *icd)
++{
++	struct v4l2_subdev *sd = pcdev->csi2_sd;
++
++	return sd && sd->grp_id == soc_camera_grp_id(icd) ? sd : NULL;
++}
++
+ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
  {
- 	unsigned long saved_preempt_count = preempt_count();
--	int expected_failure = 0;
- 
- 	WARN_ON(irqs_disabled());
- 
-@@ -946,26 +973,16 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
- 	/*
- 	 * Filter out expected failures:
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+@@ -564,12 +581,12 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
+ 	 * has not found this soc-camera device among its clients
  	 */
-+	if (debug_locks != expected) {
- #ifndef CONFIG_PROVE_LOCKING
--	if ((lockclass_mask & LOCKTYPE_SPIN) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_RWLOCK) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_MUTEX) && debug_locks != expected)
--		expected_failure = 1;
--	if ((lockclass_mask & LOCKTYPE_RWSEM) && debug_locks != expected)
--		expected_failure = 1;
-+		expected_testcase_failures++;
-+		printk("failed|");
-+#else
-+		unexpected_testcase_failures++;
-+		printk("FAILED|");
-+
-+		dump_stack();
- #endif
--	if (debug_locks != expected) {
--		if (expected_failure) {
--			expected_testcase_failures++;
--			printk("failed|");
--		} else {
--			unexpected_testcase_failures++;
--
--			printk("FAILED|");
--			dump_stack();
--		}
- 	} else {
- 		testcase_successes++;
- 		printk("  ok  |");
-@@ -1108,6 +1125,388 @@ static inline void print_testname(const char *testname)
- 	DO_TESTCASE_6IRW(desc, name, 312);			\
- 	DO_TESTCASE_6IRW(desc, name, 321);
+-	if (ret == -ENODEV && csi2_sd)
++	if (csi2_sd && ret == -ENODEV)
+ 		csi2_sd->grp_id = 0;
  
-+static void ww_test_fail_acquire(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+	t.stamp++;
-+
-+	ret = WWL(&o, &t);
-+
-+	if (WARN_ON(!o.ctx) ||
-+	    WARN_ON(ret))
-+		return;
-+
-+	/* No lockdep test, pure API */
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret != -EALREADY);
-+
-+	ret = WWT1(&o);
-+	WARN_ON(ret);
-+
-+	t2 = t;
-+	t2.stamp++;
-+	ret = WWL(&o, &t2);
-+	WARN_ON(ret != -EDEADLK);
-+	WWU(&o);
-+
-+	if (WWT1(&o))
-+		WWU1(&o);
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+	else
-+		DEBUG_LOCKS_WARN_ON(1);
-+#endif
-+}
-+
-+static void ww_test_normal(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	/*
-+	 * test if ww_id is kept identical if not
-+	 * called with any of the ww_* locking calls
-+	 */
-+
-+	/* mutex_lock (and indirectly, mutex_lock_nested) */
-+	o.ctx = (void *)~0UL;
-+	WWL1(&o);
-+	WWU1(&o);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+
-+	/* mutex_lock_interruptible (and *_nested) */
-+	o.ctx = (void *)~0UL;
-+	ret = mutex_lock_interruptible(&o.base);
-+	if (!ret)
-+		WWU1(&o);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+
-+	/* mutex_lock_killable (and *_nested) */
-+	o.ctx = (void *)~0UL;
-+	ret = mutex_lock_killable(&o.base);
-+	if (!ret)
-+		WWU1(&o);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+
-+	/* trylock, succeeding */
-+	o.ctx = (void *)~0UL;
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+	if (ret)
-+		WWU1(&o);
-+	else
-+		WARN_ON(1);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+
-+	/* trylock, failing */
-+	o.ctx = (void *)~0UL;
-+	WWL1(&o);
-+	ret = WWT1(&o);
-+	WARN_ON(ret);
-+	WWU1(&o);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+
-+	/* nest_lock */
-+	o.ctx = (void *)~0UL;
-+	mutex_lock_nest_lock(&o.base, &t);
-+	WWU1(&o);
-+	WARN_ON(o.ctx != (void *)~0UL);
-+}
-+
-+static void ww_test_two_contexts(void)
-+{
-+	WWAI(&t);
-+	WWAI(&t2);
-+}
-+
-+static void ww_test_context_unlock_twice(void)
-+{
-+	WWAI(&t);
-+	WWAD(&t);
-+	WWAF(&t);
-+	WWAF(&t);
-+}
-+
-+static void ww_test_object_unlock_twice(void)
-+{
-+	WWL1(&o);
-+	WWU1(&o);
-+	WWU1(&o);
-+}
-+
-+static void ww_test_spin_nest_unlocked(void)
-+{
-+	raw_spin_lock_nest_lock(&lock_A, &o.base);
-+	U(A);
-+}
-+
-+static void ww_test_mismatch_normal_ww(void)
-+{
-+	WWL1(&o);
-+	WWU(&o);
-+}
-+
-+static void ww_test_mismatch_ww_normal(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+	WWU1(&o);
-+
-+	/*
-+	 * the second ww_mutex_lock will detect the
-+	 * mismatch of the first one
-+	 */
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+}
-+
-+static void ww_test_mismatch_ww_normal_slow(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+	WWU1(&o);
-+
-+	ww_mutex_lock_slow(&o, &t);
-+}
-+
-+static void ww_test_context_block(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+	WWL1(&o2);
-+}
-+
-+static void ww_test_context_try(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+
-+	ret = WWT1(&o2);
-+	WARN_ON(!ret);
-+	WWU1(&o2);
-+	WWU(&o);
-+}
-+
-+static void ww_test_context_context(void)
-+{
-+	int ret;
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+
-+	ret = WWL(&o2, &t);
-+	WARN_ON(ret);
-+
-+	WWU(&o2);
-+	WWU(&o);
-+}
-+
-+static void ww_test_try_block(void)
-+{
-+	bool ret;
-+
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+
-+	WWL1(&o2);
-+	WWU1(&o2);
-+	WWU1(&o);
-+}
-+
-+static void ww_test_try_try(void)
-+{
-+	bool ret;
-+
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+	ret = WWT1(&o2);
-+	WARN_ON(!ret);
-+	WWU1(&o2);
-+	WWU1(&o);
-+}
-+
-+static void ww_test_try_context(void)
-+{
-+	int ret;
-+
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o2, &t);
-+	WARN_ON(ret);
-+}
-+
-+static void ww_test_block_block(void)
-+{
-+	WWL1(&o);
-+	WWL1(&o2);
-+}
-+
-+static void ww_test_block_try(void)
-+{
-+	bool ret;
-+
-+	WWL1(&o);
-+	ret = WWT1(&o2);
-+	WARN_ON(!ret);
-+}
-+
-+static void ww_test_block_context(void)
-+{
-+	int ret;
-+
-+	WWL1(&o);
-+	WWAI(&t);
-+
-+	ret = WWL(&o2, &t);
-+	WARN_ON(ret);
-+}
-+
-+static void ww_test_spin_block(void)
-+{
-+	L(A);
-+	U(A);
-+
-+	WWL1(&o);
-+	L(A);
-+	U(A);
-+	WWU1(&o);
-+
-+	L(A);
-+	WWL1(&o);
-+	WWU1(&o);
-+	U(A);
-+}
-+
-+static void ww_test_spin_try(void)
-+{
-+	bool ret;
-+
-+	L(A);
-+	U(A);
-+
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+	L(A);
-+	U(A);
-+	WWU1(&o);
-+
-+	L(A);
-+	ret = WWT1(&o);
-+	WARN_ON(!ret);
-+	WWU1(&o);
-+	U(A);
-+}
-+
-+static void ww_test_spin_context(void)
-+{
-+	int ret;
-+
-+	L(A);
-+	U(A);
-+
-+	WWAI(&t);
-+
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+	L(A);
-+	U(A);
-+	WWU(&o);
-+
-+	L(A);
-+	ret = WWL(&o, &t);
-+	WARN_ON(ret);
-+	WWU(&o);
-+	U(A);
-+}
-+
-+static void ww_tests(void)
-+{
-+	printk("  --------------------------------------------------------------------------\n");
-+	printk("  | Wound/wait tests |\n");
-+	printk("  ---------------------\n");
-+
-+	print_testname("ww api failures");
-+	dotest(ww_test_fail_acquire, SUCCESS, LOCKTYPE_WW);
-+	dotest(ww_test_normal, SUCCESS, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("using two ww contexts");
-+	dotest(ww_test_two_contexts, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("finish ww context twice");
-+	dotest(ww_test_context_unlock_twice, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("unlock twice");
-+	dotest(ww_test_object_unlock_twice, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("spinlock nest unlocked");
-+	dotest(ww_test_spin_nest_unlocked, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("ww mutex (un)lock mismatch");
-+	dotest(ww_test_mismatch_normal_ww, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_mismatch_ww_normal, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_mismatch_ww_normal_slow, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	printk("  -----------------------------------------------------\n");
-+	printk("                                 |block | try  |context|\n");
-+	printk("  -----------------------------------------------------\n");
-+
-+	print_testname("context");
-+	dotest(ww_test_context_block, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_context_try, SUCCESS, LOCKTYPE_WW);
-+	dotest(ww_test_context_context, SUCCESS, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("try");
-+	dotest(ww_test_try_block, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_try_try, SUCCESS, LOCKTYPE_WW);
-+	dotest(ww_test_try_context, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("block");
-+	dotest(ww_test_block_block, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_block_try, SUCCESS, LOCKTYPE_WW);
-+	dotest(ww_test_block_context, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+
-+	print_testname("spinlock");
-+	dotest(ww_test_spin_block, FAILURE, LOCKTYPE_WW);
-+	dotest(ww_test_spin_try, SUCCESS, LOCKTYPE_WW);
-+	dotest(ww_test_spin_context, FAILURE, LOCKTYPE_WW);
-+	printk("\n");
-+}
+ 	dev_info(icd->parent,
+-		 "SuperH Mobile CEU driver attached to camera %d\n",
+-		 icd->devnum);
++		 "SuperH Mobile CEU%s driver attached to camera %d\n",
++		 csi2_sd && csi2_sd->grp_id ? "/CSI-2" : "", icd->devnum);
  
- void locking_selftest(void)
+ 	return 0;
+ }
+@@ -585,8 +602,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ 		 icd->devnum);
+ 
+ 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
+-	if (csi2_sd)
+-		csi2_sd->grp_id = 0;
+ }
+ 
+ /* Called with .host_lock held */
+@@ -708,7 +723,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
+ 	}
+ 
+ 	/* CSI2 special configuration */
+-	if (pcdev->csi2_pdev) {
++	if (csi2_subdev(pcdev, icd)) {
+ 		in_width = ((in_width - 2) * 2);
+ 		left_offset *= 2;
+ 	}
+@@ -765,13 +780,7 @@ static void capture_restore(struct sh_mobile_ceu_dev *pcdev, u32 capsr)
+ static struct v4l2_subdev *find_bus_subdev(struct sh_mobile_ceu_dev *pcdev,
+ 					   struct soc_camera_device *icd)
  {
-@@ -1188,6 +1587,8 @@ void locking_selftest(void)
- 	DO_TESTCASE_6x2("irq read-recursion", irq_read_recursion);
- //	DO_TESTCASE_6x2B("irq read-recursion #2", irq_read_recursion2);
+-	if (pcdev->csi2_pdev) {
+-		struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+-		if (csi2_sd && csi2_sd->grp_id == soc_camera_grp_id(icd))
+-			return csi2_sd;
+-	}
+-
+-	return soc_camera_to_subdev(icd);
++	return csi2_subdev(pcdev, icd) ? : soc_camera_to_subdev(icd);
+ }
  
-+	ww_tests();
+ #define CEU_BUS_FLAGS (V4L2_MBUS_MASTER |	\
+@@ -875,7 +884,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
+ 	value |= common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
+ 	value |= common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
+ 
+-	if (pcdev->csi2_pdev) /* CSI2 mode */
++	if (csi2_subdev(pcdev, icd)) /* CSI2 mode */
+ 		value |= 3 << 12;
+ 	else if (pcdev->is_16bit)
+ 		value |= 1 << 12;
+@@ -1054,7 +1063,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+ 		return 0;
+ 	}
+ 
+-	if (!pcdev->pdata || !pcdev->pdata->csi2) {
++	if (!csi2_subdev(pcdev, icd)) {
+ 		/* Are there any restrictions in the CSI-2 case? */
+ 		ret = sh_mobile_ceu_try_bus_param(icd, fmt->bits_per_sample);
+ 		if (ret < 0)
+@@ -2084,7 +2093,7 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	void __iomem *base;
+ 	unsigned int irq;
+-	int err = 0;
++	int err, i;
+ 	struct bus_wait wait = {
+ 		.completion = COMPLETION_INITIALIZER_ONSTACK(wait.completion),
+ 		.notifier.notifier_call = bus_notify,
+@@ -2188,31 +2197,60 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 		goto exit_free_clk;
+ 	}
+ 
+-	err = soc_camera_host_register(&pcdev->ici);
+-	if (err)
+-		goto exit_free_ctx;
++	if (pcdev->pdata && pcdev->pdata->asd_sizes) {
++		struct v4l2_async_subdev **asd;
++		char name[] = "sh-mobile-csi2";
++		int j;
 +
- 	if (unexpected_testcase_failures) {
- 		printk("-----------------------------------------------------------------\n");
- 		debug_locks = 0;
++		/*
++		 * CSI2 interfacing: several groups can use CSI2, pick up the
++		 * first one
++		 */
++		asd = pcdev->pdata->asd;
++		for (j = 0; pcdev->pdata->asd_sizes[j]; j++) {
++			for (i = 0; i < pcdev->pdata->asd_sizes[j]; i++, asd++) {
++				dev_dbg(&pdev->dev, "%s(): subdev #%d, type %u\n",
++					__func__, i, (*asd)->hw.bus_type);
++				if ((*asd)->hw.bus_type == V4L2_ASYNC_BUS_PLATFORM &&
++				    !strncmp(name, (*asd)->hw.match.platform.name,
++					     sizeof(name) - 1)) {
++					pcdev->csi2_asd = *asd;
++					break;
++				}
++			}
++			if (pcdev->csi2_asd)
++				break;
++		}
++
++		pcdev->ici.asd = pcdev->pdata->asd;
++		pcdev->ici.asd_sizes = pcdev->pdata->asd_sizes;
++	}
+ 
+-	/* CSI2 interfacing */
++	/* Legacy CSI2 interfacing */
+ 	csi2 = pcdev->pdata ? pcdev->pdata->csi2 : NULL;
+ 	if (csi2) {
++		/*
++		 * TODO: remove this once all users are converted to
++		 * asynchronous CSI2 probing. If it has to be kept, csi2
++		 * platform device resources have to be added, using
++		 * platform_device_add_resources()
++		 */
+ 		struct platform_device *csi2_pdev =
+ 			platform_device_alloc("sh-mobile-csi2", csi2->id);
+ 		struct sh_csi2_pdata *csi2_pdata = csi2->platform_data;
+ 
+ 		if (!csi2_pdev) {
+ 			err = -ENOMEM;
+-			goto exit_host_unregister;
++			goto exit_free_ctx;
+ 		}
+ 
+ 		pcdev->csi2_pdev		= csi2_pdev;
+ 
+-		err = platform_device_add_data(csi2_pdev, csi2_pdata, sizeof(*csi2_pdata));
++		err = platform_device_add_data(csi2_pdev, csi2_pdata,
++					       sizeof(*csi2_pdata));
+ 		if (err < 0)
+ 			goto exit_pdev_put;
+ 
+-		csi2_pdata			= csi2_pdev->dev.platform_data;
+-		csi2_pdata->v4l2_dev		= &pcdev->ici.v4l2_dev;
+-
+ 		csi2_pdev->resource		= csi2->resource;
+ 		csi2_pdev->num_resources	= csi2->num_resources;
+ 
+@@ -2254,17 +2292,38 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 			err = -ENODEV;
+ 			goto exit_pdev_unregister;
+ 		}
++
++		pcdev->csi2_sd = platform_get_drvdata(csi2_pdev);
++	}
++
++	err = soc_camera_host_register(&pcdev->ici);
++	if (err)
++		goto exit_csi2_unregister;
++
++	if (csi2) {
++		err = v4l2_device_register_subdev(&pcdev->ici.v4l2_dev,
++						  pcdev->csi2_sd);
++		dev_dbg(&pdev->dev, "%s(): ret(register_subdev) = %d\n",
++			__func__, err);
++		if (err < 0)
++			goto exit_host_unregister;
++		/* v4l2_device_register_subdev() took a reference too */
++		module_put(pcdev->csi2_sd->owner);
+ 	}
+ 
+ 	return 0;
+ 
+-exit_pdev_unregister:
+-	platform_device_del(pcdev->csi2_pdev);
+-exit_pdev_put:
+-	pcdev->csi2_pdev->resource = NULL;
+-	platform_device_put(pcdev->csi2_pdev);
+ exit_host_unregister:
+ 	soc_camera_host_unregister(&pcdev->ici);
++exit_csi2_unregister:
++	if (csi2) {
++		module_put(pcdev->csi2_pdev->dev.driver->owner);
++exit_pdev_unregister:
++		platform_device_del(pcdev->csi2_pdev);
++exit_pdev_put:
++		pcdev->csi2_pdev->resource = NULL;
++		platform_device_put(pcdev->csi2_pdev);
++	}
+ exit_free_ctx:
+ 	vb2_dma_contig_cleanup_ctx(pcdev->alloc_ctx);
+ exit_free_clk:
+@@ -2324,6 +2383,7 @@ MODULE_DEVICE_TABLE(of, sh_mobile_ceu_of_match);
+ static struct platform_driver sh_mobile_ceu_driver = {
+ 	.driver		= {
+ 		.name	= "sh_mobile_ceu",
++		.owner	= THIS_MODULE,
+ 		.pm	= &sh_mobile_ceu_dev_pm_ops,
+ 		.of_match_table = sh_mobile_ceu_of_match,
+ 	},
+@@ -2349,5 +2409,5 @@ module_exit(sh_mobile_ceu_exit);
+ MODULE_DESCRIPTION("SuperH Mobile CEU driver");
+ MODULE_AUTHOR("Magnus Damm");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.0.6");
++MODULE_VERSION("0.1.0");
+ MODULE_ALIAS("platform:sh_mobile_ceu");
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+index 09cb4fc..1764b34 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+@@ -36,14 +36,16 @@
+ 
+ struct sh_csi2 {
+ 	struct v4l2_subdev		subdev;
+-	struct list_head		list;
+ 	unsigned int			irq;
+ 	unsigned long			mipi_flags;
+ 	void __iomem			*base;
+ 	struct platform_device		*pdev;
+ 	struct sh_csi2_client_config	*client;
++	struct v4l2_async_subdev_list	asdl;
+ };
+ 
++static void sh_csi2_hwinit(struct sh_csi2 *priv);
++
+ static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
+ 			   struct v4l2_mbus_framefmt *mf)
+ {
+@@ -132,10 +134,58 @@ static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
+ static int sh_csi2_g_mbus_config(struct v4l2_subdev *sd,
+ 				 struct v4l2_mbus_config *cfg)
+ {
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING |
+-		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
+-		V4L2_MBUS_MASTER | V4L2_MBUS_DATA_ACTIVE_HIGH;
+-	cfg->type = V4L2_MBUS_PARALLEL;
++	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
++
++	if (!priv->mipi_flags) {
++		struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
++		struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
++		struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
++		unsigned long common_flags, csi2_flags;
++		struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,};
++		int ret;
++
++		/* Check if we can support this camera */
++		csi2_flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK |
++			V4L2_MBUS_CSI2_1_LANE;
++
++		switch (pdata->type) {
++		case SH_CSI2C:
++			if (priv->client->lanes != 1)
++				csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
++			break;
++		case SH_CSI2I:
++			switch (priv->client->lanes) {
++			default:
++				csi2_flags |= V4L2_MBUS_CSI2_4_LANE;
++			case 3:
++				csi2_flags |= V4L2_MBUS_CSI2_3_LANE;
++			case 2:
++				csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
++			}
++		}
++
++		ret = v4l2_subdev_call(client_sd, video, g_mbus_config, &client_cfg);
++		if (ret == -ENOIOCTLCMD)
++			common_flags = csi2_flags;
++		else if (!ret)
++			common_flags = soc_mbus_config_compatible(&client_cfg,
++								  csi2_flags);
++		else
++			common_flags = 0;
++
++		if (!common_flags)
++			return -EINVAL;
++
++		/* All good: camera MIPI configuration supported */
++		priv->mipi_flags = common_flags;
++	}
++
++	if (cfg) {
++		cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING |
++			V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++			V4L2_MBUS_MASTER | V4L2_MBUS_DATA_ACTIVE_HIGH;
++		cfg->type = V4L2_MBUS_PARALLEL;
++	}
+ 
+ 	return 0;
+ }
+@@ -146,8 +196,17 @@ static int sh_csi2_s_mbus_config(struct v4l2_subdev *sd,
+ 	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+ 	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+ 	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+-	struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,
+-					      .flags = priv->mipi_flags};
++	struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,};
++	int ret = sh_csi2_g_mbus_config(sd, NULL);
++
++	if (ret < 0)
++		return ret;
++
++	pm_runtime_get_sync(&priv->pdev->dev);
++
++	sh_csi2_hwinit(priv);
++
++	client_cfg.flags = priv->mipi_flags;
+ 
+ 	return v4l2_subdev_call(client_sd, video, s_mbus_config, &client_cfg);
+ }
+@@ -202,19 +261,19 @@ static void sh_csi2_hwinit(struct sh_csi2 *priv)
+ 
+ static int sh_csi2_client_connect(struct sh_csi2 *priv)
+ {
+-	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+-	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(&priv->subdev);
+-	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+ 	struct device *dev = v4l2_get_subdevdata(&priv->subdev);
+-	struct v4l2_mbus_config cfg;
+-	unsigned long common_flags, csi2_flags;
+-	int i, ret;
++	struct sh_csi2_pdata *pdata = dev->platform_data;
++	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(&priv->subdev);
++	int i;
+ 
+ 	if (priv->client)
+ 		return -EBUSY;
+ 
+ 	for (i = 0; i < pdata->num_clients; i++)
+-		if (&pdata->clients[i].pdev->dev == icd->pdev)
++		if ((pdata->clients[i].pdev &&
++		     &pdata->clients[i].pdev->dev == icd->pdev) ||
++		    (icd->control &&
++		     strcmp(pdata->clients[i].name, dev_name(icd->control))))
+ 			break;
+ 
+ 	dev_dbg(dev, "%s(%p): found #%d\n", __func__, dev, i);
+@@ -222,46 +281,8 @@ static int sh_csi2_client_connect(struct sh_csi2 *priv)
+ 	if (i == pdata->num_clients)
+ 		return -ENODEV;
+ 
+-	/* Check if we can support this camera */
+-	csi2_flags = V4L2_MBUS_CSI2_CONTINUOUS_CLOCK | V4L2_MBUS_CSI2_1_LANE;
+-
+-	switch (pdata->type) {
+-	case SH_CSI2C:
+-		if (pdata->clients[i].lanes != 1)
+-			csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
+-		break;
+-	case SH_CSI2I:
+-		switch (pdata->clients[i].lanes) {
+-		default:
+-			csi2_flags |= V4L2_MBUS_CSI2_4_LANE;
+-		case 3:
+-			csi2_flags |= V4L2_MBUS_CSI2_3_LANE;
+-		case 2:
+-			csi2_flags |= V4L2_MBUS_CSI2_2_LANE;
+-		}
+-	}
+-
+-	cfg.type = V4L2_MBUS_CSI2;
+-	ret = v4l2_subdev_call(client_sd, video, g_mbus_config, &cfg);
+-	if (ret == -ENOIOCTLCMD)
+-		common_flags = csi2_flags;
+-	else if (!ret)
+-		common_flags = soc_mbus_config_compatible(&cfg,
+-							  csi2_flags);
+-	else
+-		common_flags = 0;
+-
+-	if (!common_flags)
+-		return -EINVAL;
+-
+-	/* All good: camera MIPI configuration supported */
+-	priv->mipi_flags = common_flags;
+ 	priv->client = pdata->clients + i;
+ 
+-	pm_runtime_get_sync(dev);
+-
+-	sh_csi2_hwinit(priv);
+-
+ 	return 0;
+ }
+ 
+@@ -304,11 +325,21 @@ static int sh_csi2_probe(struct platform_device *pdev)
+ 	/* Platform data specify the PHY, lanes, ECC, CRC */
+ 	struct sh_csi2_pdata *pdata = pdev->dev.platform_data;
+ 
++	if (!pdata)
++		return -EINVAL;
++
++	priv = devm_kzalloc(&pdev->dev, sizeof(struct sh_csi2), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	priv->asdl.subdev = &priv->subdev;
++	priv->asdl.dev = &pdev->dev;
++
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	/* Interrupt unused so far */
+ 	irq = platform_get_irq(pdev, 0);
+ 
+-	if (!res || (int)irq <= 0 || !pdata) {
++	if (!res || (int)irq <= 0) {
+ 		dev_err(&pdev->dev, "Not enough CSI2 platform resources.\n");
+ 		return -ENODEV;
+ 	}
+@@ -319,10 +350,6 @@ static int sh_csi2_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
+-	priv = devm_kzalloc(&pdev->dev, sizeof(struct sh_csi2), GFP_KERNEL);
+-	if (!priv)
+-		return -ENOMEM;
+-
+ 	priv->irq = irq;
+ 
+ 	priv->base = devm_ioremap_resource(&pdev->dev, res);
+@@ -330,35 +357,33 @@ static int sh_csi2_probe(struct platform_device *pdev)
+ 		return PTR_ERR(priv->base);
+ 
+ 	priv->pdev = pdev;
+-	platform_set_drvdata(pdev, priv);
++	priv->subdev.owner = THIS_MODULE;
++	platform_set_drvdata(pdev, &priv->subdev);
+ 
+ 	v4l2_subdev_init(&priv->subdev, &sh_csi2_subdev_ops);
+ 	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
+ 
+ 	snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.mipi-csi",
+-		 dev_name(pdata->v4l2_dev->dev));
+-	ret = v4l2_device_register_subdev(pdata->v4l2_dev, &priv->subdev);
+-	dev_dbg(&pdev->dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
++		 dev_name(&pdev->dev));
++
++	ret = v4l2_async_register_subdev(&priv->asdl);
+ 	if (ret < 0)
+-		goto esdreg;
++		return ret;
+ 
+ 	pm_runtime_enable(&pdev->dev);
+ 
+ 	dev_dbg(&pdev->dev, "CSI2 probed.\n");
+ 
+ 	return 0;
+-
+-esdreg:
+-	platform_set_drvdata(pdev, NULL);
+-
+-	return ret;
+ }
+ 
+ static int sh_csi2_remove(struct platform_device *pdev)
+ {
+-	struct sh_csi2 *priv = platform_get_drvdata(pdev);
++	struct v4l2_subdev *subdev = platform_get_drvdata(pdev);
++	struct sh_csi2 *priv = container_of(subdev, struct sh_csi2, subdev);
+ 
+-	v4l2_device_unregister_subdev(&priv->subdev);
++	v4l2_async_unregister_subdev(&priv->asdl);
++	v4l2_device_unregister_subdev(subdev);
+ 	pm_runtime_disable(&pdev->dev);
+ 	platform_set_drvdata(pdev, NULL);
+ 
+diff --git a/include/media/sh_mobile_ceu.h b/include/media/sh_mobile_ceu.h
+index 6fdb6ad..8937241 100644
+--- a/include/media/sh_mobile_ceu.h
++++ b/include/media/sh_mobile_ceu.h
+@@ -22,6 +22,8 @@ struct sh_mobile_ceu_info {
+ 	int max_width;
+ 	int max_height;
+ 	struct sh_mobile_ceu_companion *csi2;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;			/* 0-terminated array pf asd group sizes */
+ };
+ 
+ #endif /* __ASM_SH_MOBILE_CEU_H__ */
+diff --git a/include/media/sh_mobile_csi2.h b/include/media/sh_mobile_csi2.h
+index c586c4f..14030db 100644
+--- a/include/media/sh_mobile_csi2.h
++++ b/include/media/sh_mobile_csi2.h
+@@ -33,6 +33,7 @@ struct sh_csi2_client_config {
+ 	unsigned char lanes;		/* bitmask[3:0] */
+ 	unsigned char channel;		/* 0..3 */
+ 	struct platform_device *pdev;	/* client platform device */
++	const char *name;		/* async matching: client name */
+ };
+ 
+ struct v4l2_device;
+@@ -42,7 +43,6 @@ struct sh_csi2_pdata {
+ 	unsigned int flags;
+ 	struct sh_csi2_client_config *clients;
+ 	int num_clients;
+-	struct v4l2_device *v4l2_dev;
+ };
+ 
+ #endif
+-- 
+1.7.2.5
 
