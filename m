@@ -1,82 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9305 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754896Ab3DQAmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:50 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0goZW002258
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:50 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 03/31] [media] r820t: Give a better estimation of the signal strength
-Date: Tue, 16 Apr 2013 21:42:14 -0300
-Message-Id: <1366159362-3773-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.187]:49783 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964852Ab3DHPGC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:06:02 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v8 6/7] imx074: support asynchronous probing
+Date: Mon,  8 Apr 2013 17:05:37 +0200
+Message-Id: <1365433538-15975-7-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of a binary signal strength measure, use the tuner gain
-to obtain a better estimation of the signal strength.
+Both synchronous and asynchronous imx074 subdevice probing is supported by
+this patch.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/tuners/r820t.c | 30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ drivers/media/i2c/soc_camera/imx074.c |   24 +++++++++++++++++++++---
+ 1 files changed, 21 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 7e02920..ed9cd65 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1082,6 +1082,18 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
- 	return 0;
- }
+diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
+index a6a5060..624d7c7 100644
+--- a/drivers/media/i2c/soc_camera/imx074.c
++++ b/drivers/media/i2c/soc_camera/imx074.c
+@@ -18,6 +18,7 @@
+ #include <linux/module.h>
  
-+static int r820t_read_gain(struct r820t_priv *priv)
-+{
-+	u8 data[4];
-+	int rc;
-+
-+	rc = r820_read(priv, 0x00, data, sizeof(data));
-+	if (rc < 0)
-+		return rc;
-+
-+	return ((data[3] & 0x0f) << 1) + ((data[3] & 0xf0) >> 4);
-+}
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -1353,11 +1365,23 @@ static int r820t_set_params(struct dvb_frontend *fe)
- static int r820t_signal(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct r820t_priv *priv = fe->tuner_priv;
-+	int rc = 0;
+ #include <media/soc_camera.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-clk.h>
+ #include <media/v4l2-subdev.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -79,6 +80,7 @@ struct imx074 {
+ 	struct v4l2_subdev		subdev;
+ 	const struct imx074_datafmt	*fmt;
+ 	struct v4l2_clk			*clk;
++	struct v4l2_async_subdev_list	asdl;
+ };
  
--	if (priv->has_lock)
--		*strength = 0xffff;
--	else
-+	if (priv->has_lock) {
-+		rc = r820t_read_gain(priv);
-+		if (rc < 0)
-+			return rc;
+ static const struct imx074_datafmt imx074_colour_fmts[] = {
+@@ -455,14 +457,28 @@ static int imx074_probe(struct i2c_client *client,
+ 
+ 	priv->fmt	= &imx074_colour_fmts[0];
+ 
++	priv->asdl.subdev = &priv->subdev;
++	priv->asdl.dev = &client->dev;
 +
-+		/* A higher gain at LNA means a lower signal strength */
-+		*strength = (45 - rc) << 4 | 0xff;
-+	} else {
- 		*strength = 0;
+ 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk))
+-		return PTR_ERR(priv->clk);
++	if (IS_ERR(priv->clk)) {
++		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv->clk));
++		return -EPROBE_DEFER;
 +	}
 +
-+	tuner_dbg("%s: %s, gain=%d strength=%d\n",
-+		  __func__,
-+		  priv->has_lock ? "PLL locked" : "no signal",
-+		  rc, *strength);
++	ret = soc_camera_power_init(&client->dev, ssdd);
++	if (ret < 0)
++		goto epwrinit;
  
- 	return 0;
+ 	ret = imx074_video_probe(client);
+ 	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
++		goto eprobe;
+ 
++	return v4l2_async_register_subdev(&priv->asdl);
++
++epwrinit:
++eprobe:
++	v4l2_clk_put(priv->clk);
+ 	return ret;
  }
+ 
+@@ -471,7 +487,9 @@ static int imx074_remove(struct i2c_client *client)
+ 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct imx074 *priv = to_imx074(client);
+ 
++	v4l2_async_unregister_subdev(&priv->asdl);
+ 	v4l2_clk_put(priv->clk);
++
+ 	if (ssdd->free_bus)
+ 		ssdd->free_bus(ssdd);
+ 
 -- 
-1.8.1.4
+1.7.2.5
 
