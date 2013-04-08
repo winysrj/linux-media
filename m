@@ -1,79 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23827 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754063Ab3DUTAp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 15:00:45 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3LJ0jTV022594
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 15:00:45 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv3 07/10] [media] tuner-core: add SDR support for g_tuner
-Date: Sun, 21 Apr 2013 16:00:36 -0300
-Message-Id: <1366570839-662-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366570839-662-1-git-send-email-mchehab@redhat.com>
-References: <1366570839-662-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1679 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934608Ab3DHKr6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:47:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Eduardo Valentin <edubezval@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 2/7] radio-si4713: embed struct video_device instead of allocating it.
+Date: Mon,  8 Apr 2013 12:47:36 +0200
+Message-Id: <1365418061-23694-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Properly initialize the fields for VIDIOC_G_TUNER, if the
-device is in SDR mode.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Also set the v4l2_dev pointer in struct video_device as this was missing.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/tuner-core.c | 29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ drivers/media/radio/radio-si4713.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index b97ec63..e54b5ae 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -1190,7 +1190,31 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+index 320f301..70dc652 100644
+--- a/drivers/media/radio/radio-si4713.c
++++ b/drivers/media/radio/radio-si4713.c
+@@ -48,7 +48,7 @@ MODULE_ALIAS("platform:radio-si4713");
+ /* Driver state struct */
+ struct radio_si4713_device {
+ 	struct v4l2_device		v4l2_dev;
+-	struct video_device		*radio_dev;
++	struct video_device		radio_dev;
+ };
+ 
+ /* radio_si4713_fops - file operations interface */
+@@ -217,7 +217,7 @@ static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
+ static struct video_device radio_si4713_vdev_template = {
+ 	.fops			= &radio_si4713_fops,
+ 	.name			= "radio-si4713",
+-	.release		= video_device_release,
++	.release		= video_device_release_empty,
+ 	.ioctl_ops		= &radio_si4713_ioctl_ops,
+ 	.vfl_dir		= VFL_DIR_TX,
+ };
+@@ -267,27 +267,18 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+ 		goto put_adapter;
  	}
  
- 	/* radio mode */
--	if (vt->type == t->mode) {
-+	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+
-+	if (V4L2_TUNER_IS_SDR(vt->type)) {
-+		vt->rangelow  = tv_range[0] * 16000;
-+		vt->rangehigh = tv_range[1] * 16000;
-+	else {
-+		vt->rangelow = radio_range[0] * 16000;
-+		vt->rangehigh = radio_range[1] * 16000;
-+	}
-+	/* Check if the radio device is active */
-+	if (vt->type != t->mode)
-+		return 0;
-+
-+	if (V4L2_TUNER_IS_SDR(vt->type)) {
-+		if (fe_tuner_ops->get_bandwidth)
-+			fe_tuner_ops->get_bandwidth(&t->fe,
-+							&vt->bandwidth);
-+		if (fe_tuner_ops->get_if_frequency)
-+			fe_tuner_ops->get_if_frequency(&t->fe,
-+							&vt->int_freq);
-+		/*
-+			* Sampe rate is not a tuner props - it is up to the
-+			* bridge driver to fill it.
-+			*/
-+	} else {
- 		vt->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
- 		if (fe_tuner_ops->get_status) {
- 			u32 tuner_status;
-@@ -1203,9 +1227,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 		}
- 		vt->audmode = t->audmode;
+-	rsdev->radio_dev = video_device_alloc();
+-	if (!rsdev->radio_dev) {
+-		dev_err(&pdev->dev, "Failed to alloc video device.\n");
+-		rval = -ENOMEM;
+-		goto put_adapter;
+-	}
+-
+-	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
+-	       sizeof(radio_si4713_vdev_template));
+-	video_set_drvdata(rsdev->radio_dev, rsdev);
+-	if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
++	rsdev->radio_dev = radio_si4713_vdev_template;
++	rsdev->radio_dev.v4l2_dev = &rsdev->v4l2_dev;
++	video_set_drvdata(&rsdev->radio_dev, rsdev);
++	if (video_register_device(&rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
+ 		dev_err(&pdev->dev, "Could not register video device.\n");
+ 		rval = -EIO;
+-		goto free_vdev;
++		goto put_adapter;
  	}
--	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
--	vt->rangelow = radio_range[0] * 16000;
--	vt->rangehigh = radio_range[1] * 16000;
+ 	dev_info(&pdev->dev, "New device successfully probed\n");
  
- 	return 0;
- }
+ 	goto exit;
+ 
+-free_vdev:
+-	video_device_release(rsdev->radio_dev);
+ put_adapter:
+ 	i2c_put_adapter(adapter);
+ unregister_v4l2_dev:
+@@ -306,7 +297,7 @@ static int radio_si4713_pdriver_remove(struct platform_device *pdev)
+ 	struct radio_si4713_device *rsdev;
+ 
+ 	rsdev = container_of(v4l2_dev, struct radio_si4713_device, v4l2_dev);
+-	video_unregister_device(rsdev->radio_dev);
++	video_unregister_device(&rsdev->radio_dev);
+ 	i2c_put_adapter(client->adapter);
+ 	v4l2_device_unregister(&rsdev->v4l2_dev);
+ 
 -- 
-1.8.1.4
+1.7.10.4
 
