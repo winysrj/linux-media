@@ -1,262 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51317 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757115Ab3D2N5a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 09:57:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH] media: i2c: tvp514x: add OF support
-Date: Mon, 29 Apr 2013 15:57:34 +0200
-Message-ID: <7684541.nmKBKd3EoN@avalon>
-In-Reply-To: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail.kapsi.fi ([217.30.184.167]:55987 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759219Ab3DIXyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 19:54:23 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/5] mxl5007t: fix buggy register read
+Date: Wed, 10 Apr 2013 02:53:16 +0300
+Message-Id: <1365551600-3394-2-git-send-email-crope@iki.fi>
+In-Reply-To: <1365551600-3394-1-git-send-email-crope@iki.fi>
+References: <1365551600-3394-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Chip uses WRITE + STOP + READ + STOP sequence for I2C register read.
+Driver was using REPEATED START condition which makes it failing if
+I2C adapter was implemented correctly.
 
-Thank you for the patch. Please see below for a couple of comments. Most of 
-them apply to your adv7343 patch as well.
+Add use_broken_read_reg_intentionally option to keep old buggy
+implantation as there is buggy I2C adapter implementation relying
+that bug...
 
-On Friday 26 April 2013 16:53:50 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> add OF support for the tvp514x driver.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> ---
->  RFC v1: https://patchwork.kernel.org/patch/2030061/
->  RFC v2: https://patchwork.kernel.org/patch/2061811/
-> 
->  Changes for current version from RFC v2:
->  1: Fixed review comments pointed by Sylwester.
-> 
->  .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
->  drivers/media/i2c/tvp514x.c                        |   67 +++++++++++++++--
->  2 files changed, 98 insertions(+), 7 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt new file mode
-> 100644
-> index 0000000..618640a
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-> @@ -0,0 +1,38 @@
-> +* Texas Instruments TVP514x video decoder
-> +
-> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
-> +digital video decoder that digitizes and decodes all popular baseband
-> +analog video formats into digital video component. The tvp514x decoder
-> +supports analog-to-digital (A/D) conversion of component RGB and YPbPr
-> +signals as well as A/D conversion and decoding of NTSC, PAL and SECAM
-> +composite and S-video into component YCbCr.
-> +
-> +Required Properties :
-> +- compatible: Must be "ti,tvp514x-decoder"
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/tuners/mxl5007t.c             | 56 ++++++++++++++++++++++++++++-
+ drivers/media/tuners/mxl5007t.h             |  7 ++++
+ drivers/media/usb/au0828/au0828-dvb.c       |  1 +
+ drivers/media/usb/dvb-usb-v2/af9015.c       |  1 +
+ drivers/media/usb/dvb-usb-v2/af9035.c       |  2 ++
+ drivers/media/usb/dvb-usb/dib0700_devices.c |  1 +
+ 6 files changed, 67 insertions(+), 1 deletion(-)
 
-According to the code below, it must be one of
-
-        "ti,tvp5146-decoder"
-        "ti,tvp5146m2-decoder"
-        "ti,tvp5147-decoder"
-        "ti,tvp5147m1-decoder"
-
-Couldn't you remove "-decoder" ?
-
-You should add a reference to the V4L2 DT bindings documentation to explain 
-what the port and endpoint nodes are for.
-
-> +- hsync-active: HSYNC Polarity configuration for current interface.
-> +- vsync-active: VSYNC Polarity configuration for current interface.
-> +- pclk-sample: Clock polarity of the current interface.
-
-s/current interface/endpoint/ ?
-
-> +Example:
-> +
-> +i2c0@1c22000 {
-> +	...
-> +	...
-> +
-> +	tvp514x@5c {
-> +		compatible = "ti,tvp514x-decoder";
-> +		reg = <0x5c>;
-> +
-> +		port {
-> +			tvp514x_1: endpoint {
-> +				/* Active high (Defaults to 0) */
-> +				hsync-active = <1>;
-> +				/* Active high (Defaults to 0) */
-> +				vsync-active = <1>;
-> +				/* Active low (Defaults to 0) */
-> +				pclk-sample = <0>;
-> +			};
-> +		};
-> +	};
-> +	...
-> +};
-> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-> index 887bd93..d37b85e 100644
-> --- a/drivers/media/i2c/tvp514x.c
-> +++ b/drivers/media/i2c/tvp514x.c
-> @@ -35,7 +35,9 @@
->  #include <linux/videodev2.h>
->  #include <linux/module.h>
->  #include <linux/v4l2-mediabus.h>
-> +#include <linux/of_device.h>
-> 
-> +#include <media/v4l2-of.h>
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-common.h>
-> @@ -1056,6 +1058,58 @@ static struct tvp514x_decoder tvp514x_dev = {
-> 
->  };
-> 
-> +#if defined(CONFIG_OF)
-> +static const struct of_device_id tvp514x_of_match[] = {
-> +	{.compatible = "ti,tvp5146-decoder", },
-> +	{.compatible = "ti,tvp5146m2-decoder", },
-> +	{.compatible = "ti,tvp5147-decoder", },
-> +	{.compatible = "ti,tvp5147m1-decoder", },
-> +	{},
-> +};
-> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
-> +
-> +static void tvp514x_get_pdata(struct i2c_client *client,
-> +			      struct tvp514x_decoder *decoder)
-> +{
-> +	if (!client->dev.platform_data && client->dev.of_node) {
-> +		struct device_node *endpoint;
-> +
-> +		endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> +		if (endpoint) {
-> +			struct tvp514x_platform_data *pdata;
-> +			struct v4l2_of_endpoint bus_cfg;
-> +			unsigned int flags;
-> +
-> +			pdata =
-> +			   devm_kzalloc(&client->dev,
-> +					sizeof(struct tvp514x_platform_data),
-
-sizeof(*pdata) ? That's the preferred style, as it makes sure that you will 
-still allocate the right amount of memory if the type of the pdata variable 
-changes (that's pretty unlikely here of course, but the general principle 
-holds true).
-
-> +					GFP_KERNEL);
-> +			if (!pdata)
-> +				return;
-> +
-> +			v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +			flags = bus_cfg.bus.parallel.flags;
-> +
-> +			if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +				pdata->hs_polarity = 1;
-> +			if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +				pdata->vs_polarity = 1;
-> +			if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +				pdata->clk_polarity = 1;
-> +			decoder->pdata = pdata;
-> +		}
-> +	}
-
-As pointed out by Sascha in his review of your mt9p031 patch, you need to use 
-client->dev.platform_data if client->dev.of_node is NULL.
-
-> +}
-> +#else
-> +#define tvp514x_of_match NULL
-> +
-> +static void tvp514x_get_pdata(struct i2c_client *client,
-> +			      struct tvp514x_decoder *decoder)
-> +{
-> +	decoder->pdata = client->dev.platform_data;
-> +}
-> +#endif
-> +
->  /**
->   * tvp514x_probe() - decoder driver i2c probe handler
->   * @client: i2c driver client device structure
-> @@ -1075,11 +1129,6 @@ tvp514x_probe(struct i2c_client *client, const struct
-> i2c_device_id *id) if (!i2c_check_functionality(client->adapter,
-> I2C_FUNC_SMBUS_BYTE_DATA)) return -EIO;
-> 
-> -	if (!client->dev.platform_data) {
-> -		v4l2_err(client, "No platform data!!\n");
-> -		return -ENODEV;
-> -	}
-> -
->  	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
->  	if (!decoder)
->  		return -ENOMEM;
-> @@ -1090,8 +1139,11 @@ tvp514x_probe(struct i2c_client *client, const struct
-> i2c_device_id *id) memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
->  			sizeof(tvp514x_reg_list_default));
-> 
-> -	/* Copy board specific information here */
-> -	decoder->pdata = client->dev.platform_data;
-> +	tvp514x_get_pdata(client, decoder);
-
-Getter functions usually return a value. The code would (at least in my 
-opinion) be clearer if you modifieid tvp514x_get_pdata() to return a pointer 
-to the pdata instead of assigning it directly to decoder->pdata inside the 
-function.
-
-> +	if (!decoder->pdata) {
-> +		v4l2_err(client, "No platform data!!\n");
-> +		return -EPROBE_DEFER;
-
-Why EPROBE_DEFER ? If there's no pdata now you won't magically get it later 
-:-)
-
-> +	}
-> 
->  	/**
->  	 * Fetch platform specific data, and configure the
-> @@ -1242,6 +1294,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
-> 
->  static struct i2c_driver tvp514x_driver = {
->  	.driver = {
-> +		.of_match_table = tvp514x_of_match,
-
-Please use of_match_ptr() instead of defining tvp514x_of_match as NULL above.
-
->  		.owner = THIS_MODULE,
->  		.name = TVP514X_MODULE_NAME,
->  	},
+diff --git a/drivers/media/tuners/mxl5007t.c b/drivers/media/tuners/mxl5007t.c
+index 69e453e..36605ea 100644
+--- a/drivers/media/tuners/mxl5007t.c
++++ b/drivers/media/tuners/mxl5007t.c
+@@ -156,6 +156,7 @@ struct mxl5007t_state {
+ 	struct tuner_i2c_props i2c_props;
+ 
+ 	struct mutex lock;
++	struct mutex i2c_lock;
+ 
+ 	struct mxl5007t_config *config;
+ 
+@@ -490,7 +491,8 @@ static int mxl5007t_write_regs(struct mxl5007t_state *state,
+ 	return ret;
+ }
+ 
+-static int mxl5007t_read_reg(struct mxl5007t_state *state, u8 reg, u8 *val)
++/* XXX: bad implementation for avoiding regressions */
++static int mxl5007t_read_reg_bad(struct mxl5007t_state *state, u8 reg, u8 *val)
+ {
+ 	u8 buf[2] = { 0xfb, reg };
+ 	struct i2c_msg msg[] = {
+@@ -509,6 +511,57 @@ static int mxl5007t_read_reg(struct mxl5007t_state *state, u8 reg, u8 *val)
+ 	return 0;
+ }
+ 
++/* chip uses I2C write + read with STOP condition */
++static int mxl5007t_read_reg_good(struct mxl5007t_state *state, u8 reg, u8 *val)
++{
++	int ret;
++	u8 buf[2] = { 0xfb, reg };
++	struct i2c_msg msg1[] = {
++		{
++			.addr = state->i2c_props.addr,
++			.flags = 0,
++			.buf = buf,
++			.len = 2,
++		},
++	};
++	struct i2c_msg msg2[] = {
++		{
++			.addr = state->i2c_props.addr,
++			.flags = I2C_M_RD,
++			.buf = val,
++			.len = 1,
++		},
++	};
++
++	mutex_lock(&state->i2c_lock);
++
++	ret = i2c_transfer(state->i2c_props.adap, msg1, 1);
++	if (ret != 1) {
++		mxl_err("failed!");
++		ret = -EREMOTEIO;
++		goto fail;
++	}
++
++	ret = i2c_transfer(state->i2c_props.adap, msg2, 1);
++	if (ret != 1) {
++		mxl_err("failed!");
++		ret = -EREMOTEIO;
++		goto fail;
++	}
++fail:
++	mutex_unlock(&state->i2c_lock);
++
++	return ret;
++}
++
++static int mxl5007t_read_reg(struct mxl5007t_state *state, u8 reg, u8 *val)
++{
++	if (state->config->use_broken_read_reg_intentionally)
++		return mxl5007t_read_reg_bad(state, reg, val);
++	else
++		return mxl5007t_read_reg_good(state, reg, val);
++}
++
+ static int mxl5007t_soft_reset(struct mxl5007t_state *state)
+ {
+ 	u8 d = 0xff;
+@@ -883,6 +936,7 @@ struct dvb_frontend *mxl5007t_attach(struct dvb_frontend *fe,
+ 		state->config = cfg;
+ 
+ 		mutex_init(&state->lock);
++		mutex_init(&state->i2c_lock);
+ 
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/tuners/mxl5007t.h b/drivers/media/tuners/mxl5007t.h
+index 37b0942..728779b 100644
+--- a/drivers/media/tuners/mxl5007t.h
++++ b/drivers/media/tuners/mxl5007t.h
+@@ -75,6 +75,13 @@ struct mxl5007t_config {
+ 	unsigned int invert_if:1;
+ 	unsigned int loop_thru_enable:1;
+ 	unsigned int clk_out_enable:1;
++	/*
++	 * XXX: This should not be used. Defined for avoiding regressions.
++	 * Remove use of that option after device is tested to be working with
++	 * correct implementation.
++	 * MxL5007t does not use I2C REPEATED START condition for register read.
++	 */
++	unsigned int use_broken_read_reg_intentionally:1;
+ };
+ 
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_MXL5007T)
+diff --git a/drivers/media/usb/au0828/au0828-dvb.c b/drivers/media/usb/au0828/au0828-dvb.c
+index 9a6f156..7d32a0c 100644
+--- a/drivers/media/usb/au0828/au0828-dvb.c
++++ b/drivers/media/usb/au0828/au0828-dvb.c
+@@ -95,6 +95,7 @@ static struct xc5000_config hauppauge_xc5000c_config = {
+ static struct mxl5007t_config mxl5007t_hvr950q_config = {
+ 	.xtal_freq_hz = MxL_XTAL_24_MHZ,
+ 	.if_freq_hz = MxL_IF_6_MHZ,
++	.use_broken_read_reg_intentionally = 1,
+ };
+ 
+ static struct tda18271_config hauppauge_woodbury_tunerconfig = {
+diff --git a/drivers/media/usb/dvb-usb-v2/af9015.c b/drivers/media/usb/dvb-usb-v2/af9015.c
+index d556042..b943304 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9015.c
++++ b/drivers/media/usb/dvb-usb-v2/af9015.c
+@@ -931,6 +931,7 @@ static struct tda18218_config af9015_tda18218_config = {
+ static struct mxl5007t_config af9015_mxl5007t_config = {
+ 	.xtal_freq_hz = MxL_XTAL_24_MHZ,
+ 	.if_freq_hz = MxL_IF_4_57_MHZ,
++	.use_broken_read_reg_intentionally = 1,
+ };
+ 
+ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index b638fc1..b7e7135 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -947,6 +947,7 @@ static struct mxl5007t_config af9035_mxl5007t_config[] = {
+ 		.loop_thru_enable = 0,
+ 		.clk_out_enable = 0,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++		.use_broken_read_reg_intentionally = 1,
+ 	}, {
+ 		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+ 		.if_freq_hz = MxL_IF_4_57_MHZ,
+@@ -954,6 +955,7 @@ static struct mxl5007t_config af9035_mxl5007t_config[] = {
+ 		.loop_thru_enable = 1,
+ 		.clk_out_enable = 1,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
++		.use_broken_read_reg_intentionally = 1,
+ 	}
+ };
+ 
+diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
+index 1179842..c58c6ea 100644
+--- a/drivers/media/usb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
+@@ -3433,6 +3433,7 @@ static struct mxl5007t_config hcw_mxl5007t_config = {
+ 	.xtal_freq_hz = MxL_XTAL_25_MHZ,
+ 	.if_freq_hz = MxL_IF_6_MHZ,
+ 	.invert_if = 1,
++	.use_broken_read_reg_intentionally = 1,
+ };
+ 
+ /* TIGER-ATSC map:
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.11.7
 
