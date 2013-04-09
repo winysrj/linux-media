@@ -1,863 +1,460 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20420 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751622Ab3D1Qfx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 12:35:53 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SGZruw006860
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 12:35:53 -0400
-Received: from localhost.localdomain (vpn1-7-217.gru2.redhat.com [10.97.7.217])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id r3SGZlO9017169
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 12:35:50 -0400
-Date: Sun, 28 Apr 2013 13:35:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/9] [media] drxk_hard: use pr_info/pr_warn/pr_err/...
- macros
-Message-ID: <20130428133546.77d82ce8@redhat.com>
-In-Reply-To: <1367164071-11468-4-git-send-email-mchehab@redhat.com>
-References: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
-	<1367164071-11468-4-git-send-email-mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:41414 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762080Ab3DIEVd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 00:21:33 -0400
+Received: by mail-pb0-f41.google.com with SMTP id mc17so55011pbc.28
+        for <linux-media@vger.kernel.org>; Mon, 08 Apr 2013 21:21:32 -0700 (PDT)
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+From: Mike Turquette <mturquette@linaro.org>
+In-Reply-To: <1365076301-6542-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: sakari.ailus@iki.fi, Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1365076301-6542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1365076301-6542-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-ID: <20130409042124.14359.77204@quantum>
+Subject: Re: [PATCH v2 1/2] omap3isp: Use the common clock framework
+Date: Mon, 08 Apr 2013 21:21:24 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 28 Apr 2013 12:47:45 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-
-> replace all occurrences of  printk(KERN_* by
-> pr_info/pr_warn/pr_err/pr_debug/pr_cont macros.
+Quoting Laurent Pinchart (2013-04-04 04:51:40)
+> Expose the two ISP external clocks XCLKA and XCLKB as common clocks for
+> subdev drivers.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Acked-by: Mike Turquette <mturquette@linaro.org>
+
+Regards,
+Mike
+
 > ---
-
-Sorry... sent the wrong version. The correct one is attached.
-
--
-
-[PATCH] [media] drxk_hard: use pr_info/pr_warn/pr_err/... macros
-
-replace all occurrences of  printk(KERN_* by
-pr_info/pr_warn/pr_err/pr_debug/pr_cont macros.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index d2b331a..cdfda38 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -21,6 +21,8 @@
-  * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-@@ -166,7 +168,7 @@ MODULE_PARM_DESC(debug, "enable debug messages");
- 
- #define dprintk(level, fmt, arg...) do {			\
- if (debug >= level)						\
--	printk(KERN_DEBUG "drxk: %s" fmt, __func__, ## arg);	\
-+	pr_debug(fmt, ##arg);					\
- } while (0)
- 
- 
-@@ -256,15 +258,15 @@ static int i2c_write(struct drxk_state *state, u8 adr, u8 *data, int len)
- 	if (debug > 2) {
- 		int i;
- 		for (i = 0; i < len; i++)
--			printk(KERN_CONT " %02x", data[i]);
--		printk(KERN_CONT "\n");
-+			pr_cont(" %02x", data[i]);
-+		pr_cont("\n");
- 	}
- 	status = drxk_i2c_transfer(state, &msg, 1);
- 	if (status >= 0 && status != 1)
- 		status = -EIO;
- 
- 	if (status < 0)
--		printk(KERN_ERR "drxk: i2c write error at addr 0x%02x\n", adr);
-+		pr_err("i2c write error at addr 0x%02x\n", adr);
- 
- 	return status;
- }
-@@ -283,22 +285,22 @@ static int i2c_read(struct drxk_state *state,
- 	status = drxk_i2c_transfer(state, msgs, 2);
- 	if (status != 2) {
- 		if (debug > 2)
--			printk(KERN_CONT ": ERROR!\n");
-+			pr_cont(": ERROR!\n");
- 		if (status >= 0)
- 			status = -EIO;
- 
--		printk(KERN_ERR "drxk: i2c read error at addr 0x%02x\n", adr);
-+		pr_err("i2c read error at addr 0x%02x\n", adr);
- 		return status;
- 	}
- 	if (debug > 2) {
- 		int i;
- 		dprintk(2, ": read from");
- 		for (i = 0; i < len; i++)
--			printk(KERN_CONT " %02x", msg[i]);
--		printk(KERN_CONT ", value = ");
-+			pr_cont(" %02x", msg[i]);
-+		pr_cont(", value = ");
- 		for (i = 0; i < alen; i++)
--			printk(KERN_CONT " %02x", answ[i]);
--		printk(KERN_CONT "\n");
-+			pr_cont(" %02x", answ[i]);
-+		pr_cont("\n");
- 	}
- 	return 0;
- }
-@@ -468,13 +470,13 @@ static int write_block(struct drxk_state *state, u32 address,
- 			int i;
- 			if (p_block)
- 				for (i = 0; i < chunk; i++)
--					printk(KERN_CONT " %02x", p_block[i]);
--			printk(KERN_CONT "\n");
-+					pr_cont(" %02x", p_block[i]);
-+			pr_cont("\n");
- 		}
- 		status = i2c_write(state, state->demod_address,
- 				   &state->chunk[0], chunk + adr_length);
- 		if (status < 0) {
--			printk(KERN_ERR "drxk: %s: i2c write error at addr 0x%02x\n",
-+			pr_err("%s: i2c write error at addr 0x%02x\n",
- 			       __func__, address);
- 			break;
- 		}
-@@ -531,7 +533,7 @@ static int power_up_device(struct drxk_state *state)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -800,7 +802,7 @@ static int drxx_open(struct drxk_state *state)
- 	status = write16(state, SIO_TOP_COMM_KEY__A, key);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -845,7 +847,7 @@ static int get_device_capabilities(struct drxk_state *state)
- 		state->m_osc_clock_freq = 20250;
- 		break;
- 	default:
--		printk(KERN_ERR "drxk: Clock Frequency is unknown\n");
-+		pr_err("Clock Frequency is unknown\n");
- 		return -EINVAL;
- 	}
- 	/*
-@@ -856,7 +858,7 @@ static int get_device_capabilities(struct drxk_state *state)
- 	if (status < 0)
- 		goto error;
- 
--	printk(KERN_INFO "drxk: status = 0x%08x\n", sio_top_jtagid_lo);
-+	pr_info("status = 0x%08x\n", sio_top_jtagid_lo);
- 
- 	/* driver 0.9.0 */
- 	switch ((sio_top_jtagid_lo >> 29) & 0xF) {
-@@ -875,8 +877,7 @@ static int get_device_capabilities(struct drxk_state *state)
- 	default:
- 		state->m_device_spin = DRXK_SPIN_UNKNOWN;
- 		status = -EINVAL;
--		printk(KERN_ERR "drxk: Spin %d unknown\n",
--		       (sio_top_jtagid_lo >> 29) & 0xF);
-+		pr_err("Spin %d unknown\n", (sio_top_jtagid_lo >> 29) & 0xF);
- 		goto error2;
- 	}
- 	switch ((sio_top_jtagid_lo >> 12) & 0xFF) {
-@@ -985,21 +986,20 @@ static int get_device_capabilities(struct drxk_state *state)
- 		state->m_has_irqn = false;
- 		break;
- 	default:
--		printk(KERN_ERR "drxk: DeviceID 0x%02x not supported\n",
-+		pr_err("DeviceID 0x%02x not supported\n",
- 			((sio_top_jtagid_lo >> 12) & 0xFF));
- 		status = -EINVAL;
- 		goto error2;
- 	}
- 
--	printk(KERN_INFO
--	       "drxk: detected a drx-39%02xk, spin %s, xtal %d.%03d MHz\n",
-+	pr_info("detected a drx-39%02xk, spin %s, xtal %d.%03d MHz\n",
- 	       ((sio_top_jtagid_lo >> 12) & 0xFF), spin,
- 	       state->m_osc_clock_freq / 1000,
- 	       state->m_osc_clock_freq % 1000);
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- error2:
- 	return status;
-@@ -1042,7 +1042,7 @@ static int hi_command(struct drxk_state *state, u16 cmd, u16 *p_result)
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -1081,7 +1081,7 @@ static int hi_cfg_command(struct drxk_state *state)
- error:
- 	mutex_unlock(&state->mutex);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1244,7 +1244,7 @@ static int mpegts_configure_pins(struct drxk_state *state, bool mpeg_enable)
- 	status = write16(state, SIO_TOP_COMM_KEY__A, 0x0000);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1287,13 +1287,13 @@ static int bl_chain_cmd(struct drxk_state *state,
- 			((time_is_after_jiffies(end))));
- 
- 	if (bl_status == 0x1) {
--		printk(KERN_ERR "drxk: SIO not ready\n");
-+		pr_err("SIO not ready\n");
- 		status = -EINVAL;
- 		goto error2;
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- error2:
- 	mutex_unlock(&state->mutex);
- 	return status;
-@@ -1349,13 +1349,13 @@ static int download_microcode(struct drxk_state *state,
- 		offset += sizeof(u16);
- 
- 		if (offset + block_size > length) {
--			printk(KERN_ERR "drxk: Firmware is corrupted.\n");
-+			pr_err("Firmware is corrupted.\n");
- 			return -EINVAL;
- 		}
- 
- 		status = write_block(state, address, block_size, p_src);
- 		if (status < 0) {
--			printk(KERN_ERR "drxk: Error %d while loading firmware\n", status);
-+			pr_err("Error %d while loading firmware\n", status);
- 			break;
- 		}
- 		p_src += block_size;
-@@ -1395,7 +1395,7 @@ static int dvbt_enable_ofdm_token_ring(struct drxk_state *state, bool enable)
- 		msleep(1);
- 	} while (1);
- 	if (data != desired_status) {
--		printk(KERN_ERR "drxk: SIO not ready\n");
-+		pr_err("SIO not ready\n");
- 		return -EINVAL;
- 	}
- 	return status;
-@@ -1427,7 +1427,7 @@ static int mpegts_stop(struct drxk_state *state)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -1451,7 +1451,7 @@ static int scu_command(struct drxk_state *state,
- 
- 	if ((cmd == 0) || ((parameter_len > 0) && (parameter == NULL)) ||
- 	    ((result_len > 0) && (result == NULL))) {
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 		return status;
- 	}
- 
-@@ -1477,7 +1477,7 @@ static int scu_command(struct drxk_state *state,
- 			goto error;
- 	} while (!(cur_cmd == DRX_SCU_READY) && (time_is_after_jiffies(end)));
- 	if (cur_cmd != DRX_SCU_READY) {
--		printk(KERN_ERR "drxk: SCU not ready\n");
-+		pr_err("SCU not ready\n");
- 		status = -EIO;
- 		goto error2;
- 	}
-@@ -1515,7 +1515,7 @@ static int scu_command(struct drxk_state *state,
- 			sprintf(errname, "ERROR: %d\n", err);
- 			p = errname;
- 		}
--		printk(KERN_ERR "drxk: %s while sending cmd 0x%04x with params:", p, cmd);
-+		pr_err("%s while sending cmd 0x%04x with params:", p, cmd);
- 		print_hex_dump_bytes("drxk: ", DUMP_PREFIX_NONE, buffer, cnt);
- 		status = -EINVAL;
- 		goto error2;
-@@ -1523,7 +1523,7 @@ static int scu_command(struct drxk_state *state,
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- error2:
- 	mutex_unlock(&state->mutex);
- 	return status;
-@@ -1559,7 +1559,7 @@ static int set_iqm_af(struct drxk_state *state, bool active)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1664,7 +1664,7 @@ static int ctrl_power_mode(struct drxk_state *state, enum drx_power_mode *mode)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -1716,7 +1716,7 @@ static int power_down_dvbt(struct drxk_state *state, bool set_power_mode)
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1796,7 +1796,7 @@ static int setoperation_mode(struct drxk_state *state,
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1847,7 +1847,7 @@ static int start(struct drxk_state *state, s32 offset_freq,
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1885,7 +1885,7 @@ static int get_lock_status(struct drxk_state *state, u32 *p_lock_status)
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1906,7 +1906,7 @@ static int mpegts_start(struct drxk_state *state)
- 	status = write16(state, FEC_OC_SNC_UNLOCK__A, 1);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -1952,7 +1952,7 @@ static int mpegts_dto_init(struct drxk_state *state)
- 	status = write16(state, FEC_OC_SNC_HWM__A, 12);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -2089,7 +2089,7 @@ static int mpegts_dto_setup(struct drxk_state *state,
- 	status = write16(state, FEC_OC_TMD_MODE__A, fec_oc_tmd_mode);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2269,7 +2269,7 @@ static int set_agc_rf(struct drxk_state *state,
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2397,7 +2397,7 @@ static int set_agc_if(struct drxk_state *state,
- 	status = write16(state, SCU_RAM_AGC_INGAIN_TGT_MIN__A, p_agc_cfg->top);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2418,7 +2418,7 @@ static int get_qam_signal_to_noise(struct drxk_state *state,
- 	/* get the register value needed for MER */
- 	status = read16(state, QAM_SL_ERR_POWER__A, &qam_sl_err_power);
- 	if (status < 0) {
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 		return -EINVAL;
- 	}
- 
-@@ -2545,7 +2545,7 @@ static int get_dvbt_signal_to_noise(struct drxk_state *state,
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2740,7 +2740,7 @@ static int ConfigureI2CBridge(struct drxk_state *state, bool b_enable_bridge)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2758,7 +2758,7 @@ static int set_pre_saw(struct drxk_state *state,
- 	status = write16(state, IQM_AF_PDREF__A, p_pre_saw_cfg->reference);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2800,13 +2800,13 @@ static int bl_direct_cmd(struct drxk_state *state, u32 target_addr,
- 			goto error;
- 	} while ((bl_status == 0x1) && time_is_after_jiffies(end));
- 	if (bl_status == 0x1) {
--		printk(KERN_ERR "drxk: SIO not ready\n");
-+		pr_err("SIO not ready\n");
- 		status = -EINVAL;
- 		goto error2;
- 	}
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- error2:
- 	mutex_unlock(&state->mutex);
- 	return status;
-@@ -2847,7 +2847,7 @@ static int adc_sync_measurement(struct drxk_state *state, u16 *count)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2891,7 +2891,7 @@ static int adc_synchronization(struct drxk_state *state)
- 		status = -EINVAL;
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2957,7 +2957,7 @@ static int set_frequency_shifter(struct drxk_state *state,
- 	status = write32(state, IQM_FS_RATE_OFS_LO__A,
- 			 state->m_iqm_fs_rate_ofs);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -2992,7 +2992,8 @@ static int init_agc(struct drxk_state *state, bool is_dtv)
- 
- 	/* AGCInit() not available for DVBT; init done in microcode */
- 	if (!is_qam(state)) {
--		printk(KERN_ERR "drxk: %s: mode %d is not DVB-C\n", __func__, state->m_operation_mode);
-+		pr_err("%s: mode %d is not DVB-C\n",
-+		       __func__, state->m_operation_mode);
- 		return -EINVAL;
- 	}
- 
-@@ -3145,7 +3146,7 @@ static int init_agc(struct drxk_state *state, bool is_dtv)
- 	status = write16(state, SCU_RAM_AGC_KI__A, data);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3159,7 +3160,7 @@ static int dvbtqam_get_acc_pkt_err(struct drxk_state *state, u16 *packet_err)
- 	else
- 		status = read16(state, SCU_RAM_FEC_ACCUM_PKT_FAILURES__A, packet_err);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3279,7 +3280,7 @@ static int dvbt_sc_command(struct drxk_state *state,
- 	}			/* switch (cmd->cmd) */
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3291,7 +3292,7 @@ static int power_up_dvbt(struct drxk_state *state)
- 	dprintk(1, "\n");
- 	status = ctrl_power_mode(state, &power_mode);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3305,7 +3306,7 @@ static int dvbt_ctrl_set_inc_enable(struct drxk_state *state, bool *enabled)
- 	else
- 		status = write16(state, IQM_CF_BYPASSDET__A, 1);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3325,7 +3326,7 @@ static int dvbt_ctrl_set_fr_enable(struct drxk_state *state, bool *enabled)
- 		status = write16(state, OFDM_SC_RA_RAM_FR_THRES_8K__A, 0);
- 	}
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -3361,7 +3362,7 @@ static int dvbt_ctrl_set_echo_threshold(struct drxk_state *state,
- 	status = write16(state, OFDM_SC_RA_RAM_ECHO_THRES__A, data);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3384,7 +3385,7 @@ static int dvbt_ctrl_set_sqi_speed(struct drxk_state *state,
- 			   (u16) *speed);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3423,7 +3424,7 @@ static int dvbt_activate_presets(struct drxk_state *state)
- 	status = write16(state, SCU_RAM_AGC_INGAIN_TGT_MAX__A, state->m_dvbt_if_agc_cfg.ingain_tgt_max);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3629,7 +3630,7 @@ static int set_dvbt_standard(struct drxk_state *state,
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3661,7 +3662,7 @@ static int dvbt_start(struct drxk_state *state)
- 		goto error;
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -3980,7 +3981,7 @@ static int set_dvbt(struct drxk_state *state, u16 intermediate_freqk_hz,
- 		status = dvbt_ctrl_set_sqi_speed(state, &state->m_sqi_speed);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -4031,7 +4032,7 @@ static int get_dvbt_lock_status(struct drxk_state *state, u32 *p_lock_status)
- 		*p_lock_status = NEVER_LOCK;
- end:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -4044,7 +4045,7 @@ static int power_up_qam(struct drxk_state *state)
- 	dprintk(1, "\n");
- 	status = ctrl_power_mode(state, &power_mode);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -4079,7 +4080,7 @@ static int power_down_qam(struct drxk_state *state)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -4167,7 +4168,7 @@ static int set_qam_measurement(struct drxk_state *state,
- 	status = write16(state, FEC_OC_SNC_FAIL_PERIOD__A, fec_rs_period);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -4353,7 +4354,7 @@ static int set_qam16(struct drxk_state *state)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -4548,7 +4549,7 @@ static int set_qam32(struct drxk_state *state)
- 	status = write16(state, SCU_RAM_QAM_FSM_LCAVG_OFFSET5__A, (u16) -86);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -4741,7 +4742,7 @@ static int set_qam64(struct drxk_state *state)
- 	status = write16(state, SCU_RAM_QAM_FSM_LCAVG_OFFSET5__A, (u16) -80);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -4937,7 +4938,7 @@ static int set_qam128(struct drxk_state *state)
- 	status = write16(state, SCU_RAM_QAM_FSM_LCAVG_OFFSET5__A, (u16) -23);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -5132,7 +5133,7 @@ static int set_qam256(struct drxk_state *state)
- 	status = write16(state, SCU_RAM_QAM_FSM_LCAVG_OFFSET5__A, (u16) -8);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5158,7 +5159,7 @@ static int qam_reset_qam(struct drxk_state *state)
- 	status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_RESET, 0, NULL, 1, &cmd_result);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5228,7 +5229,7 @@ static int qam_set_symbolrate(struct drxk_state *state)
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5253,7 +5254,7 @@ static int get_qam_lock_status(struct drxk_state *state, u32 *p_lock_status)
- 			SCU_RAM_COMMAND_CMD_DEMOD_GET_LOCK, 0, NULL, 2,
- 			result);
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	if (result[1] < SCU_RAM_QAM_LOCKED_LOCKED_DEMOD_LOCKED) {
- 		/* 0x0000 NOT LOCKED */
-@@ -5324,15 +5325,14 @@ static int qam_demodulator_command(struct drxk_state *state,
- 				     number_of_parameters, set_param_parameters,
- 				     1, &cmd_result);
- 	} else {
--		printk(KERN_WARNING "drxk: Unknown QAM demodulator parameter "
--			"count %d\n", number_of_parameters);
-+		pr_warn("Unknown QAM demodulator parameter count %d\n",
-+			number_of_parameters);
- 		status = -EINVAL;
- 	}
- 
- error:
- 	if (status < 0)
--		printk(KERN_WARNING "drxk: Warning %d on %s\n",
--		       status, __func__);
-+		pr_warn("Warning %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5587,7 +5587,7 @@ static int set_qam(struct drxk_state *state, u16 intermediate_freqk_hz,
- 
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5749,7 +5749,7 @@ static int set_qam_standard(struct drxk_state *state,
- 	status = write16(state, SCU_COMM_EXEC__A, SCU_COMM_EXEC_ACTIVE);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5832,7 +5832,7 @@ static int write_gpio(struct drxk_state *state)
- 	status = write16(state, SIO_TOP_COMM_KEY__A, 0x0000);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5857,7 +5857,7 @@ static int switch_antenna_to_qam(struct drxk_state *state)
- 		status = write_gpio(state);
- 	}
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5882,7 +5882,7 @@ static int switch_antenna_to_dvbt(struct drxk_state *state)
- 		status = write_gpio(state);
- 	}
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	return status;
- }
- 
-@@ -5919,7 +5919,7 @@ static int power_down_device(struct drxk_state *state)
- 	status = hi_cfg_command(state);
- error:
- 	if (status < 0)
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 
- 	return status;
- }
-@@ -6060,7 +6060,7 @@ static int init_drxk(struct drxk_state *state)
- 		if (status < 0)
- 			goto error;
- 
--		printk(KERN_INFO "DRXK driver version %d.%d.%d\n",
-+		pr_info("DRXK driver version %d.%d.%d\n",
- 			DRXK_VERSION_MAJOR, DRXK_VERSION_MINOR,
- 			DRXK_VERSION_PATCH);
- 
-@@ -6128,7 +6128,7 @@ error:
- 	if (status < 0) {
- 		state->m_drxk_state = DRXK_NO_DEV;
- 		drxk_i2c_unlock(state);
--		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
-+		pr_err("Error %d on %s\n", status, __func__);
- 	}
- 
- 	return status;
-@@ -6141,11 +6141,9 @@ static void load_firmware_cb(const struct firmware *fw,
- 
- 	dprintk(1, ": %s\n", fw ? "firmware loaded" : "firmware not loaded");
- 	if (!fw) {
--		printk(KERN_ERR
--		       "drxk: Could not load firmware file %s.\n",
-+		pr_err("Could not load firmware file %s.\n",
- 			state->microcode_name);
--		printk(KERN_INFO
--		       "drxk: Copy %s to your hotplug directory!\n",
-+		pr_info("Copy %s to your hotplug directory!\n",
- 			state->microcode_name);
- 		state->microcode_name = NULL;
- 
-@@ -6219,8 +6217,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
- 		return -EAGAIN;
- 
- 	if (!fe->ops.tuner_ops.get_if_frequency) {
--		printk(KERN_ERR
--		       "drxk: Error: get_if_frequency() not defined at tuner. Can't work without it!\n");
-+		pr_err("Error: get_if_frequency() not defined at tuner. Can't work without it!\n");
- 		return -EINVAL;
- 	}
- 
-@@ -6704,8 +6701,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 					      GFP_KERNEL,
- 					      state, load_firmware_cb);
- 			if (status < 0) {
--				printk(KERN_ERR
--				       "drxk: failed to request a firmware\n");
-+				pr_err("failed to request a firmware\n");
- 				return NULL;
- 			}
- 		}
-@@ -6733,11 +6729,11 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	p->post_bit_error.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 	p->post_bit_count.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
- 
--	printk(KERN_INFO "drxk: frontend initialized.\n");
-+	pr_info("frontend initialized.\n");
- 	return &state->frontend;
- 
- error:
--	printk(KERN_ERR "drxk: not found\n");
-+	pr_err("not found\n");
- 	kfree(state);
- 	return NULL;
- }
+>  drivers/media/platform/omap3isp/isp.c | 270 ++++++++++++++++++++++++----------
+>  drivers/media/platform/omap3isp/isp.h |  22 ++-
+>  include/media/omap3isp.h              |  10 +-
+>  3 files changed, 218 insertions(+), 84 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index 6e5ad8e..694470d 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -55,6 +55,7 @@
+>  #include <asm/cacheflush.h>
+>  
+>  #include <linux/clk.h>
+> +#include <linux/clkdev.h>
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+>  #include <linux/dma-mapping.h>
+> @@ -148,6 +149,194 @@ void omap3isp_flush(struct isp_device *isp)
+>         isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, ISP_REVISION);
+>  }
+>  
+> +/* -----------------------------------------------------------------------------
+> + * XCLK
+> + */
+> +
+> +#define to_isp_xclk(_hw)       container_of(_hw, struct isp_xclk, hw)
+> +
+> +static void isp_xclk_update(struct isp_xclk *xclk, u32 divider)
+> +{
+> +       switch (xclk->id) {
+> +       case ISP_XCLK_A:
+> +               isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> +                               ISPTCTRL_CTRL_DIVA_MASK,
+> +                               divider << ISPTCTRL_CTRL_DIVA_SHIFT);
+> +               break;
+> +       case ISP_XCLK_B:
+> +               isp_reg_clr_set(xclk->isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> +                               ISPTCTRL_CTRL_DIVB_MASK,
+> +                               divider << ISPTCTRL_CTRL_DIVB_SHIFT);
+> +               break;
+> +       }
+> +}
+> +
+> +static int isp_xclk_prepare(struct clk_hw *hw)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +
+> +       omap3isp_get(xclk->isp);
+> +
+> +       return 0;
+> +}
+> +
+> +static void isp_xclk_unprepare(struct clk_hw *hw)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +
+> +       omap3isp_put(xclk->isp);
+> +}
+> +
+> +static int isp_xclk_enable(struct clk_hw *hw)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +       unsigned long flags;
+> +
+> +       spin_lock_irqsave(&xclk->lock, flags);
+> +       isp_xclk_update(xclk, xclk->divider);
+> +       xclk->enabled = true;
+> +       spin_unlock_irqrestore(&xclk->lock, flags);
+> +
+> +       return 0;
+> +}
+> +
+> +static void isp_xclk_disable(struct clk_hw *hw)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +       unsigned long flags;
+> +
+> +       spin_lock_irqsave(&xclk->lock, flags);
+> +       isp_xclk_update(xclk, 0);
+> +       xclk->enabled = false;
+> +       spin_unlock_irqrestore(&xclk->lock, flags);
+> +}
+> +
+> +static unsigned long isp_xclk_recalc_rate(struct clk_hw *hw,
+> +                                         unsigned long parent_rate)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +
+> +       return parent_rate / xclk->divider;
+> +}
+> +
+> +static u32 isp_xclk_calc_divider(unsigned long *rate, unsigned long parent_rate)
+> +{
+> +       u32 divider;
+> +
+> +       if (*rate >= parent_rate) {
+> +               *rate = parent_rate;
+> +               return ISPTCTRL_CTRL_DIV_BYPASS;
+> +       }
+> +
+> +       divider = DIV_ROUND_CLOSEST(parent_rate, *rate);
+> +       if (divider >= ISPTCTRL_CTRL_DIV_BYPASS)
+> +               divider = ISPTCTRL_CTRL_DIV_BYPASS - 1;
+> +
+> +       *rate = parent_rate / divider;
+> +       return divider;
+> +}
+> +
+> +static long isp_xclk_round_rate(struct clk_hw *hw, unsigned long rate,
+> +                               unsigned long *parent_rate)
+> +{
+> +       isp_xclk_calc_divider(&rate, *parent_rate);
+> +       return rate;
+> +}
+> +
+> +static int isp_xclk_set_rate(struct clk_hw *hw, unsigned long rate,
+> +                            unsigned long parent_rate)
+> +{
+> +       struct isp_xclk *xclk = to_isp_xclk(hw);
+> +       unsigned long flags;
+> +       u32 divider;
+> +
+> +       divider = isp_xclk_calc_divider(&rate, parent_rate);
+> +
+> +       spin_lock_irqsave(&xclk->lock, flags);
+> +
+> +       xclk->divider = divider;
+> +       if (xclk->enabled)
+> +               isp_xclk_update(xclk, divider);
+> +
+> +       spin_unlock_irqrestore(&xclk->lock, flags);
+> +
+> +       dev_dbg(xclk->isp->dev, "%s: cam_xclk%c set to %lu Hz (div %u)\n",
+> +               __func__, xclk->id == ISP_XCLK_A ? 'a' : 'b', rate, divider);
+> +       return 0;
+> +}
+> +
+> +static const struct clk_ops isp_xclk_ops = {
+> +       .prepare = isp_xclk_prepare,
+> +       .unprepare = isp_xclk_unprepare,
+> +       .enable = isp_xclk_enable,
+> +       .disable = isp_xclk_disable,
+> +       .recalc_rate = isp_xclk_recalc_rate,
+> +       .round_rate = isp_xclk_round_rate,
+> +       .set_rate = isp_xclk_set_rate,
+> +};
+> +
+> +static const char *isp_xclk_parent_name = "cam_mclk";
+> +
+> +static int isp_xclk_init(struct isp_device *isp)
+> +{
+> +       struct isp_platform_data *pdata = isp->pdata;
+> +       unsigned int i;
+> +
+> +       for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+> +               struct isp_xclk *xclk = &isp->xclks[i];
+> +               struct clk_init_data init;
+> +               struct clk *clk;
+> +
+> +               xclk->isp = isp;
+> +               xclk->id = i == 0 ? ISP_XCLK_A : ISP_XCLK_B;
+> +               xclk->divider = 1;
+> +               spin_lock_init(&xclk->lock);
+> +
+> +               init.name = i == 0 ? "cam_xclka" : "cam_xclkb";
+> +               init.ops = &isp_xclk_ops;
+> +               init.parent_names = &isp_xclk_parent_name;
+> +               init.num_parents = 1;
+> +
+> +               xclk->hw.init = &init;
+> +
+> +               clk = devm_clk_register(isp->dev, &xclk->hw);
+> +               if (IS_ERR(clk))
+> +                       return PTR_ERR(clk);
+> +
+> +               if (pdata->xclks[i].con_id == NULL &&
+> +                   pdata->xclks[i].dev_id == NULL)
+> +                       continue;
+> +
+> +               xclk->lookup = kzalloc(sizeof(*xclk->lookup), GFP_KERNEL);
+> +               if (xclk->lookup == NULL)
+> +                       return -ENOMEM;
+> +
+> +               xclk->lookup->con_id = pdata->xclks[i].con_id;
+> +               xclk->lookup->dev_id = pdata->xclks[i].dev_id;
+> +               xclk->lookup->clk = clk;
+> +
+> +               clkdev_add(xclk->lookup);
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static void isp_xclk_cleanup(struct isp_device *isp)
+> +{
+> +       unsigned int i;
+> +
+> +       for (i = 0; i < ARRAY_SIZE(isp->xclks); ++i) {
+> +               struct isp_xclk *xclk = &isp->xclks[i];
+> +
+> +               if (xclk->lookup)
+> +                       clkdev_drop(xclk->lookup);
+> +       }
+> +}
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Interrupts
+> + */
+> +
+>  /*
+>   * isp_enable_interrupts - Enable ISP interrupts.
+>   * @isp: OMAP3 ISP device
+> @@ -180,80 +369,6 @@ static void isp_disable_interrupts(struct isp_device *isp)
+>         isp_reg_writel(isp, 0, OMAP3_ISP_IOMEM_MAIN, ISP_IRQ0ENABLE);
+>  }
+>  
+> -/**
+> - * isp_set_xclk - Configures the specified cam_xclk to the desired frequency.
+> - * @isp: OMAP3 ISP device
+> - * @xclk: Desired frequency of the clock in Hz. 0 = stable low, 1 is stable high
+> - * @xclksel: XCLK to configure (0 = A, 1 = B).
+> - *
+> - * Configures the specified MCLK divisor in the ISP timing control register
+> - * (TCTRL_CTRL) to generate the desired xclk clock value.
+> - *
+> - * Divisor = cam_mclk_hz / xclk
+> - *
+> - * Returns the final frequency that is actually being generated
+> - **/
+> -static u32 isp_set_xclk(struct isp_device *isp, u32 xclk, u8 xclksel)
+> -{
+> -       u32 divisor;
+> -       u32 currentxclk;
+> -       unsigned long mclk_hz;
+> -
+> -       if (!omap3isp_get(isp))
+> -               return 0;
+> -
+> -       mclk_hz = clk_get_rate(isp->clock[ISP_CLK_CAM_MCLK]);
+> -
+> -       if (xclk >= mclk_hz) {
+> -               divisor = ISPTCTRL_CTRL_DIV_BYPASS;
+> -               currentxclk = mclk_hz;
+> -       } else if (xclk >= 2) {
+> -               divisor = mclk_hz / xclk;
+> -               if (divisor >= ISPTCTRL_CTRL_DIV_BYPASS)
+> -                       divisor = ISPTCTRL_CTRL_DIV_BYPASS - 1;
+> -               currentxclk = mclk_hz / divisor;
+> -       } else {
+> -               divisor = xclk;
+> -               currentxclk = 0;
+> -       }
+> -
+> -       switch (xclksel) {
+> -       case ISP_XCLK_A:
+> -               isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> -                               ISPTCTRL_CTRL_DIVA_MASK,
+> -                               divisor << ISPTCTRL_CTRL_DIVA_SHIFT);
+> -               dev_dbg(isp->dev, "isp_set_xclk(): cam_xclka set to %d Hz\n",
+> -                       currentxclk);
+> -               break;
+> -       case ISP_XCLK_B:
+> -               isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_MAIN, ISP_TCTRL_CTRL,
+> -                               ISPTCTRL_CTRL_DIVB_MASK,
+> -                               divisor << ISPTCTRL_CTRL_DIVB_SHIFT);
+> -               dev_dbg(isp->dev, "isp_set_xclk(): cam_xclkb set to %d Hz\n",
+> -                       currentxclk);
+> -               break;
+> -       case ISP_XCLK_NONE:
+> -       default:
+> -               omap3isp_put(isp);
+> -               dev_dbg(isp->dev, "ISP_ERR: isp_set_xclk(): Invalid requested "
+> -                       "xclk. Must be 0 (A) or 1 (B).\n");
+> -               return -EINVAL;
+> -       }
+> -
+> -       /* Do we go from stable whatever to clock? */
+> -       if (divisor >= 2 && isp->xclk_divisor[xclksel - 1] < 2)
+> -               omap3isp_get(isp);
+> -       /* Stopping the clock. */
+> -       else if (divisor < 2 && isp->xclk_divisor[xclksel - 1] >= 2)
+> -               omap3isp_put(isp);
+> -
+> -       isp->xclk_divisor[xclksel - 1] = divisor;
+> -
+> -       omap3isp_put(isp);
+> -
+> -       return currentxclk;
+> -}
+> -
+>  /*
+>   * isp_core_init - ISP core settings
+>   * @isp: OMAP3 ISP device
+> @@ -1969,6 +2084,7 @@ static int isp_remove(struct platform_device *pdev)
+>  
+>         isp_unregister_entities(isp);
+>         isp_cleanup_modules(isp);
+> +       isp_xclk_cleanup(isp);
+>  
+>         __omap3isp_get(isp, false);
+>         iommu_detach_device(isp->domain, &pdev->dev);
+> @@ -2042,7 +2158,6 @@ static int isp_probe(struct platform_device *pdev)
+>         }
+>  
+>         isp->autoidle = autoidle;
+> -       isp->platform_cb.set_xclk = isp_set_xclk;
+>  
+>         mutex_init(&isp->isp_mutex);
+>         spin_lock_init(&isp->stat_lock);
+> @@ -2093,6 +2208,10 @@ static int isp_probe(struct platform_device *pdev)
+>         if (ret < 0)
+>                 goto error_isp;
+>  
+> +       ret = isp_xclk_init(isp);
+> +       if (ret < 0)
+> +               goto error_isp;
+> +
+>         /* Memory resources */
+>         for (m = 0; m < ARRAY_SIZE(isp_res_maps); m++)
+>                 if (isp->revision == isp_res_maps[m].isp_rev)
+> @@ -2162,6 +2281,7 @@ detach_dev:
+>  free_domain:
+>         iommu_domain_free(isp->domain);
+>  error_isp:
+> +       isp_xclk_cleanup(isp);
+>         omap3isp_put(isp);
+>  error:
+>         platform_set_drvdata(pdev, NULL);
+> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platform/omap3isp/isp.h
+> index c77e1f2..cd3eff4 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -29,6 +29,7 @@
+>  
+>  #include <media/omap3isp.h>
+>  #include <media/v4l2-device.h>
+> +#include <linux/clk-provider.h>
+>  #include <linux/device.h>
+>  #include <linux/io.h>
+>  #include <linux/iommu.h>
+> @@ -125,8 +126,20 @@ struct isp_reg {
+>         u32 val;
+>  };
+>  
+> -struct isp_platform_callback {
+> -       u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> +enum isp_xclk_id {
+> +       ISP_XCLK_A,
+> +       ISP_XCLK_B,
+> +};
+> +
+> +struct isp_xclk {
+> +       struct isp_device *isp;
+> +       struct clk_hw hw;
+> +       struct clk_lookup *lookup;
+> +       enum isp_xclk_id id;
+> +
+> +       spinlock_t lock;        /* Protects enabled and divider */
+> +       bool enabled;
+> +       unsigned int divider;
+>  };
+>  
+>  /*
+> @@ -149,6 +162,7 @@ struct isp_platform_callback {
+>   * @cam_mclk: Pointer to camera functional clock structure.
+>   * @csi2_fck: Pointer to camera CSI2 complexIO clock structure.
+>   * @l3_ick: Pointer to OMAP3 L3 bus interface clock.
+> + * @xclks: External clocks provided by the ISP
+>   * @irq: Currently attached ISP ISR callbacks information structure.
+>   * @isp_af: Pointer to current settings for ISP AutoFocus SCM.
+>   * @isp_hist: Pointer to current settings for ISP Histogram SCM.
+> @@ -185,12 +199,12 @@ struct isp_device {
+>         int has_context;
+>         int ref_count;
+>         unsigned int autoidle;
+> -       u32 xclk_divisor[2];    /* Two clocks, a and b. */
+>  #define ISP_CLK_CAM_ICK                0
+>  #define ISP_CLK_CAM_MCLK       1
+>  #define ISP_CLK_CSI2_FCK       2
+>  #define ISP_CLK_L3_ICK         3
+>         struct clk *clock[4];
+> +       struct isp_xclk xclks[2];
+>  
+>         /* ISP modules */
+>         struct ispstat isp_af;
+> @@ -209,8 +223,6 @@ struct isp_device {
+>         unsigned int subclk_resources;
+>  
+>         struct iommu_domain *domain;
+> -
+> -       struct isp_platform_callback platform_cb;
+>  };
+>  
+>  #define v4l2_dev_to_isp_device(dev) \
+> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+> index 9584269..c9d06d9 100644
+> --- a/include/media/omap3isp.h
+> +++ b/include/media/omap3isp.h
+> @@ -29,10 +29,6 @@
+>  struct i2c_board_info;
+>  struct isp_device;
+>  
+> -#define ISP_XCLK_NONE                  0
+> -#define ISP_XCLK_A                     1
+> -#define ISP_XCLK_B                     2
+> -
+>  enum isp_interface_type {
+>         ISP_INTERFACE_PARALLEL,
+>         ISP_INTERFACE_CSI2A_PHY2,
+> @@ -153,7 +149,13 @@ struct isp_v4l2_subdevs_group {
+>         } bus; /* gcc < 4.6.0 chokes on anonymous union initializers */
+>  };
+>  
+> +struct isp_platform_xclk {
+> +       const char *dev_id;
+> +       const char *con_id;
+> +};
+> +
+>  struct isp_platform_data {
+> +       struct isp_platform_xclk xclks[2];
+>         struct isp_v4l2_subdevs_group *subdevs;
+>         void (*set_constraints)(struct isp_device *isp, bool enable);
+>  };
+> -- 
+> 1.8.1.5
