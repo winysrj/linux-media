@@ -1,116 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57447 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754591Ab3DVKiv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 06:38:51 -0400
-Date: Mon, 22 Apr 2013 12:38:41 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH RFC v2 1/4] media: i2c: adv7343: add support for asynchronous
- probing
-In-Reply-To: <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com>
-Message-ID: <Pine.LNX.4.64.1304221235230.23906@axis700.grange>
-References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
- <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:3171 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937478Ab3DIKMF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 06:12:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Michal Lazo <michal.lazo@mdragon.org>
+Subject: Re: vivi kernel driver
+Date: Tue, 9 Apr 2013 12:11:29 +0200
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com> <201304091109.11846.hverkuil@xs4all.nl> <CAFW1BFxuYJeJ5ZR0yapk9L58eZ7i4jgji=02kMcKyyQAAONQUw@mail.gmail.com>
+In-Reply-To: <CAFW1BFxuYJeJ5ZR0yapk9L58eZ7i4jgji=02kMcKyyQAAONQUw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304091211.30037.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar
+On Tue 9 April 2013 11:57:51 Michal Lazo wrote:
+> Amlogic provide only 2.6.34 driver
+> can I expect big performance loss ?
 
-On Mon, 22 Apr 2013, Prabhakar Lad wrote:
+Why do so many companies stick to ancient kernels? I can never understand that.
 
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+You have three options:
+
+1) update their driver to a recent kernel
+2) create a v4l2 driver for 2.6.34. But in that case you can't use the videobuf2
+   framework which appeared in a later kernel and which greatly simplifies the
+   work of writing a v4l2 driver.
+3) it's possible to backport the whole of drivers/media to a 2.6.34 kernel. It
+   will generate a huge patch (>30 MB), but you will have a modern V4L2 kernel
+   environment.
+
+Note that none of this matters for performance. I would pick either option 1 or 3.
+
+Instructions on how to do option 3 are:
+
+1) Clone this git repo: http://git.linuxtv.org/hverkuil/cisco_build.git
+2) Switch to the cobalt-mainline branch.
+3) Edit patch-kernel.sh and modify the 'target', 'orig_source' and 'source'
+   paths.
+4) Run patch-kernel.sh
+
+The resulting media.patch file should apply cleanly to your source kernel.
+Note that the source kernel should be your vendor supplied kernel without
+any of your own patches that you might normally apply on top of it.
+
+Regards,
+
+	Hans
+
 > 
-> Both synchronous and asynchronous adv7343 subdevice probing is supported by
-> this patch.
+> On Tue, Apr 9, 2013 at 11:09 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Tue 9 April 2013 10:52:41 Michal Lazo wrote:
+> >> As we have all source codes
+> >> what do you advice ?
+> >
+> > Write your own driver. Good templates to look at are drivers/media/pci/sta2x11
+> > and drivers/media/platform/blackfin.
+> >
+> > The first is functionality-wise probably closer to what you need, but it's a pci
+> > driver, so the blackfin platform driver can be used to look at the platform part.
+> >
+> > Pick as recent a kernel as you can, but 3.6 at minimum since it has the useful
+> > vb2 helper functions that the sta2x11 driver also uses.
+> >
+> > Regards,
+> >
+> >         Hans
+> >
+> >>
+> >>
+> >> On Tue, Apr 9, 2013 at 10:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> > On Tue 9 April 2013 09:58:33 Michal Lazo wrote:
+> >> >> I want to make API that will provide hw video decoder on Amlogic SOC
+> >> >> it is ARM cortex 9
+> >> >>
+> >> >> with some proprietary video decoder
+> >> >>
+> >> >> amlogic provide me with working example that generate output frames in
+> >> >> amlvideo driver.
+> >> >> It is v4l2 driver
+> >> >> and it did memcpy to mmap userspace memory
+> >> >>
+> >> >>     buffer_y_start=ioremap(cs0.addr,cs0.width*cs0.height);
+> >> >>     for(i=0;i<buf->vb.height;i++) {
+> >> >>               memcpy(vbuf + pos_dst, buffer_y_start+pos_src, buf->vb.width*3);
+> >> >>               pos_dst+=buf->vb.width*3;
+> >> >>               pos_src+= cs0.width;
+> >> >>       }
+> >> >>
+> >> >> I did it with one memcpy with same cpu load
+> >> >>
+> >> >> https://github.com/Pivosgroup/buildroot-linux-kernel/blob/master/drivers/media/video/amlvideo/amlvideo.c#L218
+> >> >>
+> >> >> top get me 50% cpu load on this driver for 25fps PAL
+> >> >>
+> >> >> it is really too much
+> >> >>
+> >> >> and funny is that vivi driver(amlvideo is completely base on vivi) get
+> >> >> me same cpu load
+> >> >
+> >> > Well, yes, because it is the memcpy that gives you all the load.
+> >> > Of course, in a well-written driver the amlvideo buffers would be available
+> >> > to userspace directly using mmap() and no memcpy would be needed.
+> >> >
+> >> > Basically amlogic gave you a crappy driver.
+> >> >
+> >> > Regards,
+> >> >
+> >> >         Hans
+> >> >
+> >> >>
+> >> >> it looks like memcpy isn't cached or something but I don't know how to
+> >> >> identify problem
+> >> >> Any idea how to identify this problem.
+> >> >>
+> >> >> On Mon, Apr 8, 2013 at 2:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> >> > On Mon April 8 2013 14:42:32 Michal Lazo wrote:
+> >> >> >> Hi
+> >> >> >> 720x576 RGB 25, 30 fps and it take
+> >> >> >>
+> >> >> >> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
+> >> >> >> 2GHz linux 3.2.0-39)
+> >> >> >>
+> >> >> >> it is simply too much
+> >> >> >
+> >> >> > No, that's what I would expect. Note that vivi was substantially improved recently
+> >> >> > when it comes to the image generation. That will be in the upcoming 3.9 kernel.
+> >> >> >
+> >> >> > This should reduce CPU load by quite a bit if memory serves.
+> >> >> >
+> >> >> > Regards,
+> >> >> >
+> >> >> >         Hans
+> >> >> >
+> >> >> >>
+> >> >> >>
+> >> >> >>
+> >> >> >>
+> >> >> >> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
+> >> >> >> <peter.senna@gmail.com> wrote:
+> >> >> >> > Dear Michal,
+> >> >> >> >
+> >> >> >> > The CPU intensive part of the vivi driver is the image generation.
+> >> >> >> > This is not an issue for real drivers.
+> >> >> >> >
+> >> >> >> > Regards,
+> >> >> >> >
+> >> >> >> > Peter
+> >> >> >> >
+> >> >> >> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
+> >> >> >> >> Hi
+> >> >> >> >> V4L2 driver vivi
+> >> >> >> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
+> >> >> >> >>
+> >> >> >> >> player
+> >> >> >> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
+> >> >> >> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
+> >> >> >> >> height=576, framerate=30000/1001 ! fakesink sync=false
+> >> >> >> >>
+> >> >> >> >> Anybody can answer me why?
+> >> >> >> >> And how can I do it better ?
+> >> >> >> >>
+> >> >> >> >> I use vivi as base example for my driver
+> >> >> >> >> --
+> >> >> >> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> >> >> >> the body of a message to majordomo@vger.kernel.org
+> >> >> >> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> >> >> >
+> >> >> >> >
+> >> >> >> >
+> >> >> >> > --
+> >> >> >> > Peter
+> >> >> >>
+> >> >> >>
+> >> >> >>
+> >> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >>
+> >>
+> >>
+> >>
 > 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/i2c/adv7343.c |   17 +++++++++++++----
->  1 files changed, 13 insertions(+), 4 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-> index 9fc2b98..5b1417b 100644
-> --- a/drivers/media/i2c/adv7343.c
-> +++ b/drivers/media/i2c/adv7343.c
-> @@ -27,6 +27,7 @@
->  #include <linux/uaccess.h>
->  
->  #include <media/adv7343.h>
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-ctrls.h>
-> @@ -44,6 +45,7 @@ struct adv7343_state {
->  	struct v4l2_subdev sd;
->  	struct v4l2_ctrl_handler hdl;
->  	const struct adv7343_platform_data *pdata;
-> +	struct v4l2_async_subdev_list	asdl;
-
-Do you still need this? Don't think it's needed any more with the latest 
-V4L2-async version.
-
-Thanks
-Guennadi
-
->  	u8 reg00;
->  	u8 reg01;
->  	u8 reg02;
-> @@ -455,16 +457,22 @@ static int adv7343_probe(struct i2c_client *client,
->  				       ADV7343_GAIN_DEF);
->  	state->sd.ctrl_handler = &state->hdl;
->  	if (state->hdl.error) {
-> -		int err = state->hdl.error;
-> -
-> -		v4l2_ctrl_handler_free(&state->hdl);
-> -		return err;
-> +		err = state->hdl.error;
-> +		goto done;
->  	}
->  	v4l2_ctrl_handler_setup(&state->hdl);
->  
->  	err = adv7343_initialize(&state->sd);
->  	if (err)
-> +		goto done;
-> +
-> +	state->sd.dev = &client->dev;
-> +	err = v4l2_async_register_subdev(&state->sd);
-> +
-> +done:
-> +	if (err < 0)
->  		v4l2_ctrl_handler_free(&state->hdl);
-> +
->  	return err;
->  }
->  
-> @@ -473,6 +481,7 @@ static int adv7343_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct adv7343_state *state = to_state(sd);
->  
-> +	v4l2_async_unregister_subdev(&state->sd);
->  	v4l2_device_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(&state->hdl);
->  
-> -- 
-> 1.7.4.1
 > 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> 
