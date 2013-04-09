@@ -1,39 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f178.google.com ([209.85.160.178]:57174 "EHLO
-	mail-gh0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755895Ab3DRMjM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 08:39:12 -0400
-Received: by mail-gh0-f178.google.com with SMTP id g24so315139ghb.37
-        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 05:39:12 -0700 (PDT)
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] videodev2.h: Make V4L2_PIX_FMT_MPEG4 comment more specific about its usage
-Date: Thu, 18 Apr 2013 09:16:08 -0300
-Message-Id: <1366287368-13402-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:37285 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934655Ab3DISe0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 14:34:26 -0400
+Message-ID: <51645F09.9040901@iki.fi>
+Date: Tue, 09 Apr 2013 21:33:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Diorser <diorser@gmx.fr>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
+References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi> <op.wu93cgqr4bfdfw@wheezy>
+In-Reply-To: <op.wu93cgqr4bfdfw@wheezy>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/09/2013 05:46 PM, Diorser wrote:
+> Hello,
+>
+> Please find below some news for A918R
+> [details @
+> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_HD_Express_A918R ]
+>
+> * the patch proposed to automatically load the right modules for A918R
+> card is not yet available
+> => http://www.mail-archive.com/linux-media@vger.kernel.org/msg56659.html
+> (I don't exactly know what is missing to make it accepted).
+> This patch would at least avoid having to modify dvb-usb-ids.h &
+> af9035.c each time to test some git updates.
+>
+> * previously, in December, the signal level detection was fuzzy and not
+> reliable.
+> Now, the reported signal level is strictly at 0000 (good antenna RF
+> signal confirmed with other device).
+>
+> I am aware A918R card is not the most requested one (Express card), but
+> that's all I can add in case it can help, even for another card.
+>
+> Regards.
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
----
- include/uapi/linux/videodev2.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Patch, which adds USB ID, is not acceptable unless device is know to be 
+working. It currently works only partially by loading correct modules 
+but tuning does not work. Surely, it is not very many lines code to fix 
+it - most likely just some GPIO setting (antenna switch?).
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 97fb392..e2ae95f 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -416,7 +416,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
- #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
- #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
--#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 ES     */
-+#define V4L2_PIX_FMT_MPEG4    v4l2_fourcc('M', 'P', 'G', '4') /* MPEG-4 part 2 ES */
- #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
- #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
- #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+regards
+Antti
+
 -- 
-1.8.2.1
-
+http://palosaari.fi/
