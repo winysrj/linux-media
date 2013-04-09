@@ -1,92 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:10523 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433Ab3DYJ4w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 05:56:52 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00BHW2AJB150@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 10:56:50 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Kamil Debski' <k.debski@samsung.com>, linux-media@vger.kernel.org
-Cc: 'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Javier Martin' <javier.martin@vista-silicon.com>
-References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
- <1366883390-12890-7-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366883390-12890-7-git-send-email-k.debski@samsung.com>
-Subject: RE: [PATCH 5/7] exynos-gsc: Add copy time stamp handling
-Date: Thu, 25 Apr 2013 11:56:32 +0200
-Message-id: <000601ce419b$2bd10ce0$837326a0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from mail-ia0-f179.google.com ([209.85.210.179]:36490 "EHLO
+	mail-ia0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935154Ab3DIIFJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 04:05:09 -0400
+Received: by mail-ia0-f179.google.com with SMTP id x24so6012956iak.38
+        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 01:05:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAFW1BFwF1WKgp0Bxyqo1WrvY98LaKCbakK+=rjNsbEW7LgB2cw@mail.gmail.com>
+References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com>
+	<CA+MoWDpAFOgEN-ruyzVp=C-Dz_16CnOSXU30UowARB3m-eTVMQ@mail.gmail.com>
+	<CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
+	<201304081446.33811.hverkuil@xs4all.nl>
+	<CAFW1BFwF1WKgp0Bxyqo1WrvY98LaKCbakK+=rjNsbEW7LgB2cw@mail.gmail.com>
+Date: Tue, 9 Apr 2013 10:05:08 +0200
+Message-ID: <CA+MoWDq9dH6Xdja97jMgJLjGaPDj4LMZZjyK=-uLjeaHRxt5TQ@mail.gmail.com>
+Subject: Re: vivi kernel driver
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Michal Lazo <michal.lazo@mdragon.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Check some patches from Kirill Smelkov like:
 
-git send-email --dryrun had no errors, but during the real send it had a few
-"Use of uninitialized value".
-I think that this caused this patch to have a wrong subject. Sorry for that.
+https://patchwork.kernel.org/patch/1688591/
 
-Best wishes,
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Kamil Debski [mailto:k.debski@samsung.com]
-> Sent: Thursday, April 25, 2013 11:50 AM
-> To: linux-media@vger.kernel.org
-> Cc: Kamil Debski; Kyungmin Park; Javier Martin
-> Subject: [PATCH 5/7] exynos-gsc: Add copy time stamp handling
-> 
-> Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/platform/m2m-deinterlace.c |    5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/platform/m2m-deinterlace.c
-> b/drivers/media/platform/m2m-deinterlace.c
-> index 6c4db9b..7585646 100644
-> --- a/drivers/media/platform/m2m-deinterlace.c
-> +++ b/drivers/media/platform/m2m-deinterlace.c
-> @@ -207,6 +207,9 @@ static void dma_callback(void *data)
->  	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
->  	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
-> 
-> +	src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
-> +	src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-> +
->  	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-> 
-> @@ -866,6 +869,7 @@ static int queue_init(void *priv, struct vb2_queue
-> *src_vq,
->  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	src_vq->ops = &deinterlace_qops;
->  	src_vq->mem_ops = &vb2_dma_contig_memops;
-> +	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	q_data[V4L2_M2M_SRC].fmt = &formats[0];
->  	q_data[V4L2_M2M_SRC].width = 640;
->  	q_data[V4L2_M2M_SRC].height = 480;
-> @@ -882,6 +886,7 @@ static int queue_init(void *priv, struct vb2_queue
-> *src_vq,
->  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
->  	dst_vq->ops = &deinterlace_qops;
->  	dst_vq->mem_ops = &vb2_dma_contig_memops;
-> +	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
->  	q_data[V4L2_M2M_DST].fmt = &formats[0];
->  	q_data[V4L2_M2M_DST].width = 640;
->  	q_data[V4L2_M2M_DST].height = 480;
+On Tue, Apr 9, 2013 at 9:58 AM, Michal Lazo <michal.lazo@mdragon.org> wrote:
+> I want to make API that will provide hw video decoder on Amlogic SOC
+> it is ARM cortex 9
+>
+> with some proprietary video decoder
+>
+> amlogic provide me with working example that generate output frames in
+> amlvideo driver.
+> It is v4l2 driver
+> and it did memcpy to mmap userspace memory
+>
+>     buffer_y_start=ioremap(cs0.addr,cs0.width*cs0.height);
+>     for(i=0;i<buf->vb.height;i++) {
+>                 memcpy(vbuf + pos_dst, buffer_y_start+pos_src, buf->vb.width*3);
+>                 pos_dst+=buf->vb.width*3;
+>                 pos_src+= cs0.width;
+>         }
+>
+> I did it with one memcpy with same cpu load
+>
+> https://github.com/Pivosgroup/buildroot-linux-kernel/blob/master/drivers/media/video/amlvideo/amlvideo.c#L218
+>
+> top get me 50% cpu load on this driver for 25fps PAL
+>
+> it is really too much
+>
+> and funny is that vivi driver(amlvideo is completely base on vivi) get
+> me same cpu load
+>
+> it looks like memcpy isn't cached or something but I don't know how to
+> identify problem
+> Any idea how to identify this problem.
+>
+> On Mon, Apr 8, 2013 at 2:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On Mon April 8 2013 14:42:32 Michal Lazo wrote:
+>>> Hi
+>>> 720x576 RGB 25, 30 fps and it take
+>>>
+>>> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
+>>> 2GHz linux 3.2.0-39)
+>>>
+>>> it is simply too much
+>>
+>> No, that's what I would expect. Note that vivi was substantially improved recently
+>> when it comes to the image generation. That will be in the upcoming 3.9 kernel.
+>>
+>> This should reduce CPU load by quite a bit if memory serves.
+>>
+>> Regards,
+>>
+>>         Hans
+>>
+>>>
+>>>
+>>>
+>>>
+>>> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
+>>> <peter.senna@gmail.com> wrote:
+>>> > Dear Michal,
+>>> >
+>>> > The CPU intensive part of the vivi driver is the image generation.
+>>> > This is not an issue for real drivers.
+>>> >
+>>> > Regards,
+>>> >
+>>> > Peter
+>>> >
+>>> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
+>>> >> Hi
+>>> >> V4L2 driver vivi
+>>> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
+>>> >>
+>>> >> player
+>>> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
+>>> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
+>>> >> height=576, framerate=30000/1001 ! fakesink sync=false
+>>> >>
+>>> >> Anybody can answer me why?
+>>> >> And how can I do it better ?
+>>> >>
+>>> >> I use vivi as base example for my driver
+>>> >> --
+>>> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> >> the body of a message to majordomo@vger.kernel.org
+>>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> >
+>>> >
+>>> >
+>>> > --
+>>> > Peter
+>>>
+>>>
+>>>
+>>>
+>
+>
+>
 > --
-> 1.7.9.5
+> Best Regards
+>
+> Michal Lazo
+> Senior developer manager
+> mdragon.org
+> Slovakia
 
 
+
+-- 
+Peter
