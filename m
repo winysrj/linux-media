@@ -1,48 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:59567 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761757Ab3DBQ2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 12:28:13 -0400
-Date: Tue, 2 Apr 2013 18:28:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>
-Subject: [PATCH] DT: export of_get_next_parent() for use by modules: fix
- modular V4L2
-Message-ID: <Pine.LNX.4.64.1304021825130.31999@axis700.grange>
+Received: from mail.kapsi.fi ([217.30.184.167]:45239 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934528Ab3DIUFA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 16:05:00 -0400
+Message-ID: <51647443.5090301@iki.fi>
+Date: Tue, 09 Apr 2013 23:04:19 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 0/2] rtl28xxu: add experimental support for r820t
+References: <1365351031-22079-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1365351031-22079-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently modular V4L2 build with enabled OF is broken dur to the
-of_get_next_parent() function being unavailable to modules. Export it to
-fix the build.
+I tested it and it didn't work at all. Latest commit was:
+rtl820t: Add a debug msg when PLL gets locked
 
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I used your git tree and rebased it top of master. There was some merge 
+conflicts, but I was naturally able to fix.
 
-This is for 3.10
+regards
+Antti
 
- drivers/of/base.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On 04/07/2013 07:10 PM, Mauro Carvalho Chehab wrote:
+> Several rtl28xxu are currently shipped with a r820t tuner.
+> Add experimental suppor for it.
+>
+> NOTE: I don't have DVB-T signal here, so I couldn't fully test the
+> driver. By sniffing the USB traffic from rtl-sdr and comparing with
+> this driver's traffic, it seems to be working fine, at least up to
+> tuner callibration. After that, I would need a DVB-T lock to test
+> the rest of the driver.
+>
+> Mauro Carvalho Chehab (2):
+>    r820t: Add a tuner driver for Rafael Micro R820T silicon tuner
+>    rtl28xxu: add support for Rafael Micro r820t
+>
+>   drivers/media/tuners/Kconfig            |    7 +
+>   drivers/media/tuners/Makefile           |    1 +
+>   drivers/media/tuners/r820t.c            | 1486 +++++++++++++++++++++++++++++++
+>   drivers/media/tuners/r820t.h            |   55 ++
+>   drivers/media/usb/dvb-usb-v2/Kconfig    |    1 +
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c |   30 +
+>   drivers/media/usb/dvb-usb-v2/rtl28xxu.h |    1 +
+>   7 files changed, 1581 insertions(+)
+>   create mode 100644 drivers/media/tuners/r820t.c
+>   create mode 100644 drivers/media/tuners/r820t.h
+>
 
-diff --git a/drivers/of/base.c b/drivers/of/base.c
-index 321d3ef..1733081 100644
---- a/drivers/of/base.c
-+++ b/drivers/of/base.c
-@@ -382,6 +382,7 @@ struct device_node *of_get_next_parent(struct device_node *node)
- 	raw_spin_unlock_irqrestore(&devtree_lock, flags);
- 	return parent;
- }
-+EXPORT_SYMBOL(of_get_next_parent);
- 
- /**
-  *	of_get_next_child - Iterate a node childs
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
