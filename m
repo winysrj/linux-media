@@ -1,103 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:59891 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab3DVOGA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 10:06:00 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLN006ONTTN4QE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:05:59 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 05/12] exynos4-is: Fix regulator/gpio resource releasing on the
- driver removal
-Date: Mon, 22 Apr 2013 16:03:40 +0200
-Message-id: <1366639427-14253-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
-References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:64799 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755065Ab3DIIOM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 04:14:12 -0400
+Date: Tue, 9 Apr 2013 10:14:08 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Simon Horman <horms@verge.net.au>
+cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v8 0/7] V4L2 clock and async patches and soc-camera
+ example
+In-Reply-To: <20130409080731.GC18478@verge.net.au>
+Message-ID: <Pine.LNX.4.64.1304091013221.9051@axis700.grange>
+References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
+ <20130409080731.GC18478@verge.net.au>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove regulator_bulk_free() calls as devm_regulator_bulk_get() function
-is used to get the regulators so those will be freed automatically while
-the driver is removed.
-Missing gpio free is fixed by requesting a gpio with the devm_* API.
-All that is done now in the I2C client driver remove() callback is the
-media entity cleanup call.
+Hi Simon
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Tue, 9 Apr 2013, Simon Horman wrote:
+
+> On Mon, Apr 08, 2013 at 05:05:31PM +0200, Guennadi Liakhovetski wrote:
+> > Mostly just a re-spin of v7 with minor modifications.
+> > 
+> > Guennadi Liakhovetski (7):
+> >   media: V4L2: add temporary clock helpers
+> >   media: V4L2: support asynchronous subdevice registration
+> >   media: soc-camera: switch I2C subdevice drivers to use v4l2-clk
+> >   soc-camera: add V4L2-async support
+> >   sh_mobile_ceu_camera: add asynchronous subdevice probing support
+> >   imx074: support asynchronous probing
+> >   ARM: shmobile: convert ap4evb to asynchronously register camera
+> >     subdevices
+> 
+> Hi Guennadi,
+> 
+> can the last patch be applied (to my tree) independently
+> of the other patches (applied elsewhere) ?
+
+No, please, wait. It strongly depends on the whole patch series.
+
+Thanks
+Guennadi
 ---
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |   26 ++++++--------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-index 6b3ea54..035fa14 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-@@ -216,7 +216,8 @@ static int fimc_is_sensor_probe(struct i2c_client *client,
- 
- 	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
- 	if (gpio_is_valid(gpio)) {
--		ret = gpio_request_one(gpio, GPIOF_OUT_INIT_LOW, DRIVER_NAME);
-+		ret = devm_gpio_request_one(dev, gpio, GPIOF_OUT_INIT_LOW,
-+							DRIVER_NAME);
- 		if (ret < 0)
- 			return ret;
- 	}
-@@ -228,13 +229,11 @@ static int fimc_is_sensor_probe(struct i2c_client *client,
- 	ret = devm_regulator_bulk_get(&client->dev, SENSOR_NUM_SUPPLIES,
- 				      sensor->supplies);
- 	if (ret < 0)
--		goto err_gpio;
-+		return ret;
- 
- 	of_id = of_match_node(fimc_is_sensor_of_match, dev->of_node);
--	if (!of_id) {
--		ret = -ENODEV;
--		goto err_reg;
--	}
-+	if (!of_id)
-+		return -ENODEV;
- 
- 	sensor->drvdata = of_id->data;
- 	sensor->dev = dev;
-@@ -251,28 +250,19 @@ static int fimc_is_sensor_probe(struct i2c_client *client,
- 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
- 	if (ret < 0)
--		goto err_reg;
-+		return ret;
- 
- 	v4l2_set_subdevdata(sd, sensor);
- 	pm_runtime_no_callbacks(dev);
- 	pm_runtime_enable(dev);
- 
--	return 0;
--err_reg:
--	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
--err_gpio:
--	if (gpio_is_valid(sensor->gpio_reset))
--		gpio_free(sensor->gpio_reset);
- 	return ret;
- }
- 
- static int fimc_is_sensor_remove(struct i2c_client *client)
- {
--	struct fimc_is_sensor *sensor;
--
--	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
--	media_entity_cleanup(&sensor->subdev.entity);
--
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	media_entity_cleanup(&sd->entity);
- 	return 0;
- }
- 
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
