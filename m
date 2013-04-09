@@ -1,98 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1277 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934207Ab3DGSTb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Apr 2013 14:19:31 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r37IJR8V032270
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 7 Apr 2013 20:19:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id E3C9011E018E
-	for <linux-media@vger.kernel.org>; Sun,  7 Apr 2013 20:19:21 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130407181921.E3C9011E018E@alastor.dyndns.org>
-Date: Sun,  7 Apr 2013 20:19:21 +0200 (CEST)
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:34621 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935034Ab3DIJne (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 05:43:34 -0400
+Received: by mail-bk0-f47.google.com with SMTP id ik5so3445756bkc.20
+        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 02:43:33 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 9 Apr 2013 17:43:33 +0800
+Message-ID: <CAPgLHd_F+reJCuGeBne9espy9Rokm1iWMH7C=w3VpuobHa5J_w@mail.gmail.com>
+Subject: [PATCH] [media] rc: winbond-cir: fix potential double free in wbcir_probe()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: david@hardeman.nu, mchehab@redhat.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Results of the daily build of media_tree:
+Since rc_unregister_device() frees its argument, the subsequently
+call to rc_free_device() on the same variable will cause a double
+free bug. Fix by set argument to NULL, thus when fall through to
+rc_free_device(), nothing will be done there.
 
-date:		Sun Apr  7 19:00:18 CEST 2013
-git branch:	test
-git hash:	53faa685fa7df0e12751eebbda30bc7e7bb5e71a
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/rc/winbond-cir.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index 535a18d..87af2d3 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -1151,6 +1151,7 @@ exit_release_wbase:
+ 	release_region(data->wbase, WAKEUP_IOMEM_LEN);
+ exit_unregister_device:
+ 	rc_unregister_device(data->dev);
++	data->dev = NULL;
+ exit_free_rc:
+ 	rc_free_device(data->dev);
+ exit_unregister_led:
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
