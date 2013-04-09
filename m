@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37285 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:55211 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934655Ab3DISe0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 14:34:26 -0400
-Message-ID: <51645F09.9040901@iki.fi>
-Date: Tue, 09 Apr 2013 21:33:45 +0300
+	id S1760406Ab3DIXyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 19:54:23 -0400
 From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Diorser <diorser@gmx.fr>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
-References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi> <op.wu93cgqr4bfdfw@wheezy>
-In-Reply-To: <op.wu93cgqr4bfdfw@wheezy>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 0/5] fix buggy mxl5007t register read
+Date: Wed, 10 Apr 2013 02:53:15 +0300
+Message-Id: <1365551600-3394-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/09/2013 05:46 PM, Diorser wrote:
-> Hello,
->
-> Please find below some news for A918R
-> [details @
-> http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_HD_Express_A918R ]
->
-> * the patch proposed to automatically load the right modules for A918R
-> card is not yet available
-> => http://www.mail-archive.com/linux-media@vger.kernel.org/msg56659.html
-> (I don't exactly know what is missing to make it accepted).
-> This patch would at least avoid having to modify dvb-usb-ids.h &
-> af9035.c each time to test some git updates.
->
-> * previously, in December, the signal level detection was fuzzy and not
-> reliable.
-> Now, the reported signal level is strictly at 0000 (good antenna RF
-> signal confirmed with other device).
->
-> I am aware A918R card is not the most requested one (Express card), but
-> that's all I can add in case it can help, even for another card.
->
-> Regards.
+Current MxL5007t driver implements repeated start condition (badly)
+whilst device uses stop before read operation.
 
-Patch, which adds USB ID, is not acceptable unless device is know to be 
-working. It currently works only partially by loading correct modules 
-but tuning does not work. Surely, it is not very many lines code to fix 
-it - most likely just some GPIO setting (antenna switch?).
+I added "use_broken_read_reg_intentionally" config option to avoid
+regressions as I don't have all devices to test / fix.
 
-regards
-Antti
+Antti Palosaari (5):
+  mxl5007t: fix buggy register read
+  af9015: fix I2C adapter read (without REPEATED STOP)
+  af9015: do not use buggy mxl5007t read reg
+  af9035: implement I2C adapter read operation
+  af9035: do not use buggy mxl5007t read reg
+
+ drivers/media/tuners/mxl5007t.c             | 56 ++++++++++++++++++++++++++++-
+ drivers/media/tuners/mxl5007t.h             |  7 ++++
+ drivers/media/usb/au0828/au0828-dvb.c       |  1 +
+ drivers/media/usb/dvb-usb-v2/af9015.c       |  2 +-
+ drivers/media/usb/dvb-usb-v2/af9035.c       | 22 ++++++++++--
+ drivers/media/usb/dvb-usb/dib0700_devices.c |  1 +
+ 6 files changed, 85 insertions(+), 4 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.7.11.7
+
