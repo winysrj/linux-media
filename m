@@ -1,42 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f178.google.com ([209.85.216.178]:35102 "EHLO
-	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753700Ab3DMQyL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 12:54:11 -0400
-Received: by mail-qc0-f178.google.com with SMTP id d10so1612196qca.23
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 09:54:10 -0700 (PDT)
+Received: from mail-oa0-f41.google.com ([209.85.219.41]:48924 "EHLO
+	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936709Ab3DIJXm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 05:23:42 -0400
 MIME-Version: 1.0
-In-Reply-To: <5169860B.80609@iki.fi>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-	<51695A7B.4010206@iki.fi>
-	<20130413112517.40833d48@redhat.com>
-	<51697A29.5030307@googlemail.com>
-	<CAGoCfiwO+98ZkSt-mY6U3nnfge43xy+1WLEv=3wUf6SaDEgACQ@mail.gmail.com>
-	<5169860B.80609@iki.fi>
-Date: Sat, 13 Apr 2013 12:54:10 -0400
-Message-ID: <CAGoCfixjnGapy3hdo-7AxQJ4osOHa5pp5XGZT7a_qb4vEu8v2g@mail.gmail.com>
-Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <20130409080653.GG24058@zurbaran>
+References: <1363266691-15757-1-git-send-email-fabio.porcedda@gmail.com>
+ <1363266691-15757-10-git-send-email-fabio.porcedda@gmail.com> <20130409080653.GG24058@zurbaran>
+From: Fabio Porcedda <fabio.porcedda@gmail.com>
+Date: Tue, 9 Apr 2013 11:23:21 +0200
+Message-ID: <CAHkwnC_Mq4YtY1SVFRAFPVBVajbK2dTnDOwNBQKeTdY_jDT5nA@mail.gmail.com>
+Subject: Re: [PATCH 08/10] drivers: mfd: use module_platform_driver_probe()
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-ide <linux-ide@vger.kernel.org>,
+	lm-sensors <lm-sensors@lm-sensors.org>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Linus Walleij <linus.walleij@linaro.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 13, 2013 at 12:21 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Existing userspace sysfs interface is clearly debug interface. You will need
-> root privileges to mount it and IIRC it was not even compiled by default
-> (needs Kconfig debug option?).
+On Tue, Apr 9, 2013 at 10:06 AM, Samuel Ortiz <sameo@linux.intel.com> wrote:
+> Hi Fabio,
+>
+> On Thu, Mar 14, 2013 at 02:11:29PM +0100, Fabio Porcedda wrote:
+>> This patch converts the drivers to use the
+>> module_platform_driver_probe() macro which makes the code smaller and
+>> a bit simpler.
+>>
+>> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Cc: Linus Walleij <linus.walleij@linaro.org>
+>> Cc: Samuel Ortiz <sameo@linux.intel.com>
+>> Cc: linux-arm-kernel@lists.infradead.org
+>> ---
+>>  drivers/mfd/davinci_voicecodec.c | 12 +-----------
+>>  drivers/mfd/htc-pasic3.c         | 13 +------------
+>>  2 files changed, 2 insertions(+), 23 deletions(-)
+> Jingoo Han sent a larger patchset to convert many MFD drivers to
+> module_platform_driver_probe(), including htc-pasic3 and davinci_voicecodec.
+>
+> See my mfd-next tree for more details.
 
-You would like to think that.  Tell Mauro then, since he wanted to
-rely on sysfs to associate V4L2 video devices with ALSA devices
-(rather than just adding a simple call to the V4L2 API).
+I understand, thanks for letting me know.
 
-Devin
+It's my fault for having waited too long to send this patch set.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Best regards
+--
+Fabio Porcedda
+
+> Cheers,
+> Samuel.
+>
+> --
+> Intel Open Source Technology Centre
+> http://oss.intel.com/
