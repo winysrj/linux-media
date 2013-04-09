@@ -1,39 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f54.google.com ([209.85.212.54]:57444 "EHLO
-	mail-vb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965957Ab3DQLqh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 07:46:37 -0400
-Received: by mail-vb0-f54.google.com with SMTP id w16so1179251vbf.41
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 04:46:37 -0700 (PDT)
-Date: Wed, 17 Apr 2013 07:46:52 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: mchehab@redhat.com, linux-media <linux-media@vger.kernel.org>
-Subject: [GIT-PULL] lg2160: dubious one-bit signed bitfield
-Message-ID: <20130417074652.7b25509e@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:49332 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934486Ab3DIXyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 19:54:23 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 5/5] af9035: do not use buggy mxl5007t read reg
+Date: Wed, 10 Apr 2013 02:53:20 +0300
+Message-Id: <1365551600-3394-6-git-send-email-crope@iki.fi>
+In-Reply-To: <1365551600-3394-1-git-send-email-crope@iki.fi>
+References: <1365551600-3394-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-33a31edd4a4b7d26b962b32decfd8ea2377eaa0d:
+That backward compatibility hack option is no longer needed.
 
-  Revert "[media] mfd: Add header files and Kbuild plumbing for SI476x
-  MFD core" (2013-04-17 06:08:00 -0300)
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/af9035.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
+index 6c039eb..cfcf79b 100644
+--- a/drivers/media/usb/dvb-usb-v2/af9035.c
++++ b/drivers/media/usb/dvb-usb-v2/af9035.c
+@@ -965,7 +965,6 @@ static struct mxl5007t_config af9035_mxl5007t_config[] = {
+ 		.loop_thru_enable = 0,
+ 		.clk_out_enable = 0,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+-		.use_broken_read_reg_intentionally = 1,
+ 	}, {
+ 		.xtal_freq_hz = MxL_XTAL_24_MHZ,
+ 		.if_freq_hz = MxL_IF_4_57_MHZ,
+@@ -973,7 +972,6 @@ static struct mxl5007t_config af9035_mxl5007t_config[] = {
+ 		.loop_thru_enable = 1,
+ 		.clk_out_enable = 1,
+ 		.clk_out_amp = MxL_CLKOUT_AMP_0_94V,
+-		.use_broken_read_reg_intentionally = 1,
+ 	}
+ };
+ 
+-- 
+1.7.11.7
 
-  git://linuxtv.org/mkrufky/dvb demods
-
-for you to fetch changes up to 79c9a899d199fba3505b1d76325c97a7a00b3686:
-
-  lg2160: dubious one-bit signed bitfield (2013-04-17 07:18:40 -0400)
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      lg2160: dubious one-bit signed bitfield
-
- drivers/media/dvb-frontends/lg2160.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
