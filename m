@@ -1,42 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from he.sipsolutions.net ([78.46.109.217]:43802 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753387Ab3DMVCt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 17:02:49 -0400
-Message-ID: <1365886961.1089.6.camel@jlt4.sipsolutions.net>
-Subject: Re: [PATCH 6/7] backports: add media subsystem drivers
-From: Johannes Berg <johannes@sipsolutions.net>
-To: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
-Cc: backports@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Sat, 13 Apr 2013 23:02:41 +0200
-In-Reply-To: <1365862424-6530-7-git-send-email-mcgrof@do-not-panic.com> (sfid-20130413_161421_323308_27727044)
-References: <1365862424-6530-1-git-send-email-mcgrof@do-not-panic.com>
-	 <1365862424-6530-7-git-send-email-mcgrof@do-not-panic.com>
-	 (sfid-20130413_161421_323308_27727044)
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from pequod.mess.org ([46.65.169.142]:38252 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935228Ab3DIKpZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 06:45:25 -0400
+Date: Tue, 9 Apr 2013 11:36:53 +0100
+From: Sean Young <sean@mess.org>
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: jirislaby@gmail.com, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/5] MEDIA: ttusbir, fix double free
+Message-ID: <20130409103653.GA15828@pequod.mess.org>
+References: <1365107532-32721-1-git-send-email-jslaby@suse.cz>
+ <1365107532-32721-2-git-send-email-jslaby@suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1365107532-32721-2-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2013-04-13 at 07:13 -0700, Luis R. Rodriguez wrote:
-> From: "Luis R. Rodriguez" <mcgrof@do-not-panic.com>
+On Thu, Apr 04, 2013 at 10:32:09PM +0200, Jiri Slaby wrote:
+> rc_unregister_device already calls rc_free_device to free the passed
+> device. But in one of ttusbir's probe fail paths, we call
+> rc_unregister_device _and_ rc_free_device. This is wrong and results
+> in a double free.
 > 
-> This adds backport support for all media subsystem
-> drivers. This is enabled only for >= 3.2. Some media
-> drivers rely on the new probe deferrral mechanism
-> (-EPROBE_DEFER see commit d1c3414c), those are only
-> enabled for kernels >= 3.4. Some media drivers only
-> depend on the regulatory but since we only support
-> backporting the regulatory on kernels >= 3.4 we only
-> enable those media drivers for >= 3.4.
+> Instead, set rc to NULL resulting in rc_free_device being a noop.
 > 
-> This backports 433 media drivers.
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Sean Young <sean@mess.org>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: linux-media@vger.kernel.org
+> ---
+>  drivers/media/rc/ttusbir.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
+> index cf0d47f..891762d 100644
+> --- a/drivers/media/rc/ttusbir.c
+> +++ b/drivers/media/rc/ttusbir.c
+> @@ -347,6 +347,7 @@ static int ttusbir_probe(struct usb_interface *intf,
+>  	return 0;
+>  out3:
+>  	rc_unregister_device(rc);
+> +	rc = NULL;
+>  out2:
+>  	led_classdev_unregister(&tt->led);
+>  out:
+> -- 
 
-Heh. Applied. Good thing I can kill the pr_fmt patches again soon.
+Acked-by: Sean Young <sean@mess.org>
 
-johannes
 
+Sean
