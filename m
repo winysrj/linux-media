@@ -1,99 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4857 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932679Ab3DORj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 13:39:59 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3FHds4x020449
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 19:39:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C846911E00F4
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 19:39:53 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:54551 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755065Ab3DIGia (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 02:38:30 -0400
+Received: by mail-ie0-f169.google.com with SMTP id qd14so8074965ieb.14
+        for <linux-media@vger.kernel.org>; Mon, 08 Apr 2013 23:38:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1365489319-29343-1-git-send-email-tjlee@ambarella.com>
+References: <1365489319-29343-1-git-send-email-tjlee@ambarella.com>
+Date: Tue, 9 Apr 2013 14:38:30 +0800
+Message-ID: <CAEvN+1gihDhXVuE7swg-F6x5n80Gszs0cEYPUy_Em2wTYL1uvw@mail.gmail.com>
+Subject: Re: [PATCH] v4l2-ctl: skip precalculate_bars() for compressed formats
+From: Tzu-Jung Lee <roylee17@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130415173953.C846911E00F4@alastor.dyndns.org>
-Date: Mon, 15 Apr 2013 19:39:53 +0200 (CEST)
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Tzu-Jung Lee <tjlee@ambarella.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Sorry.. wrong patch..
+Please ignore this noise.
 
-Results of the daily build of media_tree:
+Thanks.
 
-date:		Mon Apr 15 19:00:18 CEST 2013
-git branch:	test
-git hash:	4c41dab4d69fb887884dc571fd70e4ddc41774fb
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Roy
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+On Tue, Apr 9, 2013 at 2:35 PM, Tzu-Jung Lee <roylee17@gmail.com> wrote:
+> Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> index a6ea8b3..ec18312 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> @@ -771,7 +771,10 @@ void streaming_set(int fd)
+>                 fmt.type = type;
+>                 doioctl(fd, VIDIOC_G_FMT, &fmt);
+>
+> -               if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat % NUM_PATTERNS)) {
+> +               if (!(fmt.flags && V4L2_FMT_FLAG_COMPRESSED) &&
+> +                               !precalculate_bars(fmt.fmt.pix.pixelformat,
+> +                                       stream_pat % NUM_PATTERNS)) {
+> +
+>                         fprintf(stderr, "unsupported pixelformat\n");
+>                         return;
+>                 }
+> --
+> 1.8.1.5
+>
