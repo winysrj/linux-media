@@ -1,78 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20357 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752472Ab3D1Pez (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 11:34:55 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SFYtiU023794
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:34:55 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] em28xx: fix oops at em28xx_dvb_bus_ctrl()
-Date: Sun, 28 Apr 2013 12:34:50 -0300
-Message-Id: <1367163290-5084-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:62842 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759399Ab3DIL5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 07:57:54 -0400
+Received: by mail-ee0-f48.google.com with SMTP id b15so2911301eek.21
+        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 04:57:51 -0700 (PDT)
+Message-ID: <5164023c.417e0e0a.6195.ffffe691@mx.google.com>
+Date: Tue, 9 Apr 2013 13:57:46 +0200
+To: linux-media@vger.kernel.org
+From: Boian Mihailov <boian.mihailov@cvalka.com>
+Subject: Funding and Feature Request Management For Open Source
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx is oopsing with some DVB devices:
+Hi,
 
-[10856.061884] general protection fault: 0000 [#1] SMP
-[10856.067041] Modules linked in: rc_hauppauge em28xx_rc xc5000 drxk em28xx_dvb dvb_core em28xx videobuf2_vmalloc videobuf2_memops videobuf2_core rc_pixelview_new tuner_xc2028 tuner cx8800 cx88xx tveeprom btcx_risc videobuf_dma_sg videobuf_core rc_core v4l2_common videodev ebtable_nat ebtables nf_conntrack_ipv4 nf_defrag_ipv4 xt_CHECKSUM be2iscsi iscsi_boot_sysfs iptable_mangle bnx2i cnic uio cxgb4i cxgb4 tun bridge cxgb3i cxgb3 stp ip6t_REJECT mdio libcxgbi nf_conntrack_ipv6 llc nf_defrag_ipv6 ib_iser rdma_cm ib_addr xt_conntrack iw_cm ib_cm ib_sa nf_conntrack ib_mad ib_core bnep bluetooth iscsi_tcp libiscsi_tcp ip6table_filter libiscsi ip6_tables scsi_transport_iscsi xfs libcrc32c snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_seq snd_seq_device snd_pcm tg3 snd_page_alloc snd_timer
-[10856.139176]  snd ptp iTCO_wdt soundcore pps_core iTCO_vendor_support lpc_ich mfd_core coretemp nfsd hp_wmi crc32c_intel microcode serio_raw rfkill sparse_keymap nfs_acl lockd sunrpc kvm_intel kvm uinput binfmt_misc firewire_ohci nouveau mxm_wmi i2c_algo_bit drm_kms_helper firewire_core crc_itu_t ttm drm i2c_core wmi [last unloaded: dib0070]
-[10856.168969] CPU 1
-[10856.170799] Pid: 13606, comm: dvbv5-zap Not tainted 3.9.0-rc5+ #26 Hewlett-Packard HP Z400 Workstation/0AE4h
-[10856.181187] RIP: 0010:[<ffffffffa0459e47>]  [<ffffffffa0459e47>] em28xx_write_regs_req+0x37/0x1c0 [em28xx]
-[10856.191028] RSP: 0018:ffff880118401a58  EFLAGS: 00010282
-[10856.196533] RAX: 00020000012d0000 RBX: ffff88010804aec8 RCX: ffff880118401b14
-[10856.203852] RDX: 0000000000000048 RSI: 0000000000000000 RDI: ffff88010804aec8
-[10856.211174] RBP: ffff880118401ac8 R08: 0000000000000001 R09: 0000000000000000
-[10856.218496] R10: 0000000000000000 R11: 0000000000000006 R12: 0000000000000048
-[10856.226026] R13: ffff880118401b14 R14: ffff88011752b258 R15: ffff88011752b258
-[10856.233352] FS:  00007f26636d2740(0000) GS:ffff88011fc20000(0000) knlGS:0000000000000000
-[10856.241626] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[10856.247565] CR2: 00007f2663716e20 CR3: 00000000c7eb1000 CR4: 00000000000007e0
-[10856.254889] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[10856.262215] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[10856.269542] Process dvbv5-zap (pid: 13606, threadinfo ffff880118400000, task ffff8800cd625d40)
-[10856.278340] Stack:
-[10856.280564]  ffff88011ffe8de8 0000000000000002 0000000000000000 ffff88011ffe9b00
-[10856.288191]  ffff880118401b14 00ff88011ffe9b08 ffff880100000048 ffffffff8112a52a
-[10856.295893]  0000000000000001 ffff88010804aec8 0000000000000048 ffff880118401b14
-[10856.303521] Call Trace:
-[10856.306182]  [<ffffffff8112a52a>] ? __alloc_pages_nodemask+0x15a/0x960
-[10856.312912]  [<ffffffffa045a002>] em28xx_write_regs+0x32/0xa0 [em28xx]
-[10856.319638]  [<ffffffffa045a221>] em28xx_write_reg+0x21/0x30 [em28xx]
-[10856.326279]  [<ffffffffa045a2cc>] em28xx_gpio_set+0x9c/0x100 [em28xx]
-[10856.332919]  [<ffffffffa045a3ac>] em28xx_set_mode+0x7c/0x80 [em28xx]
-[10856.339472]  [<ffffffffa03ef032>] em28xx_dvb_bus_ctrl+0x32/0x40 [em28xx_dvb]
+We have just launched a site to help existing open source projects
+with funding (www.catincan.com). Our goal is to help more open source
+projects become self-sustaining and competitive with propriety
+solutions. We're hoping you might provide us with some insight by
+answering the 3 questions below.
 
-This is caused by commit c7a45e5b4f8c2f96cd242ae1b1c06e7fb19a08d0,
-that added support for two I2C buses. A partial fix was applied
-at 3de09fbbfaa521e68675bd30cfece252c4856600, but it doesn't cover
-all cases, as the DVB core fills fe->dvb->priv with adapter->priv.
+1. Do you have any problems funding your open source project?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/em28xx/em28xx-dvb.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+2. What would the perfect solution have to help the open source
+community gain funding?
 
-diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
-index 1f1f56f..b22f8fe 100644
---- a/drivers/media/usb/em28xx/em28xx-dvb.c
-+++ b/drivers/media/usb/em28xx/em28xx-dvb.c
-@@ -270,7 +270,8 @@ static int em28xx_stop_feed(struct dvb_demux_feed *feed)
- /* ------------------------------------------------------------------ */
- static int em28xx_dvb_bus_ctrl(struct dvb_frontend *fe, int acquire)
- {
--	struct em28xx *dev = fe->dvb->priv;
-+	struct em28xx_i2c_bus *i2c_bus = fe->dvb->priv;
-+        struct em28xx *dev = i2c_bus->dev;
- 
- 	if (acquire)
- 		return em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
--- 
-1.8.1.4
+3. Would you use a solution like Catincan to fund your project? If no,
+why not?
+
+Thanks for your feedback. Hearing from open source developers really
+helps us understand what's most important. If you have any questions,
+just let me know.
+
+Cheers,
+Boian
+
+
+
+--
+Boian Mihailov
+
 
