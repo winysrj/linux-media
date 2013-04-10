@@ -1,60 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:45580 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754153Ab3DUTR3 (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3551 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934849Ab3DJR0P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 15:17:29 -0400
-Received: by mail-lb0-f176.google.com with SMTP id y8so4964608lbh.7
-        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 12:17:27 -0700 (PDT)
-Message-ID: <51743B15.4000107@cogentembedded.com>
-Date: Sun, 21 Apr 2013 23:16:37 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Wed, 10 Apr 2013 13:26:15 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [REVIEWv2 PATCH 12/12] hdpvr: allow g/s_std when in legacy mode.
+Date: Wed, 10 Apr 2013 19:25:49 +0200
+Cc: leo@lumanate.com, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl> <1365418721-23859-13-git-send-email-hverkuil@xs4all.nl> <201304101827.43541.hverkuil@xs4all.nl>
+In-Reply-To: <201304101827.43541.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-CC: linux-media@vger.kernel.org, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v2 4/5] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
-References: <201304212242.39693.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304212242.39693.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304101925.49659.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
-
-On 04/21/2013 10:42 PM, Sergei Shtylyov wrote:
-
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->
-> Add ML86V7667 platform devices on BOCK-W board, configure VIN0/1 pins, and
-> register VIN0/1 devices with the ML86V7667 specific platform data.
->
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> [Sergei: some macro/comment cleanup; updated the copyrights.]
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->
+On Wed April 10 2013 18:27:43 Hans Verkuil wrote:
+> Leo, can you verify that this works for you as well? I tested it without
+> problems with MythTV and gstreamer.
+> 
+> Thanks!
+> 
+> 	Hans
+> 
+> Both MythTV and gstreamer expect that they can set/get/query/enumerate the
+> standards, even if the input is the component input for which standards
+> really do not apply.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->   arch/arm/mach-shmobile/board-bockw.c |   40 +++++++++++++++++++++++++++++++++++
->   1 file changed, 40 insertions(+)
->
-> Index: renesas/arch/arm/mach-shmobile/board-bockw.c
-> ===================================================================
-> --- renesas.orig/arch/arm/mach-shmobile/board-bockw.c
-> +++ renesas/arch/arm/mach-shmobile/board-bockw.c
+>  drivers/media/usb/hdpvr/hdpvr-video.c |   40 ++++++++++++++++++++++++---------
+>  1 file changed, 29 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> index 4376309..38724d7 100644
+> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
 
-[...]
 
-> @@ -23,6 +24,8 @@
->   #include <linux/regulator/fixed.h>
->   #include <linux/regulator/machine.h>
->   #include <linux/smsc911x.h>
-> +#include <linux/pinctrl/machine.h>
+> -static int vidioc_enum_input(struct file *file, void *priv,
+> -				struct v4l2_input *i)
+> +static int vidioc_enum_input(struct file *file, void *_fh, struct v4l2_input *i)
+>  {
+> +	struct hdpvr_fh *fh = _fh;
+>  	unsigned int n;
+>  
+>  	n = i->index;
+> @@ -758,13 +761,15 @@ static int vidioc_enum_input(struct file *file, void *priv,
+>  
+>  	i->audioset = 1<<HDPVR_RCA_FRONT | 1<<HDPVR_RCA_BACK | 1<<HDPVR_SPDIF;
+>  
+> +	if (fh->legacy_mode)
+> +		n = 1;
 
-    Noticed just now: this #include is duplicate. It seems I was too 
-fast in resending
-the series...
+Oops, these two lines should be removed. Otherwise non-legacy apps like qv4l2 will
+break as they rely on accurate capability reporting.
 
-WBR, Sergei
+>  	i->capabilities = n ? V4L2_IN_CAP_STD : V4L2_IN_CAP_DV_TIMINGS;
+>  	i->std = n ? V4L2_STD_ALL : 0;
+>  
+>  	return 0;
+>  }
 
+Regards,
+
+	Hans
