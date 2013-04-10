@@ -1,167 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:38539 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824Ab3DKWJJ (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:52835 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750734Ab3DJFeO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 18:09:09 -0400
-Received: by mail-la0-f46.google.com with SMTP id ea20so1958436lab.33
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 15:09:07 -0700 (PDT)
-To: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: [PATCH v2 2/2] adv7180: add more subdev video ops
-Cc: vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Fri, 12 Apr 2013 02:08:09 +0400
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304120208.09564.sergei.shtylyov@cogentembedded.com>
+	Wed, 10 Apr 2013 01:34:14 -0400
+Received: by mail-pb0-f45.google.com with SMTP id ro12so66574pbb.4
+        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 22:34:14 -0700 (PDT)
+From: Tzu-Jung Lee <roylee17@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
+	Tzu-Jung Lee <tjlee@ambarella.com>
+Subject: [PATCH 2/2] v4l2-ctl: initial attempt to support M2M device streaming
+Date: Wed, 10 Apr 2013 13:35:35 +0800
+Message-Id: <1365572135-2311-2-git-send-email-tjlee@ambarella.com>
+In-Reply-To: <1365572135-2311-1-git-send-email-tjlee@ambarella.com>
+References: <1365572135-2311-1-git-send-email-tjlee@ambarella.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-
-Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-the soc-camera drivers.
-
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
 ---
- drivers/media/i2c/adv7180.c |  105 ++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 189 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 188 insertions(+), 1 deletion(-)
 
-Index: linux/drivers/media/i2c/adv7180.c
-===================================================================
---- linux.orig/drivers/media/i2c/adv7180.c
-+++ linux/drivers/media/i2c/adv7180.c
-@@ -1,6 +1,8 @@
- /*
-  * adv7180.c Analog Devices ADV7180 video decoder driver
-  * Copyright (c) 2009 Intel Corporation
-+ * Copyright (C) 2013 Cogent Embedded, Inc.
-+ * Copyright (C) 2013 Renesas Solutions Corp.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-@@ -128,6 +130,7 @@ struct adv7180_state {
- 	v4l2_std_id		curr_norm;
- 	bool			autodetect;
- 	u8			input;
-+	struct v4l2_mbus_framefmt fmt;
- };
- #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
- 					    struct adv7180_state,	\
-@@ -397,10 +400,112 @@ static void adv7180_exit_controls(struct
- 	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+index f8e782d..b86c467 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+@@ -1058,12 +1058,199 @@ void streaming_set_out(int fd)
+ 		fclose(fin);
  }
  
-+static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-+				 enum v4l2_mbus_pixelcode *code)
++enum stream_type {
++	CAP,
++	OUT,
++};
++
++void streaming_set_m2m(int fd)
 +{
-+	if (index > 0)
-+		return -EINVAL;
++	int fd_flags = fcntl(fd, F_GETFL);
++	bool use_poll = options[OptStreamPoll];
 +
-+	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++	bool is_mplane = capabilities &
++			(V4L2_CAP_VIDEO_CAPTURE_MPLANE |
++				 V4L2_CAP_VIDEO_OUTPUT_MPLANE |
++				 V4L2_CAP_VIDEO_M2M_MPLANE);
++	unsigned num_planes = 1;
++	bool is_mmap = options[OptStreamMmap];
 +
-+	return 0;
++	__u32 type[2];
++	FILE *file[2] = {NULL, NULL};
++	struct v4l2_requestbuffers reqbufs[2];
++
++	type[CAP] = is_mplane ?
++		V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE : V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++	type[OUT] = is_mplane ?
++		V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE : V4L2_BUF_TYPE_VIDEO_OUTPUT;
++
++	memset(&reqbufs, 0, sizeof(reqbufs));
++
++	reqbufs[CAP].count = reqbufs_count;
++	reqbufs[CAP].type = type[CAP];
++	reqbufs[CAP].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
++
++	reqbufs[OUT].count = reqbufs_count;
++	reqbufs[OUT].type = type[OUT];
++	reqbufs[OUT].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
++
++	struct v4l2_event_subscription sub;
++
++	memset(&sub, 0, sizeof(sub));
++	sub.type = V4L2_EVENT_EOS;
++	ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
++
++	if (file_cap) {
++		if (!strcmp(file_cap, "-"))
++			file[CAP] = stdout;
++		else
++			file[CAP] = fopen(file_cap, "w+");
++	}
++
++	if (file_out) {
++		if (!strcmp(file_out, "-"))
++			file[OUT] = stdin;
++		else
++			file[OUT] = fopen(file_out, "r");
++	}
++
++	if (doioctl(fd, VIDIOC_REQBUFS, &reqbufs[CAP]) ||
++	    doioctl(fd, VIDIOC_REQBUFS, &reqbufs[OUT]))
++		return;
++
++	void *buffers[2][reqbufs_count * VIDEO_MAX_PLANES];
++	unsigned buffer_lengths[2][reqbufs_count * VIDEO_MAX_PLANES];
++
++	do_setup_cap_buffers(fd, &reqbufs[CAP], is_mplane, num_planes,
++			     is_mmap, buffers[CAP], buffer_lengths[CAP]);
++
++	do_setup_out_buffers(fd, &reqbufs[OUT], is_mplane, num_planes,
++			     is_mmap, buffers[OUT], buffer_lengths[OUT],
++			     file[OUT]);
++
++	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
++	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
++		return;
++
++	if (use_poll)
++		fcntl(fd, F_SETFL, fd_flags | O_NONBLOCK);
++
++	unsigned count[2] = { 0, 0 };
++	unsigned last[2] = { 0, 0 };
++	struct timeval tv_last[2];
++	bool eos[2] = { false, false};
++	fd_set read_fds;
++	fd_set write_fds;
++	fd_set exception_fds;
++
++	while (!eos[CAP] || !eos[OUT]) {
++
++		int r;
++
++		if (use_poll) {
++			struct timeval tv;
++
++			FD_ZERO(&read_fds);
++			FD_SET(fd, &read_fds);
++
++			FD_ZERO(&write_fds);
++			FD_SET(fd, &write_fds);
++
++			FD_ZERO(&exception_fds);
++			FD_SET(fd, &exception_fds);
++
++			/* Timeout. */
++			tv.tv_sec = 2;
++			tv.tv_usec = 0;
++
++			r = select(fd + 1, &read_fds, &write_fds, &exception_fds, &tv);
++
++			if (r == -1) {
++				if (EINTR == errno)
++					continue;
++				fprintf(stderr, "select error: %s\n",
++					strerror(errno));
++				return;
++			}
++
++			if (r == 0) {
++				fprintf(stderr, "select timeout\n");
++				return;
++			}
++		}
++
++		if (FD_ISSET(fd, &exception_fds)) {
++			struct v4l2_event ev;
++
++			while (!ioctl(fd, VIDIOC_DQEVENT, &ev)) {
++
++				if (ev.type != V4L2_EVENT_EOS)
++					continue;
++
++				eos[CAP] = true;
++				doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
++				break;
++			}
++		}
++
++		if (!eos[CAP]) {
++			if (FD_ISSET(fd, &read_fds)) {
++				r  = do_handle_cap(fd, &reqbufs[CAP], is_mplane, num_planes,
++						   buffers[CAP], buffer_lengths[CAP], file[CAP],
++						   &count[CAP], &last[CAP], &tv_last[CAP]);
++				if (r < 0) {
++					eos[CAP] = true;
++					doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
++				}
++			}
++		}
++
++		if (!eos[OUT]) {
++			if (FD_ISSET(fd, &write_fds)) {
++				r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes,
++						   buffers[OUT], buffer_lengths[OUT], file[OUT],
++						   &count[OUT], &last[OUT], &tv_last[OUT]);
++				if (r < 0)  {
++					eos[OUT] = true;
++
++					if (options[OptDecoderCmd]) {
++						doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
++						options[OptDecoderCmd] = false;
++					}
++
++					doioctl(fd, VIDIOC_STREAMOFF, &type[OUT]);
++
++				}
++			}
++
++		}
++	}
++
++	fcntl(fd, F_SETFL, fd_flags);
++	fprintf(stderr, "\n");
++
++	do_release_buffers(&reqbufs[CAP], num_planes, is_mmap,
++			   buffers[CAP], buffer_lengths[CAP]);
++
++	do_release_buffers(&reqbufs[OUT], num_planes, is_mmap,
++			   buffers[OUT], buffer_lengths[OUT]);
++
++	if (file[CAP] && file[CAP] != stdout)
++		fclose(file[CAP]);
++
++	if (file[OUT] && file[OUT] != stdin)
++		fclose(file[OUT]);
 +}
 +
-+static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_framefmt *fmt)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	adv7180_querystd(sd, &state->curr_norm);
-+
-+	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-+	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	fmt->field = V4L2_FIELD_INTERLACED;
-+	fmt->width = 720;
-+	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-+
-+	return 0;
-+}
-+
-+static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
-+			      struct v4l2_mbus_framefmt *fmt)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	*fmt = state->fmt;
-+
-+	return 0;
-+}
-+
-+static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
-+			      struct v4l2_mbus_framefmt *fmt)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	adv7180_try_mbus_fmt(sd, fmt);
-+	state->fmt = *fmt;
-+
-+	return 0;
-+}
-+
-+static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	adv7180_querystd(sd, &state->curr_norm);
-+
-+	a->bounds.left = 0;
-+	a->bounds.top = 0;
-+	a->bounds.width = 720;
-+	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-+	a->defrect = a->bounds;
-+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	a->pixelaspect.numerator = 1;
-+	a->pixelaspect.denominator = 1;
-+
-+	return 0;
-+}
-+
-+static int adv7180_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-+{
-+	struct adv7180_state *state = to_state(sd);
-+
-+	adv7180_querystd(sd, &state->curr_norm);
-+
-+	a->c.left = 0;
-+	a->c.top = 0;
-+	a->c.width = 720;
-+	a->c.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-+	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	return 0;
-+}
-+
-+static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
-+				 struct v4l2_mbus_config *cfg)
-+{
-+	/*
-+	 * The ADV7180 sensor supports BT.601/656 output modes.
-+	 * The BT.656 is default and not yet configurable by s/w.
-+	 */
-+	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-+		     V4L2_MBUS_DATA_ACTIVE_HIGH;
-+	cfg->type = V4L2_MBUS_BT656;
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_video_ops adv7180_video_ops = {
- 	.querystd = adv7180_querystd,
- 	.g_input_status = adv7180_g_input_status,
- 	.s_routing = adv7180_s_routing,
-+	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
-+	.try_mbus_fmt = adv7180_try_mbus_fmt,
-+	.g_mbus_fmt = adv7180_g_mbus_fmt,
-+	.s_mbus_fmt = adv7180_s_mbus_fmt,
-+	.cropcap = adv7180_cropcap,
-+	.g_crop = adv7180_g_crop,
-+	.g_mbus_config = adv7180_g_mbus_config,
- };
+ void streaming_set(int fd)
+ {
+ 	bool do_cap = options[OptStreamMmap] || options[OptStreamUser];
+ 	bool do_out = options[OptStreamOutMmap] || options[OptStreamOutUser];
  
- static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+-	if (do_cap)
++	if (do_cap && do_out)
++		streaming_set_m2m(fd);
++	else if (do_cap)
+ 		streaming_set_cap(fd);
+ 	else if (do_out)
+ 		streaming_set_out(fd);
+-- 
+1.8.1.5
+
