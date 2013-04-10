@@ -1,270 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:46654 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752901Ab3DVKTv (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:23261 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936557Ab3DJKo3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 06:19:51 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC v2 3/4] media: davinci: vpif: capture: add V4L2-async support
-Date: Mon, 22 Apr 2013 15:47:27 +0530
-Message-Id: <1366625848-743-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 10 Apr 2013 06:44:29 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
+	shaik.samsung@gmail.com, arun.kk@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/7] exynos4-is: Remove meaningless test before bit setting
+Date: Wed, 10 Apr 2013 12:42:41 +0200
+Message-id: <1365590562-5747-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1365590562-5747-1-git-send-email-s.nawrocki@samsung.com>
+References: <1365590562-5747-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+There is no need to check same bit before setting it, since we
+always end up with a bit set. Remove some of the tests and make
+set unconditional, in every place where all that needs to be done
+is just setting a bit.
 
-Add support for asynchronous subdevice probing, using the v4l2-async API.
-The legacy synchronous mode is still supported too, which allows to
-gradually update drivers and platforms.
-
-Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
- drivers/media/platform/davinci/vpif_capture.h |    2 +
- include/media/davinci/vpif_types.h            |    2 +
- 3 files changed, 108 insertions(+), 47 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-is-param.c |   40 +++++----------------
+ 1 file changed, 9 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index a1b42b0..d723b58 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -24,6 +24,7 @@
- #include <linux/platform_device.h>
- #include <linux/slab.h>
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
+index 254740f..53fe2a2 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-param.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
+@@ -269,9 +269,7 @@ void __is_set_sensor(struct fimc_is *is, int fps)
+ 	unsigned int index = is->config_index;
+ 	struct sensor_param *sensor;
+ 	struct isp_param *isp;
+-	unsigned long *p_index;
  
-+#include <media/v4l2-async.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ioctl.h>
+-	p_index = &is->config[index].p_region_index1;
+ 	sensor = &is->config[index].sensor;
+ 	isp = &is->config[index].isp;
  
-@@ -2045,6 +2046,76 @@ vpif_init_free_channel_objects:
- 	return err;
+@@ -286,11 +284,8 @@ void __is_set_sensor(struct fimc_is *is, int fps)
+ 		isp->otf_input.frametime_max = (u32)1000000 / fps;
+ 	}
+ 
+-	if (!test_bit(PARAM_SENSOR_FRAME_RATE, p_index))
+-		fimc_is_set_param_bit(is, PARAM_SENSOR_FRAME_RATE);
+-
+-	if (!test_bit(PARAM_ISP_OTF_INPUT, p_index))
+-		fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
++	fimc_is_set_param_bit(is, PARAM_SENSOR_FRAME_RATE);
++	fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
  }
  
-+static int vpif_async_bound(struct v4l2_async_notifier *notifier,
-+		    struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_subdev *subdev = v4l2_async_to_subdev(asdl);
-+	int i = 0;
-+
-+	for (i = 0; i < vpif_obj.config->subdev_count; i++)
-+		if (!strcmp(vpif_obj.config->subdev_info[i].name,
-+			    subdev->name)) {
-+			vpif_obj.sd[i] = subdev;
-+			return 0;
-+		}
-+
-+	return -EINVAL;
-+}
-+
-+static int vpif_probe_complete(void)
-+{
-+	struct common_obj *common;
-+	struct channel_obj *ch;
-+	int i, j, err, k;
-+
-+	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
-+		ch = vpif_obj.dev[j];
-+		ch->channel_id = j;
-+		common = &(ch->common[VPIF_VIDEO_INDEX]);
-+		spin_lock_init(&common->irqlock);
-+		mutex_init(&common->lock);
-+		ch->video_dev->lock = &common->lock;
-+		/* Initialize prio member of channel object */
-+		v4l2_prio_init(&ch->prio);
-+		video_set_drvdata(ch->video_dev, ch);
-+
-+		/* select input 0 */
-+		err = vpif_set_input(vpif_obj.config, ch, 0);
-+		if (err)
-+			goto probe_out;
-+
-+		err = video_register_device(ch->video_dev,
-+					    VFL_TYPE_GRABBER, (j ? 1 : 0));
-+		if (err)
-+			goto probe_out;
-+	}
-+
-+	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
-+	return 0;
-+
-+probe_out:
-+	for (k = 0; k < j; k++) {
-+		/* Get the pointer to the channel object */
-+		ch = vpif_obj.dev[k];
-+		/* Unregister video device */
-+		video_unregister_device(ch->video_dev);
-+	}
-+	kfree(vpif_obj.sd);
-+	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-+		ch = vpif_obj.dev[i];
-+		/* Note: does nothing if ch->video_dev == NULL */
-+		video_device_release(ch->video_dev);
-+	}
-+	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-+
-+	return err;
-+}
-+
-+static int vpif_async_complete(struct v4l2_async_notifier *notifier)
-+{
-+	return vpif_probe_complete();
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -2055,12 +2126,10 @@ vpif_init_free_channel_objects:
- static __init int vpif_probe(struct platform_device *pdev)
+ void __is_set_init_isp_aa(struct fimc_is *is)
+@@ -317,65 +312,54 @@ void __is_set_init_isp_aa(struct fimc_is *is)
+ void __is_set_isp_flash(struct fimc_is *is, u32 cmd, u32 redeye)
  {
- 	struct vpif_subdev_info *subdevdata;
--	struct vpif_capture_config *config;
--	int i, j, k, err;
-+	int i, j, err;
- 	int res_idx = 0;
- 	struct i2c_adapter *i2c_adap;
- 	struct channel_obj *ch;
--	struct common_obj *common;
- 	struct video_device *vfd;
- 	struct resource *res;
- 	int subdev_count;
-@@ -2137,10 +2206,9 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		}
- 	}
+ 	unsigned int index = is->config_index;
+-	struct chain_config *cfg = &is->config[index];
+-	struct isp_param *isp = &cfg->isp;
++	struct isp_param *isp = &is->config[index].isp;
  
--	i2c_adap = i2c_get_adapter(1);
--	config = pdev->dev.platform_data;
-+	vpif_obj.config = pdev->dev.platform_data;
+ 	isp->flash.cmd = cmd;
+ 	isp->flash.redeye = redeye;
+ 	isp->flash.err = ISP_FLASH_ERROR_NONE;
  
--	subdev_count = config->subdev_count;
-+	subdev_count = vpif_obj.config->subdev_count;
- 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
- 				GFP_KERNEL);
- 	if (vpif_obj.sd == NULL) {
-@@ -2149,53 +2217,42 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_sd_error;
- 	}
+-	if (!test_bit(PARAM_ISP_FLASH, &cfg->p_region_index1))
+-		fimc_is_set_param_bit(is, PARAM_ISP_FLASH);
++	fimc_is_set_param_bit(is, PARAM_ISP_FLASH);
+ }
  
--	for (i = 0; i < subdev_count; i++) {
--		subdevdata = &config->subdev_info[i];
--		vpif_obj.sd[i] =
--			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
--						  i2c_adap,
--						  &subdevdata->board_info,
--						  NULL);
--
--		if (!vpif_obj.sd[i]) {
--			vpif_err("Error registering v4l2 subdevice\n");
-+	if (!vpif_obj.config->asd_sizes) {
-+		i2c_adap = i2c_get_adapter(1);
-+		for (i = 0; i < subdev_count; i++) {
-+			subdevdata = &vpif_obj.config->subdev_info[i];
-+			vpif_obj.sd[i] =
-+				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-+							  i2c_adap,
-+							  &subdevdata->
-+							  board_info,
-+							  NULL);
-+
-+			if (!vpif_obj.sd[i]) {
-+				vpif_err("Error registering v4l2 subdevice\n");
-+				goto probe_subdev_out;
-+			}
-+			v4l2_info(&vpif_obj.v4l2_dev,
-+				  "registered sub device %s\n",
-+				   subdevdata->name);
-+		}
-+		vpif_probe_complete();
-+	} else {
-+		vpif_obj.notifier.subdev = vpif_obj.config->asd;
-+		vpif_obj.notifier.subdev_num = vpif_obj.config->asd_sizes[0];
-+		vpif_obj.notifier.bound = vpif_async_bound;
-+		vpif_obj.notifier.complete = vpif_async_complete;
-+		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
-+						   &vpif_obj.notifier);
-+		if (err) {
-+			vpif_err("Error registering async notifier\n");
-+			err = -EINVAL;
- 			goto probe_subdev_out;
- 		}
--		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
--			  subdevdata->name);
- 	}
+ void __is_set_isp_awb(struct fimc_is *is, u32 cmd, u32 val)
+ {
+ 	unsigned int index = is->config_index;
+ 	struct isp_param *isp;
+-	unsigned long *p_index;
  
--	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
--		ch = vpif_obj.dev[j];
--		ch->channel_id = j;
--		common = &(ch->common[VPIF_VIDEO_INDEX]);
--		spin_lock_init(&common->irqlock);
--		mutex_init(&common->lock);
--		ch->video_dev->lock = &common->lock;
--		/* Initialize prio member of channel object */
--		v4l2_prio_init(&ch->prio);
--		video_set_drvdata(ch->video_dev, ch);
--
--		/* select input 0 */
--		err = vpif_set_input(config, ch, 0);
--		if (err)
--			goto probe_out;
--
--		err = video_register_device(ch->video_dev,
--					    VFL_TYPE_GRABBER, (j ? 1 : 0));
--		if (err)
--			goto probe_out;
--	}
--	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
- 	return 0;
+-	p_index = &is->config[index].p_region_index1;
+ 	isp = &is->config[index].isp;
  
--probe_out:
--	for (k = 0; k < j; k++) {
--		/* Get the pointer to the channel object */
--		ch = vpif_obj.dev[k];
--		/* Unregister video device */
--		video_unregister_device(ch->video_dev);
--	}
- probe_subdev_out:
- 	/* free sub devices memory */
- 	kfree(vpif_obj.sd);
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 0ebb312..5a29d9a 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -142,6 +142,8 @@ struct vpif_device {
- 	struct v4l2_device v4l2_dev;
- 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
- 	struct v4l2_subdev **sd;
-+	struct v4l2_async_notifier notifier;
-+	struct vpif_capture_config *config;
- };
+ 	isp->awb.cmd = cmd;
+ 	isp->awb.illumination = val;
+ 	isp->awb.err = ISP_AWB_ERROR_NONE;
  
- struct vpif_config_params {
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3882e06..e08bcde 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -81,5 +81,7 @@ struct vpif_capture_config {
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
- 	const char *card_name;
-+	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-+	int *asd_sizes;		/* 0-terminated array of asd group sizes */
- };
- #endif /* _VPIF_TYPES_H */
+-	if (!test_bit(PARAM_ISP_AWB, p_index))
+-		fimc_is_set_param_bit(is, PARAM_ISP_AWB);
++	fimc_is_set_param_bit(is, PARAM_ISP_AWB);
+ }
+ 
+ void __is_set_isp_effect(struct fimc_is *is, u32 cmd)
+ {
+ 	unsigned int index = is->config_index;
+ 	struct isp_param *isp;
+-	unsigned long *p_index;
+ 
+-	p_index = &is->config[index].p_region_index1;
+ 	isp = &is->config[index].isp;
+ 
+ 	isp->effect.cmd = cmd;
+ 	isp->effect.err = ISP_IMAGE_EFFECT_ERROR_NONE;
+ 
+-	if (!test_bit(PARAM_ISP_IMAGE_EFFECT, p_index))
+-		fimc_is_set_param_bit(is, PARAM_ISP_IMAGE_EFFECT);
++	fimc_is_set_param_bit(is, PARAM_ISP_IMAGE_EFFECT);
+ }
+ 
+ void __is_set_isp_iso(struct fimc_is *is, u32 cmd, u32 val)
+ {
+ 	unsigned int index = is->config_index;
+ 	struct isp_param *isp;
+-	unsigned long *p_index;
+ 
+-	p_index = &is->config[index].p_region_index1;
+ 	isp = &is->config[index].isp;
+ 
+ 	isp->iso.cmd = cmd;
+ 	isp->iso.value = val;
+ 	isp->iso.err = ISP_ISO_ERROR_NONE;
+ 
+-	if (!test_bit(PARAM_ISP_ISO, p_index))
+-		fimc_is_set_param_bit(is, PARAM_ISP_ISO);
++	fimc_is_set_param_bit(is, PARAM_ISP_ISO);
+ }
+ 
+ void __is_set_isp_adjust(struct fimc_is *is, u32 cmd, u32 val)
+@@ -464,32 +448,26 @@ void __is_set_isp_afc(struct fimc_is *is, u32 cmd, u32 val)
+ {
+ 	unsigned int index = is->config_index;
+ 	struct isp_param *isp;
+-	unsigned long *p_index;
+ 
+-	p_index = &is->config[index].p_region_index1;
+ 	isp = &is->config[index].isp;
+ 
+ 	isp->afc.cmd = cmd;
+ 	isp->afc.manual = val;
+ 	isp->afc.err = ISP_AFC_ERROR_NONE;
+ 
+-	if (!test_bit(PARAM_ISP_AFC, p_index))
+-		fimc_is_set_param_bit(is, PARAM_ISP_AFC);
++	fimc_is_set_param_bit(is, PARAM_ISP_AFC);
+ }
+ 
+ void __is_set_drc_control(struct fimc_is *is, u32 val)
+ {
+ 	unsigned int index = is->config_index;
+ 	struct drc_param *drc;
+-	unsigned long *p_index;
+ 
+-	p_index = &is->config[index].p_region_index1;
+ 	drc = &is->config[index].drc;
+ 
+ 	drc->control.bypass = val;
+ 
+-	if (!test_bit(PARAM_DRC_CONTROL, p_index))
+-		fimc_is_set_param_bit(is, PARAM_DRC_CONTROL);
++	fimc_is_set_param_bit(is, PARAM_DRC_CONTROL);
+ }
+ 
+ void __is_set_fd_control(struct fimc_is *is, u32 val)
 -- 
-1.7.4.1
+1.7.9.5
 
