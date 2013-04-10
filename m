@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:48100 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934226Ab3DJWAk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 18:00:40 -0400
-Message-ID: <5165E103.3020106@gmail.com>
-Date: Thu, 11 Apr 2013 00:00:35 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@infradead.org>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	Rob Herring <rob.herring@calxeda.com>
-Subject: Re: linux-next: Tree for Apr 10 (media and OF)
-References: <20130410184852.92a3a02bbe5c3a040be76365@canb.auug.org.au> <5165DB54.90508@infradead.org>
-In-Reply-To: <5165DB54.90508@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:35503 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935903Ab3DJAbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Apr 2013 20:31:31 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/3] MAINTAINERS: update CYPRESS_FIRMWARE media driver
+Date: Wed, 10 Apr 2013 03:30:41 +0300
+Message-Id: <1365553843-4117-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/10/2013 11:36 PM, Randy Dunlap wrote:
-> On 04/10/13 01:48, Stephen Rothwell wrote:
->> Hi all,
->>
->> Changes since 20130409:
->>
->
->
-> on i386:
->
-> ERROR: "of_get_next_parent" [drivers/media/v4l2-core/videodev.ko] undefined!
->
->
-> 'of_get_next_parent()' should be exported for use by modules...?
+It is moved to the different location and renamed.
 
-Yes, there was already a patch submitted for this [1]. Hopefully it gets
-picked soon so we don't see such errors. That's my oversight, sorry 
-about it.
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ MAINTAINERS | 20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-[1] http://www.spinics.net/lists/linux-media/msg61994.html
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 154b02c..bde9825 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2367,6 +2367,16 @@ W:	http://www.cyclades.com/
+ S:	Orphan
+ F:	drivers/net/wan/pc300*
+ 
++CYPRESS_FIRMWARE MEDIA DRIVER
++M:	Antti Palosaari <crope@iki.fi>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++W:	http://palosaari.fi/linux/
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++T:	git git://linuxtv.org/anttip/media_tree.git
++S:	Maintained
++F:	drivers/media/common/cypress_firmware*
++
+ CYTTSP TOUCHSCREEN DRIVER
+ M:	Javier Martinez Canillas <javier@dowhile0.org>
+ L:	linux-input@vger.kernel.org
+@@ -2731,16 +2741,6 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/usb/dvb-usb/cxusb*
+ 
+-DVB_USB_CYPRESS_FIRMWARE MEDIA DRIVER
+-M:	Antti Palosaari <crope@iki.fi>
+-L:	linux-media@vger.kernel.org
+-W:	http://linuxtv.org/
+-W:	http://palosaari.fi/linux/
+-Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+-T:	git git://linuxtv.org/anttip/media_tree.git
+-S:	Maintained
+-F:	drivers/media/usb/dvb-usb-v2/cypress_firmware*
+-
+ DVB_USB_EC168 MEDIA DRIVER
+ M:	Antti Palosaari <crope@iki.fi>
+ L:	linux-media@vger.kernel.org
+-- 
+1.7.11.7
 
-Thanks,
-Sylwester
