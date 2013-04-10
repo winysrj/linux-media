@@ -1,244 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:42134 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753534Ab3DUOne (ORCPT
+Received: from mail-qa0-f45.google.com ([209.85.216.45]:40236 "EHLO
+	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759253Ab3DJOBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 10:43:34 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	"patches@linaro.org" <patches@linaro.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-samsung-soc@vger.kernel.org,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	linaro-kernel@lists.linaro.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
-Date: Sun, 21 Apr 2013 16:43:28 +0200
-Message-ID: <3109033.iP2qIPD33v@flatron>
-In-Reply-To: <CAAQKjZOg+H=Dnd3HWEWKjQq6e2UGZvX6s0waBdqsxx=CEAXtQw@mail.gmail.com>
-References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org> <56942397.CYxnWkv4Nb@flatron> <CAAQKjZOg+H=Dnd3HWEWKjQq6e2UGZvX6s0waBdqsxx=CEAXtQw@mail.gmail.com>
+	Wed, 10 Apr 2013 10:01:13 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20130410135627.GD9243@opensource.wolfsonmicro.com>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de> <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
+ <Pine.LNX.4.64.1304101358490.13557@axis700.grange> <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
+ <20130410135627.GD9243@opensource.wolfsonmicro.com>
+From: Barry Song <21cnbao@gmail.com>
+Date: Wed, 10 Apr 2013 22:00:52 +0800
+Message-ID: <CAGsJ_4wVx8qr1ge9g3ekmZd=BnYAmjOsSXSQh8Zsb=_NZOA9bQ@mail.gmail.com>
+Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of clients
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"renwei.wu" <renwei.wu@csr.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
+	xiaomeng.hou@csr.com, zilong.wu@csr.com
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Inki,
+2013/4/10 Mark Brown <broonie@opensource.wolfsonmicro.com>:
+> On Wed, Apr 10, 2013 at 09:53:20PM +0800, Barry Song wrote:
+>> 2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+>
+>> >> what about another possible way:
+>> >> we let all host and i2c client driver probed in any order,
+>
+>> > This cannot work, because some I2C devices, e.g. sensors, need a clock
+>> > signal from the camera interface to probe. Before the bridge driver has
+>> > completed its probing and registered a suitable clock source with the
+>> > v4l2-clk framework, sensors cannot be probed. And no, we don't want to
+>> > fake successful probing without actually being able to talk to the
+>> > hardware.
+>
+>> i'd say same dependency also exists on ASoC.  a "fake" successful
+>> probing doesn't mean it should really begin to work if there is no
+>> external trigger source.  ASoC has successfully done that by a machine
+>> driver to connect all DAI.
+>> a way is we put all things ready in their places, finally we connect
+>> them together and launch the whole hardware flow.
+>
+> In the ASoC case the idea is that drivers should probe as far as they
+> can with just the chip and then register with the core.  The machine
+> driver defers probing until all components have probed and then runs
+> through second stage initialisaton which pulls everything together.
 
-On Sunday 21 of April 2013 22:36:08 Inki Dae wrote:
-> 2013/4/21 Tomasz Figa <tomasz.figa@gmail.com>
-> 
-> > Hi,
-> > 
-> > On Monday 08 of April 2013 16:41:54 Viresh Kumar wrote:
-> > > On 8 April 2013 16:37, Vikas Sajjan <vikas.sajjan@linaro.org> wrote:
-> > > > While migrating to common clock framework (CCF), I found that the
-> > > > FIMD
-> > > > clocks were pulled down by the CCF.
-> > > > If CCF finds any clock(s) which has NOT been claimed by any of the
-> > > > drivers, then such clock(s) are PULLed low by CCF.
-> > > > 
-> > > > Calling clk_prepare() for FIMD clocks fixes the issue.
-> > > > 
-> > > > This patch also replaces clk_disable() with clk_unprepare() during
-> > > > exit, since clk_prepare() is called in fimd_probe().
-> > > 
-> > > I asked you about fixing your commit log too.. It still looks
-> > > incorrect
-> > > to me.
-> > > 
-> > > This patch doesn't have anything to do with CCF pulling clocks down,
-> > > but calling clk_prepare() before clk_enable() is must now.. that's
-> > > it.. nothing more.
-> > 
-> > I fully agree.
-> > 
-> > The message should be something like:
-> > 
-> > Common Clock Framework introduced the need to prepare clocks before
-> > enabling them, otherwise clk_enable() fails. This patch adds
-> > clk_prepare calls to the driver.
-> > 
-> > and that's all.
-> > 
-> > What you are observing as "CCF pulling clocks down" is the fact that
-> > clk_enable() fails if the clock is not prepared and so the clock is
-> > not
-> > enabled in result.
-> > 
-> > Another thing is that CCF is not pulling anything down. GPIO pins can
-> > be pulled down (or up or not pulled), but clocks can be masked, gated
-> > or simply disabled - this does not imply their signal level.
-> > 
-> > > > Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
-> > > > ---
-> > > > 
-> > > > Changes since v3:
-> > > >         - added clk_prepare() in fimd_probe() and clk_unprepare()
-> > > >         in
-> > > >         fimd_remove()>
-> > > >         
-> > > >          as suggested by Viresh Kumar <viresh.kumar@linaro.org>
-> > > > 
-> > > > Changes since v2:
-> > > >         - moved clk_prepare_enable() and clk_disable_unprepare()
-> > > >         from
-> > > >         fimd_probe() to fimd_clock() as suggested by Inki Dae
-> > > >         <inki.dae@samsung.com>>
-> > > > 
-> > > > Changes since v1:
-> > > >         - added error checking for clk_prepare_enable() and also
-> > > >         replaced
-> > > >         clk_disable() with clk_disable_unprepare() during exit.
-> > > > 
-> > > > ---
-> > > > 
-> > > >  drivers/gpu/drm/exynos/exynos_drm_fimd.c |   14 ++++++++++++--
-> > > >  1 file changed, 12 insertions(+), 2 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > > > b/drivers/gpu/drm/exynos/exynos_drm_fimd.c index 9537761..aa22370
-> > > > 100644
-> > > > --- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > > > +++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-> > > > @@ -934,6 +934,16 @@ static int fimd_probe(struct platform_device
-> > > > *pdev)>
-> > > > 
-> > > >                 return ret;
-> > > >         
-> > > >         }
-> > > > 
-> > > > +       ret = clk_prepare(ctx->bus_clk);
-> > > > +       if (ret < 0)
-> > > > +               return ret;
-> > > > +
-> > > > +       ret = clk_prepare(ctx->lcd_clk);
-> > > > +       if  (ret < 0) {
-> > > > +               clk_unprepare(ctx->bus_clk);
-> > > > +               return ret;
-> > > > +       }
-> > > > +
-> > 
-> > Why not just simply use clk_prepare_enable() instead of all calls to
-> > clk_enable() in the driver?
-> > 
-> > Same goes for s/clk_disable/clk_disable_unprepare/ .
-> 
-> I agree with you. Using clk_prepare_enable() is more clear. Actually I
-> had already commented on this. Please see the patch v2. But this way
-> also looks good to me.
+yes. thanks for clarification, Mark. that is really what i want in
+soc-camera too.
+put all things in their places, and the final connector wait for
+everyone and put them in the initialized status.
 
-Well, both versions are technically correct and will have the same effect 
-for Exynos SoC clocks, since only enable/disable ops change hardware 
-state.
-
-However if we look at general meaning of those generic ops, the clock will 
-remain prepared for all the time the driver is loaded, even if the device 
-is runtime suspended. Again on Exynos SoCs this won't have any effect, but 
-I think we should respect general Common Clock Framework semantics anyway.
-
-> > > >         ctx->vidcon0 = pdata->vidcon0;
-> > > >         ctx->vidcon1 = pdata->vidcon1;
-> > > >         ctx->default_win = pdata->default_win;
-> > > > 
-> > > > @@ -981,8 +991,8 @@ static int fimd_remove(struct platform_device
-> > > > *pdev)>
-> > > > 
-> > > >         if (ctx->suspended)
-> > > >         
-> > > >                 goto out;
-> > > > 
-> > > > -       clk_disable(ctx->lcd_clk);
-> > > > -       clk_disable(ctx->bus_clk);
-> > > > +       clk_unprepare(ctx->lcd_clk);
-> > > > +       clk_unprepare(ctx->bus_clk);
-> > > 
-> > > This looks wrong again.. You still need to call clk_disable() to
-> > > make
-> > > clk enabled
-> > > count zero...
-> > 
-> > Viresh is right again here.
-> 
-> Ok, you two guys say together this looks wrong so I'd like to take more
-> checking. I thought that clk->clk_enable is 1 at here and it would be 0
-> by pm_runtimg_put_sync(). Is there any my missing point?
-
-You're reasoning is correct, but only assuming that runtime PM is enabled. 
-When it is disabled, pm_runtime_put_sync() is a no-op.
-
-Well, after digging into the exynos_drm_fimd driver a bit more, it seems 
-like its power management code needs a serious rework, because I was able 
-to find more problems:
-
-1) fimd_activate() does not get called at all if CONFIG_PM_RUNTIME is not 
-enabled (except in system-wide suspend callbacks, but this is irrelevant 
-to this point) - this means that the hardware is not properly initialized 
-without CONFIG_PM_RUNTIME - at least clocks does not get enabled.
-
-2) pm_runtime_set_suspended() can be used only when runtime PM is disabled 
-for the device (i.e. by calling pm_runtime_disable() or not calling 
-pm_runtime_enable() at all) - when runtime PM is enabled it is basically a 
-no-op returning -EAGAIN error.
-
-So here's my proposed solution:
-
-1) call fimd_activate() and pm_runtime_set_active() explicitly in 
-fimd_probe(), before calling pm_runtime_enable():
-
- 	mutex_init(&ctx->lock);
- 
- 	platform_set_drvdata(pdev, ctx);
-+
-+	fimd_activate(ctx, true);
- 
-+	pm_runtime_set_active(dev);
- 	pm_runtime_enable(dev);
- 	pm_runtime_get_sync(dev);
-
-This would power up the device even if CONFIG_PM_RUNTIME is not enabled. 
-Note that pm_runtime_get_sync() after marking the device as active with 
-pm_runtime_set_active() won't result in calling fimd_runtime_resume(), 
-because the device is considered already resumed.
-
-2) in fimd_remove():
-
-+	pm_runtime_disable(dev);
-+
- 	if (ctx->suspended)
--		goto out;
-+		return 0;
- 
--	clk_disable(ctx->lcd_clk);
--	clk_disable(ctx->bus_clk);
-+	fimd_activate(ctx, false);
- 
-+	pm_runtime_put_noidle(dev);
- 	pm_runtime_set_suspended(dev);
--	pm_runtime_put_sync(dev);
--
--out:
--	pm_runtime_disable(dev);
-
-First, pm_runtime_disable() will prevent any further runtime PM operations 
-that could change ctx->suspended state. Then, if ctx->suspended is true, 
-there is no need to suspend anything and we can leave. Otherwise, we power 
-down the hardware manually - which will work with both CONFIG_PM_RUNTIME 
-enabled and disabled, and then mark the hardware as suspended and free 
-remaining reference in runtime PM core. Note that pm_runtime_put_noidle 
-just decreases the reference counter and nothing else.
-
-3) after those two changes, all that remains is to fix compliance with 
-Common Clock Framework, in other words:
-
-s/clk_enable/clk_prepare_enable/
-
-and
-
-s/clk_disable/clk_disable_unprepare/
- 
-Best regards,
-Tomasz
-
+-barry
