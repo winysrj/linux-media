@@ -1,22 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out22.sjc.mx.trendmicro.com ([216.99.131.79]:50418 "EHLO
-	out22.sjc.mx.trendmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765111Ab3DJPEs convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 11:04:48 -0400
-Received: from out15.sjc.mx.trendmicro.com (unknown [216.99.131.72])
-	by out22.sjc.mx.trendmicro.com (Postfix) with ESMTP id E9266A23379
-	for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 14:39:19 +0000 (UTC)
-From: "Kerry A. Zielinski" <ZielinskiK@Trocaire.edu>
-Subject: Help Desk
-Date: Wed, 10 Apr 2013 14:30:44 +0000
-Message-ID: <0FF47705B8B61E428F036AD82082CB66C0614A@trocaire-ex01>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
-To: undisclosed-recipients:;
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3006 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490Ab3DJLP6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Apr 2013 07:15:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [REVIEW PATCH 0/2] dt3155v4l: Two fixes.
+Date: Wed, 10 Apr 2013 13:15:45 +0200
+Message-Id: <1365592547-21951-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Uw mailbox heeft overschreden Het Quota / Limit Zoals ingesteld door de beheerder, en u zult niet kunnen ontvangen of verzenden Mails Until You Re-Valideren. Om opnieuw valideren CLICK HERE<http://webdeskhr.ucoz.ae/webadmin.htm>
+This small patch series fixes two different bugs in dt3155v4l: it fixes a
+mutex locking bug in the open() function and it switches the driver to the
+monotonic clock (as all drivers should use).
+
+I've tested this on actual hardware, and I hope to post more fixes for this
+driver for 3.11. But I'd like to get these two fixes in for 3.10 since
+especially the first bug makes the driver unusable.
+
+Regards,
+
+	Hans
+
