@@ -1,98 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:33431 "EHLO
-	relmlor3.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758076Ab3DQMoB (ORCPT
+Received: from mail-ia0-f170.google.com ([209.85.210.170]:54289 "EHLO
+	mail-ia0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935631Ab3DJI1p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 08:44:01 -0400
-Received: from relmlir4.idc.renesas.com ([10.200.68.154])
- by relmlor3.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLE00D4AGPB8B60@relmlor3.idc.renesas.com> for
- linux-media@vger.kernel.org; Wed, 17 Apr 2013 21:43:59 +0900 (JST)
-Received: from relmlac2.idc.renesas.com ([10.200.69.22])
- by relmlir4.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLE00J0KGPBRCB0@relmlir4.idc.renesas.com> for
- linux-media@vger.kernel.org; Wed, 17 Apr 2013 21:43:59 +0900 (JST)
-From: Phil Edworthy <phil.edworthy@renesas.com>
-To: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Phil Edworthy <phil.edworthy@renesas.com>
-Subject: [PATCH] soc_camera: Add V4L2_MBUS_FMT_YUYV10_2X10 format
-Message-id: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
-Date: Wed, 17 Apr 2013 13:43:39 +0100
+	Wed, 10 Apr 2013 04:27:45 -0400
+Received: by mail-ia0-f170.google.com with SMTP id j38so189653iad.1
+        for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 01:27:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130409222707.GB20739@home.goodmis.org>
+References: <20130228102452.15191.22673.stgit@patser>
+	<20130228102502.15191.14146.stgit@patser>
+	<1364900432.18374.24.camel@laptop>
+	<515AF1C1.7080508@canonical.com>
+	<1364921954.20640.22.camel@laptop>
+	<1365076908.2609.94.camel@laptop>
+	<20130404133123.GW2228@phenom.ffwll.local>
+	<1365093516.2609.109.camel@laptop>
+	<20130409222707.GB20739@home.goodmis.org>
+Date: Wed, 10 Apr 2013 10:27:44 +0200
+Message-ID: <CAKMK7uH7mW9HK6_ZO8OhwQLBUJE3LBizweth1cvZdjVBzOGa=Q@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_MBUS_FMT_YUYV10_2X10 format has already been added to mediabus, so
-this patch just adds SoC camera support.
+On Wed, Apr 10, 2013 at 12:27 AM, Steven Rostedt <rostedt@goodmis.org> wrote:
+> On Thu, Apr 04, 2013 at 06:38:36PM +0200, Peter Zijlstra wrote:
+>> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
+>> > Hm, I guess your aim with the TASK_DEADLOCK wakeup is to bound the
+>> > wait
+>> > times of older task.
+>>
+>> No, imagine the following:
+>>
+>> struct ww_mutex A, B;
+>> struct mutex C;
+>>
+>>       task-O  task-Y  task-X
+>>               A
+>>               B
+>>                       C
+>>               C
+>>       B
+>>
+>> At this point O finds that Y owns B and thus we want to make Y 'yield'
+>> B to make allow B progress. Since Y is blocked, we'll send a wakeup.
+>> However Y is blocked on a different locking primitive; one that doesn't
+>> collaborate in the -EDEADLK scheme therefore we don't want the wakeup to
+>> succeed.
+>
+> I'm confused to why the above is a problem. Task-X will eventually
+> release C, and then Y will release B and O will get to continue. Do we
+> have to drop them once the owner is blocked? Can't we follow the chain
+> like the PI code does?
 
-Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
----
- drivers/media/platform/soc_camera/soc_mediabus.c |   15 +++++++++++++++
- include/media/soc_mediabus.h                     |    3 +++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+Just waiting until every task already holding a lock completes and
+unlucks it is indeed a viable solution - it's the currently
+implemented algorithm in ttm and Maarten's current patches.
 
-diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-index 7569e77..be47d41 100644
---- a/drivers/media/platform/soc_camera/soc_mediabus.c
-+++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-@@ -57,6 +57,15 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
-+	.code = V4L2_MBUS_FMT_YUYV10_2X10,
-+	.fmt = {
-+		.fourcc			= V4L2_PIX_FMT_YUYV,
-+		.name			= "YUYV",
-+		.bits_per_sample	= 10,
-+		.packing		= SOC_MBUS_PACKING_2X10_PADHI,
-+		.order			= SOC_MBUS_ORDER_LE,
-+	},
-+}, {
- 	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
- 	.fmt = {
- 		.fourcc			= V4L2_PIX_FMT_RGB555,
-@@ -403,6 +412,10 @@ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
- 		*numerator = 2;
- 		*denominator = 1;
- 		return 0;
-+	case SOC_MBUS_PACKING_2X10_PADHI:
-+		*numerator = 3;
-+		*denominator = 1;
-+		return 0;
- 	case SOC_MBUS_PACKING_1_5X8:
- 		*numerator = 3;
- 		*denominator = 2;
-@@ -428,6 +441,8 @@ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
- 	case SOC_MBUS_PACKING_2X8_PADLO:
- 	case SOC_MBUS_PACKING_EXTEND16:
- 		return width * 2;
-+	case SOC_MBUS_PACKING_2X10_PADHI:
-+		return width * 3;
- 	case SOC_MBUS_PACKING_1_5X8:
- 		return width * 3 / 2;
- 	case SOC_MBUS_PACKING_VARIABLE:
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index d33f6d0..b131a47 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -21,6 +21,8 @@
-  * @SOC_MBUS_PACKING_2X8_PADHI:	16 bits transferred in 2 8-bit samples, in the
-  *				possibly incomplete byte high bits are padding
-  * @SOC_MBUS_PACKING_2X8_PADLO:	as above, but low bits are padding
-+ * @SOC_MBUS_PACKING_2X10_PADHI:20 bits transferred in 2 10-bit samples. The
-+ *				high bits are padding
-  * @SOC_MBUS_PACKING_EXTEND16:	sample width (e.g., 10 bits) has to be extended
-  *				to 16 bits
-  * @SOC_MBUS_PACKING_VARIABLE:	compressed formats with variable packing
-@@ -33,6 +35,7 @@ enum soc_mbus_packing {
- 	SOC_MBUS_PACKING_NONE,
- 	SOC_MBUS_PACKING_2X8_PADHI,
- 	SOC_MBUS_PACKING_2X8_PADLO,
-+	SOC_MBUS_PACKING_2X10_PADHI,
- 	SOC_MBUS_PACKING_EXTEND16,
- 	SOC_MBUS_PACKING_VARIABLE,
- 	SOC_MBUS_PACKING_1_5X8,
--- 
-1.7.5.4
+The nice thing with Peter's wakeup idea on top is:
+- It bounds blocked times.
+- And (at least I think so) it's the key thing making PI boosting
+possible without any ugly PI inversion deadlocks happening. See
 
+Message-ID: <CAKMK7uEUdtiDDCRPwpiumkrST6suFY7YuQcPAXR_nJ0XHKzsAw@mail.gmail.com>
+
+for my current reasoning about this (I have not yet managed to poke a
+hole into it).
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
