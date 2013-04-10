@@ -1,104 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f175.google.com ([209.85.210.175]:49706 "EHLO
-	mail-ia0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760679Ab3DDUoc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 16:44:32 -0400
-Received: by mail-ia0-f175.google.com with SMTP id e16so2608510iaa.34
-        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 13:44:31 -0700 (PDT)
+Received: from mail-ie0-f176.google.com ([209.85.223.176]:47785 "EHLO
+	mail-ie0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728Ab3DJIiO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Apr 2013 04:38:14 -0400
+Received: by mail-ie0-f176.google.com with SMTP id x12so213494ief.35
+        for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 01:38:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1365094158.2609.119.camel@laptop>
-References: <20130228102452.15191.22673.stgit@patser>
-	<20130228102502.15191.14146.stgit@patser>
-	<1364900432.18374.24.camel@laptop>
-	<515AF1C1.7080508@canonical.com>
-	<1364921954.20640.22.camel@laptop>
-	<1365076908.2609.94.camel@laptop>
-	<20130404133123.GW2228@phenom.ffwll.local>
-	<1365094158.2609.119.camel@laptop>
-Date: Thu, 4 Apr 2013 22:44:31 +0200
-Message-ID: <CAKMK7uEUdtiDDCRPwpiumkrST6suFY7YuQcPAXR_nJ0XHKzsAw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <201304100848.30682.hverkuil@xs4all.nl>
+References: <1365572135-2311-1-git-send-email-tjlee@ambarella.com>
+	<1365572135-2311-2-git-send-email-tjlee@ambarella.com>
+	<201304100848.30682.hverkuil@xs4all.nl>
+Date: Wed, 10 Apr 2013 16:38:13 +0800
+Message-ID: <CAEvN+1gmv9N9e897NvqCQ2o2LCqMUDfob2T_DQ_ehZLWkjAZEA@mail.gmail.com>
+Subject: Re: [PATCH 2/2] v4l2-ctl: initial attempt to support M2M device streaming
+From: Tzu-Jung Lee <roylee17@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Tzu-Jung Lee <tjlee@ambarella.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 4, 2013 at 6:49 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
->> We've discussed this approach of using (rt-prio, age) instead of just
->> age
->> to determine the the "oldness" of a task for deadlock-breaking with
->> -EAGAIN. The problem is that through PI boosting or normal rt-prio
->> changes
->> while tasks are trying to acquire ww_mutexes you can create acyclic
->> loops
->> in the blocked-on graph of ww_mutexes after the fact and so cause
->> deadlocks. So we've convinced ourselves that this approche doesn't
->> work.
+On Wed, Apr 10, 2013 at 2:48 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Wed April 10 2013 07:35:35 Tzu-Jung Lee wrote:
+>> ---
+>>  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 189 +++++++++++++++++++++++++++++++++-
+>>  1 file changed, 188 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+>> index f8e782d..b86c467 100644
+>> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+>> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+>> @@ -1058,12 +1058,199 @@ void streaming_set_out(int fd)
+>>               fclose(fin);
+>>  }
+>>
+>> +enum stream_type {
+>> +     CAP,
+>> +     OUT,
+>> +};
+>> +
+>> +void streaming_set_m2m(int fd)
+>> +{
+>> +     int fd_flags = fcntl(fd, F_GETFL);
+>> +     bool use_poll = options[OptStreamPoll];
+>> +
+>> +     bool is_mplane = capabilities &
+>> +                     (V4L2_CAP_VIDEO_CAPTURE_MPLANE |
+>> +                              V4L2_CAP_VIDEO_OUTPUT_MPLANE |
+>> +                              V4L2_CAP_VIDEO_M2M_MPLANE);
 >
-> Could you pretty please draw me a picture, I'm having trouble seeing
-> what you mean.
+> This should only check for V4L2_CAP_VIDEO_M2M_MPLANE. Only if that is set is M2M
+> valid. I think it is probably a good idea to add some capability checks to each
+> streaming_set_*() function checking up front whether the device supports that
+> particular streaming option.
 >
-> AFAICT as long as you boost Y while its the lock owner things should
-> work out, no?
+>> +     unsigned num_planes = 1;
+>
+> num_planes may differ between capture and output, so this should be num_planes[2] = { 1, 1 }
+>
 
-So this one here took a bit of pondering. But I think you'll like the
-conclusion.
+Sure.
 
-Now the deadlock detection works because it impose a dag onto all
-lockers which clearly denotes who'll wait and who will get wounded.
-The problem with using (rt_prio, ww_age/ticket) instead of just the
-ticket si that it's ambigous in the face of PI boosting. E.g.
-- rt_prio of A > rt_prio of B, but
-- task A is younger than task B
+>> +     bool is_mmap = options[OptStreamMmap];
+>> +
+>> +     __u32 type[2];
+>> +     FILE *file[2] = {NULL, NULL};
+>> +     struct v4l2_requestbuffers reqbufs[2];
+>> +
+>> +     type[CAP] = is_mplane ?
+>> +             V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE : V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>> +
+>> +     type[OUT] = is_mplane ?
+>> +             V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE : V4L2_BUF_TYPE_VIDEO_OUTPUT;
+>> +
+>> +     memset(&reqbufs, 0, sizeof(reqbufs));
+>> +
+>> +     reqbufs[CAP].count = reqbufs_count;
+>
+> Capture and output can have different reqbufs_count values. That static needs to be
+> split up in a capture and output variant.
+>
+>> +     reqbufs[CAP].type = type[CAP];
+>> +     reqbufs[CAP].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+>> +
+>> +     reqbufs[OUT].count = reqbufs_count;
+>> +     reqbufs[OUT].type = type[OUT];
+>> +     reqbufs[OUT].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+>> +
+>> +     struct v4l2_event_subscription sub;
+>> +
+>> +     memset(&sub, 0, sizeof(sub));
+>> +     sub.type = V4L2_EVENT_EOS;
+>> +     ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
+>> +
+>> +     if (file_cap) {
+>> +             if (!strcmp(file_cap, "-"))
+>> +                     file[CAP] = stdout;
+>> +             else
+>> +                     file[CAP] = fopen(file_cap, "w+");
+>> +     }
+>> +
+>> +     if (file_out) {
+>> +             if (!strcmp(file_out, "-"))
+>> +                     file[OUT] = stdin;
+>> +             else
+>> +                     file[OUT] = fopen(file_out, "r");
+>> +     }
+>> +
+>> +     if (doioctl(fd, VIDIOC_REQBUFS, &reqbufs[CAP]) ||
+>> +         doioctl(fd, VIDIOC_REQBUFS, &reqbufs[OUT]))
+>> +             return;
+>> +
+>> +     void *buffers[2][reqbufs_count * VIDEO_MAX_PLANES];
+>> +     unsigned buffer_lengths[2][reqbufs_count * VIDEO_MAX_PLANES];
+>> +
+>> +     do_setup_cap_buffers(fd, &reqbufs[CAP], is_mplane, num_planes,
+>> +                          is_mmap, buffers[CAP], buffer_lengths[CAP]);
+>> +
+>> +     do_setup_out_buffers(fd, &reqbufs[OUT], is_mplane, num_planes,
+>> +                          is_mmap, buffers[OUT], buffer_lengths[OUT],
+>> +                          file[OUT]);
+>> +
+>> +     if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
+>> +         doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
+>> +             return;
+>> +
+>> +     if (use_poll)
+>> +             fcntl(fd, F_SETFL, fd_flags | O_NONBLOCK);
+>> +
+>> +     unsigned count[2] = { 0, 0 };
+>> +     unsigned last[2] = { 0, 0 };
+>> +     struct timeval tv_last[2];
+>> +     bool eos[2] = { false, false};
+>
+> No. eos is valid for the capture only. There is no eos[OUT].
+>
+>> +     fd_set read_fds;
+>> +     fd_set write_fds;
+>> +     fd_set exception_fds;
+>> +
+>> +     while (!eos[CAP] || !eos[OUT]) {
+>> +
+>> +             int r;
+>> +
+>> +             if (use_poll) {
+>> +                     struct timeval tv;
+>> +
+>> +                     FD_ZERO(&read_fds);
+>> +                     FD_SET(fd, &read_fds);
+>> +
+>> +                     FD_ZERO(&write_fds);
+>> +                     FD_SET(fd, &write_fds);
+>> +
+>> +                     FD_ZERO(&exception_fds);
+>> +                     FD_SET(fd, &exception_fds);
+>> +
+>> +                     /* Timeout. */
+>> +                     tv.tv_sec = 2;
+>> +                     tv.tv_usec = 0;
+>> +
+>> +                     r = select(fd + 1, &read_fds, &write_fds, &exception_fds, &tv);
+>> +
+>> +                     if (r == -1) {
+>> +                             if (EINTR == errno)
+>> +                                     continue;
+>> +                             fprintf(stderr, "select error: %s\n",
+>> +                                     strerror(errno));
+>> +                             return;
+>> +                     }
+>> +
+>> +                     if (r == 0) {
+>> +                             fprintf(stderr, "select timeout\n");
+>> +                             return;
+>> +                     }
+>> +             }
+>> +
+>> +             if (FD_ISSET(fd, &exception_fds)) {
+>> +                     struct v4l2_event ev;
+>> +
+>> +                     while (!ioctl(fd, VIDIOC_DQEVENT, &ev)) {
+>> +
+>> +                             if (ev.type != V4L2_EVENT_EOS)
+>> +                                     continue;
+>> +
+>> +                             eos[CAP] = true;
+>> +                             doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
+>> +                             break;
+>> +                     }
+>> +             }
+>> +
+>> +             if (!eos[CAP]) {
+>> +                     if (FD_ISSET(fd, &read_fds)) {
+>> +                             r  = do_handle_cap(fd, &reqbufs[CAP], is_mplane, num_planes,
+>> +                                                buffers[CAP], buffer_lengths[CAP], file[CAP],
+>> +                                                &count[CAP], &last[CAP], &tv_last[CAP]);
+>> +                             if (r < 0) {
+>> +                                     eos[CAP] = true;
+>> +                                     doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
+>> +                             }
+>> +                     }
+>> +             }
+>> +
+>> +             if (!eos[OUT]) {
+>> +                     if (FD_ISSET(fd, &write_fds)) {
+>> +                             r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes,
+>> +                                                buffers[OUT], buffer_lengths[OUT], file[OUT],
+>> +                                                &count[OUT], &last[OUT], &tv_last[OUT]);
+>> +                             if (r < 0)  {
+>> +                                     eos[OUT] = true;
+>> +
+>> +                                     if (options[OptDecoderCmd]) {
+>> +                                             doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
+>> +                                             options[OptDecoderCmd] = false;
+>> +                                     }
+>> +
+>> +                                     doioctl(fd, VIDIOC_STREAMOFF, &type[OUT]);
+>> +
+>
+> Rather than using eos[OUT], just 'break' out of the loop here.
 
-Before boosting task A wins, but after boosting (when only the age
-matters) task B wins, since it's now older. So now when B comes around
-and tries to grab a lock A currently holds, it'll also block.
+If we break out here, the unfinished captured stream will also be left
+out, isn't it?
 
-Now the cool thing with TASK_KILLABLE (hey, I start to appreciate it,
-bear with me!) is that this is no problem - it limits the length of
-any chain of blocked tasks to just one link of blocked tasks:
-- If the length is currently one it cannot be extended - the blocked
-task will set the PF_GTFO flag on the current holder, and since that
-would be checked before blocking on another ww_mutex the chain can't
-grow past one blocked task.
-- If the current holder itself is blocked on another ww_mutex it'll be
-in TASK_DEADLOCK state and get woken up.
+Oh, I'm working on a M2M device, which works with bitstreams only, and
+no frames on Linux.
+So we keep feeding input streams via the OUTPUT path, and get
+transcoded bitstream from
+CAPTURE path. In this case, we need to keep pulling out the transcoded
+bitstreams in the loop.
+I think this is also only relevant to compressed formats again.
 
-In both case the current holder of the lock will either continue with
-what it's been doing (PI-boosted ofc) until it unlocks everything or
-hits the PF_GTFO check and backs off from all currently held locks. RT
-mission accomplished I think since the wait time for the highest-prio
-task for grabbing a lock is bounded by the lock hold time for the
-completely uncontended case. And within a given rt-prio the normal
-wait/wound algorithm will resolve conflicts (and ensure forward
-progress).
-
-So I'm now rather convinced that with the TASK_DEADLOCK implementation
-we can make (rt_prio, age) lock ordering work. But it's not an
-artifact of consistent PI boosting (I've raced down that alley first
-trying to prove it to no avail), but the fact that lock holder kicking
-through PF_GTFO naturally limits blocked task chains on ww_mutexes to
-just one link. That in turn makes any post-PI-boosted considerations
-moot and so can't result in havoc due to a PI-boost having flipped an
-edge in the lock_er_ ordering DAG (we sort tasks with wait/wound, not
-locks, hence it's not a lock ordering DAG).
-
-Please poke holes into this argument, I've probably missed a sublety
-somewhere ...
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+>> +                             }
+>> +                     }
+>> +
+>> +             }
+>> +     }
+>> +
+>> +     fcntl(fd, F_SETFL, fd_flags);
+>> +     fprintf(stderr, "\n");
+>> +
+>> +     do_release_buffers(&reqbufs[CAP], num_planes, is_mmap,
+>> +                        buffers[CAP], buffer_lengths[CAP]);
+>> +
+>> +     do_release_buffers(&reqbufs[OUT], num_planes, is_mmap,
+>> +                        buffers[OUT], buffer_lengths[OUT]);
+>> +
+>> +     if (file[CAP] && file[CAP] != stdout)
+>> +             fclose(file[CAP]);
+>> +
+>> +     if (file[OUT] && file[OUT] != stdin)
+>> +             fclose(file[OUT]);
+>> +}
+>> +
+>>  void streaming_set(int fd)
+>>  {
+>>       bool do_cap = options[OptStreamMmap] || options[OptStreamUser];
+>>       bool do_out = options[OptStreamOutMmap] || options[OptStreamOutUser];
+>>
+>> -     if (do_cap)
+>> +     if (do_cap && do_out)
+>> +             streaming_set_m2m(fd);
+>> +     else if (do_cap)
+>>               streaming_set_cap(fd);
+>>       else if (do_out)
+>>               streaming_set_out(fd);
+>>
+>
+> Regards,
+>
+>         Hans
