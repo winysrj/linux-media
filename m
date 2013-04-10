@@ -1,99 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4616 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755596Ab3D1SUa (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:36133 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751586Ab3DJKz0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 14:20:30 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3SIKQEj020825
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 20:20:28 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B460011E0179
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 20:20:24 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 10 Apr 2013 06:55:26 -0400
+Received: by mail-pa0-f43.google.com with SMTP id hz11so252861pad.2
+        for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 03:55:26 -0700 (PDT)
+From: Tzu-Jung Lee <roylee17@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130428182024.B460011E0179@alastor.dyndns.org>
-Date: Sun, 28 Apr 2013 20:20:24 +0200 (CEST)
+Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
+	Tzu-Jung Lee <tjlee@ambarella.com>
+Subject: [PATCH 2/2] v4l2-ctl: initial attempt to support M2M device streaming
+Date: Wed, 10 Apr 2013 18:57:06 +0800
+Message-Id: <1365591426-23285-2-git-send-email-tjlee@ambarella.com>
+In-Reply-To: <1365591426-23285-1-git-send-email-tjlee@ambarella.com>
+References: <1365570647-28401-1-git-send-email-tjlee@ambarella.com>
+ <1365591426-23285-1-git-send-email-tjlee@ambarella.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 207 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 206 insertions(+), 1 deletion(-)
 
-Results of the daily build of media_tree:
+diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+index a180c6a..0d9553a 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+@@ -774,6 +774,15 @@ static int do_handle_cap(int fd, struct v4l2_requestbuffers *reqbufs,
+ 		}
+ 	}
+ 	*count += 1;
++
++	/*
++	 * The stream_count and stream_skip does not apply to capture path of
++	 * M2M devices.  In that case, we skip them with an early return.
++	 */
++	if ((capabilities & V4L2_CAP_VIDEO_M2M) ||
++	    (capabilities & V4L2_CAP_VIDEO_M2M_MPLANE))
++		return 0;
++
+ 	if (stream_skip) {
+ 		stream_skip--;
+ 		return 0;
+@@ -1075,12 +1084,208 @@ void streaming_set_out(int fd)
+ 		fclose(fin);
+ }
+ 
++enum stream_type {
++	CAP,
++	OUT,
++};
++
++void streaming_set_m2m(int fd)
++{
++	int fd_flags = fcntl(fd, F_GETFL);
++	bool use_poll = options[OptStreamPoll];
++
++	bool is_mplane = capabilities & V4L2_CAP_VIDEO_M2M_MPLANE;
++	unsigned num_planes[2] = {1, 1};
++	bool is_mmap = options[OptStreamMmap];
++
++	__u32 type[2];
++	FILE *file[2] = {NULL, NULL};
++	struct v4l2_requestbuffers reqbufs[2];
++
++	if (!(capabilities & V4L2_CAP_VIDEO_M2M) &&
++	    !(capabilities & V4L2_CAP_VIDEO_M2M_MPLANE)) {
++		fprintf(stderr, "unsupported stream type\n");
++		return;
++	}
++
++	type[CAP] = is_mplane ?
++		V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE : V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++	type[OUT] = is_mplane ?
++		V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE : V4L2_BUF_TYPE_VIDEO_OUTPUT;
++
++	memset(&reqbufs, 0, sizeof(reqbufs));
++
++	reqbufs[CAP].count = reqbufs_count_cap;
++	reqbufs[CAP].type = type[CAP];
++	reqbufs[CAP].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
++
++	reqbufs[OUT].count = reqbufs_count_out;
++	reqbufs[OUT].type = type[OUT];
++	reqbufs[OUT].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
++
++	struct v4l2_event_subscription sub;
++
++	memset(&sub, 0, sizeof(sub));
++	sub.type = V4L2_EVENT_EOS;
++	ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
++
++	if (file_cap) {
++		if (!strcmp(file_cap, "-"))
++			file[CAP] = stdout;
++		else
++			file[CAP] = fopen(file_cap, "w+");
++	}
++
++	if (file_out) {
++		if (!strcmp(file_out, "-"))
++			file[OUT] = stdin;
++		else
++			file[OUT] = fopen(file_out, "r");
++	}
++
++	if (doioctl(fd, VIDIOC_REQBUFS, &reqbufs[CAP]) ||
++	    doioctl(fd, VIDIOC_REQBUFS, &reqbufs[OUT]))
++		return;
++
++	void *buffers_cap[reqbufs_count_cap * VIDEO_MAX_PLANES];
++	void *buffers_out[reqbufs_count_out * VIDEO_MAX_PLANES];
++	unsigned buffer_lengths_cap[reqbufs_count_cap * VIDEO_MAX_PLANES];
++	unsigned buffer_lengths_out[reqbufs_count_out * VIDEO_MAX_PLANES];
++
++	do_setup_cap_buffers(fd, &reqbufs[CAP], is_mplane, &num_planes[CAP],
++			     is_mmap, buffers_cap, buffer_lengths_cap);
++
++	do_setup_out_buffers(fd, &reqbufs[OUT], is_mplane, &num_planes[OUT],
++			     is_mmap, buffers_out, buffer_lengths_out,
++			     file[OUT]);
++
++	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
++	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
++		return;
++
++	if (use_poll)
++		fcntl(fd, F_SETFL, fd_flags | O_NONBLOCK);
++
++	unsigned count[2] = { 0, 0 };
++	unsigned last[2] = { 0, 0 };
++	struct timeval tv_last[2];
++
++	fd_set fds[3];
++	fd_set *rd_fds = &fds[0]; /* for capture */
++	fd_set *ex_fds = &fds[1]; /* for capture */
++	fd_set *wr_fds = &fds[2]; /* for output */
++
++	while (rd_fds || wr_fds || ex_fds) {
++
++		int r;
++
++		if (use_poll) {
++			struct timeval tv;
++
++			/* Timeout. */
++			tv.tv_sec = 2;
++			tv.tv_usec = 0;
++
++			if (rd_fds) {
++				FD_ZERO(rd_fds);
++				FD_SET(fd, rd_fds);
++			}
++
++			if (ex_fds) {
++				FD_ZERO(ex_fds);
++				FD_SET(fd, ex_fds);
++			}
++
++			if (wr_fds) {
++				FD_ZERO(wr_fds);
++				FD_SET(fd, wr_fds);
++
++			}
++
++			r = select(fd + 1, rd_fds, wr_fds, ex_fds, &tv);
++
++			if (r == -1) {
++				if (EINTR == errno)
++					continue;
++				fprintf(stderr, "select error: %s\n",
++					strerror(errno));
++				return;
++			}
++
++			if (r == 0) {
++				fprintf(stderr, "select timeout\n");
++				return;
++			}
++		}
++
++		if (rd_fds && FD_ISSET(fd, rd_fds)) {
++			r  = do_handle_cap(fd, &reqbufs[CAP], is_mplane, num_planes[CAP],
++					   buffers_cap, buffer_lengths_cap, file[CAP],
++					   &count[CAP], &last[CAP], &tv_last[CAP]);
++			if (r < 0) {
++				rd_fds = NULL;
++				ex_fds = NULL;
++				doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
++			}
++		}
++
++		if (wr_fds && FD_ISSET(fd, wr_fds)) {
++			r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes[OUT],
++					   buffers_out, buffer_lengths_out, file[OUT],
++					   &count[OUT], &last[OUT], &tv_last[OUT]);
++			if (r < 0)  {
++				wr_fds = NULL;
++
++				if (options[OptDecoderCmd]) {
++					doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
++					options[OptDecoderCmd] = false;
++				}
++
++				doioctl(fd, VIDIOC_STREAMOFF, &type[OUT]);
++			}
++		}
++
++		if (ex_fds && FD_ISSET(fd, ex_fds)) {
++			struct v4l2_event ev;
++
++			while (!ioctl(fd, VIDIOC_DQEVENT, &ev)) {
++
++				if (ev.type != V4L2_EVENT_EOS)
++					continue;
++
++				rd_fds = NULL;
++				ex_fds = NULL;
++				doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
++				break;
++			}
++		}
++	}
++
++	fcntl(fd, F_SETFL, fd_flags);
++	fprintf(stderr, "\n");
++
++	do_release_buffers(&reqbufs[CAP], num_planes[CAP], is_mmap,
++			   buffers_cap, buffer_lengths_cap);
++
++	do_release_buffers(&reqbufs[OUT], num_planes[OUT], is_mmap,
++			   buffers_out, buffer_lengths_out);
++
++	if (file[CAP] && file[CAP] != stdout)
++		fclose(file[CAP]);
++
++	if (file[OUT] && file[OUT] != stdin)
++		fclose(file[OUT]);
++}
++
+ void streaming_set(int fd)
+ {
+ 	bool do_cap = options[OptStreamMmap] || options[OptStreamUser];
+ 	bool do_out = options[OptStreamOutMmap] || options[OptStreamOutUser];
+ 
+-	if (do_cap)
++	if (do_cap && do_out)
++		streaming_set_m2m(fd);
++	else if (do_cap)
+ 		streaming_set_cap(fd);
+ 	else if (do_out)
+ 		streaming_set_out(fd);
+-- 
+1.8.1.5
 
-date:		Sun Apr 28 19:00:20 CEST 2013
-git branch:	test
-git hash:	4494f0fdd825958d596d05a4bd577df94b149038
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
-
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
