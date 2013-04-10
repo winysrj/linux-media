@@ -1,101 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:54417 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755187Ab3DWNBp (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46078 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760488Ab3DJN43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 09:01:45 -0400
-Date: Tue, 23 Apr 2013 15:01:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
-In-Reply-To: <1489465.QAtJQiYEWC@avalon>
-Message-ID: <Pine.LNX.4.64.1304231435540.1422@axis700.grange>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
- <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de> <516BEB1D.80105@samsung.com>
- <1489465.QAtJQiYEWC@avalon>
+	Wed, 10 Apr 2013 09:56:29 -0400
+Date: Wed, 10 Apr 2013 14:56:27 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Barry Song <21cnbao@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"renwei.wu" <renwei.wu@csr.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
+	xiaomeng.hou@csr.com, zilong.wu@csr.com
+Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of
+ clients
+Message-ID: <20130410135627.GD9243@opensource.wolfsonmicro.com>
+References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
+ <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de>
+ <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
+ <Pine.LNX.4.64.1304101358490.13557@axis700.grange>
+ <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Dnvf+KcI+0MByPWJ"
+Content-Disposition: inline
+In-Reply-To: <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
 
-On Mon, 22 Apr 2013, Laurent Pinchart wrote:
+--Dnvf+KcI+0MByPWJ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> Hi Guennadi and Sylwester,
-> 
-> On Monday 15 April 2013 13:57:17 Sylwester Nawrocki wrote:
-> > On 04/12/2013 05:40 PM, Guennadi Liakhovetski wrote:
+On Wed, Apr 10, 2013 at 09:53:20PM +0800, Barry Song wrote:
+> 2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
 
-[snip]
+> >> what about another possible way:
+> >> we let all host and i2c client driver probed in any order,
 
-> > > +
-> > > +		if (notifier->unbind)
-> > > +			notifier->unbind(notifier, asdl);
-> > > +	}
-> > > +
-> > > +	mutex_unlock(&list_lock);
-> > > +
-> > > +	if (dev) {
-> > > +		while (i--) {
-> > > +			if (dev[i] && device_attach(dev[i]) < 0)
-> 
-> This is my last major pain point.
-> 
-> To avoid race conditions we need circular references (see http://www.mail-archive.com/linux-media@vger.kernel.org/msg61092.html). We will thus need a 
-> way to break the circle by explictly requesting the subdev to release its 
-> resources. I'm afraid I have no well-designed solution for that at the moment.
+> > This cannot work, because some I2C devices, e.g. sensors, need a clock
+> > signal from the camera interface to probe. Before the bridge driver has
+> > completed its probing and registered a suitable clock source with the
+> > v4l2-clk framework, sensors cannot be probed. And no, we don't want to
+> > fake successful probing without actually being able to talk to the
+> > hardware.
 
-I think we really can design the framework to allow a _safe_ unloading of 
-the bridge driver. An rmmod run is not an immediate death - we have time 
-to clean up and release all resources properly. As an example, I just had 
-a network interface running, but rmmod-ing of one of hardware drivers just 
-safely destroyed the interface. In our case, rmmod <bridge> should just 
-signal the subdevice to release the clock reference. Whether we have the 
-required - is a separate question.
+> i'd say same dependency also exists on ASoC.  a "fake" successful
+> probing doesn't mean it should really begin to work if there is no
+> external trigger source.  ASoC has successfully done that by a machine
+> driver to connect all DAI.
+> a way is we put all things ready in their places, finally we connect
+> them together and launch the whole hardware flow.
 
-Currently a call to v4l2_clk_get() increments the clock owner use-count. 
-This isn't a problem for soc-camera, since there the soc-camera core owns 
-the clock. For other bridge drivers they would probably own the clock 
-themselves, so, incrementing their use-count would block their modules in 
-memory. To avoid that we have to remove that use-count incrementing.
+In the ASoC case the idea is that drivers should probe as far as they
+can with just the chip and then register with the core.  The machine
+driver defers probing until all components have probed and then runs
+through second stage initialisaton which pulls everything together.
 
-The crash, described in the referenced mail can happen if the subdevice 
-driver calls (typically) v4l2_clk_enable() on a clock, that's already been 
-freed. Wouldn't a locked look-up in the global clock list in v4l2-clk.c 
-prevent such a crash? E.g.
+--Dnvf+KcI+0MByPWJ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-int v4l2_clk_enable(struct v4l2_clk *clk)
-{
-	struct v4l2_clk *tmp;
-	int ret = -ENODEV;
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-	mutex_lock(&clk_lock);
-	list_for_each_entry(tmp, &clk_list, list)
-		if (tmp == clk) {
-			ret = !try_module_get(clk->ops->owner);
-			if (ret)
-				ret = -EFAULT;
-			break;
-		}
-	mutex_unlock(&clk_lock);
+iQIcBAEBAgAGBQJRZW+AAAoJELSic+t+oim9RisP/0JnIg+nLUD6ybwBMA2Mc1d+
+GvVQVmasJue54gyGd9X+XcRXdBrtSw8UUiSI5rUFoOHIyc6ZLYz+qprpSCjIEAUz
+BRiPG2zwpEsHvdI9ys3mCtwU/9Go4pnxhGUHLtb7xHbsORxdaTyN0yiiOEwbwaAe
+9mfzBn3iZGru5vjSf7vIft/YX5rcmsMaRq9typ1b10Q1dEHJQFk3V4GVN1KbpULG
+4xEOaipv3HorsJhcEuc7r+LIXp7Zp9Yg2W5RVTTu7CDnGWmyu4ELSCDa8mWsqAdu
+80N2zDzQQHu+QZwxrGp2GPHRbBeL4Pekp3GHUXqUokWnHSHe1pTaqEvp4BpBMRUn
+UQqDJkFNNu8n3bL9UjQ7feVgo1obX4e9B1BG4Z+PWFbIViK/Q9mMU5EatSesx7Ju
+qqCIIGKG0Q8YxildXDf9y70CirkXIDyvOt42O0uxZTeQMMx5AdP0y/gvz+nPfdVw
+kReb2sXLVKvysXmvsG5B8L0FnWKB1sDDMCDCrkZowzIDkuhFZ9ZphdeUr9j/IKf7
+MjnfIGrsGos7+D/yVXBJJJ/t2JZ1IzGzNdoGhG/XYLS1hjmhj5KiBFd2k3Mr77/u
+Qa+pG7guhaCYlh+8/CcCCpabjW6wPQfjtzZ1bMjAx77grcm+jGlSJJHMdIdOd7nD
+N+AOg+yeJVJQwvabeOMk
+=XoTj
+-----END PGP SIGNATURE-----
 
-	if (ret < 0)
-		return ret;
-
-	...
-}
-
-We'd have to do a similar locked look-up in v4l2_clk_put().
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--Dnvf+KcI+0MByPWJ--
