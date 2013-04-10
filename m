@@ -1,78 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f44.google.com ([209.85.210.44]:62635 "EHLO
-	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757951Ab3DXHm1 (ORCPT
+Received: from mail-ve0-f175.google.com ([209.85.128.175]:52739 "EHLO
+	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751974Ab3DJEcY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 03:42:27 -0400
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com,
-	arunkk.samsung@gmail.com
-Subject: [RFC v2 4/6] media: fimc-lite: Fix for DMA output corruption
-Date: Wed, 24 Apr 2013 13:11:11 +0530
-Message-Id: <1366789273-30184-5-git-send-email-shaik.ameer@samsung.com>
-In-Reply-To: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
-References: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
+	Wed, 10 Apr 2013 00:32:24 -0400
+MIME-Version: 1.0
+In-Reply-To: <5154E09B.1050601@gmail.com>
+References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
+	<1362754765-2651-2-git-send-email-arun.kk@samsung.com>
+	<514DAAC3.4050202@gmail.com>
+	<CALt3h7_nXSd6A2t55fi3PD+BkpZh5Lo4suWcg-ZF=jDq+V3NXA@mail.gmail.com>
+	<51522671.5080706@gmail.com>
+	<CALt3h7_nFQdRCJJA0n4i9_CnRJAeYvu8xCkwzDsfdqBZgf_NNw@mail.gmail.com>
+	<5152F857.6010409@samsung.com>
+	<CALt3h7-Hi4E6wL-Scd-45k0SGJnhrwZ7Ks_unmwU5ognyY-nmw@mail.gmail.com>
+	<5154E09B.1050601@gmail.com>
+Date: Wed, 10 Apr 2013 10:02:23 +0530
+Message-ID: <CALt3h79HjEObqiZ5-mE05D0ohikNETM03QG4+gp+XoeZtrN0Aw@mail.gmail.com>
+Subject: Re: [RFC 01/12] exynos-fimc-is: Adding device tree nodes
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	linux-samsung-soc@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes Buffer corruption on DMA output from fimc-lite
+Hi Sylwester,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-lite-reg.c |    3 ++-
- drivers/media/platform/exynos4-is/fimc-lite.c     |   14 +++++++++-----
- 2 files changed, 11 insertions(+), 6 deletions(-)
+Sorry for the late reply.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite-reg.c b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-index a1d566a..46eda5b 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
-@@ -68,7 +68,8 @@ void flite_hw_set_interrupt_mask(struct fimc_lite *dev)
- 	if (atomic_read(&dev->out_path) == FIMC_IO_DMA) {
- 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
- 			 FLITE_REG_CIGCTRL_IRQ_LASTEN |
--			 FLITE_REG_CIGCTRL_IRQ_STARTEN;
-+			 FLITE_REG_CIGCTRL_IRQ_STARTEN |
-+			 FLITE_REG_CIGCTRL_IRQ_ENDEN;
- 	} else {
- 		/* An output to the FIMC-IS */
- 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 1b12ea8..5de2dd4 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -301,8 +301,16 @@ static irqreturn_t flite_irq_handler(int irq, void *priv)
- 
- 	if ((intsrc & FLITE_REG_CISTATUS_IRQ_SRC_FRMSTART) &&
- 	    test_bit(ST_FLITE_RUN, &fimc->state) &&
--	    !list_empty(&fimc->active_buf_q) &&
- 	    !list_empty(&fimc->pending_buf_q)) {
-+		vbuf = fimc_lite_pending_queue_pop(fimc);
-+		flite_hw_set_output_addr(fimc, vbuf->paddr,
-+					vbuf->vb.v4l2_buf.index);
-+		fimc_lite_active_queue_add(fimc, vbuf);
-+	}
-+
-+	if ((intsrc & FLITE_REG_CISTATUS_IRQ_SRC_FRMEND) &&
-+	    test_bit(ST_FLITE_RUN, &fimc->state) &&
-+	    !list_empty(&fimc->active_buf_q)) {
- 		vbuf = fimc_lite_active_queue_pop(fimc);
- 		ktime_get_ts(&ts);
- 		tv = &vbuf->vb.v4l2_buf.timestamp;
-@@ -311,10 +319,6 @@ static irqreturn_t flite_irq_handler(int irq, void *priv)
- 		vbuf->vb.v4l2_buf.sequence = fimc->frame_count++;
- 		flite_hw_clear_output_addr(fimc, vbuf->vb.v4l2_buf.index);
- 		vb2_buffer_done(&vbuf->vb, VB2_BUF_STATE_DONE);
--
--		vbuf = fimc_lite_pending_queue_pop(fimc);
--		flite_hw_set_output_addr(fimc, vbuf->paddr,
--					vbuf->vb.v4l2_buf.index);
- 	}
- 
- 	if (test_bit(ST_FLITE_CONFIG, &fimc->state))
--- 
-1.7.9.5
+>>>
+>>> OK, thanks for the explanation.
+>>>
+>>> I can think of at least one possible way to get hold of the fimc-is
+>>> context in the subdev. For instance, in subdev's .registered callback
+>>> you get a pointer to struct v4l2_device, which is normally embedded
+>>> in a top level driver's private data. Then with container_of()
+>>> you could get hold of required data at the fimc-is driver.
+>>
+>>
+>> But as per current implementation, it is not the fimc-is driver that is
+>> registering the ISP subdevs. It will be registered from the
+>> media controller driver. So fimc-is context cannot be obtained by
+>> just using container_of().
+>
+>
+> I guess best option would be to have a function to get the IS slave
+> interface driver context at the sensor subdev exported by the IS driver
+> module, as you suggested previously.
 
+Ok I will make the sensor as i2c device and check what is the best
+way to get the IS context in sensor subdev.
+
+>
+> You still could obtain the fimc-is object from the media device private
+> data structure, since the media device has normally a list of its all
+> entities in one form or the other. But the sensor would need to know
+> details of the media device, which makes it a bit pointless.
+>
+> Nevertheless, my main concern is the DT binding. Sharing the sensor
+> subdev driver might not be that important at the moment, we are talking
+> about 300..500 lines of code per ISP driver currently anyway.
+>
+> More important is to have the hardware described in a standard way, so
+> when the firmware changes there is no need to change the DT bindings.
+>
+
+Yes that's right. Need to define the hardware in a generic way regardless
+of what the firmware is doing.
+
+
+>>>
+>>
+>> In case of ISP subdevs (isp, scc and scp), there is not much configuration
+>> that the media device can do. Only control possible is to turn on/off
+>> specific scaler DMA outputs which can be done via the video node ioctls.
+>> The role of media device here is mostly to convey the pipeline structure
+>> to the user. For eg. it is not possible to directly connect isp (sd)
+>> -->  scp (sd).
+>> In the media controller pipeline1 implementation, we were planning to
+>> put immutable links between these subdevs. Is that acceptable?
+>
+>
+> Not sure I understand which links you mean exactly. Could you post the
+> media graph generated by media-ctl (--print-dot) ?
+>
+> If you're talking about the on-the-fly (FIFO) links, then it probably
+> makes sense. The media device driver should respond to the link_notify
+> events and not to allow data links unsupported in the hardware. If you
+> create immutable OTF links, then how would you switch between DMA and
+> OTF interfaces ? Or can all processing blocks of the ISP chain work
+> simultaneously with the DMA and OTF ? The FD block, for instance, can fed
+> data from memory _or_ from previous processing block in the chain, right ?
+> You will need a user interface to control which input is used and the
+> links configuration seems most natural here.
+
+Yes I agree to that. Though in the current driver, there are no subdevs which
+can change between DMA <-> OTF inputs, in future versions we might add it.
+So link configuration option will be provided.
+
+
+>
+>
+>>> The media driver has a list of media entities (subdevices and video
+>>> nodes) and I though it could coordinate any requests involving whole
+>>> video/image processing pipeline originating from /dev/video ioctls/fops.
+>>>
+>>> So for instance if /dev/video in this pipeline is opened
+>>>
+>>> sensor (sd) ->  mipi-csis (sd) ->  fimc-lite (sd) ->  memory (/dev/video)
+>>>
+>>> it would call s_power operation on the above subdevs and additionally
+>>> on e.g. the isp subdev (or any other we choose as a main subdev
+>>> implementing the FIMC-IS slave interface).
+>>>
+>>> Then couldn't it be done that video node ioctls invoke pipeline
+>>> operations, and the media device resolves any dependencies/calls
+>>> order, as in case of the exynos4 driver ?
+>>
+>>
+>> On Exynos4 subdevs, it is well and good since all the subdevs are
+>> independent IPs. Here in ISP since the same IP can take one input and
+>
+>
+> Not really, there are going to be 2 subdevs exposed by the fimc-is: ISP
+> and FD. However FD is still not supported in my last patch series. I was
+> planning this for a subsequent kernel release.
+>
+>
+>> provide multiple outputs, we designed them as separate subdevs. So
+>> here we cannot make the subdevs independent of each other where only
+>> the sequence / dependencies is controlled from the media device.
+>
+>
+> I'm not asking you to make the FIMC-IS subdevs more self-contained,
+> it's of course perfectly fine to have multiple (logical) subdevs exposed
+> by a complex device like that. I have been thinking only about the
+> sensor driver, since the sensors are normally shared across ISPs from
+> various chip manufacturers. But let us leave this topic for now.
+>
+> BTW, in my interpretation FIMC-IS is a collection of IPs/peripheral
+> devices, not a single black box, including an image sensor. And the
+> firmware should not be the most significant factor how we expose
+> the whole subsystem to the user. All elements of the ISP chain, i.e.
+> an IP control registers are visible to both, the main CPU and the
+> FIMC-IS (Cortex-A5) MCU. Still, it would be possible to create v4l2
+> subdevs dynamically, depending on the firmware architecture.
+>
+
+Ok. I will address all these comments and work on v2 patchset.
+
+Thanks for the excellent help :)
+
+Regards
+Arun
