@@ -1,63 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:43614 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753742Ab3DVVBM (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:45641 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab3DJLmz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 17:01:12 -0400
-Received: by mail-lb0-f178.google.com with SMTP id q13so20927lbi.9
-        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 14:01:10 -0700 (PDT)
-Message-ID: <5175A501.2060009@cogentembedded.com>
-Date: Tue, 23 Apr 2013 01:00:49 +0400
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+	Wed, 10 Apr 2013 07:42:55 -0400
+Date: Wed, 10 Apr 2013 14:40:51 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch] [media] radio-si476x: check different function pointers
+Message-ID: <20130410114051.GA21419@longonot.mountain>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org, matsu@igel.co.jp
-Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
-References: <201304212240.30949.sergei.shtylyov@cogentembedded.com> <201304220848.04870.hverkuil@xs4all.nl> <5174F74E.9030707@cogentembedded.com> <201304221106.20598.hverkuil@xs4all.nl> <5175A3C9.4050204@cogentembedded.com>
-In-Reply-To: <5175A3C9.4050204@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vladimir Barinov wrote:
-> Hi Hans,
->
-> Hans Verkuil wrote:
->>>>> +     */
->>>>> +    val = i2c_smbus_read_byte_data(client, STATUS_REG);
->>>>> +    if (val < 0)
->>>>> +        return val;
->>>>> +
->>>>> +    priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
->>>>>             
->>>> Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL 
->>>> standards
->>>> and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
->>>>         
->>> In the reference manual it is not mentioned about 50/60Hz input 
->>> format selection/detection but it mentioned just PAL/NTSC.
->>> The 50hz formats can be ether PAL and NTSC formats variants. The 
->>> same is applied to 60Hz.
->>>
->>> In the ML86V7667 datasheet the description for STATUS register 
->>> detection bit is just PAL/NTSC:
->>> " $2C/STATUS [2] NTSC/PAL identification 0: NTSC /1: PAL "
->>>
->>> If you assure me that I must judge their description as 50 vs 60Hz 
->>> formats and not PAL/NTSC then I will make the change.
->>>     
->>
->> I can't judge that. Are there no status bits anywhere that tell you 
->> something
->> about the number of lines per frame or the framerate?
->>   
-> You are right. I've found a relationship table with description of 
-> number of total H/V pixels vs Video Modes mentioned in datasheet.
-> It's  "NTSC" has Odd/263 and Even/262 vertical lines. The "PAL" has 
-> Odd/312 and Even/313.
-A little clarification: it's "NTSC" relates to 485 active lines (after 
-rejection of blank lines) and "PAL" relates to  578 active lines.
+This is a static checker where it complains if we check for one function
+pointer and then call a different function on the next line.
 
+In most cases, the code does the same thing before and after this patch.
+For example, when ->phase_diversity is non-NULL then ->phase_div_status
+is also non-NULL.
+
+The one place where that's not true is when we check ->rds_blckcnt
+instead of ->rsq_status.  In those cases, we would want to call
+->rsq_status but we instead return -ENOENT.
+
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Please review this carefully.  I don't have the hardware to test it.
+
+diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
+index 9430c6a..817fc0c 100644
+--- a/drivers/media/radio/radio-si476x.c
++++ b/drivers/media/radio/radio-si476x.c
+@@ -854,7 +854,7 @@ static int si476x_radio_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_SI476X_INTERCHIP_LINK:
+ 		if (si476x_core_has_diversity(radio->core)) {
+-			if (radio->ops->phase_diversity) {
++			if (radio->ops->phase_div_status) {
+ 				retval = radio->ops->phase_div_status(radio->core);
+ 				if (retval < 0)
+ 					break;
+@@ -1285,7 +1285,7 @@ static ssize_t si476x_radio_read_agc_blob(struct file *file,
+ 	struct si476x_agc_status_report report;
+ 
+ 	si476x_core_lock(radio->core);
+-	if (radio->ops->rds_blckcnt)
++	if (radio->ops->agc_status)
+ 		err = radio->ops->agc_status(radio->core, &report);
+ 	else
+ 		err = -ENOENT;
+@@ -1320,7 +1320,7 @@ static ssize_t si476x_radio_read_rsq_blob(struct file *file,
+ 	};
+ 
+ 	si476x_core_lock(radio->core);
+-	if (radio->ops->rds_blckcnt)
++	if (radio->ops->rsq_status)
+ 		err = radio->ops->rsq_status(radio->core, &args, &report);
+ 	else
+ 		err = -ENOENT;
+@@ -1355,7 +1355,7 @@ static ssize_t si476x_radio_read_rsq_primary_blob(struct file *file,
+ 	};
+ 
+ 	si476x_core_lock(radio->core);
+-	if (radio->ops->rds_blckcnt)
++	if (radio->ops->rsq_status)
+ 		err = radio->ops->rsq_status(radio->core, &args, &report);
+ 	else
+ 		err = -ENOENT;
