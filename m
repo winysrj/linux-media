@@ -1,77 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:52179 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760261Ab3DCMbO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 08:31:14 -0400
-Message-id: <515C210F.8030806@samsung.com>
-Date: Wed, 03 Apr 2013 14:31:11 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Subject: Re: [RFC 12/12] mipi-csis: Enable all interrupts for fimc-is usage
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
- <1362754765-2651-13-git-send-email-arun.kk@samsung.com>
- <513F5171.40603@samsung.com>
- <CALt3h7_zXP9M5m+4VXFGhnfpaUO+6F20hTsnR8ATF8+=CNmcrA@mail.gmail.com>
-In-reply-to: <CALt3h7_zXP9M5m+4VXFGhnfpaUO+6F20hTsnR8ATF8+=CNmcrA@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:57431 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670Ab3DKTz7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Apr 2013 15:55:59 -0400
+Received: by mail-ea0-f180.google.com with SMTP id d10so861888eaj.25
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 12:55:58 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx: improve em2710/em2820 distinction
+Date: Thu, 11 Apr 2013 21:56:47 +0200
+Message-Id: <1365710207-4974-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Chip id 18 is used by the em2710 and em2820.
+The current code assumes that if the device is a camera, the chip is an em2710 
+and an em2820 otherwise.
+But it turned out that the em2820 is also used in camera devices.
+"Silvercrest 1.3 MPix" webcams for example are available with both chips.
+Fortunately both variants are using different generic USD IDs which give us a
+hint about the used chip.
 
-On 03/13/2013 05:09 AM, Arun Kumar K wrote:
-> Hi Sylwester,
-> 
->>>
->>>  /* Interrupt mask */
->>>  #define S5PCSIS_INTMSK                       0x10
->>> -#define S5PCSIS_INTMSK_EN_ALL                0xf000103f
->>> +#define S5PCSIS_INTMSK_EN_ALL                0xfc00103f
->>
->> Do you know what interrupts are assigned to the CSIS_INTMSK
->> bits 26, 27 ? In the documentation I have they are marked
->> as reserved. I have tested this patch on Exynos4x12, it seems
->> OK but you might want to merge it to the patch adding compatible
->> property for exynos5.
-> 
-> The bits 26 and 27 are for Frame start and Frame end interrupts.
-> Yes this change can be merged with the MIPI-CSIS support for Exynos5.
-> Shaik will pick it up and merge it along with his patch series in v2.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c |   16 ++++++++--------
+ 1 Datei geändert, 8 Zeilen hinzugefügt(+), 8 Zeilen entfernt(-)
 
-OK, thanks a lot for the clarification. I tested this patch on
-Exynos4x12 and I could see twice as many interrupts from MIPI-CSIS as
-there was captured frames from the sensor. Certainly we don't want to
-see these interrupts when they are not needed. I have been thinking of
-some interface that the MIPI-CSIS subdev would provide to the media
-driver, so it can enable the interrupts when needed. I suppose a
-private subdev ioctl might be good for that. But first I think there
-is e.g. a subdev flag needed so a subdev driver can decide that it
-doesn't want to have its non-standard ioctls called from user space.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 2da17af..bec604f 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2909,6 +2909,14 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		case CHIP_ID_EM2820:
+ 			chip_name = "em2710/2820";
++			if (dev->udev->descriptor.idVendor == 0xeb1a) {
++				__le16 idProd = dev->udev->descriptor.idProduct;
++				if (le16_to_cpu(idProd) == 0x2710)
++					chip_name = "em2710";
++				else if (le16_to_cpu(idProd) == 0x2820)
++					chip_name = "em2820";
++			}
++			/* NOTE: the em2820 is used in webcams, too ! */
+ 			break;
+ 		case CHIP_ID_EM2840:
+ 			chip_name = "em2840";
+@@ -2974,14 +2982,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 
+ 	em28xx_pre_card_setup(dev);
+ 
+-	if (dev->chip_id == CHIP_ID_EM2820) {
+-		if (dev->board.is_webcam)
+-			chip_name = "em2710";
+-		else
+-			chip_name = "em2820";
+-		snprintf(dev->name, sizeof(dev->name), "%s #%d", chip_name, dev->devno);
+-	}
+-
+ 	if (!dev->board.is_em2800) {
+ 		/* Resets I2C speed */
+ 		retval = em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, dev->board.i2c_speed);
+-- 
+1.7.10.4
 
-I'll see if I can address those issues.
-
->> It would be good to know what these bits are for. And how
->> enabling the interrupts actually help without modifying the
->> interrupt handler ? Is it enough to just acknowledge those
->> interrupts ? Or how it works ?
->>
-> 
-> These interrupts are used by the FIMC-IS firmware possibly to check if the
-> sensor is working. Without enabling these, I get the error from firmware
-> on Sensor Open command.
-
-Hm, interesting... Looks like the MIPI-CSIS interrupts get routed to the
-FIMC-IS GIC. I was also wondering how the FIMC-IS receives Embedded Data
-from the MIPI CSIS IP, which is sent by an image sensor. Presumably
-FIMC-IS can memory map the Embedded Data buffer at the MIPI CSIS internal
-memory, and then it reads from there. It's just a guess though.
-
-Regards,
-Sylwester
