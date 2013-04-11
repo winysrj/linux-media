@@ -1,78 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41623 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753405Ab3DLJbf (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:34779 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208Ab3DKHsf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 05:31:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Tzu-Jung Lee <roylee17@gmail.com>
-Subject: Re: v4l2-ctl-streaming: ideas for improvements
-Date: Fri, 12 Apr 2013 11:31:36 +0200
-Message-ID: <2830033.Lm7S2aU9or@avalon>
-In-Reply-To: <201304100927.07905.hverkuil@xs4all.nl>
-References: <201304100927.07905.hverkuil@xs4all.nl>
+	Thu, 11 Apr 2013 03:48:35 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: leo@lumanate.com
+Subject: Re: [REVIEWv2 PATCH 12/12] hdpvr: allow g/s_std when in legacy mode.
+Date: Thu, 11 Apr 2013 09:47:57 +0200
+Cc: linux-media@vger.kernel.org, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <20130411002145.e7c3a0fec861aa4693105436139f36a5.dcced109aa.wbe@email18.secureserver.net>
+In-Reply-To: <20130411002145.e7c3a0fec861aa4693105436139f36a5.dcced109aa.wbe@email18.secureserver.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304110947.57864.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 10 April 2013 09:27:07 Hans Verkuil wrote:
-> Hi all,
+On Thu 11 April 2013 09:21:45 leo@lumanate.com wrote:
+> Hans,
 > 
-> Just in case someone has time to work on this: I thought I'd write down some
-> of the ideas I have to improve the streaming code in v4l2-ctl:
+> The current HEAD is working for both MythTV and gstreamer!
 > 
-> 1) Add an option to select between limited and full range colors.
-> 
-> 2) Add more test patterns:
-> 	- solid colors: black, white, red, green, blue, cyan, yellow, magenta.
-> 	- grey 'color' bar
-> 	- grey ramp
-> 	- a pattern containing SAV and EAV codes in each plane (perhaps this
-> 	  should be a separate option, 'overlaying' those codes): this is a very
-> 	  nasty test case that can be used to test proper handling of such codes
-> 	  in an image.
-> 	- moving patterns
-> 	- horizontal colorbars
-> 	- thin lines: horizontal, vertical, both.
-> 	- random contents
+> Will you be doing more work on hdpvr? Should I start
+> looking into error handling and kmallocs?
 
-I've implemented support for generating test patterns in both my fbdev-test 
-program (http://git.ideasonboard.org/fbdev-test.git) and in the libdrm 
-modetest program. Maybe we should consider splitting that to a shared library.
+No, that's it. I'll post a pull request with all this tomorrow.
 
-> 3) For the capture side add pattern validation: check that the contents you
->    captured matches the given pattern. Very useful for testing.
-> 
-> 4) Add support for capturing/displaying frames with different sizes (e.g.
->    compressed streams). Currently the output just appends all planes/frames
->    together without writing the plane/frame sizes anywhere. The input
-> assumes fixed sized planes/frames. We probably need to add a meta file that
-> contains the 'bytesused' values. Perhaps that file should also contain
-> format information that can be used later.
-> 
-> 5) Add some support to give keyboard commands when streaming. E.g. 'q' to
-> stop streaming gracefully (and so also ensure that all the data is written
-> to file, something that doesn't happen with ctrl-c).
-> 
->    Other commands for the future are encoder/decoder commands such as
-> speeding up or down.
-> 
-> 6) MPEG encoders can generate an index file (VIDIOC_G_ENC_INDEX). Add an
-> option to generate that and to use it when decoding. I actually have some
-> old test application that does just that, and that also has encoder/decoder
-> command support (see item 5 above): http://ivtvdriver.org/svn/ivtvtv
-> 
-> 7) Add VBI streaming support. Split off the VBI code from qv4l2 into a
-> library and use that in v4l2-ctl to slice the raw VBI and to interpret the
-> data. That should replace the vbi-test.c, sliced-vbi-detect.c and
-> sliced-vbi-test.c utilities in contrib.
+Feel free to work on improvements, but they'll be queued for kernel 3.11
+since tomorrow is the last chance for patches for 3.10.
 
--- 
+Thanks for your help testing this! Much appreciated.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> Thank you,
+> -Leo.
+> 
+> 
+> -------- Original Message --------
+> Subject: Re: [REVIEWv2 PATCH 12/12] hdpvr: allow g/s_std when in legacy
+> mode.
+> From: Hans Verkuil <hansverk@cisco.com>
+> Date: Wed, April 10, 2013 10:25 am
+> To: linux-media@vger.kernel.org
+> Cc: leo@lumanate.com, Janne Grunau <j@jannau.net>, Hans Verkuil
+> <hans.verkuil@cisco.com>
+> 
+> On Wed April 10 2013 18:27:43 Hans Verkuil wrote:
+> > Leo, can you verify that this works for you as well? I tested it without
+> > problems with MythTV and gstreamer.
+> > 
+> > Thanks!
+> > 
+> > Hans
+> > 
+> > Both MythTV and gstreamer expect that they can set/get/query/enumerate the
+> > standards, even if the input is the component input for which standards
+> > really do not apply.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> > drivers/media/usb/hdpvr/hdpvr-video.c | 40 ++++++++++++++++++++++++---------
+> > 1 file changed, 29 insertions(+), 11 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+> > index 4376309..38724d7 100644
+> > --- a/drivers/media/usb/hdpvr/hdpvr-video.c
+> > +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+> 
+> 
+> > -static int vidioc_enum_input(struct file *file, void *priv,
+> > - struct v4l2_input *i)
+> > +static int vidioc_enum_input(struct file *file, void *_fh, struct v4l2_input *i)
+> > {
+> > + struct hdpvr_fh *fh = _fh;
+> > unsigned int n;
+> > 
+> > n = i->index;
+> > @@ -758,13 +761,15 @@ static int vidioc_enum_input(struct file *file, void *priv,
+> > 
+> > i->audioset = 1<<HDPVR_RCA_FRONT | 1><<HDPVR_RCA_BACK | 1><<HDPVR_SPDIF;
+> > 
+> > + if (fh->legacy_mode)
+> > + n = 1;
+> 
+> Oops, these two lines should be removed. Otherwise non-legacy apps like
+> qv4l2 will
+> break as they rely on accurate capability reporting.
+> 
+> > i->capabilities = n ? V4L2_IN_CAP_STD : V4L2_IN_CAP_DV_TIMINGS;
+> > i->std = n ? V4L2_STD_ALL : 0;
+> > 
+> > return 0;
+> > }
+> 
+> Regards,
+> 
+>  Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> 
