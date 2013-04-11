@@ -1,65 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57642 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754535Ab3DROE6 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:37125 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000Ab3DKNjq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 10:04:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Igor Kugasyan <kugasyan@hotmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: mt9v034 driver
-Date: Thu, 18 Apr 2013 16:05:03 +0200
-Message-ID: <2715596.SBgtSHN5Uy@avalon>
-In-Reply-To: <Pine.LNX.4.64.1304171609080.16330@axis700.grange>
-References: <DUB112-W5AD3C17EE426206DFAEF9D2CE0@phx.gbl> <Pine.LNX.4.64.1304171609080.16330@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 11 Apr 2013 09:39:46 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ML300MISF75A2C0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Apr 2013 14:39:45 +0100 (BST)
+Message-id: <5166BD1F.7050707@samsung.com>
+Date: Thu, 11 Apr 2013 15:39:43 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	'Tzu-Jung Lee' <roylee17@gmail.com>
+Subject: Re: Exact behavior of the EOS event?
+References: <201304111140.48548.hverkuil@xs4all.nl>
+ <04b201ce36b1$a6bda200$f438e600$%debski@samsung.com>
+ <201304111451.58459.hverkuil@xs4all.nl>
+In-reply-to: <201304111451.58459.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
+Hi Hans, Kamil and Roy,
 
-On Wednesday 17 April 2013 16:15:59 Guennadi Liakhovetski wrote:
-> On Wed, 17 Apr 2013, Igor Kugasyan wrote:
-> > Dear Mr. Guennadi,
-> > 
-> > Please tell me can I use the soc_camera_ (soc_camera.h, soc_camera.c)
-> > interface for a mt9v034 driver as a mt9v022 driver or not?
-> 
-> I don't know anything about mt9v034. It might or might not be compatible
-> with one of supported cameras. If it isn't, a new driver has to be
-> developed.
+On 11.04.2013 14:51, Hans Verkuil wrote:
+> On Thu 11 April 2013 14:39:44 Kamil Debski wrote:
+>> Hi Hans,
+>>
+>>> -----Original Message-----
+>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>> Sent: Thursday, April 11, 2013 11:41 AM
+>>> To: k.debski@samsung.com
+>>> Cc: linux-media@vger.kernel.org; Tzu-Jung Lee
+>>> Subject: Exact behavior of the EOS event?
+>>>
+>>> Hi Kamil, Roy,
+>>>
+>>> When implementing eos support in v4l2-ctl I started wondering about the
+>>> exact timings of that.
+>>>
+>>> There are two cases, polling and non-polling, and I'll explain how I do
+>>> it now in v4l2-ctl.
+>>>
+>>> Polling case:
+>>>
+>>> I select for both read and exceptions. When the select returns I check
+>>> for exceptions and call DQEVENT, which may return EOS.
+>>>
+>>> If there is something to read then I call DQBUF to get the frame,
+>>> process it and afterwards exit the capture loop if the EOS event was
+>>> seen.
+>>>
+>>> This procedure assumes that setting the event and making the last frame
+>>> available to userspace happen atomically, otherwise you can get a race
+>>> condition.
+>>>
+>>> Non-polling case:
+>>>
+>>> I select for an exception with a timeout of 0 (i.e. returns
+>>> immediately), then I call DQBUF (which may block), process the frame
+>>> and exit if EOS was seen.
+>>>
+>>> I suspect this is wrong, since when I call select the EOS may not be
+>>> set yet, but it is after the DQBUF. So in the next run through the
+>>> capture loop I capture one frame too many.
+>>>
+>>>
+>>> What I think is the correct sequence is to first select for a read(),
+>>> but not exceptions, then do the DQBUF, and finally do a select for
+>>> exceptions with a timeout of 0. If EOS was seen, then that was the last
+>>> frame.
+>>>
+>>> A potential problem with that might be when you want to select on other
+>>> events as well. Then you would select on both read and exceptions, and
+>>> we end up with a potential race condition again. The only solution I
+>>> see is to open a second filehandle to the video node and subscribe to
+>>> the EOS event only for that filehandle and use that to do the EOS
+>>> polling.
+>>
+>> This would work if we have a single context only. In case of mem2mem
+>> devices, where there is a separate context for each file this would not
+>> work.
+>
+> True.
+>
+> Another idea was to set an EOS buffer flag for the last buffer, but I think
+> I remember that your driver won't know it is the last one until later, right?
+>
+> Perhaps we should implement the EOS buffer flag idea after all. If that flag
+> is set, then if the buffer is empty, then that buffer should be discarded,
+> if it is not, then that was the last buffer.
+>
+> The EOS event was originally designed for a decoder where you want to know
+> when the decoder finished decoding your last frame.
+>
+> It's now being used for capture streams were it is not a good fit, IMHO.
 
-I've put someone on that, so we should get mt9v034 support in mainline in the 
-not too distant future.
+After rejecting my RFC with EOS flag on buffers about year ago I have 
+implemented EOS in MFC encoder using v4l2 events. In my implementation 
+EOS event is sent always AFTER the last buffer of the stream was 
+dequeued to the application. Additionally if there is a buffer in DQBUF, 
+driver marks it done with payload 0. This way apps are able to work in 
+both polling and non-polling mode.
 
-> > I've read your Video4Linux soc-camera subsystem document and not found a
-> > mt9v034 among client drivers. I have the Leopard Board 368 (LI-TB02) with
-> > the WVGA camera
-> 
-> No, you cannot use soc-camera with Leopard Board. Its camera interface
-> might be supported by some other driver, but I'm not sure about that.
-> 
-> >           LI-VM34LP but I haven't a mt9v034 driver for my camera
-> > 
-> > for the linux-2.6.32 kernel with RidgeRun
-> 
-> Don't think there's anything that can be done with any kernel apart from
-> the current -next, i.e. the forthcoming 3.10.
-> 
-> >           2011Q2 SDK for LeopardBoardDM365 and
-> > 
-> > dvsdk_dm365-evm_4_02_00_06. I haven't sufficient experience for
-> > comprehension but I learn...
-> 
-> The only possibility I see is to use a current kernel, adapt an existing
-> or write a new camera sensor driver for mt9v034 and use it with the
-> appropriate SoC camera interface driver.
+Anyway EOS using events seems to be more difficult/error prone to both 
+drivers and apps.
 
--- 
-Regards,
+Thinking about it on higher level of abstraction end-of-stream as a 
+concept IMO better fits to stream/queue than to asynchronous events.
 
-Laurent Pinchart
+>
+> Regards,
+>
+> 	Hans
+>
+
+Regards
+Andrzej
 
