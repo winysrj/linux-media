@@ -1,74 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:53457 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753859Ab3DVU4A (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:14102 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934227Ab3DKMwj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 16:56:00 -0400
-Received: by mail-lb0-f182.google.com with SMTP id v20so14003lbc.27
-        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 13:55:59 -0700 (PDT)
-Message-ID: <5175A3C9.4050204@cogentembedded.com>
-Date: Tue, 23 Apr 2013 00:55:37 +0400
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+	Thu, 11 Apr 2013 08:52:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: Exact behavior of the EOS event?
+Date: Thu, 11 Apr 2013 14:51:58 +0200
+Cc: linux-media@vger.kernel.org, "'Tzu-Jung Lee'" <roylee17@gmail.com>
+References: <201304111140.48548.hverkuil@xs4all.nl> <04b201ce36b1$a6bda200$f438e600$%debski@samsung.com>
+In-Reply-To: <04b201ce36b1$a6bda200$f438e600$%debski@samsung.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org, matsu@igel.co.jp
-Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
-References: <201304212240.30949.sergei.shtylyov@cogentembedded.com> <201304220848.04870.hverkuil@xs4all.nl> <5174F74E.9030707@cogentembedded.com> <201304221106.20598.hverkuil@xs4all.nl>
-In-Reply-To: <201304221106.20598.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304111451.58459.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Thu 11 April 2013 14:39:44 Kamil Debski wrote:
+> Hi Hans,
+> 
+> > -----Original Message-----
+> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> > Sent: Thursday, April 11, 2013 11:41 AM
+> > To: k.debski@samsung.com
+> > Cc: linux-media@vger.kernel.org; Tzu-Jung Lee
+> > Subject: Exact behavior of the EOS event?
+> > 
+> > Hi Kamil, Roy,
+> > 
+> > When implementing eos support in v4l2-ctl I started wondering about the
+> > exact timings of that.
+> > 
+> > There are two cases, polling and non-polling, and I'll explain how I do
+> > it now in v4l2-ctl.
+> > 
+> > Polling case:
+> > 
+> > I select for both read and exceptions. When the select returns I check
+> > for exceptions and call DQEVENT, which may return EOS.
+> > 
+> > If there is something to read then I call DQBUF to get the frame,
+> > process it and afterwards exit the capture loop if the EOS event was
+> > seen.
+> > 
+> > This procedure assumes that setting the event and making the last frame
+> > available to userspace happen atomically, otherwise you can get a race
+> > condition.
+> > 
+> > Non-polling case:
+> > 
+> > I select for an exception with a timeout of 0 (i.e. returns
+> > immediately), then I call DQBUF (which may block), process the frame
+> > and exit if EOS was seen.
+> > 
+> > I suspect this is wrong, since when I call select the EOS may not be
+> > set yet, but it is after the DQBUF. So in the next run through the
+> > capture loop I capture one frame too many.
+> > 
+> > 
+> > What I think is the correct sequence is to first select for a read(),
+> > but not exceptions, then do the DQBUF, and finally do a select for
+> > exceptions with a timeout of 0. If EOS was seen, then that was the last
+> > frame.
+> > 
+> > A potential problem with that might be when you want to select on other
+> > events as well. Then you would select on both read and exceptions, and
+> > we end up with a potential race condition again. The only solution I
+> > see is to open a second filehandle to the video node and subscribe to
+> > the EOS event only for that filehandle and use that to do the EOS
+> > polling.
+> 
+> This would work if we have a single context only. In case of mem2mem
+> devices, where there is a separate context for each file this would not
+> work.
 
-Hans Verkuil wrote:
->>>> +	 */
->>>> +	val = i2c_smbus_read_byte_data(client, STATUS_REG);
->>>> +	if (val < 0)
->>>> +		return val;
->>>> +
->>>> +	priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
->>>>     
->>>>         
->>> Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL standards
->>> and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
->>>   
->>>       
->> In the reference manual it is not mentioned about 50/60Hz input format 
->> selection/detection but it mentioned just PAL/NTSC.
->> The 50hz formats can be ether PAL and NTSC formats variants. The same is 
->> applied to 60Hz.
->>
->> In the ML86V7667 datasheet the description for STATUS register detection 
->> bit is just PAL/NTSC:
->> " $2C/STATUS [2] NTSC/PAL identification 0: NTSC /1: PAL "
->>
->> If you assure me that I must judge their description as 50 vs 60Hz 
->> formats and not PAL/NTSC then I will make the change.
->>     
->
-> I can't judge that. Are there no status bits anywhere that tell you something
-> about the number of lines per frame or the framerate?
->   
-You are right. I've found a relationship table with description of 
-number of total H/V pixels vs Video Modes mentioned in datasheet.
-It's  "NTSC" has Odd/263 and Even/262 vertical lines. The "PAL" has 
-Odd/312 and Even/313.
-So I will change the standard per your suggestion.
-> Are you able to test with a PAL-M or PAL-N(c) input?
->   
-Unfortunately I cannot. I have a couple of different cameras and all of 
-them mention PAL output with number of lines in the technical manual. 
-All of them are 625 lines.
-> Can you ask the manufacturer for more information?
->   
-It can take a while for waiting their feedback since OKI was 
-significantly reorganized.
+True.
 
-Than you very much for your valuable feedback/review.
+Another idea was to set an EOS buffer flag for the last buffer, but I think
+I remember that your driver won't know it is the last one until later, right?
+
+Perhaps we should implement the EOS buffer flag idea after all. If that flag
+is set, then if the buffer is empty, then that buffer should be discarded,
+if it is not, then that was the last buffer.
+
+The EOS event was originally designed for a decoder where you want to know
+when the decoder finished decoding your last frame.
+
+It's now being used for capture streams were it is not a good fit, IMHO.
 
 Regards,
-Vladimir
+
+	Hans
