@@ -1,132 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:37256 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752245Ab3DZNjk (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:38682 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934862Ab3DKQwa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 09:39:40 -0400
-Date: Fri, 26 Apr 2013 10:39:19 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] saa7115: add detection code for gm7113c
-Message-ID: <20130426133917.GA20185@localhost>
-References: <1366980557-23077-1-git-send-email-mchehab@redhat.com>
- <1366980557-23077-3-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1366980557-23077-3-git-send-email-mchehab@redhat.com>
+	Thu, 11 Apr 2013 12:52:30 -0400
+Received: by mail-pb0-f47.google.com with SMTP id rq13so952000pbb.34
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 09:52:29 -0700 (PDT)
+From: Tzu-Jung Lee <roylee17@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
+	Tzu-Jung Lee <tjlee@ambarella.com>
+Subject: [PATCH] v4l2-ctl: add is_compressed_format() helper
+Date: Fri, 12 Apr 2013 00:54:07 +0800
+Message-Id: <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
+In-Reply-To: <1365695281-21227-1-git-send-email-tjlee@ambarella.com>
+References: <1365695281-21227-1-git-send-email-tjlee@ambarella.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 26, 2013 at 09:49:17AM -0300, Mauro Carvalho Chehab wrote:
-> Adds a code that (auto)detects gm7113c clones. The auto-detection
-> here is not perfect, as, on contrary to what it would be expected
-> by looking into its datasheets some devices would return, instead:
-> 
-> 	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
-> 
-> (found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-chip-ident.h |  2 ++
->  2 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> index 2bc8b72..24672a7 100644
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -1640,6 +1640,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
->  		}
->  	}
->  
-> +	/* Check if it is a gm1113c */
+It is used to:
 
-s/1113/7113
+  bypass precalculate_bars() for OUTPUT device
+  that takes encoded bitstreams.
 
-> +	if (!memcmp(name, "0000", 4)) {
-> +		chip_id = 0;
-> +		for (i = 0; i < 4; i++) {
-> +			chip_id = chip_id << 1;
-> +			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
-> +		}
-> +
-> +		/*
-> +		 * Note: From the datasheet, only versions 1 and 2
-> +		 * exists. However, tests on a device labeled as:
-> +		 *	"GM7113C 1145" returned "10" on all 16 chip
-> +		 *	version (reg 0x00) reads. So, we need to also
-> +		 *	accept at least verion 0. For now, let's just
-> +		 *	assume that a device that returns "0000" for
-> +		 *	the lower nibble is a gm1113c.
+  handle the last chunk of input file that has
+  non-buffer-aligned size.
 
-Is this weird comment indentation correct?
+Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 101 +++++++++++++++++++++++++++-------
+ 1 file changed, 82 insertions(+), 19 deletions(-)
 
-And also:
-s/1113/7113
-
-> +		 */
-> +
-> +		snprintf(name, size, "gm1113c");
-
-Ditto.
-
-> +
-> +		if (!autodetect && strcmp(name, id->name))
-> +			return -EINVAL;
-> +
-> +		v4l_dbg(1, debug, client,
-> +			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
-> +			name, 16, chip_ver, client->addr << 1);
-> +
-> +		return V4L2_IDENT_GM7113C;
-> +	}
-> +
->  	/* Chip was not discovered. Return its ID and don't bind */
->  	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
->  		16, chip_ver, client->addr << 1);
-> @@ -1669,6 +1699,11 @@ static int saa711x_probe(struct i2c_client *client,
->  	if (ident < 0)
->  		return ident;
->  
-> +	if (ident == V4L2_IDENT_GM7113C) {
-> +		v4l_warn(client, "%s not yet supported\n", name);
-> +		return -ENODEV;
-> +	}
-> +
->  	strlcpy(client->name, name, sizeof(client->name));
->  
->  	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
-> @@ -1756,6 +1791,7 @@ static const struct i2c_device_id saa711x_id[] = {
->  	{ "saa7114", 0 },
->  	{ "saa7115", 0 },
->  	{ "saa7118", 0 },
-> +	{ "gm7113c", 0 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, saa711x_id);
-> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> index c259b36..543f89c 100644
-> --- a/include/media/v4l2-chip-ident.h
-> +++ b/include/media/v4l2-chip-ident.h
-> @@ -52,6 +52,8 @@ enum {
->  	V4L2_IDENT_SAA7115 = 105,
->  	V4L2_IDENT_SAA7118 = 108,
->  
-> +	V4L2_IDENT_GM7113C = 140,
-> +
->  	/* module saa7127: reserved range 150-199 */
->  	V4L2_IDENT_SAA7127 = 157,
->  	V4L2_IDENT_SAA7129 = 159,
-> -- 
-> 1.8.1.4
-> 
-
+diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+index 9e361af..2bcf950 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+@@ -115,6 +115,29 @@ static const flag_def tc_flags_def[] = {
+ 	{ 0, NULL }
+ };
+ 
++static bool is_compressed_format(__u32 pixfmt)
++{
++	switch (pixfmt) {
++	case V4L2_PIX_FMT_MJPEG:
++	case V4L2_PIX_FMT_JPEG:
++	case V4L2_PIX_FMT_DV:
++	case V4L2_PIX_FMT_MPEG:
++	case V4L2_PIX_FMT_H264:
++	case V4L2_PIX_FMT_H264_NO_SC:
++	case V4L2_PIX_FMT_H263:
++	case V4L2_PIX_FMT_MPEG1:
++	case V4L2_PIX_FMT_MPEG2:
++	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_XVID:
++	case V4L2_PIX_FMT_VC1_ANNEX_G:
++		return true;
++	default:
++		return false;
++	}
++
++	return false;
++}
++
+ static void print_buffer(FILE *f, struct v4l2_buffer &buf)
+ {
+ 	fprintf(f, "\tIndex    : %d\n", buf.index);
+@@ -223,23 +246,29 @@ void streaming_cmd(int ch, char *optarg)
+ }
+ 
+ static bool fill_buffer_from_file(void *buffers[], unsigned buffer_lengths[],
+-		unsigned buf_index, unsigned num_planes, FILE *fin)
++				  unsigned buffer_bytesused[], unsigned buf_index,
++				  unsigned num_planes, bool is_compressed, FILE *fin)
+ {
+ 	for (unsigned j = 0; j < num_planes; j++) {
+ 		unsigned p = buf_index * num_planes + j;
+ 		unsigned sz = fread(buffers[p], 1,
+ 				buffer_lengths[p], fin);
+ 
++		buffer_bytesused[j] = sz;
+ 		if (j == 0 && sz == 0 && stream_loop) {
+ 			fseek(fin, 0, SEEK_SET);
+ 			sz = fread(buffers[p], 1,
+ 					buffer_lengths[p], fin);
++
++			buffer_bytesused[j] = sz;
+ 		}
+ 		if (sz == buffer_lengths[p])
+ 			continue;
+-		if (sz)
++
++		// Bail out if we get weird buffer sizes or non-compressed format.
++		if (sz && !is_compressed)
+ 			fprintf(stderr, "%u != %u\n", sz, buffer_lengths[p]);
+-		// Bail out if we get weird buffer sizes.
++
+ 		return false;
+ 	}
+ 	return true;
+@@ -312,16 +341,22 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 				 bool is_mplane, unsigned &num_planes, bool is_mmap,
+ 				 void *buffers[], unsigned buffer_lengths[], FILE *fin)
+ {
++	bool is_compressed;
++
+ 	struct v4l2_format fmt;
+ 	memset(&fmt, 0, sizeof(fmt));
+ 	fmt.type = reqbufs->type;
+ 	doioctl(fd, VIDIOC_G_FMT, &fmt);
+ 
+-	if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++	if (!is_compressed &&
++	    !precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
+ 		fprintf(stderr, "unsupported pixelformat\n");
+ 		return;
+ 	}
+ 
++	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
++
+ 	for (unsigned i = 0; i < reqbufs->count; i++) {
+ 		struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 		struct v4l2_buffer buf;
+@@ -363,11 +398,11 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 			// TODO fill_buffer_mp(buffers[i], &fmt.fmt.pix_mp);
+ 			if (fin)
+ 				fill_buffer_from_file(buffers, buffer_lengths,
+-						      buf.index, num_planes, fin);
++						      buffer_bytesused, buf.index,
++						      num_planes, is_compressed, fin);
+ 		}
+ 		else {
+ 			buffer_lengths[i] = buf.length;
+-			buf.bytesused = buf.length;
+ 			if (is_mmap) {
+ 				buffers[i] = mmap(NULL, buf.length,
+ 						  PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
+@@ -381,9 +416,16 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 				buffers[i] = calloc(1, buf.length);
+ 				buf.m.userptr = (unsigned long)buffers[i];
+ 			}
+-			if (!fin || !fill_buffer_from_file(buffers, buffer_lengths,
+-							   buf.index, num_planes, fin))
++
++			if (fin && fill_buffer_from_file(buffers, buffer_lengths,
++							 buffer_bytesused, buf.index,
++							 num_planes, is_compressed,
++							 fin)) {
++				buf.bytesused = buffer_bytesused[0];
++			}
++			else {
+ 				fill_buffer(buffers[i], &fmt.fmt.pix);
++			}
+ 		}
+ 		if (doioctl(fd, VIDIOC_QBUF, &buf))
+ 			return;
+@@ -511,12 +553,13 @@ static int do_handle_cap(int fd, struct v4l2_requestbuffers *reqbufs,
+ }
+ 
+ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
+-			 bool is_mplane, unsigned num_planes,
++			 bool is_compressed, bool is_mplane, unsigned num_planes,
+ 			 void *buffers[], unsigned buffer_lengths[], FILE *fin,
+ 			 unsigned &count, unsigned &last, struct timeval &tv_last)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct v4l2_buffer buf;
++	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
+ 	int ret;
+ 
+ 	memset(&buf, 0, sizeof(buf));
+@@ -535,14 +578,17 @@ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
+ 		fprintf(stderr, "%s: failed: %s\n", "VIDIOC_DQBUF", strerror(errno));
+ 		return -1;
+ 	}
+-	if (fin && !fill_buffer_from_file(buffers, buffer_lengths,
+-					  buf.index, num_planes, fin))
++	if (fin &&!fill_buffer_from_file(buffers, buffer_lengths,
++					 buffer_bytesused, buf.index,
++					 num_planes, is_compressed,
++					 fin)) {
+ 		return -1;
++	}
+ 	if (is_mplane) {
+ 		for (unsigned j = 0; j < buf.length; j++)
+-			buf.m.planes[j].bytesused = buf.m.planes[j].length;
++			buf.m.planes[j].bytesused = buffer_bytesused[j];
+ 	} else {
+-		buf.bytesused = buf.length;
++		buf.bytesused = buffer_bytesused[0];
+ 	}
+ 	if (test_ioctl(fd, VIDIOC_QBUF, &buf))
+ 		return -1;
+@@ -688,7 +734,9 @@ static void streaming_set_cap(int fd)
+ static void streaming_set_out(int fd)
+ {
+ 	struct v4l2_requestbuffers reqbufs;
++	struct v4l2_format fmt;
+ 	int fd_flags = fcntl(fd, F_GETFL);
++	bool is_compressed;
+ 	bool is_mplane = capabilities &
+ 			(V4L2_CAP_VIDEO_OUTPUT_MPLANE |
+ 				 V4L2_CAP_VIDEO_M2M_MPLANE);
+@@ -710,6 +758,12 @@ static void streaming_set_out(int fd)
+ 	reqbufs.type = type;
+ 	reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+ 
++	memset(&fmt, 0, sizeof(fmt));
++	fmt.type = reqbufs.type;
++	doioctl(fd, VIDIOC_G_FMT, &fmt);
++
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++
+ 	if (file_out) {
+ 		if (!strcmp(file_out, "-"))
+ 			fin = stdin;
+@@ -765,9 +819,9 @@ static void streaming_set_out(int fd)
+ 				return;
+ 			}
+ 		}
+-		r = do_handle_out(fd, &reqbufs, is_mplane, num_planes,
+-				   buffers, buffer_lengths, fin,
+-				   count, last, tv_last);
++		r = do_handle_out(fd, &reqbufs, is_compressed, is_mplane,
++				  num_planes, buffers, buffer_lengths,
++				  fin, count, last, tv_last);
+ 		if (r == -1)
+ 			break;
+ 
+@@ -795,6 +849,9 @@ enum stream_type {
+ 
+ static void streaming_set_m2m(int fd)
+ {
++	struct v4l2_format fmt;
++	bool is_compressed;
++
+ 	int fd_flags = fcntl(fd, F_GETFL);
+ 	bool use_poll = options[OptStreamPoll];
+ 
+@@ -864,6 +921,12 @@ static void streaming_set_m2m(int fd)
+ 			     is_mmap, buffers_out, buffer_lengths_out,
+ 			     file[OUT]);
+ 
++	memset(&fmt, 0, sizeof(fmt));
++	fmt.type = reqbufs[OUT].type;
++	doioctl(fd, VIDIOC_G_FMT, &fmt);
++
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++
+ 	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
+ 	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
+ 		return;
+@@ -927,9 +990,9 @@ static void streaming_set_m2m(int fd)
+ 		}
+ 
+ 		if (wr_fds && FD_ISSET(fd, wr_fds)) {
+-			r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes[OUT],
+-					   buffers_out, buffer_lengths_out, file[OUT],
+-					   count[OUT], last[OUT], tv_last[OUT]);
++			r  = do_handle_out(fd, &reqbufs[OUT], is_compressed, is_mplane,
++					   num_planes[OUT], buffers_out, buffer_lengths_out,
++					   file[OUT], count[OUT], last[OUT], tv_last[OUT]);
+ 			if (r < 0)  {
+ 				wr_fds = NULL;
+ 
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.8.1.5
+
