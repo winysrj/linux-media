@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:38383 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752690Ab3DKWFx (ORCPT
+Received: from mail-ea0-f179.google.com ([209.85.215.179]:60907 "EHLO
+	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751670Ab3DKTzC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 18:05:53 -0400
-Received: by mail-lb0-f174.google.com with SMTP id s10so2073849lbi.33
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 15:05:52 -0700 (PDT)
-To: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: [PATCH 1/2] adv8170: fix querystd() method for no input signal
-Cc: vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Fri, 12 Apr 2013 02:04:51 +0400
+	Thu, 11 Apr 2013 15:55:02 -0400
+Received: by mail-ea0-f179.google.com with SMTP id f15so904396eak.24
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 12:55:01 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH] em28xx: fix snapshot button support
+Date: Thu, 11 Apr 2013 21:56:01 +0200
+Message-Id: <1365710161-4939-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304120204.51735.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+The snapshot button support is currently broken, because module em28xx-rc is
+loaded only if the device has remote control support.
+Fix it by also loading this module if the device has a snapshot button.
 
-When the input signal is not detected querystd() method should return
-V4L2_STD_UNKNOWN instead of previously latched analog video standard.
-
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
- drivers/media/i2c/adv7180.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/usb/em28xx/em28xx-cards.c |    3 ++-
+ 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
 
-Index: linux/drivers/media/i2c/adv7180.c
-===================================================================
---- linux.orig/drivers/media/i2c/adv7180.c
-+++ linux/drivers/media/i2c/adv7180.c
-@@ -135,6 +135,10 @@ struct adv7180_state {
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 085b8fc..2da17af 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2810,7 +2810,8 @@ static void request_module_async(struct work_struct *work)
  
- static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
- {
-+	/* in case V4L2_IN_ST_NO_SIGNAL */
-+	if (!(status1 & ADV7180_STATUS1_IN_LOCK))
-+		return V4L2_STD_UNKNOWN;
-+
- 	switch (status1 & ADV7180_STATUS1_AUTOD_MASK) {
- 	case ADV7180_STATUS1_AUTOD_NTSM_M_J:
- 		return V4L2_STD_NTSC;
+ 	if (dev->board.has_dvb)
+ 		request_module("em28xx-dvb");
+-	if ((dev->board.ir_codes || dev->board.has_ir_i2c) && !disable_ir)
++	if (dev->board.has_snapshot_button ||
++	    ((dev->board.ir_codes || dev->board.has_ir_i2c) && !disable_ir))
+ 		request_module("em28xx-rc");
+ #endif /* CONFIG_MODULES */
+ }
+-- 
+1.7.10.4
+
