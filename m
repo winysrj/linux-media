@@ -1,86 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f180.google.com ([209.85.192.180]:49205 "EHLO
-	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725Ab3DPGOw (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:38539 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753824Ab3DKWJJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 02:14:52 -0400
-Received: by mail-pd0-f180.google.com with SMTP id q11so109142pdj.25
-        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:14:51 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 5/5] [media] exynos4-is: Remove unused functions
-Date: Tue, 16 Apr 2013 11:32:23 +0530
-Message-Id: <1366092143-5482-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
-References: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
+	Thu, 11 Apr 2013 18:09:09 -0400
+Received: by mail-la0-f46.google.com with SMTP id ea20so1958436lab.33
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 15:09:07 -0700 (PDT)
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: [PATCH v2 2/2] adv7180: add more subdev video ops
+Cc: vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Fri, 12 Apr 2013 02:08:09 +0400
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304120208.09564.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These functions do not have any callers yet and hence could
-be removed for now.
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+the soc-camera drivers.
+
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
 ---
- drivers/media/platform/exynos4-is/fimc-is-param.c |   21 ---------------------
- drivers/media/platform/exynos4-is/fimc-is-regs.c  |   12 ------------
- 2 files changed, 33 deletions(-)
+ drivers/media/i2c/adv7180.c |  105 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 105 insertions(+)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
-index 64e41b8..91258d5 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-param.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
-@@ -288,27 +288,6 @@ void __is_set_sensor(struct fimc_is *is, int fps)
- 	fimc_is_set_param_bit(is, PARAM_ISP_OTF_INPUT);
+Index: linux/drivers/media/i2c/adv7180.c
+===================================================================
+--- linux.orig/drivers/media/i2c/adv7180.c
++++ linux/drivers/media/i2c/adv7180.c
+@@ -1,6 +1,8 @@
+ /*
+  * adv7180.c Analog Devices ADV7180 video decoder driver
+  * Copyright (c) 2009 Intel Corporation
++ * Copyright (C) 2013 Cogent Embedded, Inc.
++ * Copyright (C) 2013 Renesas Solutions Corp.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -128,6 +130,7 @@ struct adv7180_state {
+ 	v4l2_std_id		curr_norm;
+ 	bool			autodetect;
+ 	u8			input;
++	struct v4l2_mbus_framefmt fmt;
+ };
+ #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
+ 					    struct adv7180_state,	\
+@@ -397,10 +400,112 @@ static void adv7180_exit_controls(struct
+ 	v4l2_ctrl_handler_free(&state->ctrl_hdl);
  }
  
--void __is_set_init_isp_aa(struct fimc_is *is)
--{
--	struct isp_param *isp;
--
--	isp = &is->config[is->config_index].isp;
--
--	isp->aa.cmd = ISP_AA_COMMAND_START;
--	isp->aa.target = ISP_AA_TARGET_AF | ISP_AA_TARGET_AE |
--			 ISP_AA_TARGET_AWB;
--	isp->aa.mode = 0;
--	isp->aa.scene = 0;
--	isp->aa.sleep = 0;
--	isp->aa.face = 0;
--	isp->aa.touch_x = 0;
--	isp->aa.touch_y = 0;
--	isp->aa.manual_af_setting = 0;
--	isp->aa.err = ISP_AF_ERROR_NONE;
--
--	fimc_is_set_param_bit(is, PARAM_ISP_AA);
--}
--
- void __is_set_isp_flash(struct fimc_is *is, u32 cmd, u32 redeye)
- {
- 	unsigned int index = is->config_index;
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-index b0ff67b..93b446f 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-@@ -96,18 +96,6 @@ int fimc_is_hw_set_param(struct fimc_is *is)
- 	return 0;
- }
++static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
++				 enum v4l2_mbus_pixelcode *code)
++{
++	if (index > 0)
++		return -EINVAL;
++
++	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++
++	return 0;
++}
++
++static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	adv7180_querystd(sd, &state->curr_norm);
++
++	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	fmt->field = V4L2_FIELD_INTERLACED;
++	fmt->width = 720;
++	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++
++	return 0;
++}
++
++static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
++			      struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	*fmt = state->fmt;
++
++	return 0;
++}
++
++static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
++			      struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	adv7180_try_mbus_fmt(sd, fmt);
++	state->fmt = *fmt;
++
++	return 0;
++}
++
++static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	adv7180_querystd(sd, &state->curr_norm);
++
++	a->bounds.left = 0;
++	a->bounds.top = 0;
++	a->bounds.width = 720;
++	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++	a->defrect = a->bounds;
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	a->pixelaspect.numerator = 1;
++	a->pixelaspect.denominator = 1;
++
++	return 0;
++}
++
++static int adv7180_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	adv7180_querystd(sd, &state->curr_norm);
++
++	a->c.left = 0;
++	a->c.top = 0;
++	a->c.width = 720;
++	a->c.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++
++	return 0;
++}
++
++static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
++				 struct v4l2_mbus_config *cfg)
++{
++	/*
++	 * The ADV7180 sensor supports BT.601/656 output modes.
++	 * The BT.656 is default and not yet configurable by s/w.
++	 */
++	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
++		     V4L2_MBUS_DATA_ACTIVE_HIGH;
++	cfg->type = V4L2_MBUS_BT656;
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+ 	.s_routing = adv7180_s_routing,
++	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
++	.try_mbus_fmt = adv7180_try_mbus_fmt,
++	.g_mbus_fmt = adv7180_g_mbus_fmt,
++	.s_mbus_fmt = adv7180_s_mbus_fmt,
++	.cropcap = adv7180_cropcap,
++	.g_crop = adv7180_g_crop,
++	.g_mbus_config = adv7180_g_mbus_config,
+ };
  
--int fimc_is_hw_set_tune(struct fimc_is *is)
--{
--	fimc_is_hw_wait_intmsr0_intmsd0(is);
--
--	mcuctl_write(HIC_SET_TUNE, is, MCUCTL_REG_ISSR(0));
--	mcuctl_write(is->sensor_index, is, MCUCTL_REG_ISSR(1));
--	mcuctl_write(is->h2i_cmd.entry_id, is, MCUCTL_REG_ISSR(2));
--
--	fimc_is_hw_set_intgr0_gd0(is);
--	return 0;
--}
--
- #define FIMC_IS_MAX_PARAMS	4
- 
- int fimc_is_hw_get_params(struct fimc_is *is, unsigned int num_args)
--- 
-1.7.9.5
-
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
