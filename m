@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41936 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761846Ab3DDP1D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 11:27:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH/RFC] uvcvideo: Disable USB autosuspend for Creative Live! Cam Optia AF
-Date: Thu, 04 Apr 2013 17:28:01 +0200
-Message-ID: <1675297.SBVpg0UeLp@avalon>
-In-Reply-To: <Pine.LNX.4.44L0.1303281043140.1652-100000@iolanthe.rowland.org>
-References: <Pine.LNX.4.44L0.1303281043140.1652-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from moutng.kundenserver.de ([212.227.17.9]:50793 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S937471Ab3DKAG6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Apr 2013 20:06:58 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, Kukjin Kim <kgene.kim@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 11/30] [media] exynos: remove unnecessary header inclusions
+Date: Thu, 11 Apr 2013 02:04:53 +0200
+Message-Id: <1365638712-1028578-12-git-send-email-arnd@arndb.de>
+In-Reply-To: <1365638712-1028578-1-git-send-email-arnd@arndb.de>
+References: <1365638712-1028578-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+In multiplatform configurations, we cannot include headers
+provided by only the exynos platform. Fortunately a number
+of drivers that include those headers do not actually need
+them, so we can just remove the inclusions.
 
-On Thursday 28 March 2013 10:45:27 Alan Stern wrote:
-> On Thu, 28 Mar 2013, Laurent Pinchart wrote:
-> > The camera fails to start video streaming after having been autosuspend.
-> > Add a new quirk to selectively disable autosuspend for devices that
-> > don't support it.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_driver.c | 14 +++++++++++++-
-> >  drivers/media/usb/uvc/uvcvideo.h   |  1 +
-> >  2 files changed, 14 insertions(+), 1 deletion(-)
-> > 
-> > I've tried to set the reset resume quirk for this device in the USB core
-> > but the camera still failed to start video streaming after having been
-> > autosuspended. Regardless of whether the reset resume quirk was set, it
-> > would respond to control messages but wouldn't send video data.
-> 
-> Presumably the camera won't work after a system suspend, either.
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-regs.c | 1 -
+ drivers/media/platform/s5p-tv/sii9234_drv.c  | 3 ---
+ 2 files changed, 4 deletions(-)
 
-That was my expectation as well, but the device has survived system suspend 
-without being reenumerated. I don't know if the USB port power got cut off 
-during system suspend.
-
-> > This solution below is a hack, but I'm not sure what else I can try. Crazy
-> > ideas are welcome.
-> 
-> It's not a hack; it's a normal use for a quirk flag.  Of course, if you
-> can figure out what's wrong with the camera and see how to fix it, that
-> would be best.
-
-I've tried to but I can't figure out what goes wrong exactly.
-
-> How does the camera perform on a Windows system after being put to
-> sleep and then woken up?
-
-I don't know, I have no Windows system to test the camera on.
-
+diff --git a/drivers/media/platform/exynos-gsc/gsc-regs.c b/drivers/media/platform/exynos-gsc/gsc-regs.c
+index 6f5b5a4..e22d147 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-regs.c
++++ b/drivers/media/platform/exynos-gsc/gsc-regs.c
+@@ -12,7 +12,6 @@
+ 
+ #include <linux/io.h>
+ #include <linux/delay.h>
+-#include <mach/map.h>
+ 
+ #include "gsc-core.h"
+ 
+diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
+index d90d228..39b77d2 100644
+--- a/drivers/media/platform/s5p-tv/sii9234_drv.c
++++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
+@@ -23,9 +23,6 @@
+ #include <linux/regulator/machine.h>
+ #include <linux/slab.h>
+ 
+-#include <mach/gpio.h>
+-#include <plat/gpio-cfg.h>
+-
+ #include <media/sii9234.h>
+ #include <media/v4l2-subdev.h>
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.2
 
