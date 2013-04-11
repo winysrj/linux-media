@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:53925 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763114Ab3DDQnJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:43:09 -0400
-Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
-	by merlin.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
-	id 1UNnFl-0006a2-AW
-	for linux-media@vger.kernel.org; Thu, 04 Apr 2013 16:43:09 +0000
-Message-ID: <1365093786.2609.113.camel@laptop>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
- v2
-From: Peter Zijlstra <peterz@infradead.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, daniel.vetter@ffwll.ch, x86@kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Thu, 04 Apr 2013 18:43:06 +0200
-In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
-References: <20130228102452.15191.22673.stgit@patser>
-	 <20130228102502.15191.14146.stgit@patser>
-	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
-	 <1364921954.20640.22.camel@laptop> <1365076908.2609.94.camel@laptop>
-	 <20130404133123.GW2228@phenom.ffwll.local>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2855 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab3DKSHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Apr 2013 14:07:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Tzu-Jung Lee" <roylee17@gmail.com>
+Subject: Re: [PATCH] v4l2-ctl: add is_compressed_format() helper
+Date: Thu, 11 Apr 2013 20:07:29 +0200
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	k.debski@samsung.com, "Tzu-Jung Lee" <tjlee@ambarella.com>
+References: <1365695281-21227-1-git-send-email-tjlee@ambarella.com> <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
+In-Reply-To: <1365699247-32351-1-git-send-email-tjlee@ambarella.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304112007.29965.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
-> Another big reason for having a start/end marker like you've describe
-> is
-> lockdep support.
+On Thu April 11 2013 18:54:07 Tzu-Jung Lee wrote:
+> It is used to:
+> 
+>   bypass precalculate_bars() for OUTPUT device
+>   that takes encoded bitstreams.
+> 
+>   handle the last chunk of input file that has
+>   non-buffer-aligned size.
+> 
+> Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+> ---
+>  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 101 +++++++++++++++++++++++++++-------
+>  1 file changed, 82 insertions(+), 19 deletions(-)
+> 
+> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> index 9e361af..2bcf950 100644
+> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+> @@ -115,6 +115,29 @@ static const flag_def tc_flags_def[] = {
+>  	{ 0, NULL }
+>  };
+>  
+> +static bool is_compressed_format(__u32 pixfmt)
+> +{
+> +	switch (pixfmt) {
+> +	case V4L2_PIX_FMT_MJPEG:
+> +	case V4L2_PIX_FMT_JPEG:
+> +	case V4L2_PIX_FMT_DV:
+> +	case V4L2_PIX_FMT_MPEG:
+> +	case V4L2_PIX_FMT_H264:
+> +	case V4L2_PIX_FMT_H264_NO_SC:
+> +	case V4L2_PIX_FMT_H263:
+> +	case V4L2_PIX_FMT_MPEG1:
+> +	case V4L2_PIX_FMT_MPEG2:
+> +	case V4L2_PIX_FMT_MPEG4:
+> +	case V4L2_PIX_FMT_XVID:
+> +	case V4L2_PIX_FMT_VC1_ANNEX_G:
 
-Yeah, I saw how you did that.. but there's other ways of making it work
-too, you could for instance create a new validation state for this type
-of lock.
+You should use VIDIOC_ENUM_FMT: that sets a 'COMPRESSED' flag for compressed
+formats. You can never keep a list like the above up to date, so using ENUM_FMT
+is a much more generic solution.
 
-That said, I didn't consider lockdep too much, I first want the regular
-semantics clear.
+I will review the rest of the code tomorrow, but this jumped out to me, and
+you probably didn't know this flag existed :-)
 
+Regards,
+
+	Hans
