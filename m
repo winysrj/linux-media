@@ -1,347 +1,267 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:48732 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759275Ab3DYVCS (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:53629 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936175Ab3DKPqS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 17:02:18 -0400
-Date: Thu, 25 Apr 2013 23:05:25 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	linux-media@vger.kernel.org, jonjon.arnearne@gmail.com,
-	linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	elezegarcia@gmail.com, mkrufky@linuxtv.org, bjorn@mork.no
-Subject: Re: [RFC V2 1/3] [smi2021] Add gm7113c chip to the saa7115 driver
-Message-ID: <20130425210525.GA1297@dell.arpanet.local>
-References: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
- <1366917020-18217-2-git-send-email-jonarne@jonarne.no>
- <20130425171328.08c79893@redhat.com>
- <20130425173629.07c7f377@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130425173629.07c7f377@redhat.com>
+	Thu, 11 Apr 2013 11:46:18 -0400
+Received: by mail-pb0-f49.google.com with SMTP id um15so924852pbc.36
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 08:46:18 -0700 (PDT)
+From: Tzu-Jung Lee <roylee17@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
+	Tzu-Jung Lee <tjlee@ambarella.com>
+Subject: [PATCH] v4l2-ctl: add is_compressed_format() helper
+Date: Thu, 11 Apr 2013 23:48:01 +0800
+Message-Id: <1365695281-21227-1-git-send-email-tjlee@ambarella.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 25, 2013 at 05:36:29PM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 25 Apr 2013 17:13:28 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
-> 
-> > Em Thu, 25 Apr 2013 21:10:18 +0200
-> > Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
-> > 
-> > > The somagic device uses the gm7113c chip to digitize analog video,
-> > > this is a clone of the saa7113 chip.
-> > > 
-> > > The gm7113c can't be identified over i2c, so I can't rely on
-> > > saa7115 autodetection.
-> > > 
-> > > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> > > ---
-> > >  drivers/media/i2c/saa7115.c     | 61 ++++++++++++++++++++++++++++++++++-------
-> > >  include/media/v4l2-chip-ident.h |  3 ++
-> > >  2 files changed, 54 insertions(+), 10 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> > > index 6b6788c..e93b50a 100644
-> > > --- a/drivers/media/i2c/saa7115.c
-> > > +++ b/drivers/media/i2c/saa7115.c
-> > > @@ -54,7 +54,7 @@
-> > >  
-> > >  MODULE_DESCRIPTION("Philips SAA7111/SAA7113/SAA7114/SAA7115/SAA7118 video decoder driver");
-> > >  MODULE_AUTHOR(  "Maxim Yevtyushkin, Kevin Thayer, Chris Kennedy, "
-> > > -		"Hans Verkuil, Mauro Carvalho Chehab");
-> > > +		"Hans Verkuil, Mauro Carvalho Chehab, Jon Arne Jørgensen");
-> > 
-> > Hi Jon,
-> > 
-> > I was told once by Greg KH that the minimal number of changes to be one
-> > of the driver's authors is to change a significant amount of the code
-> > (like 20% or more).
-> > 
-> > So, I prefer if you don't change it there.
-> > 
-> > >  MODULE_LICENSE("GPL");
-> > >  
-> > >  static bool debug;
-> > > @@ -126,6 +126,7 @@ static int saa711x_has_reg(const int id, const u8 reg)
-> > >  		return 0;
-> > >  
-> > >  	switch (id) {
-> > > +	case V4L2_IDENT_GM7113C:
-> > >  	case V4L2_IDENT_SAA7113:
-> > >  		return reg != 0x14 && (reg < 0x18 || reg > 0x1e) && (reg < 0x20 || reg > 0x3f) &&
-> > >  		       reg != 0x5d && reg < 0x63;
-> > > @@ -292,7 +293,7 @@ static const unsigned char saa7115_cfg_reset_scaler[] = {
-> > >  	0x00, 0x00
-> > >  };
-> > >  
-> > > -/* ============== SAA7715 VIDEO templates =============  */
-> > > +/* ============== SAA7115 VIDEO templates =============  */
-> > >  
-> > >  static const unsigned char saa7115_cfg_60hz_video[] = {
-> > >  	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
-> > > @@ -445,7 +446,27 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
-> > >  	0x00, 0x00
-> > >  };
-> > >  
-> > > -/* ============== SAA7715 VIDEO templates (end) =======  */
-> > > +/* ============== SAA7115 VIDEO templates (end) =======  */
-> > > +
-> > > +/* ============== GM7113C VIDEO templates =============  */
-> > > +
-> > > +static const unsigned char gm7113c_cfg_60hz_video[] = {
-> > > +	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
-> > > +	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
-> > > +
-> > > +	R_5A_V_OFF_FOR_SLICER, 0x06,		/* standard 60hz value for ITU656 line counting */
-> > > +	0x00, 0x00
-> > > +};
-> > > +
-> > > +static const unsigned char gm7113c_cfg_50hz_video[] = {
-> > > +	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
-> > > +	R_0E_CHROMA_CNTL_1, 0x07,
-> > > +
-> > > +	R_5A_V_OFF_FOR_SLICER, 0x03,		/* standard 50hz value */
-> > > +	0x00, 0x00
-> > > +};
-> > > +
-> > > +/* ============== GM7113C VIDEO templates (end) =======  */
-> > >  
-> > >  static const unsigned char saa7115_cfg_vbi_on[] = {
-> > >  	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
-> > > @@ -927,11 +948,17 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
-> > >  	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
-> > >  	if (std & V4L2_STD_525_60) {
-> > >  		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
-> > > -		saa711x_writeregs(sd, saa7115_cfg_60hz_video);
-> > > +		if (state->ident == V4L2_IDENT_GM7113C)
-> > > +			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
-> > > +		else
-> > > +			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
-> > >  		saa711x_set_size(sd, 720, 480);
-> > >  	} else {
-> > >  		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
-> > > -		saa711x_writeregs(sd, saa7115_cfg_50hz_video);
-> > > +		if (state->ident == V4L2_IDENT_GM7113C)
-> > > +			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
-> > > +		else
-> > > +			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
-> > >  		saa711x_set_size(sd, 720, 576);
-> > >  	}
-> > >  
-> > > @@ -944,7 +971,8 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
-> > >  	011 NTSC N (3.58MHz)            PAL M (3.58MHz)
-> > >  	100 reserved                    NTSC-Japan (3.58MHz)
-> > >  	*/
-> > > -	if (state->ident <= V4L2_IDENT_SAA7113) {
-> > > +	if (state->ident <= V4L2_IDENT_SAA7113 ||
-> > > +	    state->ident == V4L2_IDENT_GM7113C) {
-> > >  		u8 reg = saa711x_read(sd, R_0E_CHROMA_CNTL_1) & 0x8f;
-> > >  
-> > >  		if (std == V4L2_STD_PAL_M) {
-> > > @@ -1215,7 +1243,8 @@ static int saa711x_s_routing(struct v4l2_subdev *sd,
-> > >  		input, output);
-> > >  
-> > >  	/* saa7111/3 does not have these inputs */
-> > > -	if (state->ident <= V4L2_IDENT_SAA7113 &&
-> > > +	if ((state->ident <= V4L2_IDENT_SAA7113 ||
-> > > +	     state->ident == V4L2_IDENT_GM7113C) &&
-> > >  	    (input == SAA7115_COMPOSITE4 ||
-> > >  	     input == SAA7115_COMPOSITE5)) {
-> > >  		return -EINVAL;
-> > > @@ -1586,8 +1615,11 @@ static int  i2c_client *client,
-> > >  
-> > >  	chip_id = name[5];
-> > >  
-> > > +
-> > >  	/* Check whether this chip is part of the saa711x series */
-> > > -	if (memcmp(name + 1, "f711", 4)) {
-> > > +	if (memcmp(id->name + 1, "gm7113c", 7)) {
-> > > +		chip_id = 'c';
-> > 
-> > There are several issues on the above:
-> > 1) "id" may be NULL on autodetect mode;
-> > 
-> > 2) Why are you adding 1 here?
-> >    It should be, instead id->name
-> > 
-> > 3) memcmp returns 0 if matches. So, the test is wrong.
-> >    So, It should be instead:
-> > 	if (!memcmp(id->name, "gm7113c", 7)) {
-> > 
-> > 4) Also, while that works, it seems a little hackish...
-> > 
-> > > +	} else if (memcmp(name + 1, "f711", 4)) {
-> > >  		v4l_dbg(1, debug, client, "chip found @ 0x%x (ID %s) does not match a known saa711x chip.\n",
-> > >  			client->addr << 1, name);
-> > >  		return -ENODEV;
-> > > @@ -1598,8 +1630,12 @@ static int saa711x_probe(struct i2c_client *client,
-> > >  		v4l_warn(client, "found saa711%c while %s was expected\n",
-> > >  			 chip_id, id->name);
-> > >  	}
-> > > -	snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
-> > > -	v4l_info(client, "saa711%c found (%s) @ 0x%x (%s)\n", chip_id, name,
-> > > +	if (chip_id == 'c')
-> > 
-> > especially by needing to add a weird if here.
-> > See more below:
-> > 
-> > > +		snprintf(client->name, sizeof(client->name), "%s", id->name);
-> > > +	else
-> > > +		snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
-> > > +
-> > > +	v4l_info(client, "%s found (%s) @ 0x%x (%s)\n", client->name, name,
-> > >  		 client->addr << 1, client->adapter->name);
-> > >  
-> > >  	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
-> > > @@ -1645,6 +1681,9 @@ static int saa711x_probe(struct i2c_client *client,
-> > >  			state->ident = V4L2_IDENT_SAA7111A;
-> > >  		}
-> > >  		break;
-> > > +	case 'c':
-> > > +		state->ident = V4L2_IDENT_GM7113C;
-> > > +		break;
-> > 
-> > The better would be to initialize state->ident earlier, together with memcmp.
-> > 
-> > Even better: please move the detection code into a separate
-> > routine that would internally fill state->ident and client->name
-> > and do what's needed to detect the chip.
-> > 
-> > That would be cleaner and will reduce a little bit the complexity
-> > inside saa711x_probe.
-> > 
-> > Something like:
-> > 
-> > static int saa711x_detect_chip(struct i2c_client *client,
-> > 			       struct saa711x_state *state,
-> > 			       const struct i2c_device_id *id)
-> > {
-> > 	int i;
-> > 	char chip_id, name[16];
-> > 
-> > 	/*
-> > 	 * Check for gm7113c (a saa7113 clone). Currently, there's no
-> > 	 * known way to autodetect it, so boards that use will need to
-> > 	 * explicitly fill the id->name field.
-> > 	 */
-> > 	if (id && !memcmp(id->name, "gm7113c", 7)) {
-> > 		state->ident = V4L2_IDENT_GM7113C;
-> > 		snprintf(client->name, sizeof(client->name), "%s", id->name);
-> > 		return 0;
-> > 	}
-> 
-> 
-> Btw, not sure if you also googled for it, but there's a datasheet for this chip
-> at:
-> 	http://www.gotecom.com/up_files/download/64200700.pdf
-> 
-> >From what's there, there are 2 versions of this chip (no, I don't read
-> chinese, but Google translator also helps with this[1]). 
-> 
-> [1] http://translate.google.com.br/translate?sl=zh-CN&tl=en&u=http%3A%2F%2Fwww.gotecom.com%2Fup_files%2Fdownload%2F64200700.pdf
->
+It is used to:
 
-I've googled, but gave up when I got chinese. Didn't know google
-translate could handle it.
+  bypass precalculate_bars() for OUTPUT device
+  that takes encoded bitstreams.
+
+  handle the last chunk of input file that has
+  non-buffer-aligned size.
+
+Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
+---
+ utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 101 +++++++++++++++++++++++++++-------
+ 1 file changed, 82 insertions(+), 19 deletions(-)
+
+diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+index 9e361af..b3ba32e 100644
+--- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
++++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
+@@ -115,6 +115,29 @@ static const flag_def tc_flags_def[] = {
+ 	{ 0, NULL }
+ };
  
-> 5.2 I2C bus register details
-> 5.2.1 Address 00H
-> 
-> Table 14 chip version (address 00H)
-> 	Function	Logic value
-> 			ID07  ID07  ID07  ID07  ID07  ID07  ID07  ID07
-> 	Chip Version V1  0     0     0     1     X     X     X     X
-> 		     V2  0     0     1     0     X     X     X     X
-> 
-> So, I think you should do something like:
-> 
-> 	chip_ver = 0;
-> 	for (i = 0; i < 4; i++) {
-> 		chip_ver = chip_ver << 1;
->  		i2c_smbus_write_byte_data(client, 0, i);
->  		chip_ver |= (i2c_smbus_read_byte_data(client, 0) & 0x80) ? 1 : 0;
->  	}
-> 
-> and fill client-name with the version also, like:
-> 
-> 	snprintf(client->name, sizeof(client->name), "%s-%d", id->name, chip_ver);
-> 
-> As it may be important latter to handle the different versions, and/or
-> better handle bug reports related to some specific version of this chip.
-> 
++static bool is_compressed_format(__u32 pixfmt)
++{
++	switch (pixfmt) {
++	case V4L2_PIX_FMT_MJPEG:
++	case V4L2_PIX_FMT_JPEG:
++	case V4L2_PIX_FMT_DV:
++	case V4L2_PIX_FMT_MPEG:
++	case V4L2_PIX_FMT_H264:
++	case V4L2_PIX_FMT_H264_NO_SC:
++	case V4L2_PIX_FMT_H263:
++	case V4L2_PIX_FMT_MPEG1:
++	case V4L2_PIX_FMT_MPEG2:
++	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_XVID:
++	case V4L2_PIX_FMT_VC1_ANNEX_G:
++		return true;
++	default:
++		return false;
++	}
++
++	return false;
++}
++
+ static void print_buffer(FILE *f, struct v4l2_buffer &buf)
+ {
+ 	fprintf(f, "\tIndex    : %d\n", buf.index);
+@@ -223,23 +246,29 @@ void streaming_cmd(int ch, char *optarg)
+ }
+ 
+ static bool fill_buffer_from_file(void *buffers[], unsigned buffer_lengths[],
+-		unsigned buf_index, unsigned num_planes, FILE *fin)
++				  unsigned buffer_bytesused[], unsigned buf_index,
++				  unsigned num_planes, bool is_compressed, FILE *fin)
+ {
+ 	for (unsigned j = 0; j < num_planes; j++) {
+ 		unsigned p = buf_index * num_planes + j;
+ 		unsigned sz = fread(buffers[p], 1,
+ 				buffer_lengths[p], fin);
+ 
++		buffer_bytesused[p] = sz;
+ 		if (j == 0 && sz == 0 && stream_loop) {
+ 			fseek(fin, 0, SEEK_SET);
+ 			sz = fread(buffers[p], 1,
+ 					buffer_lengths[p], fin);
++
++			buffer_bytesused[p] = sz;
+ 		}
+ 		if (sz == buffer_lengths[p])
+ 			continue;
+-		if (sz)
++
++		// Bail out if we get weird buffer sizes or non-compressed format.
++		if (sz && !is_compressed)
+ 			fprintf(stderr, "%u != %u\n", sz, buffer_lengths[p]);
+-		// Bail out if we get weird buffer sizes.
++
+ 		return false;
+ 	}
+ 	return true;
+@@ -312,16 +341,22 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 				 bool is_mplane, unsigned &num_planes, bool is_mmap,
+ 				 void *buffers[], unsigned buffer_lengths[], FILE *fin)
+ {
++	bool is_compressed;
++
+ 	struct v4l2_format fmt;
+ 	memset(&fmt, 0, sizeof(fmt));
+ 	fmt.type = reqbufs->type;
+ 	doioctl(fd, VIDIOC_G_FMT, &fmt);
+ 
+-	if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++	if (!is_compressed &&
++	    !precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
+ 		fprintf(stderr, "unsupported pixelformat\n");
+ 		return;
+ 	}
+ 
++	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
++
+ 	for (unsigned i = 0; i < reqbufs->count; i++) {
+ 		struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 		struct v4l2_buffer buf;
+@@ -363,11 +398,11 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 			// TODO fill_buffer_mp(buffers[i], &fmt.fmt.pix_mp);
+ 			if (fin)
+ 				fill_buffer_from_file(buffers, buffer_lengths,
+-						      buf.index, num_planes, fin);
++						      buffer_bytesused, buf.index,
++						      num_planes, is_compressed, fin);
+ 		}
+ 		else {
+ 			buffer_lengths[i] = buf.length;
+-			buf.bytesused = buf.length;
+ 			if (is_mmap) {
+ 				buffers[i] = mmap(NULL, buf.length,
+ 						  PROT_READ | PROT_WRITE, MAP_SHARED, fd, buf.m.offset);
+@@ -381,9 +416,16 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
+ 				buffers[i] = calloc(1, buf.length);
+ 				buf.m.userptr = (unsigned long)buffers[i];
+ 			}
+-			if (!fin || !fill_buffer_from_file(buffers, buffer_lengths,
+-							   buf.index, num_planes, fin))
++
++			if (fin && fill_buffer_from_file(buffers, buffer_lengths,
++							 buffer_bytesused, buf.index,
++							 num_planes, is_compressed,
++							 fin)) {
++				buf.bytesused = buffer_bytesused[0];
++			}
++			else {
+ 				fill_buffer(buffers[i], &fmt.fmt.pix);
++			}
+ 		}
+ 		if (doioctl(fd, VIDIOC_QBUF, &buf))
+ 			return;
+@@ -511,12 +553,13 @@ static int do_handle_cap(int fd, struct v4l2_requestbuffers *reqbufs,
+ }
+ 
+ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
+-			 bool is_mplane, unsigned num_planes,
++			 bool is_compressed, bool is_mplane, unsigned num_planes,
+ 			 void *buffers[], unsigned buffer_lengths[], FILE *fin,
+ 			 unsigned &count, unsigned &last, struct timeval &tv_last)
+ {
+ 	struct v4l2_plane planes[VIDEO_MAX_PLANES];
+ 	struct v4l2_buffer buf;
++	unsigned buffer_bytesused[reqbufs->count * VIDEO_MAX_PLANES];
+ 	int ret;
+ 
+ 	memset(&buf, 0, sizeof(buf));
+@@ -535,14 +578,17 @@ static int do_handle_out(int fd, struct v4l2_requestbuffers *reqbufs,
+ 		fprintf(stderr, "%s: failed: %s\n", "VIDIOC_DQBUF", strerror(errno));
+ 		return -1;
+ 	}
+-	if (fin && !fill_buffer_from_file(buffers, buffer_lengths,
+-					  buf.index, num_planes, fin))
++	if (fin &&!fill_buffer_from_file(buffers, buffer_lengths,
++					 buffer_bytesused, buf.index,
++					 num_planes, is_compressed,
++					 fin)) {
+ 		return -1;
++	}
+ 	if (is_mplane) {
+ 		for (unsigned j = 0; j < buf.length; j++)
+-			buf.m.planes[j].bytesused = buf.m.planes[j].length;
++			buf.m.planes[j].bytesused = buffer_bytesused[j];
+ 	} else {
+-		buf.bytesused = buf.length;
++		buf.bytesused = buffer_bytesused[0];
+ 	}
+ 	if (test_ioctl(fd, VIDIOC_QBUF, &buf))
+ 		return -1;
+@@ -688,7 +734,9 @@ static void streaming_set_cap(int fd)
+ static void streaming_set_out(int fd)
+ {
+ 	struct v4l2_requestbuffers reqbufs;
++	struct v4l2_format fmt;
+ 	int fd_flags = fcntl(fd, F_GETFL);
++	bool is_compressed;
+ 	bool is_mplane = capabilities &
+ 			(V4L2_CAP_VIDEO_OUTPUT_MPLANE |
+ 				 V4L2_CAP_VIDEO_M2M_MPLANE);
+@@ -710,6 +758,12 @@ static void streaming_set_out(int fd)
+ 	reqbufs.type = type;
+ 	reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
+ 
++	memset(&fmt, 0, sizeof(fmt));
++	fmt.type = reqbufs.type;
++	doioctl(fd, VIDIOC_G_FMT, &fmt);
++
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++
+ 	if (file_out) {
+ 		if (!strcmp(file_out, "-"))
+ 			fin = stdin;
+@@ -765,9 +819,9 @@ static void streaming_set_out(int fd)
+ 				return;
+ 			}
+ 		}
+-		r = do_handle_out(fd, &reqbufs, is_mplane, num_planes,
+-				   buffers, buffer_lengths, fin,
+-				   count, last, tv_last);
++		r = do_handle_out(fd, &reqbufs, is_compressed, is_mplane,
++				  num_planes, buffers, buffer_lengths,
++				  fin, count, last, tv_last);
+ 		if (r == -1)
+ 			break;
+ 
+@@ -795,6 +849,9 @@ enum stream_type {
+ 
+ static void streaming_set_m2m(int fd)
+ {
++	struct v4l2_format fmt;
++	bool is_compressed;
++
+ 	int fd_flags = fcntl(fd, F_GETFL);
+ 	bool use_poll = options[OptStreamPoll];
+ 
+@@ -864,6 +921,12 @@ static void streaming_set_m2m(int fd)
+ 			     is_mmap, buffers_out, buffer_lengths_out,
+ 			     file[OUT]);
+ 
++	memset(&fmt, 0, sizeof(fmt));
++	fmt.type = reqbufs[OUT].type;
++	doioctl(fd, VIDIOC_G_FMT, &fmt);
++
++	is_compressed = is_compressed_format(fmt.fmt.pix.pixelformat);
++
+ 	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
+ 	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
+ 		return;
+@@ -927,9 +990,9 @@ static void streaming_set_m2m(int fd)
+ 		}
+ 
+ 		if (wr_fds && FD_ISSET(fd, wr_fds)) {
+-			r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes[OUT],
+-					   buffers_out, buffer_lengths_out, file[OUT],
+-					   count[OUT], last[OUT], tv_last[OUT]);
++			r  = do_handle_out(fd, &reqbufs[OUT], is_compressed, is_mplane,
++					   num_planes[OUT], buffers_out, buffer_lengths_out,
++					   file[OUT], count[OUT], last[OUT], tv_last[OUT]);
+ 			if (r < 0)  {
+ 				wr_fds = NULL;
+ 
+-- 
+1.8.1.5
 
-This is great, I will implement these checks for the device.
-
-> > 	/* Check for Philips/NXP original chips */
-> > 	for (i = 0; i < sizeof(name); i++) {
-> > 		i2c_smbus_write_byte_data(client, 0, i);
-> > 		name[i] = (i2c_smbus_read_byte_data(client, 0) & 0x0f) + '0';
-> > 		if (name[i] > '9')
-> > 			name[i] += 'a' - '9' - 1;
-> > 	}
-> > 	name[i] = '\0';
-> > 
-> > 	if (memcmp(name + 1, "f711", 4))
-> > 		return -ENODEV;
-> > 
-> > 	chip_id = name[5];
-> > 
-> > 	snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
-> > 
-> > 	/*
-> > 	 * Put here the code that fills state->ident for Philips/NXP chips
-> > 	 */
-> > ...
-> > 
-> > 	return 0;
-> > }
-> > 
-> > >  	case '3':
-> > >  		state->ident = V4L2_IDENT_SAA7113;
-> > >  		break;
-> > > @@ -1675,6 +1714,7 @@ static int saa711x_probe(struct i2c_client *client,
-> > >  		saa711x_writeregs(sd, saa7111_init);
-> > >  		break;
-> > >  	case V4L2_IDENT_SAA7113:
-> > > +	case V4L2_IDENT_GM7113C:
-> > >  		saa711x_writeregs(sd, saa7113_init);
-> > >  		break;
-> > >  	default:
-> > > @@ -1711,6 +1751,7 @@ static const struct i2c_device_id saa711x_id[] = {
-> > >  	{ "saa7114", 0 },
-> > >  	{ "saa7115", 0 },
-> > >  	{ "saa7118", 0 },
-> > > +	{ "gm7113c", 0 },
-> > >  	{ }
-> > >  };
-> > >  MODULE_DEVICE_TABLE(i2c, saa711x_id);
-> > > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> > > index 4ee125b..fc13d53 100644
-> > > --- a/include/media/v4l2-chip-ident.h
-> > > +++ b/include/media/v4l2-chip-ident.h
-> > > @@ -51,6 +51,9 @@ enum {
-> > >  	V4L2_IDENT_SAA7114 = 104,
-> > >  	V4L2_IDENT_SAA7115 = 105,
-> > >  	V4L2_IDENT_SAA7118 = 108,
-> > > +	/* This chip is a chinese clone of the saa7113 chip,
-> > > +	 * with some minor changes/bugs */
-> > > +	V4L2_IDENT_GM7113C = 149,
-> > >  
-> > >  	/* module saa7127: reserved range 150-199 */
-> > >  	V4L2_IDENT_SAA7127 = 157,
-> > 
-> > 
-> 
-> 
-> -- 
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
