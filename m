@@ -1,87 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45769 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1422925Ab3DFNpt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Apr 2013 09:45:49 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans-Peter Jansen <hpj@urpla.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] cx24123: improve precision when calculating symbol rate ratio
-Date: Sat,  6 Apr 2013 10:45:33 -0300
-Message-Id: <1365255933-31611-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <2164572.6O2J60F4uN@xrated>
-References: <2164572.6O2J60F4uN@xrated>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2277 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750973Ab3DKSTg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Apr 2013 14:19:36 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3BIJWvi007450
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 20:19:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id EBDA411E014C
+	for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 20:19:31 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130411181931.EBDA411E014C@alastor.dyndns.org>
+Date: Thu, 11 Apr 2013 20:19:31 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Symbol rate ratio were using a rough calculus, as the code was
-limited to 32 bits arithmetic. Change it to 64 bits, in order
-to better estimate the bandwidth low-pass filter on the demod.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This should reduce the noise and improve reception.
+Results of the daily build of media_tree:
 
-Reported-by: Hans-Peter Jansen <hpj@urpla.net>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/cx24123.c | 28 +++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+date:		Thu Apr 11 19:00:19 CEST 2013
+git branch:	test
+git hash:	81e096c8ac6a064854c2157e0bf802dc4906678c
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-diff --git a/drivers/media/dvb-frontends/cx24123.c b/drivers/media/dvb-frontends/cx24123.c
-index 68c88ab..a771da3 100644
---- a/drivers/media/dvb-frontends/cx24123.c
-+++ b/drivers/media/dvb-frontends/cx24123.c
-@@ -26,6 +26,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <asm/div64.h>
- 
- #include "dvb_frontend.h"
- #include "cx24123.h"
-@@ -452,7 +453,8 @@ static u32 cx24123_int_log2(u32 a, u32 b)
- 
- static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
- {
--	u32 tmp, sample_rate, ratio, sample_gain;
-+	u64 tmp;
-+	u32 sample_rate, ratio, sample_gain;
- 	u8 pll_mult;
- 
- 	/*  check if symbol rate is within limits */
-@@ -482,27 +484,11 @@ static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
- 
- 	sample_rate = pll_mult * XTAL;
- 
--	/*
--	    SYSSymbolRate[21:0] = (srate << 23) / sample_rate
--
--	    We have to use 32 bit unsigned arithmetic without precision loss.
--	    The maximum srate is 45000000 or 0x02AEA540. This number has
--	    only 6 clear bits on top, hence we can shift it left only 6 bits
--	    at a time. Borrowed from cx24110.c
--	*/
--
--	tmp = srate << 6;
--	ratio = tmp / sample_rate;
--
--	tmp = (tmp % sample_rate) << 6;
--	ratio = (ratio << 6) + (tmp / sample_rate);
--
--	tmp = (tmp % sample_rate) << 6;
--	ratio = (ratio << 6) + (tmp / sample_rate);
--
--	tmp = (tmp % sample_rate) << 5;
--	ratio = (ratio << 5) + (tmp / sample_rate);
-+	/* SYSSymbolRate[21:0] = (srate << 23) / sample_rate */
- 
-+	tmp = ((u64)srate) << 23;
-+	do_div(tmp, sample_rate);
-+	ratio = (u32) tmp;
- 
- 	cx24123_writereg(state, 0x01, pll_mult * 6);
- 
--- 
-1.8.1.4
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
