@@ -1,139 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16110 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758507Ab3DAOnJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Apr 2013 10:43:09 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>
-Subject: [PATCH 1/5] [media] mb86a20s: Use a macro for the number of layers
-Date: Mon,  1 Apr 2013 11:41:55 -0300
-Message-Id: <1364827319-18332-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1364827319-18332-1-git-send-email-mchehab@redhat.com>
-References: <20130401072529.GL18466@mwanda>
- <1364827319-18332-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4946 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952Ab3DLPgf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 11:36:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC] Motion Detection API
+Date: Fri, 12 Apr 2013 17:36:16 +0200
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Kamil Debski <k.debski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304121736.16542.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using the magic number "3", use NUM_LAYERS macro
-on all places that are related to the ISDB-T layers.
+This RFC looks at adding support for motion detection to V4L2. This is the main
+missing piece that prevents the go7007 and solo6x10 drivers from being moved
+into mainline from the staging directory.
 
-This makes the source code a little more readable.
+Step one is to look at existing drivers/hardware:
 
-No functional changes.
+1) The go7007 driver:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/mb86a20s.c | 32 +++++++++++++++++---------------
- 1 file changed, 17 insertions(+), 15 deletions(-)
+	- divides the frame into blocks of 16x16 pixels each (that's 45x36 blocks for PAL)
+	- each block can be assigned to region 0, 1, 2 or 3
+	- each region has:
+		- a pixel change threshold
+		- a motion vector change threshold
+		- a trigger level; if this is 0, then motion detection for this
+		  region is disabled
+	- when streaming the reserved field of v4l2_buffer is used as a bitmask:
+	  one bit for each region where motion is detected.
 
-diff --git a/drivers/media/dvb-frontends/mb86a20s.c b/drivers/media/dvb-frontends/mb86a20s.c
-index d04b52e..80a8ee0 100644
---- a/drivers/media/dvb-frontends/mb86a20s.c
-+++ b/drivers/media/dvb-frontends/mb86a20s.c
-@@ -20,6 +20,8 @@
- #include "dvb_frontend.h"
- #include "mb86a20s.h"
- 
-+#define NUM_LAYERS 3
-+
- static int debug = 1;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "Activates frontend debugging (default:0)");
-@@ -48,7 +50,7 @@ struct mb86a20s_state {
- 	bool inversion;
- 	u32 subchannel;
- 
--	u32 estimated_rate[3];
-+	u32 estimated_rate[NUM_LAYERS];
- 	unsigned long get_strength_time;
- 
- 	bool need_init;
-@@ -666,7 +668,7 @@ static int mb86a20s_get_frontend(struct dvb_frontend *fe)
- 
- 	/* Get per-layer data */
- 
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < NUM_LAYERS; i++) {
- 		dev_dbg(&state->i2c->dev, "%s: getting data for layer %c.\n",
- 			__func__, 'A' + i);
- 
-@@ -828,7 +830,7 @@ static int mb86a20s_get_pre_ber(struct dvb_frontend *fe,
- 
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
--	if (layer >= 3)
-+	if (layer >= NUM_LAYERS)
- 		return -EINVAL;
- 
- 	/* Check if the BER measures are already available */
-@@ -962,7 +964,7 @@ static int mb86a20s_get_post_ber(struct dvb_frontend *fe,
- 
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
--	if (layer >= 3)
-+	if (layer >= NUM_LAYERS)
- 		return -EINVAL;
- 
- 	/* Check if the BER measures are already available */
-@@ -1089,7 +1091,7 @@ static int mb86a20s_get_blk_error(struct dvb_frontend *fe,
- 	u32 collect_rate;
- 	dev_dbg(&state->i2c->dev, "%s called.\n", __func__);
- 
--	if (layer >= 3)
-+	if (layer >= NUM_LAYERS)
- 		return -EINVAL;
- 
- 	/* Check if the PER measures are already available */
-@@ -1476,7 +1478,7 @@ static int mb86a20s_get_blk_error_layer_CNR(struct dvb_frontend *fe)
- 	}
- 
- 	/* Read all layers */
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < NUM_LAYERS; i++) {
- 		if (!(c->isdbt_layer_enabled & (1 << i))) {
- 			c->cnr.stat[1 + i].scale = FE_SCALE_NOT_AVAILABLE;
- 			continue;
-@@ -1565,20 +1567,20 @@ static void mb86a20s_stats_not_ready(struct dvb_frontend *fe)
- 	c->strength.len = 1;
- 
- 	/* Per-layer stats - 3 layers + global */
--	c->cnr.len = 4;
--	c->pre_bit_error.len = 4;
--	c->pre_bit_count.len = 4;
--	c->post_bit_error.len = 4;
--	c->post_bit_count.len = 4;
--	c->block_error.len = 4;
--	c->block_count.len = 4;
-+	c->cnr.len = NUM_LAYERS + 1;
-+	c->pre_bit_error.len = NUM_LAYERS + 1;
-+	c->pre_bit_count.len = NUM_LAYERS + 1;
-+	c->post_bit_error.len = NUM_LAYERS + 1;
-+	c->post_bit_count.len = NUM_LAYERS + 1;
-+	c->block_error.len = NUM_LAYERS + 1;
-+	c->block_count.len = NUM_LAYERS + 1;
- 
- 	/* Signal is always available */
- 	c->strength.stat[0].scale = FE_SCALE_RELATIVE;
- 	c->strength.stat[0].uvalue = 0;
- 
- 	/* Put all of them at FE_SCALE_NOT_AVAILABLE */
--	for (i = 0; i < 4; i++) {
-+	for (i = 0; i < NUM_LAYERS + 1; i++) {
- 		c->cnr.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
- 		c->pre_bit_error.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
- 		c->pre_bit_count.stat[i].scale = FE_SCALE_NOT_AVAILABLE;
-@@ -1617,7 +1619,7 @@ static int mb86a20s_get_stats(struct dvb_frontend *fe, int status_nr)
- 	if (status_nr < 9)
- 		return 0;
- 
--	for (i = 0; i < 3; i++) {
-+	for (i = 0; i < NUM_LAYERS; i++) {
- 		if (c->isdbt_layer_enabled & (1 << i)) {
- 			/* Layer is active and has rc segments */
- 			active_layers++;
--- 
-1.8.1.4
+2) The solo6x10 driver:
 
+	- divides the frame into blocks of 16x16 pixels each
+	- each block has its own threshold
+	- the driver adds one MOTION_ON buffer flag and one MOTION_DETECTED buffer
+	  flag.
+	- motion detection can be disabled or enabled.
+	- the driver has a global motion detection mode with just one threshold:
+	  in that case all blocks are set to the same threshold.
+	- there is also support for displaying a border around the image if motion
+	  is detected (very hardware specific).
+
+3) The tw2804 video encoder (based on the datasheet, not implemented in the driver):
+
+	- divides the image in 12x12 blocks (block size will differ for NTSC vs PAL)
+	- motion detection can be enabled or disabled for each block
+	- there are four controls: 
+		- luminance level change threshold
+		- spatial sensitivity threshold
+		- temporal sensitivity threshold
+		- velocity control (determines how well slow motions are detected)
+	- detection is reported by a hardware pin in this case
+
+Comparing these three examples of motion detection I see quite a lot of similarities,
+enough to make a proposal for an API:
+
+- Add a MOTION_DETECTION menu control:
+	- Disabled
+	- Global Motion Detection
+	- Regional Motion Detection
+
+If 'Global Motion Detection' is selected, then various threshold controls become
+available. What sort of thresholds are available seems to be quite variable, so
+I am inclined to leave this as private controls.
+
+- Add new buffer flags when motion is detected. The go7007 driver would need 4
+  bits (one for each region), the others just one. This can be done by taking
+  4 bits from the v4l2_buffer flags field. There are still 16 bits left there,
+  and if it becomes full, then we still have two reserved fields. I see no
+  reason for adding a 'MOTION_ON' flag as the solo6x10 driver does today: just
+  check the MOTION_DETECTION control if you want to know if motion detection
+  is on or not.
+
+- Add two new ioctls to get and set the block data:
+
+	#define V4L2_MD_HOR_BLOCKS (64)
+	#define V4L2_MD_VERT_BLOCKS (48)
+
+	#define V4L2_MD_TYPE_REGION	(1)
+	#define V4L2_MD_TYPE_THRESHOLD	(2)
+
+	struct v4l2_md_blocks {
+		__u32 type;
+		struct v4l2_rect rect;
+		__u32 minimum;
+		__u32 maximum;
+		__u32 reserved[32];
+        	__u16 blocks[V4L2_MD_HOR_BLOCKS][V4L2_MD_VERT_BLOCKS];
+	};
+
+	#define VIDIOC_G_MD_BLOCKS    _IORW('V', 103, struct v4l2_md_blocks)
+	#define VIDIOC_S_MD_BLOCKS    _IORW('V', 104, struct v4l2_md_blocks)
+
+  Apps must fill in type, then can call G_MD_BLOCKS to get the current block
+  values for that type. TYPE_REGION returns to which region each block belongs,
+  TYPE_THRESHOLD returns threshold values for each block.
+
+  rect returns the rectangle of valid blocks, minimum and maximum the min and max
+  values for each 'blocks' array element.
+
+  To change the blocks apps call S_MD_BLOCKS, fill in type, rect (rect is useful
+  here to set only a subset of all blocks) and blocks.
+
+So the go7007 would return 45x36 in rect, type would be REGION, min/max would be
+0-3.
+
+solo6x10 would return 45x36 in rect, type would be THRESHOLD, min/max would be
+0-65535.
+
+TW2804 would return 12x12 in rect, type would be THRESHOLD, min/max would be 0-1.
+
+Comment? Questions?
+
+Regards,
+
+	Hans
