@@ -1,192 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2392 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753576Ab3DLIFl (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:53852 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754646Ab3DLPlC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 04:05:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2 2/2] adv7180: add more subdev video ops
-Date: Fri, 12 Apr 2013 10:05:28 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com
-References: <201304120208.09564.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304120208.09564.sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304121005.28966.hverkuil@xs4all.nl>
+	Fri, 12 Apr 2013 11:41:02 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v9 00/20] V4L2 clock and async patches and soc-camera example
+Date: Fri, 12 Apr 2013 17:40:20 +0200
+Message-Id: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+Here comes a v9. The most visible change to v8 is the number of patches:-)
+The reason is, that I lied in v7. The "small" change to patch #1 "Removed
+the struct v4l2-clock subdevice member" actually required a lot of changes
+to soc-camera to split turning on and off the master clock by camera-host
+drivers and attaching a subdevice.
 
-Thanks for the patch!
+Otherwise the only meaningful changes are to patch #2, they are listed
+therein. Otherwise patches #17-20 (former #4-7) have been adjusted to
+those changes.
 
-I've got some comments about this, though.
+Patches #14,15 are also included this time to keep them in the round. They
+have been published earlier too, nothing extraordinary there.
 
-See below:
+These patches are also available from
 
-On Fri April 12 2013 00:08:09 Sergei Shtylyov wrote:
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> the soc-camera drivers.
-> 
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
->  drivers/media/i2c/adv7180.c |  105 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 105 insertions(+)
-> 
-> Index: linux/drivers/media/i2c/adv7180.c
-> ===================================================================
-> --- linux.orig/drivers/media/i2c/adv7180.c
-> +++ linux/drivers/media/i2c/adv7180.c
-> @@ -1,6 +1,8 @@
->  /*
->   * adv7180.c Analog Devices ADV7180 video decoder driver
->   * Copyright (c) 2009 Intel Corporation
-> + * Copyright (C) 2013 Cogent Embedded, Inc.
-> + * Copyright (C) 2013 Renesas Solutions Corp.
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 as
-> @@ -128,6 +130,7 @@ struct adv7180_state {
->  	v4l2_std_id		curr_norm;
->  	bool			autodetect;
->  	u8			input;
-> +	struct v4l2_mbus_framefmt fmt;
->  };
->  #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
->  					    struct adv7180_state,	\
-> @@ -397,10 +400,112 @@ static void adv7180_exit_controls(struct
->  	v4l2_ctrl_handler_free(&state->ctrl_hdl);
->  }
->  
-> +static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-> +				 enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (index > 0)
-> +		return -EINVAL;
-> +
-> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> +				struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_querystd(sd, &state->curr_norm);
+git://linuxtv.org/gliakhovetski/v4l-dvb.git v4l2-async
 
-No, you must use the currently set std here. What querystd returns is
-effectively unpredictable, and that defeats the purpose of this try
-function. It is always up to the application to call querystd and then
-call s_std to set the standard explicitly. The same problem applies to
-the other calls to querystd in this patch.
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-> +
-> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	fmt->field = V4L2_FIELD_INTERLACED;
-> +	fmt->width = 720;
-> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	*fmt = state->fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_try_mbus_fmt(sd, fmt);
-> +	state->fmt = *fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_querystd(sd, &state->curr_norm);
-> +
-> +	a->bounds.left = 0;
-> +	a->bounds.top = 0;
-> +	a->bounds.width = 720;
-> +	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +	a->defrect = a->bounds;
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	a->pixelaspect.numerator = 1;
-> +	a->pixelaspect.denominator = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_querystd(sd, &state->curr_norm);
-> +
-> +	a->c.left = 0;
-> +	a->c.top = 0;
-> +	a->c.width = 720;
-> +	a->c.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +
-> +	return 0;
-> +}
+Guennadi Liakhovetski (20):
+  V4L2: add temporary clock helpers
+  V4L2: support asynchronous subdevice registration
+  soc-camera: move common code to soc_camera.c
+  soc-camera: add host clock callbacks to start and stop the master
+    clock
+  pxa-camera: move interface activation and deactivation to clock
+    callbacks
+  omap1-camera: move interface activation and deactivation to clock
+    callbacks
+  atmel-isi: move interface activation and deactivation to clock
+    callbacks
+  mx3-camera: move interface activation and deactivation to clock
+    callbacks
+  mx2-camera: move interface activation and deactivation to clock
+    callbacks
+  mx1-camera: move interface activation and deactivation to clock
+    callbacks
+  sh-mobile-ceu-camera: move interface activation and deactivation to
+    clock callbacks
+  soc-camera: make .clock_{start,stop} compulsory, .add / .remove
+    optional
+  soc-camera: don't attach the client to the host during probing
+  sh-mobile-ceu-camera: add primitive OF support
+  sh-mobile-ceu-driver: support max width and height in DT
+  soc-camera: switch I2C subdevice drivers to use v4l2-clk
+  soc-camera: add V4L2-async support
+  sh_mobile_ceu_camera: add asynchronous subdevice probing support
+  imx074: support asynchronous probing
+  ARM: shmobile: convert ap4evb to asynchronously register camera
+    subdevices
 
-You are not actually implementing any cropping, so are these two ops really
-necessary?
+ .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+ arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
+ arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
+ drivers/media/i2c/soc_camera/imx074.c              |   34 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+ drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+ drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+ drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+ drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |   18 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+ drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  160 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     |  706 +++++++++++++++++---
+ .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+ drivers/media/v4l2-core/Makefile                   |    3 +-
+ drivers/media/v4l2-core/v4l2-async.c               |  284 ++++++++
+ drivers/media/v4l2-core/v4l2-clk.c                 |  177 +++++
+ include/media/sh_mobile_ceu.h                      |    2 +
+ include/media/sh_mobile_csi2.h                     |    2 +-
+ include/media/soc_camera.h                         |   39 +-
+ include/media/v4l2-async.h                         |   99 +++
+ include/media/v4l2-clk.h                           |   54 ++
+ include/media/v4l2-subdev.h                        |   10 +
+ 37 files changed, 1956 insertions(+), 473 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+ create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-async.h
+ create mode 100644 include/media/v4l2-clk.h
 
-> +
-> +static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
-> +				 struct v4l2_mbus_config *cfg)
-> +{
-> +	/*
-> +	 * The ADV7180 sensor supports BT.601/656 output modes.
-> +	 * The BT.656 is default and not yet configurable by s/w.
-> +	 */
-> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
-> +	cfg->type = V4L2_MBUS_BT656;
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->  	.querystd = adv7180_querystd,
->  	.g_input_status = adv7180_g_input_status,
->  	.s_routing = adv7180_s_routing,
-> +	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
-> +	.try_mbus_fmt = adv7180_try_mbus_fmt,
-> +	.g_mbus_fmt = adv7180_g_mbus_fmt,
-> +	.s_mbus_fmt = adv7180_s_mbus_fmt,
-> +	.cropcap = adv7180_cropcap,
-> +	.g_crop = adv7180_g_crop,
-> +	.g_mbus_config = adv7180_g_mbus_config,
->  };
->  
->  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+-- 
+1.7.2.5
 
-Regards,
-
-	Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
