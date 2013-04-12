@@ -1,45 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:27052 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935989Ab3DIG3P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 02:29:15 -0400
-Date: Tue, 9 Apr 2013 09:28:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bill Pemberton <wfp5p@virginia.edu>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] dt3155v4l: unlock on error path
-Message-ID: <20130409062850.GI23861@mwanda>
-References: <20130409051540.GA1516@longonot.mountain>
- <alpine.DEB.2.02.1304090719480.2019@hadrien>
+Received: from mail.kapsi.fi ([217.30.184.167]:51855 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752539Ab3DLSEE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 14:04:04 -0400
+Message-ID: <51684C6D.5000907@iki.fi>
+Date: Fri, 12 Apr 2013 21:03:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1304090719480.2019@hadrien>
+To: Jakob Haufe <sur5r@sur5r.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for Delock 61959
+References: <20130412161840.4bf01fc2@samsa.lan> <51681CD2.20905@iki.fi>
+In-Reply-To: <51681CD2.20905@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 09, 2013 at 07:20:19AM +0200, Julia Lawall wrote:
-> On Tue, 9 Apr 2013, Dan Carpenter wrote:
-> 
-> > We should unlock here and do some cleanup before returning.
-> >
-> > We can't actually hit this return path with the current code, so this
-> > patch is a basically a cleanup and doesn't change how the code works.
-> 
-> Why keep the return path then?  If the code is there, someone reading it
-> could naturally assume that it is necessary.
+According to IRC discussion that device has different remote.
 
-There are sanity checks in vb2_queue_init() but this caller always
-passes a sane "pd->q" pointer so the sanity checks always succeed.
-That might change in later code.  ;)
+New board layout is needed as remote keymap is property of board config.
 
-I like the code as it is, but I just wanted to note that the impact
-of this patch is zero in case anyone was backporting fixes.
+regards
+Antti
 
-regards,
-dan carpenter
+On 04/12/2013 05:40 PM, Antti Palosaari wrote:
+> On 04/12/2013 05:18 PM, Jakob Haufe wrote:
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
+>>
+>> Delock 61959 seems to be a relabeled version of Maxmedia UB425-TC with a
+>> different USB ID. PCB is marked as "UB425-TC Ver: A" and this change
+>> makes it work without any obvious problems.
+>>
+>> Signed-off-by: Jakob Haufe <sur5r@sur5r.net>
+>
+> Acked-by: Antti Palosaari <crope@iki.fi>
+> Reviewed-by: Antti Palosaari <crope@iki.fi>
+>
+>> - ---
+>>   drivers/media/usb/em28xx/em28xx-cards.c |    2 ++
+>>   1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c
+>> b/drivers/media/usb/em28xx/em28xx-cards.c
+>> index 1d3866f..82950aa 100644
+>> - --- a/drivers/media/usb/em28xx/em28xx-cards.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+>> @@ -2173,6 +2173,8 @@ struct usb_device_id em28xx_id_table[] = {
+>>                          .driver_info = EM2860_BOARD_EASYCAP },
+>>          { USB_DEVICE(0x1b80, 0xe425),
+>>                          .driver_info = EM2874_BOARD_MAXMEDIA_UB425_TC },
+>> +       { USB_DEVICE(0x1b80, 0xe1cc), /* Delock 61959 */
+>> +                       .driver_info = EM2874_BOARD_MAXMEDIA_UB425_TC },
+>>          { USB_DEVICE(0x2304, 0x0242),
+>>                          .driver_info = EM2884_BOARD_PCTV_510E },
+>>          { USB_DEVICE(0x2013, 0x0251),
+>> - --
+>> 1.7.10.4
+>>
+>>
+>> - --
+>> ceterum censeo microsoftem esse delendam.
+>> -----BEGIN PGP SIGNATURE-----
+>> Version: GnuPG v1.4.12 (GNU/Linux)
+>>
+>> iEYEARECAAYFAlFoF8AACgkQ1YAhDic+adaIPQCfZQ+6gUH/JA6N2QVsa7nrpZyL
+>> vSsAn3e+zMiFiM80Vn1oTGrgnkhDxfcx
+>> =mOcG
+>> -----END PGP SIGNATURE-----
+>> N‹§²æìr¸›yúèšØb²X¬¶Ç§vØ^–)Þº{.nÇ+‰·¥Š{±™çbj)í…æèw*jg¬±¨¶‰šŽŠÝ¢j/êäz¹Þ–Šà2ŠÞ™¨è­Ú&¢)ß¡«a¶Úþø®G«éh®æj:+v‰¨Šwè†Ù¥
+>>
+>>
+>
+>
 
+
+-- 
+http://palosaari.fi/
