@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:58354 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966919Ab3DQWaI (ORCPT
+Received: from ch1ehsobe003.messaging.microsoft.com ([216.32.181.183]:41545
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753988Ab3DLKvb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 18:30:08 -0400
-Received: by mail-la0-f42.google.com with SMTP id fn20so1990487lab.1
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 15:30:05 -0700 (PDT)
-Message-ID: <516F223C.2010704@cogentembedded.com>
-Date: Thu, 18 Apr 2013 02:29:16 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Fri, 12 Apr 2013 06:51:31 -0400
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	<linux-media@vger.kernel.org>,
+	<uclinux-dist-devel@blackfin.uclinux.org>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH 1/2] [media] blackfin: add display support in ppi driver
+Date: Fri, 12 Apr 2013 19:52:57 -0400
+Message-ID: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-CC: linux-media@vger.kernel.org, matsu@igel.co.jp
-Subject: Re: [PATCH 3/4] ARM: shmobile: Marzen: add VIN and ADV7180 support
-References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180215.01218.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304180215.01218.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/ppi.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-On 04/18/2013 02:15 AM, Sergei Shtylyov wrote:
+diff --git a/drivers/media/platform/blackfin/ppi.c b/drivers/media/platform/blackfin/ppi.c
+index 01b5b50..15e9c2b 100644
+--- a/drivers/media/platform/blackfin/ppi.c
++++ b/drivers/media/platform/blackfin/ppi.c
+@@ -266,6 +266,18 @@ static int ppi_set_params(struct ppi_if *ppi, struct ppi_params *params)
+ 		bfin_write32(&reg->vcnt, params->height);
+ 		if (params->int_mask)
+ 			bfin_write32(&reg->imsk, params->int_mask & 0xFF);
++		if (ppi->ppi_control & PORT_DIR) {
++			u32 hsync_width, vsync_width, vsync_period;
++
++			hsync_width = params->hsync
++					* params->bpp / params->dlen;
++			vsync_width = params->vsync * samples_per_line;
++			vsync_period = samples_per_line * params->frame;
++			bfin_write32(&reg->fs1_wlhb, hsync_width);
++			bfin_write32(&reg->fs1_paspl, samples_per_line);
++			bfin_write32(&reg->fs2_wlvb, vsync_width);
++			bfin_write32(&reg->fs2_palpf, vsync_period);
++		}
+ 		break;
+ 	}
+ 	default:
+-- 
+1.7.0.4
 
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->
-> Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
-> register VIN1/3 devices with the ADV7180 specific platform data.
->
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->
-> ---
->   arch/arm/mach-shmobile/board-marzen.c |   55 ++++++++++++++++++++++++++++++++++
->   1 file changed, 55 insertions(+)
-
-    Oops, should have updated copyrights on this file. :-/
-    Well, this is probably not the last version of the patchset 
-anyway... :-)
-
-WBR, Sergei
 
