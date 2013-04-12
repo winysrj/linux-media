@@ -1,41 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:55980 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932256Ab3DYOPp (ORCPT
+Received: from mail-wi0-f171.google.com ([209.85.212.171]:41756 "EHLO
+	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773Ab3DLI0u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 10:15:45 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id 6D8DC40BB3
-	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 16:15:43 +0200 (CEST)
-Date: Thu, 25 Apr 2013 16:15:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/2] soc-camera: common cropping and scaling helpers
-Message-ID: <Pine.LNX.4.64.1304251601080.21045@axis700.grange>
+	Fri, 12 Apr 2013 04:26:50 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 12 Apr 2013 13:56:29 +0530
+Message-ID: <CA+V-a8sko61y73odE5efJWwqYyMkBqM7_FPrs7Uvh7sdtBsGvA@mail.gmail.com>
+Subject: [GIT PULL FOR v3.10] DaVinci media cleanups + Updates
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hi Hans/Mauro,
 
-Recently a VIN soc-camera host driver has been submitted, that was based 
-on the sh_mobile_ceu_camera driver and as such it copied some of its 
-functions with no or very little change. This patch set extracts those 
-functions to make them available for other soc-camera drivers too. Those 
-functions deal with optimal cropping and scaling configuration of the host 
-and the client. It isn't easy to get this right, so, it is better to have 
-these routines centrally to get a better test coverage and not to have to 
-fix or extend each driver separately.
+Please pull the following patches for Davinci media. Few patches
+contain platform changes for ARM which have been Acked by its maintainer.
 
-The way these patches are organised is to make it simple to follow changes 
-and avoid any breakage. The first one modifies the functions in-place, 
-preparing them for extraction. The second one really just moves them out 
-into a separate file without any further changes.
+Regards,
+--Prabhakar Lad
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
+
+  [media] budget: Add support for Philips Semi Sylt PCI ref. design
+(2013-04-08 07:28:01 -0300)
+
+are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_v3.10
+
+Lad, Prabhakar (6):
+      davinci: vpif: add pm_runtime support
+      media: davinci: vpss: enable vpss clocks
+      media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
+      davinic: vpss: trivial cleanup
+      ARM: davinci: dm365: add support for v4l2 video display
+      ARM: davinci: dm365 EVM: add support for VPBE display
+
+Sekhar Nori (1):
+      media: davinci: kconfig: fix incorrect selects
+
+ arch/arm/mach-davinci/board-dm365-evm.c      |  166 ++++++++++++++++++++++-
+ arch/arm/mach-davinci/davinci.h              |    8 +-
+ arch/arm/mach-davinci/dm355.c                |    7 +-
+ arch/arm/mach-davinci/dm365.c                |  195 +++++++++++++++++++++++---
+ arch/arm/mach-davinci/dm644x.c               |    9 +-
+ arch/arm/mach-davinci/pm_domain.c            |    2 +-
+ drivers/media/platform/davinci/Kconfig       |  103 +++++---------
+ drivers/media/platform/davinci/Makefile      |   17 +--
+ drivers/media/platform/davinci/dm355_ccdc.c  |   39 +-----
+ drivers/media/platform/davinci/dm644x_ccdc.c |   44 ------
+ drivers/media/platform/davinci/isif.c        |   28 +---
+ drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++
+ drivers/media/platform/davinci/vpif.c        |   24 +---
+ drivers/media/platform/davinci/vpss.c        |   36 ++++-
+ 14 files changed, 459 insertions(+), 244 deletions(-)
