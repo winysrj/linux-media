@@ -1,105 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:39735 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762968Ab3DDQ47 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:56:59 -0400
-Received: by mail-ie0-f173.google.com with SMTP id 9so3288125iec.18
-        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 09:56:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
-References: <20130228102452.15191.22673.stgit@patser>
-	<20130228102502.15191.14146.stgit@patser>
-	<1364900432.18374.24.camel@laptop>
-	<515AF1C1.7080508@canonical.com>
-	<1364921954.20640.22.camel@laptop>
-	<1365076908.2609.94.camel@laptop>
-	<20130404133123.GW2228@phenom.ffwll.local>
-Date: Thu, 4 Apr 2013 18:56:58 +0200
-Message-ID: <CAKMK7uG_qLQrZUdE_LRANm7qXPvGUisBx-k=+y=F2gA3=odkrQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>,
-	x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4134 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754616Ab3DLSTj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 14:19:39 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3CIJaQI006034
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 20:19:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id EAB2711E0136
+	for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 20:19:35 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130412181935.EAB2711E0136@alastor.dyndns.org>
+Date: Fri, 12 Apr 2013 20:19:35 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 4, 2013 at 3:31 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> In this case when O blocks Y isn't actually blocked, so our
->> TASK_DEADLOCK wakeup doesn't actually achieve anything.
->>
->> This means we also have to track (task) state so that once Y tries to
->> acquire A (creating the actual deadlock) we'll not wait so our
->> TASK_DEADLOCK wakeup doesn't actually achieve anything.
->>
->> Note that Y doesn't need to acquire A in order to return -EDEADLK, any
->> acquisition from the same set (see below) would return -EDEADLK even if
->> there isn't an actual deadlock. This is the cost of heuristic; we could
->> walk the actual block graph but that would be prohibitively expensive
->> since we'd have to do this on every acquire.
->
-> Hm, I guess your aim with the TASK_DEADLOCK wakeup is to bound the wait
-> times of older task. This could be interesting for RT, but I'm unsure of
-> the implications. The trick with the current code is that the oldest task
-> will never see an -EAGAIN ever and hence is guaranteed to make forward
-> progress. If the task is really unlucky though it might be forced to wait
-> for a younger task for every ww_mutex it tries to acquire.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-[Aside: I'm writing this while your replies trickle in, but I think
-it's not yet answered already.]
+Results of the daily build of media_tree:
 
-Ok, I've discussed this a lot with Maarten on irc and I think I see a
-bit clearer now what's the aim with the new sleep state. Or at least I
-have an illusion about it ;-) So let me try to recap my understanding
-to check whether we're talking roughly about the same idea.
+date:		Fri Apr 12 19:00:17 CEST 2013
+git branch:	test
+git hash:	81e096c8ac6a064854c2157e0bf802dc4906678c
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-I think for starters we need to have a slightly more interesting example:
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-3 threads O, M, Y: O has the oldest ww_age/ticket, Y the youngest, M
-is in between.
-2 ww_mutexes: A, B
+Detailed results are available here:
 
-Y has already acquired ww_mutex A, M has already acquired ww_mutex B.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Now O wants to acquire B and M wants to acquire A (let's ignore
-detailed ordering for now), resulting in O blocking on M (M holds B
-already, but O is older) and M blocking on Y (same for lock B).
+Full logs are available here:
 
-Now first question to check my understanding: Your aim with that
-special wakeup is to kick M so that it backs off and drops B? That way
-O does not need to wait for Y to complete whatever it's currently
-doing, unlock A and then in turn M to complete whatever it's doing so
-that it can unlock A&B and finally allows O to grab the lock.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Presuming I'm still following we should be able to fix this with the
-new sleep state TASK_DEADLOCK and a flag somewhere in the thread info
-(let's call it PF_GTFO for simplicity). Then every time a task does a
-blocking wait on a ww_mutex it would set this special sleep state and
-also check the PF_GTFO bit. If the later is set, it bails out with
--EAGAIN (so that all locks are dropped).
+The Media Infrastructure API from this daily build is here:
 
-Now if a task wants to take a lock and notices that it's held by a
-younger locker it can set that flag and wake the thread up (need to
-think about all the races a bit, but we should be able to make this
-work). Then it can do the normal blocking mutex slowpath and wait for
-the unlock.
-
-Now if O and M race a bit against each another M should either get
-woken (if it's already blocked on Y) and back off, or notice that the
-thread flag is set before it even tries to grab another mutex (and so
-before the block tree can extend further to Y). And the special sleep
-state is to make sure we don't cause any other spurious interrupts.
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+http://www.xs4all.nl/~hverkuil/spec/media.html
