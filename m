@@ -1,73 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f182.google.com ([209.85.210.182]:58642 "EHLO
-	mail-ia0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422826Ab3DFM2N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 08:28:13 -0400
-Received: by mail-ia0-f182.google.com with SMTP id u8so3883666iag.41
-        for <linux-media@vger.kernel.org>; Sat, 06 Apr 2013 05:28:12 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 6 Apr 2013 20:28:12 +0800
-Message-ID: <CAEvN+1iN_fZ-Gu904LTLYf8CZs9ZfZm03bfuE4Ev3frEgOLShg@mail.gmail.com>
-Subject: Question regarding developing V4L2 device driver and Streaming IO in v4l2-ctl
-From: Tzu-Jung Lee <roylee17@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:64672 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754646Ab3DLPk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 11:40:58 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v9 07/20] atmel-isi: move interface activation and deactivation to clock callbacks
+Date: Fri, 12 Apr 2013 17:40:27 +0200
+Message-Id: <1365781240-16149-8-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+When adding and removing a client, the atmel-isi camera host driver only
+activates and deactivates its camera interface respectively, which doesn't
+include any client-specific actions. Move this functionality into
+.clock_start() and .clock_stop() callbacks.
 
-I'm writing device v4l2 driver for our video codec, which can be configured to:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c |   28 +++++++++++++++++--------
+ 1 files changed, 19 insertions(+), 9 deletions(-)
 
-    1. decode bitstream and output to TV (output device)
-    2. capture video input, and generate encoded bitstream. (capture device)
-    3. transcode input bitstream to another format output bitstream.
-(mem2mem device)
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index c9e080a..1044856 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -745,10 +745,23 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 	return formats;
+ }
+ 
+-/* Called with .host_lock held */
+ static int isi_camera_add_device(struct soc_camera_device *icd)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	return 0;
++}
++
++static void isi_camera_remove_device(struct soc_camera_device *icd)
++{
++	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
++/* Called with .host_lock held */
++static int isi_camera_clock_start(struct soc_camera_host *ici)
++{
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+@@ -762,21 +775,16 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
+-	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
+-		 icd->devnum);
+ 	return 0;
+ }
++
+ /* Called with .host_lock held */
+-static void isi_camera_remove_device(struct soc_camera_device *icd)
++static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct atmel_isi *isi = ici->priv;
+ 
+ 	clk_disable(isi->mck);
+ 	clk_disable(isi->pclk);
+-
+-	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
+-		 icd->devnum);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -880,6 +888,8 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= isi_camera_add_device,
+ 	.remove		= isi_camera_remove_device,
++	.clock_start	= isi_camera_clock_start,
++	.clock_stop	= isi_camera_clock_stop,
+ 	.set_fmt	= isi_camera_set_fmt,
+ 	.try_fmt	= isi_camera_try_fmt,
+ 	.get_formats	= isi_camera_get_formats,
+-- 
+1.7.2.5
 
-And I got some questions regarding the GENERIC way to handle the "end
-of stream" when doing STREAM I/O.
-(Perhaps these questions are only relevant to bitstream data instead of frames?)
-
-    1. Capture path: how does the device driver notify the user
-program the end of captured bitstream?
-    2. Output path: how does user program tells the the driver the end
-of output bitstream?
-
-    Based on the http://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html,
-    I wrote a program, which can do the stream I/O with our V4L2 driver.
-
-    For capture path: if the device has stopped, the program will get
-a zero-size (bytesused = 0) buffer when it DQBUF.
-    For output path: If the program has read the EOF of input file, it
-QBUF a zero-size buffer to notify the driver.
-
-    However, this is just the "vendor-specific" way. And I'm wondering
-what is the "generic" way to this?
-
-
-
-The v4l2-ctl is really handy, and helps me to develop the "control" of
-drivers. I'd like to use it for testing STREAM I/O functions as well.
-
-But I have questions regarding Streaming I/O in v4l2-ctl.
-
-    v4l-utils/utils/v4l2-ctl/v4l2-ctl.cpp:
-
-    1. For the path of "--stream-out-mmap", isn't it supposed to set
-the payload size (buf->bytesused) after filling data read from STDIN
-or file?
-
-    2. For capture path, user programs have to initially QBUF empty
-buffers for drivers to fill data.
-        However, for output path, do we need to QBUF empty buffers
-before the filling loop start?
-        Or we only QBUF filled buffers when the loop starts.
-
-It seems to me drivers can't use the buffer length to distinguish if
-the queued buffer are empty or filled ones, right.
-
-
-Thanks
-
-Roy
