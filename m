@@ -1,116 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64784 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.9]:51538 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757858Ab3DXVJY (ORCPT
+	with ESMTP id S1754631Ab3DLPk6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 17:09:24 -0400
-Date: Wed, 24 Apr 2013 23:09:22 +0200 (CEST)
+	Fri, 12 Apr 2013 11:40:58 -0400
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Phil Edworthy <phil.edworthy@renesas.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] soc_camera: Add V4L2_MBUS_FMT_YUYV10_2X10 format
-In-Reply-To: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
-Message-ID: <Pine.LNX.4.64.1304242249410.16970@axis700.grange>
-References: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v9 14/20] sh-mobile-ceu-camera: add primitive OF support
+Date: Fri, 12 Apr 2013 17:40:34 +0200
+Message-Id: <1365781240-16149-15-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phil
+Add an OF hook to sh_mobile_ceu_camera.c, no properties so far. Booting
+with DT also requires platform data to be optional.
 
-Thanks for the patch.
-
-On Wed, 17 Apr 2013, Phil Edworthy wrote:
-
-> The V4L2_MBUS_FMT_YUYV10_2X10 format has already been added to mediabus, so
-> this patch just adds SoC camera support.
-> 
-> Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
-> ---
->  drivers/media/platform/soc_camera/soc_mediabus.c |   15 +++++++++++++++
->  include/media/soc_mediabus.h                     |    3 +++
->  2 files changed, 18 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/drivers/media/platform/soc_camera/soc_mediabus.c
-> index 7569e77..be47d41 100644
-> --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> @@ -57,6 +57,15 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
->  		.layout			= SOC_MBUS_LAYOUT_PACKED,
->  	},
->  }, {
-> +	.code = V4L2_MBUS_FMT_YUYV10_2X10,
-> +	.fmt = {
-> +		.fourcc			= V4L2_PIX_FMT_YUYV,
-> +		.name			= "YUYV",
-> +		.bits_per_sample	= 10,
-> +		.packing		= SOC_MBUS_PACKING_2X10_PADHI,
-
-Wow, what kind of host can pack two 10-bit samples into 3 bytes and write 
-3-byte pixels to memory?
-
-> +		.order			= SOC_MBUS_ORDER_LE,
-> +	},
-> +}, {
->  	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
->  	.fmt = {
->  		.fourcc			= V4L2_PIX_FMT_RGB555,
-> @@ -403,6 +412,10 @@ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
->  		*numerator = 2;
->  		*denominator = 1;
->  		return 0;
-> +	case SOC_MBUS_PACKING_2X10_PADHI:
-> +		*numerator = 3;
-> +		*denominator = 1;
-
-Why 3? it's 2 samples per pixel, right? Should be *numerator = 2 above?
-
-> +		return 0;
->  	case SOC_MBUS_PACKING_1_5X8:
->  		*numerator = 3;
->  		*denominator = 2;
-> @@ -428,6 +441,8 @@ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
->  	case SOC_MBUS_PACKING_2X8_PADLO:
->  	case SOC_MBUS_PACKING_EXTEND16:
->  		return width * 2;
-> +	case SOC_MBUS_PACKING_2X10_PADHI:
-> +		return width * 3;
->  	case SOC_MBUS_PACKING_1_5X8:
->  		return width * 3 / 2;
->  	case SOC_MBUS_PACKING_VARIABLE:
-> diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-> index d33f6d0..b131a47 100644
-> --- a/include/media/soc_mediabus.h
-> +++ b/include/media/soc_mediabus.h
-> @@ -21,6 +21,8 @@
->   * @SOC_MBUS_PACKING_2X8_PADHI:	16 bits transferred in 2 8-bit samples, in the
->   *				possibly incomplete byte high bits are padding
->   * @SOC_MBUS_PACKING_2X8_PADLO:	as above, but low bits are padding
-> + * @SOC_MBUS_PACKING_2X10_PADHI:20 bits transferred in 2 10-bit samples. The
-
-A TAB is missing after ":"?
-
-> + *				high bits are padding
->   * @SOC_MBUS_PACKING_EXTEND16:	sample width (e.g., 10 bits) has to be extended
->   *				to 16 bits
->   * @SOC_MBUS_PACKING_VARIABLE:	compressed formats with variable packing
-> @@ -33,6 +35,7 @@ enum soc_mbus_packing {
->  	SOC_MBUS_PACKING_NONE,
->  	SOC_MBUS_PACKING_2X8_PADHI,
->  	SOC_MBUS_PACKING_2X8_PADLO,
-> +	SOC_MBUS_PACKING_2X10_PADHI,
->  	SOC_MBUS_PACKING_EXTEND16,
->  	SOC_MBUS_PACKING_VARIABLE,
->  	SOC_MBUS_PACKING_1_5X8,
-> -- 
-> 1.7.5.4
-> 
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   33 ++++++++++++++------
+ 1 files changed, 23 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 9037472..fcc13d8 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -27,6 +27,7 @@
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/moduleparam.h>
++#include <linux/of.h>
+ #include <linux/time.h>
+ #include <linux/slab.h>
+ #include <linux/device.h>
+@@ -118,6 +119,7 @@ struct sh_mobile_ceu_dev {
+ 
+ 	enum v4l2_field field;
+ 	int sequence;
++	unsigned long flags;
+ 
+ 	unsigned int image_mode:1;
+ 	unsigned int is_16bit:1;
+@@ -706,7 +708,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
+ 	}
+ 
+ 	/* CSI2 special configuration */
+-	if (pcdev->pdata->csi2) {
++	if (pcdev->csi2_pdev) {
+ 		in_width = ((in_width - 2) * 2);
+ 		left_offset *= 2;
+ 	}
+@@ -810,7 +812,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
+ 	/* Make choises, based on platform preferences */
+ 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
+-		if (pcdev->pdata->flags & SH_CEU_FLAG_HSYNC_LOW)
++		if (pcdev->flags & SH_CEU_FLAG_HSYNC_LOW)
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
+@@ -818,7 +820,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
+ 
+ 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
+ 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
+-		if (pcdev->pdata->flags & SH_CEU_FLAG_VSYNC_LOW)
++		if (pcdev->flags & SH_CEU_FLAG_VSYNC_LOW)
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
+ 		else
+ 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
+@@ -873,11 +875,11 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
+ 	value |= common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
+ 	value |= common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
+ 
+-	if (pcdev->pdata->csi2) /* CSI2 mode */
++	if (pcdev->csi2_pdev) /* CSI2 mode */
+ 		value |= 3 << 12;
+ 	else if (pcdev->is_16bit)
+ 		value |= 1 << 12;
+-	else if (pcdev->pdata->flags & SH_CEU_FLAG_LOWER_8BIT)
++	else if (pcdev->flags & SH_CEU_FLAG_LOWER_8BIT)
+ 		value |= 2 << 12;
+ 
+ 	ceu_write(pcdev, CAMCR, value);
+@@ -1052,7 +1054,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+ 		return 0;
+ 	}
+ 
+-	if (!pcdev->pdata->csi2) {
++	if (!pcdev->pdata || !pcdev->pdata->csi2) {
+ 		/* Are there any restrictions in the CSI-2 case? */
+ 		ret = sh_mobile_ceu_try_bus_param(icd, fmt->bits_per_sample);
+ 		if (ret < 0)
+@@ -2107,13 +2109,17 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 	init_completion(&pcdev->complete);
+ 
+ 	pcdev->pdata = pdev->dev.platform_data;
+-	if (!pcdev->pdata) {
++	if (!pcdev->pdata && !pdev->dev.of_node) {
+ 		dev_err(&pdev->dev, "CEU platform data not set.\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	pcdev->max_width = pcdev->pdata->max_width ? : 2560;
+-	pcdev->max_height = pcdev->pdata->max_height ? : 1920;
++	/* TODO: implement per-device bus flags */
++	if (pcdev->pdata) {
++		pcdev->max_width = pcdev->pdata->max_width ? : 2560;
++		pcdev->max_height = pcdev->pdata->max_height ? : 1920;
++		pcdev->flags = pcdev->pdata->flags;
++	}
+ 
+ 	base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(base))
+@@ -2168,7 +2174,7 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
+ 		goto exit_free_ctx;
+ 
+ 	/* CSI2 interfacing */
+-	csi2 = pcdev->pdata->csi2;
++	csi2 = pcdev->pdata ? pcdev->pdata->csi2 : NULL;
+ 	if (csi2) {
+ 		struct platform_device *csi2_pdev =
+ 			platform_device_alloc("sh-mobile-csi2", csi2->id);
+@@ -2290,10 +2296,17 @@ static const struct dev_pm_ops sh_mobile_ceu_dev_pm_ops = {
+ 	.runtime_resume = sh_mobile_ceu_runtime_nop,
+ };
+ 
++static const struct of_device_id sh_mobile_ceu_of_match[] = {
++	{ .compatible = "renesas,sh-mobile-ceu" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, sh_mobile_ceu_of_match);
++
+ static struct platform_driver sh_mobile_ceu_driver = {
+ 	.driver		= {
+ 		.name	= "sh_mobile_ceu",
+ 		.pm	= &sh_mobile_ceu_dev_pm_ops,
++		.of_match_table = sh_mobile_ceu_of_match,
+ 	},
+ 	.probe		= sh_mobile_ceu_probe,
+ 	.remove		= sh_mobile_ceu_remove,
+-- 
+1.7.2.5
+
