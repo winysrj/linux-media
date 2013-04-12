@@ -1,113 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13713 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965528Ab3DPWtd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 18:49:33 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3GMnXFk016925
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 18:49:33 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2] [media] it913x: rename its tuner driver to tuner_it913x
-Date: Tue, 16 Apr 2013 19:49:27 -0300
-Message-Id: <1366152567-10191-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.187]:52594 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096Ab3DLPko (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 11:40:44 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v9 08/20] mx3-camera: move interface activation and deactivation to clock callbacks
+Date: Fri, 12 Apr 2013 17:40:28 +0200
+Message-Id: <1365781240-16149-9-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are three drivers with *it913x name on it, and they all
-belong to the same device:
-	a tuner, at it913x.c;
-	a frontend: it913x-fe.c;
-	a bridge: it913x.c, renamed to dvb_usb_it913x by the
-building system.
+When adding and removing a client, the mx3-camera driver only activates
+and deactivates its camera interface respectively, which doesn't include
+any client-specific actions. Move this functionality into .clock_start()
+and .clock_stop() callbacks.
 
-This is confusing. Even more confusing are the two .c files with
-the same name under different directories, with different contents
-and different functions. So, prepend the tuner one.
-
-This also breaks the out-of-tree compilation system.
-
-Reported-by: Frederic Fays <frederic.fays@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
+ drivers/media/platform/soc_camera/mx3_camera.c |   35 ++++++++++++++---------
+ 1 files changed, 21 insertions(+), 14 deletions(-)
 
-v2: use -M to make it easier to review
-
- drivers/media/tuners/Makefile                               | 2 +-
- drivers/media/tuners/{it913x.c => tuner_it913x.c}           | 2 +-
- drivers/media/tuners/{it913x.h => tuner_it913x.h}           | 0
- drivers/media/tuners/{it913x_priv.h => tuner_it913x_priv.h} | 2 +-
- drivers/media/usb/dvb-usb-v2/af9035.h                       | 2 +-
- 5 files changed, 4 insertions(+), 4 deletions(-)
- rename drivers/media/tuners/{it913x.c => tuner_it913x.c} (99%)
- rename drivers/media/tuners/{it913x.h => tuner_it913x.h} (100%)
- rename drivers/media/tuners/{it913x_priv.h => tuner_it913x_priv.h} (98%)
-
-diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-index f136a6d..2ebe4b7 100644
---- a/drivers/media/tuners/Makefile
-+++ b/drivers/media/tuners/Makefile
-@@ -34,7 +34,7 @@ obj-$(CONFIG_MEDIA_TUNER_TUA9001) += tua9001.o
- obj-$(CONFIG_MEDIA_TUNER_FC0011) += fc0011.o
- obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
- obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
--obj-$(CONFIG_MEDIA_TUNER_IT913X) += it913x.o
-+obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 71b9b19..1047e3e 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -460,8 +460,7 @@ static int mx3_camera_init_videobuf(struct vb2_queue *q,
+ }
  
- ccflags-y += -I$(srctree)/drivers/media/dvb-core
- ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/tuner_it913x.c
-similarity index 99%
-rename from drivers/media/tuners/it913x.c
-rename to drivers/media/tuners/tuner_it913x.c
-index 4d7a247..6f30d7e 100644
---- a/drivers/media/tuners/it913x.c
-+++ b/drivers/media/tuners/tuner_it913x.c
-@@ -20,7 +20,7 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
-  */
+ /* First part of ipu_csi_init_interface() */
+-static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
+-				struct soc_camera_device *icd)
++static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam)
+ {
+ 	u32 conf;
+ 	long rate;
+@@ -505,31 +504,40 @@ static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
  
--#include "it913x_priv.h"
-+#include "tuner_it913x_priv.h"
+ 	clk_prepare_enable(mx3_cam->clk);
+ 	rate = clk_round_rate(mx3_cam->clk, mx3_cam->mclk);
+-	dev_dbg(icd->parent, "Set SENS_CONF to %x, rate %ld\n", conf, rate);
++	dev_dbg(mx3_cam->soc_host.v4l2_dev.dev, "Set SENS_CONF to %x, rate %ld\n", conf, rate);
+ 	if (rate)
+ 		clk_set_rate(mx3_cam->clk, rate);
+ }
  
- struct it913x_state {
- 	struct i2c_adapter *i2c_adap;
-diff --git a/drivers/media/tuners/it913x.h b/drivers/media/tuners/tuner_it913x.h
-similarity index 100%
-rename from drivers/media/tuners/it913x.h
-rename to drivers/media/tuners/tuner_it913x.h
-diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/tuner_it913x_priv.h
-similarity index 98%
-rename from drivers/media/tuners/it913x_priv.h
-rename to drivers/media/tuners/tuner_it913x_priv.h
-index 00dcf3c..ce65210 100644
---- a/drivers/media/tuners/it913x_priv.h
-+++ b/drivers/media/tuners/tuner_it913x_priv.h
-@@ -23,7 +23,7 @@
- #ifndef IT913X_PRIV_H
- #define IT913X_PRIV_H
+-/* Called with .host_lock held */
+ static int mx3_camera_add_device(struct soc_camera_device *icd)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	return 0;
++}
++
++static void mx3_camera_remove_device(struct soc_camera_device *icd)
++{
++	dev_info(icd->parent, "MX3 Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
++/* Called with .host_lock held */
++static int mx3_camera_clock_start(struct soc_camera_host *ici)
++{
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
  
--#include "it913x.h"
-+#include "tuner_it913x.h"
- #include "af9033.h"
+-	mx3_camera_activate(mx3_cam, icd);
++	mx3_camera_activate(mx3_cam);
  
- #define PRO_LINK		0x0
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index 0f42b6c..b5827ca 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -30,7 +30,7 @@
- #include "mxl5007t.h"
- #include "tda18218.h"
- #include "fc2580.h"
--#include "it913x.h"
-+#include "tuner_it913x.h"
+ 	mx3_cam->buf_total = 0;
  
- struct reg_val {
- 	u32 reg;
+-	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
+-		 icd->devnum);
+-
+ 	return 0;
+ }
+ 
+ /* Called with .host_lock held */
+-static void mx3_camera_remove_device(struct soc_camera_device *icd)
++static void mx3_camera_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx3_camera_dev *mx3_cam = ici->priv;
+ 	struct idmac_channel **ichan = &mx3_cam->idmac_channel[0];
+ 
+@@ -539,9 +547,6 @@ static void mx3_camera_remove_device(struct soc_camera_device *icd)
+ 	}
+ 
+ 	clk_disable_unprepare(mx3_cam->clk);
+-
+-	dev_info(icd->parent, "MX3 Camera driver detached from camera %d\n",
+-		 icd->devnum);
+ }
+ 
+ static int test_platform_param(struct mx3_camera_dev *mx3_cam,
+@@ -1124,6 +1129,8 @@ static struct soc_camera_host_ops mx3_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= mx3_camera_add_device,
+ 	.remove		= mx3_camera_remove_device,
++	.clock_start	= mx3_camera_clock_start,
++	.clock_stop	= mx3_camera_clock_stop,
+ 	.set_crop	= mx3_camera_set_crop,
+ 	.set_fmt	= mx3_camera_set_fmt,
+ 	.try_fmt	= mx3_camera_try_fmt,
 -- 
-1.8.1.4
+1.7.2.5
 
